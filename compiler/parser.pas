@@ -247,24 +247,22 @@ implementation
 *****************************************************************************}
 
     procedure init_module;
-
-      var to_create:set of Tasmlist;
-          i:Tasmlist;
+      var
+        i : Tasmlist;
       begin
          exprasmlist:=taasmoutput.create;
-         { Create assembler output lists for CG }
-         to_create:=[al_procedures,al_typestabs,al_globals,al_const,
-                     al_threadvars,al_withdebug,al_typedconsts,al_rotypedconsts,al_rtti,al_picdata];
          for i:=low(Tasmlist) to high(Tasmlist) do
-           if i in to_create then
-             asmlist[i]:=Taasmoutput.create
-           else
-             asmlist[i]:=nil;
+           asmlist[i]:=Taasmoutput.create;
 
+         { PIC data }
+{$ifdef powerpc}
          if target_info.system=system_powerpc_darwin then
            asmlist[al_picdata].concat(tai_simple.create(ait_non_lazy_symbol_pointer));
+{$endif powerpc}
+
          { Resource strings }
-         cresstr.al_resourcestrings:=Tal_resourcestrings.Create;
+         cresstr.resourcestrings:=Tresourcestrings.Create;
+
          { use the librarydata from current_module }
          objectlibrary:=current_module.librarydata;
       end;
@@ -287,7 +285,7 @@ implementation
          d.free;
 {$endif}
          { resource strings }
-         cresstr.al_resourcestrings.free;
+         cresstr.resourcestrings.free;
          objectlibrary:=nil;
       end;
 
@@ -322,7 +320,7 @@ implementation
           oldasmlist:array[Tasmlist] of Taasmoutput;
           oldobjectlibrary : tasmlibrarydata;
         { al_resourcestrings }
-          Oldal_resourcestrings : tal_resourcestrings;
+          Oldresourcestrings : tresourcestrings;
         { akt.. things }
           oldaktlocalswitches  : tlocalswitches;
           oldaktmoduleswitches : tmoduleswitches;
@@ -382,7 +380,7 @@ implementation
             oldasmlist:=asmlist;
             oldexprasmlist:=exprasmlist;
             oldobjectlibrary:=objectlibrary;
-            Oldal_resourcestrings:=al_resourcestrings;
+            Oldresourcestrings:=resourcestrings;
           { save akt... state }
           { handle the postponed case first }
            if localswitcheschanged then
@@ -545,7 +543,7 @@ implementation
                    exprasmlist:=oldexprasmlist;
                    asmlist:=oldasmlist;
                    { object data }
-                   al_resourcestrings:=Oldal_resourcestrings;
+                   resourcestrings:=oldresourcestrings;
                    objectlibrary:=oldobjectlibrary;
                    { restore previous scanner }
                    if assigned(old_compiled_module) then

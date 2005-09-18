@@ -95,7 +95,7 @@ implementation
        scanner,import,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgobj,cgobj,
+       tgobj,cgobj,dbgbase,
        ncgutil,regvars
 {$ifdef arm}
        ,aasmcpu
@@ -848,6 +848,11 @@ implementation
             { because of the limited constant size of the arm, all data access is done pc relative }
             insertpcrelativedata(aktproccode,aktlocaldata);
 {$endif ARM}
+
+            { insert line debuginfo }
+            if (cs_debuginfo in aktmoduleswitches) or
+               (cs_gdb_lineinfo in aktglobalswitches) then
+              debuginfo.insertlineinfo(aktproccode);
 
             { add the procedure to the al_procedures }
             maybe_new_object_file(asmlist[al_procedures]);

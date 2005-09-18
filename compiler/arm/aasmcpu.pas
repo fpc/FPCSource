@@ -667,7 +667,7 @@ implementation
               begin
                 lastpos:=curpos;
                 hp:=tai(curtai.next);
-                objectlibrary.getlabel(l);
+                objectlibrary.getjumplabel(l);
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
                 list.insertlistafter(curtai,curdata);

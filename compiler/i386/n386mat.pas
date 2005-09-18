@@ -113,7 +113,7 @@ implementation
                 begin
                   { a jump, but less operations }
                   emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                  objectlibrary.getlabel(hl);
+                  objectlibrary.getjumplabel(hl);
                   cg.a_jmp_flags(exprasmlist,F_NS,hl);
                   if power=1 then
                     emit_reg(A_INC,S_L,hreg1)
@@ -253,9 +253,9 @@ implementation
 
               { the damned shift instructions work only til a count of 32 }
               { so we've to do some tricks here                           }
-              objectlibrary.getlabel(l1);
-              objectlibrary.getlabel(l2);
-              objectlibrary.getlabel(l3);
+              objectlibrary.getjumplabel(l1);
+              objectlibrary.getjumplabel(l2);
+              objectlibrary.getjumplabel(l3);
               emit_const_reg(A_CMP,S_L,64,NR_ECX);
               cg.a_jmp_flags(exprasmlist,F_L,l1);
               emit_reg_reg(A_XOR,S_L,hreg64lo,hreg64lo);

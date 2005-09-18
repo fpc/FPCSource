@@ -143,19 +143,7 @@ interface
         currlistidx  : byte;
         currlist     : TAAsmoutput;
         currpass     : byte;
-{$ifdef GDB}
-        n_line       : byte;     { different types of source lines }
-        linecount,
-        includecount : longint;
-        funcname     : tasmsymbol;
-        stabslastfileinfo : tfileposinfo;
-        procedure convertstabs(p:pchar);
-        procedure emitlineinfostabs(nidx,line : longint);
-        procedure emitstabs(s:string);
-        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
-        procedure StartFileLineInfo;
-        procedure EndFileLineInfo;
-{$endif}
+        procedure convertstab(p:pchar);
         function  MaybeNextList(var hp:Tai):boolean;
         function  TreePass0(hp:Tai):Tai;
         function  TreePass1(hp:Tai):Tai;
@@ -188,10 +176,6 @@ Implementation
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
-{$ifdef GDB}
-      finput,
-      gdb,
-{$endif GDB}
 {$ifdef m68k}
       cpuinfo,
 {$endif m68k}
@@ -694,273 +678,203 @@ Implementation
       end;
 
 
-{$ifdef GDB}
-    procedure TInternalAssembler.convertstabs(p:pchar);
+    procedure TInternalAssembler.convertstab(p:pchar);
+
+        function consumecomma(var p:pchar):boolean;
+        begin
+          while (p^=' ') do
+            inc(p);
+          result:=(p^=',');
+          inc(p);
+        end;
+
+        function consumenumber(var p:pchar;out value:longint):boolean;
+        var
+          hs : string;
+          len,
+          code : integer;
+        begin
+          value:=0;
+          while (p^=' ') do
+            inc(p);
+          len:=0;
+          while (p^ in ['0'..'9']) do
+            begin
+              inc(len);
+              hs[len]:=p^;
+              inc(p);
+            end;
+          if len>0 then
+            begin
+              hs[0]:=chr(len);
+              val(hs,value,code);
+            end
+          else
+            code:=-1;
+          result:=(code=0);
+        end;
+
+        function consumeoffset(var p:pchar;out relocsym:tasmsymbol;out value:longint):boolean;
+        var
+          hs        : string;
+          len,
+          code      : integer;
+          pstart    : pchar;
+          sym       : tasmsymbol;
+          exprvalue : longint;
+          gotmin,
+          dosub     : boolean;
+        begin
+          result:=false;
+          value:=0;
+          relocsym:=nil;
+          gotmin:=false;
+          repeat
+            dosub:=false;
+            exprvalue:=0;
+            if gotmin then
+              begin
+                dosub:=true;
+                gotmin:=false;
+              end;
+            while (p^=' ') do
+              inc(p);
+            case p^ of
+              #0 :
+                break; 
+              ' ' :
+                inc(p);
+              '0'..'9' :
+                begin
+                  len:=0;
+                  while (p^ in ['0'..'9']) do
+                    begin
+                      inc(len);
+                      hs[len]:=p^;
+                      inc(p);
+                    end;
+                  hs[0]:=chr(len);
+                  val(hs,exprvalue,code);
+                end;
+              '.','_',
+              'A'..'Z',
+              'a'..'z' :
+                begin
+                  pstart:=p;
+                  while not(p^ in [#0,' ','-','+']) do
+                    inc(p);
+                  len:=p-pstart;
+                  if len>255 then
+                    internalerror(200509187);
+                  move(pstart^,hs[1],len);
+                  hs[0]:=chr(len);
+                  sym:=objectlibrary.newasmsymbol(hs,AB_EXTERNAL,AT_NONE);
+                  if not assigned(sym) then
+                    internalerror(200509188);
+                  objectlibrary.UsedAsmSymbolListInsert(sym);
+                  { Second symbol? }
+                  if assigned(relocsym) then
+                    begin
+                      if (relocsym.section<>sym.section) then
+                        internalerror(2005091810);
+                      relocsym:=nil; 
+                    end
+                  else
+                    begin
+                      relocsym:=sym;
+                    end; 
+                  exprvalue:=sym.address;
+                end;
+              '+' :
+                begin
+                  { nothing, by default addition is done }
+                  inc(p);
+                end;  
+              '-' :
+                begin
+                  gotmin:=true;
+                  inc(p);
+                end;  
+              else
+                internalerror(200509189);
+            end;
+            if dosub then
+              dec(value,exprvalue)
+            else
+              inc(value,exprvalue);
+          until false;
+          result:=true;
+        end;
+
       var
         ofs,
-        nidx,nother,ii,i,line,j : longint;
-        code : integer;
-        hp : pchar;
-        reloc : boolean;
-        ps : tasmsymbol;
-        s : string;
+        nline,
+        nidx,
+        nother,
+        i         : longint;
+        relocsym  : tasmsymbol;
+        pstr,
+        pcurr,
+        pendquote : pchar;
       begin
-        ofs:=0;
-        reloc:=true;
-        ps:=nil;
+        pcurr:=nil;
+        pstr:=nil;
+        pendquote:=nil;
+
+        { Parse string part }
         if p[0]='"' then
-         begin
-           i:=1;
-           { we can have \" inside the string !! PM }
-           while not ((p[i]='"') and (p[i-1]<>'\')) do
-            inc(i);
-           p[i]:=#0;
-           ii:=i;
-           hp:=@p[1];
-           s:=StrPas(@P[i+2]);
-         end
-        else
-         begin
-           hp:=nil;
-           s:=StrPas(P);
-           i:=-2; {needed below (PM) }
-         end;
-      { When in pass 1 then only alloc and leave }
-        if currpass=1 then
-         begin
-           objectdata.allocstabs(hp);
-           if assigned(hp) then
-            p[i]:='"';
-           exit;
-         end;
-      { Parse the rest of the stabs }
-        if s='' then
-         internalerror(33000);
-        j:=pos(',',s);
-        if j=0 then
-         internalerror(33001);
-        Val(Copy(s,1,j-1),nidx,code);
-        if code<>0 then
-         internalerror(33002);
-        i:=i+2+j;
-        Delete(s,1,j);
-        j:=pos(',',s);
-        if (j=0) then
-         internalerror(33003);
-        Val(Copy(s,1,j-1),nother,code);
-        if code<>0 then
-         internalerror(33004);
-        i:=i+j;
-        Delete(s,1,j);
-        j:=pos(',',s);
-        if j=0 then
-         begin
-           j:=256;
-           ofs:=-1;
-         end;
-        Val(Copy(s,1,j-1),line,code);
-        if code<>0 then
-          internalerror(33005);
-        if ofs=0 then
           begin
-            Delete(s,1,j);
-            i:=i+j;
-            Val(s,ofs,code);
-            if code=0 then
-              reloc:=false
+            pstr:=@p[1];
+            { Ignore \" inside the string }
+            i:=1;
+            while not((p[i]='"') and (p[i-1]<>'\')) and
+                  (p[i]<>#0) do
+              inc(i);
+            pendquote:=@p[i];
+            pendquote^:=#0;
+            pcurr:=@p[i+1];
+            if not consumecomma(pcurr) then
+              internalerror(200509181);
+          end
+        else
+          pcurr:=p;
+
+        { When in pass 1 then only alloc and leave }
+        if currpass=1 then
+          objectdata.allocstab(pstr)
+        else
+          begin  
+            { Stabs format: nidx,nother,nline[,offset] }
+            if not consumenumber(pcurr,nidx) then
+              internalerror(200509182);
+            if not consumecomma(pcurr) then
+              internalerror(200509183);
+            if not consumenumber(pcurr,nother) then
+              internalerror(200509184);
+            if not consumecomma(pcurr) then
+              internalerror(200509185);
+            if not consumenumber(pcurr,nline) then
+              internalerror(200509186);
+            if consumecomma(pcurr) then
+              consumeoffset(pcurr,relocsym,ofs)
             else
               begin
                 ofs:=0;
-                s:=strpas(@p[i]);
-                { handle asmsymbol or
-                    asmsymbol - asmsymbol }
-                j:=pos(' ',s);
-                if j=0 then
-                  j:=pos('-',s);
-                { also try to handle
-                  asmsymbol + constant
-                  or
-                  asmsymbol - constant }
-                if j=0 then
-                  j:=pos('+',s);
-
-                if j<>0 then
-                  begin
-                    Val(Copy(s,j+1,255),ofs,code);
-                    if code<>0 then
-                      ofs:=0
-                    else
-                    { constant reading successful,
-                      avoid further treatment by
-                      setting s[j] to '+' }
-                      s[j]:='+';
-                  end
-                else
-                { single asmsymbol }
-                  j:=256;
-                { the symbol can be external
-                  so we must use newasmsymbol and
-                  not getasmsymbol !! PM }
-                ps:=objectlibrary.newasmsymbol(copy(s,1,j-1),AB_EXTERNAL,AT_NONE);
-                if not assigned(ps) then
-                  internalerror(33006)
-                else
-                  begin
-                    ofs:=ofs+ps.address;
-                    reloc:=true;
-                    objectlibrary.UsedAsmSymbolListInsert(ps);
-                  end;
-                if (j<256) and (s[j]<>'+') then
-                  begin
-                    i:=i+j;
-                    s:=strpas(@p[i]);
-                    if (s<>'') and (s[1]=' ') then
-                      begin
-                         j:=0;
-                         while (s[j+1]=' ') do
-                           inc(j);
-                         i:=i+j;
-                         s:=strpas(@p[i]);
-                      end;
-                    ps:=objectlibrary.getasmsymbol(s);
-                    if not assigned(ps) then
-                      internalerror(33007)
-                    else
-                      begin
-                        if ps.section<>objectdata.currsec then
-                          internalerror(33008);
-                        ofs:=ofs-ps.address;
-                        reloc:=false;
-                        objectlibrary.UsedAsmSymbolListInsert(ps);
-                      end;
-                  end;
+                relocsym:=nil;
               end;
-          end;
-        { External references (AB_EXTERNAL and AB_COMMON) need a symbol relocation }
-        if assigned(ps) and (ps.currbind in [AB_EXTERNAL,AB_COMMON]) then
-          begin
-            if currpass=2 then
+            { External references (AB_EXTERNAL and AB_COMMON) need a symbol relocation }
+            if assigned(relocsym) then
               begin
-                objectdata.writesymbol(ps);
-                objectoutput.exportsymbol(ps);
-              end;
-            objectdata.writeSymStabs(ofs,hp,ps,nidx,nother,line,reloc)
-          end
-        else
-          objectdata.writeStabs(ofs,hp,nidx,nother,line,reloc);
-        if assigned(hp) then
-         p[ii]:='"';
-      end;
-
-
-    procedure TInternalAssembler.emitlineinfostabs(nidx,line : longint);
-      begin
-        if currpass=1 then
-          begin
-            objectdata.allocstabs(nil);
-            exit;
+                objectdata.writesymbol(relocsym);
+                objectoutput.exportsymbol(relocsym);
+                objectdata.writeSymStabs(ofs,pstr,relocsym,nidx,nother,nline,true);
+              end
+            else
+              objectdata.writeStabs(ofs,pstr,nidx,nother,nline,false);
           end;
-
-        if (nidx=n_textline) and assigned(funcname) and
-           (target_info.use_function_relative_addresses) then
-          objectdata.writeStabs(objectdata.currsec.datasize-funcname.address,nil,nidx,0,line,false)
-        else
-          objectdata.writeStabs(objectdata.currsec.datasize,nil,nidx,0,line,true);
+        if assigned(pendquote) then
+          pendquote^:='"';
       end;
-
-
-    procedure TInternalAssembler.emitstabs(s:string);
-      begin
-        s:=s+#0;
-        ConvertStabs(@s[1]);
-      end;
-
-
-    procedure TInternalAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
-      var
-        curr_n : byte;
-        hp : tasmsymbol;
-        infile : tinputfile;
-      begin
-        if (objectdata.currsec.sectype<>sec_code) or
-           not ((cs_debuginfo in aktmoduleswitches) or
-           (cs_gdb_lineinfo in aktglobalswitches)) then
-         exit;
-
-        { file changed ? (must be before line info) }
-        if (fileinfo.fileindex<>0) and
-           (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
-         begin
-           infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
-           if assigned(infile) then
-            begin
-              if includecount=0 then
-               curr_n:=n_sourcefile
-              else
-               curr_n:=n_includefile;
-              { get symbol for this includefile }
-              hp:=objectlibrary.newasmsymbol('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
-              if currpass=1 then
-                begin
-                  objectdata.allocsymbol(currpass,hp,0);
-                  objectlibrary.UsedAsmSymbolListInsert(hp);
-                end
-              else
-                objectdata.writesymbol(hp);
-              { emit stabs }
-              if (infile.path^<>'') then
-                EmitStabs('"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(curr_n)+
-                          ',0,0,Ltext'+ToStr(IncludeCount));
-              EmitStabs('"'+FixFileName(infile.name^)+'",'+tostr(curr_n)+
-                        ',0,0,Ltext'+ToStr(IncludeCount));
-              inc(includecount);
-              { force new line info }
-              stabslastfileinfo.line:=-1;
-            end;
-         end;
-
-        { line changed ? }
-        if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
-          emitlineinfostabs(n_line,fileinfo.line);
-        stabslastfileinfo:=fileinfo;
-      end;
-
-
-    procedure TInternalAssembler.StartFileLineInfo;
-      var
-        fileinfo : tfileposinfo;
-      begin
-        FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-        n_line:=n_bssline;
-        funcname:=nil;
-        linecount:=1;
-        includecount:=0;
-        fileinfo.fileindex:=1;
-        fileinfo.line:=0;
-        WriteFileLineInfo(fileinfo);
-      end;
-
-
-    procedure TInternalAssembler.EndFileLineInfo;
-      var
-        hp : tasmsymbol;
-      begin
-        if (objectdata.currsec.sectype<>sec_code) or
-           not ((cs_debuginfo in aktmoduleswitches) or
-                (cs_gdb_lineinfo in aktglobalswitches)) then
-           exit;
-        hp:=objectlibrary.newasmsymbol('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
-        if currpass=1 then
-          begin
-            objectdata.allocsymbol(currpass,hp,0);
-            objectlibrary.UsedAsmSymbolListInsert(hp);
-          end
-        else
-          objectdata.writesymbol(hp);
-        EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Ltext'+ToStr(IncludeCount));
-        inc(IncludeCount);
-      end;
-{$endif GDB}
 
 
     function TInternalAssembler.MaybeNextList(var hp:Tai):boolean;
@@ -1067,17 +981,6 @@ Implementation
         inlinelevel:=0;
         while assigned(hp) do
          begin
-{$ifdef GDB}
-           { write stabs, no line info for inlined code }
-           if (inlinelevel=0) and
-              ((cs_debuginfo in aktmoduleswitches) or
-               (cs_gdb_lineinfo in aktglobalswitches)) then
-            begin
-              if (objectdata.currsec<>nil) and
-                 not(hp.typ in SkipLineInfo) then
-               WriteFileLineInfo(tailineinfo(hp).fileinfo);
-            end;
-{$endif GDB}
            case hp.typ of
              ait_align :
                begin
@@ -1130,50 +1033,16 @@ Implementation
                end;
              ait_section:
                begin
-{$ifdef GDB}
-//                 emitlineinfostabs(n_line,0);
-{$endif GDB}
                  { use cached value }
                  objectdata.setsection(Tai_section(hp).sec);
-{$ifdef GDB}
-                 case Tai_section(hp).sectype of
-                   sec_code :
-                     n_line:=n_textline;
-                   sec_data :
-                     n_line:=n_dataline;
-                   sec_bss :
-                     n_line:=n_bssline;
-                   else
-                     n_line:=n_dataline;
-                 end;
-                 { force writing all fileinfo }
-                 FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-{$endif GDB}
                end;
-{$ifdef GDB}
-             ait_stabn :
+             ait_stab :
                begin
-                 if assigned(Tai_stabn(hp).str) then
-                   convertstabs(Tai_stabn(hp).str);
+                 if assigned(Tai_stab(hp).str) then
+                   convertstab(Tai_stab(hp).str);
                end;
-             ait_stabs :
-               begin
-                 if assigned(Tai_stabs(hp).str) then
-                   convertstabs(Tai_stabs(hp).str);
-               end;
-             ait_stab_function_name :
-               begin
-                 if assigned(Tai_stab_function_name(hp).str) then
-                  begin
-                    funcname:=objectlibrary.getasmsymbol(strpas(Tai_stab_function_name(hp).str));
-                    objectlibrary.UsedAsmSymbolListInsert(funcname);
-                  end
-                 else
-                  funcname:=nil;
-               end;
-             ait_force_line :
-               stabslastfileinfo.line:=0;
-{$endif}
+             ait_function_name,
+             ait_force_line : ;
              ait_symbol :
                begin
                  objectdata.allocsymbol(currpass,Tai_symbol(hp).sym,0);
@@ -1196,8 +1065,6 @@ Implementation
                objectdata.alloc(Tai_string(hp).len);
              ait_instruction :
                begin
-{$ifdef i386}
-{$ifndef NOAG386BIN}
                  objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
                  { fixup the references }
                  for i:=1 to Taicpu(hp).ops do
@@ -1215,30 +1082,7 @@ Implementation
                        end;
                      end;
                   end;
-{$endif NOAG386BIN}
-{$endif i386}
-{$ifdef arm}
-                 objectdata.alloc(Taicpu(hp).Pass1(objectdata.currsec.datasize));
-                 { fixup the references }
-                 for i:=1 to Taicpu(hp).ops do
-                  begin
-                    with Taicpu(hp).oper[i-1]^ do
-                     begin
-                       case typ of
-                         top_ref :
-                           begin
-                             if assigned(ref^.symbol) then
-                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
-                             if assigned(ref^.relsymbol) then
-                              objectlibrary.UsedAsmSymbolListInsert(ref^.symbol);
-                           end;
-                       end;
-                     end;
-                  end;
-{$endif arm}
                end;
-             ait_direct :
-               Message(asmw_f_direct_not_supported);
              ait_cutobject :
                if SmartAsm then
                 break;
@@ -1268,17 +1112,6 @@ Implementation
         { main loop }
         while assigned(hp) do
          begin
-{$ifdef GDB}
-           { write stabs, no line info for inlined code }
-           if (inlinelevel=0) and
-              ((cs_debuginfo in aktmoduleswitches) or
-               (cs_gdb_lineinfo in aktglobalswitches)) then
-            begin
-              if (objectdata.currsec<>nil) and
-                 not(hp.typ in SkipLineInfo) then
-               WriteFileLineInfo(tailineinfo(hp).fileinfo);
-            end;
-{$endif GDB}
            case hp.typ of
              ait_align :
                begin
@@ -1289,22 +1122,8 @@ Implementation
                end;
              ait_section :
                begin
-{$ifdef GDB}
-//                 emitlineinfostabs(n_line,0);
-{$endif GDB}
                  { use cached value }
                  objectdata.setsection(Tai_section(hp).sec);
-{$ifdef GDB}
-                 case Tai_section(hp).sectype of
-                  sec_code : n_line:=n_textline;
-                  sec_data : n_line:=n_dataline;
-                   sec_bss : n_line:=n_bssline;
-                 else
-                  n_line:=n_dataline;
-                 end;
-                 { force writing all fileinfo }
-                 FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-{$endif GDB}
                end;
              ait_symbol :
                begin
@@ -1331,11 +1150,7 @@ Implementation
              ait_comp_64bit :
                begin
 {$ifdef x86}
-{$ifdef FPC}
                  co:=comp(Tai_comp_64bit(hp).value);
-{$else}
-                 co:=Tai_comp_64bit(hp).value;
-{$endif}
                  objectdata.writebytes(co,8);
 {$endif x86}
                end;
@@ -1356,7 +1171,8 @@ Implementation
                          objectdata.writebytes(v,tai_const(hp).size);
                        end
                      else
-                       objectdata.writereloc(Tai_const(hp).value,Tai_const(hp).size,Tai_const(hp).sym,RELOC_ABSOLUTE);
+                       objectdata.writereloc(Tai_const(hp).value,Tai_const(hp).size,
+                                             Tai_const(hp).sym,RELOC_ABSOLUTE);
                    end
                  else
                    objectdata.writebytes(Tai_const(hp).value,tai_const(hp).size);
@@ -1372,19 +1188,10 @@ Implementation
                end;
              ait_instruction :
                Taicpu(hp).Pass2(objectdata);
-{$ifdef GDB}
-             ait_stabn :
-               convertstabs(Tai_stabn(hp).str);
-             ait_stabs :
-               convertstabs(Tai_stabs(hp).str);
-             ait_stab_function_name :
-               if assigned(Tai_stab_function_name(hp).str) then
-                 funcname:=objectlibrary.getasmsymbol(strpas(Tai_stab_function_name(hp).str))
-               else
-                 funcname:=nil;
-             ait_force_line :
-               stabslastfileinfo.line:=0;
-{$endif}
+             ait_stab :
+               convertstab(Tai_stab(hp).str);
+             ait_function_name,
+             ait_force_line : ;
              ait_cutobject :
                if SmartAsm then
                 break;
@@ -1433,9 +1240,6 @@ Implementation
         objectdata.resetsections;
         objectdata.beforealloc;
         objectdata.createsection(sec_code,'',0,[]);
-{$ifdef GDB}
-        StartFileLineInfo;
-{$endif GDB}
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1446,9 +1250,6 @@ Implementation
            MaybeNextList(hp);
          end;
         objectdata.createsection(sec_code,'',0,[]);
-{$ifdef GDB}
-        EndFileLineInfo;
-{$endif GDB}
         objectdata.afteralloc;
         { check for undefined labels and reset }
         objectlibrary.UsedAsmSymbolListCheckUndefined;
@@ -1462,9 +1263,6 @@ Implementation
         objectdata.resetsections;
         objectdata.beforewrite;
         objectdata.createsection(sec_code,'',0,[]);
-{$ifdef GDB}
-        StartFileLineInfo;
-{$endif GDB}
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1475,9 +1273,6 @@ Implementation
            MaybeNextList(hp);
          end;
         objectdata.createsection(sec_code,'',0,[]);
-{$ifdef GDB}
-        EndFileLineInfo;
-{$endif GDB}
         objectdata.afterwrite;
 
         { don't write the .o file if errors have occured }
@@ -1533,13 +1328,7 @@ Implementation
            objectdata.resetsections;
            objectdata.beforealloc;
            objectdata.createsection(startsectype,'',0,[]);
-{$ifdef GDB}
-           StartFileLineInfo;
-{$endif GDB}
            TreePass1(hp);
-{$ifdef GDB}
-           EndFileLineInfo;
-{$endif GDB}
            objectdata.afteralloc;
            { check for undefined labels }
            objectlibrary.UsedAsmSymbolListCheckUndefined;
@@ -1554,16 +1343,10 @@ Implementation
            objectdata.resetsections;
            objectdata.beforewrite;
            objectdata.createsection(startsectype,'',0,[]);
-{$ifdef GDB}
-           StartFileLineInfo;
-{$endif GDB}
            hp:=TreePass2(hp);
            { save section type for next loop, must be done before EndFileLineInfo
              because that changes the section to sec_code }
            startsectype:=objectdata.currsec.sectype;
-{$ifdef GDB}
-           EndFileLineInfo;
-{$endif GDB}
            objectdata.afterwrite;
            { leave if errors have occured }
            if errorcount>0 then
@@ -1629,7 +1412,7 @@ Implementation
       begin
         to_do:=[low(Tasmlist)..high(Tasmlist)];
         if not(cs_debuginfo in aktmoduleswitches) then
-          exclude(to_do,al_typestabs);
+          exclude(to_do,al_debugtypes);
         if usedeffileforexports then
           exclude(to_do,al_exports);
         {$warning TODO internal writer support for dwarf}

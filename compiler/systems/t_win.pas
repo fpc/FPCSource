@@ -241,13 +241,14 @@ implementation
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
-                 if (aktoutputformat in [as_i386_tasm,as_i386_masm]) then
+{$warning TODO nasm lib, tai_direct not supported}
+                 {if (aktoutputformat in [as_i386_tasm,as_i386_masm]) then
                    p:=strpnew(#9+'EXTRN '+hp2.func^)
                  else
                    p:=strpnew(#9+'EXTERN '+hp2.func^);
                  asmlist[al_imports].concat(tai_direct.create(p));
                  p:=strpnew(#9+'import '+hp2.func^+' '+hp1.dllname^+' '+hp2.name^);
-                 asmlist[al_imports].concat(tai_direct.create(p));
+                 asmlist[al_imports].concat(tai_direct.create(p));}
                  hp2:=twin32imported_item(hp2.next);
                end;
              hp1:=timportlist(hp1.next);
@@ -312,22 +313,19 @@ implementation
                  { create indirect jump }
                  if not hp2.is_var then
                   begin
-                    objectlibrary.getlabel(lcode);
+                    objectlibrary.getjumplabel(lcode);
                   {$ifdef ARM}
-                    objectlibrary.getlabel(lpcode);
+                    objectlibrary.getjumplabel(lpcode);
                   {$endif ARM}
                     { place jump in al_procedures, insert a code section in the
                       al_imports to reduce the amount of .s files (PFV) }
                     new_section(asmlist[al_imports],sec_code,'',0);
-{$IfDef GDB}
-                    if (cs_debuginfo in aktmoduleswitches) then
-                      asmlist[al_imports].concat(Tai_stab_function_name.Create(nil));
-{$EndIf GDB}
                     if assigned(hp2.procdef) then
                       mangledstring:=hp2.procdef.mangledname
                     else
                       mangledstring:=hp2.func^;
                     asmlist[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                    asmlist[al_imports].concat(Tai_function_name.Create(''));
                   {$ifdef ARM}
                     reference_reset_symbol(href,lpcode,0);
                     asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
@@ -350,7 +348,7 @@ implementation
                  new_section(asmlist[al_imports],sec_idata7,'',0);
                  asmlist[al_imports].concat(Tai_const.Create_rva_sym(lhead));
                  { fixup }
-                 objectlibrary.getlabel(tasmlabel(hp2.lab));
+                 objectlibrary.getjumplabel(tasmlabel(hp2.lab));
                  new_section(asmlist[al_imports],sec_idata4,'',0);
                  asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
                  { add jump field to al_imports }
@@ -440,9 +438,9 @@ implementation
               { align al_procedures for the jumps }
               new_section(asmlist[al_imports],sec_code,'',sizeof(aint));
               { Get labels for the sections }
-              objectlibrary.getlabel(l1);
-              objectlibrary.getlabel(l2);
-              objectlibrary.getlabel(l3);
+              objectlibrary.getjumplabel(l1);
+              objectlibrary.getjumplabel(l2);
+              objectlibrary.getjumplabel(l3);
               new_section(asmlist[al_imports],sec_idata2,'',0);
               { pointer to procedure names }
               asmlist[al_imports].concat(Tai_const.Create_rva_sym(l2));
@@ -464,7 +462,7 @@ implementation
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   objectlibrary.getlabel(tasmlabel(hp2.lab));
+                   objectlibrary.getjumplabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
                      asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
                    else
@@ -482,22 +480,19 @@ implementation
                 begin
                    if not hp2.is_var then
                     begin
-                      objectlibrary.getlabel(l4);
+                      objectlibrary.getjumplabel(l4);
                     {$ifdef ARM}
-                      objectlibrary.getlabel(l5);
+                      objectlibrary.getjumplabel(l5);
                     {$endif ARM}
                       { create indirect jump and }
                       { place jump in al_procedures }
                       new_section(asmlist[al_imports],sec_code,'',0);
-{$IfDef GDB}
-                      if (cs_debuginfo in aktmoduleswitches) then
-                        asmlist[al_imports].concat(tai_stab_function_name.create(nil));
-{$EndIf GDB}
                       if assigned(hp2.procdef) then
                         mangledstring:=hp2.procdef.mangledname
                       else
                         mangledstring:=hp2.func^;
                       asmlist[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                      asmlist[al_imports].concat(tai_function_name.create(''));
                     {$ifdef ARM}
                       reference_reset_symbol(href,l5,0);
                       asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
@@ -725,10 +720,10 @@ implementation
          ordinal_min:=$7FFFFFFF;
          entries:=0;
          named_entries:=0;
-         objectlibrary.getlabel(dll_name_label);
-         objectlibrary.getlabel(export_address_table);
-         objectlibrary.getlabel(export_name_table_pointers);
-         objectlibrary.getlabel(export_ordinal_table);
+         objectlibrary.getjumplabel(dll_name_label);
+         objectlibrary.getjumplabel(export_address_table);
+         objectlibrary.getjumplabel(export_name_table_pointers);
+         objectlibrary.getjumplabel(export_ordinal_table);
 
          { count entries }
          while assigned(hp) do
@@ -800,7 +795,7 @@ implementation
            begin
               if (hp.options and eo_name)<>0 then
                 begin
-                   objectlibrary.getlabel(name_label);
+                   objectlibrary.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
                    ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
                    name_table.concat(Tai_align.Create_op(2,0));
@@ -881,7 +876,7 @@ implementation
                  s:='';
              end;
              p:=strpnew(#9+'export '+s+' '+hp.name^+' '+tostr(hp.index));
-             asmlist[al_exports].concat(tai_direct.create(p));
+             {asmlist[al_exports].concat(tai_direct.create(p));}
              hp:=texported_item(hp.next);
            end;
       end;

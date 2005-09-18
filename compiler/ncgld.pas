@@ -155,8 +155,8 @@ implementation
                          call and then the address load to be sure that the
                          register that is used for returning is the same (PFV)
                        }
-                       objectlibrary.getlabel(norelocatelab);
-                       objectlibrary.getlabel(endrelocatelab);
+                       objectlibrary.getjumplabel(norelocatelab);
+                       objectlibrary.getjumplabel(endrelocatelab);
                        { make sure hregister can't allocate the register necessary for the parameter }
                        paraloc1.init;
                        paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -395,8 +395,8 @@ implementation
 
         otlabel:=truelabel;
         oflabel:=falselabel;
-        objectlibrary.getlabel(truelabel);
-        objectlibrary.getlabel(falselabel);
+        objectlibrary.getjumplabel(truelabel);
+        objectlibrary.getjumplabel(falselabel);
 
         {
           in most cases we can process first the right node which contains
@@ -670,7 +670,7 @@ implementation
                 end;
               LOC_JUMP :
                 begin
-                  objectlibrary.getlabel(hlabel);
+                  objectlibrary.getjumplabel(hlabel);
                   cg.a_label(exprasmlist,truelabel);
                   cg.a_load_const_loc(exprasmlist,1,left.location);
                   cg.a_jmp_always(exprasmlist,hlabel);

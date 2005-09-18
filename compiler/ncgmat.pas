@@ -304,7 +304,7 @@ implementation
                     "Cardinal($ffffffff) div 16" overflows! (JM) }
                   If is_signed(left.resulttype.def) Then
                     Begin
-                      objectlibrary.getlabel(hl);
+                      objectlibrary.getjumplabel(hl);
                       cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_GT,0,hreg1,hl);
                       if power=1 then
                         cg.a_op_const_reg(exprasmlist,OP_ADD,OS_INT,1,hreg1)
@@ -327,7 +327,7 @@ implementation
                   { verify if the divisor is zero, if so return an error
                     immediately
                   }
-                  objectlibrary.getlabel(hl);
+                  objectlibrary.getjumplabel(hl);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1.init;
                   paramanager.getintparaloc(pocall_default,1,paraloc1);

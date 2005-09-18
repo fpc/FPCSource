@@ -644,12 +644,6 @@ interface
                 AsmWriteLn(tai_label(hp).l.name+':');
              end;
 
-           ait_direct :
-             begin
-               AsmWritePChar(tai_direct(hp).str);
-               AsmLn;
-             end;
-
            ait_symbol :
              begin
                if tai_symbol(hp).is_global then
@@ -719,12 +713,10 @@ interface
                   AsmLn;
                 end;
              end;
-{$ifdef GDB}
-           ait_stabn,
-           ait_stabs,
+
+           ait_stab,
            ait_force_line,
-           ait_stab_function_name : ;
-{$endif GDB}
+           ait_function_name : ;
 
            ait_cutobject :
              begin

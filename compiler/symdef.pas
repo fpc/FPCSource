@@ -1243,7 +1243,7 @@ implementation
         { to avoid infinite loops }
         stab_state := stab_state_writing;
         stab_str := allstabstring;
-        asmList.concat(Tai_stabs.Create(stab_str));
+        asmList.concat(Tai_stab.create(stab_stabs,stab_str));
         stab_state := stab_state_written;
       end;
 {$endif GDB}
@@ -2710,7 +2710,7 @@ implementation
                       st := ttypesym(typesym).name
                     else
                       st := ' ';
-                    asmlist.concat(Tai_stabs.create(stabstr_evaluate(
+                    asmlist.concat(Tai_stab.create(stab_stabs,stabstr_evaluate(
                             '"$1:t${numberstring}=*$2=xs$3:",${N_LSYM},0,0,0',
                             [st,nb,pointertype.def.typesym.name])));
                   end;
@@ -4388,7 +4388,7 @@ implementation
         numberstring;
         { write stabs }
         stab_state:=stab_state_writing;
-        asmList.concat(Tai_stabs.Create(stabstring));
+        asmList.concat(Tai_stab.create(stab_stabs,stabstring));
         if not(po_external in procoptions) then
           begin
             tparasymtable(parast).concatstabto(asmlist);
@@ -5667,7 +5667,7 @@ implementation
             oldtypesym:=typesym;
             typesym:=nil;
             stab_str := allstabstring;
-            asmList.concat(Tai_stabs.Create(stab_str));
+            asmList.concat(Tai_stab.create(stab_stabs,stab_str));
             typesym:=oldtypesym;
           end
         else

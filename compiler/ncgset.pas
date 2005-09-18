@@ -273,7 +273,7 @@ implementation
             { allocate a register for the result }
             location.register := cg.getintregister(exprasmlist,location.size);
             { Get a label to jump to the end }
-            objectlibrary.getlabel(l);
+            objectlibrary.getjumplabel(l);
 
             { clear the register value, indicating result is FALSE }
             cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
@@ -340,7 +340,7 @@ implementation
               end;
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
-             objectlibrary.getlabel(l3);
+             objectlibrary.getjumplabel(l3);
              cg.a_jmp_always(exprasmlist,l3);
              { Now place the end label if IN success }
              cg.a_label(exprasmlist,l);
@@ -597,7 +597,7 @@ implementation
 {$ifndef cpu64bit}
                 if opsize in [OS_S64,OS_64] then
                   begin
-                     objectlibrary.getlabel(l1);
+                     objectlibrary.getjumplabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_NE, aint(hi(int64(t^._low))),hregister2,l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, OC_EQ, aint(lo(int64(t^._low))),hregister, blocklabel(t^.blockid));
                      cg.a_label(exprasmlist,l1);
@@ -621,7 +621,7 @@ implementation
 {$ifndef cpu64bit}
                      if opsize in [OS_64,OS_S64] then
                        begin
-                          objectlibrary.getlabel(l1);
+                          objectlibrary.getjumplabel(l1);
                           cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aint(hi(int64(t^._low))),
                                hregister2, elselabel);
                           cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aint(hi(int64(t^._low))),
@@ -640,7 +640,7 @@ implementation
 {$ifndef cpu64bit}
                 if opsize in [OS_S64,OS_64] then
                   begin
-                     objectlibrary.getlabel(l1);
+                     objectlibrary.getjumplabel(l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_lt, aint(hi(int64(t^._high))), hregister2,
                            blocklabel(t^.blockid));
                      cg.a_cmp_const_reg_label(exprasmlist, OS_32, jmp_gt, aint(hi(int64(t^._high))), hregister2,
@@ -696,10 +696,10 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          { Allocate labels }
-         objectlibrary.getlabel(endlabel);
-         objectlibrary.getlabel(elselabel);
+         objectlibrary.getjumplabel(endlabel);
+         objectlibrary.getjumplabel(elselabel);
          for i:=0 to blocks.count-1 do
-           objectlibrary.getlabel(pcaseblock(blocks[i])^.blocklabel);
+           objectlibrary.getjumplabel(pcaseblock(blocks[i])^.blocklabel);
 
          with_sign:=is_signed(left.resulttype.def);
          if with_sign then
@@ -720,9 +720,9 @@ implementation
          if left.location.loc=LOC_JUMP then
           begin
             otl:=truelabel;
-            objectlibrary.getlabel(truelabel);
+            objectlibrary.getjumplabel(truelabel);
             ofl:=falselabel;
-            objectlibrary.getlabel(falselabel);
+            objectlibrary.getjumplabel(falselabel);
             isjump:=true;
           end;
          secondpass(left);

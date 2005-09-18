@@ -52,19 +52,11 @@ interface
         function sectionname(atype:tasmsectiontype;const aname:string):string;virtual;
         procedure WriteSection(atype:tasmsectiontype;const aname:string);
         procedure WriteExtraHeader;virtual;
-{$ifdef GDB}
-        procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
-        procedure WriteFileEndInfo;
-{$endif}
         procedure WriteInstruction(hp: tai);  virtual; abstract;
       public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
       end;
-
-    const
-      regname_count=45;
-      regname_count_bsstart=32;   { Largest power of 2 out of regname_count. }
 
 
 implementation
@@ -73,26 +65,12 @@ implementation
       cutils,globtype,systems,
       fmodule,finput,verbose,
       itcpugas
-{$ifdef GDB}
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      ,strings
-{$ENDIF USE_SYSUTILS}
-      ,gdb
-{$endif GDB}
       ;
 
     const
       line_length = 70;
 
-var
-{$ifdef GDB}
-      n_line       : byte;     { different types of source lines }
-      linecount,
-      includecount : longint;
-      funcname     : pchar;
-      stabslastfileinfo : tfileposinfo;
-{$endif}
+    var
       CurrSecType  : TAsmSectionType; { last section type written }
       lastfileinfo : tfileposinfo;
       infile,
@@ -212,78 +190,6 @@ var
 {                          GNU Assembler writer                              }
 {****************************************************************************}
 
-{$ifdef GDB}
-      procedure TGNUAssembler.WriteFileLineInfo(var fileinfo : tfileposinfo);
-        var
-          curr_n : byte;
-        begin
-          if (CurrSecType<>sec_code) or
-             not ((cs_debuginfo in aktmoduleswitches) or
-                  (cs_gdb_lineinfo in aktglobalswitches)) then
-            exit;
-        { file changed ? (must be before line info) }
-          if (fileinfo.fileindex<>0) and
-             (stabslastfileinfo.fileindex<>fileinfo.fileindex) then
-           begin
-             infile:=current_module.sourcefiles.get_file(fileinfo.fileindex);
-             if assigned(infile) then
-              begin
-                if includecount=0 then
-                 curr_n:=n_sourcefile
-                else
-                 curr_n:=n_includefile;
-                if (infile.path^<>'') then
-                 begin
-                   AsmWriteLn(#9'.stabs "'+BsToSlash(FixPath(infile.path^,false))+'",'+
-                     tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
-                 end;
-                AsmWriteLn(#9'.stabs "'+FixFileName(infile.name^)+'",'+
-                  tostr(curr_n)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
-                AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
-                inc(includecount);
-                { force new line info }
-                stabslastfileinfo.line:=-1;
-              end;
-           end;
-        { line changed ? }
-          if (stabslastfileinfo.line<>fileinfo.line) and (fileinfo.line<>0) then
-           begin
-             if (n_line=n_textline) and assigned(funcname) and
-                (target_info.use_function_relative_addresses) then
-              begin
-                AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
-                AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(fileinfo.line)+','+
-                           target_asm.labelprefix+'l'+tostr(linecount)+' - ');
-                AsmWritePChar(FuncName);
-                AsmLn;
-                inc(linecount);
-              end
-             else
-              AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(fileinfo.line));
-           end;
-          stabslastfileinfo:=fileinfo;
-        end;
-
-
-      procedure TGNUAssembler.WriteFileEndInfo;
-        begin
-          if (CurrSecType<>sec_code) or
-             not ((cs_debuginfo in aktmoduleswitches) or
-                  (cs_gdb_lineinfo in aktglobalswitches)) then
-            exit;
-          if (stabslastfileinfo.fileindex<>0) then
-            begin
-              AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,'+target_asm.labelprefix+'text'+ToStr(IncludeCount));
-              AsmWriteLn(target_asm.labelprefix+'text'+ToStr(IncludeCount)+':');
-              inc(includecount);
-            end;
-          { force writing all fileinfo }
-          FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-        end;
-
-{$endif GDB}
-
-
     function TGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
@@ -310,12 +216,6 @@ var
       var
         s : string;
       begin
-{$ifdef GDB}
-        { Maybe write end of section }
-        if currsectype<>sec_none then
-          WriteFileEndInfo;
-{$endif GDB}
-
         AsmLn;
         case target_info.system of
          system_powerpc_darwin, system_i386_OS2, system_i386_EMX: ;
@@ -327,31 +227,11 @@ var
         if atype=sec_fpc then
           AsmWrite(', "a", @progbits');
         AsmLn;
-{$ifdef GDB}
-        { this is needed for line info in data }
-        funcname:=nil;
-        case atype of
-          sec_code :
-            n_line:=n_textline;
-          sec_rodata,
-          sec_data :
-            n_line:=n_dataline;
-          sec_bss  :
-            n_line:=n_bssline;
-          else
-            n_line:=n_dataline;
-        end;
-        { force writing all fileinfo }
-        FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-{$endif GDB}
         CurrSecType:=atype;
       end;
 
 
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
-    const
-      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
-      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       ch       : char;
       hp       : tai;
@@ -385,10 +265,6 @@ var
           begin
             hp1 := hp as tailineinfo;
             aktfilepos:=hp1.fileinfo;
-{$ifdef GDB}
-             { maybe write stabs }
-             WriteFileLineInfo(hp1.fileinfo);
-{$endif GDB}
              { no line info for inlined code }
              if do_line and (inlinelevel=0) then
               begin
@@ -458,6 +334,7 @@ var
                      hp:=tai(hp.next);
                      AsmWrite(',');
                    until false;
+                   AsmWrite(' ');
                    AsmWriteLn(regallocstr[tai_regalloc(hp).ratype]);
                  end;
              end;
@@ -473,7 +350,7 @@ var
                    else
 {$endif EXTDEBUG}
                      AsmWriteLn(target_asm.comment+'Temp '+tostr(tai_tempalloc(hp).temppos)+','+
-                       tostr(tai_tempalloc(hp).tempsize)+tempallocstr[tai_tempalloc(hp).allocation]);
+                       tostr(tai_tempalloc(hp).tempsize)+' '+tempallocstr[tai_tempalloc(hp).allocation]);
                  end;
              end;
 
@@ -502,17 +379,12 @@ var
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
-                begin
-                  WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
-{$ifdef GDB}
-                  lastfileinfo.line:=-1;
-{$endif GDB}
-                end
+                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^)
                else
-                begin
+                 begin
 {$ifdef EXTDEBUG}
-                  AsmWrite(target_asm.comment);
-                  AsmWriteln(' sec_none');
+                   AsmWrite(target_asm.comment);
+                   AsmWriteln(' sec_none');
 {$endif EXTDEBUG}
                 end;
              end;
@@ -730,20 +602,6 @@ var
                AsmLn;
              end;
 
-           ait_direct :
-             begin
-               AsmWritePChar(tai_direct(hp).str);
-               AsmLn;
-{$IfDef GDB}
-               if strpos(tai_direct(hp).str,'.data')<>nil then
-                 n_line:=n_dataline
-               else if strpos(tai_direct(hp).str,'.text')<>nil then
-                 n_line:=n_textline
-               else if strpos(tai_direct(hp).str,'.bss')<>nil then
-                 n_line:=n_bssline;
-{$endif GDB}
-             end;
-
            ait_string :
              begin
                pos:=0;
@@ -850,33 +708,18 @@ var
                WriteInstruction(hp);
              end;
 
-{$ifdef GDB}
-           ait_stabs :
+           ait_stab :
              begin
-               if assigned(tai_stabs(hp).str) then
+               if assigned(tai_stab(hp).str) then
                  begin
-                   AsmWrite(#9'.stabs ');
-                   AsmWritePChar(tai_stabs(hp).str);
+                   AsmWrite(#9'.'+stabtypestr[tai_stab(hp).stabtype]+' ');
+                   AsmWritePChar(tai_stab(hp).str);
                    AsmLn;
                  end;
              end;
 
-           ait_stabn :
-             begin
-               if assigned(tai_stabn(hp).str) then
-                 begin
-                   AsmWrite(#9'.stabn ');
-                   AsmWritePChar(tai_stabn(hp).str);
-                   AsmLn;
-                 end;
-             end;
-
-           ait_force_line :
-             stabslastfileinfo.line:=0;
-
-           ait_stab_function_name:
-             funcname:=tai_stab_function_name(hp).str;
-{$endif GDB}
+           ait_force_line,
+           ait_function_name : ;
 
            ait_cutobject :
              begin
@@ -898,13 +741,6 @@ var
                        CurrSecType:=tai_section(hp.next).sectype;
                      hp:=tai(hp.next);
                    end;
-{$ifdef GDB}
-                  { force write of filename }
-                  FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-                  includecount:=0;
-                  funcname:=nil;
-                  WriteFileLineInfo(aktfilepos);
-{$endif GDB}
                   if CurrSecType<>sec_none then
                     WriteSection(CurrSecType,'');
                   AsmStartSize:=AsmSize;
@@ -946,9 +782,6 @@ var
 {$endif}
 
       CurrSecType:=sec_none;
-{$ifdef GDB}
-      FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-{$endif GDB}
       FillChar(lastfileinfo,sizeof(lastfileinfo),0);
       LastInfile:=nil;
 
@@ -971,12 +804,6 @@ var
     { to get symify to work }
       AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
       WriteExtraHeader;
-{$ifdef GDB}
-      n_line:=n_bssline;
-      funcname:=nil;
-      linecount:=1;
-      includecount:=0;
-{$endif GDB}
       AsmStartSize:=AsmSize;
       symendcount:=0;
 
@@ -986,11 +813,6 @@ var
           writetree(asmlist[hal]);
           AsmWriteLn(target_asm.comment+'End asmlist '+TasmlistStr[hal]);
         end;
-
-      {$ifdef GDB}
-      if CurrSecType<>sec_none then
-        WriteFileEndInfo;
-      {$ENDIF}
 
       AsmLn;
 {$ifdef EXTDEBUG}

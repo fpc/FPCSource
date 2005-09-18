@@ -26,10 +26,15 @@ unit dbgbase;
 interface
 
     uses
-      systems;
+      systems,
+      aasmtai;
 
     type
       TDebugInfo=class
+        constructor Create;virtual;
+        procedure insertmodulestart(list:taasmoutput);virtual;
+        procedure insertmoduleend(list:taasmoutput);virtual;
+        procedure insertlineinfo(list:taasmoutput);virtual;
       end;
       TDebugInfoClass=class of TDebugInfo;
 
@@ -46,6 +51,27 @@ implementation
 
     uses
       verbose;
+
+
+    constructor tdebuginfo.Create;
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertmodulestart(list:taasmoutput);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertmoduleend(list:taasmoutput);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertlineinfo(list:taasmoutput);
+      begin
+      end;
+
 
     procedure InitDebugInfo;
       begin

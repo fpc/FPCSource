@@ -337,7 +337,7 @@ end;
         location.register:=resultreg;
         if right.nodetype <> ordconstn then
           begin
-            objectlibrary.getlabel(hl);
+            objectlibrary.getjumplabel(hl);
             exprasmlist.concat(taicpu.op_cond_sym(A_BC,zerocond,hl));
             cg.a_call_name(exprasmlist,'FPC_DIVBYZERO');
             cg.a_label(exprasmlist,hl);

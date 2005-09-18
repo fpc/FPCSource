@@ -93,7 +93,7 @@ unit ncpuset;
              { case expr greater than max_ => goto elselabel }
              cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
-        objectlibrary.getlabel(table);
+        objectlibrary.getjumplabel(table);
         indexreg:=cg.getaddressregister(exprasmlist);
         cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_ADDR,2,hregister,indexreg);
         { create reference }

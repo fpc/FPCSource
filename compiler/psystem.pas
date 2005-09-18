@@ -45,9 +45,6 @@ implementation
       systems,
       symconst,symtype,symsym,symdef,symtable,
       aasmtai,aasmcpu,ncgutil,fmodule,
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
       ;
 
@@ -508,7 +505,6 @@ implementation
         aiclass[ait_align]:=tai_align;
         aiclass[ait_section]:=tai_section;
         aiclass[ait_comment]:=tai_comment;
-        aiclass[ait_direct]:=tai_direct;
         aiclass[ait_string]:=tai_string;
         aiclass[ait_instruction]:=taicpu;
         aiclass[ait_datablock]:=tai_datablock;
@@ -525,12 +521,9 @@ implementation
         aiclass[ait_real_64bit]:=tai_real_64bit;
         aiclass[ait_real_80bit]:=tai_real_80bit;
         aiclass[ait_comp_64bit]:=tai_comp_64bit;
-{$ifdef GDB}
-        aiclass[ait_stabn]:=tai_stabn;
-        aiclass[ait_stabs]:=tai_stabs;
+        aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
-        aiclass[ait_stab_function_name]:=tai_stab_function_name;
-{$endif GDB}
+        aiclass[ait_function_name]:=tai_function_name;
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
         aiclass[ait_frame]:=tai_frame;

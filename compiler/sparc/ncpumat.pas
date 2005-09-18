@@ -139,7 +139,7 @@ implementation
 
              if (nodetype = modn) then
                begin
-                 objectlibrary.getlabel(overflowlabel);
+                 objectlibrary.getjumplabel(overflowlabel);
                  ai:=taicpu.op_cond_sym(A_Bxx,C_O,overflowlabel);
                  ai.delayslot_annulled:=true;
                  exprasmlist.concat(ai);

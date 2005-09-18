@@ -328,8 +328,8 @@ unit cgcpu;
         { so we have to access every page first              }
         if target_info.system=system_i386_win32 then
           begin
-             objectlibrary.getlabel(again);
-             objectlibrary.getlabel(ok);
+             objectlibrary.getjumplabel(again);
+             objectlibrary.getjumplabel(ok);
              a_label(list,again);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
              a_jmp_cond(list,OC_B,ok);

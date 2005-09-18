@@ -196,8 +196,8 @@ implementation
        paramanager.getintparaloc(pocall_default,4,paraloc4);
        otlabel:=truelabel;
        oflabel:=falselabel;
-       objectlibrary.getlabel(truelabel);
-       objectlibrary.getlabel(falselabel);
+       objectlibrary.getjumplabel(truelabel);
+       objectlibrary.getjumplabel(falselabel);
        secondpass(tcallparanode(left).left);
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
@@ -345,7 +345,7 @@ implementation
          begin
            { length in ansi/wide strings is at offset -sizeof(aint) }
            location_force_reg(exprasmlist,left.location,OS_ADDR,false);
-           objectlibrary.getlabel(lengthlab);
+           objectlibrary.getjumplabel(lengthlab);
            cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            reference_reset_base(href,left.location.register,-sizeof(aint));
            hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);

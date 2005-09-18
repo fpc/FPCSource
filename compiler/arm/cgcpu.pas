@@ -560,7 +560,7 @@ unit cgcpu;
             begin
                reference_reset(hr);
 
-               objectlibrary.getlabel(l);
+               objectlibrary.getjumplabel(l);
                cg.a_label(current_procinfo.aktlocaldata,l);
                hr.symboldata:=current_procinfo.aktlocaldata.last;
                current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(longint(a)));
@@ -624,7 +624,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_INT);
             if assigned(ref.symbol) then
               begin
-                objectlibrary.getlabel(l);
+                objectlibrary.getjumplabel(l);
                 cg.a_label(current_procinfo.aktlocaldata,l);
                 tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
@@ -1157,7 +1157,7 @@ unit cgcpu;
         }
         { create consts entry }
         reference_reset(tmpref);
-        objectlibrary.getlabel(l);
+        objectlibrary.getjumplabel(l);
         cg.a_label(current_procinfo.aktlocaldata,l);
         tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
@@ -1239,7 +1239,7 @@ unit cgcpu;
         var
           l : tasmlabel;
         begin
-          objectlibrary.getlabel(l);
+          objectlibrary.getjumplabel(l);
           a_load_const_reg(list,OS_INT,count,countreg);
           cg.a_label(list,l);
           srcref.addressmode:=AM_POSTINDEXED;
@@ -1357,7 +1357,7 @@ unit cgcpu;
       begin
         if not(cs_check_overflow in aktlocalswitches) then
           exit;
-        objectlibrary.getlabel(hl);
+        objectlibrary.getjumplabel(hl);
         case ovloc.loc of
           LOC_VOID:
             begin

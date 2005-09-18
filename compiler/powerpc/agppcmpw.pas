@@ -1221,15 +1221,9 @@ var
                 ;
               ait_instruction:
                 WriteInstruction(hp);
-{$ifdef GDB}
-              ait_stabn: ;
-              ait_stabs: ;
-
-              ait_force_line :
-                 stabslastfileinfo.line:=0;
-
-              ait_stab_function_name: ;
-{$endif GDB}
+              ait_stab,
+              ait_force_line,
+              ait_function_name : ;
               ait_cutobject :
                 begin
                   InternalError(2004101101);  {Smart linking is done transparently by the MPW linker.}

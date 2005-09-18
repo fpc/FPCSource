@@ -338,7 +338,7 @@ interface
         if nf_block_with_exit in flags then
           begin
             oldexitlabel:=current_procinfo.aktexitlabel;
-            objectlibrary.getlabel(current_procinfo.aktexitlabel);
+            objectlibrary.getjumplabel(current_procinfo.aktexitlabel);
           end;
 
         { do second pass on left node }

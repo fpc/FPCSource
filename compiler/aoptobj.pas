@@ -877,7 +877,7 @@ Unit AoptObj;
 {$define rangewason}
 {$r-}
 {$endif}
-    function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
+    function tAOptObj.getjumplabelwithsym(sym: tasmlabel): tai;
       begin
         if (sym.labelnr >= labelinfo^.lowlabel) and
            (sym.labelnr <= labelinfo^.highlabel) then   { range check, a jump can go past an assembler block! }
@@ -957,7 +957,7 @@ Unit AoptObj;
                       insertllitem(asml,p1,p1.next,tai_comment.Create(
                         strpnew('previous label inserted'))));
       {$endif finaldestdebug}
-                      objectlibrary.getlabel(l);
+                      objectlibrary.getjumplabel(l);
                       insertllitem(p1,p1.next,tai_label.Create(l));
                       tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
                       hp.oper[0]^.ref^.symbol := l;

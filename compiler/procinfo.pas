@@ -144,8 +144,8 @@ implementation
         aktlocaldata:=Taasmoutput.Create;
         reference_reset(save_regs_ref);
         { labels }
-        objectlibrary.getlabel(aktexitlabel);
-        objectlibrary.getlabel(gotlabel);
+        objectlibrary.getjumplabel(aktexitlabel);
+        objectlibrary.getjumplabel(gotlabel);
       end;
 
 

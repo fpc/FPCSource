@@ -176,7 +176,7 @@ unit nx86add;
          begin
            if cs_check_overflow in aktlocalswitches  then
             begin
-              objectlibrary.getlabel(hl4);
+              objectlibrary.getjumplabel(hl4);
               if unsigned then
                 cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else

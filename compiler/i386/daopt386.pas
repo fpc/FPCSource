@@ -1090,7 +1090,7 @@ end;
 
 function labelCanBeSkipped(p: tai_label): boolean;
 begin
-  labelCanBeSkipped := not(p.l.is_used) or p.l.is_addr;
+  labelCanBeSkipped := not(p.l.is_used) or (p.l.labeltype<>alt_jump);
 end;
 
 {******************* The Data Flow Analyzer functions ********************}
@@ -2363,9 +2363,7 @@ begin
           end;
 {$endif JumpAnal}
 
-{$ifdef GDB}
-        ait_stabs, ait_stabn, ait_stab_function_name:;
-{$endif GDB}
+        ait_stab, ait_force_line, ait_function_name:;
         ait_align: ; { may destroy flags !!! }
         ait_instruction:
           begin

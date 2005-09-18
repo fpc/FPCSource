@@ -168,7 +168,7 @@ interface
          begin
            if cs_check_overflow in aktlocalswitches  then
             begin
-              objectlibrary.getlabel(hl4);
+              objectlibrary.getjumplabel(hl4);
               if unsigned then
                 cg.a_jmp_flags(exprasmlist,F_AE,hl4)
               else
@@ -364,7 +364,7 @@ interface
       emit_reg(A_MUL,S_L,r);
       if cs_check_overflow in aktlocalswitches  then
        begin
-         objectlibrary.getlabel(hl4);
+         objectlibrary.getjumplabel(hl4);
          cg.a_jmp_flags(exprasmlist,F_AE,hl4);
          cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
          cg.a_label(exprasmlist,hl4);

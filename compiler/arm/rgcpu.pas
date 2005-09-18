@@ -64,7 +64,7 @@ unit rgcpu;
             helplist:=taasmoutput.create;
             reference_reset(tmpref);
             { create consts entry }
-            objectlibrary.getlabel(l);
+            objectlibrary.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
@@ -112,7 +112,7 @@ unit rgcpu;
             helplist:=taasmoutput.create;
             reference_reset(tmpref);
             { create consts entry }
-            objectlibrary.getlabel(l);
+            objectlibrary.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 

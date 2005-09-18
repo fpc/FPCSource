@@ -1728,7 +1728,7 @@ unit cgx86;
                  end
                else
                  begin
-                    objectlibrary.getlabel(again);
+                    objectlibrary.getjumplabel(again);
                     getcpuregister(list,NR_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
@@ -1814,7 +1814,7 @@ unit cgx86;
       begin
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
-         objectlibrary.getlabel(hl);
+         objectlibrary.getjumplabel(hl);
          if not ((def.deftype=pointerdef) or
                 ((def.deftype=orddef) and
                  (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,

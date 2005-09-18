@@ -429,7 +429,7 @@ implementation
                   begin
                     cg.a_label(list,truelabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    objectlibrary.getlabel(hl);
+                    objectlibrary.getjumplabel(hl);
                     cg.a_jmp_always(list,hl);
                     cg.a_label(list,falselabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
@@ -515,7 +515,7 @@ implementation
                begin
                  cg.a_label(list,truelabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 objectlibrary.getlabel(hl);
+                 objectlibrary.getjumplabel(hl);
                  cg.a_jmp_always(list,hl);
                  cg.a_label(list,falselabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -578,7 +578,7 @@ implementation
             begin
               cg.a_label(list,truelabel);
               cg.a_load_const_reg(list,dst_size,1,hregister);
-              objectlibrary.getlabel(hl);
+              objectlibrary.getjumplabel(hl);
               cg.a_jmp_always(list,hl);
               cg.a_label(list,falselabel);
               cg.a_load_const_reg(list,dst_size,0,hregister);
@@ -1659,16 +1659,13 @@ implementation
           hs:=current_procinfo.procdef.aliasnames.getfirst;
           if hs='' then
             break;
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) and
-             target_info.use_function_relative_addresses then
-          list.concat(Tai_stab_function_name.create(strpnew(hs)));
-{$endif GDB}
           if (cs_profile in aktmoduleswitches) or
              (po_global in current_procinfo.procdef.procoptions) then
             list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
           else
             list.concat(Tai_symbol.createname(hs,AT_FUNCTION,0));
+          if target_info.use_function_relative_addresses then
+            list.concat(Tai_function_name.create(hs));
         until false;
       end;
 
@@ -1717,13 +1714,13 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
-            objectlibrary.getlabel(stabsendlabel);
+            objectlibrary.getjumplabel(stabsendlabel);
             cg.a_label(list,stabsendlabel);
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
             {if  assigned(current_procinfo.parent) and
                 (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-              list.concat(Tai_stabs.Create(strpnew(
+              list.concat(Tai_stab.create(stab_stabs,strpnew(
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset)))); }
 
@@ -1735,21 +1732,21 @@ implementation
 {$warning Need to add gdb support for ret in param register calling}
                     if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
                       begin
-                        list.concat(Tai_stabs.Create(strpnew(
+                        list.concat(Tai_stab.create(stab_stabs,strpnew(
                            '"'+current_procinfo.procdef.procsym.name+':X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
                            tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                         if (m_result in aktmodeswitches) then
-                          list.concat(Tai_stabs.Create(strpnew(
+                          list.concat(Tai_stab.create(stab_stabs,strpnew(
                              '"RESULT:X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
                              tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
                       end
                     else
                       begin
-                        list.concat(Tai_stabs.Create(strpnew(
+                        list.concat(Tai_stab.create(stab_stabs,strpnew(
                            '"'+current_procinfo.procdef.procsym.name+':X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
                            tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                         if (m_result in aktmodeswitches) then
-                          list.concat(Tai_stabs.Create(strpnew(
+                          list.concat(Tai_stab.create(stab_stabs,strpnew(
                              '"RESULT:X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
                              tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
                        end;
@@ -1764,9 +1761,8 @@ implementation
                 strpcopy(strend(p),'-');
                 strpcopy(strend(p),current_procinfo.procdef.mangledname);
               end;
-            list.concat(Tai_stabn.Create(strnew(p)));
-            {List.concat(Tai_stabn.Create(strpnew('192,0,0,'
-             +current_procinfo.procdef.mangledname))));
+            list.concat(Tai_stab.Create(stab_stabn,strnew(p)));
+            {List.concat(Tai_stab.Create_str(stab_stabn,'192,0,0,'+current_procinfo.procdef.mangledname)));
             p[0]:='2';p[1]:='2';p[2]:='4';
             strpcopy(strend(p),'_end');}
             strpcopy(p,'224,0,0,'+stabsendlabel.name);
@@ -1776,7 +1772,7 @@ implementation
                 strpcopy(strend(p),current_procinfo.procdef.mangledname);
               end;
             list.concatlist(asmlist[al_withdebug]);
-            list.concat(Tai_stabn.Create(strnew(p)));
+            list.concat(Tai_stab.Create(stab_stabn,strnew(p)));
              { strpnew('224,0,0,'
              +current_procinfo.procdef.mangledname+'_end'))));}
             freemem(p,2*mangled_length+50);

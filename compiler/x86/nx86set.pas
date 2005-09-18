@@ -235,7 +235,7 @@ implementation
             else
               location.resflags:=F_E;
 
-            objectlibrary.getlabel(l);
+            objectlibrary.getjumplabel(l);
 
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
@@ -377,8 +377,8 @@ implementation
                if right.location.loc=LOC_CONSTANT then
                 begin
                   location.resflags:=F_C;
-                  objectlibrary.getlabel(l);
-                  objectlibrary.getlabel(l2);
+                  objectlibrary.getjumplabel(l);
+                  objectlibrary.getjumplabel(l2);
 
                   { load constants to a register }
                   if left.nodetype=ordconstn then

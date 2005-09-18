@@ -930,7 +930,7 @@ implementation
       var
         hl : tasmlabel;
       begin
-        objectlibrary.getlabel(hl);
+        objectlibrary.getjumplabel(hl);
         a_load_const_reg(list,size,1,reg);
         a_jmp_flags(list,f,hl);
         a_load_const_reg(list,size,0,reg);
@@ -955,7 +955,7 @@ implementation
       begin
         if not(cs_check_overflow in aktlocalswitches) then
           exit;
-        objectlibrary.getlabel(hl);
+        objectlibrary.getjumplabel(hl);
         case ovloc.loc of
           LOC_VOID:
             begin
@@ -1140,7 +1140,7 @@ implementation
                 a_load_const_reg(list,OS_INT,count,countreg);
                 { explicitely allocate R_O0 since it can be used safely here }
                 { (for holding date that's being copied)                    }
-                objectlibrary.getlabel(lab);
+                objectlibrary.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LD,src,tmpreg1));
                 list.concat(taicpu.op_reg_ref(A_ST,tmpreg1,dst));
@@ -1228,7 +1228,7 @@ implementation
                 a_load_const_reg(list,OS_INT,len,countreg);
                 { explicitely allocate R_O0 since it can be used safely here }
                 { (for holding date that's being copied)                    }
-                objectlibrary.getlabel(lab);
+                objectlibrary.getjumplabel(lab);
                 a_label(list, lab);
                 list.concat(taicpu.op_ref_reg(A_LDUB,src,tmpreg1));
                 list.concat(taicpu.op_reg_ref(A_STB,tmpreg1,dst));

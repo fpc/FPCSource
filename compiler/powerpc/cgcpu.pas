@@ -1883,7 +1883,7 @@ const
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
             a_reg_alloc(list,NR_F0);
-            objectlibrary.getlabel(lab);
+            objectlibrary.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
             list.concat(taicpu.op_reg_ref(A_LFDU,NR_F0,src));
@@ -1935,7 +1935,7 @@ const
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
             a_reg_alloc(list,NR_R0);
-            objectlibrary.getlabel(lab);
+            objectlibrary.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
             list.concat(taicpu.op_reg_ref(A_LWZU,NR_R0,src));
@@ -1987,7 +1987,7 @@ const
       begin
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
-         objectlibrary.getlabel(hl);
+         objectlibrary.getjumplabel(hl);
          if not ((def.deftype=pointerdef) or
                 ((def.deftype=orddef) and
                  (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,

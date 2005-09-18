@@ -172,8 +172,8 @@ implementation
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         objectlibrary.getlabel(truelabel);
-         objectlibrary.getlabel(falselabel);
+         objectlibrary.getjumplabel(truelabel);
+         objectlibrary.getjumplabel(falselabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -237,7 +237,7 @@ implementation
             LOC_JUMP :
               begin
                 hregister:=cg.getintregister(exprasmlist,OS_INT);
-                objectlibrary.getlabel(hlabel);
+                objectlibrary.getjumplabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
                 cg.a_jmp_always(exprasmlist,hlabel);

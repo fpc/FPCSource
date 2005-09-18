@@ -264,9 +264,9 @@ implementation
             if isjump then
               begin
                  otl:=truelabel;
-                 objectlibrary.getlabel(truelabel);
+                 objectlibrary.getjumplabel(truelabel);
                  ofl:=falselabel;
-                 objectlibrary.getlabel(falselabel);
+                 objectlibrary.getjumplabel(falselabel);
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
@@ -281,9 +281,9 @@ implementation
             if isjump then
               begin
                  otl:=truelabel;
-                 objectlibrary.getlabel(truelabel);
+                 objectlibrary.getjumplabel(truelabel);
                  ofl:=falselabel;
-                 objectlibrary.getlabel(falselabel);
+                 objectlibrary.getjumplabel(falselabel);
               end;
             secondpass(right);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then

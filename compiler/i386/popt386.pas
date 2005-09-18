@@ -507,7 +507,7 @@ var
                   insertllitem(asml,p1,p1.next,tai_comment.Create(
                     strpnew('previous label inserted'))));
   {$endif finaldestdebug}
-                  objectlibrary.getlabel(l);
+                  objectlibrary.getjumplabel(l);
                   insertllitem(asml,p1,p1.next,tai_label.Create(l));
                   tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
                   hp.oper[0]^.ref^.symbol := l;

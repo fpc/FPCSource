@@ -107,7 +107,7 @@ implementation
              { case expr greater than max_ => goto elselabel }
              cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
-        objectlibrary.getlabel(table);
+        objectlibrary.getjumplabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(exprasmlist,hregister,OS_INT);
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);

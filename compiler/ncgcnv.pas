@@ -372,8 +372,8 @@ interface
       begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
-         objectlibrary.getlabel(truelabel);
-         objectlibrary.getlabel(falselabel);
+         objectlibrary.getjumplabel(truelabel);
+         objectlibrary.getjumplabel(falselabel);
          secondpass(left);
          location_copy(location,left.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
@@ -409,7 +409,7 @@ interface
          hr : treference;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         objectlibrary.getlabel(l1);
+         objectlibrary.getjumplabel(l1);
          case left.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
               begin
@@ -464,7 +464,7 @@ interface
             else
               internalerror(121120001);
          end;
-         objectlibrary.getlabel(l1);
+         objectlibrary.getjumplabel(l1);
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,location.register,l1);
          hd:=tobjectdef(left.resulttype.def);
          while assigned(hd) do

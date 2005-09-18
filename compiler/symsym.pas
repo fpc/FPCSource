@@ -502,7 +502,7 @@ implementation
       begin
         stabstr:=stabstring;
         if stabstr<>nil then
-          asmlist.concat(Tai_stabs.create(stabstr));
+          asmlist.concat(Tai_stab.create(stab_stabs,stabstr));
       end;
 {$endif GDB}
 
@@ -2161,7 +2161,7 @@ implementation
          consttype.reset;
          value.len:=l;
          if t=constresourcestring then
-           ResStrIndex:=al_resourcestrings.Register(name,pchar(value.valueptr),value.len);
+           ResStrIndex:=resourcestrings.Register(name,pchar(value.valueptr),value.len);
       end;
 
 

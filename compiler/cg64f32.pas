@@ -589,7 +589,7 @@ unit cg64f32;
                  hreg:=cg.getintregister(list,OS_32);
                  a_load64high_ref_reg(list,l.reference,hreg);
                end;
-             objectlibrary.getlabel(poslabel);
+             objectlibrary.getjumplabel(poslabel);
 
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
@@ -597,7 +597,7 @@ unit cg64f32;
              { It can also be $ffffffff, but only for negative numbers }
              if from_signed and to_signed then
                begin
-                 objectlibrary.getlabel(neglabel);
+                 objectlibrary.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end;
              { For all other values we have a range check error }
@@ -620,7 +620,7 @@ unit cg64f32;
 
              if from_signed and to_signed then
                begin
-                 objectlibrary.getlabel(endlabel);
+                 objectlibrary.getjumplabel(endlabel);
                  cg.a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
@@ -635,7 +635,7 @@ unit cg64f32;
                      a_load64low_ref_reg(list,l.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
-                 objectlibrary.getlabel(neglabel);
+                 objectlibrary.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
 
                  cg.a_call_name(list,'FPC_RANGEERROR');
@@ -687,7 +687,7 @@ unit cg64f32;
                    else
                      cg.a_load_ref_reg(list,opsize,OS_32,l.reference,hreg);
                  end;
-               objectlibrary.getlabel(poslabel);
+               objectlibrary.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
                cg.a_call_name(list,'FPC_RANGEERROR');

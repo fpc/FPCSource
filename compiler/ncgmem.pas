@@ -386,7 +386,7 @@ implementation
             objectlibrary.getaddrlabel(withstartlabel);
             objectlibrary.getaddrlabel(withendlabel);
             cg.a_label(exprasmlist,withstartlabel);
-            al_withdebug.concat(Tai_stabs.Create(strpnew(
+            al_withdebug.concat(Tai_stab.create(stab_stabs,strpnew(
                '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                tostr(N_LSYM)+',0,0,'+tostr(refnode.location.reference.offset))));
@@ -510,8 +510,8 @@ implementation
                    hreg:=cg.getintregister(exprasmlist,OS_INT);
                    cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
                  end;
-               objectlibrary.getlabel(neglabel);
-               objectlibrary.getlabel(poslabel);
+               objectlibrary.getjumplabel(neglabel);
+               objectlibrary.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
                cg.a_label(exprasmlist,poslabel);
@@ -780,9 +780,9 @@ implementation
               if isjump then
                begin
                  otl:=truelabel;
-                 objectlibrary.getlabel(truelabel);
+                 objectlibrary.getjumplabel(truelabel);
                  ofl:=falselabel;
-                 objectlibrary.getlabel(falselabel);
+                 objectlibrary.getjumplabel(falselabel);
                end;
               secondpass(right);
 

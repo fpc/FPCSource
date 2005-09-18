@@ -100,6 +100,15 @@ implementation
            KeepShared.Free;
          end;
 
+        { Start and end of debuginfo, at least required for stabs
+          to insert n_sourcefile lines }
+        if (cs_debuginfo in aktmoduleswitches) or
+           (cs_gdb_lineinfo in aktglobalswitches) then
+          begin
+            debuginfo.insertmodulestart(asmlist[al_debugstart]);
+            debuginfo.insertmoduleend(asmlist[al_debugend]);
+          end;
+
         { create the .s file and assemble it }
         GenerateAsm(false);
 
@@ -185,13 +194,13 @@ implementation
         if assigned(asmlist[aasmtai.al_resourcestrings]) then
           fixseg(asmlist[aasmtai.al_resourcestrings],sec_data,'____seg_resstrings');
 {$ifdef GDB}
-        if assigned(asmlist[al_typestabs]) then
+        if assigned(asmlist[al_debugtypes]) then
           begin
             oldaktfilepos:=aktfilepos;
             aktfilepos.line:=0;
-            asmlist[al_typestabs].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
-            asmlist[al_typestabs].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-//            fixseg(asmlist[al_typestabs],sec_code,'____seg_debug');
+            asmlist[al_debugtypes].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
+            asmlist[al_debugtypes].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
+//            fixseg(asmlist[al_debugtypes],sec_code,'____seg_debug');
             aktfilepos:=oldaktfilepos;
           end;
 {$endif GDB}
@@ -342,7 +351,7 @@ implementation
            hp:=tused_unit(hp.next);
          end;
         { Add program resources, if any }
-        if asmlist[aasmtai.al_resourcestrings]<>nil then
+        If resourcestrings.ResStrCount>0 then
          begin
            ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
            Inc(Count);
@@ -719,7 +728,7 @@ implementation
                    dependent stabs }
                  write_used_unit_type_info(pu.u);
                  if assigned(pu.u.globalsymtable) then
-                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_typestabs]);
+                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_debugtypes]);
                end;
              pu:=tused_unit(pu.next);
            end;
@@ -743,8 +752,8 @@ implementation
           end
         else
           st:=current_module.localsymtable;
-        new_section(asmlist[al_typestabs],sec_data,lower(st.name^),0);
-        asmlist[al_typestabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
+        new_section(asmlist[al_debugtypes],sec_data,lower(st.name^),0);
+        asmlist[al_debugtypes].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
         { first write all global/local symbols again to a temp list. This will flag
           all required tdefs. After that the temp list can be removed since the debuginfo is already
           written to the stabs when the variables/consts were written }
@@ -761,16 +770,16 @@ implementation
         write_used_unit_type_info(current_module);
         { last write the types from this unit }
         if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_typestabs]);
+          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_debugtypes]);
         if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_typestabs]);
+          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_debugtypes]);
         { include files }
         if (cs_gdb_dbx in aktglobalswitches) then
           begin
-            asmlist[al_typestabs].concat(tai_comment.Create(strpnew('EINCL of global '+
+            asmlist[al_debugtypes].concat(tai_comment.Create(strpnew('EINCL of global '+
               tglobalsymtable(current_module.globalsymtable).name^+' has index '+
               tostr(tglobalsymtable(current_module.globalsymtable).moduleid))));
-            asmlist[al_typestabs].concat(Tai_stabs.Create(strpnew('"'+
+            asmlist[al_debugtypes].concat(Tai_stab.create(stab_stabs,strpnew('"'+
               tglobalsymtable(current_module.globalsymtable).name^+'",'+
               tostr(N_EINCL)+',0,0,0')));
             tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
@@ -1263,13 +1272,13 @@ implementation
          consume(_POINT);
 
          { Generate resoucestrings }
-         If al_resourcestrings.ResStrCount>0 then
+         If resourcestrings.ResStrCount>0 then
           begin
-            al_resourcestrings.CreateResourceStringList;
+            resourcestrings.CreateResourceStringList;
             current_module.flags:=current_module.flags or uf_has_resources;
             { only write if no errors found }
             if (Errorcount=0) then
-             al_resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
+             resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          if (Errorcount=0) then
@@ -1564,12 +1573,12 @@ implementation
             BinaryContainsExports then
            asmlist[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
 
-         If al_resourcestrings.ResStrCount>0 then
+         If resourcestrings.ResStrCount>0 then
           begin
-            al_resourcestrings.CreateResourceStringList;
+            resourcestrings.CreateResourceStringList;
             { only write if no errors found }
             if (Errorcount=0) then
-             al_resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
+             resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
           end;
 
          { finalize? }

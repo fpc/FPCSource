@@ -901,7 +901,7 @@ implementation
                   begin
                     stabstr:=Tsym(p).stabstring;
                     if stabstr<>nil then
-                      asmlist.concat(Tai_stabs.create(stabstr));
+                      asmlist.concat(Tai_stab.create(stab_stabs,stabstr));
                     Tsym(p).isstabwritten:=true;
                   end;
               end;
@@ -1406,7 +1406,7 @@ implementation
                   begin
                      asmList.concat(tai_comment.Create(strpnew('"repeated" unit '+name^
                               +' has index '+tostr(moduleid)+' dbx count = '+tostr(dbx_count))));
-                     asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
+                     asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'
                        +tostr(N_EXCL)+',0,0,'+tostr(dbx_count))));
                      exit;
                   end
@@ -1416,7 +1416,7 @@ implementation
                     dbx_counter := nil;
                     do_count_dbx:=false;
                     if (symtabletype = globalsymtable) then
-                      asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
+                      asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
                     dbx_counter := @dbx_count;
                     dbx_count:=0;
                     do_count_dbx:=assigned(dbx_counter);
@@ -1434,7 +1434,7 @@ implementation
                   begin
                     dbx_counter := prev_dbx_count;
                     do_count_dbx:=false;
-                    asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
+                    asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'
                       +tostr(N_EINCL)+',0,0,0')));
                     do_count_dbx:=assigned(dbx_counter);
                     dbx_count_ok := {true}false;
@@ -1533,8 +1533,8 @@ implementation
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
              {moduleid:=current_module.unitcount;}
-             {al_typestabs.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
-             al_typestabs.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
+             {al_debugtypes.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
+             al_debugtypes.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
              {inc(current_module.unitcount);}
              { we can't use dbx_vcount, because we don't know
                if the object file will be loaded before or afeter PM }

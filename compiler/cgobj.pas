@@ -1736,7 +1736,7 @@ implementation
         hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
         a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
-        objectlibrary.getlabel(neglabel);
+        objectlibrary.getjumplabel(neglabel);
         {
         if from_signed then
           a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
@@ -1778,7 +1778,7 @@ implementation
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
-           objectlibrary.getlabel(oklabel);
+           objectlibrary.getjumplabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
            cgpara1.init;
            paramanager.getintparaloc(pocall_default,1,cgpara1);

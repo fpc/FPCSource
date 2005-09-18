@@ -325,8 +325,8 @@ implementation
            begin
              otlabel:=truelabel;
              oflabel:=falselabel;
-             objectlibrary.getlabel(truelabel);
-             objectlibrary.getlabel(falselabel);
+             objectlibrary.getjumplabel(truelabel);
+             objectlibrary.getjumplabel(falselabel);
              secondpass(left);
 
              { release memory for refcnt out parameters }

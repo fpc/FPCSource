@@ -45,7 +45,6 @@ interface
           ait_align,
           ait_section,
           ait_comment,
-          ait_direct,
           ait_string,
           ait_instruction,
           ait_datablock,
@@ -68,12 +67,9 @@ interface
           ait_real_80bit,
           ait_comp_64bit,
           ait_real_128bit,
-{$ifdef GDB}
-          ait_stabn,
-          ait_stabs,
+          ait_stab,
           ait_force_line,
-          ait_stab_function_name,
-{$endif GDB}
+          ait_function_name,
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
           ait_frame,
@@ -110,7 +106,6 @@ interface
           'align',
           'section',
           'comment',
-          'direct',
           'string',
           'instruction',
           'datablock',
@@ -131,12 +126,9 @@ interface
           'real_80bit',
           'comp_64bit',
           'real_128bit',
-{$ifdef GDB}
-          'stabn',
-          'stabs',
+          'stab',
           'force_line',
-          'stab_funcname',
-{$endif GDB}
+          'function_name',
 {$ifdef alpha}
           { the follow is for the DEC Alpha }
           'frame',
@@ -211,25 +203,21 @@ interface
 { a new ait type!                                                              }
     const
       SkipInstr = [ait_comment, ait_symbol,ait_section
-{$ifdef GDB}
-                   ,ait_stabs, ait_stabn, ait_stab_function_name, ait_force_line
-{$endif GDB}
+                   ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end];
 
 { ait_* types which do not have line information (and hence which are of type
   tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
-{$ifdef GDB}
-                  ait_stabn,ait_stabs,ait_stab_function_name,
-{$endif GDB}
-                  ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
-                  ait_const_8bit,ait_const_16bit,ait_const_32bit,ait_const_64bit,ait_const_128bit,
-                  ait_const_sleb128bit,ait_const_uleb128bit,
-                  ait_const_rva_symbol,ait_const_indirect_symbol,
-                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                  ait_non_lazy_symbol_pointer
-                  ];
+                     ait_stab,ait_function_name,
+                     ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
+                     ait_const_8bit,ait_const_16bit,ait_const_32bit,ait_const_64bit,ait_const_128bit,
+                     ait_const_sleb128bit,ait_const_uleb128bit,
+                     ait_const_rva_symbol,ait_const_indirect_symbol,
+                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
+                     ait_non_lazy_symbol_pointer
+                    ];
 
 
     type
@@ -323,16 +311,6 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
-       end;
-
-       { Directly output data to final assembler file }
-       tai_direct = class(tailineinfo)
-          str : pchar;
-          constructor Create(_str : pchar);
-          destructor Destroy; override;
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function getcopy:tlinkedlistitem;override;
        end;
 
        { Generates an assembler comment }
@@ -452,6 +430,26 @@ interface
           constructor Create(_value : ts64comp);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
+
+       tstabtype = (stab_stabs,stab_stabn,stab_stabd);
+
+       tai_stab = class(tai)
+          str : pchar;
+          stabtype : tstabtype;
+          constructor Create(_stabtype:tstabtype;_str : pchar);
+          constructor Create_str(_stabtype:tstabtype;const s:string);
+          destructor Destroy;override;
+       end;
+
+       tai_force_line = class(tailineinfo)
+          constructor Create;
+       end;
+
+       tai_function_name = class(tai)
+          funcname : pstring;
+          constructor create(const s:string);
+          destructor destroy;override;
        end;
 
        { Insert a cut to split assembler into several smaller files }
@@ -586,7 +584,8 @@ interface
          information in the .o file. The stabs for the types must be defined
          before they can be referenced and therefor they need to be written
          first (PFV) }
-       Tasmlist=(al_typestabs,
+       Tasmlist=(al_debugstart,
+                 al_debugtypes,
                  al_procedures,
                  al_globals,
                  al_const,
@@ -600,10 +599,12 @@ interface
                  al_rtti,
                  al_dwarf,
                  al_picdata,
-                 al_resourcestrings);
+                 al_resourcestrings,
+                 al_debugend);
     const
        TasmlistStr : array[tasmlist] of string[24] =(
-           'al_typestabs',
+           'al_debugstart',
+           'al_debugtypes',
            'al_procedures',
            'al_globals',
            'al_const',
@@ -617,7 +618,12 @@ interface
            'al_rtti',
            'al_dwarf',
            'al_picdata',
-           'al_resourcestrings');
+           'al_resourcestrings',
+           'al_debugend');
+
+      regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
+      tempallocstr : array[boolean] of string[10]=('released','allocated');
+      stabtypestr : array[tstabtype] of string[5]=('stabs','stabn','stabd');
 
     var
       { array with all class types for tais }
@@ -1530,59 +1536,6 @@ implementation
 
 
 {****************************************************************************
-                              TAI_DIRECT
- ****************************************************************************}
-
-     constructor tai_direct.Create(_str : pchar);
-
-       begin
-          inherited Create;
-          typ:=ait_direct;
-          str:=_str;
-       end;
-
-    destructor tai_direct.destroy;
-
-      begin
-         strdispose(str);
-         inherited Destroy;
-      end;
-
-    constructor tai_direct.ppuload(t:taitype;ppufile:tcompilerppufile);
-      var
-        len : longint;
-      begin
-        inherited ppuload(t,ppufile);
-        len:=ppufile.getlongint;
-        getmem(str,len+1);
-        ppufile.getdata(str^,len);
-        str[len]:=#0;
-      end;
-
-
-    procedure tai_direct.ppuwrite(ppufile:tcompilerppufile);
-      var
-        len : longint;
-      begin
-        inherited ppuwrite(ppufile);
-        len:=strlen(str);
-        ppufile.putlongint(len);
-        ppufile.putdata(str^,len);
-      end;
-
-
-    function tai_direct.getcopy : tlinkedlistitem;
-      var
-        p : tlinkedlistitem;
-      begin
-        p:=inherited getcopy;
-        getmem(tai_direct(p).str,strlen(str)+1);
-        move(str^,tai_direct(p).str^,strlen(str)+1);
-        getcopy:=p;
-      end;
-
-
-{****************************************************************************
           tai_comment  comment to be inserted in the assembler file
  ****************************************************************************}
 
@@ -1632,6 +1585,59 @@ implementation
         getmem(tai_comment(p).str,strlen(str)+1);
         move(str^,tai_comment(p).str^,strlen(str)+1);
         getcopy:=p;
+      end;
+
+
+{****************************************************************************
+                              TAI_STABS
+ ****************************************************************************}
+
+    constructor tai_stab.create(_stabtype:tstabtype;_str : pchar);
+      begin
+         inherited create;
+         typ:=ait_stab;
+         str:=_str;
+         stabtype:=_stabtype;
+      end;
+
+    constructor tai_stab.create_str(_stabtype:tstabtype;const s:string);
+      begin
+         self.create(_stabtype,strpnew(s));
+      end;
+
+    destructor tai_stab.destroy;
+      begin
+         strdispose(str);
+         inherited destroy;
+      end;
+
+
+{****************************************************************************
+                            TAI_FORCE_LINE
+ ****************************************************************************}
+
+    constructor tai_force_line.create;
+      begin
+         inherited create;
+         typ:=ait_force_line;
+      end;
+
+
+{****************************************************************************
+                              TAI_FUNCTION_NAME
+ ****************************************************************************}
+
+    constructor tai_function_name.create(const s:string);
+      begin
+         inherited create;
+         typ:=ait_function_name;
+         funcname:=stringdup(s);
+      end;
+
+    destructor tai_function_name.destroy;
+      begin
+         stringdispose(funcname);
+         inherited destroy;
       end;
 
 
@@ -2107,12 +2113,14 @@ implementation
           virtual;abstract; to prevent a lot of warnings of unimplemented abstract methods
           when tai_cpu is created (PFV) }
         internalerror(200404091);
+        result:=false;
       end;
 
 
     function tai_cpu_abstract.spilling_get_operation_type(opnr: longint): topertype;
       begin
         internalerror(200404091);
+        result:=operand_readwrite;
       end;
 
 

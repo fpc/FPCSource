@@ -109,9 +109,9 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
-         objectlibrary.getlabel(lloop);
-         objectlibrary.getlabel(lcont);
-         objectlibrary.getlabel(lbreak);
+         objectlibrary.getjumplabel(lloop);
+         objectlibrary.getjumplabel(lcont);
+         objectlibrary.getjumplabel(lbreak);
          { arrange continue and breaklabels: }
          oldflowcontrol:=flowcontrol;
          oldclabel:=aktcontinuelabel;
@@ -192,8 +192,8 @@ implementation
 
          otlabel:=truelabel;
          oflabel:=falselabel;
-         objectlibrary.getlabel(truelabel);
-         objectlibrary.getlabel(falselabel);
+         objectlibrary.getjumplabel(truelabel);
+         objectlibrary.getjumplabel(falselabel);
          secondpass(left);
 
 (*
@@ -237,7 +237,7 @@ implementation
            begin
               if assigned(right) then
                 begin
-                   objectlibrary.getlabel(hl);
+                   objectlibrary.getjumplabel(hl);
                    { do go back to if line !! }
 (*
                    if not(cs_regvars in aktglobalswitches) then
@@ -345,9 +345,9 @@ implementation
          oldflowcontrol:=flowcontrol;
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
-         objectlibrary.getlabel(aktcontinuelabel);
-         objectlibrary.getlabel(aktbreaklabel);
-         objectlibrary.getlabel(l3);
+         objectlibrary.getjumplabel(aktcontinuelabel);
+         objectlibrary.getjumplabel(aktbreaklabel);
+         objectlibrary.getjumplabel(l3);
 
          { only calculate reference }
          opsize := def_cgsize(left.resulttype.def);
@@ -768,7 +768,7 @@ implementation
     function tcglabelnode.getasmlabel : tasmlabel;
       begin
         if not(assigned(asmlabel)) then
-          objectlibrary.getlabel(asmlabel);
+          objectlibrary.getjumplabel(asmlabel);
         result:=asmlabel
       end;
 
@@ -938,20 +938,20 @@ implementation
            end;
 
          { get new labels for the control flow statements }
-         objectlibrary.getlabel(exittrylabel);
-         objectlibrary.getlabel(exitexceptlabel);
+         objectlibrary.getjumplabel(exittrylabel);
+         objectlibrary.getjumplabel(exitexceptlabel);
          if assigned(aktbreaklabel) then
            begin
-              objectlibrary.getlabel(breaktrylabel);
-              objectlibrary.getlabel(continuetrylabel);
-              objectlibrary.getlabel(breakexceptlabel);
-              objectlibrary.getlabel(continueexceptlabel);
+              objectlibrary.getjumplabel(breaktrylabel);
+              objectlibrary.getjumplabel(continuetrylabel);
+              objectlibrary.getjumplabel(breakexceptlabel);
+              objectlibrary.getjumplabel(continueexceptlabel);
            end;
 
-         objectlibrary.getlabel(exceptlabel);
-         objectlibrary.getlabel(doexceptlabel);
-         objectlibrary.getlabel(endexceptlabel);
-         objectlibrary.getlabel(lastonlabel);
+         objectlibrary.getjumplabel(exceptlabel);
+         objectlibrary.getjumplabel(doexceptlabel);
+         objectlibrary.getjumplabel(endexceptlabel);
+         objectlibrary.getjumplabel(lastonlabel);
 
          get_exception_temps(exprasmlist,excepttemps);
          new_exception(exprasmlist,excepttemps,exceptlabel);
@@ -1010,8 +1010,8 @@ implementation
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
-              objectlibrary.getlabel(doobjectdestroy);
-              objectlibrary.getlabel(doobjectdestroyandreraise);
+              objectlibrary.getjumplabel(doobjectdestroy);
+              objectlibrary.getjumplabel(doobjectdestroyandreraise);
 
               get_exception_temps(exprasmlist,destroytemps);
               new_exception(exprasmlist,destroytemps,doobjectdestroyandreraise);
@@ -1166,7 +1166,7 @@ implementation
 
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
-         objectlibrary.getlabel(nextonlabel);
+         objectlibrary.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
          reference_reset_symbol(href2,objectlibrary.newasmsymbol(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
@@ -1198,7 +1198,7 @@ implementation
 
          { in the case that another exception is risen
            we've to destroy the old one                }
-         objectlibrary.getlabel(doobjectdestroyandreraise);
+         objectlibrary.getjumplabel(doobjectdestroyandreraise);
 
          { call setjmp, and jump to finally label on non-zero result }
          get_exception_temps(exprasmlist,excepttemps);
@@ -1209,21 +1209,21 @@ implementation
          if assigned(right) then
            begin
               oldaktexitlabel:=current_procinfo.aktexitlabel;
-              objectlibrary.getlabel(exitonlabel);
+              objectlibrary.getjumplabel(exitonlabel);
               current_procinfo.aktexitlabel:=exitonlabel;
               if assigned(aktbreaklabel) then
                begin
                  oldaktcontinuelabel:=aktcontinuelabel;
                  oldaktbreaklabel:=aktbreaklabel;
-                 objectlibrary.getlabel(breakonlabel);
-                 objectlibrary.getlabel(continueonlabel);
+                 objectlibrary.getjumplabel(breakonlabel);
+                 objectlibrary.getjumplabel(continueonlabel);
                  aktcontinuelabel:=continueonlabel;
                  aktbreaklabel:=breakonlabel;
                end;
 
               secondpass(right);
            end;
-         objectlibrary.getlabel(doobjectdestroy);
+         objectlibrary.getjumplabel(doobjectdestroy);
          cg.a_label(exprasmlist,doobjectdestroyandreraise);
 
          free_exception(exprasmlist,excepttemps,0,doobjectdestroy,false);
@@ -1320,9 +1320,9 @@ implementation
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
-         objectlibrary.getlabel(finallylabel);
-         objectlibrary.getlabel(endfinallylabel);
-         objectlibrary.getlabel(reraiselabel);
+         objectlibrary.getjumplabel(finallylabel);
+         objectlibrary.getjumplabel(endfinallylabel);
+         objectlibrary.getjumplabel(reraiselabel);
 
          { the finally block must catch break, continue and exit }
          { statements                                            }
@@ -1330,7 +1330,7 @@ implementation
          if implicitframe then
            exitfinallylabel:=finallylabel
          else
-           objectlibrary.getlabel(exitfinallylabel);
+           objectlibrary.getjumplabel(exitfinallylabel);
          current_procinfo.aktexitlabel:=exitfinallylabel;
          if assigned(aktbreaklabel) then
           begin
@@ -1343,8 +1343,8 @@ implementation
               end
             else
               begin
-                objectlibrary.getlabel(breakfinallylabel);
-                objectlibrary.getlabel(continuefinallylabel);
+                objectlibrary.getjumplabel(breakfinallylabel);
+                objectlibrary.getjumplabel(continuefinallylabel);
               end;
             aktcontinuelabel:=continuefinallylabel;
             aktbreaklabel:=breakfinallylabel;

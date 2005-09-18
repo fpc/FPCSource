@@ -194,7 +194,6 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
 ---------------------------------------------------------------------}
 
   Procedure ConcatPasString(p : TAAsmoutput;s:string);
-  Procedure ConcatDirect(p : TAAsmoutput;s:string);
   Procedure ConcatLabel(p: TAAsmoutput;var l : tasmlabel);
   Procedure ConcatConstant(p : TAAsmoutput;value: aint; constsize:byte);
   Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;symtyp:tasmsymtype;l:aint);
@@ -1096,7 +1095,7 @@ function TLocalLabel.Gettasmlabel:tasmlabel;
 begin
   if not assigned(lab) then
    begin
-     objectlibrary.getlabel(lab);
+     objectlibrary.getjumplabel(lab);
      { this label is forced to be used so it's always written }
      lab.increfs;
    end;
@@ -1386,7 +1385,7 @@ Begin
     labelsym :
       begin
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
-          objectlibrary.getlabel(tlabelsym(sym).asmblocklabel);
+          objectlibrary.getjumplabel(tlabelsym(sym).asmblocklabel);
         hl:=tlabelsym(sym).asmblocklabel;
         if emit then
          tlabelsym(sym).defined:=true
@@ -1426,23 +1425,6 @@ end;
   Begin
      p.concat(Tai_string.Create(s));
   end;
-
-  Procedure ConcatDirect(p : TAAsmoutput;s:string);
-  {*********************************************************************}
-  { PROCEDURE ConcatDirect(s:string)                                    }
-  {  Description: This routine output the string directly to the asm    }
-  {  output, it is only sed when writing special labels in AT&T mode,   }
-  {  and should not be used without due consideration, since it may     }
-  {  cause problems.                                                    }
-  {*********************************************************************}
-  Var
-   pc: PChar;
-  Begin
-     getmem(pc,length(s)+1);
-     p.concat(Tai_direct.Create(strpcopy(pc,s)));
-  end;
-
-
 
 
 Procedure ConcatConstant(p: TAAsmoutput; value: aint; constsize:byte);

@@ -597,22 +597,19 @@ uses
            s:=librarydata.asmsymbolidx^[i-1];
            if not assigned(s) then
             internalerror(200208071);
-           asmsymtype:=1;
            if s.Classtype=tasmlabel then
-            begin
-              if tasmlabel(s).is_addr then
-               asmsymtype:=4
-              else if tasmlabel(s).typ=AT_DATA then
-               asmsymtype:=3
-              else
-               asmsymtype:=2;
-            end;
+             asmsymtype:=2
+           else
+             asmsymtype:=1;
            ppufile.putbyte(asmsymtype);
            case asmsymtype of
              1 :
                ppufile.putstring(s.name);
-             2..4 :
-               ppufile.putlongint(tasmlabel(s).labelnr);
+             2 :
+               begin
+                 ppufile.putbyte(byte(tasmlabel(s).labeltype));
+                 ppufile.putlongint(tasmlabel(s).labelnr);
+               end;
            end;
            ppufile.putbyte(byte(s.defbind));
            ppufile.putbyte(byte(s.typ));
@@ -856,6 +853,7 @@ uses
         labelnr,
         i     : longint;
         name  : string;
+        labeltype : tasmlabeltype;
         bind  : TAsmSymBind;
         typ   : TAsmSymType;
         asmsymtype : byte;
@@ -871,8 +869,11 @@ uses
               case asmsymtype of
                 1 :
                   name:=ppufile.getstring;
-                2..4 :
-                  labelnr:=ppufile.getlongint;
+                2 :
+                  begin
+                    labeltype:=tasmlabeltype(ppufile.getbyte);
+                    labelnr:=ppufile.getlongint;
+                  end;
                 else
                   internalerror(200208192);
               end;
@@ -882,11 +883,7 @@ uses
                 1 :
                  librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymbol(name,bind,typ);
                 2 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,false);
-                3 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,false,true);
-                4 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,true,false);
+                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,labeltype,(typ=AT_DATA));
               end;
             end;
          end;
