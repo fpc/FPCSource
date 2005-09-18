@@ -1085,20 +1085,24 @@ implementation
                 inserttypeconv(right,left.resulttype);
              end;
           end
-
-         { compare pchar to char arrays by addresses like BP/Delphi }
-         else if ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
-                 ((is_pchar(rd) or (rt=niln)) and is_chararray(ld)) then
-           begin
-             if is_chararray(rd) then
-              inserttypeconv(right,charpointertype)
-             else
-              inserttypeconv(left,charpointertype);
-           end
-
          { pointer comparision and subtraction }
-         else if (rd.deftype=pointerdef) and (ld.deftype=pointerdef) then
+         else if ((rd.deftype=pointerdef) and (ld.deftype=pointerdef)) or
+                 { compare pchar to char arrays by addresses like BP/Delphi }
+                 ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
+                 ((is_pchar(rd) or (rt=niln)) and is_chararray(ld)) then
           begin
+            { convert char array to pointer }
+            if is_chararray(rd) then
+              begin
+                inserttypeconv(right,charpointertype);
+                rd:=right.resulttype.def;
+              end
+            else if is_chararray(ld) then
+              begin
+                inserttypeconv(left,charpointertype);
+                ld:=left.resulttype.def;
+              end;
+
             case nodetype of
                equaln,unequaln :
                  begin
