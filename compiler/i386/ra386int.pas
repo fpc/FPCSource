@@ -710,16 +710,20 @@ Unit Ra386int;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken=AS_ID then
-             s:=s+'.'+actasmpattern;
-           if not Consume(AS_ID) then
+           if actasmtoken in [AS_BYTE,AS_ID,AS_WORD,AS_DWORD,AS_QWORD] then
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken);
+             end
+           else
             begin
+              Consume(AS_ID);
               RecoverConsume(true);
               break;
             end;
          end;
         if not GetRecordOffsetSize(s,offset,size) then
-         Message(asmr_e_building_record_offset);
+          Message(asmr_e_building_record_offset);
       end;
 
 
@@ -1484,10 +1488,11 @@ Unit Ra386int;
         expr    : string;
         tempreg : tregister;
         typesize,
-        l       : aint;
+        l,k     : aint;
         hl      : tasmlabel;
         toffset,
         tsize   : aint;
+        tempstr : string;
       begin
         expr:='';
         repeat
@@ -1648,6 +1653,8 @@ Unit Ra386int;
                                 if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
                                   oper.SetSize(typesize,true);
                               end;
+                            else
+                              oper.SetSize(typesize,true);
                           end;
                         end
                        else
