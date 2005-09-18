@@ -997,6 +997,8 @@ begin
                          include(initlocalswitches,cs_ansistrings);
                        'i' :
                          include(initmoduleswitches,cs_support_inline);
+                       'k' :
+                         include(initglobalswitches,cs_load_fpcylix_unit);
                        'm' :
                          include(initmoduleswitches,cs_support_macro);
                        'o' : //an alternative to -Mtp

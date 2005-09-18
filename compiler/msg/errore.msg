@@ -2307,6 +2307,7 @@ S*2Aas_assemble using GNU AS
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
+**2Sk_load fpcylix unit
 **2SI<x>_set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface

@@ -528,6 +528,8 @@ implementation
         if (cs_profile in aktmoduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
           AddUnit('Profile');
+        if (cs_load_fpcylix_unit in aktglobalswitches) then
+          AddUnit('FPCylix');
         { save default symtablestack }
         defaultsymtablestack:=symtablestack;
         defaultmacrosymtablestack:=macrosymtablestack;

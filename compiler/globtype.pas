@@ -113,6 +113,7 @@ than 255 characters. That's why using Ansi Strings}
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
+         cs_load_fpcylix_unit,
          { optimizer }
          cs_regvars,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
          cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,cs_loopunroll,
