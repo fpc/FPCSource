@@ -2361,6 +2361,7 @@ S*2Tlinux_Linux
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_a : Show everything             x : Executable info (Win32 only)
+**2*_b : Write file names messages with full path
 **2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
 **2*_    lots of debugging info
 3*1W<x>_Win32-like target options
