@@ -901,6 +901,7 @@ begin
   if Active then Close;
   UnPrepare;
   if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
+  FreeAndNil(FParams);
   FreeAndNil(FSQL);
   FreeAndNil(FIndexDefs);
   inherited Destroy;
