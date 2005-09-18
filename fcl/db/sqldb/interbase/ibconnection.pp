@@ -20,8 +20,6 @@ type
     protected
     Status               : array [0..19] of ISC_STATUS;
     Statement            : pointer;
-    FFieldFlag           : PByte;
-    FinFieldFlag         : PByte;
     SQLDA                : PXSQLDA;
     in_SQLDA             : PXSQLDA;
     ParamBinding         : array of integer;
@@ -46,6 +44,7 @@ type
       var TrType : TFieldType; var TrLen : word);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
+    procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
     procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
@@ -296,16 +295,31 @@ begin
     end;
 end;
 
-
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
 
+var x : shortint;
+
 begin
-  reAllocMem(aSQLDA, XSQLDA_Length(Count));
+  {$R-}
+  if assigned(aSQLDA) {and (aSQLDA^.SQLD > count)} then
+    for x := 0 to aSQLDA^.SQLN - 1 do
+      begin
+      reAllocMem(aSQLDA^.SQLVar[x].SQLData,0);
+      dispose(aSQLDA^.SQLVar[x].sqlind);
+      end;
+  {$R+}
+  if count > -1 then
+    begin
+    reAllocMem(aSQLDA, XSQLDA_Length(Count));
     { Zero out the memory block to avoid problems with exceptions within the
       constructor of this class. }
-  FillChar(aSQLDA^, XSQLDA_Length(Count), 0);
-  aSQLDA^.Version := sqlda_version1;
-  aSQLDA^.SQLN := Count;
+    FillChar(aSQLDA^, XSQLDA_Length(Count), 0);
+
+    aSQLDA^.Version := sqlda_version1;
+    aSQLDA^.SQLN := Count;
+    end
+  else
+    reAllocMem(aSQLDA,0);
 end;
 
 procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
@@ -390,8 +404,8 @@ begin
   curs.sqlda := nil;
   curs.statement := nil;
   curs.FPrepared := False;
-  AllocSQLDA(curs.SQLDA,1);
-  AllocSQLDA(curs.in_SQLDA,1);
+  AllocSQLDA(curs.SQLDA,0);
+  AllocSQLDA(curs.in_SQLDA,0);
   result := curs;
 end;
 
@@ -400,10 +414,8 @@ procedure TIBConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
 begin
   if assigned(cursor) then with cursor as TIBCursor do
     begin
-    reAllocMem(SQLDA,0);
-    reAllocMem(in_SQLDA,0);
-    reAllocMem(FFieldFlag,0);
-    reAllocMem(FInFieldFlag,0);
+    AllocSQLDA(SQLDA,-1);
+    AllocSQLDA(in_SQLDA,-1);
     end;
   FreeAndNil(cursor);
 end;
@@ -464,14 +476,13 @@ begin
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
       {$R-}
-      ReAllocMem(FInFieldFlag,SQLDA^.SQLD+1);
       for x := 0 to in_SQLDA^.SQLD - 1 do with in_SQLDA^.SQLVar[x] do
         begin
         if ((SQLType and not 1) = SQL_VARYING) then
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen+2)
         else
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
-        SQLInd  := @FinFieldFlag[x];
+        if (sqltype and 1) = 1 then New(SQLInd);
         end;
       {$R+}
       end;
@@ -487,16 +498,13 @@ begin
           CheckError('PrepareSelect', Status);
         end;
       {$R-}
-      ReAllocMem(FFieldFlag,SQLDA^.SQLD+1);
       for x := 0 to SQLDA^.SQLD - 1 do with SQLDA^.SQLVar[x] do
         begin
         if ((SQLType and not 1) = SQL_VARYING) then
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen+2)
-//          ReAllocMem(SQLData,SQLDA^.SQLVar[x].SQLLen+2)
         else
           SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
-//             ReAllocMem(SQLData,SQLDA^.SQLVar[x].SQLLen);
-        SQLInd  := @FFieldFlag[x];
+        if (SQLType and 1) = 1 then New(SQLInd);
         end;
       {$R+}
       end;
@@ -516,14 +524,8 @@ begin
 end;
 
 procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
-var
-  x  : shortint;
 begin
-  {$R-}
-  with cursor as TIBCursor do
-    for x := 0 to SQLDA^.SQLD - 1 do
-      reAllocMem(SQLDA^.SQLVar[x].SQLData,0);
-  {$R+}
+// Do Nothing
 end;
 
 procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams);
@@ -597,13 +599,15 @@ begin
       in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1
     else
       begin
-      in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
+      if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
 
       case AParams[ParNr].DataType of
         ftInteger :
           begin
           i := AParams[ParNr].AsInteger;
+          {$R-}
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          {$R+}
           end;
         ftString  :
           begin
@@ -613,15 +617,21 @@ begin
           if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_VARYING) then
             begin
             in_sqlda^.SQLvar[SQLVarNr].SQLLen := w;
-            in_sqlda^.SQLvar[SQLVarNr].SQLData := AllocMem(in_SQLDA^.SQLVar[SQLVarNr].SQLLen+2)
-            end;
+            ReAllocMem(in_sqlda^.SQLvar[SQLVarNr].SQLData,in_SQLDA^.SQLVar[SQLVarNr].SQLLen+2);
+            CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
+            move(w,CurrBuff^,sizeof(w));
+            inc(CurrBuff,2);
+            end
+          else
+            CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
 
-          CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
-          move(w,CurrBuff^,sizeof(w));
-          inc(CurrBuff,2);
           Move(s[1], CurrBuff^, length(s));
           {$R+}
           end;
+        ftDate, ftTime, ftDateTime:
+          {$R-}
+          SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
+          {$R+}
       else
         begin
         DatabaseError('This kind of parameter in not (yet) supported.',self);
@@ -651,8 +661,7 @@ begin
 
     if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
       DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
-
-    if SQLDA^.SQLVar[x].SQLInd^ = -1 then
+    if assigned(SQLDA^.SQLVar[x].SQLInd) and (SQLDA^.SQLVar[x].SQLInd^ = -1) then
       result := false
     else
       begin
@@ -741,6 +750,30 @@ begin
 
   PTime := SystemTimeToDateTime(STime);
   Move(PTime, Buffer^, SizeOf(PTime));
+end;
+
+procedure TIBConnection.SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
+var
+  CTime : TTm;          // C struct time
+  STime : TSystemTime;  // System time
+begin
+  DateTimeToSystemTime(PTime,STime);
+  
+  CTime.tm_year := STime.Year - 1900;
+  CTime.tm_mon  := STime.Month -1;
+  CTime.tm_mday := STime.Day;
+  CTime.tm_hour := STime.Hour;
+  CTime.tm_min  := STime.Minute;
+  CTime.tm_sec  := STime.Second;
+
+  case (AType and not 1) of
+    SQL_TYPE_DATE :
+      isc_encode_sql_date(@CTime, PISC_DATE(CurrBuff));
+    SQL_TYPE_TIME :
+      isc_encode_sql_time(@CTime, PISC_TIME(CurrBuff));
+    SQL_TIMESTAMP :
+      isc_encode_timestamp(@CTime, PISC_TIMESTAMP(CurrBuff));
+  end;
 end;
 
 function TIBConnection.GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
