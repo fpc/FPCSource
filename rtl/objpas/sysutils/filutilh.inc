@@ -23,6 +23,7 @@ Type
 {$ifdef unix}
     FindHandle : Pointer;
     Mode : TMode;
+    PathOnly : AnsiString;
 {$else unix}
     FindHandle : THandle;
 {$endif unix}
@@ -48,6 +49,7 @@ Const
   faVolumeId  = $00000008;
   faDirectory = $00000010;
   faArchive   = $00000020;
+  faSymLink   = $00000040;
   faAnyFile   = $0000003f;
 
   { File open modes }

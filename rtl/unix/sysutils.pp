@@ -36,11 +36,49 @@ uses
 
 Procedure AddDisk(const path:string);
 
+{ the following is Kylix compatibility stuff, it should be moved to a
+  special compatibilty unit (FK) }
+  const
+    RTL_SIGINT     = 0;
+    RTL_SIGFPE     = 1;
+    RTL_SIGSEGV    = 2;
+    RTL_SIGILL     = 3;
+    RTL_SIGBUS     = 4;
+    RTL_SIGQUIT    = 5;
+    RTL_SIGLAST    = RTL_SIGQUIT;
+    RTL_SIGDEFAULT = -1;
+
+  type
+    TSignalState = (ssNotHooked, ssHooked, ssOverridden);
+
+function InquireSignal(RtlSigNum: Integer): TSignalState;
+procedure AbandonSignalHandler(RtlSigNum: Integer);
+procedure HookSignal(RtlSigNum: Integer);
+procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 
 implementation
 
 Uses
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
+
+function InquireSignal(RtlSigNum: Integer): TSignalState;
+  begin
+  end;
+
+
+procedure AbandonSignalHandler(RtlSigNum: Integer);
+  begin
+  end;
+
+
+procedure HookSignal(RtlSigNum: Integer);
+  begin
+  end;
+
+
+procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
+  begin
+  end;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
@@ -280,6 +318,8 @@ begin
      Result:=Result or faReadOnly;
   If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
      Result:=Result or faSysFile;
+  If fpS_ISLNK(Info.st_mode) Then
+    Result:=Result or faSymLink;
 end;
 
 type
@@ -520,6 +560,7 @@ begin
     begin
     GlobSearchRec^.GlobHandle:=P^.Next;
     Result:=Fpstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo)>=0;
+    Info.PathOnly:=GlobSearchRec^.Path;
     If Result then
       begin
       Info.Attr:=LinuxToWinAttr(p^.name,SInfo);

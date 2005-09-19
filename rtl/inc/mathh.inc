@@ -65,6 +65,9 @@
     function round(c : comp) : int64;
 {$endif FPC_CURRENCY_IS_INT64}
 
+{$ifdef SUPPORT_EXTENDED}
+    function FPower10(val: Extended; Power: Longint): Extended;
+{$endif SUPPORT_EXTENDED}
 
     type
        real48 = array[0..5] of byte;

@@ -1144,6 +1144,11 @@ Begin
   End;
 End;
 
+Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
+  begin
+    result:=FloatToStrF(Value,Format,19,Digits);
+  end;
+
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 begin
   If (Value<MinDateTime) or (Value>MaxDateTime) then

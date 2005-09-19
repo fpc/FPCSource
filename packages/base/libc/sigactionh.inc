@@ -2,10 +2,14 @@
 type
    P_sigaction = ^_sigaction;
    _sigaction = record // Renamed, avoid conflict with sigaction function
-     sa_handler : __sighandler_t;
-     sa_mask : __sigset_t;
-     sa_flags : longint;
-     sa_restorer : procedure ;cdecl;
+     case integer of
+       1: (sa_handler : __sighandler_t;
+           sa_mask : __sigset_t;
+           sa_flags : longint;
+           sa_restorer : procedure ;cdecl;
+          );
+       // Kylix compatibility
+       2: (__sigaction_handler: __sighandler_t);
    end;
 
 const

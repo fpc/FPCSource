@@ -21,6 +21,9 @@ Function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
 FUnction dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
 Function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
 Function dlerror() : Pchar; cdecl; external libdl;
+{ overloaded for compatibility with hmodule }
+FUnction dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
+Function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
 
 implementation
 
