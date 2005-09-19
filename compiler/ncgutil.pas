@@ -1580,25 +1580,6 @@ implementation
         { call startup helpers from main program }
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
          begin
-           { initialize profiling for win32 }
-           if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-              (cs_profile in aktmoduleswitches) then
-            begin
-              reference_reset_symbol(href,objectlibrary.newasmsymbol('etext',AB_EXTERNAL,AT_DATA),0);
-              paramanager.getintparaloc(pocall_default,1,paraloc1);
-              paramanager.getintparaloc(pocall_default,2,paraloc2);
-              paramanager.allocparaloc(list,paraloc2);
-              cg.a_paramaddr_ref(list,href,paraloc2);
-              reference_reset_symbol(href,objectlibrary.newasmsymbol('__image_base__',AB_EXTERNAL,AT_DATA),0);
-              paramanager.allocparaloc(list,paraloc1);
-              cg.a_paramaddr_ref(list,href,paraloc1);
-              paramanager.freeparaloc(list,paraloc2);
-              paramanager.freeparaloc(list,paraloc1);
-              cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
-              cg.a_call_name(list,'_monstartup');
-              cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
-            end;
-
            { initialize units }
            cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');

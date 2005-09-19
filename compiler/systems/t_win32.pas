@@ -937,9 +937,8 @@ begin
      LinkRes.Add('GROUP(');
      if (cs_profile in aktmoduleswitches) then
        begin
+         LinkRes.Add('-lc');
          LinkRes.Add('-lgcc');
-         LinkRes.Add('-lmoldname');
-         LinkRes.Add('-lmsvcrt');
          LinkRes.Add('-lgmon');
          LinkRes.Add('-lkernel32');
        end;
