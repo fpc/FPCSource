@@ -60,8 +60,8 @@ _start:
         fldcw   ___fpucw
 
         /* Initialize gs for thread local storage */
-        pushw   %ds
-        popw    %gs
+        movw    %ds,%ax
+        movw    %ax,%gs
 
         xorl    %ebp,%ebp
         call    PASCALMAIN
