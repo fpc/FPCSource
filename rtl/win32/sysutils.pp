@@ -1137,8 +1137,17 @@ procedure InitWin32Widestrings;
   begin
     widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
+    widestringmanager.UpperAnsiStringProc:=@Win32AnsiUpperCase;
+    widestringmanager.LowerAnsiStringProc:=@Win32AnsiLowerCase;
+    widestringmanager.CompareStrAnsiStringProc:=@Win32AnsiCompareStr;
+    widestringmanager.CompareTextAnsiStringProc:=@Win32AnsiCompareText;
+    widestringmanager.StrCompAnsiStringProc:=@Win32AnsiStrComp;
+    widestringmanager.StrICompAnsiStringProc:=@Win32AnsiStrIComp;
+    widestringmanager.StrLCompAnsiStringProc:=@Win32AnsiStrLComp;
+    widestringmanager.StrLICompAnsiStringProc:=@Win32AnsiStrLIComp;
+    widestringmanager.StrLowerAnsiStringProc:=@Win32AnsiStrLower;
+    widestringmanager.StrUpperAnsiStringProc:=@Win32AnsiStrUpper;
   end;
-
 
 
 Initialization
