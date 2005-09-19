@@ -2291,7 +2291,7 @@ const
         p: taicpu;
 
       begin
-        p := taicpu.op_sym(op,objectlibrary.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION));
+        p := taicpu.op_sym(op,l);
         if op <> A_B then
           create_cond_norm(c,crval,p.condition);
         p.is_jmp := true;
