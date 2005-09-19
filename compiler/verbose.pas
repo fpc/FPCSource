@@ -205,6 +205,12 @@ var
                 case c of
                 { Special cases }
                  'A' : status.verbosity:=V_All;
+                 'B' : begin
+                          if inverse then
+                            status.print_source_path:=false
+                          else
+                            status.print_source_path:=true;
+                       end;
                  '0' : status.verbosity:=V_Default;
                  'P' : begin
                          if inverse then

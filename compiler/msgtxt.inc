@@ -863,29 +863,30 @@ const msgtxt : array[0..000162,1..240] of char=(
   '**2Sg_allow LABEL and GOTO'#010+
   '**2Sh_Use ansistrings'#010+
   '**2Si_support C++ styled INLINE'#010+
+  '**2Sk_load fpcylix unit'#010+
   '**2SI<x>_set interface style to <x>'#010+
-  '**3SIcom_COM compatible interface (def','ault)'#010+
+  '**3SIcom_COM c','ompatible interface (default)'#010+
   '**3SIcorba_CORBA compatible interface'#010+
   '**2Sm_support macros like C (global)'#010+
   '**2So_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
   '**2Ss_constructor name must be init (destructor must be done)'#010+
-  '**2St_allow static keyword in objects'#010+
-  '**1s_don'#039't call asse','mbler and linker'#010+
+  '**2St_allow static keyword in obje','cts'#010+
+  '**1s_don'#039't call assembler and linker'#010+
   '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
-  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
-  '3*2Tfreeb','sd_FreeBSD'#010+
+  '3*2Temx_OS/2 via EMX (including EMX','/RSX extender)'#010+
+  '3*2Tfreebsd_FreeBSD'#010+
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetbsd_NetBSD'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
-  '3*2Tos2_OS/2 / eComStation'#010+
-  '3*2Tsunos_SunOS/S','olaris'#010+
+  '3*2Tos2_OS/2 / eComS','tation'#010+
+  '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
@@ -893,8 +894,8 @@ const msgtxt : array[0..000162,1..240] of char=(
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
-  '6*2Tmacos_Macintosh m68k (not supported)'#010+
-  '6*2Tpalm','os_PalmOS'#010+
+  '6*2Tmacos_Macintosh m68k ','(not supported)'#010+
+  '6*2Tpalmos_PalmOS'#010+
   'A*2Tlinux_Linux'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
@@ -902,49 +903,50 @@ const msgtxt : array[0..000162,1..240] of char=(
   'P*2Tmorphos_MorphOS'#010+
   'S*2Tlinux_Linux'#010+
   '**1u<x>_undefines the symbol <x>'#010+
-  '**1U_unit options:'#010+
-  '**2Un_don'#039't check the',' unit name'#010+
+  '**1U_unit option','s:'#010+
+  '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
   '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
   '**2*_e : Show errors (default)       0 : Show nothing (except errors)'#010+
-  '**2*_w : Show warnings        ','       u : Show unit info'#010+
+  '**2*_w',' : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
   '**2*_h : Show hints                  c : Show conditionals'#010+
   '**2*_i : Show general info           d : Show debug info'#010+
-  '**2*_l : Show linenumbers          ','  r : Rhide/GCC compatibility mod'+
+  '**2*_l : Sh','ow linenumbers            r : Rhide/GCC compatibility mod'+
   'e'#010+
   '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
-  '**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tre'+
-  'e'#010+
+  '**2*_b : Write file names messages with full path'#010+
+  '**2*_v : write fpcdebug.txt with     p : Write tree.log with ','parse t'+
+  'ree'#010+
   '**2*_    lots of debugging info'#010+
-  '3*1W<x>_Win32-like target optio','ns'#010+
+  '3*1W<x>_Win32-like target options'#010+
   '3*2WB_Create a relocatable image'#010+
   '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
-  '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
+  '3*2WD_Use DEFFILE to export functions of D','LL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Spe','cify graphic type application'#010+
+  '3*2WG_Specify graphic type application'#010+
   '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
-  'P*2WC_Specify console type application (MacOS only)'#010+
+  'P*2WC_Specify console type application (M','acOS only)'#010+
   'P*2WG_Specify graphic type application (MacOS only)'#010+
-  'P*2WT_Speci','fy tool type application (MPW tool, MacOS only)'#010+
+  'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1X_executable options:'#010+
   '**2Xc_pass --shared to the linker (Unix only)'#010+
-  '**2Xd_don'#039't use standard library search path (needed for cross com'+
-  'pile)'#010+
-  '**2XD_try to link units dynamic          (defines',' FPC_LINK_DYNAMIC)'#010+
+  '**2Xd_don'#039't use standard library search path (n','eeded for cross c'+
+  'ompile)'#010+
+  '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xm_generate link map'#010+
   '**2XM<x>_set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
+  '**2XP<x>_prepend the binutils names with the prefix',' <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
-  '**','2Xs_strip all symbols from executable'#010+
+  '**2Xs_strip all symbols from executable'#010+
   '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
-  '**2Xt_link with static libraries (-static is passed to linker)'#010+
+  '**2Xt_link with static libraries (-static is passed to linker',')'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
-  '**1*_'#010,
+  '**1*_'#010+
   '**1?_shows this help'#010+
   '**1h_shows this help without waiting'#000
 );

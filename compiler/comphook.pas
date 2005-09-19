@@ -91,6 +91,7 @@ type
     use_redir,
     use_bugreport,
     use_gccoutput,
+    print_source_path,
     compiling_current : boolean;
   { Redirection support }
     redirfile : text;
@@ -297,8 +298,12 @@ begin
           hs:=gccfilename(status.currentsource)+':'+tostr(status.currentline)+': '+hs+' '+
               tostr(status.currentcolumn)+': '+s
         else
-          hs:=status.currentsource+'('+tostr(status.currentline)+
+          begin
+            hs:=status.currentsource+'('+tostr(status.currentline)+
               ','+tostr(status.currentcolumn)+') '+hs+' '+s;
+            if status.print_source_path then
+              hs:=status.currentsourcepath+hs;
+          end;
       end
      else
       begin
