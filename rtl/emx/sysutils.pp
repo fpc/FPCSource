@@ -582,7 +582,7 @@ begin
     if os_mode = osOS2 then
         begin
             New (FStat);
-            Rslt.FindHandle := $FFFFFFFF;
+            Rslt.FindHandle := THandle ($FFFFFFFF);
             Count := 1;
             Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
                    Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
