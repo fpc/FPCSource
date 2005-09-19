@@ -288,6 +288,10 @@ interface
        syscall_convention : string = 'LEGACY';
 {$endif powerpc}
 
+       { default name of the C-style "main" procedure of the library/program }
+       { (this will be prefixed with the target_info.cprefix)                }
+       mainaliasname : string = 'main';
+
     procedure abstract;
 
     function bstoslash(const s : string) : string;

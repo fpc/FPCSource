@@ -213,18 +213,24 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+{$ifndef FPC_DARWIN_PASCALMAIN}
 procedure pascalmain; external name 'PASCALMAIN';
 
 {Main entry point in C style, needed to capture program parameters.
  For this to work, the system unit must be before the main program
  in the linking order.}
 procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+{$else FPC_DARWIN_PASCALMAIN}
+procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
+{$endif FPC_DARWIN_PASCALMAIN}
 
 begin
   argc:= argcparam;
   argv:= argvparam;
   envp:= envpparam;
+{$ifndef FPC_DARWIN_PASCALMAIN}
   pascalmain;  {run the pascal main program}
+{$endif FPC_DARWIN_PASCALMAIN}
 end;
 
 procedure setup_arguments;

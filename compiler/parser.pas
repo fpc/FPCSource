@@ -35,7 +35,9 @@ interface
 implementation
 
     uses
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
       sysutils,
+{$ENDIF MACOS_USE_FAKE_SYSUTILS}
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
       symbase,symtable,symsym,
