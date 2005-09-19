@@ -70,8 +70,7 @@ interface
          function  sectionname(atype:tasmsectiontype;const aname:string):string;override;
          procedure writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);override;
          procedure writesymbol(p:tasmsymbol);override;
-         procedure writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
-         procedure writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
+         procedure writestab(offset:aint;ps:tasmsymbol;nidx,nother,line:longint;p:pchar);override;
          procedure beforealloc;override;
          procedure beforewrite;override;
          procedure afteralloc;override;
@@ -557,6 +556,7 @@ const go32v2stub : array[0..2047] of byte=(
           '.text','.data','.data','.bss','.threadvar',
           'common',
           '.note',
+          '.text',
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
@@ -660,74 +660,14 @@ const go32v2stub : array[0..2047] of byte=(
       end;
 
 
-    procedure tcoffobjectdata.writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc : boolean);
+    procedure tcoffobjectdata.writestab(offset:aint;ps:tasmsymbol;nidx,nother,line:longint;p:pchar);
       var
         stab : coffstab;
         curraddr : longint;
       begin
-        { local var can be at offset -1 !! PM }
-        if reloc then
-         begin
-           if (offset=-1) then
-            begin
-              if currsec=nil then
-               offset:=0
-              else
-               offset:=currsec.datasize;
-            end;
-           if (currsec<>nil) then
-            inc(offset,currsec.datapos);
-         end;
-        if assigned(p) and (p[0]<>#0) then
-         begin
-           stab.strpos:=stabstrsec.datasize;
-           stabstrsec.write(p^,strlen(p)+1);
-         end
-        else
-         stab.strpos:=0;
-        stab.ntype:=nidx;
-        stab.ndesc:=line;
-        stab.nother:=nother;
-        stab.nvalue:=offset;
-        StabsSec.write(stab,sizeof(stab));
-        { when the offset is not 0 then write a relocation, take also the
-          hdrstab into account with the offset }
-        if reloc then
-         begin
-           { current address }
-           curraddr:=StabsSec.mempos+StabsSec.datasize;
-           if DLLSource and RelocSection then
-           { avoid relocation in the .stab section
-             because it ends up in the .reloc section instead }
-             StabsSec.addsectionreloc(curraddr-4,currsec,RELOC_RVA)
-           else
-             StabsSec.addsectionreloc(curraddr-4,currsec,RELOC_ABSOLUTE);
-         end;
-      end;
-
-
-    procedure tcoffobjectdata.writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);
-      var
-        stab : coffstab;
-        curraddr : longint;
-      begin
-        { do not use the size stored in offset field
-         this is DJGPP specific ! PM }
-        if win32 then
+        { Win32 does not need an offset if a symbol is provided }
+        if win32 and assigned(ps) then
           offset:=0;
-        { local var can be at offset -1 !! PM }
-        if reloc then
-         begin
-           if (offset=-1) then
-            begin
-              if currsec=nil then
-               offset:=0
-              else
-               offset:=currsec.datasize;
-            end;
-           if (currsec<>nil) then
-            inc(offset,currsec.mempos);
-         end;
         if assigned(p) and (p[0]<>#0) then
          begin
            stab.strpos:=StabStrSec.datasize;
@@ -740,9 +680,7 @@ const go32v2stub : array[0..2047] of byte=(
         stab.nother:=nother;
         stab.nvalue:=offset;
         StabsSec.write(stab,sizeof(stab));
-        { when the offset is not 0 then write a relocation, take also the
-          hdrstab into account with the offset }
-        if reloc then
+        if assigned(ps) then
          begin
            { current address }
            curraddr:=StabsSec.mempos+StabsSec.datasize;
@@ -786,7 +724,7 @@ const go32v2stub : array[0..2047] of byte=(
         { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin
-           writestabs(0,nil,0,0,0,false);
+           writestab(0,nil,0,0,0,nil);
            { write zero pchar and name together (PM) }
            s:=#0+SplitFileName(current_module.mainsource^)+#0;
            stabstrsec.write(s[1],length(s));
@@ -1077,7 +1015,7 @@ const go32v2stub : array[0..2047] of byte=(
            if StabsSec<>nil then
             begin
               { first stabs for main source }
-              writestabs(0,nil,0,0,0,false);
+              writestab(0,nil,0,0,0,nil);
               s:=#0+SplitFileName(current_module.mainsource^)+#0;
               stabstrsec.write(s[1],length(s));
               { header stab }

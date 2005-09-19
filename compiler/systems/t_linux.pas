@@ -209,6 +209,7 @@ const
 {$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
 {$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}    platform_select='';{$endif} {unknown :( }
+{$ifdef m68k}    platform_select='';{$endif} {unknown :( }
 
 {$ifdef m68k}
 var

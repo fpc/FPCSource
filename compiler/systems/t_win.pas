@@ -241,14 +241,8 @@ implementation
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
-{$warning TODO nasm lib, tai_direct not supported}
-                 {if (aktoutputformat in [as_i386_tasm,as_i386_masm]) then
-                   p:=strpnew(#9+'EXTRN '+hp2.func^)
-                 else
-                   p:=strpnew(#9+'EXTERN '+hp2.func^);
-                 asmlist[al_imports].concat(tai_direct.create(p));
-                 p:=strpnew(#9+'import '+hp2.func^+' '+hp1.dllname^+' '+hp2.name^);
-                 asmlist[al_imports].concat(tai_direct.create(p));}
+                 asmlist[al_imports].concat(tai_directive.create(asd_extern,hp2.func^));
+                 asmlist[al_imports].concat(tai_directive.create(asd_nasm_import,hp2.func^+' '+hp1.dllname^+' '+hp2.name^));
                  hp2:=twin32imported_item(hp2.next);
                end;
              hp1:=timportlist(hp1.next);

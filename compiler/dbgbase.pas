@@ -107,4 +107,14 @@ implementation
         CDebugInfo[t]:=c;
       end;
 
+
+    const
+      dbg_none_info : tdbginfo =
+         (
+           id     : dbg_none;
+           idtxt  : 'NONE';
+         );
+
+initialization
+  RegisterDebugInfo(dbg_none_info,tdebuginfo);
 end.

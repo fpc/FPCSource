@@ -741,7 +741,7 @@ Implementation
               inc(p);
             case p^ of
               #0 :
-                break; 
+                break;
               ' ' :
                 inc(p);
               '0'..'9' :
@@ -777,24 +777,24 @@ Implementation
                     begin
                       if (relocsym.section<>sym.section) then
                         internalerror(2005091810);
-                      relocsym:=nil; 
+                      relocsym:=nil;
                     end
                   else
                     begin
                       relocsym:=sym;
-                    end; 
+                    end;
                   exprvalue:=sym.address;
                 end;
               '+' :
                 begin
                   { nothing, by default addition is done }
                   inc(p);
-                end;  
+                end;
               '-' :
                 begin
                   gotmin:=true;
                   inc(p);
-                end;  
+                end;
               else
                 internalerror(200509189);
             end;
@@ -806,6 +806,8 @@ Implementation
           result:=true;
         end;
 
+      const
+        N_Function = $24; { function or const }
       var
         ofs,
         nline,
@@ -843,7 +845,7 @@ Implementation
         if currpass=1 then
           objectdata.allocstab(pstr)
         else
-          begin  
+          begin
             { Stabs format: nidx,nother,nline[,offset] }
             if not consumenumber(pcurr,nidx) then
               internalerror(200509182);
@@ -862,15 +864,10 @@ Implementation
                 ofs:=0;
                 relocsym:=nil;
               end;
-            { External references (AB_EXTERNAL and AB_COMMON) need a symbol relocation }
-            if assigned(relocsym) then
-              begin
-                objectdata.writesymbol(relocsym);
-                objectoutput.exportsymbol(relocsym);
-                objectdata.writeSymStabs(ofs,pstr,relocsym,nidx,nother,nline,true);
-              end
-            else
-              objectdata.writeStabs(ofs,pstr,nidx,nother,nline,false);
+            if (nidx=N_Function) and
+               target_info.use_function_relative_addresses then
+              ofs:=0;
+            objectdata.writestab(ofs,relocsym,nidx,nother,nline,pstr);
           end;
         if assigned(pendquote) then
           pendquote^:='"';

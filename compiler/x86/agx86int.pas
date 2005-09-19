@@ -60,13 +60,13 @@ implementation
 
       secnames : array[TAsmSectionType] of string[4] = ('',
         'CODE','DATA','DATA','BSS','',
-        '','','','','','',
+        '','','','','','','',
         '','','','','','',''
       );
 
       secnamesml64 : array[TAsmSectionType] of string[7] = ('',
         '_TEXT','_DATE','_DATA','_BSS','',
-        '','','','',
+        '','','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '','',''
       );
@@ -787,6 +787,22 @@ implementation
                else if tai_marker(hp).kind=InlineEnd then
                  dec(InlineLevel);
              end;
+
+           ait_directive :
+             begin
+               case tai_directive(hp).directive of
+                 asd_nasm_import :
+                   AsmWrite('import ');
+                 asd_extern :
+                   AsmWrite('EXTRN ');
+                 else
+                   internalerror(200509192);
+               end;
+               if assigned(tai_directive(hp).name) then
+                 AsmWrite(tai_directive(hp).name^);
+               AsmLn;
+             end;
+
            else
             internalerror(10000);
          end;

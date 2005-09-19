@@ -369,14 +369,13 @@ const
           asmlist[al_imports]:=TAAsmoutput.create;
 
         asmlist[al_imports].concat(Tai_section.Create(sec_data,'',0));
-        asmlist[al_imports].concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
+        asmlist[al_imports].concat(Tai_section.create(sec_stub,'',0));
         asmlist[al_imports].concat(Tai_align.Create(4));
         result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
         asmlist[al_imports].concat(Tai_symbol.Create(result,0));
-        asmlist[al_imports].concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := objectlibrary.newasmsymbol('L'+s+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
         reference_reset_symbol(href,l1,0);
-{$ifdef powerpc}
         href.refaddr := addr_hi;
         asmlist[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
         href.refaddr := addr_lo;
@@ -384,13 +383,10 @@ const
         asmlist[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
         asmlist[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
         asmlist[al_imports].concat(taicpu.op_none(A_BCTR));
-{$else powerpc}
-        internalerror(2004010502);
-{$endif powerpc}
         asmlist[al_imports].concat(Tai_section.Create(sec_data,'',0));
-        asmlist[al_imports].concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
+        asmlist[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
         asmlist[al_imports].concat(Tai_symbol.Create(l1,0));
-        asmlist[al_imports].concat(Tai_direct.create(strpnew((#9+'.indirect_symbol ')+s)));
+        asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         asmlist[al_imports].concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
       end;
 

@@ -34,6 +34,9 @@ unexport FPC_VERSION FPC_COMPILERINFO
 # Which platforms are ready for inclusion in the cycle
 CYCLETARGETS=i386 powerpc sparc arm x86_64
 
+# All supported targets used for clean
+ALLTARGETS=$(CYCLETARGETS) m68k
+
 # Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
 ifdef ALPHA
 PPC_TARGET=alpha
@@ -294,7 +297,7 @@ tempclean:
 execlean :
         -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
 
-$(addsuffix _clean,$(CYCLETARGETS)):
+$(addsuffix _clean,$(ALLTARGETS)):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
         -$(DEL) $(addprefix $(subst _clean,,$@)/,*$(OEXT) *$(PPUEXT) *$(RSTEXT) *$(ASMEXT) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT))
         -$(DEL) $(addprefix $(subst _clean,,$@)/,ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcppc$(EXEEXT) $(EXENAME))
@@ -304,7 +307,7 @@ cycleclean: cleanall $(addsuffix _clean,$(PPC_TARGET))
 
 clean: tempclean execlean cleanall $(addsuffix _clean,$(PPC_TARGET)) $(addsuffix _clean,$(TARGET_DIRS))
 
-distclean: tempclean execlean cleanall $(addsuffix _clean,$(CYCLETARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
+distclean: tempclean execlean cleanall $(addsuffix _clean,$(ALLTARGETS)) $(addsuffix _distclean,$(TARGET_DIRS))
 
 
 #####################################################################

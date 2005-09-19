@@ -257,7 +257,7 @@ implementation
          { PIC data }
 {$ifdef powerpc}
          if target_info.system=system_powerpc_darwin then
-           asmlist[al_picdata].concat(tai_simple.create(ait_non_lazy_symbol_pointer));
+           asmlist[al_picdata].concat(tai_directive.create(asd_non_lazy_symbol_pointer,''));
 {$endif powerpc}
 
          { Resource strings }

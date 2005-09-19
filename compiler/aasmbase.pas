@@ -50,6 +50,7 @@ interface
          sec_code,sec_data,sec_rodata,sec_bss,sec_threadvar,
          sec_common, { used for executable creation }
          sec_custom, { custom section, no prefix }
+         sec_stub,   { used for darwin import stubs }
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }
@@ -185,8 +186,7 @@ interface
          procedure writebytes(var data;len:aint);
          procedure writereloc(data,len:aint;p:tasmsymbol;relative:TAsmRelocationType);virtual;abstract;
          procedure writesymbol(p:tasmsymbol);virtual;abstract;
-         procedure writestabs(offset:aint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
-         procedure writesymstabs(offset:aint;p:pchar;ps:tasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure writestab(offset:aint;ps:tasmsymbol;nidx,nother,line:longint;p:pchar);virtual;abstract;
          procedure beforealloc;virtual;
          procedure beforewrite;virtual;
          procedure afteralloc;virtual;
@@ -575,6 +575,7 @@ implementation
           'code','data','rodata','bss','threadvar',
           'common',
           'note',
+          'text',
           'stab','stabstr',
           'idata2','idata4','idata5','idata6','idata7','edata',
           'eh_frame',

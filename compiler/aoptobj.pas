@@ -877,7 +877,7 @@ Unit AoptObj;
 {$define rangewason}
 {$r-}
 {$endif}
-    function tAOptObj.getjumplabelwithsym(sym: tasmlabel): tai;
+    function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
       begin
         if (sym.labelnr >= labelinfo^.lowlabel) and
            (sym.labelnr <= labelinfo^.highlabel) then   { range check, a jump can go past an assembler block! }

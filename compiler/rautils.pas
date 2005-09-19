@@ -848,7 +848,7 @@ Begin
           arraydef,
           floatdef :
             SetSize(tabstractvarsym(sym).getsize,false);
-          { makes no sense when using sse instructions (FK)
+          (* makes no sense when using sse instructions (FK)
           arraydef :
             begin
               { for arrays try to get the element size, take care of
@@ -859,7 +859,7 @@ Begin
                harrdef:=tarraydef(harrdef.elementtype.def);
               SetSize(harrdef.elesize,false);
             end;
-          }
+          *)
         end;
         hasvar:=true;
         SetupVar:=true;

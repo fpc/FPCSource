@@ -197,6 +197,7 @@ implementation
           '.text','.data','.data','.bss','.threadvar',
           'common',
           '.note',
+          '__TEXT', { stubs }
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
@@ -218,14 +219,27 @@ implementation
       begin
         AsmLn;
         case target_info.system of
-         system_powerpc_darwin, system_i386_OS2, system_i386_EMX: ;
+         system_i386_OS2,
+         system_i386_EMX : ;
+         system_powerpc_darwin :
+           begin
+             if atype=sec_stub then
+               AsmWrite('.section ');
+           end;
          else
           AsmWrite('.section ');
         end;
         s:=sectionname(atype,aname);
         AsmWrite(s);
-        if atype=sec_fpc then
-          AsmWrite(', "a", @progbits');
+        case atype of
+          sec_fpc :
+            AsmWrite(', "a", @progbits');
+          sec_stub :
+            begin
+              if target_info.system=system_powerpc_darwin then
+                AsmWrite(',__symbol_stub1,symbol_stubs,pure_instructions,16');
+            end;
+        end;
         AsmLn;
         CurrSecType:=atype;
       end;
@@ -753,8 +767,13 @@ implementation
              else if tai_marker(hp).kind=InlineEnd then
                dec(InlineLevel);
 
-           ait_non_lazy_symbol_pointer:
-             AsmWriteLn('.non_lazy_symbol_pointer');
+           ait_directive :
+             begin
+               AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
+               if assigned(tai_directive(hp).name) then
+                 AsmWrite(tai_directive(hp).name^);
+               AsmLn;
+             end;
 
            else
              internalerror(10000);

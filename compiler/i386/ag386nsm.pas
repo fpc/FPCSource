@@ -358,6 +358,7 @@ interface
           '.text','.data','.rodata','.bss','.tbss',
           'common',
           '.note',
+          '.text',
           '.stab','.stabstr',
           '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
           '.eh_frame',
@@ -380,9 +381,6 @@ interface
       end;
 
     procedure T386NasmAssembler.WriteTree(p:taasmoutput);
-    const
-      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
-      tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       s : string;
       hp       : tai;
@@ -746,6 +744,21 @@ interface
                inc(InlineLevel)
              else if tai_marker(hp).kind=InlineEnd then
                dec(InlineLevel);
+
+           ait_directive :
+             begin
+               case tai_directive(hp).directive of
+                 asd_nasm_import :
+                   AsmWrite('import ');
+                 asd_extern :
+                   AsmWrite('EXTERN ');
+                 else
+                   internalerror(200509191);
+               end;
+               if assigned(tai_directive(hp).name) then
+                 AsmWrite(tai_directive(hp).name^);
+               AsmLn;
+             end;
 
            else
              internalerror(10000);

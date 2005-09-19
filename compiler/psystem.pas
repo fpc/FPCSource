@@ -123,7 +123,7 @@ implementation
 
 {$ifdef cpufpemu}
         { Normal types }
-        { we use the same types as without emulator, the only
+        (* we use the same types as without emulator, the only
           difference is that direct calls to the emulator are generated
         if (cs_fp_emulation in aktmoduleswitches) then
           begin
@@ -135,7 +135,7 @@ implementation
             addtype('Extended',pbestrealtype^);
           end
         else
-        }
+        *)
 {$endif cpufpemu}
           begin
             addtype('Single',s32floattype);
@@ -510,6 +510,7 @@ implementation
         aiclass[ait_datablock]:=tai_datablock;
         aiclass[ait_symbol]:=tai_symbol;
         aiclass[ait_symbol_end]:=tai_symbol_end;
+        aiclass[ait_directive]:=tai_directive;
         aiclass[ait_label]:=tai_label;
         aiclass[ait_const_64bit]:=tai_const;
         aiclass[ait_const_32bit]:=tai_const;

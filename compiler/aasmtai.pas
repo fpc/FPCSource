@@ -50,6 +50,7 @@ interface
           ait_datablock,
           ait_symbol,
           ait_symbol_end, { needed to calc the size of a symbol }
+          ait_directive,
           ait_label,
           { the const_xx must be below each other so it can be used as
             array index }
@@ -87,9 +88,7 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker,
-          { special symbol for darwin pic code }
-          ait_non_lazy_symbol_pointer
+          ait_marker
           );
 
     const
@@ -111,6 +110,7 @@ interface
           'datablock',
           'symbol',
           'symbol_end',
+          'symbol_directive',
           'label',
           'const_128bit',
           'const_64bit',
@@ -144,8 +144,7 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker',
-          'non_lazy_symbol_pointer'
+          'marker'
           );
 
     type
@@ -158,7 +157,7 @@ interface
 {$endif arm}
 {$ifdef m68k}
        { m68k only }
-       ,top_reglist
+       ,top_regset
 {$endif m68k}
        { i386 only});
 
@@ -204,7 +203,7 @@ interface
     const
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
 
 { ait_* types which do not have line information (and hence which are of type
   tai, otherwise, they are of type tailineinfo }
@@ -215,8 +214,7 @@ interface
                      ait_const_8bit,ait_const_16bit,ait_const_32bit,ait_const_64bit,ait_const_128bit,
                      ait_const_sleb128bit,ait_const_uleb128bit,
                      ait_const_rva_symbol,ait_const_indirect_symbol,
-                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                     ait_non_lazy_symbol_pointer
+                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit
                     ];
 
 
@@ -301,6 +299,18 @@ interface
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
+       end;
+
+       tasmdirective=(asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
+                      asd_extern,asd_nasm_import);
+
+       tai_directive = class(tailineinfo)
+          name : pstring;
+          directive : tasmdirective;
+          constructor Create(_directive:tasmdirective;const _name:string);
+          destructor Destroy;override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
        { Generates an assembler label }
@@ -624,6 +634,10 @@ interface
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[tstabtype] of string[5]=('stabs','stabn','stabd');
+      directivestr : array[tasmdirective] of string[24]=(
+        'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
+        'extern','nasm_import'
+      );
 
     var
       { array with all class types for tais }
@@ -1037,6 +1051,41 @@ implementation
     procedure tai_symbol_end.derefimpl;
       begin
         objectlibrary.DerefAsmsymbol(sym);
+      end;
+
+
+{****************************************************************************
+                               TAI_SYMBOL_END
+ ****************************************************************************}
+
+    constructor tai_directive.Create(_directive:tasmdirective;const _name:string);
+      begin
+         inherited Create;
+         typ:=ait_directive;
+         name:=stringdup(_name);
+         directive:=_directive;
+      end;
+
+
+    destructor tai_directive.Destroy;
+      begin
+        stringdispose(name);
+      end;
+
+
+    constructor tai_directive.ppuload(t:taitype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        name:=stringdup(ppufile.getstring);
+        directive:=tasmdirective(ppufile.getbyte);
+      end;
+
+
+    procedure tai_directive.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(name^);
+        ppufile.putbyte(byte(directive));
       end;
 
 
