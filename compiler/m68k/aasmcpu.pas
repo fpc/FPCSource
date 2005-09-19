@@ -40,6 +40,7 @@ type
 
   taicpu = class(tai_cpu_abstract)
      opsize : topsize;
+     constructor op_none(op : tasmop);
      constructor op_none(op : tasmop;_size : topsize);
 
      constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
@@ -144,6 +145,13 @@ type
          is_jmp:=false;
          opsize:=_size;
          ops:=0;
+      end;
+
+
+    constructor taicpu.op_none(op : tasmop);
+      begin
+         inherited create(op);
+         init(S_NO);
       end;
 
 
@@ -455,7 +463,7 @@ type
 	  result:=operand_write;
         end;
 	// fake
-                
+
 //        internalerror(200404091);
       end;
 

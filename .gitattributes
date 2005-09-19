@@ -192,6 +192,7 @@ compiler/m68k/r68ksri.inc svneol=native#text/plain
 compiler/m68k/r68ksta.inc svneol=native#text/plain
 compiler/m68k/r68kstd.inc svneol=native#text/plain
 compiler/m68k/r68ksup.inc svneol=native#text/plain
+compiler/m68k/ra68k.pas svneol=native#text/plain
 compiler/m68k/ra68kmot.pas svneol=native#text/plain
 compiler/m68k/rgcpu.pas svneol=native#text/plain
 compiler/make_old.cmd -text

@@ -199,7 +199,7 @@ interface
               end
             else
               getopstr:=getreferencestring(o.ref^);
-          top_reglist:
+          top_regset:
             begin
               hs:='';
               for i:=RS_D0 to RS_D7 do

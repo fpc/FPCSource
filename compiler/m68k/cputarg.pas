@@ -36,8 +36,15 @@ implementation
 **************************************}
 
     {$ifndef NOTARGETLINUX}
-      ,t_linux,t_amiga
+      ,t_linux
     {$endif}
+      ,t_amiga
+
+{**************************************
+          Assembler Readers
+**************************************}
+
+      ,ra68kmot
 
 {**************************************
              Assemblers
