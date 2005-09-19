@@ -9125,13 +9125,13 @@ type
    BOOL = longint;
 
    PHMODULE = ^HMODULE;
-   HMODULE = void;
+   //HMODULE = void;
 
    PLPCTSTR = ^LPCTSTR;
    LPCTSTR = char;
 
-   PHINSTANCE = ^HINSTANCE;
-   HINSTANCE = void;
+   _PHINSTANCE = ^_HINSTANCE;
+   _HINSTANCE = void;
 { Win32 DLL solutions for dynamic NLM libraries on NetWare...  }
 
 function GetLastError:dword;cdecl;external libc_nlm name 'GetLastError';
@@ -9143,7 +9143,7 @@ function LoadLibrary(lpFileName:LPCTSTR):HMODULE;cdecl;external libc_nlm name 'L
 ** This is not an interface, but only a prototype for code furnished by the
 ** NLM library.
  }
-function DllMain(hinstDLL:HINSTANCE; fdwReason:dword; lpvReserve:LPVOID):BOOL;cdecl;external libc_nlm name 'DllMain';
+function DllMain(hinstDLL:_HINSTANCE; fdwReason:dword; lpvReserve:LPVOID):BOOL;cdecl;external libc_nlm name 'DllMain';
 
 
 // xmalloc.h
