@@ -122,8 +122,8 @@ procedure WideStringError;
   begin
     HandleErrorFrame(204,get_frame);
   end;
-  
-  
+
+
 {$ifdef WideStrDebug}
 Procedure DumpWideRec(S : Pointer);
 begin
@@ -627,7 +627,7 @@ begin
       { windows doesn't support reallocing widestrings, this code
         is anyways subject to be removed because widestrings shouldn't be
         ref. counted anymore (FK) }
-{$ifndef MSWINDOWS}       
+{$ifndef MSWINDOWS}
       else if (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
         begin
           Dec(Pointer(S),WideFirstOff);
@@ -635,7 +635,7 @@ begin
               reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
           Inc(Pointer(S), WideFirstOff);
         end
-{$endif MSWINDOWS}        
+{$endif MSWINDOWS}
       else
         begin
           { Reallocation is needed... }
@@ -1280,6 +1280,27 @@ function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inlin
 function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Utf8Decode(s);
+  end;
+
+
+function WideStringToUCS4String(const s : WideString) : UCS4String;
+  var
+    i : SizeInt;
+  begin
+    setlength(result,length(s)+1);
+    for i:=1 to length(s) do
+      result[i-1]:=UCS4Char(s[i]);
+    result[length(s)]:=UCS4Char(0);
+  end;
+
+
+function UCS4StringToWideString(const s : UCS4String) : WideString;
+  var
+    i : SizeInt;
+  begin
+    setlength(result,length(s)-1);
+    for i:=1 to length(s)-1 do
+      result[i]:=WideChar(s[i-1]);
   end;
 
 
