@@ -862,9 +862,6 @@ implementation
         typ:=ait_section;
         sectype:=asectype;
         secalign:=Aalign;
-        if (Aname='') and
-           use_smartlink_section then
-          internalerror(200509131);
         name:=stringdup(Aname);
         sec:=nil;
       end;
