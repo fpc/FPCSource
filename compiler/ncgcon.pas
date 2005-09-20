@@ -616,7 +616,7 @@ implementation
         if tsetdef(resulttype.def).settype=smallset then
          begin
            location_reset(location,LOC_CONSTANT,OS_32);
-           location.value:=PAInt(value_set)^;
+           location.value:=pLongint(value_set)^;
            exit;
          end;
         location_reset(location,LOC_CREFERENCE,OS_NO);
