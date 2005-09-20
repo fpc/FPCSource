@@ -13,6 +13,8 @@
 
  **********************************************************************}
 
+{$define UNICODE}  //ce is unicode only, needed here for classes.inc
+
 {$mode objfpc}
 
 { determine the type of the resource/form file }
