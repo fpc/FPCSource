@@ -1,0 +1,40 @@
+Testing SQLite v3
+
+This prog is a simple direct api call
+for sqlite v3x.
+
+I.install
+1°)win32
+
+sqlite3.dll should be in default path or current dir
+can be downloaded from here : 
+ http://www.sqlite.org/
+
+
+2°)wince-arm
+
+sqlite3.dll should be in default path or current dir
+wince version can be downloaded from here :
+ http://sourceforge.net/projects/sqlite-wince
+this is a source only release evc++4
+also pre-compiled libraries for arm-wince will put
+on  ftp://ftp.freepascal.org/pub/fpc/contrib/cross/arm-wince-sqlite322.zip
+
+II.tests
+
+2005/09/19 :
+ wince-arm : 
+  testapvv3x have been tested with v3.2.2
+  compiled fpc2.1.1 today svn rep
+  command line for cross-compiling from XP:
+   ppcrossarm.exe -a -dNORMAL -Twince -XParm-wince-pe- -FDd:\binutils\win32-arm-pe -FE. -va -darm testapiv3x.pp >test-arm-wince.log
+
+ win32 :
+  testapvv3x have been tested with v3.2.4
+  compiled fpc2.1.1 today svn rep under lazarus
+
+
+
+Regards
+olivier
+orinaudo@gmail.com

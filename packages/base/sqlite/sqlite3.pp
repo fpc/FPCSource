@@ -286,7 +286,7 @@ function sqlite3_libversion:PChar;cdecl;external External_library name 'sqlite3_
 function sqlite3_version:PChar;cdecl;external External_library name 'sqlite3_libversion';
 
 // Not published functions
-//function sqlite3_libversion_number:longint;cdecl;external External_library name 'sqlite3_libversion_number';
+function sqlite3_libversion_number:longint;cdecl;external External_library name 'sqlite3_libversion_number';
 //function sqlite3_key(db:Psqlite3; pKey:pointer; nKey:longint):longint;cdecl;external External_library name 'sqlite3_key';
 //function sqlite3_rekey(db:Psqlite3; pKey:pointer; nKey:longint):longint;cdecl;external External_library name 'sqlite3_rekey';
 //function sqlite3_sleep(_para1:longint):longint;cdecl;external External_library name 'sqlite3_sleep';

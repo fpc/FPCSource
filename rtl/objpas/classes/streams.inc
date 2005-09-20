@@ -756,34 +756,43 @@ end;
 {****************************************************************************}
 
 procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar);
-
-begin
-end;
+  begin
+    Res:=FindResource(Instance, Name, ResType);
+    if Res=0 then 
+      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+    Handle:=LoadResource(Instance,Res);
+    if Handle=0 then
+      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+    SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));    
+  end;
 
 
 constructor TResourceStream.Create(Instance: THandle; const ResName: string; ResType: PChar);
-
-begin
-end;
+  begin
+    inherited create;
+    Initialize(Instance,pchar(ResName),ResType);
+  end;
 
 
 constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
-
-begin
-end;
+  begin
+    inherited create;
+    Initialize(Instance,pchar(ResID),ResType);
+  end;
 
 
 destructor TResourceStream.Destroy;
-
-begin
-end;
+  begin
+    UnlockResource(Handle);
+    FreeResource(Handle);
+    inherited destroy;
+  end;
 
 
 function TResourceStream.Write(const Buffer; Count: Longint): Longint;
-
-begin
-  Write:=0;
-end;
+  begin
+    raise EStreamError.Create(SCantWriteResourceStreamError);
+  end;
 
 {****************************************************************************}
 {*                             TOwnerStream                                 *}
