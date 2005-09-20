@@ -308,13 +308,13 @@ type
   ---------------------------------------------------------------------}
 
 function aligntoptr(p : pointer) : pointer;
-  begin
+   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-    if (ptrint(p) mod sizeof(ptrint))<>0 then
-      inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
+     if (ptruint(p) and (sizeof(ptruint)-1))<>0 then
+	  ptruint(p) := (ptruint(p) + sizeof(ptruint) - 1) and not (sizeof(ptruint) - 1);
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-    result:=p;
-  end;
+     aligntoptr:=p;
+   end;
 
 
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
