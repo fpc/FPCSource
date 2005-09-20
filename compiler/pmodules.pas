@@ -538,7 +538,10 @@ implementation
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
           AddUnit('Profile');
         if (cs_load_fpcylix_unit in aktglobalswitches) then
-          AddUnit('FPCylix');
+          begin
+            AddUnit('FPCylix');
+            AddUnit('DynLibs');
+          end;
         { save default symtablestack }
         defaultsymtablestack:=symtablestack;
         defaultmacrosymtablestack:=macrosymtablestack;
