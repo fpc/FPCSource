@@ -64,7 +64,7 @@ procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
 procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
-function LowerCase(const s: string): string; overload;
+function LowerCase(const s: string): string;
 function CompareStr(const S1, S2: string): Integer;
 function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
 function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
