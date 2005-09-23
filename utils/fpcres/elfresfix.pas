@@ -130,7 +130,6 @@ end;
 { TElf32ResourceFixer }
 
 procedure TElf32ResourceFixer.DoFixStream(Stream: TStream);
-
 var
   ElfHeader:TElf32header;
   ResourceSectionTable: TElf32ResourceSectionTable;
@@ -143,6 +142,19 @@ var
   strtab:string;
   SectionName: string;
   ResPtrsSection: integer;
+  ResHashSection: integer;
+  ResSymSection: integer;
+
+  ResourceInfo: TELF32ResourceInfo;
+  DataIndex, StringIndex: integer;
+  SymString: string;
+
+  procedure DoAlign(var value:integer; const a: integer);
+  var i: integer;
+  begin
+    i:=(4 - (value MOD a)) MOD a;
+    if (i>0) then inc(value,i);
+  end;
 
 begin
   Fixed:=False;
@@ -184,6 +196,7 @@ begin
   end;
 
   ResPtrsSection:=-1;
+  ResHashSection:=-1;
   ResourceSectionTable.version:=66;
 
   // Next cycle through all sections to gather pointers to all the resource
@@ -205,11 +218,13 @@ begin
         end
       else if sn='ressym' then
         begin
+        ResSymSection:=i;
         ResourceSectionTable.ressym.ptr:=SectionHeaders[i].sh_addr;
         ResourceSectionTable.ressym.size:=SectionHeaders[i].sh_size;
         end
       else if sn='reshash' then
         begin
+        ResHashSection:=i;
         ResourceSectionTable.reshash.ptr:=SectionHeaders[i].sh_addr;
         ResourceSectionTable.reshash.size:=SectionHeaders[i].sh_size;
         ResourceSectionTable.resentries:=SectionHeaders[i].sh_size DIV sizeof(TELF32ResourceInfo);
@@ -235,15 +250,51 @@ begin
   // Ok, we now have pointers to all resource sections and also
   // know the number of resources.
   // Now update the resptrs table
-  if ResPtrsSection>-1 then
-    begin
+  if (ResPtrsSection>-1) and (ResHashSection>-1) and (ResSymSection>-1) then
+  begin
     Doverbose(SUpdatingResPtrs);
     Stream.Position:=SectionHeaders[ResPtrsSection].sh_offset;
     Stream.Write(ResourceSectionTable,sizeof(TELF32ResourceSectionTable));
+
+    // LD might have merged the sections of several linked .or together
+    // Therefore our data and stringtable offsets might be messed up and need to recalculated
+
+    // First get the symbol string
+    Stream.Position:=SectionHeaders[ResSymSection].sh_offset;
+    setlength(SymString, SectionHeaders[ResSymSection].sh_size);
+    Stream.Read(SymString[1], SectionHeaders[ResSymSection].sh_size);
+
+    DataIndex:=0;
+    StringIndex:=0;
+    Stream.Position:=SectionHeaders[ResHashSection].sh_offset;
+
+    for i:=0 to ResourceSectionTable.resentries-1 do
+    begin
+      Stream.Position:=SectionHeaders[ResHashSection].sh_offset+i*sizeof(TELF32ResourceInfo);
+      Stream.Read(ResourceInfo, sizeof(TELF32ResourceInfo));
+      ResourceInfo.ptr:=DataIndex;
+      ResourceInfo.name:=StringIndex;
+
+      // advance for next entry
+      DataIndex:=DataIndex+ResourceInfo.size;
+      DoAlign(DataIndex,4); // The data blocks are 32bit aligned
+
+      // find end of current string
+      while SymString[StringIndex+1]<>#0 do
+        inc(StringIndex,1);
+      inc(StringIndex,1);
+      // this should be the start of the next string
+
+      // write back the entry
+      Stream.Position:=SectionHeaders[ResHashSection].sh_offset+i*sizeof(TELF32ResourceInfo);
+      Stream.Write(ResourceInfo, sizeof(TELF32ResourceInfo));
+    end;
     fixed:=true;
-    end
+  end
   else
     DoError(SErrREsptrsNotFound);
+
+
   if fixed then
     DoVerbose(SFileFixed)
   else
