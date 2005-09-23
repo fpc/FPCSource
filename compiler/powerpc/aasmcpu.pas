@@ -98,9 +98,11 @@ uses
     function spilling_create_load(const ref:treference;r:tregister): tai;
     function spilling_create_store(r:tregister; const ref:treference): tai;
 
+    procedure fixup_jmps(list: taasmoutput);
+
 implementation
 
-uses cutils;
+uses cutils, cclasses;
 
 {*****************************************************************************
                                  taicpu Constructors
@@ -412,6 +414,91 @@ uses cutils;
 
     procedure DoneAsm;
       begin
+      end;
+
+
+    procedure fixup_jmps(list: taasmoutput);
+      var
+        p: tai;
+        newjmp: taicpu;
+        labelpositions: tlist;
+        instrpos: ptrint;
+        l: tasmlabel;
+        inserted_something: boolean;
+      begin
+        // if certainly not enough instructions to cause an overflow, don't bother
+        if (list.count <= (high(smallint) div 4)) then
+          exit;
+        labelpositions := tlist.create;
+        p := tai(list.first);
+        instrpos := 1;
+        // record label positions
+        while assigned(p) do
+          begin
+            if p.typ = ait_label then
+              begin
+                if (tai_label(p).l.labelnr > labelpositions.count) then
+                  labelpositions.count := tai_label(p).l.labelnr * 2;
+                labelpositions[tai_label(p).l.labelnr] := pointer(instrpos);
+              end;
+            if p.typ = ait_instruction then
+              inc(instrpos);
+            p := tai(p.next);
+          end;
+
+        // check and fix distances
+        repeat
+          inserted_something := false;
+          p := tai(list.first);
+          instrpos := 1;
+          while assigned(p) do
+            begin
+              case p.typ of
+                ait_label:
+                  // update labelposition in case it changed due to insertion
+                  // of jumps
+                  begin
+                    // can happen because of newly inserted labels
+                    if (tai_label(p).l.labelnr > labelpositions.count) then
+                      labelpositions.count := tai_label(p).l.labelnr * 2;
+                    labelpositions[tai_label(p).l.labelnr] := pointer(instrpos);
+                  end;
+                ait_instruction:
+                  begin
+                    inc(instrpos);
+                    case taicpu(p).opcode of
+                      A_BC:
+                        if (taicpu(p).oper[0]^.typ = top_ref) and
+                           assigned(taicpu(p).oper[0]^.ref^.symbol) and
+                           (taicpu(p).oper[0]^.ref^.symbol is tasmlabel) and
+                           (labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr] <> NIL) and
+                           (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
+                          begin
+                            // add a new label after this jump
+                            objectlibrary.getjumplabel(l);
+                            list.insertafter(tai_label.create(l),p);
+                            // add a new unconditional jump between this jump and the label
+                            newjmp := taicpu.op_sym(A_B,taicpu(p).oper[0]^.ref^.symbol);
+                            newjmp.is_jmp := true;
+                            newjmp.fileinfo := taicpu(p).fileinfo;
+                            list.insertafter(newjmp,p);
+                            inc(instrpos);
+                            // change the conditional jump to point to the newly inserted label
+                            tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
+                            taicpu(p).oper[0]^.ref^.symbol := l;
+                            l.increfs;
+                            // and invert its condition code
+                            taicpu(p).condition := inverse_cond(taicpu(p).condition);
+                            // we inserted an instruction, so will have to check everything again
+                            inserted_something := true;
+                          end;
+                    end;
+                  end;
+              end;
+              p := tai(p.next);
+            end;
+         until not inserted_something;
+        labelpositions.free;
       end;
 
 

@@ -97,7 +97,7 @@ implementation
        { codegen }
        tgobj,cgobj,dbgbase,
        ncgutil,regvars
-{$ifdef arm}
+{$if defined(arm) or defined(powerpc)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -848,6 +848,10 @@ implementation
             { because of the limited constant size of the arm, all data access is done pc relative }
             insertpcrelativedata(aktproccode,aktlocaldata);
 {$endif ARM}
+
+{$ifdef POWERPC}
+            fixup_jmps(aktproccode);
+{$endif POWERPC}
 
             { insert line debuginfo }
             if (cs_debuginfo in aktmoduleswitches) or
