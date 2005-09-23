@@ -755,30 +755,52 @@ end;
 {*                             TResourceStream                              *}
 {****************************************************************************}
 
-procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar);
+{$ifdef UNICODE}
+procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PWideChar);
   begin
     Res:=FindResource(Instance, Name, ResType);
-    if Res=0 then 
+    if Res=0 then
       raise EResNotFound.CreateFmt(SResNotFound,[Name]);
     Handle:=LoadResource(Instance,Res);
     if Handle=0 then
       raise EResNotFound.CreateFmt(SResNotFound,[Name]);
-    SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));    
+    SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
   end;
 
+constructor TResourceStream.Create(Instance: THandle; const ResName: WideString; ResType: PWideChar);
+  begin
+    inherited create;
+    Initialize(Instance,PWideChar(ResName),ResType);
+  end;
+constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PWideChar);
+  begin
+    inherited create;
+    Initialize(Instance,PWideChar(ResID),ResType);
+  end;
+{$else UNICODE}
+
+procedure TResourceStream.Initialize(Instance: THandle; Name, ResType: PChar);
+  begin
+    Res:=FindResource(Instance, Name, ResType);
+    if Res=0 then
+      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+    Handle:=LoadResource(Instance,Res);
+    if Handle=0 then
+      raise EResNotFound.CreateFmt(SResNotFound,[Name]);
+    SetPointer(LockResource(Handle),SizeOfResource(Instance,Res));
+  end;
 
 constructor TResourceStream.Create(Instance: THandle; const ResName: string; ResType: PChar);
   begin
     inherited create;
     Initialize(Instance,pchar(ResName),ResType);
   end;
-
-
 constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
   begin
     inherited create;
     Initialize(Instance,pchar(PtrInt(ResID)),ResType);
   end;
+{$endif UNICODE}
 
 
 destructor TResourceStream.Destroy;
