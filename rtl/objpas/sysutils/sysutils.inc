@@ -91,6 +91,9 @@
   { wide string functions }
   {$i syswide.inc}
 
+  { threading stuff }
+  {$i sysuthrd.inc}
+  
   { CPU Specific code }
   {$i sysutilp.inc}
 

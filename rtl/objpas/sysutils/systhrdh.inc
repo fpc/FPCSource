@@ -21,6 +21,17 @@ type
      procedure EndWrite;
    end;
 
+   TMultiReadExclusiveWriteSynchronizer = class(TInterfacedObject,IReadWriteSync)
+   private
+      crit : TRtlCriticalSection;
+   public
+      constructor Create; virtual;
+      destructor  Destroy; override;
+      function Beginwrite : boolean;
+      procedure Endwrite;
+      procedure Beginread;
+      procedure Endread;
+   end;
 
 function InterLockedIncrement (var Target: longint) : longint;
 function InterLockedDecrement (var Target: longint) : longint;
