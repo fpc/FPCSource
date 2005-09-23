@@ -97,7 +97,7 @@ implementation
        { codegen }
        tgobj,cgobj,
        ncgutil,regvars
-{$ifdef arm}
+{$if defined(arm) or defined(powerpc)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -848,6 +848,9 @@ implementation
             insertpcrelativedata(aktproccode,aktlocaldata);
 {$endif ARM}
 
+{$ifdef POWERPC}
+            fixup_jmps(aktproccode);
+{$endif POWERPC}
             { save local data (casetable) also in the same file }
             if assigned(aktlocaldata) and
                (not aktlocaldata.empty) then
