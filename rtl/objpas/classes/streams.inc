@@ -777,7 +777,7 @@ constructor TResourceStream.Create(Instance: THandle; const ResName: string; Res
 constructor TResourceStream.CreateFromID(Instance: THandle; ResID: Integer; ResType: PChar);
   begin
     inherited create;
-    Initialize(Instance,pchar(ResID),ResType);
+    Initialize(Instance,pchar(PtrInt(ResID)),ResType);
   end;
 
 
