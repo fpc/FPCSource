@@ -286,7 +286,7 @@ operator :=(const source : variant) dest : double;{$ifdef SYSTEMINLINE}inline;{$
 {$ifdef SUPPORT_EXTENDED}
 operator :=(const source : variant) dest : extended;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_EXTENDED}
-{$ifdef SUPPORT_EXTENDED}
+{$ifdef SUPPORT_COMP}
 operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 
@@ -328,7 +328,7 @@ procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 {**********************************************************************
                         from OLEVariant assignments
  **********************************************************************}
- 
+
 { Integer }
 operator :=(const source : olevariant) dest : byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -339,7 +339,6 @@ operator :=(const source : olevariant) dest : longint;{$ifdef SYSTEMINLINE}inlin
 operator :=(const source : olevariant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-{
 { Boolean }
 operator :=(const source : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -364,18 +363,18 @@ operator :=(const source : olevariant) dest : double;{$ifdef SYSTEMINLINE}inline
 {$ifdef SUPPORT_EXTENDED}
 operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_EXTENDED}
-{$ifdef SUPPORT_EXTENDED}
+{$ifdef SUPPORT_COMP}
 operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
 
 { Misc. }
 operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
-}
+
 {**********************************************************************
                          to OLEVariant assignments
  **********************************************************************}
- 
+
 { Integer }
 operator :=(const source : byte) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : shortint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
