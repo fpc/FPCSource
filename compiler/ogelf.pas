@@ -304,8 +304,6 @@ implementation
 ****************************************************************************}
 
     constructor telf32objectdata.create(const n:string);
-      var
-        s : string;
       begin
         inherited create(n);
         CAsmSection:=TElf32Section;

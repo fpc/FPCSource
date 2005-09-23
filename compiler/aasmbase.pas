@@ -158,7 +158,10 @@ interface
        private
          FName      : string[80];
          FCurrSec   : TAsmSection;
-         FSects     : TDictionary;
+         { Sections will be stored in order in SectsIndex, this is at least
+           required for stabs debuginfo. The SectsDict is only used for lookups (PFV) }
+         FSectsDict   : TDictionary;
+         FSectsIndex  : TIndexArray;
          FCAsmSection : TAsmSectionClass;
          { Symbols that will be defined in this object file }
          FSymbols   : TIndexArray;
@@ -193,10 +196,10 @@ interface
          procedure afterwrite;virtual;
          procedure resetsections;
          procedure fixuprelocs;
-         property Name:string{$ifndef VER1_9_4}[80]{$endif} read FName;
+         property Name:string[80] read FName;
          property CurrSec:TAsmSection read FCurrSec;
          property Symbols:TindexArray read FSymbols;
-         property Sects:TDictionary read FSects;
+         property Sects:TIndexArray read FSectsIndex;
        end;
        TAsmObjectDataClass = class of TAsmObjectData;
 
@@ -259,6 +262,7 @@ implementation
       verbose;
 
     const
+      sectsgrow   = 100;
       symbolsgrow = 100;
 
 
@@ -549,8 +553,11 @@ implementation
       begin
         inherited create;
         FName:=n;
-        { sections }
-        FSects:=tdictionary.create;
+        { sections, the SectsIndex owns the items, the FSectsDict
+          is only used for lookups }
+        FSectsDict:=tdictionary.create;
+        FSectsDict.noclear:=true;
+        FSectsIndex:=tindexarray.create(sectsgrow);
         FStabsRecSize:=1;
         FStabsSec:=nil;
         FStabStrSec:=nil;
@@ -564,7 +571,8 @@ implementation
 
     destructor TAsmObjectData.destroy;
       begin
-        FSects.free;
+        FSectsDict.free;
+        FSectsIndex.free;
         FSymbols.free;
       end;
 
@@ -595,14 +603,15 @@ implementation
         secname : string;
       begin
         secname:=sectionname(atype,aname);
-        result:=TasmSection(FSects.search(secname));
+        result:=TasmSection(FSectsDict.search(secname));
         if not assigned(result) then
           begin
 {$warning TODO make alloconly configurable}
             if atype=sec_bss then
               include(aoptions,aso_alloconly);
             result:=CAsmSection.create(secname,atype,aalign,aoptions);
-            FSects.Insert(result);
+            FSectsDict.Insert(result);
+            FSectsIndex.Insert(result);
             result.owner:=self;
           end;
         FCurrSec:=result;
@@ -699,13 +708,13 @@ implementation
 
     procedure TAsmObjectData.resetsections;
       begin
-        FSects.foreach(@section_reset,nil);
+        FSectsDict.foreach(@section_reset,nil);
       end;
 
 
     procedure TAsmObjectData.fixuprelocs;
       begin
-        FSects.foreach(@section_fixuprelocs,nil);
+        FSectsDict.foreach(@section_fixuprelocs,nil);
       end;
 
 
