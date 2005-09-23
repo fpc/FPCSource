@@ -1,9 +1,9 @@
 
 
 { defined earlier in unistdh.inc...
-function crypt(__key:Pchar; __salt:Pchar):Pchar;cdecl;external clib name 'crypt';
-procedure setkey(__key:Pchar);cdecl;external clib name 'setkey';
-procedure encrypt(__block:Pchar; __edflag:longint);cdecl;external clib name 'encrypt';
+function crypt(__key:Pchar; __salt:Pchar):Pchar;cdecl;external cryptlib name 'crypt';
+procedure setkey(__key:Pchar);cdecl;external cryptlib name 'setkey';
+procedure encrypt(__block:Pchar; __edflag:longint);cdecl;external cryptlib name 'encrypt';
 }
 type
    Pcrypt_data = ^crypt_data;
@@ -20,9 +20,9 @@ type
         initialized : longint;
      end;
 
-function crypt_r(__key:Pchar; __salt:Pchar; __data:Pcrypt_data):Pchar;cdecl;external clib name 'crypt_r';
-procedure setkey_r(__key:Pchar; __data:Pcrypt_data);cdecl;external clib name 'setkey_r';
-procedure encrypt_r(__block:Pchar; __edflag:longint; __data:Pcrypt_data);cdecl;external clib name 'encrypt_r';
+function crypt_r(__key:Pchar; __salt:Pchar; __data:Pcrypt_data):Pchar;cdecl;external cryptlib name 'crypt_r';
+procedure setkey_r(__key:Pchar; __data:Pcrypt_data);cdecl;external cryptlib name 'setkey_r';
+procedure encrypt_r(__block:Pchar; __edflag:longint; __data:Pcrypt_data);cdecl;external cryptlib name 'encrypt_r';
 
 { ---------------------------------------------------------------------
     Borland compatibility types

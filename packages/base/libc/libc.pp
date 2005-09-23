@@ -9,6 +9,8 @@ uses kerneldefs;
 
 Const
   clib = 'c';
+  dllib = 'dl';
+  cryptlib = 'crypt';
   threadslib = 'pthread';
 
 {$i glue.inc}           // C to Pascal type mappings
