@@ -399,7 +399,6 @@ operator :=(const source : shortstring) dest : olevariant;{$ifdef SYSTEMINLINE}i
 operator :=(const source : ansistring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-{
 { Floats }
 {$ifdef SUPPORT_SINGLE}
 operator :=(const source : single) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -417,7 +416,6 @@ operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{
 { Misc. }
 operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
-}
 
 {**********************************************************************
                              OLEVariant Operators

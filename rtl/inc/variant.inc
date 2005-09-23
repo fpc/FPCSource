@@ -765,8 +765,8 @@ operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{
   begin
     dest:=variantmanager.vartoreal(variant(tvardata(source)));
   end;
-
 {$endif SUPPORT_COMP}
+
 
 { Misc. }
 operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -882,6 +882,51 @@ operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}in
     variantmanager.varfromwstr(variant(tvardata(dest)),source);
   end;
 
+
+{ Floats }
+{$ifdef SUPPORT_SINGLE}
+operator :=(const source : single) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromreal(variant(tvardata(dest)),source);
+  end;
+{$endif SUPPORT_SINGLE}
+
+
+{$ifdef SUPPORT_DOUBLE}
+operator :=(const source : double) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromreal(variant(tvardata(dest)),source);
+  end;
+{$endif SUPPORT_DOUBLE}
+
+
+{$ifdef SUPPORT_EXTENDED}
+operator :=(const source : extended) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromreal(variant(tvardata(dest)),source);
+  end;
+{$endif SUPPORT_EXTENDED}
+
+
+{$ifdef SUPPORT_COMP}
+operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromreal(variant(tvardata(dest)),source);
+  end;
+{$endif SUPPORT_COMP}
+
+
+{ Misc. }
+operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromcurr(variant(tvardata(dest)),source);
+  end;
+
+
+operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromtdatetime(variant(tvardata(dest)),source);
+  end;
 
 {**********************************************************************
                       Variant manager functions
