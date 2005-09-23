@@ -325,3 +325,122 @@ operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
+{**********************************************************************
+                        from OLEVariant assignments
+ **********************************************************************}
+ 
+{ Integer }
+operator :=(const source : olevariant) dest : byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : word;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{
+{ Boolean }
+operator :=(const source : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Chars }
+operator :=(const source : olevariant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Strings }
+operator :=(const source : olevariant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Floats }
+{$ifdef SUPPORT_SINGLE}
+operator :=(const source : olevariant) dest : single;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_SINGLE}
+{$ifdef SUPPORT_DOUBLE}
+operator :=(const source : olevariant) dest : double;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
+operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_EXTENDED}
+operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_COMP}
+
+{ Misc. }
+operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
+}
+{**********************************************************************
+                         to OLEVariant assignments
+ **********************************************************************}
+ 
+{ Integer }
+operator :=(const source : byte) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : shortint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : word) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : smallint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : dword) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : longint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : qword) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : int64) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Boolean }
+operator :=(const source : boolean) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : wordbool) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : longbool) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Chars }
+operator :=(const source : char) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : widechar) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{ Strings }
+operator :=(const source : shortstring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : ansistring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{
+{ Floats }
+{$ifdef SUPPORT_SINGLE}
+operator :=(const source : single) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_SINGLE}
+{$ifdef SUPPORT_DOUBLE}
+operator :=(const source : double) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
+operator :=(const source : extended) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_COMP}
+operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif SUPPORT_COMP}
+
+{ Misc. }
+operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+}
+
+{**********************************************************************
+                             OLEVariant Operators
+ **********************************************************************}
+{
+operator or(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator and(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator xor(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator not(const op : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator shl(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator shr(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator +(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator -(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator *(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator /(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator **(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator div(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator mod(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator -(const op : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator =(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator <(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator >(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator >=(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator <=(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+}

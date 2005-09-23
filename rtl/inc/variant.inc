@@ -619,6 +619,161 @@ procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
 
 {**********************************************************************
+                        from OLEVariant assignments
+ **********************************************************************}
+{ Integer }
+operator :=(const source : olevariant) dest : byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    { cast away olevar to var conversion and avoid
+      endless recursion }
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : shortint;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : smallint;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : dword;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint(variant(tvardata(source)));
+  end;
+  
+    
+operator :=(const source : olevariant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoint64(variant(tvardata(source)));
+  end;
+  
+
+operator :=(const source : olevariant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    dest:=variantmanager.vartoword64(variant(tvardata(source)));
+  end;
+    
+{**********************************************************************
+                          to OLEVariant assignments
+ **********************************************************************}
+
+operator :=(const source : byte) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : shortint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : word) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : smallint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : dword) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : longint) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : qword) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+  
+operator :=(const source : int64) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromint(dest,source,1);
+  end;
+  
+{ Boolean }
+operator :=(const source : boolean) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromBool(variant(tvardata(dest)),Source);
+   end;
+
+    
+operator :=(const source : wordbool) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromBool(variant(tvardata(Dest)),Source);
+   end;
+
+    
+operator :=(const source : longbool) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromBool(variant(tvardata(Dest)),Source);
+   end;
+
+
+{ Chars }
+operator :=(const source : char) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfrompstr(dest,source);
+  end;
+  
+  
+operator :=(const source : widechar) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromwstr(variant(tvardata(dest)),source);
+  end;
+  
+  
+{ Strings }
+operator :=(const source : shortstring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfrompstr(dest,source);
+  end;
+  
+  
+operator :=(const source : ansistring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.olevarfromlstr(dest,source);
+  end;
+  
+  
+operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromwstr(variant(tvardata(dest)),source);
+  end;
+  
+
+{**********************************************************************
                       Variant manager functions
  **********************************************************************}
 
