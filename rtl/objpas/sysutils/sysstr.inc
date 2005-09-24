@@ -295,15 +295,15 @@ begin
       exit;
     end;
   Repeat
-    Result:=Ord(S1[0])-Ord(S2[0]); //!! Must be replaced by ansi characters !!
+    Result:=Ord(S1^)-Ord(S2^); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
   Until (Result<>0) or (S1^=#0) or (S2^=#0);
-  if Result=0 then
-    if s1=#0 then
-      result:=1
+  if (Result=0) and (S1^<>S2^) then // loop ended because exactly one has #0
+    if S1^=#0 then // shorter string is smaller
+      result:=-1
     else
-      result:=-1;
+      result:=1;
 end;
 
 
