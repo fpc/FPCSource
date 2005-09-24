@@ -56,6 +56,7 @@ compiler/arm/itcpugas.pas svneol=native#text/plain
 compiler/arm/narmadd.pas svneol=native#text/plain
 compiler/arm/narmcal.pas svneol=native#text/plain
 compiler/arm/narmcnv.pas svneol=native#text/plain
+compiler/arm/narmcon.pas svneol=native#text/plain
 compiler/arm/narminl.pas svneol=native#text/plain
 compiler/arm/narmmat.pas svneol=native#text/plain
 compiler/arm/raarm.pas svneol=native#text/plain
