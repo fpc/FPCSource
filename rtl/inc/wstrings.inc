@@ -828,6 +828,22 @@ begin
 end;
 
 
+Function Pos (c : AnsiString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    result:=Pos(WideString(c),s);
+  end;
+
+
+Function Pos (c : ShortString; Const s : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    result:=Pos(WideString(c),s);
+  end;
+
+
+Function Pos (c : WideString; Const s : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    result:=Pos(c,WideString(s));
+  end;
 
 { Faster version for a char alone. Must be implemented because   }
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
