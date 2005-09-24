@@ -275,7 +275,7 @@ unit cpupara;
                end;
 
              paralen:=tcgsize2size[paracgsize];
-            hp.paraloc[side].intsize:=paralen;
+             hp.paraloc[side].intsize:=paralen;
 {$ifdef EXTDEBUG}
              if paralen=0 then
                internalerror(200410311);
@@ -375,6 +375,15 @@ unit cpupara;
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
+               end;
+             { hack to swap doubles in int registers }
+             if is_double(hp.vartype.def) and (paracgsize=OS_64) and
+               (hp.paraloc[side].location^.loc=LOC_REGISTER) then
+               begin
+                 paraloc:=hp.paraloc[side].location;
+                 hp.paraloc[side].location:=hp.paraloc[side].location^.next;
+                 hp.paraloc[side].location^.next:=paraloc;
+                 paraloc^.next:=nil;
                end;
           end;
         curintreg:=nextintreg;
