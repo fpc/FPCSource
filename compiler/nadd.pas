@@ -1895,7 +1895,8 @@ implementation
             end;
 
           end;
-
+        if procname='MULS' then
+          procname:='MULD';
         result:=ccallnode.createintern(procname,ccallparanode.create(right,
            ccallparanode.create(left,nil)));
         left:=nil;
