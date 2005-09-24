@@ -29,6 +29,7 @@ uses
 {$DEFINE HAS_OSERROR}
 {$DEFINE HAS_OSCONFIG}
 {$DEFINE HAS_CREATEGUID}
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -56,6 +57,8 @@ implementation
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
+
+{$DEFINE FPC_NOGENERICANSIROUTINES}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
