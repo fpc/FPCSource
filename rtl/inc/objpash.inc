@@ -127,12 +127,12 @@
           procedure Free;
           class function InitInstance(instance : pointer) : tobject;
           procedure CleanupInstance;
-          class function ClassType : tclass;
+          class function ClassType : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function ClassInfo : pointer;
           class function ClassName : shortstring;
           class function ClassNameIs(const name : string) : boolean;
-          class function ClassParent : tclass;
-          class function InstanceSize : longint;
+          class function ClassParent : tclass;{$ifdef SYSTEMINLINE}inline;{$endif}
+          class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
           { message handling routines }
