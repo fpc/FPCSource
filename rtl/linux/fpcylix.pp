@@ -21,7 +21,7 @@ unit fpcylix;
   interface
 
     uses
-      cwstring,dynlibs;
+      cthreads,cwstring,dynlibs;
 
     var
       MainInstance: PtrUInt;
