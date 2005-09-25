@@ -12,7 +12,7 @@ packages=paszlib pasjpeg
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp \
       fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg \
-      targacmn fpreadtga fpwritetga ellipses
+      targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer
 units_win32=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
