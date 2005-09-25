@@ -88,7 +88,6 @@ begin
       FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
       FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
       FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
-      writeln(FPCRuntimeResourceInfoArray[i].name);
       FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
       end;
     end;
