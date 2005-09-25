@@ -98,60 +98,19 @@ implementation
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         if (left.nodetype<>typen) then
-          begin
-            { left contains self, load vmt from self }
-            secondpass(left);
-            if is_object(left.resulttype.def) then
-             begin
-               case left.location.loc of
-                  LOC_CREFERENCE,
-                  LOC_REFERENCE:
-                    begin
-                       reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
-                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,href.base);
-                    end;
-                  else
-                    internalerror(200305056);
-               end;
-             end
-            else
-             begin
-               case left.location.loc of
-                  LOC_REGISTER:
-                    begin
-                    {$ifdef cpu_uses_separate_address_registers}
-                      if getregtype(left.location.register)<>R_ADDRESSREGISTER then
-                        begin
-                          reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
-                          cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,href.base);
-                        end
-                      else
-                    {$endif}
-                        reference_reset_base(href,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
-                    end;
-                  LOC_CREGISTER,
-                  LOC_CREFERENCE,
-                  LOC_REFERENCE:
-                    begin
-                       reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
-                       cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,href.base);
-                    end;
-                  else
-                    internalerror(200305057);
-               end;
-             end;
-            location.register:=cg.getaddressregister(exprasmlist);
-            cg.g_maybe_testself(exprasmlist,href.base);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
-          end
+         if (left.nodetype=typen) then
+           begin
+             reference_reset_symbol(href,
+               objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+             location.register:=cg.getaddressregister(exprasmlist);
+             cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
+           end
          else
-          begin
-            reference_reset_symbol(href,
-              objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
-            location.register:=cg.getaddressregister(exprasmlist);
-            cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
-          end;
+           begin
+             { left contains self, load vmt from self }
+             secondpass(left);
+             gen_load_vmt_register(exprasmlist,tobjectdef(left.resulttype.def),left.location,location.register);
+           end;
       end;
 
 

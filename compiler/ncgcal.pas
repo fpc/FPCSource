@@ -855,22 +855,27 @@ implementation
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) then
                begin
-                 secondpass(methodpointer);
-                 location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
-
                  { virtual methods require an index }
                  if tprocdef(procdefinition).extnumber=$ffff then
                    internalerror(200304021);
-                 { VMT should already be loaded in a register }
-                 if methodpointer.location.register=NR_NO then
-                   internalerror(200304022);
+
+                 secondpass(methodpointer);
+
+                 { Load VMT from self }
+                 if methodpointer.resulttype.def.deftype=objectdef then
+                   gen_load_vmt_register(exprasmlist,tobjectdef(methodpointer.resulttype.def),methodpointer.location,vmtreg)
+                 else
+                   begin
+                     { Load VMT value in register }
+                     location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
+                     vmtreg:=methodpointer.location.register;
+                   end;
 
                  { test validity of VMT }
                  if not(is_interface(tprocdef(procdefinition)._class)) and
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
-                   cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
+                   cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
 
-                 vmtreg:=methodpointer.location.register;
                  pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
                  reference_reset_base(href,vmtreg,
                     tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));

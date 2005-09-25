@@ -1382,7 +1382,7 @@ implementation
 
       var
         htype : ttype;
-        hp : tnode;
+        hp,hp2 : tnode;
         currprocdef : tabstractprocdef;
         aprocdef : tprocdef;
         eq : tequaltype;
