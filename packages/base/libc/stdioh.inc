@@ -27,6 +27,7 @@ function tmpfile64:PFILE;cdecl;external clib name 'tmpfile64';
 
 function tmpnam(__s:Pchar):Pchar;cdecl;external clib name 'tmpnam';
 function tmpnam_r(__s:Pchar):Pchar;cdecl;external clib name 'tmpnam_r';
+function tempnam(dir,pfx: PChar): PChar; cdecl; external clib name 'tempnam';
 
 function fclose(__stream:PFILE):longint;cdecl;external clib name 'fclose';
 function fflush(__stream:PFILE):longint;cdecl;external clib name 'fflush';
