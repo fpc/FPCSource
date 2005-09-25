@@ -59,8 +59,8 @@ interface
          addr_no,
          addr_full,
          {$IFNDEF POWERPC64}
-         addr_lo,
          addr_hi,
+         addr_lo,
          {$ENDIF}
          addr_pic
          {$IFDEF POWERPC64}
