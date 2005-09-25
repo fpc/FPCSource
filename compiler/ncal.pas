@@ -1906,22 +1906,6 @@ type
          { bind parasyms to the callparanodes and insert hidden parameters }
          bind_parasym;
 
-         { methodpointer needs to be a pointer to the VMT for virtual calls.
-           Note: We need to keep the methodpointer in the callnode for TP
-           procvar support, because this calln still maybe converted to a loadn,
-           see tw3499 }
-         if (po_virtualmethod in procdefinition.procoptions) then
-          begin
-            if not assigned(methodpointer) then
-              internalerror(200305063);
-            if (methodpointer.nodetype<>typen) and
-               (methodpointer.resulttype.def.deftype<>classrefdef) then
-              begin
-                methodpointer:=cloadvmtaddrnode.create(methodpointer);
-                resulttypepass(methodpointer);
-              end;
-          end;
-
          { insert type conversions for parameters }
          if assigned(left) then
            tcallparanode(left).insert_typeconv(true);

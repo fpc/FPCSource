@@ -71,6 +71,7 @@ interface
 
     procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
     procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
+    procedure gen_load_vmt_register(list:taasmoutput;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -2388,6 +2389,55 @@ implementation
               gen_intf_wrapper(list,tobjectdef(def));
             def:=tstoreddef(def.indexnext);
           end;
+      end;
+
+
+    procedure gen_load_vmt_register(list:taasmoutput;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
+      var
+        href : treference;
+      begin
+        if is_object(objdef) then
+          begin
+            case selfloc.loc of
+              LOC_CREFERENCE,
+              LOC_REFERENCE:
+                begin
+                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                  cg.a_loadaddr_ref_reg(list,selfloc.reference,href.base);
+                end;
+              else
+                internalerror(200305056);
+            end;
+          end
+        else
+          begin
+            case selfloc.loc of
+              LOC_REGISTER:
+                begin
+{$ifdef cpu_uses_separate_address_registers}
+                  if getregtype(left.location.register)<>R_ADDRESSREGISTER then
+                    begin
+                      reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                      cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);
+                    end
+                  else
+{$endif cpu_uses_separate_address_registers}
+                    reference_reset_base(href,selfloc.register,objdef.vmt_offset);
+                end;
+              LOC_CREGISTER,
+              LOC_CREFERENCE,
+              LOC_REFERENCE:
+                begin
+                    reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                    cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
+                end;
+              else
+                internalerror(200305057);
+            end;
+          end;
+        vmtreg:=cg.getaddressregister(list);
+        cg.g_maybe_testself(list,href.base);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
       end;
 
 end.

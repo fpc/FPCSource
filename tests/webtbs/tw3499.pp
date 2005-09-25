@@ -3,9 +3,12 @@
 { e-mail: svg@deds.nl }
 program test;
 
-{$mode delphi}
+{$ifdef fpc}{$mode delphi}{$endif}
 
 uses SysUtils;
+
+var
+  err : boolean;
 
 type
   TProcedure = procedure of object;
@@ -27,13 +30,18 @@ end;
 procedure Class2.d();
 begin
   writeLn('procedure called');
+  err:=false;
 end;
 
 var
   c: Class1;
   e: Class2;
 begin
+  err:=true;
   c := Class1.create();
   e := Class2.create();
   c.p(e.d);
+  c.proc;
+  if err then
+    halt(1);
 end.
