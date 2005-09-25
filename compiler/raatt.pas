@@ -276,6 +276,19 @@ unit raatt;
                end
            end;
 {$endif POWERPC}
+{$ifdef POWERPC64}
+           { some PowerPC instructions can have the postfix -, + or .
+             this code could be moved to is_asmopcode but I think
+             it's better to ifdef it here (FK)
+           }
+           case c of
+             '.', '-', '+':
+               begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+               end
+           end;
+{$endif POWERPC64}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin

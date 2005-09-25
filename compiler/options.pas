@@ -1854,6 +1854,16 @@ begin
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif}
+{$ifdef POWERPC64}
+  def_system_macro('CPUPOWERPC');
+  def_system_macro('CPUPOWERPC64');
+  def_system_macro('CPU64');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
+  def_system_macro('FPC_CURRENCY_IS_INT64');
+  def_system_macro('FPC_COMP_IS_INT64');
+{$endif}
 {$ifdef iA64}
   def_system_macro('CPUIA64');
   def_system_macro('CPU64');

@@ -207,6 +207,7 @@ const
 {$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif}
 {$ifdef x86_64} platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
 {$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
+{$ifdef POWERPC64}  platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
 {$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}    platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}    platform_select='';{$endif} {unknown :( }
@@ -271,6 +272,11 @@ begin
      DynamicLinker:='/lib/ld.so.1';
      libctype:=glibc2;
 {$endif powerpc}
+
+{$ifdef powerpc64}
+     DynamicLinker:='/lib64/ld.so.1';
+     libctype:=glibc2;
+{$endif powerpc64}
 
 {$ifdef arm}
      DynamicLinker:='/lib/ld-linux.so.2';
@@ -709,6 +715,12 @@ initialization
   RegisterExport(system_powerpc_linux,texportliblinux);
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
+{$ifdef powerpc64}
+  RegisterExternalLinker(system_powerpc64_linux_info,TLinkerLinux);
+  RegisterImport(system_powerpc64_linux,timportliblinux);
+  RegisterExport(system_powerpc64_linux,texportliblinux);
+  RegisterTarget(system_powerpc64_linux_info);
+{$endif powerpc64}
 {$ifdef alpha}
   RegisterExternalLinker(system_alpha_linux_info,TLinkerLinux);
   RegisterImport(system_alpha_linux,timportliblinux);

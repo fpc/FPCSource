@@ -374,6 +374,12 @@ implementation
         s80floattype.setdef(tfloatdef.create(s80real));
         s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
 {$endif powerpc}
+{$ifdef POWERPC64}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif POWERPC64}
 {$ifdef sparc}
         s32floattype.setdef(tfloatdef.create(s32real));
         s64floattype.setdef(tfloatdef.create(s64real));

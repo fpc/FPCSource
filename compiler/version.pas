@@ -44,9 +44,12 @@ interface
 {$ifdef cpu86}
         source_cpu_string = 'i386';
 {$endif cpu86}
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
         source_cpu_string = 'powerpc';
-{$endif cpupowerpc}
+{$endif cpupowerpc32}
+{$ifdef cpupowerpc64}
+        source_cpu_string = 'powerpc64';
+{$endif cpupowerpc64}
 {$ifdef cpum68k}
         source_cpu_string = 'm68k';
 {$endif cpum68k}

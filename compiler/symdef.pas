@@ -817,6 +817,9 @@ interface
 {$ifdef powerpc}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif}
+{$ifdef POWERPC64}
+       pbestrealtype : ^ttype = @s64floattype;
+{$endif}
 {$ifdef ia64}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif}

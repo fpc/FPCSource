@@ -50,7 +50,8 @@ interface
              cpu_iA64,                     { 7 }
              cpu_x86_64,                   { 8 }
              cpu_mips,                     { 9 }
-             cpu_arm                       { 10 }
+             cpu_arm,                      { 10 }
+             cpu_powerpc64                 { 11 }
        );
 
        tasmmode= (asmmode_none
@@ -118,7 +119,8 @@ interface
              system_ia64_win64,         { 39 }
              system_i386_wince,         { 40 }
              system_x86_6432_linux,     { 41 }
-             system_arm_gba             { 42 }
+             system_arm_gba,            { 42 }
+             system_powerpc64_linux     { 43 }
        );
 
        tasm = (as_none
@@ -324,7 +326,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm');
+             'mips','arm', 'powerpc64');
 
     var
        targetinfos   : array[tsystem] of psysteminfo;
@@ -754,6 +756,13 @@ begin
     default_target(system_powerpc_linux);
   {$endif cpupowerpc}
 {$endif powerpc}
+{$ifdef POWERPC64}
+  {$ifdef cpupowerpc64}
+    default_target(source_info.system);
+  {$else cpupowerpc64}
+    default_target(system_powerpc64_linux);
+  {$endif cpupowerpc64}
+{$endif POWERPC64}
 {$ifdef sparc}
   {$ifdef cpusparc}
     default_target(source_info.system);

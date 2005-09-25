@@ -64,6 +64,14 @@ unit compiler;
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
+   
+   {$ifdef POWERPC64}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}   
 
    {$ifdef ia64}
    {$ifndef CPUOK}

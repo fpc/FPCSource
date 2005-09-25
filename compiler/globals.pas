@@ -2260,6 +2260,14 @@ end;
         {$ENDIF}
         initfputype:=fpu_standard;
 {$endif powerpc}
+{$ifdef POWERPC64}
+        initoptprocessor:=PPC970;
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+         initsetalloc:=0;
+        {$ENDIF}
+        initfputype:=fpu_standard;
+{$endif POWERPC64}
 {$ifdef sparc}
         initoptprocessor:=SPARC_V8;
         initpackenum:=4;

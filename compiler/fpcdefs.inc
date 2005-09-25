@@ -67,6 +67,13 @@
   {$define cpumm}
 {$endif powerpc}
 
+{$ifdef powerpc64}
+  {$define cpu64bit}
+  {$define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpumm}  
+{$endif powerpc64}
+
 {$ifdef arm}
   {$define cpuflags}
   {$define cpufpemu}

@@ -31,6 +31,7 @@ program pp;
   M68K                generate a compiler for the M68000
   SPARC               generate a compiler for SPARC
   POWERPC             generate a compiler for the PowerPC
+  POWERPC64           generate a compiler for the PowerPC64 architecture
   VIS                 generate a compile for the VIS
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
@@ -100,6 +101,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif POWERPC}
+   {$ifdef POWERPC64}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif POWERPC64}
    {$ifdef ALPHA}
      {$ifdef CPUDEFINED}
         {$fatal ONLY one of the switches for the CPU type must be defined}
