@@ -14,7 +14,7 @@
 
 constructor TMultiReadExclusiveWriteSynchronizer.Create;
 begin
-  InitCriticalSection(Crit);
+  System.InitCriticalSection(Crit);
 end;
 
 destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
