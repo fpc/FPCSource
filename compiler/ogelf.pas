@@ -360,8 +360,8 @@ implementation
           'fpc'
         );
       begin
-        if use_smartlink_section and
-           (aname<>'') then
+        if (use_smartlink_section and
+           (aname<>'')) or (atype=sec_fpc) then
           result:=secnames[atype]+'.'+aname
         else
           result:=secnames[atype];
