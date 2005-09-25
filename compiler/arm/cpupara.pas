@@ -431,8 +431,8 @@ unit cpupara;
                     begin
                       { low }
                       p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
-                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_LOW_REG;
                       p.funcretloc[side].size:=OS_64;
                     end;
                   OS_32,
