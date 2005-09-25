@@ -41,10 +41,6 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,symsym,symtable,defutil,paramgr,parabase,
-{$ifdef GDB}
-      strings,
-      gdb,
-{$endif GDB}
       cgbase,pass_2,
       cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,

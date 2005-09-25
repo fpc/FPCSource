@@ -993,10 +993,6 @@ uses
          Message1(unit_u_ppu_write,realmodulename^);
 
          { create unit flags }
-{$ifdef GDB}
-         if cs_gdb_dbx in aktglobalswitches then
-          flags:=flags or uf_has_dbx;
-{$endif GDB}
          if cs_browser in aktmoduleswitches then
           flags:=flags or uf_has_browser;
          if cs_local_browser in aktmoduleswitches then

@@ -119,9 +119,9 @@ than 255 characters. That's why using Ansi Strings}
          cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,cs_loopunroll,
          { browser }
          cs_browser_log,
-         { debugger }
-         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,
-         cs_gdb_valgrind,cs_gdb_dwarf,
+         { debuginfo }
+         cs_gdb_heaptrc,cs_gdb_lineinfo,
+         cs_gdb_valgrind,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,

@@ -1283,7 +1283,6 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
          begin
-           do_count_dbx:=true;
            if assigned(_class.owner) and assigned(_class.owner.name) then
              asmlist[al_globals].concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+_class.owner.name^+_class.name+':S'+
                tstoreddef(vmttype.def).numberstring+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));

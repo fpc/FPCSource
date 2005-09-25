@@ -90,9 +90,7 @@ const
 var
   option     : toption;
   read_configfile,        { read config file, set when a cfgfile is found }
-  disable_configfile,
-  target_is_set : boolean;  { do not allow contradictory target settings }
-  asm_is_set  : boolean; { -T also change initoutputformat if not set idrectly }
+  disable_configfile : boolean;
   fpcdir,
   ppccfg,
   ppcaltcfg,
@@ -279,9 +277,7 @@ begin
      if show then
       begin
         case s[2] of
-{$ifdef GDB}
          'g',
-{$endif}
 {$ifdef Unix}
          'L',
 {$endif}
@@ -388,7 +384,6 @@ var
   d    : DirStr;
   e    : ExtStr;
   s    : string;
-  forceasm : tasm;
 begin
   if opt='' then
    exit;
@@ -453,10 +448,9 @@ begin
 
            'A' :
              begin
-               if set_target_asm_by_string(More) then
-                asm_is_set:=true
-               else
-                IllegalPara(opt);
+               paratargetasm:=find_asm_by_string(More);
+               if paratargetasm=as_none then
+                 IllegalPara(opt);
              end;
 
            'b' :
@@ -749,41 +743,30 @@ begin
                if UnsetBool(More, 0) then
                 begin
                   exclude(initmoduleswitches,cs_debuginfo);
-                  exclude(initglobalswitches,cs_gdb_dbx);
-                  exclude(initglobalswitches,cs_gdb_gsym);
                   exclude(initglobalswitches,cs_gdb_heaptrc);
                   exclude(initglobalswitches,cs_gdb_lineinfo);
                   exclude(initlocalswitches,cs_checkpointer);
                 end
                else
                 begin
-{$ifdef GDB}
                   include(initmoduleswitches,cs_debuginfo);
-{$else GDB}
-                  Message(option_no_debug_support);
-                  Message(option_no_debug_support_recompile_fpc);
-{$endif GDB}
                 end;
-{$ifdef GDB}
                if not RelocSectionSetExplicitly then
                  RelocSection:=false;
                j:=1;
                while j<=length(more) do
                  begin
                    case more[j] of
+                     'c' :
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(initlocalswitches,cs_checkpointer)
+                         else
+                           include(initlocalswitches,cs_checkpointer);
+                       end;
                      'd' :
                        begin
-                         if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_dbx)
-                         else
-                           include(initglobalswitches,cs_gdb_dbx);
-                       end;
-                    'g' :
-                       begin
-                         if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_gsym)
-                         else
-                           include(initglobalswitches,cs_gdb_gsym);
+                         paratargetdbg:=dbg_dwarf;
                        end;
                      'h' :
                        begin
@@ -799,12 +782,9 @@ begin
                          else
                            include(initglobalswitches,cs_gdb_lineinfo);
                        end;
-                     'c' :
+                     's' :
                        begin
-                         if UnsetBool(More, j) then
-                           exclude(initlocalswitches,cs_checkpointer)
-                         else
-                           include(initlocalswitches,cs_checkpointer);
+                         paratargetdbg:=dbg_stabs;
                        end;
                      'v' :
                        begin
@@ -813,19 +793,11 @@ begin
                          else
                            include(initglobalswitches,cs_gdb_valgrind);
                        end;
-                     'w' :
-                       begin
-                         if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_dwarf)
-                         else
-                           include(initglobalswitches,cs_gdb_dwarf);
-                       end;
                      else
                        IllegalPara(opt);
                    end;
                    inc(j);
                  end;
-{$endif GDB}
              end;
 
            'h' :
@@ -1028,22 +1000,18 @@ begin
            'T' :
              begin
                more:=Upper(More);
-               if not target_is_set then
+               if paratarget=system_none then
                 begin
                   { remove old target define }
                   TargetDefines(false);
-                  { Save assembler if set }
-                  if asm_is_set then
-                   forceasm:=target_asm.id;
                   { load new target }
-                  if not(set_target_by_string(More)) then
+                  paratarget:=find_system_by_string(More);
+                  if paratarget<>system_none then
+                    set_target(paratarget)
+                  else
                     IllegalPara(opt);
-                  { also initialize assembler if not explicitly set }
-                  if asm_is_set then
-                   set_target_asm(forceasm);
                   { set new define }
                   TargetDefines(true);
-                  target_is_set:=true;
                 end
                else
                 if More<>upper(target_info.shortname) then
@@ -1935,8 +1903,6 @@ begin
     read_configfile := false;
 
 { Read commandline and configfile }
-  target_is_set:=false;
-  asm_is_set:=false;
   param_file:='';
 
   { read configfile }
@@ -2098,6 +2064,14 @@ begin
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
+
+  { maybe override debug info format }
+  if (paratargetdbg<>dbg_none) then
+    set_target_dbg(paratargetdbg);
+
+  { maybe override assembler }
+  if (paratargetasm<>as_none) then
+    set_target_asm(paratargetasm);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and

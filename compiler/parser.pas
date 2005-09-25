@@ -329,7 +329,6 @@ implementation
           oldaktpackenum       : shortint;
           oldaktmaxfpuregisters : longint;
           oldaktalignment  : talignmentinfo;
-          oldaktoutputformat : tasm;
           oldaktspecificoptprocessor,
           oldaktoptprocessor : tprocessors;
           oldaktfputype      : tfputype;
@@ -340,9 +339,6 @@ implementation
           oldcurrent_procinfo : tprocinfo;
           oldaktdefproccall : tproccalloption;
           oldsourcecodepage : tcodepagestring;
-{$ifdef GDB}
-          store_dbx : plongint;
-{$endif GDB}
         end;
 
       var
@@ -395,17 +391,12 @@ implementation
             oldaktpackrecords:=aktpackrecords;
             oldaktfputype:=aktfputype;
             oldaktmaxfpuregisters:=aktmaxfpuregisters;
-            oldaktoutputformat:=aktoutputformat;
             oldaktoptprocessor:=aktoptprocessor;
             oldaktspecificoptprocessor:=aktspecificoptprocessor;
             oldaktasmmode:=aktasmmode;
             oldaktinterfacetype:=aktinterfacetype;
             oldaktfilepos:=aktfilepos;
             oldaktmodeswitches:=aktmodeswitches;
-{$ifdef GDB}
-            store_dbx:=dbx_counter;
-            dbx_counter:=nil;
-{$endif GDB}
           end;
        { show info }
          Message1(parser_i_compiling,filename);
@@ -453,8 +444,6 @@ implementation
          aktfputype:=initfputype;
          aktpackenum:=initpackenum;
          aktpackrecords:=0;
-         aktoutputformat:=initoutputformat;
-         set_target_asm(aktoutputformat);
          aktoptprocessor:=initoptprocessor;
          aktspecificoptprocessor:=initspecificoptprocessor;
          aktasmmode:=initasmmode;
@@ -567,8 +556,6 @@ implementation
                    aktpackenum:=oldaktpackenum;
                    aktpackrecords:=oldaktpackrecords;
                    aktmaxfpuregisters:=oldaktmaxfpuregisters;
-                   aktoutputformat:=oldaktoutputformat;
-                   set_target_asm(aktoutputformat);
                    aktoptprocessor:=oldaktoptprocessor;
                    aktspecificoptprocessor:=oldaktspecificoptprocessor;
                    aktfputype:=oldaktfputype;
@@ -578,9 +565,6 @@ implementation
                    aktmodeswitches:=oldaktmodeswitches;
                    aktexceptblock:=0;
                    exceptblockcounter:=0;
-  {$ifdef GDB}
-                   dbx_counter:=store_dbx;
-  {$endif GDB}
                  end;
              end
            else

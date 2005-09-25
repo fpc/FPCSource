@@ -671,20 +671,6 @@ implementation
         do_delphiswitch('P');
       end;
 
-    procedure dir_output_format;
-      begin
-        if not current_module.in_global then
-         Message(scan_w_switch_is_global)
-        else
-          begin
-            current_scanner.skipspace;
-            if set_target_asm_by_string(current_scanner.readid) then
-             aktoutputformat:=target_asm.id
-            else
-             Message1(scan_w_illegal_switch,pattern);
-          end;
-      end;
-
     procedure dir_overflowchecks;
       begin
         do_delphiswitch('Q');
@@ -1145,7 +1131,6 @@ implementation
         AddDirective('OBJECTCHECKS',directive_all, @dir_objectchecks);
         AddDirective('OBJECTPATH',directive_all, @dir_objectpath);
         AddDirective('OPENSTRINGS',directive_all, @dir_openstrings);
-        AddDirective('OUTPUT_FORMAT',directive_all, @dir_output_format);
         AddDirective('OVERFLOWCHECKS',directive_all, @dir_overflowchecks);
         AddDirective('PACKENUM',directive_all, @dir_packenum);
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);

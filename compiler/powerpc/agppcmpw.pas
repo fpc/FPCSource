@@ -1207,7 +1207,7 @@ interface
       DoAssemble:=Inherited DoAssemble;
       (*
       { masm does not seem to recognize specific extensions and uses .obj allways PM }
-      if (aktoutputformat = as_i386_masm) then
+      if (target_asm.id = as_i386_masm) then
         begin
           if not(cs_asm_extern in aktglobalswitches) then
             begin
@@ -1230,7 +1230,7 @@ interface
       (*
       AsmWriteLn(#9'.386p');
       { masm 6.11 does not seem to like LOCALS PM }
-      if (aktoutputformat = as_i386_tasm) then
+      if (target_asm.id = as_i386_tasm) then
         begin
           AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
         end;

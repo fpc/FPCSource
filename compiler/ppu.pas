@@ -73,7 +73,6 @@ const
   iblinkotherofiles      = 8;
   iblinkotherstaticlibs  = 9;
   iblinkothersharedlibs  = 10;
-  ibdbxcount             = 11;
   ibsymref               = 12;
   ibdefref               = 13;
   ibendsymtablebrowser   = 14;
@@ -134,7 +133,6 @@ const
   uf_init          = $1;
   uf_finalize      = $2;
   uf_big_endian    = $4;
-  uf_has_dbx       = $8;
   uf_has_browser   = $10;
   uf_in_library    = $20;     { is the file in another file than <ppufile>.* ? }
   uf_smart_linked  = $40;     { the ppu can be smartlinked }
@@ -152,8 +150,8 @@ const
   uf_local_symtable = $20000; { this unit has a local symtable stored }
   uf_uses_variants  = $40000; { this unit uses variants }
   uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
-  
-  
+
+
 type
   ppureal=extended;
 

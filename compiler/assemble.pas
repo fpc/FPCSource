@@ -247,7 +247,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
                 not(cs_asm_leave in aktglobalswitches)
-                and ((aktoutputformat in [as_gas,as_darwin]));
+                and ((target_asm.id in [as_gas,as_darwin]));
       end;
 
 
@@ -1474,9 +1474,6 @@ Implementation
 
     procedure InitAssembler;
       begin
-        { target_asm is already set by readarguments }
-        initoutputformat:=target_asm.id;
-        aktoutputformat:=target_asm.id;
       end;
 
 

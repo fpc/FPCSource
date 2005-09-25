@@ -38,10 +38,6 @@ uses
   globtype, systems,
   cutils, verbose, globals,
   symconst, symbase, symsym, symtable, defutil, paramgr, parabase,
-{$IFDEF GDB}
-  strings,
-  gdb,
-{$ENDIF GDB}
   cgbase, pass_2,
   cpuinfo, cpubase, aasmbase, aasmtai, aasmcpu,
   nmem, nld, ncnv,

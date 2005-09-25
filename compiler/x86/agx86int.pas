@@ -174,7 +174,7 @@ implementation
             AsmWrite('[');
            if assigned(symbol) then
             begin
-              if (aktoutputformat = as_i386_tasm) then
+              if (target_asm.id = as_i386_tasm) then
                 AsmWrite('dword ptr ');
               AsmWrite(symbol.name);
               first:=false;
@@ -306,7 +306,7 @@ implementation
           begin
             if o.ref^.refaddr=addr_no then
               begin
-                if (aktoutputformat <> as_i386_tasm) then
+                if (target_asm.id <> as_i386_tasm) then
                   begin
                     if s=S_FAR then
                       AsmWrite('far ptr ')
@@ -476,7 +476,7 @@ implementation
              begin
                if tai_section(hp).sectype<>sec_none then
                 begin
-                  if aktoutputformat=as_x86_64_masm then
+                  if target_asm.id=as_x86_64_masm then
                     begin
                       if LasTSecType<>sec_none then
                         AsmWriteLn(secnamesml64[LasTSecType]+#9#9'ENDS');
@@ -698,7 +698,7 @@ implementation
                   { nasm prefers prefix on a line alone
                   AsmWriteln(#9#9+prefix); but not masm PM
                   prefix:=''; }
-                  if aktoutputformat in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
+                  if target_asm.id in [as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
                     as_i386_nasmelf,as_i386_nasmobj,as_i386_nasmbeos] then
                      begin
                        AsmWriteln(prefix);
@@ -707,7 +707,7 @@ implementation
                 end
                else
                 prefix:= '';
-               if (aktoutputformat = as_i386_wasm) and
+               if (target_asm.id = as_i386_wasm) and
                  (taicpu(hp).opsize=S_W) and
                  (taicpu(hp).opcode=A_PUSH) and
                  (taicpu(hp).oper[0]^.typ=top_const) then
@@ -715,7 +715,7 @@ implementation
                    AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
                    AsmWrite(#9#9'DW');
                  end
-               else if (aktoutputformat=as_x86_64_masm) and
+               else if (target_asm.id=as_x86_64_masm) and
                  (taicpu(hp).opcode=A_MOVQ) then
                  AsmWrite(#9#9'mov')
                else
@@ -817,7 +817,7 @@ implementation
       begin
         if tasmsymbol(p).defbind=AB_EXTERNAL then
           begin
-            case aktoutputformat of
+            case target_asm.id of
               as_i386_masm,as_i386_wasm:
                 currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
                   +': NEAR');
@@ -842,7 +842,7 @@ implementation
     begin
       DoAssemble:=Inherited DoAssemble;
       { masm does not seem to recognize specific extensions and uses .obj allways PM }
-      if (aktoutputformat in [as_i386_masm,as_i386_wasm]) then
+      if (target_asm.id in [as_i386_masm,as_i386_wasm]) then
         begin
           if not(cs_asm_extern in aktglobalswitches) then
             begin
@@ -868,11 +868,11 @@ implementation
        comment(v_info,'Start writing intel-styled assembler output for '+current_module.mainsource^);
 {$endif}
       LasTSecType:=sec_none;
-      if aktoutputformat<>as_x86_64_masm then
+      if target_asm.id<>as_x86_64_masm then
         begin
           AsmWriteLn(#9'.386p');
           { masm 6.11 does not seem to like LOCALS PM }
-          if (aktoutputformat = as_i386_tasm) then
+          if (target_asm.id = as_i386_tasm) then
             begin
               AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
             end;

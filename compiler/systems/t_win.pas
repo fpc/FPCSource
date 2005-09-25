@@ -263,7 +263,7 @@ implementation
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
-         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+         if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;
@@ -421,7 +421,7 @@ implementation
 {$endif GDB}
          href : treference;
       begin
-         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+         if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;
@@ -700,7 +700,7 @@ implementation
           exportfromlist(texported_item(EList_indexed.Items[i]));
          EList_indexed.Free;
 
-         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+         if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;

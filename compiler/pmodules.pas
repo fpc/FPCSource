@@ -776,19 +776,6 @@ implementation
           tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_debugtypes]);
         if assigned(current_module.localsymtable) then
           tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_debugtypes]);
-        { include files }
-        if (cs_gdb_dbx in aktglobalswitches) then
-          begin
-            asmlist[al_debugtypes].concat(tai_comment.Create(strpnew('EINCL of global '+
-              tglobalsymtable(current_module.globalsymtable).name^+' has index '+
-              tostr(tglobalsymtable(current_module.globalsymtable).moduleid))));
-            asmlist[al_debugtypes].concat(Tai_stab.create(stab_stabs,strpnew('"'+
-              tglobalsymtable(current_module.globalsymtable).name^+'",'+
-              tostr(N_EINCL)+',0,0,0')));
-            tglobalsymtable(current_module.globalsymtable).dbx_count_ok:={true}false;
-            dbx_counter:=tglobalsymtable(current_module.globalsymtable).prev_dbx_counter;
-            do_count_dbx:=false;
-          end;
         aktfilepos:=storefilepos;
       end;
 {$EndIf GDB}

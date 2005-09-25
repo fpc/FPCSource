@@ -1075,13 +1075,7 @@ implementation
          ppufile.putderef(inittablesymderef);
 {$ifdef GDB}
         if globalnb=0 then
-          begin
-            if (cs_gdb_dbx in aktglobalswitches) and
-               assigned(owner) then
-              globalnb := owner.getnewtypecount
-            else
-              set_globalnb;
-          end;
+          set_globalnb;
 {$endif GDB}
       end;
 
@@ -1182,20 +1176,8 @@ implementation
           stab_state:=stab_state_used;
         { Need a new number? }
         if globalnb=0 then
-          begin
-            if (cs_gdb_dbx in aktglobalswitches) and
-               assigned(owner) then
-              globalnb := owner.getnewtypecount
-            else
-              set_globalnb;
-          end;
-        if (cs_gdb_dbx in aktglobalswitches) and
-           assigned(typesym) and
-           (ttypesym(typesym).owner.symtabletype in [staticsymtable,globalsymtable]) and
-           (ttypesym(typesym).owner.iscurrentunit) then
-          result:='('+tostr(tabstractunitsymtable(ttypesym(typesym).owner).moduleid)+','+tostr(tstoreddef(ttypesym(typesym).restype.def).globalnb)+')'
-        else
-          result:=tostr(globalnb);
+          set_globalnb;
+        result:=tostr(globalnb);
       end;
 
 
@@ -1228,21 +1210,6 @@ implementation
       begin
         if (stab_state in [stab_state_writing,stab_state_written]) then
           exit;
-        If cs_gdb_dbx in aktglobalswitches then
-          begin
-            { otherwise you get two of each def }
-            If assigned(typesym) then
-              begin
-                if (ttypesym(typesym).owner = nil) or
-                   ((ttypesym(typesym).owner.symtabletype = globalsymtable) and
-                    tglobalsymtable(ttypesym(typesym).owner).dbx_count_ok)  then
-                  begin
-                    {with DBX we get the definition from the other objects }
-                    stab_state := stab_state_written;
-                    exit;
-                  end;
-              end;
-          end;
         { to avoid infinite loops }
         stab_state := stab_state_writing;
         stab_str := allstabstring;
@@ -4353,7 +4320,7 @@ implementation
       begin
         obj := procsym.name;
         info := '';
-        if tprocsym(procsym).is_global then
+        if (po_global in procoptions) then
           RType := 'F'
         else
           RType := 'f';
@@ -5218,9 +5185,9 @@ implementation
       begin
 {$warning TODO Remove getparentdef hack}
         { With 2 forward declared classes with the child class before the
-	  parent class the child class is written earlier to the ppu. Leaving it
-	  possible to have a reference to the parent class for property overriding,
-	  but the parent class still has the childof not resolved yet (PFV) }
+          parent class the child class is written earlier to the ppu. Leaving it
+          possible to have a reference to the parent class for property overriding,
+          but the parent class still has the childof not resolved yet (PFV) }
         if childof=nil then
           childof:=tobjectdef(childofderef.resolve);
         result:=childof;

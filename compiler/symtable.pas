@@ -132,11 +132,6 @@ interface
 
        tabstractunitsymtable = class(tstoredsymtable)
        public
-{$ifdef GDB}
-          dbx_count : longint;
-          prev_dbx_counter : plongint;
-          dbx_count_ok : boolean;
-{$endif GDB}
           constructor create(const n : string;id:word);
 {$ifdef GDB}
           procedure concattypestabto(asmlist : taasmoutput);
@@ -1347,12 +1342,6 @@ implementation
         inherited create(n);
         moduleid:=id;
         symsearch.usehash;
-{$ifdef GDB}
-         { reset GDB things }
-         prev_dbx_counter := dbx_counter;
-         dbx_counter := nil;
-         dbx_count := -1;
-{$endif GDB}
       end;
 
 
@@ -1395,51 +1384,14 @@ implementation
 
         var
           old_writing_def_stabs : boolean;
-          prev_dbx_count : plongint;
         begin
            if not assigned(name) then
              name := stringdup('Main_program');
            asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(moduleid))));
-           if cs_gdb_dbx in aktglobalswitches then
-             begin
-                if dbx_count_ok then
-                  begin
-                     asmList.concat(tai_comment.Create(strpnew('"repeated" unit '+name^
-                              +' has index '+tostr(moduleid)+' dbx count = '+tostr(dbx_count))));
-                     asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'
-                       +tostr(N_EXCL)+',0,0,'+tostr(dbx_count))));
-                     exit;
-                  end
-                else if not iscurrentunit then
-                  begin
-                    prev_dbx_count := dbx_counter;
-                    dbx_counter := nil;
-                    do_count_dbx:=false;
-                    if (symtabletype = globalsymtable) then
-                      asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
-                    dbx_counter := @dbx_count;
-                    dbx_count:=0;
-                    do_count_dbx:=assigned(dbx_counter);
-                  end;
-             end;
-
            old_writing_def_stabs:=writing_def_stabs;
            writing_def_stabs:=true;
            dowritestabs(asmlist,self);
            writing_def_stabs:=old_writing_def_stabs;
-
-           if cs_gdb_dbx in aktglobalswitches then
-             begin
-                if not iscurrentunit then
-                  begin
-                    dbx_counter := prev_dbx_count;
-                    do_count_dbx:=false;
-                    asmList.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'
-                      +tostr(N_EINCL)+',0,0,0')));
-                    do_count_dbx:=assigned(dbx_counter);
-                    dbx_count_ok := {true}false;
-                  end;
-             end;
            asmList.concat(tai_comment.Create(strpnew('End unit '+name^+' has index '+tostr(moduleid))));
         end;
 {$endif GDB}
@@ -1526,40 +1478,11 @@ implementation
          inherited create(n,id);
          symtabletype:=globalsymtable;
          symtablelevel:=main_program_level;
-{$ifdef GDB}
-         if cs_gdb_dbx in aktglobalswitches then
-           begin
-             dbx_count := 0;
-             unittypecount:=1;
-             pglobaltypecount := @unittypecount;
-             {moduleid:=current_module.unitcount;}
-             {al_debugtypes.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(moduleid))));
-             al_debugtypes.concat(Tai_stab.create(stab_stabs,strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));}
-             {inc(current_module.unitcount);}
-             { we can't use dbx_vcount, because we don't know
-               if the object file will be loaded before or afeter PM }
-             dbx_count_ok:=false;
-             dbx_counter:=@dbx_count;
-             do_count_dbx:=true;
-           end;
-{$endif GDB}
       end;
 
 
     procedure tglobalsymtable.ppuload(ppufile:tcompilerppufile);
-{$ifdef GDB}
-      var
-        b : byte;
-{$endif GDB}
       begin
-{$ifdef GDB}
-         if cs_gdb_dbx in aktglobalswitches then
-           begin
-              UnitTypeCount:=1;
-              PglobalTypeCount:=@UnitTypeCount;
-           end;
-{$endif GDB}
-
          next:=symtablestack;
          symtablestack:=self;
 
@@ -1570,29 +1493,6 @@ implementation
 
          { restore symtablestack }
          symtablestack:=next;
-
-         { read dbx count }
-{$ifdef GDB}
-        if (current_module.flags and uf_has_dbx)<>0 then
-         begin
-           b:=ppufile.readentry;
-           if b<>ibdbxcount then
-             Message(unit_f_ppu_dbx_count_problem)
-           else
-             dbx_count:=ppufile.getlongint;
-{$IfDef EXTDEBUG}
-           writeln('Read dbx_count ',dbx_count,' in unit ',name^,'.ppu');
-{$ENDIF EXTDEBUG}
-           { we can't use dbx_vcount, because we don't know
-             if the object file will be loaded before or afeter PM }
-           dbx_count_ok := {true}false;
-         end
-        else
-         begin
-           dbx_count:=-1;
-           dbx_count_ok:=false;
-         end;
-{$endif GDB}
       end;
 
 
@@ -1600,20 +1500,6 @@ implementation
       begin
         { write the symtable entries }
         inherited ppuwrite(ppufile);
-
-        { write dbx count }
-{$ifdef GDB}
-        if cs_gdb_dbx in aktglobalswitches then
-         begin
-{$IfDef EXTDEBUG}
-           writeln('Writing dbx_count ',dbx_count,' in unit ',name^,'.ppu');
-{$ENDIF EXTDEBUG}
-           ppufile.do_crc:=false;
-           ppufile.putlongint(dbx_count);
-           ppufile.writeentry(ibdbxcount);
-           ppufile.do_crc:=true;
-         end;
-{$endif GDB}
       end;
 
 
@@ -1653,13 +1539,7 @@ implementation
 {$ifdef GDB}
    function tglobalsymtable.getnewtypecount : word;
       begin
-         if not (cs_gdb_dbx in aktglobalswitches) then
-           getnewtypecount:=inherited getnewtypecount
-         else
-           begin
-              getnewtypecount:=unittypecount;
-              inc(unittypecount);
-           end;
+        getnewtypecount:=inherited getnewtypecount
       end;
 {$endif}
 

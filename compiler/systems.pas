@@ -352,9 +352,9 @@ interface
     function set_target_res(t:tres):boolean;
     function set_target_dbg(t:tdbg):boolean;
 
-    function set_target_by_string(const s : string) : boolean;
-    function set_target_asm_by_string(const s : string) : boolean;
-    function set_target_dbg_by_string(const s : string) : boolean;
+    function find_system_by_string(const s : string) : tsystem;
+    function find_asm_by_string(const s : string) : tasm;
+    function find_dbg_by_string(const s : string) : tdbg;
 
     procedure set_source_info(const ti : tsysteminfo);
 
@@ -497,52 +497,52 @@ begin
 end;
 
 
-function set_target_by_string(const s : string) : boolean;
+function find_system_by_string(const s : string) : tsystem;
 var
   hs : string;
   t  : tsystem;
 begin
-  result:=false;
+  result:=system_none;
   hs:=upper(s);
   for t:=low(tsystem) to high(tsystem) do
    if assigned(targetinfos[t]) and
       (upper(targetinfos[t]^.shortname)=hs) then
     begin
-      result:=set_target(t);
+      result:=t;
       exit;
     end;
 end;
 
 
-function set_target_asm_by_string(const s : string) : boolean;
+function find_asm_by_string(const s : string) : tasm;
 var
   hs : string;
   t  : tasm;
 begin
-  result:=false;
+  result:=as_none;
   hs:=upper(s);
   for t:=low(tasm) to high(tasm) do
    if assigned(asminfos[t]) and
       (asminfos[t]^.idtxt=hs) then
     begin
-      result:=set_target_asm(t);
+      result:=t;
       exit;
     end;
 end;
 
 
-function set_target_dbg_by_string(const s : string) : boolean;
+function find_dbg_by_string(const s : string) : tdbg;
 var
   hs : string;
   t  : tdbg;
 begin
-  result:=false;
+  result:=dbg_none;
   hs:=upper(s);
   for t:=low(tdbg) to high(tdbg) do
    if assigned(dbginfos[t]) and
       (dbginfos[t]^.idtxt=hs) then
     begin
-      result:=set_target_dbg(t);
+      result:=t;
       exit;
     end;
 end;

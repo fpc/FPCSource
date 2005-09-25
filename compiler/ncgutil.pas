@@ -1645,8 +1645,6 @@ implementation
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
           begin
-            if (po_global in current_procinfo.procdef.procoptions) then
-              Tprocsym(current_procinfo.procdef.procsym).is_global:=true;
             current_procinfo.procdef.concatstabto(list);
             Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
           end;

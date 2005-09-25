@@ -31,9 +31,6 @@ interface
 implementation
 
   uses
-{$ifdef gdb}
-    gdb,
-{$endif gdb}
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,

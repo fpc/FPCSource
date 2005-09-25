@@ -48,11 +48,6 @@ Const
     N_EINCL = $A2;
     N_EXCL  = $C2;
 
-    const
-       DBX_counter : plongint = nil;
-       do_count_dbx : boolean = false;
-
-
   implementation
 
 uses fmodule;

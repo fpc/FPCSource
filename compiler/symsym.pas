@@ -95,9 +95,6 @@ interface
           function getprocdef(nr:cardinal):Tprocdef;
        public
           procdef_count : byte;
-{$ifdef GDB}
-          is_global : boolean;
-{$endif GDB}
           overloadchecked : boolean;
           property procdef[nr:cardinal]:Tprocdef read getprocdef;
           constructor create(const n : string);
@@ -604,9 +601,6 @@ implementation
          pdlistfirst:=nil;
          pdlistlast:=nil;
          owner:=nil;
-{$ifdef GDB}
-         is_global:=false;
-{$endif GDB}
          { the tprocdef have their own symoptions, make the procsym
            always visible }
          symoptions:=[sp_public];
@@ -631,9 +625,6 @@ implementation
             ppufile.getderef(pdderef);
             addprocdef_deref(pdderef);
           end;
-{$ifdef GDB}
-         is_global:=false;
-{$endif GDB}
          overloadchecked:=false;
       end;
 
@@ -1510,10 +1501,7 @@ implementation
             if (sp_static in symoptions) then
               begin
                 st:=tstoreddef(vartype.def).numberstring;
-                if (cs_gdb_gsym in aktglobalswitches) then
-                  st:='G'+st
-                else
-                  st:='S'+st;
+                st:='S'+st;
                 stabstring:=stabstr_evaluate('"${ownername}__${name}:$1",${N_LCSYM},0,${line},${mangledname}',[st]);
               end;
           end;
@@ -1683,10 +1671,7 @@ implementation
               because with G GDB doesn't look at the address field
               but searches the same name or with a leading underscore
               but these names don't exist in pascal !}
-            if (cs_gdb_gsym in aktglobalswitches) then
-              st:='G'+st
-            else
-              st:='S'+st;
+            st:='S'+st;
             stabstring:=stabstr_evaluate('"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
           end;
       end;
@@ -2101,10 +2086,7 @@ implementation
     var st:char;
 
     begin
-      if (cs_gdb_gsym in aktglobalswitches) and (owner.symtabletype=globalsymtable) then
-        st:='G'
-      else
-        st:='S';
+      st:='S';
       stabstring:=stabstr_evaluate('"${name}:$1$2",${N_STSYM},0,${line},${mangledname}',
                   [st,Tstoreddef(typedconsttype.def).numberstring]);
     end;

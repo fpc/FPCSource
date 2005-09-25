@@ -136,6 +136,9 @@ interface
        outputunitdir     : dirstr;
 
        { things specified with parameters }
+       paratarget        : tsystem;
+       paratargetdbg     : tdbg;
+       paratargetasm     : tasm;
        paralinkoptions,
        paradynamiclinker : string;
        paraprintnodetree : byte;
@@ -216,7 +219,6 @@ interface
        initfputype        : tfputype;
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
-       initoutputformat   : tasm;
        initdefproccall    : tproccalloption;
        initsourcecodepage : tcodepagestring;
 
@@ -242,7 +244,6 @@ interface
        aktfputype        : tfputype;
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
-       aktoutputformat    : tasm;
        aktdefproccall     : tproccalloption;
        aktsourcecodepage : tcodepagestring;
 
@@ -2184,6 +2185,9 @@ end;
         resolving_forward:=false;
         make_ref:=false;
         LinkTypeSetExplicitly:=false;
+        paratarget:=system_none;
+        paratargetasm:=as_none;
+        paratargetdbg:=dbg_none;
 
       { Output }
         OutputFile:='';
@@ -2229,7 +2233,6 @@ end;
         initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
         initsourcecodepage:='8859-1';
         initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
-        initoutputformat:=target_asm.id;
         fillchar(initalignment,sizeof(talignmentinfo),0);
         { might be overridden later }
         initasmmode:=asmmode_standard;
