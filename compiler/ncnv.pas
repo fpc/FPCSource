@@ -1382,7 +1382,7 @@ implementation
 
       var
         htype : ttype;
-        hp : tnode;
+        hp,hp2 : tnode;
         currprocdef : tabstractprocdef;
         aprocdef : tprocdef;
         eq : tequaltype;
@@ -1518,7 +1518,23 @@ implementation
                             if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
                              begin
                                if assigned(tcallnode(left).methodpointer) then
-                                 tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
+                                 begin
+                                   { kick the loadvmtaddrnode we added in ncal.pas around line 1920?
+                                     if you mess around here, check tbs/tb0496.pp (FK)
+                                   }
+                                   if (po_virtualmethod in tcallnode(left).procdefinition.procoptions) and
+                                     (tcallnode(left).methodpointer.nodetype=loadvmtaddrn) and
+                                     assigned(tloadvmtaddrnode(tcallnode(left).methodpointer).left) and
+                                     (tloadvmtaddrnode(tcallnode(left).methodpointer).left.nodetype<>typen) and
+                                     (tloadvmtaddrnode(tcallnode(left).methodpointer).left.resulttype.def.deftype<>classrefdef) then
+                                     begin
+                                       hp2:=tcallnode(left).methodpointer;
+                                       tcallnode(left).methodpointer:=tloadvmtaddrnode(tcallnode(left).methodpointer).left;
+                                       tloadvmtaddrnode(hp2).left:=nil;
+                                       hp2.free;
+                                     end;
+                                   tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
+                                 end
                                else
                                  tloadnode(hp).set_mp(load_self_node);
                              end;
