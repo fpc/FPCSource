@@ -46,10 +46,6 @@ interface
        tcgcallnode = class(tcallnode)
        private
           procedure release_para_temps;
-          procedure normal_pass_2;
-{$ifdef PASS2INLINE}
-          procedure inlined_pass_2;
-{$endif PASS2INLINE}
           procedure pushparas;
           procedure freeparas;
        protected
@@ -81,10 +77,6 @@ implementation
       systems,
       cutils,verbose,globals,
       symconst,symtable,defutil,paramgr,
-{$ifdef GDB}
-      strings,
-      gdb,
-{$endif GDB}
       cgbase,pass_2,
       aasmbase,aasmtai,
       nbas,nmem,nld,ncnv,nutils,
@@ -337,12 +329,7 @@ implementation
                  cg.g_decrrefcount(exprasmlist,left.resulttype.def,href);
                end;
 
-{$ifdef PASS2INLINE}
-             if assigned(aktcallnode.inlinecode) then
-               paramanager.duplicateparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara)
-             else
-{$endif PASS2INLINE}
-               paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
+             paramanager.createtempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
 
              { handle varargs first, because parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
@@ -675,10 +662,7 @@ implementation
                  { better check for the real location of the parameter here, when stack passed parameters
                    are saved temporary in registers, checking for the tmpparaloc.loc is wrong
                  }
-{$ifdef PASS2INLINE}
-                 if not assigned(inlinecode) then
-{$endif PASS2INLINE}
-                   paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
+                 paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
                  sizeleft:=ppn.tempcgpara.intsize;
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
@@ -718,42 +702,37 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
-{$ifdef PASS2INLINE}
-                           if not assigned(inlinecode) then
-{$endif PASS2INLINE}
-                             begin
 {$ifdef cputargethasfixedstack}
-                               { Can't have a data copied to the stack, every location
-                                 must contain a valid size field }
+                            { Can't have a data copied to the stack, every location
+                              must contain a valid size field }
 
-                               if (ppn.tempcgpara.size=OS_NO) and
-                                  ((tmpparaloc^.loc<>LOC_REFERENCE) or
-                                   assigned(tmpparaloc^.next)) then
-                                 internalerror(200501281);
-                               reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
-                               { copy parameters in case they were moved to a temp. location because we've a fixed stack }
-                               case tmpparaloc^.loc of
-                                 LOC_REFERENCE:
-                                   begin
-                                     reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
-                                     { use concatcopy, because it can also be a float which fails when
-                                       load_ref_ref is used }
-                                     if (ppn.tempcgpara.size <> OS_NO) then
-                                       cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size])
-                                      else
-                                       cg.g_concatcopy(exprasmlist,htempref,href,sizeleft)
-                                   end;
-                                 LOC_REGISTER:
-                                   cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
-                                 LOC_FPUREGISTER:
-                                   cg.a_loadfpu_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.register,href);
-                                 LOC_MMREGISTER:
-                                   cg.a_loadmm_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
-                                 else
-                                   internalerror(200402081);
-                               end;
+                            if (ppn.tempcgpara.size=OS_NO) and
+                              ((tmpparaloc^.loc<>LOC_REFERENCE) or
+                                assigned(tmpparaloc^.next)) then
+                              internalerror(200501281);
+                            reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
+                            { copy parameters in case they were moved to a temp. location because we've a fixed stack }
+                            case tmpparaloc^.loc of
+                              LOC_REFERENCE:
+                                begin
+                                  reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
+                                  { use concatcopy, because it can also be a float which fails when
+                                    load_ref_ref is used }
+                                  if (ppn.tempcgpara.size <> OS_NO) then
+                                    cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size])
+                                  else
+                                    cg.g_concatcopy(exprasmlist,htempref,href,sizeleft)
+                                end;
+                              LOC_REGISTER:
+                                cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
+                              LOC_FPUREGISTER:
+                                cg.a_loadfpu_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.register,href);
+                              LOC_MMREGISTER:
+                                cg.a_loadmm_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
+                              else
+                                internalerror(200402081);
+                           end;
 {$endif cputargethasfixedstack}
-                             end;
                          end;
                      end;
                      dec(sizeleft,tcgsize2size[tmpparaloc^.size]);
@@ -776,11 +755,7 @@ implementation
            begin
              if (ppn.left.nodetype<>nothingn) then
                begin
-                 if
-{$ifdef PASS2INLINE}
-                    not assigned(inlinecode) or
-{$endif PASS2INLINE}
-                    (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
+                 if (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
                    paramanager.freeparaloc(exprasmlist,ppn.parasym.paraloc[callerside]);
                end;
              ppn:=tcgcallparanode(ppn.right);
@@ -789,7 +764,7 @@ implementation
 
 
 
-    procedure tcgcallnode.normal_pass_2;
+    procedure tcgcallnode.pass_2;
       var
          regs_to_save_int,
          regs_to_save_fpu,
@@ -803,6 +778,9 @@ implementation
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then
            internalerror(200305264);
+
+         if assigned(methodpointerinit) then
+           secondpass(methodpointerinit);
 
          if resulttype.def.needs_inittable and
             not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
@@ -1039,221 +1017,10 @@ implementation
 
          { release temps of paras }
          release_para_temps;
-      end;
 
 
-{$ifdef PASS2INLINE}
-    procedure tcgcallnode.inlined_pass_2;
-      var
-         oldaktcallnode : tcallnode;
-         oldprocinfo : tprocinfo;
-         oldinlining_procedure : boolean;
-         inlineentrycode,inlineexitcode : TAAsmoutput;
-{$ifdef GDB}
-         startlabel,endlabel : tasmlabel;
-         pp : pchar;
-         mangled_length  : longint;
-{$endif GDB}
-      begin
-         if not(assigned(procdefinition) and (procdefinition.deftype=procdef)) then
-           internalerror(200305262);
-
-         oldinlining_procedure:=inlining_procedure;
-         oldprocinfo:=current_procinfo;
-         { we're inlining a procedure }
-         inlining_procedure:=true;
-
-         { Add inling start }
-{$ifdef GDB}
-         exprasmlist.concat(Tai_force_line.Create);
-{$endif GDB}
-         exprasmList.concat(Tai_Marker.Create(InlineStart));
-{$ifdef extdebug}
-         exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc '+tprocdef(procdefinition).procsym.name)));
-{$endif extdebug}
-
-         { calculate registers to pass the parameters }
-         paramanager.create_inline_paraloc_info(procdefinition);
-
-         { Allocate parameters and locals }
-         gen_alloc_inline_parast(exprasmlist,tprocdef(procdefinition));
-         gen_alloc_inline_funcret(exprasmlist,tprocdef(procdefinition));
-         gen_alloc_symtable(exprasmlist,tprocdef(procdefinition).localst);
-
-         { if we allocate the temp. location for ansi- or widestrings }
-         { already here, we avoid later a push/pop                    }
-         if resulttype.def.needs_inittable and
-            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
-           begin
-             tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp);
-           end;
-
-         { Push parameters, still use the old current_procinfo. This
-           is required that have the correct information available like
-           _class and nested procedure }
-         oldaktcallnode:=aktcallnode;
-         aktcallnode:=self;
-         if assigned(left) then
-           begin
-             tcallparanode(left).secondcallparan;
-             pushparas;
-           end;
-         aktcallnode:=oldaktcallnode;
-
-         { create temp procinfo that will be used for the inlinecode tree }
-         current_procinfo:=cprocinfo.create(nil);
-         current_procinfo.procdef:=tprocdef(procdefinition);
-         current_procinfo.flags:=oldprocinfo.flags;
-         current_procinfo.aktlocaldata.destroy;
-         current_procinfo.aktlocaldata:=oldprocinfo.aktlocaldata;
-
-         { when the oldprocinfo is also being inlined reuse the
-           inlining_procinfo }
-         if assigned(oldprocinfo.inlining_procinfo) then
-           current_procinfo.inlining_procinfo:=oldprocinfo.inlining_procinfo
-         else
-           current_procinfo.inlining_procinfo:=oldprocinfo;
-
-         { takes care of local data initialization }
-         inlineentrycode:=TAAsmoutput.Create;
-         inlineexitcode:=TAAsmoutput.Create;
-
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            not(cs_gdb_valgrind in aktglobalswitches) then
-           begin
-             objectlibrary.getaddrlabel(startlabel);
-             objectlibrary.getaddrlabel(endlabel);
-             cg.a_label(exprasmlist,startlabel);
-
-             { Here we must include the para and local symtable info }
-             procdefinition.concatstabto(al_withdebug);
-
-             mangled_length:=length(current_procinfo.inlining_procinfo.procdef.mangledname);
-             getmem(pp,mangled_length+50);
-             strpcopy(pp,'192,0,0,'+startlabel.name);
-             if (target_info.use_function_relative_addresses) then
-               begin
-                 strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
-               end;
-             al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
-           end;
-{$endif GDB}
-
-         gen_load_para_value(inlineentrycode);
-         { now that we've loaded the para's, free them }
-         if assigned(left) then
-           freeparas;
-         gen_initialize_code(inlineentrycode);
-         if po_assembler in current_procinfo.procdef.procoptions then
-           inlineentrycode.insert(Tai_marker.Create(asmblockstart));
-         exprasmList.concatlist(inlineentrycode);
-
-         { process the inline code }
-         secondpass(inlinecode);
-
-         cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
-         gen_finalize_code(inlineexitcode);
-         gen_load_return_value(inlineexitcode);
-         if po_assembler in current_procinfo.procdef.procoptions then
-           inlineexitcode.concat(Tai_marker.Create(asmblockend));
-         exprasmlist.concatlist(inlineexitcode);
-
-         inlineentrycode.free;
-         inlineexitcode.free;
-{$ifdef extdebug}
-         exprasmList.concat(tai_comment.Create(strpnew('End of inlined proc')));
-{$endif extdebug}
-         exprasmList.concat(Tai_Marker.Create(InlineEnd));
-
-         { handle function results }
-         if (not is_void(resulttype.def)) then
-           handle_return_value
-         else
-           location_reset(location,LOC_VOID,OS_NO);
-
-         { perhaps i/o check ? }
-         if (cs_check_io in aktlocalswitches) and
-            (po_iocheck in procdefinition.procoptions) and
-            not(po_iocheck in current_procinfo.procdef.procoptions) and
-            { no IO check for methods and procedure variables }
-            (right=nil) and
-            not(po_virtualmethod in procdefinition.procoptions) then
-           begin
-              cg.allocallcpuregisters(exprasmlist);
-              cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              cg.deallocallcpuregisters(exprasmlist);
-           end;
-
-         { release temps of paras }
-         release_para_temps;
-
-         { if return value is not used }
-         if (not is_void(resulttype.def)) and
-            (not(cnf_return_value_used in callnodeflags)) then
-           begin
-              if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
-                begin
-                   { data which must be finalized ? }
-                   if (resulttype.def.needs_inittable) then
-                      cg.g_finalize(exprasmlist,resulttype.def,location.reference);
-                   { release unused temp }
-                   tg.ungetiftemp(exprasmlist,location.reference)
-                end
-              else if location.loc=LOC_FPUREGISTER then
-                begin
-{$ifdef x86}
-                  { release FPU stack }
-                  emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-{$endif x86}
-                end;
-           end;
-
-         { Release parameters and locals }
-         gen_free_symtable(exprasmlist,tparasymtable(current_procinfo.procdef.parast));
-         gen_free_symtable(exprasmlist,tlocalsymtable(current_procinfo.procdef.localst));
-
-{$ifdef GDB}
-         if (cs_debuginfo in aktmoduleswitches) and
-            not(cs_gdb_valgrind in aktglobalswitches) then
-           begin
-             cg.a_label(exprasmlist,endlabel);
-             strpcopy(pp,'224,0,0,'+endlabel.name);
-             if (target_info.use_function_relative_addresses) then
-               begin
-                 strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),current_procinfo.inlining_procinfo.procdef.mangledname);
-               end;
-             al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
-             freemem(pp,mangled_length+50);
-           end;
-{$endif GDB}
-
-         { restore }
-         current_procinfo.aktlocaldata:=nil;
-         current_procinfo.destroy;
-         current_procinfo:=oldprocinfo;
-         inlining_procedure:=oldinlining_procedure;
-      end;
-{$endif PASS2INLINE}
-
-
-    procedure tcgcallnode.pass_2;
-      begin
-        if assigned(methodpointerinit) then
-          secondpass(methodpointerinit);
-
-{$ifdef PASS2INLINE}
-        if assigned(inlinecode) then
-          inlined_pass_2
-        else
-{$endif PASS2INLINE}
-          normal_pass_2;
-
-        if assigned(methodpointerdone) then
-          secondpass(methodpointerdone);
+         if assigned(methodpointerdone) then
+           secondpass(methodpointerdone);
       end;
 
 

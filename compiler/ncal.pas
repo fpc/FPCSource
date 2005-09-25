@@ -86,10 +86,6 @@ interface
           methodpointerinit,
           methodpointerdone : tblocknode;
           methodpointer  : tnode;
-{$ifdef PASS2INLINE}
-          { inline function body }
-          inlinecode : tnode;
-{$endif PASS2INLINE}
           { varargs parasyms }
           varargsparas : tvarargsparalist;
           { node that specifies where the result should be put for calls }
@@ -751,9 +747,6 @@ type
          methodpointerdone:=nil;
          procdefinition:=nil;
          _funcretnode:=nil;
-{$ifdef PASS2INLINE}
-         inlinecode:=nil;
-{$endif PASS2INLINE}
          paralength:=-1;
          varargsparas:=nil;
       end;
@@ -770,9 +763,6 @@ type
          procdefinition:=nil;
          callnodeflags:=[cnf_return_value_used];
          _funcretnode:=nil;
-{$ifdef PASS2INLINE}
-         inlinecode:=nil;
-{$endif PASS2INLINE}
          paralength:=-1;
          varargsparas:=nil;
       end;
@@ -866,9 +856,6 @@ type
          methodpointerinit.free;
          methodpointerdone.free;
          _funcretnode.free;
-{$ifdef PASS2INLINE}
-         inlinecode.free;
-{$endif PASS2INLINE}
          if assigned(varargsparas) then
            begin
              for i:=0 to varargsparas.count-1 do
@@ -893,9 +880,6 @@ type
         methodpointerinit:=tblocknode(ppuloadnode(ppufile));
         methodpointerdone:=tblocknode(ppuloadnode(ppufile));
         _funcretnode:=ppuloadnode(ppufile);
-{$ifdef PASS2INLINE}
-        inlinecode:=ppuloadnode(ppufile);
-{$endif PASS2INLINE}
       end;
 
 
@@ -909,9 +893,6 @@ type
         ppuwritenode(ppufile,methodpointerinit);
         ppuwritenode(ppufile,methodpointerdone);
         ppuwritenode(ppufile,_funcretnode);
-{$ifdef PASS2INLINE}
-        ppuwritenode(ppufile,inlinecode);
-{$endif PASS2INLINE}
       end;
 
 
@@ -928,10 +909,6 @@ type
           methodpointerdone.buildderefimpl;
         if assigned(_funcretnode) then
           _funcretnode.buildderefimpl;
-{$ifdef PASS2INLINE}
-        if assigned(inlinecode) then
-          inlinecode.buildderefimpl;
-{$endif PASS2INLINE}
       end;
 
 
@@ -953,10 +930,6 @@ type
           methodpointerdone.derefimpl;
         if assigned(_funcretnode) then
           _funcretnode.derefimpl;
-{$ifdef PASS2INLINE}
-        if assigned(inlinecode) then
-          inlinecode.derefimpl;
-{$endif PASS2INLINE}
         { Connect parasyms }
         pt:=tcallparanode(left);
         while assigned(pt) and
@@ -1015,12 +988,7 @@ type
          n._funcretnode:=_funcretnode._getcopy
         else
          n._funcretnode:=nil;
-{$ifdef PASS2INLINE}
-        if assigned(inlinecode) then
-         n.inlinecode:=inlinecode._getcopy
-        else
-         n.inlinecode:=nil;
-{$endif PASS2INLINE}
+
         if assigned(varargsparas) then
          begin
            n.varargsparas:=tvarargsparalist.create;
@@ -2317,53 +2285,10 @@ type
 
          { procedure variable ? }
          if assigned(right) then
-           begin
-              firstpass(right);
+           firstpass(right);
 
-              { procedure does a call }
-              if not (block_type in [bt_const,bt_type]) then
-                include(current_procinfo.flags,pi_do_call);
-           end
-         else
-         { not a procedure variable }
-           begin
-              if procdefinition.deftype<>procdef then
-                internalerror(200411071);
-{$ifdef PASS2INLINE}
-              { calc the correture value for the register }
-              { handle predefined procedures }
-              if (po_inline in procdefinition.procoptions) then
-                begin
-                   { inherit flags }
-                   current_procinfo.flags := current_procinfo.flags + (tprocdef(procdefinition).inlininginfo^.flags*inherited_inlining_flags);
-
-                   if assigned(methodpointer) then
-                     CGMessage(cg_e_unable_inline_object_methods);
-                   if assigned(right) then
-                     CGMessage(cg_e_unable_inline_procvar);
-                   if not assigned(inlinecode) then
-                     begin
-                       if assigned(tprocdef(procdefinition).inlininginfo^.code) then
-                         inlinecode:=tprocdef(procdefinition).inlininginfo^.code.getcopy
-                       else
-                         CGMessage(cg_e_no_code_for_inline_stored);
-                       if assigned(inlinecode) then
-                         begin
-                           { consider it has not inlined if called
-                             again inside the args }
-                           procdefinition.proccalloption:=pocall_default;
-                           firstpass(inlinecode);
-                         end;
-                     end;
-                end
-              else
-{$endif PASS2INLINE}
-                begin
-                  if not (block_type in [bt_const,bt_type]) then
-                    include(current_procinfo.flags,pi_do_call);
-                end;
-
-           end;
+         if not (block_type in [bt_const,bt_type]) then
+           include(current_procinfo.flags,pi_do_call);
 
          { implicit finally needed ? }
          if resulttype.def.needs_inittable and
@@ -2466,18 +2391,6 @@ type
                end;
            end;
 
-{$ifdef PASS2INLINE}
-         { determine the registers of the procedure variable }
-         { is this OK for inlined procs also ?? (PM)     }
-         if assigned(inlinecode) then
-           begin
-              registersfpu:=max(inlinecode.registersfpu,registersfpu);
-              registersint:=max(inlinecode.registersint,registersint);
-  {$ifdef SUPPORT_MMX}
-              registersmmx:=max(inlinecode.registersmmx,registersmmx);
-  {$endif SUPPORT_MMX}
-           end;
-{$endif PASS2INLINE}
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)     }
          if assigned(right) then
@@ -2497,10 +2410,6 @@ type
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
            end;
-{$ifdef PASS2INLINE}
-         if assigned(inlinecode) then
-           include(procdefinition.procoptions,po_inline);
-{$endif PASS2INLINE}
       end;
 
 {$ifdef state_tracking}

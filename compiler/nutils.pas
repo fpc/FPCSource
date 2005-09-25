@@ -111,9 +111,6 @@ implementation
           begin
             { not in one statement, won't work because of b- }
             result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
-{$ifdef PASS2INLINE}
-            result := foreachnode(tcallnode(n).inlinecode,f,arg) or result;
-{$endif PASS2INLINE}
           end;
         ifn, whilerepeatn, forn:
           begin
@@ -152,9 +149,6 @@ implementation
           calln:
             begin
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
-{$ifdef PASS2INLINE}
-              result := foreachnodestatic(procmethod,tcallnode(n).inlinecode,f,arg) or result;
-{$endif PASS2INLINE}
             end;
           ifn, whilerepeatn, forn:
             begin
