@@ -152,7 +152,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error');
+            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
         end;
       end;
     // truncate string
@@ -182,6 +182,16 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     while iconv(iconv_ansi2wide,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
+         ESysEILSEQ:
+            begin
+              { skip and set to '?' }
+              inc(srcpos);
+              pwidechar(destpos)^:='?';
+              inc(destpos,2);
+              dec(outleft,2);
+              { reset }
+              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+            end;
           ESysE2BIG:
             begin
               outoffset:=destpos-pchar(dest);
@@ -193,7 +203,7 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error');
+            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
         end;
       end;
     // truncate string
@@ -254,7 +264,7 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error');
+            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
         end;
       end;
     // truncate string
