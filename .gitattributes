@@ -3568,7 +3568,7 @@ rtl/linux/arm/syscallh.inc svneol=native#text/plain
 rtl/linux/arm/sysnr.inc svneol=native#text/plain
 rtl/linux/bunxsysc.inc svneol=native#text/plain
 rtl/linux/errno.inc svneol=native#text/plain
-rtl/linux/fpcylix.pp -text
+rtl/linux/fpcylix.pp svneol=native#text/plain
 rtl/linux/fpmake.inc svneol=native#text/plain
 rtl/linux/gpm.pp svneol=native#text/plain
 rtl/linux/i386/bsyscall.inc svneol=native#text/plain

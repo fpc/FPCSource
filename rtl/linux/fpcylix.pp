@@ -22,6 +22,9 @@ unit fpcylix;
 
     uses
       cthreads,cwstring,dynlibs;
+      
+    const
+      MAX_PATH = 4095;
 
     var
       MainInstance: PtrUInt;
