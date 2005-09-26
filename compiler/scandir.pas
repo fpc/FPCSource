@@ -842,7 +842,10 @@ implementation
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(lower(current_module.modulename^),S,1);
+              if m_delphi in aktmodeswitches then
+                insert(current_module.realmodulename^,S,1)
+              else
+                insert(lower(current_module.modulename^),S,1);
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
