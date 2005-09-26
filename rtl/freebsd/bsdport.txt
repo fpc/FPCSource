@@ -1,24 +1,15 @@
 $Id: bsdport.txt,v 1.5 2003/11/18 21:47:19 marco Exp $
 
+$Revision$
+
 The Free Pascal *BSD port.
 
 Comments, mistakes and suggestions to Marco@freepascal.org
 
-Since the last update to this document, I added the Net and OpenBSD ports,
-so now it is a *BSD port. I don't own BSDi or a Mac OS X, or even accounts
-on an intel system so that'll have to wait.  (the Mac OS X/Darwin port
-will definitely take off if the PPC codegenerator is fully working)
 
-In 1.1.x branch, the tree RTLs will be merged into one, for easier
-maintaining, this will hopefully increase the Open and NetBSD ports
-somewhat. 
-
-I'm actively searching for test accounts on Open and NetBSD/i386 (and
-in the future also for other processors).
-Requirements: minimal:   some MBs account, permanent connection, 100 MHz+
-			  (speed not that important)
-	      cool   :   100 MB + 100MB tempspace, low latency connection
-			 fast machine that allows swift cycling.
+In 1.1.x/1.9.x/2.0.x branch, the  BSD RTLs are merged into one, for easier
+maintaining, NetBSD and OpenBSD are dropped due to lack of feedback and
+interest, Darwin has been added.
 
 1 *BSD status and notes. (kept on CVS because I work on several places)
 -----------------------------------------------------------------------------
@@ -29,12 +20,17 @@ Please read these before running a *BSD snapshot/release
 ---
 
    FREEBSD
-            4.x    : Used to develop and maintain port. Should work, all
+	    6.x	   : roughly same as 4.x
+	    5.x    : Used to develop and maintain port. Should work, all
 			 versions. Best *BSD platform.
+            4.x    : Should work mostly. Maybe some updates to prt0.as/cprt0.as
+			needed.
 
             3.x    : _not_ supported,  (3.2, 3.4, 3.6 would probably work
    		     with some very minor changes to the signalhandling. The
    		     syscall numbers changed)
+
+(all these are deprecated in 1.0.x
 
   (NON-ELF) 2.x    : _not_ supported, but it might be doable. (the
    		     OpenBSD port works on a.out)
@@ -50,7 +46,7 @@ Please read these before running a *BSD snapshot/release
 		      from the ports tree (devel/binutils) to function
 		      properly. Linker of the ports tree is easier,
 		      but that one doesn't want to make shared files.
-
+)
 The IDE also is starting to work quite nicely on FreeBSD, so it is included
 in the releases since 1.0.6. I didn't check the fixes for *BSD on the other
 two OSes yet.

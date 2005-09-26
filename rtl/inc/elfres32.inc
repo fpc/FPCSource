@@ -1,5 +1,5 @@
 
-const 
+const
   fpcres2elf_version=1;
 
 type
@@ -31,11 +31,11 @@ type
   PFPCResourceInfo = ^TFPCResourceInfo;
 
   TFPCRuntimeResourceInfo = packed record
-    reshash: longint;   // always 32bit, contains an ELF hash of the resource entries name
-    restype: longint;   // always 32bit, contains the resource type ID compatible with Windows RES IDs
-    ptr:     pointer;   // Memory pointer to the reosource
-    name:    string;    // String containing the name of the resource
-    size:    longint;   // The size of the resource entry - 32/64 Bit, depending on platform
+    reshash: longint;    // always 32bit, contains an ELF hash of the resource entries name
+    restype: longint;    // always 32bit, contains the resource type ID compatible with Windows RES IDs
+    ptr:     pointer;    // Memory pointer to the reosource
+    name:    ansistring; // String containing the name of the resource
+    size:    longint;    // The size of the resource entry - 32/64 Bit, depending on platform
   end;
   PFPCRuntimeResourceInfo = ^TFPCRuntimeResourceInfo;
 
@@ -66,31 +66,31 @@ begin
     Result := Result and (not G);
   end;
 end;
-  
+
 procedure InitializeResources;
 
-var 
+var
   i:longint;
   CurrentResource:pFPCResourceInfo;
-  
+
 begin
   If (FPCResourceSectionLocation=Nil) then
     ResInfoCount:=0
-  else  
+  else
     ResInfoCount:=FPCResourceSectionLocation^.resentries;
   If (ResInfoCount<>0) then
     begin
     FPCRuntimeResourceInfoArray:=GetMem(SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
     for i:=0 to ResInfoCount-1 do
       begin
-      CurrentResource:=pFPCResourceInfo(pointer(longint(FPCResourceSectionLocation^.reshash.ptr)+i*sizeof(TFPCResourceInfo)));
+      CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
       FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
       FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
-      FPCRuntimeResourceInfoArray[i].ptr:=pointer(longint(CurrentResource^.ptr)+longint(FPCResourceSectionLocation^.resdata.ptr));
-      FPCRuntimeResourceInfoArray[i].name:=pchar(pointer(longint(CurrentResource^.name)+longint(FPCResourceSectionLocation^.ressym.ptr)));
+      FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
+      FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
       FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
       end;
-    end;  
+    end;
   InitRes:=true;
 end;
 
@@ -102,16 +102,16 @@ end;
 
 function FindResource(ModuleHandle: HMODULE; ResourceName: PChar; ResourceType: PChar): TResourceHandle;
 
-var 
+var
   i:longint;
   searchhash:longint;
   n : string;
-  
+
 begin
   Result:=0;
-  if (ResourceName=nil) then 
+  if (ResourceName=nil) then
     Exit;
-  If Not InitRes then 
+  If Not InitRes then
     InitializeResources;
   searchhash:=HashELF(ResourceName);
   n:=strpas(resourcename);
@@ -120,13 +120,13 @@ begin
     begin
     if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (FPCRuntimeResourceInfoArray[i].name=n) then
       result:=i+1;
-    Inc(I);  
+    Inc(I);
     end;
 end;
 
 function LoadResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): HGLOBAL;
 begin
-  If Not InitRes then 
+  If Not InitRes then
     InitializeResources;
   if (ResHandle>0) and (ResHandle-1<=ResInfoCount) then
     result:=HGLOBAL(FPCRuntimeResourceInfoArray[ResHandle-1].ptr)
@@ -136,7 +136,7 @@ end;
 
 function SizeofResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): Integer;
 begin
-  If Not InitRes then 
+  If Not InitRes then
     InitializeResources;
   if (ResHandle>0) and (ResHandle-1<=ResInfoCount) then
     result:=FPCRuntimeResourceInfoArray[ResHandle-1].size

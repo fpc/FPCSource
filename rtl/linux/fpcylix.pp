@@ -21,7 +21,10 @@ unit fpcylix;
   interface
 
     uses
-      cwstring,dynlibs;
+      cthreads,cwstring,dynlibs;
+      
+    const
+      MAX_PATH = 4095;
 
     var
       MainInstance: PtrUInt;

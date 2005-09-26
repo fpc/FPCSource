@@ -1441,6 +1441,11 @@ implementation
                   set_varstate(left,vs_used,[vsf_must_be_valid]);
 
                   case left.resulttype.def.deftype of
+                    variantdef:
+                      begin
+                        inserttypeconv(left,cansistringtype);
+                      end;
+
                     stringdef :
                       begin
                         { we don't need string convertions here }

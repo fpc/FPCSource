@@ -116,10 +116,10 @@
              self.destroy;
         end;
 
-      class function TObject.InstanceSize : LongInt;
+      class function TObject.InstanceSize : SizeInt;
 
         begin
-           InstanceSize:=plongint(pointer(self)+vmtInstanceSize)^;
+           InstanceSize:=pSizeInt(pointer(self)+vmtInstanceSize)^;
         end;
 
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
@@ -153,7 +153,7 @@
 
         begin
            { the size is saved at offset 0 }
-           fillchar(instance^,plongint(pointer(self)+vmtInstanceSize)^,0);
+           fillchar(instance^, InstanceSize, 0);
            { insert VMT pointer into the new created memory area }
            { (in class methods self contains the VMT!)           }
            ppointer(instance)^:=pointer(self);
@@ -175,7 +175,7 @@
            p : pointer;
 
         begin
-           getmem(p,plongint(pointer(self)+vmtInstanceSize)^);
+           getmem(p, InstanceSize);
            if p <> nil then
               InitInstance(p);
            NewInstance:=TObject(p);

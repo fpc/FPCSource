@@ -101,6 +101,11 @@ begin
     end;
 end;
 
+function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
+  begin
+    result:=LowerCase(ansistring(V));
+  end;
+
 
 {   CompareStr compares S1 and S2, the result is the based on
     substraction of the ascii values of the characters in S1 and S2

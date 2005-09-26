@@ -467,7 +467,6 @@ begin
   ressym.ptr:=FSectionStream.Position+sizeof(TElf32Header);
   FSymStream.Position:=0;
   FSectionStream.CopyFrom(FSymStream,FSymStream.Size);
-  doalign(4);
 
   // resstr
   resstr.ptr:=FSectionStream.Position+sizeof(TElf32Header);
@@ -555,7 +554,7 @@ begin
   SectionHeader.sh_size:=FSymStream.Size;
   SectionHeader.sh_link:=0;
   SectionHeader.sh_info:=0;
-  SectionHeader.sh_addralign:=4; // alignment
+  SectionHeader.sh_addralign:=1; // DON'T align this, as this section will be merged by ld
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
@@ -578,7 +577,7 @@ begin
   SectionHeader.sh_flags:=2; // A
   SectionHeader.sh_addr:=0;
   SectionHeader.sh_offset:=reshash.ptr;
-  SectionHeader.sh_size:=length(ResourceEntries)*sizeof(TELF32ResourceInfo)+4;
+  SectionHeader.sh_size:=length(ResourceEntries)*sizeof(TELF32ResourceInfo);
   SectionHeader.sh_link:=0;
   SectionHeader.sh_info:=0;
   SectionHeader.sh_addralign:=4; // alignment
