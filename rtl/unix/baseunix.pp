@@ -51,7 +51,6 @@ implementation
 Uses Sysctl;
 {$endif}
 
-
 {$i genfuncs.inc}       // generic calls. (like getenv)
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
