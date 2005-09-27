@@ -49,6 +49,7 @@ type
     procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
+    procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -300,14 +301,8 @@ procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
 var x : shortint;
 
 begin
-  {$R-}
-  if assigned(aSQLDA) {and (aSQLDA^.SQLD > count)} then
-    for x := 0 to aSQLDA^.SQLN - 1 do
-      begin
-      reAllocMem(aSQLDA^.SQLVar[x].SQLData,0);
-      dispose(aSQLDA^.SQLVar[x].sqlind);
-      end;
-  {$R+}
+  FreeSQLDABuffer(aSQLDA);
+
   if count > -1 then
     begin
     reAllocMem(aSQLDA, XSQLDA_Length(Count));
@@ -523,9 +518,34 @@ begin
     end;
 end;
 
-procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
+procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
+
+var x : shortint;
+
 begin
-// Do Nothing
+{$R-}
+  if assigned(aSQLDA) then
+    for x := 0 to aSQLDA^.SQLN - 1 do
+      begin
+      reAllocMem(aSQLDA^.SQLVar[x].SQLData,0);
+      if assigned(aSQLDA^.SQLVar[x].sqlind) then
+        begin
+        Dispose(aSQLDA^.SQLVar[x].sqlind);
+        aSQLDA^.SQLVar[x].sqlind := nil;
+        end
+        
+      end;
+{$R+}
+end;
+
+procedure TIBConnection.FreeFldBuffers(cursor : TSQLCursor);
+
+begin
+  with cursor as TIBCursor do
+    begin
+    FreeSQLDABuffer(SQLDA);
+    FreeSQLDABuffer(in_SQLDA);
+    end;
 end;
 
 procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams);
