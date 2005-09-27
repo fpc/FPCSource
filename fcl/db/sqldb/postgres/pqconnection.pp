@@ -346,7 +346,7 @@ const TypeStrings : array[TFieldType] of string =
       'numeric',
       'date',
       'time',
-      'datetime',
+      'timestamp',
       'Unknown',
       'Unknown',
       'Unknown',
@@ -470,7 +470,12 @@ begin
         begin
         setlength(ar,Aparams.count);
         for i := 0 to AParams.count -1 do
-          ar[i] := pchar(AParams[i].asstring);
+          case AParams[i].DataType of
+            ftdatetime : ar[i] := pchar(formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime));
+          else
+            ar[i] := pchar(AParams[i].asstring);
+          writeln(ar[i]);
+          end;
         res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0)
         end
       else

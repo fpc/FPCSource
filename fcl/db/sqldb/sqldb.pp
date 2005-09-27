@@ -190,6 +190,7 @@ type
 
     procedure Execute;
     Procedure SQLParser(var SQL : string);
+    procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
     // abstract & virtual methods of TBufDataset
@@ -208,6 +209,7 @@ type
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
     procedure SetFiltered(Value: Boolean); override;
+    procedure SetFilterText(const Value: string); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -576,30 +578,45 @@ begin
   Result := SQLstr;
 end;
 
-procedure TSQLQuery.SetFiltered(Value: Boolean);
+procedure TSQLQuery.ApplyFilter;
 
 var S : String;
 
 begin
+  FreeFldBuffers;
+  (Database as tsqlconnection).UnPrepareStatement(FCursor);
+  FIsEOF := False;
+  inherited internalclose;
+
+  s := FSQLBuf;
+
+  if Filtered then s := AddFilter(s);
+
+  (Database as tsqlconnection).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
+
+  Execute;
+  inherited InternalOpen;
+  First;
+end;
+
+procedure TSQLQuery.SetFiltered(Value: Boolean);
+
+begin
   if Value and not FParseSQL then DatabaseErrorFmt(SNoParseSQL,['Filtering ']);
-  if (Filtered <> Value) and Active then
+  if (Filtered <> Value) then
     begin
-    FreeFldBuffers;
-    (Database as tsqlconnection).UnPrepareStatement(FCursor);
-    FIsEOF := False;
-    inherited internalclose;
-
-    s := FSQLBuf;
-
-    if Value then s := AddFilter(s);
-
-    (Database as tsqlconnection).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
-
-    Execute;
-    inherited InternalOpen;
-    First;
+    inherited setfiltered(Value);
+    if active then ApplyFilter;
     end;
-  inherited setfiltered(Value);
+end;
+
+procedure TSQLQuery.SetFilterText(const Value: string);
+begin
+  if Value <> Filter then
+    begin
+    inherited SetFilterText(Value);
+    if active then ApplyFilter;
+    end;
 end;
 
 procedure TSQLQuery.Prepare;
