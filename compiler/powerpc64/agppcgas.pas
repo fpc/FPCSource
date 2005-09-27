@@ -60,27 +60,6 @@ begin
     AsmWriteln(#9'.set'#9'r' + tostr(i) + ',' + tostr(i));
   for i := 0 to 31 do
     AsmWriteln(#9'.set'#9'f' + tostr(i) + ',' + tostr(i));
-  AsmWriteLn('.macro FUNCTION_PROLOG fn');
-  AsmWriteLn('  .section    ".text"');
-  AsmWriteLn('  .align  2');
-  AsmWriteLn('  .globl  \fn');
-  AsmWriteLn('  .section    ".opd", "aw"');
-  AsmWriteLn('  .align  3');
-  AsmWriteLn('  \fn:');
-  AsmWriteLn('  .quad   .\fn, .TOC.@tocbase, 0');
-  AsmWriteLn('  .previous');
-  AsmWriteLn('  .size   \fn, 24');
-  AsmWriteLn('  .globl  .\fn');
-  AsmWriteLn('.\fn:');
-  AsmWriteLn('.endm');
-  AsmWriteLn('');
-  AsmWriteLn('.macro FUNCTION_EPILOG fn');
-  AsmWriteLn('  .long   0');
-  AsmWriteLn('  .byte   0, 12, 0, 0, 0, 0, 0, 0');
-  AsmWriteLn('  .type   .\fn, @function');
-  AsmWriteLn('  .size   .\fn,.-.\fn');
-  AsmWriteLn('.endm');
-  AsmWriteLn('');
 end;
 
 const

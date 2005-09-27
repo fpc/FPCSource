@@ -202,11 +202,11 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame',
-          'fpc'
+          'fpc.resptrs'
         );
       begin
-        if (use_smartlink_section and
-           (aname<>'')) or (atype=sec_fpc) then
+        if use_smartlink_section and
+           (aname<>'') then
           result:=secnames[atype]+'.'+aname
         else
           result:=secnames[atype];
@@ -246,6 +246,16 @@ implementation
 
 
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
+    {$ifdef powerpc64}
+    function is_const(hp : tai) : boolean;
+    begin
+	is_const := 
+          assigned(hp) and
+          (hp.typ in [ait_const_rva_symbol,
+             ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
+             ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]);
+    end;
+    {$endif powerpc64}
     var
       ch       : char;
       hp       : tai;
@@ -660,6 +670,7 @@ implementation
                 end;
              end;
 
+  
            ait_symbol :
              begin
                if tai_symbol(hp).is_global then
@@ -698,6 +709,24 @@ implementation
                       AsmWrite(', ');
                       AsmWriteLn(tostr(tai_symbol(hp).sym.size));
                     end;
+               {$IFDEF POWERPC64}
+               end else if (target_info.system = system_powerpc64_linux) then begin
+                 if (tai_symbol(hp).sym.typ <> AT_FUNCTION) then begin
+                   AsmWriteLn(#9'.type'#9 + tai_symbol(hp).sym.name + ',@object');
+                   if tai_symbol(hp).sym.size>0 then begin
+                     AsmWriteLn(#9'.size'#9 + tai_symbol(hp).sym.name + ', ' + tostr(tai_symbol(hp).sym.size));
+                   end;
+                 end else begin
+                   AsmWriteLn('.section "opd", "aw"');
+                   AsmWriteLn('.align 3');
+                   AsmWriteLn(tai_symbol(hp).sym.name + ':');
+                   AsmWriteLn('.quad .' + tai_symbol(hp).sym.name + ', .TOC.@tocbase, 0');
+                   AsmWriteLn('.previous');
+                   AsmWriteLn('.size ' + tai_symbol(hp).sym.name + ', 24');
+                   AsmWriteLn('.globl .' + tai_symbol(hp).sym.name);
+                   AsmWrite('.');
+                 end;
+               {$ENDIF}
                 end;
                AsmWrite(tai_symbol(hp).sym.name);
                AsmWriteLn(':');
@@ -711,8 +740,18 @@ implementation
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
+                  {$ifdef powerpc64}
+                  if (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then begin
+                    AsmWrite('.');
+                  end;
+                  {$endif powerpc64}
                   AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
+                  {$ifdef powerpc64}
+                  if (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then begin
+                    AsmWrite('.');
+                  end;
+                  {$endif powerpc64}
                   AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
              end;

@@ -72,6 +72,7 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}  
+  {$define cpurequiresproperalignment}
 {$endif powerpc64}
 
 {$ifdef arm}

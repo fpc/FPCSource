@@ -21,47 +21,58 @@
 }
 unit cputarg;
 
-{$I fpcdefs.inc}
+{$i fpcdefs.inc}
 
 interface
 
+
 implementation
 
-uses
-  systems { prevent a syntax error when nothing is included }
+    uses
+      systems { prevent a syntax error when nothing is included }
 
-  {**************************************
-               Targets
-  **************************************}
+{**************************************
+             Targets
+**************************************}
 
-{$IFNDEF NOTARGETLINUX}
-  , t_linux
-{$ENDIF}
-{$IFNDEF NOTARGETMACOS}
-  , t_macos
-{$ENDIF}
-{$IFNDEF NOTARGETDARWIN}
-  , t_bsd
-{$ENDIF}
-{$IFNDEF NOTARGETMORPHOS}
-  , t_morph
-{$ENDIF}
+    {$ifndef NOTARGETLINUX}
+      ,t_linux
+    {$endif}
 
-  {**************************************
-               Assemblers
-  **************************************}
+{**************************************
+             Assemblers
+**************************************}
 
-{$IFNDEF NOAGPPCGAS}
-  , agppcgas
-{$ENDIF}
-  {**************************************
-               Optimizer
-  **************************************}
+    {$ifndef NOAGPPCGAS}
+      ,agppcgas
+    {$endif}
 
-{$IFNDEF NOOPT}
-  , aoptcpu
-{$ENDIF NOOPT}
-  ;
+{**************************************
+        Assembler Readers
+**************************************}
+
+  {$ifndef NoRaPPCGas}
+       ,rappcgas
+  {$endif NoRaPPCGas}
+
+{**************************************
+             Debuginfo
+**************************************}
+
+  {$ifndef NoDbgStabs}
+      ,dbgstabs
+  {$endif NoDbgStabs}
+  {$ifndef NoDbgDwarf}
+      ,dbgdwarf
+  {$endif NoDbgDwarf}
+
+{**************************************
+             Optimizer
+**************************************}
+
+    {$ifndef NOOPT}
+      , aoptcpu
+    {$endif NOOPT}
+      ;
 
 end.
-
