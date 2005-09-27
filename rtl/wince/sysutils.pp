@@ -58,36 +58,6 @@ implementation
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
-var
-  len: longint;
-begin
-  while True do begin
-    if strlen <> -1 then
-      len:=(strlen + 1)
-    else
-      len:=AnsiToWideBuf(str, -1, nil, 0);
-    if len > 0 then
-    begin
-      len:=len*SizeOf(WideChar);
-      GetMem(Result, len);
-      if (AnsiToWideBuf(str, -1, Result, len) = 0) and (strlen <> -1) then
-      begin
-        strlen:=-1;
-        continue;
-      end;
-    end
-    else begin
-      GetMem(Result, SizeOf(WideChar));
-      Inc(len);
-      Result^:=#0;
-    end;
-    break;
-  end;
-  if outlen <> nil then
-    outlen^:=(len - 1)*SizeOf(WideChar);
-end;
-
 function StringToPWideChar(const s: string; outlen: PLongInt = nil): PWideChar;
 var
   len, wlen: longint;

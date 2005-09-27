@@ -75,6 +75,7 @@ const
 { ANSI <-> Wide }
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
+function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
 
 { Wrappers for some WinAPI calls }
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
@@ -95,19 +96,19 @@ function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
 function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
 function RemoveDirectory(name:pointer):longbool; stdcall;
 
-
 { the external directive isn't really necessary here because it is overriden by external (FK) }
+
 function addd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__addd';
+
+function subd(d1,d2 : double) : double; compilerproc;
+   cdecl;external 'coredll' name '__subd';
 
 function muld(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__muld';
 
 function divd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__divd';
-
-function subd(d1,d2 : double) : double; compilerproc;
-   cdecl;external 'coredll' name '__subd';
 
 function eqs(d1,d2 : single) : boolean; compilerproc;
    cdecl;external 'coredll' name '__eqs';
@@ -156,8 +157,71 @@ implementation
 var
   SysInstance : Longint;
 
+{$define HAS_RESOURCES}
+{$i winres.inc}
+
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    stdcall;external 'coredll' name 'MessageBoxW';
+   
+{*****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure memmove(dest, src: pointer; count: longint);
+   cdecl; external 'coredll' name 'memmove';
+
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
+begin
+  memmove(@dest, @source, count);
+end;
+
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
+function memcmp(buf1, buf2: pointer; count: longint): longint;
+   cdecl; external 'coredll' name 'memcmp';
+
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
+begin
+  CompareByte := memcmp(@buf1, @buf2, len);
+end;
+
+{$define FPC_SYSTEM_HAS_INT}
+function fpc_int_real(d: double): double;compilerproc;
+begin
+  fpc_int_real := i64tod(trunc(d));
+end;
+
+{$define FPC_SYSTEM_HAS_TRUNC}
+function fpc_trunc_real(d : double) : int64;compilerproc;
+   external 'coredll' name '__dtoi64';
+
+{$define FPC_SYSTEM_HAS_ABS}
+function fpc_abs_real(d : double) : double;compilerproc;
+   external 'coredll' name 'fabs';
+
+{$define FPC_SYSTEM_HAS_SQRT}
+function fpc_sqrt_real(d : double) : double;compilerproc;
+   external 'coredll' name 'sqrt';
+
+function adds(s1,s2 : single) : single; compilerproc;
+begin
+  adds := addd(s1, s2);
+end;
+
+function subs(s1,s2 : single) : single; compilerproc;
+begin
+  subs := subd(s1, s2);
+end;
+
+function muls(s1,s2 : single) : single; compilerproc;
+begin
+  muls := muld(s1, s2);
+end;
+
+function divs(s1,s2 : single) : single; compilerproc;
+begin
+  divs := divd(s1, s2);
+end;
+
+{*****************************************************************************}
 
 { include system independent routines }
 {$I system.inc}
@@ -212,6 +276,36 @@ begin
     if (Result <> 0) or (WideBufLen = 0) then
       Inc(Result);
   end;
+end;
+
+function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
+var
+  len: longint;
+begin
+  while True do begin
+    if strlen <> -1 then
+      len:=(strlen + 1)
+    else
+      len:=AnsiToWideBuf(str, -1, nil, 0);
+    if len > 0 then
+    begin
+      len:=len*SizeOf(WideChar);
+      GetMem(Result, len);
+      if (AnsiToWideBuf(str, -1, Result, len) = 0) and (strlen <> -1) then
+      begin
+        strlen:=-1;
+        continue;
+      end;
+    end
+    else begin
+      GetMem(Result, SizeOf(WideChar));
+      Inc(len);
+      Result^:=#0;
+    end;
+    break;
+  end;
+  if outlen <> nil then
+    outlen^:=(len - 1)*SizeOf(WideChar);
 end;
 
 {*****************************************************************************
@@ -1474,14 +1568,6 @@ begin
  GetProcessID := ProcessID;
 end;
 
-procedure GetLibraryInstance;
-var
-  buf: array[0..MaxPathLen] of WideChar;
-begin
-  GetModuleFileName(0, @buf, SizeOf(buf));
-  SysInstance:=GetModuleHandle(@buf);
-end;
-
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
@@ -1492,8 +1578,8 @@ begin
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
-    GetLibraryInstance;
-  MainInstance:=HInstance;
+    SysInstance:=GetModuleHandle(nil);
+  MainInstance:=SysInstance;
   { Setup heap }
   InitHeap;
   SysInitExceptions;
