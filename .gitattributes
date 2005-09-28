@@ -228,6 +228,8 @@ compiler/msg/errorhe.msg svneol=native#text/plain
 compiler/msg/errorn.msg svneol=native#text/plain
 compiler/msg/errorpl.msg svneol=native#text/plain
 compiler/msg/errorpli.msg svneol=native#text/plain
+compiler/msg/errorptd.msg -text
+compiler/msg/errorptw.msg -text
 compiler/msg/errorr.msg svneol=native#text/plain
 compiler/msg/errorrw.msg svneol=native#text/plain
 compiler/msg/errorues.msg svneol=native#text/plain
