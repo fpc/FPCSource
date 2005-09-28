@@ -100,19 +100,19 @@ function __lxstat64(__ver : cint; FileName: PChar; var __stat: tstat): cint; cde
 function __xmknod(__ver : cint; Pathname: PChar; Mode: mode_t; var Device: dev_t): cint; cdecl; external clib name '__xmknod';
 }
 {$define FPC_HAS_BASEUNIX_STAT}
-function  FpFstat   (fd : cint; var sb : stat): cint;
+function  FpFstat(fd : cint; var sb : stat): cint;inline;
   begin
     __fxstat(_STAT_VER,fd,sb);
   end;
 
 
-function  fpLstat       (path:pchar;Info:pstat):cint;
+function  fpLstat(path:pchar;Info:pstat):cint;inline;
   begin
     __lxstat(_STAT_VER,path,Info^);
   end;
 
 
-function  FpStat      (path: pchar; var buf : stat): cint;
+function  FpStat(path: pchar; var buf : stat): cint;inline;
   begin
     __xstat(_STAT_VER,path,buf);
   end;

@@ -33,6 +33,7 @@ Uses UnixType;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
+  {$define FPC_IN_BASEUNIX}
   {$i oscdeclh.inc}
 {$ELSE}
   {$i bunxh.inc}                { Functions}

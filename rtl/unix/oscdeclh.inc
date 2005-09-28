@@ -88,9 +88,12 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 
 {$ifdef linux}
-    function  FpFstat   (fd : cint; var sb : stat): cint;
-    Function  fpLstat       (path:pchar;Info:pstat):cint;
-    function  FpStat      (path: pchar; var buf : stat): cint;
+{$ifndef FPC_IS_SYSTEM}
+    { those functions are macros on linux }
+    function  FpFstat   (fd : cint; var sb : stat): cint;inline;
+    Function  fpLstat       (path:pchar;Info:pstat):cint;inline;
+    function  FpStat      (path: pchar; var buf : stat): cint;inline;
+{$endif FPC_IS_SYSTEM}
 {$else linux}
     function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat';
     Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
