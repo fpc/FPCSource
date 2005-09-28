@@ -14,6 +14,7 @@
 
  **********************************************************************}
 
+{$ifndef WINCE}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : extended) : extended;compilerproc;
     begin
@@ -71,3 +72,4 @@
       result:=0;
     end;
     }
+{$endif WINCE}
