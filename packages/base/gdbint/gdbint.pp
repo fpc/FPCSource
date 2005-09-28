@@ -78,6 +78,9 @@ interface
 {$endif linux}
 
 {$ifdef freebsd}
+  {$ifdef FreeBSD5}  //5.4+ ?
+    {$linklib kvm}
+  {$endif}
   {$undef NotImplemented}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
