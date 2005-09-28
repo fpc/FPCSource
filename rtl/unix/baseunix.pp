@@ -15,7 +15,7 @@
 Unit BaseUnix;
 
 Interface
-
+{$inline on}
 Uses UnixType;
 
 {$i osdefs.inc}       { Compile time defines }

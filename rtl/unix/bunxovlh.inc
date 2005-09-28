@@ -15,47 +15,47 @@
 
  **********************************************************************}
 
-Function  FpLink (existing : AnsiString; newone : AnsiString): cInt;
-Function  FpMkfifo  (path : AnsiString; Mode : TMode): cInt;
-Function  FpChmod   (path : AnsiString; Mode : TMode): cInt;
-Function  FpChown   (path : AnsiString; owner : TUid; group : TGid): cInt;
-Function  FpUtime   (path : AnsiString; times : putimbuf): cInt;
-Function  FpGetcwd : AnsiString;
-Function  FpExecve  (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
-Function  FpExecv   (path : AnsiString; argv : ppchar): cInt;
-Function  FpOpendir (dirname : AnsiString): pDir;
+Function  FpLink (existing : AnsiString; newone : AnsiString): cInt; inline;
+Function  FpMkfifo  (path : AnsiString; Mode : TMode): cInt; inline;
+Function  FpChmod   (path : AnsiString; Mode : TMode): cInt; inline;
+Function  FpChown   (path : AnsiString; owner : TUid; group : TGid): cInt; inline;
+Function  FpUtime   (path : AnsiString; times : putimbuf): cInt; inline;
+Function  FpGetcwd : AnsiString; 
+Function  FpExecve  (path : AnsiString; argv : ppchar; envp: ppchar): cInt; inline;
+Function  FpExecv   (path : AnsiString; argv : ppchar): cInt; inline;
+Function  FpOpendir (dirname : AnsiString): pDir; inline;
 Function  FpOpendir (dirname : shortString): pDir;
 Function  FpOpen    (path : pChar; flags : cInt):cInt;
-Function  FpOpen    (path : AnsiString; flags : cInt):cInt;
-Function  FpOpen    (path : AnsiString; flags : cInt; Mode: TMode):cInt;
-Function  FpOpen    (path : String; flags : cInt):cInt;
-Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt;
-Function  FpChdir   (path : AnsiString): cInt;
-Function  FpMkdir   (path : AnsiString; Mode: TMode):cInt;
-Function  FpUnlink  (path : AnsiString): cInt;
-Function  FpRmdir   (path : AnsiString): cInt;
-Function  FpRename  (old  : AnsiString;newpath: AnsiString): cInt;
-Function  FpStat    (path: AnsiString; var buf : stat): cInt;
+Function  FpOpen    (path : AnsiString; flags : cInt):cInt; inline;
+Function  FpOpen    (path : AnsiString; flags : cInt; Mode: TMode):cInt; inline;
+Function  FpOpen    (path : String; flags : cInt):cInt; 
+Function  FpOpen    (path : String; flags : cInt; Mode: TMode):cInt; 
+Function  FpChdir   (path : AnsiString): cInt; inline;
+Function  FpMkdir   (path : AnsiString; Mode: TMode):cInt; inline;
+Function  FpUnlink  (path : AnsiString): cInt; inline;
+Function  FpRmdir   (path : AnsiString): cInt; inline;
+Function  FpRename  (old  : AnsiString;newpath: AnsiString): cInt; inline;
+Function  FpStat    (path: AnsiString; var buf : stat): cInt; inline;
 Function  FpStat    (path: String; var buf : stat): cInt;
-Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt;
+Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt; inline;
 function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
 
-Function  FPFStat   (var F:Text;Var Info:stat):Boolean;
-Function  FPFStat   (var F:File;Var Info:stat):Boolean;
+Function  FPFStat   (var F:Text;Var Info:stat):Boolean; inline;
+Function  FPFStat   (var F:File;Var Info:stat):Boolean; inline;
 
 // added. Is a depreciated POSIX function that can be considered alias to sigaction
 
 Function  FpSignal  (signum:longint;Handler:signalhandler):signalhandler;
-Function  FpRead    (fd : cInt; var buf; nbytes : TSize): TSsize;
-Function  FpWrite   (fd : cInt; const buf; nbytes : TSize): TSsize;
-Function  FpDup     (var oldfile,newfile:text):cint;
-Function  FpDup     (var oldfile,newfile:file):cint;
-Function  FpDup2    (var oldfile,newfile:text):cint;
-Function  FpDup2    (var oldfile,newfile:file):cint;
-function  fptime    :time_t;
+Function  FpRead    (fd : cInt; var buf; nbytes : TSize): TSsize; inline;
+Function  FpWrite   (fd : cInt; const buf; nbytes : TSize): TSsize; inline;
+Function  FpDup     (var oldfile,newfile:text):cint; inline;
+Function  FpDup     (var oldfile,newfile:file):cint; inline;
+Function  FpDup2    (var oldfile,newfile:text):cint; 
+Function  FpDup2    (var oldfile,newfile:file):cint; inline;
+function  fptime    :time_t; inline;
 
 
-Function fpSelect   (N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint;
+Function fpSelect   (N:cint;readfds,writefds,exceptfds:pfdset;TimeOut:cint):cint; 
 Function fpSelect   (var T:Text;TimeOut :PTimeval):cint;
 Function fpSelect   (var T:Text;TimeOut :time_t):cint;
 Function FpGetEnv   (name : String): pChar;
