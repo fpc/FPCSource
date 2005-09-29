@@ -470,6 +470,70 @@ unit i_bsd;
             abi : abi_powerpc_aix;
           );
 
+
+
+       system_i386_darwin_info  : tsysteminfo =
+          (
+            system       : system_i386_darwin;
+            name         : 'Darwin for i386';
+            shortname    : 'Darwin';
+            flags        : [];
+            cpu          : cpu_i386;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dylib';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.dylib';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            p_ext_support : true;
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_darwin;
+            assemextern  : as_darwin;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 16;
+                maxCrecordalign : 16
+              );
+            first_parm_offset : 8;
+            stacksize   : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true;
+          );
+
   implementation
 
 initialization
@@ -483,6 +547,9 @@ initialization
   {$ifdef OpenBSD}
      set_source_info(system_i386_NetBSD_info);
   {$endif}
+  {$ifdef Darwin}
+     set_source_info(system_i386_Darwin_info);
+  {$endif Darwin}
 {$endif cpu86}
 {$ifdef cpux86_64}
    {$ifdef FreeBSD}

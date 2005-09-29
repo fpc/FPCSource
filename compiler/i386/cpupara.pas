@@ -111,6 +111,19 @@ unit cpupara;
                   end;
               end;
             end;
+          system_i386_darwin :
+            begin
+              case def.deftype of
+                recorddef : 
+                  begin
+                    if (def.size <= 8) then
+                      begin
+                        result := false;
+                        exit;
+                      end;
+                  end;
+              end;
+            end;
         end;
         result:=inherited ret_in_param(def,calloption);
       end;
