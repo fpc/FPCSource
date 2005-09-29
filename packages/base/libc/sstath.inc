@@ -81,14 +81,14 @@ function __xmknod(__ver:longint; __path:Pchar; __mode:__mode_t; __dev:P__dev_t):
   ---------------------------------------------------------------------}
 
 // Type
-function stat(__file:Pchar; var __buf:_stat):longint;cdecl;external clib name 'stat';
-function fstat(__fd:longint; var __buf:_stat):longint;cdecl;external clib name 'fstat';
+function stat(__file:Pchar; var __buf:_stat):longint;
+function fstat(__fd:longint; var __buf:_stat):longint;
 
-function stat64(__file:Pchar; var __buf: _stat64):longint;cdecl;external clib name 'stat64';
-function fstat64(__fd:longint; var __buf: _stat64):longint;cdecl;external clib name 'fstat64';
+function stat64(__file:Pchar; var __buf: _stat64):longint;
+function fstat64(__fd:longint; var __buf: _stat64):longint;
 
-function lstat(__file:Pchar; var __buf:_stat):longint;cdecl;external clib name 'lstat';
-function lstat64(__file:Pchar; var __buf:_stat64):longint;cdecl;external clib name 'lstat64';
+function lstat(__file:Pchar; var __buf:_stat):longint;
+function lstat64(__file:Pchar; var __buf:_stat64):longint;
 
 function __fxstat(__ver:longint; __fildes:longint; var __stat_buf: _stat):longint;cdecl;external clib name '__fxstat';
 function __xstat(__ver:longint; __filename:Pchar; var __stat_buf: _stat):longint;cdecl;external clib name '__xstat';
