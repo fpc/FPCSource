@@ -79,8 +79,17 @@ begin
 end;
 
 procedure SemaphorePost(const FSem: Pointer);
+{$ifdef VER2_0}
+var
+  b : byte;
+{$endif}
 begin
+{$ifdef VER2_0}
+  b:=0;
+  fpwrite(PFilDes(FSem)^[1], b, 1);
+{$else}
   fpwrite(PFilDes(FSem)^[1], #0, 1);
+{$endif}
 end;
 
 procedure SemaphoreDestroy(const FSem: Pointer);
@@ -158,7 +167,7 @@ begin
       LThread.FFatalException :=  TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
-      if e is EThreadDestroyCalled then 
+      if e is EThreadDestroyCalled then
         LThread.FFreeOnTerminate := true;
     end;
   end;

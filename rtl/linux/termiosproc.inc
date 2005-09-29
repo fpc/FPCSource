@@ -5,7 +5,7 @@
                          IOCtl and Termios calls
 ******************************************************************************}
 
-Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint; {$ifdef VER2_0}inline;{$endif}
 begin
  {$ifndef BSD}
   TCGetAttr:=fpIOCtl(fd,TCGETS,@tios);
@@ -41,7 +41,7 @@ begin
 end;
 
 
-Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
  {$ifndef BSD}
   tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
@@ -51,7 +51,7 @@ begin
 end;
 
 
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
   {$ifndef BSD}
    CFSetISpeed(tios,speed);
@@ -77,24 +77,24 @@ begin
 end;
 
 
-Function TCSendBreak(fd,duration:cint):cint;
+Function TCSendBreak(fd,duration:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
   TCSendBreak:=fpIOCtl(fd,TCSBRK,pointer(ptrint(duration)));
 end;
 
 
-Function TCSetPGrp(fd,id:cint):cint;
+Function TCSetPGrp(fd,id:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
   TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
 end;
 
 
-Function TCGetPGrp(fd:cint;var id:cint):cint;
+Function TCGetPGrp(fd:cint;var id:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
   TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
 end;
 
-Function TCDrain(fd:cint):cint;
+Function TCDrain(fd:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
  {$ifndef BSD}
   TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1));
@@ -104,7 +104,7 @@ begin
 end;
 
 
-Function TCFlow(fd,act:cint):cint;
+Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   {$ifndef BSD}
    TCFlow:=fpIOCtl(fd,TCXONC,pointer(ptrint(act)));
@@ -117,7 +117,7 @@ begin
   {$endif}
 end;
 
-Function TCFlush(fd,qsel:cint):cint;
+Function TCFlush(fd,qsel:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
  {$ifndef BSD}
   TCFlush:=fpIOCtl(fd,TCFLSH,pointer(ptrint(qsel)));
@@ -140,7 +140,7 @@ begin
 end;
 
 
-Function IsATTY(var f: text):cint;
+Function IsATTY(var f: text):cint;  {$ifdef VER2_0}inline;{$endif}
 {
   Idem as previous, only now for text variables.
 }

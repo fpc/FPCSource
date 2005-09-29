@@ -20,33 +20,33 @@
 {$I textrec.inc}
 {$I filerec.inc}
 
-Function  FpLink (existing : AnsiString; newone : AnsiString): cInt;
+Function  FpLink (existing : AnsiString; newone : AnsiString): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpLink:=FpLink(pchar(existing),pchar(newone));
 End;
 
-Function  FpMkfifo (path : AnsiString; Mode : TMode): cInt;
+Function  FpMkfifo (path : AnsiString; Mode : TMode): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpMkfifo:=FpMkfifo(pchar(path),mode);
 End;
 
-Function  FpChmod (path : AnsiString; Mode : TMode): cInt;
+Function  FpChmod (path : AnsiString; Mode : TMode): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpChmod:=FpChmod(pchar(path),mode);
 End;
 
-Function  FpChown (path : AnsiString; owner : TUid; group : TGid): cInt;
+Function  FpChown (path : AnsiString; owner : TUid; group : TGid): cInt;{$ifdef VER2_0}inline;{$endif}
 Begin
   FpChown:=FpChown(pchar(path),owner,group);
 End;
 
-Function  FpUtime (path : AnsiString; times : putimbuf): cInt;
+Function  FpUtime (path : AnsiString; times : putimbuf): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpUtime:=FpUtime(pchar(path),times);
 End;
 
 {
-Function  FpGetcwd (path:AnsiString; siz:TSize):AnsiString;
+Function  FpGetcwd (path:AnsiString; siz:TSize):AnsiString; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpGetcwd:=ansistring(pchar(FpGetcwd(pchar(path),siz)));
 End;
@@ -63,59 +63,59 @@ Begin
     FpGetcwd:=Buf;
 End;
 
-Function  FpExecve (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
+Function  FpExecve (path : AnsiString; argv : ppchar; envp: ppchar): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpExecve:=FpExecve (pchar(path),argv,envp);
 End;
 
-Function  FpExecv (path : AnsiString; argv : ppchar): cInt;
+Function  FpExecv (path : AnsiString; argv : ppchar): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpExecv:=FpExecve (pchar(path),argv,envp);
 End;
 
 
-Function  FpChdir (path : AnsiString): cInt;
+Function  FpChdir (path : AnsiString): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
  FpChDir:=FpChdir(pchar(Path));
 End;
 
-Function  FpOpen (path : AnsiString; flags : cInt; Mode: TMode):cInt;
+Function  FpOpen (path : AnsiString; flags : cInt; Mode: TMode):cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpOpen:=FpOpen(pchar(Path),flags,mode);
 End;
 
 
-Function  FpMkdir (path : AnsiString; Mode: TMode):cInt;
+Function  FpMkdir (path : AnsiString; Mode: TMode):cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpMkdir:=FpMkdir(pchar(Path),mode);
 End;
 
-Function  FpUnlink (path : AnsiString): cInt;
+Function  FpUnlink (path : AnsiString): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpUnlink:=FpUnlink(pchar(path));
 End;
 
-Function  FpRmdir (path : AnsiString): cInt;
+Function  FpRmdir (path : AnsiString): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpRmdir:=FpRmdir(pchar(path));
 End;
 
-Function  FpRename (old  : AnsiString;newpath: AnsiString): cInt;
+Function  FpRename (old  : AnsiString;newpath: AnsiString): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpRename:=FpRename(pchar(old),pchar(newpath));
 End;
 
-Function  FpStat (path: AnsiString; var buf : stat): cInt;
+Function  FpStat (path: AnsiString; var buf : stat): cInt; {$ifdef VER2_0}inline;{$endif}
 begin
   FpStat:=FpStat(pchar(path),buf);
 End;
 
-Function FpAccess (pathname : AnsiString; aMode : cInt): cInt;
+Function FpAccess (pathname : AnsiString; aMode : cInt): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpAccess:=FpAccess(pchar(pathname),amode);
 End;
 
-Function  FPFStat(var F:Text;Var Info:stat):Boolean;
+Function  FPFStat(var F:Text;Var Info:stat):Boolean; {$ifdef VER2_0}inline;{$endif}
 {
   Get all information on a text file, and return it in info.
 }
@@ -123,7 +123,7 @@ begin
   FPFStat:=FPFstat(TextRec(F).Handle,INfo)=0;
 end;
 
-Function  FPFStat(var F:File;Var Info:stat):Boolean;
+Function  FPFStat(var F:File;Var Info:stat):Boolean; {$ifdef VER2_0}inline;{$endif}
 {
   Get all information on a untyped file, and return it in info.
 }
@@ -164,24 +164,24 @@ function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; externa
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
 {$endif}
 
-Function  FpRead           (fd : cInt;var buf; nbytes : TSize): TSsize;
+Function  FpRead           (fd : cInt;var buf; nbytes : TSize): TSsize; {$ifdef VER2_0}inline;{$endif}
 
 begin
   FPRead:=xFpRead(fd,pchar(@buf),nbytes);
 end;
 
-Function  FpWrite          (fd : cInt;const buf; nbytes : TSize): TSsize;
+Function  FpWrite          (fd : cInt;const buf; nbytes : TSize): TSsize; {$ifdef VER2_0}inline;{$endif}
 begin
  FpWrite:=FpWrite(fd,pchar(@buf),nbytes);
 end;
 
-Function  FpOpen    (path : pChar; flags : cInt):cInt;
+Function  FpOpen    (path : pChar; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
 
 begin
  FpOpen:=FpOpen(path,flags,438);
 end;
 
-Function  FpOpen    (path : AnsiString; flags : cInt):cInt;
+Function  FpOpen    (path : AnsiString; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
 
 begin
  FpOpen:=FpOpen(pchar(path),flags,438);
@@ -201,13 +201,13 @@ begin
  FpOpen:=FpOpen(@path[1],flags,Mode);
 end;
 
-Function  FpOpendir (dirname : AnsiString): pDir;
+Function  FpOpendir (dirname : AnsiString): pDir; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpOpenDir:=FpOpenDir(pchar(dirname));
 End;
 
 
-Function  FpOpendir (dirname : shortString): pDir;
+Function  FpOpendir (dirname : shortString): pDir; {$ifdef VER2_0}inline;{$endif}
 Begin
   dirname:=dirname+#0;
   FpOpenDir:=FpOpenDir(pchar(@dirname[1]));
@@ -283,7 +283,7 @@ begin
   fpDup2:=fpDup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
-function  fptime    :time_t;
+function  fptime    :time_t;  {$ifdef VER2_0}inline;{$endif}
 var t:time_t;
 begin
   fptime:=fptime(t);
