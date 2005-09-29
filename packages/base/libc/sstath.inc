@@ -48,14 +48,14 @@ const
   DEFFILEMODE = ((((S_IRUSR or S_IWUSR) or S_IRGRP) or S_IWGRP) or S_IROTH) or S_IWOTH;
   S_BLKSIZE = 512;
 
-function stat(__file:Pchar; __buf:Pstat):longint;cdecl;external clib name 'stat';
-function fstat(__fd:longint; __buf:Pstat):longint;cdecl;external clib name 'fstat';
+function stat(__file:Pchar; __buf:Pstat):longint;
+function fstat(__fd:longint; __buf:Pstat):longint;
 
-function stat64(__file:Pchar; __buf:Pstat64):longint;cdecl;external clib name 'stat64';
-function fstat64(__fd:longint; __buf:Pstat64):longint;cdecl;external clib name 'fstat64';
+function stat64(__file:Pchar; __buf:Pstat64):longint;
+function fstat64(__fd:longint; __buf:Pstat64):longint;
 
-function lstat(__file:Pchar; __buf:Pstat):longint;cdecl;external clib name 'lstat';
-function lstat64(__file:Pchar; __buf:Pstat64):longint;cdecl;external clib name 'lstat64';
+function lstat(__file:Pchar; __buf:Pstat):longint;
+function lstat64(__file:Pchar; __buf:Pstat64):longint;
 
 function chmod(__file:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'chmod';
 function fchmod(__fd:longint; __mode:__mode_t):longint;cdecl;external clib name 'fchmod';
