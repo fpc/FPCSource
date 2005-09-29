@@ -42,3 +42,41 @@ function S_ISSOCK(mode : __mode_t) : boolean;
 begin
    S_ISSOCK:=__S_ISTYPE(mode,__S_IFSOCK);
 end;
+
+
+function fstat(__fd:longint; __buf:Pstat):longint;
+  begin
+    __fxstat(_STAT_VER,__fd,__buf);
+  end;
+
+
+function lstat(__file:Pchar; __buf:Pstat):longint;
+
+  begin
+    __lxstat(_STAT_VER,__file,__buf);
+  end;
+
+
+function stat(__file:Pchar; __buf:Pstat):longint;
+  begin
+    __xstat(_STAT_VER,__file,__buf);
+  end;
+
+
+function fstat64(__fd:longint; __buf:Pstat64):longint;
+  begin
+    __fxstat64(_STAT_VER,__fd,__buf);
+  end;
+
+
+function lstat64(__file:Pchar; __buf:Pstat64):longint;
+
+  begin
+    __lxstat64(_STAT_VER,__file,__buf);
+  end;
+
+
+function stat64(__file:Pchar; __buf:Pstat64):longint;
+  begin
+    __xstat64(_STAT_VER,__file,__buf);
+  end;
