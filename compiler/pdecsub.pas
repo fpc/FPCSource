@@ -1985,7 +1985,7 @@ const
           end;
 
         { Public/exported alias names }
-        if (po_public in pd.procoptions) and
+        if (([po_public,po_exports]*pd.procoptions)<>[]) and
            not(po_has_public_name in pd.procoptions) then
           begin
             case pd.proccalloption of
