@@ -13,9 +13,10 @@
 
  **********************************************************************
 
-   Changes :
+  Changes :
 
-  08/15/2005 update for wince4.2 port,ORO06
+  08-15-2005 : ORO06
+    update for wince4.2 port
 }
 
 unit windows;
@@ -61,6 +62,11 @@ interface
 {$i func.inc}
 {$i redef.inc}
 
+{$ifdef UNDER_CE}
+{$i aygshell.inc}
+//{$i commctrl.inc}
+{$endif UNDER_CE}
+
 implementation
 
 {$undef read_interface}
@@ -85,5 +91,12 @@ implementation
 
 {$i func.inc}
 {$i redef.inc}
+
+{$ifdef UNDER_CE}
+{$i aygshell.inc}
+//{$i commctrl.inc}
+{$endif UNDER_CE}
+
+{$undef read_implementation}
 
 end.
