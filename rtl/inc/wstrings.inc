@@ -682,9 +682,11 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Siz
   begin
      widestringmanager.Ansi2WideMoveProc(PChar(Src),temp,Length(Src));
      if Length(temp)<DestSize then
-       move(temp[1],Dest^,Length(temp))
+       move(temp[1],Dest^,Length(temp)*SizeOf(WideChar))
      else
-       move(temp[1],Dest^,destsize);
+       move(temp[1],Dest^,(DestSize-1)*SizeOf(WideChar));
+
+     Dest[DestSize-1]:=#0;
 
      result:=Dest;
 
