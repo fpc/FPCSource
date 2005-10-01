@@ -10,7 +10,7 @@ Type
   __long_double_t = Extended;
   P__long_double_t = ^__long_double_t;
   size_t = Cardinal;
-  Psize_t = size_t;
+  Psize_t = ^size_t;
   UInt64 = 0..High(Int64); // Must be unsigned.
   wchar_t = widechar;
   Pwchar_t = ^wchar_t;
