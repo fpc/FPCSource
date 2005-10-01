@@ -168,76 +168,55 @@ var
 
 implementation
 
+uses GL, DLLFuncs;
+
 {$LINKLIB m}
 
-function dlopen(AFile: PChar; mode: LongInt): Pointer; external 'dl';
-function dlclose(handle: Pointer): LongInt; external 'dl';
-function dlsym(handle: Pointer; name: PChar): Pointer; external 'dl';
-
-function LoadLibrary(name: PChar): Pointer;
+function GetProc(handle: PtrInt; name: PChar): Pointer;
 begin
-  Result := dlopen(name, $101 {RTLD_GLOBAL or RTLD_LAZY});
-end;
-
-function GetProc(handle: Pointer; name: PChar): Pointer;
-begin
-  Result := dlsym(handle, name);
+  Result := GetProcAddress(handle, name);
   if (Result = nil) and GLXDumpUnresolvedFunctions then
     WriteLn('Unresolved: ', name);
 end;
 
-var
-  libGLX: Pointer;
-
-function InitGLXFromLibrary(libname:pchar): Boolean;
+function InitGLX: Boolean;
 begin
   Result := False;
-  libGLX := LoadLibrary(libname);
-  if not Assigned(libGLX) then exit;
+  if libGL = 0 then
+    exit;
 
-  glXChooseVisual := GetProc(libglx, 'glXChooseVisual');
-  glXCreateContext := GetProc(libglx, 'glXCreateContext');
-  glXDestroyContext := GetProc(libglx, 'glXDestroyContext');
-  glXMakeCurrent := GetProc(libglx, 'glXMakeCurrent');
-  glXCopyContext := GetProc(libglx, 'glXCopyContext');
-  glXSwapBuffers := GetProc(libglx, 'glXSwapBuffers');
-  glXCreateGLXPixmap := GetProc(libglx, 'glXCreateGLXPixmap');
-  glXDestroyGLXPixmap := GetProc(libglx, 'glXDestroyGLXPixmap');
-  glXQueryExtension := GetProc(libglx, 'glXQueryExtension');
-  glXQueryVersion := GetProc(libglx, 'glXQueryVersion');
-  glXIsDirect := GetProc(libglx, 'glXIsDirect');
-  glXGetConfig := GetProc(libglx, 'glXGetConfig');
-  glXGetCurrentContext := GetProc(libglx, 'glXGetCurrentContext');
-  glXGetCurrentDrawable := GetProc(libglx, 'glXGetCurrentDrawable');
-  glXWaitGL := GetProc(libglx, 'glXWaitGL');
-  glXWaitX := GetProc(libglx, 'glXWaitX');
-  glXUseXFont := GetProc(libglx, 'glXUseXFont');
+  glXChooseVisual := GetProc(LibGL, 'glXChooseVisual');
+  glXCreateContext := GetProc(LibGL, 'glXCreateContext');
+  glXDestroyContext := GetProc(LibGL, 'glXDestroyContext');
+  glXMakeCurrent := GetProc(LibGL, 'glXMakeCurrent');
+  glXCopyContext := GetProc(LibGL, 'glXCopyContext');
+  glXSwapBuffers := GetProc(LibGL, 'glXSwapBuffers');
+  glXCreateGLXPixmap := GetProc(LibGL, 'glXCreateGLXPixmap');
+  glXDestroyGLXPixmap := GetProc(LibGL, 'glXDestroyGLXPixmap');
+  glXQueryExtension := GetProc(LibGL, 'glXQueryExtension');
+  glXQueryVersion := GetProc(LibGL, 'glXQueryVersion');
+  glXIsDirect := GetProc(LibGL, 'glXIsDirect');
+  glXGetConfig := GetProc(LibGL, 'glXGetConfig');
+  glXGetCurrentContext := GetProc(LibGL, 'glXGetCurrentContext');
+  glXGetCurrentDrawable := GetProc(LibGL, 'glXGetCurrentDrawable');
+  glXWaitGL := GetProc(LibGL, 'glXWaitGL');
+  glXWaitX := GetProc(LibGL, 'glXWaitX');
+  glXUseXFont := GetProc(LibGL, 'glXUseXFont');
   // GLX 1.1 and later
-  glXQueryExtensionsString := GetProc(libglx, 'glXQueryExtensionsString');
-  glXQueryServerString := GetProc(libglx, 'glXQueryServerString');
-  glXGetClientString := GetProc(libglx, 'glXGetClientString');
+  glXQueryExtensionsString := GetProc(LibGL, 'glXQueryExtensionsString');
+  glXQueryServerString := GetProc(LibGL, 'glXQueryServerString');
+  glXGetClientString := GetProc(LibGL, 'glXGetClientString');
   // Mesa GLX Extensions
-  glXCreateGLXPixmapMESA := GetProc(libglx, 'glXCreateGLXPixmapMESA');
-  glXReleaseBufferMESA := GetProc(libglx, 'glXReleaseBufferMESA');
-  glXCopySubBufferMESA := GetProc(libglx, 'glXCopySubBufferMESA');
-  glXGetVideoSyncSGI := GetProc(libglx, 'glXGetVideoSyncSGI');
-  glXWaitVideoSyncSGI := GetProc(libglx, 'glXWaitVideoSyncSGI');
+  glXCreateGLXPixmapMESA := GetProc(LibGL, 'glXCreateGLXPixmapMESA');
+  glXReleaseBufferMESA := GetProc(LibGL, 'glXReleaseBufferMESA');
+  glXCopySubBufferMESA := GetProc(LibGL, 'glXCopySubBufferMESA');
+  glXGetVideoSyncSGI := GetProc(LibGL, 'glXGetVideoSyncSGI');
+  glXWaitVideoSyncSGI := GetProc(LibGL, 'glXWaitVideoSyncSGI');
 
   GLXInitialized := True;
   Result := True;
 end;
 
-function InitGLX: Boolean;
-begin
-  Result := InitGLXFromLibrary('libGL.so') or
-            InitGLXFromLibrary('libGL.so.1') or
-            InitGLXFromLibrary('libMesaGL.so') or
-            InitGLXFromLibrary('libMesaGL.so.3');
-end;
-
-
 initialization
   InitGLX;
-finalization
-  if Assigned(libGLX) then dlclose(libGLX);
 end.

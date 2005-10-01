@@ -219,6 +219,8 @@ compiler/msg/errorhe.msg svneol=native#text/plain
 compiler/msg/errorn.msg svneol=native#text/plain
 compiler/msg/errorpl.msg svneol=native#text/plain
 compiler/msg/errorpli.msg svneol=native#text/plain
+compiler/msg/errorptd.msg -text
+compiler/msg/errorptw.msg -text
 compiler/msg/errorr.msg svneol=native#text/plain
 compiler/msg/errorrw.msg svneol=native#text/plain
 compiler/msg/errorues.msg svneol=native#text/plain
@@ -2641,6 +2643,7 @@ packages/extra/opengl/examples/Makefile svneol=native#text/plain
 packages/extra/opengl/examples/Makefile.fpc svneol=native#text/plain
 packages/extra/opengl/examples/bounce.pp svneol=native#text/plain
 packages/extra/opengl/examples/glutdemo.pp svneol=native#text/plain
+packages/extra/opengl/examples/glxtest.pp -text
 packages/extra/opengl/examples/morph3d.pp svneol=native#text/plain
 packages/extra/opengl/examples/radblur.pp svneol=native#text/plain
 packages/extra/opengl/gl.pp svneol=native#text/plain
@@ -6044,6 +6047,7 @@ tests/webtbs/tw4294.pp svneol=native#text/plain
 tests/webtbs/tw4308.pp svneol=native#text/plain
 tests/webtbs/tw4336.pp svneol=native#text/plain
 tests/webtbs/tw4350.pp svneol=native#text/plain
+tests/webtbs/tw4388.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain

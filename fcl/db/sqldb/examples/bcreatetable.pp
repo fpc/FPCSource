@@ -26,7 +26,7 @@ begin
 
   Fconnection.Transaction := Ftransaction;
   
-  Fconnection.ExecuteDirect('recreate table FPDEV (       ' +
+  Fconnection.ExecuteDirect('create table FPDEV (       ' +
                             '  id INT NOT NULL,           ' +
                             '  Name VARCHAR(50),          ' +
                             '  Email CHAR(50),            ' +

@@ -72,6 +72,14 @@ TYPE
 { see kernel/include/asm-<cpu>/stat.h, include/linux/types.h and }
 { include /include/asm-<cpu>/posix-types.h                       }
 
+const
+  _STAT_VER_LINUX_OLD = 1;
+  _STAT_VER_KERNEL = 1;
+  _STAT_VER_SVR4 = 2;
+  _STAT_VER_LINUX = 3;
+  _STAT_VER = _STAT_VER_LINUX;
+
+type
 {$i stat.inc}
 
   TStat      = Stat;

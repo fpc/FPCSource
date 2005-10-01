@@ -33,7 +33,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
     function  FpFork  : TPid; cdecl; external clib name 'fork';
-    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat';
     function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate';
     function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek';
     function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
@@ -51,7 +50,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
     function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
-    function  FpStat      (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
     function  FpTime       (tloc:ptime_t): time_t; cdecl; external clib name 'time';
     Function  FpTime       (var tloc : TTime): TTime; cdecl; external clib name 'time';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
@@ -81,7 +79,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
-    Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
     function  fpNice       (N:cint):cint; cdecl; external clib name 'nice';
     Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
     Function  fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
@@ -90,3 +87,15 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
 
+{$ifdef linux}
+{$ifndef FPC_IS_SYSTEM}
+    { those functions are macros on linux }
+    function  FpFstat   (fd : cint; var sb : stat): cint;inline;
+    Function  fpLstat       (path:pchar;Info:pstat):cint;inline;
+    function  FpStat      (path: pchar; var buf : stat): cint;inline;
+{$endif FPC_IS_SYSTEM}
+{$else linux}
+    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat';
+    Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
+    function  FpStat      (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
+{$endif linux}

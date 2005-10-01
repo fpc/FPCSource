@@ -30,6 +30,8 @@ type
     Nr        : string;
   end;
 
+  { TPQConnection }
+
   TPQConnection = class (TSQLConnection)
   private
     FCursorCount         : word;
@@ -59,6 +61,7 @@ type
     function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
   public
     constructor Create(AOwner : TComponent); override;
   published
@@ -85,12 +88,14 @@ ResourceString
 
 const Oid_Bool     = 16;
       Oid_Text     = 25;
+      Oid_Oid      = 26;
       Oid_Name     = 19;
       Oid_Int8     = 20;
       Oid_int2     = 21;
       Oid_Int4     = 23;
       Oid_Float4   = 700;
       Oid_Float8   = 701;
+      Oid_Unknown  = 705;
       Oid_bpchar   = 1042;
       Oid_varchar  = 1043;
       Oid_timestamp = 1114;
@@ -300,6 +305,7 @@ begin
     Oid_varchar,Oid_bpchar,
     Oid_name               : Result := ftstring;
     Oid_text               : REsult := ftmemo;
+    Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
     Oid_int2               : Result := ftSmallInt;
@@ -310,6 +316,9 @@ begin
     Oid_Time               : Result := ftTime;
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : Result := ftBCD;
+    Oid_Unknown            : Result := ftUnknown;
+  else
+    Result := ftUnknown;
   end;
 end;
 
@@ -687,6 +696,42 @@ begin
     end;
   qry.close;
   qry.free;
+end;
+
+function TPQConnection.GetSchemaInfoSQL(SchemaType: TSchemaType;
+  SchemaObjectName, SchemaPattern: string): string;
+
+var s : string;
+
+begin
+  case SchemaType of
+    stTables     : s := 'select '+
+                          'relfilenode              as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'relname                  as table_name, '+
+                          '0                        as table_type '+
+                        'from '+
+                          'pg_class '+
+                        'where '+
+                          '(relowner > 1) and relkind=''r''' +
+                        'order by relname';
+
+    stSysTables  : s := 'select '+
+                          'relfilenode              as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'relname                  as table_name, '+
+                          '0                        as table_type '+
+                        'from '+
+                          'pg_class '+
+                        'where '+
+                          'relkind=''r''' +
+                        'order by relname';
+  else
+    DatabaseError(SMetadataUnavailable)
+  end; {case}
+  result := s;
 end;
 
 

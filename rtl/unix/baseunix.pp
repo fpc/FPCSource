@@ -15,7 +15,7 @@
 Unit BaseUnix;
 
 Interface
-
+{$inline on}
 Uses UnixType;
 
 {$i osdefs.inc}       { Compile time defines }
@@ -33,6 +33,7 @@ Uses UnixType;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
+  {$define FPC_IN_BASEUNIX}
   {$i oscdeclh.inc}
 {$ELSE}
   {$i bunxh.inc}                { Functions}
@@ -50,7 +51,6 @@ implementation
 {$ifdef hassysctl}
 Uses Sysctl;
 {$endif}
-
 
 {$i genfuncs.inc}       // generic calls. (like getenv)
 {$I gensigset.inc}     // general sigset funcs implementation.

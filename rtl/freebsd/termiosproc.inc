@@ -18,7 +18,7 @@
                          IOCtl and Termios calls
 ******************************************************************************}
 
-Function TCGetAttr(fd:cint;var tios:TermIOS):cint;
+Function TCGetAttr(fd:cint;var tios:TermIOS):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
 end;
@@ -43,13 +43,13 @@ begin
 end;
 
 
-Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal);
+Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
   tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
 end;
 
 
-Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal);
+Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
    tios.c_ospeed:=speed;
 end;
@@ -73,30 +73,30 @@ begin
    end;
 end;
 
-Function TCSendBreak(fd,duration:cint):cint;
+Function TCSendBreak(fd,duration:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCSendBreak:=fpIOCtl(fd,TIOCSBRK,nil);
 end;
 
 
-Function TCSetPGrp(fd,id:cint):cint;
+Function TCSetPGrp(fd,id:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
 end;
 
 
-Function TCGetPGrp(fd:cint;var id:cint):cint;
+Function TCGetPGrp(fd:cint;var id:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCGetPGrp:=fpIOCtl(fd,TIOCGPGRP,@id);
 end;
 
-Function TCDrain(fd:cint):cint;
+Function TCDrain(fd:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCDrain:=fpIOCtl(fd,TIOCDRAIN,nil); {Should set timeout to 1 first?}
 end;
 
 
-Function TCFlow(fd,act:cint):cint;
+Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
     case act OF
      TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,nil);
@@ -105,7 +105,7 @@ begin
     end;
 end;
 
-Function TCFlush(fd,qsel:cint):cint;
+Function TCFlush(fd,qsel:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
   TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
 end;
@@ -121,7 +121,7 @@ begin
 end;
 
 
-Function IsATTY(var f: text):cint;
+Function IsATTY(var f: text):cint; {$ifdef VER2_0}inline;{$endif}
 {
   Idem as previous, only now for text variables.
 }
