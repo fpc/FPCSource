@@ -120,7 +120,7 @@ than 255 characters. That's why using Ansi Strings}
          { browser }
          cs_browser_log,
          { debuginfo }
-         cs_gdb_heaptrc,cs_gdb_lineinfo,
+         cs_use_heaptrc,cs_use_lineinfo,
          cs_gdb_valgrind,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
@@ -144,6 +144,7 @@ than 255 characters. That's why using Ansi Strings}
          m_cvar_support,        { cvar variable directive }
          m_nested_comment,      { nested comments }
          m_tp_procvar,          { tp style procvars (no @ needed) }
+         m_mac_procvar,         { macpas style procvars }
          m_repeat_forward,      { repeating forward declarations is needed }
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }

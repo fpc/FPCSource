@@ -743,8 +743,8 @@ begin
                if UnsetBool(More, 0) then
                 begin
                   exclude(initmoduleswitches,cs_debuginfo);
-                  exclude(initglobalswitches,cs_gdb_heaptrc);
-                  exclude(initglobalswitches,cs_gdb_lineinfo);
+                  exclude(initglobalswitches,cs_use_heaptrc);
+                  exclude(initglobalswitches,cs_use_lineinfo);
                   exclude(initlocalswitches,cs_checkpointer);
                 end
                else
@@ -771,16 +771,16 @@ begin
                      'h' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_heaptrc)
+                           exclude(initglobalswitches,cs_use_heaptrc)
                          else
-                           include(initglobalswitches,cs_gdb_heaptrc);
+                           include(initglobalswitches,cs_use_heaptrc);
                        end;
                      'l' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_lineinfo)
+                           exclude(initglobalswitches,cs_use_lineinfo)
                          else
-                           include(initglobalswitches,cs_gdb_lineinfo);
+                           include(initglobalswitches,cs_use_lineinfo);
                        end;
                      's' :
                        begin

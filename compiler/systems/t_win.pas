@@ -31,9 +31,6 @@ interface
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
-{$ifdef GDB}
-       gdb,
-{$endif}
        import,export,link,cgobj,i_win;
 
 
@@ -100,7 +97,7 @@ interface
 implementation
 
   uses
-    cpuinfo,cgutils;
+    cpuinfo,cgutils,dbgbase;
 
 
   const
@@ -232,7 +229,6 @@ implementation
       var
          hp1 : timportlist;
          hp2 : twin32imported_item;
-         p : pchar;
       begin
          new_section(asmlist[al_imports],sec_code,'',0);
          hp1:=timportlist(current_module.imports.first);
@@ -254,10 +250,8 @@ implementation
       var
          hp1 : timportlist;
          mangledstring : string;
-{$ifdef GDB}
          importname : string;
          suffix : integer;
-{$endif GDB}
          hp2 : twin32imported_item;
          lhead,lname,lcode, {$ifdef ARM} lpcode, {$endif ARM}
          lidata4,lidata5 : tasmlabel;
@@ -333,10 +327,9 @@ implementation
                     asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
                   {$endif ARM}
-{$IfDef GDB}
-                    if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
-                       hp2.procdef.concatstabto(asmlist[al_imports]);
-{$EndIf GDB}
+                    if (cs_debuginfo in aktmoduleswitches) and
+                       assigned(hp2.procdef) then
+                      debuginfo.insertdef(asmlist[al_imports],hp2.procdef);
                   end;
                  { create head link }
                  new_section(asmlist[al_imports],sec_idata7,'',0);
@@ -351,7 +344,6 @@ implementation
                   asmlist[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
                  else
                   asmlist[al_imports].concat(Tai_label.Create(lcode));
-{$ifdef GDB}
                  if (cs_debuginfo in aktmoduleswitches) then
                   begin
                     if assigned(hp2.name) then
@@ -377,7 +369,6 @@ implementation
                         asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                       end;
                   end;
-{$endif GDB}
                  if hp2.name^<>'' then
                    asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
                  else
@@ -415,10 +406,8 @@ implementation
          hp2 : twin32imported_item;
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
          mangledstring : string;
-{$ifdef GDB}
          importname : string;
          suffix : integer;
-{$endif GDB}
          href : treference;
       begin
          if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
@@ -500,13 +489,11 @@ implementation
                       asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
                     {$endif ARM}
-{$IfDef GDB}
-                      if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
-                        hp2.procdef.concatstabto(asmlist[al_imports]);
-{$EndIf GDB}
+                      if (cs_debuginfo in aktmoduleswitches) and
+                         assigned(hp2.procdef) then
+                        debuginfo.insertdef(asmlist[al_imports],hp2.procdef);
                       { add jump field to al_imports }
                       new_section(asmlist[al_imports],sec_idata5,'',0);
-{$ifdef GDB}
                       if (cs_debuginfo in aktmoduleswitches) then
                        begin
                          if assigned(hp2.name) then
@@ -532,7 +519,6 @@ implementation
                             asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end;
                        end;
-{$endif GDB}
                       asmlist[al_imports].concat(Tai_label.Create(l4));
                     end
                    else

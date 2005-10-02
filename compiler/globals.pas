@@ -65,7 +65,7 @@ interface
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all,m_tp_procvar];
        macmodeswitches : tmodeswitches=
-         [m_mac,m_all,m_result,m_cvar_support,m_tp_procvar];
+         [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar];
 
 
        { maximum nesting of routines }

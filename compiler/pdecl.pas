@@ -279,9 +279,6 @@ implementation
         again  : boolean;
         srsym  : tsym;
         srsymtable : tsymtable;
-      {$ifdef gdb_notused}
-        stab_str:Pchar;
-      {$endif gdb_notused}
 
       begin
          { Check only typesyms or record/object fields }
@@ -332,27 +329,6 @@ implementation
                        tpointerdef(pd).pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
-{$ifdef GDB_UNUSED}
-                       if (cs_debuginfo in aktmoduleswitches) and assigned(al_debugtypes) and
-                          (tsym(p).owner.symtabletype in [globalsymtable,staticsymtable]) then
-                        begin
-                          ttypesym(p).isusedinstab:=true;
-{                          ttypesym(p).concatstabto(al_debugtypes);}
-                          {not stabs for forward defs }
-                          if not Ttypesym(p).isstabwritten then
-                            begin
-                              if Ttypesym(p).restype.def.typesym=p then
-                                Tstoreddef(Ttypesym(p).restype.def).concatstabto(al_debugtypes)
-                              else
-                                begin
-                                  stab_str:=Ttypesym(p).stabstring;
-                                  if assigned(stab_str) then
-                                    al_debugtypes.concat(Tai_stab.create(stab_stabs,stab_str));
-                                  Ttypesym(p).isstabwritten:=true;
-                                end;
-                            end;
-                        end;
-{$endif GDB_UNUSED}
                        { we need a class type for classrefdef }
                        if (pd.deftype=classrefdef) and
                           not(is_class(ttypesym(srsym).restype.def)) then

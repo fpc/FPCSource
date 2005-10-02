@@ -46,7 +46,7 @@ implementation
        { parser specific stuff }
        pbase,pexpr,
        { codegen }
-       cpuinfo,cgbase
+       cpuinfo,cgbase,dbgbase
        ;
 
 {$ifdef fpc}
@@ -125,10 +125,9 @@ implementation
              maybe_new_object_file(asmlist[cural]);
              new_section(asmlist[cural],cursectype,lower(sym.mangledname),const_align(l));
 
-{$ifdef GDB}
              if (cs_debuginfo in aktmoduleswitches) then
-               sym.concatstabto(asmlist[cural]);
-{$endif GDB}
+               debuginfo.insertsym(asmlist[cural],sym);
+
              if (sym.owner.symtabletype=globalsymtable) or
                 maybe_smartlink_symbol or
                 (assigned(current_procinfo) and

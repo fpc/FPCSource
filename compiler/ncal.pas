@@ -476,7 +476,8 @@ type
 
     procedure tcallparanode.insert_typeconv(do_count : boolean);
       var
-        oldtype     : ttype;
+        oldtype  : ttype;
+        hp       : tnode;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
@@ -504,6 +505,21 @@ type
                begin
                  if maybe_call_procvar(left,true) then
                    resulttype:=left.resulttype;
+               end;
+
+             { Remove implicitly inserted typecast to pointer for
+               @procvar in macpas }
+             if (m_mac_procvar in aktmodeswitches) and
+                (parasym.vartype.def.deftype=procvardef) and
+                (left.nodetype=typeconvn) and
+                is_voidpointer(left.resulttype.def) and
+                (ttypeconvnode(left).left.nodetype=typeconvn) and
+                (ttypeconvnode(ttypeconvnode(left).left).convtype=tc_proc_2_procvar) then
+               begin
+                 hp:=left;
+                 left:=ttypeconvnode(left).left;
+                 ttypeconvnode(hp).left:=nil;
+                 hp.free;
                end;
 
              { Handle varargs and hidden paras directly, no typeconvs or }
@@ -617,7 +633,8 @@ type
                  if (parasym.vartype.def.deftype=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
-                     if (m_tp_procvar in aktmodeswitches) and
+                     if ((m_tp_procvar in aktmodeswitches) or
+                         (m_mac_procvar in aktmodeswitches)) and
                         (left.nodetype=calln) and
                         (is_void(left.resulttype.def)) then
                        load_procvar_from_calln(left);
@@ -1625,7 +1642,8 @@ type
                             loadnode will give a strange error }
                           if not(assigned(left)) and
                              not(cnf_inherited in callnodeflags) and
-                             (m_tp_procvar in aktmodeswitches) and
+                             ((m_tp_procvar in aktmodeswitches) or
+                              (m_mac_procvar in aktmodeswitches)) and
                              (symtableprocentry.procdef_count=1) then
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);

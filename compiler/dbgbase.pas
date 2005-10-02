@@ -27,14 +27,23 @@ interface
 
     uses
       systems,
+      symdef,symtype,
+      symsym,
       aasmtai;
 
     type
       TDebugInfo=class
         constructor Create;virtual;
+        procedure insertvmt(list:taasmoutput;objdef:tobjectdef);virtual;
+        procedure insertsym(list:taasmoutput;sym:tsym);virtual;
+        procedure insertdef(list:taasmoutput;def:tdef);virtual;
+        procedure insertmoduletypes(list:taasmoutput);virtual;
+        procedure insertprocstart(list:taasmoutput);virtual;
+        procedure insertprocend(list:taasmoutput);virtual;
         procedure insertmodulestart(list:taasmoutput);virtual;
         procedure insertmoduleend(list:taasmoutput);virtual;
         procedure insertlineinfo(list:taasmoutput);virtual;
+        procedure referencesections(list:taasmoutput);virtual;
       end;
       TDebugInfoClass=class of TDebugInfo;
 
@@ -58,6 +67,36 @@ implementation
       end;
 
 
+    procedure tdebuginfo.insertvmt(list:taasmoutput;objdef:tobjectdef);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertsym(list:taasmoutput;sym:tsym);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertdef(list:taasmoutput;def:tdef);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertmoduletypes(list:taasmoutput);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertprocstart(list:taasmoutput);
+      begin
+      end;
+
+
+    procedure tdebuginfo.insertprocend(list:taasmoutput);
+      begin
+      end;
+
+
     procedure tdebuginfo.insertmodulestart(list:taasmoutput);
       begin
       end;
@@ -69,6 +108,11 @@ implementation
 
 
     procedure tdebuginfo.insertlineinfo(list:taasmoutput);
+      begin
+      end;
+
+
+    procedure tdebuginfo.referencesections(list:taasmoutput);
       begin
       end;
 

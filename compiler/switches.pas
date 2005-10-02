@@ -177,7 +177,7 @@ begin
                 begin
                   { Turning off debuginfo when lineinfo is requested
                     is not possible }
-                  if not((cs_gdb_lineinfo in aktglobalswitches) and
+                  if not((cs_use_lineinfo in aktglobalswitches) and
                          (tmoduleswitch(setsw)=cs_debuginfo)) then
                     exclude(aktmoduleswitches,tmoduleswitch(setsw));
                 end;

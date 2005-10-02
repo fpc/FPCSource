@@ -51,9 +51,6 @@ implementation
 {$ifdef BrowserLog}
       browlog,
 {$endif BrowserLog}
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       comphook,
       scanner,scandir,
       pbase,ptype,psystem,pmodules,psub,

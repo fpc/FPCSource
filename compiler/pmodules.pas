@@ -42,21 +42,8 @@ implementation
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        dwarf,pexports,
-{$ifdef GDB}
-       gdb,
-{$endif GDB}
        scanner,pbase,pexpr,psystem,psub,pdecsub;
 
-(*
-    procedure fixseg(p:TAAsmoutput; sec:TAsmSectionType; secname: string);
-      begin
-        maybe_new_object_file(p);
-        if target_info.system <> system_powerpc_macos then
-          p.insert(Tai_section.Create(sec,'',0))
-        else
-          p.insert(Tai_section.Create(sec,secname,0));
-      end;
-*)
 
     procedure create_objectfile;
       var
@@ -103,7 +90,7 @@ implementation
         { Start and end of debuginfo, at least required for stabs
           to insert n_sourcefile lines }
         if (cs_debuginfo in aktmoduleswitches) or
-           (cs_gdb_lineinfo in aktglobalswitches) then
+           (cs_use_lineinfo in aktglobalswitches) then
           begin
             debuginfo.insertmodulestart(asmlist[al_debugstart]);
             debuginfo.insertmoduleend(asmlist[al_debugend]);
@@ -158,54 +145,6 @@ implementation
           dwarfcfi.generate_code(asmlist[al_dwarf]);
       end;
 
-
-(*
-    procedure insertsegment;
-      var
-        oldaktfilepos : tfileposinfo;
-        {Note: Sections get names in macos only.}
-      begin
-      { Insert Ident of the compiler }
-        if (not (cs_create_smart in aktmoduleswitches))
-{$ifndef EXTDEBUG}
-           and (not current_module.is_unit)
-{$endif}
-           then
-         begin
-           { align the first data }
-           asmlist[al_globals].insert(Tai_align.Create(const_align(32)));
-           asmlist[al_globals].insert(Tai_string.Create('FPC '+full_version_string+
-             ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
-         end;
-        { align code segment }
-        asmlist[al_procedures].concat(Tai_align.create(aktalignment.procalign));
-        { Insert start and end of sections }
-        fixseg(asmlist[al_procedures],sec_code,'____seg_code');
-        fixseg(asmlist[al_globals],sec_data,'____seg_data');
-        fixseg(asmlist[al_const],sec_rodata,'____seg_rodata');
-//        fixseg(asmlist[al_bss],sec_bss,'____seg_bss');
-        fixseg(asmlist[al_threadvars],sec_bss,'____seg_tbss');
-        { we should use .rdata section for these two no ?
-          .rdata is a read only data section (PM) }
-        fixseg(asmlist[al_rtti],sec_data,'____seg_rtti');
-        fixseg(asmlist[al_typedconsts],sec_data,'____seg_consts');
-        fixseg(asmlist[al_rotypedconsts],sec_rodata,'____seg_consts');
-        fixseg(asmlist[al_picdata],sec_data,'____seg_al_picdata');
-        if assigned(asmlist[aasmtai.al_resourcestrings]) then
-          fixseg(asmlist[aasmtai.al_resourcestrings],sec_data,'____seg_resstrings');
-{$ifdef GDB}
-        if assigned(asmlist[al_debugtypes]) then
-          begin
-            oldaktfilepos:=aktfilepos;
-            aktfilepos.line:=0;
-            asmlist[al_debugtypes].insert(Tai_symbol.Createname('gcc2_compiled',AT_DATA,0));
-            asmlist[al_debugtypes].insert(Tai_symbol.Createname('fpc_compiled',AT_DATA,0));
-//            fixseg(asmlist[al_debugtypes],sec_code,'____seg_debug');
-            aktfilepos:=oldaktfilepos;
-          end;
-{$endif GDB}
-      end;
-*)
 
 {$ifndef segment_threadvars}
     procedure InsertThreadvarTablesTable;
@@ -513,10 +452,10 @@ implementation
         if not(current_module.is_unit) then
          begin
            { Heaptrc unit }
-           if (cs_gdb_heaptrc in aktglobalswitches) then
+           if (cs_use_heaptrc in aktglobalswitches) then
              AddUnit('HeapTrc');
            { Lineinfo unit }
-           if (cs_gdb_lineinfo in aktglobalswitches) then
+           if (cs_use_lineinfo in aktglobalswitches) then
              AddUnit('LineInfo');
            { Lineinfo unit }
            if (cs_gdb_valgrind in aktglobalswitches) then
@@ -698,87 +637,6 @@ implementation
          macrosymtablestack:= top_of_macrosymtable;
          consume(_SEMICOLON);
       end;
-
-
-{$IfDef GDB}
-     procedure write_gdb_info;
-
-       procedure reset_unit_type_info;
-       var
-         hp : tmodule;
-       begin
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) do
-           begin
-             hp.is_stab_written:=false;
-             hp:=tmodule(hp.next);
-           end;
-       end;
-
-       procedure write_used_unit_type_info(hp:tmodule);
-       var
-         pu : tused_unit;
-       begin
-         pu:=tused_unit(hp.used_units.first);
-         while assigned(pu) do
-           begin
-             if not pu.u.is_stab_written then
-               begin
-                 { prevent infinte loop for circular dependencies }
-                 pu.u.is_stab_written:=true;
-                 { write type info from used units, use a depth first
-                   strategy to reduce the recursion in writing all
-                   dependent stabs }
-                 write_used_unit_type_info(pu.u);
-                 if assigned(pu.u.globalsymtable) then
-                   tglobalsymtable(pu.u.globalsymtable).concattypestabto(asmlist[al_debugtypes]);
-               end;
-             pu:=tused_unit(pu.next);
-           end;
-       end;
-
-      var
-        temptypestabs : taasmoutput;
-        storefilepos : tfileposinfo;
-        st : tsymtable;
-      begin
-        if not (cs_debuginfo in aktmoduleswitches) then
-         exit;
-        storefilepos:=aktfilepos;
-        aktfilepos:=current_module.mainfilepos;
-        { include symbol that will be referenced from the program to be sure to
-          include this debuginfo .o file }
-        if current_module.is_unit then
-          begin
-            current_module.flags:=current_module.flags or uf_has_debuginfo;
-            st:=current_module.globalsymtable;
-          end
-        else
-          st:=current_module.localsymtable;
-        new_section(asmlist[al_debugtypes],sec_data,lower(st.name^),0);
-        asmlist[al_debugtypes].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
-        { first write all global/local symbols again to a temp list. This will flag
-          all required tdefs. After that the temp list can be removed since the debuginfo is already
-          written to the stabs when the variables/consts were written }
-{$warning Hack to get all needed types}
-        temptypestabs:=taasmoutput.create;
-        if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concatstabto(temptypestabs);
-        if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concatstabto(temptypestabs);
-        temptypestabs.free;
-        { reset unit type info flag }
-        reset_unit_type_info;
-        { write used types from the used units }
-        write_used_unit_type_info(current_module);
-        { last write the types from this unit }
-        if assigned(current_module.globalsymtable) then
-          tglobalsymtable(current_module.globalsymtable).concattypestabto(asmlist[al_debugtypes]);
-        if assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).concattypestabto(asmlist[al_debugtypes]);
-        aktfilepos:=storefilepos;
-      end;
-{$EndIf GDB}
 
 
      procedure reset_all_defs;
@@ -968,18 +826,19 @@ implementation
     procedure proc_unit;
 
       function is_assembler_generated:boolean;
+      var
+        hal : tasmlist;
       begin
-        is_assembler_generated:=(Errorcount=0) and
-          not(
-          asmlist[al_procedures].empty and
-          asmlist[al_globals].empty and
-//          asmlist[al_bss].empty and
-          asmlist[al_threadvars].empty and
-          asmlist[al_rtti].empty and
-          ((asmlist[al_imports]=nil) or asmlist[al_imports].empty) and
-          ((asmlist[al_resources]=nil) or asmlist[al_resources].empty) and
-          ((asmlist[aasmtai.al_resourcestrings]=nil) or asmlist[aasmtai.al_resourcestrings].empty)
-        );
+        result:=false;
+        if Errorcount=0 then
+          begin
+            for hal:=low(Tasmlist) to high(Tasmlist) do
+              if not asmlist[hal].empty then
+                begin
+                  result:=true;
+                  exit;
+                end;
+          end;
       end;
 
       var
@@ -1303,9 +1162,8 @@ implementation
          maybeloadvariantsunit;
 
          { generate debuginfo }
-{$ifdef GDB}
-         write_gdb_info;
-{$endif GDB}
+         if (cs_debuginfo in aktmoduleswitches) then
+           debuginfo.insertmoduletypes(asmlist[al_debugtypes]);
 
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[al_procedures],current_module.globalsymtable);
@@ -1624,9 +1482,8 @@ implementation
          maybeloadvariantsunit;
 
          { generate debuginfo }
-{$ifdef GDB}
-         write_gdb_info;
-{$endif GDB}
+         if (cs_debuginfo in aktmoduleswitches) then
+           debuginfo.insertmoduletypes(asmlist[al_debugtypes]);
 
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);

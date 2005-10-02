@@ -78,10 +78,6 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
-{$ifdef GDB}
-          procedure concatstabto(asmlist : taasmoutput);virtual;
-          function  getnewtypecount : word; override;
-{$endif GDB}
           procedure testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
        end;
 
@@ -133,9 +129,6 @@ interface
        tabstractunitsymtable = class(tstoredsymtable)
        public
           constructor create(const n : string;id:word);
-{$ifdef GDB}
-          procedure concattypestabto(asmlist : taasmoutput);
-{$endif GDB}
           function iscurrentunit:boolean;override;
        end;
 
@@ -148,9 +141,6 @@ interface
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insert(sym : tsymentry);override;
-{$ifdef GDB}
-          function getnewtypecount : word; override;
-{$endif}
        end;
 
        tstaticsymtable = class(tabstractunitsymtable)
@@ -274,9 +264,6 @@ implementation
       symutil,defcmp,
       { module }
       fmodule,
-{$ifdef GDB}
-      gdb,
-{$endif GDB}
       { codegen }
       procinfo
       ;
@@ -830,15 +817,6 @@ implementation
       end;
 
 
-{$ifdef GDB}
-   function tstoredsymtable.getnewtypecount : word;
-      begin
-         getnewtypecount:=pglobaltypecount^;
-         inc(pglobaltypecount^);
-      end;
-{$endif GDB}
-
-
 {***********************************************
            Process all entries
 ***********************************************}
@@ -878,32 +856,6 @@ implementation
       begin
          foreach(@unchain_overloads,nil);
       end;
-
-
-{$ifdef GDB}
-    procedure tstoredsymtable.concatstabto(asmlist : taasmoutput);
-      var
-        stabstr : Pchar;
-        p : tsym;
-      begin
-        p:=tsym(symindex.first);
-        while assigned(p) do
-          begin
-            { Procsym and typesym are already written }
-            if not(Tsym(p).typ in [procsym,typesym]) then
-              begin
-                if not Tsym(p).isstabwritten then
-                  begin
-                    stabstr:=Tsym(p).stabstring;
-                    if stabstr<>nil then
-                      asmlist.concat(Tai_stab.create(stab_stabs,stabstr));
-                    Tsym(p).isstabwritten:=true;
-                  end;
-              end;
-            p:=tsym(p.indexnext);
-          end;
-      end;
-{$endif}
 
 
     procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
@@ -1359,48 +1311,6 @@ implementation
       end;
 
 
-{$ifdef GDB}
-      procedure tabstractunitsymtable.concattypestabto(asmlist : taasmoutput);
-
-         procedure dowritestabs(asmlist:taasmoutput;st:tsymtable);
-           var
-             p : tstoreddef;
-           begin
-             p:=tstoreddef(st.defindex.first);
-             while assigned(p) do
-               begin
-                 { also insert local types for the current unit }
-                 if iscurrentunit then
-                   begin
-                     case p.deftype of
-                       procdef :
-                         if assigned(tprocdef(p).localst) then
-                           dowritestabs(asmlist,tprocdef(p).localst);
-                       objectdef :
-                         dowritestabs(asmlist,tobjectdef(p).symtable);
-                     end;
-                   end;
-                 if (p.stab_state=stab_state_used) then
-                   p.concatstabto(asmlist);
-                 p:=tstoreddef(p.indexnext);
-               end;
-           end;
-
-        var
-          old_writing_def_stabs : boolean;
-        begin
-           if not assigned(name) then
-             name := stringdup('Main_program');
-           asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(moduleid))));
-           old_writing_def_stabs:=writing_def_stabs;
-           writing_def_stabs:=true;
-           dowritestabs(asmlist,self);
-           writing_def_stabs:=old_writing_def_stabs;
-           asmList.concat(tai_comment.Create(strpnew('End unit '+name^+' has index '+tostr(moduleid))));
-        end;
-{$endif GDB}
-
-
 {****************************************************************************
                               TStaticSymtable
 ****************************************************************************}
@@ -1538,14 +1448,6 @@ implementation
 
          inherited insert(sym);
       end;
-
-
-{$ifdef GDB}
-   function tglobalsymtable.getnewtypecount : word;
-      begin
-        getnewtypecount:=inherited getnewtypecount
-      end;
-{$endif}
 
 
 {****************************************************************************
@@ -2357,10 +2259,6 @@ implementation
        symtablestack:=nil;
        macrosymtablestack:=nil;
        systemunit:=nil;
-{$ifdef GDB}
-       globaltypecount:=1;
-       pglobaltypecount:=@globaltypecount;
-{$endif GDB}
        { create error syms and def }
        generrorsym:=terrorsym.create;
        generrortype.setdef(terrordef.create);

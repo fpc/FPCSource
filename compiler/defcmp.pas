@@ -943,11 +943,23 @@ implementation
                    begin
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
-                     if is_void(tpointerdef(def_to).pointertype.def) and
+                     if (is_void(tpointerdef(def_to).pointertype.def) or
+                         (m_mac_procvar in aktmodeswitches)) and
                         tprocvardef(def_from).is_addressonly then
                       begin
                         doconv:=tc_equal;
                         eq:=te_convert_l1;
+                      end;
+                   end;
+                 procdef :
+                   begin
+                     { procedure variable can be assigned to an void pointer,
+                       this not allowed for methodpointers }
+                     if (m_mac_procvar in aktmodeswitches) and
+                        tprocdef(def_from).is_addressonly then
+                      begin
+                        doconv:=tc_proc_2_procvar;
+                        eq:=te_convert_l2;
                       end;
                    end;
                  classrefdef,
@@ -1004,7 +1016,8 @@ implementation
                  procdef :
                    begin
                      { proc -> procvar }
-                     if (m_tp_procvar in aktmodeswitches) then
+                     if (m_tp_procvar in aktmodeswitches) or
+                        (m_mac_procvar in aktmodeswitches) then
                       begin
                         subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),true);
                         if subeq>te_incompatible then

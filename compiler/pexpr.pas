@@ -851,7 +851,8 @@ implementation
                getaddr:=true;
              end
             else
-             if (m_tp_procvar in aktmodeswitches) then
+             if (m_tp_procvar in aktmodeswitches) or
+                (m_mac_procvar in aktmodeswitches) then
               begin
                 aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then
@@ -931,7 +932,8 @@ implementation
       begin
         if not assigned(pv) then
          internalerror(200301121);
-        if (m_tp_procvar in aktmodeswitches) then
+        if (m_tp_procvar in aktmodeswitches) or
+           (m_mac_procvar in aktmodeswitches) then
          begin
            hp:=p2;
            hpp:=@p2;

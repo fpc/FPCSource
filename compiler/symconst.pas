@@ -392,26 +392,12 @@ type
     te_exact
   );
 
-{$ifdef GDB}
-type
   tdefstabstatus = (
     stab_state_unused,
     stab_state_used,
     stab_state_writing,
     stab_state_written
   );
-
-const
-  tagtypes : Set of tdeftype =
-    [recorddef,enumdef,
-    {$IfNDef GDBKnowsStrings}
-    stringdef,
-    {$EndIf not GDBKnowsStrings}
-    {$IfNDef GDBKnowsFiles}
-    filedef,
-    {$EndIf not GDBKnowsFiles}
-    objectdef];
-{$endif GDB}
 
 
 const

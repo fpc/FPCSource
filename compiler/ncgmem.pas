@@ -211,7 +211,7 @@ implementation
             else
               internalerror(200507031);
          end;
-         if (cs_gdb_heaptrc in aktglobalswitches) and
+         if (cs_use_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktlocalswitches) and
             not(cs_compilesystem in aktmoduleswitches) and
             not(tpointerdef(left.resulttype.def).is_far) and
@@ -269,7 +269,7 @@ implementation
                   end;
              end;
              { implicit deferencing }
-             if (cs_gdb_heaptrc in aktglobalswitches) and
+             if (cs_use_heaptrc in aktglobalswitches) and
                 (cs_checkpointer in aktlocalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
@@ -287,7 +287,7 @@ implementation
              tg.GetTempTyped(exprasmlist,left.resulttype.def,tt_normal,location.reference);
              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
-             if (cs_gdb_heaptrc in aktglobalswitches) and
+             if (cs_use_heaptrc in aktglobalswitches) and
                 (cs_checkpointer in aktlocalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
@@ -315,70 +315,11 @@ implementation
 *****************************************************************************}
 
     procedure tcgwithnode.pass_2;
-{$ifdef WITHNODEDEBUG}
-      const
-        withlevel : longint = 0;
-      var
-        withstartlabel,withendlabel : tasmlabel;
-        pp : pchar;
-        mangled_length  : longint;
-        refnode : tnode;
-{$endif WITHNODEDEBUG}
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
-{$ifdef WITHNODEDEBUG}
-        if (cs_debuginfo in aktmoduleswitches) then
-          begin
-            { load reference }
-            if (withrefnode.nodetype=derefn) and
-               (tderefnode(withrefnode).left.nodetype=temprefn) then
-              refnode:=tderefnode(withrefnode).left
-            else
-              refnode:=withrefnode;
-            secondpass(refnode);
-            location_freetemp(exprasmlist,refnode.location);
-            if not(refnode.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-              internalerror(2003092810);
-
-            inc(withlevel);
-            objectlibrary.getaddrlabel(withstartlabel);
-            objectlibrary.getaddrlabel(withendlabel);
-            cg.a_label(exprasmlist,withstartlabel);
-            al_withdebug.concat(Tai_stab.create(stab_stabs,strpnew(
-               '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
-               '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(refnode.location.reference.offset))));
-            mangled_length:=length(current_procinfo.procdef.mangledname);
-            getmem(pp,mangled_length+50);
-            strpcopy(pp,'192,0,0,'+withstartlabel.name);
-            if (target_info.use_function_relative_addresses) then
-              begin
-                strpcopy(strend(pp),'-');
-                strpcopy(strend(pp),current_procinfo.procdef.mangledname);
-              end;
-            al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
-          end;
-{$endif WITHNODEDEBUG}
-
         if assigned(left) then
           secondpass(left);
-
-{$ifdef WITHNODEDEBUG}
-        if (cs_debuginfo in aktmoduleswitches) then
-          begin
-            cg.a_label(exprasmlist,withendlabel);
-            strpcopy(pp,'224,0,0,'+withendlabel.name);
-           if (target_info.use_function_relative_addresses) then
-             begin
-               strpcopy(strend(pp),'-');
-               strpcopy(strend(pp),current_procinfo.procdef.mangledname);
-             end;
-            al_withdebug.concat(Tai_stabn.Create(strnew(pp)));
-            freemem(pp,mangled_length+50);
-            dec(withlevel);
-          end;
-{$endif WITHNODEDEBUG}
        end;
 
 

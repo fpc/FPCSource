@@ -855,7 +855,7 @@ implementation
 
             { insert line debuginfo }
             if (cs_debuginfo in aktmoduleswitches) or
-               (cs_gdb_lineinfo in aktglobalswitches) then
+               (cs_use_lineinfo in aktglobalswitches) then
               debuginfo.insertlineinfo(aktproccode);
 
             { add the procedure to the al_procedures }

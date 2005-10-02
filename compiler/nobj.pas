@@ -129,10 +129,8 @@ implementation
     uses
        strings,
        globals,verbose,systems,
-       symtable,symconst,symtype,defcmp
-{$ifdef GDB}
-       ,gdb
-{$endif GDB}
+       symtable,symconst,symtype,defcmp,
+       dbgbase
        ;
 
 
@@ -1280,15 +1278,9 @@ implementation
         { write debug info }
         maybe_new_object_file(asmlist[al_globals]);
         new_section(asmlist[al_globals],sec_rodata,_class.vmt_mangledname,const_align(sizeof(aint)));
-{$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-         begin
-           if assigned(_class.owner) and assigned(_class.owner.name) then
-             asmlist[al_globals].concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+_class.owner.name^+_class.name+':S'+
-               tstoreddef(vmttype.def).numberstring+'",'+tostr(N_STSYM)+',0,0,'+_class.vmt_mangledname)));
-         end;
-{$endif GDB}
-         asmlist[al_globals].concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
+          debuginfo.insertvmt(asmlist[al_globals],_class);
+        asmlist[al_globals].concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }

@@ -118,15 +118,12 @@ interface
 implementation
 
   uses
-    strings,version,
+    version,
     cutils,cclasses,
     globals,systems,verbose,
     ppu,defutil,
     procinfo,paramgr,fmodule,
-    regvars,dwarf,
-{$ifdef GDB}
-    gdb,
-{$endif GDB}
+    regvars,dwarf,dbgbase,
     pass_1,pass_2,
     ncon,nld,nutils,
     tgobj,cgobj;
@@ -1602,10 +1599,7 @@ implementation
            cg.deallocallcpuregisters(list);
          end;
 
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) then
-         list.concat(Tai_force_line.Create);
-{$endif GDB}
+        list.concat(Tai_force_line.Create);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -1642,13 +1636,8 @@ implementation
         else
           list.concat(Tai_align.create(aktalignment.procalign));
 
-{$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-          begin
-            current_procinfo.procdef.concatstabto(list);
-            Tprocsym(current_procinfo.procdef.procsym).isstabwritten:=true;
-          end;
-{$endif GDB}
+          debuginfo.insertprocstart(list);
 
         repeat
           hs:=current_procinfo.procdef.aliasnames.getfirst;
@@ -1667,13 +1656,6 @@ implementation
 
 
     procedure gen_proc_symbol_end(list:Taasmoutput);
-{$ifdef GDB}
-      var
-        stabsendlabel : tasmlabel;
-        mangled_length : longint;
-        p : pchar;
-        hp   : tused_unit;
-{$endif GDB}
       begin
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
@@ -1685,94 +1667,15 @@ implementation
                  ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
              end;
 
-{$ifdef GDB}
             { Reference all DEBUGINFO sections from the main .text section }
-            if (target_info.system <> system_powerpc_macos) and
-               (cs_debuginfo in aktmoduleswitches) then
-              begin
-                { include reference to all debuginfo sections of used units }
-                hp:=tused_unit(usedunits.first);
-                while assigned(hp) do
-                  begin
-                    If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
-                      list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
-                    hp:=tused_unit(hp.next);
-                  end;
-                { include reference to debuginfo for this program }
-                list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
-              end;
-{$endif GDB}
+            if (cs_debuginfo in aktmoduleswitches) then
+              debuginfo.referencesections(list);
           end;
 
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
-{$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-          begin
-            objectlibrary.getjumplabel(stabsendlabel);
-            cg.a_label(list,stabsendlabel);
-            { define calling EBP as pseudo local var PM }
-            { this enables test if the function is a local one !! }
-            {if  assigned(current_procinfo.parent) and
-                (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-              list.concat(Tai_stab.create(stab_stabs,strpnew(
-               '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset)))); }
-
-            if assigned(current_procinfo.procdef.funcretsym) and
-               (tabstractnormalvarsym(current_procinfo.procdef.funcretsym).refs>0) then
-              begin
-                if tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.loc=LOC_REFERENCE then
-                  begin
-{$warning Need to add gdb support for ret in param register calling}
-                    if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
-                      begin
-                        list.concat(Tai_stab.create(stab_stabs,strpnew(
-                           '"'+current_procinfo.procdef.procsym.name+':X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                           tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                        if (m_result in aktmodeswitches) then
-                          list.concat(Tai_stab.create(stab_stabs,strpnew(
-                             '"RESULT:X*'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                             tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))))
-                      end
-                    else
-                      begin
-                        list.concat(Tai_stab.create(stab_stabs,strpnew(
-                           '"'+current_procinfo.procdef.procsym.name+':X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                           tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                        if (m_result in aktmodeswitches) then
-                          list.concat(Tai_stab.create(stab_stabs,strpnew(
-                             '"RESULT:X'+tstoreddef(current_procinfo.procdef.rettype.def).numberstring+'",'+
-                             tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(current_procinfo.procdef.funcretsym).localloc.reference.offset))));
-                       end;
-                  end;
-              end;
-            mangled_length:=length(current_procinfo.procdef.mangledname);
-            getmem(p,2*mangled_length+50);
-            strpcopy(p,'192,0,0,');
-            strpcopy(strend(p),current_procinfo.procdef.mangledname);
-            if (target_info.use_function_relative_addresses) then
-              begin
-                strpcopy(strend(p),'-');
-                strpcopy(strend(p),current_procinfo.procdef.mangledname);
-              end;
-            list.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-            {List.concat(Tai_stab.Create_str(stab_stabn,'192,0,0,'+current_procinfo.procdef.mangledname)));
-            p[0]:='2';p[1]:='2';p[2]:='4';
-            strpcopy(strend(p),'_end');}
-            strpcopy(p,'224,0,0,'+stabsendlabel.name);
-            if (target_info.use_function_relative_addresses) then
-              begin
-                strpcopy(strend(p),'-');
-                strpcopy(strend(p),current_procinfo.procdef.mangledname);
-              end;
-            list.concatlist(asmlist[al_withdebug]);
-            list.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-             { strpnew('224,0,0,'
-             +current_procinfo.procdef.mangledname+'_end'))));}
-            freemem(p,2*mangled_length+50);
-          end;
-{$endif GDB}
+          debuginfo.insertprocend(list);
       end;
 
 
@@ -1938,10 +1841,8 @@ implementation
         varalign:=var_align(l);
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
-{$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) then
-          sym.concatstabto(list);
-{$endif GDB}
+          debuginfo.insertsym(list,sym);
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
            DLLSource or

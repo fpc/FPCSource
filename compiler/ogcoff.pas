@@ -535,7 +535,7 @@ const go32v2stub : array[0..2047] of byte=(
         createsection(sec_code,'',0,[]);
         createsection(sec_data,'',0,[]);
         createsection(sec_bss,'',0,[]);
-        if (cs_gdb_lineinfo in aktglobalswitches) or
+        if (cs_use_lineinfo in aktglobalswitches) or
            (cs_debuginfo in aktmoduleswitches) then
          begin
            stabssec:=createsection(sec_stab,'',0,[]);

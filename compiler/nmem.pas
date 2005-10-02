@@ -354,8 +354,11 @@ implementation
         { Handle @proc special, also @procvar in tp-mode needs
           special handling }
         if (left.resulttype.def.deftype=procdef) or
-           ((left.resulttype.def.deftype=procvardef) and
-            (m_tp_procvar in aktmodeswitches)) then
+           (
+            (left.resulttype.def.deftype=procvardef) and
+            ((m_tp_procvar in aktmodeswitches) or
+             (m_mac_procvar in aktmodeswitches))
+           ) then
           begin
             isprocvar:=(left.resulttype.def.deftype=procvardef);
 
@@ -368,7 +371,8 @@ implementation
             { In tp procvar mode the result is always a voidpointer. Insert
               a typeconversion to voidpointer. For methodpointers we need
               to load the proc field }
-            if (m_tp_procvar in aktmodeswitches) then
+            if (m_tp_procvar in aktmodeswitches) or
+               (m_mac_procvar in aktmodeswitches) then
               begin
                 if tabstractprocdef(left.resulttype.def).is_addressonly then
                   begin
