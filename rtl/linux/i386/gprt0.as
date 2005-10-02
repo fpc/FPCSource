@@ -57,8 +57,7 @@ _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is e
         pushl   %ebx
         call    exit                    /* call libc exit, this will */
                                         /* write the gmon.out */
-        xorl    %eax,%eax
-        incl    %eax                    /* eax=1, exit call */
+        movl    $252,%eax                /* exit_group */
         popl    %ebx
         int     $0x80
         jmp     _haltproc2
