@@ -65,6 +65,7 @@ interface
           function resulttype_real_to_currency : tnode;
           function resulttype_cchar_to_pchar : tnode;
           function resulttype_cstring_to_pchar : tnode;
+          function resulttype_cstring_to_int : tnode;
           function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_pchar_to_string : tnode;
@@ -83,6 +84,7 @@ interface
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
+          function first_cstring_to_int : tnode;virtual;
           function first_string_to_chararray : tnode;virtual;
           function first_char_to_string : tnode;virtual;
           function first_nothing : tnode;virtual;
@@ -108,6 +110,7 @@ interface
           { any effect                                                       }
           function _first_int_to_int : tnode;
           function _first_cstring_to_pchar : tnode;
+          function _first_cstring_to_int : tnode;
           function _first_string_to_chararray : tnode;
           function _first_char_to_string : tnode;
           function _first_nothing : tnode;
@@ -130,6 +133,7 @@ interface
           procedure _second_int_to_int;virtual;
           procedure _second_string_to_string;virtual;
           procedure _second_cstring_to_pchar;virtual;
+          procedure _second_cstring_to_int;virtual;
           procedure _second_string_to_chararray;virtual;
           procedure _second_array_to_pointer;virtual;
           procedure _second_pointer_to_array;virtual;
@@ -151,6 +155,7 @@ interface
           procedure second_int_to_int;virtual;abstract;
           procedure second_string_to_string;virtual;abstract;
           procedure second_cstring_to_pchar;virtual;abstract;
+          procedure second_cstring_to_int;virtual;abstract;
           procedure second_string_to_chararray;virtual;abstract;
           procedure second_array_to_pointer;virtual;abstract;
           procedure second_pointer_to_array;virtual;abstract;
@@ -610,6 +615,7 @@ implementation
           'tc_pchar_2_string',
           'tc_cchar_2_pchar',
           'tc_cstring_2_pchar',
+          'tc_cstring_2_int',
           'tc_ansistring_2_pchar',
           'tc_string_2_chararray',
           'tc_chararray_2_string',
@@ -700,20 +706,25 @@ implementation
         arrsize  : aint;
         chartype : string[8];
       begin
-         with tarraydef(resulttype.def) do
+        result := nil;
+        with tarraydef(resulttype.def) do
           begin
             if highrange<lowrange then
              internalerror(200501051);
             arrsize := highrange-lowrange+1;
           end;
-         if (left.nodetype = stringconstn) and
-            { left.length+1 since there's always a terminating #0 character (JM) }
-            (tstringconstnode(left).len+1 >= arrsize) and
-            (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
+        if (left.nodetype = stringconstn) and
+           (tstringdef(left.resulttype.def).string_typ=st_conststring) then
            begin
-             { handled separately }
-             result := nil;
-             exit;
+             { if the array is large enough we can use the string
+               constant directly. This is handled in ncgcnv }
+             if arrsize>=tstringconstnode(left).len then
+               exit;
+             { Convert to shortstring/ansistring and call helper }
+             if tstringconstnode(left).len>255 then
+               inserttypeconv(left,cansistringtype)
+             else
+               inserttypeconv(left,cshortstringtype);
            end;
         if is_widechar(tarraydef(resulttype.def).elementtype.def) then
           chartype:='widechar'
@@ -732,47 +743,12 @@ implementation
       var
         procname: string[31];
         stringpara : tcallparanode;
-        pw : pcompilerwidestring;
-        pc : pchar;
 
       begin
          result:=nil;
          if left.nodetype=stringconstn then
           begin
-             { convert ascii 2 unicode }
-           {$ifdef ansistring_bits}
-             if (tstringdef(resulttype.def).string_typ=st_widestring) and
-                (tstringconstnode(left).st_type in [st_ansistring16,st_ansistring32,
-                       st_ansistring64,st_shortstring,st_longstring]) then
-           {$else}
-             if (tstringdef(resulttype.def).string_typ=st_widestring) and
-                (tstringconstnode(left).st_type in [st_ansistring,st_shortstring,st_longstring]) then
-           {$endif}
-              begin
-                initwidestring(pw);
-                ascii2unicode(tstringconstnode(left).value_str,tstringconstnode(left).len,pw);
-                ansistringdispose(tstringconstnode(left).value_str,tstringconstnode(left).len);
-                pcompilerwidestring(tstringconstnode(left).value_str):=pw;
-              end
-             else
-             { convert unicode 2 ascii }
-           {$ifdef ansistring_bits}
-             if (tstringconstnode(left).st_type=st_widestring) and
-                (tstringdef(resulttype.def).string_typ in [st_ansistring16,st_ansistring32,
-                           st_ansistring64,st_shortstring,st_longstring]) then
-           {$else}
-             if (tstringconstnode(left).st_type=st_widestring) and
-                (tstringdef(resulttype.def).string_typ in [st_ansistring,st_shortstring,st_longstring]) then
-           {$endif}
-              begin
-                pw:=pcompilerwidestring(tstringconstnode(left).value_str);
-                getmem(pc,getlengthwidestring(pw)+1);
-                unicode2ascii(pw,pc);
-                donewidestring(pw);
-                tstringconstnode(left).value_str:=pc;
-              end;
-             tstringconstnode(left).st_type:=tstringdef(resulttype.def).string_typ;
-             tstringconstnode(left).resulttype:=resulttype;
+             tstringconstnode(left).changestringtype(resulttype);
              result:=left;
              left:=nil;
           end
@@ -1053,6 +1029,25 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_cstring_to_int : tnode;
+      var
+        fcc : cardinal;
+        pb  : pbyte;
+      begin
+         result:=nil;
+         if left.nodetype<>stringconstn then
+           internalerror(200510012);
+         if tstringconstnode(left).len=4 then
+           begin
+             pb:=pbyte(tstringconstnode(left).value_str);
+             fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
+             result:=cordconstnode.create(fcc,u32inttype,false);
+           end
+         else
+           CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+      end;
+
+
     function ttypeconvnode.resulttype_arrayconstructor_to_set : tnode;
 
       var
@@ -1292,7 +1287,6 @@ implementation
 
 
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
-{$ifdef fpc}
       const
          resulttypeconvert : array[tconverttype] of pointer = (
           {none} nil,
@@ -1304,6 +1298,7 @@ implementation
           { pchar_2_string } @ttypeconvnode.resulttype_pchar_to_string,
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
           { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
+          { cstring_2_int } @ttypeconvnode.resulttype_cstring_to_int,
           { ansistring_2_pchar } nil,
           { string_2_chararray } @ttypeconvnode.resulttype_string_to_chararray,
           { chararray_2_string } @ttypeconvnode.resulttype_chararray_to_string,
@@ -1351,38 +1346,13 @@ implementation
          if assigned(r.proc) then
           result:=tprocedureofobject(r)();
       end;
-{$else}
-      begin
-        case c of
-          tc_string_2_string: resulttype_string_to_string;
-          tc_char_2_string : resulttype_char_to_string;
-          tc_char_2_chararray: resulttype_char_to_chararray;
-          tc_pchar_2_string : resulttype_pchar_to_string;
-          tc_cchar_2_pchar : resulttype_cchar_to_pchar;
-          tc_cstring_2_pchar : resulttype_cstring_to_pchar;
-          tc_string_2_chararray : resulttype_string_to_chararray;
-          tc_chararray_2_string : resulttype_chararray_to_string;
-          tc_real_2_real : resulttype_real_to_real;
-          tc_int_2_real : resulttype_int_to_real;
-          tc_real_2_currency : resulttype_real_to_currency;
-          tc_arrayconstructor_2_set : resulttype_arrayconstructor_to_set;
-          tc_cord_2_pointer : resulttype_cord_to_pointer;
-          tc_intf_2_guid : resulttype_interface_to_guid;
-          tc_char_2_char : resulttype_char_to_char;
-          tc_dynarray_2_openarray : resulttype_dynarray_to_openarray;
-          tc_pwchar_2_string : resulttype_pwchar_to_string;
-          tc_variant_2_dynarray : resulttype_variant_to_dynarray;
-          tc_dynarray_2_variant : resulttype_dynarray_to_variant;
-        end;
-      end;
-{$Endif fpc}
 
 
     function ttypeconvnode.det_resulttype:tnode;
 
       var
         htype : ttype;
-        hp,hp2 : tnode;
+        hp : tnode;
         currprocdef : tabstractprocdef;
         aprocdef : tprocdef;
         eq : tequaltype;
@@ -1775,9 +1745,17 @@ implementation
     function ttypeconvnode.first_cstring_to_pchar : tnode;
 
       begin
-         first_cstring_to_pchar:=nil;
+         result:=nil;
          registersint:=1;
          expectloc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_cstring_to_int : tnode;
+
+      begin
+        result:=nil;
+        internalerror(200510014);
       end;
 
 
@@ -2058,6 +2036,11 @@ implementation
          result:=first_cstring_to_pchar;
       end;
 
+    function ttypeconvnode._first_cstring_to_int : tnode;
+      begin
+         result:=first_cstring_to_int;
+      end;
+
     function ttypeconvnode._first_string_to_chararray : tnode;
       begin
          result:=first_string_to_chararray;
@@ -2161,6 +2144,7 @@ implementation
            nil, { removed in resulttype_chararray_to_string }
            @ttypeconvnode._first_cchar_to_pchar,
            @ttypeconvnode._first_cstring_to_pchar,
+           @ttypeconvnode._first_cstring_to_int,
            @ttypeconvnode._first_ansistring_to_pchar,
            @ttypeconvnode._first_string_to_chararray,
            nil, { removed in resulttype_chararray_to_string }
@@ -2285,6 +2269,12 @@ implementation
       end;
 
 
+    procedure ttypeconvnode._second_cstring_to_int;
+      begin
+        second_cstring_to_int;
+      end;
+
+
     procedure ttypeconvnode._second_string_to_chararray;
       begin
         second_string_to_chararray;
@@ -2398,6 +2388,7 @@ implementation
            @ttypeconvnode._second_nothing, { pchar_to_string, handled in resulttype pass }
            @ttypeconvnode._second_nothing, {cchar_to_pchar}
            @ttypeconvnode._second_cstring_to_pchar,
+           @ttypeconvnode._second_cstring_to_int,
            @ttypeconvnode._second_ansistring_to_pchar,
            @ttypeconvnode._second_string_to_chararray,
            @ttypeconvnode._second_nothing, { chararray_to_string, handled in resulttype pass }

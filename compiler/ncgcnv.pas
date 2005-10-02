@@ -33,6 +33,7 @@ interface
        tcgtypeconvnode = class(ttypeconvnode)
          procedure second_int_to_int;override;
          procedure second_cstring_to_pchar;override;
+         procedure second_cstring_to_int;override;
          procedure second_string_to_chararray;override;
          procedure second_array_to_pointer;override;
          procedure second_pointer_to_array;override;
@@ -136,17 +137,18 @@ interface
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          case tstringdef(left.resulttype.def).string_typ of
+           st_conststring :
+             begin
+               location.register:=cg.getaddressregister(exprasmlist);
+               cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
+             end;
            st_shortstring :
              begin
                inc(left.location.reference.offset);
                location.register:=cg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
-         {$ifdef ansistring_bits}
-           st_ansistring16,st_ansistring32,st_ansistring64 :
-         {$else}
            st_ansistring :
-         {$endif}
              begin
                if (left.nodetype=stringconstn) and
                   (str_length(left)=0) then
@@ -180,9 +182,6 @@ interface
                else
                 begin
                   location.register:=cg.getintregister(exprasmlist,OS_INT);
-{$ifdef fpc}
-{$warning Todo: convert widestrings to ascii when typecasting them to pchars}
-{$endif}
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_INT,left.location.reference,
                     location.register);
                 end;
@@ -191,26 +190,24 @@ interface
       end;
 
 
-    procedure tcgtypeconvnode.second_string_to_chararray;
-
-      var
-        arrsize: longint;
-
+    procedure tcgtypeconvnode.second_cstring_to_int;
       begin
-         with tarraydef(resulttype.def) do
-           arrsize := highrange-lowrange+1;
-         if (left.nodetype = stringconstn) and
-            { left.length+1 since there's always a terminating #0 character (JM) }
-            (tstringconstnode(left).len+1 >= arrsize) and
-            (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
-           begin
-             location_copy(location,left.location);
-             inc(location.reference.offset);
-             exit;
-           end
-         else
-           { should be handled already in resulttype pass (JM) }
-           internalerror(200108292);
+        { this can't happen because constants are already processed in
+          pass 1 }
+        internalerror(200510013);
+      end;
+
+
+    procedure tcgtypeconvnode.second_string_to_chararray;
+      begin
+        if (left.nodetype = stringconstn) and
+           (tstringdef(left.resulttype.def).string_typ=st_conststring) then
+          begin
+            location_copy(location,left.location);
+            exit;
+          end;
+        { should be handled already in resulttype pass (JM) }
+        internalerror(200108292);
       end;
 
 

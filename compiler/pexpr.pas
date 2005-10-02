@@ -674,18 +674,24 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
+              { Translate to x:=x+y[+z]. The addnode will do the
+                type checking }
               p2:=nil;
               repeat
                 p1:=comp_expr(true);
-                set_varstate(p1,vs_used,[vsf_must_be_valid]);
-                if not((p1.resulttype.def.deftype=stringdef) or
-                       ((p1.resulttype.def.deftype=orddef) and
-                        (torddef(p1.resulttype.def).typ=uchar))) then
-                  Message(parser_e_illegal_parameter_list);
                 if p2<>nil then
                   p2:=caddnode.create(addn,p2,p1)
                 else
-                  p2:=p1;
+                  begin
+                    { Force string type if it isn't yet }
+                    if not(
+                           (p1.resulttype.def.deftype=stringdef) or
+                           is_chararray(p1.resulttype.def) or
+                           is_char(p1.resulttype.def)
+                          ) then
+                      inserttypeconv(p1,cshortstringtype);
+                    p2:=p1;
+                  end;
               until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -779,7 +785,7 @@ implementation
               else
                begin
                  { then insert an empty string }
-                 p2:=cstringconstnode.createstr('',st_default);
+                 p2:=cstringconstnode.createstr('',st_conststring);
                end;
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
@@ -1387,7 +1393,7 @@ implementation
                           getmem(pc,len+1);
                           move(pchar(tconstsym(srsym).value.valueptr)^,pc^,len);
                           pc[len]:=#0;
-                          p1:=cstringconstnode.createpchar(pc,len);
+                          p1:=cstringconstnode.createpchar(pc,len,st_conststring);
                         end;
                       constwstring :
                         p1:=cstringconstnode.createwstr(pcompilerwidestring(tconstsym(srsym).value.valueptr));
@@ -2214,7 +2220,7 @@ implementation
 
            _CSTRING :
              begin
-               p1:=cstringconstnode.createstr(pattern,st_default);
+               p1:=cstringconstnode.createstr(pattern,st_conststring);
                consume(_CSTRING);
              end;
 

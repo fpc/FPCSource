@@ -316,6 +316,14 @@ type
             begin
               if (paradef.deftype<>arraydef) then
                 internalerror(200405241);
+              { passing a string to an array of char }
+                 if (p.nodetype=stringconstn) then
+                   begin
+                     len:=str_length(p);
+                     if len>0 then
+                      dec(len);
+                   end
+              else
               { handle special case of passing an single array to an array of array }
               if compare_defs(tarraydef(paradef).elementtype.def,p.resulttype.def,nothingn)>=te_equal then
                 len:=0

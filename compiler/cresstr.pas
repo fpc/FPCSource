@@ -157,7 +157,7 @@ procedure Tresourcestrings.CreateResourceStringList;
             getmem(s,len+1);
             move(value^,s^,len);
             s[len]:=#0;
-            asmlist[al_const].concat(tai_string.create_length_pchar(s,len));
+            asmlist[al_const].concat(tai_string.create_pchar(s,len));
             asmlist[al_const].concat(tai_const.create_8bit(0));
          end;
        { append Current value (nil) and hash...}
@@ -175,7 +175,7 @@ procedure Tresourcestrings.CreateResourceStringList;
        getmem(s,l+1);
        move(Name[1],s^,l);
        s[l]:=#0;
-       asmlist[al_const].concat(tai_string.create_length_pchar(s,l));
+       asmlist[al_const].concat(tai_string.create_pchar(s,l));
        asmlist[al_const].concat(tai_const.create_8bit(0));
      end;
   end;

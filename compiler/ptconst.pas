@@ -353,7 +353,7 @@ implementation
                          len:=255;
                         getmem(ca,len+2);
                         move(tstringconstnode(p).value_str^,ca^,len+1);
-                        asmlist[al_const].concat(Tai_string.Create_length_pchar(ca,len+1));
+                        asmlist[al_const].concat(Tai_string.Create_pchar(ca,len+1));
                       end
                     else
                       if is_constcharnode(p) then
@@ -593,7 +593,7 @@ implementation
                        getmem(ca,strlength+1);
                        move(strval^,ca^,strlength);
                        ca[strlength]:=#0;
-                       asmlist[cural].concat(Tai_string.Create_length_pchar(ca,strlength));
+                       asmlist[cural].concat(Tai_string.Create_pchar(ca,strlength));
                        { fillup with spaces if size is shorter }
                        if t.def.size>strlength then
                         begin
@@ -603,7 +603,7 @@ implementation
                           fillchar(ca[0],t.def.size-strlength-1,' ');
                           ca[t.def.size-strlength-1]:=#0;
                           { this can also handle longer strings }
-                          asmlist[cural].concat(Tai_string.Create_length_pchar(ca,t.def.size-strlength-1));
+                          asmlist[cural].concat(Tai_string.Create_pchar(ca,t.def.size-strlength-1));
                         end;
                      end;
                    st_ansistring:
@@ -619,14 +619,11 @@ implementation
                             asmlist[al_const].concat(Tai_const.Create_aint(-1));
                             asmlist[al_const].concat(Tai_const.Create_aint(strlength));
                             asmlist[al_const].concat(Tai_label.Create(ll));
-                            getmem(ca,strlength+2);
+                            getmem(ca,strlength+1);
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
                             ca[strlength]:=#0;
-                            { End of the PChar. The memory has to be allocated because in }
-                            { tai_string.done, there is a freemem(len+1) (JM)             }
-                            ca[strlength+1]:=#0;
-                            asmlist[al_const].concat(Tai_string.Create_length_pchar(ca,strlength+1));
+                            asmlist[al_const].concat(Tai_string.Create_pchar(ca,strlength));
                           end;
                      end;
                    st_widestring:

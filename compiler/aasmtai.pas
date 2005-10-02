@@ -270,8 +270,7 @@ interface
           { extra len so the string can contain an \0 }
           len : longint;
           constructor Create(const _str : string);
-          constructor Create_pchar(_str : pchar);
-          constructor Create_length_pchar(_str : pchar;length : longint);
+          constructor Create_pchar(_str : pchar;length : longint);
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1478,7 +1477,6 @@ implementation
  ****************************************************************************}
 
      constructor tai_string.Create(const _str : string);
-
        begin
           inherited Create;
           typ:=ait_string;
@@ -1487,17 +1485,8 @@ implementation
           strpcopy(str,_str);
        end;
 
-     constructor tai_string.Create_pchar(_str : pchar);
 
-       begin
-          inherited Create;
-          typ:=ait_string;
-          str:=_str;
-          len:=strlen(_str);
-       end;
-
-    constructor tai_string.Create_length_pchar(_str : pchar;length : longint);
-
+    constructor tai_string.Create_pchar(_str : pchar;length : longint);
        begin
           inherited Create;
           typ:=ait_string;
@@ -1505,12 +1494,11 @@ implementation
           len:=length;
        end;
 
-    destructor tai_string.destroy;
 
+    destructor tai_string.destroy;
       begin
-         { you can have #0 inside the strings so }
          if str<>nil then
-           freemem(str,len+1);
+           freemem(str);
          inherited Destroy;
       end;
 
@@ -1519,9 +1507,8 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         len:=ppufile.getlongint;
-        getmem(str,len+1);
+        getmem(str,len);
         ppufile.getdata(str^,len);
-        str[len]:=#0;
       end;
 
 
@@ -1538,8 +1525,8 @@ implementation
         p : tlinkedlistitem;
       begin
         p:=inherited getcopy;
-        getmem(tai_string(p).str,len+1);
-        move(str^,tai_string(p).str^,len+1);
+        getmem(tai_string(p).str,len);
+        move(str^,tai_string(p).str^,len);
         getcopy:=p;
       end;
 

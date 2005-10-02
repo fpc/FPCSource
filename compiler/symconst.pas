@@ -188,16 +188,11 @@ type
   );
 
   { string types }
-  tstringtype = (st_default,
+  tstringtype = (
+    st_conststring,
     st_shortstring,
     st_longstring,
-  {$ifndef ansistring_bits}
     st_ansistring,
-  {$else}
-    st_ansistring16,
-    st_ansistring32,
-    st_ansistring64,
-  {$endif}
     st_widestring
   );
 

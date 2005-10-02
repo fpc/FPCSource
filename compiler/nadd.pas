@@ -558,7 +558,7 @@ implementation
           begin
              case nodetype of
                 addn :
-                  t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                  t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,st_conststring);
                 ltn :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
                 lten :
@@ -1086,10 +1086,17 @@ implementation
              end;
           end
          { pointer comparision and subtraction }
-         else if ((rd.deftype=pointerdef) and (ld.deftype=pointerdef)) or
+         else if (
+                  (rd.deftype=pointerdef) and (ld.deftype=pointerdef)
+                 ) or
                  { compare pchar to char arrays by addresses like BP/Delphi }
-                 ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
-                 ((is_pchar(rd) or (rt=niln)) and is_chararray(ld)) then
+                 (
+                  (nodetype in [equaln,unequaln]) and
+                  (
+                   ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
+                   ((is_pchar(rd) or (rt=niln)) and is_chararray(ld))
+                  )
+                 ) then
           begin
             { convert char array to pointer }
             if is_chararray(rd) then
@@ -1325,16 +1332,16 @@ implementation
             if not assigned(hsym) then
               internalerror(200412043);
             { For methodpointers compare only tmethodpointer.proc }
-	    if (rd.deftype=procvardef) and
+            if (rd.deftype=procvardef) and
                (not tprocvardef(rd).is_addressonly) then
-	      begin
+              begin
                 right:=csubscriptnode.create(
                            hsym,
                            ctypeconvnode.create_internal(right,methodpointertype));
-	       end;
-	    if (ld.deftype=procvardef) and
-	       (not tprocvardef(ld).is_addressonly) then
-	      begin
+               end;
+            if (ld.deftype=procvardef) and
+               (not tprocvardef(ld).is_addressonly) then
+              begin
                 left:=csubscriptnode.create(
                           hsym,
                           ctypeconvnode.create_internal(left,methodpointertype));

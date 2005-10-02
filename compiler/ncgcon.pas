@@ -248,11 +248,7 @@ implementation
          i,mylength  : longint;
       begin
          { for empty ansistrings we could return a constant 0 }
-       {$ifdef ansistring_bits}
-         if (st_type in [st_ansistring16,st_ansistring32,st_ansistring64,st_widestring]) and (len=0) then
-       {$else}
          if (st_type in [st_ansistring,st_widestring]) and (len=0) then
-       {$endif}
           begin
             location_reset(location,LOC_CONSTANT,OS_ADDR);
             location.value:=0;
@@ -288,11 +284,28 @@ implementation
                                (lastlabel<>nil) and
                                (tai_string(hp1).len=mylength) then
                               begin
-                                 { if shortstring then check the length byte first and
-                                   set the start index to 1 }
                                  case st_type of
+                                   st_conststring:
+                                     begin
+                                       j:=0;
+                                       same_string:=true;
+                                       if len>0 then
+                                         begin
+                                           for i:=0 to len-1 do
+                                             begin
+                                               if tai_string(hp1).str[j]<>value_str[i] then
+                                                 begin
+                                                   same_string:=false;
+                                                   break;
+                                                 end;
+                                               inc(j);
+                                             end;
+                                         end;
+                                     end;
                                    st_shortstring:
                                      begin
+                                       { if shortstring then check the length byte first and
+                                         set the start index to 1 }
                                        if len=ord(tai_string(hp1).str[0]) then
                                          begin
                                            j:=1;
@@ -311,55 +324,7 @@ implementation
                                              end;
                                          end;
                                      end;
-                                 {$ifdef ansistring_bits}
-                                   st_ansistring16:
-                                     begin
-                                       { before the string the following sequence must be found:
-                                         <label>
-                                           constsymbol <datalabel>
-                                           const32 <len>
-                                           const32 <len>
-                                           const32 -1
-                                         we must then return <label> to reuse
-                                       }
-                                       hp2:=tai(lastlabelhp.previous);
-                                       if assigned(hp2) and
-                                          (hp2.typ=ait_const_16bit) and
-                                          (tai_const(hp2).value=aword(-1)) and
-                                          assigned(hp2.previous) and
-                                          (tai(hp2.previous).typ=ait_const_16bit) and
-                                          (tai_const(hp2.previous).value=len) and
-                                          assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const_16bit) and
-                                          (tai_const(hp2.previous.previous).value=len) and
-                                          assigned(hp2.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous).typ=ait_const_symbol) and
-                                          assigned(hp2.previous.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
-                                         begin
-                                           lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
-                                           same_string:=true;
-                                           j:=0;
-                                           if len>0 then
-                                             begin
-                                               for i:=0 to len-1 do
-                                                begin
-                                                  if tai_string(hp1).str[j]<>value_str[i] then
-                                                   begin
-                                                     same_string:=false;
-                                                     break;
-                                                   end;
-                                                  inc(j);
-                                                end;
-                                             end;
-                                         end;
-                                     end;
-                                 {$endif}
-                                 {$ifdef ansistring_bits}
-                                   st_ansistring32,
-                                 {$else}
                                    st_ansistring,
-                                 {$endif}
                                    st_widestring :
                                      begin
                                        { before the string the following sequence must be found:
@@ -398,50 +363,6 @@ implementation
                                              end;
                                          end;
                                      end;
-                                 {$ifdef ansistring_bits}
-                                   st_ansistring64:
-                                     begin
-                                       { before the string the following sequence must be found:
-                                         <label>
-                                           constsymbol <datalabel>
-                                           const32 <len>
-                                           const32 <len>
-                                           const32 -1
-                                         we must then return <label> to reuse
-                                       }
-                                       hp2:=tai(lastlabelhp.previous);
-                                       if assigned(hp2) and
-                                          (hp2.typ=ait_const_64bit) and
-                                          (tai_const(hp2).value=aword(-1)) and
-                                          assigned(hp2.previous) and
-                                          (tai(hp2.previous).typ=ait_const_64bit) and
-                                          (tai_const(hp2.previous).value=len) and
-                                          assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const_64bit) and
-                                          (tai_const(hp2.previous.previous).value=len) and
-                                          assigned(hp2.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous).typ=ait_const_symbol) and
-                                          assigned(hp2.previous.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous.previous).typ=ait_label) then
-                                         begin
-                                           lastlabel:=tai_label(hp2.previous.previous.previous.previous).l;
-                                           same_string:=true;
-                                           j:=0;
-                                           if len>0 then
-                                             begin
-                                               for i:=0 to len-1 do
-                                                begin
-                                                  if tai_string(hp1).str[j]<>value_str[i] then
-                                                   begin
-                                                     same_string:=false;
-                                                     break;
-                                                   end;
-                                                  inc(j);
-                                                end;
-                                             end;
-                                         end;
-                                     end;
-                                 {$endif}
                                  end;
                                  { found ? }
                                  if same_string then
@@ -465,33 +386,7 @@ implementation
                    asmlist[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case st_type of
-                    {$ifdef ansistring_bits}
-                      st_ansistring16:
-                        begin
-                           { an empty ansi string is nil! }
-                           if len=0 then
-                             asmlist[al_typedconsts].concat(Tai_const.Create_ptr(0))
-                           else
-                             begin
-                                objectlibrary.getdatalabel(l1);
-                                objectlibrary.getdatalabel(l2);
-                                Consts.concat(Tai_label.Create(l2));
-                                Consts.concat(Tai_const_symbol.Create(l1));
-                                Consts.concat(Tai_const.Create_32bit(-1));
-                                Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_label.Create(l1));
-                                getmem(pc,len+2);
-                                move(value_str^,pc^,len);
-                                pc[len]:=#0;
-                                { to overcome this problem we set the length explicitly }
-                                { with the ending null char }
-                                asmlist[al_typedconsts].concat(Tai_string.Create_length_pchar(pc,len+1));
-                                { return the offset of the real string }
-                                lab_str:=l2;
-                             end;
-                        end;
-                    {$endif}
-                      {$ifdef ansistring_bits}st_ansistring32:{$else}st_ansistring:{$endif}
+                      st_ansistring:
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
@@ -505,42 +400,15 @@ implementation
                                 asmlist[al_typedconsts].concat(Tai_const.Create_aint(-1));
                                 asmlist[al_typedconsts].concat(Tai_const.Create_aint(len));
                                 asmlist[al_typedconsts].concat(Tai_label.Create(l1));
-                                getmem(pc,len+2);
+                                { include also terminating zero }
+                                getmem(pc,len+1);
                                 move(value_str^,pc^,len);
                                 pc[len]:=#0;
-                                { to overcome this problem we set the length explicitly }
-                                { with the ending null char }
-                                asmlist[al_typedconsts].concat(Tai_string.Create_length_pchar(pc,len+1));
+                                asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
                         end;
-                    {$ifdef ansistring_bits}
-                      st_ansistring64:
-                        begin
-                           { an empty ansi string is nil! }
-                           if len=0 then
-                             Consts.concat(Tai_const.Create_ptr(0))
-                           else
-                             begin
-                                objectlibrary.getdatalabel(l1);
-                                objectlibrary.getdatalabel(l2);
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l2));
-                                asmlist[al_typedconsts].concat(Tai_const_symbol.Create(l1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_32bit(-1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_32bit(len));
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l1));
-                                getmem(pc,len+2);
-                                move(value_str^,pc^,len);
-                                pc[len]:=#0;
-                                { to overcome this problem we set the length explicitly }
-                                { with the ending null char }
-                                asmlist[al_typedconsts].concat(Tai_string.Create_length_pchar(pc,len+1));
-                                { return the offset of the real string }
-                                lab_str:=l2;
-                             end;
-                        end;
-                    {$endif}
                       st_widestring:
                         begin
                            { an empty wide string is nil! }
@@ -574,14 +442,20 @@ implementation
                            l:=255
                           else
                            l:=len;
-                          { also length and terminating zero }
-                          getmem(pc,l+3);
-                          move(value_str^,pc[1],l+1);
+                          { include length and terminating zero for quick conversion to pchar }
+                          getmem(pc,l+2);
+                          move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
-                          { to overcome this problem we set the length explicitly }
-                          { with the ending null char }
                           pc[l+1]:=#0;
-                          asmlist[al_typedconsts].concat(Tai_string.Create_length_pchar(pc,l+2));
+                          asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,l+2));
+                        end;
+                      st_conststring:
+                        begin
+                          { include terminating zero }
+                          getmem(pc,len+1);
+                          move(value_str^,pc[0],len);
+                          pc[len]:=#0;
+                          asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
                    end;
                 end;

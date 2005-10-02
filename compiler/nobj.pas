@@ -269,7 +269,7 @@ implementation
          asmlist[al_globals].concat(tai_const.create_8bit(len));
          getmem(ca,len+1);
          move(p^.data.messageinf.str^,ca^,len+1);
-         asmlist[al_globals].concat(Tai_string.Create_pchar(ca));
+         asmlist[al_globals].concat(Tai_string.Create_pchar(ca,len));
          if assigned(p^.r) then
            writenames(p^.r);
       end;

@@ -1415,7 +1415,7 @@ end;
    pc: PChar;
   Begin
      getmem(pc,length(s)+1);
-     p.concat(Tai_string.Create_length_pchar(strpcopy(pc,s),length(s)));
+     p.concat(Tai_string.Create_pchar(strpcopy(pc,s),length(s)));
   end;
 
   Procedure ConcatPasString(p : TAAsmoutput;s:string);

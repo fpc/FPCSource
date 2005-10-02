@@ -49,6 +49,7 @@ interface
           tc_pchar_2_string,
           tc_cchar_2_pchar,
           tc_cstring_2_pchar,
+          tc_cstring_2_int,
           tc_ansistring_2_pchar,
           tc_string_2_chararray,
           tc_chararray_2_string,
@@ -266,6 +267,15 @@ implementation
                          doconv:=tc_int_2_int;
                       end;
                    end;
+                 arraydef :
+                   begin
+                     if (m_mac in aktmodeswitches) and
+                        (fromtreetype=stringconstn) then
+                       begin
+                         eq:=te_convert_l3;
+                         doconv:=tc_cstring_2_int;
+                       end;
+                   end;
                end;
              end;
 
@@ -277,7 +287,9 @@ implementation
                      { Constant string }
                      if (fromtreetype=stringconstn) then
                       begin
-                        if (tstringdef(def_from).string_typ=tstringdef(def_to).string_typ) then
+                        { we can change the stringconst node }
+                        if (tstringdef(def_from).string_typ=st_conststring) or
+                           (tstringdef(def_from).string_typ=tstringdef(def_to).string_typ) then
                           eq:=te_equal
                         else
                          begin
@@ -285,14 +297,11 @@ implementation
                            { Don't prefer conversions from widestring to a
                              normal string as we can loose information }
                            if tstringdef(def_from).string_typ=st_widestring then
-                             eq:=te_convert_l1
+                             eq:=te_convert_l3
+                           else if tstringdef(def_to).string_typ=st_widestring then
+                             eq:=te_convert_l2
                            else
-                             begin
-                               if tstringdef(def_to).string_typ=st_widestring then
-                                 eq:=te_convert_l1
-                               else
-                                 eq:=te_equal; { we can change the stringconst node }
-                             end;
+                             eq:=te_equal;
                          end;
                       end
                      else
@@ -350,36 +359,55 @@ implementation
                      { array of char to string, the length check is done by the firstpass of this node }
                      if is_chararray(def_from) or is_open_chararray(def_from) then
                       begin
-                        doconv:=tc_chararray_2_string;
-                        if is_open_array(def_from) then
+                        { "Untyped" stringconstn is an array of char }
+                        if fromtreetype=stringconstn then
                           begin
-                            if is_ansistring(def_to) then
-                              eq:=te_convert_l1
-                            else if is_widestring(def_to) then
+                            doconv:=tc_string_2_string;
+                            { prefered string type depends on the $H switch }
+                            if not(cs_ansistrings in aktlocalswitches) and
+                               (tstringdef(def_to).string_typ=st_shortstring) then
+                              eq:=te_equal
+                            else if (cs_ansistrings in aktlocalswitches) and
+                               (tstringdef(def_to).string_typ=st_ansistring) then
+                              eq:=te_equal
+                            else if tstringdef(def_to).string_typ=st_widestring then
                               eq:=te_convert_l3
                             else
-                              eq:=te_convert_l2;
+                              eq:=te_convert_l1;
                           end
                         else
                           begin
-                            if is_shortstring(def_to) then
-                              begin
-                                { Only compatible with arrays that fit
-                                  smaller than 255 chars }
-                                if (def_from.size <= 255) then
-                                  eq:=te_convert_l1;
-                              end
-                            else if is_ansistring(def_to) then
-                              begin
-                                if (def_from.size > 255) then
-                                  eq:=te_convert_l1
-                                else
-                                  eq:=te_convert_l2;
-                              end
-                            else if is_widestring(def_to) then
-                              eq:=te_convert_l3
-                            else
-                              eq:=te_convert_l2;
+                          doconv:=tc_chararray_2_string;
+                          if is_open_array(def_from) then
+                            begin
+                              if is_ansistring(def_to) then
+                                eq:=te_convert_l1
+                              else if is_widestring(def_to) then
+                                eq:=te_convert_l3
+                              else
+                                eq:=te_convert_l2;
+                            end
+                          else
+                            begin
+                              if is_shortstring(def_to) then
+                                begin
+                                  { Only compatible with arrays that fit
+                                    smaller than 255 chars }
+                                  if (def_from.size <= 255) then
+                                    eq:=te_convert_l1;
+                                end
+                              else if is_ansistring(def_to) then
+                                begin
+                                  if (def_from.size > 255) then
+                                    eq:=te_convert_l1
+                                  else
+                                    eq:=te_convert_l2;
+                                end
+                              else if is_widestring(def_to) then
+                                eq:=te_convert_l3
+                              else
+                                eq:=te_convert_l2;
+                            end;
                           end;
                       end
                      else
@@ -630,6 +658,14 @@ implementation
                               end;
                           end
                         else
+                          { to array of char, from "Untyped" stringconstn (array of char) }
+                          if (fromtreetype=stringconstn) and
+                             is_chararray(def_to) then
+                            begin
+                              eq:=te_convert_l1;
+                              doconv:=tc_string_2_chararray;
+                            end
+                        else
                          { other arrays }
                           begin
                             { open array -> array }
@@ -752,7 +788,7 @@ implementation
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
-                        eq:=te_convert_l1;
+                        eq:=te_convert_l2;
                       end
                      else
                       if cdo_explicit in cdoptions then
@@ -811,21 +847,35 @@ implementation
                    end;
                  arraydef :
                    begin
-                     { chararray to pointer }
-                     if (is_zero_based_array(def_from) or
-                         is_open_array(def_from)) and
-                        equal_defs(tarraydef(def_from).elementtype.def,tpointerdef(def_to).pointertype.def) then
+                     { string constant (which can be part of array constructor)
+                       to zero terminated string constant }
+                     if (fromtreetype in [arrayconstructorn,stringconstn]) and
+                        (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
-                        doconv:=tc_array_2_pointer;
-                        eq:=te_convert_l1;
+                        doconv:=tc_cstring_2_pchar;
+                        eq:=te_convert_l2;
                       end
                      else
-                      { dynamic array to pointer, delphi only }
-                      if (m_delphi in aktmodeswitches) and
-                         is_dynamic_array(def_from) then
-                       begin
-                         eq:=te_equal;
-                       end;
+                      { chararray to pointer }
+                      if (is_zero_based_array(def_from) or
+                          is_open_array(def_from)) and
+                          equal_defs(tarraydef(def_from).elementtype.def,tpointerdef(def_to).pointertype.def) then
+                        begin
+                          doconv:=tc_array_2_pointer;
+                          { don't prefer the pchar overload when a constant
+                            string was passed }
+                          if fromtreetype=stringconstn then
+                            eq:=te_convert_l2
+                          else
+                            eq:=te_convert_l1;
+                        end
+                     else
+                       { dynamic array to pointer, delphi only }
+                       if (m_delphi in aktmodeswitches) and
+                          is_dynamic_array(def_from) then
+                        begin
+                          eq:=te_equal;
+                        end;
                    end;
                  pointerdef :
                    begin

@@ -10,11 +10,11 @@ end;
 procedure lowercase(c:shortstring);overload;
 begin
   writeln('short');
-  err:=false;
 end;
 procedure lowercase(c:ansistring);overload;
 begin
   writeln('ansi');
+  err:=false;
 end;
 
 var
@@ -23,7 +23,9 @@ var
   i : longint;
 begin
   err:=true;
-  { this should choosse the shortstring version }
+  { this should choosse the ansistring version }
+  w:='';
+  for i:=1 to 300 do w:=w+'.';
   lowercase(w);
   if err then
    begin
