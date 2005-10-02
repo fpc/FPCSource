@@ -348,17 +348,17 @@ implementation
 
     constructor tasmlabel.createlocal(nr:longint;ltyp:TAsmLabelType);
       begin;
+        inherited create(target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_FUNCTION);
         labelnr:=nr;
         labeltype:=ltyp;
-        inherited create(target_asm.labelprefix+asmlabeltypeprefix[labeltype]+tostr(labelnr),AB_LOCAL,AT_FUNCTION);
         is_set:=false;
       end;
 
 
     constructor tasmlabel.createglobal(const modulename:string;nr:longint;ltyp:TAsmLabelType);
       begin;
+        inherited create('_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
         labelnr:=nr;
-        inherited create('_$'+modulename+'$_L'+asmlabeltypeprefix[labeltype]+tostr(labelnr),AB_GLOBAL,AT_DATA);
         labeltype:=ltyp;
         is_set:=false;
         { write it always }
@@ -935,8 +935,8 @@ implementation
 
     procedure TAsmLibraryData.getdatalabel(var l : tasmlabel);
       begin
-        l:=tasmlabel.createglobal(name,nextlabelnr[alt_addr],alt_addr);
-        inc(nextlabelnr[alt_addr]);
+        l:=tasmlabel.createglobal(name,nextlabelnr[alt_data],alt_data);
+        inc(nextlabelnr[alt_data]);
         symbolsearch.insert(l);
       end;
 
