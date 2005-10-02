@@ -113,12 +113,13 @@ begin
     Exit;
   If Not InitRes then
     InitializeResources;
-  searchhash:=HashELF(ResourceName);
-  n:=strpas(resourcename);
+  { resources aren't case sensitive }
+  n:=upcase(strpas(resourcename));
+  searchhash:=HashELF(n);
   I:=0;
   While (Result=0) and (I<ResInfoCount) do
     begin
-    if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (FPCRuntimeResourceInfoArray[i].name=n) then
+    if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (upcase(FPCRuntimeResourceInfoArray[i].name)=n) then
       result:=i+1;
     Inc(I);
     end;
