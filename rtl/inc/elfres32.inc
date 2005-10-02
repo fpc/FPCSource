@@ -81,14 +81,17 @@ begin
   If (ResInfoCount<>0) then
     begin
     FPCRuntimeResourceInfoArray:=GetMem(SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
+    { we must zero out this because name is an ansistring }
+    fillchar(FPCRuntimeResourceInfoArray^,SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount,0);
+
     for i:=0 to ResInfoCount-1 do
       begin
-      CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
-      FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
-      FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
-      FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
-      FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
-      FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
+        CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
+        FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
+        FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
+        FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
+        FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
+        FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
       end;
     end;
   InitRes:=true;
@@ -113,12 +116,13 @@ begin
     Exit;
   If Not InitRes then
     InitializeResources;
-  searchhash:=HashELF(ResourceName);
-  n:=strpas(resourcename);
+  { resources aren't case sensitive }
+  n:=upcase(strpas(resourcename));
+  searchhash:=HashELF(n);
   I:=0;
   While (Result=0) and (I<ResInfoCount) do
     begin
-    if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (FPCRuntimeResourceInfoArray[i].name=n) then
+    if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (upcase(FPCRuntimeResourceInfoArray[i].name)=n) then
       result:=i+1;
     Inc(I);
     end;
