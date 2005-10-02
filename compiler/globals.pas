@@ -1352,31 +1352,34 @@ implementation
         startpc,pc : pchar;
         sepch : char;
      begin
+       FindFilePchar:=false;
+       if Assigned (Path) then
+        begin
 {$ifdef Unix}
-       sepch:=':';
+          sepch:=':';
 {$else}
 {$ifdef macos}
-       sepch:=',';
+          sepch:=',';
 {$else}
-       sepch:=';';
+          sepch:=';';
 {$endif macos}
 {$endif Unix}
-       FindFilePchar:=false;
-       pc:=path;
-       repeat
-          startpc:=pc;
-          while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
-           inc(pc);
-          move(startpc^,singlepathstring[1],pc-startpc);
-          singlepathstring[0]:=char(longint(pc-startpc));
-          singlepathstring:=FixPath(singlepathstring,false);
-          result:=FileExistsNonCase(singlepathstring,f,FoundFile);
-          if result then
-            exit;
-          if (pc^=#0) then
-            break;
-          inc(pc);
-       until false;
+          pc:=path;
+          repeat
+             startpc:=pc;
+             while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
+              inc(pc);
+             move(startpc^,singlepathstring[1],pc-startpc);
+             singlepathstring[0]:=char(longint(pc-startpc));
+             singlepathstring:=FixPath(singlepathstring,false);
+             result:=FileExistsNonCase(singlepathstring,f,FoundFile);
+             if result then
+               exit;
+             if (pc^=#0) then
+               break;
+             inc(pc);
+          until false;
+        end;
        foundfile:=f;
      end;
 
