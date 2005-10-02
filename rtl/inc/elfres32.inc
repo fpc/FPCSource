@@ -82,7 +82,7 @@ begin
     begin
     FPCRuntimeResourceInfoArray:=GetMem(SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
     { we must zero out this because name is an ansistring }
-    fillchar(FPCRuntimeResourceInfoArray^,0,SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
+    fillchar(FPCRuntimeResourceInfoArray^,SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount,0);
 
     for i:=0 to ResInfoCount-1 do
       begin
