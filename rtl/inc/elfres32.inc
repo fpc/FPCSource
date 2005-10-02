@@ -81,14 +81,17 @@ begin
   If (ResInfoCount<>0) then
     begin
     FPCRuntimeResourceInfoArray:=GetMem(SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
+    { we must zero out this because name is an ansistring }
+    fillchar(FPCRuntimeResourceInfoArray,0,SizeOf(TFPCRuntimeResourceInfo)*ResInfoCount);
+
     for i:=0 to ResInfoCount-1 do
       begin
-      CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
-      FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
-      FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
-      FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
-      FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
-      FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
+        CurrentResource:=pFPCResourceInfo(pointer(FPCResourceSectionLocation^.reshash.ptr+i*sizeof(TFPCResourceInfo)));
+        FPCRuntimeResourceInfoArray[i].reshash:=CurrentResource^.reshash;
+        FPCRuntimeResourceInfoArray[i].restype:=CurrentResource^.restype;
+        FPCRuntimeResourceInfoArray[i].ptr:=pointer(CurrentResource^.ptr)+PtrInt(FPCResourceSectionLocation^.resdata.ptr);
+        FPCRuntimeResourceInfoArray[i].name:=pchar(CurrentResource^.name)+PtrInt(FPCResourceSectionLocation^.ressym.ptr);
+        FPCRuntimeResourceInfoArray[i].size:=CurrentResource^.size;
       end;
     end;
   InitRes:=true;
