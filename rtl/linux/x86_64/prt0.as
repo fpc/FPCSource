@@ -55,7 +55,7 @@ _start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movl    $60,%eax                 /* exit call */
+        movl    $231,%eax                 /* exit_group call */
         movzwl    operatingsystem_result,%edi
         syscall
         jmp     _haltproc

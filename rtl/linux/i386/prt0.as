@@ -70,8 +70,7 @@ _start:
         .type   _haltproc,@function
 _haltproc:
 _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
-        xorl    %eax,%eax
-        incl    %eax                    /* eax=1, exit call */
+	movl    $252,%eax                /* exit_group */
         movzwl  operatingsystem_result,%ebx
         int     $0x80
         jmp     _haltproc2
