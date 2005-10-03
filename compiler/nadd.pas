@@ -1089,9 +1089,9 @@ implementation
          else if (
                   (rd.deftype=pointerdef) and (ld.deftype=pointerdef)
                  ) or
-                 { compare pchar to char arrays by addresses like BP/Delphi }
+                 { compare/add pchar to char arrays by addresses like BP/Delphi }
                  (
-                  (nodetype in [equaln,unequaln]) and
+                  (nodetype in [equaln,unequaln,subn,addn]) and
                   (
                    ((is_pchar(ld) or (lt=niln)) and is_chararray(rd)) or
                    ((is_pchar(rd) or (rt=niln)) and is_chararray(ld))
