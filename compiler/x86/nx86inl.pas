@@ -246,8 +246,18 @@ implementation
      procedure tx86inlinenode.second_sqr_real;
 
        begin
-         load_fpu_location;
-         emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
+         if use_sse(resulttype.def) then
+           begin
+             secondpass(left);
+             location_force_mmregscalar(exprasmlist,left.location,false);
+             location:=left.location;
+             cg.a_opmm_loc_reg(exprasmlist,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
+           end
+         else
+           begin
+             load_fpu_location;
+             emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
+           end;
        end;
 
      procedure tx86inlinenode.second_sqrt_real;
