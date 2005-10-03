@@ -62,7 +62,7 @@ implementation
       cpubase,parabase,
       tgobj,ncgutil,
       cgutils,cgobj,
-      ncgbas;
+      ncgbas,ncgflw;
 
 {*****************************************************************************
                              SecondLoad
@@ -365,14 +365,10 @@ implementation
                     end;
                end;
             typedconstsym :
-               begin
-                  location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
-               end;
+              location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
             labelsym :
-               begin
-                  location.reference.symbol:=objectlibrary.newasmsymbol(tlabelsym(symtableentry).mangledname,AB_EXTERNAL,AT_FUNCTION);
-               end;
-            else internalerror(4);
+              location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
+            else internalerror(200510032);
          end;
       end;
 
