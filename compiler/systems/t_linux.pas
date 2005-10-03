@@ -254,8 +254,10 @@ begin
            libctype:=uclibc;
            dynamiclinker:='/lib/ld-uClibc.so.0';
          end
+       else if fileexists('/lib/ld-linux.so.1') then
+         DynamicLinker:='/lib/ld-linux.so.1'
        else
-         DynamicLinker:='/lib/ld-linux.so.1';
+         libctype:=glibc21;
 {$endif i386}
 
 {$ifdef x86_64}
