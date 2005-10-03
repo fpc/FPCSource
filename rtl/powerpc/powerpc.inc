@@ -1147,3 +1147,17 @@ asm
 end;
 
 
+{$IFDEF MORPHOS}
+{ this is only required for MorphOS }
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+var tmp: array[0..1] of dword;
+asm
+   { setting fpu to round to nearest mode }
+   li r3,0
+   stw r3,8(r1)
+   stw r3,12(r1)  
+   lfd f1,8(r1)
+   mtfsf 7,f1    
+end;
+{$ENDIF}
