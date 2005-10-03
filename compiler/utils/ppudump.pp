@@ -452,7 +452,7 @@ Procedure ReadAsmSymbols;
 type
   { Copied from aasmbase.pas }
   TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
-  TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION);
+  TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL);
 var
   s,
   bindstr,
@@ -483,6 +483,8 @@ begin
          typestr:='Data';
        AT_SECTION :
          typestr:='Section';
+       AT_LABEL :
+         typestr:='Label';
        else
          typestr:='<Error !!>'
      end;

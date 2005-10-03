@@ -455,7 +455,7 @@ implementation
                           typedconstsym :
                             asmlist[cural].concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           labelsym :
-                            asmlist[cural].concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_FUNCTION,offset));
+                            asmlist[cural].concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_LABEL,offset));
                           constsym :
                             if tconstsym(srsym).consttyp=constresourcestring then
                               asmlist[cural].concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),AT_DATA,tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))

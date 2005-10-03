@@ -255,7 +255,8 @@ interface
             tf_needs_dwarf_cfi,
             tf_use_8_3,
             tf_pic_uses_got,
-            tf_library_needs_pic
+            tf_library_needs_pic,
+            tf_needs_symbol_type
        );
 
        psysteminfo = ^tsysteminfo;

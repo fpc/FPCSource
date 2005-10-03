@@ -1395,7 +1395,7 @@ unit raatt;
                     begin
                       CreateLocalLabel(tempstr,hl,false);
                       hs:=hl.name;
-                      hssymtyp:=AT_FUNCTION;
+                      hssymtyp:=AT_LABEL;
                     end
                    else
                     if SearchLabel(tempstr,hl,false) then

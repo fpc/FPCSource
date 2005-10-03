@@ -42,7 +42,7 @@ interface
 
        TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
 
-       TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION);
+       TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL);
 
        TAsmRelocationType = (RELOC_ABSOLUTE,RELOC_RELATIVE,RELOC_RVA);
 
@@ -348,7 +348,7 @@ implementation
 
     constructor tasmlabel.createlocal(nr:longint;ltyp:TAsmLabelType);
       begin;
-        inherited create(target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_FUNCTION);
+        inherited create(target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;

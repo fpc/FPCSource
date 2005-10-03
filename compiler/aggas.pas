@@ -246,16 +246,16 @@ implementation
 
 
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
-    {$ifdef powerpc64}
-    function is_const(hp : tai) : boolean;
+
+    function needsObject(hp : tai_symbol) : boolean;
     begin
-	is_const := 
-          assigned(hp) and
-          (hp.typ in [ait_const_rva_symbol,
+      needsObject :=
+          assigned(hp.next) and
+          (tai_symbol(hp.next).typ in [ait_const_rva_symbol,
              ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]);
     end;
-    {$endif powerpc64}
+
     var
       ch       : char;
       hp       : tai;
@@ -272,6 +272,8 @@ implementation
       e        : extended;
 {$endif cpuextended}
       do_line  : boolean;
+
+      sepChar : char;
     begin
       if not assigned(p) then
        exit;
@@ -669,8 +671,6 @@ implementation
                   AsmWriteLn(':');
                 end;
              end;
-
-  
            ait_symbol :
              begin
                if tai_symbol(hp).is_global then
@@ -678,45 +678,9 @@ implementation
                   AsmWrite('.globl'#9);
                   AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
-               if target_info.system in [system_i386_linux,system_i386_beos,
-                                         system_powerpc_linux,system_m68k_linux,
-                                         system_sparc_linux,system_alpha_linux,
-                                         system_x86_64_linux,system_arm_linux] then
-                begin
-                   AsmWrite(#9'.type'#9);
-                   AsmWrite(tai_symbol(hp).sym.name);
-                   if assigned(tai(hp.next)) and
-                      (tai(hp.next).typ in [ait_const_rva_symbol,
-                         ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
-                         ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]) then
-                     begin
-                       if target_info.system = system_arm_linux then
-                         AsmWriteLn(',#object')
-                       else
-                         AsmWriteLn(',@object')
-                     end
-                   else
-                     begin
-                       if target_info.system = system_arm_linux then
-                         AsmWriteLn(',#function')
-                       else
-                         AsmWriteLn(',@function');
-                     end;
-                   if tai_symbol(hp).sym.size>0 then
-                    begin
-                      AsmWrite(#9'.size'#9);
-                      AsmWrite(tai_symbol(hp).sym.name);
-                      AsmWrite(', ');
-                      AsmWriteLn(tostr(tai_symbol(hp).sym.size));
-                    end;
-               {$IFDEF POWERPC64}
-               end else if (target_info.system = system_powerpc64_linux) then begin
-                 if (tai_symbol(hp).sym.typ <> AT_FUNCTION) then begin
-                   AsmWriteLn(#9'.type'#9 + tai_symbol(hp).sym.name + ',@object');
-                   if tai_symbol(hp).sym.size>0 then begin
-                     AsmWriteLn(#9'.size'#9 + tai_symbol(hp).sym.name + ', ' + tostr(tai_symbol(hp).sym.size));
-                   end;
-                 end else begin
+               if (target_info.system = system_powerpc64_linux) and
+                 (tai_symbol(hp).sym.typ = AT_FUNCTION) then
+                 begin
                    AsmWriteLn('.section "opd", "aw"');
                    AsmWriteLn('.align 3');
                    AsmWriteLn(tai_symbol(hp).sym.name + ':');
@@ -724,12 +688,38 @@ implementation
                    AsmWriteLn('.previous');
                    AsmWriteLn('.size ' + tai_symbol(hp).sym.name + ', 24');
                    AsmWriteLn('.globl .' + tai_symbol(hp).sym.name);
+                   AsmWriteLn('.type .' + tai_symbol(hp).sym.name + ', @function');
+                   { the dotted name is the name of the actual function }
                    AsmWrite('.');
+                 end
+               else
+                 begin
+                   if (target_info.system <> system_arm_linux) then
+                     begin
+                       sepChar := '@';
+                     end
+                   else
+                     begin
+                       sepChar := '#';
+                     end;
+
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     begin
+                       AsmWrite(#9'.type'#9 + tai_symbol(hp).sym.name);
+                       if (needsObject(tai_symbol(hp))) then
+                         begin
+                           AsmWriteLn(',' + sepChar + 'object');
+                         end
+                       else
+                         begin
+                           AsmWriteLn(',' + sepChar + 'function');
+                         end;
+                     end;
+                   if (tf_needs_symbol_size in target_info.flags) and (tai_symbol(hp).sym.size > 0) then begin
+                     AsmWriteLn(#9'.size'#9 + tai_symbol(hp).sym.name + ', ' + tostr(tai_symbol(hp).sym.size));
+                   end;
                  end;
-               {$ENDIF}
-                end;
-               AsmWrite(tai_symbol(hp).sym.name);
-               AsmWriteLn(':');
+               AsmWriteLn(tai_symbol(hp).sym.name + ':');
              end;
 
            ait_symbol_end :
@@ -740,18 +730,16 @@ implementation
                   inc(symendcount);
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
-                  {$ifdef powerpc64}
-                  if (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then begin
-                    AsmWrite('.');
-                  end;
-                  {$endif powerpc64}
+                  if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
+                    begin
+                      AsmWrite('.');
+                    end;
                   AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
-                  {$ifdef powerpc64}
-                  if (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then begin
-                    AsmWrite('.');
-                  end;
-                  {$endif powerpc64}
+                  if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
+                    begin
+                      AsmWrite('.');
+                    end;
                   AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
              end;

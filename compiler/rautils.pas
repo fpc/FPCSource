@@ -1538,7 +1538,7 @@ end;
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname_global(s,AT_FUNCTION,0));
+       p.concat(Tai_symbol.Createname_global(s,AT_LABEL,0));
    end;
 
    procedure ConcatLocal(p:TAAsmoutput;const s : string);
@@ -1548,7 +1548,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p.concat(Tai_symbol.Createname(s,AT_FUNCTION,0));
+       p.concat(Tai_symbol.Createname(s,AT_LABEL,0));
    end;
 
 

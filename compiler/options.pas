@@ -1831,6 +1831,7 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
+  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef iA64}
   def_system_macro('CPUIA64');
