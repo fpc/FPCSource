@@ -1966,8 +1966,7 @@ implementation
                   else
                    begin
                      set_varstate(left,vs_used,[vsf_must_be_valid]);
-                     inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     setfloatresulttype;
                    end;
                 end;
 
