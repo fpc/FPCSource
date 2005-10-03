@@ -15,7 +15,7 @@ _WinMainCRTStartup:
      pushl    %esi
      pushl    %edi
      movl     8(%ebp),%edi
-     movl     %edi,U_SYSTEM_SYSINSTANCE
+     movl     %edi,SysInstance
      movl     12(%ebp),%edi
      movl     %edi,U_SYSTEM_DLLREASON
      movl     16(%ebp),%edi
