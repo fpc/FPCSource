@@ -230,7 +230,6 @@ begin
 {$endif m68k}
 
 {$ifdef i386}
-     libctype:=glibc21;
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
      if FileExists(DynamicLinker) then
