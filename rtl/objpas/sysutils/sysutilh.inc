@@ -121,6 +121,7 @@ type
    EVariantError = Class(Exception);
 
    EAccessViolation = Class(EExternal);
+   EBusError = Class(EAccessViolation);
    EPrivilege = class(EExternal);
    EStackOverflow = class(EExternal);
    EControlC = class(EExternal);
@@ -170,13 +171,13 @@ Type
 
 Var
    OnCreateGUID : TCreateGUIDFunc = Nil;
-  
+
    Function CreateGUID(out GUID : TGUID) : Integer;
 
 type
   TTerminateProc = Function: Boolean;
 
-  
+
 
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;

@@ -40,8 +40,9 @@ begin
 }
             res := 207;
         end;
+    SIGBUS :
+        res:=214;
     SIGILL,
-    SIGBUS,
     SIGSEGV :
         res:=216;
   end;

@@ -28,6 +28,7 @@ resourcestring
   SArgumentMissing       = 'Missing argument in format "%s"';
   SAssertError           = '%s (%s, line %d)';
   SAssertionFailed       = 'Assertion failed';
+  SBusError              = 'Bus error or misaligned data access';
   SCannotCreateEmptyDir  = 'Cannot create empty directory';
   SControlC              = 'Control-C hit';
   SDiskFull              = 'Disk Full';
@@ -182,6 +183,7 @@ begin
      206 : Result:=SUnderFlow;
      207 : Result:=SInvalidOp;
      211 : Result:=SAbstractError;
+     214 : Result:=SBusError;
      215 : Result:=SIntOverFlow;
      216 : Result:=SAccessViolation;
      217 : Result:=SPrivilege;
