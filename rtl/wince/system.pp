@@ -110,6 +110,26 @@ function muld(d1,d2 : double) : double; compilerproc;
 function divd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__divd';
 
+function eqd(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__eqd';
+
+function ned(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__ned';
+
+function ltd(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__ltd';
+
+function gtd(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__gtd';
+
+function ged(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__ged';
+
+function led(d1,d2 : double) : boolean; compilerproc;
+   cdecl;external 'coredll' name '__led';
+
+{ ***************** single ******************** }
+
 function eqs(d1,d2 : single) : boolean; compilerproc;
    cdecl;external 'coredll' name '__eqs';
 
@@ -162,7 +182,7 @@ var
 
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
    stdcall;external 'coredll' name 'MessageBoxW';
-   
+
 {*****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -1400,7 +1420,7 @@ procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
       setlength(dest, len);
     end;
   end;
-  
+
 procedure WinCEAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
   var
     i: integer;
@@ -1419,7 +1439,7 @@ procedure WinCEAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
       setlength(dest, len);
     end;
   end;
-  
+
 function WinCEWideUpper(const s : WideString) : WideString;
   begin
     result:=s;

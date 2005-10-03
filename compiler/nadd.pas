@@ -1817,7 +1817,7 @@ implementation
 
         if not(target_info.system in system_wince) then
           begin
-            case tfloatdef(resulttype.def).typ of
+            case tfloatdef(left.resulttype.def).typ of
               s32real:
                 procname:='float32';
               s64real:
@@ -1889,7 +1889,7 @@ implementation
               else
                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resulttype.def.typename,right.resulttype.def.typename);
             end;
-            case tfloatdef(resulttype.def).typ of
+            case tfloatdef(left.resulttype.def).typ of
               s32real:
                 procname:=procname+'S';
               s64real:
