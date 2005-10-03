@@ -303,6 +303,7 @@ end;
 
 
 begin
+  SysResetFPU;
   IsConsole := TRUE;
   IsLibrary := FALSE;
   StackLength := InitialStkLen;
