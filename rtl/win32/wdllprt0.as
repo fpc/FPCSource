@@ -15,7 +15,7 @@ _WinMainCRTStartup:
      pushl    %esi
      pushl    %edi
      movl     8(%ebp),%edi
-     movl     %edi,U_SYSTEM_HINSTANCE
+     movl     %edi,U_SYSTEM_SYSINSTANCE
      movl     12(%ebp),%edi
      movl     %edi,U_SYSTEM_DLLREASON
      movl     16(%ebp),%edi
@@ -26,9 +26,9 @@ _WinMainCRTStartup:
      popl     %ebx
      popl     %ebp
      ret      $12
-     
+
      .globl asm_exit
-asm_exit:     
+asm_exit:
     pushl  %eax
 	call   exitprocess
 	
@@ -70,8 +70,8 @@ exitprocess:
 .section .idata$7
 .L6:
 	.ascii	"kernel32.dll\000"
-     
-     
+
+
 //
 
 // Revision 1.4  2002/12/04 21:36:44  carl
