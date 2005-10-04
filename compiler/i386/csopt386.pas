@@ -518,9 +518,10 @@ begin {CheckSequence}
             flagResultsNeeded := not instrReadsFlags(hp3);
           if not flagResultsNeeded then
             flagResultsNeeded := ptaiprop(hp3.optinfo)^.FlagsUsed;
-          GetNextInstruction(hp2, hp2);
-          GetNextInstruction(hp3, hp3);
           inc(Found);
+          if not GetNextInstruction(hp2, hp2) or
+             not GetNextInstruction(hp3, hp3) then
+            break;
         end;
 
       for regCounter2 := RS_EAX to RS_EDI do
@@ -890,8 +891,9 @@ begin
   if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
     begin
       incstate(ptaiprop(p.optinfo)^.regs[supreg].rstate,63);
-      if getnextinstruction(p,hp) and
-         (ptaiprop(hp.optinfo)^.regs[supreg].rstate = ptaiprop(p.optinfo)^.regs[supreg].rstate) then
+      if not getnextinstruction(p,hp) then
+        exit;
+      if (ptaiprop(hp.optinfo)^.regs[supreg].rstate = ptaiprop(p.optinfo)^.regs[supreg].rstate) then
         internalerror(2004122710);
      end;
   dummyregs := [supreg];
@@ -1367,7 +1369,8 @@ begin
       replaceReg := true;
       returnEndP := endP;
 
-      getNextInstruction(p,hp);
+      if not getNextInstruction(p,hp) then
+        exit;
       stateChanged := false;
       while hp <> endP do
         begin

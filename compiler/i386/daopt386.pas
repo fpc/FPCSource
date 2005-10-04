@@ -190,7 +190,7 @@ function writeDestroysContents(const op: toper; supreg: tsuperregister; size: tc
 
 function GetNextInstruction(Current: tai; var Next: tai): Boolean;
 function GetLastInstruction(Current: tai; var Last: tai): Boolean;
-    procedure SkipHead(var p: tai);
+procedure SkipHead(var p: tai);
 function labelCanBeSkipped(p: tai_label): boolean;
 
 procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: tai);
@@ -1129,7 +1129,9 @@ begin
     while assigned(p) and
           ((p.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p.typ = ait_label) and
-            labelCanBeSkipped(tai_label(p)))) Do
+            labelCanBeSkipped(tai_label(p))) or
+           ((p.typ = ait_marker) and 
+            (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend]))) do
          p := tai(p.next);
     while assigned(p) and
           (p.typ=ait_RegAlloc) Do
@@ -2094,7 +2096,7 @@ begin
                   exclude(usedregs, supreg);
                   hp1 := p;
                   hp2 := nil;
-                  while not(findregalloc(getsupreg(tai_regalloc(p).reg), tai(hp1.next),ra_alloc)) and
+                  while not(findregalloc(supreg,tai(hp1.next),ra_alloc)) and
                         getnextinstruction(hp1, hp1) and
                         regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
                     hp2 := hp1;
@@ -2112,7 +2114,8 @@ begin
                       list.remove(p);
                       p.free;
                       p := hp1;
-                      include(usedregs,supreg);
+//                      don't include here, since then the allocation will be removed when it's processed
+//                      include(usedregs,supreg);
                     end;
                 end;
              end;
