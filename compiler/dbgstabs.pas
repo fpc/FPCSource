@@ -828,6 +828,7 @@ implementation
             insertdef(list,tpointerdef(def).pointertype.def);
           setdef :
             insertdef(list,tsetdef(def).elementtype.def);
+          procvardef,
           procdef :
             insertdef(list,tprocdef(def).rettype.def);
           arraydef :
