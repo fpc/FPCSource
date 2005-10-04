@@ -105,7 +105,6 @@ compiler/finput.pas svneol=native#text/plain
 compiler/fmodule.pas svneol=native#text/plain
 compiler/fpcdefs.inc svneol=native#text/plain
 compiler/fppu.pas svneol=native#text/plain
-compiler/gdb.pas svneol=native#text/plain
 compiler/gendef.pas svneol=native#text/plain
 compiler/globals.pas svneol=native#text/plain
 compiler/globtype.pas svneol=native#text/plain
