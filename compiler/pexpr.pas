@@ -674,18 +674,24 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
+              { Translate to x:=x+y[+z]. The addnode will do the
+                type checking }
               p2:=nil;
               repeat
                 p1:=comp_expr(true);
-                set_varstate(p1,vs_used,[vsf_must_be_valid]);
-                if not((p1.resulttype.def.deftype=stringdef) or
-                       ((p1.resulttype.def.deftype=orddef) and
-                        (torddef(p1.resulttype.def).typ=uchar))) then
-                  Message(parser_e_illegal_parameter_list);
                 if p2<>nil then
                   p2:=caddnode.create(addn,p2,p1)
                 else
-                  p2:=p1;
+                  begin
+                    { Force string type if it isn't yet }
+                    if not(
+                           (p1.resulttype.def.deftype=stringdef) or
+                           is_chararray(p1.resulttype.def) or
+                           is_char(p1.resulttype.def)
+                          ) then
+                      inserttypeconv(p1,cshortstringtype);
+                    p2:=p1;
+                  end;
               until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -845,7 +851,8 @@ implementation
                getaddr:=true;
              end
             else
-             if (m_tp_procvar in aktmodeswitches) then
+             if (m_tp_procvar in aktmodeswitches) or
+                (m_mac_procvar in aktmodeswitches) then
               begin
                 aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then
@@ -925,7 +932,8 @@ implementation
       begin
         if not assigned(pv) then
          internalerror(200301121);
-        if (m_tp_procvar in aktmodeswitches) then
+        if (m_tp_procvar in aktmodeswitches) or
+           (m_mac_procvar in aktmodeswitches) then
          begin
            hp:=p2;
            hpp:=@p2;

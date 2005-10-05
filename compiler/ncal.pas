@@ -472,7 +472,8 @@ type
 
     procedure tcallparanode.insert_typeconv(do_count : boolean);
       var
-        oldtype     : ttype;
+        oldtype  : ttype;
+        hp       : tnode;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
@@ -500,6 +501,21 @@ type
                begin
                  if maybe_call_procvar(left,true) then
                    resulttype:=left.resulttype;
+               end;
+
+             { Remove implicitly inserted typecast to pointer for
+               @procvar in macpas }
+             if (m_mac_procvar in aktmodeswitches) and
+                (parasym.vartype.def.deftype=procvardef) and
+                (left.nodetype=typeconvn) and
+                is_voidpointer(left.resulttype.def) and
+                (ttypeconvnode(left).left.nodetype=typeconvn) and
+                (ttypeconvnode(ttypeconvnode(left).left).convtype=tc_proc_2_procvar) then
+               begin
+                 hp:=left;
+                 left:=ttypeconvnode(left).left;
+                 ttypeconvnode(hp).left:=nil;
+                 hp.free;
                end;
 
              { Handle varargs and hidden paras directly, no typeconvs or }
@@ -613,7 +629,8 @@ type
                  if (parasym.vartype.def.deftype=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
-                     if (m_tp_procvar in aktmodeswitches) and
+                     if ((m_tp_procvar in aktmodeswitches) or
+                         (m_mac_procvar in aktmodeswitches)) and
                         (left.nodetype=calln) and
                         (is_void(left.resulttype.def)) then
                        load_procvar_from_calln(left);
@@ -1649,7 +1666,8 @@ type
                             loadnode will give a strange error }
                           if not(assigned(left)) and
                              not(cnf_inherited in callnodeflags) and
-                             (m_tp_procvar in aktmodeswitches) and
+                             ((m_tp_procvar in aktmodeswitches) or
+                              (m_mac_procvar in aktmodeswitches)) and
                              (symtableprocentry.procdef_count=1) then
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
@@ -2112,12 +2130,33 @@ type
                 { const parameters which are passed by value instead of by reference }
                 { we need to take care that we use the type of the defined parameter and not of the
                   passed parameter, because these can be different in case of a formaldef (PFV) }
-                if (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
+                if
+                  (
+                   { the problem is that we can't take the address of a function result :( }
+                   (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                    (para.parasym.varspez = vs_value) or
                    ((para.parasym.varspez = vs_const) and
-                    (not paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
-                    { the problem is that we can't take the address of a function result :( }
-                     (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
+                    (para.parasym.vartype.def.deftype<>formaldef) and
+                   { the compiler expects that it can take the address of parameters passed by reference in
+                     the case of const so we can't replace the node simply by a constant node
+                     When playing with this code, ensure that
+                     function f(const a,b  : longint) : longint;inline;
+                       begin
+                         result:=a*b;
+                       end;
+
+                     [...]
+                     ...:=f(10,20));
+                     [...]
+
+                     is still folded. (FK)
+                     }
+                    (
+                      { this must be a not ... of course }
+                      not(paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption)) or
+                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF)
+                    ))
+                   ) then
                   begin
                     { in theory, this is always regable, but ncgcall can't }
                     { handle it yet in all situations (JM)                 }
@@ -2291,53 +2330,10 @@ type
 
          { procedure variable ? }
          if assigned(right) then
-           begin
-              firstpass(right);
+           firstpass(right);
 
-              { procedure does a call }
-              if not (block_type in [bt_const,bt_type]) then
-                include(current_procinfo.flags,pi_do_call);
-           end
-         else
-         { not a procedure variable }
-           begin
-              if procdefinition.deftype<>procdef then
-                internalerror(200411071);
-{$ifdef PASS2INLINE}
-              { calc the correture value for the register }
-              { handle predefined procedures }
-              if (po_inline in procdefinition.procoptions) then
-                begin
-                   { inherit flags }
-                   current_procinfo.flags := current_procinfo.flags + (tprocdef(procdefinition).inlininginfo^.flags*inherited_inlining_flags);
-
-                   if assigned(methodpointer) then
-                     CGMessage(cg_e_unable_inline_object_methods);
-                   if assigned(right) then
-                     CGMessage(cg_e_unable_inline_procvar);
-                   if not assigned(inlinecode) then
-                     begin
-                       if assigned(tprocdef(procdefinition).inlininginfo^.code) then
-                         inlinecode:=tprocdef(procdefinition).inlininginfo^.code.getcopy
-                       else
-                         CGMessage(cg_e_no_code_for_inline_stored);
-                       if assigned(inlinecode) then
-                         begin
-                           { consider it has not inlined if called
-                             again inside the args }
-                           procdefinition.proccalloption:=pocall_default;
-                           firstpass(inlinecode);
-                         end;
-                     end;
-                end
-              else
-{$endif PASS2INLINE}
-                begin
-                  if not (block_type in [bt_const,bt_type]) then
-                    include(current_procinfo.flags,pi_do_call);
-                end;
-
-           end;
+         if not (block_type in [bt_const,bt_type]) then
+           include(current_procinfo.flags,pi_do_call);
 
          { implicit finally needed ? }
          if resulttype.def.needs_inittable and
@@ -2440,18 +2436,6 @@ type
                end;
            end;
 
-{$ifdef PASS2INLINE}
-         { determine the registers of the procedure variable }
-         { is this OK for inlined procs also ?? (PM)     }
-         if assigned(inlinecode) then
-           begin
-              registersfpu:=max(inlinecode.registersfpu,registersfpu);
-              registersint:=max(inlinecode.registersint,registersint);
-  {$ifdef SUPPORT_MMX}
-              registersmmx:=max(inlinecode.registersmmx,registersmmx);
-  {$endif SUPPORT_MMX}
-           end;
-{$endif PASS2INLINE}
          { determine the registers of the procedure variable }
          { is this OK for inlined procs also ?? (PM)     }
          if assigned(right) then
@@ -2471,10 +2455,6 @@ type
               registersmmx:=max(left.registersmmx,registersmmx);
 {$endif SUPPORT_MMX}
            end;
-{$ifdef PASS2INLINE}
-         if assigned(inlinecode) then
-           include(procdefinition.procoptions,po_inline);
-{$endif PASS2INLINE}
       end;
 
 {$ifdef state_tracking}

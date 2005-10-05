@@ -23,7 +23,7 @@ end;
 procedure TestFourCharCode(myFCC: MyFourCharCodeType);
 
 begin
-  Writeln('FPC creator code as number: ', myFCC);
+  Writeln('FPC creator code as number: ', hexstr(myFCC,8));
   if myFCC <> $46506173 then
     success := false;
 end;

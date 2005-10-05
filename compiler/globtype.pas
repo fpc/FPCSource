@@ -144,6 +144,7 @@ than 255 characters. That's why using Ansi Strings}
          m_cvar_support,        { cvar variable directive }
          m_nested_comment,      { nested comments }
          m_tp_procvar,          { tp style procvars (no @ needed) }
+         m_mac_procvar,         { macpas style procvars }
          m_repeat_forward,      { repeating forward declarations is needed }
          m_pointer_2_procedure, { allows the assignement of pointers to
                                   procedure variables                     }
@@ -161,6 +162,7 @@ than 255 characters. That's why using Ansi Strings}
        { Win32, OS/2 & MacOS application types }
        tapptype = (
          app_none,
+         app_native,
          app_gui,               { graphic user-interface application}
          app_cui,       { console application}
          app_fs,        { full-screen type application (OS/2 and EMX only) }

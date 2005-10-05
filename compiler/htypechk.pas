@@ -714,7 +714,8 @@ implementation
       begin
         result:=false;
         { remove voidpointer typecast for tp procvars }
-        if (m_tp_procvar in aktmodeswitches) and
+        if ((m_tp_procvar in aktmodeswitches) or
+            (m_mac_procvar in aktmodeswitches)) and
            (p.nodetype=typeconvn) and
            is_voidpointer(p.resulttype.def) then
           p:=tunarynode(p).left;
@@ -1362,10 +1363,15 @@ implementation
           procvardef :
             begin
               { in tp7 mode proc -> procvar is allowed }
-              if (m_tp_procvar in aktmodeswitches) and
+              if ((m_tp_procvar in aktmodeswitches) or
+                  (m_mac_procvar in aktmodeswitches)) and
                  (p.left.nodetype=calln) and
                  (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),true)>=te_equal) then
-               eq:=te_equal;
+                eq:=te_equal
+              else
+                if (m_mac_procvar in aktmodeswitches) and
+                   is_procvar_load(p.left) then
+                  eq:=te_convert_l2;
             end;
         end;
       end;

@@ -65,6 +65,7 @@ interface
           function resulttype_real_to_currency : tnode;
           function resulttype_cchar_to_pchar : tnode;
           function resulttype_cstring_to_pchar : tnode;
+          function resulttype_cstring_to_int : tnode;
           function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_pchar_to_string : tnode;
@@ -83,6 +84,7 @@ interface
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
+          function first_cstring_to_int : tnode;virtual;
           function first_string_to_chararray : tnode;virtual;
           function first_char_to_string : tnode;virtual;
           function first_nothing : tnode;virtual;
@@ -108,6 +110,7 @@ interface
           { any effect                                                       }
           function _first_int_to_int : tnode;
           function _first_cstring_to_pchar : tnode;
+          function _first_cstring_to_int : tnode;
           function _first_string_to_chararray : tnode;
           function _first_char_to_string : tnode;
           function _first_nothing : tnode;
@@ -130,6 +133,7 @@ interface
           procedure _second_int_to_int;virtual;
           procedure _second_string_to_string;virtual;
           procedure _second_cstring_to_pchar;virtual;
+          procedure _second_cstring_to_int;virtual;
           procedure _second_string_to_chararray;virtual;
           procedure _second_array_to_pointer;virtual;
           procedure _second_pointer_to_array;virtual;
@@ -151,6 +155,7 @@ interface
           procedure second_int_to_int;virtual;abstract;
           procedure second_string_to_string;virtual;abstract;
           procedure second_cstring_to_pchar;virtual;abstract;
+          procedure second_cstring_to_int;virtual;abstract;
           procedure second_string_to_chararray;virtual;abstract;
           procedure second_array_to_pointer;virtual;abstract;
           procedure second_pointer_to_array;virtual;abstract;
@@ -610,6 +615,7 @@ implementation
           'tc_pchar_2_string',
           'tc_cchar_2_pchar',
           'tc_cstring_2_pchar',
+          'tc_cstring_2_int',
           'tc_ansistring_2_pchar',
           'tc_string_2_chararray',
           'tc_chararray_2_string',
@@ -700,13 +706,14 @@ implementation
         arrsize  : aint;
         chartype : string[8];
       begin
-         with tarraydef(resulttype.def) do
+        result := nil;
+        with tarraydef(resulttype.def) do
           begin
             if highrange<lowrange then
              internalerror(200501051);
             arrsize := highrange-lowrange+1;
           end;
-         if (left.nodetype = stringconstn) and
+        if (left.nodetype = stringconstn) and
             { left.length+1 since there's always a terminating #0 character (JM) }
             (tstringconstnode(left).len+1 >= arrsize) and
             (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
@@ -1053,6 +1060,25 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_cstring_to_int : tnode;
+      var
+        fcc : cardinal;
+        pb  : pbyte;
+      begin
+         result:=nil;
+         if left.nodetype<>stringconstn then
+           internalerror(200510012);
+         if tstringconstnode(left).len=4 then
+           begin
+             pb:=pbyte(tstringconstnode(left).value_str);
+             fcc:=(pb[0] shl 24) or (pb[1] shl 16) or (pb[2] shl 8) or pb[3];
+             result:=cordconstnode.create(fcc,u32inttype,false);
+           end
+         else
+           CGMessage2(type_e_illegal_type_conversion,left.resulttype.def.gettypename,resulttype.def.gettypename);
+      end;
+
+
     function ttypeconvnode.resulttype_arrayconstructor_to_set : tnode;
 
       var
@@ -1292,7 +1318,6 @@ implementation
 
 
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
-{$ifdef fpc}
       const
          resulttypeconvert : array[tconverttype] of pointer = (
           {none} nil,
@@ -1304,6 +1329,7 @@ implementation
           { pchar_2_string } @ttypeconvnode.resulttype_pchar_to_string,
           { cchar_2_pchar } @ttypeconvnode.resulttype_cchar_to_pchar,
           { cstring_2_pchar } @ttypeconvnode.resulttype_cstring_to_pchar,
+          { cstring_2_int } @ttypeconvnode.resulttype_cstring_to_int,
           { ansistring_2_pchar } nil,
           { string_2_chararray } @ttypeconvnode.resulttype_string_to_chararray,
           { chararray_2_string } @ttypeconvnode.resulttype_chararray_to_string,
@@ -1351,38 +1377,13 @@ implementation
          if assigned(r.proc) then
           result:=tprocedureofobject(r)();
       end;
-{$else}
-      begin
-        case c of
-          tc_string_2_string: resulttype_string_to_string;
-          tc_char_2_string : resulttype_char_to_string;
-          tc_char_2_chararray: resulttype_char_to_chararray;
-          tc_pchar_2_string : resulttype_pchar_to_string;
-          tc_cchar_2_pchar : resulttype_cchar_to_pchar;
-          tc_cstring_2_pchar : resulttype_cstring_to_pchar;
-          tc_string_2_chararray : resulttype_string_to_chararray;
-          tc_chararray_2_string : resulttype_chararray_to_string;
-          tc_real_2_real : resulttype_real_to_real;
-          tc_int_2_real : resulttype_int_to_real;
-          tc_real_2_currency : resulttype_real_to_currency;
-          tc_arrayconstructor_2_set : resulttype_arrayconstructor_to_set;
-          tc_cord_2_pointer : resulttype_cord_to_pointer;
-          tc_intf_2_guid : resulttype_interface_to_guid;
-          tc_char_2_char : resulttype_char_to_char;
-          tc_dynarray_2_openarray : resulttype_dynarray_to_openarray;
-          tc_pwchar_2_string : resulttype_pwchar_to_string;
-          tc_variant_2_dynarray : resulttype_variant_to_dynarray;
-          tc_dynarray_2_variant : resulttype_dynarray_to_variant;
-        end;
-      end;
-{$Endif fpc}
 
 
     function ttypeconvnode.det_resulttype:tnode;
 
       var
         htype : ttype;
-        hp,hp2 : tnode;
+        hp : tnode;
         currprocdef : tabstractprocdef;
         aprocdef : tprocdef;
         eq : tequaltype;
@@ -1495,45 +1496,46 @@ implementation
                     own resulttype.def. They will therefore always be incompatible with
                     a procvar. Because isconvertable cannot check for procedures we
                     use an extra check for them.}
-                  if (m_tp_procvar in aktmodeswitches) and
-                     (resulttype.def.deftype=procvardef) then
+                  if (left.nodetype=calln) and
+                     (tcallnode(left).para_count=0) and
+                     (resulttype.def.deftype=procvardef) and
+                     (
+                      (m_tp_procvar in aktmodeswitches) or
+                      (m_mac_procvar in aktmodeswitches)
+                     ) then
                    begin
-                      if (left.nodetype=calln) and
-                         (tcallnode(left).para_count=0) then
-                       begin
-                         if assigned(tcallnode(left).right) then
-                          begin
-                            { this is already a procvar, if it is really equal
-                              is checked below }
-                            convtype:=tc_equal;
-                            hp:=tcallnode(left).right.getcopy;
-                            currprocdef:=tabstractprocdef(hp.resulttype.def);
-                          end
-                         else
-                          begin
-                            convtype:=tc_proc_2_procvar;
-                            currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
-                            hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                                tprocdef(currprocdef),tcallnode(left).symtableproc);
-                            if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
-                             begin
-                               if assigned(tcallnode(left).methodpointer) then
-                                 tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
-                               else
-                                 tloadnode(hp).set_mp(load_self_node);
-                             end;
-                            resulttypepass(hp);
-                          end;
-                         left.free;
-                         left:=hp;
-                         { Now check if the procedure we are going to assign to
-                           the procvar, is compatible with the procvar's type }
-                         if not(nf_explicit in flags) and
-                            (proc_to_procvar_equal(currprocdef,
-                                                   tprocvardef(resulttype.def),true)=te_incompatible) then
-                           IncompatibleTypes(left.resulttype.def,resulttype.def);
-                         exit;
-                       end;
+                     if assigned(tcallnode(left).right) then
+                      begin
+                        { this is already a procvar, if it is really equal
+                          is checked below }
+                        convtype:=tc_equal;
+                        hp:=tcallnode(left).right.getcopy;
+                        currprocdef:=tabstractprocdef(hp.resulttype.def);
+                      end
+                     else
+                      begin
+                        convtype:=tc_proc_2_procvar;
+                        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+                        hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                            tprocdef(currprocdef),tcallnode(left).symtableproc);
+                        if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) then
+                         begin
+                           if assigned(tcallnode(left).methodpointer) then
+                             tloadnode(hp).set_mp(tcallnode(left).get_load_methodpointer)
+                           else
+                             tloadnode(hp).set_mp(load_self_node);
+                         end;
+                        resulttypepass(hp);
+                      end;
+                     left.free;
+                     left:=hp;
+                     { Now check if the procedure we are going to assign to
+                       the procvar, is compatible with the procvar's type }
+                     if not(nf_explicit in flags) and
+                        (proc_to_procvar_equal(currprocdef,
+                                               tprocvardef(resulttype.def),true)=te_incompatible) then
+                       IncompatibleTypes(left.resulttype.def,resulttype.def);
+                     exit;
                    end;
 
                   { Handle explicit type conversions }
@@ -1775,9 +1777,17 @@ implementation
     function ttypeconvnode.first_cstring_to_pchar : tnode;
 
       begin
-         first_cstring_to_pchar:=nil;
+         result:=nil;
          registersint:=1;
          expectloc:=LOC_REGISTER;
+      end;
+
+
+    function ttypeconvnode.first_cstring_to_int : tnode;
+
+      begin
+        result:=nil;
+        internalerror(200510014);
       end;
 
 
@@ -1856,11 +1866,48 @@ implementation
 
     function ttypeconvnode.first_real_to_real : tnode;
       begin
-         first_real_to_real:=nil;
-        { comp isn't a floating type }
-         if registersfpu<1 then
-           registersfpu:=1;
-         expectloc:=LOC_FPUREGISTER;
+{$ifdef cpufpemu}
+        if cs_fp_emulation in aktmoduleswitches then
+          begin
+            if target_info.system in system_wince then
+              begin
+                case tfloatdef(left.resulttype.def).typ of
+                  s32real:
+                    case tfloatdef(resulttype.def).typ of
+                      s64real:
+                        result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
+                      else
+                        internalerror(2005082704);
+                    end;
+                  s64real:
+                    case tfloatdef(resulttype.def).typ of
+                      s32real:
+                        result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
+                      else
+                        internalerror(2005082703);
+                    end;
+                  else
+                    internalerror(2005082702);
+                end;
+                left:=nil;
+                firstpass(result);
+                exit;
+              end
+            else
+              begin
+                {!! FIXME }
+                internalerror(2005082701);
+              end;
+          end
+        else
+{$endif cpufpemu}
+          begin
+            first_real_to_real:=nil;
+            { comp isn't a floating type }
+            if registersfpu<1 then
+              registersfpu:=1;
+            expectloc:=LOC_FPUREGISTER;
+          end;
       end;
 
 
@@ -2021,6 +2068,11 @@ implementation
          result:=first_cstring_to_pchar;
       end;
 
+    function ttypeconvnode._first_cstring_to_int : tnode;
+      begin
+         result:=first_cstring_to_int;
+      end;
+
     function ttypeconvnode._first_string_to_chararray : tnode;
       begin
          result:=first_string_to_chararray;
@@ -2124,6 +2176,7 @@ implementation
            nil, { removed in resulttype_chararray_to_string }
            @ttypeconvnode._first_cchar_to_pchar,
            @ttypeconvnode._first_cstring_to_pchar,
+           @ttypeconvnode._first_cstring_to_int,
            @ttypeconvnode._first_ansistring_to_pchar,
            @ttypeconvnode._first_string_to_chararray,
            nil, { removed in resulttype_chararray_to_string }
@@ -2248,6 +2301,12 @@ implementation
       end;
 
 
+    procedure ttypeconvnode._second_cstring_to_int;
+      begin
+        second_cstring_to_int;
+      end;
+
+
     procedure ttypeconvnode._second_string_to_chararray;
       begin
         second_string_to_chararray;
@@ -2361,6 +2420,7 @@ implementation
            @ttypeconvnode._second_nothing, { pchar_to_string, handled in resulttype pass }
            @ttypeconvnode._second_nothing, {cchar_to_pchar}
            @ttypeconvnode._second_cstring_to_pchar,
+           @ttypeconvnode._second_cstring_to_int,
            @ttypeconvnode._second_ansistring_to_pchar,
            @ttypeconvnode._second_string_to_chararray,
            @ttypeconvnode._second_nothing, { chararray_to_string, handled in resulttype pass }
