@@ -44,7 +44,8 @@ unit typinfo;
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
                       mkClassProcedure, mkClassFunction);
-       TParamFlags    = set of (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
+       TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
+       TParamFlags    = set of TParamFlag;
        TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
        TIntfFlagsBase = set of TIntfFlag;
