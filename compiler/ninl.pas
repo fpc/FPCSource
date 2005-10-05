@@ -1206,6 +1206,20 @@ implementation
           end;
 
 
+      procedure setfloatresulttype;
+        begin
+          if (left.resulttype.def.deftype=floatdef) and
+            (tfloatdef(left.resulttype.def).typ in [s32real,s64real,s80real,s128real]) then
+            resulttype:=left.resulttype
+          else
+            begin
+              inserttypeconv(left,pbestrealtype^);
+              resulttype:=pbestrealtype^;
+            end;
+        end;
+
+
+
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
@@ -1935,8 +1949,7 @@ implementation
                   else
                    begin
                      set_varstate(left,vs_used,[vsf_must_be_valid]);
-                     inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     setfloatresulttype;
                    end;
                 end;
 
@@ -1953,8 +1966,7 @@ implementation
                   else
                    begin
                      set_varstate(left,vs_used,[vsf_must_be_valid]);
-                     inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     setfloatresulttype;
                    end;
                 end;
 
