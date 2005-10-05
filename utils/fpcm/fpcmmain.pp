@@ -63,7 +63,7 @@ interface
 
     type
       TCpu=(
-        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm
+        c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64,c_arm,c_powerpc64
       );
 
       TOS=(
@@ -77,11 +77,11 @@ interface
 
     const
       CpuStr : array[TCpu] of string=(
-        'i386','m68k','powerpc','sparc','x86_64','arm'
+        'i386','m68k','powerpc','sparc','x86_64','arm','powerpc64'
       );
 
       CpuSuffix : array[TCpu] of string=(
-        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm'
+        '_i386','_m68k','_powerpc','_sparc','_x86_64','_arm','_powerpc64'
       );
 
       OSStr : array[TOS] of string=(
@@ -100,30 +100,30 @@ interface
 
       { This table is kept OS,Cpu because it is easier to maintain (PFV) }
       OSCpuPossible : array[TOS,TCpu] of boolean = (
-        { os          i386    m68k  ppc    sparc  x86_64 arm }
-        { linux }   ( true,  true,  true,  true,  true,  true),
-        { go32v2 }  ( true,  false, false, false, false, false),
-        { win32 }   ( true,  false, false, false, false, false),
-        { os2 }     ( true,  false, false, false, false, false),
-        { freebsd } ( true,  true,  false, false, true, false),
-        { beos }    ( true,  false, false, false, false, false),
-        { netbsd }  ( true,  true,  true,  true,  false, false),
-        { amiga }   ( false, true,  false, false, false, false),
-        { atari }   ( false, true,  false, false, false, false),
-        { solaris } ( true,  false, false, true,  false, false),
-        { qnx }     ( true,  false, false, false, false, false),
-        { netware } ( true,  false, false, false, false, false),
-        { openbsd } ( true,  true,  false, false, false, false),
-        { wdosx }   ( true,  false, false, false, false, false),
-        { palmos }  ( false, true,  false, false, false, false),
-        { macos }   ( false, false, true,  false, false, false),
-        { darwin }  ( false, false, true,  false, false, false),
-        { emx }     ( true,  false, false, false, false, false),
-        { watcom }  ( true,  false, false, false ,false, false),
-        { morphos } ( false, false, true,  false ,false, false),
-        { netwlibc }( true,  false, false, false, false, false),
-        { win64   } ( false, false, false, false, true,  false),
-        { wince    }( true,  false, false, false, false, true )
+        { os          i386    m68k  ppc    sparc  x86_64 arm    ppc64}
+        { linux }   ( true,  true,  true,  true,  true,  true,  true),
+        { go32v2 }  ( true,  false, false, false, false, false, false),
+        { win32 }   ( true,  false, false, false, false, false, false),
+        { os2 }     ( true,  false, false, false, false, false, false),
+        { freebsd } ( true,  true,  false, false, true,  false, false),
+        { beos }    ( true,  false, false, false, false, false, false),
+        { netbsd }  ( true,  true,  true,  true,  false, false, false),
+        { amiga }   ( false, true,  false, false, false, false, false),
+        { atari }   ( false, true,  false, false, false, false, false),
+        { solaris } ( true,  false, false, true,  false, false, false),
+        { qnx }     ( true,  false, false, false, false, false, false),
+        { netware } ( true,  false, false, false, false, false, false),
+        { openbsd } ( true,  true,  false, false, false, false, false),
+        { wdosx }   ( true,  false, false, false, false, false, false),
+        { palmos }  ( false, true,  false, false, false, false, false),
+        { macos }   ( false, false, true,  false, false, false, false),
+        { darwin }  ( false, false, true,  false, false, false, false),
+        { emx }     ( true,  false, false, false, false, false, false),
+        { watcom }  ( true,  false, false, false ,false, false, false),
+        { morphos } ( false, false, true,  false ,false, false, false),
+        { netwlibc }( true,  false, false, false, false, false, false),
+        { win64   } ( false, false, false, false, true,  false, false),
+        { wince    }( true,  false, false, false, false, true,  false)
       );
 
     type
