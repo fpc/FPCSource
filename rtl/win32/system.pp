@@ -108,7 +108,7 @@ const
 implementation
 
 var
-  SysInstance : Longint;
+  SysInstance : Longint;public;
 
 {$ifdef i386}
 {$define HAS_RESOURCES}
@@ -959,7 +959,7 @@ procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     setlength(dest, destlen-1);
     WideCharToMultiByte(CP_ACP, 0, source, len+1, @dest[1], destlen, nil, nil);
   end;
-  
+
 procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
@@ -969,8 +969,8 @@ procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     setlength(dest, destlen-1);
     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len+1, @dest[1], destlen);
   end;
-  
-  
+
+
 function Win32WideUpper(const s : WideString) : WideString;
   begin
     result:=s;

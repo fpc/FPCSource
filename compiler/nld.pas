@@ -277,6 +277,8 @@ implementation
                        if assigned(left) then
                          internalerror(200309289);
                        left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                       { we can't inline the referenced parent procedure }
+                       exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                        { reference in nested procedures, variable needs to be in memory }
                        make_not_regable(self);
                      end;
