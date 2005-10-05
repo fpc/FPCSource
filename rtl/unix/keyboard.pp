@@ -304,7 +304,7 @@ var
 begin
   IsConsole:=false;
   { check for tty }
-  if (IsATTY(stdinputhandle)<>-1) then
+  if (IsATTY(stdinputhandle)=1) then
    begin
      { running on a tty, find out whether locally or remotely }
      ThisTTY:=TTYName(stdinputhandle);

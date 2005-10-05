@@ -1265,7 +1265,7 @@ var
   c : char;
   i : longint;
 Begin
-  if isATTY(F.Handle)<>-1 then
+  if isATTY(F.Handle)=1 then
     begin
       F.BufPos := 0;
       i := 0;
@@ -1574,10 +1574,10 @@ Initialization
   Reset(Input);
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
-  OutputRedir:= IsAtty(TextRec(Output).Handle)=-1;
+  OutputRedir:= IsAtty(TextRec(Output).Handle)<>1;
 { does the input come from another console or from a file? }
   InputRedir :=
-   (IsAtty(TextRec(Input).Handle)=-1) or
+   (IsAtty(TextRec(Input).Handle)<>1) or
    (not OutputRedir and
     (TTYName(TextRec(Input).Handle) <> TTYName(TextRec(Output).Handle)));
 { Get Size of terminal and set WindMax to the window }
