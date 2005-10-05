@@ -1,4 +1,4 @@
-{ %target=x86_64,i386,powerpc,sparc}
+{ %cpu=x86_64,i386,powerpc,sparc}
 { execute this test only on reasonable fast cpus }
 library lib;
 const
