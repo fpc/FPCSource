@@ -56,10 +56,10 @@
 
   {$ifndef OS_FILESETDATEBYNAME}
   Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
-  
+
   Var
     fd : longint;
-    
+
   begin
     fd:=FileOpen(FileName,fmOpenRead);
     If (Fd>=0) then
@@ -69,8 +69,8 @@
         FileClose(fd);
       end
     else
-      Result:=Fd;  
-  end;  
+      Result:=Fd;
+  end;
   {$endif}
 
   { Read String Handling functions implementation }
@@ -93,7 +93,7 @@
 
   { threading stuff }
   {$i sysuthrd.inc}
-  
+
   { CPU Specific code }
   {$i sysutilp.inc}
 
@@ -257,6 +257,7 @@ begin
   206 : E:=EOverflow.Create(SUnderflow);
   207 : E:=EInvalidOp.Create(SInvalidOp);
   211 : E:=EAbstractError.Create(SAbstractError);
+  214 : E:=EBusError.Create(SBusError);
   215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
   217 : E:=EPrivilege.Create(SPrivilege);
@@ -533,9 +534,9 @@ begin
     {$IFDEF HASCREATEGUID}
     Result:=SysCreateGUID(GUID);
     {$ELSE}
-    GetRandomBytes(GUID,SizeOf(Guid));  
+    GetRandomBytes(GUID,SizeOf(Guid));
     Result:=0;
-    {$ENDIF}    
+    {$ENDIF}
     end;
 end;
 

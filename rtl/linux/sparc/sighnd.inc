@@ -57,8 +57,12 @@ begin
               res:=207;
           end;
         end;
+    SIGBUS :
+        begin
+          addr := siginfo^._sifields._sigfault._addr;
+          res:=214;
+        end;
     SIGILL,
-    SIGBUS,
     SIGSEGV :
         begin
           addr := siginfo^._sifields._sigfault._addr;

@@ -29,9 +29,10 @@ begin
           res := 207;
         end;
     SIGILL,
-    SIGBUS,
     SIGSEGV :
         res:=216;
+    SIGBUS:
+        res:=214;
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
