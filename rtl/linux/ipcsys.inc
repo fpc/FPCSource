@@ -32,14 +32,8 @@ begin
 end;
 
 function shmat (shmid:cint; shmaddr:pointer; shmflg:cint): pointer;
-Var raddr : pointer;
-    error : ptrint;
 begin
-  error:=do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmflg),TSysParam(@raddr),TSysParam(shmaddr));
-  If Error<0 then
-    shmat:=pointer(error)
-  else
-    shmat:=raddr;
+  shmat:=pointer(do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmaddr),TSysParam(shmflg)));
 end;
 
 function shmdt (shmaddr:pointer): cint;
