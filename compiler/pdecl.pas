@@ -259,11 +259,10 @@ implementation
              consume(_ID)
            else
              begin
-                objectlibrary.getlabel(hl);
                 if token=_ID then
-                 symtablestack.insert(tlabelsym.create(orgpattern,hl))
+                 symtablestack.insert(tlabelsym.create(orgpattern))
                 else
-                 symtablestack.insert(tlabelsym.create(pattern,hl));
+                 symtablestack.insert(tlabelsym.create(pattern));
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);

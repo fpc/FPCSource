@@ -397,6 +397,8 @@ interface
     procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
+    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
+    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
 
     const
       printnodespacing = '   ';
@@ -518,6 +520,20 @@ implementation
          end
         else
          ppufile.putbyte(byte(emptynode));
+      end;
+
+
+    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
+      begin
+        { writing of node references isn't implemented yet (FK) }
+        internalerror(200506181);
+      end;
+
+
+    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
+      begin
+        { reading of node references isn't implemented yet (FK) }
+        internalerror(200506182);
       end;
 
 

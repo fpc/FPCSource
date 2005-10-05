@@ -68,7 +68,8 @@ implementation
       aasmtai,aasmcpu,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
-      nbas,ncon,ncal,ncnv,nld,
+      symdef,symconst,
+      nbas,ncon,ncal,ncnv,nld,ncgutil,
       cga,cgutils,cgx86,cgobj;
 
 

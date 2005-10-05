@@ -359,6 +359,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          ),
          (OT_NONE,
@@ -367,6 +368,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          ),
          (OT_NONE,
@@ -375,6 +377,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          )
        );
@@ -391,6 +394,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          ),
          (OT_NONE,
@@ -399,6 +403,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          ),
          (OT_NONE,
@@ -407,6 +412,7 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
           OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT,
+          OT_NONE,
           OT_NONE
          )
       );

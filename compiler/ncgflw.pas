@@ -27,7 +27,7 @@ unit ncgflw;
 interface
 
     uses
-      node,nflw;
+      aasmbase,node,nflw;
 
     type
        tcgwhilerepeatnode = class(twhilerepeatnode)
@@ -59,6 +59,10 @@ interface
        end;
 
        tcglabelnode = class(tlabelnode)
+       private
+          asmlabel : tasmlabel;
+       public
+          function getasmlabel : tasmlabel;
           procedure pass_2;override;
        end;
 
@@ -82,7 +86,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symdef,symsym,aasmbase,aasmtai,aasmcpu,defutil,
+      symconst,symdef,symsym,aasmtai,aasmcpu,defutil,
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
       nld,ncon,
@@ -423,6 +427,9 @@ implementation
               cg.a_op_const_loc(exprasmlist,hop,1,left.location);
             end;
 
+         if assigned(entrylabel) then
+           cg.a_jmp_always(exprasmlist,tcglabelnode(entrylabel).getasmlabel);
+
          { align loop target }
          if not(cs_littlesize in aktglobalswitches) then
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
@@ -745,13 +752,21 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
-         cg.a_jmp_always(exprasmlist,labsym.lab)
+         cg.a_jmp_always(exprasmlist,tcglabelnode(labelnode).getasmlabel)
        end;
 
 
 {*****************************************************************************
                              SecondLabel
 *****************************************************************************}
+
+    function tcglabelnode.getasmlabel : tasmlabel;
+      begin
+        if not(assigned(asmlabel)) then
+          objectlibrary.getlabel(asmlabel);
+        result:=asmlabel
+      end;
+
 
     procedure tcglabelnode.pass_2;
       begin
@@ -760,7 +775,7 @@ implementation
 {$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
-         cg.a_label(exprasmlist,labelnr);
+         cg.a_label(exprasmlist,getasmlabel);
          secondpass(left);
       end;
 

@@ -57,7 +57,7 @@ const
     OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
     OS_M32,
     OS_ADDR,OS_NO,OS_NO,
-    OS_NO);
+    OS_NO,OS_NO);
 
 
 
@@ -1129,7 +1129,7 @@ begin
           ((p.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p.typ = ait_label) and
             labelCanBeSkipped(tai_label(p))) or
-           ((p.typ = ait_marker) and 
+           ((p.typ = ait_marker) and
             (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend]))) do
          p := tai(p.next);
     while assigned(p) and
