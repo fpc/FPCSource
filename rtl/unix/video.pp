@@ -621,7 +621,7 @@ begin
 {$endif CPUI386}
   { check for tty }
   ThisTTY:=TTYName(stdinputhandle);
-  if (IsATTY(stdinputhandle)<>-1) then
+  if (IsATTY(stdinputhandle)=1) then
    begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
