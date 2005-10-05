@@ -1040,7 +1040,6 @@ begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
     end else begin
-      writeln(localsize);
       reference_reset_base(href, NR_NO, -localsize);
 
       // use R0 for loading the constant (which is definitely > 32k when entering

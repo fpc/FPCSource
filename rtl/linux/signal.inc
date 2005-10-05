@@ -186,6 +186,10 @@ type
 {$define NEWSIGNAL}
 {$endif CPUx86_64}
 
+{$ifdef CPUPOWERPC64}
+{$define NEWSIGNAL}
+{$endif CPUPOWERPC64}
+
   SigActionRec = packed record  // this is temporary for the migration
     sa_handler : SigActionHandler;
    {$ifdef NEWSIGNAL}

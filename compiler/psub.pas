@@ -1301,7 +1301,7 @@ implementation
                    begin
                      s:=proc_get_importname(pd);
                      if s<>'' then
-                       gen_external_stub(asmlist[al_procedures],pd,s);
+                       gen_external_stub(asmlist[al_procedures],pd,{$IFDEF POWERPC64}'.'+{$ENDIF}s);
                    end;
 
                  { Import DLL specified? }

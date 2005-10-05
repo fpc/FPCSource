@@ -18,7 +18,7 @@
 
 type
   TPPC_Reg = QWord;
-  { from include/ppc/ptrace.h }
+  { from include/asm-ppc64/ptrace.h }
   pptregs = ^tptregs;
   tptregs = record
     gpr: array[0..31] of TPPC_Reg;
@@ -29,38 +29,39 @@ type
     link: TPPC_Reg;
     xer: TPPC_Reg;
     ccr: TPPC_Reg;
-    mq: TPPC_Reg;        { 601 only (not used at present)  }
-                         { Used on APUS to hold IPL value. }
+    softe: TPPC_Reg;     { soft enabled/disabled  }
     trap: TPPC_Reg;      { Reason for being here }
     dar: TPPC_Reg;       { Fault registers }
     dsisr: TPPC_Reg;
     result: TPPC_Reg;    { Result of a system call }
   end;
 
-  { from include/asm-ppc/signal.h }
+  { from include/asm-ppc64/signal.h }
   stack_t = record
     ss_sp: pointer;
     ss_flags: longint;
     ss_size: size_t;
   end;
 
-  { from include/asm-ppc/sigcontext.h }
+  { from include/asm-ppc64/sigcontext.h }
   tsigcontext_struct = record
-    _unused: array[0..3] of PtrUInt;
+    _unused: array[0..3] of dword;
     signal: longint;
-    handler: PtrInt;
-    oldmask: PtrInt;
+    pad0 : longint;
+    handler: dword;
+    oldmask: dword;
     pt_regs: pptregs;
   end;
 
-  { from include/asm-ppc/ucontext.h }
+  { from include/asm-ppc64/ucontext.h }
   pucontext = ^tucontext;
   tucontext = record
     uc_flags : dword;
     uc_link : pucontext;
     uc_stack : stack_t;
-    uc_mcontext : tsigcontext_struct;
     uc_sigmask : sigset_t;
+    __unused : array[0..14] of sigset_t;
+    uc_mcontext : tsigcontext_struct;
   end;
 
 

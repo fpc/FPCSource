@@ -113,20 +113,23 @@ begin
     (right.nodetype = ordconstn) and
     ispowerof2(tordconstnode(right).value, power) then
   begin
-    { From "The PowerPC Compiler Writer's Guide":                   }
-    { This code uses the fact that, in the PowerPC architecture,    }
-    { the shift right algebraic instructions set the Carry bit if   }
-    { the source register contains a negative number and one or     }
-    { more 1-bits are shifted out. Otherwise, the carry bit is      }
-    { cleared. The addze instruction corrects the quotient, if      }
-    { necessary, when the dividend is negative. For example, if     }
-    { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
-    { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
-    { the addze instruction, q = -3, the correct quotient.          }
-    // ts: buggy....... sar also used in a unsigned division...
-    cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_64, power,
-      numerator, resultreg);
-    exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE, resultreg, resultreg));
+  	if (is_signed(right.resulttype.def)) then begin
+      { From "The PowerPC Compiler Writer's Guide":                   }
+      { This code uses the fact that, in the PowerPC architecture,    }
+      { the shift right algebraic instructions set the Carry bit if   }
+      { the source register contains a negative number and one or     }
+      { more 1-bits are shifted out. Otherwise, the carry bit is      }
+      { cleared. The addze instruction corrects the quotient, if      }
+      { necessary, when the dividend is negative. For example, if     }
+      { n = -13, (0xFFFF_FFF3), and k = 2, after executing the srawi  }
+      { instruction, q = -4 (0xFFFF_FFFC) and CA = 1. After executing }
+      { the addze instruction, q = -3, the correct quotient.          }
+      cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_64, power,
+        numerator, resultreg);
+      exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE, resultreg, resultreg));
+    end else begin
+      cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, power, numerator, resultreg);
+    end;
   end
   else
   begin
