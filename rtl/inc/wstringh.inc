@@ -85,6 +85,11 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
 function WideStringToUCS4String(const s : WideString) : UCS4String;
 function UCS4StringToWideString(const s : UCS4String) : WideString;
 
+{$ifdef MSWINDOWS}
+const
+  winwidestringalloc : boolean = true;
+{$endif MSWINDOWS}
+
 var
   widestringmanager : TWideStringManager;
 

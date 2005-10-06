@@ -151,10 +151,11 @@ Var
   P : Pointer;
 begin
 {$ifdef MSWINDOWS}
-  P:=SysAllocStringLen(nil,Len*sizeof(WideChar)+WideRecLen);
-{$else MSWINDOWS}
-  GetMem(P,Len*sizeof(WideChar)+WideRecLen);
+  if winwidestringalloc then
+    P:=SysAllocStringLen(nil,Len*sizeof(WideChar)+WideRecLen)
+  else
 {$endif MSWINDOWS}
+    GetMem(P,Len*sizeof(WideChar)+WideRecLen);
   If P<>Nil then
     begin
      PWideRec(P)^.Len:=0;         { Initial length }
@@ -177,10 +178,11 @@ begin
     exit;
   Dec (S,WideFirstOff);
 {$ifdef MSWINDOWS}
-  SysFreeString(S);
-{$else MSWINDOWS}
-  FreeMem (S);
+  if winwidestringalloc then
+    SysFreeString(S)
+  else
 {$endif MSWINDOWS}
+    FreeMem (S);
   S:=Nil;
 end;
 
@@ -627,15 +629,17 @@ begin
       { windows doesn't support reallocing widestrings, this code
         is anyways subject to be removed because widestrings shouldn't be
         ref. counted anymore (FK) }
-{$ifndef MSWINDOWS}
-      else if (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
+      else if
+{$ifdef MSWINDOWS}
+              not winwidestringalloc and
+{$endif MSWINDOWS}
+              (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
         begin
           Dec(Pointer(S),WideFirstOff);
           if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
               reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
           Inc(Pointer(S), WideFirstOff);
         end
-{$endif MSWINDOWS}
       else
         begin
           { Reallocation is needed... }
