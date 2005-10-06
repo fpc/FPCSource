@@ -96,7 +96,10 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             cgpara.check_simple_location;
-            pushsize:=int_cgsize(cgpara.alignment);
+            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+              pushsize:=cgpara.location^.size
+            else
+              pushsize:=int_cgsize(cgpara.alignment);
             list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
           end
         else
@@ -111,7 +114,10 @@ unit cgcpu;
         if use_push(cgpara) then
           begin
             cgpara.check_simple_location;
-            pushsize:=int_cgsize(cgpara.alignment);
+            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+              pushsize:=cgpara.location^.size
+            else
+              pushsize:=int_cgsize(cgpara.alignment);
             list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
           end
         else
