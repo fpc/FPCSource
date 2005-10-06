@@ -472,31 +472,33 @@ end;
 procedure DumpBlocks;
 var
   s,i,j : ptrint;
-  hp  : pfreerecord;
+  hpfixed  : pmemchunk_fixed;
+  hpvar  : pmemchunk_var;
 begin
-  for i := 1 to maxblock do
+  { fixed freelist }
+  for i := 1 to maxblockindex do
    begin
-     hp := freelists[i];
+     hpfixed := freelists_fixed[i];
      j := 0;
-     while assigned(hp) do
+     while assigned(hpfixed) do
       begin
         inc(j);
-        hp := hp^.next;
+        hpfixed := hpfixed^.next_fixed;
       end;
      writeln('Block ',i*blocksize,': ',j);
    end;
-{ freelist 0 }
-  hp := freelists[0];
+  { var freelist }
+  hpvar := freelist_var;
   j := 0;
   s := 0;
-  while assigned(hp) do
+  while assigned(hpvar) do
    begin
      inc(j);
-     if hp^.size>s then
-      s := hp^.size;
-     hp := hp^.next;
+     if hpvar^.size>s then
+      s := hpvar^.size;
+     hpvar := hpvar^.next_var;
    end;
-  writeln('Main: ',j,' maxsize: ',s);
+  writeln('Variable: ',j,' maxsize: ',s);
 end;
 {$endif}
 
