@@ -6305,6 +6305,7 @@ tests/webtbs/tw4240.pp svneol=native#text/plain
 tests/webtbs/tw4247.pp svneol=native#text/plain
 tests/webtbs/tw4253.pp svneol=native#text/plain
 tests/webtbs/tw4260.pp svneol=native#text/plain
+tests/webtbs/tw4266.pp -text
 tests/webtbs/tw4272.pp svneol=native#text/plain
 tests/webtbs/tw4277.pp svneol=native#text/plain
 tests/webtbs/tw4294.pp svneol=native#text/plain
