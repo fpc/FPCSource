@@ -117,7 +117,7 @@ Function IsATTY (Handle:cint):cint;
 var
   t : Termios;
 begin
- IsAtty:=TCGetAttr(Handle,t);
+ IsAtty:=ord(TCGetAttr(Handle,t) <> -1);
 end;
 
 
