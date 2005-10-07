@@ -31,10 +31,12 @@ Interface
 uses cpubase, aoptobj, aoptcpub;
 
 Type
-  TAOptCpu = class(TAoptObj)
+  TCpuAsmOptimizer = class(TAsmOptimizer)
     { uses the same constructor as TAopObj }
   End;
 
 Implementation
 
+begin
+  casmoptimizer:=TCpuAsmOptimizer;
 End.

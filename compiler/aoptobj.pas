@@ -249,7 +249,7 @@ Unit AoptObj;
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
         Constructor create(_AsmL: TAasmOutput; _BlockStart, _BlockEnd: Tai;
-                           _LabelInfo: PLabelInfo);
+                           _LabelInfo: PLabelInfo); virtual;
 
         { processor independent methods }
 
@@ -290,12 +290,14 @@ Unit AoptObj;
         function getlabelwithsym(sym: tasmlabel): tai;
 
         { peephole optimizer }
-        procedure PrePeepHoleOpts;virtual;
-        procedure PeepHoleOptPass1;virtual;
-        procedure PeepHoleOptPass2;virtual;
-        procedure PostPeepHoleOpts;virtual;
+        procedure PrePeepHoleOpts;
+        procedure PeepHoleOptPass1;
+        procedure PeepHoleOptPass2;
+        procedure PostPeepHoleOpts;
 
         { processor dependent methods }
+        // if it returns true, perform a "continue"
+        function PeepHoleOptPass1Cpu(var p: tai): boolean; virtual;
       End;
 
        Function ArrayRefsEq(const r1, r2: TReference): Boolean;
@@ -997,6 +999,8 @@ Unit AoptObj;
         while (p <> BlockEnd) Do
           begin
             //!!!! UpDateUsedRegs(UsedRegs, tai(p.next));
+            if PeepHoleOptPass1Cpu(p) then
+              continue;
             case p.Typ Of
               ait_instruction:
                 begin
@@ -1093,5 +1097,10 @@ Unit AoptObj;
       begin
       end;
 
+
+    function TAOptObj.PeepHoleOptPass1Cpu(var p: tai): boolean;
+      begin
+        result := false;
+      end;
 
 End.

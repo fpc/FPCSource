@@ -44,7 +44,7 @@ unit aoptbase;
       TAoptBase = class
         { processor independent methods }
 
-        constructor create;
+        constructor create; virtual;
         destructor destroy;override;
         { returns true if register Reg is used by instruction p1 }
         Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;
