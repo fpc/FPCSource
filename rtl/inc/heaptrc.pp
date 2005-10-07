@@ -17,6 +17,10 @@ interface
 
 {$goto on}
 
+{$if defined(win32) or defined(wince)}
+  {$define windows}
+{$endif}
+
 Procedure DumpHeap;
 Procedure MarkHeap;
 
@@ -347,7 +351,11 @@ begin
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
 { Do the real GetMem, but alloc also for the info block }
+{$ifdef cpuarm}
+  allocsize:=(size + 3) and not 3+sizeof(theap_mem_info)+extra_info_size;
+{$else cpuarm}
   allocsize:=size+sizeof(theap_mem_info)+extra_info_size;
+{$endif cpuarm}
   if add_tail then
     inc(allocsize,sizeof(ptrint));
   p:=SysGetMem(allocsize);
@@ -735,7 +743,7 @@ var
    eend : ptruint; external name '_end';
 {$endif}
 
-{$ifdef win32}
+{$ifdef windows}
 var
    sdata : ptruint; external name '__data_start__';
    edata : ptruint; external name '__data_end__';
@@ -779,7 +787,7 @@ begin
 {$endif go32v2}
 
   { I don't know where the stack is in other OS !! }
-{$ifdef win32}
+{$ifdef windows}
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
      (ptruint(p)<Win32StackTop) then
@@ -791,7 +799,7 @@ begin
   { inside bss ? }
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     goto _exit;
-{$endif win32}
+{$endif windows}
 
 {$ifdef linux}
   { inside stack ? }
@@ -1102,7 +1110,17 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
-{$else}
+{$else win32}
+
+{$ifdef wince}
+Function GetEnv(P:string):Pchar;
+begin
+  { WinCE does not have environment strings.
+    Add some way to specify heaptrc options? }
+  GetEnv:=nil;
+end;
+{$else wince}
+
 Function GetEnv(P:string):Pchar;
 {
   Searches the environment for a string with name p and
@@ -1137,7 +1155,8 @@ Begin
   else
    getenv:=nil;
 end;
-{$endif}
+{$endif wince}
+{$endif win32}
 
 procedure LoadEnvironment;
 var
