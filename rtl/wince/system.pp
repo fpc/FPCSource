@@ -172,6 +172,11 @@ function ui64tod(i : qword) : double; compilerproc;
 function i64tod(i : int64) : double; compilerproc;
    cdecl;external 'coredll' name '__i64tod';
 
+function adds(s1,s2 : single) : single; compilerproc;
+function subs(s1,s2 : single) : single; compilerproc;
+function muls(s1,s2 : single) : single; compilerproc;
+function divs(s1,s2 : single) : single; compilerproc;
+
 implementation
 
 var
@@ -221,22 +226,22 @@ function fpc_abs_real(d : double) : double;compilerproc;
 function fpc_sqrt_real(d : double) : double;compilerproc;
    external 'coredll' name 'sqrt';
 
-function adds(s1,s2 : single) : single; compilerproc;
+function adds(s1,s2 : single) : single;
 begin
   adds := addd(s1, s2);
 end;
 
-function subs(s1,s2 : single) : single; compilerproc;
+function subs(s1,s2 : single) : single;
 begin
   subs := subd(s1, s2);
 end;
 
-function muls(s1,s2 : single) : single; compilerproc;
+function muls(s1,s2 : single) : single;
 begin
   muls := muld(s1, s2);
 end;
 
-function divs(s1,s2 : single) : single; compilerproc;
+function divs(s1,s2 : single) : single;
 begin
   divs := divd(s1, s2);
 end;
