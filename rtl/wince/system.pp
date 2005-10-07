@@ -60,7 +60,7 @@ var
   hprevinst,
   MainInstance,
   DLLreason,DLLparam:longint;
-  WinCEStackTop : Dword;
+  Win32StackTop : Dword; // Used by heaptrc unit
 
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
@@ -540,7 +540,7 @@ begin
   { Setup cmdline variable }
   arg:=PChar(GetCommandLine);
   count:=WideToAnsiBuf(PWideChar(arg), -1, nil, 0);
-  GetMem(cmdline, arglen + count + 3);
+  cmdline:=SysGetMem(arglen + count + 3);
   cmdline^:='"';
   move(pc^, (cmdline + 1)^, arglen);
   (cmdline + arglen + 1)^:='"';
@@ -727,7 +727,7 @@ procedure asm_exit(Exitcode : longint);external name 'asm_exit';
 
 Procedure system_exit;
 begin
-  FreeMem(cmdline);
+  SysFreeMem(cmdline);
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
@@ -1369,7 +1369,13 @@ begin
 {$ifdef CPUARM}
   asm
     mov fp,#0
+    ldr r12,.LPWin32StackTop
+    str sp,[r12]
     bl PASCALMAIN;
+    b .Lend
+.LPWin32StackTop:
+    .long Win32StackTop
+.Lend:
   end;
 {$endif CPUARM}
 
@@ -1383,7 +1389,7 @@ begin
     pushl %ebp
     xorl %ebp,%ebp
     movl %esp,%eax
-    movl %eax,WinCEStackTop
+    movl %eax,Win32StackTop
     movw %ss,%bp
     movl %ebp,_SS
     call SysResetFPU
@@ -1574,7 +1580,7 @@ begin
   else begin
     StdInputHandle:=_fileno(_getstdfilex(0));
     StdOutputHandle:=_fileno(_getstdfilex(1));
-    StdErrorHandle:=_fileno(_getstdfilex(3));
+    StdErrorHandle:=_fileno(_getstdfilex(2));
 
     OpenStdIO(Input,fmInput,StdInputHandle);
     OpenStdIO(Output,fmOutput,StdOutputHandle);

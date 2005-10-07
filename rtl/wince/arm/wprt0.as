@@ -30,7 +30,6 @@ do_start:
 
 .globl asm_exit
 asm_exit:
-  mov r0,#0
   bl exitthread
   
 _PISCONSOLE:

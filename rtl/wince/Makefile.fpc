@@ -8,19 +8,17 @@ main=rtl
 [target]
 loaders= wprt0 #wdllprt0
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
-      lineinfo \
-# heaptrc matrix \
+      lineinfo heaptrc \
       windows messages \
 # winsock initc cmem dynlibs signals \
       dos objects \
 # crt graph \
       rtlconsts sysconst sysutils \
       typinfo types classes \
-# math dateutils
-      strutils convutils \
-#     varutils variants \
+      strutils convutils math dateutils \
+#      varutils variants \
+      matrix ucomplex \
       charset getopts
-# cpu mmx ucomplex \
 #     wincrt winmouse winevent sockets printer \
 #     video mouse keyboard \
 #     winsysut fpmkunit
@@ -87,7 +85,7 @@ include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
-SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 
 
 #
@@ -106,7 +104,7 @@ wprt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT) softfpu$(PPUEXT)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
