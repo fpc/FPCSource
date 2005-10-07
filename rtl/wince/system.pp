@@ -76,6 +76,7 @@ const
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 function WideToAnsiBuf(WideBuf: PWideChar; WideBufLen: longint; AnsiBuf: PChar; AnsiBufLen: longint): longint;
 function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = nil): PWideChar;
+function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 
 { Wrappers for some WinAPI calls }
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
@@ -331,6 +332,32 @@ begin
   end;
   if outlen <> nil then
     outlen^:=(len - 1)*SizeOf(WideChar);
+end;
+
+function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
+var
+  len, wlen: longint;
+begin
+  len:=Length(s);
+  wlen:=(len + 1)*SizeOf(WideChar);
+  GetMem(Result, wlen);
+  wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
+  if wlen = 0 then
+  begin
+    wlen:=AnsiToWideBuf(PChar(s), len, nil, 0);
+    if wlen > 0 then
+    begin
+      ReAllocMem(Result, wlen);
+      wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
+    end
+    else
+    begin
+      Result^:=#0;
+      wlen:=SizeOf(WideChar);
+    end;
+  end;
+  if outlen <> nil then
+    outlen^:=(wlen - 1) div SizeOf(WideChar);
 end;
 
 {*****************************************************************************

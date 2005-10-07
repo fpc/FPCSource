@@ -58,32 +58,6 @@ implementation
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-function StringToPWideChar(const s: string; outlen: PLongInt = nil): PWideChar;
-var
-  len, wlen: longint;
-begin
-  len:=Length(s);
-  wlen:=(len + 1)*SizeOf(WideChar);
-  GetMem(Result, wlen);
-  wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
-  if wlen = 0 then
-  begin
-    wlen:=AnsiToWideBuf(PChar(s), len, nil, 0);
-    if wlen > 0 then
-    begin
-      ReAllocMem(Result, wlen);
-      wlen:=AnsiToWideBuf(PChar(s), len, Result, wlen);
-    end
-    else
-    begin
-      Result^:=#0;
-      wlen:=SizeOf(WideChar);
-    end;
-  end;
-  if outlen <> nil then
-    outlen^:=(wlen - 1) div SizeOf(WideChar);
-end;
-
 procedure PWideCharToString(const str: PWideChar; var Result: string; strlen: longint = -1);
 var
   len: longint;
