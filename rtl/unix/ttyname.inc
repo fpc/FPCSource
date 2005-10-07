@@ -71,7 +71,7 @@ var
 
 begin
   TTYName:='';
-  if (fpfstat(handle,st)=-1) and (isatty (handle)<>1) then
+  if (fpfstat(handle,st)=-1) or (isatty (handle)<>1) then
    exit;
   mydev:=st.st_dev;
   myino:=st.st_ino;
