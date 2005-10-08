@@ -19,10 +19,6 @@ unit dbugintf;
 
 interface
 
-uses
-   simpleipc,
-   classes;
-
 Type
   TDebugLevel = (dlInformation,dlWarning,dlError);
 
@@ -53,7 +49,8 @@ ResourceString
 
 implementation
 
-Uses SysUtils, msgintf, process;
+Uses 
+  SysUtils, classes,msgintf, process, simpleipc;
 
 Const
   DmtInformation = lctInformation;
