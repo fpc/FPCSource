@@ -21,7 +21,6 @@ interface
 
 uses
    simpleipc,
-   msgintf,
    classes;
 
 Type
@@ -40,7 +39,6 @@ procedure SendDebugFmtEx(const Msg: string; const Args: array of const; MType: T
 
 { low-level routines }
 
-Procedure SendDebugMessage(Const Msg : TDebugMessage);
 Function  StartDebugServer : integer;
 Procedure InitDebugClient;
 
@@ -55,7 +53,7 @@ ResourceString
 
 implementation
 
-Uses SysUtils,process;
+Uses SysUtils, msgintf, process;
 
 Const
   DmtInformation = lctInformation;
@@ -68,6 +66,7 @@ var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
   ServerID : Integer;
+
   
 Procedure WriteMessage(Const Msg : TDebugMessage);
 
