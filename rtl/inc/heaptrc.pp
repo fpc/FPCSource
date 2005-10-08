@@ -649,7 +649,11 @@ begin
      old_display_extra_info_proc:=pp^.extra_info^.displayproc;
    end;
   { Do the real ReAllocMem, but alloc also for the info block }
+{$ifdef cpuarm}
+  allocsize:=(size + 3) and not 3+sizeof(theap_mem_info)+pp^.extra_info_size;
+{$else cpuarm}
   allocsize:=size+sizeof(theap_mem_info)+pp^.extra_info_size;
+{$endif cpuarm}
   if add_tail then
    inc(allocsize,sizeof(ptrint));
   { Try to resize the block, if not possible we need to do a
