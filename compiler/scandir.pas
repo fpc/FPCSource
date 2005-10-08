@@ -223,7 +223,7 @@ implementation
       var
          hs : string;
       begin
-        if not (target_info.system in [system_i386_win32,system_i386_os2,
+        if not (target_info.system in system_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos]) then
           Message(scan_w_app_type_not_support);
         if not current_module.in_global then

@@ -325,6 +325,9 @@ interface
                                         system_x86_6432_linux];
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        system_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       { all windows systems }
+       system_all_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
+                                              system_arm_wince,system_i386_wince];
 
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
