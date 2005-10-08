@@ -24,6 +24,8 @@ Type
 
 procedure SendBoolean(const Identifier: string; const Value: Boolean);
 procedure SendDateTime(const Identifier: string; const Value: TDateTime);
+procedure SendInteger(const Identifier: string; const Value: Integer; HexNotation: Boolean = False);
+procedure SendPointer(const Identifier: string; const Value: Pointer);
 procedure SendDebugEx(const Msg: string; MType: TDebugLevel);
 procedure SendDebug(const Msg: string);
 procedure SendInteger(const Identifier: string; const Value: Integer);
@@ -100,6 +102,21 @@ procedure SendDateTime(const Identifier: string; const Value: TDateTime);
 
 begin
   SendDebugFmt('%s = %s',[Identifier,DateTimeToStr(Value)]);
+end;
+
+procedure SendInteger(const Identifier: string; const Value: Integer; HexNotation: Boolean = False);
+
+Const
+  Msgs : Array[Boolean] of string = ('%s = %d','%s = %x');
+
+begin
+  SendDebugFmt(Msgs[HexNotation],[Identifier,Value]);
+end;
+
+procedure SendPointer(const Identifier: string; const Value: Pointer);
+
+begin
+  SendDebugFmt('%s = %p',[Identifier,Value]);
 end;
 
 procedure SendDebugEx(const Msg: string; MType: TDebugLevel);
