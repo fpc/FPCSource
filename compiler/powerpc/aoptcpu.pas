@@ -77,14 +77,22 @@ Implementation
                           taicpu(p).clearop(2);
                           taicpu(p).clearop(3);
                           taicpu(p).clearop(4);
+                          taicpu(p).ops := 2;
+                          asml.remove(next1);
+                          next1.free;
                         end
                       else
+                        // some of the cases with l1>32 or l2>32 can be
+                        // optimized, but others can't (like 19,17 and 25,23)
+                        if (l1 < 32) and
+                           (l2 < 32) then
                         begin
                           taicpu(p).oper[3]^.val := max(taicpu(p).oper[3]^.val,taicpu(next1).oper[3]^.val);
                           taicpu(p).oper[4]^.val := min(taicpu(p).oper[4]^.val,taicpu(next1).oper[4]^.val);
+                          asml.remove(next1);
+                          next1.free;
+                          result := true;
                         end;
-                      asml.remove(next1);
-                      next1.free;
                     end;
                 end;
             end;
