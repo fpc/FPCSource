@@ -72,7 +72,7 @@ var
   p, hp: taicpu;
   tmpRef: treference;
   r,regCounter: tsuperregister;
-  opCount: byte;
+  opCount: longint;
   dummy: boolean;
 begin
   modifiesConflictingMemLocation := false;
@@ -1089,7 +1089,7 @@ end;
 
 function doReplaceReadReg(p: taicpu; newReg,orgReg: tsuperregister): boolean;
 var
-  opCount: byte;
+  opCount: longint;
 begin
   doReplaceReadReg := false;
   { handle special case }
