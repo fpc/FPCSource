@@ -20,6 +20,7 @@ Var
  S : String;
 
 begin
+  SendMethodEnter('Program');
   Repeat
     Writeln('Enter message to send to debug server (STOP exits): ');
     Write('> ');
@@ -28,4 +29,6 @@ begin
     If (SendError<>'') then
       Writeln('Error : ',SendError);
   Until (S='STOP');
+  SendMethodExit('Program');
+  SendDebug('Ending');
 end.

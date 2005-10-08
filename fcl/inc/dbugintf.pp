@@ -28,7 +28,6 @@ procedure SendInteger(const Identifier: string; const Value: Integer; HexNotatio
 procedure SendPointer(const Identifier: string; const Value: Pointer);
 procedure SendDebugEx(const Msg: string; MType: TDebugLevel);
 procedure SendDebug(const Msg: string);
-procedure SendInteger(const Identifier: string; const Value: Integer);
 procedure SendMethodEnter(const MethodName: string);
 procedure SendMethodExit(const MethodName: string);
 procedure SendSeparator;
@@ -60,12 +59,13 @@ Const
   DmtError       = lctError;
   ErrorLevel     : Array[TDebugLevel] of integer
                  = (dmtInformation,dmtWarning,dmtError);
-
+  IndentChars    = 2;
+  
 var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
   ServerID : Integer;
-
+  Indent : Integer = 0;
   
 Procedure WriteMessage(Const Msg : TDebugMessage);
 
@@ -76,12 +76,14 @@ begin
 end;
 
 
-procedure SendDebugMessage(Const Msg : TDebugMessage);
+procedure SendDebugMessage(Var Msg : TDebugMessage);
 
 begin
   try
     If (DebugClient=Nil) then
       InitDebugClient;
+    if (Indent>0) then
+      Msg.Msg:=StringOfChar(' ',Indent)+Msg.Msg;
     WriteMessage(Msg);
   except
     On E : Exception do
@@ -142,21 +144,19 @@ begin
   SendDebugMessage(Mesg);
 end;
 
-procedure SendInteger(const Identifier: string; const Value: Integer);
-
-begin
-  SendDebugFmt('%s = %d',[identifier,Value]);
-end;
-
 procedure SendMethodEnter(const MethodName: string);
 
 begin
   SendDebug(SEntering+MethodName);
+  inc(Indent,IndentChars);
 end;
 
 procedure SendMethodExit(const MethodName: string);
 
 begin
+  Dec(Indent,IndentChars);
+  If (Indent<0) then
+    Indent:=0;
   SendDebug(SExiting+MethodName);
 end;
 
