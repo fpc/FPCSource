@@ -259,16 +259,13 @@ end;
 
 Function DirectoryExists (Const Directory : String) : Boolean;
 var
-  Handle: THandle;
-  FindData: TWin32FindData;
+  Attr:Dword;
 begin
-  Result:=False;
-  Handle := FindFirstFile(Pchar(Directory), FindData);
-  If (Handle <> INVALID_HANDLE_VALUE) then
-    begin
-    Result:=((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
-    Windows.FindClose(Handle);
-    end;
+  Attr:=GetFileAttributes(PChar(Directory));
+  if Attr <> $ffffffff then
+    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
+  else
+    Result:=False;
 end;
 
 
