@@ -809,7 +809,7 @@ function regInInstruction(supreg: tsuperregister; p1: tai): boolean;
 { this one ignores CH_ALL opcodes, while regModifiedByInstruction doesn't  }
 var
   p: taicpu;
-  opcount: Word;
+  opcount: longint;
 begin
   regInInstruction := false;
   if p1.typ <> ait_instruction then
