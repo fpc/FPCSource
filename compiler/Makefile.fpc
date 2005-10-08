@@ -32,17 +32,20 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS) m68k
 
-# Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
+# Allow ALPHA, POWERPC, POWERPC64, M68K, I386 defines for target cpu
 ifdef ALPHA
 PPC_TARGET=alpha
 endif
 ifdef POWERPC
 PPC_TARGET=powerpc
+endif
+ifdef POWERPC64
+PPC_TARGET=powerpc64
 endif
 ifdef SPARC
 PPC_TARGET=sparc
@@ -117,6 +120,9 @@ CPUSUF=68k
 endif
 ifeq ($(PPC_TARGET),powerpc)
 CPUSUF=ppc
+endif
+ifeq ($(PPC_TARGET),powerpc64)
+CPUSUF=ppc64
 endif
 ifeq ($(PPC_TARGET),sparc)
 CPUSUF=sparc

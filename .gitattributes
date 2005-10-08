@@ -4084,7 +4084,6 @@ rtl/powerpc/makefile.cpu -text
 rtl/powerpc/math.inc svneol=native#text/plain
 rtl/powerpc/mathu.inc svneol=native#text/plain
 rtl/powerpc/mathuh.inc svneol=native#text/plain
-rtl/powerpc/powerpc.inc svneol=native#text/plain
 rtl/powerpc/set.inc svneol=native#text/plain
 rtl/powerpc/setjump.inc svneol=native#text/plain
 rtl/powerpc/setjumph.inc svneol=native#text/plain
@@ -4094,10 +4093,11 @@ rtl/powerpc/strlen.inc svneol=native#text/plain
 rtl/powerpc/strpas.inc svneol=native#text/plain
 rtl/powerpc/sysutilp.inc svneol=native#text/plain
 rtl/powerpc64/int64p.inc svneol=native#text/plain
+rtl/powerpc64/makefile.cpu -text
 rtl/powerpc64/math.inc svneol=native#text/plain
 rtl/powerpc64/mathu.inc svneol=native#text/plain
 rtl/powerpc64/mathuh.inc svneol=native#text/plain
-rtl/powerpc64/powerpc.inc svneol=native#text/plain
+rtl/powerpc64/powerpc64.inc -text
 rtl/powerpc64/set.inc svneol=native#text/plain
 rtl/powerpc64/setjump.inc svneol=native#text/plain
 rtl/powerpc64/setjumph.inc svneol=native#text/plain

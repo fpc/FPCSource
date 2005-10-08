@@ -81,13 +81,21 @@ var
   {$define SYSPROCDEFINED}
 {$endif cpux86_64}
 
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
   {$i powerpc.inc}  { Case dependent, don't change }
   {$define SYSPROCDEFINED}
-{$endif cpupowerpc}
+{$endif cpupowerpc32}
+
+{$ifdef cpupowerpc64}
+  {$ifdef SYSPROCDEFINED}
+    {$Error Can't determine processor type !}
+  {$endif}
+  {$i powerpc64.inc}  { Case dependent, don't change }
+  {$define SYSPROCDEFINED}
+{$endif cpupowerpc64}
 
 {$ifdef cpualpha}
   {$ifdef SYSPROCDEFINED}
