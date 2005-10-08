@@ -5535,7 +5535,7 @@ Const
   #endif
    *)
 
-{$ifdef _X86_}                              //+winnt
+{$ifdef i386}                              //+winnt
 
   { x86  }
   { The doc refered me to winnt.h, so I had to look...  }
@@ -5556,7 +5556,7 @@ Const
   { our own invention  }
      FLAG_TRACE_BIT = $100;
      CONTEXT_DEBUGGER = CONTEXT_FULL or CONTEXT_FLOATING_POINT;
-{$endif _X86_}
+{$endif i386}
 
 {$ifdef _MIPS_} //+winnt all block added
 //

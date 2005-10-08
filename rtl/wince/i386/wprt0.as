@@ -6,8 +6,8 @@
 _mainCRTStartup:
      movb   $1,U_SYSTEM_ISCONSOLE
      call   _FPC_EXE_Entry
-     .globl _WinMainCRTStartup
-_WinMainCRTStartup:
+     .globl __WinMainCRTStartup
+__WinMainCRTStartup:
      movb   $0,U_SYSTEM_ISCONSOLE
      call   _FPC_EXE_Entry
      

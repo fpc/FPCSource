@@ -1,6 +1,6 @@
 /*
 Startup code for WinCE port of Free Pascal
-Written by Yury Sidorov 2005
+Written by Yury Sidorov, 2005.
 */
 
 .section .text
@@ -27,6 +27,7 @@ do_start:
   ldr r1, _PISCONSOLE
   strb r0,[r1]
   bl _FPC_EXE_Entry
+  mov r0,#0
 
 .globl asm_exit
 asm_exit:

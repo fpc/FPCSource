@@ -97,6 +97,8 @@ function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
 function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
 function RemoveDirectory(name:pointer):longbool; stdcall;
 
+
+{$ifdef CPUARM}
 { the external directive isn't really necessary here because it is overriden by external (FK) }
 
 function addd(d1,d2 : double) : double; compilerproc;
@@ -177,6 +179,7 @@ function adds(s1,s2 : single) : single; compilerproc;
 function subs(s1,s2 : single) : single; compilerproc;
 function muls(s1,s2 : single) : single; compilerproc;
 function divs(s1,s2 : single) : single; compilerproc;
+{$endif CPUARM}
 
 implementation
 
@@ -209,24 +212,26 @@ begin
   CompareByte := memcmp(@buf1, @buf2, len);
 end;
 
+{$ifdef CPUARM}
+
 {$define FPC_SYSTEM_HAS_INT}
-function fpc_int_real(d: double): double;compilerproc;
+function fpc_int_real(d: ValReal): ValReal;compilerproc;
 begin
   fpc_int_real := i64tod(trunc(d));
 end;
 
 {$define FPC_SYSTEM_HAS_TRUNC}
-function fpc_trunc_real(d : double) : int64;compilerproc;
+function fpc_trunc_real(d : ValReal) : int64;compilerproc;
    external 'coredll' name '__dtoi64';
 
 {$define FPC_SYSTEM_HAS_ABS}
-function fpc_abs_real(d : double) : double;compilerproc;
+function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
    external 'coredll' name 'fabs';
 
 {$define FPC_SYSTEM_HAS_SQRT}
-function fpc_sqrt_real(d : double) : double;compilerproc;
+function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
    external 'coredll' name 'sqrt';
-
+   
 function adds(s1,s2 : single) : single;
 begin
   adds := addd(s1, s2);
@@ -246,6 +251,8 @@ function divs(s1,s2 : single) : single;
 begin
   divs := divd(s1, s2);
 end;
+
+{$endif CPUARM}
 
 {*****************************************************************************}
 

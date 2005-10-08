@@ -1,12 +1,16 @@
 WinCE port
 ==========
 
-The WinCE port is quite complete and usable. The port was started and maintained by Yury Sidorov. Oliver (Oro06) ported WinCE API headers.
+WinCE port is quite complete and usable. The port was started and maintained by Yury Sidorov. Oliver (Oro06) ported WinCE API headers.
 
 Status
 ------
 * The 2.1.x compiler has compiler support WinCE.
 * ARM and i386 (old WinCE emulator) CPUs are supported.
+* The following platforms are supported: 
+  * Pocket PC 2002 – WinCE version: 3.0 
+  * Pocket PC 2003 – WinCE version: 4.20 
+  * Pocket PC 2003 Second Edition – WinCE version: 4.21 
 * Base units are complete.
 * Windows unit is almost complete. Delphi compatible declarations is not ready.
 
@@ -15,13 +19,14 @@ Building
 * You need cross binutils for arm-wince, get them fromftp://ftp.freepascal.org/pub/fpc/contrib/cross/arm-wince-binutils.zip for Win32.
 * Extract them to some dir in the path on your machine.
 * Get the 2.1 source repository from SVN: http://www.freepascal.org/develop.html#svn
-* Go to fpc/compiler and execute make cycle CPU_TARGET=arm OS_TARGET=wince
+* Go to fpc/compiler and execute: 
+  make cycle CPU_TARGET=arm OS_TARGET=wince CROSSBINDIR=<path_to_cross_binutils>
 
 You should end with the units compiled to fpc/rtl/units/arm-wince and a ppccrossarm.exe in fpc/compiler. Copy them to locations fitting your fpc installation.
 
 WinCE port notes
 ----------------
-* chdir always produces an error (WinCE does not support setting of current directory).
+* chdir procedure always produces an error (WinCE does not support setting of current directory).
 * All file/dir paths must be absolute (started with \).
 * WinCE is unicode OS. All string parameters to API calls must be PWideChar.
 * WinCE does not have support for environment strings.

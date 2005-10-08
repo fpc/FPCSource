@@ -1118,7 +1118,7 @@
      TCONSOLESCREENBUFFERINFO = CONSOLE_SCREEN_BUFFER_INFO;
      PCONSOLESCREENBUFFERINFO = ^CONSOLE_SCREEN_BUFFER_INFO;
 
-{$ifdef _X86_}                              //+winnt
+{$ifdef i386}                              //+winnt
   type
      FLOATING_SAVE_AREA = record //~winnt
           ControlWord : DWORD;
@@ -1194,7 +1194,7 @@
      TLDTENTRY = LDT_ENTRY;
      PLDTENTRY = ^LDT_ENTRY;
 
-{$endif _X86_}                              //+winnt
+{$endif i386}                              //+winnt
 
 {$ifdef _MIPS_}                             //+winnt all block added
 //

@@ -58,7 +58,7 @@ implementation
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-procedure PWideCharToString(const str: PWideChar; var Result: string; strlen: longint = -1);
+procedure PWideCharToString(const str: PWideChar; out Result: string; strlen: longint = -1);
 var
   len: longint;
 begin
@@ -93,7 +93,7 @@ var
   s    : widestring;
   size : dword;
   rc   : dword;
-  p,buf : pwidechar;
+  buf  : pwidechar;
 begin
   s := ExpandFileName (filename);
 
@@ -214,13 +214,13 @@ begin
 end;
 
 
-Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
+Function DosToWinTime (DTime:longint; out Wtime : TFileTime):longbool;
 begin
   DosToWinTime:=False;  //!!! fixme
 end;
 
 
-Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):longbool;
+Function WinToDosTime (Const Wtime : TFileTime; out DTime:longint):longbool;
 begin
   WinToDosTime:=False; //!!! fixme
 end;
@@ -263,19 +263,16 @@ end;
 
 Function DirectoryExists (Const Directory : String) : Boolean;
 var
-  Handle: THandle;
-  FindData: TWin32FindData;
+  Attr:Dword;
   fn: PWideChar;
 begin
   fn:=StringToPWideChar(Directory);
-  Result:=False;
-  Handle := FindFirstFile(PWideChar(widestring(Directory)), FindData);
+  Attr:=GetFileAttributes(fn);
   FreeMem(fn);
-  If (Handle <> INVALID_HANDLE_VALUE) then
-    begin
-    Result:=((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
-    Windows.FindClose(Handle);
-    end;
+  if Attr <> $ffffffff then
+    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
+  else
+    Result:=False;
 end;
 
 
