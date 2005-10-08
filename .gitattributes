@@ -4084,6 +4084,7 @@ rtl/powerpc/makefile.cpu -text
 rtl/powerpc/math.inc svneol=native#text/plain
 rtl/powerpc/mathu.inc svneol=native#text/plain
 rtl/powerpc/mathuh.inc svneol=native#text/plain
+rtl/powerpc/powerpc.inc -text
 rtl/powerpc/set.inc svneol=native#text/plain
 rtl/powerpc/setjump.inc svneol=native#text/plain
 rtl/powerpc/setjumph.inc svneol=native#text/plain
