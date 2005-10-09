@@ -1093,16 +1093,8 @@ procedure cpuinclocked(var l : longint);assembler;
 {$ifndef REGCALL}
      movl       l,%eax
 {$endif}
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread
-     jz         .Linclockednolock
      lock
      incl       (%eax)
-     jmp        .Linclockedend
-.Linclockednolock:
-     incl       (%eax)
-.Linclockedend:
   end;
 
 // inline SMP check and normal lock.
