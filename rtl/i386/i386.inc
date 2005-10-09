@@ -1073,7 +1073,7 @@ end;
 
 { do a thread save inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function declocked(var l : longint) : boolean;assembler;
+function cpudeclocked(var l : longint) : boolean;assembler;
 
   asm
 {$ifndef REGCALL}
@@ -1081,19 +1081,13 @@ function declocked(var l : longint) : boolean;assembler;
 {$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
-     jz         .Ldeclockednolock
      lock
      decl       (%eax)
-     jmp        .Ldeclockedend
-.Ldeclockednolock:
-     decl       (%eax);
-.Ldeclockedend:
      setzb      %al
   end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;
+procedure cpuinclocked(var l : longint);assembler;
 
   asm
 {$ifndef REGCALL}
@@ -1110,6 +1104,30 @@ procedure inclocked(var l : longint);assembler;
      incl       (%eax)
 .Linclockedend:
   end;
+
+// inline SMP check and normal lock.
+// the locked one is so slow, inlining doesn't matter.
+function declocked(var l : longint) : boolean; inline;
+
+begin
+  if not ismultithread then
+    begin
+     dec(l);
+     declocked:=l=0;
+    end
+   else
+    declocked:=cpudeclocked(l);
+end;
+
+procedure inclocked(var l : longint); inline;
+
+begin
+  if not ismultithread then
+    inc(l)
+   else
+    cpuinclocked(l);
+end;
+
 
 {****************************************************************************
                                   FPU
