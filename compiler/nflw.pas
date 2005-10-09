@@ -27,7 +27,7 @@ unit nflw;
 interface
 
     uses
-      classes,
+      cclasses,
       node,cpubase,
       symnot,
       symtype,symbase,symdef,symsym;
