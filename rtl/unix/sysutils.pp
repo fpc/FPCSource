@@ -259,7 +259,7 @@ begin
   fpclose(Handle);
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle,Size: TFileOffset) : boolean;
 
 begin
   FileTruncate:=fpftruncate(Handle,Size)>=0;
@@ -1057,22 +1057,12 @@ End;
 procedure Sleep(milliseconds: Cardinal);
 
 Var
-  fd : Integer;
-  fds : TfdSet;
-  timeout : TimeVal;
+  timeout,timeoutresult : TTimespec;
 
 begin
-  fd:=FileOpen('/dev/null',fmOpenRead);
-  If Not(Fd<0) then
-    try
-      fpfd_zero(fds);
-      fpfd_set(0,fds);
-      timeout.tv_sec:=Milliseconds div 1000;
-      timeout.tv_usec:=(Milliseconds mod 1000) * 1000;
-      fpSelect(1,Nil,Nil,@fds,@timeout);
-    finally
-      FileClose(fd);
-    end;
+  timeout.tv_sec:=milliseconds div 1000;
+  timeout.tv_nsec:=1000*1000*(milliseconds mod 1000);
+  fpnanosleep(@timeout,@timeoutresult);
 end;
 
 Function GetLastOSError : Integer;
