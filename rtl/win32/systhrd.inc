@@ -20,38 +20,41 @@
 *****************************************************************************}
 
 const
-  { GlobalAlloc, GlobalFlags  }
-  GMEM_FIXED = 0;
-  GMEM_ZEROINIT = 64;
+  { LocalAlloc flags  }
+  LMEM_FIXED = 0;
+  LMEM_ZEROINIT = 64;
 
+{$ifndef WINCE}
 function TlsAlloc : DWord;
-  stdcall;external 'kernel32' name 'TlsAlloc';
-function TlsGetValue(dwTlsIndex : DWord) : pointer;
-  stdcall;external 'kernel32' name 'TlsGetValue';
-function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
-  stdcall;external 'kernel32' name 'TlsSetValue';
+  stdcall;external KernelDLL name 'TlsAlloc';
 function TlsFree(dwTlsIndex : DWord) : LongBool;
-  stdcall;external 'kernel32' name 'TlsFree';
+  stdcall;external KernelDLL name 'TlsFree';
+{$endif WINCE}
+function TlsGetValue(dwTlsIndex : DWord) : pointer;
+  stdcall;external KernelDLL name 'TlsGetValue';
+function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
+  stdcall;external KernelDLL name 'TlsSetValue';
 function CreateThread(lpThreadAttributes : pointer;
-  dwStackSize : DWord; lpStartAddress : pointer;lpParameter : pointer;
-  dwCreationFlags : DWord;var lpThreadId : DWord) : Dword;
-  stdcall;external 'kernel32' name 'CreateThread';
+  dwStackSize : SIZE_T; lpStartAddress : pointer;lpParameter : pointer;
+  dwCreationFlags : DWord;var lpThreadId : DWord) : THandle;
+  stdcall;external KernelDLL name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
-  stdcall;external 'kernel32' name 'ExitThread';
-function GlobalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
-  stdcall;external 'kernel32' name 'GlobalAlloc';
-function GlobalFree(hMem : Pointer):Pointer; stdcall;external 'kernel32' name 'GlobalFree';
-procedure Sleep(dwMilliseconds: DWord); stdcall;external 'kernel32' name 'Sleep';
-function  WinSuspendThread (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'SuspendThread';
-function  WinResumeThread  (threadHandle : dword) : dword; stdcall;external 'kernel32' name 'ResumeThread';
-function  TerminateThread  (threadHandle : dword; var exitCode : dword) : boolean; stdcall;external 'kernel32' name 'TerminateThread';
-function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;external 'kernel32' name 'WaitForSingleObject';
-function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
-function  WinThreadGetPriority (threadHandle : dword): LongInt; stdcall;external 'kernel32' name 'GetThreadPriority';
-function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; stdcall; external 'kernel32' name 'CreateEventA';
-function  ResetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
-function  SetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
+  stdcall;external KernelDLL name 'ExitThread';
+function LocalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
+  stdcall;external KernelDLL name 'LocalAlloc';
+function LocalFree(hMem : Pointer):Pointer; stdcall;external KernelDLL name 'LocalFree';
+procedure Sleep(dwMilliseconds: DWord); stdcall;external KernelDLL name 'Sleep';
+function  WinSuspendThread (threadHandle : THandle) : dword; stdcall;external KernelDLL name 'SuspendThread';
+function  WinResumeThread  (threadHandle : THandle) : dword; stdcall;external KernelDLL name 'ResumeThread';
+function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; stdcall;external KernelDLL name 'TerminateThread';
+function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; stdcall;external KernelDLL name 'WaitForSingleObject';
+function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; stdcall;external KernelDLL name 'SetThreadPriority';
+function  WinThreadGetPriority (threadHandle : THandle): LongInt; stdcall;external KernelDLL name 'GetThreadPriority';
+{$ifndef WINCE}
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
+function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
+function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
+{$endif WINCE}
 
 CONST
    WAIT_OBJECT_0 = 0;
@@ -66,7 +69,6 @@ CONST
                              Threadvar support
 *****************************************************************************}
 
-{$ifdef HASTHREADVAR}
     const
       threadvarblocksize : dword = 0;
 
@@ -76,6 +78,10 @@ CONST
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin
         offset:=threadvarblocksize;
+      {$ifdef CPUARM}
+        // Data must be allocated at 4 bytes boundary for ARM
+        size:=(size + 3) and not dword(3);
+      {$endif CPUARM}
         inc(threadvarblocksize,size);
       end;
 
@@ -95,17 +101,16 @@ CONST
         { exceptions which use threadvars but       }
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
-        dataindex:=pointer(GlobalAlloc(GMEM_FIXED or GMEM_ZEROINIT,threadvarblocksize));
+        dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
         TlsSetValue(tlskey,dataindex);
       end;
 
 
     procedure SysReleaseThreadVars;
       begin
-        GlobalFree(TlsGetValue(tlskey));
+        LocalFree(TlsGetValue(tlskey));
       end;
 
-{$endif HASTHREADVAR}
 
 
 {*****************************************************************************
@@ -123,9 +128,7 @@ CONST
     procedure DoneThread;
       begin
         { Release Threadvars }
-{$ifdef HASTHREADVAR}
         SysReleaseThreadVars;
-{$endif HASTHREADVAR}
       end;
 
 
@@ -133,11 +136,9 @@ CONST
       var
         ti : tthreadinfo;
       begin
-{$ifdef HASTHREADVAR}
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
-{$endif HASTHREADVAR}
         { Copy parameter to local data }
 {$ifdef DEBUG_MT}
         writeln('New thread started, initialising ...');
@@ -154,11 +155,12 @@ CONST
       end;
 
 
-    function SysBeginThread(sa : Pointer;stacksize : dword;
+    function SysBeginThread(sa : Pointer;stacksize : ptruint;
                          ThreadFunction : tthreadfunc;p : pointer;
-                         creationFlags : dword; var ThreadId : DWord) : DWord;
+                         creationFlags : dword;var ThreadId : TThreadID) : TThreadID;
       var
         ti : pthreadinfo;
+        _threadid : DWord;
       begin
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
@@ -166,11 +168,9 @@ CONST
         { Initialize multithreading if not done }
         if not IsMultiThread then
          begin
-{$ifdef HASTHREADVAR}
            { We're still running in single thread mode, setup the TLS }
            TLSKey:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
-{$endif HASTHREADVAR}
            IsMultiThread:=true;
          end;
         { the only way to pass data to the newly created thread
@@ -183,7 +183,9 @@ CONST
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,threadid);
+        _threadid:=ThreadID;
+        SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,_threadid);
+        ThreadID:=_threadid;
       end;
 
 
@@ -200,19 +202,19 @@ CONST
     end;
 
 
-    function  SysSuspendThread (threadHandle : dword) : dword;
+    function  SysSuspendThread (threadHandle : TThreadID) : dword;
     begin
       SysSuspendThread:=WinSuspendThread(threadHandle);
     end;
 
 
-    function  SysResumeThread  (threadHandle : dword) : dword;
+    function  SysResumeThread  (threadHandle : TThreadID) : dword;
     begin
       SysResumeThread:=WinResumeThread(threadHandle);
     end;
 
 
-    function  SysKillThread (threadHandle : dword) : dword;
+    function  SysKillThread (threadHandle : TThreadID) : dword;
     var exitCode : dword;
     begin
       if not TerminateThread (threadHandle, exitCode) then
@@ -221,25 +223,25 @@ CONST
         SysKillThread := 0;
     end;
 
-    function  SysWaitForThreadTerminate (threadHandle : dword; TimeoutMs : longint) : dword;
+    function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
     begin
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
       SysWaitForThreadTerminate := WaitForSingleObject(threadHandle, TimeoutMs);
     end;
 
 
-    function  SysThreadSetPriority (threadHandle : dword; Prio: longint): boolean;            {-15..+15, 0=normal}
+    function  SysThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean;            {-15..+15, 0=normal}
     begin
       SysThreadSetPriority:=WinThreadSetPriority(threadHandle,Prio);
     end;
 
 
-    function  SysThreadGetPriority (threadHandle : dword): longint;
+    function  SysThreadGetPriority (threadHandle : TThreadID): longint;
     begin
       SysThreadGetPriority:=WinThreadGetPriority(threadHandle);
     end;
 
-    function  SysGetCurrentThreadId : dword;
+    function  SysGetCurrentThreadId : TThreadID;
     begin
       SysGetCurrentThreadId:=Win32GetCurrentThreadId;
     end;
@@ -249,16 +251,16 @@ CONST
 *****************************************************************************}
 
 procedure WinInitCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external 'kernel32' name 'InitializeCriticalSection';
+  stdcall;external KernelDLL name 'InitializeCriticalSection';
 
 procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external 'kernel32' name 'DeleteCriticalSection';
+  stdcall;external KernelDLL name 'DeleteCriticalSection';
 
 procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external 'kernel32' name 'EnterCriticalSection';
+  stdcall;external KernelDLL name 'EnterCriticalSection';
 
 procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external 'kernel32' name 'LeaveCriticalSection';
+  stdcall;external KernelDLL name 'LeaveCriticalSection';
 
 procedure SySInitCriticalSection(var cs);
 begin
@@ -444,12 +446,10 @@ begin
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
-{$ifdef HASTHREADVAR}
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
     AllocateThreadVars     :=@SysAllocateThreadVars;
     ReleaseThreadVars      :=@SysReleaseThreadVars;
-{$endif HASTHREADVAR}
     BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;
@@ -467,6 +467,3 @@ begin
   InitHeapMutexes;
   ThreadID := GetCurrentThreadID;
 end;
-
-
-
