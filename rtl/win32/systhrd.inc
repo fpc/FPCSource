@@ -24,6 +24,11 @@ const
   LMEM_FIXED = 0;
   LMEM_ZEROINIT = 64;
 
+  KernelDLL = 'kernel32.dll';
+
+type
+  SIZE_T = dword;
+
 {$ifndef WINCE}
 function TlsAlloc : DWord;
   stdcall;external KernelDLL name 'TlsAlloc';
