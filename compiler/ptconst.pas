@@ -125,9 +125,6 @@ implementation
              maybe_new_object_file(asmlist[cural]);
              new_section(asmlist[cural],cursectype,lower(sym.mangledname),const_align(l));
 
-             if (cs_debuginfo in aktmoduleswitches) then
-               debuginfo.insertsym(asmlist[cural],sym);
-
              if (sym.owner.symtabletype=globalsymtable) or
                 maybe_smartlink_symbol or
                 (assigned(current_procinfo) and
@@ -622,7 +619,7 @@ implementation
                             move(strval^,ca^,strlength);
                             { The terminating #0 to be stored in the .data section (JM) }
                             ca[strlength]:=#0;
-                            asmlist[al_const].concat(Tai_string.Create_pchar(ca,strlength));
+                            asmlist[al_const].concat(Tai_string.Create_pchar(ca,strlength+1));
                           end;
                      end;
                    st_widestring:
