@@ -97,7 +97,7 @@ implementation
        { codegen }
        tgobj,cgobj,dbgbase,
        ncgutil,regvars
-{$if defined(arm) or defined(powerpc)}
+{$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
 {$endif arm}
        {$ifndef NOOPT}
@@ -852,7 +852,9 @@ implementation
 {$ifdef POWERPC}
             fixup_jmps(aktproccode);
 {$endif POWERPC}
-
+{$ifdef POWERPC64}
+            fixup_jmps(aktproccode);
+{$endif POWERPC64}
             { insert line debuginfo }
             if (cs_debuginfo in aktmoduleswitches) or
                (cs_use_lineinfo in aktglobalswitches) then

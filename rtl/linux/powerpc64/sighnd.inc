@@ -22,7 +22,9 @@ var
 {  fpustate: longint; }
 begin
   res:=0;
+  {$IFDEF EXCDEBUG}
   writeln('signaltorunerror');
+  {$ENDIF}
   { exception flags are turned off by kernel }
   fpc_enable_ppc_fpu_exceptions;
   case sig of
@@ -47,6 +49,11 @@ begin
     SIGSEGV :
         res:=216;
   end;
+  {$IFDEF EXCDEBUG}
+  writeln('sig = ', sig);
+  writeln('siginfo = ', hexstr(ptrint(siginfo), sizeof(siginfo)*2));
+  writeln('sigcontext = ', hexstr(ptrint(sigcontext), sizeof(sigcontext)*2));
+  {$ENDIF}
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,pointer(SigContext^.pt_regs^.nip),pointer(SigContext^.pt_regs^.gpr[1]));
