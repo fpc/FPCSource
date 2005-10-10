@@ -438,7 +438,7 @@ begin
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-    fpc_truely_ansistr_unique(s);
+    result:=fpc_truely_ansistr_unique(s);
 end;
 
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
