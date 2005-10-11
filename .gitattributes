@@ -6303,6 +6303,7 @@ tests/webtbs/tw4215.pp svneol=native#text/plain
 tests/webtbs/tw4219.pp svneol=native#text/plain
 tests/webtbs/tw4223.pp svneol=native#text/plain
 tests/webtbs/tw4233.pp svneol=native#text/plain
+tests/webtbs/tw4234.pp svneol=native#text/plain
 tests/webtbs/tw4240.pp svneol=native#text/plain
 tests/webtbs/tw4247.pp svneol=native#text/plain
 tests/webtbs/tw4253.pp svneol=native#text/plain
