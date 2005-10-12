@@ -66,7 +66,7 @@ uses
         a_mulhw_, a_mulhwu, a_mulhwu_, a_mulli, a_mullw, a_mullw_, a_mullwo,
         a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
         a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
-        a_rlwinm, a_rlwinm_, a_rlwnm, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
+        a_rlwinm, a_rlwinm_, a_rlwnm, a_rlwnm_, a_sc, a_slw, a_slw_, a_sraw, a_sraw_,
         a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_stbu, a_stbux, a_stbx, a_stfd,
         a_stfdu, a_stfdux, a_stfdx, a_stfiwx, a_stfs, a_stfsu, a_stfsux, a_stfsx,
         a_sth, a_sthbrx, a_sthu, a_sthux, a_sthx, a_stmw, a_stswi, a_stswx, a_stw,
@@ -83,7 +83,7 @@ uses
         a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
         a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
         a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
-        a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr, a_mtlr, a_mflr,
+        a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_not_, a_mtcr, a_mtlr, a_mflr,
         a_mtctr, a_mfctr);
 
       {# This should define the array of instructions as string }
