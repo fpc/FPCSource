@@ -502,6 +502,9 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
+          { position in aasmoutput list }
+          procstarttai,
+          procendtai   : tai;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -924,6 +927,11 @@ implementation
           trttisym(inittablesym).lab := nil;
         localrttilab[initrtti]:=nil;
         localrttilab[fullrtti]:=nil;
+        if deftype=procdef then
+          begin
+            tprocdef(self).procstarttai:=nil;
+            tprocdef(self).procendtai:=nil;
+          end;
       end;
 
 

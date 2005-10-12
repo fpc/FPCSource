@@ -1278,8 +1278,6 @@ implementation
         { write debug info }
         maybe_new_object_file(asmlist[al_globals]);
         new_section(asmlist[al_globals],sec_rodata,_class.vmt_mangledname,const_align(sizeof(aint)));
-        if (cs_debuginfo in aktmoduleswitches) then
-          debuginfo.insertvmt(asmlist[al_globals],_class);
         asmlist[al_globals].concat(Tai_symbol.Createname_global(_class.vmt_mangledname,AT_DATA,0));
 
          { determine the size with symtable.datasize, because }

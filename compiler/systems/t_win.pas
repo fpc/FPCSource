@@ -327,9 +327,6 @@ implementation
                     asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
                   {$endif ARM}
-                    if (cs_debuginfo in aktmoduleswitches) and
-                       assigned(hp2.procdef) then
-                      debuginfo.insertdef(asmlist[al_imports],hp2.procdef);
                   end;
                  { create head link }
                  new_section(asmlist[al_imports],sec_idata7,'',0);
@@ -489,9 +486,6 @@ implementation
                       asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
                     {$endif ARM}
-                      if (cs_debuginfo in aktmoduleswitches) and
-                         assigned(hp2.procdef) then
-                        debuginfo.insertdef(asmlist[al_imports],hp2.procdef);
                       { add jump field to al_imports }
                       new_section(asmlist[al_imports],sec_idata5,'',0);
                       if (cs_debuginfo in aktmoduleswitches) then

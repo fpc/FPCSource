@@ -87,14 +87,11 @@ implementation
            KeepShared.Free;
          end;
 
-        { Start and end of debuginfo, at least required for stabs
+        { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }
         if (cs_debuginfo in aktmoduleswitches) or
            (cs_use_lineinfo in aktglobalswitches) then
-          begin
-            debuginfo.insertmodulestart(asmlist[al_debugstart]);
-            debuginfo.insertmoduleend(asmlist[al_debugend]);
-          end;
+          debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
         GenerateAsm(false);
@@ -1163,7 +1160,7 @@ implementation
 
          { generate debuginfo }
          if (cs_debuginfo in aktmoduleswitches) then
-           debuginfo.insertmoduletypes(asmlist[al_debugtypes]);
+           debuginfo.inserttypeinfo;
 
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[al_procedures],current_module.globalsymtable);
@@ -1483,7 +1480,7 @@ implementation
 
          { generate debuginfo }
          if (cs_debuginfo in aktmoduleswitches) then
-           debuginfo.insertmoduletypes(asmlist[al_debugtypes]);
+           debuginfo.inserttypeinfo;
 
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);

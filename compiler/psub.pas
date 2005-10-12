@@ -610,6 +610,7 @@ implementation
         oldfilepos : tfileposinfo;
         templist : Taasmoutput;
         headertai : tai;
+        curralign : longint;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -860,9 +861,15 @@ implementation
                (cs_use_lineinfo in aktglobalswitches) then
               debuginfo.insertlineinfo(aktproccode);
 
+            { gprof uses 16 byte granularity }
+            if (cs_profile in aktmoduleswitches) then
+              curralign:=16
+            else
+              curralign:=aktalignment.procalign;
+
             { add the procedure to the al_procedures }
             maybe_new_object_file(asmlist[al_procedures]);
-            new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),aktalignment.procalign);
+            new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),curralign);
             asmlist[al_procedures].concatlist(aktproccode);
             { save local data (casetable) also in the same file }
             if assigned(aktlocaldata) and

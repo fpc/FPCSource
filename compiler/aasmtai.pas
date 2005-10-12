@@ -593,15 +593,14 @@ interface
          information in the .o file. The stabs for the types must be defined
          before they can be referenced and therefor they need to be written
          first (PFV) }
-       Tasmlist=(al_debugstart,
-                 al_debugtypes,
+       Tasmlist=(al_stabsstart,
+                 al_stabs,
                  al_procedures,
                  al_globals,
                  al_const,
                  al_typedconsts,
                  al_rotypedconsts,
                  al_threadvars,
-                 al_withdebug,
                  al_imports,
                  al_exports,
                  al_resources,
@@ -609,18 +608,17 @@ interface
                  al_dwarf,
                  al_picdata,
                  al_resourcestrings,
-                 al_debugend);
+                 al_stabsend);
     const
        TasmlistStr : array[tasmlist] of string[24] =(
-           'al_debugstart',
-           'al_debugtypes',
+           'al_stabsstart',
+           'al_stabs',
            'al_procedures',
            'al_globals',
            'al_const',
            'al_typedconsts',
            'al_rotypedconsts',
            'al_threadvars',
-           'al_withdebug',
            'al_imports',
            'al_exports',
            'al_resources',
@@ -628,7 +626,7 @@ interface
            'al_dwarf',
            'al_picdata',
            'al_resourcestrings',
-           'al_debugend');
+           'al_stabsend');
 
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');

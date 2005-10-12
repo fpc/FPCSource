@@ -35,7 +35,7 @@ interface
        ppu,
        cclasses,symnot,
        { aasm }
-       aasmbase,aasmtai,
+       aasmbase,
        cpuinfo,cpubase,cgbase,cgutils,parabase
        ;
 

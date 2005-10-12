@@ -1627,18 +1627,6 @@ implementation
       var
         hs : string;
       begin
-        { add symbol entry point as well as debug information                 }
-        { will be inserted in front of the rest of this list.                 }
-        { Insert alignment and assembler names }
-        { Align, gprof uses 16 byte granularity }
-        if (cs_profile in aktmoduleswitches) then
-          list.concat(Tai_align.create(16))
-        else
-          list.concat(Tai_align.create(aktalignment.procalign));
-
-        if (cs_debuginfo in aktmoduleswitches) then
-          debuginfo.insertprocstart(list);
-
         repeat
           hs:=current_procinfo.procdef.aliasnames.getfirst;
           if hs='' then
@@ -1651,6 +1639,8 @@ implementation
           if target_info.use_function_relative_addresses then
             list.concat(Tai_function_name.create(hs));
         until false;
+
+        current_procinfo.procdef.procstarttai:=tai(list.last);
       end;
 
 
@@ -1674,8 +1664,7 @@ implementation
 
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
-        if (cs_debuginfo in aktmoduleswitches) then
-          debuginfo.insertprocend(list);
+        current_procinfo.procdef.procendtai:=tai(list.last);
       end;
 
 
@@ -1841,8 +1830,6 @@ implementation
         varalign:=var_align(l);
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
-        if (cs_debuginfo in aktmoduleswitches) then
-          debuginfo.insertsym(list,sym);
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
            DLLSource or
