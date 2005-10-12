@@ -298,6 +298,7 @@ Unit AoptObj;
         { processor dependent methods }
         // if it returns true, perform a "continue"
         function PeepHoleOptPass1Cpu(var p: tai): boolean; virtual;
+        function PostPeepHoleOptsCpu(var p: tai): boolean; virtual;
       End;
 
        Function ArrayRefsEq(const r1, r2: TReference): Boolean;
@@ -1094,11 +1095,29 @@ Unit AoptObj;
 
 
     procedure TAOptObj.PostPeepHoleOpts;
+      var
+        p: tai;
       begin
+        p := BlockStart;
+        //!!!! UsedRegs := [];
+        while (p <> BlockEnd) Do
+          begin
+            //!!!! UpDateUsedRegs(UsedRegs, tai(p.next));
+            if PostPeepHoleOptsCpu(p) then
+              continue;
+            //!!!!!!!! updateUsedRegs(UsedRegs,p);
+            p:=tai(p.next);
+          end;
       end;
 
 
     function TAOptObj.PeepHoleOptPass1Cpu(var p: tai): boolean;
+      begin
+        result := false;
+      end;
+
+
+    function TAOptObj.PostPeepHoleOptsCpu(var p: tai): boolean;
       begin
         result := false;
       end;

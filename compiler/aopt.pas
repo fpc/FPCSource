@@ -219,7 +219,9 @@ Unit aopt;
               End;
             { more peephole optimizations }
       {      PeepHoleOptPass2;}
-            { free memory }
+            { if pass = last_pass then }
+            PostPeepHoleOpts;
+            { free memory }
             clear;
             { continue where we left off, BlockEnd is either the start of an }
             { assembler block or nil}
