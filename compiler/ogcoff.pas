@@ -682,6 +682,7 @@ const go32v2stub : array[0..2047] of byte=(
         StabsSec.write(stab,sizeof(stab));
         if assigned(ps) then
          begin
+           writesymbol(ps);
            { current address }
            curraddr:=StabsSec.mempos+StabsSec.datasize;
            if DLLSource and RelocSection then

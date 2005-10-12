@@ -443,7 +443,10 @@ implementation
         stab.nvalue:=offset;
         stabssec.write(stab,sizeof(stab));
         if assigned(ps) then
-          stabssec.addsymreloc(stabssec.datasize-4,ps,RELOC_ABSOLUTE);
+          begin
+            writesymbol(ps);
+            stabssec.addsymreloc(stabssec.datasize-4,ps,RELOC_ABSOLUTE);
+          end;
       end;
 
 
