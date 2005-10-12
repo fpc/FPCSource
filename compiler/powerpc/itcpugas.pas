@@ -57,7 +57,7 @@ interface
         'mulhw.','mulhwu','mulhwu.','mulli','mullw','mullw.','mullwo',
         'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
         'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
-        'rlwinm', 'rlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
+        'rlwinm', 'rlwinm.','rlwnm','rlwnm_','sc','slw', 'slw.', 'sraw', 'sraw.',
         'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
         'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
         'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
@@ -73,8 +73,8 @@ interface
         'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
         'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
         'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-        'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
-        'mtctr', 'mfctr');
+        'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'not.',
+        'mtcr', 'mtlr', 'mflr','mtctr', 'mfctr');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
