@@ -21,14 +21,14 @@
 {****************************************************************************
                            PowerPC specific stuff
 ****************************************************************************}
-{
+
 const
   ppc_fpu_overflow     = (1 shl (32-3));
   ppc_fpu_underflow    = (1 shl (32-4));
   ppc_fpu_divbyzero    = (1 shl (32-5));
   ppc_fpu_inexact      = (1 shl (32-6));
   ppc_fpu_invalid_snan = (1 shl (32-7));
-}
+
 
 procedure fpc_enable_ppc_fpu_exceptions;
 assembler; nostackframe;
@@ -67,12 +67,12 @@ asm
   stfd f0,temp
   lwz  r3,temp.b
   { clear all exception flags }
-{
+{ TODO
   rlwinm r4,r3,0,16,31
   stw  r4,temp.b
   lfd  f0,temp
-  a_mtfsf f0
-}
+  mtfsf f0
+}
 end;
 
 
@@ -930,20 +930,16 @@ asm
   mr r3, r1
 end;
 
-{NOTE: On MACOS, 68000 code might call powerpc code, through the MixedMode manager,
-(even in the OS in system 9). The pointer to the switching stack frame is
-indicated by the first bit set to 1. This is checked below.}
-
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
    cmpldi  r3,0
    beq     .Lcaller_addr_frame_null
-   ld  r3,0(r3)
+   ld  r3, 0(r3)
 
    cmpldi  r3,0
    beq     .Lcaller_addr_frame_null
-   ld r3,16(r3)
+   ld r3, 16(r3)
 .Lcaller_addr_frame_null:
 end;
 
@@ -953,7 +949,7 @@ function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLIN
 asm
     cmpldi  r3,0
     beq     .Lcaller_frame_null
-    ld  r3,0(r3)
+    ld  r3, 0(r3)
 .Lcaller_frame_null:
 end;
 
