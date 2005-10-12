@@ -94,6 +94,9 @@ type
 
     function is_same_reg_move(regtype: Tregistertype): boolean; override;
 
+    { register spilling code }
+    function spilling_get_operation_type(opnr: longint): topertype;override;
+    function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
   end;
 
   tai_align = class(tai_align_abstract)
@@ -378,16 +381,52 @@ end;
 
 { ****************************** newra stuff *************************** }
 
-function taicpu.is_same_reg_move(regtype: Tregistertype): boolean;
+function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
 begin
   result :=
-    (((opcode = A_MR) and
-    (regtype = R_INTREGISTER)) or
-    ((opcode = A_FMR) and
-    (regtype = R_FPUREGISTER))) and
+    (((opcode=A_MR) and
+      (regtype = R_INTREGISTER)) or
+     ((opcode = A_FMR) and
+      (regtype = R_FPUREGISTER))) and
     { these opcodes can only have registers as operands }
-  (oper[0]^.reg = oper[1]^.reg);
+    (oper[0]^.reg=oper[1]^.reg);
 end;
+
+
+function taicpu.spilling_get_operation_type(opnr: longint): topertype;
+begin
+  result := operand_read;
+  case opcode of
+    A_STMW,A_LMW:
+      internalerror(2005021805);
+
+    A_STBU, A_STBUX, A_STHU, A_STHUX,
+    A_STWU, A_STWUX, A_STDU, A_STDUX,
+    A_STFSU, A_STFSUX, A_STFDU, A_STFDUX,
+    A_STB, A_STBX, A_STH, A_STHX,
+    A_STW, A_STWX, A_STD, A_STDX,
+    A_STFS, A_STFSX, A_STFD, A_STFDX, A_STFIWX, A_STHBRX, A_STWBRX, A_STWCX_, A_STDCX_,
+    A_CMP, A_CMPI, A_CMPL, A_CMPLI, A_CMPD, A_CMPDI, A_CMPLD, A_CMPLDI,
+    A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ,
+    A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI, A_MFXER,
+    A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR:;
+    else
+      if opnr = 0 then
+        result := operand_write;
+    end;
+end;
+
+function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
+begin
+  result := operand_read;
+  case opcode of
+    A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, A_STDU, A_STDUX,
+    A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
+      if (oper[opnr]^.ref^.base = reg) then
+        result := operand_readwrite;
+  end;
+end;
+
 
 function spilling_create_load(const ref: treference; r: tregister): tai;
 begin
