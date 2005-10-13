@@ -52,6 +52,7 @@ interface
         procedure field_write_defs(p:Tnamedindexitem;arg:pointer);
         procedure method_write_defs(p :tnamedindexitem;arg:pointer);
         procedure write_symtable_defs(list:taasmoutput;st:tsymtable);
+        procedure write_procdef(list:taasmoutput;pd:tprocdef);
         procedure insertsym(list:taasmoutput;sym:tsym);
         procedure insertdef(list:taasmoutput;def:tdef);
       public
@@ -924,17 +925,6 @@ implementation
            p:=tdef(st.defindex.first);
            while assigned(p) do
              begin
-               { also insert local types for the current unit }
-               if st.iscurrentunit then
-                 begin
-                   case p.deftype of
-                     procdef :
-                       if assigned(tprocdef(p).localst) then
-                         dowritestabs(list,tprocdef(p).localst);
-                     objectdef :
-                       dowritestabs(list,tobjectdef(p).symtable);
-                   end;
-                 end;
                if (p.stab_state=stab_state_used) then
                  insertdef(list,p);
                p:=tdef(p.indexnext);
@@ -960,6 +950,76 @@ implementation
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
+      end;
+
+
+    procedure TDebugInfoStabs.write_procdef(list:taasmoutput;pd:tprocdef);
+      var
+        templist : taasmoutput;
+        stabsendlabel : tasmlabel;
+        mangled_length : longint;
+        p : pchar;
+        hs : string;
+      begin
+        if assigned(pd.procstarttai) then
+          begin
+            templist:=taasmoutput.create;
+            { para types }
+            write_def_stabstr(templist,pd);
+            if assigned(pd.parast) then
+              write_symtable_syms(templist,pd.parast);
+            { local type defs and vars should not be written
+              inside the main proc stab }
+            if assigned(pd.localst) and
+               (pd.localst.symtabletype=localsymtable) then
+              write_symtable_syms(templist,pd.localst);
+            asmlist[al_procedures].insertlistbefore(pd.procstarttai,templist);
+            { end of procedure }
+            objectlibrary.getlabel(stabsendlabel,alt_dbgtype);
+            templist.concat(tai_label.create(stabsendlabel));
+            if assigned(pd.funcretsym) and
+               (tabstractnormalvarsym(pd.funcretsym).refs>0) then
+              begin
+                if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
+                  begin
+    {$warning Need to add gdb support for ret in param register calling}
+                    if paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
+                      hs:='X*'
+                    else
+                      hs:='X';
+                    templist.concat(Tai_stab.create(stab_stabs,strpnew(
+                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.rettype.def)+'",'+
+                       tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
+                    if (m_result in aktmodeswitches) then
+                      templist.concat(Tai_stab.create(stab_stabs,strpnew(
+                         '"RESULT:'+hs+def_stab_number(pd.rettype.def)+'",'+
+                         tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
+                  end;
+              end;
+            mangled_length:=length(pd.mangledname);
+            getmem(p,2*mangled_length+50);
+            strpcopy(p,'192,0,0,');
+            {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
+            strpcopy(strend(p),pd.mangledname);
+            if (target_info.use_function_relative_addresses) then
+              begin
+                strpcopy(strend(p),'-');
+                {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
+                strpcopy(strend(p),pd.mangledname);
+              end;
+            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
+            strpcopy(p,'224,0,0,'+stabsendlabel.name);
+            if (target_info.use_function_relative_addresses) then
+              begin
+                strpcopy(strend(p),'-');
+                {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
+                strpcopy(strend(p),pd.mangledname);
+              end;
+            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
+            freemem(p,2*mangled_length+50);
+            asmlist[al_procedures].insertlistbefore(pd.procendtai,templist);
+            templist.free;
+          end;
       end;
 
 
@@ -1022,6 +1082,10 @@ implementation
             regidx : Tregisterindex;
           begin
             result:=nil;
+            { external symbols can't be resolved at link time, so we
+              can't generate stabs for them }
+            if vo_is_external in sym.varoptions then
+              exit;
             st:=def_stab_number(sym.vartype.def);
             case sym.localloc.loc of
               LOC_REGISTER,
@@ -1207,83 +1271,13 @@ implementation
             result:=sym_stabstr_evaluate(sym,'"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,def_stab_number(sym.restype.def)]);
           end;
 
-
         function procsym_stabstr(sym:tprocsym) : pchar;
           var
             i : longint;
-            pd : tprocdef;
-            templist : taasmoutput;
-            stabsendlabel : tasmlabel;
-            mangled_length : longint;
-            p : pchar;
-            hs : string;
           begin
             result:=nil;
-            { mark all procdefs }
             for i:=1 to sym.procdef_count do
-              begin
-                pd:=sym.procdef[i];
-                if (pd.owner=sym.owner) and
-                   assigned(pd.procstarttai) then
-                  begin
-                    templist:=taasmoutput.create;
-                    { para types }
-                    write_def_stabstr(templist,pd);
-                    if assigned(pd.parast) then
-                      write_symtable_syms(templist,pd.parast);
-                    { local type defs and vars should not be written
-                      inside the main proc stab }
-                    if assigned(pd.localst) and
-                       (pd.localst.symtabletype=localsymtable) then
-                      write_symtable_syms(templist,pd.localst);
-                    asmlist[al_procedures].insertlistbefore(pd.procstarttai,templist);
-                    { end of procedure }
-                    objectlibrary.getlabel(stabsendlabel,alt_dbgtype);
-                    templist.concat(tai_label.create(stabsendlabel));
-                    if assigned(pd.funcretsym) and
-                       (tabstractnormalvarsym(pd.funcretsym).refs>0) then
-                      begin
-                        if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
-                          begin
-            {$warning Need to add gdb support for ret in param register calling}
-                            if paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
-                              hs:='X*'
-                            else
-                              hs:='X';
-                            templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                               '"'+pd.procsym.name+':'+hs+def_stab_number(pd.rettype.def)+'",'+
-                               tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
-                            if (m_result in aktmodeswitches) then
-                              templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                                 '"RESULT:'+hs+def_stab_number(pd.rettype.def)+'",'+
-                                 tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
-                          end;
-                      end;
-                    mangled_length:=length(pd.mangledname);
-                    getmem(p,2*mangled_length+50);
-                    strpcopy(p,'192,0,0,');
-                    {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-                    strpcopy(strend(p),pd.mangledname);
-                    if (target_info.use_function_relative_addresses) then
-                      begin
-                        strpcopy(strend(p),'-');
-                        {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-                        strpcopy(strend(p),pd.mangledname);
-                      end;
-                    templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-                    strpcopy(p,'224,0,0,'+stabsendlabel.name);
-                    if (target_info.use_function_relative_addresses) then
-                      begin
-                        strpcopy(strend(p),'-');
-                        {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-                        strpcopy(strend(p),pd.mangledname);
-                      end;
-                    templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-                    freemem(p,2*mangled_length+50);
-                    asmlist[al_procedures].insertlistbefore(pd.procendtai,templist);
-                    templist.free;
-                  end;
-              end;
+              write_procdef(list,sym.procdef[i]);
           end;
 
       var
@@ -1293,8 +1287,6 @@ implementation
         case sym.typ of
           labelsym :
             stabstr:=sym_stabstr_evaluate(sym,'"${name}",${N_LSYM},0,${line},0',[]);
-          procsym :
-            stabstr:=procsym_stabstr(tprocsym(sym));
           fieldvarsym :
             stabstr:=fieldvarsym_stabstr(tfieldvarsym(sym));
           globalvarsym :
@@ -1310,9 +1302,14 @@ implementation
             stabstr:=constsym_stabstr(tconstsym(sym));
           typesym :
             stabstr:=typesym_stabstr(ttypesym(sym));
+          procsym :
+            stabstr:=procsym_stabstr(tprocsym(sym));
         end;
         if stabstr<>nil then
           list.concat(Tai_stab.create(stab_stabs,stabstr));
+        { For object types write also the symtable entries }
+        if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
+          write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
         sym.isstabwritten:=true;
       end;
 
@@ -1330,8 +1327,7 @@ implementation
         p:=tsym(st.symindex.first);
         while assigned(p) do
           begin
-            if (not p.isstabwritten) and
-               not(p.typ in [typesym]) then
+            if (not p.isstabwritten) then
               insertsym(list,p);
             p:=tsym(p.indexnext);
           end;
