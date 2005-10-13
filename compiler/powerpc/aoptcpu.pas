@@ -260,8 +260,7 @@ Implementation
                (taicpu(p).oper[1]^.typ = top_reg) and
                getnextinstruction(p,next1) and
                (next1.typ = ait_instruction) and
-               ((taicpu(next1).opcode = A_CMPWI) or
-                (taicpu(next1).opcode = A_CMPLWI)) and
+               (taicpu(next1).opcode = A_CMPWI) and
                // make sure it the result goes to cr0
                (((taicpu(next1).ops = 2) and
                  (taicpu(next1).oper[1]^.val = 0) and
