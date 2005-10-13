@@ -23,7 +23,7 @@ program fpc;
 {$mode objfpc}{$H+}
 
   uses
-     Sysutils,dos;
+     Sysutils;
 
   const
 {$ifdef UNIX}
@@ -65,13 +65,11 @@ program fpc;
 
   function FileExists ( Const F : String) : Boolean;
     var
-      Info : SearchRec;
+      Info : TSearchRec;
     begin
-      findfirst(F,readonly+archive+hidden,info);
-      FileExists:=(doserror=0);
+      FileExists:= findfirst(F,fareadonly+faarchive+fahidden,info)=0;
       findclose(Info);
     end;
-
 
   procedure findexe(var ppcbin:string);
     var
@@ -86,12 +84,12 @@ program fpc;
        ppcbin:=path+ppcbin
       else
        begin
-         path:=FSearch(ppcbin,getenv('PATH'));
+         path:=FileSearch(ppcbin,getenvironmentvariable('PATH'));
          if path<>'' then
           ppcbin:=path;
+
        end;
     end;
-
 
   var
      s              : ansistring;
