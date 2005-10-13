@@ -53,6 +53,7 @@ type
     deParentScroll);
 
   TUpdateStatus = (usUnmodified, usModified, usInserted, usDeleted);
+  TUpdateStatusSet = SET OF TUpdateStatus;
 
   TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
 
