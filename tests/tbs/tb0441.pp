@@ -1,6 +1,6 @@
 {$mode fpc}
 
-operator :=(x:LongInt)RESULT:ShortString;
+operator :=(x:ShortInt)RESULT:ShortString;
   begin
     Val(RESULT,x);
   end;
