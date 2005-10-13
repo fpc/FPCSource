@@ -7,11 +7,7 @@
 
 Function TCGetAttr(fd:cint;var tios:TermIOS):cint; {$ifdef VER2_0}inline;{$endif}
 begin
- {$ifndef BSD}
   TCGetAttr:=fpIOCtl(fd,TCGETS,@tios);
- {$else}
-  TCGETAttr:=fpIoCtl(Fd,TIOCGETA,@tios);
- {$endif}
 end;
 
 
@@ -19,17 +15,10 @@ Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
 var
   nr:cint;
 begin
- {$ifndef BSD}
   case OptAct of
    TCSANOW   : nr:=TCSETS;
    TCSADRAIN : nr:=TCSETSW;
    TCSAFLUSH : nr:=TCSETSF;
- {$else}
-  case OptAct of
-   TCSANOW   : nr:=TIOCSETA;
-   TCSADRAIN : nr:=TIOCSETAW;
-   TCSAFLUSH : nr:=TIOCSETAF;
-  {$endif}
   else
    begin
      fpsetErrNo(ESysEINVAL);
@@ -43,21 +32,13 @@ end;
 
 Procedure CFSetISpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
- {$ifndef BSD}
   tios.c_cflag:=(tios.c_cflag and (not CBAUD)) or speed;
- {$else}
-  tios.c_ispeed:=speed; {Probably the Bxxxx speed constants}
- {$endif}
 end;
 
 
 Procedure CFSetOSpeed(var tios:TermIOS;speed:Cardinal); {$ifdef VER2_0}inline;{$endif}
 begin
-  {$ifndef BSD}
    CFSetISpeed(tios,speed);
-  {$else}
-   tios.c_ospeed:=speed;
-  {$endif}
 end;
 
 
@@ -96,34 +77,18 @@ end;
 
 Function TCDrain(fd:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
- {$ifndef BSD}
   TCDrain:=fpIOCtl(fd,TCSBRK,pointer(1));
- {$else}
-  TCDrain:=fpIOCtl(fd,TIOCDRAIN,0); {Should set timeout to 1 first?}
- {$endif}
 end;
 
 
 Function TCFlow(fd,act:cint):cint; {$ifdef VER2_0}inline;{$endif}
 begin
-  {$ifndef BSD}
    TCFlow:=fpIOCtl(fd,TCXONC,pointer(ptrint(act)));
-  {$else}
-    case act OF
-     TCOOFF :  TCFlow:=fpIoctl(fd,TIOCSTOP,0);
-     TCOOn  :  TCFlow:=fpIOctl(Fd,TIOCStart,0);
-     TCIOFF :  {N/I}
-    end;
-  {$endif}
 end;
 
 Function TCFlush(fd,qsel:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
- {$ifndef BSD}
   TCFlush:=fpIOCtl(fd,TCFLSH,pointer(ptrint(qsel)));
- {$else}
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(ptrint(qsel)));
- {$endif}
 end;
 
 Function IsATTY (Handle:cint):cint;
