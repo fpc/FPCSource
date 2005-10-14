@@ -125,7 +125,7 @@ type
     { offset or symbol, in which case the base will have been changed }
     { to a tempreg (which has to be freed by the caller) containing   }
     { the sum of part of the original reference                       }
-    function fixref(list: taasmoutput; var ref: treference): boolean;
+    function fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 
     { returns whether a reference can be used immediately in a powerpc }
     { instruction                                                      }
@@ -446,7 +446,7 @@ var
   ref2: TReference;
 begin
   ref2 := ref;
-  fixref(list, ref2);
+  fixref(list, ref2, tosize);
   if tosize in [OS_S8..OS_S64] then
     { storing is the same for signed and unsigned values }
     tosize := tcgsize(ord(tosize) - (ord(OS_S8) - ord(OS_8)));
@@ -483,7 +483,7 @@ begin
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   ref2 := ref;
-  fixref(list, ref2);
+  fixref(list, ref2, tosize);
   { the caller is expected to have adjusted the reference already }
   { in this case                                                  }
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
@@ -491,9 +491,9 @@ begin
   op := loadinstr[fromsize, ref2.index <> NR_NO, false];
   // there is no LWAU instruction, simulate using ADDI and LWA
   if (op = A_LWAU) then begin
-        list.concat(taicpu.op_reg_reg_const(A_ADDI, reg, reg, ref2.offset));
-        ref2.offset := 0;
-        op := A_LWA;
+    list.concat(taicpu.op_reg_reg_const(A_ADDI, reg, reg, ref2.offset));
+    ref2.offset := 0;
+    op := A_LWA;
   end;
   a_load_store(list, op, reg, ref2);
   // sign extend shortint if necessary, since there is no
@@ -569,7 +569,7 @@ begin
     internalerror(200201121);
   end;
   ref2 := ref;
-  fixref(list, ref2);
+  fixref(list, ref2, size);
   op := fpuloadinstr[size, ref2.index <> NR_NO, false];
   a_load_store(list, op, reg, ref2);
 end;
@@ -590,7 +590,7 @@ begin
   if not (size in [OS_F32, OS_F64]) then
     internalerror(200201122);
   ref2 := ref;
-  fixref(list, ref2);
+  fixref(list, ref2, size);
   op := fpustoreinstr[size, ref2.index <> NR_NO, false];
   a_load_store(list, op, reg, ref2);
 end;
@@ -1200,7 +1200,7 @@ var
 
 begin
   ref2 := ref;
-  fixref(list, ref2);
+  fixref(list, ref2, OS_64);
   { load a symbol }
   if assigned(ref2.symbol) or (ref2.offset < low(smallint)) or (ref2.offset > high(smallint)) then begin
       { add the symbol's value to the base of the reference, and if the }
@@ -1518,75 +1518,134 @@ begin
     (ref.offset = 0)));
 end;
 
-function tcgppc.fixref(list: taasmoutput; var ref: treference): boolean;
+function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 
 var
   tmpreg: tregister;
+  needsAlign : boolean;
 begin
   result := false;
-  if (ref.base = NR_NO) then
-  begin
+  needsAlign := size in [OS_S32, OS_64, OS_S64];
+
+  if (ref.base = NR_NO) then  begin
     ref.base := ref.index;
-    ref.base := NR_NO;
+    ref.index := NR_NO;
   end;
-  if (ref.base <> NR_NO) then
-  begin
-    if (ref.index <> NR_NO) and
-      ((ref.offset <> 0) or assigned(ref.symbol)) then
-    begin
+  if (ref.base <> NR_NO) and (ref.index <> NR_NO) and
+    ((ref.offset <> 0) or assigned(ref.symbol)) then begin
       result := true;
       tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      list.concat(taicpu.op_reg_reg_reg(
-        A_ADD, tmpreg, ref.base, ref.index));
+      a_op_reg_reg_reg(list, OP_ADD, size, ref.base, ref.index, tmpreg);
       ref.index := NR_NO;
       ref.base := tmpreg;
-    end
-  end
-  else if ref.index <> NR_NO then
-    internalerror(200208102);
+  end;
 end;
 
 procedure tcgppc.a_load_store(list: taasmoutput; op: tasmop; reg: tregister;
   ref: treference);
-
 var
-  tmpreg: tregister;
+  tmpreg, tmpreg2: tregister;
   tmpref: treference;
   largeOffset: Boolean;
-
 begin
-  tmpreg := NR_NO;
+  // at this point there must not be a combination of values in the ref treference
+  // which is not possible to directly map to instructions of the PowerPC architecture
+  if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then
+    internalerror(200310131);
+
+  // for some instructions we need to check that the offset is divisible by at
+  // least four. If not, add the bytes which are "off" to the base register and
+  // adjust the offset accordingly 
+  case op of
+    A_LD, A_LDU, A_STD, A_STDU, A_LWA, A_LWAU :
+     if ((ref.offset mod 4) <> 0) then begin
+       tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+
+       if (ref.base <> NR_NO) then begin
+         a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
+         ref.base := tmpreg;
+       end else begin
+         list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
+         ref.base := tmpreg;
+       end;
+       ref.offset := (ref.offset div 4) * 4;
+     end;
+  end;
 
   // if we have to load/store from a symbol or large addresses, use a temporary register
   // containing the address
-    if assigned(ref.symbol) or (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then begin
-      tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+  if assigned(ref.symbol) or (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then begin
+    tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+
+    reference_reset(tmpref);
+    tmpref.symbol := ref.symbol;
+    tmpref.relsymbol := ref.relsymbol;
+    tmpref.offset := ref.offset;
+    if (ref.base <> NR_NO) then begin
+      {
+      As long as the TOC isn't working we try to achieve highest speed (in this
+      case by allowing instructions execute in parallel) as possible, at the cost
+      of using another temporary register. So the code template when there is
+      a base register and an offset is the following:
+
+      lis rT1, SYM+offs@highest
+      ori rT1, rT1, SYM+offs@higher
+      lis rT2, SYM+offs@high
+      ori rT2, SYM+offs@low
+      rldimi rT2, rT1, 32
+
+      <op>X reg, base, rT2
+      }
+
+      tmpreg2 := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+      tmpref.refaddr := addr_highest;
+      list.concat(taicpu.op_reg_ref(A_LIS, tmpreg, tmpref));
+      tmpref.refaddr := addr_higher;
+      list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg, tmpreg, tmpref));
+
+      tmpref.refaddr := addr_high;
+      list.concat(taicpu.op_reg_ref(A_LIS, tmpreg2, tmpref));
+      tmpref.refaddr := addr_low;
+      list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg2, tmpreg2, tmpref));
+
+      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, tmpreg2, tmpreg, 32, 0));
+
       reference_reset(tmpref);
-      tmpref.symbol := ref.symbol;
-      tmpref.relsymbol := ref.relsymbol;
-      tmpref.offset := ref.offset;
+      tmpref.base := ref.base;
+      tmpref.index := tmpreg2;
+      case op of
+        // the code generator doesn't generate update instructions anyway
+        A_LBZ : op := A_LBZX;
+        A_LHZ : op := A_LHZX;
+        A_LWZ : op := A_LWZX;
+        A_LD : op := A_LDX;
+        A_LHA : op := A_LHAX;
+        A_LWA : op := A_LWAX;
+        A_LFS : op := A_LFSX;
+        A_LFD : op := A_LFDX;
 
-      (*
-      code template when there's no base register
+        A_STB : op := A_STBX;
+        A_STH : op := A_STHX;
+        A_STW : op := A_STWX;
+        A_STD : op := A_STDX;
 
-      lis rT,SYM+offs@highesta
-      addi rT,SYM+offs@highera
-      sldi rT,rT,32
-      addis rT,rT,SYM+offs@ha
-      ld rD,SYM+offs@l(rT)
+        A_STFS : op := A_STFSX;
+        A_STFD : op := A_STFDX;
+        else
+          // unknown load/store opcode
+          internalerror(2005101302);
+      end;
+      list.concat(taicpu.op_reg_ref(op, reg, tmpref));
+    end else begin
+      { when accessing value from a reference without a base register, use the
+        following code template:
 
-      code template when there's a base register
-
-      lis rT,SYM+offs@highesta
-      addis rT,SYM+offs@highera
-      sldi rT,rT,32
-      addis rT,rT,SYM+offs@ha
-      add  rT,rBase,rT
-      ld rD,SYM+offs@l(rT)
-
-      *)
-      //list.concat(tai_comment.create(strpnew('symbol: ' + tmpref.symbol.name + ' offset: ' + inttostr(tmpref.offset))));
-
+        lis rT,SYM+offs@highesta
+        ori rT,SYM+offs@highera
+        sldi rT,rT,32
+        oris rT,rT,SYM+offs@ha
+        ld rD,SYM+offs@l(rT)
+      }
       tmpref.refaddr := addr_highesta;
       list.concat(taicpu.op_reg_ref(A_LIS, tmpreg, tmpref));
       tmpref.refaddr := addr_highera;
@@ -1595,16 +1654,13 @@ begin
       tmpref.refaddr := addr_higha;
       list.concat(taicpu.op_reg_reg_ref(A_ORIS, tmpreg, tmpreg, tmpref));
 
-      if (ref.base <> NR_NO) then begin
-        list.concat(taicpu.op_reg_reg_reg(A_ADD, tmpreg, tmpreg, ref.base));
-      end;
-
       tmpref.base := tmpreg;
       tmpref.refaddr := addr_low;
       list.concat(taicpu.op_reg_ref(op, reg, tmpref));
-    end else begin
-      list.concat(taicpu.op_reg_ref(op, reg, ref));
     end;
+  end else begin
+    list.concat(taicpu.op_reg_ref(op, reg, ref));
+  end;
 end;
 
 procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflag;

@@ -42,7 +42,7 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
      mfcr    r0
      std     r16,40(r3)  // store r16
      stfd    f16,192(r3) // store f16
-     std     r0,168(r3)  // store cr
+     stw     r0,168(r3)  // store cr
      std     r17,48(r3)  // store r17
      stfd    f17,200(r3) // store f17
      std     r18,56(r3)  // ...
@@ -100,7 +100,7 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
      lfd     f21,232(r3)
      ld      r22,88(r3)
      lfd     f22,240(r3)
-     ld      r0,168(r3)
+     lwz     r0,168(r3)
      ld      r23,96(r3)
      lfd     f23,248(r3)
      ld      r24,104(r3)
