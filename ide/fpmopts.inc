@@ -66,6 +66,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     RB1,{RB2,}RB3,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
     IL: PEditorInputLine;
+    IL2: PEditorInputLine;
     Count : integer;
     I,L: longint;
     Tab: PTab;
@@ -74,7 +75,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
 begin
-  R.Assign(0,0,72,18);
+  R.Assign(0,0,72,21);
   New(D, Init(R, dialog_compilerswitches));
   with D^ do
   begin
@@ -83,6 +84,7 @@ begin
     R.Grow(-2,-1);
     Dec(R.B.Y,2);
     TabR.Copy(R);
+    Dec(TabR.B.Y,2);
     TabIR.Copy(R);
     Inc(TabIR.A.Y,2);
     TabIR.Grow(0,-1);
@@ -284,13 +286,23 @@ begin
 
     { conditionnals }
     R2.Copy(TabR); R2.A.Y:=R2.B.Y+1; R2.B.Y:=R2.A.Y+1; Dec(R2.B.X,4);
-    New(IL, Init(R2, 128));
+    New(IL, Init(R2, 255));
     IL^.Data^:=ConditionalSwitches^.GetStringItem(0);
     Insert(IL);
     R3.Copy(R2); R3.A.X:=R2.B.X+1; R3.B.X:=R3.A.X+3;
     Insert(New(PHistory, Init(R3, IL, hidConditionalDefines)));
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,ConditionalSwitches^.ItemName(0), IL)));
+
+    {custom }
+    inc(R2.A.Y,3); inc(R2.B.Y,3);
+    New(IL2, Init(R2, 255));
+    IL2^.Data^:=CustomArg[SwitchesMode];
+    Insert(IL2);
+    R3.Copy(R2); R3.A.X:=R2.B.X+1; R3.B.X:=R3.A.X+3;
+    Insert(New(PHistory, Init(R3, IL2, hidCompilerArgs)));
+    R2.Move(0,-1);
+    Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
   end;
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
@@ -311,6 +323,7 @@ begin
     AsmOutputSwitches^.SetCurrSel(RB6^.Value);
     BrowserSwitches^.SetCurrSel(RB4^.Value);
     ConditionalSwitches^.SetStringItem(0,IL^.Data^);
+    CustomArg[SwitchesMode]:=IL2^.Data^;
   end;
   Dispose(D, Done);
 end;
@@ -446,7 +459,6 @@ var R,R2,R3: TRect;
 {$ifdef Unix}
     IL: PEditorInputLine;
 {$endif Unix}
-    IL2: PEditorInputLine;
     L,I: longint;
     Items: PSItem;
 const
@@ -461,7 +473,7 @@ const
 {$endif win32}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+1+2
-      +ProfileInfoSwitches^.ItemCount+2+2+1+OtherFieldLines);
+      +ProfileInfoSwitches^.ItemCount+2+OtherFieldLines);
   New(D, Init(R, dialog_debugger));
   with D^ do
   begin
@@ -498,18 +510,8 @@ begin
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, label_debugger_profileswitches, RB2)));
 
-    {custom }
-    Inc(R2.A.Y,2+ProfileInfoSwitches^.ItemCount+1); R2.B.Y:=R2.A.Y+1;
-    R3.Copy(R2); Dec(R3.B.X,4);
-    New(IL2, Init(R3, 255));
-    IL2^.Data^:=CustomArg[SwitchesMode];
-    Insert(IL2);
-    R3.Copy(R2); R3.A.X:=R3.B.X-3; R3.B.X:=R3.A.X+3;
-    Insert(New(PHistory, Init(R3, IL2, hidCompilerArgs)));
-    R2.Move(0,-1);
-    Insert(New(PLabel, Init(R2,label_debugger_compilerargs, IL2)));
 {$ifdef win32}
-    R2.Move(0,4);
+    R2.Move(0,ProfileInfoSwitches^.ItemCount+3);
     New(CB2,Init(R2,NewSItem(label_debugger_useanotherconsole, nil)));
     Insert(CB2);
     if DebuggeeTTY<>'' then
@@ -521,7 +523,7 @@ begin
     Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
 {$endif win32}
 {$ifdef Unix}
-    R2.Move(0,4);
+    R2.Move(0,ProfileInfoSwitches^.ItemCount+3);
     New(IL, Init(R2, 255));
     IL^.Data^:=DebuggeeTTY;
     Insert(IL);
@@ -536,7 +538,6 @@ begin
     DebugInfoSwitches^.SetCurrSel(RB^.Value);
     ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
     OtherLinkerSwitches^.SetBooleanItem(0,CBStrip^.Mark(0));
-    CustomArg[SwitchesMode]:=IL2^.Data^;
 {$ifdef win32}
     if CB2^.value<>0 then
       DebuggeeTTY:='on'

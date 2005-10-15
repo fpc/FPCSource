@@ -917,6 +917,7 @@ begin
      AddSelectItem(opt_i386486,'p1',idNone);
      AddSelectItem(opt_pentiumandmmx,'p2',idNone);
      AddSelectItem(opt_pentiumpro,'p3',idNone);
+     AddSelectItem(opt_pentiumiv,'p4',idNone);
 {$else not I386}
  {$ifdef m68k}
      AddSelectItem(opt_m68000,'',idNone);
@@ -1016,6 +1017,7 @@ begin
      AddSelectItem(opt_nogendebugsymbolinfo,'-',idNone);
      AddSelectItem(opt_gendebugsymbolinfo,'',idNone);
      AddSelectItem(opt_gensymbolandbacktraceinfo,'l',idNone);
+     AddSelectItem(opt_valgrindinfo,'v',idNone);
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;
