@@ -1014,6 +1014,8 @@ parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetic operation
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_Protected or private expected
 % \var{strict} can be only used together with \var{protected} or \var{private}.
+parser_e_illegal_slice=03215_E_SLICE can't be used outside of parameter list
+% \var{slice} can be used only for arguments accepting an open array parameter
 % \end{description}
 #
 # Type Checking

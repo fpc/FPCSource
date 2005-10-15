@@ -655,6 +655,34 @@ implementation
               consume(_RKLAMMER);
             end;
 
+          in_slice_x:
+            begin
+              if not(in_args) then
+                begin
+                  message(parser_e_illegal_slice);
+                  consume(_LKLAMMER);
+                  in_args:=true;
+                  comp_expr(true).free;
+                  if try_to_consume(_COMMA) then
+                    comp_expr(true).free;
+                  statement_syssym:=cerrornode.create;
+                  consume(_RKLAMMER);
+                end
+              else
+                begin
+                  consume(_LKLAMMER);
+                  in_args:=true;
+                  p1:=comp_expr(true);
+                  if try_to_consume(_COMMA) then
+                    p2:=ccallparanode.create(comp_expr(true),nil)
+                  else
+                    p2:=nil;
+                  p2:=ccallparanode.create(p1,p2);
+                  statement_syssym:=geninlinenode(l,false,p2);
+                  consume(_RKLAMMER);
+                end;
+            end;
+
           in_initialize_x:
             begin
               statement_syssym:=inline_initialize;

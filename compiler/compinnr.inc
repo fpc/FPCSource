@@ -61,6 +61,7 @@ const
    in_initialize_x      = 50;
    in_leave             = 51; {macpas}
    in_cycle             = 52; {macpas}
+   in_slice_x           = 53;
 
 { Internal constant functions }
    in_const_sqr        = 100;

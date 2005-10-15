@@ -1219,7 +1219,6 @@ implementation
         end;
 
 
-
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
@@ -1727,6 +1726,14 @@ implementation
                         tsetdef(left.resulttype.def).elementtype);
                     end
                   else
+                    CGMessage(type_e_mismatch);
+                end;
+
+              in_slice_x:
+                begin
+                  result:=nil;
+                  resulttype:=tcallparanode(tcallparanode(left).left).resulttype;
+                  if not(resulttype.def.deftype=arraydef) then
                     CGMessage(type_e_mismatch);
                 end;
 
@@ -2350,6 +2357,9 @@ implementation
           in_low_x,
           in_high_x:
             internalerror(200104047);
+
+          in_slice_x:
+            internalerror(2005101501);
 
           in_ord_x,
           in_chr_byte:

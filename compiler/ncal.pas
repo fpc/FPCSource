@@ -320,24 +320,49 @@ type
             begin
               if (paradef.deftype<>arraydef) then
                 internalerror(200405241);
+              { passing a string to an array of char }
+              if (p.nodetype=stringconstn) then
+                begin
+                  len:=str_length(p);
+                  if len>0 then
+                   dec(len);
+                end
+              else
               { handle special case of passing an single array to an array of array }
               if compare_defs(tarraydef(paradef).elementtype.def,p.resulttype.def,nothingn)>=te_equal then
                 len:=0
               else
                 begin
-                  maybe_load_para_in_temp(p);
                   { handle via a normal inline in_high_x node }
-                  loadconst := false;
-                  hightree := geninlinenode(in_high_x,false,p.getcopy);
-                  resulttypepass(hightree);
-                  { only substract low(array) if it's <> 0 }
-                  temp := geninlinenode(in_low_x,false,p.getcopy);
-                  resulttypepass(temp);
-                  if (temp.nodetype <> ordconstn) or
-                     (tordconstnode(temp).value <> 0) then
-                    hightree := caddnode.create(subn,hightree,temp)
+                  loadconst:=false;
+                  { slice? }
+                  if (p.nodetype=inlinen) and (tinlinenode(p).inlinenumber=in_slice_x) then
+                    begin
+                      hightree:=tcallparanode(tcallparanode(tinlinenode(p).left).right).left;
+                      hightree:=caddnode.create(subn,hightree,genintconstnode(1));
+                      tcallparanode(tcallparanode(tinlinenode(p).left).right).left:=nil;
+
+                      temp:=p;
+                      p:=tcallparanode(tinlinenode(p).left).left;
+                      tcallparanode(tinlinenode(temp).left).left:=nil;
+                      temp.free;
+
+                      resulttypepass(hightree);
+                    end
                   else
-                    temp.free;
+                    begin
+                      maybe_load_para_in_temp(p);
+                      hightree:=geninlinenode(in_high_x,false,p.getcopy);
+                      resulttypepass(hightree);
+                      { only substract low(array) if it's <> 0 }
+                      temp:=geninlinenode(in_low_x,false,p.getcopy);
+                      resulttypepass(temp);
+                      if (temp.nodetype <> ordconstn) or
+                         (tordconstnode(temp).value <> 0) then
+                        hightree := caddnode.create(subn,hightree,temp)
+                      else
+                        temp.free;
+                    end;
                 end;
             end;
           stringdef :

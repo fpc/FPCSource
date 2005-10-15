@@ -67,6 +67,7 @@ implementation
         p.insert(tsyssym.create('TypeOf',in_typeof_x));
         p.insert(tsyssym.create('Low',in_low_x));
         p.insert(tsyssym.create('High',in_high_x));
+        p.insert(tsyssym.create('Slice',in_slice_x));
         p.insert(tsyssym.create('Seg',in_seg_x));
         p.insert(tsyssym.create('Ord',in_ord_x));
         p.insert(tsyssym.create('Pred',in_pred_x));
