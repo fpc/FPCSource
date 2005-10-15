@@ -1407,26 +1407,39 @@ implementation
                   if (currpara.paraloc[calleeside].size in [OS_64,OS_S64]) and
                      is_64bit(currpara.vartype.def) then
                     begin
-                      if not assigned(paraloc^.next) then
-                        internalerror(200410104);
-                      if (target_info.endian=ENDIAN_BIG) then
-                        begin
-                          { paraloc^ -> high
-                            paraloc^.next -> low }
-                          unget_para(paraloc^);
-                          gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
-                          unget_para(paraloc^.next^);
-                          gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo);
-                        end
-                      else
-                        begin
-                          { paraloc^ -> low
-                            paraloc^.next -> high }
-                          unget_para(paraloc^);
-                          gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
-                          unget_para(paraloc^.next^);
-                          gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
-                        end;
+                      case paraloc^.loc of
+                        LOC_REGISTER:
+                          begin
+                            if not assigned(paraloc^.next) then
+                              internalerror(200410104);
+                            if (target_info.endian=ENDIAN_BIG) then
+                              begin
+                                { paraloc^ -> high
+                                  paraloc^.next -> low }
+                                unget_para(paraloc^);
+                                gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
+                                unget_para(paraloc^.next^);
+                                gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo);
+                              end
+                            else
+                              begin
+                                { paraloc^ -> low
+                                  paraloc^.next -> high }
+                                unget_para(paraloc^);
+                                gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
+                                unget_para(paraloc^.next^);
+                                gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
+                              end;
+                          end;
+                        LOC_REFERENCE:
+                          begin
+                            reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
+                            cg64.a_load64_ref_reg(list,href,currpara.localloc.register64);
+                            unget_para(paraloc^);
+                          end;
+                        else
+                          internalerror(2005101501);
+                      end
                     end
                   else
 {$endif cpu64bit}
