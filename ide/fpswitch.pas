@@ -917,6 +917,7 @@ begin
      AddSelectItem(opt_i386486,'p1',idNone);
      AddSelectItem(opt_pentiumandmmx,'p2',idNone);
      AddSelectItem(opt_pentiumpro,'p3',idNone);
+     AddSelectItem(opt_pentiumiv,'p4',idNone);
 {$else not I386}
  {$ifdef m68k}
      AddSelectItem(opt_m68000,'',idNone);

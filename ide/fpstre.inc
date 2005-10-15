@@ -502,7 +502,7 @@ const
       dialog_debugger = 'Browsing/Debugging/Profiling';
       label_debugger_debuginfo = 'Debugging information';
       label_debugger_profileswitches = 'Profiling Switches';
-      label_debugger_compilerargs = '~A~dditional compiler args';
+      label_debugger_compilerargs = 'Additional ~c~ompiler args';
       label_debugger_useanotherconsole = '~U~se another console';
       label_debugger_redirection = 'Debuggee ~R~edirection';
       label_debugger_useanothertty = '~U~se Another tty for Debuggee';
@@ -796,7 +796,8 @@ const
       opt_level2optimizations = 'Level ~2~ optimizations';
       opt_i386486 = 'i~3~86/i486';
       opt_pentiumandmmx = 'Pentium/PentiumMM~X~ (tm)';
-      opt_pentiumpro = 'P~P~ro/PII/c6x86/K6 (tm)';
+      opt_pentiumpro = '~P~entium2/PentiumM/AMD';
+      opt_pentiumiv = 'Pentium~4~';
       opt_m68000 = 'm~6~8000';
       opt_m68020 = 'm680~2~0';
       { Assembler options }
