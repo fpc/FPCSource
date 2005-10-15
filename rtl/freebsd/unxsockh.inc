@@ -37,18 +37,18 @@ Const
 
   PF_MAX          = AF_MAX;
 
-        SOL_SOCKET = $FFFF;
-        SO_DEBUG         =$0001;        { turn on debugging info recording }
-        SO_ACCEPTCONN    =$0002;        { socket has had listen() }
-        SO_REUSEADDR     =$0004;        { allow local address reuse }
-        SO_KEEPALIVE     =$0008;        { keep connections alive }
-        SO_DONTROUTE     =$0010;        { just use interface addresses }
-        SO_BROADCAST     =$0020;        { permit sending of broadcast msgs }
-        SO_USELOOPBACK   =$0040;        { bypass hardware when possible }
-        SO_LINGER        =$0080;        { linger on close if data present }
-        SO_OOBINLINE     =$0100;        { leave received OOB data in line }
-        SO_REUSEPORT     =$0200;        { allow local address & port reuse }
-        SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
+        SOL_SOCKET 	 = $FFFF;
+        SO_DEBUG         = $0001;        { turn on debugging info recording }
+        SO_ACCEPTCONN    = $0002;        { socket has had listen() }
+        SO_REUSEADDR     = $0004;        { allow local address reuse }
+        SO_KEEPALIVE     = $0008;        { keep connections alive }
+        SO_DONTROUTE     = $0010;        { just use interface addresses }
+        SO_BROADCAST     = $0020;        { permit sending of broadcast msgs }
+        SO_USELOOPBACK   = $0040;        { bypass hardware when possible }
+        SO_LINGER        = $0080;        { linger on close if data present }
+        SO_OOBINLINE     = $0100;        { leave received OOB data in line }
+        SO_REUSEPORT     = $0200;        { allow local address & port reuse }
+        SO_TIMESTAMP     = $0400;        { timestamp received dgram traffic }
 
 {
  * Additional options, not kept in so_options.
@@ -67,6 +67,187 @@ Const
         SHUT_WR         =1;             { shut down the writing side }
         SHUT_RDWR       =2;             { shut down both sides }
 
+	IPPROTO_IP              = 0;               { dummy for IP }
+	IPPROTO_ICMP            = 1;               { control message protocol }
+	IPPROTO_TCP             = 6;               { tcp }
+	IPPROTO_UDP             = 17;              { user datagram protocol }
 
 
+	IPPROTO_HOPOPTS		= 0 ; 		{ IP6 hop-by-hop options }
+	IPPROTO_IGMP		= 2 ; 		{ group mgmt protocol }
+	IPPROTO_GGP		= 3 ; 		{ gateway^2 (deprecated) }
+	IPPROTO_IPV4		= 4 ; 		{ IPv4 encapsulation }
+	IPPROTO_IPIP		= IPPROTO_IPV4;	{ for compatibility }
+	IPPROTO_ST		= 7 ; 		{ Stream protocol II }
+	IPPROTO_EGP		= 8 ; 		{ exterior gateway protocol }
+	IPPROTO_PIGP		= 9 ; 		{ private interior gateway }
+	IPPROTO_RCCMON		= 10; 		{ BBN RCC Monitoring }
+	IPPROTO_NVPII		= 11; 		{ network voice protocol}
+	IPPROTO_PUP		= 12; 		{ pup }
+	IPPROTO_ARGUS		= 13; 		{ Argus }
+	IPPROTO_EMCON		= 14; 		{ EMCON }
+	IPPROTO_XNET		= 15; 		{ Cross Net Debugger }
+	IPPROTO_CHAOS		= 16; 		{ Chaos}
+	IPPROTO_MUX		= 18; 		{ Multiplexing }
+	IPPROTO_MEAS		= 19; 		{ DCN Measurement Subsystems }
+	IPPROTO_HMP		= 20; 		{ Host Monitoring }
+	IPPROTO_PRM		= 21; 		{ Packet Radio Measurement }
+	IPPROTO_IDP		= 22; 		{ xns idp }
+	IPPROTO_TRUNK1		= 23; 		{ Trunk-1 }
+	IPPROTO_TRUNK2		= 24; 		{ Trunk-2 }
+	IPPROTO_LEAF1		= 25; 		{ Leaf-1 }
+	IPPROTO_LEAF2		= 26; 		{ Leaf-2 }
+	IPPROTO_RDP		= 27; 		{ Reliable Data }
+	IPPROTO_IRTP		= 28; 		{ Reliable Transaction }
+	IPPROTO_TP		= 29; 		{ tp-4 w/ class negotiation }
+	IPPROTO_BLT		= 30; 		{ Bulk Data Transfer }
+	IPPROTO_NSP		= 31; 		{ Network Services }
+	IPPROTO_INP		= 32; 		{ Merit Internodal }
+	IPPROTO_SEP		= 33; 		{ Sequential Exchange }
+	IPPROTO_3PC		= 34; 		{ Third Party Connect }
+	IPPROTO_IDPR		= 35; 		{ InterDomain Policy Routing }
+	IPPROTO_XTP		= 36; 		{ XTP }
+	IPPROTO_DDP		= 37; 		{ Datagram Delivery }
+	IPPROTO_CMTP		= 38; 		{ Control Message Transport }
+	IPPROTO_TPXX		= 39; 		{ TP++ Transport }
+	IPPROTO_IL		= 40; 		{ IL transport protocol }
+	IPPROTO_IPV6		= 41; 		{ IP6 header }
+	IPPROTO_SDRP		= 42; 		{ Source Demand Routing }
+	IPPROTO_ROUTING		= 43; 		{ IP6 routing header }
+	IPPROTO_FRAGMENT	= 44; 		{ IP6 fragmentation header }
+	IPPROTO_IDRP		= 45; 		{ InterDomain Routing}
+	IPPROTO_RSVP		= 46; 		{ resource reservation }
+	IPPROTO_GRE		= 47; 		{ General Routing Encap. }
+	IPPROTO_MHRP		= 48; 		{ Mobile Host Routing }
+	IPPROTO_BHA		= 49; 		{ BHA }
+	IPPROTO_ESP		= 50; 		{ IP6 Encap Sec. Payload }
+	IPPROTO_AH		= 51; 		{ IP6 Auth Header }
+	IPPROTO_INLSP		= 52; 		{ Integ. Net Layer Security }
+	IPPROTO_SWIPE		= 53; 		{ IP with encryption }
+	IPPROTO_NHRP		= 54; 		{ Next Hop Resolution }
+	IPPROTO_MOBILE		= 55; 		{ IP Mobility }
+	IPPROTO_TLSP		= 56; 		{ Transport Layer Security }
+	IPPROTO_SKIP		= 57; 		{ SKIP }
+	IPPROTO_ICMPV6		= 58; 		{ ICMP6 }
+	IPPROTO_NONE		= 59; 		{ IP6 no next header }
+	IPPROTO_DSTOPTS		= 60; 		{ IP6 destination option }
+	IPPROTO_AHIP		= 61; 		{ any host internal protocol }
+	IPPROTO_CFTP		= 62; 		{ CFTP }
+	IPPROTO_HELLO		= 63; 		{ "hello" routing protocol }
+	IPPROTO_SATEXPAK	= 64; 		{ SATNET/Backroom EXPAK }
+	IPPROTO_KRYPTOLAN	= 65; 		{ Kryptolan }
+	IPPROTO_RVD		= 66; 		{ Remote Virtual Disk }
+	IPPROTO_IPPC		= 67; 		{ Pluribus Packet Core }
+	IPPROTO_ADFS		= 68; 		{ Any distributed FS }
+	IPPROTO_SATMON		= 69; 		{ Satnet Monitoring }
+	IPPROTO_VISA		= 70; 		{ VISA Protocol }
+	IPPROTO_IPCV		= 71; 		{ Packet Core Utility }
+	IPPROTO_CPNX		= 72; 		{ Comp. Prot. Net. Executive }
+	IPPROTO_CPHB		= 73; 		{ Comp. Prot. HeartBeat }
+	IPPROTO_WSN		= 74; 		{ Wang Span Network }
+	IPPROTO_PVP		= 75; 		{ Packet Video Protocol }
+	IPPROTO_BRSATMON	= 76; 		{ BackRoom SATNET Monitoring }
+	IPPROTO_ND		= 77; 		{ Sun net disk proto (temp.) }
+	IPPROTO_WBMON		= 78; 		{ WIDEBAND Monitoring }
+	IPPROTO_WBEXPAK		= 79; 		{ WIDEBAND EXPAK }
+	IPPROTO_EON		= 80; 		{ ISO cnlp }
+	IPPROTO_VMTP		= 81; 		{ VMTP }
+	IPPROTO_SVMTP		= 82; 		{ Secure VMTP }
+	IPPROTO_VINES		= 83; 		{ Banyon VINES }
+	IPPROTO_TTP		= 84; 		{ TTP }
+	IPPROTO_IGP		= 85; 		{ NSFNET-IGP }
+	IPPROTO_DGP		= 86; 		{ dissimilar gateway prot. }
+	IPPROTO_TCF		= 87; 		{ TCF }
+	IPPROTO_IGRP		= 88; 		{ Cisco/GXS IGRP }
+	IPPROTO_OSPFIGP		= 89; 		{ OSPFIGP }
+	IPPROTO_SRPC		= 90; 		{ Strite RPC protocol }
+	IPPROTO_LARP		= 91; 		{ Locus Address Resoloution }
+	IPPROTO_MTP		= 92; 		{ Multicast Transport }
+	IPPROTO_AX25		= 93; 		{ AX.25 Frames }
+	IPPROTO_IPEIP		= 94; 		{ IP encapsulated in IP }
+	IPPROTO_MICP		= 95; 		{ Mobile Int.ing control }
+	IPPROTO_SCCSP		= 96; 		{ Semaphore Comm. security }
+	IPPROTO_ETHERIP		= 97; 		{ Ethernet IP encapsulation }
+	IPPROTO_ENCAP		= 98; 		{ encapsulation header }
+	IPPROTO_APES		= 99; 		{ any private encr. scheme }
+	IPPROTO_GMTP		= 100;		{ GMTP}
+	IPPROTO_IPCOMP		= 108;		{ payload compression (IPComp) }
+{ 101-254: Partly Unassigned }
+	IPPROTO_PIM		= 103;		{ Protocol Independent Mcast }
+	IPPROTO_CARP		= 112;		{ CARP }
+	IPPROTO_PGM		= 113;		{ PGM }
+	IPPROTO_PFSYNC		= 240;		{ PFSYNC }
 
+{ last return value of *_input(), meaning "all job for this pkt is done".  }
+	IPPROTO_RAW             = 255;
+	IPPROTO_MAX		= 256;
+	IPPROTO_DONE		= 257;
+
+{
+ * Options for use with [gs]etsockopt at the IP level.
+ * First word of comment is data type; bool is stored in int.
+ }
+	IP_OPTIONS		= 1 ;   { buf/ip_opts; set/get IP options }
+	IP_HDRINCL		= 2 ;   { int; header is included with data }
+	IP_TOS			= 3 ;   { int; IP type of service and preced. }
+	IP_TTL			= 4 ;   { int; IP time to live }
+	IP_RECVOPTS		= 5 ;   { bool; receive all IP opts w/dgram }
+	IP_RECVRETOPTS		= 6 ;   { bool; receive IP opts for response }
+	IP_RECVDSTADDR		= 7 ;   { bool; receive IP dst addr w/dgram }
+	IP_SENDSRCADDR		= IP_RECVDSTADDR; { cmsg_type to set src addr }
+	IP_RETOPTS		= 8 ;   { ip_opts; set/get IP options }
+	IP_MULTICAST_IF		= 9 ;   { u_char; set/get IP multicast i/f  }
+	IP_MULTICAST_TTL	= 10;   { u_char; set/get IP multicast ttl }
+	IP_MULTICAST_LOOP	= 11;   { u_char; set/get IP multicast loopback }
+	IP_ADD_MEMBERSHIP	= 12;   { ip_mreq; add an IP group membership }
+	IP_DROP_MEMBERSHIP	= 13;   { ip_mreq; drop an IP group membership }
+	IP_MULTICAST_VIF	= 14;   { set/get IP mcast virt. iface }
+	IP_RSVP_ON		= 15;   { enable RSVP in kernel }
+	IP_RSVP_OFF		= 16;   { disable RSVP in kernel }
+	IP_RSVP_VIF_ON		= 17;   { set RSVP per-vif socket }
+	IP_RSVP_VIF_OFF		= 18;   { unset RSVP per-vif socket }
+	IP_PORTRANGE		= 19;   { int; range to choose for unspec port }
+	IP_RECVIF		= 20;   { bool; receive reception if w/dgram }
+
+{ for IPSEC }
+	IP_IPSEC_POLICY		= 21;   { int; set/get security policy }
+	IP_FAITH		= 22;   { bool; accept FAITH'ed connections }
+
+	IP_ONESBCAST		= 23;   { bool: send all-ones broadcast }
+                                
+	IP_FW_TABLE_ADD		= 40;   { add entry }
+	IP_FW_TABLE_DEL		= 41;   { delete entry }
+	IP_FW_TABLE_FLUSH	= 42;   { flush table }
+	IP_FW_TABLE_GETSIZE	= 43;   { get table size }
+	IP_FW_TABLE_LIST	= 44;   { list table contents }
+
+	IP_FW_ADD		= 50;   { add a firewall rule to chain }
+	IP_FW_DEL		= 51;   { delete a firewall rule from chain }
+	IP_FW_FLUSH		= 52;   { flush firewall rule chain }
+	IP_FW_ZERO		= 53;   { clear single/all firewall counter(s) }
+	IP_FW_GET		= 54;   { get entire firewall rule chain }
+	IP_FW_RESETLOG		= 55;   { reset logging counters }
+
+	IP_DUMMYNET_CONFIGURE	= 60;   { add/configure a dummynet pipe }
+	IP_DUMMYNET_DEL		= 61;   { delete a dummynet pipe from chain }
+	IP_DUMMYNET_FLUSH	= 62;   { flush dummynet }
+	IP_DUMMYNET_GET		= 64;   { get entire dummynet pipes }
+
+	IP_RECVTTL		= 65;   { bool; receive IP TTL w/dgram }
+
+	IPV6_SOCKOPT_RESERVED1	= 3 ; { reserved for future use }
+	IPV6_UNICAST_HOPS	= 4 ; { int; IP6 hops }
+	IPV6_MULTICAST_IF	= 9 ; { u_int; setget IP6 multicast if  }
+	IPV6_MULTICAST_HOPS	= 10; { int; setget IP6 multicast hops }
+	IPV6_MULTICAST_LOOP	= 11; { u_int; setget IP6 multicast loopback }
+	IPV6_JOIN_GROUP		= 12; { ip6_mreq; join a group membership }
+	IPV6_LEAVE_GROUP	= 13; { ip6_mreq; leave a group membership }
+	IPV6_PORTRANGE		= 14; { int; range to choose for unspec port }
+
+	IPV6_PKTINFO            = 46; { in6_pktinfo; send if, src addr }	
+ 	IPV6_HOPLIMIT           = 47; { int; send hop limit }
+ 	IPV6_NEXTHOP            = 48; { sockaddr; next hop addr }
+ 	IPV6_HOPOPTS            = 49; { ip6_hbh; send hop-by-hop option }
+ 	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
+ 	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
+ 	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
