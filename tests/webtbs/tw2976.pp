@@ -9,6 +9,14 @@ Type vector=array[1..2] of double;
           end;
 
 
+operator := (x:shortint) r:pair;
+var i:longint;
+Begin
+    r.v1:=x;
+    for i:=1 to 2 do r.v2[i]:=0;
+End;
+
+
 operator := (x:double) r:pair;
 var i:longint;
 Begin
