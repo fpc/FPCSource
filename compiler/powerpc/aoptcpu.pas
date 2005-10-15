@@ -28,7 +28,7 @@ Interface
 
 {$i fpcdefs.inc}
 
-uses cpubase, aoptobj, aoptcpub, aopt, aasmtai;
+uses cpubase, aoptobj, aoptcpub, aopt, aasmtai, aasmcpu;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
@@ -37,12 +37,14 @@ Type
 
     function PostPeepHoleOptsCpu(var p: tai): boolean; override;
 
+   private
+     function cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
   End;
 
 Implementation
 
   uses
-    cutils, aasmcpu, cgbase;
+    cutils, cgbase;
 
 const
   calculation_target_op0: array[tasmop] of tasmop = (a_none,
@@ -93,6 +95,66 @@ const
     a_none, a_none, a_none, a_none, a_none, a_none, a_not, a_not_, a_none, a_none, a_none,
     a_none, a_none);
 
+  function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
+    var
+      next3: tai;
+      inverse: boolean;  
+    begin
+      result := true;
+      inverse :=
+        getnextinstruction(next2,next3) and
+        (next3.typ = ait_instruction) and
+        (taicpu(next3).opcode = A_XORI) and
+        (taicpu(next3).oper[0]^.reg = taicpu(next3).oper[1]^.reg) and
+        (taicpu(next3).oper[0]^.reg = taicpu(next2).oper[0]^.reg);
+      case taicpu(next2).oper[2]^.val of
+        1:
+         begin
+           // less than zero or greater/equal than zero (the xori remains in
+           // in the latter case). Doesn't make sense for unsigned comparisons.
+           if (p.opcode = A_CMPWI) then
+             begin
+               p.opcode := A_SRWI;
+               p.ops := 3;
+               p.loadreg(1,p.oper[0]^.reg);
+               p.loadreg(0,next1.oper[0]^.reg);
+               p.loadconst(2,31);
+               asml.remove(next1);
+               next1.free;
+               asml.remove(next2);
+               next2.free;
+             end
+           else
+             result := false;
+         end;
+{
+    needs two registers to work with
+        2:
+         begin
+           // greater or less/equal to zero
+         end;
+}
+        3:
+         begin
+           // equal/not equal to zero (the xori remains in the latter case;
+           // there's a more optimal sequence without it, but needs extra
+           // register)
+           p.opcode := A_CNTLZW;
+           p.loadreg(1,p.oper[0]^.reg);
+           p.loadreg(0,next1.oper[0]^.reg);
+           next1.ops := 3;
+           next1.opcode := A_SRWI;
+           next1.loadreg(1,next1.oper[0]^.reg);
+           next1.loadconst(2,5);
+           asml.remove(next2);
+           next2.free;
+         end;
+        else
+          result := false;
+      end;
+    end;
+
+
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next1, next2: tai;
@@ -103,6 +165,23 @@ const
         ait_instruction:
           begin
             case taicpu(p).opcode of
+              A_CMPWI,
+              A_CMPLWI:
+                begin
+                  if (taicpu(p).oper[1]^.typ = top_const) and
+                     (taicpu(p).oper[1]^.val = 0) and 
+                     getnextinstruction(p,next1) and
+                     (next1.typ = ait_instruction) and
+                     (taicpu(next1).opcode = A_MFCR) and
+                     getnextinstruction(next1,next2) and
+                     (taicpu(next2).opcode = A_RLWINM) and
+                     (taicpu(next2).oper[0]^.reg = taicpu(next2).oper[1]^.reg) and
+                     (taicpu(next2).oper[0]^.reg = taicpu(next1).oper[0]^.reg) and
+                     (taicpu(next2).oper[3]^.val = 31) and
+                     (taicpu(next2).oper[4]^.val = 31) and
+                     cmpi_mfcr_opt(taicpu(p),taicpu(next1),taicpu(next2)) then
+                    result := true;
+                end;
 { seems the register allocator doesn't generate superfluous fmr's }
 {              A_FMR, }
               A_MR:
