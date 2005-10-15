@@ -124,7 +124,7 @@ const
 
 
 type
-  SigSet  =  array[0..wordsinsigset-1] of cint;
+  SigSet  =  array[0..wordsinsigset-1] of cuLong;
   sigset_t= SigSet;
   PSigSet = ^SigSet;
   psigset_t=psigset;

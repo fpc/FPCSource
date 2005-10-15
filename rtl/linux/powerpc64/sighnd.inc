@@ -84,13 +84,16 @@ begin
   
   writeln('sigcontext^...regs = ', hexstr(ptrint(sigcontext^.regs), 16));
   {$ENDIF}
+  // reenable signals
   reenable_signal(sig);
-  { give runtime error at the position where the signal was raised }
 
-  if res<>0 then
-    HandleErrorAddrFrame(res, pointer(SigContext^.gp_regs[PT_NIP]), pointer(SigContext^.gp_regs[PT_R1]));
-  {$IFDEF EXCDEBUG}
-  readln;
-  {$ENDIF}
+  // give runtime error at the position where the signal was raised, using the 
+  // system trampoline
+  if res<>0 then begin
+    SigContext^.gp_regs[PT_R3] := res;
+    SigContext^.gp_regs[PT_R4] := SigContext^.gp_regs[PT_NIP];
+    SigContext^.gp_regs[PT_R5] := SigContext^.gp_regs[PT_R1];
+    SigContext^.handler := ptruint(@HandleErrorAddrFrame);
+  end;
 end;
 

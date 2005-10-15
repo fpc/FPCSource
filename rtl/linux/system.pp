@@ -111,8 +111,8 @@ begin
   fillchar(e,sizeof(e),#0);
   { set is 1 based PM }
   dec(sig);
-  i:=sig mod 32;
-  j:=sig div 32;
+  i:=sig mod (sizeof(cuLong) * 8);
+  j:=sig div (sizeof(cuLong) * 8);
   e[j]:=1 shl i;
   fpsigprocmask(SIG_UNBLOCK,@e,nil);
   reenable_signal:=geterrno=0;

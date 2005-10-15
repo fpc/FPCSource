@@ -28,6 +28,9 @@
                                 // (which is a GNU extension)
 {$ifdef FPC_USE_LIBC}
   {$define usegetcwd}
+  {$if not defined(cpux86) and not defined(cpux86_64)}
+  {$linklib m}
+  {$endif}
 {$endif}
 
 

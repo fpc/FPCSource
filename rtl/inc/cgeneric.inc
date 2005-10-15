@@ -21,10 +21,10 @@
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure bcopy(const source;var dest;count:cardinal); cdecl; external 'c' name 'bcopy';
+procedure bcopy(const source;var dest;count:sizeuint); cdecl; external 'c' name 'bcopy';
 
 { we need this separate move declaration because we can't add a "public, alias" to the above }
-procedure Move(const source;var dest;count:longint); [public, alias: 'FPC_MOVE'];{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure Move(const source;var dest;count:sizeint); [public, alias: 'FPC_MOVE'];{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;
@@ -35,9 +35,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure memset(var x; value: byte; count: cardinal); cdecl; external 'c';
+procedure memset(var x; value: byte; count: sizeuint); cdecl; external 'c';
 
-Procedure FillChar(var x;count: longint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count: sizeint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;
@@ -48,7 +48,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
 {$define FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (var x;count : longint;value : byte );{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure FillByte (var x;count : sizeint;value : byte );{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;
@@ -60,9 +60,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
 {$define FPC_SYSTEM_HAS_INDEXCHAR}
 
-function memchr(const buf; b: longint; len: cardinal): pointer; cdecl; external 'c';
+function memchr(const buf; b: sizeuint; len: cardinal): pointer; cdecl; external 'c';
 
-function IndexChar(Const buf;len:longint;b:char):longint;
+function IndexChar(Const buf;len:sizeint;b:char):sizeint;
 var
   res: pointer;
 begin
@@ -82,7 +82,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
-function IndexByte(Const buf;len:longint;b:byte):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function IndexByte(Const buf;len:sizeint;b:byte):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   IndexByte:=IndexChar(buf,len,char(b));
 end;
@@ -91,9 +91,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
 {$define FPC_SYSTEM_HAS_COMPARECHAR}
-function memcmp_comparechar(Const buf1,buf2;len:cardinal):longint; cdecl; external 'c' name 'memcmp';
+function memcmp_comparechar(Const buf1,buf2;len:sizeuint):longint; cdecl; external 'c' name 'memcmp';
 
-function CompareChar(Const buf1,buf2;len:longint):longint;
+function CompareChar(Const buf1,buf2;len:sizeint):sizeint;
 var
   res: longint;
 begin
@@ -112,7 +112,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
-function CompareByte(Const buf1,buf2;len:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function CompareByte(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   CompareByte := CompareChar(buf1,buf2,len);
 end;
@@ -121,9 +121,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
 {$define FPC_SYSTEM_HAS_COMPARECHAR0}
-function strncmp_comparechar0(Const buf1,buf2;len:cardinal):longint; cdecl; external 'c' name 'strncmp';
+function strncmp_comparechar0(Const buf1,buf2;len:sizeuint):longint; cdecl; external 'c' name 'strncmp';
 
-function CompareChar0(Const buf1,buf2;len:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function CompareChar0(Const buf1,buf2;len:sizeint):sizeint;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if len <= 0 then
     exit(0);
@@ -137,7 +137,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function libc_pchar_length(p:pchar):cardinal; cdecl; external 'c' name 'strlen';
+function libc_pchar_length(p:pchar):sizeuint; cdecl; external 'c' name 'strlen';
 
 function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
 begin
