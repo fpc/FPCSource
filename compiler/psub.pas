@@ -966,7 +966,7 @@ implementation
             { we can't handle formaldefs and special arrays (the latter may need a    }
             { re-basing of the index, i.e. if you pass an array[1..10] as open array, }
             { you have to add 1 to all index operations if you directly inline it     }
-            if ((currpara.varspez in [vs_out,vs_var]) and
+            if ((currpara.varspez in [vs_out,vs_var,vs_const]) and
                 (currpara.vartype.def.deftype=formaldef)) or
                is_special_array(currpara.vartype.def)  then
               exit;
