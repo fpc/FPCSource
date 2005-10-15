@@ -61,6 +61,9 @@ Const
   MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
   MSG_MORE     = $8000;              { Sender will send more }
 
+  INADDR_ANY   = CARDINAL(0);
+  INADDR_NONE  = CARDINAL($FFFFFFFF);
+
 const
   { Two constants to determine whether part of soket is for in or output }
   S_IN = 0;
