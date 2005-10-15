@@ -1017,6 +1017,7 @@ begin
      AddSelectItem(opt_nogendebugsymbolinfo,'-',idNone);
      AddSelectItem(opt_gendebugsymbolinfo,'',idNone);
      AddSelectItem(opt_gensymbolandbacktraceinfo,'l',idNone);
+     AddSelectItem(opt_valgrindinfo,'v',idNone);
      { AddSelectItem('Generate ~d~bx symbol information','d');
        does not work anyhow (PM) }
    end;

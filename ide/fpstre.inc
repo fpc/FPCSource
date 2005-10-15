@@ -845,6 +845,7 @@ const
       opt_nogendebugsymbolinfo = 'Skip ~d~ebug information generation';
       opt_gendebugsymbolinfo = 'Generate ~d~ebug symbol information';
       opt_gensymbolandbacktraceinfo = 'Generate also backtrace ~l~ine information';
+      opt_valgrindinfo = 'Generate ~v~algrind compatible debug info';
       { Link after options }
       opt_linkafter = 'Call ~l~inker after';
       { Profiling options }
