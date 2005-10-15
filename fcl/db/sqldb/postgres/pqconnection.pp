@@ -539,7 +539,10 @@ begin
       fieldtype := TranslateFldType(PQftype(BaseRes, i));
 
       if (fieldtype = ftstring) and (size = -1) then
+        begin
         size := pqfmod(baseres,i)-3;
+        if size = -4 then size := dsMaxStringSize;
+        end;
       if fieldtype = ftdate  then
         size := sizeof(double);
 
