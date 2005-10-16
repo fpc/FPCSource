@@ -1,3 +1,4 @@
+{  %cpu=x86_64,i386 }
 var
   l : farpointer;
 begin
