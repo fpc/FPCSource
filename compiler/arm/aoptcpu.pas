@@ -28,7 +28,7 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase, aoptobj, aoptcpub;
+uses cpubase, aopt, aoptcpub;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
