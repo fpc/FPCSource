@@ -466,9 +466,9 @@ end;
 
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
-var ar : array of pchar;
-    i  : integer;
-    s  : string;
+var ar  : array of pointer;
+    i   : integer;
+    s   : string;
 
 begin
   with cursor as TPQCursor do
@@ -479,13 +479,18 @@ begin
         begin
         setlength(ar,Aparams.count);
         for i := 0 to AParams.count -1 do
+          begin
           case AParams[i].DataType of
-            ftdatetime : ar[i] := pchar(formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime));
+            ftdatetime : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
           else
-            ar[i] := pchar(AParams[i].asstring);
-          writeln(ar[i]);
+            s := AParams[i].asstring;
+          end; {case}
+          GetMem(ar[i],length(s)+1);
+          StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
           end;
-        res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0)
+        res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0);
+        for i := 0 to AParams.count -1 do
+          FreeMem(ar[i]);
         end
       else
         res := PQexecPrepared(tr,pchar('prepst'+nr),0,nil,nil,nil,0);
@@ -539,7 +544,10 @@ begin
       fieldtype := TranslateFldType(PQftype(BaseRes, i));
 
       if (fieldtype = ftstring) and (size = -1) then
+        begin
         size := pqfmod(baseres,i)-3;
+        if size = -4 then size := dsMaxStringSize;
+        end;
       if fieldtype = ftdate  then
         size := sizeof(double);
 
