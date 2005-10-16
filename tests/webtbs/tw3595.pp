@@ -44,6 +44,16 @@ begin
   fwstr[3]:= widechar(257);
   fwstr:= fwstr + #0#1'abcde'#127#128#129;
  end;
+
+ filestream:= tfilestream.create(textfilename,fmcreate);
+ memstream:= tmemorystream.create;
+ memstream.writecomponent(test1);
+ memstream.position:= 0;
+ objectbinarytotext(memstream,filestream);
+ memstream.free;
+ filestream.free;
+
+
  try
   filestream:= tfilestream.create(textfilename,fmopenread);
   memstream:= tmemorystream.create;
@@ -62,29 +72,27 @@ begin
      writeln(widestringtocharinfo(test1.wstr));
      writeln('actual:');
      writeln(widestringtocharinfo(test2.wstr));
+     halt(1);
     end;
    except
     on e: exception do begin
      writeln('object reading fails: '+ e.message);
+     halt(1);
     end;
    end;
   except
    on e: exception do begin
     writeln('objecttexttobinary fails: '+e.message);
+    halt(1);
    end;
   end;
   filestream.free;
   memstream.free;
  except
   writeln('file '+textfilename+' not found.');
+  halt(1);
  end;
- filestream:= tfilestream.create(textfilename,fmcreate);
- memstream:= tmemorystream.create;
- memstream.writecomponent(test1);
- memstream.position:= 0;
- objectbinarytotext(memstream,filestream);
- memstream.free;
- filestream.free;
  test1.free;
  test2.free;
+ deletefile(textfilename);
 end.
