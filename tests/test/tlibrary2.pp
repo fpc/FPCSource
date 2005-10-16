@@ -18,7 +18,8 @@ const
 {$ifdef win32}
   libname='tlibrary1.dll';
 {$else}
-  libname='libtlibrary1.so';
+  libname='tlibrary1';
+  {$linklib tlibrary1}
 {$endif}
 
 procedure test;external libname name 'TestName';
