@@ -40,7 +40,9 @@ begin
   if s<>'-6.53142228756617E+0018' then
 {$else cpui386}
   { this constant has been verified and is correct (FK) }
-  if s<>'-6531422287566170211' then
+  { doubles have slightly different precision on processors <> x86, because }
+  { intermediate calculations are not performed in 80 bit there (JM)        }
+  if s<>'-6531422287566170215' then
 {$endif cpui386}
     begin
       writeln(s);
