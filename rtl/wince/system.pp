@@ -1599,6 +1599,7 @@ end;
 
 function _getstdfilex(fd: integer): pointer; cdecl; external 'coredll';
 function _fileno(fd: pointer): THandle; cdecl; external 'coredll';
+function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 
 procedure SysInitStdIO;
 begin
@@ -1641,6 +1642,8 @@ const
 begin
   StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
+  { Enable FPU exceptions }
+  _controlfp(1, $0008001F);
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
