@@ -749,23 +749,27 @@ var
   caller_frame,
   caller_addr : Pointer;
 Begin
-  prevbp:=bp-1;
-  i:=0;
-  is_dev:=do_isdevice(textrec(f).Handle);
-  while bp > prevbp Do
-   Begin
-     caller_addr := get_caller_addr(bp);
-     caller_frame := get_caller_frame(bp);
-     if (caller_addr=nil) or
-        (caller_frame=nil) then
-       break;
-     Writeln(f,BackTraceStrFunc(caller_addr));
-     Inc(i);
-     If ((i>max_frame_dump) and is_dev) or (i>256) Then
-       break;
-     prevbp:=bp;
-     bp:=caller_frame;
-   End;
+  try
+    prevbp:=bp-1;
+    i:=0;
+    is_dev:=do_isdevice(textrec(f).Handle);
+    while bp > prevbp Do
+     Begin
+       caller_addr := get_caller_addr(bp);
+       caller_frame := get_caller_frame(bp);
+       if (caller_addr=nil) or
+          (caller_frame=nil) then
+         break;
+       Writeln(f,BackTraceStrFunc(caller_addr));
+       Inc(i);
+       If ((i>max_frame_dump) and is_dev) or (i>256) Then
+         break;
+       prevbp:=bp;
+       bp:=caller_frame;
+     End;
+   except
+     { prevent endless dump if an exception occured }
+   end;
 End;
 
 
