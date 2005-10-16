@@ -1,4 +1,4 @@
-{ %OPT=-O-G2p3 -Sd}
+{ %OPT=-O-G2 -Sd}
 
 var
   c: array[1..10] of integer;
