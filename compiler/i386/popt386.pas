@@ -1623,9 +1623,14 @@ procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
          (taicpu(p).opcode=A_MOV) and
          (taicpu(p).opsize in [S_L,S_W]) and
-         ((taicpu(p).oper[0]^.typ = top_reg) or
-          ((taicpu(p).oper[0]^.typ = top_ref) and
-           (taicpu(p).oper[0]^.ref^.refaddr = addr_no))) and
+         ((taicpu(p).oper[0]^.typ = top_reg)
+         { we can't use cmov ref,reg because
+           ref could be nil and cmov still throws an exception
+           if ref=nil but the mov isn't done (FK)
+          or ((taicpu(p).oper[0]^.typ = top_ref) and
+           (taicpu(p).oper[0]^.ref^.refaddr = addr_no))
+         }
+         ) and
          (taicpu(p).oper[1]^.typ in [top_reg]);
     end;
 {$endif  USECMOV}
