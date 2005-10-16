@@ -247,13 +247,13 @@ end;
 
 Function FileExists (Const FileName : String) : Boolean;
 var
-  Handle: THandle;
-  FindData: TWin32FindData;
+  Attr:Dword;
 begin
-  Handle := FindFirstFile(Pchar(FileName), FindData);
-  Result:=Handle <> INVALID_HANDLE_VALUE;
-  If Result then
-    Windows.FindClose(Handle);
+  Attr:=GetFileAttributes(PChar(FileName));
+  if Attr <> $ffffffff then
+    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
+  else
+    Result:=False;
 end;
 
 
@@ -354,16 +354,16 @@ end;
 
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 begin
-  if not SetFileAttributes(PChar(FileName), Attr) then
-    Result := GetLastError
+  if SetFileAttributes(PChar(FileName), Attr) then
+    Result:=0
   else
-    Result:=0;
+    Result := GetLastError;    
 end;
 
 
 Function DeleteFile (Const FileName : String) : Boolean;
 begin
-  DeleteFile:=Windows.DeleteFile(Pchar(FileName));
+  Result:=Windows.DeleteFile(Pchar(FileName));
 end;
 
 
@@ -468,28 +468,19 @@ end;
 
 Function SetCurrentDir (Const NewDir : String) : Boolean;
 begin
-  {$I-}
-   ChDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
+  Result:=SetCurrentDirectory(PChar(NewDir));
 end;
 
 
 Function CreateDir (Const NewDir : String) : Boolean;
 begin
-  {$I-}
-   MkDir(NewDir);
-  {$I+}
-  result := (IOResult = 0);
+  Result:=CreateDirectory(PChar(NewDir),nil);
 end;
 
 
 Function RemoveDir (Const Dir : String) : Boolean;
 begin
-  {$I-}
-   RmDir(Dir);
-  {$I+}
-  result := (IOResult = 0);
+  Result:=RemoveDirectory(PChar(Dir));
 end;
 
 
