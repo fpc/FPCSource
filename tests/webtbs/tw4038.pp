@@ -8,7 +8,11 @@ begin
 {$ifdef unix}
   s:='/bin/echo';
 {$else}
+{$ifdef win32}
+  s:='gecho';
+{$else win32}
   s:='echo';
+{$endif win32}
 {$endif}
   writeln(executeprocess(s,'works1 works2 works3'));
   writeln(executeprocess(s,'works1 works2 works3'));
