@@ -2438,8 +2438,8 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_sqr_real := ccallnode.createintern('fpc_sqr_real',
-                ccallparanode.create(left,nil));
+        first_sqr_real := ctypeconvnode.create_internal(ccallnode.createintern('fpc_sqr_real',
+                ccallparanode.create(left,nil)),resulttype);
         left := nil;
       end;
 
@@ -2447,8 +2447,8 @@ implementation
       begin
         { create the call to the helper }
         { on entry left node contains the parameter }
-        first_sqrt_real := ccallnode.createintern('fpc_sqrt_real',
-                ccallparanode.create(left,nil));
+        first_sqrt_real := ctypeconvnode.create_internal(ccallnode.createintern('fpc_sqrt_real',
+                ccallparanode.create(left,nil)),resulttype);
         left := nil;
       end;
 
