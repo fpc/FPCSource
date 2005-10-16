@@ -99,7 +99,7 @@ Begin
   { Zero string }
   If S=Nil then exit;
   { check for constant strings ...}
-  l:=@PANSIREC(S-FirstOff)^.Ref;
+  l:=@PAnsiRec(S-FirstOff)^.Ref;
   If l^<0 then exit;
 
   { declocked does a MT safe dec and returns true, if the counter is 0 }
@@ -439,9 +439,10 @@ end;
 
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
 begin
-   SetLength(S,length(S)+1);
-   S[length(S)]:=c;
-   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
+  SetLength(S,length(S)+1);
+  // avoid unique call
+  PChar(Pointer(S)+length(S)-1)^:=c;
+  PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; compilerproc;
