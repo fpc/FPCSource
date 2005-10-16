@@ -216,13 +216,13 @@ end;
 
 Function DosToWinTime (DTime:longint; out Wtime : TFileTime):longbool;
 begin
-  DosToWinTime:=False;  //!!! fixme
+  DosToWinTime:=dos.DosToWinTime(DTime, Wtime);
 end;
 
 
 Function WinToDosTime (Const Wtime : TFileTime; out DTime:longint):longbool;
 begin
-  WinToDosTime:=False; //!!! fixme
+  WinToDosTime:=dos.WinToDosTime(Wtime, DTime);
 end;
 
 
@@ -248,29 +248,23 @@ end;
 
 Function FileExists (Const FileName : String) : Boolean;
 var
-  Handle: THandle;
-  FindData: TWin32FindData;
-  fn: PWideChar;
+  Attr:Dword;
 begin
-  fn:=StringToPWideChar(FileName);
-  Handle := FindFirstFile(PWideChar(widestring(FileName)), FindData);
-  FreeMem(fn);
-  Result:=Handle <> INVALID_HANDLE_VALUE;
-  If Result then
-    Windows.FindClose(Handle);
+  Attr:=FileGetAttr(FileName);
+  if Attr <> $ffffffff then
+    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) = 0
+  else
+    Result:=False;
 end;
 
 
 Function DirectoryExists (Const Directory : String) : Boolean;
 var
   Attr:Dword;
-  fn: PWideChar;
 begin
-  fn:=StringToPWideChar(Directory);
-  Attr:=GetFileAttributes(fn);
-  FreeMem(fn);
+  Attr:=FileGetAttr(Directory);
   if Attr <> $ffffffff then
-    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) > 0
+    Result:= (Attr and FILE_ATTRIBUTE_DIRECTORY) <> 0
   else
     Result:=False;
 end;
@@ -339,7 +333,7 @@ Var
   FT : TFileTime;
 begin
   If GetFileTime(Handle,nil,nil,@ft) and
-     WinToDosTime(FT,Result) then
+     WinToDosTime(FT, Result) then
     exit;
   Result:=-1;
 end;
@@ -350,8 +344,7 @@ Var
   FT: TFileTime;
 begin
   Result := 0;
-  if DosToWinTime(Age,FT) and
-    SetFileTime(Handle, ft, ft, FT) then
+  if DosToWinTime(Age, FT) and SetFileTime(Handle, FT, FT, FT) then
     Exit;
   Result := GetLastError;
 end;
@@ -651,17 +644,17 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
-  Result := ''; //!!! fixme
+  Result := '';
 end;
 
 Function GetEnvironmentVariableCount : Integer;
 begin
-  Result := 0; //!!! fixme
+  Result := 0;
 end;
 
 Function GetEnvironmentString(Index : Integer) : String;
 begin
-  Result := ''; //!!! fixme
+  Result := '';
 end;
 
 

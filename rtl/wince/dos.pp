@@ -33,6 +33,9 @@ Type
 
 {$i dosh.inc}
 
+Function WinToDosTime (Const Wtime : TFileTime; var DTime:longint):longbool;
+Function DosToWinTime (DTime:longint; var Wtime : TFileTime):longbool;
+
 implementation
 
 {$DEFINE HAS_GETMSCOUNT}
@@ -73,16 +76,50 @@ begin
   WinToDosAttr:=Attr;
 end;
 
-
-Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;
+type
+  Longrec=packed record
+    lo,hi : word;
+  end;
+  
+Function DosToWinTime (DTime:longint; var Wtime : TFileTime):longbool;
+var
+  FatDate, FatTime: WORD;
+  lft: TFileTime;
+  st: SYSTEMTIME;
 begin
-  DosToWinTime:=False;  //!!! fixme
+  FatDate:=Longrec(Dtime).Hi;
+  FatTime:=Longrec(Dtime).Lo;
+  with st do
+  begin
+    wDay:=FatDate and $1F;
+    wMonth:=(FatDate shr 5) and $F;
+    wYear:=(FatDate shr 9) + 1980;
+    wSecond:=(FatTime and $1F)*2;
+    wMinute:=(FatTime shr 5) and $1F;
+    wHour:=FatTime shr 11;
+    wMilliseconds:=0;
+    wDayOfWeek:=0;
+  end;
+  DosToWinTime:=SystemTimeToFileTime(@st, @lft) and LocalFileTimeToFileTime(@lft, @Wtime);
 end;
 
 
-Function WinToDosTime (Const Wtime : TFileTime;var DTime:longint):longbool;
+Function WinToDosTime (Const Wtime : TFileTime; var DTime:longint):longbool;
+var
+  FatDate, FatTime: WORD;
+  lft: TFileTime;
+  st: SYSTEMTIME;
+  res: longbool;
 begin
-  WinToDosTime:=False; //!!! fixme
+  res:=FileTimeToLocalFileTime(@WTime, @lft) and FileTimeToSystemTime(@lft, @st);
+  if res then
+  begin
+    FatDate:=st.wDay or (st.wMonth shl 5) or ((st.wYear - 1980) shl 9);
+    FatTime:=(st.wSecond div 2) or (st.wMinute shl 5) or (st.wHour shl 11);
+    Longrec(Dtime).Hi:=FatDate;
+    Longrec(Dtime).Lo:=FatTime;
+  end;
+  WinToDosTime:=res;
 end;
 
 
@@ -481,17 +518,17 @@ end;
 
 function envcount : longint;
 begin
-  envcount:=0; //!!! fixme
+  envcount:=0;
 end;
 
 Function EnvStr (Index: longint): string;
 begin
-  EnvStr:=''; //!!! fixme
+  EnvStr:='';
 end;
 
 Function  GetEnv(envvar: string): string;
 begin
-  GetEnv:=''; //!!! fixme
+  GetEnv:='';
 end;
 
 var
