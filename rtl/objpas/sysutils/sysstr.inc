@@ -939,6 +939,7 @@ Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Var
   E,P : Integer;
   S : String;
+  TempValue: extended;
 
 Begin
   S:=StrPas(Buffer);
@@ -953,7 +954,11 @@ Begin
     S[P] := '.';
   case ValueType of
     fvCurrency:
-      Val(S,Currency(Value),E);
+      begin
+        // needed for platforms where Currency = Int64
+        Val(S,TempValue,E);
+        Currency(Value) := TempValue;
+      end;
     fvExtended:
       Val(S,Extended(Value),E);
     fvDouble:
