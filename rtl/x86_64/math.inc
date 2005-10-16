@@ -168,7 +168,7 @@
             fwait
             fldt d
             frndint
-            fnclex
+            fwait
             fldcw -4(%rbp)
       end;
 
@@ -181,39 +181,29 @@
         newcw : word;
         res   : int64;
       asm
-            fnstcw oldcw
-            fwait
-            movw oldcw,%cx
-            orw $0x0c3f,%cx
-            movw %cx,newcw
-            fldcw newcw
-            fwait
-            fldt d
-            fistpq res
-            movq res,%rax
-            fnclex
-            fldcw oldcw
+        fnstcw oldcw
+        fwait
+        movw oldcw,%cx
+        orw $0x0c3f,%cx
+        movw %cx,newcw
+        fldcw newcw
+        fldt d
+        fistpq res
+        fwait
+        movq res,%rax
+        fldcw oldcw
       end;
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
       var
-        oldcw,
-        newcw : word;
         res   : int64;
       asm
-            fnstcw oldcw
-            fwait
-            movw $0x1372,newcw
-            fnclex
-            fldcw newcw
-            fwait
-            fldt d
-            fistpq res
-            movq res,%rax
-            fnclex
-            fldcw oldcw
+        fldt d
+        fistpq res
+        fwait
+        movq res,%rax
       end;
 
 
