@@ -756,6 +756,8 @@ implementation
                        if is_64bit(lt) then
                          begin
                             case torddef(lt).typ of
+                              scurrency:
+                                vtype:=vtCurrency;
                               s64bit:
                                 vtype:=vtInt64;
                               u64bit:
