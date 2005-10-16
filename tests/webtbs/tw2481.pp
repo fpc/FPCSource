@@ -21,6 +21,12 @@ Var
     B.A := V;
   End;
 
+  Operator := (V : Extended) B : TMoo;
+  Begin
+    B:=TMoo.Create;
+    B.A := V;
+  End;
+
 Constructor TMoo.Init;
 Begin
 
