@@ -40,18 +40,22 @@ begin
 end;
 
 
+procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
+  var
+    I : integer;
+  begin
+    i := ClassAliasList.IndexOf(Alias);
+    if I = -1 then
+      ClassAliasList.AddObject( Alias, TObject(AClass) );
+  end;
+
+
 procedure RegisterClasses(AClasses: array of TPersistentClass);
 var
 I : Integer;
 begin
 for I := low(aClasses) to high(aClasses) do
        RegisterClass(aClasses[I]);
-end;
-
-
-procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
-
-begin
 end;
 
 
