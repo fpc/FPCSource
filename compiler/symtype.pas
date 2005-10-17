@@ -244,6 +244,8 @@ implementation
          owner := nil;
          typesym := nil;
          defoptions:=[];
+         stab_state:=stab_state_unused;
+         stab_number:=0;
       end;
 
 

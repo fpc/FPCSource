@@ -36,6 +36,7 @@ interface
       private
         writing_def_stabs  : boolean;
         global_stab_number : word;
+        defnumberlist      : tlist;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):Pchar;
@@ -263,6 +264,9 @@ implementation
             if is_class(def) then
               inc(global_stab_number);
             def.stab_number:=global_stab_number;
+            if global_stab_number>=defnumberlist.count then
+              defnumberlist.count:=global_stab_number+250;
+            defnumberlist[global_stab_number]:=def;
           end;
         result:=tostr(def.stab_number);
       end;
@@ -329,7 +333,7 @@ implementation
                                      tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
               begin
-                inc(state^.staballoc,memsizeinc);
+                inc(state^.staballoc,strlen(newrec)+64);
                 reallocmem(state^.stabstring,state^.staballoc);
               end;
             strcopy(state^.stabstring+state^.stabsize,newrec);
@@ -420,7 +424,7 @@ implementation
            inc(state^.stabsize,strlen(newrec));
            if state^.stabsize>=state^.staballoc-256 then
              begin
-                inc(state^.staballoc,memsizeinc);
+                inc(state^.staballoc,strlen(newrec)+64);
                 reallocmem(state^.stabstring,state^.staballoc);
              end;
            strcopy(state^.stabstring+olds,newrec);
@@ -825,7 +829,8 @@ implementation
               insertdef(list,u8inttype.def);
               insertdef(list,cchartype.def);
             end;
-          classrefdef,
+          classrefdef :
+            insertdef(list,pvmttype.def);
           pointerdef :
             insertdef(list,tpointerdef(def).pointertype.def);
           setdef :
@@ -1234,7 +1239,12 @@ implementation
           begin
             case sym.consttyp of
               conststring:
-                st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+'''';
+                begin
+                  if sym.value.len<200 then
+                    st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
+                  else
+                    st:='<constant string too long>';
+                end;
               constord:
                 st:='i'+tostr(sym.value.valueord);
               constpointer:
@@ -1384,11 +1394,13 @@ implementation
         stabstypelist : taasmoutput;
         storefilepos  : tfileposinfo;
         st : tsymtable;
+        i  : longint;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=current_module.mainfilepos;
 
         global_stab_number:=0;
+        defnumberlist:=tlist.create;
         stabsvarlist:=taasmoutput.create;
         stabstypelist:=taasmoutput.create;
 
@@ -1423,6 +1435,19 @@ implementation
 
         asmlist[al_stabs].concatlist(stabstypelist);
         asmlist[al_stabs].concatlist(stabsvarlist);
+
+        { reset stab numbers }
+        for i:=0 to defnumberlist.count-1 do
+          begin
+            if assigned(defnumberlist[i]) then
+              begin
+                tdef(defnumberlist[i]).stab_number:=0;
+                tdef(defnumberlist[i]).stab_state:=stab_state_unused;
+              end;
+          end;
+
+        defnumberlist.free;
+        defnumberlist:=nil;
 
         stabsvarlist.free;
         stabstypelist.free;

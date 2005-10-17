@@ -65,7 +65,7 @@ interface
 {$endif}
           constructor create;
           constructor ppuloaddef(ppufile:tcompilerppufile);
-          procedure reset;
+          procedure reset;virtual;
           function getcopy : tstoreddef;virtual;
           procedure ppuwritedef(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
@@ -170,6 +170,7 @@ interface
           procedure generate_field_rtti(sym : tnamedindexitem;arg:pointer);
        public
           symtable : tsymtable;
+          procedure reset;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
        end;
 
@@ -513,6 +514,7 @@ interface
           procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
+          procedure reset;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function gettypename : string;override;
           function  mangledname : string;
@@ -892,8 +894,6 @@ implementation
 {$endif}
          if registerdef then
            symtablestack.registerdef(self);
-         stab_state:=stab_state_unused;
-         stab_number:=0;
          fillchar(localrttilab,sizeof(localrttilab),0);
       end;
 
@@ -904,8 +904,6 @@ implementation
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
 {$endif}
-         stab_state:=stab_state_unused;
-         stab_number:=0;
          fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
          indexnr:=ppufile.getword;
@@ -920,18 +918,12 @@ implementation
 
     procedure Tstoreddef.reset;
       begin
-        stab_state:=stab_state_unused;
         if assigned(rttitablesym) then
           trttisym(rttitablesym).lab := nil;
         if assigned(inittablesym) then
           trttisym(inittablesym).lab := nil;
         localrttilab[initrtti]:=nil;
         localrttilab[fullrtti]:=nil;
-        if deftype=procdef then
-          begin
-            tprocdef(self).procstarttai:=nil;
-            tprocdef(self).procendtai:=nil;
-          end;
       end;
 
 
@@ -2644,6 +2636,12 @@ implementation
       end;
 
 
+    procedure tabstractrecorddef.reset;
+      begin
+        tstoredsymtable(symtable).reset_all_defs;
+      end;
+
+
     procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
          if (FRTTIType=fullrtti) or
@@ -3351,6 +3349,14 @@ implementation
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
+      end;
+
+
+    procedure tprocdef.reset;
+      begin
+        inherited reset;
+        procstarttai:=nil;
+        procendtai:=nil;
       end;
 
 
