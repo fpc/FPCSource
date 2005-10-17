@@ -226,6 +226,28 @@ implementation
                    classtype:=odt_cppclass;
                    consume(_CPPCLASS);
                 end;
+              _DISPINTERFACE:
+                begin
+                   { need extra check here since interface is a keyword
+                     in all pascal modes }
+                   if not(m_class in aktmodeswitches) then
+                     Message(parser_f_need_objfpc_or_delphi_mode);
+                   classtype:=odt_dispinterface;
+                   consume(_DISPINTERFACE);
+                   { no forward declaration }
+                   if not(assigned(fd)) and (token=_SEMICOLON) then
+                     begin
+                       { also anonym objects aren't allow (o : object a : longint; end;) }
+                       if n='' then
+                         Message(parser_f_no_anonym_objects);
+                       aktclass:=tobjectdef.create(classtype,n,nil);
+                       include(aktclass.objectoptions,oo_is_forward);
+                       object_dec:=aktclass;
+                       typecanbeforward:=storetypecanbeforward;
+                       readobjecttype:=false;
+                       exit;
+                     end;
+                end;
               _INTERFACE:
                 begin
                    { need extra check here since interface is a keyword
@@ -424,6 +446,8 @@ implementation
                       odt_object:
                         if not(is_object(childof)) then
                           Message(parser_e_mix_of_classes_and_objects);
+                      odt_dispinterface:
+                        Message(parser_e_dispinterface_cant_have_parent);
                    end;
                    { the forward of the child must be resolved to get
                      correct field addresses }
@@ -455,12 +479,14 @@ implementation
            else
              aktclass:=tobjectdef.create(classtype,n,nil);
            { read GUID }
-             if (classtype in [odt_interfacecom,odt_interfacecorba]) and
+             if (classtype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) and
                 try_to_consume(_LECKKLAMMER) then
                begin
                  readinterfaceiid;
                  consume(_RECKKLAMMER);
-               end;
+               end
+             else if (classtype=odt_dispinterface) then
+               message(parser_e_dispinterface_needs_a_guid);
         end;
 
         procedure chkcpp(pd:tprocdef);
