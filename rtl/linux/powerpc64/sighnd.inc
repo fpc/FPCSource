@@ -19,7 +19,7 @@
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 var
   res : word;
-  fpustate : qword;
+  fpustate : dword;
   {$IFDEF EXCDEBUG}
   p : pbyte;
   i, j : integer;
@@ -54,19 +54,18 @@ begin
     SIGFPE :
       begin
         { ugly typecast to get the FPSCR register contents }
-        fpustate := QWord(PQWord(@SigContext^.fp_regs[PT_FPSCR])^);
+        fpustate := DWord(PDWord(@SigContext^.fp_regs[PT_FPSCR])^);
         {$IFDEF EXCDEBUG}
         writeln('fpustate = ', hexstr(fpustate, sizeof(fpustate)*2));
         {$ENDIF}
-
-        { TODO: distinguishing FPU signal type does not work as it should 
+        { distinguish between the different FPU exceptions }
         if (fpustate and ppc_fpu_underflow) <> 0 then
           res := 206
         else if (fpustate and ppc_fpu_overflow) <> 0 then
           res := 205
         else if (fpustate and ppc_fpu_divbyzero) <> 0 then
           res := 200
-        else }
+        else
           res := 207;
       end;
     SIGBUS :
@@ -84,16 +83,11 @@ begin
   
   writeln('sigcontext^...regs = ', hexstr(ptrint(sigcontext^.regs), 16));
   {$ENDIF}
-  // reenable signals
+  { reenable signal }
   reenable_signal(sig);
 
-  // give runtime error at the position where the signal was raised, using the 
-  // system trampoline
-  if res<>0 then begin
-    SigContext^.gp_regs[PT_R3] := res;
-    SigContext^.gp_regs[PT_R4] := SigContext^.gp_regs[PT_NIP];
-    SigContext^.gp_regs[PT_R5] := SigContext^.gp_regs[PT_R1];
-    SigContext^.handler := ptruint(@HandleErrorAddrFrame);
-  end;
+  { handle error }
+  if res<>0 then
+    HandleErrorAddrFrame(res, Pointer(SigContext^.gp_regs[PT_NIP]), Pointer(SigContext^.gp_regs[PT_R1]));
 end;
 

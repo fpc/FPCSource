@@ -193,7 +193,11 @@ begin
 {$ifdef x86_64}
    LibrarySearchPath.AddPath('/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else}
+{$ifdef powerpc64}
+   LibrarySearchPath.AddPath('/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+{$else powerpc64}
    LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+{$endif powerpc64}
 {$endif x86_64}
 end;
 
@@ -276,7 +280,7 @@ begin
 {$endif powerpc}
 
 {$ifdef powerpc64}
-     DynamicLinker:='/lib64/ld.so.1';
+     DynamicLinker:='/lib64/ld64.so.1';
      libctype:=glibc2;
 {$endif powerpc64}
 
