@@ -635,6 +635,7 @@ implementation
 
     function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
       var
+        hs       : string;
         orgsp,sp : stringid;
         sym : tsym;
         srsym : tsym;
@@ -690,9 +691,11 @@ implementation
            if (i=-1) then
              Message(parser_e_interface_id_expected);
            consume(_ID);
+           { Create unique name <interface>.<method> }
+           hs:=sp+'.'+pattern;
            consume(_EQUAL);
            if (token=_ID) then
-             aclass.implementedinterfaces.addmappings(i,sp,pattern);
+             aclass.implementedinterfaces.addmappings(i,hs,pattern);
            consume(_ID);
            result:=true;
            exit;

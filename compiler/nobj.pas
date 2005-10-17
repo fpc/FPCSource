@@ -1109,6 +1109,7 @@ implementation
     procedure tclassheader.gintfdoonintf(intf: tobjectdef; intfindex: longint);
       var
         def: tdef;
+        hs,
         mappedname: string;
         nextexist: pointer;
         implprocdef: tprocdef;
@@ -1121,7 +1122,8 @@ implementation
                 implprocdef:=nil;
                 nextexist:=nil;
                 repeat
-                  mappedname:=_class.implementedinterfaces.getmappings(intfindex,tprocdef(def).procsym.name,nextexist);
+                  hs:=intf.symtable.name^+'.'+tprocdef(def).procsym.name;
+                  mappedname:=_class.implementedinterfaces.getmappings(intfindex,hs,nextexist);
                   if mappedname<>'' then
                     implprocdef:=gintfgetcprocdef(tprocdef(def),mappedname);
                 until assigned(implprocdef) or not assigned(nextexist);
