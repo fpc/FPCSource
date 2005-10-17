@@ -41,7 +41,7 @@ type
       2: (cards: Array[0..1] of cardinal);
   end;
 const
-  maxDigits = 14;
+  maxDigits = 15;
 {$else}
 {$ifdef SUPPORT_SINGLE}
 type

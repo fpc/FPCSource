@@ -14,7 +14,7 @@ Begin
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
  str(double(intpower(2,63)),s);
- if s<>' 9.223372036854776E+018' then
+ if s<>' 9.22337203685478E+018' then
    begin
      WriteLn(double(intpower(2,63)));
      halt(1);
