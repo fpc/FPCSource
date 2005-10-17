@@ -420,7 +420,7 @@ operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inl
 {**********************************************************************
                              OLEVariant Operators
  **********************************************************************}
-{
+(*
 operator or(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator and(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator xor(const op1,op2 : olevariant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -440,4 +440,4 @@ operator <(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inlin
 operator >(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator >=(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator <=(const op1,op2 : olevariant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-}
+*)
