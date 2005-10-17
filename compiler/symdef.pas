@@ -285,8 +285,8 @@ interface
           procedure addintf_deref(const d:tderef;iofs:longint);
 
           procedure clearmappings;
-          procedure addmappings(intfindex: longint; const name, newname: string);
-          function  getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
+          procedure addmappings(intfindex: longint; const origname, newname: string);
+          function  getmappings(intfindex: longint; const origname: string; var nextexist: pointer): string;
 
           procedure addimplproc(intfindex: longint; procdef: tprocdef);
           function  implproccount(intfindex: longint): longint;
@@ -5063,7 +5063,7 @@ implementation
 
     constructor tnamemap.create(const aname, anewname: string);
       begin
-        inherited createname(name);
+        inherited createname(aname);
         newname:=stringdup(anewname);
       end;
 
@@ -5237,25 +5237,25 @@ implementation
             end;
       end;
 
-    procedure timplementedinterfaces.addmappings(intfindex: longint; const name, newname: string);
+    procedure timplementedinterfaces.addmappings(intfindex: longint; const origname, newname: string);
       begin
         checkindex(intfindex);
         with timplintfentry(finterfaces.search(intfindex)) do
           begin
             if not assigned(namemappings) then
               namemappings:=tdictionary.create;
-            namemappings.insert(tnamemap.create(name,newname));
+            namemappings.insert(tnamemap.create(origname,newname));
           end;
       end;
 
-    function  timplementedinterfaces.getmappings(intfindex: longint; const name: string; var nextexist: pointer): string;
+    function  timplementedinterfaces.getmappings(intfindex: longint; const origname: string; var nextexist: pointer): string;
       begin
         checkindex(intfindex);
         if not assigned(nextexist) then
           with timplintfentry(finterfaces.search(intfindex)) do
             begin
               if assigned(namemappings) then
-                nextexist:=namemappings.search(name)
+                nextexist:=namemappings.search(origname)
               else
                 nextexist:=nil;
             end;
