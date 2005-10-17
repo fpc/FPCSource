@@ -259,7 +259,7 @@ begin
   fpclose(Handle);
 end;
 
-Function FileTruncate (Handle,Size: TFileOffset) : boolean;
+Function FileTruncate (Handle,Size: Longint) : boolean;
 
 begin
   FileTruncate:=fpftruncate(Handle,Size)>=0;
