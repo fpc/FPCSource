@@ -37,10 +37,10 @@
   {$maxfpuregisters 0}
 {$endif CPUI386}
 
-{ the assembler helpers need this }
-{$ifdef POWERPC}
+{ the assembler helpers need this}
+{$ifdef CPUPOWERPC}
   {$goto+}
-{$endif POWERPC}
+{$endif CPUPOWERPC}
 
 
 { needed for insert,delete,readln }
@@ -287,7 +287,7 @@ type
   PointerArray = array [0..512*1024*1024 - 2] of Pointer;
   PPointerArray = ^PointerArray;
 
-  TBoundArray = array of Integer;
+  TBoundArray = array of SizeInt;
 
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
   PPCharArray = ^TPCharArray;
