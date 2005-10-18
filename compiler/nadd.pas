@@ -1034,7 +1034,8 @@ implementation
          { if both are floatdefs, conversion is already done before constant folding }
          else if (ld.deftype=floatdef) then
            begin
-             { already converted }
+             if not(nodetype in [addn,subn,muln,slashn,equaln,unequaln,ltn,lten,gtn,gten]) then
+               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
            end
 
          { left side a setdef, must be before string processing,
@@ -1803,8 +1804,6 @@ implementation
     function taddnode.first_addfloat : tnode;
       var
         procname: string[31];
-        temp: tnode;
-        power: longint;
         { do we need to reverse the result ? }
         notnode : boolean;
       begin
