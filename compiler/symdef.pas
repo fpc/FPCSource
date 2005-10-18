@@ -4120,6 +4120,11 @@ implementation
 
              { write name of result type }
              tstoreddef(rettype.def).write_rtti_name;
+          end
+        else
+          begin
+            asmlist[al_rtti].concat(Tai_const.Create_8bit(tkprocvar));
+            write_rtti_name;
           end;
       end;
 

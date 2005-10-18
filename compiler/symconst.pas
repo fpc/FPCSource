@@ -65,6 +65,7 @@ const
   tkA16string = 23;
   tkA64string = 24;
 {$endif}
+  tkprocvar  = 25;
 
   otSByte    = 0;
   otUByte    = 1;
