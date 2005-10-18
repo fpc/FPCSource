@@ -55,4 +55,18 @@ type
     cr2: cardinal;
   end;
 
+  tsigaltstack=record
+        ss_sp : pointer;
+        ss_flags : longint;
+        ss_size : longint;
+  end;
+
+  Pucontext=^Tucontext;
+  TUcontext=record
+    uc_flags : cardinal;
+    uc_link  : Pucontext;
+    uc_stack : tsigaltstack;
+    uc_mcontext : tsigcontext;
+    uc_sigmask : tsigset;
+  end;
 

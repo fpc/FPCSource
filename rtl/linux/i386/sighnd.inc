@@ -32,7 +32,7 @@ begin
 end;
 
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; UContext: Pucontext);cdecl;
 var
   res,fpustate : word;
 begin
@@ -43,7 +43,7 @@ begin
     { this is not allways necessary but I don't know yet
       how to tell if it is or not PM }
           res:=200;
-          fpustate:=GetFPUState(SigContext^);
+          fpustate:=GetFPUState(UContext^.uc_mcontext);
           if (FpuState and FPU_All) <> 0 then
             begin
               { first check the more precise options }
@@ -71,6 +71,6 @@ begin
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext^.eip),pointer(SigContext^.ebp));
+    HandleErrorAddrFrame(res,pointer(UContext^.uc_mcontext.eip),pointer(UContext^.uc_mcontext.ebp));
 end;
 
