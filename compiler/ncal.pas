@@ -2184,8 +2184,8 @@ type
                     para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
                   end;
-                para := tcallparanode(para.right);
               end;
+            para := tcallparanode(para.right);
           end;
         { local variables }
         if not assigned(tprocdef(procdefinition).localst) or
