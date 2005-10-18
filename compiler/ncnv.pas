@@ -716,15 +716,21 @@ implementation
         if (left.nodetype = stringconstn) and
            (tstringdef(left.resulttype.def).string_typ=st_conststring) then
            begin
-             { if the array is large enough we can use the string
+             { if the array of char is large enough we can use the string
                constant directly. This is handled in ncgcnv }
-             if arrsize>=tstringconstnode(left).len then
+             if (arrsize>=tstringconstnode(left).len) and
+                is_char(tarraydef(resulttype.def).elementtype.def) then
                exit;
-             { Convert to shortstring/ansistring and call helper }
-             if tstringconstnode(left).len>255 then
-               inserttypeconv(left,cansistringtype)
+             { Convert to wide/short/ansistring and call default helper }
+             if is_widechar(tarraydef(resulttype.def).elementtype.def) then
+               inserttypeconv(left,cwidestringtype)
              else
-               inserttypeconv(left,cshortstringtype);
+               begin
+                 if tstringconstnode(left).len>255 then
+                   inserttypeconv(left,cansistringtype)
+                 else
+                   inserttypeconv(left,cshortstringtype);
+               end;
            end;
         if is_widechar(tarraydef(resulttype.def).elementtype.def) then
           chartype:='widechar'
