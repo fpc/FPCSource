@@ -1526,7 +1526,7 @@ begin
           { the contents it had before this instruction                   }
           if getlastinstruction(startmod,beforestartmod) then
             RestoreRegContentsTo(supreg,ptaiprop(beforestartmod.optinfo)^.regs[supreg],
-             startmod,p)
+             startmod,hp1)
           else
             ClearRegContentsFrom(supreg,startmod,hp1);
         end;
