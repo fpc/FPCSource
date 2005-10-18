@@ -202,7 +202,7 @@ implementation
 
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
       begin
-        foreachnodestatic(pm_postprocess,n,f,arg);
+        result:=foreachnodestatic(pm_postprocess,n,f,arg);
       end;
 
 
@@ -259,7 +259,7 @@ implementation
           end;
         until false;
         { a tempref is used when it is loaded from a withsymtable }
-        if (hp.nodetype in [loadn,temprefn]) then
+        if (hp.nodetype in [calln,loadn,temprefn]) then
           begin
             hp:=ccallnode.create_procvar(nil,p1);
             resulttypepass(hp);
