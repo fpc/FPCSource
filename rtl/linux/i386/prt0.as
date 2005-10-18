@@ -59,9 +59,9 @@ _start:
         fwait
         fldcw   ___fpucw
 
-        /* Initialize gs for thread local storage */
-        movw    %ds,%ax
-        movw    %ax,%gs
+#        /* Initialize gs for thread local storage */
+#        movw    %ds,%ax
+#        movw    %ax,%gs
 
         xorl    %ebp,%ebp
         call    PASCALMAIN
