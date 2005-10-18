@@ -633,7 +633,7 @@ implementation
                             asmlist[cural].concat(Tai_const.Create_sym(ll));
                             asmlist[al_const].concat(tai_align.create(const_align(sizeof(aint))));
                             asmlist[al_const].concat(Tai_const.Create_aint(-1));
-                            asmlist[al_const].concat(Tai_const.Create_aint(strlength));
+                            asmlist[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
                             asmlist[al_const].concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               asmlist[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));

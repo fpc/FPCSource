@@ -425,7 +425,7 @@ implementation
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
                                 asmlist[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(len));
+                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
                                 asmlist[al_typedconsts].concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   asmlist[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));

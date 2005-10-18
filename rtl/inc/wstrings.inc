@@ -21,7 +21,9 @@
   a pwidechar that points to :
 
   @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size;
+  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
+         with sizeof(WideChar) to convert. This is needed to be compatible with Delphi and
+         Windows COM BSTR.
   @    : String + Terminating #0;
   Pwidechar(Widestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
@@ -657,7 +659,7 @@ begin
        end;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
-      PWideRec(Pointer(S)-FirstOff)^.Len:=l;
+      PWideRec(Pointer(S)-FirstOff)^.Len:=l*sizeof(WideChar);
     end
   else
     begin
@@ -729,10 +731,10 @@ begin
     exit;
   if PWideRec(Pointer(S)-WideFirstOff)^.Ref<>1 then
    begin
-     L:=PWideRec(Pointer(S)-WideFirstOff)^.len;
+     L:=PWideRec(Pointer(S)-WideFirstOff)^.len div sizeof(WideChar);
      SNew:=NewWideString (L);
      Move (PWideChar(S)^,SNew^,(L+1)*sizeof(WideChar));
-     PWideRec(SNew-WideFirstOff)^.len:=L;
+     PWideRec(SNew-WideFirstOff)^.len:=L * sizeof(WideChar);
      fpc_widestr_decr_ref (Pointer(S));  { Thread safe }
      pointer(S):=SNew;
      pointer(result):=SNew;
@@ -761,7 +763,7 @@ begin
      if ResultAddress<>Nil then
       begin
         Move (PWideChar(S)[Index],ResultAddress^,Size*sizeof(WideChar));
-        PWideRec(ResultAddress-WideFirstOff)^.Len:=Size;
+        PWideRec(ResultAddress-WideFirstOff)^.Len:=Size*sizeof(WideChar);
         PWideChar(ResultAddress+Size*sizeof(WideChar))^:=#0;
       end;
    end;
@@ -885,7 +887,7 @@ begin
    exit;
   if index<=0 then
    exit;
-  LS:=PWideRec(Pointer(S)-WideFirstOff)^.Len;
+  LS:=PWideRec(Pointer(S)-WideFirstOff)^.Len div sizeof(WideChar);
   if (Index<=LS) and (Size>0) then
    begin
      UniqueString (S);

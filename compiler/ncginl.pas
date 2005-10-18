@@ -350,6 +350,8 @@ implementation
            reference_reset_base(href,left.location.register,-sizeof(aint));
            hregister:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);
            cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
+           if is_widestring(left.resulttype.def) then
+             cg.a_op_const_reg(exprasmlist,OP_IDIV,OS_INT,cwidechartype.def.size,hregister);
            cg.a_label(exprasmlist,lengthlab);
            location_reset(location,LOC_REGISTER,OS_INT);
            location.register:=hregister;
