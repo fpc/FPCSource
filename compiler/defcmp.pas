@@ -660,7 +660,8 @@ implementation
                         else
                           { to array of char, from "Untyped" stringconstn (array of char) }
                           if (fromtreetype=stringconstn) and
-                             is_chararray(def_to) then
+                             (is_chararray(def_to) or
+                              is_widechararray(def_to)) then
                             begin
                               eq:=te_convert_l1;
                               doconv:=tc_string_2_chararray;
