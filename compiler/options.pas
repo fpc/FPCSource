@@ -78,7 +78,7 @@ uses
   version,
   cutils,cmsgs,
   comphook,
-  symtable
+  symtable,scanner
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
