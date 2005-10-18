@@ -1,6 +1,7 @@
+{ %norun }
 { %target=linux }
 {$mode objfpc}
-library uw3964;
+library tw3964a;
 
   function testfunc : longint;external name 'testfunc';
 

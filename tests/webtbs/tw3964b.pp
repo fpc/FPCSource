@@ -1,7 +1,7 @@
 { %target=linux }
 {$mode objfpc}
 
-{$linklib libuw3964}
+{$linklib libtw3964a}
 
 function testfunc : longint;public name 'testfunc';
 begin
