@@ -686,7 +686,7 @@ begin
         Inc(buf);
         if not (CheckFor('yes''') or CheckFor('no''')) then
           RaiseExc('Expected ''yes'' or ''no''');
-      end else if buf[0] = '''' then
+      end else if buf[0] = '"' then
       begin
         Inc(buf);
         if not (CheckFor('yes"') or CheckFor('no"')) then
