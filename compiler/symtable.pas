@@ -692,10 +692,12 @@ implementation
            tprocsym(sym).check_forward
          { check also object method table            }
          { we needn't to test the def list          }
-         { because each object has to have a type sym }
+         { because each object has to have a type sym,
+           only test objects declarations, not type renamings }
          else
           if (tsym(sym).typ=typesym) and
              assigned(ttypesym(sym).restype.def) and
+             (ttypesym(sym).restype.def.typesym=ttypesym(sym)) and
              (ttypesym(sym).restype.def.deftype=objectdef) then
            tobjectdef(ttypesym(sym).restype.def).check_forwards;
       end;
