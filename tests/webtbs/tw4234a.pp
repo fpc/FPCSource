@@ -1,4 +1,4 @@
-{ %opt=-O2 }
+{ %opt=-O2r }
 
 {$mode objfpc}
 
