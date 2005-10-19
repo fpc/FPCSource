@@ -59,11 +59,7 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-{$ifdef supportbrowser}
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
-{$else supportbrowser}
-   {L} (typesw:modulesw; setsw:ord(cs_localnone)),
-{$endif supportbrowser}
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -74,13 +70,9 @@ const
    {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
    {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
-   {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
-{$ifdef supportbrowser}
    {Y} (typesw:modulesw; setsw:ord(cs_browser)),
-{$else supportbrowser}
-   {Y} (typesw:modulesw; setsw:ord(cs_localnone)),
-{$endif supportbrowser}
    {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
@@ -97,11 +89,7 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_external_var)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-{$ifdef supportbrowser}
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
-{$else supportbrowser}
-   {L} (typesw:modulesw; setsw:ord(cs_localnone)),
-{$endif supportbrowser}
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -112,13 +100,9 @@ const
    {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
    {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
-   {W} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
-{$ifdef supportbrowser}
    {Y} (typesw:modulesw; setsw:ord(cs_browser)),
-{$else supportbrowser}
-   {Y} (typesw:modulesw; setsw:ord(cs_localnone)),
-{$endif supportbrowser}
    {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
     );
 
