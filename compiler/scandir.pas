@@ -182,6 +182,26 @@ implementation
          end;
       end;
 
+    procedure dir_a1;
+      begin
+        aktpackrecords:=1;
+      end;
+
+    procedure dir_a2;
+      begin
+        aktpackrecords:=2;
+      end;
+
+    procedure dir_a4;
+      begin
+        aktpackrecords:=4;
+      end;
+
+    procedure dir_a8;
+      begin
+        aktpackrecords:=8;
+      end;
+
     procedure dir_asmmode;
       var
         s : string;
@@ -1089,6 +1109,10 @@ implementation
 
     procedure InitScannerDirectives;
       begin
+        AddDirective('A1',directive_all, @dir_a1);
+        AddDirective('A2',directive_all, @dir_a2);
+        AddDirective('A4',directive_all, @dir_a4);
+        AddDirective('A8',directive_all, @dir_a8);
         AddDirective('ALIGN',directive_all, @dir_align);
 {$ifdef m68k}
         AddDirective('APPID',directive_all, @dir_appid);
