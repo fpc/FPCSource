@@ -6000,7 +6000,8 @@ tests/webtbs/tw3931a.pp svneol=native#text/plain
 tests/webtbs/tw3939.pp svneol=native#text/plain
 tests/webtbs/tw3953a.pp svneol=native#text/plain
 tests/webtbs/tw3953b.pp svneol=native#text/plain
-tests/webtbs/tw3964.pp -text
+tests/webtbs/tw3964a.pp svneol=native#text/plain
+tests/webtbs/tw3964b.pp svneol=native#text/plain
 tests/webtbs/tw3967.pp svneol=native#text/plain
 tests/webtbs/tw3968.pp svneol=native#text/plain
 tests/webtbs/tw3970.pp svneol=native#text/plain
@@ -6097,7 +6098,6 @@ tests/webtbs/uw3356.pp svneol=native#text/plain
 tests/webtbs/uw3429.pp svneol=native#text/plain
 tests/webtbs/uw3474a.pp svneol=native#text/plain
 tests/webtbs/uw3474b.pp svneol=native#text/plain
-tests/webtbs/uw3964.pp -text
 tests/webtbs/uw3968.pp svneol=native#text/plain
 tests/webtbs/uw4140.pp svneol=native#text/plain
 tests/webtbs/uw4352a.pp svneol=native#text/plain
