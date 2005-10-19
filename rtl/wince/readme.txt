@@ -20,7 +20,7 @@ Building
 * Extract them to some dir in the path on your machine.
 * Get the 2.1 source repository from SVN: http://www.freepascal.org/develop.html#svn
 * Go to fpc/compiler and execute: 
-  make cycle CPU_TARGET=arm OS_TARGET=wince CROSSBINDIR=<path_to_cross_binutils>
+  make cycle CPU_TARGET=arm OS_TARGET=wince
 
 You should end with the units compiled to fpc/rtl/units/arm-wince and a ppccrossarm.exe in fpc/compiler. Copy them to locations fitting your fpc installation.
 
