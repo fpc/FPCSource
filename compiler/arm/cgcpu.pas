@@ -934,7 +934,7 @@ unit cgcpu;
 
     procedure tcgarm.a_jmp_always(list : taasmoutput;l: tasmlabel);
       begin
-        list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_B,l));
       end;
 
 
