@@ -558,7 +558,7 @@ implementation
                     setconstn :
                       p.default:=plongint(tsetconstnode(pt).value_set)^;
                     ordconstn :
-                      p.default:=tordconstnode(pt).value;
+                      p.default:=longint(tordconstnode(pt).value);
                     niln :
                       p.default:=0;
                     realconstn:
