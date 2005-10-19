@@ -320,14 +320,23 @@ interface
        system_any = system_none;
 
        system_wince : set of tsystem = [system_arm_wince,system_i386_wince];
-       system_linux : set of tsystem = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
-                                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                                        system_x86_6432_linux];
+       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
+                       system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
+                       system_x86_6432_linux];
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        system_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
        { all windows systems }
        system_all_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                                               system_arm_wince,system_i386_wince];
+
+       { all systems supporting exports from programs or units }
+       system_unit_program_exports : set of tsystem = [system_i386_win32,
+                                         system_i386_wdosx,
+                                         system_i386_Netware,
+                                         system_i386_netwlibc,
+                                         system_arm_wince,
+                                         system_x86_64_win64,
+                                         system_ia64_win64]+system_linux;
 
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',

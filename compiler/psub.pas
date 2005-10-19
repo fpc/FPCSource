@@ -1384,21 +1384,13 @@ implementation
               _EXPORTS:
                 begin
                    if not(assigned(current_procinfo.procdef.localst)) or
-                      (current_procinfo.procdef.localst.symtablelevel>main_program_level) or
-                      (current_module.is_unit) then
+                      (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
-                     (target_info.system in [
-                     system_i386_win32,
-                     system_i386_wdosx,
-                     system_i386_Netware,
-                     system_i386_netwlibc,
-                     system_arm_wince,
-                     system_x86_64_win64,
-                     system_ia64_win64]+system_linux) then
+                     (target_info.system in system_unit_program_exports) then
                      read_exports
                    else
                      begin

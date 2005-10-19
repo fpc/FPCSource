@@ -6350,6 +6350,7 @@ tests/webtbs/uw2040.pp svneol=native#text/plain
 tests/webtbs/uw2266a.inc svneol=native#text/plain
 tests/webtbs/uw2266b.pas svneol=native#text/plain
 tests/webtbs/uw2269.inc svneol=native#text/plain
+tests/webtbs/uw2364.pp svneol=native#text/plain
 tests/webtbs/uw2706a.pp svneol=native#text/plain
 tests/webtbs/uw2706b.pp svneol=native#text/plain
 tests/webtbs/uw2731.pp svneol=native#text/plain

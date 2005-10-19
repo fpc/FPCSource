@@ -561,7 +561,6 @@ implementation
       end;
 
 
-
     procedure texportlibwin32.exportvar(hp : texported_item);
       begin
          { same code used !! PM }

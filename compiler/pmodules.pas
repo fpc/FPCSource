@@ -900,6 +900,9 @@ implementation
              dispose(s1);
           end;
 
+         if (target_info.system in system_unit_program_exports) then
+           exportlib.preparelib(current_module.realmodulename^);
+
          consume(_ID);
          consume(_SEMICOLON);
          consume(_INTERFACE);
@@ -1311,7 +1314,7 @@ implementation
               stringdispose(current_module.realmodulename);
               current_module.modulename:=stringdup(pattern);
               current_module.realmodulename:=stringdup(orgpattern);
-              if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
+              if (target_info.system in system_unit_program_exports) then
                 exportlib.preparelib(orgpattern);
               consume(_ID);
               if token=_LKLAMMER then
@@ -1324,7 +1327,7 @@ implementation
                 end;
               consume(_SEMICOLON);
             end
-         else if (target_info.system in [system_i386_WIN32,system_i386_wdosx]) then
+         else if (target_info.system in system_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
 
          { global switches are read, so further changes aren't allowed }
