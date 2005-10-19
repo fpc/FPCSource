@@ -1737,6 +1737,7 @@ implementation
         paraidx  : integer;
         currparanr : byte;
         rfh,rth  : bestreal;
+        objdef   : tobjectdef;
         def_from,
         def_to   : tdef;
         currpt,
@@ -1860,6 +1861,24 @@ implementation
                    else
                      rfh:=rth-rfh;
                    hp^.ordinal_distance:=hp^.ordinal_distance+rfh;
+                 end
+              else
+              { related object parameters also need to determine the distance between the current
+                object and the object we are comparing with }
+               if (def_from.deftype=objectdef) and
+                  (def_to.deftype=objectdef) and
+                  (tobjectdef(def_from).objecttype=tobjectdef(def_to).objecttype) and
+                  tobjectdef(def_from).is_related(tobjectdef(def_to)) then
+                 begin
+                   eq:=te_convert_l1;
+                   objdef:=tobjectdef(def_from);
+                   while assigned(objdef) do
+                     begin
+                       if objdef=def_to then
+                         break;
+                       hp^.ordinal_distance:=hp^.ordinal_distance+1;
+                       objdef:=objdef.childof;
+                     end;
                  end
               else
               { generic type comparision }
