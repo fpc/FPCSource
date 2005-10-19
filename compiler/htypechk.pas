@@ -1366,7 +1366,7 @@ implementation
               if ((m_tp_procvar in aktmodeswitches) or
                   (m_mac_procvar in aktmodeswitches)) and
                  (p.left.nodetype=calln) and
-                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),true)>=te_equal) then
+                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to))>=te_equal) then
                 eq:=te_equal
               else
                 if (m_mac_procvar in aktmodeswitches) and
@@ -1827,7 +1827,7 @@ implementation
                  end
               else
               { for value and const parameters check precision of real, give
-                penalty for loosing of precision }
+                penalty for loosing of precision. var and out parameters must match exactly }
                if not(currpara.varspez in [vs_var,vs_out]) and
                   is_real(def_from) and
                   is_real(def_to) then
@@ -1856,8 +1856,9 @@ implementation
                  end
               else
               { related object parameters also need to determine the distance between the current
-                object and the object we are comparing with }
-               if (def_from.deftype=objectdef) and
+                object and the object we are comparing with. var and out parameters must match exactly }
+               if not(currpara.varspez in [vs_var,vs_out]) and
+                  (def_from.deftype=objectdef) and
                   (def_to.deftype=objectdef) and
                   (tobjectdef(def_from).objecttype=tobjectdef(def_to).objecttype) and
                   tobjectdef(def_from).is_related(tobjectdef(def_to)) then

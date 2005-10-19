@@ -973,7 +973,7 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
          begin
-           eq:=proc_to_procvar_equal(pd^.def,d,false);
+           eq:=proc_to_procvar_equal(pd^.def,d);
            if eq>=te_equal then
             begin
               { multiple procvars with the same equal level }

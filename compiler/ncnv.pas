@@ -1536,8 +1536,7 @@ implementation
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
-                        (proc_to_procvar_equal(currprocdef,
-                                               tprocvardef(resulttype.def),true)=te_incompatible) then
+                        (proc_to_procvar_equal(currprocdef,tprocvardef(resulttype.def))=te_incompatible) then
                        IncompatibleTypes(left.resulttype.def,resulttype.def);
                      exit;
                    end;

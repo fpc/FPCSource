@@ -114,7 +114,7 @@ interface
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;methoderr:boolean):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
 
 
 implementation
@@ -1017,7 +1017,7 @@ implementation
                      if (m_tp_procvar in aktmodeswitches) or
                         (m_mac_procvar in aktmodeswitches) then
                       begin
-                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),true);
+                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to));
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
@@ -1028,7 +1028,7 @@ implementation
                  procvardef :
                    begin
                      { procvar -> procvar }
-                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),false);
+                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to));
                    end;
                  pointerdef :
                    begin
@@ -1452,7 +1452,7 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;methoderr:boolean):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
       var
         eq : tequaltype;
         po_comp : tprocoptions;
@@ -1463,11 +1463,7 @@ implementation
          { check for method pointer }
          if (def1.is_methodpointer xor def2.is_methodpointer) or
             (def1.is_addressonly xor def2.is_addressonly) then
-          begin
-            if methoderr then
-              Message(type_e_no_method_and_procedure_not_compatible);
-            exit;
-          end;
+           exit;
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_staticmethod,po_interrupt,
                    po_iocheck,po_varargs];
