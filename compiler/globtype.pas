@@ -79,7 +79,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_check_overflow,cs_check_range,cs_check_object,
          cs_check_io,cs_check_stack,
          cs_checkpointer,
-         cs_omitstackframe,cs_do_assertion,cs_generate_rtti,
+         cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          { mmx }
          cs_mmx,cs_mmx_saturation,
