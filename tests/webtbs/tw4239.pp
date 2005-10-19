@@ -17,5 +17,4 @@ begin
   setlength(myproc,1);
   MyProc[0]:=@testing;
   MyProc[0]('Test me');
-  readln; //watch for error on close
 end.
