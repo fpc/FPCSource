@@ -184,6 +184,8 @@ interface
 
     {To be called when the language mode is finally determined}
     procedure ConsolidateMode;
+    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+
 
 implementation
 
@@ -247,20 +249,103 @@ implementation
             current_module.globalmacrosymtable.next:= current_module.localmacrosymtable;
             macrosymtablestack:=current_module.globalmacrosymtable;
           end;
-
-      { define a symbol in delphi,objfpc,tp,gpc,macpas mode }
-      if (m_delphi in aktmodeswitches) then
-        def_system_macro('FPC_DELPHI')
-      else if (m_tp7 in aktmodeswitches) then
-        def_system_macro('FPC_TP')
-      else if (m_objfpc in aktmodeswitches) then
-        def_system_macro('FPC_OBJFPC')
-      else if (m_gpc in aktmodeswitches) then
-        def_system_macro('FPC_GPC')
-      else if (m_mac in aktmodeswitches) then
-        def_system_macro('FPC_MACPAS');
     end;
 
+
+      Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+      var
+        b : boolean;
+        oldaktmodeswitches : tmodeswitches;
+      begin
+        oldaktmodeswitches:=aktmodeswitches;
+
+        b:=true;
+        if s='DEFAULT' then
+          aktmodeswitches:=initmodeswitches
+        else
+         if s='DELPHI' then
+          aktmodeswitches:=delphimodeswitches
+        else
+         if s='TP' then
+          aktmodeswitches:=tpmodeswitches
+        else
+         if s='FPC' then
+          aktmodeswitches:=fpcmodeswitches
+        else
+         if s='OBJFPC' then
+          aktmodeswitches:=objfpcmodeswitches
+        else
+         if s='GPC' then
+          aktmodeswitches:=gpcmodeswitches
+        else
+         if s='MACPAS' then
+          aktmodeswitches:=macmodeswitches
+        else
+         b:=false;
+
+        if b and changeInit then
+          initmodeswitches := aktmodeswitches;
+
+        if b then
+         begin
+           { turn ansistrings on by default ? }
+           if (m_delphi in aktmodeswitches) then
+            begin
+              include(aktlocalswitches,cs_ansistrings);
+              if changeinit then
+               include(initlocalswitches,cs_ansistrings);
+            end
+           else
+            begin
+              exclude(aktlocalswitches,cs_ansistrings);
+              if changeinit then
+               exclude(initlocalswitches,cs_ansistrings);
+            end;
+           { Default enum packing for delphi/tp7 }
+           if (m_tp7 in aktmodeswitches) or
+              (m_delphi in aktmodeswitches) or
+              (m_mac in aktmodeswitches) then
+             aktpackenum:=1
+           else
+             aktpackenum:=4;
+           if changeinit then
+             initpackenum:=aktpackenum;
+{$ifdef i386}
+           { Default to intel assembler for delphi/tp7 on i386 }
+           if (m_delphi in aktmodeswitches) or
+              (m_tp7 in aktmodeswitches) then
+             aktasmmode:=asmmode_i386_intel;
+           if changeinit then
+             initasmmode:=aktasmmode;
+{$endif i386}
+
+            { Undefine old symbol }
+            if (m_delphi in oldaktmodeswitches) then
+              undef_system_macro('FPC_DELPHI')
+            else if (m_tp7 in oldaktmodeswitches) then
+              undef_system_macro('FPC_TP')
+            else if (m_objfpc in oldaktmodeswitches) then
+              undef_system_macro('FPC_OBJFPC')
+            else if (m_gpc in oldaktmodeswitches) then
+              undef_system_macro('FPC_GPC')
+            else if (m_mac in oldaktmodeswitches) then
+              undef_system_macro('FPC_MACPAS');
+
+            { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
+            if (m_delphi in aktmodeswitches) then
+              def_system_macro('FPC_DELPHI')
+            else if (m_tp7 in aktmodeswitches) then
+              def_system_macro('FPC_TP')
+            else if (m_objfpc in aktmodeswitches) then
+              def_system_macro('FPC_OBJFPC')
+            else if (m_gpc in aktmodeswitches) then
+              def_system_macro('FPC_GPC')
+            else if (m_mac in aktmodeswitches) then
+              def_system_macro('FPC_MACPAS');
+         end;
+
+        SetCompileMode:=b;
+      end;
 
 
 {*****************************************************************************
@@ -414,7 +499,7 @@ Note that this scheme then also of support mac compile time variables which
 are 0/1 but with a boolean meaning.
 
 The TRUE/FALSE format is new from 22 august 2005, but the above scheme
-means that units which is not recompiled, and thus stores 
+means that units which is not recompiled, and thus stores
 compile time variables as the old format (0/1), continue to work.
 
 }
@@ -467,7 +552,7 @@ compile time variables as the old format (0/1), continue to work.
         end;
 
         function preproc_substitutedtoken(var macroType: TCTETypeSet): string;
-				{ Currently this parses identifiers as well as numbers. 
+                                { Currently this parses identifiers as well as numbers.
           The result from this procedure can either be that the token
           itself is a value, or that it is a compile time variable/macro,
           which then is substituted for another value (for macros
@@ -525,26 +610,26 @@ compile time variables as the old format (0/1), continue to work.
               break;
           until false;
 
-          {At this point, result do contain the value. Do some decoding and
-					 determine the type.}
-  				val(result,numres,w);
-  				if (w=0) then {It is an integer}
-  				  begin
-  				    if (numres = 0) or (numres = 1) then
-  		    		  macroType := [ctetInteger, ctetBoolean]
-  		    		else
-  		    		  macroType := [ctetInteger];  		    	
-		    		end
+          { At this point, result do contain the value. Do some decoding and
+            determine the type.}
+          val(result,numres,w);
+          if (w=0) then {It is an integer}
+            begin
+              if (numres = 0) or (numres = 1) then
+                macroType := [ctetInteger, ctetBoolean]
+              else
+                macroType := [ctetInteger];
+            end
           else if assigned(mac) and (m_mac in aktmodeswitches) and (result='FALSE') then
-					  begin
-						  result:= '0';
-     					macroType:= [ctetBoolean];
-						end
+            begin
+              result:= '0';
+              macroType:= [ctetBoolean];
+            end
           else if assigned(mac) and (m_mac in aktmodeswitches) and (result='TRUE') then
-					  begin
-						  result:= '1';
-     					macroType:= [ctetBoolean];
-						end
+            begin
+              result:= '1';
+              macroType:= [ctetBoolean];
+            end
           else if (m_mac in aktmodeswitches) and
                   (not assigned(mac) or not mac.defined) and
                   (macrocount = 1) then
@@ -833,9 +918,9 @@ compile time variables as the old format (0/1), continue to work.
                               end;
                             enumsym :
                               begin
-																read_factor:=tostr(tenumsym(srsym).value);
-																factorType:= [ctetInteger];
-														  end;
+                                read_factor:=tostr(tenumsym(srsym).value);
+                                factorType:= [ctetInteger];
+                              end;
                           end;
                         end;
                     preproc_consume(_ID);
@@ -880,7 +965,7 @@ compile time variables as the old format (0/1), continue to work.
             if current_scanner.preproc_pattern<>'AND' then
               break;
 
-            {Check if first expr is boolean. Must be done here, after we know 
+            {Check if first expr is boolean. Must be done here, after we know
              it is an AND expression.}
             if not (ctetBoolean in termType) then
               CTEError(termType, [ctetBoolean], 'AND');
@@ -917,7 +1002,7 @@ compile time variables as the old format (0/1), continue to work.
             if current_scanner.preproc_pattern<>'OR' then
               break;
 
-            {Check if first expr is boolean. Must be done here, after we know 
+            {Check if first expr is boolean. Must be done here, after we know
              it is an OR expression.}
             if not (ctetBoolean in simpleExprType) then
               CTEError(simpleExprType, [ctetBoolean], 'OR');
@@ -957,7 +1042,7 @@ compile time variables as the old format (0/1), continue to work.
                 read_expr:=hs1;
                 exit;
              end;
-             
+
            if (op = _IN) then
              preproc_consume(_ID)
            else
@@ -979,35 +1064,47 @@ compile time variables as the old format (0/1), continue to work.
                 Message(scan_e_preproc_syntax_error);
              end
            else
-						 begin
-							 if (exprType * exprType2) = [] then
-									CTEError(exprType2, exprType, tokeninfo^[op].str);
-	
-							 if is_number(hs1) and is_number(hs2) then
-								 begin
-										val(hs1,l1,w);
-										val(hs2,l2,w);
-										case op of
-											 _EQUAL : b:=l1=l2;
-										 _UNEQUAL : b:=l1<>l2;
-													_LT : b:=l1<l2;
-													_GT : b:=l1>l2;
-												 _GTE : b:=l1>=l2;
-												 _LTE : b:=l1<=l2;
-										end;
-								 end
-							 else
-								 begin
-										case op of
-											 _EQUAL : b:=hs1=hs2;
-										 _UNEQUAL : b:=hs1<>hs2;
-													_LT : b:=hs1<hs2;
-													_GT : b:=hs1>hs2;
-												 _GTE : b:=hs1>=hs2;
-												 _LTE : b:=hs1<=hs2;
-										end;
-								 end;
-						 end;
+             begin
+               if (exprType * exprType2) = [] then
+                 CTEError(exprType2, exprType, tokeninfo^[op].str);
+
+               if is_number(hs1) and is_number(hs2) then
+                 begin
+                   val(hs1,l1,w);
+                   val(hs2,l2,w);
+                   case op of
+                     _EQUAL :
+                       b:=l1=l2;
+                     _UNEQUAL :
+                       b:=l1<>l2;
+                     _LT :
+                       b:=l1<l2;
+                     _GT :
+                       b:=l1>l2;
+                     _GTE :
+                       b:=l1>=l2;
+                     _LTE :
+                       b:=l1<=l2;
+                   end;
+                 end
+               else
+                 begin
+                   case op of
+                     _EQUAL :
+                       b:=hs1=hs2;
+                     _UNEQUAL :
+                       b:=hs1<>hs2;
+                     _LT :
+                       b:=hs1<hs2;
+                     _GT :
+                        b:=hs1>hs2;
+                     _GTE :
+                        b:=hs1>=hs2;
+                     _LTE :
+                       b:=hs1<=hs2;
+                   end;
+                 end;
+             end;
 
            if b then
              read_expr:='1'
@@ -1148,13 +1245,13 @@ compile time variables as the old format (0/1), continue to work.
 
     procedure dir_define;
       begin
-			  dir_define_impl(false);
-			end;
+        dir_define_impl(false);
+      end;
 
     procedure dir_definec;
       begin
-				dir_define_impl(true);
-			end;
+        dir_define_impl(true);
+      end;
 
     procedure dir_setc;
       var
@@ -1162,7 +1259,7 @@ compile time variables as the old format (0/1), continue to work.
         mac : tmacro;
         exprType: TCTETypeSet;
         l : longint;
-			  w : integer;
+        w : integer;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -1209,11 +1306,11 @@ compile time variables as the old format (0/1), continue to work.
 
              if length(hs) <> 0 then
                begin
-							   {If we are absolutely shure it is boolean, translate
-								  to TRUE/FALSE to increase possibility to do future type check}
-							   if exprType = [ctetBoolean] then
-								   begin
-							       val(hs,l,w);
+                 {If we are absolutely shure it is boolean, translate
+                  to TRUE/FALSE to increase possibility to do future type check}
+                 if exprType = [ctetBoolean] then
+                   begin
+                     val(hs,l,w);
                      if l<>0 then
                        hs:='TRUE'
                      else
@@ -1276,8 +1373,8 @@ compile time variables as the old format (0/1), continue to work.
 
         begin
          (* look for the include file
-	   If path was specified as part of {$I } then
-	    1. specified path (expanded with path of inputfile if relative)
+           If path was specified as part of {$I } then
+            1. specified path (expanded with path of inputfile if relative)
            else
             1. path of current inputfile,current dir
             2. local includepath

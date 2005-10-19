@@ -339,7 +339,6 @@ interface
     procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
     function is_number_float(d : double) : boolean;
 
-    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
     function SetAktProcCall(const s:string; changeInit: boolean):boolean;
     function SetProcessor(const s:string; changeInit: boolean):boolean;
     function SetFpuType(const s:string; changeInit: boolean):boolean;
@@ -1826,75 +1825,6 @@ end;
       begin
         result:=d;
 {$endif CPUARM}
-      end;
-
-
-      Function SetCompileMode(const s:string; changeInit: boolean):boolean;
-      var
-        b : boolean;
-      begin
-        b:=true;
-        if s='DEFAULT' then
-          aktmodeswitches:=initmodeswitches
-        else
-         if s='DELPHI' then
-          aktmodeswitches:=delphimodeswitches
-        else
-         if s='TP' then
-          aktmodeswitches:=tpmodeswitches
-        else
-         if s='FPC' then
-          aktmodeswitches:=fpcmodeswitches
-        else
-         if s='OBJFPC' then
-          aktmodeswitches:=objfpcmodeswitches
-        else
-         if s='GPC' then
-          aktmodeswitches:=gpcmodeswitches
-        else
-         if s='MACPAS' then
-          aktmodeswitches:=macmodeswitches
-        else
-         b:=false;
-
-        if b and changeInit then
-          initmodeswitches := aktmodeswitches;
-
-        if b then
-         begin
-           { turn ansistrings on by default ? }
-           if (m_delphi in aktmodeswitches) then
-            begin
-              include(aktlocalswitches,cs_ansistrings);
-              if changeinit then
-               include(initlocalswitches,cs_ansistrings);
-            end
-           else
-            begin
-              exclude(aktlocalswitches,cs_ansistrings);
-              if changeinit then
-               exclude(initlocalswitches,cs_ansistrings);
-            end;
-           { Default enum packing for delphi/tp7 }
-           if (m_tp7 in aktmodeswitches) or
-              (m_delphi in aktmodeswitches) or
-              (m_mac in aktmodeswitches) then
-             aktpackenum:=1
-           else
-             aktpackenum:=4;
-           if changeinit then
-             initpackenum:=aktpackenum;
-{$ifdef i386}
-           { Default to intel assembler for delphi/tp7 on i386 }
-           if (m_delphi in aktmodeswitches) or
-              (m_tp7 in aktmodeswitches) then
-             aktasmmode:=asmmode_i386_intel;
-           if changeinit then
-             initasmmode:=aktasmmode;
-{$endif i386}
-         end;
-
-        SetCompileMode:=b;
       end;
 
 
