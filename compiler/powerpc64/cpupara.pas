@@ -87,18 +87,14 @@ begin
   cgpara.intsize := tcgsize2size[OS_INT];
   cgpara.alignment := get_para_align(calloption);
   paraloc := cgpara.add_location;
-  with paraloc^ do
-  begin
+  with paraloc^ do begin
     size := OS_INT;
-    if (nr <= 8) then
-    begin
+    if (nr <= 8) then begin
       if nr = 0 then
         internalerror(200309271);
       loc := LOC_REGISTER;
       register := newreg(R_INTREGISTER, RS_R2 + nr, R_SUBWHOLE);
-    end
-    else
-    begin
+    end else begin
       loc := LOC_REFERENCE;
       paraloc^.reference.index := NR_STACK_POINTER_REG;
       if (target_info.abi <> abi_powerpc_aix) then
@@ -129,10 +125,7 @@ begin
     classrefdef:
       result := LOC_REGISTER;
     recorddef:
-      if (target_info.abi <> abi_powerpc_aix) then
-        result := LOC_REFERENCE
-      else
-        result := LOC_REGISTER;
+      result := LOC_REGISTER;
     objectdef:
       if is_object(p) then
         result := LOC_REFERENCE
@@ -183,7 +176,6 @@ begin
       result := true;
     recorddef:
       result :=
-        (target_info.abi <> abi_powerpc_aix) or
         ((varspez = vs_const) and
         ((calloption = pocall_mwpascal) or
         (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
@@ -210,10 +202,11 @@ end;
 procedure tppcparamanager.init_values(var curintreg, curfloatreg, curmmreg:
   tsuperregister; var cur_stack_offset: aword);
 begin
+  { register parameter save area begins at 48(r2) }
   cur_stack_offset := 48;
   curintreg := RS_R3;
   curfloatreg := RS_F1;
-  curmmreg := RS_M1;
+  curmmreg := RS_M2;
 end;
 
 procedure tppcparamanager.create_funcretloc_info(p: tabstractprocdef; side:
@@ -230,36 +223,28 @@ begin
   location_reset(p.funcretloc[side], LOC_INVALID, OS_NO);
   p.funcretloc[side].size := retcgsize;
   { void has no location }
-  if is_void(p.rettype.def) then
-  begin
+  if is_void(p.rettype.def) then begin
     p.funcretloc[side].loc := LOC_VOID;
     exit;
   end;
 
   { Return in FPU register? }
-  if p.rettype.def.deftype = floatdef then
-  begin
+  if p.rettype.def.deftype = floatdef then begin
     p.funcretloc[side].loc := LOC_FPUREGISTER;
     p.funcretloc[side].register := NR_FPU_RESULT_REG;
     p.funcretloc[side].size := retcgsize;
-  end
-  else
-    { Return in register? } if not ret_in_param(p.rettype.def, p.proccalloption)
-      then
-    begin
-      begin
-        p.funcretloc[side].loc := LOC_REGISTER;
-        p.funcretloc[side].size := retcgsize;
-        if side = callerside then
-          p.funcretloc[side].register := newreg(R_INTREGISTER,
-            RS_FUNCTION_RESULT_REG, cgsize2subreg(retcgsize))
-        else
-          p.funcretloc[side].register := newreg(R_INTREGISTER,
-            RS_FUNCTION_RETURN_REG, cgsize2subreg(retcgsize));
-      end;
-    end
-    else
-    begin
+  end else
+    { Return in register? } 
+    if not ret_in_param(p.rettype.def, p.proccalloption) then begin
+      p.funcretloc[side].loc := LOC_REGISTER;
+      p.funcretloc[side].size := retcgsize;
+      if side = callerside then
+        p.funcretloc[side].register := newreg(R_INTREGISTER,
+          RS_FUNCTION_RESULT_REG, cgsize2subreg(retcgsize))
+      else
+        p.funcretloc[side].register := newreg(R_INTREGISTER,
+          RS_FUNCTION_RETURN_REG, cgsize2subreg(retcgsize));
+    end else begin
       p.funcretloc[side].loc := LOC_REFERENCE;
       p.funcretloc[side].size := retcgsize;
     end;
@@ -282,8 +267,8 @@ end;
 
 function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
-  var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
-    aword): longint;
+var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
+  aword): longint;
 var
   stack_offset: longint;
   paralen: aint;
@@ -309,13 +294,11 @@ begin
 
   maxfpureg := RS_F13;
 
-  for i := 0 to paras.count - 1 do
-  begin
+  for i := 0 to paras.count - 1 do begin
     hp := tparavarsym(paras[i]);
     paradef := hp.vartype.def;
     { Syscall for Morphos can have already a paraloc set }
-    if (vo_has_explicit_paraloc in hp.varoptions) then
-    begin
+    if (vo_has_explicit_paraloc in hp.varoptions) then begin
       if not (vo_is_syscall_lib in hp.varoptions) then
         internalerror(200412153);
       continue;
@@ -323,8 +306,7 @@ begin
     hp.paraloc[side].reset;
     { currently only support C-style array of const }
     if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) and
-      is_array_of_const(paradef) then
-    begin
+      is_array_of_const(paradef) then begin
       paraloc := hp.paraloc[side].add_location;
       { hack: the paraloc must be valid, but is not actually used }
       paraloc^.loc := LOC_REGISTER;
@@ -336,50 +318,37 @@ begin
     if (hp.varspez in [vs_var, vs_out]) or
       push_addr_param(hp.varspez, paradef, p.proccalloption) or
       is_open_array(paradef) or
-      is_array_of_const(paradef) then
-    begin
+      is_array_of_const(paradef) then begin
       paradef := voidpointertype.def;
       loc := LOC_REGISTER;
       paracgsize := OS_ADDR;
       paralen := tcgsize2size[OS_ADDR];
-    end
-    else
-    begin
+    end else begin
       if not is_special_array(paradef) then
         paralen := paradef.size
       else
         paralen := tcgsize2size[def_cgsize(paradef)];
-      if (target_info.abi = abi_powerpc_aix) and
-        (paradef.deftype = recorddef) and
-        (hp.varspez in [vs_value, vs_const]) then
-      begin
+      if (paradef.deftype = recorddef) and
+        (hp.varspez in [vs_value, vs_const]) then begin
         { if a record has only one field and that field is }
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
         if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
           (not trecorddef(hp.vartype.def).isunion) and
-          ((tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) or
-          ((target_info.system = system_powerpc_darwin) and
-          (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef, enumdef]))) then
-        begin
+          (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) then begin
           paradef :=
             tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
           loc := getparaloc(paradef);
           paracgsize := def_cgsize(paradef);
-        end
-        else
-        begin
+        end else begin
           loc := LOC_REGISTER;
           paracgsize := int_cgsize(paralen);
         end;
-      end
-      else
-      begin
+      end else begin
         loc := getparaloc(paradef);
         paracgsize := def_cgsize(paradef);
         { for things like formaldef }
-        if (paracgsize = OS_NO) then
-        begin
+        if (paracgsize = OS_NO) then begin
           paracgsize := OS_ADDR;
           paralen := tcgsize2size[OS_ADDR];
         end;
@@ -389,20 +358,16 @@ begin
     hp.paraloc[side].size := paracgsize;
     hp.paraloc[side].intsize := paralen;
     if (paralen = 0) then
-      if (paradef.deftype = recorddef) then
-      begin
+      if (paradef.deftype = recorddef) then begin
         paraloc := hp.paraloc[side].add_location;
         paraloc^.loc := LOC_VOID;
-      end
-      else
+      end else
         internalerror(2005011310);
     { can become < 0 for e.g. 3-byte records }
-    while (paralen > 0) do
-    begin
+    while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
       if (loc = LOC_REGISTER) and
-        (nextintreg <= RS_R10) then
-      begin
+        (nextintreg <= RS_R10) then begin
         paraloc^.loc := loc;
         { make sure we don't lose whether or not the type is signed }
         if (paradef.deftype <> orddef) then
@@ -414,29 +379,36 @@ begin
         paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
         inc(nextintreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
-        if target_info.abi = abi_powerpc_aix then
-          inc(stack_offset, tcgsize2size[paraloc^.size]);
-      end
-      else if (loc = LOC_FPUREGISTER) and
-        (nextfloatreg <= maxfpureg) then
-      begin
+
+        inc(stack_offset, tcgsize2size[paraloc^.size]);
+      end else if (loc = LOC_FPUREGISTER) and
+        (nextfloatreg <= maxfpureg) then begin
         paraloc^.loc := loc;
         paraloc^.size := paracgsize;
         paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
+        { the PPC64 ABI says that the GPR index is increased for every parameter, no matter
+        which type it is stored in }
+        inc(nextintreg);
         inc(nextfloatreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
-        { if nextfpureg > maxfpureg, all intregs are already used, since there }
-        { are less of those available for parameter passing in the AIX abi     }
-      end
-      else { LOC_REFERENCE }
-      begin
+
+        inc(stack_offset, tcgsize2size[paraloc^.size]);
+      end else if (loc = LOC_MMREGISTER) then begin
+        { Altivec not supported }
+        internalerror(200510192);
+      end else begin 
+        { either LOC_REFERENCE, or one of the above which must be passed on the
+        stack because of insufficient registers }
         paraloc^.loc := LOC_REFERENCE;
         paraloc^.size := int_cgsize(paralen);
         if (side = callerside) then
           paraloc^.reference.index := NR_STACK_POINTER_REG
         else
+          { during procedure entry, R12 contains the old stack pointer }
           paraloc^.reference.index := NR_R12;
         paraloc^.reference.offset := stack_offset;
+
+        { TODO: change this to the next power of two (natural alignment) }
         inc(stack_offset, align(paralen, 8));
         paralen := 0;
       end;
@@ -470,9 +442,7 @@ begin
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
       curfloatreg, curmmreg, cur_stack_offset);
     { varargs routines have to reserve at least 64 bytes for the AIX abi }
-    { ts: dunno??? }
-    if (target_info.abi = abi_powerpc_aix) and
-      (result < 64) then
+    if (result < 64) then
       result := 64;
   end
   else
@@ -497,76 +467,9 @@ begin
 end;
 
 function tppcparamanager.parseparaloc(p: tparavarsym; const s: string): boolean;
-var
-  paraloc: pcgparalocation;
-  paracgsize: tcgsize;
 begin
-  result := false;
-  case target_info.system of
-    system_powerpc_morphos:
-      begin
-        paracgsize := def_cgsize(p.vartype.def);
-        p.paraloc[callerside].alignment := 8;
-        p.paraloc[callerside].size := paracgsize;
-        p.paraloc[callerside].intsize := tcgsize2size[paracgsize];
-        paraloc := p.paraloc[callerside].add_location;
-        paraloc^.loc := LOC_REFERENCE;
-        paraloc^.size := paracgsize;
-        paraloc^.reference.index := newreg(R_INTREGISTER, RS_R2, R_SUBWHOLE);
-        { pattern is always uppercase'd }
-        if s = 'D0' then
-          paraloc^.reference.offset := 0
-        else if s = 'D1' then
-          paraloc^.reference.offset := 8
-        else if s = 'D2' then
-          paraloc^.reference.offset := 16
-        else if s = 'D3' then
-          paraloc^.reference.offset := 24
-        else if s = 'D4' then
-          paraloc^.reference.offset := 32
-        else if s = 'D5' then
-          paraloc^.reference.offset := 40
-        else if s = 'D6' then
-          paraloc^.reference.offset := 48
-        else if s = 'D7' then
-          paraloc^.reference.offset := 56
-        else if s = 'A0' then
-          paraloc^.reference.offset := 64
-        else if s = 'A1' then
-          paraloc^.reference.offset := 72
-        else if s = 'A2' then
-          paraloc^.reference.offset := 80
-        else if s = 'A3' then
-          paraloc^.reference.offset := 88
-        else if s = 'A4' then
-          paraloc^.reference.offset := 96
-        else if s = 'A5' then
-          paraloc^.reference.offset := 104
-            { 'A6' (offset 56) is used by mossyscall as libbase, so API
-            never passes parameters in it,
-            Indeed, but this allows to declare libbase either explicitly
-            or let the compiler insert it }
-        else if s = 'A6' then
-          paraloc^.reference.offset := 112
-            { 'A7' is the stack pointer on 68k, can't be overwritten
-            by API calls, so it has no offset }
-          { 'R12' is special, used internally to support r12base sysv
-            calling convention }
-        else if s = 'R12' then
-        begin
-          paraloc^.loc := LOC_REGISTER;
-          paraloc^.size := OS_ADDR;
-          paraloc^.register := NR_R12;
-        end
-        else
-          exit;
-
-        { copy to callee side }
-        p.paraloc[calleeside].add_location^ := paraloc^;
-      end;
-  else
-    internalerror(200404182);
-  end;
+  { not supported/required for PowerPC64-linux target }
+  internalerror(200404182);
   result := true;
 end;
 

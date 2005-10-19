@@ -65,11 +65,13 @@ var
   locals: longint;
 begin
   if not (po_assembler in procdef.procoptions) then begin
-    { always allocate space for 8 * 8 bytes for registers R3-R10 and stack header if
-      there's a stack frame }
-    if (maxpushedparasize < 64) then begin
-      maxpushedparasize := 64;
-    end;
+    { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
+      for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
+      so we don't that too. Uncomment the next three lines if this is required }
+    // if (maxpushedparasize < 64) then begin
+    //  maxpushedparasize := 64;
+    // end;
+    { align the stack properly }
     ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
     tg.setfirsttemp(ofs);
   end else begin

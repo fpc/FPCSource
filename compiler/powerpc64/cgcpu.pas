@@ -139,6 +139,13 @@ type
     { of asmcondflags and destination addressing mode                }
     procedure a_jmp(list: taasmoutput; op: tasmop;
       c: tasmcondflag; crval: longint; l: tasmlabel);
+
+    { returns the lowest numbered FP register in use, and the number of used FP registers 
+      for the current procedure }
+    procedure calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
+    { returns the lowest numbered GP register in use, and the number of used GP registers
+      for the current procedure }
+    procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
   end;
 
 const
@@ -350,26 +357,34 @@ end;
 procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
   reg: TRegister);
 
-var
-  scratchreg : TRegister;
-
-  procedure load32bitconstant(list : taasmoutput; size : TCGSize; a : longint;
-    reg : TRegister);
-  var is_half_signed : boolean;
+  { loads a 32 bit constant into the given register, using an optimal instruction sequence.
+    This is either LIS, LI or LI+ADDIS.
+    Returns true if during these operations the upper 32 bits were filled with 1 bits (e.g.
+    sign extension was performed) }
+  function load32bitconstant(list : taasmoutput; size : TCGSize; a : longint;
+    reg : TRegister) : boolean;
+  var 
+    is_half_signed : byte;
   begin
-(*
-    // ts: test optimized code using LI/ADDIS
-
+    { if the lower 16 bits are zero, do a single LIS }
     if (smallint(a) = 0) and ((a shr 16) <> 0) then begin
-      list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(a shr 16)));
+      list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(hi(a))));
+      load32bitconstant := longint(a) < 0;
     end else begin
-      is_half_signed := smallint(a) < 0;
-      list.concat(taicpu.op_reg_const(A_LI, reg, smallint(a)));
-      if smallint((a shr 16) + ord(is_half_signed)) <> 0 then begin
-        list.concat(taicpu.op_reg_reg_const(A_ADDIS, reg, reg, smallint((a shr 16) + ord(is_half_signed))));
+      is_half_signed := ord(smallint(lo(a)) < 0);
+      list.concat(taicpu.op_reg_const(A_LI, reg, smallint(a and $ffff)));
+      if smallint(hi(a) + is_half_signed) <> 0 then begin
+        list.concat(taicpu.op_reg_reg_const(A_ADDIS, reg, reg, smallint(hi(a) + is_half_signed)));
       end;
+      load32bitconstant := (smallint(a) < 0) or (a < 0);
     end;
-*)
+  end;
+
+  { R0-safe version of the above (ADDIS doesn't work the same way with R0 as base), without
+    the return value }
+  procedure load32bitconstantR0(list : taasmoutput; size : TCGSize; a : longint;
+    reg : TRegister);
+  begin
     // only 16 bit constant? (-2^15 <= a <= +2^15-1)
     if (a >= low(smallint)) and (a <= high(smallint)) then begin
       list.concat(taicpu.op_reg_const(A_LI, reg, smallint(a)));
@@ -378,56 +393,52 @@ var
       if ((a and $FFFF) <> 0) then begin
         list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(a shr 16)));
         list.concat(taicpu.op_reg_reg_const(A_ORI, reg, reg, word(a)));
-
       end else begin
         list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(a shr 16)));
       end;
     end;
-
   end;
+
 var
+  extendssign : boolean;
+  {$IFDEF EXTDEBUG}
   astring : string;
+  {$ENDIF EXTDEBUG}
 
 begin
-  astring := 'a_load_const reg ' + inttostr(a) + ' ' + inttostr(tcgsize2size[size]);
+  {$IFDEF EXTDEBUG}
+  astring := 'a_load_const reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]);
   list.concat(tai_comment.create(strpnew(astring)));
+  {$ENDIF EXTDEBUG}
+
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
-  // load low 32 bit (as signed number)
-  load32bitconstant(list, size, lo(a), reg);
-
-  // load high 32 bit if needed :( (the second expression is optimization, to be enabled and tested later!)
-  if (size in [OS_64, OS_S64]) {and (hi(a) <> 0)} then begin
-    // allocate scratch reg (=R0 because it might be called at places where register
-    // allocation has already happened - either procedure entry/exit, and stack check
-    // code generation)
-    // Note: I hope this restriction can be lifted at some time
-
-    //scratchreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    // load high 32 bit
-    load32bitconstant(list, size, hi(a), NR_R0);
-    // combine both registers
-    list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
-  end;
-(*
-  // for 16/32 bit unsigned constants we need to make sure that the difference from this size to
-  // 32 bits is cleared (since we optimize loading them as signed 16 bit parts, but 32 bit ops are
-  // used for them.
-  // e.g. for 16 bit there's a problem if the (unsigned) constant is of the form
-  //   xx..xx xx..xx 00..00 1x..xx
-  // same problem as above for 32 bit: unsigned constants of the form
-  //   xx..xx xx..xx 00..00 1x..xx
-  // cause troubles. Signed are ok.
-  // for now, just clear the upper 48/32 bits (also because full 32 bit op usage isn't done yet)
-  if (size in [OS_16, OS_32]) {and (lo(a) < 0)} then begin
-    a_load_reg_reg(list, size, size, reg, reg);
-  end; *)
-  // need to clear MSB for unsigned 64 bit int because we did not load the upper
-  // 32 bit at all (second expression is optimization: enable and test later!)
-  // e.g. constants of the form 00..00 00..00 1x..xx xx..xx
-  if (size in [OS_64]) and (hi(a) = 0) then begin
-        list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, reg, reg, 0, 32));
-  end;
+  if (lo(a) = 0) and (hi(a) <> 0) then begin
+    { load only upper 32 bits, and shift }
+    load32bitconstant(list, size, hi(a), reg);
+    list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));    
+  end else begin
+    { load lower 32 bits }
+    extendssign := load32bitconstant(list, size, lo(a), reg);
+    if (extendssign) and (hi(a) = 0) then
+      { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic 
+        sign extension, clear those bits }
+      a_load_reg_reg(list, OS_32, OS_64, reg, reg)
+    else if (not 
+      ((extendssign and (longint(hi(a)) = -1)) or 
+       ((not extendssign) and (hi(a)=0)))
+      ) then begin
+      { only load the upper 32 bits, if the automatic sign extension is not okay,
+        that is, _not_ if 
+        - loading the lower 32 bits resulted in -1 in the upper 32 bits, and the upper 
+         32 bits should contain -1
+        - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
+         32 bits should contain 0 }
+      load32bitconstantR0(list, size, hi(a), NR_R0);
+      { combine both registers }
+      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
+    end;
+  end;  
 end;
 
 procedure tcgppc.a_load_reg_ref(list: taasmoutput; fromsize, tosize: TCGSize;
@@ -794,6 +805,7 @@ var
   signed: boolean;
 
 begin
+  { todo: use 32 bit compares? }
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
   { in the following case, we generate more efficient code when }
   { signed is true                                              }
@@ -803,16 +815,14 @@ begin
   if signed then
     if (a >= low(smallint)) and (a <= high(smallint)) then
       list.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR0, reg, a))
-    else
-    begin
+    else begin
       scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
       a_load_const_reg(list, OS_64, a, scratch_register);
       list.concat(taicpu.op_reg_reg_reg(A_CMPD, NR_CR0, reg, scratch_register));
     end
   else if (aword(a) <= $FFFF) then
     list.concat(taicpu.op_reg_reg_const(A_CMPLDI, NR_CR0, reg, aword(a)))
-  else
-  begin
+  else begin
     scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
     a_load_const_reg(list, OS_64, a, scratch_register);
     list.concat(taicpu.op_reg_reg_reg(A_CMPLD, NR_CR0, reg,
@@ -930,6 +940,40 @@ begin
   { this work is done in g_proc_exit }
 end;
 
+procedure tcgppc.calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
+var
+  reg : TSuperRegister;
+begin
+  fprcount := 0;
+  firstfpr := RS_F31;
+  if not (po_assembler in current_procinfo.procdef.procoptions) then begin
+    for reg := RS_F14 to RS_F31 do begin
+      if reg in rg[R_FPUREGISTER].used_in_proc then begin
+        fprcount := ord(RS_F31)-ord(reg)+1;
+        firstfpr := reg;
+        break;
+      end;
+    end;
+  end;
+end;
+
+procedure tcgppc.calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
+var
+  reg : TSuperRegister;
+begin
+  gprcount := 0;
+  firstgpr := RS_R31;
+  if not (po_assembler in current_procinfo.procdef.procoptions) then begin
+    for reg := RS_R14 to RS_R31 do begin
+      if reg in rg[R_INTREGISTER].used_in_proc then begin
+        gprcount := ord(RS_R31)-ord(reg)+1;
+        firstgpr := reg;
+        break;
+      end;
+    end;
+  end;
+end;
+
 procedure tcgppc.g_proc_entry(list: taasmoutput; localsize: longint;
   nostackframe: boolean);
 { generated the entry code of a procedure/function. Note: localsize is the }
@@ -939,40 +983,6 @@ procedure tcgppc.g_proc_entry(list: taasmoutput; localsize: longint;
 { This procedure may be called before, as well as after g_return_from_proc }
 { is called. NOTE registers are not to be allocated through the register   }
 { allocator here, because the register colouring has already occured !!    }
-  procedure calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
-  var
-    reg : TSuperRegister;
-  begin
-    fprcount := 0;
-    firstfpr := RS_F31;
-    if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-      for reg := RS_F14 to RS_F31 do begin
-        if reg in rg[R_FPUREGISTER].used_in_proc then begin
-          fprcount := ord(RS_F31)-ord(reg)+1;
-          firstfpr := reg;
-          break;
-        end;
-      end;
-    end;
-  end;
-
-  procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
-  var
-    reg : TSuperRegister;
-  begin
-    gprcount := 0;
-    firstgpr := RS_R31;
-    if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-      for reg := RS_R14 to RS_R31 do begin
-        if reg in rg[R_INTREGISTER].used_in_proc then begin
-          gprcount := ord(RS_R31)-ord(reg)+1;
-          firstgpr := reg;
-          break;
-        end;
-      end;
-    end;
-  end;
-
 var
   firstregfpu, firstreggpr: TSuperRegister;
   href: treference;
@@ -1009,7 +1019,6 @@ begin
     a_reg_alloc(list, NR_R12);
     list.concat(taicpu.op_reg_reg(A_MR, NR_R12, NR_STACK_POINTER_REG));
   end;
-
   // save registers, FPU first, then GPR
   reference_reset_base(href, NR_STACK_POINTER_REG, -8);
   if (fprcount > 0) then begin
@@ -1072,44 +1081,10 @@ end;
 
 procedure tcgppc.g_proc_exit(list: taasmoutput; parasize: longint; nostackframe:
   boolean);
-
-  procedure calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
-  var
-    reg : TSuperRegister;
-  begin
-    fprcount := 0;
-    firstfpr := RS_F31;
-    if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-      for reg := RS_F14 to RS_F31 do begin
-        if reg in rg[R_FPUREGISTER].used_in_proc then begin
-          fprcount := ord(RS_F31)-ord(reg)+1;
-          firstfpr := reg;
-          break;
-        end;
-      end;
-    end;
-  end;
-
-  procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
-  var
-    reg : TSuperRegister;
-  begin
-    gprcount := 0;
-    firstgpr := RS_R31;
-    if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-      for reg := RS_R14 to RS_R31 do begin
-        if reg in rg[R_INTREGISTER].used_in_proc then begin
-          gprcount := ord(RS_R31)-ord(reg)+1;
-          firstgpr := reg;
-          break;
-        end;
-      end;
-    end;
-  end;
-
 { This procedure may be called before, as well as after g_stackframe_entry }
 { is called. NOTE registers are not to be allocated through the register   }
 { allocator here, because the register colouring has already occured !!    }
+
 
 var
   regcount, firstregfpu, firstreggpr: TSuperRegister;
@@ -1443,7 +1418,7 @@ procedure tcgppc.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const
       procdef._class.vmtmethodoffset(procdef.extnumber));
     if not ((aint(href.offset) >= low(smallint)) and
       (aint(href.offset) <= high(smallint))) then begin
-      {$warning ts:adapt me}
+      {$warning ts:adapt me for offsets > 16 bit }
       list.concat(taicpu.op_reg_reg_const(A_ADDIS, NR_R11, NR_R11,
         smallint((href.offset shr 16) + ord(smallint(href.offset and $FFFF) <
         0))));

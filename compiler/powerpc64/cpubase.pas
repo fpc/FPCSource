@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-{ This Unit contains the base types for the PowerPC
+{ This Unit contains the base types for the PowerPC64
 }
 unit cpubase;
 
