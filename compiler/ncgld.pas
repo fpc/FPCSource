@@ -828,24 +828,10 @@ implementation
                         end
                        else
                         if is_ansistring(lt) then
-                        {$ifdef ansistring_bits}
-                         begin
-                           case Tstringdef(lt).string_typ of
-                             st_ansistring16:
-                               vtype:=vtAnsiString16;
-                             st_ansistring32:
-                               vtype:=vtAnsiString32;
-                             st_ansistring64:
-                               vtype:=vtAnsiString64;
-                           end;
-                           freetemp:=false;
-                         end
-                        {$else}
                          begin
                            vtype:=vtAnsiString;
                            freetemp:=false;
                          end
-                        {$endif}
                        else
                         if is_widestring(lt) then
                          begin
@@ -876,9 +862,7 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 if (is_ansistring(left.resulttype.def) or
-                     is_widestring(left.resulttype.def) or
-                     (left.resulttype.def.deftype=variantdef)) then
+                 if resulttype.def.needs_inittable then
                    freetemp:=false;
                  case hp.left.location.loc of
                    LOC_FPUREGISTER,
