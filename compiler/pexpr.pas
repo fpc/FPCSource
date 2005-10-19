@@ -1220,9 +1220,14 @@ implementation
               (vo_is_funcret in tabstractvarsym(srsym).varoptions) and
               (
                (token=_LKLAMMER) or
-               (not(m_fpc in aktmodeswitches) and
+               (
+                (
+                 (m_tp7 in aktmodeswitches) or
+                 (m_delphi in aktmodeswitches)
+                ) and
                 (afterassignment or in_args) and
-                not(vo_is_result in tabstractvarsym(srsym).varoptions))
+                not(vo_is_result in tabstractvarsym(srsym).varoptions)
+               )
               ) then
             begin
               storesymtablestack:=symtablestack;
