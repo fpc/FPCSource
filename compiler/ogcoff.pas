@@ -665,8 +665,10 @@ const go32v2stub : array[0..2047] of byte=(
         stab : coffstab;
         curraddr : longint;
       begin
-        { Win32 does not need an offset if a symbol is provided }
-        if win32 and assigned(ps) then
+        { Win32 does not need an offset if a symbol relocation is used }
+        if win32 and
+           assigned(ps) and
+           (ps.currbind<>AB_LOCAL) then
           offset:=0;
         if assigned(p) and (p[0]<>#0) then
          begin
@@ -1015,11 +1017,9 @@ const go32v2stub : array[0..2047] of byte=(
            calculated more easily }
            if StabsSec<>nil then
             begin
-              { first stabs for main source }
-              writestab(0,nil,0,0,0,nil);
+              { header stab }
               s:=#0+SplitFileName(current_module.mainsource^)+#0;
               stabstrsec.write(s[1],length(s));
-              { header stab }
               hstab.strpos:=1;
               hstab.ntype:=0;
               hstab.nother:=0;
