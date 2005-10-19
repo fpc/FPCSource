@@ -3,7 +3,9 @@
 { Source provided for Free Pascal Bug Report 4100 }
 { Submitted by "Markus Roberts" on  2005-06-20 }
 { e-mail: Markus@reality.com }
-{$linklib c}
+{$ifdef unix}
+  {$linklib c}
+{$endif}
 
     uses SysUtils;
     var
