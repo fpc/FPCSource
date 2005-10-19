@@ -1702,6 +1702,18 @@ implementation
                _CARET:
                   begin
                     consume(_CARET);
+
+                    { support tp/mac procvar^ if the procvar returns a
+                      pointer type }
+                    if ((m_tp_procvar in aktmodeswitches) or
+                        (m_mac_procvar in aktmodeswitches)) and
+                       (p1.resulttype.def.deftype=procvardef) and
+                       (tprocvardef(p1.resulttype.def).rettype.def.deftype=pointerdef) then
+                      begin
+                        p1:=ccallnode.create_procvar(nil,p1);
+                        resulttypepass(p1);
+                      end;
+
                     if (p1.resulttype.def.deftype<>pointerdef) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
@@ -1712,9 +1724,7 @@ implementation
                          p1:=cerrornode.create;
                       end
                     else
-                      begin
-                         p1:=cderefnode.create(p1);
-                      end;
+                      p1:=cderefnode.create(p1);
                   end;
 
                _LECKKLAMMER:
