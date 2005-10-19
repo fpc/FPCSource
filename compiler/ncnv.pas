@@ -1056,7 +1056,11 @@ implementation
       begin
          result:=nil;
          if is_pwidechar(resulttype.def) then
-           inserttypeconv(left,cwidestringtype);
+           inserttypeconv(left,cwidestringtype)
+         else
+           if is_pchar(resulttype.def) and
+              is_widestring(left.resulttype.def) then
+             inserttypeconv(left,cansistringtype);
       end;
 
 
