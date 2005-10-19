@@ -688,10 +688,10 @@ implementation
                           begin
                             objectlibrary.getdatalabel(ll);
                             curconstSegment.concat(Tai_const.Create_sym(ll));
-                            Consts.concat(tai_align.create(const_align(sizeof(aint))));
-                            Consts.concat(Tai_const.Create_aint(-1));
-                            Consts.concat(Tai_const.Create_aint(strlength));
-                            Consts.concat(Tai_label.Create(ll));
+                            consts.concat(tai_align.create(const_align(sizeof(aint))));
+                            consts.concat(Tai_const.Create_aint(-1));
+                            consts.concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
+                            consts.concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                             { ending #0 }

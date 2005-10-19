@@ -563,9 +563,9 @@ implementation
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                Consts.concat(Tai_const.Create_aint(-1));
-                                Consts.concat(Tai_const.Create_aint(len));
-                                Consts.concat(Tai_label.Create(l1));
+                                consts.concat(Tai_const.Create_aint(-1));
+                                consts.concat(Tai_const.Create_aint(len*cwidechartype.def.size));
+                                consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { terminating zero }
