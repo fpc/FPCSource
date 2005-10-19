@@ -1066,6 +1066,15 @@ implementation
       begin
       end;
 
+    procedure dir_codealign;
+      var
+        s : string;
+      begin
+        current_scanner.skipspace;
+        s:=current_scanner.readcomment;
+        UpdateAlignmentStr(s,aktalignment);
+      end;
+
     procedure dir_codepage;
       var
          s : string;
@@ -1112,6 +1121,7 @@ implementation
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
         AddDirective('CALLING',directive_all, @dir_calling);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
+        AddDirective('CODEALIGN',directive_all, @dir_codealign);
         AddDirective('CODEPAGE',directive_all, @dir_codepage);
         AddDirective('COPERATORS',directive_all, @dir_coperators);
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
