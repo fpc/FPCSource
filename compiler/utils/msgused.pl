@@ -7,8 +7,8 @@ unlink("./msgtxt.inc");
 @compiler_src = (glob("./*.inc"),
                  glob("./*.pas"));
 
-open(MESSAGE_FILE, "< ./errore.msg") or
-  die "Couldn't open <./errore.msg> for reading: $!\n";
+open(MESSAGE_FILE, "< ./msg/errore.msg") or
+  die "Couldn't open <./msg/errore.msg> for reading: $!\n";
 
 open(FOUND, "> MSG-OK.TXT") or
   die "Couldn't open <MSG-OK.TXT> for writing: $!\n";
