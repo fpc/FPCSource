@@ -1637,7 +1637,12 @@ implementation
             alignment:=size_2_align(savesize);
           st_longstring,
           st_shortstring:
+{$ifdef cpurequiresproperalignment}
+            { char to string accesses byte 0 and 1 with one word access }
+            alignment:=size_2_align(2);
+{$else cpurequiresproperalignment}
             alignment:=size_2_align(1);
+{$endif cpurequiresproperalignment}
           else
             internalerror(200412301);
         end;
