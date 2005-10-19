@@ -1092,7 +1092,8 @@ implementation
                              if hd3.implementedinterfaces.searchintf(def_to)<>-1 then
                                begin
                                   doconv:=tc_class_2_intf;
-                                  eq:=te_convert_l1;
+                                  { don't prefer this over objectdef->objectdef }
+                                  eq:=te_convert_l2;
                                   break;
                                end;
                              hd3:=hd3.childof;
@@ -1110,7 +1111,7 @@ implementation
                    else if (def_from.deftype=variantdef) and is_interface(def_to) then
                      begin
                        doconv:=tc_variant_2_interface;
-                       eq:=te_convert_l1;
+                       eq:=te_convert_l2;
                      end
                    { ugly, but delphi allows it }
                    else if (eq=te_incompatible) and
