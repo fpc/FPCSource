@@ -107,9 +107,8 @@ type
     function GetSqliteHandle: Pointer; virtual; abstract;
     function GetSqliteVersion: String; virtual; abstract;
     procedure BuildLinkedList; virtual; abstract;
-    function SqliteReturnString: String; virtual; abstract;
-    function TableExists: Boolean;virtual;abstract;
     procedure DisposeLinkedList;
+    procedure SetDetailFilter;
     procedure MasterChanged(Sender: TObject);
     procedure MasterDisabled(Sender: TObject);
     procedure SetMasterFields(Value:String);
@@ -161,6 +160,8 @@ type
     function QuickQuery(const ASql:String;const AStrList: TStrings):String;overload;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;virtual;abstract;overload;
     procedure RefetchData;
+    function SqliteReturnString: String; virtual;abstract;
+    function TableExists: Boolean;virtual;abstract;
     function UpdatesPending: Boolean;
     {$ifdef DEBUGACTIVEBUFFER}
     procedure SetCurrentItem(Value:PDataRecord);
@@ -488,7 +489,7 @@ begin
     FCurrentItem^.BookmarkFlag := bfCurrent;
   end
     else if (Result = grError) and DoCheck then
-      DatabaseError('SqliteDs - No records',Self);
+      DatabaseError('No records found',Self);
 end;
 
 function TCustomSqliteDataset.GetRecordCount: Integer;
@@ -655,11 +656,8 @@ begin
   if MasterSource <> nil then
   begin
     FSql := 'Select * from '+FTableName+';'; // forced to obtain all fields
-    FMasterLink.FieldNames:=MasterFields; //this should fill MasterLinks.Fields
-    //todo: ignore if Fields.Count = 0 (OnMasterChanged will not be called) or
-    // raise a error?
-    //if (FMasterLink.Fields.Count = 0) and (MasterSource.DataSet.Active) then
-    //   DatabaseError('Master Fields are not defined correctly');
+    FMasterLink.FieldNames:=FMasterLink.FieldNames; //workaround to fill MasterLinks.Fields
+    //if FMasterLink.Fields.Count = 0 MasterChanged will not be called anyway so ignore it
   end;
   
   FSqliteHandle:=GetSqliteHandle;
@@ -673,15 +671,20 @@ begin
   BindFields(True);
 
   UpdateIndexFields;
-  if FMasterLink.Active and (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
-    DatabaseError('MasterFields count doesnt match IndexFields count',Self);
+  if FMasterLink.Active then
+  begin
+    if FIndexFieldList.Count <> FMasterLink.Fields.Count then
+      DatabaseError('MasterFields count doesn''t match IndexFields count',Self);
+    //Set FSql considering MasterSource active record
+    SetDetailFilter;
+  end;
 
   // Get PrimaryKeyNo if available
   if Fields.FindField(FPrimaryKey) <> nil then
     FPrimaryKeyNo:=Fields.FindField(FPrimaryKey).FieldNo - 1  
   else
     FPrimaryKeyNo:=FAutoIncFieldNo; // -1 if there's no AutoIncField 
-       
+
   BuildLinkedList;               
   FCurrentItem:=FBeginItem;
 end;
@@ -858,14 +861,14 @@ end;
 
 // Specific functions 
 
-procedure TCustomSqliteDataset.MasterChanged(Sender: TObject);
+procedure TCustomSqliteDataset.SetDetailFilter;
   function GetSqlStr(AField:TField):String;
   begin
     case AField.DataType of
       ftString,ftMemo: Result:='"'+AField.AsString+'"';//todo: handle " caracter properly
       ftDateTime,ftDate,ftTime:Str(AField.AsDateTime,Result);
     else
-      Result:=AField.AsString;  
+      Result:=AField.AsString;
     end;//case
   end;//function
 
@@ -876,7 +879,7 @@ begin
   if FMasterLink.Dataset.RecordCount = 0 then //Retrieve all data
     FSql:='Select * from '+FTableName
   else
-  begin  
+  begin
     AFilter:=' where ';
     for i:= 0 to FMasterLink.Fields.Count - 1 do
     begin
@@ -886,6 +889,11 @@ begin
     end;
     FSql:='Select * from '+FTableName+AFilter;
   end;
+end;
+
+procedure TCustomSqliteDataset.MasterChanged(Sender: TObject);
+begin
+  SetDetailFilter;
   {$ifdef DEBUG}
   writeln('Sql used to filter detail dataset:');
   writeln(FSql);
@@ -901,9 +909,13 @@ end;
 
 procedure TCustomSqliteDataset.SetMasterFields(Value: String);
 begin
-  if Active then
-    DatabaseError('It''s not allowed to set MasterFields property in a open dataset',Self);
   FMasterLink.FieldNames:=Value;
+  if Active and FMasterLink.Active then
+  begin
+    UpdateIndexFields;
+    if (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
+      DatabaseError('MasterFields count doesn''t match IndexFields count',Self);
+  end;
 end;
 
 function TCustomSqliteDataset.GetMasterFields: String;
@@ -914,9 +926,9 @@ end;
 
 procedure TCustomSqliteDataset.UpdateIndexFields;
 begin
+  FIndexFieldList.Clear;
   if FIndexFieldNames <> '' then
   begin
-    FIndexFieldList.Clear;
     try
       GetFieldList(FIndexFieldList, FIndexFieldNames);
     except
@@ -967,6 +979,11 @@ var
   CounterFields,CounterItems,StatementsCounter:Integer;
   SqlTemp,KeyName,ASqlLine,TemplateStr:String;
 begin
+  if not UpdatesPending then
+  begin
+    Result:=True;
+    Exit;
+  end;
   Result:=False;
   if (FPrimaryKeyNo <> -1) and not FSqlMode then
   begin
@@ -980,8 +997,6 @@ begin
     WriteLn('PrimaryKeyNo: ',FPrimaryKeyNo);
     {$endif}
     SqlTemp:='BEGIN TRANSACTION;';
-    // In some situations (LCL apps) FBeginItems is inserted in FUpdatedItems
-    FUpdatedItems.Remove(FBeginItem);
     // Update changed records
     if FUpdatedItems.Count > 0 then
       TemplateStr:='UPDATE '+FTableName+' SET ';
@@ -1176,8 +1191,10 @@ end;
 
 function TCustomSqliteDataset.UpdatesPending: Boolean;
 begin
-  Result:= (FDeletedItems.Count > 0) or
-    (FAddedItems.Count > 0) or (FUpdatedItems.Count > 0);
+  //Sometimes FBeginItem is inserted in FUpdatedItems
+  FUpdatedItems.Remove(FBeginItem);
+  Result:= (FUpdatedItems.Count > 0) or
+    (FAddedItems.Count > 0) or (FDeletedItems.Count > 0);
 end;
 
 function TCustomSqliteDataset.QuickQuery(const ASql:String):String;
