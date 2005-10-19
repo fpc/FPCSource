@@ -229,14 +229,16 @@ implementation
 
 
     function tloadparentfpnode.det_resulttype:tnode;
+{$ifdef dummy}
       var
         currpi : tprocinfo;
         hsym   : tparavarsym;
+{$endif dummy}
       begin
         result:=nil;
         resulttype:=voidpointertype;
-        {
-          currently parentfps are never loaded in registers (FK)
+{$ifdef dummy}
+        { currently parentfps are never loaded in registers (FK) }
 
         if (current_procinfo.procdef.parast.symtablelevel<>parentpd.parast.symtablelevel) then
           begin
@@ -253,7 +255,7 @@ implementation
                 hsym.varregable:=vr_none;
               end;
           end;
-        }
+{$endif dummy}
       end;
 
 
@@ -638,6 +640,18 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
+
+         { implicitly convert stringconstant to stringdef,
+           see tbs/tb0476.pp for a test }
+         if (left.nodetype=stringconstn) and
+            (tstringconstnode(left).st_type=st_conststring) then
+           begin
+             if tstringconstnode(left).len>255 then
+               inserttypeconv(left,cansistringtype)
+             else
+               inserttypeconv(left,cshortstringtype);
+           end;
+
          { In p[1] p is always valid, it is not possible to
            declared a shortstring or normal array that has
            undefined number of elements. Dynamic array and
