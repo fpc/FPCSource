@@ -244,25 +244,33 @@ implementation
 
          if not assigned(left.resulttype.def) then
            internalerror(20021126);
-         { insert a hint that a range check error might occur on non-byte
-           elements.with the in operator.
-         }
-         if  (
-               (left.resulttype.def.deftype = orddef) and not
-               (torddef(left.resulttype.def).typ in [s8bit,u8bit,uchar,bool8bit])
-             )
-            or
-             (
-               (left.resulttype.def.deftype = enumdef) and
-               (tenumdef(left.resulttype.def).maxval > 255)
-             )
-          then
-             CGMessage(type_h_in_range_check);
 
-         { type conversion/check }
-         if assigned(tsetdef(right.resulttype.def).elementtype.def) then
+         if (m_fpc in aktmodeswitches) then
            begin
-             inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
+             { insert a hint that a range check error might occur on non-byte
+               elements with the in operator.
+             }
+             if  (
+                   (left.resulttype.def.deftype = orddef) and not
+                   (torddef(left.resulttype.def).typ in [s8bit,u8bit,uchar,bool8bit])
+                 )
+                or
+                 (
+                   (left.resulttype.def.deftype = enumdef) and
+                   (tenumdef(left.resulttype.def).maxval > 255)
+                 )
+              then
+                 CGMessage(type_h_in_range_check);
+
+             { type conversion/check }
+             if assigned(tsetdef(right.resulttype.def).elementtype.def) then
+               inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
+           end
+         else
+           begin
+             { insert explicit type conversion/check }
+             if assigned(tsetdef(right.resulttype.def).elementtype.def) then
+               inserttypeconv_internal(left,tsetdef(right.resulttype.def).elementtype);
            end;
 
          { empty set then return false }
