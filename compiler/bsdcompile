@@ -1,3 +1,0 @@
-#!/bin/sh
-ppc386 -OG3p3 -Ch8000000 -dI386 -dGDB -dBROWSERLOG -Sg pp.pas -a -s -g %1 %2 %3 %4 %5 %6 %7 %8 %9
-
