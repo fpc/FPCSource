@@ -1,0 +1,68 @@
+;****************************************************************************
+;
+;   Copyright (c) 2002 by Florian Klaempfl
+;
+;   Instruction template table for the PowerPC
+;
+;   This program is free software; you can redistribute it and/or modify
+;   it under the terms of the GNU General Public License as published by
+;   the Free Software Foundation; either version 2 of the License, or
+;   (at your option) any later version.
+;
+;   This program is distributed in the hope that it will be useful,
+;   but WITHOUT ANY WARRANTY; without even the implied warranty of
+;   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;   GNU General Public License for more details.
+;
+;   You should have received a copy of the GNU General Public License
+;   along with this program; if not, write to the Free Software
+;   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;
+;****************************************************************************
+;
+add       rD,rA,rB              opcode=31,op22=266,oe=0,rc=0
+add_      rD,rA,rB              opcode=31,op22=266,oe=0,rc=1
+addo      rD,rA,rB              opcode=31,op22=266,oe=1,rc=0
+addo_     rD,rA,rB              opcode=31,op22=266,oe=1,rc=1
+addc      rD,rA,rB              opcode=31,op22=10,oe=0,rc=0
+addc_     rD,rA,rB              opcode=31,op22=10,oe=0,rc=1
+addco     rD,rA,rB              opcode=31,op22=10,oe=1,rc=0
+addco_    rD,rA,rB              opcode=31,op22=10,oe=1,rc=1
+adde      rD,rA,rB              opcode=31,op22=138,oe=0,rc=0
+adde_     rD,rA,rB              opcode=31,op22=138,oe=0,rc=1
+addeo     rD,rA,rB              opcode=31,op22=138,oe=1,rc=0
+addeo_    rD,rA,rB              opcode=31,op22=138,oe=1,rc=1
+addi      rD,rA,SIMM            opcode=14
+addic     rD,rA,SIMM            opcode=12
+addic_    rD,rA,SIMM            opcode=13
+addis     rD,rA,SIMM            opcode=15
+addme     rD,rA                 opcode=31,op22=234,oe=0,rc=0,reserved=$000f0000
+addme_    rD,rA                 opcode=31,op22=234,oe=0,rc=1,reserved=$000f0000
+addmeo    rD,rA                 opcode=31,op22=234,oe=1,rc=0,reserved=$000f0000
+addmeo_   rD,rA                 opcode=31,op22=234,oe=1,rc=1,reserved=$000f0000
+addze     rD,rA                 opcode=31,op22=202,oe=0,rc=0,reserved=$000f0000
+addze_    rD,rA                 opcode=31,op22=202,oe=0,rc=1,reserved=$000f0000
+addzeo    rD,rA                 opcode=31,op22=202,oe=1,rc=0,reserved=$000f0000
+addzeo_   rD,rA                 opcode=31,op22=202,oe=1,rc=1,reserved=$000f0000
+and       rA,rS,rB              opcode=31,op21=28,rc=0
+and_      rA,rS,rB              opcode=31,op21=28,rc=1
+andc      rA,rS,rB              opcode=31,op21=60,rc=0
+andc_     rA,rS,rB              opcode=31,op21=60,rc=1
+andi_     rA,rS,UIMM            opcode=28
+andis_    rA,rS,UIMM            opcode=29
+b         TA24                  opcode=18,aa=0,lk=0
+ba        TA24                  opcode=18,aa=1,lk=0
+bl        TA24                  opcode=18,aa=0,lk=1
+bla       TA24                  opcode=18,aa=1,lk=1
+bc        BO,BI,TA14            opcode=16,aa=0,lk=0
+bca       BO,BI,TA14            opcode=16,aa=1,lk=0
+bcl       BO,BI,TA14            opcode=16,aa=0,lk=1
+bcla      BO,BI,TA14            opcode=16,aa=1,lk=1
+bcctr     BO,BI                 opcode=19,op21=528,lk=0,reserved=$000f0000
+bcctrl    BO,BI                 opcode=19,op21=528,lk=1,reserved=$000f0000
+bcltr     BO,BI                 opcode=19,op21=16,lk=0,reserved=$000f0000
+bcltrl    BO,BI                 opcode=19,op21=16,lk=1,reserved=$000f0000
+cmp       crfD,L,rA,rB          opcode=31,op21=0,reserved=$80000200
+cmpi      crfD,L,rA,SIMM        opcode=11,reserved=$00000200
+cmpl      crfD,L,rA,rB          opcode=31,op21=32,reserved=$80000200
+cmpli     crfD,L,rA,UIMM        opcode=10,reserved=$00000200
