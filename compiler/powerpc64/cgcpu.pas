@@ -146,6 +146,10 @@ type
     { returns the lowest numbered GP register in use, and the number of used GP registers
       for the current procedure }
     procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
+
+    { returns true if the offset of the given reference can not be represented by a 16 bit
+    immediate as required by some PowerPC instructions }
+    function hasLargeOffset(const ref : TReference) : Boolean; inline;
   end;
 
 const
@@ -438,7 +442,7 @@ begin
       { combine both registers }
       list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
     end;
-  end;  
+  end;
 end;
 
 procedure tcgppc.a_load_reg_ref(list: taasmoutput; fromsize, tosize: TCGSize;
@@ -1072,7 +1076,6 @@ begin
       list.concat(taicpu.op_reg_reg_reg(A_STDUX, NR_R1, NR_R1, NR_R0));
     end;
   end;
-
   // CR register not used by FPC atm
 
   // keep R1 allocated???
@@ -1084,8 +1087,6 @@ procedure tcgppc.g_proc_exit(list: taasmoutput; parasize: longint; nostackframe:
 { This procedure may be called before, as well as after g_stackframe_entry }
 { is called. NOTE registers are not to be allocated through the register   }
 { allocator here, because the register colouring has already occured !!    }
-
-
 var
   regcount, firstregfpu, firstreggpr: TSuperRegister;
   href: treference;
@@ -1177,7 +1178,7 @@ begin
   ref2 := ref;
   fixref(list, ref2, OS_64);
   { load a symbol }
-  if assigned(ref2.symbol) or (ref2.offset < low(smallint)) or (ref2.offset > high(smallint)) then begin
+  if assigned(ref2.symbol) or (hasLargeOffset(ref2)) then begin
       { add the symbol's value to the base of the reference, and if the }
       { reference doesn't have a base, create one                       }
       reference_reset(tmpref);
@@ -1416,14 +1417,14 @@ procedure tcgppc.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const
     { call/jmp  vmtoffs(%eax) ; method offs }
     reference_reset_base(href, NR_R11,
       procdef._class.vmtmethodoffset(procdef.extnumber));
-    if not ((aint(href.offset) >= low(smallint)) and
-      (aint(href.offset) <= high(smallint))) then begin
-      {$warning ts:adapt me for offsets > 16 bit }
+    if not (hasLargeOffset(href)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDIS, NR_R11, NR_R11,
         smallint((href.offset shr 16) + ord(smallint(href.offset and $FFFF) <
         0))));
       href.offset := smallint(href.offset and $FFFF);
-    end;
+    end else
+      { add support for offsets > 16 bit }
+      internalerror(200510201);
     list.concat(taicpu.op_reg_ref(A_LD, NR_R11, href));
     // the loaded reference is a function descriptor reference, so deref again
     // (at ofs 0 there's the real pointer)
@@ -1494,7 +1495,6 @@ begin
 end;
 
 function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
-
 var
   tmpreg: tregister;
   needsAlign : boolean;
@@ -1523,14 +1523,14 @@ var
   tmpref: treference;
   largeOffset: Boolean;
 begin
-  // at this point there must not be a combination of values in the ref treference
-  // which is not possible to directly map to instructions of the PowerPC architecture
+  { at this point there must not be a combination of values in the ref treference
+    which is not possible to directly map to instructions of the PowerPC architecture }
   if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then
     internalerror(200310131);
-
-  // for some instructions we need to check that the offset is divisible by at
-  // least four. If not, add the bytes which are "off" to the base register and
-  // adjust the offset accordingly 
+ 
+  { for some instructions we need to check that the offset is divisible by at
+   least four. If not, add the bytes which are "off" to the base register and
+   adjust the offset accordingly }
   case op of
     A_LD, A_LDU, A_STD, A_STDU, A_LWA, A_LWAU :
      if ((ref.offset mod 4) <> 0) then begin
@@ -1547,26 +1547,31 @@ begin
      end;
   end;
 
-  // if we have to load/store from a symbol or large addresses, use a temporary register
-  // containing the address
-  if assigned(ref.symbol) or (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then begin
+  { if we have to load/store from a symbol or large addresses, use a temporary register
+   containing the address }
+  if assigned(ref.symbol) or (hasLargeOffset(ref)) then begin
     tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+
+    if (hasLargeOffset(ref) and (ref.base = NR_NO)) then begin
+      ref.base := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+      a_load_const_reg(list, OS_ADDR, ref.offset, ref.base);
+      ref.offset := 0;
+    end;
 
     reference_reset(tmpref);
     tmpref.symbol := ref.symbol;
     tmpref.relsymbol := ref.relsymbol;
     tmpref.offset := ref.offset;
     if (ref.base <> NR_NO) then begin
-      {
-      As long as the TOC isn't working we try to achieve highest speed (in this
-      case by allowing instructions execute in parallel) as possible, at the cost
+      { As long as the TOC isn't working we try to achieve highest speed (in this
+      case by allowing instructions execute in parallel) as possible at the cost
       of using another temporary register. So the code template when there is
       a base register and an offset is the following:
 
       lis rT1, SYM+offs@highest
       ori rT1, rT1, SYM+offs@higher
-      lis rT2, SYM+offs@high
-      ori rT2, SYM+offs@low
+      lis rT2, SYM+offs@hi
+      ori rT2, SYM+offs@lo
       rldimi rT2, rT1, 32
 
       <op>X reg, base, rT2
@@ -1589,7 +1594,7 @@ begin
       tmpref.base := ref.base;
       tmpref.index := tmpreg2;
       case op of
-        // the code generator doesn't generate update instructions anyway
+        { the code generator doesn't generate update instructions anyway }
         A_LBZ : op := A_LBZX;
         A_LHZ : op := A_LHZX;
         A_LWZ : op := A_LWZX;
@@ -1607,7 +1612,7 @@ begin
         A_STFS : op := A_STFSX;
         A_STFD : op := A_STFDX;
         else
-          // unknown load/store opcode
+          { unknown load/store opcode }
           internalerror(2005101302);
       end;
       list.concat(taicpu.op_reg_ref(op, reg, tmpref));
@@ -1650,6 +1655,12 @@ begin
     create_cond_norm(c, crval, p.condition);
   p.is_jmp := true;
   list.concat(p)
+end;
+
+function tcgppc.hasLargeOffset(const ref : TReference) : Boolean;
+begin
+  { this rather strange calculation is required because offsets of TReferences are unsigned }
+  result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
 end;
 
 begin

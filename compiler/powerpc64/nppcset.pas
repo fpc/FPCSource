@@ -26,33 +26,103 @@ unit nppcset;
 interface
 
 uses
-  node, nset, ncgset, cpubase, cgbase, cgobj, aasmbase, aasmtai;
+  node, nset, ncgset, cpubase, cgbase, cgobj, aasmbase, aasmtai, globtype;
 
 type
 
   tppccasenode = class(tcgcasenode)
   protected
+    procedure optimizevalues(var max_linear_list : aint; var max_dist : aword); override;
+
+    function has_jumptable : boolean; override;
+    procedure genjumptable(hp: pcaselabel; min_, max_ : aint); override;
     procedure genlinearlist(hp: pcaselabel); override;
   end;
 
 implementation
 
 uses
-  globtype, systems,
+  systems,
   verbose, globals,
   symconst, symdef, defutil,
   paramgr,
   cpuinfo,
   pass_2, cgcpu,
   ncon,
-  tgobj, ncgutil, regvars, rgobj, aasmcpu;
+  tgobj, ncgutil, regvars, rgobj, aasmcpu,
+  procinfo, cgutils;
 
 {*****************************************************************************
                             TCGCASENODE
 *****************************************************************************}
 
-procedure tppccasenode.genlinearlist(hp: pcaselabel);
+procedure tppccasenode.optimizevalues(var max_linear_list : aint; var max_dist : aword);
+begin
+  max_linear_list := 10;
+end;
 
+function tppccasenode.has_jumptable : boolean;
+begin
+  has_jumptable := true;
+end;
+
+procedure tppccasenode.genjumptable(hp : pcaselabel; min_, max_ : aint);
+var
+  table : tasmlabel;
+  last : TConstExprInt;
+  indexreg : tregister;
+  href : treference;
+
+  procedure genitem(list:taasmoutput;t : pcaselabel);
+  var
+    i : aint;
+  begin
+    if assigned(t^.less) then
+      genitem(list,t^.less);
+    { fill possible hole }
+    for i:=last+1 to t^._low-1 do
+      list.concat(Tai_const.Create_sym(elselabel));
+    for i:=t^._low to t^._high do
+      list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+    last:=t^._high;
+    if assigned(t^.greater) then
+      genitem(list,t^.greater);
+  end;
+
+begin
+  { this is exactly the same code as for 32 bit PowerPC processors. It might be useful to change this
+   later (with e.g. TOC support) into a method which uses relative values in the jumptable to save space
+   and memory bandwidth. At the moment this is not a good idea, since these methods involve loading of
+   one or more 64 bit integer adresses which is slow }
+  if not(jumptable_no_range) then begin
+    { case expr less than min_ => goto elselabel }
+    cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
+    { case expr greater than max_ => goto elselabel }
+    cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
+  end;
+  objectlibrary.getjumplabel(table);
+  { allocate base and index registers register }
+  indexreg:= cg.makeregsize(exprasmlist, hregister, OS_INT);
+  { indexreg := hregister; }
+  cg.a_load_reg_reg(exprasmlist, opsize, OS_INT, hregister, indexreg);
+  { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
+  cg.a_op_const_reg(exprasmlist, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
+  reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
+  href.index := indexreg;
+
+  cg.a_load_ref_reg(exprasmlist, OS_INT, OS_INT, href, indexreg);
+
+  exprasmlist.concat(taicpu.op_reg(A_MTCTR, indexreg));
+  exprasmlist.concat(taicpu.op_none(A_BCTR));
+
+  { generate jump table }
+  new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
+  current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
+  last:=min_;
+  genitem(current_procinfo.aktlocaldata,hp);
+end;
+
+procedure tppccasenode.genlinearlist(hp: pcaselabel);
 var
   first, lastrange: boolean;
   last: TConstExprInt;
@@ -81,13 +151,11 @@ var
     if assigned(t^.less) then
       genitem(t^.less);
     { need we to test the first value }
-    if first and (t^._low > get_min_value(left.resulttype.def)) then
-    begin
+    if first and (t^._low > get_min_value(left.resulttype.def)) then begin
       cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(t^._low),
         hregister, elselabel);
     end;
-    if t^._low = t^._high then
-    begin
+    if t^._low = t^._high then begin
       if t^._low - last = 0 then
         cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, 0, hregister,
           blocklabel(t^.blockid))
@@ -96,26 +164,20 @@ var
       tcgppc(cg).a_jmp_cond(exprasmlist, OC_EQ, blocklabel(t^.blockid));
       last := t^._low;
       lastrange := false;
-    end
-    else
-    begin
+    end else begin
       { it begins with the smallest label, if the value }
       { is even smaller then jump immediately to the    }
       { ELSE-label                                }
-      if first then
-      begin
+      if first then begin
         { have we to ajust the first value ? }
         if (t^._low > get_min_value(left.resulttype.def)) then
           gensub(aint(t^._low));
-      end
-      else
-      begin
+      end else begin
         { if there is no unused label between the last and the }
         { present label then the lower limit can be checked    }
         { immediately. else check the range in between:       }
         gensub(aint(t^._low - last));
-        if ((t^._low - last) <> 1) or
-          (not lastrange) then
+        if ((t^._low - last) <> 1) or (not lastrange) then
           tcgppc(cg).a_jmp_cond(exprasmlist, jmp_lt, elselabel);
       end;
       gensub(aint(t^._high - t^._low));
@@ -130,11 +192,9 @@ var
 
 begin
   { do we need to generate cmps? }
-  if (with_sign and (min_label < 0)) or
-    (opsize = OS_32) then
+  if (with_sign and (min_label < 0)) or (opsize = OS_32) then
     genlinearcmplist(hp)
-  else
-  begin
+  else begin
     last := 0;
     lastrange := false;
     first := true;
