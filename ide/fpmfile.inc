@@ -222,3 +222,67 @@ begin
   GetDir(0,StartUpDir);
 end;
 
+
+procedure TIDEApp.PrinterSetup;
+var R,R2: TRect;
+    D: PCenterDialog;
+    IL: PEditorInputLine;
+begin
+  R.Assign(0,0,round(ScreenWidth*54/80),4);
+  New(D, Init(R, dialog_setupprinter));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-2,-1); Inc(R.A.Y); R.B.Y:=R.A.Y+1;
+    R2.Copy(R); R2.A.X:=16; Dec(R2.B.X,4);
+    New(IL, Init(R2, 255));
+    IL^.Data^:=GetPrinterDevice;
+    Insert(IL);
+    R2.Copy(R); R2.A.X:=R2.B.X-3; R2.B.X:=R2.A.X+3;
+    Insert(New(PHistory, Init(R2, IL, hidPrinterDevice)));
+    R2.Copy(R); R2.B.X:=16;
+    Insert(New(PLabel, Init(R2, label_setupprinter_device, IL)));
+  end;
+  InsertButtons(D);
+  IL^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+    SetPrinterDevice(IL^.Data^);
+  Dispose(D, Done);
+end;
+
+
+procedure TIDEApp.Print;
+  var
+    d : string;
+    P : PSourceWindow;
+    i : longint;
+    f : text;
+  begin
+    d:=GetPrinterDevice;
+    { sanity check }
+    if d='' then
+      d:='prn';
+
+    P:=Message(Desktop,evBroadcast,cmSearchWindow,nil);
+    if assigned(P) then
+      begin
+        assign(f,d);
+        rewrite(f);
+        if ioresult<>0 then
+          begin
+            MessageBox(#3+msg_PrintError,nil,mferror+mfokbutton);
+            exit;
+          end;
+        for i:=0 to P^.Editor^.Core^.GetLineCount-1 do
+          begin
+            writeln(f,P^.Editor^.Core^.GetLineText(i));
+            if ioresult<>0 then
+              begin
+                MessageBox(#3+msg_PrintError,nil,mferror+mfokbutton);
+                close(f);
+                exit;
+              end;
+          end;
+        write(f,#12);
+        close(f);
+      end;
+  end;

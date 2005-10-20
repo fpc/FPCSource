@@ -58,6 +58,8 @@ type
       procedure NewFromTemplate;
       procedure OpenRecentFile(RecentIndex: integer);
       procedure ChangeDir;
+      procedure Print;
+      procedure PrinterSetup;
       procedure ShowClipboard;
       procedure FindProcedure;
       procedure Objects;
@@ -313,10 +315,13 @@ begin
       NewItem(menu_file_saveas,'',kbNoKey,cmSaveAs,hcSaveAs,
       NewItem(menu_file_saveall,'',kbNoKey,cmSaveAll,hcSaveAll,
       NewLine(
+      NewItem(menu_file_print,'',kbNoKey,cmPrint,hcPrint,
+      NewItem(menu_file_printsetup,'',kbNoKey,cmPrinterSetup,hcPrinterSetup,
+      NewLine(
       NewItem(menu_file_changedir,'',kbNoKey,cmChangeDir,hcChangeDir,
       NewItem(menu_file_dosshell,'',kbNoKey,cmDOSShell,hcDOSShell,
       NewItem(menu_file_exit,menu_key_file_exit,kbNoKey,cmQuit,hcQuit,
-      nil)))))))))))),
+      nil))))))))))))))),
     NewSubMenu(menu_edit,hcEditMenu, NewMenu(
       NewItem(menu_edit_undo,menu_key_edit_undo, kbAltBack, cmUndo, hcUndo,
       NewItem(menu_edit_redo,'', kbNoKey, cmRedo, hcRedo,
@@ -663,6 +668,8 @@ begin
                                    end;
                                  OpenFileName:='';
                                end;
+             cmPrint         : Print;
+             cmPrinterSetup  : PrinterSetup;
              cmSaveAll       : SaveAll;
              cmChangeDir     : ChangeDir;
              cmDOSShell      : DOSShell;

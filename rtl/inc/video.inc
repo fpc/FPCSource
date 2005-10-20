@@ -79,7 +79,7 @@ end;
 Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 Var NewVideoBuf,NewOldVideoBuf : PVideoBuf;
-    S,I,C,R,NewVideoBufSize : Integer;
+    S,I,C,R,NewVideoBufSize : longint;
 
 begin
   S:=SizeOf(TVideoCell);

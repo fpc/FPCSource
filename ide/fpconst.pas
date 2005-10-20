@@ -143,6 +143,7 @@ const
      hidBreakpointDialogName = 208;
      hidRunDir            = 209;
      hidBreakpointDialogCond = 210;
+     hidPrinterDevice      = 211;
 
      { Command constants }
      cmShowClipboard     = 201;
@@ -191,14 +192,18 @@ const
      cmDoReload          = 244;
      cmVectorRegisters   = 245;
 
+
      { in wviews.pas defined
      cmSelectAll         = 246;
      cmUnselect          = 247;
      }
 
+     cmPrint             = 248;
+
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
      cmShowReadme        = 1002;
+     cmPrinterSetup      = 1003;
 
      cmSearchWindow      = 1500;
      cmSourceWndClosing  = 1601;
@@ -415,6 +420,8 @@ const
      hcRegistersWindow   = hcShift+cmRegisters;
      hcFPURegisters      = hcShift+cmFPURegisters;
      hcVectorRegisters   = hcShift+cmVectorRegisters;
+     hcPrint             = hcShift+cmPrint;
+     hcPrinterSetup      = hcShift+cmPrinterSetup;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
