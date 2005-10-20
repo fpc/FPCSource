@@ -71,6 +71,7 @@ type
 
 function utimes(__file: PChar; const AccessModTimes: TAccessModificationTimes):longint;cdecl;external clib name 'utimes';
 function gettimeofday(var __tv:timeval; __tz:__timezone_ptr_t):longint;cdecl;external clib name 'gettimeofday';
+function gettimeofday(var __tv:timeval; var _tz:timezone):longint;cdecl;external clib name 'gettimeofday';
 function settimeofday(const __tv: timeval; __tz:Ptimezone):longint;cdecl;external clib name 'settimeofday';
 function settimeofday(const __tv: timeval; const __tz:timezone):longint;cdecl;external clib name 'settimeofday';
 function adjtime(const __delta: timeval; var __olddelta:timeval):longint;cdecl;external clib name 'adjtime';
