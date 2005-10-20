@@ -91,6 +91,7 @@ type
   end;
 
   TOperand = class
+    typesize : aint;
     hastype,          { if the operand has typecasted variable }
     hasvar : boolean; { if the operand is loaded with a variable }
     size   : TCGSize;

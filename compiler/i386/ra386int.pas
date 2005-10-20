@@ -66,7 +66,7 @@ Unit Ra386int;
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
          procedure BuildReference(oper : tx86operand);
-         procedure BuildOperand(oper: tx86operand);
+         procedure BuildOperand(oper: tx86operand;istypecast:boolean);
          procedure BuildConstantOperand(oper: tx86operand);
          procedure BuildOpCode(instr : tx86instruction);
          procedure BuildConstant(constsize: byte);
@@ -751,6 +751,9 @@ Unit Ra386int;
         inexpression:=TRUE;
         parenlevel:=0;
         Repeat
+          { Support ugly delphi constructs like: [ECX].1+2[EDX] }
+          if isref and (actasmtoken=AS_LBRACKET) then
+            break;
           Case actasmtoken of
             AS_LPAREN:
               Begin
@@ -800,12 +803,6 @@ Unit Ra386int;
                 if isref and (actasmtoken=AS_REGISTER) then
                  break;
                 expr:=expr + '+';
-              end;
-            AS_LBRACKET:
-              begin
-                { Support ugly delphi constructs like: [ECX].1+2[EDX] }
-                if isref then
-                  break;
               end;
             AS_MINUS:
               Begin
@@ -889,6 +886,11 @@ Unit Ra386int;
                 expr:=expr + tempstr;
                 if hasparen then
                   Consume(AS_RPAREN);
+              end;
+            AS_PTR :
+              begin
+                { Support ugly delphi constructs like <constant> PTR [ref] }
+                break;
               end;
             AS_STRING:
               begin
@@ -1091,10 +1093,10 @@ Unit Ra386int;
 
     procedure ti386intreader.BuildReference(oper : tx86operand);
       var
-        k,l,scale : aint;
+        scale : byte;
+        k,l : aint;
         tempstr,hs : string;
         tempsymtyp : tasmsymtype;
-        typesize : longint;
         code : integer;
         hreg : tregister;
         GotStar,GotOffset,HadVar,
@@ -1162,14 +1164,13 @@ Unit Ra386int;
                    Consume(AS_ID);
                    { typecasting? }
                    if (actasmtoken=AS_LPAREN) and
-                      SearchType(tempstr,typesize) then
+                      SearchType(tempstr,l) then
                     begin
                       oper.hastype:=true;
+                      oper.typesize:=l;
                       Consume(AS_LPAREN);
-                      BuildOperand(oper);
+                      BuildOperand(oper,true);
                       Consume(AS_RPAREN);
-                      if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                        oper.SetSize(typesize,true);
                     end
                    else
                     if is_locallabel(tempstr) then
@@ -1467,7 +1468,7 @@ Unit Ra386int;
       end;
 
 
-    Procedure ti386intreader.BuildOperand(oper: tx86operand);
+    Procedure ti386intreader.BuildOperand(oper: tx86operand;istypecast:boolean);
 
         procedure AddLabelOperand(hl:tasmlabel);
         begin
@@ -1487,12 +1488,10 @@ Unit Ra386int;
       var
         expr    : string;
         tempreg : tregister;
-        typesize,
-        l,k     : aint;
+        l       : aint;
         hl      : tasmlabel;
         toffset,
         tsize   : aint;
-        tempstr : string;
       begin
         expr:='';
         repeat
@@ -1535,15 +1534,6 @@ Unit Ra386int;
                 end;
            end;
 
-          { Word,Dword,etc shall now be seen as normal (pascal) typename identifiers }
-          case actasmtoken of
-            AS_DWORD,
-            AS_BYTE,
-            AS_WORD,
-            AS_QWORD :
-              actasmtoken:=AS_ID;
-          end;
-
           case actasmtoken of
             AS_OFFSET,
             AS_SIZEOF,
@@ -1566,6 +1556,25 @@ Unit Ra386int;
                   else
                     Message(asmr_e_invalid_operand_type);
                 end;
+              end;
+
+            AS_PTR :
+              begin
+                if not oper.hastype then
+                  begin
+                    if (oper.opr.typ=OPR_CONSTANT) then
+                      begin
+                        oper.typesize:=oper.opr.val;
+                        { reset constant value of operand }
+                        oper.opr.typ:=OPR_NONE;
+                        oper.opr.val:=0;
+                      end
+                    else
+                      Message(asmr_e_syn_operand);
+                  end;
+                Consume(AS_PTR);
+                oper.InitRef;
+                BuildOperand(oper,false);
               end;
 
             AS_ID : { A constant expression, or a Variable ref. }
@@ -1631,18 +1640,17 @@ Unit Ra386int;
                        expr:=actasmpattern;
                        Consume(AS_ID);
                        { typecasting? }
-                       if SearchType(expr,typesize) then
+                       if SearchType(expr,l) then
                         begin
                           oper.hastype:=true;
+                          oper.typesize:=l;
                           case actasmtoken of
                             AS_LPAREN :
                               begin
                                 { Support Type([Reference]) }
                                 Consume(AS_LPAREN);
-                                BuildOperand(oper);
+                                BuildOperand(oper,true);
                                 Consume(AS_RPAREN);
-                                if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                                  oper.SetSize(typesize,true);
                               end;
                             AS_LBRACKET :
                               begin
@@ -1650,11 +1658,7 @@ Unit Ra386int;
                                 { Convert @label.Byte[1] to reference }
                                 if oper.opr.typ=OPR_SYMBOL then
                                   oper.initref;
-                                if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-                                  oper.SetSize(typesize,true);
                               end;
-                            else
-                              oper.SetSize(typesize,true);
                           end;
                         end
                        else
@@ -1707,29 +1711,71 @@ Unit Ra386int;
                 Consume(actasmtoken);
               end;
 
+            AS_DWORD,
+            AS_BYTE,
+            AS_WORD,
+            AS_TBYTE,
+            AS_DQWORD,
+            AS_QWORD :
+              begin
+                { Type specifier }
+                oper.hastype:=true;
+                oper.typesize:=0;
+                case actasmtoken of
+                  AS_DWORD : oper.typesize:=4;
+                  AS_WORD  : oper.typesize:=2;
+                  AS_BYTE  : oper.typesize:=1;
+                  AS_QWORD : oper.typesize:=8;
+                  AS_DQWORD : oper.typesize:=16;
+                  AS_TBYTE : oper.typesize:=10;
+                end;
+                Consume(actasmtoken);
+                if (actasmtoken=AS_LPAREN) then
+                  begin
+                    { Support Type([Reference]) }
+                    Consume(AS_LPAREN);
+                    BuildOperand(oper,true);
+                    Consume(AS_RPAREN);
+                  end;
+              end;
+
             AS_SEPARATOR,
             AS_END,
             AS_COMMA,
             AS_COLON:
-              break;
+              begin
+                break;
+              end;
+
+            AS_RPAREN:
+              begin
+                if not istypecast then
+                  begin
+                    Message(asmr_e_syn_operand);
+                    Consume(AS_RPAREN);
+                  end
+                else
+                  break;
+              end;
 
             else
-              Message(asmr_e_syn_operand);
+              begin
+                Message(asmr_e_syn_operand);
+                RecoverConsume(true);
+                break;
+              end;
           end;
-        until not(actasmtoken in [AS_DOT,AS_PLUS,AS_LBRACKET]);
-        if not((actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA,AS_COLON]) or
-               (oper.hastype and (actasmtoken=AS_RPAREN))) then
-         begin
-           Message(asmr_e_syntax_error);
-           RecoverConsume(true);
-         end;
+        until false;
+        { End of operand, update size if a typecast is forced }
+        if (oper.typesize<>0) and
+           (oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL]) then
+          oper.SetSize(oper.typesize,true);
       end;
 
 
     Procedure ti386intreader.BuildOpCode(instr : tx86instruction);
       var
         PrefixOp,OverrideOp: tasmop;
-        size,
         operandnum : longint;
         is_far_const:boolean;
         i:byte;
@@ -1816,6 +1862,7 @@ Unit Ra386int;
                   Inc(operandnum);
                 Consume(AS_COMMA);
               end;
+
             {Far constant, i.e. jmp $0000:$11111111.}
             AS_COLON:
               begin
@@ -1825,47 +1872,6 @@ Unit Ra386int;
                 else
                   inc(operandnum);
                 consume(AS_COLON);
-              end;
-
-            { Typecast, Constant Expression, Type Specifier }
-            AS_DWORD,
-            AS_BYTE,
-            AS_WORD,
-            AS_TBYTE,
-            AS_DQWORD,
-            AS_QWORD :
-              begin
-                { load the size in a temp variable, so it can be set when the
-                  operand is read }
-                size:=0;
-                case actasmtoken of
-                  AS_DWORD : size:=4;
-                  AS_WORD  : size:=2;
-                  AS_BYTE  : size:=1;
-                  AS_QWORD : size:=8;
-                  AS_DQWORD : size:=16;
-                  AS_TBYTE : size:=10;
-                end;
-                Consume(actasmtoken);
-                case actasmtoken of
-                  AS_LPAREN :
-                    begin
-                      instr.Operands[operandnum].hastype:=true;
-                      Consume(AS_LPAREN);
-                      BuildOperand(instr.Operands[operandnum] as tx86operand);
-                      Consume(AS_RPAREN);
-                    end;
-                  AS_PTR :
-                    begin
-                      Consume(AS_PTR);
-                      instr.Operands[operandnum].InitRef;
-                      BuildOperand(instr.Operands[operandnum] as tx86operand);
-                    end;
-                  else
-                    BuildOperand(instr.Operands[operandnum] as tx86operand);
-                end;
-                { now set the size which was specified by the override }
-                instr.Operands[operandnum].setsize(size,true);
               end;
 
             { Type specifier }
@@ -1888,17 +1894,23 @@ Unit Ra386int;
                    Consume(AS_PTR);
                    instr.Operands[operandnum].InitRef;
                  end;
-                BuildOperand(instr.Operands[operandnum] as tx86operand);
+                BuildOperand(instr.Operands[operandnum] as tx86operand,false);
               end;
             else
-              BuildOperand(instr.Operands[operandnum] as tx86operand);
+              BuildOperand(instr.Operands[operandnum] as tx86operand,false);
           end; { end case }
         until false;
         instr.ops:=operandnum;
-        if is_far_const then
-          for i:=1 to operandnum do
-            if instr.operands[i].opr.typ<>OPR_CONSTANT then
-              message(asmr_e_expr_illegal);
+        { Check operands }
+        for i:=1 to operandnum do
+          begin
+            if is_far_const and
+               (instr.operands[i].opr.typ<>OPR_CONSTANT) then
+              message(asmr_e_expr_illegal)
+            else
+              if instr.operands[i].opr.typ=OPR_NONE then
+                Message(asmr_e_syntax_error);
+          end;
       end;
 
 
