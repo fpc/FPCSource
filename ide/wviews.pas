@@ -2473,7 +2473,7 @@ begin
   if R.Empty then
   begin
     GetStaticTextDimensions(S,40,Cols,Rows);
-    if Cols<30 then Cols:=30; if Rows=0 then Rows:=1;
+    if Cols<32 then Cols:=32; if Rows=0 then Rows:=1;
     R.Assign(0,0,3+Cols+3,Rows+6);
     if (AOptions and mfInsertInApp)= 0 then
       R.Move((Desktop^.Size.X-(R.B.X-R.A.X)) div 2,(Desktop^.Size.Y-(R.B.Y-R.A.Y)) div 2)
