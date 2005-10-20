@@ -1,0 +1,394 @@
+;
+; Table of assembler instructions for Free Pascal
+; adapted from Netwide Assembler by Florian Klaempfl
+;
+;
+; The Netwide Assembler is copyright (C) 1996 Simon Tatham and
+; Julian Hall. All rights reserved. The software is
+; redistributable under the licence given in the file "Licence"
+; distributed in the NASM archive.
+;
+; Format of file: all four fields must be present on every functional
+; line. Hence `void' for no-operand instructions, and `\0' for such
+; as EQU. If the last three fields are all `ignore', no action is
+; taken except to register the opcode as being present.
+;
+;
+; 'ignore' means no instruc
+; 'void'   means instruc with zero operands
+;
+; Third field has a first byte indicating how to
+; put together the bits, and then some codes
+; that may be used at will (see assemble.c)
+;
+; \1   - 24 bit pc-rel offset		[B, BL]
+; \2   - 24 bit imm value		[SWI]
+; \3   -  3 byte code			[BX]
+;
+; \4   - reg,reg,reg			[AND,EOR,SUB,RSB,ADD,ADC,SBC,RSC,ORR,BIC]
+; \5   - reg,reg,reg,<shift>reg		[-"-]
+; \6   - reg,reg,reg,<shift>#imm	[-"-]
+; \7   - reg,reg,#imm			[-"-]
+;
+; \x8  - reg,reg			[MOV,MVN]
+; \x9  - reg,reg,<shift>reg		[-"-]
+; \xA  - reg,reg,<shift>#imm		[-"-]
+; \xB  - reg,#imm			[-"-]
+;
+; \xC  - reg,reg			[CMP,CMN,TEQ,TST]
+; \xD  - reg,reg,<shift>reg		[-"-]
+; \xE  - reg,reg,<shift>#imm		[-"-]
+; \xF  - reg,#imm			[-"-]
+;
+; \xFx - floating point instructions
+;        Floating point instruction format information, taken from the linux kernel,
+;        for detailed tables, see aasmcpu.pas
+;
+;        ARM Floating Point Instruction Classes
+;        | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+;        |c o n d|1 1 0 P|U|u|W|L|   Rn  |v|  Fd |0|0|0|1|  o f f s e t  | CPDT
+;        |c o n d|1 1 0 P|U|w|W|L|   Rn  |x|  Fd |0|0|1|0|  o f f s e t  | CPDT (copro 2)
+;        | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+;        |c o n d|1 1 1 0|a|b|c|d|e|  Fn |j|  Fd |0|0|0|1|f|g|h|0|i|  Fm | CPDO
+;        |c o n d|1 1 1 0|a|b|c|L|e|  Fn |   Rd  |0|0|0|1|f|g|h|1|i|  Fm | CPRT
+;        |c o n d|1 1 1 0|a|b|c|1|e|  Fn |1|1|1|1|0|0|0|1|f|g|h|1|i|  Fm | comparisons
+;        | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+;
+;        CPDT            data transfer instructions
+;                        LDF, STF, LFM (copro 2), SFM (copro 2)
+;
+;        CPDO            dyadic arithmetic instructions
+;                        ADF, MUF, SUF, RSF, DVF, RDF,
+;                        POW, RPW, RMF, FML, FDV, FRD, POL
+;
+;        CPDO            monadic arithmetic instructions
+;                        MVF, MNF, ABS, RND, SQT, LOG, LGN, EXP,
+;                        SIN, COS, TAN, ASN, ACS, ATN, URD, NRM
+;
+;        CPRT            joint arithmetic/data transfer instructions
+;                        FIX (arithmetic followed by load/store)
+;                        FLT (load/store followed by arithmetic)
+;                        CMF, CNF CMFE, CNFE (comparisons)
+;                        WFS, RFS (write/read floating point status register)
+;                        WFC, RFC (write/read floating point control register)
+; \xF0 - CPDT
+;        code 1: copro (1/2)
+;        code 2: load/store bit
+; \xF1 - CPDO
+; \xF2 - CPDO monadic
+; \xF3 - CPRT
+; \xF4 - CPRT comparison
+;
+; \xFF - fix me
+;
+
+[NONE]
+void                  void                            none
+
+[ABScc]
+
+[ACScc]
+
+[ASNcc]
+
+[ATNcc]
+
+[ADCcc]
+reg32,reg32,reg32        \4\x0\xA0                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\xA0                     ARM7
+reg32,reg32,reg32,imm    \6\x0\xA0                     ARM7
+reg32,reg32,imm          \7\x2\xA0                     ARM7
+
+[ADDcc]
+reg32,reg32,reg32        \4\x0\x80                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\x80                     ARM7
+reg32,reg32,reg32,imm    \6\x0\x80                     ARM7
+reg32,reg32,imm          \7\x2\x80                     ARM7
+
+[ADFcc]
+
+[ANDcc]
+reg32,reg32,reg32        \4\x0\x00                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\x00                     ARM7
+reg32,reg32,reg32,imm    \6\x0\x00                     ARM7
+reg32,reg32,imm          \7\x2\x00                     ARM7
+
+[Bcc]
+mem32                    \1\x0A                        ARM7
+imm24                    \1\x0A                        ARM7
+
+[BICcc]
+reg32,reg32,reg32        \4\x1\xC0                     ARM7
+reg32,reg32,reg32,reg32  \5\x1\xC0                     ARM7
+reg32,reg32,reg32,imm    \6\x1\xC0                     ARM7
+reg32,reg32,imm          \7\x3\xC0                     ARM7
+
+[BLcc]
+mem32                    \1\x0B                        ARM7
+imm24                    \1\x0B                        ARM7
+
+[BLX]
+mem32                    \xff                        ARM7
+imm24                    \xff                        ARM7
+
+[BKPTcc]
+
+[BXcc]
+reg32                    \3\x01\x2F\xFF\x10            ARM7
+
+[CDP]
+reg8,reg8           \300\1\x10\101                ARM7
+
+[CMFcc]
+
+[CMFEcc]
+
+[CMNcc]
+reg32,reg32              \xC\x1\x60                     ARM7
+reg32,reg32,reg32        \xD\x1\x60                     ARM7
+reg32,reg32,imm          \xE\x1\x60                     ARM7
+reg32,imm                \xF\x3\x60                     ARM7
+
+[CMPcc]
+reg32,reg32              \xC\x1\x40                     ARM7
+reg32,reg32,reg32        \xD\x1\x40                     ARM7
+reg32,reg32,imm          \xE\x1\x40                     ARM7
+reg32,imm                \xF\x3\x40                     ARM7
+
+[CLZcc]
+reg32,reg32              \x27\x01\x01                   ARM7
+
+[CNFcc]
+
+[COScc]
+
+[DVFcc]
+
+[EORcc]
+reg32,reg32,reg32        \4\x0\x20                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\x20                     ARM7
+reg32,reg32,reg32,imm    \6\x0\x20                     ARM7
+reg32,reg32,imm          \7\x2\x20                     ARM7
+
+[EXPcc]
+
+[FDVcc]
+
+[FLTcc]
+
+[FIXcc]
+
+[FMLcc]
+
+[FRDcc]
+
+[LDC]
+reg32,reg32         \321\300\1\x11\101            ARM7
+
+[LDMcc]
+memam4,reglist		   \x26\x81			ARM7
+
+[LDRBTcc]
+
+[LDRBcc]
+reg32,memam2              \x17\x07\x10                            ARM7
+
+[LDRcc]
+reg32,memam2              \x17\x05\x10                   ARM7
+; reg32,imm32              \x17\x05\x10                   ARM7
+; reg32,reg32              \x18\x04\x10                   ARM7
+; reg32,reg32,imm32        \x19\x04\x10                   ARM7
+; reg32,reg32,reg32        \x20\x06\x10                   ARM7
+; reg32,reg32,reg32,imm32  \x21\x06\x10                   ARM7
+
+[LDRHcc]
+reg32,imm32              \x22\x50\xB0               ARM7
+reg32,reg32              \x23\x50\xB0               ARM7
+reg32,reg32,imm32        \x24\x50\xB0                   ARM7
+reg32,reg32,reg32        \x25\x10\xB0                   ARM7
+
+[LDRSBcc]
+reg32,imm32              \x22\x50\xD0               ARM7
+reg32,reg32              \x23\x50\xD0               ARM7
+reg32,reg32,imm32        \x24\x50\xD0                   ARM7
+reg32,reg32,reg32        \x25\x10\xD0                   ARM7
+
+[LDRSHcc]
+reg32,imm32              \x22\x50\xF0               ARM7
+reg32,reg32              \x23\x50\xF0               ARM7
+reg32,reg32,imm32        \x24\x50\xF0                   ARM7
+reg32,reg32,reg32        \x25\x10\xF0                   ARM7
+
+[LDRTcc]
+
+[LDFcc]
+
+[LFMcc]
+reg32,imm8,fpureg        \xF0\x02\x01                   FPA
+
+[LGNcc]
+
+[LOGcc]
+
+[MCR]
+reg32,mem32         \320\301\1\x13\110            ARM7
+
+[MLAcc]
+reg32,reg32,reg32,reg32  \x15\x00\x20\x90               ARM7
+
+[MOVcc]
+reg32,shifterop              \x8\x0\0xd                   ARM7
+reg32,immshifter             \x8\x0\0xd                  ARM7
+; reg32,reg32,reg32        \x9\x1\xA0                     ARM7
+; reg32,reg32,imm          \xA\x1\xA0                     ARM7
+; reg32,imm                \xB\x3\xA0                     ARM7
+
+; [MRC]
+; reg32,reg32         \321\301\1\x13\110                  ARM7
+
+; [MRScc]
+; reg32,reg32         \x10\x01\x0F                        ARM7
+
+; [MSRcc]
+; reg32,reg32         \x11\x01\x29\xF0                    ARM7
+; regf,reg32          \x12\x01\x28\xF0                    ARM7
+; regf,imm            \x13\x03\x28\xF0                    ARM7
+
+[MNFcc]
+
+[MUFcc]
+
+[MULcc]
+reg32,reg32,reg32        \x14\x00\x00\x90          ARM7
+
+[MVFcc]
+fpureg,fpureg              \xF2                      FPA
+fpureg,immfpu              \xF2                      FPA
+
+[MVNcc]
+reg32,reg32         \x8\x0\0xf                     ARM7
+reg32,reg32,reg32   \x9\x1\xE0                     ARM7
+reg32,reg32,imm     \xA\x1\xE0                     ARM7
+reg32,imm           \xB\x3\xE0                     ARM7
+
+[ORRcc]
+reg32,reg32,reg32        \4\x1\x80                     ARM7
+reg32,reg32,reg32,reg32  \5\x1\x80                     ARM7
+reg32,reg32,reg32,imm    \6\x1\x80                     ARM7
+reg32,reg32,imm          \7\x3\x80                     ARM7
+
+[RDFcc]
+
+[RFScc]
+
+[RFCcc]
+
+[RMFcc]
+
+[RPWcc]
+
+[RSBcc]
+reg32,reg32,reg32        \4\x0\x60                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\x60                     ARM7
+reg32,reg32,reg32,imm    \6\x0\x60                     ARM7
+reg32,reg32,imm          \7\x2\x60                     ARM7
+
+[RSCcc]
+reg32,reg32,reg32        \4\x0\xE0                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\xE0                     ARM7
+reg32,reg32,reg32,imm    \6\x0\xE0                     ARM7
+reg32,reg32,imm          \7\x2\xE0                     ARM7
+
+[RSFcc]
+
+[RNDcc]
+
+[POLcc]
+
+[SBCcc]
+reg32,reg32,reg32        \4\x0\xC0                     ARM7
+reg32,reg32,reg32,reg32  \5\x0\xC0                     ARM7
+reg32,reg32,reg32,imm    \6\x0\xC0                     ARM7
+reg32,reg32,imm          \7\x2\xC0                     ARM7
+
+[SFMcc]
+reg32,imm8,fpureg        \xF0\x02\x00                   FPA
+
+[SINcc]
+
+[SMLALcc]
+reg32,reg32,reg32,reg32  \x16\x00\xE0\x90		 ARM7
+
+[SMULLcc]
+reg32,reg32,reg32,reg32  \x16\x00\xC0\x90		 ARM7
+
+[SQTcc]
+
+[SUFcc]
+
+[STFcc]
+
+[STMcc]
+memam4,reglist		   \x26\x80			ARM7
+
+[STRcc]
+reg32,memam2              \x17\x04\x00                   ARM7
+; reg32,imm32              \x17\x05\x00                   ARM7
+; reg32,reg32              \x18\x04\x00                   ARM7
+; reg32,reg32,imm32        \x19\x04\x00                   ARM7
+; reg32,reg32,reg32        \x20\x06\x00                   ARM7
+; reg32,reg32,reg32,imm32  \x21\x06\x00                   ARM7
+
+[STRBcc]
+reg32,memam2              \x17\x06\x00                           ARM7
+
+[STRBTcc]
+
+; A dummy since it is parsed as STR{cond}H
+[STRHcc]
+reg32,imm32              \x22\x40\xB0              ARM7
+reg32,reg32              \x23\x40\xB0               ARM7
+reg32,reg32,imm32        \x24\x40\xB0                   ARM7
+reg32,reg32,reg32        \x25\x00\xB0                   ARM7
+
+[STRTcc]
+
+[SUBcc]
+reg32,reg32,shifterop     \4\x0\x40                     ARM7
+reg32,reg32,immshifter    \4\x0\x40                     ARM7
+reg32,reg32,reg32        \4\x0\x40                     ARM7
+; reg32,reg32,reg32,reg32  \5\x0\x40                     ARM7
+; reg32,reg32,reg32,imm    \6\x0\x40                     ARM7
+; reg32,reg32,imm          \7\x2\x40                     ARM7
+
+[SWIcc]
+imm                 \2\x0F                        ARM7
+
+[SWPcc]
+reg32,reg32,reg32   \x27\x01\x90                   ARM7
+
+[SWPBcc]
+reg32,reg32,reg32   \x27\x01\x90                   ARM7
+
+[TANcc]
+
+[TEQcc]
+reg32,reg32         \xC\x1\x20                     ARM7
+reg32,reg32,reg32   \xD\x1\x20                     ARM7
+reg32,reg32,imm     \xE\x1\x20                     ARM7
+reg32,imm           \xF\x3\x20                     ARM7
+
+[TSTcc]
+reg32,reg32         \xC\x1\x00                     ARM7
+reg32,reg32,reg32   \xD\x1\x00                     ARM7
+reg32,reg32,imm     \xE\x1\x00                     ARM7
+reg32,imm           \xF\x3\x00                     ARM7
+
+[UMLALcc]
+reg32,reg32,reg32,reg32  \x16\x00\xA0\x90		 ARM7
+
+[UMULLcc]
+reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
+
+[WFScc]
+

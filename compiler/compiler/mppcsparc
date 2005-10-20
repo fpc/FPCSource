@@ -1,0 +1,42 @@
+#!/bin/bash
+cd "`dirname "$0"`/.."
+FPC_SRC_DIR="$PWD"
+COMP_DIR="$FPC_SRC_DIR/compiler"
+RTL_DIR="$FPC_SRC_DIR/rtl"
+SPARC_BINUTILS_DIR="/usr/local/bin/sparc-linux"
+INCLUDE_PATH=`echo -Fi"$RTL_DIR/"{unix,linux,sparc,inc,linux/sparc,objpas/sysutils}`
+UNITS_PATH=`echo -Fu"$RTL_DIR/"{unix,linux,sparc,inc,linux/sparc,objpas,inc}`
+SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}:`
+TEST_DIR="$FPC_SRC_DIR/tests/test"
+if [[ "$1" == "-V1.0" ]] || [[ "$#" == 0 ]]
+then
+  if [[ "$1" == "-V1.1" ]]
+  then
+    cd "$COMP_DIR"
+    ~/FPC/bin/fpc -XD -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA pp.pas
+  else
+    cd "$COMP_DIR"
+    fpc -XD -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -FE"sparc" -dSPARC -dGDB -dNewRA pp.pas
+  fi
+fi
+if [[ "$#" -gt "0" ]] && ( [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]] )
+then
+  cd "$TEST_DIR"
+  COMPILE_COMMAND='"$COMP_DIR/sparc/ppcsparc" -g -artl $UNITS_PATH -FD"$SPARC_BINUTILS_DIR" $INCLUDE_PATH  "-FE$TEST_DIR" -dSPARC'
+  if [[ "$1" == "-gdb" ]]
+  then
+    shift 1
+    eval gdb -d \"$SRC_DIR\" --args $COMPILE_COMMAND "$@"
+  else
+    FILES_LIST=`ls $1`
+    shift 1
+    for FileName in $FILES_LIST
+    do
+      eval "$COMPILE_COMMAND" "$FileName" "$@"
+      if [[ $? != 0 ]]
+      then
+        break;
+      fi
+    done
+  fi
+fi
