@@ -271,12 +271,12 @@ type
     node: TDOMNode;
     filter: DOMString;
     UseFilter: Boolean;
-    function GetCount: LongInt;
+    function GetCount: LongWord;
     function GetItem(index: LongWord): TDOMNode;
   public
     constructor Create(ANode: TDOMNode; const AFilter: DOMString);
     property Item[index: LongWord]: TDOMNode read GetItem;
-    property Count: LongInt read GetCount;
+    property Count: LongWord read GetCount;
   end;
 
 
@@ -289,7 +289,7 @@ type
     OwnerDocument: TDOMDocument;
     function GetItem(index: LongWord): TDOMNode;
     procedure SetItem(index: LongWord; AItem: TDOMNode);
-    function GetLength: LongInt;
+    function GetLength: LongWord;
   public
     constructor Create(AOwner: TDOMDocument);
 
@@ -297,7 +297,7 @@ type
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
     property Item[index: LongWord]: TDOMNode read GetItem write SetItem; default;
-    property Length: LongInt read GetLength;
+    property Length: LongWord read GetLength;
   end;
 
 
@@ -307,10 +307,10 @@ type
 
   TDOMCharacterData = class(TDOMNode)
   protected
-    function  GetLength: LongInt;
+    function  GetLength: LongWord;
   public
     property Data: DOMString read FNodeValue;
-    property Length: LongInt read GetLength;
+    property Length: LongWord read GetLength;
     function SubstringData(offset, count: LongWord): DOMString;
     procedure AppendData(const arg: DOMString);
     procedure InsertData(offset: LongWord; const arg: DOMString);
@@ -955,7 +955,7 @@ begin
   UseFilter := filter <> '*';
 end;
 
-function TDOMNodeList.GetCount: LongInt;
+function TDOMNodeList.GetCount: LongWord;
 var
   child: TDOMNode;
 begin
@@ -974,8 +974,6 @@ var
   child: TDOMNode;
 begin
   Result := nil;
-  if index < 0 then
-    exit;
   child := node.FirstChild;
   while Assigned(child) do
   begin
@@ -1011,7 +1009,7 @@ begin
   Items[index] := AItem;
 end;
 
-function TDOMNamedNodeMap.GetLength: LongInt;
+function TDOMNamedNodeMap.GetLength: LongWord;
 begin
   Result := Count;
 end;
@@ -1073,14 +1071,14 @@ end;
 //   CharacterData
 // -------------------------------------------------------
 
-function TDOMCharacterData.GetLength: LongInt;
+function TDOMCharacterData.GetLength: LongWord;
 begin
   Result := system.Length(FNodeValue);
 end;
 
 function TDOMCharacterData.SubstringData(offset, count: LongWord): DOMString;
 begin
-  if (offset < 0) or (longint(offset) > Length) or (count < 0) then
+  if (offset > Length) then
     raise EDOMIndexSize.Create('CharacterData.SubstringData');
   Result := Copy(FNodeValue, offset + 1, count);
 end;
@@ -1092,7 +1090,7 @@ end;
 
 procedure TDOMCharacterData.InsertData(offset: LongWord; const arg: DOMString);
 begin
-  if (offset < 0) or (longint(offset) > Length) then
+  if (offset > Length) then
     raise EDOMIndexSize.Create('CharacterData.InsertData');
 
   FNodeValue := Copy(FNodeValue, 1, offset) + arg +
@@ -1101,7 +1099,7 @@ end;
 
 procedure TDOMCharacterData.DeleteData(offset, count: LongWord);
 begin
-  if (offset < 0) or (longint(offset) > Length) or (count < 0) then
+  if (offset > Length) then
     raise EDOMIndexSize.Create('CharacterData.DeleteData');
 
   FNodeValue := Copy(FNodeValue, 1, offset) +
@@ -1499,7 +1497,7 @@ end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
 begin
-  if longint(offset) > Length then
+  if offset > Length then
     raise EDOMIndexSize.Create('Text.SplitText');
 
   Result := TDOMText.Create(FOwnerDocument);
