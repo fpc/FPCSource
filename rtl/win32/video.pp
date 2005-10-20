@@ -414,7 +414,7 @@ begin
       SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
       SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
       SysVMD[SysVideoModeCount-1].Color:=true;
-      OrigScreenSize := dwMaximumWindowSize.X * dwMaximumWindowSize.Y * SizeOf (Char_Info);
+      OrigScreenSize := max(dwMaximumWindowSize.X,dwSize.X) * max(dwMaximumWindowSize.Y,dwSize.Y) * SizeOf (Char_Info);
     end;
   GetMem (OrigScreen, OrigScreenSize);
   with C do
