@@ -117,6 +117,8 @@ begin
     hcSave          : S:=hint_filesave;
     hcSaveAs        : S:=hint_filesaveas;
     hcSaveAll       : S:=hint_filesaveall;
+    hcPrint         : S:=hint_print;
+    hcPrinterSetup    : S:=hint_printersetup;
     hcChangeDir     : S:=hint_changedir;
     hcDOSShell      : S:=hint_dosshell;
     hcQuit          : S:=hint_exit;

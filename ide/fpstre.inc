@@ -53,6 +53,8 @@ const
       menu_file_saveas       = 'Save ~a~s...';
       menu_file_saveall      = 'Save a~l~l';
       menu_file_reload       = '~R~eload';
+      menu_file_print        = '~P~rint';
+      menu_file_printsetup   = 'Print s~e~tup';
       menu_file_changedir    = '~C~hange dir...';
       menu_file_dosshell     = 'Comman~d~ shell';
       menu_file_exit         = 'E~x~it';
@@ -269,6 +271,8 @@ const
 
       msg_quitconfirm         = 'Do You really want to quit?';
 
+      msg_printerror = 'Error while printing';
+
       { CodeComplete dialog }
       dialog_codecomplete     = 'CodeComplete';
       label_codecomplete_keywords = '~K~eywords';
@@ -361,6 +365,9 @@ const
 
       dialog_programparameters = 'Program parameters';
       label_parameters_parameter = '~P~arameter';
+
+      dialog_setupprinter = 'Setup printer';
+      label_setupprinter_device = '~D~evice';
 
       dialog_openoptions = 'Open Options';
       msg_cantopenconfigfile = 'Can''t open config file.';
@@ -936,6 +943,8 @@ const
       hint_filesave          = 'Save the file in the active edit window';
       hint_filesaveas        = 'Save the current file under a different name, directory or drive';
       hint_filesaveall       = 'Save all modified files';
+      hint_print             = 'Print current file';
+      hint_printersetup      = 'Setup printer output device';
       hint_changedir         = 'Choose a new default directory';
       hint_dosshell          = 'Temporarily exit to shell';
       hint_exit              = 'Exit the IDE';

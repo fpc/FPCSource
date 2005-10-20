@@ -26,6 +26,8 @@ procedure CheckINIFile;
 function  ReadINIFile: boolean;
 function  WriteINIFile(FromSaveAs : boolean) : boolean;
 
+function GetPrinterDevice: string;
+procedure SetPrinterDevice(const Device: string);
 
 implementation
 
@@ -39,6 +41,22 @@ uses
   WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
   FPIntf,FPTools,FPSwitch,FPString;
+
+const
+  PrinterDevice : string = 'prn';
+
+
+function GetPrinterDevice: string;
+begin
+  GetPrinterDevice:=PrinterDevice;
+end;
+
+
+procedure SetPrinterDevice(const Device: string);
+begin
+  PrinterDevice:=Device;
+end;
+
 
 const
   { INI file sections }
@@ -60,6 +78,7 @@ const
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
+  iePrinterDevice    = 'PrinterDevice';
 (*  ieOpenFile         = 'OpenFile';
   ieOpenFileCount    = 'OpenFileCount'; *)
   ieRunDir           = 'RunDirectory';
@@ -351,6 +370,7 @@ begin
   { Run }
   SetRunDir(INIFile^.GetEntry(secRun,ieRunDir,GetRunDir));
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
+  SetPrinterDevice(INIFile^.GetEntry(secFiles,iePrinterDevice,GetPrinterDevice));
   { First read the primary file, which can also set the parameters which can
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
@@ -548,6 +568,7 @@ begin
   { Run }
   INIFile^.SetEntry(secRun,ieRunDir,GetRunDir);
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
+  INIFile^.SetEntry(secFiles,iePrinterDevice,GetPrinterDevice);
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
 {$ifdef SUPPORT_REMOTE}
