@@ -4,7 +4,7 @@
 { Submitted by "Frank Kintrup" on  2004-08-27 }
 { e-mail: frank.kintrup@gmx.de }
 {$MODE Delphi}
-{$ASMODE Intel}
+{$ASMMODE Intel}
 
 var
   X : Integer;
