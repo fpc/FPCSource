@@ -2346,6 +2346,9 @@ implementation
              begin
                consume(_PLUS);
                p1:=factor(false);
+               { we must generate a new node to do 0+<p1> otherwise the + will
+                 not be checked }
+               p1:=caddnode.create(addn,genintconstnode(0),p1);
              end;
 
            _MINUS :
