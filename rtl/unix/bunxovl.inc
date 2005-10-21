@@ -278,8 +278,12 @@ Function FpDup2(var oldfile,newfile:file):cint;
 {
   Copies the filedescriptor oldfile to newfile
 }
+var
+  tmphandle : word;
 begin
+  tmphandle := filerec(newfile).handle;
   filerec(newfile):=filerec(oldfile);
+  filerec(newfile).handle := tmphandle;
   fpDup2:=fpDup2(filerec(oldfile).handle,filerec(newfile).handle);
 end;
 
