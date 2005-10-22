@@ -2278,6 +2278,7 @@ S*2Aas_assemble using GNU AS
 **2Nu_unroll loops
 **1o<x>_change the name of the executable produced to <x>
 **1O<x>_optimizations:
+3*2Oa_<type>=<values> set alignment
 3*2Og_generate smaller code
 3*2OG_generate faster code (default)
 **2Or_keep certain variables in registers
