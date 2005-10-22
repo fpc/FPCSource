@@ -1015,6 +1015,12 @@ parser_e_arithmetic_operation_overflow=03213_E_Overflow in arithmetischer Operat
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_Protected oder private erwartet
 % \var{strict} can be only used together with \var{protected} or \var{private}.
+parser_e_illegal_slice=03215_E_SLICE kann nicht ausserhalb der Parameterliste benutzt werden
+% \var{slice} can be used only for arguments accepting an open array parameter
+parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elternklasse haben.
+% A DISPINMTERFACE is a special type of interface which can't have a parent class
+parser_e_dispinterface_needs_a_guid=03217_E_Ein DISPINTERFACE ben”tigt einen GUID
+% A DISPINMTERFACE needs always an interface identification
 % \end{description}
 #
 # Type Checking
@@ -2307,6 +2313,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Sg_erlaube LABEL und GOTO
 **2Sh_benutze ANSI-Strings
 **2Si_benutze C++ artige INLINE
+**2Sk_lade fpcylix Unit
 **2SI<x>_setze den Stil des Interface zu <x>
 **3SIcom_COM kompatibles Interface (Voreinstellung)
 **3SIcorba_CORBA kompatibles Interface
@@ -2360,9 +2367,10 @@ S*2Tlinux_Linux
 **2*_i : allgemeine Info               d : Debug Info
 **2*_l : Zeilennummern                 r : Rhide/GCC kompatibler Modus
 **2*_a : alles                         x : Exe-Datei Info (nur Win32)
+**2*_b : schreibe bei Meldungen mit Dateinamen den vollst„ndigem Pfad
 **2*_v : schreibe fpcdebug.txt mit     p : schreibe tree.log mit Analysenbaum (parse tree)
 **2*_   ganz viel Informationen
-3*1W<x>_Win32-„hnliche Ziel-Optionen 
+3*1W<x>_Win32-„hnliche Ziel-Optionen
 3*2WB_erzeuge ein relozierbares Image
 3*2WB<x>_Setze Image base auf den Hexadecimal Wert <x>
 3*2WC_spezifiziere "console type application"

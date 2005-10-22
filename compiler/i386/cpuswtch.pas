@@ -58,7 +58,8 @@ begin
                    end;
                  'a' :
                    begin
-                     UpdateAlignmentStr(Copy(Opt,j+1,255),ParaAlignment);
+                     if not(UpdateAlignmentStr(Copy(Opt,j+1,255),ParaAlignment)) then
+                       IllegalPara(opt);
                      j:=length(Opt);
                    end;
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];

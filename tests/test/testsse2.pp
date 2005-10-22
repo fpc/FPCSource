@@ -1,12 +1,13 @@
+{ %OPT=-OaVARMAX=16 -OaVARMIN=16 }
 { %CPU=i386 }
-{ %version=1.1}
 uses
    mmx;
 
 { only a small test to see if it works in principal }
 
 var
-   q : array[0..15] of byte;
+  b : byte;
+  q : array[0..15] of byte;
 
 begin
   if is_sse2_cpu then
