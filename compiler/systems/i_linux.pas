@@ -90,11 +90,11 @@ unit i_linux;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
+                recordalignmax  : 16;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
@@ -151,13 +151,13 @@ unit i_linux;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 8;
+                constalignmax   : 16;
                 varalignmin     : 0;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
+                recordalignmax  : 16;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
@@ -354,7 +354,7 @@ unit i_linux;
             DllScanSupported:false;
             use_function_relative_addresses : true;
             abi : abi_default
-          );         
+          );
 
        system_alpha_linux_info : tsysteminfo =
           (
@@ -469,11 +469,11 @@ unit i_linux;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 8;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 8;
+                recordalignmax  : 16;
                 maxCrecordalign : 8
               );
             first_parm_offset : 16;
