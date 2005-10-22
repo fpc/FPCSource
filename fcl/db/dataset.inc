@@ -964,6 +964,12 @@ begin
     end;
 end;
 
+Function TDataset.Tempbuffer: PChar;
+
+begin
+  Result := FBuffers[FRecordCount];
+end;
+
 Procedure TDataset.UpdateIndexDefs;
 
 begin
