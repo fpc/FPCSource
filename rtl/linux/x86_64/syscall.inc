@@ -29,7 +29,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -62,7 +62,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -96,7 +96,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -131,7 +131,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -167,7 +167,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -204,7 +204,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
@@ -243,7 +243,7 @@ asm
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
-  movq  Errno@GOTPCREL(%rip),%rax
+  movq  Errno@GOTPCREL(%rip),%rbx
 {$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
   leaq  Errno,%rbx
