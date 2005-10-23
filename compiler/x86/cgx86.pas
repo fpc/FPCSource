@@ -504,8 +504,17 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
+      var
+        sym : tasmsymbol;
+        r : treference;
       begin
-        list.concat(taicpu.op_sym(A_CALL,S_NO,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+        reference_reset_symbol(r,sym,0);
+        if cs_create_pic in aktmoduleswitches then
+          r.refaddr:=addr_pic
+        else
+          r.refaddr:=addr_full;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
 
 
@@ -887,7 +896,10 @@ unit cgx86;
           internalerror(200312215);
         case loc.loc of
           LOC_CREFERENCE,LOC_REFERENCE:
-            list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+            begin
+              make_simple_ref(exprasmlist,loc.reference);
+              list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+            end;
           LOC_CMMREGISTER,LOC_MMREGISTER:
             list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));
           else

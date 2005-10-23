@@ -103,18 +103,19 @@
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
        asm
+            subq        $16,%rsp
             // comes from DJ GPP
             fldt        d
             fldl2e
             fmulp       %st,%st(1)
-            fstcw      .LCW1
-            fstcw      .LCW2
-            andw        $0xf3ff,.LCW2
-            orw         $0x0400,.LCW2
-            fldcw      .LCW2
+            fstcw       -2(%rbp)
+            fstcw       -4(%rbp)
+            andw        $0xf3ff,-4(%rbp)
+            orw         $0x0400,-4(%rbp)
+            fldcw       -4(%rbp)
             fld         %st(0)
             frndint
-            fldcw      .LCW1
+            fldcw       -2(%rbp)
             fxch        %st(1)
             fsub        %st(1),%st
             f2xm1
@@ -122,15 +123,6 @@
             faddp       %st,%st(1)
             fscale
             fstp        %st(1)
-            jmp         .LCW3
-            // store some help data in the data segment
-        .data
-        .LCW1:
-            .word       0
-        .LCW2:
-            .word       0
-        .text
-        .LCW3:
       end;
 
 

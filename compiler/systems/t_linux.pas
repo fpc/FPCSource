@@ -64,9 +64,10 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,dos
-    ,aasmbase,aasmtai,aasmcpu,cpubase,cgobj
-    ,i_linux
+    fmodule,dos,
+    aasmbase,aasmtai,aasmcpu,cpubase,
+    cgbase,cgobj,cgutils,
+    i_linux
     ;
 
 {*****************************************************************************
@@ -156,6 +157,8 @@ end;
 procedure texportliblinux.generatelib;
 var
   hp2 : texported_item;
+  sym : tasmsymbol;
+  r : treference;
 begin
   new_section(codesegment,sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
@@ -171,7 +174,22 @@ begin
            { place jump in codesegment }
            codesegment.concat(tai_align.create(target_info.alignment.procalign));
            codeSegment.concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           cg.a_jmp_name(codesegment,tprocsym(hp2.sym).first_procdef.mangledname);
+           if (cs_create_pic in aktmoduleswitches) and
+             { other targets need to be checked how it works }
+             (target_info.system in [system_x86_64_linux]) then
+             begin
+{$ifdef x86_64}
+               sym:=objectlibrary.newasmsymbol(hp2.name^,AB_EXTERNAL,AT_FUNCTION);
+               reference_reset_symbol(r,sym,0);
+               if cs_create_pic in aktmoduleswitches then
+                 r.refaddr:=addr_pic
+               else
+                 r.refaddr:=addr_full;
+               codesegment.concat(taicpu.op_ref(A_JMP,S_NO,r));
+{$endif x86_64}
+             end
+           else
+             cg.a_jmp_name(codesegment,tprocsym(hp2.sym).first_procdef.mangledname);
            codeSegment.concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end
