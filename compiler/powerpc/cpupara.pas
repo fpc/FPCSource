@@ -45,7 +45,7 @@ unit cpupara;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
-              var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+              var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        end;
 
@@ -298,7 +298,7 @@ unit cpupara;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
-        result := create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        result := create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset,false);
 
         create_funcretloc_info(p,side);
       end;
@@ -306,7 +306,7 @@ unit cpupara;
 
 
     function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
-               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; varargsparas: boolean):longint;
       var
          stack_offset: longint;
          paralen: aint;
@@ -413,6 +413,18 @@ unit cpupara;
                         end;
                     end
                 end;
+
+              if varargsparas and
+                 (target_info.abi = abi_powerpc_aix) and
+                 (paradef.deftype = floatdef) then
+                begin
+                  loc := LOC_REGISTER;
+                  if paracgsize = OS_F64 then
+                    paracgsize := OS_64
+                  else
+                    paracgsize := OS_32;
+                end;
+
               hp.paraloc[side].alignment:=std_param_align;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
@@ -522,11 +534,11 @@ unit cpupara;
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
         firstfloatreg:=curfloatreg;
 
-        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset, false);
         if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
           { just continue loading the parameters in the registers }
           begin
-            result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset);
+            result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset,true);
             { varargs routines have to reserve at least 32 bytes for the AIX abi }
             if (target_info.abi = abi_powerpc_aix) and
                (result < 32) then

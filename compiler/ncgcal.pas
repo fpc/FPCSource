@@ -224,6 +224,21 @@ implementation
                      cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif x86_64}
+{$ifdef powerpc}
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     { aix abi passes floats of varargs in both fpu and }
+                     { integer registers                                }
+                     location_force_mem(exprasmlist,left.location);
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
+                     if (left.location.size in [OS_32,OS_S32]) then
+                       cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
+                     else
+                       cg64.a_param64_ref(exprasmlist,left.location.reference,tempcgpara);
+                   end;
+{$endif powerpc}
 {$if defined(sparc) or defined(arm)}
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
@@ -253,6 +268,19 @@ implementation
                      cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif x86_64}
+{$ifdef powerpc}
+                 { x86_64 pushes s64comp in normal register }
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
+                     if (left.location.size in [OS_32,OS_S32]) then
+                       cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
+                     else
+                       cg64.a_param64_ref(exprasmlist,left.location.reference,tempcgpara);
+                   end;
+{$endif powerpc}
 {$if defined(sparc) or defined(arm) }
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
