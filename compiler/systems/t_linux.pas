@@ -66,7 +66,7 @@ implementation
     symconst,script,
     fmodule,dos,
     aasmbase,aasmtai,aasmcpu,cpubase,
-    cgobj,cgutils,
+    cgbase,cgobj,cgutils,
     i_linux
     ;
 
@@ -179,7 +179,7 @@ begin
              (target_info.system in [system_x86_64_linux]) then
              begin
 {$ifdef x86_64}
-               sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+               sym:=objectlibrary.newasmsymbol(hp2.name^,AB_EXTERNAL,AT_FUNCTION);
                reference_reset_symbol(r,sym,0);
                if cs_create_pic in aktmoduleswitches then
                  r.refaddr:=addr_pic
