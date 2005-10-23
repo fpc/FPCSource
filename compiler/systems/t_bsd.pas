@@ -32,6 +32,11 @@ implementation
 
   uses
     cutils,cclasses,
+{$ifdef USE_SYSUTILS}
+    sysutils,
+{$else USE_SYSUTILS}
+    dos,
+{$endif USE_SYSUTILS}
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
@@ -584,7 +589,15 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+{$ifndef darwin}
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+{$else darwin}
+{$ifdef USE_SYSUTILS}
+  Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename^)));
+{$else USE_SYSUTILS}
+  Replace(cmdstr,'$EXE',maybequoted(FExpand(current_module.sharedlibfilename^)));
+{$endif USE_SYSUTILS}
+{$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
