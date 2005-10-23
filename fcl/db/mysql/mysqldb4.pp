@@ -108,7 +108,6 @@ type
     procedure InternalPost; override;
     // Misc methods:
     procedure InternalClose; override;
-    procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function IsCursorOpen: Boolean; override;
@@ -356,11 +355,6 @@ end;
 procedure TMySQLDataset.InternalGotoBookmark(ABookmark: Pointer);
 begin
   FCurrentRecord := PInteger(ABookmark)^;
-end;
-
-procedure TMySQLDataset.InternalHandleException;
-begin
-  //     Application.HandleException(self);
 end;
 
 procedure TMySQLDataset.InternalInitFieldDefs;

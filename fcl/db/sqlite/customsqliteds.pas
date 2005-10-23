@@ -130,7 +130,6 @@ type
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure InternalHandleException; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
@@ -614,11 +613,6 @@ end;
 procedure TCustomSqliteDataset.InternalGotoBookmark(ABookmark: Pointer);
 begin
   FCurrentItem := PDataRecord(ABookmark^);
-end;
-
-procedure TCustomSqliteDataset.InternalHandleException;
-begin
-  //??
 end;
 
 procedure TCustomSqliteDataset.InternalInitRecord(Buffer: PChar);

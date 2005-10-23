@@ -158,7 +158,6 @@ end;
     procedure InternalAddRecord(Buffer : Pointer; DoAppend : boolean); override;
     procedure InternalDelete; override;
     procedure InternalFirst; override;
-    procedure InternalHandleException; override;
     procedure InternalInitRecord(Buffer : pChar); override;
     procedure InternalLast;override;
     procedure InternalPost;override;
@@ -983,14 +982,6 @@ end;
 procedure TSQLite.InternalFirst;
 begin
   self.fCurrentRecord:=0;
-end;
-
-procedure TSQLite.InternalHandleException;
-begin
-{
-  if _DO_EXCEPTIONS=1 then
-        Application.HandleException(Self)
-}
 end;
 
 procedure TSQLite.InternalInitRecord(Buffer: pChar);

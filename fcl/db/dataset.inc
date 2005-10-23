@@ -702,6 +702,15 @@ begin
   result := FState <> dsInactive;
 end;
 
+Procedure TDataset.InternalHandleException;
+
+begin
+  if assigned(classes.ApplicationHandleException) then
+    classes.ApplicationHandleException(self)
+  else
+    ShowException(ExceptObject,ExceptAddr);
+end;
+
 Procedure TDataset.SetActive (Value : Boolean);
 
 begin
@@ -723,7 +732,14 @@ procedure TDataset.Loaded;
 
 begin
   inherited;
-  if FOpenAfterRead then SetActive(true);
+  try
+    if FOpenAfterRead then SetActive(true);
+  except
+    if csDesigning in Componentstate then
+      InternalHandleException
+    else
+      raise;
+  end;
 end;
 
 
