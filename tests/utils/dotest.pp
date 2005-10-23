@@ -498,7 +498,11 @@ begin
 {$ifdef unix}
   { Add runtime library path to current dir to find .so files }
   if Config.NeedLibrary then
+{$ifndef darwin}
    args:=args+' -Fl'+TestOutputDir+' ''-k-rpath .''';
+{$else darwin}
+   args:=args+' -Fl'+TestOutputDir;
+{$endif darwin}
 {$endif unix}
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
