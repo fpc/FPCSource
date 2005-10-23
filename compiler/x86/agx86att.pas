@@ -155,6 +155,8 @@ interface
               else
                 begin
                   AsmWrite(o.ref^.symbol.name);
+                  if o.ref^.refaddr=addr_pic then
+                    AsmWrite('@PLT');
                   if o.ref^.offset>0 then
                    AsmWrite('+'+tostr(o.ref^.offset))
                   else

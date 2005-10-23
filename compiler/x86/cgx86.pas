@@ -536,8 +536,17 @@ unit cgx86;
 
 
     procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
+      var
+        sym : tasmsymbol;
+        r : treference;
       begin
-        list.concat(taicpu.op_sym(A_CALL,S_NO,objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+        reference_reset_symbol(r,sym,0);
+        if cs_create_pic in aktmoduleswitches then
+          r.refaddr:=addr_pic
+        else
+          r.refaddr:=addr_full;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
 
 
