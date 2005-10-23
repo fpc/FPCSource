@@ -1137,7 +1137,7 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
-          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resulttype.def),initrtti)),
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resulttype.def),initrtti)),
             ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil)
           ),resulttype);
         resulttypepass(result);
