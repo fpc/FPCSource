@@ -934,7 +934,10 @@ unit cgx86;
           internalerror(200312215);
         case loc.loc of
           LOC_CREFERENCE,LOC_REFERENCE:
-            list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+            begin
+              make_simple_ref(exprasmlist,loc.reference);
+              list.concat(taicpu.op_ref_reg(asmop,S_NO,loc.reference,resultreg));
+            end;
           LOC_CMMREGISTER,LOC_MMREGISTER:
             list.concat(taicpu.op_reg_reg(asmop,S_NO,loc.register,resultreg));
           else
