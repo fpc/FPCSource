@@ -26,14 +26,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -52,14 +59,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -79,14 +93,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -107,14 +128,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -136,14 +164,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -166,14 +201,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -198,14 +240,21 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
   movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%rbx
+{$endif FPC_PIC}
   testq %rax,%rax
   jne   .LThread
-  movl  %edx,Errno+8
+  movl  %edx,8(%rbx)
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  movq  Errno,%rdi
+  movq  (%rbx),%rdi
   call  *%rax
   popq  %rdx
   movl  %edx,(%rax)
@@ -219,5 +268,3 @@ end;
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
-
-
