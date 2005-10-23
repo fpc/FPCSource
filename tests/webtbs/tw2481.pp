@@ -21,11 +21,14 @@ Var
     B.A := V;
   End;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+{ otherwise extended = real = double }
   Operator := (V : Extended) B : TMoo;
   Begin
     B:=TMoo.Create;
     B.A := V;
   End;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 Constructor TMoo.Init;
 Begin
