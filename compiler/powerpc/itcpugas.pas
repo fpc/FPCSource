@@ -74,7 +74,7 @@ interface
         'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
         'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'not.',
-        'mtcr', 'mtlr', 'mflr','mtctr', 'mfctr');
+        'mtcr', 'mtlr', 'mflr','mtctr', 'mfctr', 'mftbu');
 
     function gas_regnum_search(const s:string):Tregister;
     function gas_regname(r:Tregister):string;
