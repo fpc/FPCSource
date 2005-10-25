@@ -13,7 +13,8 @@ begin
 
   WriteLn('Writing a sample XML configuration to "testcfg.xml"...');
 
-  cfg := TXMLConfig.Create('testcfg.xml');
+  cfg := TXMLConfig.Create(nil);
+  cfg.Filename := 'testcfg.xml';
   cfg.SetValue('cfgtest/MainWindow/Constraints/Width', 600);
   cfg.SetValue('cfgtest/MainWindow/Constraints/Height', 400);
   cfg.SetValue('cfgtest/MainWindow/Caption', 'TXMLConfig Test');
@@ -23,7 +24,8 @@ begin
 
   WriteLn('Ok; now I''ll try to read back all values...');
 
-  cfg := TXMLConfig.Create('testcfg.xml');
+  cfg := TXMLConfig.Create(nil);
+  cfg.Filename := 'testcfg.xml';
 
   i := cfg.GetValue('cfgtest/MainWindow/Constraints/Width', 0);
   if i <> 600 then

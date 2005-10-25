@@ -1,6 +1,6 @@
 program RPCCli;
 
-uses SysUtils, Classes, fpAsync, XMLRPC;
+uses SysUtils, Classes, fpAsync, xmlrpc;
 
 type
 
