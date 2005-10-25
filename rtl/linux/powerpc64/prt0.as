@@ -60,6 +60,22 @@
 	li	3,1
 	sc
 .endm
+
+.section ".text"
+.align 3
+.globl .ptrgl
+.ptrgl:
+    ld	0, 0(11)
+    std	2, 40(1)
+    mtctr	0
+    ld	2, 8(11)
+    ld	11, 8(11)
+    bctr
+    .long 0
+    .byte	0, 12, 0, 0, 0, 0, 0, 0
+    .type .ptrgl, @function
+    .size .ptrgl, . - .ptrgl
+
 	/*
         Main Pascal entry point label (function)
 	*/
@@ -69,7 +85,7 @@ FUNCTION_PROLOG _start
 	/* Set up an initial stack frame, and clear the LR */
 	clrrdi  1, 1, 5       /* align r1 */
 	li      0, 0          
-	stdu    1,-48(1)      
+	stdu    1,-128(1)      
 	mtlr    0             
 	std     0, 0(1)       /* r1 = pointer to NULL value */
 
