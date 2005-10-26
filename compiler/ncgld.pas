@@ -167,7 +167,7 @@ implementation
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
                        paramanager.allocparaloc(exprasmlist,paraloc1);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
+                       cg.a_param_ref(exprasmlist,OS_32,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paraloc1.done;
                        cg.allocallcpuregisters(exprasmlist);
