@@ -28,7 +28,7 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : longint;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr  r0,r3
@@ -51,12 +51,13 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  std   r3,retaddress
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
   sldi	r4, r4, 32
   oris	r4, r4, (errno)@ha
-  std   r3,retaddress
   ld	r3,(errno)@l(r4)
   bctrl
   ld	r4,temp
@@ -74,7 +75,7 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -99,6 +100,8 @@ asm
   std   r3,temp
   mflr  r3
   mtctr r10
+  ld	r10, 0(r10)
+
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
   sldi	r4, r4, 32
@@ -121,7 +124,7 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -146,6 +149,7 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
@@ -170,7 +174,7 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -196,6 +200,7 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
@@ -220,7 +225,7 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -247,6 +252,7 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
@@ -271,7 +277,7 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -299,6 +305,7 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera
@@ -323,7 +330,7 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   copies back the registers as they are after the SysCall.
 }
 var
-  temp : int64;
+  temp : qword;
   retaddress: ptruint;
 asm
   mr	r0,r3
@@ -352,6 +359,7 @@ asm
 .LThreaded:
   std   r3,temp
   mflr  r3
+  ld	r10, 0(r10)
   mtctr r10
   lis   r4, (errno)@highesta
   ori	r4, r4, (errno)@highera

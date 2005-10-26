@@ -65,14 +65,16 @@ var
   locals: longint;
 begin
   if not (po_assembler in procdef.procoptions) then begin
+    { align the stack properly }
+    ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
+
     { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
       for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
       so we don't that too. Uncomment the next three lines if this is required }
-    // if (maxpushedparasize < 64) then begin
-    //  maxpushedparasize := 64;
-    // end;
-    { align the stack properly }
-    ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
+//    if (ofs < 112) then begin
+//      ofs := 112;
+//    end;
+
     tg.setfirsttemp(ofs);
   end else begin
     locals := 0;
@@ -91,7 +93,7 @@ end;
 
 function tppcprocinfo.calc_stackframe_size: longint;
 begin
-  calc_stackframe_size(18, 18);
+  result := calc_stackframe_size(18, 18);
 end;
 
 function tppcprocinfo.calc_stackframe_size(numgpr, numfpr : longint) : longint;

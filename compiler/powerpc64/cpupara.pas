@@ -97,10 +97,7 @@ begin
     end else begin
       loc := LOC_REFERENCE;
       paraloc^.reference.index := NR_STACK_POINTER_REG;
-      if (target_info.abi <> abi_powerpc_aix) then
-        reference.offset := sizeof(aint) * (nr - 8)
-      else
-        reference.offset := sizeof(aint) * (nr);
+      reference.offset := sizeof(aint) * (nr - 8);
     end;
   end;
 end;
@@ -177,10 +174,9 @@ begin
     recorddef:
       result :=
         ((varspez = vs_const) and
-        ((calloption = pocall_mwpascal) or
-        (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
-        (def.size > 8)
-        )
+        (
+         (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
+         (def.size > 8))
         )
         );
     arraydef:
@@ -267,12 +263,12 @@ end;
 
 function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
-var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
+  var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword): longint;
 var
   stack_offset: longint;
   paralen: aint;
-  nextintreg, nextfloatreg, nextmmreg, maxfpureg: tsuperregister;
+  nextintreg, nextfloatreg, nextmmreg : tsuperregister;
   paradef: tdef;
   paraloc: pcgparalocation;
   i: integer;
@@ -291,8 +287,6 @@ begin
   nextfloatreg := curfloatreg;
   nextmmreg := curmmreg;
   stack_offset := cur_stack_offset;
-
-  maxfpureg := RS_F13;
 
   for i := 0 to paras.count - 1 do begin
     hp := tparavarsym(paras[i]);
@@ -380,9 +374,9 @@ begin
         inc(nextintreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
 
-        inc(stack_offset, tcgsize2size[paraloc^.size]);
+        inc(stack_offset, tcgsize2size[OS_INT]);
       end else if (loc = LOC_FPUREGISTER) and
-        (nextfloatreg <= maxfpureg) then begin
+        (nextfloatreg <= RS_F13) then begin
         paraloc^.loc := loc;
         paraloc^.size := paracgsize;
         paraloc^.register := newreg(R_FPUREGISTER, nextfloatreg, R_SUBWHOLE);
@@ -391,8 +385,8 @@ begin
         inc(nextintreg);
         inc(nextfloatreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
-
-        inc(stack_offset, tcgsize2size[paraloc^.size]);
+        
+        inc(stack_offset, tcgsize2size[OS_FLOAT]);
       end else if (loc = LOC_MMREGISTER) then begin
         { Altivec not supported }
         internalerror(200510192);
@@ -404,11 +398,11 @@ begin
         if (side = callerside) then
           paraloc^.reference.index := NR_STACK_POINTER_REG
         else
-          { during procedure entry, R12 contains the old stack pointer }
-          paraloc^.reference.index := NR_R12;
+          { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
+          paraloc^.reference.index := NR_OLD_STACK_POINTER_REG;
         paraloc^.reference.offset := stack_offset;
 
-        { TODO: change this to the next power of two (natural alignment) }
+        { align temp contents to next register size }
         inc(stack_offset, align(paralen, 8));
         paralen := 0;
       end;
@@ -436,20 +430,16 @@ begin
 
   result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
     curfloatreg, curmmreg, cur_stack_offset);
-  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) then
+  if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) then begin
     { just continue loading the parameters in the registers }
-  begin
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
       curfloatreg, curmmreg, cur_stack_offset);
-    { varargs routines have to reserve at least 64 bytes for the AIX abi }
+    { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
     if (result < 64) then
       result := 64;
-  end
-  else
-  begin
+  end else begin
     parasize := cur_stack_offset;
-    for i := 0 to varargspara.count - 1 do
-    begin
+    for i := 0 to varargspara.count - 1 do begin
       hp := tparavarsym(varargspara[i]);
       hp.paraloc[callerside].alignment := 8;
       paraloc := hp.paraloc[callerside].add_location;

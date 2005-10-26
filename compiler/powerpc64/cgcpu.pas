@@ -244,8 +244,12 @@ begin
     case location^.loc of
       LOC_REGISTER, LOC_CREGISTER:
         begin
-          a_load_ref_reg(list, location^.size, location^.size, tmpref,
-            location^.register);
+          if (size <> OS_NO) then
+            a_load_ref_reg(list, size, location^.size, tmpref,
+              location^.register)
+          else
+            a_load_ref_reg(list, location^.size, location^.size, tmpref,
+              location^.register)
         end;
       LOC_REFERENCE:
         begin
@@ -303,7 +307,7 @@ end;
 
 procedure tcgppc.a_call_name(list: taasmoutput; const s: string);
 begin
-        a_call_name_direct(list, s, true, true);
+    a_call_name_direct(list, s, true, true);
 end;
 
 procedure tcgppc.a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean);
@@ -1026,8 +1030,8 @@ begin
   end;
   { save old stack frame pointer }
   if (localsize > 0) then begin
-    a_reg_alloc(list, NR_R12);
-    list.concat(taicpu.op_reg_reg(A_MR, NR_R12, NR_STACK_POINTER_REG));
+    a_reg_alloc(list, NR_OLD_STACK_POINTER_REG);
+    list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
   end;
   { save registers, FPU first, then GPR }
   reference_reset_base(href, NR_STACK_POINTER_REG, -8);

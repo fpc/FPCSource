@@ -300,6 +300,9 @@ const
   // Stack pointer register
   NR_STACK_POINTER_REG = NR_R1;
   RS_STACK_POINTER_REG = RS_R1;
+  // old stack pointer register used during copying variables from the caller
+  // stack frame
+  NR_OLD_STACK_POINTER_REG = NR_R12;
   // Frame pointer register
   NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
   RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
@@ -387,8 +390,7 @@ function std_regname(r: Tregister): string;
 function is_condreg(r: tregister): boolean;
 
 function inverse_cond(const c: TAsmCond): Tasmcond;
-{$IFDEF USEINLINE}inline;
-{$ENDIF USEINLINE}
+{$IFDEF USEINLINE}inline;{$ENDIF USEINLINE}
 function conditions_equal(const c1, c2: TAsmCond): boolean;
 
 implementation

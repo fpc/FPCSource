@@ -19,7 +19,11 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
+  {$ifdef CPUPOWERPC64}
+  TThreadID = QWord;
+  {$else}
   TThreadID = THandle;
+  {$endif}
   
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
