@@ -51,7 +51,7 @@ begin
    p:=new(pa,init);
    p^.p;
    { the vmt pointer gets an invalid value: }
-   plongint(p)^:=longint(@data);
+   pptrint(p)^:=ptrint(@data);
    { causes runerror }
    p^.p;
    halt(1);
