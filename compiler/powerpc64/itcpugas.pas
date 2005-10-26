@@ -91,7 +91,8 @@ const
     'ldarx', 'stdcx.', 'cntlzd',
     'lvx', 'stvx',
     'mulldo', 'mulldo.', 'mulhdu', 'mulhdu.',
-    'mfxer');
+    'mfxer',
+    'fctid', 'fctid.', 'fctidz', 'fctidz.');
 
 function gas_regnum_search(const s: string): Tregister;
 function gas_regname(r: Tregister): string;
