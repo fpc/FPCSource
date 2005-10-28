@@ -837,6 +837,8 @@ begin
   end//if
   else
     ActiveItem^.Row[Pred(Field.FieldNo)]:=nil;        
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    DataEvent(deFieldChange, Ptrint(Field));  
 end;
 
 procedure TCustomSqliteDataset.SetRecNo(Value: Integer);
