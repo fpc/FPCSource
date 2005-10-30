@@ -5033,6 +5033,7 @@ tests/test/testv5.pp svneol=native#text/plain
 tests/test/testv6.pp svneol=native#text/plain
 tests/test/testv7.pp svneol=native#text/plain
 tests/test/testv8.pp svneol=native#text/plain
+tests/test/testv9.pp svneol=native#text/plain
 tests/test/texception1.pp svneol=native#text/plain
 tests/test/texception10.pp svneol=native#text/plain
 tests/test/texception2.pp svneol=native#text/plain
