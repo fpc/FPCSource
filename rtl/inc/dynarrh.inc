@@ -28,3 +28,5 @@ type
     eletype : pdynarraytypeinfo;
     vartype : longint;
   end;
+  
+procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
