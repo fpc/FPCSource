@@ -1,10 +1,13 @@
 unit odbcsql;
-{$ifndef fpc}
-{$I mODBC.INC}
-{$else}
+
 {$mode objfpc}
 {$h+}
-{$define odbcver3}
+{$macro on}
+
+ // define ODBC version 3.51 by default
+{$define ODBCVER:=$0351}
+{$if ODBCVER >= $0300}
+  {$define ODBCVER3}
 {$endif}
 
 interface
@@ -79,18 +82,144 @@ const
  {$endif}
   SQL_VARCHAR       = 12;
 
-  SQL_C_LONG        = SQL_INTEGER;
  {$ifdef ODBCVER3}
   SQL_TYPE_DATE     = 91;
   SQL_TYPE_TIME     = 92;
   SQL_TYPE_TIMESTAMP= 93;
  {$endif}
 
-  {ODBC2}
   SQL_DATE       = 9;
   SQL_TIME       = 10;
   SQL_TIMESTAMP  = 11;
-  {end of Odbc2}
+  {$if ODBCVER >= $0300}
+  SQL_INTERVAL   = 10;
+  {$endif}
+  {$if ODBCVER >= $0350}
+  SQL_GUID       = -11;
+  {$endif}
+  
+  { interval codes}
+  {$ifdef ODBCVER3}
+  SQL_CODE_YEAR             = 1;
+  SQL_CODE_MONTH            = 2;
+  SQL_CODE_DAY              = 3;
+  SQL_CODE_HOUR             = 4;
+  SQL_CODE_MINUTE           = 5;
+  SQL_CODE_SECOND           = 6;
+  SQL_CODE_YEAR_TO_MONTH    = 7;
+  SQL_CODE_DAY_TO_HOUR      = 8;
+  SQL_CODE_DAY_TO_MINUTE    = 9;
+  SQL_CODE_DAY_TO_SECOND    = 10;
+  SQL_CODE_HOUR_TO_MINUTE   = 11;
+  SQL_CODE_HOUR_TO_SECOND   = 12;
+  SQL_CODE_MINUTE_TO_SECOND = 13;
+
+  SQL_INTERVAL_YEAR             = 100 + SQL_CODE_YEAR;
+  SQL_INTERVAL_MONTH            = 100 + SQL_CODE_MONTH;
+  SQL_INTERVAL_DAY              = 100 + SQL_CODE_DAY;
+  SQL_INTERVAL_HOUR             = 100 + SQL_CODE_HOUR;
+  SQL_INTERVAL_MINUTE           = 100 + SQL_CODE_MINUTE;
+  SQL_INTERVAL_SECOND           = 100 + SQL_CODE_SECOND;
+  SQL_INTERVAL_YEAR_TO_MONTH    = 100 + SQL_CODE_YEAR_TO_MONTH;
+  SQL_INTERVAL_DAY_TO_HOUR      = 100 + SQL_CODE_DAY_TO_HOUR;
+  SQL_INTERVAL_DAY_TO_MINUTE    = 100 + SQL_CODE_DAY_TO_MINUTE;
+  SQL_INTERVAL_DAY_TO_SECOND    = 100 + SQL_CODE_DAY_TO_SECOND;
+  SQL_INTERVAL_HOUR_TO_MINUTE   = 100 + SQL_CODE_HOUR_TO_MINUTE;
+  SQL_INTERVAL_HOUR_TO_SECOND   = 100 + SQL_CODE_HOUR_TO_SECOND;
+  SQL_INTERVAL_MINUTE_TO_SECOND = 100 + SQL_CODE_MINUTE_TO_SECOND;
+  {$else}
+  SQL_INTERVAL_YEAR             = -80;
+  SQL_INTERVAL_MONTH            = -81;
+  SQL_INTERVAL_YEAR_TO_MONTH    = -82;
+  SQL_INTERVAL_DAY              = -83;
+  SQL_INTERVAL_HOUR             = -84;
+  SQL_INTERVAL_MINUTE           = -85;
+  SQL_INTERVAL_SECOND           = -86;
+  SQL_INTERVAL_DAY_TO_HOUR      = -87;
+  SQL_INTERVAL_DAY_TO_MINUTE    = -88;
+  SQL_INTERVAL_DAY_TO_SECOND    = -89;
+  SQL_INTERVAL_HOUR_TO_MINUTE   = -90;
+  SQL_INTERVAL_HOUR_TO_SECOND   = -91;
+  SQL_INTERVAL_MINUTE_TO_SECOND = -92;
+  {$endif}
+  
+  { Unicode data type codes }
+  {$if ODBCVER <= $0300}
+  SQL_UNICODE             = -95;
+  SQL_UNICODE_VARCHAR     = -96;
+  SQL_UNICODE_LONGVARCHAR = -97;
+  SQL_UNICODE_CHAR        = SQL_UNICODE;
+  {$else}
+  { The previous definitions for SQL_UNICODE_ are historical and obsolete }
+  SQL_UNICODE             = SQL_WCHAR;
+  SQL_UNICODE_VARCHAR     = SQL_WVARCHAR;
+  SQL_UNICODE_LONGVARCHAR = SQL_WLONGVARCHAR;
+  SQL_UNICODE_CHAR        = SQL_WCHAR;
+  {$endif}
+
+  { C datatype to SQL datatype mapping }
+  SQL_C_CHAR   = SQL_CHAR;
+  SQL_C_LONG   = SQL_INTEGER;
+  SQL_C_SHORT  = SQL_SMALLINT;
+  SQL_C_FLOAT  = SQL_REAL;
+  SQL_C_DOUBLE = SQL_DOUBLE;
+{$ifdef ODBCVER3}
+  SQL_C_NUMERIC = SQL_NUMERIC;
+{$endif}
+  SQL_C_DEFAULT = 99;
+
+  SQL_SIGNED_OFFSET   = -20;
+  SQL_UNSIGNED_OFFSET = -22;
+
+  SQL_C_DATE      = SQL_DATE;
+  SQL_C_TIME      = SQL_TIME;
+  SQL_C_TIMESTAMP = SQL_TIMESTAMP;
+{$ifdef ODBCVER3}
+  SQL_C_TYPE_DATE       = SQL_TYPE_DATE;
+  SQL_C_TYPE_TIME       = SQL_TYPE_TIME;
+  SQL_C_TYPE_TIMESTAMP  = SQL_TYPE_TIMESTAMP;
+  SQL_C_INTERVAL_YEAR   = SQL_INTERVAL_YEAR;
+  SQL_C_INTERVAL_MONTH  = SQL_INTERVAL_MONTH;
+  SQL_C_INTERVAL_DAY    = SQL_INTERVAL_DAY;
+  SQL_C_INTERVAL_HOUR   = SQL_INTERVAL_HOUR;
+  SQL_C_INTERVAL_MINUTE = SQL_INTERVAL_MINUTE;
+  SQL_C_INTERVAL_SECOND = SQL_INTERVAL_SECOND;
+  SQL_C_INTERVAL_YEAR_TO_MONTH    = SQL_INTERVAL_YEAR_TO_MONTH;
+  SQL_C_INTERVAL_DAY_TO_HOUR      = SQL_INTERVAL_DAY_TO_HOUR;
+  SQL_C_INTERVAL_DAY_TO_MINUTE    = SQL_INTERVAL_DAY_TO_MINUTE;
+  SQL_C_INTERVAL_DAY_TO_SECOND    = SQL_INTERVAL_DAY_TO_SECOND;
+  SQL_C_INTERVAL_HOUR_TO_MINUTE   = SQL_INTERVAL_HOUR_TO_MINUTE;
+  SQL_C_INTERVAL_HOUR_TO_SECOND   = SQL_INTERVAL_HOUR_TO_SECOND;
+  SQL_C_INTERVAL_MINUTE_TO_SECOND = SQL_INTERVAL_MINUTE_TO_SECOND;
+{$endif}
+  SQL_C_BINARY = SQL_BINARY;
+  SQL_C_BIT    = SQL_BIT;
+{$ifdef ODBCVER3}
+  SQL_C_SBIGINT = SQL_BIGINT+SQL_SIGNED_OFFSET;   // SIGNED BIGINT
+  SQL_C_UBIGINT = SQL_BIGINT+SQL_UNSIGNED_OFFSET; // UNSIGNED BIGINT
+{$endif}
+  SQL_C_TINYINT  =  SQL_TINYINT;
+  SQL_C_SLONG    =  SQL_C_LONG +SQL_SIGNED_OFFSET;   // SIGNED INTEGER
+  SQL_C_SSHORT   =  SQL_C_SHORT+SQL_SIGNED_OFFSET;   // SIGNED SMALLINT
+  SQL_C_STINYINT =  SQL_TINYINT+SQL_SIGNED_OFFSET;   // SIGNED TINYINT
+  SQL_C_ULONG    =  SQL_C_LONG +SQL_UNSIGNED_OFFSET; // UNSIGNED INTEGER
+  SQL_C_USHORT   =  SQL_C_SHORT+SQL_UNSIGNED_OFFSET; // UNSIGNED SMALLINT
+  SQL_C_UTINYINT =  SQL_TINYINT+SQL_UNSIGNED_OFFSET; // UNSIGNED TINYINT
+  SQL_C_BOOKMARK = SQL_C_ULONG; // BOOKMARK
+
+{$if ODBCVER >= $0350}
+  SQL_C_GUID    = SQL_GUID;
+{$endif}
+
+  SQL_TYPE_NULL = 0;
+{$ifndef ODBCVER3}
+  SQL_TYPE_MIN  = SQL_BIT;
+  SQL_TYPE_MAX  = SQL_VARCHAR;
+{$endif}
+
+{$ifdef ODBCVER3}
+  SQL_C_VARBOOKMARK = SQL_C_BINARY;
+{$endif}
 
   SQL_NO_TOTAL   = -4;
 
@@ -350,6 +479,7 @@ const
   SQL_USE_BOOKMARKS           =12;
   SQL_GET_BOOKMARK            =13;      //      GetStmtOption Only */
   SQL_ROW_NUMBER              = 14;     //      GetStmtOption Only */
+  
   SQL_ATTR_CURSOR_TYPE        = SQL_CURSOR_TYPE;
   SQL_ATTR_CONCURRENCY        = SQL_CONCURRENCY;
   SQL_ATTR_FETCH_BOOKMARK_PTR = 16;
@@ -477,11 +607,6 @@ const
   SQL_DIAG_UNKNOWN_STATEMENT     =  0;
   SQL_DIAG_UPDATE_WHERE          = 82;
 {$endif}  { ODBCVER >= 0x0300 }
-
-  SQL_C_DEFAULT       = 99;
-  SQL_UNSIGNED_OFFSET = (-22);
-  SQL_C_ULONG         = (SQL_C_LONG+SQL_UNSIGNED_OFFSET);
-  SQL_C_BOOKMARK      = SQL_C_ULONG;
 
   { Statement attribute values for cursor sensitivity }
 {$ifdef ODBCVER3}
@@ -860,6 +985,11 @@ type   TSQLGetDiagRec=function (HandleType:SQLSMALLINT;
            Sqlstate:PSQLCHAR;var NativeError:SQLINTEGER;
            MessageText:PSQLCHAR;BufferLength:SQLSMALLINT;
            var TextLength:SQLSMALLINT ):SQLRETURN;stdcall;
+           
+type   TSQLGetDiagField=function (HandleType:SQLSMALLINT;
+           Handle:SQLHANDLE;RecNumber:SQLSMALLINT;
+           DiagIdentifier:SQLSMALLINT;DiagInfoPtr:SQLPOINTER;
+           BufferLength:SQLSMALLINT;var StringLengthPtr:SQLSMALLINT):SQLRETURN;stdcall;
 
 type   TSQLConnect=function (ConnectionHandle:SQLHDBC;
            ServerName:PSQLCHAR;NameLength1:SQLSMALLINT;
@@ -1020,6 +1150,7 @@ var    SQLProcedures:TSQLProcedures;
 var    SQLColumns:TSQLColumns;
 var    SQLSpecialColumns:TSQLSpecialColumns;
 var    SQLGetDiagRec:TSQLGetDiagRec;
+var    SQLGetDiagField:TSQLGetDiagField;
 var    SQLConnect:TSQLConnect;
 var    SQLDisconnect:TSQLDisconnect;
 var    SQLDriverConnect:TSQLDriverConnect;
@@ -1090,6 +1221,14 @@ Const
                MessageText:     PSQLCHAR;
                BufferLength:    SQLSMALLINT;
                var TextLength:  SQLSMALLINT ):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+   function SQLGetDiagField(
+               HandleType:SQLSMALLINT;
+               Handle:SQLHANDLE;
+               RecNumber:SQLSMALLINT;
+               DiagIdentifier:SQLSMALLINT;
+               DiagInfoPtr:SQLPOINTER;
+               BufferLength:SQLSMALLINT;
+               var StringLengthPtr:SQLSMALLINT ):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLConnect(
                ConnectionHandle:SQLHDBC;
                ServerName:PSQLCHAR;    NameLength1:SQLSMALLINT;
@@ -1484,6 +1623,7 @@ begin
   SQLColumns:=GetAdresstoFunction('SQLColumns');
   SQLSpecialColumns:=GetAdresstoFunction('SQLSpecialColumns');
   SQLGetDiagRec:=GetAdresstoFunction('SQLGetDiagRec');
+  SQLGetDiagField:=GetAdresstoFunction('SQLGetDiagField');
   SQLConnect:=GetAdresstoFunction('SQLConnect');
   SQLDisconnect:=GetAdresstoFunction('SQLDisconnect');
   SQLDriverConnect:=GetAdresstoFunction('SQLDriverConnect');
