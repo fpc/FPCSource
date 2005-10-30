@@ -15,7 +15,7 @@ program aListTables;
 
 uses
   Classes,
-  sqldb, pqconnection, mysql4conn, IBConnection,
+  sqldb, pqconnection, mysql4conn, IBConnection, ODBCConn,
   SqldbExampleUnit;
 
 var Tables : TStringList;
@@ -28,6 +28,7 @@ begin
   if dbtype = 'mysql' then Fconnection := tMySQLConnection.Create(nil);
   if dbtype = 'postgresql' then Fconnection := tpqConnection.Create(nil);
   if dbtype = 'interbase' then Fconnection := tIBConnection.Create(nil);
+  if dbtype = 'odbc' then Fconnection := tODBCConnection.Create(nil);
 
   if not assigned(Fconnection) then ExitWithError('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 

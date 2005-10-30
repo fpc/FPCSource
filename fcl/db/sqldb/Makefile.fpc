@@ -6,12 +6,12 @@
 main=fcl
 
 [target]
-dirs_linux=interbase postgres mysql
-dirs_freebsd=interbase postgres mysql
-dirs_darwin=interbase postgres mysql
-dirs_netbsd=interbase postgres mysql
-dirs_openbsd=interbase postgres mysql
-dirs_win32=interbase postgres mysql
+dirs_linux=interbase postgres mysql odbc
+dirs_freebsd=interbase postgres mysql odbc
+dirs_darwin=interbase postgres mysql odbc
+dirs_netbsd=interbase postgres mysql odbc
+dirs_openbsd=interbase postgres mysql odbc
+dirs_win32=interbase postgres mysql odbc
 units=sqldb
 rsts=sqldb
 
