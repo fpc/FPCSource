@@ -118,6 +118,10 @@ program fpc;
      ppcbin:='ppcppc';
      processorname:='powerpc';
 {$endif powerpc}
+{$ifdef powerpc64}
+     ppcbin:='ppcppc64';
+     processorname:='powerpc64';
+{$endif powerpc64}
 {$ifdef arm}
      ppcbin:='ppcarm';
      processorname:='arm';
@@ -172,6 +176,8 @@ program fpc;
                        ppcbin:='ppcapx'
                      else if processorstr='powerpc' then
                        ppcbin:='ppcppc'
+                     else if processorstr='powerpc64' then
+                       ppcbin:='ppcppc64'
                      else if processorstr='arm' then
                        ppcbin:='ppcarm'
                      else if processorstr='sparc' then
