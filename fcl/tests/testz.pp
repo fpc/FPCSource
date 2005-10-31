@@ -18,6 +18,9 @@ begin
    writeln ('End of write');
    C.Free;
    writeln ('freed CompressionStream');
+   F.Free;
+   writeln ('freed FileStream');
+
    Writeln ('Start Reading');
    F:=TFileStream.Create('ztest.dat',FMOpenRead);
    Writeln ('Created filestream');
@@ -31,4 +34,6 @@ begin
    writeln ('End of Read');
    D.Free;
    writeln ('freed CompressionStream');
+   F.Free;
+   writeln ('freed FileStream');
 end.
