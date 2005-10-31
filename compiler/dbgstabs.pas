@@ -276,7 +276,10 @@ implementation
       begin
         if def.stab_number=0 then
           def_stab_number(def);
-        result:=tostr(def.stab_number-1);
+        if (def.objecttype=odt_class) then
+          result:=tostr(def.stab_number-1)
+        else
+          result:=tostr(def.stab_number);
       end;
 
 
@@ -726,12 +729,7 @@ implementation
           procvardef :
             result:=strpnew('*f'+def_stab_number(tprocvardef(def).rettype.def));
           objectdef :
-            begin
-              if tobjectdef(def).writing_class_record_stab then
-                result:=objectdef_stabstr(tobjectdef(def))
-              else
-                result:=strpnew('*'+def_stab_classnumber(tobjectdef(def)));
-            end;
+            result:=objectdef_stabstr(tobjectdef(def));
         end;
       end;
 
