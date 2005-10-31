@@ -179,9 +179,7 @@ implementation
             if (not codegenerror) then
              begin
                if (p.location.loc=LOC_INVALID) then
-                 Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype])
-               else if (p.location.loc<>p.expectloc) then
-                 Comment(V_Warning,'Location is different in secondpass: '+nodetype2str[p.nodetype]);
+                 Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;
 {$endif EXTDEBUG}
             if codegenerror then

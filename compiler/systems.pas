@@ -50,7 +50,8 @@ interface
              cpu_iA64,                     { 7 }
              cpu_x86_64,                   { 8 }
              cpu_mips,                     { 9 }
-             cpu_arm                       { 10 }
+             cpu_arm,                      { 10 }
+             cpu_powerpc64                 { 11 }
        );
 
        tasmmode= (asmmode_none
@@ -117,7 +118,10 @@ interface
              system_arm_wince,          { 38 }
              system_ia64_win64,         { 39 }
              system_i386_wince,         { 40 }
-             system_x86_6432_linux      { 41 }
+             system_x86_6432_linux,     { 41 }
+             system_arm_gba,            { 42 }
+             system_powerpc64_linux,    { 43 }
+             system_i386_darwin         { 44 }
        );
 
        tasm = (as_none
@@ -139,6 +143,10 @@ interface
              ,as_m68k_mit
              ,as_powerpc_mpw
              ,as_darwin
+             ,as_x86_64_masm
+             ,as_x86_64_pecoff
+             ,as_i386_pecoffwince
+             ,as_arm_pecoffwince
        );
 
        tar = (ar_none
@@ -205,7 +213,7 @@ interface
        pasminfo = ^tasminfo;
        tasminfo = record
           id          : tasm;
-          idtxt       : string[9];
+          idtxt       : string[12];
           asmbin      : string[8];
           asmcmd      : string[50];
           supported_target : tsystem;
@@ -236,7 +244,8 @@ interface
             tf_needs_dwarf_cfi,
             tf_use_8_3,
             tf_pic_uses_got,
-            tf_library_needs_pic
+            tf_library_needs_pic,
+            tf_needs_symbol_type
        );
 
        psysteminfo = ^tsysteminfo;
@@ -248,7 +257,7 @@ interface
           flags        : set of tsystemflags;
           cpu          : tsystemcpu;
           unit_env     : string[16];
-          extradefines : string[40]; 
+          extradefines : string[40];
           exeext,
           defext,
           scriptext,
@@ -298,12 +307,28 @@ interface
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
-       system_linux : set of tsystem = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
-                                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux];
+       system_wince : set of tsystem = [system_arm_wince,system_i386_wince];
+       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
+                       system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
+                       system_x86_6432_linux];
+       { all real windows systems, no cripple ones like wince, wdosx et. al. }
+       system_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       { all windows systems }
+       system_all_windows : set of tsystem = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
+                                              system_arm_wince,system_i386_wince];
+
+       { all systems supporting exports from programs or units }
+       system_unit_program_exports : set of tsystem = [system_i386_win32,
+                                         system_i386_wdosx,
+                                         system_i386_Netware,
+                                         system_i386_netwlibc,
+                                         system_arm_wince,
+                                         system_x86_64_win64,
+                                         system_ia64_win64]+system_linux;
 
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm');
+             'mips','arm', 'powerpc64');
 
     var
        targetinfos   : array[tsystem] of psysteminfo;

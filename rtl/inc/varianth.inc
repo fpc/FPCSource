@@ -247,6 +247,7 @@ operator :=(const source : comp) dest : variant;{$ifdef SYSTEMINLINE}inline;{$en
 { Misc. }
 operator :=(const source : currency) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : tdatetime) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : error) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                        from Variant assignments
@@ -296,6 +297,7 @@ operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inlin
 { Misc. }
 operator :=(const source : variant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : error;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                          Operators
@@ -370,6 +372,7 @@ operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{
 { Misc. }
 operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : error;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                          to OLEVariant assignments
@@ -416,6 +419,7 @@ operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{
 { Misc. }
 operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : error) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************
                              OLEVariant Operators
