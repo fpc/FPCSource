@@ -1,4 +1,4 @@
-{ %skipcpu=x86_64 }
+{ %skipcpu=x86_64,powerpc64 }
 { %fail }
 
 { Source provided for Free Pascal Bug Report 3626 }
