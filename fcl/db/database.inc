@@ -32,12 +32,28 @@ begin
     DatabaseError(SConnected,Self);
 end;
 
+Procedure TDatabase.InternalHandleException;
+
+begin
+  if assigned(classes.ApplicationHandleException) then
+    classes.ApplicationHandleException(self)
+  else
+    ShowException(ExceptObject,ExceptAddr);
+end;
+
 procedure TDataBase.Loaded;
 
 begin
   inherited;
-  if FOpenAfterRead then
-    SetConnected(true);
+  try
+    if FOpenAfterRead then
+      SetConnected(true);
+  except
+    if csDesigning in Componentstate then
+      InternalHandleException
+    else
+      raise;
+  end;
 end;
 
 procedure TDataBase.SetConnected (Value : boolean);
@@ -310,9 +326,24 @@ procedure TDBTransaction.Loaded;
 
 begin
   inherited;
-  if FOpenAfterRead then SetActive(true);
+  try
+    if FOpenAfterRead then SetActive(true);
+  except
+    if csDesigning in Componentstate then
+      InternalHandleException
+    else
+      raise;
+  end;
 end;
 
+Procedure TDBTransaction.InternalHandleException;
+
+begin
+  if assigned(classes.ApplicationHandleException) then
+    classes.ApplicationHandleException(self)
+  else
+    ShowException(ExceptObject,ExceptAddr);
+end;
 
 Procedure TDBTransaction.CheckActive;
 

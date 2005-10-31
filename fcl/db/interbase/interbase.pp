@@ -260,7 +260,6 @@ type
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
@@ -1131,10 +1130,6 @@ end;
 procedure TIBQuery.InternalGotoBookmark(ABookmark: Pointer);
 begin
   FCurrentRecord := PInteger(ABookmark)^;
-end;
-
-procedure TIBQuery.InternalHandleException;
-begin
 end;
 
 procedure TIBQuery.InternalInitFieldDefs;

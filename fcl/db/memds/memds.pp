@@ -81,7 +81,6 @@ type
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
@@ -773,11 +772,6 @@ Function TMemDataset.DataSize : Integer;
 
 begin
   Result:=FStream.Size;
-end;
-
-procedure TMemDataset.InternalHandleException;
-begin
-// Application.HandleException(Self);
 end;
 
 procedure TMemDataset.Clear;

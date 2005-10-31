@@ -1045,6 +1045,7 @@ type
     procedure SetRecNo(Value: Longint); virtual;
     procedure SetState(Value: TDataSetState);
     function SetTempState(const Value: TDataSetState): TDataSetState;
+    Function Tempbuffer: PChar;
     procedure UpdateIndexDefs; virtual;
     property ActiveRecord: Longint read FActiveRecord;
     property CurrentRecord: Longint read FCurrentRecord;
@@ -1071,7 +1072,7 @@ type
     procedure InternalDelete; virtual; abstract;
     procedure InternalFirst; virtual; abstract;
     procedure InternalGotoBookmark(ABookmark: Pointer); virtual; abstract;
-    procedure InternalHandleException; virtual; abstract;
+    procedure InternalHandleException; virtual;
     procedure InternalInitFieldDefs; virtual; abstract;
     procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
     procedure InternalLast; virtual; abstract;
@@ -1354,6 +1355,7 @@ type
     Procedure CheckInactive;
     procedure EndTransaction; virtual; abstract;
     procedure StartTransaction; virtual; abstract;
+    procedure InternalHandleException; virtual;
     procedure Loaded; override;
   Public
     constructor Create(AOwner: TComponent); override;
@@ -1397,6 +1399,7 @@ type
   protected
     Procedure CheckConnected;
     Procedure CheckDisConnected;
+    procedure InternalHandleException; virtual;
     procedure Loaded; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     Procedure DoInternalConnect; Virtual;Abstract;

@@ -130,7 +130,6 @@ type
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure InternalHandleException; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
@@ -616,11 +615,6 @@ begin
   FCurrentItem := PDataRecord(ABookmark^);
 end;
 
-procedure TCustomSqliteDataset.InternalHandleException;
-begin
-  //??
-end;
-
 procedure TCustomSqliteDataset.InternalInitRecord(Buffer: PChar);
 var
   Counter:Integer;
@@ -843,6 +837,8 @@ begin
   end//if
   else
     ActiveItem^.Row[Pred(Field.FieldNo)]:=nil;        
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    DataEvent(deFieldChange, Ptrint(Field));  
 end;
 
 procedure TCustomSqliteDataset.SetRecNo(Value: Integer);

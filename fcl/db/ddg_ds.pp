@@ -65,7 +65,6 @@ type
     procedure InternalPost; override;
     // Misc methods:
     procedure InternalClose; override;
-    procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function IsCursorOpen: Boolean; override;
@@ -346,12 +345,6 @@ begin
     DestroyFields;
   FRecordPos := -1;
   FillChar(FDataFile, SizeOf(FDataFile), 0);
-end;
-
-procedure TDDGDataSet.InternalHandleException;
-begin
-  // standard implementation for this method:
-  // Application.HandleException(Self);
 end;
 
 procedure TDDGDataSet.InternalDelete;

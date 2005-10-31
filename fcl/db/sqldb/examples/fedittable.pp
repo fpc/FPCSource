@@ -52,7 +52,7 @@ begin
     ApplyUpdates;
 
     end;
-  Ftransaction.CommitRetaining;
+  Ftransaction.Commit;
 
   Fquery.Free;
   Ftransaction.Free;

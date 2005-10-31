@@ -202,7 +202,6 @@ type
     Procedure SetTransaction(Value : TDBTransaction); override;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); override;
     procedure InternalClose; override;
-    procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function  GetCanModify: Boolean; override;
@@ -708,10 +707,6 @@ begin
   FIsEOF := False;
 //  FRecordSize := 0;
   inherited internalclose;
-end;
-
-procedure TSQLQuery.InternalHandleException;
-begin
 end;
 
 procedure TSQLQuery.InternalInitFieldDefs;

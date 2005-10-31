@@ -1,0 +1,21 @@
+#
+# Makefile.fpc for SQL ODBCConn
+#
+
+[package]
+main=fcl
+
+[target]
+units=odbcconn
+
+[require]
+packages=odbc
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

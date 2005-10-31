@@ -92,7 +92,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../../..
+override DEFAULT_FPCDIR=../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -233,280 +233,115 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=fcl
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=interbase postgres mysql odbc
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=sqldb
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=sqldb
+override TARGET_UNITS+=odbcconn
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -820,6 +655,11 @@ ifneq ($(findstring x86_64,$(shell uname -a)),)
 ifeq ($(BINUTILSPREFIX),)
 GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
 endif
+endif
+endif
+ifeq ($(CPU_TARGET),powerpc64)
+ifeq ($(BINUTILSPREFIX),)
+GCCLIBDIR:=$(shell dirname `gcc -m64 -print-libgcc-file-name`)
 endif
 endif
 endif
@@ -1374,188 +1214,153 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl 
+override REQUIRE_PACKAGES=rtl odbc
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
 REQUIRE_PACKAGES_ODBC=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
@@ -1582,84 +1387,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_IBASE
-PACKAGEDIR_IBASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ibase/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_IBASE),)
-ifneq ($(wildcard $(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_IBASE=$(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_IBASE=$(PACKAGEDIR_IBASE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_IBASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_IBASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_IBASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_IBASE=
-UNITDIR_IBASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /ibase/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_IBASE),)
-UNITDIR_IBASE:=$(firstword $(UNITDIR_IBASE))
-else
-UNITDIR_IBASE=
-endif
-endif
-ifdef UNITDIR_IBASE
-override COMPILER_UNITDIR+=$(UNITDIR_IBASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_POSTGRES
-PACKAGEDIR_POSTGRES:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /postgres/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_POSTGRES),)
-ifneq ($(wildcard $(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)),)
-UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)
-else
-UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_POSTGRES)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_POSTGRES) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_POSTGRES)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_POSTGRES=
-UNITDIR_POSTGRES:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /postgres/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_POSTGRES),)
-UNITDIR_POSTGRES:=$(firstword $(UNITDIR_POSTGRES))
-else
-UNITDIR_POSTGRES=
-endif
-endif
-ifdef UNITDIR_POSTGRES
-override COMPILER_UNITDIR+=$(UNITDIR_POSTGRES)
-endif
-endif
-ifdef REQUIRE_PACKAGES_MYSQL
-PACKAGEDIR_MYSQL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_MYSQL),)
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)),)
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_MYSQL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_MYSQL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_MYSQL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_MYSQL=
-UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_MYSQL),)
-UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
-else
-UNITDIR_MYSQL=
-endif
-endif
-ifdef UNITDIR_MYSQL
-override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
 endif
 endif
 ifdef REQUIRE_PACKAGES_ODBC
@@ -2120,312 +1847,24 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-ifeq ($(FULL_TARGET),i386-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-TARGET_DIRS_INTERBASE=1
-TARGET_DIRS_POSTGRES=1
-TARGET_DIRS_MYSQL=1
-TARGET_DIRS_ODBC=1
-endif
-ifdef TARGET_DIRS_INTERBASE
-interbase_all:
-	$(MAKE) -C interbase all
-interbase_debug:
-	$(MAKE) -C interbase debug
-interbase_smart:
-	$(MAKE) -C interbase smart
-interbase_release:
-	$(MAKE) -C interbase release
-interbase_units:
-	$(MAKE) -C interbase units
-interbase_examples:
-	$(MAKE) -C interbase examples
-interbase_shared:
-	$(MAKE) -C interbase shared
-interbase_install:
-	$(MAKE) -C interbase install
-interbase_sourceinstall:
-	$(MAKE) -C interbase sourceinstall
-interbase_exampleinstall:
-	$(MAKE) -C interbase exampleinstall
-interbase_distinstall:
-	$(MAKE) -C interbase distinstall
-interbase_zipinstall:
-	$(MAKE) -C interbase zipinstall
-interbase_zipsourceinstall:
-	$(MAKE) -C interbase zipsourceinstall
-interbase_zipexampleinstall:
-	$(MAKE) -C interbase zipexampleinstall
-interbase_zipdistinstall:
-	$(MAKE) -C interbase zipdistinstall
-interbase_clean:
-	$(MAKE) -C interbase clean
-interbase_distclean:
-	$(MAKE) -C interbase distclean
-interbase_cleanall:
-	$(MAKE) -C interbase cleanall
-interbase_info:
-	$(MAKE) -C interbase info
-interbase_makefiles:
-	$(MAKE) -C interbase makefiles
-interbase:
-	$(MAKE) -C interbase all
-.PHONY: interbase_all interbase_debug interbase_smart interbase_release interbase_units interbase_examples interbase_shared interbase_install interbase_sourceinstall interbase_exampleinstall interbase_distinstall interbase_zipinstall interbase_zipsourceinstall interbase_zipexampleinstall interbase_zipdistinstall interbase_clean interbase_distclean interbase_cleanall interbase_info interbase_makefiles interbase
-endif
-ifdef TARGET_DIRS_POSTGRES
-postgres_all:
-	$(MAKE) -C postgres all
-postgres_debug:
-	$(MAKE) -C postgres debug
-postgres_smart:
-	$(MAKE) -C postgres smart
-postgres_release:
-	$(MAKE) -C postgres release
-postgres_units:
-	$(MAKE) -C postgres units
-postgres_examples:
-	$(MAKE) -C postgres examples
-postgres_shared:
-	$(MAKE) -C postgres shared
-postgres_install:
-	$(MAKE) -C postgres install
-postgres_sourceinstall:
-	$(MAKE) -C postgres sourceinstall
-postgres_exampleinstall:
-	$(MAKE) -C postgres exampleinstall
-postgres_distinstall:
-	$(MAKE) -C postgres distinstall
-postgres_zipinstall:
-	$(MAKE) -C postgres zipinstall
-postgres_zipsourceinstall:
-	$(MAKE) -C postgres zipsourceinstall
-postgres_zipexampleinstall:
-	$(MAKE) -C postgres zipexampleinstall
-postgres_zipdistinstall:
-	$(MAKE) -C postgres zipdistinstall
-postgres_clean:
-	$(MAKE) -C postgres clean
-postgres_distclean:
-	$(MAKE) -C postgres distclean
-postgres_cleanall:
-	$(MAKE) -C postgres cleanall
-postgres_info:
-	$(MAKE) -C postgres info
-postgres_makefiles:
-	$(MAKE) -C postgres makefiles
-postgres:
-	$(MAKE) -C postgres all
-.PHONY: postgres_all postgres_debug postgres_smart postgres_release postgres_units postgres_examples postgres_shared postgres_install postgres_sourceinstall postgres_exampleinstall postgres_distinstall postgres_zipinstall postgres_zipsourceinstall postgres_zipexampleinstall postgres_zipdistinstall postgres_clean postgres_distclean postgres_cleanall postgres_info postgres_makefiles postgres
-endif
-ifdef TARGET_DIRS_MYSQL
-mysql_all:
-	$(MAKE) -C mysql all
-mysql_debug:
-	$(MAKE) -C mysql debug
-mysql_smart:
-	$(MAKE) -C mysql smart
-mysql_release:
-	$(MAKE) -C mysql release
-mysql_units:
-	$(MAKE) -C mysql units
-mysql_examples:
-	$(MAKE) -C mysql examples
-mysql_shared:
-	$(MAKE) -C mysql shared
-mysql_install:
-	$(MAKE) -C mysql install
-mysql_sourceinstall:
-	$(MAKE) -C mysql sourceinstall
-mysql_exampleinstall:
-	$(MAKE) -C mysql exampleinstall
-mysql_distinstall:
-	$(MAKE) -C mysql distinstall
-mysql_zipinstall:
-	$(MAKE) -C mysql zipinstall
-mysql_zipsourceinstall:
-	$(MAKE) -C mysql zipsourceinstall
-mysql_zipexampleinstall:
-	$(MAKE) -C mysql zipexampleinstall
-mysql_zipdistinstall:
-	$(MAKE) -C mysql zipdistinstall
-mysql_clean:
-	$(MAKE) -C mysql clean
-mysql_distclean:
-	$(MAKE) -C mysql distclean
-mysql_cleanall:
-	$(MAKE) -C mysql cleanall
-mysql_info:
-	$(MAKE) -C mysql info
-mysql_makefiles:
-	$(MAKE) -C mysql makefiles
-mysql:
-	$(MAKE) -C mysql all
-.PHONY: mysql_all mysql_debug mysql_smart mysql_release mysql_units mysql_examples mysql_shared mysql_install mysql_sourceinstall mysql_exampleinstall mysql_distinstall mysql_zipinstall mysql_zipsourceinstall mysql_zipexampleinstall mysql_zipdistinstall mysql_clean mysql_distclean mysql_cleanall mysql_info mysql_makefiles mysql
-endif
-ifdef TARGET_DIRS_ODBC
-odbc_all:
-	$(MAKE) -C odbc all
-odbc_debug:
-	$(MAKE) -C odbc debug
-odbc_smart:
-	$(MAKE) -C odbc smart
-odbc_release:
-	$(MAKE) -C odbc release
-odbc_units:
-	$(MAKE) -C odbc units
-odbc_examples:
-	$(MAKE) -C odbc examples
-odbc_shared:
-	$(MAKE) -C odbc shared
-odbc_install:
-	$(MAKE) -C odbc install
-odbc_sourceinstall:
-	$(MAKE) -C odbc sourceinstall
-odbc_exampleinstall:
-	$(MAKE) -C odbc exampleinstall
-odbc_distinstall:
-	$(MAKE) -C odbc distinstall
-odbc_zipinstall:
-	$(MAKE) -C odbc zipinstall
-odbc_zipsourceinstall:
-	$(MAKE) -C odbc zipsourceinstall
-odbc_zipexampleinstall:
-	$(MAKE) -C odbc zipexampleinstall
-odbc_zipdistinstall:
-	$(MAKE) -C odbc zipdistinstall
-odbc_clean:
-	$(MAKE) -C odbc clean
-odbc_distclean:
-	$(MAKE) -C odbc distclean
-odbc_cleanall:
-	$(MAKE) -C odbc cleanall
-odbc_info:
-	$(MAKE) -C odbc info
-odbc_makefiles:
-	$(MAKE) -C odbc makefiles
-odbc:
-	$(MAKE) -C odbc all
-.PHONY: odbc_all odbc_debug odbc_smart odbc_release odbc_units odbc_examples odbc_shared odbc_install odbc_sourceinstall odbc_exampleinstall odbc_distinstall odbc_zipinstall odbc_zipsourceinstall odbc_zipexampleinstall odbc_zipdistinstall odbc_clean odbc_distclean odbc_cleanall odbc_info odbc_makefiles odbc
-endif
-all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
+all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
 release: fpc_release
-units: fpc_units $(addsuffix _units,$(TARGET_DIRS))
-examples: $(addsuffix _examples,$(TARGET_DIRS))
-shared: $(addsuffix _shared,$(TARGET_DIRS))
-install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
+units: fpc_units
+examples:
+shared:
+install: fpc_install
 sourceinstall: fpc_sourceinstall
-exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
-distinstall: $(addsuffix _distinstall,$(TARGET_DIRS))
+exampleinstall: fpc_exampleinstall
+distinstall:
 zipinstall:
 zipsourceinstall:
-zipexampleinstall: $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
-zipdistinstall: $(addsuffix _zipdistinstall,$(TARGET_DIRS))
-clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
-distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
-cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
+zipexampleinstall:
+zipdistinstall:
+clean: fpc_clean
+distclean: fpc_distclean
+cleanall: fpc_cleanall
 info: fpc_info
 makefiles: fpc_makefiles
 .PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles

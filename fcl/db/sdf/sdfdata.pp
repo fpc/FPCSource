@@ -405,6 +405,8 @@ procedure TFixedFormatDataSet.InternalHandleException;
 begin
 {$ifndef fpc}
    Application.HandleException(Self);
+{$else}
+  inherited;
 {$endif}
 end;
 
