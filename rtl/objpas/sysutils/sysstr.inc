@@ -2217,7 +2217,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
             begin
               if GetInt>0 then
                 begin
-                  plongint(Pointers[i])^:=StrToInt(s1);
+                  pPtrInt(Pointers[i])^:=StrToInt(s1);
                   inc(Result);
                 end
               else

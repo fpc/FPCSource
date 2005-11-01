@@ -97,16 +97,16 @@ begin
   repeat
   { skip leading spaces }
     while cmdline^ in [' ',#9,#13] do
-     inc(longint(cmdline));
+     inc(PtrInt(cmdline));
     case cmdline^ of
       #0 : break;
      '"' : begin
              quote:=['"'];
-             inc(longint(cmdline));
+             inc(PtrInt(cmdline));
            end;
     '''' : begin
              quote:=[''''];
-             inc(longint(cmdline));
+             inc(PtrInt(cmdline));
            end;
     else
      quote:=[' ',#9,#13];
@@ -114,7 +114,7 @@ begin
   { scan until the end of the argument }
     argstart:=cmdline;
     while (cmdline^<>#0) and not(cmdline^ in quote) do
-     inc(longint(cmdline));
+     inc(PtrInt(cmdline));
   { reserve some memory }
     arglen:=cmdline-argstart;
     getmem(argsbuf[count],arglen+1);
@@ -122,7 +122,7 @@ begin
     argsbuf[count][arglen]:=#0;
   { skip quote }
     if cmdline^ in quote then
-     inc(longint(cmdline));
+     inc(PtrInt(cmdline));
     inc(count);
   until false;
 { create argc }

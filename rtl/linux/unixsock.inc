@@ -48,9 +48,9 @@ Const
   Socket_Sys_RECVMSG     = 17;
 
 
-Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
+Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:TSysParam):longint;
 var
-  Args:array[1..6] of longint;
+  Args:array[1..6] of TSysParam;
 begin
   args[1]:=a1;
   args[2]:=a2;
@@ -58,7 +58,7 @@ begin
   args[4]:=a4;
   args[5]:=a5;
   args[6]:=a6;
-  SocketCall:=do_Syscall(syscall_nr_socketcall,sockcallnr,longint(@args));
+  SocketCall:=do_Syscall(syscall_nr_socketcall,sockcallnr,TSysParam(@args));
   If SocketCall<0 then
    SocketError:=fpgetErrno
   else
@@ -66,7 +66,7 @@ begin
 end;
 
 
-function SocketCall(SockCallNr,a1,a2,a3:longint):longint;
+function SocketCall(SockCallNr,a1,a2,a3:TSysParam):longint;
 begin
   SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
 end;
