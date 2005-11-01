@@ -124,8 +124,8 @@ begin
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
-  FHandle := BeginThread(nil, 0, @ThreadProc, pointer(self), Flags,
-                         FThreadID, StackSize);
+  FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), Flags,
+                         FThreadID);
   FFatalException := nil;
 end;
 

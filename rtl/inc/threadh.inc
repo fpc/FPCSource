@@ -15,8 +15,13 @@
  **********************************************************************}
 
 const
-   DefaultStackSize = 32768; { including 16384 margin for stackchecking }
-
+{$ifdef mswindows}
+  { on windows, use stack size of starting process }
+  DefaultStackSize = 0;
+{$else mswindows}
+  { including 16384 margin for stackchecking }
+  DefaultStackSize = 32768;
+{$endif mswindows}
 
 type
   PEventState = pointer;
