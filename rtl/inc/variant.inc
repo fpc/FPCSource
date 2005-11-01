@@ -120,6 +120,7 @@ procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;
 
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
   begin
+    result:=nil;
     variantmanager.vartodynarray(result,v,typeinfo);
   end;
 
