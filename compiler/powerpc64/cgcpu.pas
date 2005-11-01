@@ -239,8 +239,7 @@ begin
   location := paraloc.location;
   tmpref := r;
   sizeleft := paraloc.intsize;
-  while assigned(location) do
-  begin
+  while assigned(location) do begin
     case location^.loc of
       LOC_REGISTER, LOC_CREGISTER:
         begin
@@ -248,8 +247,59 @@ begin
             a_load_ref_reg(list, size, location^.size, tmpref,
               location^.register)
           else
-            a_load_ref_reg(list, location^.size, location^.size, tmpref,
-              location^.register)
+            { load non-integral sized memory location into register. This 
+            memory location be 1-sizeleft byte sized.
+            Always assume that this memory area is properly aligned, eg. start
+            loading the larger quantities for "odd" quantities first }
+            case sizeleft of
+              3 : begin
+                a_reg_alloc(list, NR_R12); 
+                a_load_ref_reg(list, OS_16, location^.size, tmpref, 
+                  NR_R12);
+                inc(tmpref.offset, tcgsize2size[OS_16]);
+                a_load_ref_reg(list, OS_8, location^.size, tmpref,
+                  location^.register);
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 40));                
+                a_reg_dealloc(list, NR_R12);
+              end;
+              5 : begin
+                a_reg_alloc(list, NR_R12);
+                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
+                inc(tmpref.offset, tcgsize2size[OS_32]);
+                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 24));                
+                a_reg_dealloc(list, NR_R12);              
+              end;
+              6 : begin
+                a_reg_alloc(list, NR_R12);
+                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
+                inc(tmpref.offset, tcgsize2size[OS_32]);
+                a_load_ref_reg(list, OS_16, location^.size, tmpref, location^.register);
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 16, 16));                
+                a_reg_dealloc(list, NR_R12);
+              end;
+              7 : begin
+                a_reg_alloc(list, NR_R12);
+                a_reg_alloc(list, NR_R0);
+                a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
+                inc(tmpref.offset, tcgsize2size[OS_32]);
+                a_load_ref_reg(list, OS_16, location^.size, tmpref, NR_R0);
+                inc(tmpref.offset, tcgsize2size[OS_16]);
+                a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, NR_R0, NR_R12, 16, 16));                
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R0, 8, 8));                 
+                a_reg_dealloc(list, NR_R0);
+                a_reg_dealloc(list, NR_R12);
+              end;
+              1,2,4,8 :
+                a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
+                  location^.register); 
+              else 
+                a_load_ref_reg(list, location^.size, location^.size, tmpref,
+                  location^.register);
+            end; 
+//            a_load_ref_reg(list, location^.size, location^.size, tmpref,
+//              location^.register);
         end;
       LOC_REFERENCE:
         begin
