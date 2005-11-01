@@ -77,7 +77,7 @@
 
       TStrokes = Array[0..1000] of TStroke;
 
-      opcodes = (_END_OF_CHAR, _DO_SCAN, _MOVE, _DRAW);
+      opcodes = (_END_OF_CHAR, _DO_SCAN, _DRAW := 253, _MOVE := 254 );
 
 
     var

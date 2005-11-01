@@ -62,6 +62,11 @@ Var
         BeginThread:=BeginThread(nil,DefaultStackSize,ThreadFunction,p,0,ThreadId);
       end;
 
+    function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
+                     var ThreadId : TThreadID; const SS: DWord) : TThreadID;
+      begin
+        BeginThread:=BeginThread(nil,SS,ThreadFunction,p,0,ThreadId);
+      end;
 
     procedure EndThread;
       begin

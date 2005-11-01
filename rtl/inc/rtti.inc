@@ -125,7 +125,6 @@ begin
 end;
 
 
-
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
@@ -220,6 +219,78 @@ begin
       variant_clear(pvardata(data)^);
   end;
 end;
+
+
+{
+Procedure fpc_Copy (Src, Dest, TypeInfo : Pointer);[Public,alias : 'FPC_COPY'];  compilerproc;
+var
+  Temp : pbyte;
+  namelen : byte;
+  count,
+  offset,
+  i : longint;
+  info : pointer;
+begin
+  case PByte(TypeInfo)^ of
+    tkAstring:
+      begin
+        fpc_AnsiStr_Incr_Ref(PPointer(Src)^);
+        fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
+        PPointer(Dest)^:=PPointer(Src)^;
+      end;
+    tkWstring:
+      begin
+        fpc_WideStr_Incr_Ref(PPointer(Src)^);
+        fpc_WideStr_Decr_Ref(PPointer(Dest)^);
+      end;
+    tkArray:
+      begin
+        arrayrtti(data,typeinfo,@fpc_systemDecRef);
+      end;
+    tkobject,
+    tkrecord:
+      begin
+        Temp:=PByte(TypeInfo);
+        inc(Temp);
+        { Skip Name }
+        namelen:=Temp^;
+        inc(temp,namelen+1);
+        temp:=aligntoptr(temp);
+
+        { copy data }
+        move(src^,dest^,plongint(temp)^);
+
+        { Skip size }
+        inc(Temp,4);
+        { Element count }
+        Count:=PLongint(Temp)^;
+        inc(Temp,sizeof(Count));
+        { Process elements }
+        for i:=1 to count Do
+          begin
+            Info:=PPointer(Temp)^;
+            inc(Temp,sizeof(Info));
+            Offset:=PLongint(Temp)^;
+            inc(Temp,sizeof(Offset));
+            fpc_Copy(Src+Offset,Src+Offset,Info);
+	  end;
+    tkDynArray:
+      begin
+        fpc_dynarray_Incr_Ref(PPointer(Src)^);
+        fpc_dynarray_Decr_Ref(PPointer(Dest)^);
+        PPointer(Dest)^:=PPointer(Src)^;
+      end;
+    tkInterface:
+      begin
+        Intf_Incr_Ref(PPointer(Src)^);
+        Intf_Decr_Ref(PPointer(Dest)^);
+        PPointer(Dest)^:=PPointer(Src)^;
+      end;
+    tkVariant:
+      VarCopyProc(pvardata(dest)^,pvardata(src)^);
+  end;
+end;
+}
 
 
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;

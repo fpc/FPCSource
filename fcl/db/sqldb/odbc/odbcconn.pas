@@ -17,7 +17,7 @@ interface
 
 uses
   Classes, SysUtils, sqldb, db, odbcsql;
-  
+
 type
 
   // forward declarations
@@ -35,13 +35,13 @@ type
     constructor Create(Connection:TODBCConnection);
     destructor Destroy; override;
   end;
-  
+
   { TODBCHandle } // this name is a bit confusing, but follows the standards for naming classes in sqldb
 
   TODBCHandle = class(TSQLHandle)
   protected
   end;
-  
+
   { TODBCEnvironment }
 
   TODBCEnvironment = class
@@ -61,7 +61,7 @@ type
     FEnvironment:TODBCEnvironment;
     FDBCHandle:SQLHDBC; // ODBC Connection Handle
     FFileDSN: string;
-    
+
     procedure SetParameters(ODBCCursor:TODBCCursor; AParams:TParams);
     procedure FreeParamBuffers(ODBCCursor:TODBCCursor);
   protected
@@ -96,7 +96,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs:TIndexDefs; TableName:string); override;
     // - Schema info
     function GetSchemaInfoSQL(SchemaType:TSchemaType; SchemaObjectName, SchemaObjectPattern:string):string; override;
-    
+
     // Internal utility functions
     function CreateConnectionString:string;
   public
@@ -119,7 +119,7 @@ type
     property Params;       // will be added to connection string
     property OnLogin;
   end;
-  
+
   EODBCException = class(Exception)
     // currently empty; perhaps we can add fields here later that describe the error instead of one simple message string
   end;
@@ -132,7 +132,7 @@ uses
 const
   DefaultEnvironment:TODBCEnvironment = nil;
   ODBCLoadCount:integer = 0; // ODBC is loaded when > 0; modified by TODBCEnvironment.Create/Destroy
-  
+
 { Generic ODBC helper functions }
 
 function ODBCSucces(const Res:SQLRETURN):boolean;
@@ -167,7 +167,7 @@ begin
   CheckSQLGetDiagResult(Res);
   if ODBCSucces(LastReturnCode) then
     Exit; // no error; all is ok
-    
+
   // build TotalMessage for exception to throw
   TotalMessage:=Format('%s ODBC error details:',[ErrorMsg]);
   // retrieve status records
@@ -219,7 +219,7 @@ function TODBCConnection.CreateConnectionString: string;
     else
       Result:=s;
   end;
-  
+
 var
   i: Integer;
   Param: string;
@@ -321,7 +321,9 @@ end;
 function TODBCConnection.GetHandle: pointer;
 begin
   // I'm not sure whether this is correct; perhaps we should return nil
-  Result:=pointer(FDBCHandle); // note that FDBHandle is a LongInt, because ODBC handles are integers, not pointers
+  // note that FDBHandle is a LongInt, because ODBC handles are integers, not pointers
+  // I wonder how this will work on 64 bit platforms then (FK)
+  Result:=pointer(PtrInt(FDBCHandle));
 end;
 
 procedure TODBCConnection.DoInternalConnect;
@@ -333,7 +335,7 @@ var
   ActualLength:SQLSMALLINT;
 begin
   inherited DoInternalConnect;
-  
+
   // make sure we have an environment
   if not Assigned(FEnvironment) then
   begin
@@ -341,7 +343,7 @@ begin
       DefaultEnvironment:=TODBCEnvironment.Create;
     FEnvironment:=DefaultEnvironment;
   end;
-    
+
   // allocate connection handle
   SQLAllocHandle(SQL_HANDLE_DBC,Environment.FENVHandle,FDBCHandle);
   ODBCCheckResult(SQL_HANDLE_ENV,Environment.FENVHandle,'Could not allocate ODBC Connection handle.');
@@ -367,11 +369,11 @@ end;
 procedure TODBCConnection.DoInternalDisconnect;
 begin
   inherited DoInternalDisconnect;
-  
+
   // disconnect
   SQLDisconnect(FDBCHandle);
   ODBCCheckResult(SQL_HANDLE_DBC,FDBCHandle,'Could not disconnect.');
-  
+
   // deallocate connection handle
   if SQLFreeHandle(SQL_HANDLE_DBC, FDBCHandle)=SQL_ERROR then
     ODBCCheckResult(SQL_HANDLE_DBC,FDBCHandle,'Could not free connection handle.');
@@ -414,7 +416,7 @@ var
   NewQueryIndex,BufIndex,CopyLen,i:integer;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // Parameter handling
   // Note: We can only pass ? parameters to ODBC, so we should convert named parameters like :MyID
   //       ODBCCursor.FParamIndex will map th i-th ? token in the (modified) query to an index for AParams
@@ -484,7 +486,7 @@ begin
             SetLength(ParamPart,NewLength);
             SetLength(ODBCCursor.FParamIndex,NewLength);
           end;
-        
+
           if p^=':' then
           begin // find parameter name
             Inc(p);
@@ -499,7 +501,7 @@ begin
             ParamNameStart:=p;
             ParamName:='';
           end;
-          
+
           // find ParameterIndex
           if ParamName<>'' then
           begin
@@ -512,12 +514,12 @@ begin
             ParameterIndex:=QuestionMarkParamCount;
             Inc(QuestionMarkParamCount);
           end;
-          
+
           // store ParameterIndex in FParamIndex, ParamPart data
           ODBCCursor.FParamIndex[ParamCount-1]:=ParameterIndex;
           ParamPart[ParamCount-1].Start:=ParamNameStart-BufStart;
           ParamPart[ParamCount-1].Stop:=p-BufStart+1;
-          
+
           // update NewQueryLength
           Dec(NewQueryLength,p-ParamNameStart);
         end;
@@ -529,7 +531,7 @@ begin
 
   SetLength(ParamPart,ParamCount);
   SetLength(ODBCCursor.FParamIndex,ParamCount);
-  
+
   if ParamCount>0 then
   begin
     // replace :ParamName by ? (using ParamPart array and NewQueryLength)
@@ -550,11 +552,11 @@ begin
   end
   else
     NewQuery:=buf;
-    
+
   // prepare statement
   SQLPrepare(ODBCCursor.FSTMTHandle, PChar(NewQuery), Length(NewQuery));
   ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.');
-  
+
   ODBCCursor.FQuery:=NewQuery;
 end;
 
@@ -599,14 +601,14 @@ var
   Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // set parameters
   SetParameters(ODBCCursor, AParams);
 
   // execute the statement
   Res:=SQLExecute(ODBCCursor.FSTMTHandle);
   ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.');
-  
+
   // free parameter buffers
   FreeParamBuffers(ODBCCursor);
 end;
@@ -617,12 +619,12 @@ var
   Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // fetch new row
   Res:=SQLFetch(ODBCCursor.FSTMTHandle);
   if Res<>SQL_NO_DATA then
     ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not fetch new row from result set');
-  
+
   // result is true iff a new row was available
   Result:=Res<>SQL_NO_DATA;
 end;
@@ -637,7 +639,7 @@ var
   DateTime:TDateTime;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // load the field using SQLGetData
   // Note: optionally we can implement the use of SQLBindCol later for even more speed
   // TODO: finish this
@@ -716,7 +718,7 @@ var
   FieldSize:word;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // get number of columns in result set
   SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount);
   ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not determine number of columns in result set.');
@@ -752,7 +754,7 @@ begin
                       nil);                   // no numerical output
       ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get column name for column %d.',[i]));
     end;
-      
+
     // convert type
     // NOTE: I made some guesses here after I found only limited information about TFieldType; please report any problems
     case DataType of
@@ -826,7 +828,7 @@ begin
   // allocate environment handle
   if SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, FENVHandle)=SQL_Error then
     raise EODBCException.Create('Could not allocate ODBC Environment handle'); // we can't retrieve any more information, because we don't have a handle for the SQLGetDiag* functions
-  
+
   // set odbc version
   SQLSetEnvAttr(FENVHandle, SQL_ATTR_ODBC_VERSION, SQLPOINTER(SQL_OV_ODBC3), 0);
   ODBCCheckResult(SQL_HANDLE_ENV, FENVHandle,'Could not set ODBC version to 3.');
@@ -855,7 +857,7 @@ end;
 destructor TODBCCursor.Destroy;
 begin
   inherited Destroy;
-  
+
   // deallocate statement handle
   if SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle)=SQL_ERROR then
     ODBCCheckResult(SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
