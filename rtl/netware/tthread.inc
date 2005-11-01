@@ -149,7 +149,8 @@ begin
 end;
 
 
-constructor TThread.Create(CreateSuspended: Boolean);
+constructor TThread.Create(CreateSuspended: Boolean;
+                           const StackSize: DWord = DefaultStackSize);
 var
   Flags: Integer;
 begin

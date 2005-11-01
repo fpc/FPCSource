@@ -112,6 +112,8 @@ function BeginThread(sa : Pointer;stacksize : dword;
 function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadID;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
+                     var ThreadId : TThreadID; const SS: DWord) : TThreadID;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
