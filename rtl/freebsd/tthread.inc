@@ -185,7 +185,8 @@ begin
 end;
 
 { TThread }
-constructor TThread.Create(CreateSuspended: Boolean);
+constructor TThread.Create(CreateSuspended: Boolean;
+                           const StackSize: DWord = DefaultStackSize);
 begin
   // lets just hope that the user doesn't create a thread
   // via BeginThread and creates the first TThread Object in there!
@@ -196,8 +197,8 @@ begin
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
-  WRITE_DEBUG('creating thread, self = ',longint(self));
-  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID);
+  WRITE_DEBUG('creating thread, self = ',PtrInt(self));
+  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID,StackSize);
   WRITE_DEBUG('TThread.Create done');
 end;
 
