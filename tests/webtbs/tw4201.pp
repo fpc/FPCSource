@@ -72,4 +72,6 @@ begin
   t:= TBuggedThread.Create;
 
   t.Execute;
+  
+  t.Free();
 end.
