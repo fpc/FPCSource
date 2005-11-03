@@ -114,7 +114,7 @@ begin
   if FreeThread then Thread.Free;
 end;
 
-constructor TThread.Create(CreateSuspended: Boolean);
+constructor TThread.Create(CreateSuspended: Boolean; const StackSize: DWord = DefaultStackSize);
 var
   Flags: Integer;
 begin
@@ -123,7 +123,7 @@ begin
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
-  FHandle := BeginThread(nil, 0, @ThreadProc, pointer(self), Flags, FThreadID);
+  FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), Flags, FThreadID);
   FFatalException := nil;
 end;
 
