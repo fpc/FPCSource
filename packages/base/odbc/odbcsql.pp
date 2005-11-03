@@ -44,6 +44,7 @@ type
   SQLREAL      = real;
   SQLDOUBLE    = Double;
   SQLFLOAT     = Double;
+  SQLHWND      = pointer;
   PSQLCHAR      = PChar;
   PSQLINTEGER   = ^SQLINTEGER;
   PSQLUINTEGER  = ^SQLUINTEGER;
@@ -999,10 +1000,10 @@ type   TSQLConnect=function (ConnectionHandle:SQLHDBC;
 type   TSQLDisconnect=function(ConnectionHandle:SQLHDBC):SQLRETURN;stdcall;
 
 type   TSQLDriverConnect=function (hdbc: SQLHDBC;
-           hwnd: Integer;szCsin: PChar;
+           hwnd: SQLHWND;szCsin: PChar;
            szCLen: SQLSMALLINT;szCsout: PChar;
            cbCSMax: SQLSMALLINT;Var cbCsOut: SQLSMALLINT;
-           f: Integer):SQLRETURN;stdcall;
+           f: SQLUSMALLINT):SQLRETURN;stdcall;
 
 type   TSQLExecDirect=function (StatementHandle:SQLHSTMT;
            StatementText:PSQLCHAR;TextLength:SQLINTEGER):SQLRETURN;stdcall;
@@ -1239,13 +1240,13 @@ Const
                ConnectionHandle:SQLHDBC):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLDriverConnect(
                hdbc: SQLHDBC;
-               hwnd: Integer;
+               hwnd: SQLHWND;
                szCsin: PChar;
                szCLen: SQLSMALLINT;
                szCsout: PChar;
                cbCSMax: SQLSMALLINT;
                Var cbCsOut: SQLSMALLINT;
-               f: Integer):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
+               f: SQLUSMALLINT):SQLRETURN;{$ifdef win32}stdcall{$else}cdecl{$endif};external LibName;
    function SQLBrowseConnect(
                hdbc : SQLHDBC;
                szConnStrIn :PSQLCHAR;

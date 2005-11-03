@@ -56,7 +56,6 @@ type
 
   TODBCConnection = class(TSQLConnection)
   private
-    FDataSourceName: string;
     FDriver: string;
     FEnvironment:TODBCEnvironment;
     FDBCHandle:SQLHDBC; // ODBC Connection Handle
@@ -140,6 +139,21 @@ begin
   Result:=(Res=SQL_SUCCESS) or (Res=SQL_SUCCESS_WITH_INFO);
 end;
 
+function ODBCResultToStr(Res:SQLRETURN):string;
+begin
+  case Res of
+    SQL_SUCCESS:          Result:='SQL_SUCCESS';
+    SQL_SUCCESS_WITH_INFO:Result:='SQL_SUCCESS_WITH_INFO';
+    SQL_ERROR:            Result:='SQL_ERROR';
+    SQL_INVALID_HANDLE:   Result:='SQL_INVALID_HANDLE';
+    SQL_NO_DATA:          Result:='SQL_NO_DATA';
+    SQL_NEED_DATA:        Result:='SQL_NEED_DATA';
+    SQL_STILL_EXECUTING:  Result:='SQL_STILL_EXECUTING';
+  else
+    Result:='';
+  end;
+end;
+
 procedure ODBCCheckResult(HandleType:SQLSMALLINT; AHandle: SQLHANDLE; ErrorMsg: string);
 
   // check return value from SQLGetDiagField/Rec function itself
@@ -163,7 +177,7 @@ var
   RecNumber:SQLSMALLINT;
 begin
   // check result
-  Res:=SQLGetDiagField(HandleType,AHandle,0,SQL_DIAG_RETURNCODE,@LastReturnCode,0,TextLength);
+  Res:=SQLGetDiagField(HandleType,AHandle,0,SQL_DIAG_RETURNCODE,@LastReturnCode,SQL_IS_SMALLINT,TextLength);
   CheckSQLGetDiagResult(Res);
   if ODBCSucces(LastReturnCode) then
     Exit; // no error; all is ok
@@ -352,7 +366,7 @@ begin
   ConnectionString:=CreateConnectionString;
   SetLength(OutConnectionString,BufferLength-1); // allocate completed connection string buffer (using the ansistring #0 trick)
   SQLDriverConnect(FDBCHandle,               // the ODBC connection handle
-                   0,                        // no parent window (would be required for prompts)
+                   nil,                      // no parent window (would be required for prompts)
                    PChar(ConnectionString),  // the connection string
                    Length(ConnectionString), // connection string length
                    @(OutConnectionString[1]),// buffer for storing the completed connection string
@@ -386,6 +400,10 @@ end;
 
 procedure TODBCConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
+  // make sure we don't deallocate the cursor if the connection was lost already
+  if not Connected then
+    (cursor as TODBCCursor).FSTMTHandle:=SQL_INVALID_HANDLE;
+
   FreeAndNil(cursor); // the destructor of TODBCCursor frees the ODBC Statement handle
 end;
 
@@ -598,7 +616,6 @@ end;
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
 var
   ODBCCursor:TODBCCursor;
-  Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -606,7 +623,7 @@ begin
   SetParameters(ODBCCursor, AParams);
 
   // execute the statement
-  Res:=SQLExecute(ODBCCursor.FSTMTHandle);
+  SQLExecute(ODBCCursor.FSTMTHandle);
   ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.');
 
   // free parameter buffers
@@ -858,9 +875,12 @@ destructor TODBCCursor.Destroy;
 begin
   inherited Destroy;
 
-  // deallocate statement handle
-  if SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle)=SQL_ERROR then
-    ODBCCheckResult(SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
+  if FSTMTHandle<>SQL_INVALID_HANDLE then
+  begin
+    // deallocate statement handle
+    if SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle)=SQL_ERROR then
+      ODBCCheckResult(SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
+  end;
 end;
 
 { finalization }
