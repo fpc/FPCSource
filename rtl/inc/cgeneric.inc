@@ -73,7 +73,7 @@ begin
   { unsigned)                                                       }
   res := memchr(buf,longint(b),cardinal(len));
   if (res <> nil) then
-    IndexChar := longint(res-@buf)
+    IndexChar := SizeInt(res-@buf)
   else
     IndexChar := -1;
 end;

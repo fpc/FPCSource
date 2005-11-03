@@ -197,7 +197,7 @@ begin
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
-  WRITE_DEBUG('creating thread, self = ',longint(self));
+  WRITE_DEBUG('creating thread, self = ', PtrInt(self));
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
   WRITE_DEBUG('TThread.Create done');
 end;

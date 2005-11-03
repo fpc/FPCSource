@@ -207,7 +207,7 @@ type
    TTms      = tms;
    PTms      = ^tms;
 
- TFDSet    = ARRAY[0..(FD_MAXFDSET div 32)-1] of Cardinal;
+ TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cLong;
  pFDSet    = ^TFDSet;
 
   timezone = packed record
