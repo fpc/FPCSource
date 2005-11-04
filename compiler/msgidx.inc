@@ -663,7 +663,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39281;
+  MsgTxtSize = 39282;
 
   MsgIdxMax : array[1..20] of longint=(
     19,73,218,59,59,47,100,20,135,60,
