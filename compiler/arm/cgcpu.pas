@@ -614,7 +614,9 @@ unit cgcpu;
            ) or
            ((op in [A_LDF,A_STF]) and
             ((ref.offset<-1020) or
-             (ref.offset>1020)
+             (ref.offset>1020) or
+             { the usual pc relative symbol handling assumes possible offsets of +/- 4095 }
+             assigned(ref.symbol)
             )
            ) then
           begin
