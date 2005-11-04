@@ -66,7 +66,7 @@ var
 begin
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
-    ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
+    ofs := align(maxpushedparasize + LinkageAreaSizeELF, 8);
 
     { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
       for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
@@ -74,7 +74,6 @@ begin
 //    if (ofs < 112) then begin
 //      ofs := 112;
 //    end;
-
     tg.setfirsttemp(ofs);
   end else begin
     locals := 0;

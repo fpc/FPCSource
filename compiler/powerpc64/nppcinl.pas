@@ -36,6 +36,8 @@ type
     }
     function first_abs_real: tnode; override;
     function first_sqr_real: tnode; override;
+    { todo: inline trunc/round/frac?/int }
+
     procedure second_abs_real; override;
     procedure second_sqr_real; override;
     procedure second_prefetch; override;

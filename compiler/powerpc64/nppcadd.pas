@@ -163,7 +163,6 @@ begin
   end
 end;
 
-// Todo: ts: allow emiting word compares...
 procedure tppcaddnode.emit_compare(unsigned: boolean);
 var
   op: tasmop;
@@ -175,8 +174,7 @@ begin
     swapleftright;
   // can we use an immediate, or do we have to load the
   // constant in a register first?
-  if (right.location.loc = LOC_CONSTANT) then
-  begin
+  if (right.location.loc = LOC_CONSTANT) then begin
     if (nodetype in [equaln, unequaln]) then
       if (unsigned and
         (aword(right.location.value) > high(word))) or
@@ -193,15 +191,13 @@ begin
       (aint(right.location.value) >= low(smallint)) and
       (aint(right.location.value) <= high(smallint))) then
       useconst := true
-    else
-    begin
+    else begin
       useconst := false;
       tmpreg := cg.getintregister(exprasmlist, OS_INT);
       cg.a_load_const_reg(exprasmlist, OS_INT,
         right.location.value, tmpreg);
     end
-  end
-  else
+  end else
     useconst := false;
   location.loc := LOC_FLAGS;
   location.resflags := getresflags;
@@ -215,15 +211,13 @@ begin
   else
     op := A_CMPLD;
 
-  if (right.location.loc = LOC_CONSTANT) then
-  begin
+  if (right.location.loc = LOC_CONSTANT) then begin
     if useconst then
       exprasmlist.concat(taicpu.op_reg_const(op, left.location.register,
         longint(right.location.value)))
     else
       exprasmlist.concat(taicpu.op_reg_reg(op, left.location.register, tmpreg));
-  end
-  else
+  end else
     exprasmlist.concat(taicpu.op_reg_reg(op,
       left.location.register, right.location.register));
 end;
@@ -237,7 +231,7 @@ var
   cgop: TOpCg;
   cgsize: TCgSize;
   cmpop,
-    isjump: boolean;
+  isjump: boolean;
   otl, ofl: tasmlabel;
 begin
   { calculate the operator which is more difficult }
@@ -525,7 +519,6 @@ begin
             cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_64,
               right.location.register, tmpreg);
             if left.location.loc <> LOC_CONSTANT then begin
-
               cg.a_op_reg_reg_reg(exprasmlist, OP_OR, OS_64, tmpreg,
                 left.location.register, location.register)
             end else begin

@@ -49,9 +49,7 @@ const
     { the difference to stdcall is only the name mangling }
     pocall_cdecl,
     { the difference to stdcall is only the name mangling }
-    pocall_cppdecl,
-    { pass all const records by reference }
-    pocall_mwpascal
+    pocall_cppdecl
     ];
 
   processorsstr: array[tprocessors] of string[10] = ('',

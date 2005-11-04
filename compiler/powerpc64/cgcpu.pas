@@ -157,16 +157,9 @@ type
   end;
 
 const
-  TOpCG2AsmOpConstLo: array[topcg] of TAsmOp = (A_NONE, A_ADDI, A_ANDI_,
-    A_DIVWU,
-    A_DIVW, A_MULLW, A_MULLW, A_NONE, A_NONE, A_ORI,
-    A_SRAWI, A_SLWI, A_SRWI, A_SUBI, A_XORI);
-  TOpCG2AsmOpConstHi: array[topcg] of TAsmOp = (A_NONE, A_ADDIS, A_ANDIS_,
-    A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NONE, A_NONE,
-    A_ORIS, A_NONE, A_NONE, A_NONE, A_SUBIS, A_XORIS);
-
-  TShiftOpCG2AsmOpConst32 : array[OP_SAR..OP_SHR] of TAsmOp = (A_SRAWI, A_SLWI, A_SRWI);
-  TShiftOpCG2AsmOpConst64 : array[OP_SAR..OP_SHR] of TAsmOp = (A_SRADI, A_SLDI, A_SRDI);
+  TShiftOpCG2AsmOpConst : array[boolean, OP_SAR..OP_SHR] of TAsmOp = (
+    (A_SRAWI, A_SLWI, A_SRWI), (A_SRADI, A_SLDI, A_SRDI)
+    );
 
   TOpCmp2AsmCond: array[topcmp] of TAsmCondFlag = (C_NONE, C_EQ, C_GT,
     C_LT, C_GE, C_LE, C_NE, C_LE, C_LT, C_GE, C_GT);
@@ -248,10 +241,13 @@ begin
               location^.register)
           else
             { load non-integral sized memory location into register. This 
-            memory location be 1-sizeleft byte sized.
-            Always assume that this memory area is properly aligned, eg. start
-            loading the larger quantities for "odd" quantities first }
+             memory location be 1-sizeleft byte sized.
+             Always assume that this memory area is properly aligned, eg. start
+             loading the larger quantities for "odd" quantities first }
             case sizeleft of
+              1,2,4,8 :
+                a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
+                  location^.register); 
               3 : begin
                 a_reg_alloc(list, NR_R12); 
                 a_load_ref_reg(list, OS_16, location^.size, tmpref, 
@@ -259,7 +255,7 @@ begin
                 inc(tmpref.offset, tcgsize2size[OS_16]);
                 a_load_ref_reg(list, OS_8, location^.size, tmpref,
                   location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 40));                
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 40));
                 a_reg_dealloc(list, NR_R12);
               end;
               5 : begin
@@ -267,8 +263,8 @@ begin
                 a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
                 inc(tmpref.offset, tcgsize2size[OS_32]);
                 a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 24));                
-                a_reg_dealloc(list, NR_R12);              
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 8, 24));
+                a_reg_dealloc(list, NR_R12);
               end;
               6 : begin
                 a_reg_alloc(list, NR_R12);
@@ -286,20 +282,16 @@ begin
                 a_load_ref_reg(list, OS_16, location^.size, tmpref, NR_R0);
                 inc(tmpref.offset, tcgsize2size[OS_16]);
                 a_load_ref_reg(list, OS_8, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, NR_R0, NR_R12, 16, 16));                
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R0, 8, 8));                 
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, NR_R0, NR_R12, 16, 16));
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R0, 8, 8));
                 a_reg_dealloc(list, NR_R0);
                 a_reg_dealloc(list, NR_R12);
               end;
-              1,2,4,8 :
-                a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
-                  location^.register); 
-              else 
+              else
+                { still > 8 bytes to load, so load data single register now }
                 a_load_ref_reg(list, location^.size, location^.size, tmpref,
                   location^.register);
             end; 
-//            a_load_ref_reg(list, location^.size, location^.size, tmpref,
-//              location^.register);
         end;
       LOC_REFERENCE:
         begin
@@ -368,12 +360,8 @@ begin
     AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
-  {
-         the compiler does not properly set this flag anymore in pass 1, and
-         for now we only need it after pass 2 (I hope) (JM)
-           if not(pi_do_call in current_procinfo.flags) then
-             internalerror(2003060703);
-  }
+  { the compiler does not properly set this flag anymore in pass 1, and
+   for now we only need it after pass 2 (I hope) (JM) }
   include(current_procinfo.flags, pi_do_call);
 end;
 
@@ -503,9 +491,9 @@ begin
          32 bits should contain -1
         - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
          32 bits should contain 0 }
-      load32bitconstantR0(list, size, hi(a), NR_R0);
+      load32bitconstant(list, size, hi(a), NR_R12);
       { combine both registers }
-      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
+      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R12, 32, 0));
     end;
   end;
 end;
@@ -550,7 +538,7 @@ const
     ((A_LBZ, A_LBZU), (A_LBZX, A_LBZUX)),
     ((A_LHA, A_LHAU), (A_LHAX, A_LHAUX)),
     { there's no load-word-arithmetic-indexed with update, simulate it in code :( }
-    ((A_LWA, A_LWAU), (A_LWAX, A_LWAUX)),
+    ((A_LWA, A_NOP), (A_LWAX, A_LWAUX)),
     ((A_LD, A_LDU), (A_LDX, A_LDUX))
     );
 var
@@ -563,12 +551,12 @@ begin
   ref2 := ref;
   fixref(list, ref2, tosize);
   { the caller is expected to have adjusted the reference already
-   in this case                                                  }
+   in this case }
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
     fromsize := tosize;
   op := loadinstr[fromsize, ref2.index <> NR_NO, false];
   { there is no LWAU instruction, simulate using ADDI and LWA }
-  if (op = A_LWAU) then begin
+  if (op = A_NOP) then begin
     list.concat(taicpu.op_reg_reg_const(A_ADDI, reg, reg, ref2.offset));
     ref2.offset := 0;
     op := A_LWA;
@@ -605,8 +593,8 @@ var
 begin
   op := movemap[fromsize, tosize];
   case op of
-        A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
-        A_RLDICL : instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[fromsize])*8);
+    A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
+    A_RLDICL : instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[fromsize])*8);
   else
     internalerror(2002090901);
   end;
@@ -614,8 +602,8 @@ begin
   rg[R_INTREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2:
-  tregister);
+procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; 
+  reg1, reg2: tregister);
 var
   instr: taicpu;
 begin
@@ -624,8 +612,8 @@ begin
   rg[R_FPUREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref:
-  treference; reg: tregister);
+procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; 
+  const ref: treference; reg: tregister);
 const
   FpuLoadInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
   { indexed? updating?}
@@ -654,7 +642,6 @@ end;
 
 procedure tcgppc.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg:
   tregister; const ref: treference);
-
 const
   FpuStoreInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
   { indexed? updating? }
@@ -688,139 +675,131 @@ end;
 procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
   size: tcgsize; a: aint; src, dst: tregister);
 var
-  l1, l2: longint;
-  oplo, ophi: tasmop;
-  scratchreg: tregister;
   useReg : boolean;
-  shiftmask : longint;
 
-  procedure do_lo_hi;
+  procedure do_lo_hi(loOp, hiOp : TAsmOp);
   begin
+    { Optimization for logical ops (excluding AND), trying to do this as efficiently
+     as possible by only generating code for the affected halfwords. Note that all
+     the instructions handled here must have "X op 0 = X" for every halfword. }
     usereg := false;
-    if (size in [OS_64, OS_S64]) then begin
-      { ts: use register method for 64 bit consts. Sloooooow }
+    if (aword(a) > high(dword)) then begin
       usereg := true;
-    end else if (size in [OS_32, OS_S32]) then begin
-      list.concat(taicpu.op_reg_reg_const(oplo, dst, src, word(a)));
-      list.concat(taicpu.op_reg_reg_const(ophi, dst, dst, word(a shr 16)));
     end else begin
-      list.concat(taicpu.op_reg_reg_const(oplo, dst, src, word(a)));
+      if (word(a) <> 0) then begin
+        list.concat(taicpu.op_reg_reg_const(loOp, dst, src, word(a)));
+        if (word(a shr 16) <> 0) then
+          list.concat(taicpu.op_reg_reg_const(hiOp, dst, dst, word(a shr 16)));
+      end else if (word(a shr 16) <> 0) then
+        list.concat(taicpu.op_reg_reg_const(hiOp, dst, src, word(a shr 16)));
     end;
   end;
 
+  procedure do_lo_hi_and;
+  begin
+    { optimization logical and with immediate: only use "andi." for 16 bit
+     ands, otherwise use register method. Doing this for 32 bit constants
+     would not give any advantage to the register method (via useReg := true), 
+     requiring a scratch register and three instructions. }
+    usereg := false;
+    if (aword(a) > high(word)) then
+      usereg := true
+    else
+      list.concat(taicpu.op_reg_reg_const(A_ANDI_, dst, src, word(a)));
+  end;
+var
+  scratchreg: tregister;
+  shift, shiftmask : longint;
+
 begin
+  { subtraction is the same as addition with negative constant }
   if op = OP_SUB then begin
     a_op_const_reg_reg(list, OP_ADD, size, -a, src, dst);
     exit;
   end;
-  ophi := TOpCG2AsmOpConstHi[op];
-  oplo := TOpCG2AsmOpConstLo[op];
-  { peephole optimizations for AND, OR, XOR - can't this be done at
-   some higher level, independent of architecture? }
-  if (op in [OP_AND, OP_OR, OP_XOR]) then begin
-    if (a = 0) then begin
-      if op = OP_AND then
-        list.concat(taicpu.op_reg_const(A_LI, dst, 0))
-      else
-        a_load_reg_reg(list, size, size, src, dst);
-      exit;
-    end else if (a = -1) then begin
-      case op of
-        OP_OR:
-          list.concat(taicpu.op_reg_const(A_LI, dst, -1));
-        OP_XOR:
-          list.concat(taicpu.op_reg_reg(A_NOT, dst, src));
-        OP_AND:
-          a_load_reg_reg(list, size, size, src, dst);
-      end;
-      exit;
-    end;
-  { optimization for add }
-  end else if (op = OP_ADD) then
-    if a = 0 then begin
-      a_load_reg_reg(list, size, size, src, dst);
-      exit;
-    end else if (a >= low(smallint)) and (a <= high(smallint)) then begin
-      list.concat(taicpu.op_reg_reg_const(A_ADDI, dst, src, smallint(a)));
-      exit;
-    end;
+  { This case includes some peephole optimizations for the various operations,
+   (e.g. AND, OR, XOR, ..) - can't this be done at some higher level, 
+   independent of architecture? }
 
-  { otherwise, the instructions we can generate depend on the operation }
+  { assume that we do not need a scratch register for the operation }
   useReg := false;
-  case op of
+  case (op) of
     OP_DIV, OP_IDIV:
+      { actually, this method should be never called directly with OP_DIV or
+       OP_IDIV, so just provide basic support.
+       TODO: move division by constant stuff from nppcmat.pas here }    
       if (a = 0) then
         internalerror(200208103)
-      else if (a = 1) then begin
-        a_load_reg_reg(list, OS_INT, OS_INT, src, dst);
-        exit
-      end else if false {and ispowerof2(a, l1)} then begin
-        internalerror(200208103);
-        case op of
-          OP_DIV: begin
-            list.concat(taicpu.op_reg_reg_const(A_SRDI, dst, src, l1));
-          end;
-          OP_IDIV:
-            begin
-              list.concat(taicpu.op_reg_reg_const(A_SRADI, dst, src, l1));
-              list.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
-            end;
-        end;
-        exit;
-      end else
-        usereg := true;
+      else if (a = 1) then
+        a_load_reg_reg(list, size, size, src, dst)
+      else
+        usereg := true; 
     OP_IMUL, OP_MUL:
-      if (a = 0) then begin
-        list.concat(taicpu.op_reg_const(A_LI, dst, 0));
-        exit
-      end else if (a = -1) then begin
-        list.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
-      end else if (a = 1) then begin
-        a_load_reg_reg(list, OS_INT, OS_INT, src, dst);
-        exit
-      end else if ispowerof2(a, l1) then
-        list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, l1))
+      { idea: factorize constant multiplicands and use adds/shifts with few factors;
+       however, even a 64 bit multiply is already quite fast on PPC64 }
+      if (a = 0) then
+        a_load_const_reg(list, size, 0, dst)
+      else if (a = -1) then
+        list.concat(taicpu.op_reg_reg(A_NEG, dst, dst))
+      else if (a = 1) then
+        a_load_reg_reg(list, OS_INT, OS_INT, src, dst)
+      else if ispowerof2(a, shift) then
+        list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, shift))
       else if (a >= low(smallint)) and (a <= high(smallint)) then
         list.concat(taicpu.op_reg_reg_const(A_MULLI, dst, src,
           smallint(a)))
       else
         usereg := true;
     OP_ADD:
-      {$todo ts:optimize}
-      useReg := true;
+      if (a = 0) then
+        a_load_reg_reg(list, size, size, src, dst)
+      else if (a >= low(smallint)) and (a <= high(smallint)) then
+        list.concat(taicpu.op_reg_reg_const(A_ADDI, dst, src, smallint(a)))
+      else
+        useReg := true;
     OP_OR:
-      do_lo_hi;
+      if (a = 0) then
+        a_load_reg_reg(list, size, size, src, dst)
+      else if (a = -1) then
+        a_load_const_reg(list, size, -1, dst)
+      else
+        do_lo_hi(A_ORI, A_ORIS);
     OP_AND:
-      useReg := true;
+      if (a = 0) then
+        a_load_const_reg(list, size, 0, dst)
+      else if (a = -1) then
+        a_load_reg_reg(list, size, size, src, dst)
+      else
+        do_lo_hi_and;
     OP_XOR:
-      do_lo_hi;
+      if (a = 0) then
+        a_load_reg_reg(list, size, size, src, dst)
+      else if (a = -1) then
+        list.concat(taicpu.op_reg_reg(A_NOT, dst, src))
+      else
+        do_lo_hi(A_XORI, A_XORIS);
     OP_SHL, OP_SHR, OP_SAR:
       begin
-        {$note ts: cleanup todo, fix remaining bugs}
-        if (size in [OS_64, OS_S64]) then begin
-          if (a and 63) <> 0 then
-            list.concat(taicpu.op_reg_reg_const(
-              TShiftOpCG2AsmOpConst64[Op], dst, src, a and 63))
-          else
-            a_load_reg_reg(list, size, size, src, dst);
-          if (a shr 6) <> 0 then
-            internalError(68991);
-        end else begin
-          if (a and 31) <> 0 then
-            list.concat(taicpu.op_reg_reg_const(
-              TShiftOpCG2AsmOpConst32[Op], dst, src, a and 31))
-          else
-            a_load_reg_reg(list, size, size, src, dst);
-          if (a shr 5) <> 0 then
-            internalError(68991);
-        end;
+        if (size in [OS_64, OS_S64]) then 
+          shift := 6
+        else
+          shift := 5;
+        
+        shiftmask := (1 shl shift)-1;
+        if (a and shiftmask) <> 0 then
+          list.concat(taicpu.op_reg_reg_const(
+            TShiftOpCG2AsmOpConst[size in [OS_64, OS_S64], op], dst, src, a and shiftmask))
+        else
+          a_load_reg_reg(list, size, size, src, dst);
+        if ((a shr shift) <> 0) then
+          internalError(68991);
       end
-  else
-    internalerror(200109091);
+    else
+      internalerror(200109091);
   end;
-  { if all else failed, load the constant in a register and then }
-  { perform the operation                                        }
-  if useReg then begin
+  { if all else failed, load the constant in a register and then
+   perform the operation }
+  if (useReg) then begin
     scratchreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
     a_load_const_reg(list, size, a, scratchreg);
     a_op_reg_reg_reg(list, op, size, scratchreg, src, dst);
@@ -843,35 +822,29 @@ begin
     OP_NEG, OP_NOT:
       begin
         list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop64[op], dst, src1));
-        if (op = OP_NOT) and
-          not (size in [OS_64, OS_S64]) then
+        if (op = OP_NOT) and not (size in [OS_64, OS_S64]) then
           { zero/sign extend result again, fromsize is not important here }
           a_load_reg_reg(list, OS_S64, size, dst, dst)
       end;
-  else
-  {$NOTE ts:testme}
-    if (size in [OS_64, OS_S64]) then begin
-      list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop64[op], dst, src2,
-        src1));
-    end else begin
-      list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop32[op], dst, src2,
-        src1));
-    end;
+    else
+      if (size in [OS_64, OS_S64]) then begin
+        list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop64[op], dst, src2,
+          src1));
+      end else begin
+        list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop32[op], dst, src2,
+          src1));
+      end;
   end;
 end;
 
 {*************** compare instructructions ****************}
 
-procedure tcgppc.a_cmp_const_reg_label(list: taasmoutput; size: tcgsize; cmp_op:
-  topcmp; a: aint; reg: tregister;
-  l: tasmlabel);
-
+procedure tcgppc.a_cmp_const_reg_label(list: taasmoutput; size: tcgsize; 
+  cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
 var
   scratch_register: TRegister;
   signed: boolean;
-
 begin
-  { todo: use 32 bit compares? }
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
   { in the following case, we generate more efficient code when }
   { signed is true                                              }
@@ -897,13 +870,10 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize; cmp_op:
-  topcmp;
-  reg1, reg2: tregister; l: tasmlabel);
-
+procedure tcgppc.a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize; 
+  cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   op: tasmop;
-
 begin
   if cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE] then
     if (size in [OS_64, OS_S64]) then
@@ -953,11 +923,9 @@ end;
 
 procedure tcgppc.g_flags2reg(list: taasmoutput; size: TCgSize; const f:
   TResFlags; reg: TRegister);
-
 var
   testbit: byte;
   bitvalue: boolean;
-
 begin
   { get the bit to extract from the conditional register + its requested value (0 or 1) }
   testbit := ((f.cr - RS_CR0) * 4);
@@ -1375,7 +1343,7 @@ begin
     list.concat(taicpu.op_reg_reg_const(A_SUBI, dst.base, dst.base, 8));
     countreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
     a_load_const_reg(list, OS_32, count, countreg);
-    { explicitely allocate R_0 since it can be used safely here
+    { explicitely allocate F0 since it can be used safely here
      (for holding date that's being copied) }
     a_reg_alloc(list, NR_F0);
     objectlibrary.getjumplabel(lab);

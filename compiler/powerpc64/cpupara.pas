@@ -408,10 +408,11 @@ begin
       end;
     end;
   end;
+
   curintreg := nextintreg;
   curfloatreg := nextfloatreg;
   curmmreg := nextmmreg;
-  cur_stack_offset := stack_offset;
+  cur_stack_offset := stack_offset; 
   result := stack_offset;
 end;
 
