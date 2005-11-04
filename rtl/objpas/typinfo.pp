@@ -825,7 +825,7 @@ begin
     DataSize := 8
   else
     DataSize := 4;
-  if PropInfo^.PropType^.Kind <> tkClass then
+  if not(PropInfo^.PropType^.Kind in [tkInt64,tkQword,tkClass]) then
     begin
       { cut off unnecessary stuff }
       case GetTypeData(PropInfo^.PropType)^.OrdType of
@@ -846,7 +846,7 @@ begin
       case DataSize of
         1: PByte(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Byte(Value);
         2: PWord(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Word(Value);
-        4:PLongint(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Longint(Value);
+        4: PLongint(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Longint(Value);
         8: PInt64(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
       end;
     ptstatic,
