@@ -209,8 +209,10 @@ begin
         'D' : begin
               if Checkarg(vtinteger,false) then
                 Str(Args[Doarg].VInteger,ToAdd)
-              else if CheckArg(vtInt64,true) then
-                Str(Args[DoArg].VInt64^,toadd);
+              else if CheckArg(vtInt64,false) then
+                Str(Args[DoArg].VInt64^,toadd)
+              else if CheckArg(vtQWord,true) then
+                Str(int64(Args[DoArg].VQWord^),toadd);
               Width:=Abs(width);
               Index:=Prec-Length(ToAdd);
               If ToAdd[1]<>'-' then
