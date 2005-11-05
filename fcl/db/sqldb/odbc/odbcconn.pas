@@ -29,7 +29,7 @@ type
   protected
     FSTMTHandle:SQLHSTMT; // ODBC Statement Handle
     FQuery:string;        // last prepared query, with :ParamName converted to ?
-    FParamIndex:array of integer; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
+    FParamIndex:TParamBinding; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
     FParamBuf:array of pointer; // buffers that can be used to bind the i-th parameter in the query
   public
     constructor Create(Connection:TODBCConnection);
@@ -413,25 +413,8 @@ begin
 end;
 
 procedure TODBCConnection.PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction; buf: string; AParams: TParams);
-type
-  // used for ParamPart
-  TStringPart = record
-    Start,Stop:integer;
-  end;
-const
-  ParamAllocStepSize = 8;
 var
   ODBCCursor:TODBCCursor;
-  p,ParamNameStart,BufStart:PChar;
-  ParamName:string;
-  QuestionMarkParamCount,ParameterIndex,NewLength:integer;
-  ParamCount:integer; // actual number of parameters encountered so far;
-                      // always <= Length(ParamPart) = Length(ODBCCursor.FParamIndex)
-                      // ODBCCursor.FParamIndex will have length ParamCount in the end
-  ParamPart:array of TStringPart; // describe which parts of buf are parameters
-  NewQueryLength:integer;
-  NewQuery:string;
-  NewQueryIndex,BufIndex,CopyLen,i:integer;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -440,142 +423,14 @@ begin
   //       ODBCCursor.FParamIndex will map th i-th ? token in the (modified) query to an index for AParams
 
   // Parse the SQL and build FParamIndex
-  ParamCount:=0;
-  NewQueryLength:=Length(buf);
-  SetLength(ParamPart,ParamAllocStepSize);
-  SetLength(ODBCCursor.FParamIndex,ParamAllocStepSize);
-  QuestionMarkParamCount:=0; // number of ? params found in query so far
-  p:=PChar(buf);
-  BufStart:=p; // used to calculate ParamPart.Start values
-  repeat
-    case p^ of
-      '''': // single quote delimited string (not obligatory in ODBC, but let's handle it anyway)
-        begin
-          Inc(p);
-          while not (p^ in [#0, '''']) do
-          begin
-            if p^='\' then Inc(p,2) // make sure we handle \' and \\ correct
-            else Inc(p);
-          end;
-          if p^='''' then Inc(p); // skip final '
-        end;
-      '"':  // double quote delimited string
-        begin
-          Inc(p);
-          while not (p^ in [#0, '"']) do
-          begin
-            if p^='\'  then Inc(p,2) // make sure we handle \" and \\ correct
-            else Inc(p);
-          end;
-          if p^='"' then Inc(p); // skip final "
-        end;
-      '-': // possible start of -- comment
-        begin
-          Inc(p);
-          if p='-' then // -- comment
-          begin
-            repeat // skip until at end of line
-              Inc(p);
-            until p^ in [#10, #0];
-          end
-        end;
-      '/': // possible start of /* */ comment
-        begin
-          Inc(p);
-          if p^='*' then // /* */ comment
-          begin
-            repeat
-              Inc(p);
-              if p^='*' then // possible end of comment
-              begin
-                Inc(p);
-                if p^='/' then Break; // end of comment
-              end;
-            until p^=#0;
-            if p^='/' then Inc(p); // skip final /
-          end;
-        end;
-      ':','?': // parameter
-        begin
-          Inc(ParamCount);
-          if ParamCount>Length(ParamPart) then
-          begin
-            NewLength:=Length(ParamPart)+ParamAllocStepSize;
-            SetLength(ParamPart,NewLength);
-            SetLength(ODBCCursor.FParamIndex,NewLength);
-          end;
-
-          if p^=':' then
-          begin // find parameter name
-            Inc(p);
-            ParamNameStart:=p;
-            while not (p^ in (SQLDelimiterCharacters+[#0])) do
-              Inc(p);
-            ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
-          end
-          else
-          begin
-            Inc(p);
-            ParamNameStart:=p;
-            ParamName:='';
-          end;
-
-          // find ParameterIndex
-          if ParamName<>'' then
-          begin
-            if AParams=nil then
-              raise EDataBaseError.CreateFmt('Found parameter marker with name %s in the query, but no actual parameters are given at all',[ParamName]);
-            ParameterIndex:=AParams.ParamByName(ParamName).Index // lookup parameter in AParams
-          end
-          else
-          begin
-            ParameterIndex:=QuestionMarkParamCount;
-            Inc(QuestionMarkParamCount);
-          end;
-
-          // store ParameterIndex in FParamIndex, ParamPart data
-          ODBCCursor.FParamIndex[ParamCount-1]:=ParameterIndex;
-          ParamPart[ParamCount-1].Start:=ParamNameStart-BufStart;
-          ParamPart[ParamCount-1].Stop:=p-BufStart+1;
-
-          // update NewQueryLength
-          Dec(NewQueryLength,p-ParamNameStart);
-        end;
-      #0:Break;
-    else
-      Inc(p);
-    end;
-  until false;
-
-  SetLength(ParamPart,ParamCount);
-  SetLength(ODBCCursor.FParamIndex,ParamCount);
-
-  if ParamCount>0 then
-  begin
-    // replace :ParamName by ? (using ParamPart array and NewQueryLength)
-    SetLength(NewQuery,NewQueryLength);
-    NewQueryIndex:=1;
-    BufIndex:=1;
-    for i:=0 to High(ParamPart) do
-    begin
-      CopyLen:=ParamPart[i].Start-BufIndex;
-      Move(buf[BufIndex],NewQuery[NewQueryIndex],CopyLen);
-      Inc(NewQueryIndex,CopyLen);
-      NewQuery[NewQueryIndex]:='?';
-      Inc(NewQueryIndex);
-      BufIndex:=ParamPart[i].Stop;
-    end;
-    CopyLen:=Length(Buf)+1-BufIndex;
-    Move(buf[BufIndex],NewQuery[NewQueryIndex],CopyLen);
-  end
-  else
-    NewQuery:=buf;
+  if assigned(AParams) and (AParams.count > 0) then
+    buf := AParams.ParseSQL(buf,false,psInterbase,ODBCCursor.FParamIndex);
 
   // prepare statement
-  SQLPrepare(ODBCCursor.FSTMTHandle, PChar(NewQuery), Length(NewQuery));
+  SQLPrepare(ODBCCursor.FSTMTHandle, PChar(Buf), Length(Buf));
   ODBCCheckResult(SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.');
 
-  ODBCCursor.FQuery:=NewQuery;
+  ODBCCursor.FQuery:=Buf;
 end;
 
 procedure TODBCConnection.UnPrepareStatement(cursor: TSQLCursor);

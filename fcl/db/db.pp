@@ -32,6 +32,7 @@ const
   // whether it's true or false.
   YesNoChars : Array[Boolean] of char = ('Y','N');
 
+  SQLDelimiterCharacters = [';',',',' ','(',')',#13,#10,#9];
 
 type
 
@@ -1547,9 +1548,13 @@ type
   { TParam }
 
   TBlobData = string;
+  
+  TParamBinding = array of integer;
 
   TParamType = (ptUnknown, ptInput, ptOutput, ptInputOutput, ptResult);
   TParamTypes = set of TParamType;
+  
+  TParamStyle = (psInterbase,psPostgreSQL);
 
   TParams = class;
 
@@ -1661,6 +1666,8 @@ type
     Function  IsEqual(Value: TParams): Boolean;
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String;
+    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
     Procedure RemoveParam(Value: TParam);
     Property Dataset : TDataset Read GetDataset;
     Property Items[Index: Integer] : TParam read GetItem write SetItem; default;

@@ -408,11 +408,9 @@ begin
         begin
         s := s + '(';
         for i := 0 to AParams.count-1 do
-          begin
           s := s + TypeStrings[AParams[i].DataType] + ',';
-          buf := stringreplace(buf,':'+AParams[i].Name,'$'+inttostr(i+1),[rfReplaceAll,rfIgnoreCase]);
-          end;
         s[length(s)] := ')';
+        buf := AParams.ParseSQL(buf,false,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
       res := pqexec(tr,pchar(s));

@@ -151,9 +151,203 @@ begin
 end;
 
 Function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
-begin
 
+var pb : TParamBinding;
+
+begin
+  Result := ParseSQL(SQL,DoCreate,psInterbase, pb);
 end;
+
+Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String;
+
+var pb : TParamBinding;
+
+begin
+  Result := ParseSQL(SQL,DoCreate,ParameterStyle,pb);
+end;
+
+
+Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+
+type
+  // used for ParamPart
+  TStringPart = record
+    Start,Stop:integer;
+  end;
+  
+const
+  ParamAllocStepSize = 8;
+  
+var
+  p,ParamNameStart,BufStart:PChar;
+  ParamName:string;
+  QuestionMarkParamCount,ParameterIndex,NewLength:integer;
+  ParamCount:integer; // actual number of parameters encountered so far;
+                      // always <= Length(ParamPart) = Length(Parambinding)
+                      // Parambinding will have length ParamCount in the end
+  ParamPart:array of TStringPart; // describe which parts of buf are parameters
+  NewQueryLength:integer;
+  NewQuery:string;
+  NewQueryIndex,BufIndex,CopyLen,i:integer;                     // Parambinding will have length ParamCount in the end
+
+begin
+  if DoCreate then Clear;
+  // Parse the SQL and build ParamBinding
+  ParamCount:=0;
+  NewQueryLength:=Length(SQL);
+  SetLength(ParamPart,ParamAllocStepSize);
+  SetLength(Parambinding,ParamAllocStepSize);
+  QuestionMarkParamCount:=0; // number of ? params found in query so far
+
+  p:=PChar(SQL);
+  BufStart:=p; // used to calculate ParamPart.Start values
+  repeat
+    case p^ of
+      '''': // single quote delimited string
+        begin
+          Inc(p);
+          while not (p^ in [#0, '''']) do
+          begin
+            if p^='\' then Inc(p,2) // make sure we handle \' and \\ correct
+            else Inc(p);
+          end;
+          if p^='''' then Inc(p); // skip final '
+        end;
+      '"':  // double quote delimited string
+        begin
+          Inc(p);
+          while not (p^ in [#0, '"']) do
+          begin
+            if p^='\'  then Inc(p,2) // make sure we handle \" and \\ correct
+            else Inc(p);
+          end;
+          if p^='"' then Inc(p); // skip final "
+        end;
+      '-': // possible start of -- comment
+        begin
+          Inc(p);
+          if p='-' then // -- comment
+          begin
+            repeat // skip until at end of line
+              Inc(p);
+            until p^ in [#10, #0];
+          end
+        end;
+      '/': // possible start of /* */ comment
+        begin
+          Inc(p);
+          if p^='*' then // /* */ comment
+          begin
+            repeat
+              Inc(p);
+              if p^='*' then // possible end of comment
+              begin
+                Inc(p);
+                if p^='/' then Break; // end of comment
+              end;
+            until p^=#0;
+            if p^='/' then Inc(p); // skip final /
+          end;
+        end;
+      ':','?': // parameter
+        begin
+          Inc(ParamCount);
+          if ParamCount>Length(ParamPart) then
+          begin
+            NewLength:=Length(ParamPart)+ParamAllocStepSize;
+            SetLength(ParamPart,NewLength);
+            SetLength(ParamBinding,NewLength);
+          end;
+
+          if p^=':' then
+          begin // find parameter name
+            Inc(p);
+            ParamNameStart:=p;
+            while not (p^ in (SQLDelimiterCharacters+[#0])) do
+              Inc(p);
+            ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
+          end
+          else
+          begin
+            Inc(p);
+            ParamNameStart:=p;
+            ParamName:='';
+          end;
+
+          // create Parameter and assign ParameterIndex
+          if DoCreate then
+            ParameterIndex := CreateParam(ftUnknown, ParamName, ptInput).Index
+          // else find ParameterIndex
+          else
+            begin
+              if ParamName<>'' then
+                ParameterIndex:=ParamByName(ParamName).Index
+              else
+              begin
+                ParameterIndex:=QuestionMarkParamCount;
+                Inc(QuestionMarkParamCount);
+              end;
+            end;
+
+          // store ParameterIndex in FParamIndex, ParamPart data
+          ParamBinding[ParamCount-1]:=ParameterIndex;
+          ParamPart[ParamCount-1].Start:=ParamNameStart-BufStart;
+          ParamPart[ParamCount-1].Stop:=p-BufStart+1;
+
+          // update NewQueryLength
+          Dec(NewQueryLength,p-ParamNameStart);
+        end;
+      #0:Break;
+    else
+      Inc(p);
+    end;
+  until false;
+  
+  SetLength(ParamPart,ParamCount);
+  SetLength(ParamBinding,ParamCount);
+
+  if ParamCount>0 then
+  begin
+    // replace :ParamName by ? (using ParamPart array and NewQueryLength)
+    if ParameterStyle = psPostgreSQL then
+      if paramcount < 10 then
+        inc(NewQueryLength,paramcount)
+      else
+        inc(NewQueryLength,(paramcount-9)*2+9);
+
+    SetLength(NewQuery,NewQueryLength);
+    NewQueryIndex:=1;
+    BufIndex:=1;
+    for i:=0 to High(ParamPart) do
+    begin
+      CopyLen:=ParamPart[i].Start-BufIndex;
+      Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+      Inc(NewQueryIndex,CopyLen);
+      case ParameterStyle of
+        psInterbase : NewQuery[NewQueryIndex]:='?';
+        psPostgreSQL: begin
+                        ParamName := IntToStr(i+1);
+                        NewQuery[NewQueryIndex]:='$';
+                        Inc(NewQueryIndex);
+                        NewQuery[NewQueryIndex]:= paramname[1];
+                        if i>10 then
+                          begin
+                          Inc(NewQueryIndex);
+                          NewQuery[NewQueryIndex]:= paramname[2]
+                          end;
+                      end;
+      end;
+      Inc(NewQueryIndex);
+      BufIndex:=ParamPart[i].Stop;
+    end;
+    CopyLen:=Length(SQL)+1-BufIndex;
+    Move(SQL[BufIndex],NewQuery[NewQueryIndex],CopyLen);
+  end
+  else
+    NewQuery:=SQL;
+  Result := NewQuery;
+end;
+
 
 Procedure TParams.RemoveParam(Value: TParam);
 begin
