@@ -1,20 +1,17 @@
-/*
-  $Id: prt0.as,v 1.12 2005/02/03 19:09:11 karoly Exp $
-*/
-/*
-   This file is part of the Free Pascal run time library.
-   Copyright (c) 2004 by Karoly Balogh for Genesi Sarl
-
-   Thanks for Martin 'MarK' Kuchinka <kuchinka@volny.cz>
-   for his help.
-
-   See the file COPYING.FPC, included in this distribution,
-   for details about the copyright.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY;without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*/
+#
+#  This file is part of the Free Pascal run time library.
+#  Copyright (c) 2004 by Karoly Balogh for Genesi Sarl
+#
+#  Thanks for Martin 'MarK' Kuchinka <kuchinka@volny.cz>
+#  for his help.
+#
+#  See the file COPYING.FPC, included in this distribution,
+#  for details about the copyright.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY;without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
         .section ".text"
         .globl _start
         .align 4
@@ -23,12 +20,12 @@ _start:
         stw  0,4(1)
         stwu 1,-16(1)
 
-        /* Get ExecBase */
+        # Get ExecBase
         lwz 3,4(0)
         lis 4,_ExecBase@ha
         stw 3,_ExecBase@l(4)
 
-        /* Allocating new stack */
+        # Allocating new stack
         lis 4,__stklen@ha
         lwz 3,__stklen@l(4)
         stw 3,0(2)
@@ -36,7 +33,7 @@ _start:
         stw 3,56(2)
         lwz 3,100(2)
         mtlr 3
-        li 3,-858              /* AllocTaskPooled */
+        li 3,-858              # AllocTaskPooled
         blrl
 
         cmplwi cr0,3,0
@@ -45,7 +42,7 @@ _start:
         lis 4,stackArea@ha
         stw 3,stackArea@l(4)
 
-        /* Setting up stackSwap struct */
+        # Setting up stackSwap struct
         lis 4,stackSwap@ha
         addi 4,4,stackSwap@l
         stw 3,0(4)
@@ -55,7 +52,7 @@ _start:
         stw 3,4(4)
         stw 3,8(4)
 
-        /* Calling main function with the new stack */
+        # Calling main function with the new stack
         stw 4,32(2)
         lis 4,_initproc@ha
         addi 4,4,_initproc@l
@@ -64,10 +61,10 @@ _start:
         stw 3,40(2)
         lwz 4,100(2)
         mtlr 4
-        li 3,-804              /* NewPPCStackSwap */
+        li 3,-804              # NewPPCStackSwap
         blrl
 
-        /* Setting return value */
+        # Setting return value
         lis 4,returnValue@ha
         lwz 3,returnValue@l(4)
 
@@ -101,7 +98,7 @@ _initproc:
         stw 30,120(1)
         stw 31,124(1)
 
-        /* Save Stackpointer */
+        # Save Stackpointer
         lis 4,OriginalStkPtr@ha
         stw 1,OriginalStkPtr@l(4)
 
@@ -109,11 +106,11 @@ _initproc:
 
         .globl  _haltproc
 _haltproc:
-        /* Restore Stackpointer */
+        # Restore Stackpointer
         lis 4,OriginalStkPtr@ha
         lwz 1,OriginalStkPtr@l(4)
 
-        /* Store return value */
+        # Store return value
         lis 4,returnValue@ha
         stw 3,returnValue@l(4)
 
@@ -175,53 +172,12 @@ stackSwap:
         .long 0
         .long 0
 
-        /* This is needed to be a proper MOS ABox executable */
-        /* This symbol _MUST NOT_ be stripped out from the executable */
-        /* or else... */
+        # This is needed to be a proper MOS ABox executable
+        # This symbol _MUST NOT_ be stripped out from the executable
+        # or else...
         .globl __abox__
         .type __abox__,@object
         .size __abox__,4
 __abox__:
         .long 1
 
-/*
-
-  Revision 1.12  2005/02/03 19:09:11  karoly
-    * reworked startup code:
-      - now uses AllocTaskPooled
-      - check for unsuccessful stack allocation
-
-  Revision 1.11  2004/06/06 22:02:22  karoly
-    * hopefully fixed stack problems causing hits
-
-  Revision 1.10  2004/06/06 12:51:06  karoly
-    * changelog fixed
-
-  Revision 1.9  2004/06/06 12:47:57  karoly
-    * some cleanup, comments added
-
-  Revision 1.8  2004/06/05 19:25:12  karoly
-    + reworked to support resizing of stack
-
-  Revision 1.7  2004/05/13 01:15:42  karoly
-    - removed comment about argc/argv, made it work another way
-
-  Revision 1.6  2004/05/01 15:08:57  karoly
-    + haltproc added, saving/restoring stackpointer added
-
-  Revision 1.5  2004/04/21 03:24:55  karoly
-   * rewritten to be similar to GCC startup code
-
-  Revision 1.4  2004/04/09 04:02:43  karoly
-   * abox id symbol fixed
-
-  Revision 1.3  2004/04/09 02:58:15  karoly
-   * typo fixed.
-
-  Revision 1.2  2004/04/09 02:54:25  karoly
-   * execbase loading oops fixed.
-
-  Revision 1.1  2004/03/16 10:29:22  karoly
-   * first implementation of some startup code for MOS
-
-*/

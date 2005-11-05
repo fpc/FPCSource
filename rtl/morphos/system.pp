@@ -71,6 +71,14 @@ implementation
 
 {$I system.inc}
 
+{$IFDEF MOSFPC_FILEDEBUG}
+{$WARNING Compiling with file debug enabled!}
+{$ENDIF}
+
+{$IFDEF MOSFPC_MEMDEBUG}
+{$WARNING Compiling with memory debug enabled!}
+{$ENDIF}
+
 
 {*****************************************************************************
                        Misc. System Dependent Functions

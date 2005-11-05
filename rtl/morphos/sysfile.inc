@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2001 by Free Pascal development team
+    Copyright (c) 2005 by Free Pascal development team
 
-    Low leve file functions
+    Low level file functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -13,6 +13,9 @@
 
  **********************************************************************}
 
+{ Enable this for file handling debug }
+{DEFINE MOSFPC_FILEDEBUG}
+
 {*****************************************************************************
                   MorphOS File-handling Support Functions
 *****************************************************************************}
@@ -22,8 +25,9 @@ type
   { manually on exit.                                                  }
   PFileList = ^TFileList;
   TFileList = record { no packed, must be correctly aligned }
-    handle : LongInt;      { Handle to file    }
-    next   : PFileList;    { Next file in list }
+    handle   : LongInt;      { Handle to file     }
+    next     : PFileList;    { Next file in list  }
+    buffered : boolean;      { used buffered I/O? }
   end;
 
 var
@@ -80,29 +84,74 @@ begin
   if not inList then begin
     New(p);
     p^.handle:=h;
+    p^.buffered:=False;
     p^.next:=l^.next;
     l^.next:=p;
-  end;
+  end
+{$IFDEF MOSFPC_FILEDEBUG}
+  else 
+    RawDoFmt('FPC_FILE_DEBUG: Error! Trying add filehandle a filehandle twice: $%lx !'+#10,@h,pointer(1),nil);
+{$ENDIF}
+  ;
 end;
 
 { Function to be called to remove a file from the list }
-procedure RemoveFromList(var l: PFileList; h: LongInt); alias: 'REMOVEFROMLIST'; [public];
+function RemoveFromList(var l: PFileList; h: LongInt): boolean; alias: 'REMOVEFROMLIST'; [public];
 var
-  p     : PFileList;
-  inList: Boolean;
+  p      : PFileList;
+  inList : Boolean;
+  tmpList: PFileList;
 begin
-  if l=nil then exit;
-
   inList:=False;
+  if l=nil then begin
+    RemoveFromList:=inList;
+    exit;
+  end;
+
   p:=l;
   while (p^.next<>nil) and (not inList) do
     if p^.next^.handle=h then inList:=True
                          else p:=p^.next;
-
-  if p^.next<>nil then begin
+  
+  if inList then begin
+    tmpList:=p^.next^.next;
     dispose(p^.next);
-    p^.next:=p^.next^.next;
+    p^.next:=tmpList;
+  end
+{$IFDEF MOSFPC_FILEDEBUG}
+  else 
+    RawDoFmt('FPC_FILE_DEBUG: Error! Trying to remove not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
+{$ENDIF}
+  ;
+
+  RemoveFromList:=inList;
+end;
+
+{ Function to check if file is in the list }
+function CheckInList(var l: PFileList; h: LongInt): pointer; alias: 'CHECKINLIST'; [public];
+var
+  p      : PFileList;
+  inList : Pointer;
+  tmpList: PFileList;
+  
+begin
+  inList:=nil;
+  if l=nil then begin
+    CheckInList:=inList;
+    exit;
   end;
+
+  p:=l;
+  while (p^.next<>nil) and (inList=nil) do
+    if p^.next^.handle=h then inList:=p^.next
+                         else p:=p^.next;
+
+{$IFDEF MOSFPC_FILEDEBUG}
+  if inList=nil then
+    RawDoFmt('FPC_FILE_DEBUG: Warning! Check for not existing filehandle: $%lx !'+#10,@h,pointer(1),nil);
+{$ENDIF}
+
+  CheckInList:=inList;
 end;
 
 
@@ -114,13 +163,12 @@ end;
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
-  if (handle<=0) then exit;
-
-  RemoveFromList(MOS_fileList,handle);
-  { Do _NOT_ check CTRL_C on Close, because it will conflict
-    with System_Exit! }
-  if not dosClose(handle) then
-    dosError2InOut(IoErr);
+  if RemoveFromList(MOS_fileList,handle) then begin
+    { Do _NOT_ check CTRL_C on Close, because it will conflict
+      with System_Exit! }
+    if not dosClose(handle) then
+      dosError2InOut(IoErr);
+  end;
 end;
 
 procedure do_erase(p : pchar);
@@ -137,12 +185,17 @@ begin
     dosError2InOut(IoErr);
 end;
 
-function do_write(h:longint; addr: pointer; len: longint) : longint;
+function do_write(h: longint; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
   do_write:=0;
   if (len<=0) or (h<=0) then exit;
+
+{$IFDEF MOSFPC_FILEDEBUG}
+  if not ((h=StdOutputHandle) or (h=StdInputHandle) or
+     (h=StdErrorHandle)) then CheckInList(MOS_fileList,h);
+{$ENDIF}
 
   dosResult:=dosWrite(h,addr,len);
   if dosResult<0 then begin
@@ -152,12 +205,17 @@ begin
   end;
 end;
 
-function do_read(h:longint; addr: pointer; len: longint) : longint;
+function do_read(h: longint; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
   do_read:=0;
   if (len<=0) or (h<=0) then exit;
+
+{$IFDEF MOSFPC_FILEDEBUG}
+  if not ((h=StdOutputHandle) or (h=StdInputHandle) or
+     (h=StdErrorHandle)) then CheckInList(MOS_fileList,h);
+{$ENDIF}
 
   dosResult:=dosRead(h,addr,len);
   if dosResult<0 then begin
@@ -167,46 +225,52 @@ begin
   end
 end;
 
-function do_filepos(handle : longint) : longint;
+function do_filepos(handle: longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
   do_filepos:=-1;
-  if (handle<=0) then exit;
+  if CheckInList(MOS_fileList,handle)<>nil then begin
 
-  { Seeking zero from OFFSET_CURRENT to find out where we are }
-  dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
-  if dosResult<0 then begin
-    dosError2InOut(IoErr);
-  end else begin
-    do_filepos:=dosResult;
+    { Seeking zero from OFFSET_CURRENT to find out where we are }
+    dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
+    if dosResult<0 then begin
+      dosError2InOut(IoErr);
+    end else begin
+      do_filepos:=dosResult;
+    end;
+
   end;
 end;
 
-procedure do_seek(handle,pos : longint);
+procedure do_seek(handle, pos: longint);
 begin
   checkCTRLC;
-  if (handle<=0) then exit;
+  if CheckInList(MOS_fileList,handle)<>nil then begin
 
-  { Seeking from OFFSET_BEGINNING }
-  if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
-    dosError2InOut(IoErr);
+    { Seeking from OFFSET_BEGINNING }
+    if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
+      dosError2InOut(IoErr);
+
+  end;
 end;
 
-function do_seekend(handle:longint):longint;
+function do_seekend(handle: longint):longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
   do_seekend:=-1;
-  if (handle<=0) then exit;
+  if CheckInList(MOS_fileList,handle)<>nil then begin
 
-  { Seeking to OFFSET_END }
-  dosResult:=dosSeek(handle,0,OFFSET_END);
-  if dosResult<0 then begin
-    dosError2InOut(IoErr);
-  end else begin
-    do_seekend:=dosResult;
-  end
+    { Seeking to OFFSET_END }
+    dosResult:=dosSeek(handle,0,OFFSET_END);
+    if dosResult<0 then begin
+      dosError2InOut(IoErr);
+    end else begin
+      do_seekend:=dosResult;
+    end;
+
+  end;
 end;
 
 function do_filesize(handle : longint) : longint;
@@ -214,24 +278,28 @@ var currfilepos: longint;
 begin
   checkCTRLC;
   do_filesize:=-1;
-  if (handle<=0) then exit;
+  if CheckInList(MOS_fileList,handle)<>nil then begin
 
-  currfilepos:=do_filepos(handle);
-  { We have to do this twice, because seek returns the OLD position }
-  do_filesize:=do_seekend(handle);
-  do_filesize:=do_seekend(handle);
-  do_seek(handle,currfilepos)
+    currfilepos:=do_filepos(handle);
+    { We have to do this twice, because seek returns the OLD position }
+    do_filesize:=do_seekend(handle);
+    do_filesize:=do_seekend(handle);
+    do_seek(handle,currfilepos);
+
+  end;
 end;
 
 { truncate at a given position }
-procedure do_truncate (handle,pos:longint);
+procedure do_truncate(handle, pos: longint);
 begin
   checkCTRLC;
-  if (handle<=0) then exit;
+  if CheckInList(MOS_fileList,handle)<>nil then begin
 
-  { Seeking from OFFSET_BEGINNING }
-  if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
-    dosError2InOut(IoErr);
+    { Seeking from OFFSET_BEGINNING }
+    if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
+      dosError2InOut(IoErr);
+
+  end;
 end;
 
 procedure do_open(var f;p:pchar;flags:longint);
@@ -307,7 +375,7 @@ begin
   end;
 end;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle: longint): boolean;
 begin
   if (handle=StdOutputHandle) or (handle=StdInputHandle) or
      (handle=StdErrorHandle) then
@@ -315,6 +383,4 @@ begin
   else
     do_isdevice:=False;
 end;
-
-
 
