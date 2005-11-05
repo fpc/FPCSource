@@ -172,6 +172,136 @@ uses
   symconst, symsym, fmodule,
   rgobj, tgobj, cpupi, procinfo, paramgr;
 
+{ helper function which calculate "magic" values for replacement of unsigned 
+ division by constant operation by multiplication. See the PowerPC compiler
+ developer manual for more information }
+procedure getmagic_unsignedN(const N : byte; const d : aWord; 
+  out magic_m : aWord; out magic_add : boolean; out magic_shift : byte);
+var
+    p : aInt;
+    nc, delta, q1, r1, q2, r2, two_N_minus_1 : aWord;
+begin
+  assert(d > 0);
+
+  two_N_minus_1 := aWord(1) shl (N-1);
+    
+  magic_add := false;
+  nc := - 1 - (-d) mod d;
+  p := N-1; { initialize p }
+  q1 := two_N_minus_1 div nc; { initialize q1 = 2p/nc }
+  r1 := two_N_minus_1 - q1*nc; { initialize r1 = rem(2p,nc) }
+  q2 := (two_N_minus_1-1) div d; { initialize q2 = (2p-1)/d }
+  r2 := (two_N_minus_1-1) - q2*d; { initialize r2 = rem((2p-1),d) }
+  repeat
+    inc(p);
+    if (r1 >= (nc - r1)) then begin
+      q1 := 2 * q1 + 1; { update q1 }
+      r1 := 2*r1 - nc; { update r1 }
+    end else begin
+      q1 := 2*q1; { update q1 }
+      r1 := 2*r1; { update r1 }
+    end;
+    if ((r2 + 1) >= (d - r2)) then begin
+      if (q2 >= (two_N_minus_1-1)) then
+        magic_add := true;
+      q2 := 2*q2 + 1; { update q2 }
+      r2 := 2*r2 + 1 - d; { update r2 }
+    end else begin
+      if (q2 >= two_N_minus_1) then 
+        magic_add := true;
+      q2 := 2*q2; { update q2 }
+      r2 := 2*r2 + 1; { update r2 }
+    end;
+    delta := d - 1 - r2;
+  until not ((p < (2*N)) and ((q1 < delta) or ((q1 = delta) and (r1 = 0))));
+  magic_m := q2 + 1; { resulting magic number }
+  magic_shift := p - N; { resulting shift }
+end;
+
+{ helper function which calculate "magic" values for replacement of signed 
+ division by constant operation by multiplication. See the PowerPC compiler
+ developer manual for more information }
+procedure getmagic_signedN(const N : byte; const d : aInt; 
+  out magic_m : aInt; out magic_s : aInt);
+var
+  p : aInt;
+  ad, anc, delta, q1, r1, q2, r2, t : aWord;
+  two_N_minus_1 : aWord;
+    
+begin
+  assert((d < -1) or (d > 1));
+
+  two_N_minus_1 := aWord(1) shl (N-1);
+
+  ad := abs(d);
+  t := two_N_minus_1 + (aWord(d) shr (N-1));
+  anc := t - 1 - t mod ad; { absolute value of nc }
+  p := (N-1); { initialize p }
+  q1 := two_N_minus_1 div anc; { initialize q1 = 2p/abs(nc) }
+  r1 := two_N_minus_1 - q1*anc; { initialize r1 = rem(2p,abs(nc)) }
+  q2 := two_N_minus_1 div ad; { initialize q2 = 2p/abs(d) }
+  r2 := two_N_minus_1 - q2*ad; { initialize r2 = rem(2p,abs(d)) }
+  repeat 
+    inc(p);
+    q1 := 2*q1; { update q1 = 2p/abs(nc) }
+    r1 := 2*r1; { update r1 = rem(2p/abs(nc)) }
+    if (r1 >= anc) then begin { must be unsigned comparison }
+      inc(q1);
+      dec(r1, anc);
+    end;
+    q2 := 2*q2; { update q2 = 2p/abs(d) }
+    r2 := 2*r2; { update r2 = rem(2p/abs(d)) }
+    if (r2 >= ad) then begin { must be unsigned comparison }
+      inc(q2);
+      dec(r2, ad);
+    end;
+    delta := ad - r2;
+  until not ((q1 < delta) or ((q1 = delta) and (r1 = 0)));
+  magic_m := q2 + 1;
+  if (d < 0) then begin
+    magic_m := -magic_m; { resulting magic number }
+  end;
+  magic_s := p - N; { resulting shift }
+end;
+
+{ finds positive and negative powers of two of the given value, returning the
+ power and whether it's a negative power or not in addition to the actual result
+ of the function }
+function ispowerof2(value : aInt; out power : byte; out neg : boolean) : boolean;
+var
+  i : longint;
+  hl : aInt;
+begin
+  neg := false;
+  { also try to find negative power of two's by negating if the 
+   value is negative. low(aInt) is special because it can not be
+   negated. Simply return the appropriate values for it }
+  if (value < 0) then begin
+    neg := true;
+    if (value = low(aInt)) then begin
+      power := sizeof(aInt)*8-1;
+      result := true;
+      exit;
+    end;
+    value := -value;
+  end;
+
+  if ((value and (value-1)) <> 0) then begin
+    result := false;
+    exit;
+  end;
+  hl := 1;
+  for i := 0 to (sizeof(aInt)*8-1) do begin
+    if (hl = value) then begin
+      result := true;
+      power := i;
+      exit;
+    end;
+    hl := hl shl 1;
+  end;
+end;
+
+
 procedure tcgppc.init_register_allocators;
 begin
   inherited init_register_allocators;
@@ -438,7 +568,9 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
   end;
 
   { R0-safe version of the above (ADDIS doesn't work the same way with R0 as base), without
-    the return value }
+   the return value. Unused until further testing shows that it is not really necessary;
+   loading the upper 32 bits of a value is now done using R12, which does not require
+   special treatment }
   procedure load32bitconstantR0(list : taasmoutput; size : TCGSize; a : longint;
     reg : TRegister);
   begin
@@ -707,9 +839,86 @@ var
     else
       list.concat(taicpu.op_reg_reg_const(A_ANDI_, dst, src, word(a)));
   end;
+
+  procedure do_constant_div(list : taasmoutput; size : TCgSize; a : aint; src, dst : TRegister;
+    signed : boolean);
+  const
+    negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
+  var
+    magic, shift : int64;
+    u_magic : qword;
+    u_shift : byte;
+    u_add : boolean;
+    power : byte;
+    isNegPower : boolean;
+             
+    divreg : tregister;
+  begin
+    if (a = 0) then begin
+      internalerror(2005061701);
+    end else if (a = 1) then begin
+      cg.a_load_reg_reg(exprasmlist, OS_INT, OS_INT, src, dst);
+    end else if (a = -1) then begin
+      { note: only in the signed case possible..., may overflow }
+      exprasmlist.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], dst, src));
+    end else if (ispowerof2(a, power, isNegPower)) then begin
+      if (signed) then begin
+        { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
+        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, power,
+          src, dst);
+        exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
+        if (isNegPower) then
+          exprasmlist.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+      end else begin
+        cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, power, src, dst)
+      end;
+    end else begin
+      { replace division by multiplication, both implementations }
+      { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
+      divreg := cg.getintregister(exprasmlist, OS_INT);
+      if (signed) then begin
+        getmagic_signedN(sizeof(aInt)*8, a, magic, shift);
+        { load magic value }
+        cg.a_load_const_reg(exprasmlist, OS_INT, magic, divreg);
+        { multiply }
+        exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHD, dst, src, divreg));
+        { add/subtract numerator }
+        if (a > 0) and (magic < 0) then begin
+          cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, src, dst, dst);
+        end else if (a < 0) and (magic > 0) then begin
+          cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, src, dst, dst);
+        end;
+        { shift shift places to the right (arithmetic) }
+        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, shift, dst, dst);                     
+        { extract and add sign bit }
+        if (a >= 0) then begin
+          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, src, divreg);
+        end else begin
+          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, dst, divreg);
+        end;                     
+        cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, dst, divreg, dst);
+      end else begin
+        getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
+        { load magic in divreg }
+        cg.a_load_const_reg(exprasmlist, OS_INT, u_magic, divreg);
+        exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
+        if (u_add) then begin
+          cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, dst, src, divreg);
+          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT,  1, divreg, divreg);
+          cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, divreg, dst, divreg);
+          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift-1, divreg, dst);
+        end else begin
+          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift, dst, dst);
+        end;
+      end;
+    end;
+  end;
+
 var
   scratchreg: tregister;
-  shift, shiftmask : longint;
+  shift : byte;
+  shiftmask : longint;
+  isneg : boolean;
 
 begin
   { subtraction is the same as addition with negative constant }
@@ -725,13 +934,8 @@ begin
   useReg := false;
   case (op) of
     OP_DIV, OP_IDIV:
-      { actually, this method should be never called directly with OP_DIV or
-       OP_IDIV, so just provide basic support.
-       TODO: move division by constant stuff from nppcmat.pas here }    
-      if (a = 0) then
-        internalerror(200208103)
-      else if (a = 1) then
-        a_load_reg_reg(list, size, size, src, dst)
+      if (cs_slowoptimize in aktglobalswitches) then
+        do_constant_div(list, size, a, src, dst, op = OP_IDIV)
       else
         usereg := true; 
     OP_IMUL, OP_MUL:
@@ -743,9 +947,11 @@ begin
         list.concat(taicpu.op_reg_reg(A_NEG, dst, dst))
       else if (a = 1) then
         a_load_reg_reg(list, OS_INT, OS_INT, src, dst)
-      else if ispowerof2(a, shift) then
-        list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, shift))
-      else if (a >= low(smallint)) and (a <= high(smallint)) then
+      else if ispowerof2(a, shift, isneg) then begin
+        list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, shift));
+        if (isneg) then
+          exprasmlist.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+      end else if (a >= low(smallint)) and (a <= high(smallint)) then
         list.concat(taicpu.op_reg_reg_const(A_MULLI, dst, src,
           smallint(a)))
       else
@@ -808,7 +1014,6 @@ end;
 
 procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
   size: tcgsize; src1, src2, dst: tregister);
-
 const
   op_reg_reg_opcg2asmop32: array[TOpCG] of tasmop =
   (A_NONE, A_ADD, A_AND, A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NEG, A_NOT, A_OR,
@@ -816,7 +1021,6 @@ const
   op_reg_reg_opcg2asmop64: array[TOpCG] of tasmop =
   (A_NONE, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
    A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR);
-
 begin
   case op of
     OP_NEG, OP_NOT:
@@ -1559,7 +1763,7 @@ begin
    least four. If not, add the bytes which are "off" to the base register and
    adjust the offset accordingly }
   case op of
-    A_LD, A_LDU, A_STD, A_STDU, A_LWA, A_LWAU :
+    A_LD, A_LDU, A_STD, A_STDU, A_LWA :
      if ((ref.offset mod 4) <> 0) then begin
        tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
 
@@ -1621,7 +1825,8 @@ begin
       tmpref.base := ref.base;
       tmpref.index := tmpreg2;
       case op of
-        { the code generator doesn't generate update instructions anyway }
+        { the code generator doesn't generate update instructions anyway, so 
+        error out on those instructions }
         A_LBZ : op := A_LBZX;
         A_LHZ : op := A_LHZX;
         A_LWZ : op := A_LWZX;

@@ -86,7 +86,7 @@ const
     'rldicl',
     'divdu', 'divdu.', 'divd', 'divd.', 'mulld', 'mulld.', 'mulhd', 'mulhd.', 'srad', 'sld', 'srd',
     'divduo.', 'divdo.',
-    'lwa', '<illegal lwau>', 'lwax', 'lwaux',
+    'lwa', 'lwax', 'lwaux',
     'fcfid',
     'ldarx', 'stdcx.', 'cntlzd',
     'lvx', 'stvx',
