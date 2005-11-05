@@ -134,7 +134,7 @@ Type
   pIn6_Addr=^TIn6_addr;
 
   TInetSockAddr6 = packed Record
-    {$ifdef SOCKET_HAS_SINLEN}  // as per RFC 2553
+    {$ifdef SOCK_HAS_SINLEN}  // as per RFC 2553
       sin6_len    : byte;
     {$endif}
     sin6_family   : sa_family_t;
