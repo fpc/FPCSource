@@ -2205,6 +2205,7 @@ implementation
         vmtreg:=cg.getaddressregister(list);
         cg.g_maybe_testself(list,href.base);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
+        cg.g_maybe_testvmt(list,vmtreg,objdef);
       end;
 
 end.
