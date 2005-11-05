@@ -126,7 +126,7 @@ end;
 
 
 { TThread }
-function ThreadProc(args:pointer): Integer;
+function ThreadProc(args:pointer): Integer; cdecl;
 var
   FreeThread: Boolean;
   Thread : TThread absolute args;
