@@ -683,7 +683,11 @@ uses
          else
           p:=path^;
          sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
-         exefilename:=stringdup(p+n+target_info.exeext);
+         { don't use extension alone to check, it can be empty !! }
+         if (OutputFile<>'') or (OutputExtension<>'') then 
+           exefilename:=stringdup(p+n+OutputExtension)
+         else  
+           exefilename:=stringdup(p+n+target_info.exeext);
          mapfilename:=stringdup(p+n+'.map');
       end;
 
