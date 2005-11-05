@@ -97,7 +97,7 @@ end;
 
 { TThread }
 
-function ThreadProc(ThreadObjPtr: Pointer): Integer; stdcall;
+function ThreadProc(ThreadObjPtr: Pointer): Integer;
 var
   FreeThread: Boolean;
   Thread: TThread absolute ThreadObjPtr;
