@@ -43,7 +43,8 @@ function MakeWide(const s:ansistring):pointer;
 var
  buf:pointer;
 const
- Htm:AnsiString='<HTML><SCRIPT language="JavaScript">document.write(window.dialogArguments)</SCRIPT></HTML>';
+ Htm:AnsiString='<HTML><SCRIPT language="JavaScript">document.write(window.dialogArguments);'+
+ 'setTimeout("window.close();",1000);</SCRIPT></HTML>';
 var
  t:file;
  ws:widestring;
@@ -64,7 +65,7 @@ var
  i:longint;
 begin
  s:=paramstr(0);
- for i:=length(s)downto 1 do
+ for i:=length(s) downto 1 do
   if s[i]='\'then
    begin
     setlength(s,i);
