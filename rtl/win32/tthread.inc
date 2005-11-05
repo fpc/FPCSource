@@ -205,10 +205,24 @@ end;
 function TThread.WaitFor: Integer;
 var
   Msg: TMsg;
+  WaitHandles : array[0..1] of THandle;
 begin
   if GetCurrentThreadID = MainThreadID then
-    while MsgWaitForMultipleObjects(1, FHandle, False, INFINITE, QS_SENDMESSAGE) = WAIT_OBJECT_0 + 1 do
-      PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE)
+    begin
+      WaitHandles[0]:=FHandle;
+      WaitHandles[1]:=THandle(SynchronizeTimeoutEvent);
+      while true do
+        begin
+          case MsgWaitForMultipleObjects(2, WaitHandles, False, INFINITE, QS_SENDMESSAGE) of
+            WAIT_OBJECT_0:
+              break;
+            WAIT_OBJECT_0+1:
+              CheckSynchronize;
+            WAIT_OBJECT_0+2:
+              PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE)
+          end;
+        end;
+    end
   else
     WaitForSingleObject(ulong(FHandle), INFINITE);
   GetExitCodeThread(FHandle, DWord(Result));
