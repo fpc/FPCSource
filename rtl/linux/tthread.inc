@@ -294,6 +294,9 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',FHandle);
+  if GetCurrentThreadID=MainThreadID then
+    while not(FFinished) do
+      CheckSynchronize(1000);
   WaitFor := WaitForThreadTerminate(FHandle, 0);
   WRITE_DEBUG('thread terminated');
 end;
