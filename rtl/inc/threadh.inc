@@ -26,7 +26,7 @@ const
 type
   PEventState = pointer;
   PRTLEvent   = pointer;   // Windows=thandle, other=pointer to record.
-  TThreadFunc = function(parameter : pointer) : ptrint;
+  TThreadFunc = function(parameter : pointer) : ptrint; stdcall;
   trtlmethod  = procedure of object;
 
   // Function prototypes for TThreadManager Record.
