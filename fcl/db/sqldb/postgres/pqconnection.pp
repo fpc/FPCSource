@@ -26,7 +26,6 @@ type
     tr        : Pointer;
     nFields   : integer;
     res       : PPGresult;
-    BaseRes   : PPGresult;
     Nr        : string;
   end;
 
@@ -457,7 +456,6 @@ begin
         DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
         end
       end;
-    pqclear(baseres);
     pqclear(res);
     end;
 end;
@@ -523,6 +521,7 @@ var
   size      : integer;
   st        : string;
   fieldtype : tfieldtype;
+  BaseRes   : PPGresult;
 
 begin
   with cursor as TPQCursor do
@@ -551,6 +550,7 @@ begin
 
       TFieldDef.Create(FieldDefs, PQfname(BaseRes, i), fieldtype,size, False, (i + 1));
       end;
+    pqclear(baseres);
     end;
 end;
 
