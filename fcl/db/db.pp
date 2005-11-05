@@ -1402,7 +1402,6 @@ type
     Procedure CheckDisConnected;
     procedure InternalHandleException; virtual;
     procedure Loaded; override;
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     Procedure DoInternalConnect; Virtual;Abstract;
     Procedure DoInternalDisConnect; Virtual;Abstract;
   public
