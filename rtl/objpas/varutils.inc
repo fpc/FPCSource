@@ -17,7 +17,8 @@
     Some general stuff: Error handling and so on.
   ---------------------------------------------------------------------}
 
-
+{ we so ugly things with tvararray here }
+{$R-}
 
 Procedure SetUnlockResult (P : PVarArray; Res : HResult);
 
