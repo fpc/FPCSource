@@ -2250,7 +2250,7 @@ S*2Aas_assemble using GNU AS
 *g2gg_use gsym
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
-*g2gv_generates programs tracable with valgrind
+*g2gv_generates programs traceable with valgrind
 *g2gw_generate dwarf debugging info
 **1i_information
 **2iD_return compiler date
