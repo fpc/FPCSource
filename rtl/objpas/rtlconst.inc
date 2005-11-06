@@ -518,7 +518,7 @@ ResourceString
   SMsgDlgRetry = '&Retry';
   SMsgDlgWarning = 'Warning';
   SMsgDlgYes = '&Yes';
-  SMsgDlgYesToAll = 'Yes to A&lle';
+  SMsgDlgYesToAll = 'Yes to a&ll';
 
 
 implementation
