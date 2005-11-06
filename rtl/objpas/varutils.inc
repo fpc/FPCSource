@@ -18,7 +18,7 @@
   ---------------------------------------------------------------------}
 
 { we so ugly things with tvararray here }
-{$R-}
+{$RANGECHECKS OFF}
 
 Procedure SetUnlockResult (P : PVarArray; Res : HResult);
 
@@ -201,6 +201,7 @@ begin
     finally
       VariantClear(Tmp);
     end;
+  {$RANGECHECKS OFF}
 end;
 
 { ---------------------------------------------------------------------
@@ -374,7 +375,7 @@ Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArra
       Result:=nil;
       end;
   end;
-  
+
 
 Function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT;stdcall;
 begin
@@ -392,7 +393,7 @@ Function SafeArrayAllocData(psa: PVarArray): HRESULT;stdcall;
 begin
   try
     With psa^ do
-      begin 
+      begin
         Data:=GetMem(SafeArrayElementTotal(psa)*ElementSize);
         fillchar(Data^,SafeArrayElementTotal(psa)*ElementSize,0);
       end;
