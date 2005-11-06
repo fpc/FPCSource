@@ -230,6 +230,9 @@ function TThread.WaitFor: Integer;
 var
  FH: cardinal;
 begin
+ if GetCurrentThreadID = MainThreadID then
+  while not (FFinished) do
+   CheckSynchronize (1000);
  WaitFor := DosWaitThread (FH, dtWait);
 end;
 
