@@ -16,7 +16,7 @@ unit odbcconn;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, odbcsql;
+  Classes, SysUtils, sqldb, db, odbcsqldyn;
 
 type
 
@@ -720,7 +720,7 @@ end;
 constructor TODBCEnvironment.Create;
 begin
   // make sure odbc is loaded
-  if ODBCLoadCount=0 then LoadOdbc;
+  if ODBCLoadCount=0 then InitialiseOdbc;
   Inc(ODBCLoadCount);
 
   // allocate environment handle
@@ -745,7 +745,7 @@ begin
 
   // free odbc if not used by any TODBCEnvironment object anymore
   Dec(ODBCLoadCount);
-  if ODBCLoadCount=0 then UnLoadOdbc;
+  if ODBCLoadCount=0 then ReleaseOdbc;
 end;
 
 { TODBCCursor }

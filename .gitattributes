@@ -1434,7 +1434,9 @@ packages/base/netdb/uriparser.pp svneol=native#text/plain
 packages/base/odbc/Makefile svneol=native#text/plain
 packages/base/odbc/Makefile.fpc svneol=native#text/plain
 packages/base/odbc/README -text
+packages/base/odbc/odbcsql.inc svneol=native#text/plain
 packages/base/odbc/odbcsql.pp svneol=native#text/plain
+packages/base/odbc/odbcsqldyn.pp svneol=native#text/plain
 packages/base/odbc/testodbc.mdb -text
 packages/base/odbc/testodbc.pp svneol=native#text/plain
 packages/base/oracle/Makefile svneol=native#text/plain

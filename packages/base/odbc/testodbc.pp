@@ -55,7 +55,6 @@ Var
   Res : Integer;
 
 begin
-  loadODBC;
   EnvHandle:=0;
   DBHandle:=0;
   StmtHandle:=0;
