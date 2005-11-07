@@ -55,6 +55,7 @@ Type
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
+    procedure UnPrepareStatement(cursor:TSQLCursor); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams); override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
@@ -231,6 +232,11 @@ begin
     if mysql_select_db(FQMySQL,pchar(DatabaseName))<>0 then
       MySQLError(FQMySQL,SErrDatabaseSelectFailed,Self);
     end
+end;
+
+procedure TMySQLConnection.UnPrepareStatement(cursor: TSQLCursor);
+begin
+  // not necessary
 end;
 
 procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLCursor);

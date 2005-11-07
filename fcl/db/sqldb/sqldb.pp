@@ -52,7 +52,6 @@ const
                   'create', 'get', 'put', 'execute',
                   'start','commit','rollback', '?'
                  );
- SQLDelimiterCharacters = [';',',',' ','(',')',#13,#10,#9];
 
 
 { TSQLConnection }
@@ -517,23 +516,9 @@ begin
   UnPrepare;
   if (FSQL <> nil) then
     begin
-    if assigned(FParams) then FParams.Clear;
-    s := FSQL.Text;
-    i := posex(':',s);
-    while i > 0 do
-      begin
-      inc(i);
-      p := @s[i];
-      repeat
-      inc(p);
-      until (p^ in SQLDelimiterCharacters);
-      if not assigned(FParams) then FParams := TParams.create(self);
-      ParamName := copy(s,i,p-@s[i]);
-      if FParams.FindParam(ParamName) = nil then
-        FParams.CreateParam(ftUnknown, ParamName, ptInput);
-      i := posex(':',s,i);
-      end;
-    end
+    if not assigned(FParams) then FParams := TParams.create(self);
+    FParams.ParseSQL(FSQL.Text,True);
+    end;
 end;
 
 Procedure TSQLQuery.SetTransaction(Value : TDBTransaction);

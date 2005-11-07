@@ -322,7 +322,8 @@ function TBufDataset.GetFieldSize(FieldDef : TFieldDef) : longint;
 
 begin
   case FieldDef.DataType of
-    ftString     : result := FieldDef.Size + 1;
+    ftString,
+      ftFixedChar: result := FieldDef.Size + 1;
     ftSmallint,
       ftInteger,
       ftword     : result := sizeof(longint);

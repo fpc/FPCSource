@@ -88,13 +88,6 @@ begin
     end;
 end;
 
-
-procedure TDatabase.Notification(AComponent: TComponent; Operation: TOperation);
-
-begin
-  //!! To be implemented.
-end;
-
 constructor TDatabase.Create(AOwner: TComponent);
 
 begin
