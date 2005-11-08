@@ -872,12 +872,14 @@ begin
                if More<>'' then
                  begin
 {$IFDEF USE_SYSUTILS}
-                 OutputExeDir:=SplitPath(More);
+                 D:=SplitPath(More);
                  OutputFile:=SplitFileName(More);
                  OutputExtension:=SplitExtension(More);
 {$ELSE USE_SYSUTILS}
-                 FSplit(More,OutputExeDir,OutputFile,OutputExtension);
+                 FSplit(More,D,OutputFile,OutputExtension);
 {$ENDIF USE_SYSUTILS}
+                 if (D<>'') then
+                   OutputExeDir:=FixPath(D,True);
                  end
                else
                  IllegalPara(opt);
