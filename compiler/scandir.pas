@@ -1032,6 +1032,23 @@ implementation
           status.verbosity:=status.verbosity and (not V_Info);
       end;
 
+    procedure dir_warn;
+      var
+        warning_string,state : string;
+      begin
+        current_scanner.skipspace;
+        warning_string:=current_scanner.readid;
+        if (upper(warning_string)='ON') then
+          begin
+          end
+        else if (upper(warning_string)='ON') then
+          else
+            begin
+              current_scanner.skipspace;
+              state:=current_scanner.readid;
+            end;
+      end;
+
     procedure dir_warning;
       begin
         do_message(scan_w_user_defined);
@@ -1207,7 +1224,7 @@ implementation
         AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
         AddDirective('VERSION',directive_all, @dir_version);
         AddDirective('WAIT',directive_all, @dir_wait);
-        AddDirective('WARN',directive_all, @dir_warnings);
+        AddDirective('WARN',directive_all, @dir_warn);
         AddDirective('WARNING',directive_all, @dir_warning);
         AddDirective('WARNINGS',directive_all, @dir_warnings);
         AddDirective('WEAKPACKAGEUNIT',directive_all, @dir_weakpackageunit);
