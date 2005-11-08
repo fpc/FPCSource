@@ -4,18 +4,19 @@
 
 {$MODE objfpc}
 program asiotest;
-uses SysUtils, Classes, Crt, AsyncIO;
+uses SysUtils, Classes, Crt, FPAsync;
 
 type
 
   TASIOTest = class
   protected
-    FManager: TAsyncIOManager;
+    FManager: Teventloop;
     Input: THandleStream;
+    MyTimer : Pointer;
     procedure InputAvailable(UserData: TObject);
-    procedure Timeout(UserData: TObject);
+    procedure TimerHandler(UserData: TObject);
   public
-    constructor Create(AManager: TAsyncIOManager);
+    constructor Create(AManager: Teventloop);
     destructor Destroy; override;
   end;
 
@@ -33,24 +34,26 @@ begin
     WriteLn('#', b);
 
   case b of
-    Ord('q'): FManager.BreakRun;
-    Ord('t'): FManager.ClearTimeoutHandler;
+    Ord('q'): FManager.Break;
+    Ord('t'): begin
+                FManager.RemoveTimerNotify(MyTimer);
+                writeln('Timer stopped');
+              end;
   end;
 end;
 
-procedure TASIOTest.Timeout(UserData: TObject);
+procedure TASIOTest.TimerHandler(UserData: TObject);
 begin
-  WriteLn('Timeout');
+  writeln('Timer');
 end;
 
-constructor TASIOTest.Create(AManager: TAsyncIOManager);
+constructor TASIOTest.Create(AManager: Teventloop);
 begin
   inherited Create;
   FManager := AManager;
   Input := THandleStream.Create(StdInputHandle);
-  AManager.SetReadHandler(Input.Handle, @InputAvailable, nil);
-  AManager.SetTimeoutHandler(@Timeout, nil);
-  AManager.Timeout := 1000;
+  AManager.SetIONotify(Input.Handle, @InputAvailable, nil);
+  MyTimer:=AManager.AddTimerNotify(1000,true,@TimerHandler,nil);
 end;
 
 destructor TASIOTest.Destroy;
@@ -60,13 +63,13 @@ end;
 
 
 var
-  AsyncIOManager: TAsyncIOManager;
+  AsyncIOManager: Teventloop;
   app: TASIOTest;
 
 begin
-  WriteLn('Exit with "q", use "t" to stop the timeout handler');
+  WriteLn('Exit with "q", use "t" to stop the timer handler');
 
-  AsyncIOManager := TAsyncIOManager.Create;
+  AsyncIOManager := Teventloop.Create;
   app := TASIOTest.Create(AsyncIOManager);
 
   AsyncIOManager.Run;
