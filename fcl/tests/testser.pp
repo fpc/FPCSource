@@ -14,9 +14,9 @@ Const TypeNames : Array [TTYpeKind] of string[15] =
                     ('Unknown','Integer','Char','Enumeration',
                      'Float','Set','Method','ShortString','LongString',
                      'AnsiString','WideString','Variant','Array','Record',
-                     'Interface','Class','Object','WideChar','Bool');
-
-Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool];
+                     'Interface','Class','Object','WideChar','Bool','Int64',
+                     'QWord','DynArray','InterfaceRaw');
+Const OrdinalTypes = [tkInteger,tkChar,tkENumeration,tkbool,tkInt64,tkQWord];
 
 Type
    TMyEnum = (meFirst,meSecond,meThird);
@@ -563,14 +563,14 @@ end;
 
 procedure testserial(O : TComponent);
 
-Var W : TTextwriter;
+Var W : Twriter;
     S : TStream;
 
 begin
   Writeln(stderr,'Creating stream');
   S:=TIOstream.Create(iosOutput);
   Writeln(stderr,'Creating TTextWriter');
-  W:=TTextWriter.Create(S);
+  W:=TWriter.Create(S,1024);
   Writeln(stderr,'Writing component TTextWriter');
   W.WriteComponent(O);
   Writeln(stderr,'Destroying stream');
