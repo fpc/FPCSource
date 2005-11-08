@@ -1450,30 +1450,7 @@ var    odbcversion:word;
                 external odbclib;
 {$endif}
 // This function always load dynamic
-type   TSQLConfigDataSource=function (
-           hwndParent:       Integer;
-           fRequest:         Integer;
-           lpszDriverString: String;
-           lpszAttributes:   String): SQLRETURN;extdecl;
-       TSQLInstallerError=function (
-               iError:          SQLUSMALLINT;
-               pfErrorCode:     PSQLINTEGER;
-               lpszErrorMsg:    PCHAR;
-               cbErrorMsgMax:   SQLUSMALLINT;
-               pcbErrorMsg:     PSQLUSMALLINT): SQLRETURN;extdecl;
-{$ifndef unix}
-function SQLConfigDataSource(
-               hwndParent:       Integer;
-               fRequest:         Integer;
-               lpszDriverString: String;
-               lpszAttributes:   String): Integer;extdecl;
-function SQLInstallerError(
-               iError:          SQLUSMALLINT;
-               pfErrorCode:     PSQLINTEGER;
-               lpszErrorMsg:    PCHAR;
-               cbErrorMsgMax:   SQLUSMALLINT;
-               pcbErrorMsg:     PSQLUSMALLINT): SQLRETURN;
-{$endif}
+
 function DateStructToDateTime( b:PSQL_DATE_STRUCT):TDateTime;
 function DateTimeToDateStruct( b:TDateTime):SQL_DATE_STRUCT;
 procedure DateTime2TimeStampStruct( var Value:SQL_TIMESTAMP_STRUCT; b:TDateTime);
@@ -1619,70 +1596,6 @@ begin
   With B^ do
     Result:=EncodeTime(Hour,Minute,Second,0);
 end;
-
-{function syserrormessage(I : Integer) : string;
-begin
-  result:='error '+inttostr(i);
-end;}
-
-//  function SQLConfigDataSource(
-//               hwndParent:       Integer;
-//               fRequest:         Integer;
-//               lpszDriverString: String;
-//               lpszAttributes:   String): Integer;extdecl;external 'ODBCCP32.DLL';
-
-{$ifndef unix}
-{function SQLConfigDataSource(
-                             hwndParent:       Integer;
-                             fRequest:         Integer;
-                             lpszDriverString: String;
-                             lpszAttributes:   String): Integer;extdecl;
-var
-  func: TSQLConfigDataSource;
-begin
-  if OdbccpHMODULE = 0 then
-  begin
-    OdbccpHMODULE := LoadLibrary('ODBCCP32.DLL');
-     if OdbccpHMODULE = 0 then
-       raise Exception.create(syserrormessage(GetLastError));
-  end;
-
-  func := TSQLConfigDataSource(GetProcAddress(OdbccpHMODULE,pchar('SQLConfigDataSource')));
-  if @func = nil then
-    raise Exception.create('Error Getting adress for SQLConfigDataSource'+#13+syserrormessage(GetLastError));
-
-  Result := func(hwndParent,fRequest,lpszDriverString,lpszAttributes);
-end;
-
-//SQLRETURN INSTAPI SQLInstallerError(WORD iError,
-//                                      DWORD *pfErrorCode,
-//                                      LPSTR   lpszErrorMsg,
-//                                      WORD    cbErrorMsgMax,
-//                                      WORD    *pcbErrorMsg);
-function SQLInstallerError(
-                           iError:          SQLUSMALLINT;
-                           pfErrorCode:     PSQLINTEGER;
-                           lpszErrorMsg:    PCHAR;
-                           cbErrorMsgMax:   SQLUSMALLINT;
-                           pcbErrorMsg:     PSQLUSMALLINT): SQLRETURN;
-var
-  func: TSQLInstallerError;
-begin
-  if OdbccpHMODULE = 0 then
-  begin
-    OdbccpHMODULE := LoadLibrary('ODBCCP32.DLL');
-    if OdbccpHMODULE = 0 then
-      raise Exception.create(syserrormessage(GetLastError));
-  end;
-
-  func := TSQLInstallerError(GetProcAddress(OdbccpHMODULE,pchar('SQLInstallerError')));
-
-  if @func = nil then
-    raise Exception.create('Error Getting adress for SQLInstallerError'+#13+syserrormessage(GetLastError));
-
-  Result := func( iError, pfErrorCode, lpszErrorMsg, cbErrorMsgMax, pcbErrorMsg);
-end;}
-{$endif}
 
 
 
