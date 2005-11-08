@@ -308,7 +308,7 @@ implementation
                                tt.setdef(torddef.create(uchar,lv,hv))
                              else
                                if is_boolean(pt1.resulttype.def) then
-                                 tt.setdef(torddef.create(bool8bit,l,hv))
+                                 tt.setdef(torddef.create(bool8bit,lv,hv))
                                else
                                  tt.setdef(torddef.create(range_to_basetype(lv,hv),lv,hv));
                            end;
@@ -556,22 +556,12 @@ implementation
                         Message(sym_e_ill_type_decl_set);
                      orddef :
                        begin
-                         case torddef(tt2.def).typ of
-                           uchar :
-                             //!!! tt.setdef(tsetdef.create(tt2,0,255));
-                             tt.setdef(tsetdef.create(tt2,255));
-                           u8bit,u16bit,u32bit,
-                           s8bit,s16bit,s32bit :
-                             begin
-                               if (torddef(tt2.def).low>=0) then
-                                 // !! tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
-                                 tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
-                               else
-                                Message(sym_e_ill_type_decl_set);
-                             end;
-                           else
-                             Message(sym_e_ill_type_decl_set);
-                         end;
+                         if (torddef(tt2.def).typ<>uvoid) and
+                            (torddef(tt2.def).low>=0) then
+                           // !! tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
+                           tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
+                         else
+                           Message(sym_e_ill_type_decl_set);
                        end;
                      else
                        Message(sym_e_ill_type_decl_set);
