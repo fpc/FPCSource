@@ -14,7 +14,6 @@
 {*                             TStream                                      *}
 {****************************************************************************}
 
-{$ifdef seek64bit}
   function TStream.GetPosition: Int64;
 
     begin
@@ -100,40 +99,6 @@
         raise ERangeError.Create(SRangeError);
       Result:=Seek(longint(Offset),ord(Origin));
     end;
-
-{$else seek64bit}
-
-  function TStream.GetPosition: Longint;
-
-    begin
-       Result:=Seek(0,soFromCurrent);
-    end;
-
-  procedure TStream.SetPosition(Pos: Longint);
-
-    begin
-       Seek(pos,soFromBeginning);
-    end;
-
-  function TStream.GetSize: Longint;
-
-    var
-       p : longint;
-
-    begin
-       p:=GetPosition;
-       GetSize:=Seek(0,soFromEnd);
-       Seek(p,soFromBeginning);
-    end;
-
-  procedure TStream.SetSize(NewSize: Longint);
-
-    begin
-    // We do nothing. Pipe streams don't support this
-    // As wel as possible read-ony streams !!
-    end;
-
-{$endif seek64bit}
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
@@ -421,8 +386,6 @@ begin
   If Result=-1 then Result:=0;
 end;
 
-{$ifdef seek64bit}
-
 Procedure THandleStream.SetSize(NewSize: Longint);
 
 begin
@@ -442,21 +405,6 @@ function THandleStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   Result:=FileSeek(FHandle,Offset,ord(Origin));
 end;
-
-{$else seek64bit}
-
-Procedure THandleStream.SetSize(NewSize: Longint);
-begin
-  FileTruncate(FHandle,NewSize);
-end;
-
-
-function THandleStream.Seek(Offset: Longint; Origin: Word): Longint;
-begin
-  Result:=FileSeek(FHandle,Offset,Origin);
-end;
-
-{$endif seek64bit}
 
 
 {****************************************************************************}
@@ -512,14 +460,12 @@ begin
   FSize:=ASize;
 end;
 
-{$ifdef seek64bit}
+
 function TCustomMemoryStream.GetSize: Int64;
 
 begin
   Result:=FSize;
 end;
-{$endif seek64bit}
-
 
 
 function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
@@ -738,7 +684,7 @@ begin
   Result:=Count;
   SetSize(FPosition+Count);
   // This supposes that FDataString is of type AnsiString)
-  Move (Buffer,PCHar(FDataString)[Fposition],Count);
+  Move (Buffer,PChar(FDataString)[Fposition],Count);
   FPosition:=FPosition+Count;
 end;
 
