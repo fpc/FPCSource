@@ -332,6 +332,7 @@ var
 begin
   for i:=0 to High(ODBCCursor.FParamBuf) do
     FreeMem(ODBCCursor.FParamBuf[i]);
+  SetLength(ODBCCursor.FParamBuf,0);
 end;
 
 function TODBCConnection.GetHandle: pointer;
@@ -490,7 +491,7 @@ begin
   ODBCCursor:=cursor as TODBCCursor;
 
   // set parameters
-  SetParameters(ODBCCursor, AParams);
+    if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
 
   // execute the statement
   ODBCCheckResult(
@@ -547,20 +548,29 @@ begin
     ftTime:               // mapped to TTimeField
     begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_TYPE_TIME, @ODBCTimeStruct, SizeOf(SQL_TIME_STRUCT), @StrLenOrInd);
-      DateTime:=TimeStructToDateTime(@ODBCTimeStruct);
-      Move(DateTime, buffer^, SizeOf(TDateTime));
+      if StrLenOrInd<>SQL_NULL_DATA then
+      begin
+        DateTime:=TimeStructToDateTime(@ODBCTimeStruct);
+        Move(DateTime, buffer^, SizeOf(TDateTime));
+      end;
     end;
     ftDate:               // mapped to TDateField
     begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_TYPE_DATE, @ODBCDateStruct, SizeOf(SQL_DATE_STRUCT), @StrLenOrInd);
-      DateTime:=DateStructToDateTime(@ODBCDateStruct);
-      Move(DateTime, buffer^, SizeOf(TDateTime));
+      if StrLenOrInd<>SQL_NULL_DATA then
+      begin
+        DateTime:=DateStructToDateTime(@ODBCDateStruct);
+        Move(DateTime, buffer^, SizeOf(TDateTime));
+      end;
     end;
     ftDateTime:           // mapped to TDateTimeField
     begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_TYPE_TIMESTAMP, @ODBCTimeStampStruct, SizeOf(SQL_TIMESTAMP_STRUCT), @StrLenOrInd);
-      DateTime:=TimeStampStructToDateTime(@ODBCTimeStampStruct);
-      Move(DateTime, buffer^, SizeOf(TDateTime));
+      if StrLenOrInd<>SQL_NULL_DATA then
+      begin
+        DateTime:=TimeStampStructToDateTime(@ODBCTimeStampStruct);
+        Move(DateTime, buffer^, SizeOf(TDateTime));
+      end;
     end;
     ftBoolean:            // mapped to TBooleanField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BIT, buffer, SizeOf(Wordbool), @StrLenOrInd);
