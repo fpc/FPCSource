@@ -15,8 +15,7 @@
 
  **********************************************************************}
 
-
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; context: PUContext);cdecl;
 var
   res : word;
 {  fpustate: longint; }
@@ -26,30 +25,24 @@ begin
   fpc_enable_ppc_fpu_exceptions;
   case sig of
     SIGFPE :
-        begin
-{
-         fpscr is cleared by the kernel -> can't find out cause :(
-          fpustate := fpc_get_ppc_fpscr;
-          if (fpustate and ppc_fpu_underflow) <> 0 then
-            res := 206
-          else if (fpustate and ppc_fpu_overflow) <> 0 then
-            res := 205
-          else if (fpustate and ppc_fpu_divbyzero) <> 0 then
-            res := 200
-          else
-}
-            res := 207;
-        end;
+      case (SigInfo^.si_code) of
+        FPE_FLTDIV : res := 200;
+        FPE_FLTOVF : res := 205;
+        FPE_FLTUND : res := 206;
+        else
+          res := 207;
+      end;
     SIGBUS :
-        res:=214;
+      res:=214;
     SIGILL,
     SIGSEGV :
-        res:=216;
+      res:=216;
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext^.pt_regs^.nip),pointer(SigContext^.pt_regs^.gpr[1]));
+    HandleErrorAddrFrame(res, pointer(context^.uc_mcontext.pt_regs^.nip),
+      pointer(context^.uc_mcontext.pt_regs^.gpr[1]));
 end;
 
 
