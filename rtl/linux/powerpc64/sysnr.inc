@@ -1,12 +1,24 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2005 by Thomas Schatzl,
+    member of the Free Pascal development team.
+
+    This file contains the system call numbers.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 { 
   Automatically converted by H2Pas 1.0.0 from 
   /usr/include/asm-ppc64/unistd.h
   The following command line parameters were used:
     unistd.h
 }
-
-
-{* This file contains the system call numbers. }
 
 const
   syscall_nr_exit = 1;  

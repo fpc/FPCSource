@@ -1,28 +1,19 @@
 {
-    Copyright (c) 2002 by Marco van de Voort
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2005 by Thomas Schatzl,
+    member of the Free Pascal development team.
 
-    Header for syscall in system unit for powerpc *nix.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
- ****************************************************************************
-
+ **********************************************************************}
 }
 
-Type
-
+type
   TSysResult = Int64;   // all platforms, cint=32-bit.
                         // On platforms with off_t =64-bit, people should
                         // use int64, and typecast all calls that don't

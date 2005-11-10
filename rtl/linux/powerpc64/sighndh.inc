@@ -1,8 +1,13 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 by Thomas Schatzl
+    Copyright (c) 2005 by Thomas Schatzl,
+    member of the FreePascal development team
 
-    TSigContext and associated structures
+    TSigContext and associated structures.
+
+    See also in the *kernel* sources arch/ppc64/kernel/signal.c, 
+    function setup_rt_sigframe()  for more information about the 
+    passed structures.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -160,7 +165,7 @@ type
     uc_stack : stack_t;
     uc_sigmask : _sigset_t;
     __unused : array[0..14] of _sigset_t; { Allow for uc_sigmask growth }
-    uc_mcontext : TSigContext;             { last for extensibility }
+    uc_mcontext : TSigContext;            { last for extensibility }
   end;
 
-  PSigContext = ^TSigContext;
+  PSigContext = ^TUContext;

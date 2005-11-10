@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt,
+    Copyright (c) 2005 by Thomas Schatzl,
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
