@@ -350,7 +350,7 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
-            stacksize    : 32*1024*1024;
+            stacksize    : 10*1024*1024;
             DllScanSupported:false;
             use_function_relative_addresses : true;
             abi : abi_default
