@@ -4,7 +4,7 @@
 
 [package]
 name=fpde
-version=2.0.0
+version=2.0.3
 
 [require]
 packages=fcl fpgtk

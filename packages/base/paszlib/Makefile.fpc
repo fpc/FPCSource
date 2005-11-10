@@ -4,7 +4,7 @@
 
 [package]
 name=paszlib
-version=2.0.0
+version=2.0.3
 
 [target]
 units=paszlib adler gzcrc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil

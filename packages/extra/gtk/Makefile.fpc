@@ -4,7 +4,7 @@
 
 [package]
 name=gtk
-version=2.0.0
+version=2.0.3
 
 [require]
 libc=y
@@ -20,7 +20,7 @@ sourcedir=glib gdk gtk
 
 [libs]
 libname=libfpgtk.so
-libversion=2.0.0
+libversion=2.0.3
 
 [install]
 fpcpackage=y

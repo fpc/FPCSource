@@ -4,7 +4,7 @@
 
 [package]
 name=gconf
-version=2.0.0
+version=2.0.3
 
 [require]
 libc=y
@@ -19,7 +19,7 @@ sourcedir=gconf gconfclient
 
 [libs]
 libname=libfpgconf.so
-libversion=2.0.0
+libversion=2.0.3
 
 [install]
 fpcpackage=y

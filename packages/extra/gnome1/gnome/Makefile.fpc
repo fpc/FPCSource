@@ -4,7 +4,7 @@
 
 [package]
 name=gnome
-version=2.0.0
+version=2.0.3
 
 [require]
 libc=y
@@ -18,7 +18,7 @@ sourcedir=libart_lgpl libgnome libgnomeui
 
 [libs]
 libname=libfpgnome1.so
-libversion=2.0.0
+libversion=2.0.3
 
 [install]
 fpcpackage=y

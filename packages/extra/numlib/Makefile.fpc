@@ -4,7 +4,7 @@
 
 [package]
 name=numlib
-version=2.0.0
+version=2.0.3
 
 [target]
 units=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib tpnumlib
