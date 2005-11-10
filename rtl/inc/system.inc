@@ -43,7 +43,7 @@ const
 { Used by the ansistrings and maybe also other things in the future }
 var
   emptychar : char;public name 'FPC_EMPTYCHAR';
-  initialstklen : longint;external name '__stklen';
+  initialstklen : SizeUint;external name '__stklen';
 
 
 
@@ -546,7 +546,7 @@ end;
 {$DEFINE STACKCHECK}
 {$ENDIF}
 {$S-}
-procedure fpc_stackcheck(stack_size:Cardinal);[public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:SizeUInt);[public,alias:'FPC_STACKCHECK'];
 var
   c : Pointer;
 begin

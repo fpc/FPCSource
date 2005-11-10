@@ -15,13 +15,8 @@
  **********************************************************************}
 
 const
-{$ifdef mswindows}
-  { on windows, use stack size of starting process }
-  DefaultStackSize = 0;
-{$else mswindows}
   { including 16384 margin for stackchecking }
   DefaultStackSize = 32768;
-{$endif mswindows}
 
 type
   PEventState = pointer;
@@ -102,13 +97,13 @@ Procedure SetNoThreadManager;
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
 procedure InitThreadVars(RelocProc : Pointer);
-procedure InitThread(stklen:cardinal);
+procedure InitThread(stklen:SizeUInt);
 
 {*****************************************************************************
                          Multithread Handling
 *****************************************************************************}
 
-function BeginThread(sa : Pointer;stacksize : dword;
+function BeginThread(sa : Pointer;stacksize : SizeUInt;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : TThreadID) : TThreadID;
 
@@ -118,7 +113,7 @@ function BeginThread(ThreadFunction : tthreadfunc) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : TThreadID) : TThreadID;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
-                     var ThreadId : TThreadID; const SS: DWord) : TThreadID;
+                     var ThreadId : TThreadID; const stacksize: SizeUInt) : TThreadID;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;

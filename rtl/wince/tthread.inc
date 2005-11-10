@@ -114,7 +114,7 @@ begin
   if FreeThread then Thread.Free;
 end;
 
-constructor TThread.Create(CreateSuspended: Boolean; const StackSize: DWord = DefaultStackSize);
+constructor TThread.Create(CreateSuspended: Boolean; const StackSize: SizeUInt = DefaultStackSize);
 var
   Flags: Integer;
 begin

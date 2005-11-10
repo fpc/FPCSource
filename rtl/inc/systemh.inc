@@ -350,7 +350,7 @@ ThreadVar
   InOutRes    : Word;
   { Stack checking }
   StackBottom : Pointer;
-  StackLength : Cardinal;
+  StackLength : SizeUInt;
 
 
 { Numbers for routines that have compiler magic }

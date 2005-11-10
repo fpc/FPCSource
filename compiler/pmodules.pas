@@ -360,14 +360,14 @@ implementation
       begin
         { stacksize can be specified and is now simulated }
         maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'__stklen',4);
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
-        asmlist[al_globals].concat(Tai_const.Create_32bit(stacksize));
+        new_section(asmlist[al_globals],sec_data,'__stklen', sizeof(aint));
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
+        asmlist[al_globals].concat(Tai_const.Create_aint(stacksize));
         { Initial heapsize }
         maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'__heapsize',4);
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
-        asmlist[al_globals].concat(Tai_const.Create_32bit(heapsize));
+        new_section(asmlist[al_globals],sec_data,'__heapsize',sizeof(aint));
+        asmlist[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(aint)));
+        asmlist[al_globals].concat(Tai_const.Create_aint(heapsize));
       end;
 
 

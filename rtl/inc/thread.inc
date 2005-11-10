@@ -21,7 +21,7 @@ Var
                            Threadvar initialization
 *****************************************************************************}
 
-    procedure InitThread(stklen:cardinal);
+    procedure InitThread(stklen:SizeUInt);
       begin
         SysResetFPU;
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
@@ -63,9 +63,9 @@ Var
       end;
 
     function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
-                     var ThreadId : TThreadID; const SS: DWord) : TThreadID;
+                     var ThreadId : TThreadID; const stacksize: SizeUInt) : TThreadID;
       begin
-        BeginThread:=BeginThread(nil,SS,ThreadFunction,p,0,ThreadId);
+        BeginThread:=BeginThread(nil,stacksize,ThreadFunction,p,0,ThreadId);
       end;
 
     procedure EndThread;
@@ -73,13 +73,7 @@ Var
         EndThread(0);
       end;
 
-function BeginThread(sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
-
-begin
-  Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
-end;
-
-function BeginThread(sa : Pointer;stacksize : qword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
+function BeginThread(sa : Pointer;stacksize : SizeUInt; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;  var ThreadId : TThreadID) : TThreadID;
 
 begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
