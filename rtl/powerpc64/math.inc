@@ -78,9 +78,9 @@ function fpc_int64_to_double(i: int64): double; compilerproc;assembler;
 {from "PowerPC Microprocessor Family: Programming Environments Manual for 64 and 32-Bit Microprocessors", v2.0, pg. 698 }
 var temp : int64;
 asm
-        std r3,temp // store dword
-        lfd f0,temp // load float
-        fcfid f0,f0     // convert to fpu int
+  std r3,temp // store dword
+  lfd f0,temp // load float
+  fcfid f0,f0     // convert to fpu int
 end;
 
 {$define FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
@@ -94,21 +94,21 @@ const
 var
   temp1, temp2: qword;
 asm
-    // load 2^32 into f4
-        lis   r4, longint_to_real_helper@highesta
-        ori   r4, r4, longint_to_real_helper@highera
-        sldi  r4, r4, 32
-        oris  r4, r4, longint_to_real_helper@ha
-        lfd   f4, longint_to_real_helper@l(r4)
+  // load 2^32 into f4
+  lis   r4, longint_to_real_helper@highesta
+  ori   r4, r4, longint_to_real_helper@highera
+  sldi  r4, r4, 32
+  oris  r4, r4, longint_to_real_helper@ha
+  lfd   f4, longint_to_real_helper@l(r4)
 
-        rldicl r4,r3,32,32  // isolate high half
-        rldicl r0,r3,0,32   // isolate low half
-        std r4,temp1        // store dword both
-        std r0,temp2
-        lfd f2,temp1        // load float both
-        lfd f0,temp2        // load float both
-        fcfid f2,f2         // convert each half to
-        fcfid f0,f0         // fpu int (no rnd)
-        fmadd f0,f4,f2,f0   // (2**32)*high+low (only add can rnd)
+  rldicl r4,r3,32,32  // isolate high half
+  rldicl r0,r3,0,32   // isolate low half
+  std r4,temp1        // store dword both
+  std r0,temp2
+  lfd f2,temp1        // load float both
+  lfd f0,temp2        // load float both
+  fcfid f2,f2         // convert each half to
+  fcfid f0,f0         // fpu int (no rnd)
+  fmadd f0,f4,f2,f0   // (2**32)*high+low (only add can rnd)
 end;
  

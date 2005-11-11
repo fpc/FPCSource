@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-}
+
 
 type
   TSysResult = Int64;   // all platforms, cint=32-bit.

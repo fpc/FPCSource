@@ -47,23 +47,23 @@ _start:
 main_stub:
     .quad .main_stub,.TOC.@tocbase,0
     .previous
-        .globl  .main_stub
-        .type   .main_stub,@function
+    .globl  .main_stub
+    .type   .main_stub,@function
 .main_stub:
-        mflr    0
-        std     0,16(1)
+    mflr    0
+    std     0,16(1)
     stdu    1,-128(1)
 
-        LOAD_64BIT_VAL 8, operatingsystem_parameter_argc
+    LOAD_64BIT_VAL 8, operatingsystem_parameter_argc
     stw     3,0(8)
 
-        LOAD_64BIT_VAL 8, operatingsystem_parameter_argv
+    LOAD_64BIT_VAL 8, operatingsystem_parameter_argv
     std     4,0(8)
 
-        LOAD_64BIT_VAL 8, operatingsystem_parameter_envp
+    LOAD_64BIT_VAL 8, operatingsystem_parameter_envp
     std     5,0(8)
 
-        LOAD_64BIT_VAL 8, ___fpc_ret
+    LOAD_64BIT_VAL 8, ___fpc_ret
     std 1,0(8)
 
     bl  .PASCALMAIN
@@ -77,15 +77,15 @@ _haltproc:
     .quad ._haltproc,.TOC.@tocbase,0
     .previous
     
-        .globl  ._haltproc
-        .type   ._haltproc,@function
+    .globl  ._haltproc
+    .type   ._haltproc,@function
 ._haltproc:
-        LOAD_64BIT_VAL 8, ___fpc_reg
+    LOAD_64BIT_VAL 8, ___fpc_ret
     ld  1,0(8)
-        addi    1,1,128
-        ld      0,16(1)
-        mtlr    0
-        blr
+    addi    1,1,128
+    ld      0,16(1)
+    mtlr    0
+    blr
 
 #        li      0,1          /* exit call */
 #        sc
@@ -99,7 +99,6 @@ data_start:
 
 ___fpc_ret:                             /* return address to libc */
         .quad   0
-
 
 .text
         .comm operatingsystem_parameter_argc,4
