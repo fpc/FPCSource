@@ -209,7 +209,13 @@ begin
       Readln(R,L);
       I:=Pos('#',L);
       If (I<>0) then
-        L:=Copy(L,1,I-1);
+        L:=Copy(L,1,I-1)
+      else
+        begin
+          I:=Pos(';',L);
+          If (I<>0) then
+            L:=Copy(L,1,I-1)
+	end;
       If CheckDirective('nameserver') then
         begin
         H:=HostToNet(StrToHostAddr(L));
