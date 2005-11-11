@@ -1489,6 +1489,10 @@ begin
  GetProcessID := 1;
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
 
 var
   temp_int : tseginfo;

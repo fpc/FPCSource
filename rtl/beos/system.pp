@@ -519,6 +519,11 @@ begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
 begin
 { Setup heap }
   zero:=0;

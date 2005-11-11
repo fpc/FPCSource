@@ -33,4 +33,6 @@
   {$endif}
 {$endif}
 
-
+{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpux86)}
+  {$DEFINE has_ugetrlimit}
+{$endif}

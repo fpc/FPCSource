@@ -309,6 +309,28 @@ CONST
   F_SetOwn = 8;
   F_GetOwn = 9;
 
+{ getrlimit/ugetrlimit resource parameter constants }
+const
+  RLIMIT_CPU = 0;       { CPU time in ms  }
+  RLIMIT_FSIZE = 1;     { Maximum filesize  }
+  RLIMIT_DATA = 2;      { max data size  }
+  RLIMIT_STACK = 3;     { max stack size  }
+  RLIMIT_CORE = 4;      { max core file size  }
+  RLIMIT_RSS = 5;       { max resident set size  }
+  RLIMIT_NPROC = 6;     { max number of processes  }
+  RLIMIT_NOFILE = 7;    { max number of open files  }
+  RLIMIT_MEMLOCK = 8;   { max locked-in-memory address space  }
+  RLIMIT_AS = 9;        { address space limit(?)  }
+  RLIMIT_LOCKS = 10;    { maximum file locks held  }
+
+type
+  rlim_t = cULong;
+  PRLimit = ^TRLimit;
+  TRLimit = record
+    rlim_cur : rlim_t;
+    rlim_max : rlim_t;
+  end;
+
     {*************************************************************************}
     {                               SIGNALS                                   }
     {*************************************************************************}

@@ -32,7 +32,7 @@ Var
         InOutRes:=0;
         // ErrNo:=0;
         { Stack checking }
-        StackLength:=stklen;
+        StackLength:= CheckInitialStkLen(stkLen);
         StackBottom:=Sptr - StackLength;
         ThreadID := CurrentTM.GetCurrentThreadID();
       end;

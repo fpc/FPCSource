@@ -1067,13 +1067,17 @@ begin
  GetProcessID := ProcessID;
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
 
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
 
 begin
-  StackLength := InitialStkLen;
+  StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);

@@ -104,6 +104,11 @@ begin
  GetProcessID := 1;
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
 begin
    ExitCode:=0;
 end.

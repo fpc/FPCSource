@@ -45,7 +45,17 @@ var
   emptychar : char;public name 'FPC_EMPTYCHAR';
   initialstklen : SizeUint;external name '__stklen';
 
-
+{ checks whether the given suggested size for the stack of the current
+ thread is acceptable. If this is the case, returns it unaltered. 
+ Otherwise it should return an acceptable value.
+ 
+ Operating systems that automatically expand their stack on demand, should 
+ simply return a very large value.
+ Operating systems which do not have a possibility to retrieve stack size
+ information, should simply return the given stklen value (This is the default 
+ implementation).
+}
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
 
 {****************************************************************************
                     Include processor specific routines

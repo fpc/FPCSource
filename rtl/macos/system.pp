@@ -476,6 +476,11 @@ begin
 {$WARNING To be implemented - using GetProcessInformation???}
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
 var
   resHdl: Mac_Handle;
   isFolder, hadAlias, leafIsAlias: Boolean;
@@ -509,7 +514,7 @@ begin
   { To be set if this is a library and not a program  }
   IsLibrary := FALSE;
 
-  StackLength := InitialStkLen;
+  StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := SPtr - StackLength;
   pathTranslation:= false;
 

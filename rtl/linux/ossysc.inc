@@ -458,7 +458,6 @@ begin
   FPsigprocmask:=do_syscall(syscall_nr_rt_sigprocmask,TSysParam(how),TSysParam(nset),TSysParam(oset),TSysParam(8));
 end;
 
-
 Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];
 begin
   FpNanoSleep:=Do_SysCall(syscall_nr_nanosleep,TSysParam(req),TSysParam(rem));
@@ -473,3 +472,18 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
+
+function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
+begin
+  FpGetRLimit := do_syscall(syscall_nr_getrlimit, 
+    TSysParam(resource), TSysParam(@rlim));
+end;
+
+{$ifdef HAS_UGETRLIMIT}
+function fpugetrlimit(resource : cInt; rlim : PRLimit) : cInt;
+begin
+  FpUGetRLimit := do_syscall(syscall_nr_ugetrlimit,
+    syscall_nr_getrlimit, 
+    TSysParam(resource), TSysParam(@rlim));
+end;
+{$endif}
