@@ -90,7 +90,7 @@ program install;
      unzipdll,
 {$ENDIF}
      app,dialogs,views,menus,msgbox,colortxt,tabs,scroll,
-     WHTMLScn;
+     WHTMLScn,insthelp;
 
   const
      installerversion='1.0.8';
@@ -449,63 +449,6 @@ program install;
        if (D [0] <> #0) and (D [byte (D [0])] = '\') then Dec (D [0]);
        GetProgDir := D;
     end;
-
-  function RTrim(const S: string): string;
-  var
-    i : longint;
-  begin
-    i:=length(s);
-    while (i>0) and (s[i]=' ') do
-     dec(i);
-    RTrim:=Copy(s,1,i);
-  end;
-
-  function LTrim(const S: string): string;
-  var
-    i : longint;
-  begin
-    i:=1;
-    while (i<length(s)) and (s[i]=' ') do
-     inc(i);
-    LTrim:=Copy(s,i,255);
-  end;
-
-  function Trim(const S: string): string;
-  begin
-    Trim:=RTrim(LTrim(S));
-  end;
-
-  function CompareText(S1, S2: string): integer;
-  var R: integer;
-  begin
-    S1:=Upcase(S1);
-    S2:=Upcase(S2);
-    if S1<S2 then R:=-1 else
-    if S1>S2 then R:= 1 else
-    R:=0;
-    CompareText:=R;
-  end;
-
-  function ExtOf(const S: string): string;
-  var D: DirStr; E: ExtStr; N: NameStr;
-  begin
-    FSplit(S,D,N,E);
-    ExtOf:=E;
-  end;
-
-  function DirAndNameOf(const S: string): string;
-  var D: DirStr; E: ExtStr; N: NameStr;
-  begin
-    FSplit(S,D,N,E);
-    DirAndNameOf:=D+N;
-  end;
-
-  function DirOf(const S: string): string;
-  var D: DirStr; E: ExtStr; N: NameStr;
-  begin
-    FSplit(S,D,N,E);
-    DirOf:=D;
-  end;
 
   function GetZipErrorInfo(error : longint) : string;
   var

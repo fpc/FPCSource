@@ -1193,9 +1193,11 @@ installer/Makefile.fpc svneol=native#text/plain
 installer/install.dat -text
 installer/install.def -text
 installer/install.pas svneol=native#text/plain
+installer/insthelp.pas svneol=native#text/plain
 installer/makelink.pas svneol=native#text/plain
 installer/scroll.pas svneol=native#text/plain
 installer/winshell.pas svneol=native#text/plain
+installer/writeidx.pas svneol=native#text/plain
 packages/Makefile svneol=native#text/plain
 packages/Makefile.fpc svneol=native#text/plain
 packages/base/Makefile svneol=native#text/plain
