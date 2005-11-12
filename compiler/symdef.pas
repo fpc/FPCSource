@@ -2638,6 +2638,7 @@ implementation
 
     procedure tabstractrecorddef.reset;
       begin
+        inherited reset;
         tstoredsymtable(symtable).reset_all_defs;
       end;
 
