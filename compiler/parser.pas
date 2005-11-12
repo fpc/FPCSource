@@ -395,6 +395,13 @@ implementation
             oldaktfilepos:=aktfilepos;
             oldaktmodeswitches:=aktmodeswitches;
           end;
+       { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
+         important for the IDE }
+         afterassignment:=false;
+         in_args:=false;
+         got_addrn:=false;
+         getprocvardef:=nil;
+
        { show info }
          Message1(parser_i_compiling,filename);
 
