@@ -519,6 +519,7 @@ end;
 
 Begin
   getCodeAddresses;
+  StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := SPtr - StackLength;
   SigTermHandlerActive := false;
   NetwareCheckFunction := nil;
