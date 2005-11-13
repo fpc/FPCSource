@@ -747,6 +747,14 @@ var
    eend : ptruint; external name '_end';
 {$endif}
 
+{$ifdef os2}
+(* Currently still EMX based - possibly to be changed in the future. *)
+var
+   etext: ptruint; external name '_etext';
+   edata : ptruint; external name '_edata';
+   eend : ptruint; external name '_end';
+{$endif}
+
 {$ifdef windows}
 var
    sdata : ptruint; external name '__data_start__';
@@ -804,6 +812,16 @@ begin
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     goto _exit;
 {$endif windows}
+
+{$IFDEF OS2}
+  { inside stack ? }
+  if (PtrUInt (P) > PtrUInt (Get_Frame)) and
+     (PtrUInt (P) < StackTop) then
+    goto _exit;
+  { inside data or bss ? }
+  if (PtrUInt (P) >= PtrUInt (@etext)) and (PtrUInt (P) < PtrUInt (@eend)) then
+    goto _exit;
+{$ENDIF OS2}
 
 {$ifdef linux}
   { inside stack ? }
