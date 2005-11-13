@@ -89,6 +89,8 @@ unit cgcpu;
       var
         make_global : boolean;
         href : treference;
+        sym : tasmsymbol;
+        r : treference;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
@@ -125,7 +127,16 @@ unit cgcpu;
             list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
           end
         else
-          list.concat(taicpu.op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+          begin
+            sym:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            reference_reset_symbol(r,sym,0);
+            if cs_create_pic in aktmoduleswitches then
+              r.refaddr:=addr_pic
+            else
+              r.refaddr:=addr_full;
+
+            list.concat(taicpu.op_ref(A_JMP,S_NO,r));
+          end;
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
