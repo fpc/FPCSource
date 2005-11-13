@@ -774,7 +774,8 @@ begin
        begin
         Str (RC, ErrStr);
         ErrStr := 'Error during heap initialization (DosAllocMem - ' + ErrStr + ')!!'#13#10;
-        DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
+        if IsConsole then
+         DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
         HandleError (204);
        end
       else
