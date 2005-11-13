@@ -780,6 +780,11 @@ implementation
       end;
 {$ENDIF}
 
+    procedure dir_pic;
+      begin
+        do_moduleswitch(cs_create_pic);
+      end;
+
     procedure dir_pop;
 
     begin
@@ -1188,6 +1193,7 @@ implementation
 {$IFDEF TestVarsets}
         AddDirective('PACKSET',directive_all, @dir_packset);
 {$ENDIF}
+        AddDirective('PIC',directive_all, @dir_pic);
         AddDirective('POP',directive_mac, @dir_pop);
         AddDirective('PROFILE',directive_all, @dir_profile);
         AddDirective('PUSH',directive_mac, @dir_push);
