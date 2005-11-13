@@ -694,6 +694,11 @@ begin
                                                  else GetFileHandleCount := L2;
 end;
 
+function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
+begin
+  CheckInitialStkLen := StkLen;
+end;
+
 var TIB: PThreadInfoBlock;
     RC: cardinal;
     ErrStr: string;
@@ -707,6 +712,7 @@ begin
     DosGetInfoBlocks (@TIB, @PIB);
     StackBottom := TIB^.Stack;
     StackTop := PtrUInt (TIB^.StackLimit);
+    StackLength := CheckInitialStkLen (InitialStkLen);
 
     {Set type of application}
     ApplicationType := PIB^.ProcType;

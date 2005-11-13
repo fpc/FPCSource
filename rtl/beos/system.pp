@@ -531,6 +531,7 @@ begin
   myheaprealsize:=$2000;
   myheapstart:=nil;
   heap_handle:=sys_create_area('fpcheap',myheapstart,0,myheaprealsize,0,3);//!!
+  StackLength := CheckInitialStkLen (InitialStkLen);
   if heap_handle>0 then begin
     InitHeap;
   end else system_exit;

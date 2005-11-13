@@ -110,5 +110,6 @@ begin
 end;
 
 begin
+   StackLength := CheckInitialStkLen (InitialStkLen);
    ExitCode:=0;
 end.

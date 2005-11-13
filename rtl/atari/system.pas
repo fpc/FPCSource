@@ -747,8 +747,13 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
 
+function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
+begin
+  CheckInitialStkLen := StkLen;
+end;
 
 begin
+  StackLength := CheckInitialStkLen (InitialStkLen);
 { Initialize ExitProc }
   ExitProc:=Nil;
 { Setup heap }

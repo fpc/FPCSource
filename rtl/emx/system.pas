@@ -445,6 +445,11 @@ begin
                                                  else GetFileHandleCount := L2;
 end;
 
+function CheckInitialStkLen (StkLen: SizeUInt): SizeUInt;
+begin
+  CheckInitialStkLen := StkLen;
+end;
+
 var TIB: PThreadInfoBlock;
     PIB: PProcessInfoBlock;
 
@@ -558,6 +563,7 @@ begin
             end;
     end;
     exitproc:=nil;
+    StackLength := CheckInitialStkLen (InitialStkLen);
 
     {Initialize the heap.}
     initheap;
