@@ -133,6 +133,7 @@ var
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
   UseHighMem: boolean;
+  StackTop : PtrUInt;
 
 
 
@@ -705,6 +706,7 @@ begin
     FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
     StackBottom := TIB^.Stack;
+    StackTop := PtrUInt (TIB^.StackLimit);
 
     {Set type of application}
     ApplicationType := PIB^.ProcType;

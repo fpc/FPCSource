@@ -104,6 +104,7 @@ var
 (* 3 .. Presentation Manager OS/2 session  *)
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
+  StackTop : PtrUInt;
 
 
 procedure SetDefaultOS2FileType (FType: ShortString);
@@ -526,6 +527,8 @@ begin
             begin
                 stackbottom:=pointer(heap_brk);     {In DOS mode, heap_brk is
                                                      also the stack bottom.}
+                StackTop := StackBottom + InitialStkLen;
+{$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
                 ProcessID := 1;
@@ -535,6 +538,7 @@ begin
             begin
                 DosGetInfoBlocks (@TIB, @PIB);
                 StackBottom := pointer (TIB^.Stack);
+                StackTop := PtrUInt (TIB^.StackLimit);
                 Environment := pointer (PIB^.Env);
                 ApplicationType := PIB^.ProcType;
                 ProcessID := PIB^.PID;
@@ -545,6 +549,8 @@ begin
             begin
                 stackbottom:=nil;   {Not sure how to get it, but seems to be
                                      always zero.}
+                StackTop := StackBottom + InitialStkLen;
+{$WARNING To be checked/corrected!}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
                 ProcessID := 1;
