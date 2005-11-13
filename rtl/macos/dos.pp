@@ -299,7 +299,7 @@ var
 Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
-  wdpath:= 'Directory ' + wdpath;
+  wdpath:= 'Directory ''' + wdpath + '''';
   err:= ExecuteToolserverScript(PChar(wdpath), LastDosExitCode);
     {TODO Only change path when actually needed. But this requires some
      change counter to be incremented each time wd is changed. }
