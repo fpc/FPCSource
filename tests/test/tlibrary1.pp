@@ -1,6 +1,10 @@
 { %NORUN }
 { %SKIPTARGET=macos }
 
+{$ifdef CPUX86_64}
+{$PIC+}
+{$endif CPUX86_64}
+
 { The .so of the library needs to be in the current dir when
   testing the loading at runtime }
 
@@ -26,7 +30,7 @@ const
 procedure Test;export;
 
  begin
-   writeln('Hoi');
+//   writeln('Hoi');
  end;
 
 exports
