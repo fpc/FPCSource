@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2005 by Florian Klaempfl
 
     This unit implements the common parts of the code generator for the i386 and the x86-64.
 
@@ -368,8 +368,7 @@ unit cgx86;
                end;
           end;
         if (cs_create_pic in aktmoduleswitches) and
-         assigned(ref.symbol) and
-         not(ref.symbol.defbind in [AB_COMMON,AB_LOCAL]) then
+         assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);
@@ -394,8 +393,7 @@ unit cgx86;
           end;
 {$else x86_64}
         if (cs_create_pic in aktmoduleswitches) and
-          assigned(ref.symbol) and
-          not(ref.symbol.defbind in [AB_COMMON,AB_LOCAL]) then
+          assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);
@@ -702,8 +700,7 @@ unit cgx86;
               begin
                 if assigned(ref.symbol) then
                   begin
-                    if (cs_create_pic in aktmoduleswitches) and
-                      not(symbol.defbind in [AB_COMMON,AB_LOCAL]) then
+                    if (cs_create_pic in aktmoduleswitches) then
                       begin
 {$ifdef x86_64}
                         reference_reset_symbol(tmpref,ref.symbol,0);
