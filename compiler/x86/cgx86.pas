@@ -368,7 +368,8 @@ unit cgx86;
                end;
           end;
         if (cs_create_pic in aktmoduleswitches) and
-          assigned(ref.symbol) then
+         assigned(ref.symbol) and
+         not(ref.symbol.defbind in [AB_COMMON,AB_LOCAL]) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);
@@ -378,13 +379,13 @@ unit cgx86;
 
             ref.symbol:=nil;
 
-            if ref.index=NR_NO then
+            if ref.base=NR_NO then
+              ref.base:=hreg
+            else if ref.index=NR_NO then
               begin
                 ref.index:=hreg;
                 ref.scalefactor:=1;
               end
-            else if ref.base=NR_NO then
-              ref.base:=hreg
             else
               begin
                 list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
@@ -393,7 +394,8 @@ unit cgx86;
           end;
 {$else x86_64}
         if (cs_create_pic in aktmoduleswitches) and
-          assigned(ref.symbol) then
+          assigned(ref.symbol) and
+          not(ref.symbol.defbind in [AB_COMMON,AB_LOCAL]) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);
@@ -697,29 +699,36 @@ unit cgx86;
         with ref do
           begin
             if (base=NR_NO) and (index=NR_NO) then
-              if assigned(ref.symbol) then
-                if cs_create_pic in aktmoduleswitches then
+              begin
+                if assigned(ref.symbol) then
                   begin
+                    if (cs_create_pic in aktmoduleswitches) and
+                      not(symbol.defbind in [AB_COMMON,AB_LOCAL]) then
+                      begin
 {$ifdef x86_64}
-                    reference_reset_symbol(tmpref,ref.symbol,0);
-                    tmpref.refaddr:=addr_pic;
-                    tmpref.base:=NR_RIP;
-                    list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
+                        reference_reset_symbol(tmpref,ref.symbol,0);
+                        tmpref.refaddr:=addr_pic;
+                        tmpref.base:=NR_RIP;
+                        list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                    reference_reset_symbol(tmpref,ref.symbol,0);
-                    tmpref.refaddr:=addr_pic;
-                    tmpref.base:=current_procinfo.got;
-                    list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
+                        reference_reset_symbol(tmpref,ref.symbol,0);
+                        tmpref.refaddr:=addr_pic;
+                        tmpref.base:=current_procinfo.got;
+                        list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
 {$endif x86_64}
+                        if offset<>0 then
+                          a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
+                      end
+                    else
+                      begin
+                        tmpref:=ref;
+                        tmpref.refaddr:=ADDR_FULL;
+                        list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
+                      end
                   end
                 else
-                  begin
-                    tmpref:=ref;
-                    tmpref.refaddr:=ADDR_FULL;
-                    list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
-                  end
-              else
-                a_load_const_reg(list,OS_ADDR,offset,r)
+                  a_load_const_reg(list,OS_ADDR,offset,r)
+              end
             else if (base=NR_NO) and (index<>NR_NO) and
                     (offset=0) and (scalefactor=0) and (symbol=nil) then
               a_load_reg_reg(list,OS_ADDR,OS_ADDR,index,r)
