@@ -1083,7 +1083,19 @@ Function GetHomeDir : String;
 begin
   Result:=GetEnvironmentVariable('HOME');
   If (Result<>'') then
-  Result:=IncludeTrailingPathDelimiter(Result);
+    Result:=IncludeTrailingPathDelimiter(Result);
+end;
+
+{ Follows base-dir spec, 
+  see [http://freedesktop.org/Standards/basedir-spec].
+  Always ends with PathDelim. }
+Function XdgConfigHome : String;
+begin
+  Result:=GetEnvironmentVariable('XDG_CONFIG_HOME');
+  if (Result='') then
+    Result:=GetHomeDir + '.config/' 
+  else
+    Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
 Function GetAppConfigDir(Global : Boolean) : String;
@@ -1092,7 +1104,7 @@ begin
   If Global then
     Result:=SysConfigDir
   else
-    Result:=GetHomeDir+ApplicationName;
+    Result:=XdgConfigHome + ApplicationName;
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
@@ -1114,8 +1126,7 @@ begin
       end
     else
       begin
-      Result:=GetHomeDir;
-      Result:=Result+'.'+ApplicationName;
+      Result:=XdgConfigHome + ApplicationName + ConfigExtension;
       end;
     end;
 end;

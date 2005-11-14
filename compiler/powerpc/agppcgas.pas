@@ -155,12 +155,7 @@ unit agppcgas;
              begin
                 if offset=0 then
                   begin
-                    if assigned(symbol) then
-                      begin
-                        if target_info.system <> system_powerpc_darwin then
-                          s:=s+'+0'
-                      end
-                    else
+                    if not (assigned(symbol)) then
                       s:=s+'0';
                   end;
                 s:=s+'('+gas_regname(base)+')';

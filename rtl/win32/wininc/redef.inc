@@ -176,6 +176,12 @@ function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCritica
 function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
 
+
+
+function ControlService(hService:SC_HANDLE; dwControl:DWORD; var ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'ControlService';
+function QueryServiceStatus(hService:SC_HANDLE; var lpServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'QueryServiceStatus';
+function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; const ServiceStatus:TSERVICESTATUS):WINBOOL; external 'advapi32' name 'SetServiceStatus';
+
 //function _lwrite(hFile: HFILE; const lpBuffer: LPCSTR; uBytes: UINT): UINT; external 'kernel32' name '_lwrite';
 //function AccessCheck(pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess: DWORD; const GenericMapping: TGenericMapping; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD;
 //  var AccessStatus: BOOL): BOOL; external 'advapi32' name 'AccessCheck';

@@ -13,12 +13,14 @@
 {$ifdef fpc}
 {$mode objfpc}
 {$endif}
+{$H+}
 unit contnrs;
 
 interface
 
 uses
   SysUtils,Classes;
+
 
 Type
 
@@ -62,6 +64,7 @@ Type
     property List: TFPList read FList;
   end;
 
+  
   TObjectList = class(TList)
   private
     ffreeobjects : boolean;
@@ -168,8 +171,102 @@ Type
     Function Pop: TObject;
     Function Peek: TObject;
   end;
+  
+{ ---------------------------------------------------------------------
+    Hash support, implemented by Dean Zobec
+  ---------------------------------------------------------------------}
+ 
+
+  { Must return a Longword value in the range 0..TableSize,
+   usually via a mod operator;  }
+  THashFunction = function(const S: string; const TableSize: Longword): Longword;
+  
+  TIteratorMethod = procedure(Item: Pointer; const Key: string;
+     var Continue: Boolean) of object;
+
+  { THTNode }
+
+  THTNode = class(TObject)
+  private
+    FData: pointer;
+    FKey: string;
+  public
+    constructor CreateWith(const AString: String);
+    function HasKey(const AKey: string): boolean;
+    property Key: string read FKey;
+    property Data: pointer read FData write FData;
+  end;
+
+  { TFPHashTable }
+
+  TFPHashTable = class(TObject)
+  private
+    FHashTable: TFPObjectList;
+    FHashTableSize: Longword;
+    FHashFunction: THashFunction;
+    FCount: Int64;
+    function GetDensity: Longword;
+    function GetNumberOfCollisions: Int64;
+    procedure SetHashTableSize(const Value: Longword);
+    procedure InitializeHashTable;
+    function GetVoidSlots: Longword;
+    function GetLoadFactor: double;
+    function GetAVGChainLen: double;
+    function GetMaxChainLength: Longword;
+    function Chain(const index: Longword):TFPObjectList;
+  protected
+    function ChainLength(const ChainIndex: Longword): Longword; virtual;
+    procedure SetData(const index: string; const AValue: Pointer); virtual;
+    function GetData(const index: string):Pointer; virtual;
+    function FindOrCreateNew(const aKey: string): THTNode; virtual;
+    function ForEachCall(aMethod: TIteratorMethod): THTNode; virtual;
+    procedure SetHashFunction(AHashFunction: THashFunction); virtual;
+  public
+    constructor Create;
+    constructor CreateWith(AHashTableSize: Longword; aHashFunc: THashFunction);
+    destructor Destroy; override;
+    procedure ChangeTableSize(const ANewSize: Longword); virtual;
+    procedure Clear; virtual;
+    procedure Add(const aKey: string; AItem: pointer); virtual;
+    procedure Delete(const aKey: string); virtual;
+    function Find(const aKey: string): THTNode;
+    function IsEmpty: boolean;
+    property HashFunction: THashFunction read FHashFunction write SetHashFunction;
+    property Count: Int64 read FCount;
+    property HashTableSize: Longword read FHashTableSize write SetHashTableSize;
+    property Items[const index: string]: Pointer read GetData write SetData; default;
+    property HashTable: TFPObjectList read FHashTable;
+    property VoidSlots: Longword read GetVoidSlots;
+    property LoadFactor: double read GetLoadFactor;
+    property AVGChainLen: double read GetAVGChainLen;
+    property MaxChainLength: Int64 read GetMaxChainLength;
+    property NumberOfCollisions: Int64 read GetNumberOfCollisions;
+    property Density: Longword read GetDensity;
+  end;
+
+  EDuplicate = class(Exception);
+  EKeyNotFound = class(Exception);
+
+
+  function RSHash(const S: string; const TableSize: Longword): Longword;
 
 implementation
+
+ResourceString
+  DuplicateMsg = 'An item with key %0:s already exists';
+  KeyNotFoundMsg = 'Method: %0:s key [''%1:s''] not found in container';
+  NotEmptyMsg = 'Hash table not empty.';
+  
+const
+  NPRIMES = 28;
+
+  PRIMELIST: array[0 .. NPRIMES-1] of Longword =
+  ( 53,         97,         193,       389,       769,
+    1543,       3079,       6151,      12289,     24593,
+    49157,      98317,      196613,    393241,    786433,
+    1572869,    3145739,    6291469,   12582917,  25165843,
+    50331653,   100663319,  201326611, 402653189, 805306457,
+    1610612741, 3221225473, 4294967291 );
 
 constructor TFPObjectList.Create(FreeObjects : boolean);
 begin
@@ -707,6 +804,341 @@ end;
 Function TObjectQueue.Push(AObject: TObject): TObject;
 begin
   Result:=TObject(Inherited Push(Pointer(Aobject)));
+end;
+
+{ ---------------------------------------------------------------------
+    Hash support, by Dean Zobec
+  ---------------------------------------------------------------------}
+
+{ Default hash function }
+
+function RSHash(const S: string; const TableSize: Longword): Longword;
+const
+  b = 378551;
+var
+  a: Longword;
+  i: Longword;
+begin
+ a := 63689;
+ Result := 0;
+ for i := 1 to Length(S) do
+ begin
+   Result := Result * a + Ord(S[i]);
+   a := a * b;
+ end;
+ Result := (Result and $7FFFFFFF) mod TableSize;
+end;
+  
+{ THTNode }
+
+constructor THTNode.CreateWith(const AString: string);
+begin
+  inherited Create;
+  FKey := AString;
+end;
+
+function THTNode.HasKey(const AKey: string): boolean;
+begin
+  if Length(AKey) <> Length(FKey) then
+  begin
+    Result := false;
+    exit;
+  end
+  else
+    Result := CompareMem(PChar(FKey), PChar(AKey), length(AKey));
+end;
+
+{ TFPHashTable }
+
+constructor TFPHashTable.Create;
+begin
+  Inherited Create;
+  FHashTable := TFPObjectList.Create(True);
+  HashTableSize := 196613;
+  FHashFunction := @RSHash;
+end;
+
+constructor TFPHashTable.CreateWith(AHashTableSize: Longword;
+  aHashFunc: THashFunction);
+begin
+  Inherited Create;
+  FHashTable := TFPObjectList.Create(True);
+  HashTableSize := AHashTableSize;
+  FHashFunction := aHashFunc;
+end;
+
+destructor TFPHashTable.Destroy;
+begin
+  FHashTable.Free;
+  inherited Destroy;
+end;
+
+function TFPHashTable.GetDensity: Longword;
+begin
+  Result := FHashTableSize - VoidSlots
+end;
+
+function TFPHashTable.GetNumberOfCollisions: Int64;
+begin
+  Result := FCount -(FHashTableSize - VoidSlots)
+end;
+
+procedure TFPHashTable.SetData(const index: string; const AValue: Pointer);
+begin
+  FindOrCreateNew(index).Data := AValue;
+end;
+
+procedure TFPHashTable.SetHashTableSize(const Value: Longword);
+var
+  i: Longword;
+  newSize: Longword;
+begin
+  if Value <> FHashTableSize then
+  begin
+    i := 0;
+    while (PRIMELIST[i] < Value) and (i < 27) do
+     inc(i);
+    newSize := PRIMELIST[i];
+    if Count = 0 then
+    begin
+      FHashTableSize := newSize;
+      InitializeHashTable;
+    end
+    else
+      ChangeTableSize(newSize);
+  end;
+end;
+
+procedure TFPHashTable.InitializeHashTable;
+var
+  i: LongWord;
+begin
+  for i := 0 to FHashTableSize-1 do
+    FHashTable.Add(nil);
+  FCount := 0;
+end;
+
+procedure TFPHashTable.ChangeTableSize(const ANewSize: Longword);
+var
+  SavedTable: TFPObjectList;
+  SavedTableSize: Longword;
+  i, j: Longword;
+  temp: THTNode;
+begin
+  SavedTable := FHashTable;
+  SavedTableSize := FHashTableSize;
+  FHashTableSize := ANewSize;
+  FHashTable := TFPObjectList.Create(True);
+  InitializeHashTable;
+  for i := 0 to SavedTableSize-1 do
+  begin
+    if Assigned(SavedTable[i]) then
+    for j := 0 to TFPObjectList(SavedTable[i]).Count -1 do
+    begin
+      temp := THTNode(TFPObjectList(SavedTable[i])[j]);
+      Add(temp.Key, temp.Data);
+    end;
+  end;
+  SavedTable.Free;
+end;
+
+procedure TFPHashTable.SetHashFunction(AHashFunction: THashFunction);
+begin
+  if IsEmpty then
+    FHashFunction := AHashFunction
+  else
+    raise Exception.Create(NotEmptyMsg);
+end;
+
+function TFPHashTable.Find(const aKey: string): THTNode;
+var
+  hashCode: Longword;
+  chn: TFPObjectList;
+  i: Longword;
+begin
+  hashCode := FHashFunction(aKey, FHashTableSize);
+  chn := Chain(hashCode);
+  if Assigned(chn) then
+  begin
+    for i := 0 to chn.Count - 1 do
+    if THTNode(chn[i]).HasKey(aKey) then
+    begin
+      result := THTNode(chn[i]);
+      exit;
+    end;
+  end;
+  Result := nil;
+end;
+
+function TFPHashTable.GetData(const Index: string): Pointer;
+var
+  node: THTNode;
+begin
+  node := Find(Index);
+  if Assigned(node) then
+    Result := node.Data
+  else
+    Result := nil;
+end;
+
+function TFPHashTable.FindOrCreateNew(const aKey: string): THTNode;
+var
+  hashCode: Longword;
+  chn: TFPObjectList;
+  i: Longword;
+begin
+  hashCode := FHashFunction(aKey, FHashTableSize);
+  chn := Chain(hashCode);
+  if Assigned(chn)  then
+  begin
+    for i := 0 to chn.Count - 1 do
+    if THTNode(chn[i]).HasKey(aKey) then
+    begin
+      Result := THTNode(chn[i]);
+      exit;
+    end
+  end
+  else
+    begin
+      FHashTable[hashcode] := TFPObjectList.Create(true);
+      chn := Chain(hashcode);
+    end;
+  inc(FCount);
+  Result := THTNode.CreateWith(aKey);
+  chn.Add(Result);
+end;
+
+function TFPHashTable.ChainLength(const ChainIndex: Longword): Longword;
+begin
+  if Assigned(Chain(ChainIndex)) then
+    Result := Chain(ChainIndex).Count
+  else
+    Result := 0;
+end;
+
+procedure TFPHashTable.Clear;
+var
+  i: Longword;
+begin
+  for i := 0 to FHashTableSize - 1 do
+  begin
+    if Assigned(Chain(i)) then
+      Chain(i).Clear;
+  end;
+  FCount := 0;
+end;
+
+function TFPHashTable.ForEachCall(aMethod: TIteratorMethod): THTNode;
+var
+  i, j: Longword;
+  continue: boolean;
+begin
+  Result := nil;
+  continue := true;
+  for i := 0 to FHashTableSize-1 do
+  begin
+    if assigned(Chain(i)) then
+    begin
+      for j := 0 to Chain(i).Count-1 do
+      begin
+        aMethod(THTNode(Chain(i)[j]).Data, THTNode(Chain(i)[j]).Key, continue);
+        if not continue then
+        begin
+          Result := THTNode(Chain(i)[j]);
+          Exit;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TFPHashTable.Add(const aKey: string; aItem: pointer);
+var
+  hashCode: Longword;
+  chn: TFPObjectList;
+  i: Longword;
+  NewNode: THtNode;
+begin
+  hashCode := FHashFunction(aKey, FHashTableSize);
+  chn := Chain(hashCode);
+  if Assigned(chn)  then
+  begin
+    for i := 0 to chn.Count - 1 do
+      if THTNode(chn[i]).HasKey(aKey) then
+        Raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
+  end
+  else
+    begin
+      FHashTable[hashcode] := TFPObjectList.Create(true);
+      chn := Chain(hashcode);
+    end;
+  inc(FCount);
+  NewNode := THTNode.CreateWith(aKey);
+  NewNode.Data := aItem;
+  chn.Add(NewNode);
+end;
+
+procedure TFPHashTable.Delete(const aKey: string);
+var
+  hashCode: Longword;
+  chn: TFPObjectList;
+  i: Longword;
+begin
+  hashCode := FHashFunction(aKey, FHashTableSize);
+  chn := Chain(hashCode);
+  if Assigned(chn) then
+  begin
+    for i := 0 to chn.Count - 1 do
+      if THTNode(chn[i]).HasKey(aKey) then
+      begin
+        chn.Delete(i);
+        dec(FCount);
+        exit;
+      end;
+  end;
+  raise EKeyNotFound.CreateFmt(KeyNotFoundMsg, ['Delete', aKey]);
+end;
+
+function TFPHashTable.IsEmpty: boolean;
+begin
+  Result := (FCount = 0);
+end;
+
+function TFPHashTable.Chain(const index: Longword): TFPObjectList;
+begin
+  Result := TFPObjectList(FHashTable[index]);
+end;
+
+function TFPHashTable.GetVoidSlots: Longword;
+var
+  i: Longword;
+  num: Longword;
+begin
+  num := 0;
+  for i:= 0 to FHashTableSize-1 do
+    if Not Assigned(Chain(i)) then
+      inc(num);
+  result := num;
+end;
+
+function TFPHashTable.GetLoadFactor: double;
+begin
+  Result := Count / FHashTableSize;
+end;
+
+function TFPHashTable.GetAVGChainLen: double;
+begin
+  result := Count / (FHashTableSize - VoidSlots);
+end;
+
+function TFPHashTable.GetMaxChainLength: Longword;
+var
+  i: Longword;
+begin
+  Result := 0;
+  for i := 0 to FHashTableSize-1 do
+    if ChainLength(i) > Result then
+      Result := ChainLength(i);
 end;
 
 end.

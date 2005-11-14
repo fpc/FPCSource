@@ -118,10 +118,19 @@ Const
   SIGUNUSED  = 31;
 {$endif cpusparc}
 
+{ si_code field values for tsiginfo.si_code when si_signo = SIGFPE }
+const
+  FPE_INTDIV = 1; { integer divide by zero }
+  FPE_INTOVF = 2; { integer overflow }
+  FPE_FLTDIV = 3; { floating point divide by zero }
+  FPE_FLTOVF = 4; { floating point overflow }
+  FPE_FLTUND = 5; { floating point underflow }
+  FPE_FLTRES = 6; { floating point inexact result }
+  FPE_FLTINV = 7; { floating point invalid operation }
+  FPE_FLTSUB = 8; { floating point subscript out of range }
 
 const
   SI_PAD_SIZE   = ((128 div sizeof(longint)) - 3);
-
 
 type
   SigSet  =  array[0..wordsinsigset-1] of cint;
