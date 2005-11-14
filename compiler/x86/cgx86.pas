@@ -54,6 +54,7 @@ unit cgx86;
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
+        procedure a_call_ref(list : taasmoutput;ref : treference);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
         procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
@@ -556,6 +557,12 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.a_call_ref(list : taasmoutput;ref : treference);
+      begin
+        list.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+      end;
+
+
 {********************** load instructions ********************}
 
     procedure tcgx86.a_load_const_reg(list : taasmoutput; tosize: TCGSize; a : aint; reg : TRegister);
@@ -824,7 +831,7 @@ unit cgx86;
           A_MOVSS,
           A_MOVSD,
           A_MOVQ:
-          add_move_instruction(instr);
+            add_move_instruction(instr);
         end;
         list.concat(instr);
       end;

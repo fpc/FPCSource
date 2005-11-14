@@ -192,7 +192,8 @@ unit cgobj;
              registers used for the parameters (PFV)
           }
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
-          procedure a_call_reg(list : taasmoutput;reg : tregister);virtual;abstract;
+          procedure a_call_reg(list : taasmoutput;reg : tregister);virtual; abstract;
+          procedure a_call_ref(list : taasmoutput;ref : treference);virtual; abstract;
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);virtual; abstract;

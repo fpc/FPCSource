@@ -794,14 +794,15 @@ implementation
 
     procedure tcgcallnode.pass_2;
       var
-         regs_to_save_int,
-         regs_to_save_fpu,
-         regs_to_save_mm   : Tcpuregisterset;
-         href : treference;
-         pop_size : longint;
-         pvreg,
-         vmtreg : tregister;
-         oldaktcallnode : tcallnode;
+        regs_to_save_int,
+        regs_to_save_fpu,
+        regs_to_save_mm   : Tcpuregisterset;
+        href : treference;
+        pop_size : longint;
+        pvreg,
+        vmtreg : tregister;
+        oldaktcallnode : tcallnode;
+        sym : tasmsymbol;
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then
@@ -933,7 +934,19 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
-                      cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+
+                      { lazy binding on linux? }
+                      if (target_info.system in system_linux) and
+                        assigned(tprocdef(procdefinition).import_dll) and
+                        (tprocdef(procdefinition).import_dll^='') then
+                        begin
+                          sym:=objectlibrary.newasmsymbol(tprocdef(procdefinition).mangledname,AB_EXTERNAL,AT_FUNCTION);
+                          reference_reset_symbol(href,sym,0);
+                          href.refaddr:=addr_pic;
+                          cg.a_call_ref(exprasmlist,href);
+                        end
+                      else
+                        cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                       extra_post_call_code;
                     end;
                end;
