@@ -743,7 +743,7 @@ var
    eend : ptruint; external name '_end';
 {$endif}
 
-{$ifdef windows}
+{$ifdef win32}
 var
    sdata : ptruint; external name '__data_start__';
    edata : ptruint; external name '__data_end__';
