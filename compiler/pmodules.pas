@@ -405,11 +405,15 @@ implementation
     procedure insertmemorysizes;
       begin
         { stacksize can be specified and is now simulated }
-        dataSegment.concat(Tai_align.Create(const_align(4)));
-        dataSegment.concat(Tai_symbol.Createname_global('__stklen',AT_DATA,4));
-        dataSegment.concat(Tai_const.Create_32bit(stacksize));
-        dataSegment.concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,4));
-        dataSegment.concat(Tai_const.Create_32bit(heapsize));
+        maybe_new_object_file(datasegment);
+        new_section(datasegment,sec_data,'__stklen', sizeof(aint));
+        datasegment.concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
+        datasegment.concat(Tai_const.Create_aint(stacksize));
+        { Initial heapsize }
+        maybe_new_object_file(datasegment);
+        new_section(datasegment,sec_data,'__heapsize',sizeof(aint));
+        datasegment.concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(aint)));
+        datasegment.concat(Tai_const.Create_aint(heapsize));
       end;
 
 

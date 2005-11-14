@@ -610,10 +610,15 @@ begin
  GetProcessID := SizeUInt (Go32_info_block.pid);
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
 var
   temp_int : tseginfo;
 Begin
-  StackLength := InitialStkLen;
+  StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := __stkbottom;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;

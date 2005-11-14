@@ -509,13 +509,17 @@ begin
 end;
 
 
-
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
 Begin
   getCodeAddresses;
+  StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := SPtr - StackLength;
   SigTermHandlerActive := false;
   NetwareCheckFunction := nil;

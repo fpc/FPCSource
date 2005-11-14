@@ -126,7 +126,7 @@
       end;
 
 
-    function SysBeginThread(sa : Pointer;stacksize : dword;
+    function SysBeginThread(sa : Pointer;stacksize : SizeUInt;
                          ThreadFunction : tthreadfunc;p : pointer;
                          creationFlags : dword; var ThreadId : THandle) : DWord;
       var

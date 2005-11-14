@@ -242,11 +242,15 @@ begin
  GetProcessID := SizeUInt (fpGetPID);
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
 
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
-  StackLength := InitialStkLen;
+  StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
   { Set up signals handlers }
   InstallSignals;

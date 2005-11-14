@@ -86,6 +86,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  fpReadLink           (name,linkname:pchar;maxlen:size_t):cint;  cdecl; external clib name 'readlink';
     Function  FpUmask       (cmask : TMode): TMode; cdecl; external clib name 'umask';
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
+    function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
+    {$ifdef HAS_UGETRLIMIT}
+    function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'ugetrlimit';
+    {$endif}
 
 {$ifdef linux}
 {$ifndef FPC_IS_SYSTEM}

@@ -231,12 +231,29 @@ begin
  GetProcessID := SizeUInt (fpGetPID);
 end;
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+var
+  limits : TRLimit;
+  success : boolean;
+begin
+  success := false;
+  fillchar(limits, sizeof(limits), 0);
+  {$ifdef has_ugetrlimit}
+  success := fpugetrlimit(RLIMIT_STACK, @limits)=0;
+  {$endif}
+  if (not success) then
+    success := fpgetrlimit(RLIMIT_STACK, @limits)=0;
+  if (success) and (limits.rlim_cur < stklen) then
+    result := limits.rlim_cur
+  else
+    result := stklen;
+end;
 
 Begin
   SysResetFPU;
   IsConsole := TRUE;
   IsLibrary := FALSE;
-  StackLength := InitialStkLen;
+  StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := Sptr - StackLength;
   { Set up signals handlers }
   InstallSignals;

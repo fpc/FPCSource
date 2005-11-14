@@ -435,11 +435,16 @@ begin
 end;
 
 
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
 Begin
+  StackLength := CheckInitialStkLen(initialstklen);
   StackBottom := SPtr - StackLength;
   SigTermHandlerActive := false;
   NetwareCheckFunction := nil;
