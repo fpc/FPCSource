@@ -91,12 +91,15 @@ type
     ptimeval = ^timeval;
     TTimeVal = timeval;
 
-  timespec = packed record
-    tv_sec   : time_t;
-    tv_nsec  : clong;
-  end;
-  ptimespec= ^timespec;
-  Ttimespec= timespec;
+    timespec = packed record
+      tv_sec   : time_t;
+      tv_nsec  : clong;
+    end;
+    ptimespec= ^timespec;
+    Ttimespec= timespec;
+
+    rlim_t		= int64;
+    TRlim		= rlim_t;
 
 CONST
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }

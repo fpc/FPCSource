@@ -247,6 +247,39 @@ Const
   S_IFWHT = 57344;
   S_ISVTX = 512;
 
+{
+ * Resource limits from FreeBSD5. To be checked for the others.
+}
+  RLIMIT_CPU      = 0;              { cpu time in milliseconds }
+  RLIMIT_FSIZE    = 1;              { maximum file size }
+  RLIMIT_DATA     = 2;              { data size }
+  RLIMIT_STACK    = 3;              { stack size }
+  RLIMIT_CORE     = 4;              { core file size }
+  RLIMIT_RSS      = 5;              { resident set size }
+  RLIMIT_MEMLOCK  = 6;              { locked-in-memory address space }
+  RLIMIT_NPROC    = 7;              { number of processes }
+  RLIMIT_NOFILE   = 8;              { number of open files }
+{$IFDEF FreeBSD}
+  RLIMIT_SBSIZE   = 9;              { maximum size of all socket buffers }
+  RLIMIT_VMEM     =10;              { virtual process size (inclusive of mmap) }
+{$ENDIF}
+  RLIMIT_AS       = RLIMIT_VMEM;    { standard name for RLIMIT_VMEM }
+
+  {$ifdef FreeBSD}
+  RLIM_NLIMITS    =11;              { number of resource limits }
+  {$endif}
+
+  {$ifdef Darwin}   // OS X 10.3
+  RLIM_NLIMITS    =9;              { number of resource limits }
+  {$endif}
+
+Type 
+        TRLimit  = record
+                     rlim_cur,               { current (soft) limit }
+          	     rlim_max : TRLim;     { maximum value for rlim_cur }
+		    end;	
+        PRLimit  = ^TRLimit;
+       
 CONST
  { Constansts for MMAP }
   MAP_PRIVATE   =2;
