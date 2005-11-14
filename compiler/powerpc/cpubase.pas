@@ -84,7 +84,7 @@ uses
         a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
         a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
         a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_not_, a_mtcr, a_mtlr, a_mflr,
-        a_mtctr, a_mfctr);
+        a_mtctr, a_mfctr, a_mftbu);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
