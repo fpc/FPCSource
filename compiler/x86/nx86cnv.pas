@@ -255,7 +255,7 @@ implementation
                        asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
                        asmlist[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
                        { simplify for PIC }
-                       cg.make_simple_ref(exprasmlist,href);
+                       tcgx86(cg).make_simple_ref(exprasmlist,href);
                        exprasmlist.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
                    else if is_single(resulttype.def) then
@@ -263,7 +263,7 @@ implementation
                        { single(2^64) }
                        asmlist[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                        { simplify for PIC }
-                       cg.make_simple_ref(exprasmlist,href);
+                       tcgx86(cg).make_simple_ref(exprasmlist,href);
                        exprasmlist.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
@@ -369,6 +369,7 @@ implementation
                    asmlist[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
                    asmlist[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
                    reference_reset_symbol(href,l1,0);
+                   tcgx86(cg).make_simple_ref(exprasmlist,href);
                    exprasmlist.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
                    exprasmlist.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
                    cg.a_label(exprasmlist,l2);

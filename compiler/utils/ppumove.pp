@@ -80,6 +80,7 @@ Var
   Buffer      : Pointer;
   ObjFiles    : PLinkOEnt;
   BatchFile   : Text;
+  Libs        : ansistring;
 
 {*****************************************************************************
                                  Helpers
@@ -372,10 +373,22 @@ begin
   { don't write ibend, that's written automaticly }
     if b<>ibend then
      begin
-       repeat
-         inppu.getdatabuf(buffer^,bufsize,l);
-         outppu.putdata(buffer^,l);
-       until l<bufsize;
+       if b=iblinkothersharedlibs then
+         begin
+           while not inppu.endofentry do
+             begin
+               s:=inppu.getstring;
+               m:=inppu.getlongint;
+               libs:=libs+' -l'+s;
+               outppu.putstring(s);
+               outppu.putlongint(m);
+             end;
+         end
+       else
+         repeat
+           inppu.getdatabuf(buffer^,bufsize,l);
+           outppu.putdata(buffer^,l);
+         until l<bufsize;
        outppu.writeentry(b);
      end;
   until b=ibend;
@@ -458,13 +471,13 @@ begin
      exit;
    end;
   If not Quiet then
-   WriteLn(names);
+    WriteLn(names+Libs);
 { Run ar or ld to create the lib }
   If MakeStatic then
    Err:=Shell(arbin+' rs '+outputfile+' '+names)<>0
   else
    begin
-     Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names)<>0;
+     Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names+' '+libs)<>0;
      if not Err then
       Shell(stripbin+' --strip-unneeded '+OutputFile);
    end;
@@ -545,6 +558,7 @@ end;
 var
   i : longint;
 begin
+  Libs:='';
   ProcessOpts;
 { Write Header }
   if not Quiet then

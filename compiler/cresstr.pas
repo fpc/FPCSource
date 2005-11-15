@@ -198,7 +198,7 @@ begin
      R:=TResourceStringItem(R.Next);
    end;
   asmlist[al_resourcestrings].concat(tai_symbol_end.createname(
-    current_module.modulename^+'_'+'RESOURCESTRINGLIST'));
+    make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,'')));
 end;
 
 
