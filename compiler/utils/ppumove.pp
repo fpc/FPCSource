@@ -36,9 +36,9 @@ uses
   getopts;
 
 const
-  Version   = 'Version 1.00';
+  Version   = 'Version 1.0.2';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2002 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:qhsvbw';
   BufSize = 4096;
