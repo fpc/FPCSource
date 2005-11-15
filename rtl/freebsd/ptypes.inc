@@ -121,7 +121,8 @@ type
    pthread_rwlockattr_t = pointer;
 
    sem_t                = pointer;
-
+   rlim_t		= int64;
+   TRlim		= rlim_t;
   {
      Mutex types (Single UNIX Specification, Version 2, 1997).
 
