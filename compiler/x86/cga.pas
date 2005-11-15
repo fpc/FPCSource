@@ -34,12 +34,12 @@ interface
     procedure emit_none(i : tasmop;s : topsize);
 
     procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
-    procedure emit_ref(i : tasmop;s : topsize;const ref : treference);
+    procedure emit_ref(i : tasmop;s : topsize;ref : treference);
 
     procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
-    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;const ref : treference);
-    procedure emit_ref_reg(i : tasmop;s : topsize;const ref : treference;reg : tregister);
-    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;const ref : treference);
+    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;ref : treference);
+    procedure emit_ref_reg(i : tasmop;s : topsize;ref : treference;reg : tregister);
+    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : treference);
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
@@ -54,7 +54,7 @@ implementation
     uses
        cutils,
        systems,verbose,
-       cgobj;
+       cgobj,cgx86;
 
 
 {*****************************************************************************
@@ -71,9 +71,10 @@ implementation
          exprasmList.concat(Taicpu.Op_reg(i,s,reg));
       end;
 
-    procedure emit_ref(i : tasmop;s : topsize;const ref : treference);
+    procedure emit_ref(i : tasmop;s : topsize;ref : treference);
       begin
-         exprasmList.concat(Taicpu.Op_ref(i,s,ref));
+        tcgx86(cg).make_simple_ref(exprasmlist,ref);
+        exprasmList.concat(Taicpu.Op_ref(i,s,ref));
       end;
 
     procedure emit_const_reg(i : tasmop;s : topsize;c : aint;reg : tregister);
@@ -81,19 +82,22 @@ implementation
          exprasmList.concat(Taicpu.Op_const_reg(i,s,c,reg));
       end;
 
-    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;const ref : treference);
+    procedure emit_const_ref(i : tasmop;s : topsize;c : aint;ref : treference);
       begin
-         exprasmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
+        tcgx86(cg).make_simple_ref(exprasmlist,ref);
+        exprasmList.concat(Taicpu.Op_const_ref(i,s,c,ref));
       end;
 
-    procedure emit_ref_reg(i : tasmop;s : topsize;const ref : treference;reg : tregister);
+    procedure emit_ref_reg(i : tasmop;s : topsize;ref : treference;reg : tregister);
       begin
-         exprasmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
+        tcgx86(cg).make_simple_ref(exprasmlist,ref);
+        exprasmList.concat(Taicpu.Op_ref_reg(i,s,ref,reg));
       end;
 
-    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;const ref : treference);
+    procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : treference);
       begin
-         exprasmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
+        tcgx86(cg).make_simple_ref(exprasmlist,ref);
+        exprasmList.concat(Taicpu.Op_reg_ref(i,s,reg,ref));
       end;
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
