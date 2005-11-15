@@ -413,7 +413,7 @@ unit cgx86;
               end
             else
               begin
-                list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,hreg));
                 ref.base:=hreg;
               end;
           end;
