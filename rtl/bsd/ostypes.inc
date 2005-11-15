@@ -262,8 +262,10 @@ Const
 {$IFDEF FreeBSD}
   RLIMIT_SBSIZE   = 9;              { maximum size of all socket buffers }
   RLIMIT_VMEM     =10;              { virtual process size (inclusive of mmap) }
+  RLIMIT_AS       = RLIMIT_VMEM;    
+{$ELSE}
+  RLIMIT_AS       = 5;    	    { address space= resident set size}
 {$ENDIF}
-  RLIMIT_AS       = RLIMIT_VMEM;    { standard name for RLIMIT_VMEM }
 
   {$ifdef FreeBSD}
   RLIM_NLIMITS    =11;              { number of resource limits }
