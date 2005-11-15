@@ -1,7 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Jonas Maebe,
-    member of the Free Pascal development team.
+    Copyright (c) 1999-2000 by Jonas Maebe, (c) 2005 Thomas Schatzl,
+    members of the Free Pascal development team.
+
+    Contains the definition of the stat type for the PowerPC64 platform.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,48 +14,56 @@
 
  **********************************************************************}
 
-  Stat = packed record  // No unix typing because of differences
+{ This structure was ported from 
+
+    /usr/include/asm-ppc64/stat.h
+
+  on a 2.6.11 kernel. Note that the stat record is the same for direct
+  syscalls as for when linking to libc.
+}
+
+{$PACKRECORDS C}
+  stat = record 
     case integer of
     0 : (
-      st_dev : qword;
-      st_ino : qword;
-      st_nlink : qword;
+      st_dev     : cULong;
+      st_ino     : cULong;     { wrongly defined in RTL? }
+      st_nlink   : cULong;     { wrongly defined in RTL? }
 
-      st_mode : dword;
-      st_uid : dword;
-      st_gid : dword;
-      __pad0 : dword;
-      st_rdev : qword;
-      st_size : int64;
-      st_blksize : int64;
-      st_blocks : int64;      { Number 512-byte blocks allocated. }
+      st_mode    : mode_t;
+      st_uid     : uid_t;
+      st_gid     : gid_t;
 
-      st_atime : qword;
-      __reserved0 : qword;    { reserved for atime.nanoseconds }
-      st_mtime : qword;
-      __reserved1 : qword;    { reserved for atime.nanoseconds }
-      st_ctime : qword;
-      __reserved2 : qword;    { reserved for atime.nanoseconds }
-      __unused : array[0..2] of int64
+      st_rdev    : cULong;
+      st_size    : int64;
+      st_blksize : cULong;
+      st_blocks  : cULong;     { Number 512-byte blocks allocated. }
+
+      st_atime : cULong;
+      st_atime_nsec : cULong;
+      st_mtime : cULong;
+      st_mtime_nsec : cULong;
+      st_ctime : cULong;
+      st_ctime_nsec : cULong;
+      __unused : array[0..2] of cULong
       );
     1 : (
-      dev    : qword;
-      ino,
-      mode   : qword;
-      nlink_dummy     : dword;
-      uid_dummy,
-      gid_dummy,
-      rdev      : dword;
-      size   : qword;
+      dev        : cULong;
+      ino        : cULong;
+      nlink      : cULong;
+      mode       : mode_t;
+      uid        : uid_t;
+      gid        : gid_t;
+      rdev       : cULong;
+      size       : off_t;
       blksize,
       blocks,
       atime,
-      __unused1_dummy,
+      atime_nsec,
       mtime,
-      __unused2_dummy,
+      mtime_nsec,
       ctime,
-      __unused3_dummy,
-      __unused4_dummy,
-      __unused5_dummy  : qword;
+      ctime_nsec : cULong;
+      __unused_dummy : array[0..2] of cULong;
       );
   end;
