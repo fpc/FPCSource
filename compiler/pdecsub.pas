@@ -793,7 +793,7 @@ implementation
                        symbol }
                      if (srsym.typ=unitsym) then
                       begin
-                        srsym.owner.rename(srsym.name,'hidden'+srsym.name);
+                        HideSym(srsym);
                         searchagain:=true;
                       end
                      else
@@ -802,7 +802,7 @@ implementation
                         if (m_fpc in aktmodeswitches) then
                          Message1(parser_e_overloaded_no_procedure,srsym.realname)
                         else
-                         tstoredsymtable(symtablestack).DuplicateSym(nil,srsym);
+                         DuplicateSym(nil,srsym);
                         { rename the name to an unique name to avoid an
                           error when inserting the symbol in the symtable }
                         orgsp:=orgsp+'$'+tostr(aktfilepos.line);
