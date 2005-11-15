@@ -68,7 +68,6 @@ interface
           procedure buildderefimpl;virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
-          procedure duplicatesym(dupsym,sym:tsymentry);
           procedure insert(sym : tsymentry);override;
           procedure reset_all_defs;virtual;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
@@ -184,6 +183,8 @@ interface
     function  findunitsymtable(st:tsymtable):tsymtable;
     function  FullTypeName(def,otherdef:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
+    procedure hidesym(sym:tsymentry);
+    procedure duplicatesym(dupsym,sym:tsymentry);
 
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
@@ -267,9 +268,6 @@ implementation
       { codegen }
       procinfo
       ;
-
-    var
-      dupnr : longint; { unique number for duplicate symbols }
 
 
 {*****************************************************************************
@@ -563,31 +561,6 @@ implementation
            hp.derefimpl;
            hp:=tdef(hp.indexnext);
          end;
-      end;
-
-
-    procedure tstoredsymtable.duplicatesym(dupsym,sym:tsymentry);
-      var
-        st : tsymtable;
-      begin
-        Message1(sym_e_duplicate_id,tsym(sym).realname);
-        st:=findunitsymtable(sym.owner);
-        with tsym(sym).fileinfo do
-          begin
-            if assigned(st) and
-               (st.symtabletype=globalsymtable) and
-               (not st.iscurrentunit) then
-              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
-            else
-              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
-          end;
-        { Rename duplicate sym to an unreachable name, but it can be
-          inserted in the symtable without errors }
-        if assigned(dupsym) then
-          begin
-            inc(dupnr);
-            dupsym.name:='dup'+tostr(dupnr)+dupsym.name;
-          end;
       end;
 
 
@@ -1204,7 +1177,7 @@ implementation
                (vo_is_funcret in tabstractvarsym(hsym).varoptions) and
                not((m_result in aktmodeswitches) and
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
-              hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+              HideSym(hsym)
             else
               DuplicateSym(sym,hsym);
           end;
@@ -1375,7 +1348,7 @@ implementation
                  <unit>.<id>, so we can hide the symbol }
                if (m_duplicate_names in aktmodeswitches) and
                   (hsym.typ=symconst.unitsym) then
-                hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+                HideSym(hsym)
                else
                 DuplicateSym(sym,hsym);
              end;
@@ -1443,7 +1416,7 @@ implementation
               <unit>.<id>, so we can hide the symbol }
             if (m_duplicate_names in aktmodeswitches) and
                (hsym.typ=symconst.unitsym) then
-             hsym.owner.rename(hsym.name,'hidden'+hsym.name)
+             HideSym(hsym)
             else
              DuplicateSym(sym,hsym);
           end;
@@ -1587,6 +1560,48 @@ implementation
            (def1.deftype=errordef) then
           exit;
         CGMessage2(type_e_incompatible_types,FullTypeName(def1,def2),FullTypeName(def2,def1));
+      end;
+
+
+    procedure hidesym(sym:tsymentry);
+      var
+        s : string;
+      begin
+        if assigned(sym.owner) then
+          sym.owner.rename(sym.name,'hidden'+sym.name)
+        else
+          sym.name:='hidden'+sym.name;
+        s:='hidden'+tsym(sym).realname;
+        stringdispose(tsym(sym)._realname);
+        tsym(sym)._realname:=stringdup(s);
+      end;
+
+
+      var
+        dupnr : longint; { unique number for duplicate symbols }
+
+    procedure duplicatesym(dupsym,sym:tsymentry);
+      var
+        st : tsymtable;
+      begin
+        Message1(sym_e_duplicate_id,tsym(sym).realname);
+        st:=findunitsymtable(sym.owner);
+        with tsym(sym).fileinfo do
+          begin
+            if assigned(st) and
+               (st.symtabletype=globalsymtable) and
+               (not st.iscurrentunit) then
+              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
+            else
+              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
+          end;
+        { Rename duplicate sym to an unreachable name, but it can be
+          inserted in the symtable without errors }
+        if assigned(dupsym) then
+          begin
+            inc(dupnr);
+            dupsym.name:='dup'+tostr(dupnr)+dupsym.name;
+          end;
       end;
 
 

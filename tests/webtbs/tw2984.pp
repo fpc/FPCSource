@@ -1,3 +1,5 @@
+{ %recompile }
+
 uses
   uw2984;
 
