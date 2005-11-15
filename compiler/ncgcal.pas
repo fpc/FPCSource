@@ -934,19 +934,7 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
-
-                      { lazy binding on linux? }
-                      if (target_info.system in system_linux) and
-                        assigned(tprocdef(procdefinition).import_dll) and
-                        (tprocdef(procdefinition).import_dll^='') then
-                        begin
-                          sym:=objectlibrary.newasmsymbol(tprocdef(procdefinition).mangledname,AB_EXTERNAL,AT_FUNCTION);
-                          reference_reset_symbol(href,sym,0);
-                          href.refaddr:=addr_pic;
-                          cg.a_call_ref(exprasmlist,href);
-                        end
-                      else
-                        cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+                      cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
                       extra_post_call_code;
                     end;
                end;
