@@ -397,6 +397,15 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TD
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
 Function UnixToDateTime(const AValue: Int64): TDateTime;
+Function UnixTimeStampToMac(const AValue: Int64): Int64;
+
+{ ---------------------------------------------------------------------
+    Mac timestamp support.
+  ---------------------------------------------------------------------}
+
+Function DateTimeToMac(const AValue: TDateTime): Int64;
+Function MacToDateTime(const AValue: Int64): TDateTime;
+Function MacTimeStampToUnix(const AValue: Int64): Int64;
 
 implementation
 
@@ -2006,15 +2015,58 @@ end;
   ---------------------------------------------------------------------}
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
+var
+  Epoch:TDateTime;
 begin
-  NotYetImplemented('DateTimeToUnix');
+  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
+  Result:=SecondsBetween( Epoch, AValue );
 end;
 
 
 Function UnixToDateTime(const AValue: Int64): TDateTime;
-
+var
+  Epoch:TDateTime;
 begin
-  NotYetImplemented('UnixToDateTime');
+  Epoch:=EncodeDateTime( 1970, 1, 1, 0, 0, 0, 0 );
+  Result:=IncSecond( Epoch, AValue );
 end;
+
+
+Function UnixTimeStampToMac(const AValue: Int64): Int64;
+const
+  Epoch=24107 * 24 * 3600;
+begin
+  Result:=AValue + Epoch;
+end;
+
+{ ---------------------------------------------------------------------
+    Mac timestamp support.
+  ---------------------------------------------------------------------}
+
+Function DateTimeToMac(const AValue: TDateTime): Int64;
+var
+  Epoch:TDateTime;
+begin
+  Epoch:=EncodeDateTime( 1904, 1, 1, 0, 0, 0, 0 );
+  Result:=SecondsBetween( Epoch, AValue );
+end;
+
+
+Function MacToDateTime(const AValue: Int64): TDateTime;
+var
+  Epoch:TDateTime;
+begin
+  Epoch:=EncodeDateTime( 1904, 1, 1, 0, 0, 0, 0 );
+  Result:=IncSecond( Epoch, AValue );
+end;
+
+
+Function MacTimeStampToUnix(const AValue: Int64): Int64;
+const
+  Epoch=24107 * 24 * 3600; 
+begin
+  Result:=AValue - Epoch;
+end;
+
 
 end.
