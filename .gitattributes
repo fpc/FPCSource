@@ -5064,7 +5064,8 @@ tests/tbs/tb0484.pp svneol=native#text/plain
 tests/tbs/tb0485.pp svneol=native#text/plain
 tests/tbs/tb0486.pp svneol=native#text/plain
 tests/tbs/tb0487.pp svneol=native#text/plain
-tests/tbs/tb0488.pp svneol=native#text/plain
+tests/tbs/tb0488a.pp svneol=native#text/plain
+tests/tbs/tb0488b.pp -text
 tests/tbs/tb0489.pp svneol=native#text/plain
 tests/tbs/tb0490.pp svneol=native#text/plain
 tests/tbs/tb0491.pp svneol=native#text/plain
