@@ -6,7 +6,7 @@
     Portions Copyright (c) 2000 by Casey Duncan (casey.duncan@state.co.us)
 
     Processor dependent implementation for the system unit for
-    PowerPC
+    PowerPC64
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -76,7 +76,7 @@ asm
 end;
 
 
-{ note: unused}
+{ note: unused; to be moved into startup code }
 { The following code is never called directly, it's a dummy which holds the
 entry points and code to the register save/load subroutines; it is part of the
 PPC ABI and used in procedure entry and exit methods.
@@ -473,106 +473,100 @@ end;
 procedure filldword(var x;count : SizeInt;value : dword);
 assembler; nostackframe;
 asm
-{       registers:
-        r3              x
-        r4              count
-        r5              value
-}
-                cmpdi   cr0,r4,0
-                mtctr   r4
-                subi    r3,r3,4
-                ble    .LFillDWordEnd    //if count<=0 Then Exit
+  cmpdi   cr0,r4,0
+  mtctr   r4
+  subi    r3,r3,4
+  ble    .LFillDWordEnd    //if count<=0 Then Exit
 .LFillDWordLoop:
-                stwu    r5,4(r3)
-                bdnz    .LFillDWordLoop
+  stwu    r5,4(r3)
+  bdnz    .LFillDWordLoop
 .LFillDWordEnd:
 end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
 
-(*
+
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(const buf;len:SizeInt;b:byte):int64; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
-                {  load the begin of the buffer in the data cache }
-                dcbt    0,r3
-                cmplwi  r4,0
-                mtctr   r4
-                subi    r10,r3,1
-                mr      r0,r3
-                { assume not found }
-                li      r3,-1
-                ble     .LIndexByteDone
+  {  load the begin of the buffer in the data cache }
+  dcbt    0,r3
+  cmpldi  r4,0
+  mtctr   r4
+  subi    r10,r3,1
+  mr      r0,r3
+  { assume not found }
+  li      r3,-1
+  ble     .LIndexByteDone
 .LIndexByteLoop:
-                lbzu    r9,1(r10)
-                cmplw   r9,r5
-                bdnzf   cr0*4+eq,.LIndexByteLoop
-                { r3 still contains -1 here }
-                bne     .LIndexByteDone
-                sub     r3,r10,r0
+  lbzu    r9,1(r10)
+  cmpld   r9,r5
+  bdnzf   cr0*4+eq,.LIndexByteLoop
+  { r3 still contains -1 here }
+  bne     .LIndexByteDone
+  sub     r3,r10,r0
 .LIndexByteDone:
 end;
 {$endif FPC_SYSTEM_HAS_INDEXBYTE}
-*)
-(*
+
+
 {$ifndef FPC_SYSTEM_HAS_INDEXWORD}
 {$define FPC_SYSTEM_HAS_INDEXWORD}
 function IndexWord(const buf;len:SizeInt;b:word):int64; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
-                {  load the begin of the buffer in the data cache }
-                dcbt    0,r3
-                cmplwi  r4,0
-                mtctr   r4
-                subi    r10,r3,2
-                mr      r0,r3
-                { assume not found }
-                li      r3,-1
-                ble     .LIndexWordDone
+  {  load the begin of the buffer in the data cache }
+  dcbt    0,r3
+  cmpldi  r4,0
+  mtctr   r4
+  subi    r10,r3,2
+  mr      r0,r3
+  { assume not found }
+  li      r3,-1
+  ble     .LIndexWordDone
 .LIndexWordLoop:
-                lhzu    r9,2(r10)
-                cmplw   r9,r5
-                bdnzf   cr0*4+eq,.LIndexWordLoop
-                { r3 still contains -1 here }
-                bne     .LIndexWordDone
-                sub     r3,r10,r0
-                srawi   r3,r3,1
+  lhzu    r9,2(r10)
+  cmpld   r9,r5
+  bdnzf   cr0*4+eq,.LIndexWordLoop
+  { r3 still contains -1 here }
+  bne     .LIndexWordDone
+  sub     r3,r10,r0
+  sradi   r3,r3,1
 .LIndexWordDone:
 end;
 {$endif FPC_SYSTEM_HAS_INDEXWORD}
-*)
-(*
+
+
 {$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
 function IndexDWord(const buf;len:SizeInt;b:DWord):int64; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
-                {  load the begin of the buffer in the data cache }
-                dcbt    0,r3
-                cmplwi  r4,0
-                mtctr   r4
-                subi    r10,r3,4
-                mr      r0,r3
-                { assume not found }
-                li      r3,-1
-                ble     .LIndexDWordDone
+  {  load the begin of the buffer in the data cache }
+  dcbt    0,r3
+  cmpldi  r4,0
+  mtctr   r4
+  subi    r10,r3,4
+  mr      r0,r3
+  { assume not found }
+  li      r3,-1
+  ble     .LIndexDWordDone
 .LIndexDWordLoop:
-                lwzu    r9,4(r10)
-                cmplw   r9,r5
-                bdnzf   cr0*4+eq, .LIndexDWordLoop
-                { r3 still contains -1 here }
-                bne     .LIndexDWordDone
-                sub     r3,r10,r0
-                srawi   r3,r3,2
+  lwzu    r9,4(r10)
+  cmpld   r9,r5
+  bdnzf   cr0*4+eq, .LIndexDWordLoop
+  { r3 still contains -1 here }
+  bne     .LIndexDWordDone
+  sub     r3,r10,r0
+  sradi   r3,r3,2
 .LIndexDWordDone:
 end;
 {$endif FPC_SYSTEM_HAS_INDEXDWORD}
-*)
-(*
+
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(const buf1,buf2;len:SizeInt):int64; assembler; nostackframe;
@@ -580,28 +574,28 @@ function CompareByte(const buf1,buf2;len:SizeInt):int64; assembler; nostackframe
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
-        {  load the begin of the first buffer in the data cache }
-        dcbt    0,r3
-        { use r0 instead of r3 for buf1 since r3 contains result }
-        cmplwi  r5,0
-        mtctr   r5
-        subi    r11,r3,1
-        subi    r4,r4,1
-        li      r3,0
-        ble     .LCompByteDone
+  {  load the begin of the first buffer in the data cache }
+  dcbt    0,r3
+  { use r0 instead of r3 for buf1 since r3 contains result }
+  cmpldi  r5,0
+  mtctr   r5
+  subi    r11,r3,1
+  subi    r4,r4,1
+  li      r3,0
+  ble     .LCompByteDone
 .LCompByteLoop:
-        { load next chars }
-        lbzu    r9,1(r11)
-        lbzu    r10,1(r4)
-        { calculate difference }
-        sub.    r3,r9,r10
-        { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, .LCompByteLoop
+  { load next chars }
+  lbzu    r9,1(r11)
+  lbzu    r10,1(r4)
+  { calculate difference }
+  sub.    r3,r9,r10
+  { if chars not equal or at the end, we're ready }
+  bdnzt   cr0*4+eq, .LCompByteLoop
 .LCompByteDone:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREBYTE}
-*)
-(*
+
+
 {$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(const buf1,buf2;len:SizeInt):int64; assembler; nostackframe;
@@ -609,28 +603,28 @@ function CompareWord(const buf1,buf2;len:SizeInt):int64; assembler; nostackframe
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
-        {  load the begin of the first buffer in the data cache }
-        dcbt    0,r3
-        { use r0 instead of r3 for buf1 since r3 contains result }
-        cmplwi  r5,0
-        mtctr   r5
-        subi    r11,r3,2
-        subi    r4,r4,2
-        li      r3,0
-        ble     .LCompWordDone
+  {  load the begin of the first buffer in the data cache }
+  dcbt    0,r3
+  { use r0 instead of r3 for buf1 since r3 contains result }
+  cmpldi  r5,0
+  mtctr   r5
+  subi    r11,r3,2
+  subi    r4,r4,2
+  li      r3,0
+  ble     .LCompWordDone
 .LCompWordLoop:
-        { load next chars }
-        lhzu    r9,2(r11)
-        lhzu    r10,2(r4)
-        { calculate difference }
-        sub.    r3,r9,r10
-        { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, .LCompWordLoop
+  { load next chars }
+  lhzu    r9,2(r11)
+  lhzu    r10,2(r4)
+  { calculate difference }
+  sub.    r3,r9,r10
+  { if chars not equal or at the end, we're ready }
+  bdnzt   cr0*4+eq, .LCompWordLoop
 .LCompWordDone:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREWORD}
-*)
-(*
+
+
 {$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
 function CompareDWord(const buf1,buf2;len:SizeInt):int64; assembler; nostackframe;
@@ -638,57 +632,57 @@ function CompareDWord(const buf1,buf2;len:SizeInt):int64; assembler; nostackfram
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
-        {  load the begin of the first buffer in the data cache }
-        dcbt    0,r3
-        { use r0 instead of r3 for buf1 since r3 contains result }
-        cmplwi  r5,0
-        mtctr   r5
-        subi    r11,r3,4
-        subi    r4,r4,4
-        li      r3,0
-        ble     .LCompDWordDone
+  {  load the begin of the first buffer in the data cache }
+  dcbt    0,r3
+  { use r0 instead of r3 for buf1 since r3 contains result }
+  cmpldi  r5,0
+  mtctr   r5
+  subi    r11,r3,4
+  subi    r4,r4,4
+  li      r3,0
+  ble     .LCompDWordDone
 .LCompDWordLoop:
-        { load next chars }
-        lwzu    r9,4(r11)
-        lwzu    r10,4(r4)
-        { calculate difference }
-        sub.    r3,r9,r10
-        { if chars not equal or at the end, we're ready }
-        bdnzt   cr0*4+eq, .LCompDWordLoop
+  { load next chars }
+  lwzu    r9,4(r11)
+  lwzu    r10,4(r4)
+  { calculate difference }
+  sub.    r3,r9,r10
+  { if chars not equal or at the end, we're ready }
+  bdnzt   cr0*4+eq, .LCompDWordLoop
 .LCompDWordDone:
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
-*)
-(*
+
+
 {$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(const buf;len:SizeInt;b:Char):int64; assembler; nostackframe;
 { input: r3 = buf, r4 = len, r5 = b                         }
 { output: r3 = position of found position (-1 if not found) }
 asm
-        {  load the begin of the buffer in the data cache }
-        dcbt    0,r3
-        { length = 0? }
-        cmplwi  r4,0
-        mtctr   r4
-        subi    r9,r3,1
-        subi    r0,r3,1
-        { assume not found }
-        li      r3,-1
-        { if yes, do nothing }
-        ble     .LIndexChar0Done
+  {  load the begin of the buffer in the data cache }
+  dcbt    0,r3
+  { length = 0? }
+  cmpldi  r4,0
+  mtctr   r4
+  subi    r9,r3,1
+  subi    r0,r3,1
+  { assume not found }
+  li      r3,-1
+  { if yes, do nothing }
+  ble     .LIndexChar0Done
 .LIndexChar0Loop:
-        lbzu    r10,1(r9)
-        cmplwi  cr1,r10,0
-        cmplw   r10,r5
-        beq     cr1,.LIndexChar0Done
-        bdnzf   cr0*4+eq, .LIndexChar0Loop
-        bne     .LIndexChar0Done
-        sub     r3,r9,r0
+  lbzu    r10,1(r9)
+  cmpldi  cr1,r10,0
+  cmpld   r10,r5
+  beq     cr1,.LIndexChar0Done
+  bdnzf   cr0*4+eq, .LIndexChar0Loop
+  bne     .LIndexChar0Done
+  sub     r3,r9,r0
 .LIndexChar0Done:
 end;
 {$endif FPC_SYSTEM_HAS_INDEXCHAR0}
-*)
+
 
 {****************************************************************************
                                  String
@@ -759,45 +753,46 @@ function fpc_shortstr_concat(const s1, s2: shortstring): shortstring; compilerpr
 { expects that (r3) contains a pointer to the result r4 to s1, r5 to s2 }
 assembler;
 asm
-      { load length s1 }
-      lbz     r6, 0(r4)
-      { load length s2 }
-      lbz     r10, 0(r5)
-      { length 0 for s1? }
-      cmplwi  cr7,r6,0
-      { length 255 for s1? }
-      subfic. r7,r6,255
-      { length 0 for s2? }
-      cmplwi  cr1,r10,0
-      { calculate min(length(s2),255-length(s1)) }
-      subc    r8,r7,r10    { r8 := r7 - r10                                }
-      cror    4*6+2,4*1+2,4*7+2
-      subfe   r7,r7,r7     { if r7 >= r10 then r7' := 0 else r7' := -1     }
-      mtctr   r6
-      and     r7,r8,r7     { if r7 >= r10 then r7' := 0 else r7' := r7-r10 }
-      add     r7,r7,r10    { if r7 >= r10 then r7' := r10 else r7' := r7   }
+  { load length s1 }
+  lbz     r6, 0(r4)
+  { load length s2 }
+  lbz     r10, 0(r5)
+  { length 0 for s1? }
+  cmpldi  cr7,r6,0
+  { length 255 for s1? }
+  subfic. r7,r6,255
+  { length 0 for s2? }
+  cmpldi  cr1,r10,0
+  { calculate min(length(s2),255-length(s1)) }
+  subc    r8,r7,r10    { r8 := r7 - r10                                }
+  cror    4*6+2,4*1+2,4*7+2
+  subfe   r7,r7,r7     { if r7 >= r10 then r7' := 0 else r7' := -1     }
+  mtctr   r6
+  and     r7,r8,r7     { if r7 >= r10 then r7' := 0 else r7' := r7-r10 }
+  add     r7,r7,r10    { if r7 >= r10 then r7' := r10 else r7' := r7   }
 
-      mr      r9,r3
+  mr      r9,r3
 
-      { calculate length of final string }
-      add     r8,r7,r6
-      stb     r8,0(r3)
-      beq     cr7, .Lcopys1loopDone
-    .Lcopys1loop:
-      lbzu    r0,1(r4)
-      stbu    r0,1(r9)
-      bdnz    .Lcopys1loop
-    .Lcopys1loopDone:
-      mtctr   r7
-      beq     cr6, .LconcatDone
-    .Lcopys2loop:
-      lbzu    r0,1(r5)
-      stbu    r0,1(r9)
-      bdnz    .Lcopys2loop
+  { calculate length of final string }
+  add     r8,r7,r6
+  stb     r8,0(r3)
+  beq     cr7, .Lcopys1loopDone
+.Lcopys1loop:
+  lbzu    r0,1(r4)
+  stbu    r0,1(r9)
+  bdnz    .Lcopys1loop
+.Lcopys1loopDone:
+  mtctr   r7
+  beq     cr6, .LconcatDone
+.Lcopys2loop:
+  lbzu    r0,1(r5)
+  stbu    r0,1(r9)
+  bdnz    .Lcopys2loop
+.LconcatDone:
 end;
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 *)
-(*
+
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
@@ -806,102 +801,104 @@ procedure fpc_shortstr_append_shortstr(var s1: shortstring; const s2: shortstrin
 { high(s1) and (r5) a pointer to the one that has to be concatenated        }
 assembler; nostackframe;
 asm
-      { load length s1 }
-      lbz     r6, 0(r3)
-      { load length s2 }
-      lbz     r10, 0(r5)
-      { length 0? }
-      cmplw   cr1,r6,r4
-      cmplwi  r10,0
+  { load length s1 }
+  lbz     r6, 0(r3)
+  { load length s2 }
+  lbz     r10, 0(r5)
+  { length 0? }
+  cmpld   cr1,r6,r4
+  cmpldi  r10,0
 
-      { calculate min(length(s2),high(result)-length(result)) }
-      sub     r9,r4,r6
-      subc    r8,r9,r10    { r8 := r9 - r10                                }
-      cror    4*7+2,4*0+2,4*1+2
-      subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1     }
-      and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r10 }
-      add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9   }
+  { calculate min(length(s2),high(result)-length(result)) }
+  sub     r9,r4,r6
+  subc    r8,r9,r10    { r8 := r9 - r10                                }
+  cror    4*7+2,4*0+2,4*1+2
+  subfe   r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1     }
+  and     r9,r8,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r10 }
+  add     r9,r9,r10    { if r9 >= r10 then r9' := r10 else r9' := r9   }
 
-      { calculate new length }
-      add     r10,r6,r9
-      { load value to copy in ctr }
-      mtctr   r9
-      { store new length }
-      stb     r10,0(r3)
-      { go to last current character of result }
-      add     r3,r6,r3
+  { calculate new length }
+  add     r10,r6,r9
+  { load value to copy in ctr }
+  mtctr   r9
+  { store new length }
+  stb     r10,0(r3)
+  { go to last current character of result }
+  add     r3,r6,r3
 
-      { if nothing to do, exit }
-      beq    cr7, .LShortStrAppendDone
-      { and concatenate }
+  { if nothing to do, exit }
+  beq    cr7, .LShortStrAppendDone
+  { and concatenate }
 .LShortStrAppendLoop:
-      lbzu    r10,1(r5)
-      stbu    r10,1(r3)
-      bdnz    .LShortStrAppendLoop
+  lbzu    r10,1(r5)
+  stbu    r10,1(r3)
+  bdnz    .LShortStrAppendLoop
 .LShortStrAppendDone:
 end;
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
-*)
+
 (*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
-function fpc_shortstr_compare(const dstr,sstr:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
-assembler;
+function fpc_shortstr_compare(const dstr, sstr:shortstring): SizeInt; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
+assembler; 
+{ TODO: improve, because the main compare loop does an unaligned access everytime.. :( 
+  TODO: needs some additional opcodes not yet known to the compiler :( }
 asm
-      { load length sstr }
-      lbz     r9,0(r4)
-      { load length dstr }
-      lbz     r10,0(r3)
-      { save their difference for later and      }
-      { calculate min(length(sstr),length(dstr)) }
-      subfc    r7,r10,r9    { r0 := r9 - r10                               }
-      subfe    r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
-      and      r7,r7,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
-      add      r9,r10,r7    { if r9 >= r10 then r9' := r10 else r9' := r9  }
+  { load length sstr }
+  lbz     r9,0(r4)
+  { load length dstr }
+  lbz     r10,0(r3)
+  { save their difference for later and      }
+  { calculate min(length(sstr),length(dstr)) }
+  subfc    r7,r10,r9    { r0 := r9 - r10                               }
+  subfe    r9,r9,r9     { if r9 >= r10 then r9' := 0 else r9' := -1    }
+  and      r7,r7,r9     { if r9 >= r10 then r9' := 0 else r9' := r9-r8 }
+  add      r9,r10,r7    { if r9 >= r10 then r9' := r10 else r9' := r9  }
 
-      { first compare dwords (length/4) }
-      srwi.   r5,r9,2
-      { keep length mod 4 for the ends }
-      rlwinm  r9,r9,0,30,31
-      { already check whether length mod 4 = 0 }
-      cmplwi  cr1,r9,0
-      { so we can load r3 with 0, in case the strings both have length 0 }
-      mr      r8,r3
-      li      r3, 0
-      { length div 4 in ctr for loop }
-      mtctr   r5
-      { if length < 3, goto byte comparing }
-      beq     LShortStrCompare1
-      { setup for use of update forms of load/store with dwords }
-      subi    r4,r4,3
-      subi    r8,r8,3
-LShortStrCompare4Loop:
-      lwzu    r3,4(r4)
-      lwzu    r10,4(r8)
-      sub.    r3,r3,r10
-      bdnzt   cr0+eq,LShortStrCompare4Loop
-      { r3 contains result if we stopped because of "ne" flag }
-      bne     LShortStrCompareDone
-      { setup for use of update forms of load/store with bytes }
-      addi    r4,r4,3
-      addi    r8,r8,3
-LShortStrCompare1:
-      { if comparelen mod 4 = 0, skip this and return the difference in }
-      { lengths                                                         }
-      beq     cr1,LShortStrCompareLen
-      mtctr   r9
-LShortStrCompare1Loop:
-      lbzu    r3,1(r4)
-      lbzu    r10,1(r8)
-      sub.    r3,r3,r10
-      bdnzt   cr0+eq,LShortStrCompare1Loop
-      bne     LShortStrCompareDone
-LShortStrCompareLen:
-      { also return result in flags, maybe we can use this in the CG }
-      mr.     r3,r3
-LShortStrCompareDone:
+  { first compare qwords (length/4) }
+  srdi.   r5,r9,3
+  { keep length mod 8 for the ends; note that the value in r9 <= 255
+   so we can use rlwinm safely }
+  rlwinm  r9,r9,0,29,31
+  { already check whether length mod 8 = 0 }
+  cmpldi  cr1,r9,0
+  { so we can load r3 with 0, in case the strings both have length 0 }
+  mr      r8,r3
+  li      r3, 0
+  { length div 8 in ctr for loop }
+  mtctr   r5
+  { if length < 7, goto byte comparing }
+  beq     .LShortStrCompare1
+  { setup for use of update forms of load/store with qwords }
+  subi    r4,r4,7
+  subi    r8,r8,7
+.LShortStrCompare4Loop:
+  ldu     r3,8(r4)
+  ldu     r10,8(r8)
+  sub.    r3,r3,r10
+  bdnzt   cr0+eq,.LShortStrCompare4Loop
+  { r3 contains result if we stopped because of "ne" flag }
+  bne     .LShortStrCompareDone
+  { setup for use of update forms of load/store with bytes }
+  addi    r4,r4,7
+  addi    r8,r8,7
+.LShortStrCompare1:
+  { if comparelen mod 4 = 0, skip this and return the difference in }
+  { lengths                                                         }
+  beq     cr1,.LShortStrCompareLen
+  mtctr   r9
+.LShortStrCompare1Loop:
+  lbzu    r3,1(r4)
+  lbzu    r10,1(r8)
+  sub.    r3,r3,r10
+  bdnzt   cr0+eq,.LShortStrCompare1Loop
+  bne     .LShortStrCompareDone
+.LShortStrCompareLen:
+  { also return result in flags, maybe we can use this in the CG }
+  mr.     r3,r3
+.LShortStrCompareDone:
 end;
 *)
-
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -928,13 +925,13 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-   cmpldi  r3,0
-   beq     .Lcaller_addr_frame_null
-   ld  r3, 0(r3)
+  cmpldi  r3,0
+  beq     .Lcaller_addr_frame_null
+  ld  r3, 0(r3)
 
-   cmpldi  r3,0
-   beq     .Lcaller_addr_frame_null
-   ld r3, 16(r3)
+  cmpldi  r3,0
+  beq     .Lcaller_addr_frame_null
+  ld r3, 16(r3)
 .Lcaller_addr_frame_null:
 end;
 
@@ -942,18 +939,18 @@ end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-    cmpldi  r3,0
-    beq     .Lcaller_frame_null
-    ld  r3, 0(r3)
+  cmpldi  r3,0
+  beq     .Lcaller_frame_null
+  ld  r3, 0(r3)
 .Lcaller_frame_null:
 end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        srawi   r0,r3,31
-        add     r3,r0,r3
-        xor     r3,r3,r0
+  srawi   r0,r3,31
+  add     r3,r0,r3
+  xor     r3,r3,r0
 end;
 
 
@@ -964,34 +961,34 @@ end;
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
 function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        rldicl r3, r3, 0, 63
+  rldicl r3, r3, 0, 63
 end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        mullw   r3,r3,r3
+  mullw   r3,r3,r3
 end;
 
 {$define FPC_SYSTEM_HAS_ODD_INT64}
 function odd(l:int64):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        rldicl r3, r3, 0, 63
+  rldicl r3, r3, 0, 63
 end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_INT64}
 function sqr(l:int64):int64;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        mulld   r3,r3,r3
+  mulld   r3,r3,r3
 end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif} nostackframe;
 asm
-        mr    r3,r1
+  mr    r3,r1
 end;
 
 
