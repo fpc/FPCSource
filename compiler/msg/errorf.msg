@@ -1636,7 +1636,7 @@ unit_u_check_time=10037_U_PPU Check file $1 time $2
 #
 #  Options
 #
-option_usage=11000_$1 [options] <inputfile> [options]
+option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
