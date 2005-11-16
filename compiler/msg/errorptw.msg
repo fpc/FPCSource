@@ -1951,7 +1951,7 @@ unit_u_skipping_reresolving_unit=10059_U_Pulando o recalculo da área de dados da
 #
 # 11039 is the last used one
 #
-option_usage=11000_$1 [opções] <arquivo entrada> [opções]
+option_usage=11000_O_$1 [opções] <arquivo entrada> [opções]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
