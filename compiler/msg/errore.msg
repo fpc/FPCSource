@@ -2035,7 +2035,7 @@ unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still lo
 #
 # 11039 is the last used one
 #
-option_usage=11000_$1 [options] <inputfile> [options]
+option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
