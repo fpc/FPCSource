@@ -1753,7 +1753,7 @@ unit_h_source_modified=10041_H_Файл $1 новее чем файл $2 ($2 с флагом Release PP
 #
 #  Options
 #
-option_usage=11000_$1 [опции] <файл> [опции]
+option_usage=11000_O_$1 [опции] <файл> [опции]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
