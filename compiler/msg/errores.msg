@@ -2015,7 +2015,7 @@ unit_u_skipping_reresolving_unit=10059_U_Saltando re-resolución de $1, aún se es
 #
 # 11039 is the last used one
 #
-option_usage=11000_$1 [opciones] <fichero_entrada> [opciones]
+option_usage=11000_O_$1 [opciones] <fichero_entrada> [opciones]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}

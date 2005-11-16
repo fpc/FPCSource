@@ -2035,7 +2035,7 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird Åbe
 #
 # 11039 is the last used one
 #
-option_usage=11000_$1 [Optionen] <Eingabedatei> [Optionen]
+option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}
