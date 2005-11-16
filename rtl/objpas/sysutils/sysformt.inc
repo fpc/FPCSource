@@ -301,6 +301,12 @@ begin
                    index:=16;
                  end
               else
+                 if CheckArg(vtQWord, false) then
+                   begin
+                     vq:=Qword(Args[DoArg].VQWord^);
+                     index:=31;
+                   end
+              else
                  begin
                    CheckArg(vtInt64,true);
                    vq:=Qword(Args[DoArg].VInt64^);

@@ -27,7 +27,7 @@
     999999999
 }
 
-uses SysUtils,erroru;
+uses {$ifdef unix}cwstring, {$endif}SysUtils,erroru;
 
 procedure Check(a,b:ansistring);
 begin
