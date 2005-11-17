@@ -357,11 +357,13 @@ var
   tmpref, ref: treference;
   location: pcgparalocation;
   sizeleft: aint;
+  adjusttail : boolean;
 
 begin
   location := paraloc.location;
   tmpref := r;
   sizeleft := paraloc.intsize;
+  adjusttail := false;
   while assigned(location) do begin
     case location^.loc of
       LOC_REGISTER, LOC_CREGISTER:
@@ -370,6 +372,10 @@ begin
             a_load_ref_reg(list, size, location^.size, tmpref,
               location^.register)
           else
+          {$IFDEF extdebug}
+            list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO')));
+          {$ENDIF extdebug}
+
             { load non-integral sized memory location into register. This 
              memory location be 1-sizeleft byte sized.
              Always assume that this memory area is properly aligned, eg. start
@@ -421,7 +427,18 @@ begin
                 { still > 8 bytes to load, so load data single register now }
                 a_load_ref_reg(list, location^.size, location^.size, tmpref,
                   location^.register);
+                { the block is > 8 bytes, so we have to store any bytes not
+                 a multiple of the register size beginning with the MSB }
+                adjusttail := true;
             end; 
+(*          
+            { Comment this in (for gcc compat) and be prepared for a whole bunch of errors :/ }
+            
+            if (adjusttail) and (sizeleft < tcgsize2size[OS_INT]) then
+              a_op_const_reg(list, OP_SHL, OS_INT, 
+                (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT], 
+                location^.register);
+*)
         end;
       LOC_REFERENCE:
         begin
@@ -1489,23 +1506,33 @@ begin
 {$IFDEF extdebug}
   if len > high(aint) then
     internalerror(2002072704);
+  list.concat(tai_comment.create(strpnew('g_concatcopy')));
 {$ENDIF extdebug}
-  { make sure short loads are handled as optimally as possible }
+  { make sure short loads are handled as optimally as possible;
+   note that the data here never overlaps, so we can do a forward
+   copy at all times.
+   NOTE: maybe use some scratch registers to pair load/store instructions
+  }
 
-  if (len <= maxmoveunit) and
-    (byte(len) in [1, 2, 4, 8]) then
-  begin
-    if len < 8 then
-    begin
-      size := int_cgsize(len);
-      a_load_ref_ref(list, size, size, source, dest);
-    end
-    else
-    begin
-      a_reg_alloc(list, NR_F0);
-      a_loadfpu_ref_reg(list, OS_F64, source, NR_F0);
-      a_loadfpu_reg_ref(list, OS_F64, NR_F0, dest);
-      a_reg_dealloc(list, NR_F0);
+  if (len <= maxmoveunit) then begin
+    src := source; dst := dest;
+    while (len <> 0) do begin
+      if (len = 8) then begin
+        a_load_ref_ref(list, OS_64, OS_64, src, dst);    
+        dec(len, 8);
+      end else if (len >= 4) then begin
+        a_load_ref_ref(list, OS_32, OS_32, src, dst);    
+        inc(src.offset, 4); inc(dst.offset, 4);
+        dec(len, 4);
+      end else if (len >= 2) then begin
+        a_load_ref_ref(list, OS_16, OS_16, src, dst);    
+        inc(src.offset, 2); inc(dst.offset, 2);
+        dec(len, 2);
+      end else begin
+        a_load_ref_ref(list, OS_8, OS_8, src, dst);    
+        inc(src.offset, 1); inc(dst.offset, 1);
+        dec(len, 1);
+      end;
     end;
     exit;
   end;
@@ -1546,7 +1573,7 @@ begin
     list.concat(taicpu.op_reg_reg_const(A_SUBI, src.base, src.base, 8));
     list.concat(taicpu.op_reg_reg_const(A_SUBI, dst.base, dst.base, 8));
     countreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    a_load_const_reg(list, OS_32, count, countreg);
+    a_load_const_reg(list, OS_64, count, countreg);
     { explicitely allocate F0 since it can be used safely here
      (for holding date that's being copied) }
     a_reg_alloc(list, NR_F0);
@@ -1793,6 +1820,7 @@ begin
     tmpref.symbol := ref.symbol;
     tmpref.relsymbol := ref.relsymbol;
     tmpref.offset := ref.offset;
+
     if (ref.base <> NR_NO) then begin
       { As long as the TOC isn't working we try to achieve highest speed (in this
       case by allowing instructions execute in parallel) as possible at the cost

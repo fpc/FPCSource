@@ -42,8 +42,7 @@ type
 
     procedure getintparaloc(calloption: tproccalloption; nr: longint; var
       cgpara: TCGPara); override;
-    function create_paraloc_info(p: tabstractprocdef; side: tcallercallee):
-      longint; override;
+    function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
     function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
       tvarargsparalist): longint; override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
@@ -54,7 +53,7 @@ type
     function create_paraloc_info_intern(p: tabstractprocdef; side:
       tcallercallee; paras: tparalist;
       var curintreg, curfloatreg, curmmreg: tsuperregister; var
-        cur_stack_offset: aword): longint;
+        cur_stack_offset: aword; isVararg : boolean): longint;
     function parseparaloc(p: tparavarsym; const s: string): boolean; override;
   end;
 
@@ -169,7 +168,7 @@ begin
   end;
   case def.deftype of
     variantdef,
-      formaldef:
+    formaldef:
       result := true;
     recorddef:
       result :=
@@ -256,7 +255,7 @@ begin
   init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
 
   result := create_paraloc_info_intern(p, side, p.paras, curintreg, curfloatreg,
-    curmmreg, cur_stack_offset);
+    curmmreg, cur_stack_offset, false);
 
   create_funcretloc_info(p, side);
 end;
@@ -264,7 +263,7 @@ end;
 function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
-  aword): longint;
+  aword; isVararg : boolean): longint;
 var
   stack_offset: longint;
   paralen: aint;
@@ -348,6 +347,18 @@ begin
         end;
       end
     end;
+
+    { patch FPU values into integer registers if we currently have
+     to pass them as vararg parameters     
+    }
+    if (isVararg) and (paradef.deftype = floatdef) then begin
+      loc := LOC_REGISTER;
+      if paracgsize = OS_F64 then
+        paracgsize := OS_64
+      else
+        paracgsize := OS_32;
+    end;
+
     hp.paraloc[side].alignment := std_param_align;
     hp.paraloc[side].size := paracgsize;
     hp.paraloc[side].intsize := paralen;
@@ -360,8 +371,7 @@ begin
     { can become < 0 for e.g. 3-byte records }
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
-      if (loc = LOC_REGISTER) and
-        (nextintreg <= RS_R10) then begin
+      if (loc = LOC_REGISTER) and (nextintreg <= RS_R10) then begin
         paraloc^.loc := loc;
         { make sure we don't lose whether or not the type is signed }
         if (paradef.deftype <> orddef) then
@@ -430,11 +440,11 @@ begin
   firstfloatreg := curfloatreg;
 
   result := create_paraloc_info_intern(p, callerside, p.paras, curintreg,
-    curfloatreg, curmmreg, cur_stack_offset);
+    curfloatreg, curmmreg, cur_stack_offset, false);
   if (p.proccalloption in [pocall_cdecl, pocall_cppdecl]) then begin
     { just continue loading the parameters in the registers }
     result := create_paraloc_info_intern(p, callerside, varargspara, curintreg,
-      curfloatreg, curmmreg, cur_stack_offset);
+      curfloatreg, curmmreg, cur_stack_offset, true);
     { varargs routines have to reserve at least 64 bytes for the PPC64 ABI }
     if (result < 64) then
       result := 64;

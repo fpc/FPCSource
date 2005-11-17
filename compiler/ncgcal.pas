@@ -231,6 +231,17 @@ implementation
                        cg64.a_param64_ref(exprasmlist,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
+{$ifdef powerpc64}
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     { ppc64 abi passes floats of varargs in integer registers, so force a store }
+                     location_force_mem(exprasmlist,left.location);
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[tempcgpara.location^.size]);
+                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
+                   end;
+{$endif powerpc64}
 {$if defined(sparc) or defined(arm)}
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
@@ -273,6 +284,15 @@ implementation
                        cg64.a_param64_ref(exprasmlist,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
+{$ifdef powerpc64}
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[tempcgpara.location^.size]);
+                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
+                   end;
+{$endif powerpc64}
 {$if defined(sparc) or defined(arm) }
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
