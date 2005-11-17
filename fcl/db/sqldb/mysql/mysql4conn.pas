@@ -215,7 +215,8 @@ end;
 
 function TMySQLConnection.AllocateTransactionHandle: TSQLHandle;
 begin
-  Result:=TMySQLTransaction.Create;
+//  Result:=TMySQLTransaction.Create;
+  Result := nil;
 end;
 
 procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
