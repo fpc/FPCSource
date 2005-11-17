@@ -55,6 +55,22 @@
 .\fn:
 .endm
 
+/* "ptrgl" glue code */
+.section ".text"
+.align 3
+.globl .ptrgl
+.ptrgl:
+    ld	    0, 0(11)
+    std     2, 40(1)
+    mtctr   0
+    ld      2, 8(11)
+    ld      11, 8(11)
+    bctr
+.long 0
+.byte 0, 12, 0, 0, 0, 0, 0, 0
+.type .ptrgl, @function
+.size .ptrgl, . - .ptrgl
+
 /* 
  * start_addresses is a structure containing the real 
  * entry point (next to other things not interesting to
