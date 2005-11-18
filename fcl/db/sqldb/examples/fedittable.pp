@@ -15,7 +15,7 @@ program fEditTable;
 
 uses
   Classes, sysutils,
-  sqldb, pqconnection, mysql4conn, IBConnection,
+  sqldb,
   SqldbExampleUnit;
   
 

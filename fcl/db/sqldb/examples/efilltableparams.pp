@@ -15,7 +15,7 @@ program eFillTableParams;
 
 uses
   Classes, sysutils,
-  sqldb, pqconnection, mysql4conn, IBConnection,
+  sqldb,
   SqldbExampleUnit;
   
 var i : integer;

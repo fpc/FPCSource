@@ -1,36 +1,40 @@
-unit mysql4conn;
 
 {$mode objfpc}{$H+}
-
-{$Define LinkDynamically}
+{$MACRO on}
 
 interface
 
 uses
   Classes, SysUtils,sqldb,db,
-{$IfDef LinkDynamically}
-  mysql4dyn,mysql4_comdyn;
+{$IfNDef mysql41}
+  mysql40dyn;
+  {$DEFINE TConnectionName:=TMySQL40Connection}
+  {$DEFINE TTransactionName:=TMySQL40Transaction}
+  {$DEFINE TCursorName:=TMySQL40Cursor}
 {$Else}
-  mysql4,mysql4_com;
+  mysql41dyn;
+  {$DEFINE TConnectionName:=TMySQL41Connection}
+  {$DEFINE TTransactionName:=TMySQL41Transaction}
+  {$DEFINE TCursorName:=TMySQL41Cursor}
 {$EndIf}
 
 Type
-  TMySQLTransaction = Class(TSQLHandle)
+  TTransactionName = Class(TSQLHandle)
   protected
   end;
 
-  TMySQLCursor = Class(TSQLCursor)
+  TCursorName = Class(TSQLCursor)
   protected
     FQMySQL : PMySQL;
     FRes: PMYSQL_RES;                   { Record pointer }
     FNeedData : Boolean;
     FStatement : String;
-    Row : TMYSQL_ROW;
+    Row : MYSQL_ROW;
     RowsAffected : QWord;
     LastInsertID : QWord;
   end;
 
-  TMySQLConnection = class (TSQLConnection)
+  TConnectionName = class (TSQLConnection)
   private
     FDialect: integer;
     FHostInfo: String;
@@ -90,7 +94,7 @@ implementation
 
 uses dbconst;
 
-{ TMySQLConnection }
+{ TConnectionName }
 
 Resourcestring
   SErrServerConnectFailed = 'Server connect failed.';
@@ -102,6 +106,8 @@ Resourcestring
   SErrFetchingdata = 'Error fetching row data: %s';
   SErrGettingResult = 'Error getting result set: %s';
   SErrNoQueryResult = 'No result from query.';
+  SErrNotversion41 = 'TMySQL41Connection can not work with the installed MySQL client version (%s).';
+  SErrNotversion40 = 'TMySQL40Connection can not work with the installed MySQL client version (%s).';
 
 Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
 
@@ -118,7 +124,7 @@ begin
    DatabaseError(Msg,Comp);
 end;
 
-function TMySQLConnection.StrToStatementType(s : string) : TStatementType;
+function TConnectionName.StrToStatementType(s : string) : TStatementType;
 
 begin
   S:=Lowercase(s);
@@ -127,27 +133,22 @@ begin
 end;
 
 
-function TMySQLConnection.GetClientInfo: string;
+function TConnectionName.GetClientInfo: string;
 
 begin
-{$IfDef LinkDynamically}
   // To make it possible to call this if there's no connection yet
   InitialiseMysql4;
-{$EndIf}
   Result:=strpas(mysql_get_client_info());
-{$IfDef LinkDynamically}
   ReleaseMysql4;
-{$EndIf}
-
 end;
 
-function TMySQLConnection.GetServerStatus: String;
+function TConnectionName.GetServerStatus: String;
 begin
   CheckConnected;
   Result := mysql_stat(FMYSQL);
 end;
 
-procedure TMySQLConnection.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
+procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
 begin
   HMySQL := mysql_init(HMySQL);
@@ -156,7 +157,7 @@ begin
     MySQlError(Nil,SErrServerConnectFailed,Self);
 end;
 
-procedure TMySQLConnection.ConnectToServer;
+procedure TConnectionName.ConnectToServer;
 
 Var
   H,U,P : String;
@@ -170,61 +171,63 @@ begin
   FHostInfo := strpas(mysql_get_host_info(FMYSQL));
 end;
 
-procedure TMySQLConnection.SelectDatabase;
+procedure TConnectionName.SelectDatabase;
 begin
   if mysql_select_db(FMySQL,pchar(DatabaseName))<>0 then
     MySQLError(FMySQL,SErrDatabaseSelectFailed,Self);
 end;
 
-procedure TMySQLConnection.DoInternalConnect;
+procedure TConnectionName.DoInternalConnect;
 begin
-{$IfDef LinkDynamically}
   InitialiseMysql4;
-{$EndIf}
+{$IFDEF mysql41}
+  if copy(strpas(mysql_get_client_info()),1,3)<>'4.1' then
+    Raise EInOutError.CreateFmt(SErrNotversion41,[strpas(mysql_get_client_info())]);
+{$ELSE}
+  if copy(strpas(mysql_get_client_info()),1,3)<>'4.0' then
+    Raise EInOutError.CreateFmt(SErrNotversion40,[strpas(mysql_get_client_info())]);
+{$ENDIF}
   inherited DoInternalConnect;
   ConnectToServer;
   SelectDatabase;
 end;
 
-procedure TMySQLConnection.DoInternalDisconnect;
+procedure TConnectionName.DoInternalDisconnect;
 begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
-{$IfDef LinkDynamically}
   ReleaseMysql4;
-{$EndIf}
-
 end;
 
-function TMySQLConnection.GetHandle: pointer;
+function TConnectionName.GetHandle: pointer;
 begin
   Result:=FMySQL;
 end;
 
-function TMySQLConnection.AllocateCursorHandle: TSQLCursor;
+function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
-  Result:=TMySQLCursor.Create;
+  Result:=TCursorName.Create;
 end;
 
-Procedure TMySQLConnection.DeAllocateCursorHandle(var cursor : TSQLCursor);
+Procedure TConnectionName.DeAllocateCursorHandle(var cursor : TSQLCursor);
 
 begin
   FreeAndNil(cursor);
 end;
 
-function TMySQLConnection.AllocateTransactionHandle: TSQLHandle;
+function TConnectionName.AllocateTransactionHandle: TSQLHandle;
 begin
-//  Result:=TMySQLTransaction.Create;
+//  Result:=TTransactionName.Create;
   Result := nil;
 end;
 
-procedure TMySQLConnection.PrepareStatement(cursor: TSQLCursor;
+procedure TConnectionName.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string;AParams : TParams);
 begin
   if assigned(AParams) and (AParams.count > 0) then
     DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
-  With Cursor as TMysqlCursor do
+  With Cursor as TCursorName do
     begin
     FStatement:=Buf;
     if FStatementType=stSelect then
@@ -235,18 +238,18 @@ begin
     end
 end;
 
-procedure TMySQLConnection.UnPrepareStatement(cursor: TSQLCursor);
+procedure TConnectionName.UnPrepareStatement(cursor: TSQLCursor);
 begin
   // not necessary
 end;
 
-procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLCursor);
+procedure TConnectionName.FreeFldBuffers(cursor: TSQLCursor);
 
 Var
-  C : TMySQLCursor;
+  C : TCursorName;
 
 begin
-  C:=Cursor as TMysqlCursor;
+  C:=Cursor as TCursorName;
   if c.FStatementType=stSelect then
     c.FNeedData:=False;
   If (C.FRes<>Nil) then
@@ -265,14 +268,14 @@ begin
     end;
 end;
 
-procedure TMySQLConnection.Execute(cursor: TSQLCursor;
+procedure TConnectionName.Execute(cursor: TSQLCursor;
   atransaction: tSQLtransaction;AParams : TParams);
 
 Var
-  C : TMySQLCursor;
+  C : TCursorName;
 
 begin
-  C:=Cursor as TMysqlCursor;
+  C:=Cursor as TCursorName;
   If (C.FRes=Nil) then
     begin
     if mysql_query(c.FQMySQL,Pchar(C.FStatement))<>0 then
@@ -287,7 +290,7 @@ begin
     end;
 end;
 
-function TMySQLConnection.MySQLDataType(AType: enum_field_types; ASize: Integer;
+function TConnectionName.MySQLDataType(AType: enum_field_types; ASize: Integer;
    var NewType: TFieldType; var NewSize: Integer): Boolean;
 begin
   Result := True;
@@ -328,11 +331,11 @@ begin
   end;
 end;
 
-procedure TMySQLConnection.AddFieldDefs(cursor: TSQLCursor;
+procedure TConnectionName.AddFieldDefs(cursor: TSQLCursor;
   FieldDefs: TfieldDefs);
 
 var
-  C : TMySQLCursor;
+  C : TCursorName;
   I, FC: Integer;
   field: PMYSQL_FIELD;
   DFT: TFieldType;
@@ -340,7 +343,7 @@ var
 
 begin
 //  Writeln('MySQL: Adding fielddefs');
-  C:=(Cursor as TMySQLCursor);
+  C:=(Cursor as TCursorName);
   If (C.FRes=Nil) then
     begin
 //    Writeln('res is nil');
@@ -359,29 +362,29 @@ begin
 //  Writeln('MySQL: Finished adding fielddefs');
 end;
 
-function TMySQLConnection.Fetch(cursor: TSQLCursor): boolean;
+function TConnectionName.Fetch(cursor: TSQLCursor): boolean;
 
 Var
-  C : TMySQLCursor;
+  C : TCursorName;
 
 begin
-  C:=Cursor as TMySQLCursor;
+  C:=Cursor as TCursorName;
   C.Row:=MySQL_Fetch_row(C.FRes);
   Result:=(C.Row<>Nil);
 end;
 
-function TMySQLConnection.LoadField(cursor : TSQLCursor;
+function TConnectionName.LoadField(cursor : TSQLCursor;
   FieldDef : TfieldDef;buffer : pointer) : boolean;
 
 var
   I, FC, CT: Integer;
   field: PMYSQL_FIELD;
-  row : TMYSQL_ROW;
-  C : TMySQLCursor;
+  row : MYSQL_ROW;
+  C : TCursorName;
 
 begin
 //  Writeln('LoadFieldsFromBuffer');
-  C:=Cursor as TMySQLCursor;
+  C:=Cursor as TCursorName;
   if C.Row=nil then
      begin
   //   Writeln('LoadFieldsFromBuffer: row=nil');
@@ -486,7 +489,7 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TMySQLConnection.MySQLWriteData(AType: enum_field_types;ASize: Integer; Source, Dest: PChar): Integer;
+function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; Source, Dest: PChar): Integer;
 
 var
   VI: Integer;
@@ -576,7 +579,7 @@ begin
   end;
 end;
 
-procedure TMySQLConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
+procedure TConnectionName.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
 
 var qry : TSQLQuery;
 
@@ -613,32 +616,32 @@ begin
 end;
 
 
-function TMySQLConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
+function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
   Result:=Nil;
 end;
 
-function TMySQLConnection.Commit(trans: TSQLHandle): boolean;
+function TConnectionName.Commit(trans: TSQLHandle): boolean;
 begin
   // Do nothing.
 end;
 
-function TMySQLConnection.RollBack(trans: TSQLHandle): boolean;
+function TConnectionName.RollBack(trans: TSQLHandle): boolean;
 begin
   // Do nothing
 end;
 
-function TMySQLConnection.StartdbTransaction(trans: TSQLHandle; AParams : string): boolean;
+function TConnectionName.StartdbTransaction(trans: TSQLHandle; AParams : string): boolean;
 begin
   // Do nothing
 end;
 
-procedure TMySQLConnection.CommitRetaining(trans: TSQLHandle);
+procedure TConnectionName.CommitRetaining(trans: TSQLHandle);
 begin
   // Do nothing
 end;
 
-procedure TMySQLConnection.RollBackRetaining(trans: TSQLHandle);
+procedure TConnectionName.RollBackRetaining(trans: TSQLHandle);
 begin
   // Do nothing
 end;

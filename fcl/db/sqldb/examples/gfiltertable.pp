@@ -15,7 +15,7 @@ program gFilterTable;
 
 uses
   Classes,
-  sqldb, pqconnection, mysql4conn, IBConnection,
+  sqldb,
   SqldbExampleUnit;
 
 begin

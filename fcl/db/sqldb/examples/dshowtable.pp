@@ -15,8 +15,7 @@ program dShowTable;
 
 uses
   Classes,
-  sqldb, pqconnection, mysql4conn, IBConnection,
-  SqldbExampleUnit;
+  sqldb, SqldbExampleUnit;
 
 begin
   ReadIniFile;
@@ -31,7 +30,7 @@ begin
     ReadOnly := True;
 
     SQL.Clear;
-    SQL.Add('select * from fpdev');
+    SQL.Add('select * from FPDEV');
 
     Writeln('Id;Name;Email;birthdate');
 
