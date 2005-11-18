@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=mysql40conn mysql41conn
+units=mysql40conn mysql41conn mysql4conn
 
 [require]
 packages=mysql

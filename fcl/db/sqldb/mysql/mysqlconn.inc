@@ -6,16 +6,23 @@ interface
 
 uses
   Classes, SysUtils,sqldb,db,
-{$IfNDef mysql41}
-  mysql40dyn;
-  {$DEFINE TConnectionName:=TMySQL40Connection}
-  {$DEFINE TTransactionName:=TMySQL40Transaction}
-  {$DEFINE TCursorName:=TMySQL40Cursor}
-{$Else}
+{$IfDef mysql41}
   mysql41dyn;
   {$DEFINE TConnectionName:=TMySQL41Connection}
   {$DEFINE TTransactionName:=TMySQL41Transaction}
   {$DEFINE TCursorName:=TMySQL41Cursor}
+{$ELSE}
+  {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+    mysql40dyn;
+    {$DEFINE TConnectionName:=TMySQLConnection}
+    {$DEFINE TTransactionName:=TMySQLTransaction}
+    {$DEFINE TCursorName:=TMySQLCursor}
+  {$ELSE}
+    mysql40dyn;
+    {$DEFINE TConnectionName:=TMySQL40Connection}
+    {$DEFINE TTransactionName:=TMySQL40Transaction}
+    {$DEFINE TCursorName:=TMySQL40Cursor}
+  {$EndIf}
 {$EndIf}
 
 Type

@@ -718,6 +718,7 @@ fcl/db/sqldb/mysql/fpmake.inc svneol=native#text/plain
 fcl/db/sqldb/mysql/fpmake.pp svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql40conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql41conn.pas svneol=native#text/plain
+fcl/db/sqldb/mysql/mysql4conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile.fpc svneol=native#text/plain
