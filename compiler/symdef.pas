@@ -283,6 +283,7 @@ interface
           procedure deref;
           { add interface reference loaded from ppu }
           procedure addintf_deref(const d:tderef;iofs:longint);
+          procedure addintf_ioffset(d:tdef;iofs:longint);
 
           procedure clearmappings;
           procedure addmappings(intfindex: longint; const origname, newname: string);
@@ -4275,25 +4276,35 @@ implementation
 
 
     function tobjectdef.getcopy : tstoreddef;
+      var
+        i,
+        implintfcount : longint;
       begin
-        result:=inherited getcopy;
-      (*
         result:=tobjectdef.create(objecttype,objname^,childof);
-          childofderef  : tderef;
-          objname,
-          objrealname   : pstring;
-          objectoptions : tobjectoptions;
-          { to be able to have a variable vmt position }
-          { and no vmt field for objects without virtuals }
-          vmt_offset : longint;
-          writing_class_record_stab : boolean;
-          objecttype : tobjectdeftype;
-          iidguid: pguid;
-          iidstr: pstring;
-          lastvtableindex: longint;
-          { store implemented interfaces defs and name mappings }
-          implementedinterfaces: timplementedinterfaces;
-      *)
+        tobjectdef(result).symtable:=symtable.getcopy;
+        if assigned(objname) then
+          tobjectdef(result).objname:=stringdup(objname^);
+        if assigned(objrealname) then
+          tobjectdef(result).objrealname:=stringdup(objrealname^);
+        tobjectdef(result).objectoptions:=objectoptions;
+        tobjectdef(result).vmt_offset:=vmt_offset;
+        if assigned(iidguid) then
+          begin
+            new(tobjectdef(result).iidguid);
+            move(iidguid^,tobjectdef(result).iidguid^,sizeof(iidguid^));
+          end;
+        if assigned(iidstr) then
+          tobjectdef(result).iidstr:=stringdup(iidstr^);
+        tobjectdef(result).lastvtableindex:=lastvtableindex;
+        if assigned(implementedinterfaces) then
+          begin
+            implintfcount:=implementedinterfaces.count;
+            for i:=1 to implintfcount do
+              begin
+                tobjectdef(result).implementedinterfaces.addintf_ioffset(implementedinterfaces.interfaces(i),
+                    implementedinterfaces.ioffsets(i));
+              end;
+          end;
       end;
 
 
@@ -5218,6 +5229,15 @@ implementation
         hintf : timplintfentry;
       begin
         hintf:=timplintfentry.create_deref(d);
+        hintf.ioffset:=iofs;
+        finterfaces.insert(hintf);
+      end;
+
+    procedure timplementedinterfaces.addintf_ioffset(d:tdef;iofs:longint);
+      var
+        hintf : timplintfentry;
+      begin
+        hintf:=timplintfentry.create(tobjectdef(d));
         hintf.ioffset:=iofs;
         finterfaces.insert(hintf);
       end;
