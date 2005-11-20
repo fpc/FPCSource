@@ -569,7 +569,7 @@ Function  SeekEOF (Var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
 Procedure SetTextBuf(Var f:Text; Var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
-Procedure SetTextBuf(Var f:Text; Var Buf; Size:Longint);
+Procedure SetTextBuf(Var f:Text; Var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(Var f:Text; Ending:string);
 
 {****************************************************************************
