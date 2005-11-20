@@ -364,7 +364,12 @@ begin
       linklibc := true;
       if not(isdll) then
         if not(cs_profile in aktmoduleswitches) then
-          prtobj:='/usr/lib/crt1.o'
+          begin
+             if librarysearchpath.FindFile('crt1.o',s) then
+             prtobj:=s
+            else
+             prtobj:='/usr/lib/crt1.o';
+          end
         else
           prtobj:='/usr/lib/gcrt1.o'
       else
@@ -544,7 +549,12 @@ begin
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
-   DynLinKStr:=DynLinkStr+' --shared';
+   begin
+   if  (target_info.system <> system_powerpc_darwin) then
+     DynLinKStr:=DynLinkStr+' --shared'
+    else
+     DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
+   end;  
 { Write used files and libraries }
   WriteResponseFile(false);
 
