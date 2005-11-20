@@ -546,7 +546,7 @@ begin
     { call ptrgl helper routine which expects the pointer to the function descriptor
     in R11 }
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
-    a_call_name_direct(list, 'ptrgl', true, false);
+    a_call_name_direct(list, '.ptrgl', false, false);
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
@@ -1185,12 +1185,14 @@ end;
 
 procedure tcgppc.g_save_standard_registers(list: Taasmoutput);
 begin
-  { this work is done in g_proc_entry }
+  { this work is done in g_proc_entry; additionally it is not safe 
+  to use it because it is called at some weird time }
 end;
 
 procedure tcgppc.g_restore_standard_registers(list: Taasmoutput);
 begin
-  { this work is done in g_proc_exit }
+  { this work is done in g_proc_exit; mainly because it is not safe to
+  put the register restore code here because it is called at some weird time }
 end;
 
 procedure tcgppc.calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
@@ -1199,15 +1201,13 @@ var
 begin
   fprcount := 0;
   firstfpr := RS_F31;
-  if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-    for reg := RS_F14 to RS_F31 do begin
+  if not (po_assembler in current_procinfo.procdef.procoptions) then
+    for reg := RS_F14 to RS_F31 do
       if reg in rg[R_FPUREGISTER].used_in_proc then begin
         fprcount := ord(RS_F31)-ord(reg)+1;
         firstfpr := reg;
         break;
       end;
-    end;
-  end;
 end;
 
 procedure tcgppc.calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
@@ -1216,42 +1216,87 @@ var
 begin
   gprcount := 0;
   firstgpr := RS_R31;
-  if not (po_assembler in current_procinfo.procdef.procoptions) then begin
-    for reg := RS_R14 to RS_R31 do begin
+  if not (po_assembler in current_procinfo.procdef.procoptions) then
+    for reg := RS_R14 to RS_R31 do
       if reg in rg[R_INTREGISTER].used_in_proc then begin
         gprcount := ord(RS_R31)-ord(reg)+1;
         firstgpr := reg;
         break;
       end;
-    end;
-  end;
 end;
 
+{ Generates the entry code of a procedure/function. 
+                                                                     
+ This procedure may be called before, as well as after g_return_from_proc
+ is called. localsize is the sum of the size necessary for local variables 
+ and the maximum possible combined size of ALL the parameters of a procedure 
+ called by the current one 
+
+ IMPORTANT: registers are not to be allocated through the register
+ allocator here, because the register colouring has already occured !! 
+}
 procedure tcgppc.g_proc_entry(list: taasmoutput; localsize: longint;
   nostackframe: boolean);
-{ generated the entry code of a procedure/function. Note: localsize is the 
- sum of the size necessary for local variables and the maximum possible
- combined size of ALL the parameters of a procedure called by the current
- one.                                                                     
- This procedure may be called before, as well as after g_return_from_proc
- is called. NOTE registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !! }
 var
   firstregfpu, firstreggpr: TSuperRegister;
-  href: treference;
   needslinkreg: boolean;
-  regcount : TSuperRegister;
 
   fprcount, gprcount : aint;
 
-begin
-  { CR and LR only have to be saved in case they are modified by the current
-   procedure, but currently this isn't checked, so save them always        
-   following is the entry code as described in "Altivec Programming
-   Interface Manual", bar the saving of AltiVec registers }
-  a_reg_alloc(list, NR_STACK_POINTER_REG);
-  a_reg_alloc(list, NR_R0);
+  { Save standard registers, both FPR and GPR; does not support VMX/Altivec }
+  procedure save_standard_registers;
+  var
+    regcount : TSuperRegister;
+    href : TReference;
+    mayNeedLRStore : boolean;
+  begin
+    { there are two ways to do this: manually, by generating a few "std" instructions,
+     or via the restore helper functions. The latter are selected by the -Og switch,
+     i.e. "optimize for size" }
+    if (cs_littlesize in aktglobalswitches) then begin
+      mayNeedLRStore := false;
+      if ((fprcount > 0) and (gprcount > 0)) then begin
+        a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
+        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false);
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false);
+      end else if (gprcount > 0) then
+        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false)
+      else if (fprcount > 0) then
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false)
+      else
+        mayNeedLRStore := true;
+    end else begin
+      { save registers, FPU first, then GPR }
+      reference_reset_base(href, NR_STACK_POINTER_REG, -8);
+      if (fprcount > 0) then
+        for regcount := RS_F31 downto firstregfpu do begin
+          a_loadfpu_reg_ref(list, OS_FLOAT, newreg(R_FPUREGISTER, regcount,
+            R_SUBNONE), href);
+          dec(href.offset, tcgsize2size[OS_FLOAT]);
+        end;
+      if (gprcount > 0) then
+        for regcount := RS_R31 downto firstreggpr do begin
+          a_load_reg_ref(list, OS_INT, OS_INT, newreg(R_INTREGISTER, regcount,
+            R_SUBNONE), href);
+          dec(href.offset, tcgsize2size[OS_INT]);
+        end;
+      { VMX registers not supported by FPC atm }
 
+      { in this branch we may always need to store LR ourselves}
+      mayNeedLRStore := true;
+    end;
+
+    { we may need to store R0 (=LR) ourselves }
+    if (mayNeedLRStore) and (needslinkreg) then begin
+      reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
+      list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
+    end;
+  end;
+
+var
+  href: treference;
+
+begin
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
 
@@ -1260,41 +1305,23 @@ begin
     gprcount, fprcount);
 
   { determine whether we need to save the link register }
-  needslinkreg := ((not (po_assembler in current_procinfo.procdef.procoptions)) and
-    (pi_do_call in current_procinfo.flags));
+  needslinkreg := 
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or 
+    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0)));
+
+  a_reg_alloc(list, NR_STACK_POINTER_REG);
+  a_reg_alloc(list, NR_R0);
 
   { move link register to r0 }
-  if (needslinkreg) then begin
+  if (needslinkreg) then
     list.concat(taicpu.op_reg(A_MFLR, NR_R0));
-  end;
+
+  save_standard_registers;
+
   { save old stack frame pointer }
   if (localsize > 0) then begin
     a_reg_alloc(list, NR_OLD_STACK_POINTER_REG);
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
-  end;
-  { save registers, FPU first, then GPR }
-  reference_reset_base(href, NR_STACK_POINTER_REG, -8);
-  if (fprcount > 0) then begin
-    for regcount := RS_F31 downto firstregfpu do begin
-      a_loadfpu_reg_ref(list, OS_FLOAT, newreg(R_FPUREGISTER, regcount,
-        R_SUBNONE), href);
-      dec(href.offset, tcgsize2size[OS_FLOAT]);
-    end;
-  end;
-  if (gprcount > 0) then begin
-    for regcount := RS_R31 downto firstreggpr do begin
-      a_load_reg_ref(list, OS_INT, OS_INT, newreg(R_INTREGISTER, regcount,
-        R_SUBNONE), href);
-      dec(href.offset, tcgsize2size[OS_INT]);
-    end;
-  end;
-
-  { VMX registers not supported by FPC atm }
-
-  { we may need to store R0 (=LR) ourselves }
-  if (needslinkreg) then begin
-    reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
-    list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
   end;
 
   { create stack frame }
@@ -1305,10 +1332,11 @@ begin
     end else begin
       reference_reset_base(href, NR_NO, -localsize);
 
-      { use R0 for loading the constant (which is definitely > 32k when entering
-       this branch)
+      { Use R0 for loading the constant (which is definitely > 32k when entering
+       this branch).
+
        Inlined at this position because it must not use temp registers because 
-       register allocations have already been done :( }
+       register allocations have already been done  }
       { Code template:
       lis   r0,ofs@highest
       ori   r0,r0,ofs@higher
@@ -1325,30 +1353,99 @@ begin
       list.concat(taicpu.op_reg_reg_reg(A_STDUX, NR_R1, NR_R1, NR_R0));
     end;
   end;
+
   { CR register not used by FPC atm }
 
   { keep R1 allocated??? }
   a_reg_dealloc(list, NR_R0);
 end;
 
+{ Generates the exit code for a method. 
+
+ This procedure may be called before, as well as after g_stackframe_entry
+ is called. 
+
+ IMPORTANT: registers are not to be allocated through the register
+ allocator here, because the register colouring has already occured !!
+}
 procedure tcgppc.g_proc_exit(list: taasmoutput; parasize: longint; nostackframe:
   boolean);
-{ This procedure may be called before, as well as after g_stackframe_entry }
-{ is called. NOTE registers are not to be allocated through the register   }
-{ allocator here, because the register colouring has already occured !!    }
 var
-  regcount, firstregfpu, firstreggpr: TSuperRegister;
-  href: treference;
+  firstregfpu, firstreggpr: TSuperRegister;
   needslinkreg : boolean;
-  localsize,
   fprcount, gprcount: aint;
+
+  { Restore standard registers, both FPR and GPR; does not support VMX/Altivec }
+  procedure restore_standard_registers;
+  var
+    { flag indicating whether we need to manually add the exit code (e.g. blr instruction)
+     or not }
+    needsExitCode : Boolean;
+    href : treference;
+    regcount : TSuperRegister;
+  begin
+    { there are two ways to do this: manually, by generating a few "ld" instructions,
+     or via the restore helper functions. The latter are selected by the -Og switch,
+     i.e. "optimize for size" }
+    if (cs_littlesize in aktglobalswitches) then begin
+      needsExitCode := false;
+      if ((fprcount > 0) and (gprcount > 0)) then begin
+        a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
+        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false);
+        a_jmp_name(list, '_restfpr_' + intToStr(32-fprcount));
+      end else if (gprcount > 0) then
+        a_jmp_name(list, '_restgpr0_' + intToStr(32-gprcount))
+      else if (fprcount > 0) then
+        a_jmp_name(list, '_restfpr_' + intToStr(32-fprcount))
+      else
+        needsExitCode := true;
+    end else begin
+      needsExitCode := true;
+      { restore registers, FPU first, GPR next }
+      reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT]);
+      if (fprcount > 0) then
+        for regcount := RS_F31 downto firstregfpu do begin
+          a_loadfpu_ref_reg(list, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
+            R_SUBNONE));
+          dec(href.offset, tcgsize2size[OS_FLOAT]);
+        end;
+      if (gprcount > 0) then
+        for regcount := RS_R31 downto firstreggpr do begin
+          a_load_ref_reg(list, OS_INT, OS_INT, href, newreg(R_INTREGISTER, regcount,
+            R_SUBNONE));
+          dec(href.offset, tcgsize2size[OS_INT]);
+        end;
+
+      { VMX not supported by FPC atm }
+    end;
+
+    if (needsExitCode) then begin
+
+      { restore LR (if needed) }
+      if (needslinkreg) then begin
+        reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
+        list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
+        list.concat(taicpu.op_reg(A_MTLR, NR_R0));
+      end;
+
+      { generate return instruction }
+      list.concat(taicpu.op_none(A_BLR));
+    end;
+  end;
+
+var
+  href: treference;
+  localsize : aint;
+
 begin
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
 
   { determine whether we need to restore the link register }
-  needslinkreg := ((not (po_assembler in current_procinfo.procdef.procoptions)) and
-    (pi_do_call in current_procinfo.flags));
+  needslinkreg := 
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
+    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0)));
+
   { calculate stack frame }
   localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
@@ -1365,13 +1462,14 @@ begin
       { use R0 for loading the constant (which is definitely > 32k when entering
        this branch)
        Inlined because it must not use temp registers because register allocations
-       have already been done :( }
+       have already been done
+      }
       { Code template:
-      lis   r0,ofs@highest
-      ori   r0,ofs@higher
-      sldi  r0,r0,32
-      oris  r0,r0,ofs@h
-      ori   r0,r0,ofs@l
+       lis   r0,ofs@highest
+       ori   r0,ofs@higher
+       sldi  r0,r0,32
+       oris  r0,r0,ofs@h
+       ori   r0,r0,ofs@l
       }
       list.concat(taicpu.op_reg_const(A_LIS, NR_R0, word(href.offset shr 48)));
       list.concat(taicpu.op_reg_reg_const(A_ORI, NR_R0, NR_R0, word(href.offset shr 32)));
@@ -1383,35 +1481,7 @@ begin
     end;
   end;
 
-  { load registers, FPR first, then GPR }
-  {$note ts:todo change order of loading}
-  reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT]);
-  if (fprcount > 0) then begin
-    for regcount := RS_F31 downto firstregfpu do begin
-      a_loadfpu_ref_reg(list, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
-        R_SUBNONE));
-      dec(href.offset, tcgsize2size[OS_FLOAT]);
-    end;
-  end;
-  if (gprcount > 0) then begin
-    for regcount := RS_R31 downto firstreggpr do begin
-      a_load_ref_reg(list, OS_INT, OS_INT, href, newreg(R_INTREGISTER, regcount,
-        R_SUBNONE));
-      dec(href.offset, tcgsize2size[OS_INT]);
-    end;
-  end;
-
-  { VMX not supported... }
-
-  { restore LR (if needed) }
-  if (needslinkreg) then begin
-    reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
-    list.concat(taicpu.op_reg_ref(A_LD, NR_R0, href));
-    list.concat(taicpu.op_reg(A_MTLR, NR_R0));
-  end;
-
-  { generate return instruction }
-  list.concat(taicpu.op_none(A_BLR));
+  restore_standard_registers;
 end;
 
 
