@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
+    Copyright (c) 1999-2005 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
     FPC Pascal system unit for the Win32 API.
@@ -170,8 +170,9 @@ var
       { the arg. is still present!                     }
       sysreallocmem(argv[idx],len+1);
     end;
-
+    
 begin
+  SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;

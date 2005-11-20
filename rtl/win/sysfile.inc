@@ -102,45 +102,78 @@ begin
 end;
 
 
-function do_filepos(handle : thandle) : longint;
+function do_filepos(handle : thandle) : Int64;
 var
   l:longint;
 begin
-  l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
-  if l=-1 then
-   begin
-    l:=0;
-    errno:=GetLastError;
-    Errno2InoutRes;
-   end;
-  do_filepos:=l;
-end;
-
-
-procedure do_seek(handle:thandle;pos : longint);
-begin
-  if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
-   Begin
-    errno:=GetLastError;
-    Errno2InoutRes;
-   end;
-end;
-
-
-function do_seekend(handle:thandle):longint;
-begin
-  do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
-  if do_seekend=-1 then
+  if assigned(SetFilePointerEx) then
     begin
-      errno:=GetLastError;
-      Errno2InoutRes;
+      if not(SetFilePointerEx(handle,0,@result,FILE_CURRENT)) then
+        begin
+          errno:=GetLastError;
+          Errno2InoutRes;
+        end;
+    end
+  else
+    begin
+      l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
+      if l=-1 then
+       begin
+        l:=0;
+        errno:=GetLastError;
+        Errno2InoutRes;
+       end;
+      do_filepos:=l;
     end;
 end;
 
 
-function do_filesize(handle : thandle) : longint;
+procedure do_seek(handle:thandle;pos : Int64);
+begin
+  if assigned(SetFilePointerEx) then
+    begin
+      if not(SetFilePointerEx(handle,pos,nil,FILE_BEGIN)) then
+        begin
+          errno:=GetLastError;
+          Errno2InoutRes;
+        end;
+    end
+  else
+    begin
+      if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
+       Begin
+        errno:=GetLastError;
+        Errno2InoutRes;
+       end;
+    end;
+end;
+
+
+function do_seekend(handle:thandle):Int64;
+begin
+  if assigned(SetFilePointerEx) then
+    begin
+      if not(SetFilePointerEx(handle,0,@result,FILE_END)) then
+        begin
+          errno:=GetLastError;
+          Errno2InoutRes;
+        end;
+    end
+  else
+    begin
+      do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
+      if do_seekend=-1 then
+        begin
+          errno:=GetLastError;
+          Errno2InoutRes;
+        end;
+    end;
+end;
+
+
+function do_filesize(handle : thandle) : Int64;
 var
-  aktfilepos : longint;
+  aktfilepos : Int64;
 begin
   aktfilepos:=do_filepos(handle);
   do_filesize:=do_seekend(handle);
@@ -148,7 +181,7 @@ begin
 end;
 
 
-procedure do_truncate (handle:thandle;pos:longint);
+procedure do_truncate (handle:thandle;pos:Int64);
 begin
    do_seek(handle,pos);
    if not(SetEndOfFile(handle)) then
@@ -263,13 +296,3 @@ begin
       Errno2InoutRes;
     end;
 end;
-
-
-{
-   $Log: sysfile.inc,v $
-   Revision 1.1  2005/02/06 13:06:20  peter
-     * moved file and dir functions to sysfile/sysdir
-     * win32 thread in systemunit
-
-}
-

@@ -221,6 +221,11 @@ threadvar
      stdcall;external KernelDLL name 'GetFileSize';
    function SetEndOfFile(h : thandle) : longbool;
      stdcall;external KernelDLL name 'SetEndOfFile';
+
+   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
+   function FreeLibrary(hLibModule:THandle):ByteBool; stdcall; external KernelDLL name 'FreeLibrary';
+   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
+
 {$ifndef WINCE}
    function GetFileType(Handle:thandle):DWord;
      stdcall;external KernelDLL name 'GetFileType';
@@ -245,6 +250,25 @@ threadvar
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external KernelDLL name 'GetCurrentDirectoryA';
 {$endif WINCE}
+
+   var
+     SetFilePointerEx : function(hFile : THandle;
+       liDistanceToMove : int64;lpNewFilePointer : pint64;
+       dwMoveMethod : DWord) : ByteBool;stdcall;
+
+  procedure SetupProcVars;
+    var
+      hinstLib : THandle;
+    begin
+      SetFilePointerEx:=nil;
+      hinstLib:=LoadLibrary(KernelDLL);
+      if hinstLib<>0 then
+        begin
+          pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
+          FreeLibrary(hinstLib);
+        end;
+    end;
+
 
    Procedure Errno2InOutRes;
    Begin

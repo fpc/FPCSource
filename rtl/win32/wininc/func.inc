@@ -56,7 +56,8 @@ function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockRe
 {$ifdef Unknown_functions}
 { WARNING: function not found !!}
 function WinMain(hInstance:HINST; hPrevInstance:HINST; lpCmdLine:LPSTR; nShowCmd:longint):longint; external External_library name 'WinMain';
-{$endif Unknown_functions}function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
+{$endif Unknown_functions}
+function FreeLibrary(hLibModule:HINST):WINBOOL; external 'kernel32' name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external 'kernel32' name 'FreeLibraryAndExitThread';
 function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external 'kernel32' name 'DisableThreadLibraryCalls';
 function GetProcAddress(hModule:HINST; lpProcName:LPCSTR):FARPROC; external 'kernel32' name 'GetProcAddress';
