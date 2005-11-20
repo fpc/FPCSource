@@ -60,6 +60,10 @@ Abstract:
   {$DEFINE extdecl := cdecl}
 {$ENDIF}
 
+{$IFDEF MORPHOS}
+{$DEFINE GLU_UNIT}
+{$ENDIF}
+
 unit GLu;
 
 interface
@@ -69,7 +73,11 @@ uses
   {$IFDEF Win32}
   Windows,
   {$ELSE}
+  {$IFDEF MORPHOS}
+  TinyGL,
+  {$ELSE}
   DLLFuncs,
+  {$ENDIF}
   {$ENDIF}
   GL;
 
@@ -82,6 +90,24 @@ type
   T4fArray = array [0..3] of GLfloat;
   PPointer = ^Pointer;
 
+type
+  GLUnurbs = record end;                PGLUnurbs = ^GLUnurbs;
+  GLUquadric = record end;              PGLUquadric = ^GLUquadric;
+  GLUtesselator = record end;           PGLUtesselator = ^GLUtesselator;
+
+  // backwards compatibility:
+  GLUnurbsObj = GLUnurbs;               PGLUnurbsObj = PGLUnurbs;
+  GLUquadricObj = GLUquadric;           PGLUquadricObj = PGLUquadric;
+  GLUtesselatorObj = GLUtesselator;     PGLUtesselatorObj = PGLUtesselator;
+  GLUtriangulatorObj = GLUtesselator;   PGLUtriangulatorObj = PGLUtesselator;
+
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its headers are included here. }
+{$INCLUDE tinyglh.inc}
+
+{$ELSE MORPHOS}
 var
   gluErrorString: function(errCode: GLenum): PChar; extdecl;
   gluErrorUnicodeStringEXT: function(errCode: GLenum): PWideChar; extdecl;
@@ -95,17 +121,6 @@ var
   gluScaleImage: function(format: GLenum; widthin, heightin: GLint; typein: GLenum; const datain: Pointer; widthout, heightout: GLint; typeout: GLenum; dataout: Pointer): Integer; extdecl;
   gluBuild1DMipmaps: function(target: GLenum; components, width: GLint; format, atype: GLenum; const data: Pointer): Integer; extdecl;
   gluBuild2DMipmaps: function(target: GLenum; components, width, height: GLint; format, atype: GLenum; const data: Pointer): Integer; extdecl;
-
-type
-  GLUnurbs = record end;                PGLUnurbs = ^GLUnurbs;
-  GLUquadric = record end;              PGLUquadric = ^GLUquadric;
-  GLUtesselator = record end;           PGLUtesselator = ^GLUtesselator;
-
-  // backwards compatibility:
-  GLUnurbsObj = GLUnurbs;               PGLUnurbsObj = PGLUnurbs;
-  GLUquadricObj = GLUquadric;           PGLUquadricObj = PGLUquadric;
-  GLUtesselatorObj = GLUtesselator;     PGLUtesselatorObj = PGLUtesselator;
-  GLUtriangulatorObj = GLUtesselator;   PGLUtriangulatorObj = PGLUtesselator;
 
 var
   gluNewQuadric: function: PGLUquadric; extdecl;
@@ -145,6 +160,7 @@ var
   gluNurbsProperty: procedure(nobj: PGLUnurbs; aproperty: GLenum; value: GLfloat); extdecl;
   gluGetNurbsProperty: procedure(nobj: PGLUnurbs; aproperty: GLenum; value: PGLfloat); extdecl;
   gluNurbsCallback: procedure(nobj: PGLUnurbs; which: GLenum; fn: TCallBack); extdecl;
+{$ENDIF MORPHOS}
 
 (**** Callback function prototypes ****)
 
@@ -368,12 +384,24 @@ procedure FreeGLu;
 
 implementation
 
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its functions are included here. }
+{$INCLUDE tinygl.inc}
+
+{$ELSE MORPHOS}
+
 var
   hDLL: THandle;
 
+{$ENDIF MORPHOS}
+
 procedure FreeGLu;
 begin
-
+{$IFDEF MORPHOS}
+  // MorphOS's GL will closed down by TinyGL unit, nothing is needed here.
+{$ELSE MORPHOS}
   @gluErrorString := nil;
   @gluErrorUnicodeStringEXT := nil;
   @gluGetString := nil;
@@ -428,10 +456,15 @@ begin
   @gluEndPolygon := nil;
 
   FreeLibrary(hDLL);
-
+{$ENDIF MORPHOS}
 end;
 
 procedure LoadGLu(const dll: String);
+{$IFDEF MORPHOS}
+begin
+  // MorphOS's GL has own initialization in TinyGL unit, nothing is needed here.
+end;
+{$ELSE MORPHOS}
 var
   MethodName: string = '';
   
@@ -505,6 +538,7 @@ begin
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
 end;
+{$ENDIF MORPHOS}
 
 initialization
 
@@ -514,7 +548,9 @@ initialization
   {$ifdef darwin}
   LoadGLu('/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib');
   {$else}
+  {$ifndef MorphOS}
   LoadGLu('libGLU.so.1');
+  {$endif}
   {$ENDIF}
   {$endif}
 
