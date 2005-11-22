@@ -1150,11 +1150,8 @@ implementation
                (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     include(current_object_option,sp_static);
-                    insert_syms(sc,tt,false,dummysymoptions);
-                    exclude(current_object_option,sp_static);
                     consume(_STATIC);
                     consume(_SEMICOLON);
-                    symdone:=true;
                   end;
 
              { insert it in the symtable, if not done yet }
