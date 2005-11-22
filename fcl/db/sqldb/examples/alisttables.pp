@@ -15,7 +15,7 @@ program aListTables;
 
 uses
   Classes,
-  sqldb, pqconnection, mysql40conn, mysql41conn, IBConnection, ODBCConn,
+  sqldb, pqconnection, mysql40conn, mysql41conn, mysql50conn, IBConnection, ODBCConn,
   SqldbExampleUnit;
 
 var Tables : TStringList;
@@ -27,6 +27,7 @@ begin
 // create FConnection
   if dbtype = 'mysql40' then Fconnection := tMySQL40Connection.Create(nil);
   if dbtype = 'mysql41' then Fconnection := tMySQL41Connection.Create(nil);
+  if dbtype = 'mysql50' then Fconnection := tMySQL50Connection.Create(nil);
   if dbtype = 'postgresql' then Fconnection := tpqConnection.Create(nil);
   if dbtype = 'interbase' then Fconnection := tIBConnection.Create(nil);
   if dbtype = 'odbc' then Fconnection := tODBCConnection.Create(nil);

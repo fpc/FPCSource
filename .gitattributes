@@ -719,6 +719,7 @@ fcl/db/sqldb/mysql/fpmake.pp svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql40conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql41conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql4conn.pas svneol=native#text/plain
+fcl/db/sqldb/mysql/mysql50conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile.fpc svneol=native#text/plain
@@ -1523,6 +1524,8 @@ packages/base/mysql/mysql4_version.pp svneol=native#text/plain
 packages/base/mysql/mysql4dyn.pp svneol=native#text/plain
 packages/base/mysql/mysql4impl.inc svneol=native#text/plain
 packages/base/mysql/mysql4types.inc svneol=native#text/plain
+packages/base/mysql/mysql50.pp svneol=native#text/plain
+packages/base/mysql/mysql50dyn.pp svneol=native#text/plain
 packages/base/mysql/mysqls.c -text
 packages/base/mysql/mysqls.pp svneol=native#text/plain
 packages/base/mysql/rmdb -text

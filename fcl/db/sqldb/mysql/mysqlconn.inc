@@ -6,22 +6,29 @@ interface
 
 uses
   Classes, SysUtils,sqldb,db,
-{$IfDef mysql41}
-  mysql41dyn;
-  {$DEFINE TConnectionName:=TMySQL41Connection}
-  {$DEFINE TTransactionName:=TMySQL41Transaction}
-  {$DEFINE TCursorName:=TMySQL41Cursor}
+{$IfDef mysql50}
+  mysql50dyn;
+  {$DEFINE TConnectionName:=TMySQL50Connection}
+  {$DEFINE TTransactionName:=TMySQL50Transaction}
+  {$DEFINE TCursorName:=TMySQL50Cursor}
 {$ELSE}
-  {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-    mysql40dyn;
-    {$DEFINE TConnectionName:=TMySQLConnection}
-    {$DEFINE TTransactionName:=TMySQLTransaction}
-    {$DEFINE TCursorName:=TMySQLCursor}
+  {$IfDef mysql41}
+    mysql41dyn;
+    {$DEFINE TConnectionName:=TMySQL41Connection}
+    {$DEFINE TTransactionName:=TMySQL41Transaction}
+    {$DEFINE TCursorName:=TMySQL41Cursor}
   {$ELSE}
-    mysql40dyn;
-    {$DEFINE TConnectionName:=TMySQL40Connection}
-    {$DEFINE TTransactionName:=TMySQL40Transaction}
-    {$DEFINE TCursorName:=TMySQL40Cursor}
+    {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      mysql40dyn;
+      {$DEFINE TConnectionName:=TMySQLConnection}
+      {$DEFINE TTransactionName:=TMySQLTransaction}
+      {$DEFINE TCursorName:=TMySQLCursor}
+    {$ELSE}
+      mysql40dyn;
+      {$DEFINE TConnectionName:=TMySQL40Connection}
+      {$DEFINE TTransactionName:=TMySQL40Transaction}
+      {$DEFINE TCursorName:=TMySQL40Cursor}
+    {$EndIf}
   {$EndIf}
 {$EndIf}
 
@@ -113,6 +120,7 @@ Resourcestring
   SErrFetchingdata = 'Error fetching row data: %s';
   SErrGettingResult = 'Error getting result set: %s';
   SErrNoQueryResult = 'No result from query.';
+  SErrNotversion50 = 'TMySQL50Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion41 = 'TMySQL41Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion40 = 'TMySQL40Connection can not work with the installed MySQL client version (%s).';
 
@@ -144,9 +152,9 @@ function TConnectionName.GetClientInfo: string;
 
 begin
   // To make it possible to call this if there's no connection yet
-  InitialiseMysql4;
+  InitialiseMysql;
   Result:=strpas(mysql_get_client_info());
-  ReleaseMysql4;
+  ReleaseMysql;
 end;
 
 function TConnectionName.GetServerStatus: String;
@@ -186,13 +194,18 @@ end;
 
 procedure TConnectionName.DoInternalConnect;
 begin
-  InitialiseMysql4;
-{$IFDEF mysql41}
+  InitialiseMysql;
+{$IFDEF mysql50}
+  if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
+    Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
+{$ELSE}
+  {$IFDEF mysql41}
   if copy(strpas(mysql_get_client_info()),1,3)<>'4.1' then
     Raise EInOutError.CreateFmt(SErrNotversion41,[strpas(mysql_get_client_info())]);
-{$ELSE}
+  {$ELSE}
   if copy(strpas(mysql_get_client_info()),1,3)<>'4.0' then
     Raise EInOutError.CreateFmt(SErrNotversion40,[strpas(mysql_get_client_info())]);
+  {$ENDIF}
 {$ENDIF}
   inherited DoInternalConnect;
   ConnectToServer;
@@ -204,7 +217,7 @@ begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
-  ReleaseMysql4;
+  ReleaseMysql;
 end;
 
 function TConnectionName.GetHandle: pointer;
