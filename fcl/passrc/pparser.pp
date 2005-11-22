@@ -1330,6 +1330,10 @@ end;
 // will get the token after the final ";" as next token.
 procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
+  
+Var
+  Tok : String;
+  
 begin
   NextToken;
   case ProcType of
@@ -1407,50 +1411,68 @@ begin
   ExpectToken(tkSemicolon);
 
   while True do
-  begin
+    begin
     NextToken;
-    if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'CDECL') then
-    begin
-{      El['calling-conv'] := 'cdecl';}
-      ExpectToken(tkSemicolon);
-    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'STDCALL') then
-    begin
-{      El['calling-conv'] := 'stdcall';}
-      ExpectToken(tkSemicolon);
-    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'COMPILERPROC') then
-    begin
+    if (CurToken = tkIdentifier) then
+      begin
+      Tok:=UpperCase(CurTokenString);
+      If (Tok='CDECL') then
+        begin
+ {       El['calling-conv'] := 'cdecl';}
+        ExpectToken(tkSemicolon);
+        end 
+      else if (Tok='STDCALL') then
+        begin
+{        El['calling-conv'] := 'stdcall';}
+        ExpectToken(tkSemicolon);
+        end 
+      else if (Tok='COMPILERPROC') then
+        begin
 {      El['calling-conv'] := 'compilerproc';}
-      ExpectToken(tkSemicolon);
-    end else if (CurToken = tkInline) then
-    begin
+        ExpectToken(tkSemicolon);
+        end
+      else if (tok='DEPRECATED') then  
+        begin
+{       El['calling-conv'] := 'deprecated';}
+        ExpectToken(tkSemicolon);
+        end
+      else if (tok='OVERLOAD') then
+        begin
+        TPasProcedure(Parent).IsOverload := True;
+        ExpectToken(tkSemicolon);
+        end 
+      else if (tok='INLINE') then
+        begin
+        ExpectToken(tkSemicolon);
+        end 
+      else if (UpperCase(CurTokenString) = 'EXTERNAL') then  
+        repeat
+          NextToken;
+        until CurToken = tkSemicolon
+      else
+        begin
+        UnGetToken;
+        Break;
+        end  
+      end  
+    else if (CurToken = tkInline) then
+      begin
 {      TPasProcedure(Parent).IsInline := True;}
       ExpectToken(tkSemicolon);
-    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'DEPRECATED') then
-    begin
-{      El['calling-conv'] := 'deprecated';}
-      ExpectToken(tkSemicolon);
-    end else if (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'EXTERNAL') then
-    begin
-      repeat
-        NextToken
-      until CurToken = tkSemicolon;
-    end else if (CurToken = tkSquaredBraceOpen) then
-    begin
+      end 
+    else if (CurToken = tkSquaredBraceOpen) then
+      begin
       repeat
         NextToken
       until CurToken = tkSquaredBraceClose;
       ExpectToken(tkSemicolon);
-    end else if Parent.InheritsFrom(TPasProcedure) and
-      (CurToken = tkIdentifier) and (UpperCase(CurTokenString) = 'OVERLOAD') then
-    begin
-      TPasProcedure(Parent).IsOverload := True;
-      ExpectToken(tkSemicolon);
-    end else
-    begin
+      end 
+    else
+      begin
       UngetToken;
       break;
+      end;
     end;
-  end;
 end;
 
 
