@@ -27,7 +27,7 @@ uses
   ---------------------------------------------------------------------}
 
 Function AnsiResemblesText(const AText, AOther: string): Boolean;
-Function AnsiContainsText(const AText, ASubText: string): Boolean;inline;
+Function AnsiContainsText(const AText, ASubText: string): Boolean;
 Function AnsiStartsText(const ASubText, AText: string): Boolean;inline;
 Function AnsiEndsText(const ASubText, AText: string): Boolean;inline;
 Function AnsiReplaceText(const AText, AFromText, AToText: string): string;inline;
@@ -200,9 +200,9 @@ begin
     Result:=False;
 end;
 
-Function AnsiContainsText(const AText, ASubText: string): Boolean;inline;
+Function AnsiContainsText(const AText, ASubText: string): Boolean;
 begin
-  AnsiContainsText:=AnsiPos(ASubText,AText)<>0;
+  AnsiContainsText:=AnsiPos(AnsiUppercase(ASubText),AnsiUppercase(AText))>0;
 end;
 
 
@@ -250,7 +250,7 @@ end;
 
 Function AnsiContainsStr(const AText, ASubText: string): Boolean;inline;
 begin
-  Result := AnsiPos(ASubText,AText)<>0;
+  Result := AnsiPos(ASubText,AText)>0;
 end;
 
 
