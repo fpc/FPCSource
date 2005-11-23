@@ -262,7 +262,7 @@ end;
 
 Function AnsiEndsStr(const ASubText, AText: string): Boolean;inline;
 begin
- Result := AnsiPos(ASubText,AText)=(length(AText)-length(ASubText)+1);
+ Result := AnsiCompareStr(Copy(AText,length(AText)-length(ASubText)+1,length(ASubText)),ASubText)=0;
 end;
 
 
