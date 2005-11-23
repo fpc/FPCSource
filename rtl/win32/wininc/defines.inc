@@ -5351,6 +5351,7 @@ const
 
   WM_APP                        = $8000;
 
+  SYSRGN                  	= 4;
 
 
 {$endif read_interface}
