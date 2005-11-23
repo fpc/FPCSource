@@ -3302,6 +3302,7 @@ packages/extra/winunits/shlobj.pp svneol=native#text/plain
 packages/extra/winunits/winver.pp svneol=native#text/plain
 packages/extra/x11/Makefile svneol=native#text/plain
 packages/extra/x11/Makefile.fpc svneol=native#text/plain
+packages/extra/x11/cursorfont.pp svneol=native#text/plain
 packages/extra/x11/fpmake.inc svneol=native#text/plain
 packages/extra/x11/fpmake.pp svneol=native#text/plain
 packages/extra/x11/keysym.pp svneol=native#text/plain
