@@ -377,23 +377,28 @@ implementation
                 begin
                   if not (m_mac in aktmodeswitches) then
                     begin
-                      p1:=comp_expr(true);
-                      consume(_RKLAMMER);
-                      if (block_type=bt_except) then
+                      if not(try_to_consume(_RKLAMMER)) then
                         begin
-                          Message(parser_e_exit_with_argument_not__possible);
-                          { recovery }
-                          p1.free;
-                          p1:=nil;
+                          p1:=comp_expr(true);
+                          consume(_RKLAMMER);
+                          if (block_type=bt_except) then
+                            begin
+                              Message(parser_e_exit_with_argument_not__possible);
+                              { recovery }
+                              p1.free;
+                              p1:=nil;
+                            end
+                          else if (not assigned(current_procinfo) or
+                              is_void(current_procinfo.procdef.rettype.def)) then
+                            begin
+                              Message(parser_e_void_function);
+                              { recovery }
+                              p1.free;
+                              p1:=nil;
+                            end;
                         end
-                      else if (not assigned(current_procinfo) or
-                          is_void(current_procinfo.procdef.rettype.def)) then
-                        begin
-                          Message(parser_e_void_function);
-                          { recovery }
-                          p1.free;
-                          p1:=nil;
-                        end;
+                      else
+                        p1:=nil;
                     end
                   else
                     begin

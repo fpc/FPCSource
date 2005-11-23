@@ -7,7 +7,7 @@ name=x11
 version=2.0.3
 
 [target]
-units=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama xv xvlib
+units=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama xv xvlib cursorfont
 
 [require]
 libc=y
