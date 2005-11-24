@@ -226,7 +226,9 @@ end;
 
 procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
 begin
-
+  CloseKey;
+  FCurrentKey:=Value;
+  FCurrentPath:=Path;
 end;
 
 procedure TRegistry.GetKeyNames(Strings: TStrings);
