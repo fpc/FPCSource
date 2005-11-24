@@ -52,7 +52,8 @@ uses dos,sysconst;
 { * Followings are implemented in the system unit! * }
 function PathConv(path: shortstring): shortstring; external name 'PATHCONV';
 procedure AddToList(var l: Pointer; h: LongInt); external name 'ADDTOLIST';
-procedure RemoveFromList(var l: Pointer; h: LongInt); external name 'REMOVEFROMLIST';
+function RemoveFromList(var l: Pointer; h: LongInt): boolean; external name 'REMOVEFROMLIST';
+function CheckInList(var l: Pointer; h: LongInt): pointer; external name 'CHECKINLIST';
 
 var
   MOS_fileList: Pointer; external name 'MOS_FILELIST';
