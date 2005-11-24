@@ -277,6 +277,19 @@ end;
                                   Amiga Asm Response
 ****************************************************************************}
 
+{ * PathConv is required, since Amiga commands can't handle Unix-style
+    relative paths used by the compiler (KB) * }
+
+{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{ * PathConv is implemented in the system unit! * }
+function PathConv(path: string): string; external name 'PATHCONV';
+{$ELSE}
+function PathConv(path: string): string;
+begin
+  PathConv:=path;
+end;
+{$ENDIF}
+
 Constructor TAsmScriptAmiga.Create (Const ScriptName : String);
 begin
   Inherited Create(ScriptName);
@@ -292,7 +305,7 @@ begin
    end;
   Add(maybequoted(command)+' '+Options);
   { There is a problem here,
-    as allways return with a non zero error value PM  }
+    as always return with a non zero error value PM  }
   Add('if error');
   Add('why');
   Add('skip asmend');
@@ -316,13 +329,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : String);
 begin
- Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
+ Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Delete ' + MaybeQuoted (ScriptFixFileName(FileName)));
+ Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))));
 end;
 
 
