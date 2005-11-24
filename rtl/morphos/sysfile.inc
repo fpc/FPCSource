@@ -172,16 +172,25 @@ begin
 end;
 
 procedure do_erase(p : pchar);
+var
+  tmpStr: array[0..255] of Char;
 begin
+  tmpStr:=PathConv(strpas(p))+#0;
   checkCTRLC;
-  if not dosDeleteFile(p) then
+  if not dosDeleteFile(@tmpStr) then
     dosError2InOut(IoErr);
 end;
 
 procedure do_rename(p1,p2 : pchar);
+{ quite stack-effective code, huh? :) damn path conversions... (KB) }
+var
+  tmpStr1: array[0..255] of Char;
+  tmpStr2: array[0..255] of Char;
 begin
+  tmpStr1:=PathConv(strpas(p1))+#0;
+  tmpStr2:=PathConv(strpas(p2))+#0;
   checkCTRLC;
-  if not dosRename(p1,p2) then
+  if not dosRename(@tmpStr1,@tmpStr2) then
     dosError2InOut(IoErr);
 end;
 
