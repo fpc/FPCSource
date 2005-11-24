@@ -1,22 +1,3 @@
-{
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 by Karoly Balogh
-
-    TinyGL/OpenGL function declarations for MorphOS/PowerPC
-
-    Thanks to Michal 'kiero' Wozniak and Mark 'bigfoot' Olsen
-    for their help.
-
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
-
-
 { ****************************************************************************************************** }
 { ** TinyGL syscalls                                                                                  ** }
 { ****************************************************************************************************** }
@@ -252,14 +233,26 @@ syscall sysvbase TinyGLBase 742;
 procedure _GLUTKeyboardFunc(gcl: pointer; f: TGlut1Char2IntCallback);
 syscall sysvbase TinyGLBase 748;
 
+procedure _GLUTMouseFunc(gcl: pointer; f: TGlut4IntCallback);
+syscall sysvbase TinyGLBase 760;
+
+procedure _GLUTMotionFunc(gcl: pointer; f: TGlut2IntCallback);
+syscall sysvbase TinyGLBase 766;
+
 function _GLUTGet(gcl: pointer; t: GLenum): LongInt;
 syscall sysvbase TinyGLBase 802;
 
 procedure _GLUTInitDisplayMode(gcl: pointer; mode: Word);
 syscall sysvbase TinyGLBase 808;
 
+procedure _GLUTSpecialFunc(gcl: pointer; f: TGlut3IntCallback);
+syscall sysvbase TinyGLBase 814;
+
 procedure _GLUTTimerFunc(gcl: pointer; millis: Word; f: TGlut1IntCallback; value: LongInt);
 syscall sysvbase TinyGLBase 820;
+
+procedure _GLUTPassiveMotionFunc(gcl: pointer; f: TGlut2IntCallback);
+syscall sysvbase TinyGLBase 832;
 
 // MorphOS specific GLUT call, returns Intuition window handle
 function _GLUTGetWindowHandle(gcl: pointer): Pointer;
@@ -780,6 +773,26 @@ end;
 procedure GLUTKeyboardFunc(f: TGlut1Char2IntCallback); inline;
 begin
   _GLUTKeyboardFunc(tglContext, f);
+end;
+
+procedure GLUTMouseFunc(f: TGlut4IntCallback); inline;
+begin
+  _GLUTMouseFunc(tglContext, f);
+end;
+
+procedure GLUTSpecialFunc(f: TGlut3IntCallback); inline;
+begin
+  _GLUTSpecialFunc(tglContext, f);
+end;
+
+procedure GLUTMotionFunc(f: TGlut2IntCallback); inline;
+begin
+  _GLUTMotionFunc(tglContext, f);
+end;
+
+procedure GLUTPassiveMotionFunc(f: TGlut2IntCallback); inline;
+begin
+  _GLUTPassiveMotionFunc(tglContext, f);
 end;
 
 function GLUTGetWindowHandle: pointer; inline;
