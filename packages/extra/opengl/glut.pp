@@ -13,6 +13,10 @@
   {$DEFINE extdecl := cdecl}
 {$ENDIF}
 
+{$IFDEF MORPHOS}
+{$DEFINE GLUT_UNIT}
+{$ENDIF}
+
 unit Glut;
 
 // Copyright (c) Mark J. Kilgard, 1994, 1995, 1996. */
@@ -34,7 +38,11 @@ uses
   {$IFDEF Win32}
   Windows,
   {$ELSE}
+  {$IFDEF MORPHOS}
+  TinyGL,
+  {$ELSE}
   DLLFuncs,
+  {$ENDIF}
   {$ENDIF}
   GL;
 
@@ -276,6 +284,13 @@ const
   GLUT_GAME_MODE_REFRESH_RATE     = 5;
   GLUT_GAME_MODE_DISPLAY_CHANGED  = 6;
 
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its headers are included here. }
+{$INCLUDE tinyglh.inc}
+
+{$ELSE MORPHOS}
 var
 // GLUT initialization sub-API.
   glutInit: procedure(argcp: PInteger; argv: PPChar); extdecl;
@@ -421,17 +436,29 @@ var
   glutEnterGameMode : function : integer; extdecl;
   glutLeaveGameMode : procedure; extdecl;
   glutGameModeGet : function (mode : GLenum) : integer; extdecl;
+{$ENDIF MORPHOS}
 
 procedure LoadGlut(const dll: String);
 procedure FreeGlut;
 
 implementation
 
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its functions are included here. }
+{$INCLUDE tinygl.inc}
+
+{$ELSE MORPHOS}
 var
   hDLL: THandle;
+{$ENDIF MORPHOS}
 
 procedure FreeGlut;
 begin
+{$IFDEF MORPHOS}
+  // MorphOS's GL will closed down by TinyGL unit, nothing is needed here.
+{$ELSE MORPHOS}
 
   FreeLibrary(hDLL);
 
@@ -549,9 +576,15 @@ begin
   @glutEnterGameMode := nil;
   @glutLeaveGameMode := nil;
   @glutGameModeGet := nil;
+{$ENDIF MORPHOS}
 end;
 
 procedure LoadGlut(const dll: String);
+{$IFDEF MORPHOS}
+begin
+  // MorphOS's GL has own initialization in TinyGL unit, nothing is needed here.
+end;
+{$ELSE MORPHOS}
 var
   MethodName: string = '';
 
@@ -686,6 +719,7 @@ begin
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
 end;
+{$ENDIF MORPHOS}
 
 initialization
 
@@ -695,7 +729,9 @@ initialization
   {$ifdef darwin}
   LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
   {$else}
+  {$IFNDEF MORPHOS}
   LoadGlut('libglut.so.3');
+  {$ENDIF}
   {$endif}
   {$ENDIF}
 

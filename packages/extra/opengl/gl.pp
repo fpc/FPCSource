@@ -48,7 +48,11 @@ Abstract:
   {$DEFINE extdecl := stdcall}
 {$ELSE}
   {$DEFINE extdecl := cdecl}
-  {$LINKLIB c}
+  {$IFDEF MorphOS}
+    {$DEFINE GL_UNIT}
+  {$ELSE}
+    {$LINKLIB c}
+  {$ENDIF}
 {$ENDIF}
 
 unit GL;
@@ -60,11 +64,17 @@ uses
   {$IFDEF Win32}
   Windows
   {$ELSE Win32}
+  {$IFDEF MorphOS}
+  TinyGL
+  {$ELSE MorphOS}
   DLLFuncs
+  {$ENDIF MorphOS}
   {$ENDIF Win32};
 
+{$IFNDEF MORPHOS}
 var
   LibGL: THandle;
+{$ENDIF MORPHOS}
 
 type
   GLenum     = Cardinal;      PGLenum     = ^GLenum;
@@ -1161,6 +1171,13 @@ const
 
 {******************************************************************************}
 
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its headers are included here. }
+{$INCLUDE tinyglh.inc}
+
+{$ELSE MORPHOS}
 var
   glAccum: procedure(op: GLenum; value: GLfloat); extdecl;
   glAlphaFunc: procedure(func: GLenum; ref: GLclampf); extdecl;
@@ -1501,6 +1518,7 @@ var
   {$IFDEF Win32}
   ChoosePixelFormat: function(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl;
   {$ENDIF}
+{$ENDIF MORPHOS}
 
 type
   // EXT_vertex_array
@@ -1543,9 +1561,21 @@ implementation
 function WinChoosePixelFormat(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl; external 'gdi32' name 'ChoosePixelFormat';
 {$endif}
 
+{$IFDEF MORPHOS}
+
+{ MorphOS GL works differently due to different dynamic-library handling on Amiga-like }
+{ systems, so its functions are included here. }
+{$INCLUDE tinygl.inc}
+
+{$ENDIF MORPHOS}
+
 procedure FreeOpenGL;
 begin
+{$IFDEF MORPHOS}
 
+  // MorphOS's GL will closed down by TinyGL unit, nothing is needed here.
+
+{$ELSE MORPHOS}
   @glAccum := nil;
   @glAlphaFunc := nil;
   @glAreTexturesResident := nil;
@@ -1887,10 +1917,15 @@ begin
   {$ENDIF}
 
   FreeLibrary(LibGL);
-
+{$ENDIF MORPHOS}
 end;
 
 procedure LoadOpenGL(const dll: String);
+{$IFDEF MORPHOS}
+begin
+  // MorphOS's GL has own initialization in TinyGL unit, nothing is needed here.
+end;
+{$ELSE MORPHOS}
 var
   MethodName: string = '';
 
@@ -2256,8 +2291,8 @@ begin
     raise Exception.Create('Unable to select pixel format');
   end;
   {$ENDIF}
-
 end;
+{$ENDIF MORPHOS}
 
 initialization
 
@@ -2271,7 +2306,11 @@ initialization
   {$ifdef darwin}
   LoadOpenGL('/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib');
   {$ELSE}
+  {$IFDEF MorphOS}
+  InitTinyGLLibrary;
+  {$ELSE}
   LoadOpenGL('libGL.so.1');
+  {$ENDIF}
   {$endif}
   {$ENDIF}
 
