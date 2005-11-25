@@ -1025,29 +1025,39 @@ Begin
           P := Pos('.', Result);
           if P<>0 then
             Result[P] := DecimalSeparator;
-          TooLarge := P > Precision + 1;
+          TooLarge :=(P > Precision + 1) or (Pos('E', Result)<>0);
         End;
 
         If TooSmall Or TooLarge Then
           begin
-          Result := FloatToStrF(Value, ffExponent, Precision, Digits);
-          // Strip unneeded zeroes.
-          P:=Pos('E',result)-1;
-          If P<>-1 then
-             While (P>1) and (Result[P]='0') do
-               begin
-               system.Delete(Result,P,1);
-               Dec(P);
-               end;
-          end
+            Result := FloatToStrF(Value, ffExponent, Precision, Digits);
+            // Strip unneeded zeroes.
+            P:=Pos('E',result)-1;
+            If P<>-1 then
+              begin
+                { delete superfluous +? }
+                if result[p+2]='+' then
+                  system.Delete(Result,P+2,1);
+                While (P>1) and (Result[P]='0') do
+                  begin
+                    system.Delete(Result,P,1);
+                    Dec(P);
+                  end;
+                If (P>0) and (Result[P]=DecimalSeparator) Then
+                  begin
+                    system.Delete(Result,P,1);
+                    Dec(P);
+                  end;
+              end;
+            end
         else if (P<>0) then // we have a decimalseparator
           begin
-          P := Length(Result);
-          While (P>0) and (Result[P] = '0') Do
-            Dec(P);
-          If (P>0) and (Result[P]=DecimalSeparator) Then
-            Dec(P);
-          SetLength(Result, P);
+            P := Length(Result);
+            While (P>0) and (Result[P] = '0') Do
+              Dec(P);
+            If (P>0) and (Result[P]=DecimalSeparator) Then
+              Dec(P);
+            SetLength(Result, P);
           end;
       End;
 

@@ -207,7 +207,7 @@ end;
 
 function TRegistry.GetBaseKey(Relative: Boolean): HKey;
 begin
-  If Relative Then
+  If Relative and (CurrentKey<>0) Then
     Result := CurrentKey
   else
     Result := RootKey;
