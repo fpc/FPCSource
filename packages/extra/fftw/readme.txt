@@ -1,5 +1,5 @@
-Interface unit for Fast Fourier in the West library
----------------------------------------------------
+Interface unit for Fastest Fourier in the West library
+------------------------------------------------------
 
 This unit is a Pascal interface to the FFTW library version 3. FFTW is
 a library to compute fast fourier transforms extremely fast, it uses
