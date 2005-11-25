@@ -1923,6 +1923,11 @@ packages/extra/cdrom/scsidefs.pp svneol=native#text/plain
 packages/extra/cdrom/showcds.pp svneol=native#text/plain
 packages/extra/cdrom/wincd.pp svneol=native#text/plain
 packages/extra/cdrom/wnaspi32.pp svneol=native#text/plain
+packages/extra/fftw/Makefile -text
+packages/extra/fftw/Makefile.fpc -text
+packages/extra/fftw/example.pas -text
+packages/extra/fftw/fftw_s.pas -text
+packages/extra/fftw/readme.txt -text
 packages/extra/forms/Makefile svneol=native#text/plain
 packages/extra/forms/Makefile.fpc svneol=native#text/plain
 packages/extra/forms/README -text
