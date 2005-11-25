@@ -13,7 +13,8 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       charset ucomplex getopts matrix \
       variants types rtlconsts sysconst dateutil \
       exec timer doslib utility hardware inputevent graphics layers \
-      intuition clipboard asl ahi get9 fpmkunit
+      intuition clipboard datatypes asl ahi get9 \
+      fpmkunit
 rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil fpmkunit
 
 [require]
