@@ -3528,6 +3528,7 @@ rtl/macos/systhrd.inc svneol=native#text/plain
 rtl/macos/sysutils.pp svneol=native#text/plain
 rtl/morphos/Makefile svneol=native#text/plain
 rtl/morphos/Makefile.fpc svneol=native#text/plain
+rtl/morphos/aboxlib.pas -text
 rtl/morphos/ahi.pas svneol=native#text/plain
 rtl/morphos/asl.pas svneol=native#text/plain
 rtl/morphos/classes.pp svneol=native#text/plain
