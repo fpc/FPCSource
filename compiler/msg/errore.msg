@@ -320,6 +320,8 @@ scan_c_switching_to_utf8=02071_C_UTF-8 signature found, using UTF-8 encoding
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Compile time expression: Wanted $1 but got $2 at $3
 % Type check of a compile time expression failed.
+scan_n_app_type_not_support=02073_N_APPTYPE is not supported by the target OS
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
 % \end{description}
 #
 # Parser
