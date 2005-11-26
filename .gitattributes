@@ -2847,7 +2847,6 @@ packages/extra/opengl/glut.pp svneol=native#text/plain
 packages/extra/opengl/glx.pp svneol=native#text/plain
 packages/extra/opengl/readme -text
 packages/extra/opengl/tinygl.inc -text
-packages/extra/opengl/tinygl.pp -text
 packages/extra/opengl/tinyglh.inc -text
 packages/extra/os2units/Makefile svneol=native#text/plain
 packages/extra/os2units/Makefile.fpc svneol=native#text/plain
@@ -3795,6 +3794,7 @@ rtl/morphos/sysutils.pp svneol=native#text/plain
 rtl/morphos/timer.pp svneol=native#text/plain
 rtl/morphos/timerd.inc svneol=native#text/plain
 rtl/morphos/timerf.inc svneol=native#text/plain
+rtl/morphos/tinygl.pp -text
 rtl/morphos/tthread.inc svneol=native#text/plain
 rtl/morphos/utild1.inc svneol=native#text/plain
 rtl/morphos/utild2.inc svneol=native#text/plain

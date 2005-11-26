@@ -61,6 +61,7 @@ Abstract:
 {$ENDIF}
 
 {$IFDEF MORPHOS}
+{$INLINE ON}
 {$DEFINE GLU_UNIT}
 {$ENDIF}
 
