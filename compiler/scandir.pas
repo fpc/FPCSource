@@ -243,26 +243,36 @@ implementation
       var
          hs : string;
       begin
-        if not (target_info.system in [system_i386_win32,system_i386_os2,
+        if not (target_info.system in system_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos]) then
-          Message(scan_w_app_type_not_support);
-        if not current_module.in_global then
-          Message(scan_w_switch_is_global)
+          begin
+            if m_delphi in aktmodeswitches then
+              Message(scan_n_app_type_not_support)
+            else
+              Message(scan_w_app_type_not_support);
+          end
         else
           begin
-             current_scanner.skipspace;
-             hs:=current_scanner.readid;
-             if hs='GUI' then
-               apptype:=app_gui
-             else if hs='CONSOLE' then
-               apptype:=app_cui
-             else if (hs='FS') and (target_info.system in [system_i386_os2,
-                                                         system_i386_emx]) then
-               apptype:=app_fs
-             else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
-               apptype:=app_tool
-             else
-               Message1(scan_w_unsupported_app_type,hs);
+            if not current_module.in_global then
+              Message(scan_w_switch_is_global)
+            else
+              begin
+                 current_scanner.skipspace;
+                 hs:=current_scanner.readid;
+                 if hs='GUI' then
+                   apptype:=app_gui
+                 else if hs='CONSOLE' then
+                   apptype:=app_cui
+                 else if (hs='NATIVE') and (target_info.system in system_windows) then
+                   apptype:=app_native
+                 else if (hs='FS') and (target_info.system in [system_i386_os2,
+                                                             system_i386_emx]) then
+                   apptype:=app_fs
+                 else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
+                   apptype:=app_tool
+                 else
+                   Message1(scan_w_unsupported_app_type,hs);
+              end;
           end;
       end;
 
@@ -876,7 +886,7 @@ implementation
             Message(scan_w_only_one_resourcefile_supported)
           else
             current_module.resourcefiles.insert(FixFileName(s));
-          end 
+          end
         else
           Message(scan_e_resourcefiles_not_supported);
       end;

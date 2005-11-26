@@ -88,6 +88,7 @@ const
   scan_e_utf8_malformed=02070;
   scan_c_switching_to_utf8=02071;
   scan_e_compile_time_typeerror=02072;
+  scan_n_app_type_not_support=02073;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -661,9 +662,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39103;
+  MsgTxtSize = 39153;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,73,216,59,59,47,100,20,135,60,
+    19,74,216,59,59,47,100,20,135,60,
     40,1,1,1,1,1,1,1,1,1
   );
