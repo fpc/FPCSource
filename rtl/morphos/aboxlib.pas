@@ -23,6 +23,9 @@ interface
 function DoMethod(obj : longword; msg : array of LongWord): longword;
 function DoMethodA(obj : longword; msg1 : Pointer): longword; assembler;
 
+function DoSuperMethod(class_: longword; obj : longword; msg : array of LongWord): longword;
+function DoSuperMethodA(class_: longword; obj : longword; msg1 : Pointer): longword; assembler;
+
 implementation
 
 function DoMethodA(obj : longword; msg1 : Pointer): longword; assembler;
@@ -45,6 +48,28 @@ end ['R31'];
 function DoMethod(obj : longword; msg : array of LongWord): longword;
 begin
   DoMethod:=DoMethodA(obj, @msg);
+end;
+
+function DoSuperMethodA(class_: longword; obj : longword; msg1 : Pointer): longword; assembler;
+asm
+  mflr r31
+
+  stw r3,32(r2)
+  stw r5,36(r2)
+  stw r4,40(r2)
+
+  lwz r11,104(r2)
+  lwz r9,24(r3)
+  lwz r3,8(r9)
+  mtlr r11
+  blrl
+
+  mtlr r31
+end ['R31'];
+
+function DoSuperMethod(class_: longword; obj : longword; msg : array of LongWord): longword;
+begin
+  DoSuperMethod:=DoSuperMethodA(class_, obj, @msg);
 end;
 
 end.
