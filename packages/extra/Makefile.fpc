@@ -2,7 +2,7 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs_linux=unzip zlib \
+dirs_linux=unzip zlib fftw \
            x11 opengl gtk gtk2 syslog \
            forms svgalib ggi libpng libgd \
            utmp bfd gdbm ncurses tcl cdrom \
@@ -11,7 +11,7 @@ dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
-dirs_freebsd=unzip zlib \
+dirs_freebsd=unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -19,7 +19,7 @@ dirs_openbsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
-dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits
+dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw
 dirs_os2=os2units \
          rexx \
          unzip zlib \
@@ -39,7 +39,7 @@ dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_netware=unzip zlib
 dirs_netwlibc=unzip zlib
-dirs_darwin= unzip zlib \
+dirs_darwin= unzip zlib fftw \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
