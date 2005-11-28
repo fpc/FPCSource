@@ -23,6 +23,7 @@ unit fftw_s;
 {$CALLING cdecl} {Saves some typing.}
 
 {$MACRO on}
+{$INLINE on}
 
 type    complex_single=record
           re,im:single;
