@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 Karoly Balogh for Genesi S.a.r.l.
 
-    intuition.library interface unit for MorphOS/PowerPC
+    asl.library interface unit for MorphOS/PowerPC
 
     Based on work of Nils Sjoholm member of the Amiga RTL
     development team.
