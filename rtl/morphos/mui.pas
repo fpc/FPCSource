@@ -145,6 +145,9 @@ uses exec, intuition,utility,graphics{,iffparse};
      MUI_TRUE  = 1;
      MUI_FALSE = 0;
 
+  const
+     MUI_END = TAG_DONE; // this can be used instead of C End
+
   {
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      Warning, some of the macros in this header file work only with
@@ -461,23 +464,23 @@ uses exec, intuition,utility,graphics{,iffparse};
        Control codes for text strings
                                                                                }
     { right justified  }
-       MUIX_R : PChar = '\033r';
+       MUIX_R  = #27+'r';
     { centered         }
-       MUIX_C : PChar = '\033c';
+       MUIX_C = #27+'c';
     { left justified   }
-       MUIX_L : PChar = '\033l';
+       MUIX_L = #27+'l';
     { normal      }
-       MUIX_N : PChar = '\033n';
+       MUIX_N = #27+'n';
     { bold        }
-       MUIX_B : PChar = '\033b';
+       MUIX_B = #27+'b';
     { italic      }
-       MUIX_I : PChar = '\033i';
+       MUIX_I = #27+'i';
     { underlined  }
-       MUIX_U : PChar = '\033u';
+       MUIX_U = #27+'u';
     { text pen            }
-       MUIX_PT : PChar = '\0332';
+       MUIX_PT = #27+'2';
     { highlight text pen  }
-       MUIX_PH : PChar = '\0338';
+       MUIX_PH = #27+'8';
     {
        Parameter structures for some classes
                                                                                }
@@ -3395,34 +3398,32 @@ uses exec, intuition,utility,graphics{,iffparse};
          end;
        p__dummyXFC2__ = ^t__dummyXFC2__;
 
-
     const
-
-        MUIKEY_RELEASE = -2;
-        MUIKEY_NONE    = -1;
-        MUIKEY_PRESS   = 0;
-        MUIKEY_TOGGLE  = 1;
-        MUIKEY_UP      = 2;
-        MUIKEY_DOWN    = 3;
-        MUIKEY_PAGEUP  = 4;
-        MUIKEY_PAGEDOWN = 5;
-        MUIKEY_TOP      = 6;
-        MUIKEY_BOTTOM   = 7;
-        MUIKEY_LEFT     = 8;
-        MUIKEY_RIGHT    = 9;
-        MUIKEY_WORDLEFT = 10;
-        MUIKEY_WORDRIGHT = 11;
-        MUIKEY_LINESTART = 12;
-        MUIKEY_LINEEND   = 13;
-        MUIKEY_GADGET_NEXT = 14;
-        MUIKEY_GADGET_PREV = 15;
-        MUIKEY_GADGET_OFF  = 16;
-        MUIKEY_WINDOW_CLOSE = 17;
-        MUIKEY_WINDOW_NEXT  = 18;
-        MUIKEY_WINDOW_PREV  = 19;
-        MUIKEY_HELP         = 20;
-        MUIKEY_POPUP        = 21;
-        MUIKEY_COUNT        = 22;
+       MUIKEY_RELEASE = -2;
+       MUIKEY_NONE    = -1;
+       MUIKEY_PRESS   = 0;
+       MUIKEY_TOGGLE  = 1;
+       MUIKEY_UP      = 2;
+       MUIKEY_DOWN    = 3;
+       MUIKEY_PAGEUP  = 4;
+       MUIKEY_PAGEDOWN = 5;
+       MUIKEY_TOP      = 6;
+       MUIKEY_BOTTOM   = 7;
+       MUIKEY_LEFT     = 8;
+       MUIKEY_RIGHT    = 9;
+       MUIKEY_WORDLEFT = 10;
+       MUIKEY_WORDRIGHT = 11;
+       MUIKEY_LINESTART = 12;
+       MUIKEY_LINEEND   = 13;
+       MUIKEY_GADGET_NEXT = 14;
+       MUIKEY_GADGET_PREV = 15;
+       MUIKEY_GADGET_OFF  = 16;
+       MUIKEY_WINDOW_CLOSE = 17;
+       MUIKEY_WINDOW_NEXT  = 18;
+       MUIKEY_WINDOW_PREV  = 19;
+       MUIKEY_HELP         = 20;
+       MUIKEY_POPUP        = 21;
+       MUIKEY_COUNT        = 22;
 
        MUIKEYF_PRESS = 1 shl MUIKEY_PRESS;
        MUIKEYF_TOGGLE = 1 shl MUIKEY_TOGGLE;
@@ -3982,7 +3983,7 @@ end;
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '19';
-  LIBVERSION : longword = 19;
+  LIBVERSION : longword = MUIMASTER_VMIN;
 
 var
   muimaster_exit : Pointer;

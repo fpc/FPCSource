@@ -3783,6 +3783,7 @@ rtl/morphos/inputevent.pas svneol=native#text/plain
 rtl/morphos/intuition.pas svneol=native#text/plain
 rtl/morphos/layers.pas svneol=native#text/plain
 rtl/morphos/mui.pas -text
+rtl/morphos/muihelper.pas -text
 rtl/morphos/prt0.as -text
 rtl/morphos/sysdir.inc svneol=native#text/plain
 rtl/morphos/sysfile.inc svneol=native#text/plain

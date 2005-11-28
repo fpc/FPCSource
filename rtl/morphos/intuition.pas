@@ -4346,6 +4346,8 @@ SysCall IntuitionBase 630;
 function NewObjectA(classPtr : pIClass location 'a0'; classID : PChar location 'a1'; tagList : pTagItem location 'a2') : POINTER;
 SysCall IntuitionBase 636;
 
+function NewObject(classPtr : pIClass; classID : PChar; tags: array of LongWord) : POINTER;
+
 procedure DisposeObject(object1 : POINTER location 'a0');
 SysCall IntuitionBase 642;
 
@@ -4487,6 +4489,11 @@ end;
 function OpenWindowTags(newWindow : pNewWindow; tagList : array of DWord) : pWindow; Inline;
 begin
   OpenWindowTags:=OpenWindowTagList(newWindow,@tagList);
+end;
+
+function NewObject(classPtr : pIClass; classID : PChar; tags: array of LongWord) : POINTER; inline;
+begin
+  NewObject:=NewObjectA(classPtr, classID, @tags);
 end;
 
 
