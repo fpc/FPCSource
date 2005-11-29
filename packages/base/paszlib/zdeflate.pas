@@ -527,17 +527,13 @@ begin
   }
   { SetLength(strm.msg, 255); }
   strm.msg := '';
-  if not Assigned(strm.zalloc) then
+  if strm.zalloc=nil then
   begin
-    {$IFDEF FPC}  strm.zalloc := @zcalloc;  {$ELSE}
-    strm.zalloc := zcalloc;
-    {$ENDIF}
+    strm.zalloc := @zcalloc;
     strm.opaque := nil;
   end;
-  if not Assigned(strm.zfree) then
-    {$IFDEF FPC}  strm.zfree := @zcfree;  {$ELSE}
-    strm.zfree := zcfree;
-    {$ENDIF}
+  if strm.zfree=nil then
+    strm.zfree := @zcfree;
 
   if (level  =  Z_DEFAULT_COMPRESSION) then
     level := 6;
