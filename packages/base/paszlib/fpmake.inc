@@ -7,7 +7,7 @@
     Version:={$i %FPCVERSION%};
     T:=Targets.AddUnit('paszlib');
     T:=Targets.AddUnit('adler');
-    T:=Targets.AddUnit('gzcrc');
+    T:=Targets.AddUnit('crc');
     T:=Targets.AddUnit('gzio');
     T:=Targets.AddUnit('infblock');
     T:=Targets.AddUnit('infcodes');
