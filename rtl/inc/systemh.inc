@@ -368,11 +368,11 @@ ThreadVar
 {$endif}
 
 Procedure Move(const source;var dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
-Procedure FillChar(Var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(Var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(Var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
 procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
-Procedure FillWord(Var x;count:SizeInt;Value:Word);
+Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
@@ -452,14 +452,14 @@ function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
 function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
 
 { Shortstring functions }
-Procedure Delete(Var s:shortstring;index:SizeInt;count:SizeInt);
-Procedure Insert(const source:shortstring;Var s:shortstring;index:SizeInt);
-Procedure Insert(source:Char;Var s:shortstring;index:SizeInt);
+Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
+Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
+Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
-Function  Pos (Const Substr : ShortString; Const Source : AnsiString) : SizeInt;
-Procedure SetString (Var S : Shortstring; Buf : PChar; Len : SizeInt);
-Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt);
+Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
+Procedure SetString (var S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure SetString (var S : AnsiString; Buf : PChar; Len : SizeInt);
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
@@ -482,11 +482,11 @@ function  pos(const substr : shortstring;c:char): SizeInt;
                              AnsiString Handling
 ****************************************************************************}
 
-Procedure UniqueString(Var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
-Function  Pos (c : Char; Const s : AnsiString) : SizeInt;
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : SizeInt);
-Procedure Delete (Var S : AnsiString; Index,Size: SizeInt);
+Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
+Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
+Function  Pos (c : Char; const s : AnsiString) : SizeInt;
+Procedure Insert (const Source : AnsiString; var S : AnsiString; Index : SizeInt);
+Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
 Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
@@ -503,44 +503,44 @@ function  lowercase(const s : ansistring) : ansistring;
                           Untyped File Management
 ****************************************************************************}
 
-Procedure Assign(Var f:File;const Name:string);
-Procedure Assign(Var f:File;p:pchar);
-Procedure Assign(Var f:File;c:char);
-Procedure Rewrite(Var f:File;l:Longint);
-Procedure Rewrite(Var f:File);
-Procedure Reset(Var f:File;l:Longint);
-Procedure Reset(Var f:File);
-Procedure Close(Var f:File);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Int64;Var Result:Int64);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;Var Result:Longint);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Cardinal;var Result:Cardinal);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Word;Var Result:Word);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Word;Var Result:Integer);
-Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);
-Procedure BlockRead(Var f:File;Var Buf;count:Int64;Var Result:Int64);
-Procedure BlockRead(Var f:File;Var Buf;count:Longint;Var Result:Longint);
-Procedure BlockRead(Var f:File;Var Buf;count:Cardinal;Var Result:Cardinal);
-Procedure BlockRead(Var f:File;Var Buf;count:Word;Var Result:Word);
-Procedure BlockRead(Var f:File;Var Buf;count:Word;Var Result:Integer);
-Procedure BlockRead(Var f:File;Var Buf;count:Int64);
-Function  FilePos(Var f:File):Int64;
-Function  FileSize(Var f:File):Int64;
-Procedure Seek(Var f:File;Pos:Int64);
-Function  EOF(Var f:File):Boolean;
-Procedure Erase(Var f:File);
-Procedure Rename(Var f:File;const s:string);
-Procedure Rename(Var f:File;p:pchar);
-Procedure Rename(Var f:File;c:char);
-Procedure Truncate (Var F:File);
+Procedure Assign(var f:File;const Name:string);
+Procedure Assign(var f:File;p:pchar);
+Procedure Assign(var f:File;c:char);
+Procedure Rewrite(var f:File;l:Longint);
+Procedure Rewrite(var f:File);
+Procedure Reset(var f:File;l:Longint);
+Procedure Reset(var f:File);
+Procedure Close(var f:File);
+Procedure BlockWrite(var f:File;const Buf;Count:Int64;var Result:Int64);
+Procedure BlockWrite(var f:File;const Buf;Count:Longint;var Result:Longint);
+Procedure BlockWrite(var f:File;const Buf;Count:Cardinal;var Result:Cardinal);
+Procedure BlockWrite(var f:File;const Buf;Count:Word;var Result:Word);
+Procedure BlockWrite(var f:File;const Buf;Count:Word;var Result:Integer);
+Procedure BlockWrite(var f:File;const Buf;Count:Longint);
+Procedure BlockRead(var f:File;var Buf;count:Int64;var Result:Int64);
+Procedure BlockRead(var f:File;var Buf;count:Longint;var Result:Longint);
+Procedure BlockRead(var f:File;var Buf;count:Cardinal;var Result:Cardinal);
+Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);
+Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);
+Procedure BlockRead(var f:File;var Buf;count:Int64);
+Function  FilePos(var f:File):Int64;
+Function  FileSize(var f:File):Int64;
+Procedure Seek(var f:File;Pos:Int64);
+Function  EOF(var f:File):Boolean;
+Procedure Erase(var f:File);
+Procedure Rename(var f:File;const s:string);
+Procedure Rename(var f:File;p:pchar);
+Procedure Rename(var f:File;c:char);
+Procedure Truncate (var F:File);
 
 
 {****************************************************************************
                            Typed File Management
 ****************************************************************************}
 
-Procedure Assign(Var f:TypedFile;const Name:string);
-Procedure Assign(Var f:TypedFile;p:pchar);
-Procedure Assign(Var f:TypedFile;c:char);
+Procedure Assign(var f:TypedFile;const Name:string);
+Procedure Assign(var f:TypedFile;p:pchar);
+Procedure Assign(var f:TypedFile;c:char);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 
@@ -548,29 +548,29 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
                             Text File Management
 ****************************************************************************}
 
-Procedure Assign(Var t:Text;const s:string);
-Procedure Assign(Var t:Text;p:pchar);
-Procedure Assign(Var t:Text;c:char);
-Procedure Close(Var t:Text);
-Procedure Rewrite(Var t:Text);
-Procedure Reset(Var t:Text);
-Procedure Append(Var t:Text);
-Procedure Flush(Var t:Text);
-Procedure Erase(Var t:Text);
-Procedure Rename(Var t:Text;const s:string);
-Procedure Rename(Var t:Text;p:pchar);
-Procedure Rename(Var t:Text;c:char);
-Function  EOF(Var t:Text):Boolean;
+Procedure Assign(var t:Text;const s:string);
+Procedure Assign(var t:Text;p:pchar);
+Procedure Assign(var t:Text;c:char);
+Procedure Close(var t:Text);
+Procedure Rewrite(var t:Text);
+Procedure Reset(var t:Text);
+Procedure Append(var t:Text);
+Procedure Flush(var t:Text);
+Procedure Erase(var t:Text);
+Procedure Rename(var t:Text;const s:string);
+Procedure Rename(var t:Text;p:pchar);
+Procedure Rename(var t:Text;c:char);
+Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
-Function  EOLn(Var t:Text):Boolean;
+Function  EOLn(var t:Text):Boolean;
 Function  EOLn:Boolean;
-Function  SeekEOLn (Var t:Text):Boolean;
-Function  SeekEOF (Var t:Text):Boolean;
+Function  SeekEOLn (var t:Text):Boolean;
+Function  SeekEOF (var t:Text):Boolean;
 Function  SeekEOLn:Boolean;
 Function  SeekEOF:Boolean;
-Procedure SetTextBuf(Var f:Text; Var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
-Procedure SetTextBuf(Var f:Text; Var Buf; Size:SizeInt);
-Procedure SetTextLineEnding(Var f:Text; Ending:string);
+Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
+Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
+Procedure SetTextLineEnding(var f:Text; Ending:string);
 
 {****************************************************************************
                             Directory Management
@@ -579,8 +579,8 @@ Procedure SetTextLineEnding(Var f:Text; Ending:string);
 Procedure chdir(const s:string);
 Procedure mkdir(const s:string);
 Procedure rmdir(const s:string);
-Procedure getdir(drivenr:byte;Var dir:shortstring);
-Procedure getdir(drivenr:byte;Var dir:ansistring);
+Procedure getdir(drivenr:byte;var dir:shortstring);
+Procedure getdir(drivenr:byte;var dir:ansistring);
 
 
 {*****************************************************************************
@@ -621,13 +621,13 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 *****************************************************************************}
 
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(var S:AnsiString;ReserveEntries:integer):ppchar;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
 Function  SysBackTraceStr(Addr:Pointer): ShortString;
-Procedure SysAssert(Const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
+Procedure SysAssert(const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 
 { Error handlers }
 Type
