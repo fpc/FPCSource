@@ -8,9 +8,7 @@ program example;
   For conditions of distribution and use, see copyright notice in readme.txt
 }
 {-$define MemCheck}
-{$IFNDEF FPC}
-  {$DEFINE TEST_COMPRESS}
-{$ENDIF}
+{$DEFINE TEST_COMPRESS}
 {$DEFINE TEST_GZIO}
 {$DEFINE TEST_INFLATE}
 {$DEFINE TEST_DEFLATE}
@@ -22,7 +20,9 @@ uses
 {$ifdef ver80}
  WinCrt,
 {$endif}
+{$ifdef you may have to define this in Delphi < 5}
   strings,
+{$endif}
 {$ifndef MSDOS}
   SysUtils,
 {$endif}
@@ -548,10 +548,10 @@ begin
       if (d_stream.adler <> dictId) then
       begin
         WriteLn('unexpected dictionary');
-        Stop;
+	Stop;
       end;
       err := inflateSetDictionary(d_stream, pBytef(dictionary),
-                                     StrLen(dictionary));
+				     StrLen(dictionary));
     end;
     CHECK_ERR(err, 'inflate with dict');
   end;

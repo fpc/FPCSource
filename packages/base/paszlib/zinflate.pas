@@ -1,4 +1,4 @@
-Unit  zInflate;
+unit  zinflate;
 
 {  inflate.c -- zlib interface to inflate modules
    Copyright (C) 1995-1998 Mark Adler
@@ -39,6 +39,10 @@ function inflateInit2_(var z: z_stream;
                        w : int;
                        const version : string;
                        stream_size : int) : int;
+
+function inflateInit2(var z: z_stream;
+                       windowBits : int) : int;
+
 {
      This is another version of inflateInit with an extra parameter. The
    fields next_in, avail_in, zalloc, zfree and opaque must be initialized
@@ -134,7 +138,7 @@ function inflate(var z : z_stream;
 
      If a preset dictionary is needed at this point (see inflateSetDictionary
   below), inflate sets strm-adler to the adler32 checksum of the
-  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise
+  dictionary chosen by the compressor and returns Z_NEED_DICT; otherwise 
   it sets strm->adler to the adler32 checksum of all output produced
   so far (that is, total_out bytes) and returns Z_OK, Z_STREAM_END or
   an error code as described below. At the end of the stream, inflate()
@@ -254,23 +258,18 @@ begin
   { initialize state }
   { SetLength(strm.msg, 255); }
   z.msg := '';
-{$ifdef fpc}
   if not Assigned(z.zalloc) then
   begin
-    z.zalloc := @zcalloc;
-    z.opaque := voidpf(0);
-  end;
-  if not Assigned(z.zfree) then
-    z.zfree := @zcfree;
-{$else}
-  if not Assigned(z.zalloc) then
-  begin
+    {$IFDEF FPC}  z.zalloc := @zcalloc;  {$ELSE}
     z.zalloc := zcalloc;
+    {$endif}
     z.opaque := voidpf(0);
   end;
   if not Assigned(z.zfree) then
+    {$IFDEF FPC}  z.zfree := @zcfree;  {$ELSE}
     z.zfree := zcfree;
-{$endif}
+    {$ENDIF}
+
   z.state := pInternal_state( ZALLOC(z,1,sizeof(internal_state)) );
   if (z.state = Z_NULL) then
   begin
@@ -301,11 +300,11 @@ begin
   if z.state^.nowrap then
     z.state^.blocks := inflate_blocks_new(z, NIL, uInt(1) shl w)
   else
-{$ifdef fpc}
+  {$IFDEF FPC}
     z.state^.blocks := inflate_blocks_new(z, @adler32, uInt(1) shl w);
-{$else}
+  {$ELSE}
     z.state^.blocks := inflate_blocks_new(z, adler32, uInt(1) shl w);
-{$endif}
+  {$ENDIF}
   if (z.state^.blocks = Z_NULL) then
   begin
     inflateEnd(z);
@@ -320,10 +319,15 @@ begin
   inflateInit2_ :=  Z_OK;
 end;
 
+function inflateInit2(var z: z_stream; windowBits : int) : int;
+begin
+  inflateInit2 := inflateInit2_(z, windowBits, ZLIB_VERSION, sizeof(z_stream));
+end;
+
+
 function inflateInit(var z : z_stream) : int;
 { inflateInit is a macro to allow checking the zlib version
-  and the compiler's view of z_stream:
-  }
+  and the compiler's view of z_stream:  }
 begin
   inflateInit := inflateInit2_(z, DEF_WBITS, ZLIB_VERSION, sizeof(z_stream));
 end;
@@ -529,7 +533,7 @@ begin
         if ((b and PRESET_DICT) = 0) then
         begin
           z.state^.mode := BLOCKS;
-          continue;      { break C-switch }
+	  continue;      { break C-switch }
         end;
         z.state^.mode := DICT4;
         { falltrough }

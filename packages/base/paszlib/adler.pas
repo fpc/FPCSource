@@ -40,7 +40,7 @@ function adler32(adler : uLong; buf : pBytef; len : uInt) : uLong;
 implementation
 
 const
-  BASE = Long(65521); { largest prime smaller than 65536 }
+  BASE = uLong(65521); { largest prime smaller than 65536 }
   {NMAX = 5552; original code with unsigned 32 bit integer }
   { NMAX is the largest n such that 255n(n+1)/2 + (n+1)(BASE-1) <= 2^32-1 }
   NMAX = 3854;        { code with signed 32 bit integer }
@@ -111,3 +111,4 @@ end;
 #define DO16(buf)   DO8(buf,0); DO8(buf,8);
 }
 end.
+

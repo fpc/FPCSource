@@ -97,10 +97,10 @@ function gzclose(thefile:gzFile):longint;
 function gzerror(thefile:gzFile; var errnum:longint):string;
 function adler32(theadler:uLong;buf : pchar; len:uInt):uLong;
 function crc32(thecrc:uLong;buf : pchar; len:uInt):uLong;
-function deflateInit_(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;
+{function deflateInit_(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;
 function inflateInit_(var strm:TZStream; version:pchar; stream_size:longint):longint;
 function deflateInit2_(var strm:TZStream; level:longint; method:longint; windowBits:longint; memLevel:longint;strategy:longint; version:pchar; stream_size:longint):longint;
-function inflateInit2_(var strm:TZStream; windowBits:longint; version:pchar; stream_size:longint):longint;
+function inflateInit2_(var strm:TZStream; windowBits:longint; version:pchar; stream_size:longint):longint;}
 function deflateInit(var strm:TZStream;level : longint) : longint;
 function inflateInit(var strm:TZStream) : longint;
 function deflateInit2(var strm:TZStream;level,method,windowBits,memLevel,strategy : longint) : longint;
@@ -175,18 +175,30 @@ begin
 end;
 
 function compress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+
+type Pbytearray=^Tbytearray;
+     Tbytearray=array[0..0] of byte;
+
 begin
-  compress:=zcompres.compress(pbytef(dest),destlen,pbytef(source),sourcelen);
+  compress:=zcompres.compress(pbytef(dest),destlen,Pbytearray(source)^,sourcelen);
 end;
 
 function compress2(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong; level:longint):longint;
+
+type Pbytearray=^Tbytearray;
+     Tbytearray=array[0..0] of byte;
+
 begin
-  compress2:=zcompres.compress2(pbytef(dest),destlen,pbytef(source),sourcelen,level);
+  compress2:=zcompres.compress2(pbytef(dest),destlen,Pbytearray(source)^,sourcelen,level);
 end;
 
 function uncompress(dest:pchar;var destLen:uLongf; source : pchar; sourceLen:uLong):longint;
+
+type Pbytearray=^Tbytearray;
+     Tbytearray=array[0..0] of byte;
+
 begin
-  uncompress:=zuncompr.uncompress(pbytef(dest),destlen,pbytef(source),sourcelen);
+  uncompress:=zuncompr.uncompress(pbytef(dest),destlen,Pbytearray(source)^,sourcelen);
 end;
 
 function gzopen(path:pchar; mode:pchar):gzFile;
@@ -273,7 +285,7 @@ function crc32(thecrc:uLong;buf : pchar; len:uInt):uLong;
 begin
   crc32:=gzcrc.crc32(thecrc,pbytef(buf),len);
 end;
-
+{
 function deflateInit_(var strm:TZStream; level:longint; version:pchar; stream_size:longint):longint;
 begin
   deflateInit_:=zdeflate.deflateInit_(@strm,level,version,stream_size);
@@ -293,7 +305,7 @@ function inflateInit2_(var strm:TZStream; windowBits:longint; version:pchar; str
 begin
   inflateInit2_:=zinflate.inflateInit2_(strm,windowBits,version,stream_size);
 end;
-
+}
 function deflateInit(var strm:TZStream;level : longint) : longint;
 begin
   deflateInit:=zdeflate.deflateInit(strm,level);

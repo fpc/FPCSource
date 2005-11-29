@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}
   strutils,
   {$ENDIF}
   zutil, zbase;
@@ -53,7 +53,7 @@ begin
     c^.dbits := Byte(bd);
     c^.ltree := tl;
     c^.dtree := td;
-    {$IFDEF STRUTILS_DEBUG}
+    {$IFDEF DEBUG}
     Tracev('inflate:       codes new');
     {$ENDIF}
   end;
@@ -170,12 +170,12 @@ begin
       if (e = 0) then            { literal }
       begin
         c^.sub.lit := t^.base;
-       {$IFDEF STRUTILS_DEBUG}
+       {$IFDEF DEBUG}
         if (t^.base >= $20) and (t^.base < $7f) then
           Tracevv('inflate:         literal '+char(t^.base))
         else
           Tracevv('inflate:         literal '+IntToStr(t^.base));
-        {$ENDIF}
+        {$ENDIF}          
         c^.mode := LIT;
         continue;  { break switch statement }
       end;
@@ -194,9 +194,9 @@ begin
       end;
       if (e and 32 <> 0) then            { end of block }
       begin
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Tracevv('inflate:         end of block');
-        {$ENDIF}
+        {$ENDIF}        
         c^.mode := WASH;
         continue;         { break C-switch statement }
       end;
@@ -246,7 +246,7 @@ begin
 
       c^.sub.code.need := c^.dbits;
       c^.sub.code.tree := c^.dtree;
-      {$IFDEF STRUTILS_DEBUG}
+      {$IFDEF DEBUG}
       Tracevv('inflate:         length '+IntToStr(c^.len));
       {$ENDIF}
       c^.mode := DIST;
@@ -340,7 +340,7 @@ begin
       {DUMPBITS(j);}
       b := b shr j;
       Dec(k, j);
-      {$IFDEF STRUTILS_DEBUG}
+      {$IFDEF DEBUG}
       Tracevv('inflate:         distance '+ IntToStr(c^.sub.copy.dist));
       {$ENDIF}
       c^.mode := COPY;
@@ -486,7 +486,7 @@ begin
       {$ifdef patch112}
       if (k > 7) then           { return unused byte, if any }
       begin
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Assert(k < 16, 'inflate_codes grabbed too many bytes');
         {$ENDIF}
         Dec(k, 8);
@@ -568,7 +568,7 @@ procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
 begin
   ZFREE(z, c);
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

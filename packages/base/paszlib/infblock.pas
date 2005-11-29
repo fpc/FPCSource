@@ -1,4 +1,4 @@
-Unit InfBlock;
+unit infblock;
 
 { infblock.h and
   infblock.c -- interpret and process block types to last block
@@ -10,14 +10,11 @@ Unit InfBlock;
 }
 
 interface
-{$ifdef fpc}
-{$goto on}
-{$endif}
 
 {$I zconf.inc}
 
 uses
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}
   strutils,
   {$ENDIF}
   zutil, zbase;
@@ -122,7 +119,7 @@ begin
     s.check := s.checkfn(uLong(0), pBytef(NIL), 0);
     z.adler := s.check;
   end;
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}
   Tracev('inflate:   blocks reset');
   {$ENDIF}
 end;
@@ -162,7 +159,7 @@ begin
   Inc(s^.zend, w);
   s^.checkfn := c;
   s^.mode := ZTYPE;
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}  
   Tracev('inflate:   blocks allocated');
   {$ENDIF}
   inflate_blocks_reset(s^, z, Z_NULL);
@@ -244,7 +241,7 @@ begin
         case (t shr 1) of
           0:                         { stored }
             begin
-              {$IFDEF STRUTILS_DEBUG}
+              {$IFDEF DEBUG}
               if s.last then
                 Tracev('inflate:     stored block (last)')
               else
@@ -264,7 +261,7 @@ begin
           1:                         { fixed }
             begin
               begin
-                {$IFDEF STRUTILS_DEBUG}
+                {$IFDEF DEBUG}
                 if s.last then
                   Tracev('inflate:     fixed codes blocks (last)')
                 else
@@ -294,12 +291,12 @@ begin
             end;
           2:                         { dynamic }
             begin
-              {$IFDEF STRUTILS_DEBUG}
+              {$IFDEF DEBUG}
               if s.last then
                 Tracev('inflate:     dynamic codes block (last)')
               else
                 Tracev('inflate:     dynamic codes block');
-              {$ENDIF}
+              {$ENDIF}                
               {DUMPBITS(3);}
               b := b shr 3;
               Dec(k, 3);
@@ -371,7 +368,7 @@ begin
         s.sub.left := uInt(b) and $ffff;
         k := 0;
         b := 0;                      { dump bits }
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Tracev('inflate:       stored length '+IntToStr(s.sub.left));
         {$ENDIF}
         if s.sub.left <> 0 then
@@ -457,7 +454,7 @@ begin
         Dec(s.sub.left, t);
         if (s.sub.left = 0) then
         begin
-          {$IFDEF STRUTILS_DEBUG}
+          {$IFDEF DEBUG}
           if (ptr2int(q) >= ptr2int(s.read)) then
             Tracev('inflate:       stored end '+
                 IntToStr(z.total_out + ptr2int(q) - ptr2int(s.read)) + ' total out')
@@ -537,7 +534,7 @@ begin
         Dec(k, 14);
 
         s.sub.trees.index := 0;
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Tracev('inflate:       table sizes ok');
         {$ENDIF}
         s.mode := BTREE;
@@ -605,7 +602,7 @@ begin
           exit;
         end;
         s.sub.trees.index := 0;
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Tracev('inflate:       bits tree ok');
         {$ENDIF}
         s.mode := DTREE;
@@ -760,9 +757,9 @@ begin
             inflate_blocks := inflate_flush(s,z,r);
             exit;
           end;
-          {$IFDEF STRUTILS_DEBUG}
+          {$IFDEF DEBUG}
           Tracev('inflate:       trees ok');
-          {$ENDIF}
+          {$ENDIF}          
           { c renamed to cs }
           cs := inflate_codes_new(bl, bd, tl, td, z);
           if (cs = Z_NULL) then
@@ -813,7 +810,7 @@ begin
           m := uInt(ptr2int(s.read)-ptr2int(q)-1)
         else
           m := uInt(ptr2int(s.zend)-ptr2int(q));
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         if (ptr2int(q) >= ptr2int(s.read)) then
           Tracev('inflate:       codes end '+
               IntToStr(z.total_out + ptr2int(q) - ptr2int(s.read)) + ' total out')
@@ -830,7 +827,7 @@ begin
         {$ifndef patch112}
         if (k > 7) then           { return unused byte, if any }
         begin
-          {$IFDEF STRUTILS_DEBUG}
+          {$IFDEF DEBUG}
           Assert(k < 16, 'inflate_codes grabbed too many bytes');
           {$ENDIF}
           Dec(k, 8);
@@ -924,9 +921,9 @@ begin
   ZFREE(z, s^.window);
   ZFREE(z, s^.hufts);
   ZFREE(z, s);
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}
   Trace('inflate:   blocks freed');
-  {$ENDIF}
+  {$ENDIF}  
   inflate_blocks_free := Z_OK;
 end;
 

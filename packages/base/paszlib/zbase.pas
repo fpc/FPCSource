@@ -1,4 +1,4 @@
-Unit Zbase;
+unit zbase;
 
 
 { Original:
@@ -73,9 +73,15 @@ uses
 
 { Maximum value for memLevel in deflateInit2 }
 {$ifdef MAXSEG_64K}
-const
-  MAX_MEM_LEVEL = 8;
-  DEF_MEM_LEVEL = MAX_MEM_LEVEL;  { default memLevel }
+  {$IFDEF VER70}
+  const
+    MAX_MEM_LEVEL = 7;
+    DEF_MEM_LEVEL = MAX_MEM_LEVEL;  { default memLevel }
+  {$ELSE}
+  const
+    MAX_MEM_LEVEL = 8;
+    DEF_MEM_LEVEL = MAX_MEM_LEVEL;  { default memLevel }
+  {$ENDIF}
 {$else}
 const
   MAX_MEM_LEVEL = 9;
@@ -84,7 +90,12 @@ const
 
 { Maximum value for windowBits in deflateInit2 and inflateInit2 }
 const
+{$IFDEF VER70}
+  MAX_WBITS = 14; { 32K LZ77 window }
+{$ELSE}
   MAX_WBITS = 15; { 32K LZ77 window }
+{$ENDIF}
+
 { default windowBits for decompression. MAX_WBITS is for compression only }
 const
   DEF_WBITS = MAX_WBITS;
@@ -117,7 +128,7 @@ type
   End;
 
 type
-  huft_field = Array[0..(MaxInt div SizeOf(inflate_huft))-1] of inflate_huft;
+  huft_field = Array[0..(MaxMemBlock div SizeOf(inflate_huft))-1] of inflate_huft;
   huft_ptr = ^huft_field;
 type
   ppInflate_huft = ^pInflate_huft;
@@ -168,7 +179,7 @@ type
   check_func = function(check : uLong;
                         buf : pBytef;
                         {const buf : array of byte;}
-                        len : uInt) : uLong;
+	                len : uInt) : uLong;
 type
   inflate_block_mode =
      (ZTYPE,    { get type bits (3, including end bit) }
@@ -277,7 +288,7 @@ type
     avail_out : uInt;     { remaining free space at next_out }
     total_out : uLong;    { total nb of bytes output so far }
 
-    msg : string;         { last error message, '' if no error }
+    msg : string[255];         { last error message, '' if no error }
     state : pInternal_state; { not visible by applications }
 
     zalloc : alloc_func;  { used to allocate the internal state }
@@ -288,10 +299,7 @@ type
     adler : uLong;        { adler32 value of the uncompressed data }
     reserved : uLong;     { reserved for future use }
   end;
-{$ifdef fpc}
-  TZStream = z_stream;
-  PZStream = ^TZStream;
-{$endif}
+
 
 {  The application must update next_in and avail_in when avail_in has
    dropped to zero. It must update next_out and avail_out when avail_out

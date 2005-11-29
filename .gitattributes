@@ -1679,6 +1679,7 @@ packages/base/paszlib/Makefile svneol=native#text/plain
 packages/base/paszlib/Makefile.fpc svneol=native#text/plain
 packages/base/paszlib/adler.pas svneol=native#text/plain
 packages/base/paszlib/changes.txt svneol=native#text/plain
+packages/base/paszlib/crc.pas -text
 packages/base/paszlib/example.pas svneol=native#text/plain
 packages/base/paszlib/fpmake.inc svneol=native#text/plain
 packages/base/paszlib/fpmake.pp svneol=native#text/plain

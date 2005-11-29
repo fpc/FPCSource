@@ -23,21 +23,20 @@ type
 {$ENDIF}
 
   intf   = int;
-{$IFDEF FPC}
-  uInt = Cardinal;     { 16 bits or more }
+{$IFDEF MSDOS}
+  uInt   = Word;
 {$ELSE}
-  {$IFDEF MSDOS}
-    uInt   = Word;
+  {$IFDEF FPC}
+    uInt   = longint;     { 16 bits or more }
+    {$INFO Cardinal}
+  {$ELSE}
+    uInt   = cardinal;     { 16 bits or more }
   {$ENDIF}
 {$ENDIF}
   uIntf  = uInt;
 
   Long   = longint;
-{$ifdef FPC}
   uLong  = Cardinal;
-{$else}
-  uLong  = LongInt;      { 32 bits or more }
-{$endif}
   uLongf = uLong;
 
   voidp  = pointer;
@@ -52,14 +51,21 @@ type
   ptr2int must be an integer type and sizeof(ptr2int) must be less
   than sizeof(pointer) - Nomssi }
 
+const
+  {$IFDEF MAXSEG_64K}
+  MaxMemBlock = $FFFF;
+  {$ELSE}
+  MaxMemBlock = MaxInt;
+  {$ENDIF}
+
 type
-  zByteArray = array[0..(MaxInt div SizeOf(Bytef))-1] of Bytef;
+  zByteArray = array[0..(MaxMemBlock div SizeOf(Bytef))-1] of Bytef;
   pzByteArray = ^zByteArray;
 type
-  zIntfArray = array[0..(MaxInt div SizeOf(Intf))-1] of Intf;
+  zIntfArray = array[0..(MaxMemBlock div SizeOf(Intf))-1] of Intf;
   pzIntfArray = ^zIntfArray;
 type
-  zuIntArray = array[0..(MaxInt div SizeOf(uInt))-1] of uInt;
+  zuIntArray = array[0..(MaxMemBlock div SizeOf(uInt))-1] of uInt;
   PuIntArray = ^zuIntArray;
 
 { Type declarations - only for deflate }
@@ -81,7 +87,7 @@ type
   zuchfArray = zByteArray;
   puchfArray = ^zuchfArray;
 type
-  zushfArray = array[0..(MaxInt div SizeOf(ushf))-1] of ushf;
+  zushfArray = array[0..(MaxMemBlock div SizeOf(ushf))-1] of ushf;
   pushfArray = ^zushfArray;
 
 procedure zmemcpy(destp : pBytef; sourcep : pBytef; len : uInt);
@@ -406,6 +412,10 @@ procedure zcfree(opaque : voidpf; ptr : voidpf);
 var
   Handle : THandle;
 {$endif}
+{$IFDEF FPC}
+var
+  memsize : uint;
+{$ENDIF}
 begin
   {$IFDEF DPMI}
   {h :=} GlobalFreePtr(ptr);
@@ -421,7 +431,13 @@ begin
         GlobalUnLock(Handle);
         GlobalFree(Handle);
         {$else}
+          {$IFDEF FPC}
+          Dec(puIntf(ptr));
+          memsize := puIntf(ptr)^;
+          FreeMem(ptr, memsize+SizeOf(uInt));
+          {$ELSE}
           FreeMem(ptr);  { Delphi 2,3,4 }
+          {$ENDIF}
         {$endif}
       {$endif}
     {$ENDIF}
@@ -431,12 +447,12 @@ end;
 function zcalloc (opaque : voidpf; items : uInt; size : uInt) : voidpf;
 var
   p : voidpf;
-  memsize : LongInt;
+  memsize : uLong;
 {$ifdef Delphi16}
   handle : THandle;
 {$endif}
 begin
-  memsize := Long(items) * size;
+  memsize := uLong(items) * size;
   {$IFDEF DPMI}
   p := GlobalAllocPtr(gmem_moveable, memsize);
   {$ELSE}
@@ -450,7 +466,13 @@ begin
         Handle := GlobalAlloc(HeapAllocFlags, memsize);
         p := GlobalLock(Handle);
         {$else}
+          {$IFDEF FPC}
+          GetMem(p, memsize+SizeOf(uInt));
+          puIntf(p)^:= memsize;
+          Inc(puIntf(p));
+          {$ELSE}
           GetMem(p, memsize);  { Delphi: p := AllocMem(memsize); }
+          {$ENDIF}
         {$endif}
       {$endif}
     {$ENDIF}
@@ -458,9 +480,11 @@ begin
   zcalloc := p;
 end;
 
-
 end.
+
+
 { edited from a SWAG posting:
+
 In Turbo Pascal 6, the heap is the memory allocated when using the Procedures 'New' and
 'GetMem'. The heap starts at the address location pointed to by 'Heaporg' and
 grows to higher addresses as more memory is allocated. The top of the heap,
@@ -491,26 +515,26 @@ When 'HeapPtr' and 'FreeList' have the same value, the free list is empty.
 
 
                      TP6.0     Heapend
-                ÚÄÄÄÄÄÄÄÄÄ¿ <ÄÄÄÄ
-                ³         ³
-                ³         ³
-                ³         ³
-                ³         ³
-                ³         ³
-                ³         ³
-                ³         ³
-                ³         ³  HeapPtr
-             ÚÄ>ÃÄÄÄÄÄÄÄÄÄ´ <ÄÄÄÄ
-             ³  ³         ³
-             ³  ÃÄÄÄÄÄÄÄÄÄ´
-             ÀÄÄ³  Free   ³
-             ÚÄ>ÃÄÄÄÄÄÄÄÄÄ´
-             ³  ³         ³
-             ³  ÃÄÄÄÄÄÄÄÄÄ´
-             ÀÄÄ³  Free   ³  FreeList
-                ÃÄÄÄÄÄÄÄÄÄ´ <ÄÄÄÄ
-                ³         ³  Heaporg
-                ÃÄÄÄÄÄÄÄÄÄ´ <ÄÄÄÄ
+                +---------+ <----
+                |         |
+                |         |
+                |         |
+                |         |
+                |         |
+                |         |
+                |         |
+                |         |  HeapPtr
+             +->+---------+ <----
+             |  |         |
+             |  +---------+
+             +--|  Free   |
+             +->+---------+
+             |  |         |
+             |  +---------+
+             +--|  Free   |  FreeList
+                +---------+ <----
+                |         |  Heaporg
+                +---------+ <----
 
 
 }

@@ -13,7 +13,7 @@ Unit InfTrees;
   For conditions of distribution and use, see copyright notice in readme.txt
 }
 
-interface
+Interface
 
 {$I zconf.inc}
 
@@ -56,8 +56,8 @@ var z : z_stream                  { for messages }
      ) : int;
 
 function inflate_trees_fixed (
-    var bl : uIntf;               { literal desired/actual bit depth }
-    var bd : uIntf;               { distance desired/actual bit depth }
+    var bl : uInt;                { literal desired/actual bit depth }
+    var bd : uInt;                { distance desired/actual bit depth }
     var tl : pInflate_huft;       { literal/length tree result }
     var td : pInflate_huft;       { distance tree result }
     var z : z_stream              { for memory allocation }
@@ -165,7 +165,7 @@ Var
   i : uInt;  {register}         { counter, current code }
   j : uInt;  {register}         { counter }
   k : Int;   {register}         { number of bits in current code }
-  l : int;                      { bits per table (returned in m) }
+  l : int;			{ bits per table (returned in m) }
   mask : uInt;                  { (1 shl w) - 1, to avoid cc -O bug on HP }
   p : ^uIntf; {register}        { pointer into c[], b[], or v[] }
   q : pInflate_huft;            { points to current table }
@@ -708,8 +708,8 @@ const
 {$ENDIF}
 
 function inflate_trees_fixed(
-var bl : uIntf;              { literal desired/actual bit depth }
-var bd : uIntf;              { distance desired/actual bit depth }
+var bl : uInt;               { literal desired/actual bit depth }
+var bd : uInt;               { distance desired/actual bit depth }
 var tl : pInflate_huft;      { literal/length tree result }
 var td : pInflate_huft;      { distance tree result }
 var  z : z_stream            { for memory allocation }

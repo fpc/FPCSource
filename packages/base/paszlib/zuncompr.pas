@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase, zInflate;
+  zutil, zbase, zinflate;
 
 { ===========================================================================
      Decompresses the source buffer into the destination buffer.  sourceLen is
@@ -33,20 +33,20 @@ uses
 
 function uncompress (dest : pBytef;
                      var destLen : uLong;
-                     source : pBytef;
+                     const source : array of byte;
                      sourceLen : uLong) : int;
 
 implementation
 
 function uncompress (dest : pBytef;
                      var destLen : uLong;
-                     source : pBytef;
+                     const source : array of byte;
                      sourceLen : uLong) : int;
 var
   stream : z_stream;
   err : int;
 begin
-  stream.next_in := source;
+  stream.next_in := pBytef(@source);
   stream.avail_in := uInt(sourceLen);
   { Check for source > 64K on 16-bit machine: }
   if (uLong(stream.avail_in) <> sourceLen) then

@@ -1,8 +1,4 @@
-Unit zDeflate;
-
-{$ifdef fpc}
-{$goto on}
-{$endif}
+unit zdeflate;
 
 { Orginal: deflate.h -- internal compression state
            deflate.c -- compress data using the deflation algorithm
@@ -55,6 +51,7 @@ Unit zDeflate;
        Fiala,E.R., and Greene,D.H.
           Data Compression with Finite Windows, Comm.ACM, 32,4 (1989) 490-595}
 
+{ $Id: deflate.c,v 1.14 1996/07/02 12:40:55 me Exp $ }
 
 interface
 
@@ -179,14 +176,6 @@ function deflateEnd (var strm : z_stream) : int;
 
 { The following functions are needed only in some special applications. }
 
-function deflateInit2_(var strm : z_stream;
-                       level : int;
-                       method : int;
-                       windowBits : int;
-                       memLevel : int;
-                       strategy : int;
-                       const version : string;
-                       stream_size : int) : int;
 
 {EXPORT}
 function deflateInit2 (var strm : z_stream;
@@ -250,7 +239,7 @@ function deflateInit2 (var strm : z_stream;
 {EXPORT}
 function deflateSetDictionary (var strm : z_stream;
                                dictionary : pBytef; {const bytes}
-                               dictLength : uint) : int;
+			       dictLength : uint) : int;
 
 {    Initializes the compression dictionary (history buffer) from the given
    byte sequence without producing any compressed output. This function must
@@ -360,11 +349,11 @@ type
 {local}
 procedure fill_window(var s : deflate_state); forward;
 {local}
-function deflate_stored(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
+function deflate_stored(var s : deflate_state; flush : int) : block_state; far; forward;
 {local}
-function deflate_fast(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
+function deflate_fast(var s : deflate_state; flush : int) : block_state; far; forward;
 {local}
-function deflate_slow(var s : deflate_state; flush : int) : block_state;{$ifndef fpc}far;{$endif} forward;
+function deflate_slow(var s : deflate_state; flush : int) : block_state; far; forward;
 {local}
 procedure lm_init(var s : deflate_state); forward;
 
@@ -540,19 +529,16 @@ begin
   strm.msg := '';
   if not Assigned(strm.zalloc) then
   begin
-{$ifdef fpc}
-    strm.zalloc := @zcalloc;
-{$else}
+    {$IFDEF FPC}  strm.zalloc := @zcalloc;  {$ELSE}
     strm.zalloc := zcalloc;
-{$endif}
+    {$ENDIF}
     strm.opaque := voidpf(0);
   end;
   if not Assigned(strm.zfree) then
-{$ifdef fpc}
-    strm.zfree := @zcfree;
-{$else}
+    {$IFDEF FPC}  strm.zfree := @zcfree;  {$ELSE}
     strm.zfree := zcfree;
-{$endif}
+    {$ENDIF}
+
   if (level  =  Z_DEFAULT_COMPRESSION) then
     level := 6;
 {$ifdef FASTEST}
@@ -927,10 +913,10 @@ begin
     if (strm.avail_out = 0) then
     begin
       { Since avail_out is 0, deflate will be called again with
-        more output space, but possibly with both pending and
-        avail_in equal to zero. There won't be anything to do,
-        but this is not an error situation so make sure we
-        return OK instead of BUF_ERROR at next call of deflate: }
+	more output space, but possibly with both pending and
+	avail_in equal to zero. There won't be anything to do,
+	but this is not an error situation so make sure we
+	return OK instead of BUF_ERROR at next call of deflate: }
 
       s^.last_flush := -1;
       deflate := Z_OK;
@@ -978,11 +964,11 @@ begin
       deflate := Z_OK;
       exit;
       { If flush != Z_NO_FLUSH && avail_out == 0, the next call
-        of deflate should use the same flush parameter to make sure
-        that the flush is complete. So we don't have to output an
-        empty block here, this will be done at next call. This also
-        ensures that for a very small output buffer, we emit at most
-         one empty block. }
+	of deflate should use the same flush parameter to make sure
+	that the flush is complete. So we don't have to output an
+	empty block here, this will be done at next call. This also
+	ensures that for a very small output buffer, we emit at most
+	 one empty block. }
     end;
     if (bstate = block_done) then
     begin
@@ -1006,7 +992,7 @@ begin
       if (strm.avail_out = 0) then
       begin
         s^.last_flush := -1; { avoid BUF_ERROR at next call, see above }
-        deflate := Z_OK;
+	deflate := Z_OK;
         exit;
       end;
 
@@ -1361,14 +1347,16 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
         { Here, scan <= window+strstart+257 }
         {$IFDEF DEBUG}
+        {$ifopt R+} {$define RangeCheck} {$endif} {$R-}
         Assert(ptr2int(scan) <=
                ptr2int(@(s.window^[unsigned(s.window_size-1)])),
                'wild scan');
+        {$ifdef RangeCheck} {$R+} {$undef RangeCheck} {$endif}
         {$ENDIF}
         if (scan^ = match^) then
           Inc(scan);
 
-        len := (MAX_MATCH - 1) - int(ptr2int(strend)-ptr2int(scan));
+        len := (MAX_MATCH - 1) - int(ptr2int(strend)) + int(ptr2int(scan));
         scan := strend;
         Dec(scan, (MAX_MATCH-1));
 
@@ -1597,7 +1585,7 @@ begin
          move the upper half to the lower one to make room in the upper half.}
      end
      else
-       if (s.strstart >= wsize+ {MAX_DIST}wsize-MIN_LOOKAHEAD) then
+       if (s.strstart >= wsize+ {MAX_DIST}(wsize-MIN_LOOKAHEAD)) then
        begin
          zmemcpy( pBytef(s.window), pBytef(@(s.window^[wsize])),
                  unsigned(wsize));
@@ -2045,7 +2033,7 @@ begin
       {$endif}
 
       {_tr_tally_dist(s, s->strstart -1 - s->prev_match,
-                        s->prev_length - MIN_MATCH, bflush);}
+	                s->prev_length - MIN_MATCH, bflush);}
       bflush := _tr_tally(s, s.strstart -1 - s.prev_match,
                            s.prev_length - MIN_MATCH);
 

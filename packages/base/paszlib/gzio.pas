@@ -1,4 +1,4 @@
-Unit gzIO;
+unit gzio;
 
 {
   Pascal unit based on gzio.c -- IO on .gz files
@@ -19,15 +19,14 @@ uses
   {$ifdef MSDOS}
   dos, strings,
   {$else}
-  SysUtils,
+  sysutils,
   {$endif}
-  zutil, zbase, gzcrc, zdeflate, zinflate;
+  zutil, zbase, crc, zdeflate, zinflate;
 
 type gzFile = voidp;
 type z_off_t = long;
 
-function gzopen  (path:ansistring; mode:string) : gzFile;
-function gzsetparams (f:gzfile; level:int; strategy:int) : int;
+function gzopen  (path:string; mode:string) : gzFile;
 function gzread  (f:gzFile; buf:voidp; len:uInt) : int;
 function gzgetc  (f:gzfile) : int;
 function gzgets  (f:gzfile; buf:PChar; len:int) : PChar;
@@ -44,12 +43,13 @@ function gzflush (f:gzFile; flush:int)           : int;
   {$endif}
 {$endif}
 
-function gzseek   (f:gzfile; offset:z_off_t; whence:int) : z_off_t;
+function gzseek  (f:gzfile; offset:z_off_t; whence:int) : z_off_t;
+function gztell  (f:gzfile) : z_off_t;
+function gzclose (f:gzFile)                      : int;
+function gzerror (f:gzFile; var errnum:Int)      : string;
+function gzsetparams (f:gzfile; level:int; strategy:int) : int;
 function gzrewind (f:gzFile) : int;
-function gztell   (f:gzfile) : z_off_t;
-function gzeof    (f:gzfile) : boolean;
-function gzclose  (f:gzFile)                      : int;
-function gzerror  (f:gzFile; var errnum:Int)      : string;
+function gzeof (f:gzfile) : boolean;
 
 const
   SEEK_SET {: z_off_t} = 0; { seek from beginning of file }
@@ -84,7 +84,7 @@ type gz_stream = record
   outbuf      : pBytef;   { output buffer }
   crc         : uLong;    { crc32 of uncompressed data }
   msg,                    { error message - limit 79 chars }
-  path        : ansistring;   { path name for debugging only - limit 79 chars }
+  path        : string[79];   { path name for debugging only - limit 79 chars }
   transparent : boolean;  { true if input file is not a .gz file }
   mode        : char;     { 'w' or 'r' }
   startpos    : long;     { start of compressed data in file (header skipped) }
@@ -115,7 +115,7 @@ procedure check_header(s:gz_streamp); forward;
 
 ============================================================================}
 
-function gzopen (path:ansistring; mode:string) : gzFile;
+function gzopen (path:string; mode:string) : gzFile;
 
 var
 
@@ -126,7 +126,7 @@ var
   s        : gz_streamp;
 {$IFDEF MSDOS}
   attr     : word;       { file attributes }
-{$ENDIF}
+{$ENDIF}  
 
 {$IFNDEF NO_DEFLATE}
   gzheader : array [0..9] of byte;
@@ -225,7 +225,7 @@ begin
     Reset (s^.gzfile,1);
   {$else}
   if (not FileExists(s^.path)) and (s^.mode='w') then
-    ReWrite (s^.gzfile,1)
+    ReWrite (s^.gzfile,1)  
   else
     Reset (s^.gzfile,1);
   {$endif}
@@ -314,7 +314,7 @@ begin
 
   if (s^.stream.avail_in = 0) then begin
     {$I-}
-    blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, Int(s^.stream.avail_in));
+    blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, s^.stream.avail_in);
     {$I+}
     if (s^.stream.avail_in = 0) then begin
       s^.z_eof := true;
@@ -410,7 +410,7 @@ begin
       if (c <> Z_EOF) then begin
         Inc(s^.stream.avail_in);
         Dec(s^.stream.next_in);
-        s^.transparent := TRUE;
+	s^.transparent := TRUE;
       end;
       if (s^.stream.avail_in <> 0) then s^.z_err := Z_OK
       else s^.z_err := Z_STREAM_END;
@@ -583,13 +583,13 @@ begin
 
     if (s^.stream.avail_in = 0) and (s^.z_eof = false) then begin
       {$I-}
-      blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, Int(s^.stream.avail_in));
+      blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, s^.stream.avail_in);
       {$I+}
       if (s^.stream.avail_in = 0) then begin
         s^.z_eof := true;
-        if (IOResult <> 0) then begin
-          s^.z_err := Z_ERRNO;
-          break;
+	if (IOResult <> 0) then begin
+	  s^.z_err := Z_ERRNO;
+	  break;
         end;
       end;
       s^.stream.next_in := s^.inbuf;
@@ -613,18 +613,18 @@ begin
 
       if (s^.crc <> filecrc) or (s^.stream.total_out <> filelen)
         then s^.z_err := Z_DATA_ERROR
-        else begin
-          { Check for concatenated .gz files: }
-          check_header(s);
-          if (s^.z_err = Z_OK) then begin
+	else begin
+	  { Check for concatenated .gz files: }
+	  check_header(s);
+	  if (s^.z_err = Z_OK) then begin
             total_in := s^.stream.total_in;
             total_out := s^.stream.total_out;
 
-            inflateReset (s^.stream);
-            s^.stream.total_in := total_in;
-            s^.stream.total_out := total_out;
-            s^.crc := crc32 (0, Z_NULL, 0);
-          end;
+	    inflateReset (s^.stream);
+	    s^.stream.total_in := total_in;
+	    s^.stream.total_out := total_out;
+	    s^.crc := crc32 (0, Z_NULL, 0);
+	  end;
       end; {IF-THEN-ELSE}
     end;
 
@@ -771,10 +771,10 @@ var
 begin
 {$ifdef HAS_snprintf}
     snprintf(buf, sizeof(buf), format, a1, a2, a3, a4, a5, a6, a7, a8,
-             a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
+	     a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
 {$else}
     sprintf(buf, format, a1, a2, a3, a4, a5, a6, a7, a8,
-            a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
+	    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20);
 {$endif}
     len := strlen(buf); { old sprintf doesn't return the nb of bytes written }
     if (len <= 0) return 0;
