@@ -34,7 +34,6 @@ type
   zushfArray = array[0..(MaxMemBlock div SizeOf(word))-1] of word;
   pushfArray = ^zushfArray;
 
-function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
 procedure zcfree(opaque : pointer; ptr : pointer);
 function zcalloc (opaque : pointer; items : cardinal; size : cardinal) : pointer;
 
@@ -45,27 +44,6 @@ type
     L, H : word;
   end;
 
-
-function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
-var
-  j : cardinal;
-  source,
-  dest : Pbyte;
-begin
-  source := s1p;
-  dest := s2p;
-  for j := 0 to pred(len) do
-  begin
-    if (source^ <> dest^) then
-    begin
-      zmemcmp := 2*ord(source^ > dest^)-1;
-      exit;
-    end;
-    Inc(source);
-    Inc(dest);
-  end;
-  zmemcmp := 0;
-end;
 
 procedure zcfree(opaque : pointer; ptr : pointer);
 
