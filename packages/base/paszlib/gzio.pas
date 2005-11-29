@@ -150,9 +150,6 @@ begin
   level := Z_DEFAULT_COMPRESSION;
   strategy := Z_DEFAULT_STRATEGY;
 
-  s^.stream.zalloc := nil;     { (alloc_func)0 }
-  s^.stream.zfree := nil;      { (free_func)0 }
-  s^.stream.opaque := nil;     { (voidpf)0 }
   s^.stream.next_in := nil;
   s^.stream.next_out := nil;
   s^.stream.avail_in := 0;

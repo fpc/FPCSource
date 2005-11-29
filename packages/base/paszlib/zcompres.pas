@@ -81,10 +81,6 @@ begin
     exit;
   end;
 
-  stream.zalloc := NIL;       { alloc_func(0); }
-  stream.zfree := NIL;        { free_func(0); }
-  stream.opaque := NIL;       { voidpf(0); }
-
   err := deflateInit(stream, level);
   if (err <> Z_OK) then
   begin

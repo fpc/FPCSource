@@ -291,10 +291,6 @@ type
     msg : string[255];         { last error message, '' if no error }
     state : pInternal_state; { not visible by applications }
 
-    zalloc : alloc_func;  { used to allocate the internal state }
-    zfree : free_func;    { used to free the internal state }
-    opaque : pointer;      { private data object passed to zalloc and zfree }
-
     data_type : integer;      { best guess about the data type: ascii or binary }
     adler : cardinal;        { adler32 value of the uncompressed data }
     reserved : cardinal;     { reserved for future use }
@@ -506,18 +502,17 @@ end;
 
 function ZALLOC (var strm : z_stream; items : cardinal; size : cardinal) : pointer;
 begin
-  ZALLOC := strm.zalloc(strm.opaque, items, size);
+  getmem(ZALLOC,items*size);
 end;
 
 procedure ZFREE (var strm : z_stream; ptr : pointer);
 begin
-  strm.zfree(strm.opaque, ptr);
+  freemem(ptr);
 end;
 
 procedure TRY_FREE (var strm : z_stream; ptr : pointer);
 begin
-  {if @strm <> Z_NULL then}
-    strm.zfree(strm.opaque, ptr);
+  freemem(ptr);
 end;
 
 end.

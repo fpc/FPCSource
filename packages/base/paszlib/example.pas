@@ -195,9 +195,6 @@ var
   len : integer;
 begin
   len := strlen(hello)+1;
-  c_stream.zalloc := NIL; {alloc_func(0);}
-  c_stream.zfree := NIL;  {free_func(0);}
-  c_stream.opaque := NIL; {voidpf(0);}
 
   err := deflateInit(c_stream, Z_DEFAULT_COMPRESSION);
   CHECK_ERR(err, 'deflateInit');
@@ -240,10 +237,6 @@ var
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
-
-  d_stream.zalloc := NIL; {alloc_func(0);}
-  d_stream.zfree := NIL; {free_func(0);}
-  d_stream.opaque := NIL; {voidpf(0);}
 
   d_stream.next_in  := compr;
   d_stream.avail_in := 0;
@@ -289,10 +282,6 @@ var
   c_stream : z_stream; { compression stream }
   err : integer;
 begin
-  c_stream.zalloc := NIL; {alloc_func(0);}
-  c_stream.zfree := NIL;  {free_func(0);}
-  c_stream.opaque := NIL; {voidpf(0);}
-
   err := deflateInit(c_stream, Z_BEST_SPEED);
   CHECK_ERR(err, 'deflateInit');
 
@@ -349,10 +338,6 @@ var
 begin
   strcopy(PChar(uncompr), 'garbage');
 
-  d_stream.zalloc := NIL; {alloc_func(0);}
-  d_stream.zfree := NIL; {free_func(0);}
-  d_stream.opaque := NIL; {voidpf(0);}
-
   d_stream.next_in  := compr;
   d_stream.avail_in := cardinal(comprLen);
 
@@ -394,10 +379,6 @@ var
 
 begin
   len := strlen(hello)+1;
-  c_stream.zalloc := NIL;       {alloc_func(0);}
-  c_stream.zfree := NIL;        {free_func(0);}
-  c_stream.opaque := NIL;       {voidpf(0);}
-
   err := deflateInit(c_stream, Z_DEFAULT_COMPRESSION);
   CHECK_ERR(err, 'deflateInit');
 
@@ -434,10 +415,6 @@ var
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
-
-  d_stream.zalloc := NIL;            {alloc_func(0);}
-  d_stream.zfree := NIL;             {free_func(0);}
-  d_stream.opaque := NIL;            {voidpf(0);}
 
   d_stream.next_in  := compr;
   d_stream.avail_in := 2; { just read the zlib header }
@@ -478,10 +455,6 @@ var
   c_stream : z_stream; { compression stream }
   err : integer;
 begin
-  c_stream.zalloc := NIL; {(alloc_func)0;}
-  c_stream.zfree := NIL; {(free_func)0;}
-  c_stream.opaque := NIL; {(voidpf)0;}
-
   err := deflateInit(c_stream, Z_BEST_COMPRESSION);
   CHECK_ERR(err, 'deflateInit');
 
@@ -516,10 +489,6 @@ var
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
-
-  d_stream.zalloc := NIL;              { alloc_func(0); }
-  d_stream.zfree := NIL;               { free_func(0); }
-  d_stream.opaque := NIL;              { voidpf(0); }
 
   d_stream.next_in  := compr;
   d_stream.avail_in := cardinal(comprLen);

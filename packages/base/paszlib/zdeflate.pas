@@ -527,13 +527,6 @@ begin
   }
   { SetLength(strm.msg, 255); }
   strm.msg := '';
-  if strm.zalloc=nil then
-  begin
-    strm.zalloc := @zcalloc;
-    strm.opaque := nil;
-  end;
-  if strm.zfree=nil then
-    strm.zfree := @zcfree;
 
   if (level  =  Z_DEFAULT_COMPRESSION) then
     level := 6;
@@ -555,7 +548,7 @@ begin
   end;
 
   s := deflate_state_ptr (ZALLOC(strm, 1, sizeof(deflate_state)));
-  if (s = Z_NULL) then
+  if (s = nil) then
   begin
     deflateInit2_ := Z_MEM_ERROR;
     exit;
@@ -709,8 +702,7 @@ var
   s : deflate_state_ptr;
 begin
   if {(@strm = Z_NULL) or}
-   (strm.state = Z_NULL)
-   or (not Assigned(strm.zalloc)) or (not Assigned(strm.zfree)) then
+   (strm.state = nil) then
   begin
     deflateReset := Z_STREAM_ERROR;
     exit;

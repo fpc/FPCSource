@@ -228,7 +228,7 @@ end;
 
 function inflateEnd(var z : z_stream) : integer;
 begin
-  if (z.state = Z_NULL) or not Assigned(z.zfree) then
+  if z.state=nil then
   begin
     inflateEnd :=  Z_STREAM_ERROR;
     exit;
@@ -258,22 +258,15 @@ begin
   { initialize state }
   { SetLength(strm.msg, 255); }
   z.msg := '';
-  if z.zalloc=nil then
-  begin
-    z.zalloc := @zcalloc;
-    z.opaque := nil;
-  end;
-  if z.zfree=nil then
-    z.zfree := @zcfree;
 
   z.state := pInternal_state( ZALLOC(z,1,sizeof(internal_state)) );
-  if (z.state = Z_NULL) then
+  if z.state=nil then
   begin
     inflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
 
-  z.state^.blocks := Z_NULL;
+  z.state^.blocks := nil;
 
   { handle undocumented nowrap option (no zlib header or check) }
   z.state^.nowrap := FALSE;

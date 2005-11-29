@@ -63,9 +63,6 @@ begin
     exit;
   end;
 
-  stream.zalloc := nil;       { alloc_func(0); }
-  stream.zfree := nil;        { free_func(0); }
-
   err := inflateInit(stream);
   if (err <> Z_OK) then
   begin
