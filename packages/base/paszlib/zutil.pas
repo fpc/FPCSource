@@ -47,13 +47,8 @@ type
 
 procedure zcfree(opaque : pointer; ptr : pointer);
 
-var
-  memsize : cardinal;
-
 begin
-  dec(Pcardinal(ptr));
-  memsize := Pcardinal(ptr)^;
-  FreeMem(ptr, memsize+SizeOf(cardinal));
+  FreeMem(ptr);
 end;
 
 function zcalloc (opaque : pointer; items : cardinal; size : cardinal) : pointer;
@@ -62,9 +57,7 @@ var
   memsize : cardinal;
 begin
   memsize := items * size;
-  getmem(p, memsize+sizeOf(cardinal));
-  Pcardinal(p)^:= memsize;
-  inc(Pcardinal(p));
+  getmem(p, memsize);
   zcalloc := p;
 end;
 

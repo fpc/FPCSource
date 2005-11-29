@@ -258,17 +258,13 @@ begin
   { initialize state }
   { SetLength(strm.msg, 255); }
   z.msg := '';
-  if not Assigned(z.zalloc) then
+  if z.zalloc=nil then
   begin
-    {$IFDEF FPC}  z.zalloc := @zcalloc;  {$ELSE}
-    z.zalloc := zcalloc;
-    {$endif}
+    z.zalloc := @zcalloc;
     z.opaque := nil;
   end;
-  if not Assigned(z.zfree) then
-    {$IFDEF FPC}  z.zfree := @zcfree;  {$ELSE}
-    z.zfree := zcfree;
-    {$ENDIF}
+  if z.zfree=nil then
+    z.zfree := @zcfree;
 
   z.state := pInternal_state( ZALLOC(z,1,sizeof(internal_state)) );
   if (z.state = Z_NULL) then
@@ -298,13 +294,9 @@ begin
 
   { create inflate_blocks state }
   if z.state^.nowrap then
-    z.state^.blocks := inflate_blocks_new(z, NIL, cardinal(1) shl w)
+    z.state^.blocks := inflate_blocks_new(z, nil, cardinal(1) shl w)
   else
-  {$IFDEF FPC}
     z.state^.blocks := inflate_blocks_new(z, @adler32, cardinal(1) shl w);
-  {$ELSE}
-    z.state^.blocks := inflate_blocks_new(z, adler32, cardinal(1) shl w);
-  {$ENDIF}
   if (z.state^.blocks = Z_NULL) then
   begin
     inflateEnd(z);
@@ -397,10 +389,10 @@ begin
         r := f;
 
         {z.state^.sub.check.need := cardinal(NEXTBYTE(z)) shl 24;}
-        Dec(z.avail_in);
-        Inc(z.total_in);
+        dec(z.avail_in);
+        inc(z.total_in);
         z.state^.sub.check.need := cardinal(z.next_in^) shl 24;
-        Inc(z.next_in);
+        inc(z.next_in);
 
         z.state^.mode := CHECK3;   { falltrough }
       end;
@@ -413,11 +405,11 @@ begin
           exit;
         end;
         r := f;
-        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
-        Inc(z.next_in);
+        {inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
+        inc(z.next_in);
 
         z.state^.mode := CHECK2;   { falltrough }
       end;
@@ -431,11 +423,11 @@ begin
         end;
         r := f;
 
-        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
-        Inc(z.next_in);
+        {inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
+        inc(z.next_in);
 
         z.state^.mode := CHECK1;   { falltrough }
       end;
@@ -448,11 +440,11 @@ begin
           exit;
         end;
         r := f;
-        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) );
-        Inc(z.next_in);
+        {inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) );
+        inc(z.next_in);
 
 
         if (z.state^.sub.check.was <> z.state^.sub.check.need) then
@@ -483,10 +475,10 @@ begin
         r := f; {}
 
         {z.state^.sub.method := NEXTBYTE(z);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
+        dec(z.avail_in);
+        inc(z.total_in);
         z.state^.sub.method := z.next_in^;
-        Inc(z.next_in);
+        inc(z.next_in);
 
         if ((z.state^.sub.method and $0f) <> Z_DEFLATED) then
         begin
@@ -515,10 +507,10 @@ begin
         end;
         r := f; {}
         {b := NEXTBYTE(z);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
+        dec(z.avail_in);
+        inc(z.total_in);
         b := z.next_in^;
-        Inc(z.next_in);
+        inc(z.next_in);
 
         if (((z.state^.sub.method shl 8) + b) mod 31) <> 0 then {% mod ?}
         begin
@@ -548,10 +540,10 @@ begin
         r := f;
 
         {z.state^.sub.check.need := cardinal(NEXTBYTE(z)) shl 24;}
-        Dec(z.avail_in);
-        Inc(z.total_in);
+        dec(z.avail_in);
+        inc(z.total_in);
         z.state^.sub.check.need :=  cardinal(z.next_in^) shl 24;
-        Inc(z.next_in);
+        inc(z.next_in);
 
         z.state^.mode := DICT3;        { falltrough }
       end;
@@ -563,11 +555,11 @@ begin
           exit;
         end;
         r := f;
-        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
-        Inc(z.next_in);
+        {inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
+        inc(z.next_in);
 
         z.state^.mode := DICT2;        { falltrough }
       end;
@@ -580,11 +572,11 @@ begin
         end;
         r := f;
 
-        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
-        Inc(z.next_in);
+        {inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
+        inc(z.next_in);
 
         z.state^.mode := DICT1;        { falltrough }
       end;
@@ -596,11 +588,11 @@ begin
           exit;
         end;
         { r := f;    ---  wird niemals benutzt }
-        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
-        Dec(z.avail_in);
-        Inc(z.total_in);
-        Inc(z.state^.sub.check.need, cardinal(z.next_in^) );
-        Inc(z.next_in);
+        {inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
+        dec(z.avail_in);
+        inc(z.total_in);
+        inc(z.state^.sub.check.need, cardinal(z.next_in^) );
+        inc(z.next_in);
 
         z.adler := z.state^.sub.check.need;
         z.state^.mode := DICT0;
@@ -654,7 +646,7 @@ begin
   if (length >= (1 shl z.state^.wbits)) then
   begin
     length := (1 shl z.state^.wbits)-1;
-    Inc( dictionary, dictLength - length);
+    inc( dictionary, dictLength - length);
   end;
   inflate_set_dictionary(z.state^.blocks^, dictionary^, length);
   z.state^.mode := BLOCKS;
@@ -695,18 +687,18 @@ begin
   while (n <> 0) and (m < 4) do
   begin
     if (p^ = mark[m]) then
-      Inc(m)
+      inc(m)
     else
       if (p^ <> 0) then
         m := 0
       else
         m := 4 - m;
-    Inc(p);
-    Dec(n);
+    inc(p);
+    dec(n);
   end;
 
   { restore }
-  Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+  inc(z.total_in, ptrint(p) - ptrint(z.next_in));
   z.next_in := p;
   z.avail_in := n;
   z.state^.sub.marker := m;
@@ -739,7 +731,7 @@ end;
 
 function inflateSyncPoint(var z : z_stream) : integer;
 begin
-  if (z.state = Z_NULL) or (z.state^.blocks = Z_NULL) then
+  if (z.state = nil) or (z.state^.blocks = nil) then
   begin
     inflateSyncPoint := Z_STREAM_ERROR;
     exit;
