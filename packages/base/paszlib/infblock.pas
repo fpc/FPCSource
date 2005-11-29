@@ -445,9 +445,9 @@ begin
           t := n;
         if (t > m) then
           t := m;
-        zmemcpy(q, p, t);
-        Inc(p, t);  dec(n, t);
-        Inc(q, t);  dec(m, t);
+        move(p^,q^,t);
+        inc(p, t);  dec(n, t);
+        inc(q, t);  dec(m, t);
         dec(s.sub.left, t);
         if (s.sub.left = 0) then
         begin
@@ -929,9 +929,9 @@ procedure inflate_set_dictionary(var s : inflate_blocks_state;
                                  const d : array of byte; { dictionary }
                                  n : cardinal);         { dictionary length }
 begin
-  zmemcpy(s.window, Pbyte(@d), n);
+  move(d,s.window^,n);
   s.write := s.window;
-  Inc(s.write, n);
+  inc(s.write, n);
   s.read := s.write;
 end;
 

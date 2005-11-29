@@ -21,13 +21,6 @@ uses
   {$else}
   dos,
   {$endif}
-(*
-  {$ifdef MSDOS}
-  dos, strings,
-  {$else}
-  sysutils,
-  {$endif}
-*)
   zutil, zbase, crc, zdeflate, zinflate;
 
 type gzFile = pointer;
@@ -573,7 +566,7 @@ begin
       n := s^.stream.avail_in;
       if (n > s^.stream.avail_out) then n := s^.stream.avail_out;
       if (n > 0) then begin
-        zmemcpy(s^.stream.next_out, s^.stream.next_in, n);
+        move(s^.stream.next_in^,s^.stream.next_out^,n);
         inc (s^.stream.next_out, n);
         inc (s^.stream.next_in, n);
         dec (s^.stream.avail_out, n);
@@ -994,9 +987,9 @@ begin
     end;
 
     { At this point, offset is the number of zero bytes to write. }
-    if (s^.inbuf = nil) then begin
-      GetMem (s^.inbuf, Z_BUFSIZE);
-      zmemzero(s^.inbuf, Z_BUFSIZE);
+    if s^.inbuf=nil then begin
+      getmem(s^.inbuf,Z_BUFSIZE);
+      fillchar(s^.inbuf^,Z_BUFSIZE,0);
     end;
 
     while (offset > 0) do begin

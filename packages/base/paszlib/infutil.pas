@@ -174,7 +174,7 @@ begin
   end;
 
   { copy as far as end of window }
-  zmemcpy(p, q, n);
+  move(q^,p^,n);
   inc(p, n);
   inc(q, n);
 
@@ -205,7 +205,7 @@ begin
     end;
 
     { copy }
-    zmemcpy(p, q, n);
+    move(q^,p^,n);
     inc(p, n);
     inc(q, n);
   end;

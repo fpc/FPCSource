@@ -1,4 +1,4 @@
-Unit ZUtil;
+unit zutil;
 
 {
   Copyright (C) 1998 by Jacques Nomssi Nzali
@@ -34,9 +34,7 @@ type
   zushfArray = array[0..(MaxMemBlock div SizeOf(word))-1] of word;
   pushfArray = ^zushfArray;
 
-procedure zmemcpy(destp : Pbyte; sourcep : Pbyte; len : cardinal);
 function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
-procedure zmemzero(destp : Pbyte; len : cardinal);
 procedure zcfree(opaque : pointer; ptr : pointer);
 function zcalloc (opaque : pointer; items : cardinal; size : cardinal) : pointer;
 
@@ -320,11 +318,6 @@ end;
 
 {$ENDIF}
 
-procedure zmemcpy(destp : Pbyte; sourcep : Pbyte; len : cardinal);
-begin
-  Move(sourcep^, destp^, len);
-end;
-
 function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
 var
   j : cardinal;
@@ -344,11 +337,6 @@ begin
     Inc(dest);
   end;
   zmemcmp := 0;
-end;
-
-procedure zmemzero(destp : Pbyte; len : cardinal);
-begin
-  FillChar(destp^, len, 0);
 end;
 
 procedure zcfree(opaque : pointer; ptr : pointer);

@@ -685,7 +685,7 @@ begin
 {$endif}
   end;
 
-  zmemcpy( Pbyte(s^.window), dictionary, length);
+  move(dictionary^,Pbyte(s^.window)^,length);
   s^.strstart := length;
   s^.block_start := longint(length);
 
@@ -828,7 +828,7 @@ begin
   if (len = 0) then
     exit;
 
-  zmemcpy(strm.next_out, s^.pending_out, len);
+  move(s^.pending_out^,strm.next_out^,len);
   inc(strm.next_out, len);
   inc(s^.pending_out, len);
   inc(strm.total_out, len);
@@ -984,7 +984,7 @@ begin
         begin
           {macro CLEAR_HASH(s);}             { forget history }
           s^.head^[s^.hash_size-1] := ZNIL;
-          zmemzero(Pbyte(s^.head), cardinal(s^.hash_size-1)*sizeof(s^.head^[0]));
+          fillchar(Pbyte(s^.head)^,cardinal(s^.hash_size-1)*sizeof(s^.head^[0]),0);
         end;
       end;
 
@@ -1114,11 +1114,11 @@ begin
     deflateCopy := Z_MEM_ERROR;
     exit;
   end;
-  { following zmemcpy do not work for 16-bit MSDOS }
-  zmemcpy(Pbyte(ds^.window), Pbyte(ss^.window), ds^.w_size * 2 * sizeof(Byte));
-  zmemcpy(Pbyte(ds^.prev), Pbyte(ss^.prev), ds^.w_size * sizeof(Pos));
-  zmemcpy(Pbyte(ds^.head), Pbyte(ss^.head), ds^.hash_size * sizeof(Pos));
-  zmemcpy(Pbyte(ds^.pending_buf), Pbyte(ss^.pending_buf), cardinal(ds^.pending_buf_size));
+
+  move(Pbyte(ss^.window)^,Pbyte(ds^.window)^,ds^.w_size * 2 * sizeof(byte));
+  move(Pbyte(ss^.prev)^,Pbyte(ds^.prev)^,ds^.w_size * sizeof(pos));
+  move(Pbyte(ss^.head)^,Pbyte(ds^.head)^,ds^.hash_size * sizeof(pos));
+  move(Pbyte(ss^.pending_buf)^,Pbyte(ds^.pending_buf)^,cardinal(ds^.pending_buf_size));
 
   ds^.pending_out := @ds^.pending_buf^[ptrint(ss^.pending_out) - ptrint(ss^.pending_buf)];
   ds^.d_buf := pushfArray (@overlay^[ds^.lit_bufsize div sizeof(word)] );
@@ -1161,11 +1161,11 @@ begin
   begin
     strm^.adler := adler32(strm^.adler, strm^.next_in, len);
   end;
-  zmemcpy(buf, strm^.next_in, len);
+  move(strm^.next_in^,buf^,len);
   inc(strm^.next_in, len);
   inc(strm^.total_in, len);
 
-  read_buf := integer(len);
+  read_buf := len;
 end;
 
 { ===========================================================================
@@ -1178,7 +1178,7 @@ begin
 
   {macro CLEAR_HASH(s);}
   s.head^[s.hash_size-1] := ZNIL;
-  zmemzero(Pbyte(s.head), cardinal(s.hash_size-1)*sizeof(s.head^[0]));
+  fillchar(Pbyte(s.head)^, cardinal(s.hash_size-1)*sizeof(s.head^[0]),0);
 
   { Set the default configuration parameters: }
 
@@ -1587,8 +1587,7 @@ begin
      else
        if (s.strstart >= wsize+ {MAX_DIST}(wsize-MIN_LOOKAHEAD)) then
        begin
-         zmemcpy( Pbyte(s.window), Pbyte(@(s.window^[wsize])),
-                 cardinal(wsize));
+         move(s.window^[wsize],Pbyte(s.window)^,wsize);
          dec(s.match_start, wsize);
          dec(s.strstart, wsize); { we now have strstart >= MAX_DIST }
          dec(s.block_start, longint(wsize));
