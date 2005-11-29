@@ -1683,7 +1683,6 @@ packages/base/paszlib/crc.pas -text
 packages/base/paszlib/example.pas svneol=native#text/plain
 packages/base/paszlib/fpmake.inc svneol=native#text/plain
 packages/base/paszlib/fpmake.pp svneol=native#text/plain
-packages/base/paszlib/gzcrc.pas svneol=native#text/plain
 packages/base/paszlib/gzio.pas svneol=native#text/plain
 packages/base/paszlib/infblock.pas svneol=native#text/plain
 packages/base/paszlib/infcodes.pas svneol=native#text/plain
