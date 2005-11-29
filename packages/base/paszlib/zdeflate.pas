@@ -62,12 +62,12 @@ uses
 
 
 function deflateInit_(strm : z_streamp;
-                      level : int;
+                      level : integer;
                       const version : string;
-                      stream_size : int) : int;
+                      stream_size : integer) : integer;
 
 
-function deflateInit (var strm : z_stream; level : int) : int;
+function deflateInit (var strm : z_stream; level : integer) : integer;
 
 {  Initializes the internal stream state for compression. The fields
    zalloc, zfree and opaque must be initialized before by the caller.
@@ -89,7 +89,7 @@ function deflateInit (var strm : z_stream; level : int) : int;
 
 
 {EXPORT}
-function deflate (var strm : z_stream; flush : int) : int;
+function deflate (var strm : z_stream; flush : integer) : integer;
 
 { Performs one or both of the following actions:
 
@@ -157,7 +157,7 @@ function deflate (var strm : z_stream; flush : int) : int;
   if next_in or next_out was NULL), Z_BUF_ERROR if no progress is possible. }
 
 
-function deflateEnd (var strm : z_stream) : int;
+function deflateEnd (var strm : z_stream) : integer;
 
 {     All dynamically allocated data structures for this stream are freed.
    This function discards any unprocessed input and does not flush any
@@ -179,11 +179,11 @@ function deflateEnd (var strm : z_stream) : int;
 
 {EXPORT}
 function deflateInit2 (var strm : z_stream;
-                       level : int;
-                       method : int;
-                       windowBits : int;
-                       memLevel : int;
-                       strategy : int) : int;
+                       level : integer;
+                       method : integer;
+                       windowBits : integer;
+                       memLevel : integer;
+                       strategy : integer) : integer;
 
 {  This is another version of deflateInit with more compression options. The
    fields next_in, zalloc, zfree and opaque must be initialized before by
@@ -238,8 +238,8 @@ function deflateInit2 (var strm : z_stream;
 
 {EXPORT}
 function deflateSetDictionary (var strm : z_stream;
-                               dictionary : pBytef; {const bytes}
-			       dictLength : uint) : int;
+                               dictionary : Pbyte; {const bytes}
+			       dictLength : cardinal) : integer;
 
 {    Initializes the compression dictionary (history buffer) from the given
    byte sequence without producing any compressed output. This function must
@@ -267,7 +267,7 @@ function deflateSetDictionary (var strm : z_stream;
 
 {EXPORT}
 function deflateCopy (dest : z_streamp;
-                      source : z_streamp) : int;
+                      source : z_streamp) : integer;
 
 {  Sets the destination stream as a complete copy of the source stream.  If
    the source stream is using an application-supplied history buffer, a new
@@ -289,7 +289,7 @@ function deflateCopy (dest : z_streamp;
    destination. }
 
 {EXPORT}
-function deflateReset (var strm : z_stream) : int;
+function deflateReset (var strm : z_stream) : integer;
 
 {   This function is equivalent to deflateEnd followed by deflateInit,
    but does not free and reallocate all the internal compression state.
@@ -301,7 +301,7 @@ function deflateReset (var strm : z_stream) : int;
 
 
 {EXPORT}
-function deflateParams (var strm : z_stream; level : int; strategy : int) : int;
+function deflateParams (var strm : z_stream; level : integer; strategy : integer) : integer;
 
 {    Dynamically update the compression level and compression strategy.
    This can be used to switch between compression and straight copy of
@@ -344,33 +344,33 @@ type
 
 { Compression function. Returns the block state after the call. }
 type
-  compress_func = function(var s : deflate_state; flush : int) : block_state;
+  compress_func = function(var s : deflate_state; flush : integer) : block_state;
 
 {local}
 procedure fill_window(var s : deflate_state); forward;
 {local}
-function deflate_stored(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_stored(var s : deflate_state; flush : integer) : block_state; far; forward;
 {local}
-function deflate_fast(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_fast(var s : deflate_state; flush : integer) : block_state; far; forward;
 {local}
-function deflate_slow(var s : deflate_state; flush : int) : block_state; far; forward;
+function deflate_slow(var s : deflate_state; flush : integer) : block_state; far; forward;
 {local}
 procedure lm_init(var s : deflate_state); forward;
 
 {local}
-procedure putShortMSB(var s : deflate_state; b : uInt); forward;
+procedure putShortMSB(var s : deflate_state; b : cardinal); forward;
 {local}
 procedure  flush_pending (var strm : z_stream); forward;
 {local}
 function read_buf(strm : z_streamp;
-                  buf : pBytef;
-                  size : unsigned) : int; forward;
+                  buf : Pbyte;
+                  size : cardinal) : integer; forward;
 {$ifdef ASMV}
 procedure match_init; { asm code initialization }
-function longest_match(var deflate_state; cur_match : IPos) : uInt; forward;
+function longest_match(var deflate_state; cur_match : IPos) : cardinal; forward;
 {$else}
 {local}
-function longest_match(var s : deflate_state; cur_match : IPos) : uInt;
+function longest_match(var s : deflate_state; cur_match : IPos) : cardinal;
   forward;
 {$endif}
 
@@ -378,7 +378,7 @@ function longest_match(var s : deflate_state; cur_match : IPos) : uInt;
 {local}
 procedure check_match(var s : deflate_state;
                       start, match : IPos;
-                      length : int); forward;
+                      length : integer); forward;
 {$endif}
 
 {  ==========================================================================
@@ -397,7 +397,7 @@ const
 { Minimum amount of lookahead, except at the end of the input file.
   See deflate.c for comments about the MIN_MATCH+1. }
 
-{macro MAX_DIST(var s : deflate_state) : uInt;
+{macro MAX_DIST(var s : deflate_state) : cardinal;
 begin
   MAX_DIST := (s.w_size - MIN_LOOKAHEAD);
 end;
@@ -412,10 +412,10 @@ end;
 
 type
   config = record
-   good_length : ush; { reduce lazy search above this match length }
-   max_lazy : ush;    { do not perform lazy search above this match length }
-   nice_length : ush; { quit search above this match length }
-   max_chain : ush;
+   good_length : word; { reduce lazy search above this match length }
+   max_lazy : word;    { do not perform lazy search above this match length }
+   nice_length : word; { quit search above this match length }
+   max_chain : word;
    func : compress_func;
   end;
 
@@ -464,7 +464,7 @@ macro UPDATE_HASH(s,h,c)
      (except for the last MIN_MATCH-1 bytes of the input file). }
 
 procedure INSERT_STRING(var s : deflate_state;
-                        str : uInt;
+                        str : cardinal;
                         var match_head : IPos);
 begin
 {$ifdef FASTEST}
@@ -490,22 +490,22 @@ end;
 
 macro CLEAR_HASH(s)
     s^.head[s^.hash_size-1] := ZNIL;
-    zmemzero(pBytef(s^.head), unsigned(s^.hash_size-1)*sizeof(s^.head^[0]));
+    zmemzero(Pbyte(s^.head), cardinal(s^.hash_size-1)*sizeof(s^.head^[0]));
 }
 
 {  ======================================================================== }
 
 function deflateInit2_(var strm : z_stream;
-                       level : int;
-                       method : int;
-                       windowBits : int;
-                       memLevel : int;
-                       strategy : int;
+                       level : integer;
+                       method : integer;
+                       windowBits : integer;
+                       memLevel : integer;
+                       strategy : integer;
                        const version : string;
-                       stream_size : int) : int;
+                       stream_size : integer) : integer;
 var
   s : deflate_state_ptr;
-  noheader : int;
+  noheader : integer;
 
   overlay : pushfArray;
   { We overlay pending_buf and d_buf+l_buf. This works since the average
@@ -532,7 +532,7 @@ begin
     {$IFDEF FPC}  strm.zalloc := @zcalloc;  {$ELSE}
     strm.zalloc := zcalloc;
     {$ENDIF}
-    strm.opaque := voidpf(0);
+    strm.opaque := nil;
   end;
   if not Assigned(strm.zfree) then
     {$IFDEF FPC}  strm.zfree := @zcfree;  {$ELSE}
@@ -583,9 +583,9 @@ begin
 
   s^.lit_bufsize := 1 shl (memLevel + 6); { 16K elements by default }
 
-  overlay := pushfArray (ZALLOC(strm, s^.lit_bufsize, sizeof(ush)+2));
+  overlay := pushfArray (ZALLOC(strm, s^.lit_bufsize, sizeof(word)+2));
   s^.pending_buf := pzByteArray (overlay);
-  s^.pending_buf_size := ulg(s^.lit_bufsize) * (sizeof(ush)+Long(2));
+  s^.pending_buf_size := longint(s^.lit_bufsize) * (sizeof(word)+longint(2));
 
   if (s^.window = Z_NULL) or (s^.prev = Z_NULL) or (s^.head = Z_NULL)
    or (s^.pending_buf = Z_NULL) then
@@ -596,8 +596,8 @@ begin
     deflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
-  s^.d_buf := pushfArray( @overlay^[s^.lit_bufsize div sizeof(ush)] );
-  s^.l_buf := puchfArray( @s^.pending_buf^[(1+sizeof(ush))*s^.lit_bufsize] );
+  s^.d_buf := pushfArray( @overlay^[s^.lit_bufsize div sizeof(word)] );
+  s^.l_buf := puchfArray( @s^.pending_buf^[(1+sizeof(word))*s^.lit_bufsize] );
 
   s^.level := level;
   s^.strategy := strategy;
@@ -609,11 +609,11 @@ end;
 {  ========================================================================= }
 
 function deflateInit2(var strm : z_stream;
-                      level : int;
-                      method : int;
-                      windowBits : int;
-                      memLevel : int;
-                      strategy : int) : int;
+                      level : integer;
+                      method : integer;
+                      windowBits : integer;
+                      memLevel : integer;
+                      strategy : integer) : integer;
 { a macro }
 begin
   deflateInit2 := deflateInit2_(strm, level, method, windowBits,
@@ -623,9 +623,9 @@ end;
 {  ========================================================================= }
 
 function deflateInit_(strm : z_streamp;
-                      level : int;
+                      level : integer;
                       const version : string;
-                      stream_size : int) : int;
+                      stream_size : integer) : integer;
 begin
   if (strm = Z_NULL) then
     deflateInit_ := Z_STREAM_ERROR
@@ -637,7 +637,7 @@ end;
 
 {  ========================================================================= }
 
-function deflateInit(var strm : z_stream; level : int) : int;
+function deflateInit(var strm : z_stream; level : integer) : integer;
 { deflateInit is a macro to allow checking the zlib version
   and the compiler's view of z_stream: }
 begin
@@ -647,15 +647,15 @@ end;
 
 {  ======================================================================== }
 function deflateSetDictionary (var strm : z_stream;
-                               dictionary : pBytef;
-                               dictLength : uInt) : int;
+                               dictionary : Pbyte;
+                               dictLength : cardinal) : integer;
 var
   s : deflate_state_ptr;
-  length : uInt;
-  n : uInt;
+  length : cardinal;
+  n : cardinal;
   hash_head : IPos;
 var
-  MAX_DIST : uInt;  {macro}
+  MAX_DIST : cardinal;  {macro}
 begin
   length := dictLength;
   hash_head := 0;
@@ -681,13 +681,13 @@ begin
   begin
     length := MAX_DIST;
 {$ifndef USE_DICT_HEAD}
-    Inc(dictionary, dictLength - length);  { use the tail of the dictionary }
+    inc(dictionary, dictLength - length);  { use the tail of the dictionary }
 {$endif}
   end;
 
-  zmemcpy( pBytef(s^.window), dictionary, length);
+  zmemcpy( Pbyte(s^.window), dictionary, length);
   s^.strstart := length;
-  s^.block_start := long(length);
+  s^.block_start := longint(length);
 
   { Insert all strings in the hash table (except for the last two bytes).
     s^.lookahead stays null, so s^.ins_h will be recomputed at the next
@@ -708,7 +708,7 @@ begin
 end;
 
 {  ======================================================================== }
-function deflateReset (var strm : z_stream) : int;
+function deflateReset (var strm : z_stream) : integer;
 var
   s : deflate_state_ptr;
 begin
@@ -727,7 +727,7 @@ begin
 
   s := deflate_state_ptr(strm.state);
   s^.pending := 0;
-  s^.pending_out := pBytef(s^.pending_buf);
+  s^.pending_out := Pbyte(s^.pending_buf);
 
   if (s^.noheader < 0) then
   begin
@@ -748,12 +748,12 @@ end;
 
 {  ======================================================================== }
 function deflateParams(var strm : z_stream;
-                       level : int;
-                       strategy : int) : int;
+                       level : integer;
+                       strategy : integer) : integer;
 var
   s : deflate_state_ptr;
   func : compress_func;
-  err : int;
+  err : integer;
 begin
   err := Z_OK;
   if {(@strm  =  Z_NULL) or} (strm.state  =  Z_NULL) then
@@ -800,12 +800,12 @@ end;
   pending_buf. }
 
 {local}
-procedure putShortMSB (var s : deflate_state; b : uInt);
+procedure putShortMSB (var s : deflate_state; b : cardinal);
 begin
   s.pending_buf^[s.pending] := Byte(b shr 8);
-  Inc(s.pending);
+  inc(s.pending);
   s.pending_buf^[s.pending] := Byte(b and $ff);
-  Inc(s.pending);
+  inc(s.pending);
 end;
 
 { =========================================================================
@@ -817,7 +817,7 @@ end;
 {local}
 procedure flush_pending(var strm : z_stream);
 var
-  len : unsigned;
+  len : cardinal;
   s : deflate_state_ptr;
 begin
   s := deflate_state_ptr(strm.state);
@@ -829,25 +829,25 @@ begin
     exit;
 
   zmemcpy(strm.next_out, s^.pending_out, len);
-  Inc(strm.next_out, len);
-  Inc(s^.pending_out, len);
-  Inc(strm.total_out, len);
-  Dec(strm.avail_out, len);
-  Dec(s^.pending, len);
+  inc(strm.next_out, len);
+  inc(s^.pending_out, len);
+  inc(strm.total_out, len);
+  dec(strm.avail_out, len);
+  dec(s^.pending, len);
   if (s^.pending = 0) then
   begin
-    s^.pending_out := pBytef(s^.pending_buf);
+    s^.pending_out := Pbyte(s^.pending_buf);
   end;
 end;
 
 { ========================================================================= }
-function deflate (var strm : z_stream; flush : int) : int;
+function deflate (var strm : z_stream; flush : integer) : integer;
 var
-  old_flush : int; { value of flush param for previous deflate call }
+  old_flush : integer; { value of flush param for previous deflate call }
   s : deflate_state_ptr;
 var
-  header : uInt;
-  level_flags : uInt;
+  header : cardinal;
+  level_flags : cardinal;
 var
   bstate : block_state;
 begin
@@ -892,7 +892,7 @@ begin
     header := header or (level_flags shl 6);
     if (s^.strstart <> 0) then
       header := header or PRESET_DICT;
-    Inc(header, 31 - (header mod 31));
+    inc(header, 31 - (header mod 31));
 
     s^.status := BUSY_STATE;
     putShortMSB(s^, header);
@@ -900,10 +900,10 @@ begin
     { Save the adler32 of the preset dictionary: }
     if (s^.strstart <> 0) then
     begin
-      putShortMSB(s^, uInt(strm.adler shr 16));
-      putShortMSB(s^, uInt(strm.adler and $ffff));
+      putShortMSB(s^, cardinal(strm.adler shr 16));
+      putShortMSB(s^, cardinal(strm.adler and $ffff));
     end;
-    strm.adler := long(1);
+    strm.adler := longint(1);
   end;
 
   { Flush as much pending output as possible }
@@ -976,7 +976,7 @@ begin
         _tr_align(s^)
       else
       begin  { FULL_FLUSH or SYNC_FLUSH }
-        _tr_stored_block(s^, pcharf(NIL), Long(0), FALSE);
+        _tr_stored_block(s^, Pchar(NIL), longint(0), FALSE);
         { For a full flush, this empty block will be recognized
           as a special marker by inflate_sync(). }
 
@@ -984,7 +984,7 @@ begin
         begin
           {macro CLEAR_HASH(s);}             { forget history }
           s^.head^[s^.hash_size-1] := ZNIL;
-          zmemzero(pBytef(s^.head), unsigned(s^.hash_size-1)*sizeof(s^.head^[0]));
+          zmemzero(Pbyte(s^.head), cardinal(s^.hash_size-1)*sizeof(s^.head^[0]));
         end;
       end;
 
@@ -1014,8 +1014,8 @@ begin
   end;
 
   { Write the zlib trailer (adler32) }
-  putShortMSB(s^, uInt(strm.adler shr 16));
-  putShortMSB(s^, uInt(strm.adler and $ffff));
+  putShortMSB(s^, cardinal(strm.adler shr 16));
+  putShortMSB(s^, cardinal(strm.adler and $ffff));
   flush_pending(strm);
   { If avail_out is zero, the application will call deflate again
     to flush the rest. }
@@ -1028,9 +1028,9 @@ begin
 end;
 
 { ========================================================================= }
-function deflateEnd (var strm : z_stream) : int;
+function deflateEnd (var strm : z_stream) : integer;
 var
-  status : int;
+  status : integer;
   s : deflate_state_ptr;
 begin
   if {(@strm = Z_NULL) or} (strm.state = Z_NULL) then
@@ -1070,7 +1070,7 @@ end;
 
 
 { ========================================================================= }
-function deflateCopy (dest, source : z_streamp) : int;
+function deflateCopy (dest, source : z_streamp) : integer;
 {$ifndef MAXSEG_64K}
 var
   ds : deflate_state_ptr;
@@ -1104,7 +1104,7 @@ begin
   ds^.window := pzByteArray ( ZALLOC(dest^, ds^.w_size, 2*sizeof(Byte)) );
   ds^.prev   := pzPosfArray ( ZALLOC(dest^, ds^.w_size, sizeof(Pos)) );
   ds^.head   := pzPosfArray ( ZALLOC(dest^, ds^.hash_size, sizeof(Pos)) );
-  overlay := pushfArray ( ZALLOC(dest^, ds^.lit_bufsize, sizeof(ush)+2) );
+  overlay := pushfArray ( ZALLOC(dest^, ds^.lit_bufsize, sizeof(word)+2) );
   ds^.pending_buf := pzByteArray ( overlay );
 
   if (ds^.window = Z_NULL) or (ds^.prev = Z_NULL) or (ds^.head = Z_NULL)
@@ -1115,14 +1115,14 @@ begin
     exit;
   end;
   { following zmemcpy do not work for 16-bit MSDOS }
-  zmemcpy(pBytef(ds^.window), pBytef(ss^.window), ds^.w_size * 2 * sizeof(Byte));
-  zmemcpy(pBytef(ds^.prev), pBytef(ss^.prev), ds^.w_size * sizeof(Pos));
-  zmemcpy(pBytef(ds^.head), pBytef(ss^.head), ds^.hash_size * sizeof(Pos));
-  zmemcpy(pBytef(ds^.pending_buf), pBytef(ss^.pending_buf), uInt(ds^.pending_buf_size));
+  zmemcpy(Pbyte(ds^.window), Pbyte(ss^.window), ds^.w_size * 2 * sizeof(Byte));
+  zmemcpy(Pbyte(ds^.prev), Pbyte(ss^.prev), ds^.w_size * sizeof(Pos));
+  zmemcpy(Pbyte(ds^.head), Pbyte(ss^.head), ds^.hash_size * sizeof(Pos));
+  zmemcpy(Pbyte(ds^.pending_buf), Pbyte(ss^.pending_buf), cardinal(ds^.pending_buf_size));
 
-  ds^.pending_out := @ds^.pending_buf^[ptr2int(ss^.pending_out) - ptr2int(ss^.pending_buf)];
-  ds^.d_buf := pushfArray (@overlay^[ds^.lit_bufsize div sizeof(ush)] );
-  ds^.l_buf := puchfArray (@ds^.pending_buf^[(1+sizeof(ush))*ds^.lit_bufsize]);
+  ds^.pending_out := @ds^.pending_buf^[ptrint(ss^.pending_out) - ptrint(ss^.pending_buf)];
+  ds^.d_buf := pushfArray (@overlay^[ds^.lit_bufsize div sizeof(word)] );
+  ds^.l_buf := puchfArray (@ds^.pending_buf^[(1+sizeof(word))*ds^.lit_bufsize]);
 
   ds^.l_desc.dyn_tree := tree_ptr(@ds^.dyn_ltree);
   ds^.d_desc.dyn_tree := tree_ptr(@ds^.dyn_dtree);
@@ -1141,9 +1141,9 @@ end;
   (See also flush_pending()). }
 
 {local}
-function read_buf(strm : z_streamp; buf : pBytef; size : unsigned) : int;
+function read_buf(strm : z_streamp; buf : Pbyte; size : cardinal) : integer;
 var
-  len : unsigned;
+  len : cardinal;
 begin
   len := strm^.avail_in;
 
@@ -1155,17 +1155,17 @@ begin
     exit;
   end;
 
-  Dec(strm^.avail_in, len);
+  dec(strm^.avail_in, len);
 
   if deflate_state_ptr(strm^.state)^.noheader = 0 then
   begin
     strm^.adler := adler32(strm^.adler, strm^.next_in, len);
   end;
   zmemcpy(buf, strm^.next_in, len);
-  Inc(strm^.next_in, len);
-  Inc(strm^.total_in, len);
+  inc(strm^.next_in, len);
+  inc(strm^.total_in, len);
 
-  read_buf := int(len);
+  read_buf := integer(len);
 end;
 
 { ===========================================================================
@@ -1174,11 +1174,11 @@ end;
 {local}
 procedure lm_init (var s : deflate_state);
 begin
-  s.window_size := ulg( uLong(2)*s.w_size);
+  s.window_size := longint( 2*s.w_size);
 
   {macro CLEAR_HASH(s);}
   s.head^[s.hash_size-1] := ZNIL;
-  zmemzero(pBytef(s.head), unsigned(s.hash_size-1)*sizeof(s.head^[0]));
+  zmemzero(Pbyte(s.head), cardinal(s.hash_size-1)*sizeof(s.head^[0]));
 
   { Set the default configuration parameters: }
 
@@ -1188,7 +1188,7 @@ begin
   s.max_chain_length := configuration_table[s.level].max_chain;
 
   s.strstart := 0;
-  s.block_start := long(0);
+  s.block_start := longint(0);
   s.lookahead := 0;
   s.prev_length := MIN_MATCH-1;
   s.match_length := MIN_MATCH-1;
@@ -1218,36 +1218,36 @@ end;
 {local}
 function longest_match(var s : deflate_state;
                        cur_match : IPos  { current match }
-                       ) : uInt;
+                       ) : cardinal;
 label
   nextstep;
 var
-  chain_length : unsigned;    { max hash chain length }
-  {register} scan : pBytef;   { current string }
-  {register} match : pBytef;  { matched string }
-  {register} len : int;       { length of current match }
-  best_len : int;             { best match length so far }
-  nice_match : int;           { stop if match long enough }
+  chain_length : cardinal;    { max hash chain length }
+  {register} scan : Pbyte;   { current string }
+  {register} match : Pbyte;  { matched string }
+  {register} len : integer;       { length of current match }
+  best_len : integer;             { best match length so far }
+  nice_match : integer;           { stop if match longint enough }
   limit : IPos;
 
   prev : pzPosfArray;
-  wmask : uInt;
+  wmask : cardinal;
 {$ifdef UNALIGNED_OK}
-  {register} strend : pBytef;
-  {register} scan_start : ush;
-  {register} scan_end : ush;
+  {register} strend : Pbyte;
+  {register} scan_start : word;
+  {register} scan_end : word;
 {$else}
-  {register} strend : pBytef;
+  {register} strend : Pbyte;
   {register} scan_end1 : Byte;
   {register} scan_end : Byte;
 {$endif}
 var
-  MAX_DIST : uInt;
+  MAX_DIST : cardinal;
 begin
   chain_length := s.max_chain_length; { max hash chain length }
   scan := @(s.window^[s.strstart]);
   best_len := s.prev_length;              { best match length so far }
-  nice_match := s.nice_match;             { stop if match long enough }
+  nice_match := s.nice_match;             { stop if match longint enough }
 
 
   MAX_DIST := s.w_size - MIN_LOOKAHEAD;
@@ -1268,11 +1268,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
   { Compare two bytes at a time. Note: this is not always beneficial.
     Try with and without -DUNALIGNED_OK to check. }
 
-  strend := pBytef(@(s.window^[s.strstart + MAX_MATCH - 1]));
+  strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH - 1]));
   scan_start := pushf(scan)^;
   scan_end   := pushfArray(scan)^[best_len-1];   { fix }
 {$else}
-  strend := pBytef(@(s.window^[s.strstart + MAX_MATCH]));
+  strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH]));
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
   scan_end1  := pzByteArray(scan)^[best_len-1];
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
@@ -1293,10 +1293,10 @@ distances are limited to MAX_DIST instead of WSIZE. }
     { Do not look for matches beyond the end of the input. This is necessary
       to make deflate deterministic. }
 
-    if (uInt(nice_match) > s.lookahead) then
+    if (cardinal(nice_match) > s.lookahead) then
       nice_match := s.lookahead;
     {$IFDEF DEBUG}
-    Assert(ulg(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
+    Assert(longint(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
     {$ENDIF}
     repeat
         {$IFDEF DEBUG}
@@ -1315,7 +1315,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
 {$endif}
 
 {$ifdef DO_UNALIGNED_OK}
-        { This code assumes sizeof(unsigned short) = 2. Do not use
+        { This code assumes sizeof(cardinal short) = 2. Do not use
           UNALIGNED_OK if your compiler uses a different size. }
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
         if (pushfArray(match)^[best_len-1] <> scan_end) or
@@ -1334,31 +1334,31 @@ distances are limited to MAX_DIST instead of WSIZE. }
         {$IFDEF DEBUG}
         Assert(pzByteArray(scan)^[2] = pzByteArray(match)^[2], 'scan[2]?');
         {$ENDIF}
-        Inc(scan);
-        Inc(match);
+        inc(scan);
+        inc(match);
 
         repeat
-          Inc(scan,2); Inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          Inc(scan,2); Inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          Inc(scan,2); Inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          Inc(scan,2); Inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-        until (ptr2int(scan) >= ptr2int(strend));
+          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
+          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
+          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
+          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
+        until (ptrint(scan) >= ptrint(strend));
         { The funny "do while" generates better code on most compilers }
 
         { Here, scan <= window+strstart+257 }
         {$IFDEF DEBUG}
         {$ifopt R+} {$define RangeCheck} {$endif} {$R-}
-        Assert(ptr2int(scan) <=
-               ptr2int(@(s.window^[unsigned(s.window_size-1)])),
+        Assert(ptrint(scan) <=
+               ptrint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
         {$ifdef RangeCheck} {$R+} {$undef RangeCheck} {$endif}
         {$ENDIF}
         if (scan^ = match^) then
-          Inc(scan);
+          inc(scan);
 
-        len := (MAX_MATCH - 1) - int(ptr2int(strend)) + int(ptr2int(scan));
+        len := (MAX_MATCH - 1) - integer(ptrint(strend)) + integer(ptrint(scan));
         scan := strend;
-        Dec(scan, (MAX_MATCH-1));
+        dec(scan, (MAX_MATCH-1));
 
 {$else} { UNALIGNED_OK }
 
@@ -1368,7 +1368,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
            (match^ <> scan^) then
           goto nextstep; {continue;}
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
-        Inc(match);
+        inc(match);
         if (match^ <> pzByteArray(scan)^[1]) then
           goto nextstep; {continue;}
 
@@ -1378,8 +1378,8 @@ distances are limited to MAX_DIST instead of WSIZE. }
           are always equal when the other bytes match, given that
           the hash keys are equal and that HASH_BITS >= 8. }
 
-        Inc(scan, 2);
-        Inc(match);
+        inc(scan, 2);
+        inc(match);
         {$IFDEF DEBUG}
         Assert( scan^ = match^, 'match[2]?');
         {$ENDIF}
@@ -1387,25 +1387,25 @@ distances are limited to MAX_DIST instead of WSIZE. }
           the 256th check will be made at strstart+258. }
 
         repeat
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-          Inc(scan); Inc(match); if (scan^ <> match^) then break;
-        until (ptr2int(scan) >= ptr2int(strend));
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+          inc(scan); inc(match); if (scan^ <> match^) then break;
+        until (ptrint(scan) >= ptrint(strend));
 
         {$IFDEF DEBUG}
-        Assert(ptr2int(scan) <=
-               ptr2int(@(s.window^[unsigned(s.window_size-1)])),
+        Assert(ptrint(scan) <=
+               ptrint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
         {$ENDIF}
 
-        len := MAX_MATCH - int(ptr2int(strend) - ptr2int(scan));
+        len := MAX_MATCH - integer(ptrint(strend) - ptrint(scan));
         scan := strend;
-        Dec(scan, MAX_MATCH);
+        dec(scan, MAX_MATCH);
 
 {$endif} { UNALIGNED_OK }
 
@@ -1426,11 +1426,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
         end;
     nextstep:
       cur_match := prev^[cur_match and wmask];
-      Dec(chain_length);
+      dec(chain_length);
     until (cur_match <= limit) or (chain_length = 0);
 
-    if (uInt(best_len) <= s.lookahead) then
-      longest_match := uInt(best_len)
+    if (cardinal(best_len) <= s.lookahead) then
+      longest_match := cardinal(best_len)
     else
       longest_match := s.lookahead;
 end;
@@ -1443,12 +1443,12 @@ end;
 {local}
 function longest_match(var s : deflate_state;
                        cur_match : IPos  { current match }
-                       ) : uInt;
+                       ) : cardinal;
 var
-  {register} scan : pBytef;   { current string }
-  {register} match : pBytef;  { matched string }
-  {register} len : int;       { length of current match }
-  {register} strend : pBytef;
+  {register} scan : Pbyte;   { current string }
+  {register} match : Pbyte;  { matched string }
+  {register} len : integer;       { length of current match }
+  {register} strend : Pbyte;
 begin
   scan := @s.window^[s.strstart];
   strend := @s.window^[s.strstart + MAX_MATCH];
@@ -1459,7 +1459,7 @@ begin
     {$IFDEF DEBUG}
     Assert((s.hash_bits >= 8) and (MAX_MATCH = 258), 'Code too clever');
 
-    Assert(ulg(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
+    Assert(longint(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
 
     Assert(cur_match < s.strstart, 'no future');
     {$ENDIF}
@@ -1486,19 +1486,19 @@ begin
       the 256th check will be made at strstart+258. }
 
     repeat
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-      Inc(scan); Inc(match); if scan^<>match^ then break;
-    until (ptr2int(scan) >= ptr2int(strend));
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+      inc(scan); inc(match); if scan^<>match^ then break;
+    until (ptrint(scan) >= ptrint(strend));
 
-    Assert(scan <= s.window+unsigned(s.window_size-1), 'wild scan');
+    Assert(scan <= s.window+cardinal(s.window_size-1), 'wild scan');
 
-    len := MAX_MATCH - int(strend - scan);
+    len := MAX_MATCH - integer(strend - scan);
 
     if (len < MIN_MATCH) then
     begin
@@ -1521,19 +1521,19 @@ end;
 {local}
 procedure check_match(var s : deflate_state;
                       start, match : IPos;
-                      length : int);
+                      length : integer);
 begin
   exit;
   { check that the match is indeed a match }
-  if (zmemcmp(pBytef(@s.window^[match]),
-              pBytef(@s.window^[start]), length) <> EQUAL) then
+  if (zmemcmp(Pbyte(@s.window^[match]),
+              Pbyte(@s.window^[start]), length) <> EQUAL) then
   begin
     WriteLn(' start ',start,', match ',match ,' length ', length);
     repeat
       Write(char(s.window^[match]), char(s.window^[start]));
-      Inc(match);
-      Inc(start);
-      Dec(length);
+      inc(match);
+      inc(start);
+      dec(length);
     Until (length = 0);
     z_error('invalid match');
   end;
@@ -1542,8 +1542,8 @@ begin
     Write('\\[',start-match,',',length,']');
     repeat
        Write(char(s.window^[start]));
-       Inc(start);
-       Dec(length);
+       inc(start);
+       dec(length);
     Until (length = 0);
   end;
 end;
@@ -1562,24 +1562,24 @@ end;
 {local}
 procedure fill_window(var s : deflate_state);
 var
-  {register} n, m : unsigned;
+  {register} n, m : cardinal;
   {register} p : pPosf;
-  more : unsigned;    { Amount of free space at the end of the window. }
-  wsize : uInt;
+  more : cardinal;    { Amount of free space at the end of the window. }
+  wsize : cardinal;
 begin
    wsize := s.w_size;
    repeat
-     more := unsigned(s.window_size -ulg(s.lookahead) -ulg(s.strstart));
+     more := cardinal(s.window_size -longint(s.lookahead) -longint(s.strstart));
 
      { Deal with !@#$% 64K limit: }
      if (more = 0) and (s.strstart = 0) and (s.lookahead = 0) then
        more := wsize
      else
-     if (more = unsigned(-1)) then
+     if (more = cardinal(-1)) then
      begin
        { Very unlikely, but possible on 16 bit machine if strstart = 0
          and lookahead = 1 (input done one byte at time) }
-       Dec(more);
+       dec(more);
 
        { If the window is almost full and there is insufficient lookahead,
          move the upper half to the lower one to make room in the upper half.}
@@ -1587,11 +1587,11 @@ begin
      else
        if (s.strstart >= wsize+ {MAX_DIST}(wsize-MIN_LOOKAHEAD)) then
        begin
-         zmemcpy( pBytef(s.window), pBytef(@(s.window^[wsize])),
-                 unsigned(wsize));
-         Dec(s.match_start, wsize);
-         Dec(s.strstart, wsize); { we now have strstart >= MAX_DIST }
-         Dec(s.block_start, long(wsize));
+         zmemcpy( Pbyte(s.window), Pbyte(@(s.window^[wsize])),
+                 cardinal(wsize));
+         dec(s.match_start, wsize);
+         dec(s.strstart, wsize); { we now have strstart >= MAX_DIST }
+         dec(s.block_start, longint(wsize));
 
          { Slide the hash table (could be avoided with 32 bit values
            at the expense of memory usage). We slide even when level = 0
@@ -1602,20 +1602,20 @@ begin
          n := s.hash_size;
          p := @s.head^[n];
          repeat
-           Dec(p);
+           dec(p);
            m := p^;
            if (m >= wsize) then
              p^ := Pos(m-wsize)
            else
              p^ := Pos(ZNIL);
-           Dec(n);
+           dec(n);
          Until (n=0);
 
          n := wsize;
 {$ifndef FASTEST}
          p := @s.prev^[n];
          repeat
-           Dec(p);
+           dec(p);
            m := p^;
            if (m >= wsize) then
              p^ := Pos(m-wsize)
@@ -1623,10 +1623,10 @@ begin
              p^:= Pos(ZNIL);
              { If n is not on any hash chain, prev^[n] is garbage but
                its value will never be used. }
-           Dec(n);
+           dec(n);
          Until (n=0);
 {$endif}
-         Inc(more, wsize);
+         inc(more, wsize);
      end;
      if (s.strm^.avail_in = 0) then
        exit;
@@ -1646,9 +1646,9 @@ begin
      Assert(more >= 2, 'more < 2');
      {$ENDIF}
 
-     n := read_buf(s.strm, pBytef(@(s.window^[s.strstart + s.lookahead])),
+     n := read_buf(s.strm, Pbyte(@(s.window^[s.strstart + s.lookahead])),
                   more);
-     Inc(s.lookahead, n);
+     inc(s.lookahead, n);
 
      { Initialize the hash value now that we have some input: }
      if (s.lookahead >= MIN_MATCH) then
@@ -1673,12 +1673,12 @@ end;
 
 procedure FLUSH_BLOCK_ONLY(var s : deflate_state; eof : boolean); {macro}
 begin
-  if (s.block_start >= Long(0)) then
-    _tr_flush_block(s, pcharf(@s.window^[unsigned(s.block_start)]),
-                    ulg(long(s.strstart) - s.block_start), eof)
+  if (s.block_start >= 0) then
+    _tr_flush_block(s, Pchar(@s.window^[cardinal(s.block_start)]),
+                    longint(longint(s.strstart) - s.block_start), eof)
   else
-    _tr_flush_block(s, pcharf(Z_NULL),
-                    ulg(long(s.strstart) - s.block_start), eof);
+    _tr_flush_block(s, nil,
+                    longint(longint(s.strstart) - s.block_start), eof);
 
   s.block_start := s.strstart;
   flush_pending(s.strm^);
@@ -1715,12 +1715,12 @@ end;
 
 
 {local}
-function deflate_stored(var s : deflate_state; flush : int) : block_state;
+function deflate_stored(var s : deflate_state; flush : integer) : block_state;
 { Stored blocks are limited to 0xffff bytes, pending_buf is limited
   to pending_buf_size, and each stored block has a 5 byte header: }
 var
-  max_block_size : ulg;
-  max_start : ulg;
+  max_block_size : longint;
+  max_start : longint;
 begin
   max_block_size := $ffff;
   if (max_block_size > s.pending_buf_size - 5) then
@@ -1734,7 +1734,7 @@ begin
     begin
       {$IFDEF DEBUG}
       Assert( (s.strstart < s.w_size + {MAX_DIST}s.w_size-MIN_LOOKAHEAD) or
-              (s.block_start >= long(s.w_size)), 'slide too late');
+              (s.block_start >= longint(s.w_size)), 'slide too late');
       {$ENDIF}
       fill_window(s);
       if (s.lookahead = 0) and (flush = Z_NO_FLUSH) then
@@ -1747,18 +1747,18 @@ begin
         break; { flush the current block }
     end;
     {$IFDEF DEBUG}
-    Assert(s.block_start >= long(0), 'block gone');
+    Assert(s.block_start >= 0, 'block gone');
     {$ENDIF}
-    Inc(s.strstart, s.lookahead);
+    inc(s.strstart, s.lookahead);
     s.lookahead := 0;
 
     { Emit a stored block if pending_buf will be full: }
     max_start := s.block_start + max_block_size;
-    if (s.strstart = 0) or (ulg(s.strstart) >= max_start) then
+    if (s.strstart = 0) or (longint(s.strstart) >= max_start) then
     begin
       { strstart = 0 is possible when wraparound on 16-bit machine }
-      s.lookahead := uInt(s.strstart - max_start);
-      s.strstart := uInt(max_start);
+      s.lookahead := cardinal(s.strstart - max_start);
+      s.strstart := cardinal(max_start);
       {FLUSH_BLOCK(s, FALSE);}
       FLUSH_BLOCK_ONLY(s, FALSE);
       if (s.strm^.avail_out = 0) then
@@ -1771,7 +1771,7 @@ begin
     { Flush if we may have to slide, otherwise block_start may become
       negative and the data will be gone: }
 
-    if (s.strstart - uInt(s.block_start) >= {MAX_DIST}
+    if (s.strstart - cardinal(s.block_start) >= {MAX_DIST}
         s.w_size-MIN_LOOKAHEAD) then
     begin
       {FLUSH_BLOCK(s, FALSE);}
@@ -1809,7 +1809,7 @@ end;
   matches. It is used only for the fast compression options. }
 
 {local}
-function deflate_fast(var s : deflate_state; flush : int) : block_state;
+function deflate_fast(var s : deflate_state; flush : integer) : block_state;
 var
   hash_head : IPos;     { head of the hash chain }
   bflush : boolean;     { set if current block must be flushed }
@@ -1869,7 +1869,7 @@ begin
       bflush := _tr_tally(s, s.strstart - s.match_start,
                         s.match_length - MIN_MATCH);
 
-      Dec(s.lookahead, s.match_length);
+      dec(s.lookahead, s.match_length);
 
       { Insert new strings in the hash table only if the match length
         is not too large. This saves time but degrades compression. }
@@ -1878,21 +1878,21 @@ begin
       if (s.match_length <= s.max_insert_length)
        and (s.lookahead >= MIN_MATCH) then
       begin
-        Dec(s.match_length); { string at strstart already in hash table }
+        dec(s.match_length); { string at strstart already in hash table }
         repeat
-          Inc(s.strstart);
+          inc(s.strstart);
           INSERT_STRING(s, s.strstart, hash_head);
           { strstart never exceeds WSIZE-MAX_MATCH, so there are
             always MIN_MATCH bytes ahead. }
-          Dec(s.match_length);
+          dec(s.match_length);
         until (s.match_length = 0);
-        Inc(s.strstart);
+        inc(s.strstart);
       end
       else
 {$endif}
 
       begin
-        Inc(s.strstart, s.match_length);
+        inc(s.strstart, s.match_length);
         s.match_length := 0;
         s.ins_h := s.window^[s.strstart];
         {UPDATE_HASH(s, s.ins_h, s.window[s.strstart+1]);}
@@ -1917,8 +1917,8 @@ end;
       {_tr_tally_lit (s, 0, s.window^[s.strstart], bflush);}
       bflush := _tr_tally (s, 0, s.window^[s.strstart]);
 
-      Dec(s.lookahead);
-      Inc(s.strstart);
+      dec(s.lookahead);
+      inc(s.strstart);
     end;
     if bflush then
     begin  {FLUSH_BLOCK(s, FALSE);}
@@ -1953,12 +1953,12 @@ end;
   no better match at the next window position. }
 
 {local}
-function deflate_slow(var s : deflate_state; flush : int) : block_state;
+function deflate_slow(var s : deflate_state; flush : integer) : block_state;
 var
   hash_head : IPos;       { head of hash chain }
   bflush : boolean;       { set if current block must be flushed }
 var
-  max_insert : uInt;
+  max_insert : cardinal;
 begin
   hash_head := ZNIL;
 
@@ -2042,19 +2042,19 @@ begin
         enough lookahead, the last two strings are not inserted in
         the hash table. }
 
-      Dec(s.lookahead, s.prev_length-1);
-      Dec(s.prev_length, 2);
+      dec(s.lookahead, s.prev_length-1);
+      dec(s.prev_length, 2);
       repeat
-        Inc(s.strstart);
+        inc(s.strstart);
         if (s.strstart <= max_insert) then
         begin
           INSERT_STRING(s, s.strstart, hash_head);
         end;
-        Dec(s.prev_length);
+        dec(s.prev_length);
       until (s.prev_length = 0);
       s.match_available := FALSE;
       s.match_length := MIN_MATCH-1;
-      Inc(s.strstart);
+      inc(s.strstart);
 
       if (bflush) then  {FLUSH_BLOCK(s, FALSE);}
       begin
@@ -2081,8 +2081,8 @@ begin
         begin
           FLUSH_BLOCK_ONLY(s, FALSE);
         end;
-        Inc(s.strstart);
-        Dec(s.lookahead);
+        inc(s.strstart);
+        dec(s.lookahead);
         if (s.strm^.avail_out = 0) then
         begin
           deflate_slow := need_more;
@@ -2095,8 +2095,8 @@ begin
           the next step to decide. }
 
         s.match_available := TRUE;
-        Inc(s.strstart);
-        Dec(s.lookahead);
+        inc(s.strstart);
+        dec(s.lookahead);
       end;
   end;
 

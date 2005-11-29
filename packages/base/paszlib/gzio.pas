@@ -16,39 +16,46 @@ interface
 {$I zconf.inc}
 
 uses
+  {$ifdef UNIX}
+  baseunix,
+  {$else}
+  dos,
+  {$endif}
+(*
   {$ifdef MSDOS}
   dos, strings,
   {$else}
   sysutils,
   {$endif}
+*)
   zutil, zbase, crc, zdeflate, zinflate;
 
-type gzFile = voidp;
-type z_off_t = long;
+type gzFile = pointer;
+type z_off_t = longint;
 
 function gzopen  (path:string; mode:string) : gzFile;
-function gzread  (f:gzFile; buf:voidp; len:uInt) : int;
-function gzgetc  (f:gzfile) : int;
-function gzgets  (f:gzfile; buf:PChar; len:int) : PChar;
+function gzread  (f:gzFile; buf:pointer; len:cardinal) : integer;
+function gzgetc  (f:gzfile) : integer;
+function gzgets  (f:gzfile; buf:Pchar; len:integer) : Pchar;
 
 {$ifndef NO_DEFLATE}
-function gzwrite (f:gzFile; buf:voidp; len:uInt) : int;
-function gzputc  (f:gzfile; c:char) : int;
-function gzputs  (f:gzfile; s:PChar) : int;
-function gzflush (f:gzFile; flush:int)           : int;
+function gzwrite (f:gzFile; buf:pointer; len:cardinal) : integer;
+function gzputc  (f:gzfile; c:char) : integer;
+function gzputs  (f:gzfile; s:Pchar) : integer;
+function gzflush (f:gzFile; flush:integer)           : integer;
   {$ifdef GZ_FORMAT_STRING}
   function gzprintf (zfile : gzFile;
                      const format : string;
-                     a : array of int);    { doesn't compile }
+                     a : array of integer);    { doesn't compile }
   {$endif}
 {$endif}
 
-function gzseek  (f:gzfile; offset:z_off_t; whence:int) : z_off_t;
+function gzseek  (f:gzfile; offset:z_off_t; whence:integer) : z_off_t;
 function gztell  (f:gzfile) : z_off_t;
-function gzclose (f:gzFile)                      : int;
-function gzerror (f:gzFile; var errnum:Int)      : string;
-function gzsetparams (f:gzfile; level:int; strategy:int) : int;
-function gzrewind (f:gzFile) : int;
+function gzclose (f:gzFile)                      : integer;
+function gzerror (f:gzFile; var errnum:integer)      : string;
+function gzsetparams (f:gzfile; level:integer; strategy:integer) : integer;
+function gzrewind (f:gzFile) : integer;
 function gzeof (f:gzfile) : boolean;
 
 const
@@ -77,22 +84,22 @@ const
 
 type gz_stream = record
   stream      : z_stream;
-  z_err       : int;      { error code for last stream operation }
+  z_err       : integer;      { error code for last stream operation }
   z_eof       : boolean;  { set if end of input file }
   gzfile      : file;     { .gz file }
-  inbuf       : pBytef;   { input buffer }
-  outbuf      : pBytef;   { output buffer }
-  crc         : uLong;    { crc32 of uncompressed data }
+  inbuf       : Pbyte;   { input buffer }
+  outbuf      : Pbyte;   { output buffer }
+  crc         : cardinal;    { crc32 of uncompressed data }
   msg,                    { error message - limit 79 chars }
   path        : string[79];   { path name for debugging only - limit 79 chars }
   transparent : boolean;  { true if input file is not a .gz file }
   mode        : char;     { 'w' or 'r' }
-  startpos    : long;     { start of compressed data in file (header skipped) }
+  startpos    : longint;     { start of compressed data in file (header skipped) }
 end;
 
 type gz_streamp = ^gz_stream;
 
-function destroy (var s:gz_streamp) : int; forward;
+function destroy (var s:gz_streamp) : integer; forward;
 procedure check_header(s:gz_streamp); forward;
 
 
@@ -109,7 +116,7 @@ procedure check_header(s:gz_streamp); forward;
   gzopen can be used to open a file which is not in gzip format; in this
   case, gzread will directly read from the file without decompression.
 
-  gzopen returns NIL if the file could not be opened (non-zero IOResult)
+  gzopen returns nil if the file could not be opened (non-zero IOResult)
   or if there was insufficient memory to allocate the (de)compression state
   (zlib error is Z_MEM_ERROR).
 
@@ -119,14 +126,16 @@ function gzopen (path:string; mode:string) : gzFile;
 
 var
 
-  i        : uInt;
-  err      : int;
-  level    : int;        { compression level }
-  strategy : int;        { compression strategy }
+  i        : cardinal;
+  err      : integer;
+  level    : integer;        { compression level }
+  strategy : integer;        { compression strategy }
   s        : gz_streamp;
-{$IFDEF MSDOS}
-  attr     : word;       { file attributes }
-{$ENDIF}  
+{$ifdef UNIX}
+  info:      stat;
+{$else}
+  attr:      word;
+{$endif}
 
 {$IFNDEF NO_DEFLATE}
   gzheader : array [0..9] of byte;
@@ -135,31 +144,31 @@ var
 begin
 
   if (path='') or (mode='') then begin
-    gzopen := Z_NULL;
+    gzopen := nil;
     exit;
   end;
 
   GetMem (s,sizeof(gz_stream));
   if not Assigned (s) then begin
-    gzopen := Z_NULL;
+    gzopen := nil;
     exit;
   end;
 
   level := Z_DEFAULT_COMPRESSION;
   strategy := Z_DEFAULT_STRATEGY;
 
-  s^.stream.zalloc := NIL;     { (alloc_func)0 }
-  s^.stream.zfree := NIL;      { (free_func)0 }
-  s^.stream.opaque := NIL;     { (voidpf)0 }
-  s^.stream.next_in := Z_NULL;
-  s^.stream.next_out := Z_NULL;
+  s^.stream.zalloc := nil;     { (alloc_func)0 }
+  s^.stream.zfree := nil;      { (free_func)0 }
+  s^.stream.opaque := nil;     { (voidpf)0 }
+  s^.stream.next_in := nil;
+  s^.stream.next_out := nil;
   s^.stream.avail_in := 0;
   s^.stream.avail_out := 0;
   s^.z_err := Z_OK;
   s^.z_eof := false;
-  s^.inbuf := Z_NULL;
-  s^.outbuf := Z_NULL;
-  s^.crc := crc32(0, Z_NULL, 0);
+  s^.inbuf := nil;
+  s^.outbuf := nil;
+  s^.crc := crc32(0, nil, 0);
   s^.msg := '';
   s^.transparent := false;
 
@@ -177,7 +186,7 @@ begin
   end;
   if (s^.mode=chr(0)) then begin
     destroy(s);
-    gzopen := gzFile(Z_NULL);
+    gzopen := gzFile(nil);
     exit;
   end;
 
@@ -192,9 +201,9 @@ begin
     GetMem (s^.outbuf, Z_BUFSIZE);
     s^.stream.next_out := s^.outbuf;
 {$ENDIF}
-    if (err <> Z_OK) or (s^.outbuf = Z_NULL) then begin
+    if (err <> Z_OK) or (s^.outbuf = nil) then begin
       destroy(s);
-      gzopen := gzFile(Z_NULL);
+      gzopen := gzFile(nil);
       exit;
     end;
   end
@@ -206,9 +215,9 @@ begin
     err := inflateInit2_ (s^.stream, -MAX_WBITS, ZLIB_VERSION, sizeof(z_stream));
         { windowBits is passed < 0 to tell that there is no zlib header }
 
-    if (err <> Z_OK) or (s^.inbuf = Z_NULL) then begin
+    if (err <> Z_OK) or (s^.inbuf = nil) then begin
       destroy(s);
-      gzopen := gzFile(Z_NULL);
+      gzopen := gzFile(nil);
       exit;
     end;
   end;
@@ -217,22 +226,22 @@ begin
 
   {$IFOPT I+} {$I-} {$define IOcheck} {$ENDIF}
   Assign (s^.gzfile, s^.path);
-  {$ifdef MSDOS}
-  GetFAttr(s^.gzfile, Attr);
-  if (DosError <> 0) and (s^.mode='w') then
-    ReWrite (s^.gzfile,1)
+  {$ifdef unix}
+  if (fpstat(s^.path,info)<0) and (s^.mode='w') then
+    ReWrite (s^.gzfile,1)  
   else
     Reset (s^.gzfile,1);
   {$else}
-  if (not FileExists(s^.path)) and (s^.mode='w') then
-    ReWrite (s^.gzfile,1)  
+  GetFAttr(s^.gzfile, Attr);
+  if (DosError <> 0) and (s^.mode='w') then
+    ReWrite (s^.gzfile,1)
   else
     Reset (s^.gzfile,1);
   {$endif}
   {$IFDEF IOCheck} {$I+} {$ENDIF}
   if (IOResult <> 0) then begin
     destroy(s);
-    gzopen := gzFile(Z_NULL);
+    gzopen := gzFile(nil);
     exit;
   end;
 
@@ -249,7 +258,7 @@ begin
     gzheader [8] := 0;            { xflags }
     gzheader [9] := 0;            { OS code = MS-DOS }
     blockwrite (s^.gzfile, gzheader, 10);
-    s^.startpos := LONG(10);
+    s^.startpos := longint(10);
 {$ENDIF}
   end
   else begin
@@ -267,7 +276,7 @@ end;
 
 ============================================================================}
 
-function gzsetparams (f:gzfile; level:int; strategy:int) : int;
+function gzsetparams (f:gzfile; level:integer; strategy:integer) : integer;
 
 var
 
@@ -278,7 +287,7 @@ begin
 
   s := gz_streamp(f);
 
-  if (s = NIL) or (s^.mode <> 'w') then begin
+  if (s = nil) or (s^.mode <> 'w') then begin
     gzsetparams := Z_STREAM_ERROR;
     exit;
   end;
@@ -303,7 +312,7 @@ end;
 
 ============================================================================}
 
-function get_byte (s:gz_streamp) : int;
+function get_byte (s:gz_streamp) : integer;
 
 begin
 
@@ -338,11 +347,11 @@ end;
 
 ============================================================================}
 {
-function getLong (s:gz_streamp) : uLong;
+function getLong (s:gz_streamp) : cardinal;
 var
   x  : array [0..3] of byte;
   i  : byte;
-  c  : int;
+  c  : integer;
   n1 : longint;
   n2 : longint;
 begin
@@ -357,12 +366,12 @@ begin
   getlong := (n1 shl 16) or n2;
 end;
 }
-function getLong(s : gz_streamp) : uLong;
+function getLong(s : gz_streamp) : cardinal;
 var
   x : packed array [0..3] of byte;
-  c : int;
+  c : integer;
 begin
-  { x := uLong(get_byte(s));  - you can't do this with TP, no unsigned long }
+  { x := cardinal(get_byte(s));  - you can't do this with TP, no unsigned longint }
   { the following assumes a little endian machine and TP }
   x[0] := Byte(get_byte(s));
   x[1] := Byte(get_byte(s));
@@ -371,7 +380,7 @@ begin
   x[3] := Byte(c);
   if (c = Z_EOF) then
     s^.z_err := Z_DATA_ERROR;
-  GetLong := uLong(longint(x));
+  GetLong := cardinal(longint(x));
 end;
 
 
@@ -392,10 +401,10 @@ procedure check_header (s:gz_streamp);
 
 var
 
-  method : int;  { method byte }
-  flags  : int;  { flags byte }
-  len    : uInt;
-  c      : int;
+  method : integer;  { method byte }
+  flags  : integer;  { flags byte }
+  len    : cardinal;
+  c      : integer;
 
 begin
 
@@ -428,8 +437,8 @@ begin
   for len := 0 to 5 do get_byte(s); { Discard time, xflags and OS code }
 
   if ((flags and EXTRA_FIELD) <> 0) then begin { skip the extra field }
-    len := uInt(get_byte(s));
-    len := len + (uInt(get_byte(s)) shr 8);
+    len := cardinal(get_byte(s));
+    len := len + (cardinal(get_byte(s)) shr 8);
     { len is garbage if EOF but the loop below will quit anyway }
     while (len <> 0) and (get_byte(s) <> Z_EOF) do Dec(len);
   end;
@@ -466,7 +475,7 @@ end;
 
 ============================================================================}
 
-function destroy (var s:gz_streamp) : int;
+function destroy (var s:gz_streamp) : integer;
 
 begin
 
@@ -477,7 +486,7 @@ begin
     exit;
   end;
 
-  if (s^.stream.state <> NIL) then begin
+  if (s^.stream.state <> nil) then begin
     if (s^.mode = 'w') then begin
 {$IFDEF NO_DEFLATE}
       destroy := Z_STREAM_ERROR;
@@ -519,27 +528,27 @@ end;
 
 ============================================================================}
 
-function gzread (f:gzFile; buf:voidp; len:uInt) : int;
+function gzread (f:gzFile; buf:pointer; len:cardinal) : integer;
 
 var
 
   s         : gz_streamp;
-  start     : pBytef;
-  next_out  : pBytef;
-  n         : uInt;
-  crclen    : uInt;  { Buffer length to update CRC32 }
-  filecrc   : uLong; { CRC32 stored in GZIP'ed file }
-  filelen   : uLong; { Total lenght of uncompressed file }
+  start     : Pbyte;
+  next_out  : Pbyte;
+  n         : cardinal;
+  crclen    : cardinal;  { Buffer length to update CRC32 }
+  filecrc   : cardinal; { CRC32 stored in GZIP'ed file }
+  filelen   : cardinal; { Total lenght of uncompressed file }
   bytes     : integer;  { bytes actually read in I/O blockread }
-  total_in  : uLong;
-  total_out : uLong;
+  total_in  : cardinal;
+  total_out : cardinal;
 
 begin
 
   s := gz_streamp(f);
-  start := pBytef(buf); { starting point for crc computation }
+  start := Pbyte(buf); { starting point for crc computation }
 
-  if (s = NIL) or (s^.mode <> 'r') then begin
+  if (s = nil) or (s^.mode <> 'r') then begin
     gzread := Z_STREAM_ERROR;
     exit;
   end;
@@ -554,7 +563,7 @@ begin
     exit;
   end;
 
-  s^.stream.next_out := pBytef(buf);
+  s^.stream.next_out := Pbyte(buf);
   s^.stream.avail_out := len;
 
   while (s^.stream.avail_out <> 0) do begin
@@ -572,12 +581,12 @@ begin
       end;
       if (s^.stream.avail_out > 0) then begin
         blockread (s^.gzfile, s^.stream.next_out^, s^.stream.avail_out, bytes);
-        dec (s^.stream.avail_out, uInt(bytes));
+        dec (s^.stream.avail_out, cardinal(bytes));
       end;
       dec (len, s^.stream.avail_out);
-      inc (s^.stream.total_in, uLong(len));
-      inc (s^.stream.total_out, uLong(len));
-      gzread := int(len);
+      inc (s^.stream.total_in, cardinal(len));
+      inc (s^.stream.total_out, cardinal(len));
+      gzread := integer(len);
       exit;
     end; { IF transparent }
 
@@ -623,7 +632,7 @@ begin
 	    inflateReset (s^.stream);
 	    s^.stream.total_in := total_in;
 	    s^.stream.total_out := total_out;
-	    s^.crc := crc32 (0, Z_NULL, 0);
+	    s^.crc := crc32 (0, nil, 0);
 	  end;
       end; {IF-THEN-ELSE}
     end;
@@ -640,7 +649,7 @@ begin
   end;
   s^.crc := crc32 (s^.crc, start, crclen);
 
-  gzread := int(len - s^.stream.avail_out);
+  gzread := integer(len - s^.stream.avail_out);
 
 end;
 
@@ -652,7 +661,7 @@ end;
 
 ============================================================================}
 
-function gzgetc (f:gzfile) : int;
+function gzgetc (f:gzfile) : integer;
 
 var c:byte;
 
@@ -669,23 +678,23 @@ end;
   or a newline character is read and transferred to buf, or an end-of-file
   condition is encountered. The string is then Null-terminated.
 
-  gzgets returns buf, or Z_NULL in case of error.
+  gzgets returns buf, or nil in case of error.
   The current implementation is not optimized at all.
 
 ============================================================================}
 
-function gzgets (f:gzfile; buf:PChar; len:int) : PChar;
+function gzgets (f:gzfile; buf:Pchar; len:integer) : Pchar;
 
 var
 
-  b      : PChar; { start of buffer }
-  bytes  : Int;   { number of bytes read by gzread }
+  b      : Pchar; { start of buffer }
+  bytes  : integer;   { number of bytes read by gzread }
   gzchar : char;  { char read by gzread }
 
 begin
 
-    if (buf = Z_NULL) or (len <= 0) then begin
-      gzgets := Z_NULL;
+    if (buf = nil) or (len <= 0) then begin
+      gzgets := nil;
       exit;
     end;
 
@@ -698,7 +707,7 @@ begin
     until (len = 0) or (bytes <> 1) or (gzchar = Chr(13));
 
     buf^ := Chr(0);
-    if (b = buf) and (len > 0) then gzgets := Z_NULL else gzgets := b;
+    if (b = buf) and (len > 0) then gzgets := nil else gzgets := b;
 
 end;
 
@@ -713,7 +722,7 @@ end;
 
 ============================================================================}
 
-function gzwrite (f:gzfile; buf:voidp; len:uInt) : int;
+function gzwrite (f:gzfile; buf:pointer; len:cardinal) : integer;
 
 var
 
@@ -724,12 +733,12 @@ begin
 
     s := gz_streamp(f);
 
-    if (s = NIL) or (s^.mode <> 'w') then begin
+    if (s = nil) or (s^.mode <> 'w') then begin
       gzwrite := Z_STREAM_ERROR;
       exit;
     end;
 
-    s^.stream.next_in := pBytef(buf);
+    s^.stream.next_in := Pbyte(buf);
     s^.stream.avail_in := len;
 
     while (s^.stream.avail_in <> 0) do begin
@@ -750,7 +759,7 @@ begin
     end; {WHILE}
 
     s^.crc := crc32(s^.crc, buf, len);
-    gzwrite := int(len - s^.stream.avail_in);
+    gzwrite := integer(len - s^.stream.avail_in);
 
 end;
 
@@ -764,10 +773,10 @@ end;
 {$IFDEF GZ_FORMAT_STRING}
 function gzprintf (zfile : gzFile;
                    const format : string;
-                   a : array of int) : int;
+                   a : array of integer) : integer;
 var
   buf : array[0..Z_PRINTF_BUFSIZE-1] of char;
-  len : int;
+  len : integer;
 begin
 {$ifdef HAS_snprintf}
     snprintf(buf, sizeof(buf), format, a1, a2, a3, a4, a5, a6, a7, a8,
@@ -791,13 +800,13 @@ end;
 
 ============================================================================}
 
-function gzputc (f:gzfile; c:char) : int;
+function gzputc (f:gzfile; c:char) : integer;
 begin
   if (gzwrite (f,@c,1) = 1) then
   {$IFDEF FPC}
-    gzputc := int(ord(c))
+    gzputc := integer(ord(c))
   {$ELSE}
-    gzputc := int(c)
+    gzputc := integer(c)
   {$ENDIF}
   else
     gzputc := -1;
@@ -812,9 +821,9 @@ end;
 
 ============================================================================}
 
-function gzputs (f:gzfile; s:PChar) : int;
+function gzputs (f:gzfile; s:Pchar) : integer;
 begin
-  gzputs := gzwrite (f, voidp(s), strlen(s));
+  gzputs := gzwrite (f, pointer(s), strlen(s));
 end;
 
 
@@ -825,9 +834,9 @@ end;
 
 ============================================================================}
 
-function do_flush (f:gzfile; flush:int) : int;
+function do_flush (f:gzfile; flush:integer) : integer;
 var
-  len     : uInt;
+  len     : cardinal;
   done    : boolean;
   s       : gz_streamp;
   written : integer;
@@ -835,7 +844,7 @@ begin
   done := false;
   s := gz_streamp(f);
 
-  if (s = NIL) or (s^.mode <> 'w') then begin
+  if (s = nil) or (s^.mode <> 'w') then begin
     do_flush := Z_STREAM_ERROR;
     exit;
   end;
@@ -890,9 +899,9 @@ end;
 
 ============================================================================}
 
-function gzflush (f:gzfile; flush:int) : int;
+function gzflush (f:gzfile; flush:integer) : integer;
 var
-  err : int;
+  err : integer;
   s   : gz_streamp;
 begin
   s := gz_streamp(f);
@@ -915,13 +924,13 @@ end;
 
 ============================================================================}
 
-function gzrewind (f:gzFile) : int;
+function gzrewind (f:gzFile) : integer;
 var
   s:gz_streamp;
 begin
   s := gz_streamp(f);
 
-  if (s = NIL) or (s^.mode <> 'r') then begin
+  if (s = nil) or (s^.mode <> 'r') then begin
     gzrewind := -1;
     exit;
   end;
@@ -943,7 +952,7 @@ begin
   {$I-}
   seek (s^.gzfile, s^.startpos);
   {$I+}
-  gzrewind := int(IOResult);
+  gzrewind := integer(IOResult);
   exit;
 end;
 
@@ -960,14 +969,14 @@ end;
 
 ============================================================================}
 
-function gzseek (f:gzfile; offset:z_off_t; whence:int) : z_off_t;
+function gzseek (f:gzfile; offset:z_off_t; whence:integer) : z_off_t;
 var
   s : gz_streamp;
-  size : uInt;
+  size : cardinal;
 begin
   s := gz_streamp(f);
 
-  if (s = NIL) or (whence = SEEK_END) or (s^.z_err = Z_ERRNO)
+  if (s = nil) or (whence = SEEK_END) or (s^.z_err = Z_ERRNO)
   or (s^.z_err = Z_DATA_ERROR) then begin
     gzseek := z_off_t(-1);
     exit;
@@ -985,14 +994,14 @@ begin
     end;
 
     { At this point, offset is the number of zero bytes to write. }
-    if (s^.inbuf = Z_NULL) then begin
+    if (s^.inbuf = nil) then begin
       GetMem (s^.inbuf, Z_BUFSIZE);
       zmemzero(s^.inbuf, Z_BUFSIZE);
     end;
 
     while (offset > 0) do begin
       size := Z_BUFSIZE;
-      if (offset < Z_BUFSIZE) then size := uInt(offset);
+      if (offset < Z_BUFSIZE) then size := cardinal(offset);
 
       size := gzwrite(f, s^.inbuf, size);
       if (size = 0) then begin
@@ -1027,14 +1036,14 @@ begin
       exit;
     end;
 
-    s^.stream.total_in := uLong(offset);
-    s^.stream.total_out := uLong(offset);
+    s^.stream.total_in := cardinal(offset);
+    s^.stream.total_out := cardinal(offset);
     gzseek := z_off_t(offset);
     exit;
   end;
 
   { For a negative seek, rewind and use positive seek }
-  if (uLong(offset) >= s^.stream.total_out)
+  if (cardinal(offset) >= s^.stream.total_out)
     then dec (offset, s^.stream.total_out)
     else if (gzrewind(f) <> 0) then begin
       gzseek := z_off_t(-1);
@@ -1042,12 +1051,12 @@ begin
   end;
   { offset is now the number of bytes to skip. }
 
-  if (offset <> 0) and (s^.outbuf = Z_NULL)
+  if (offset <> 0) and (s^.outbuf = nil)
   then GetMem (s^.outbuf, Z_BUFSIZE);
 
   while (offset > 0) do begin
     size := Z_BUFSIZE;
-    if (offset < Z_BUFSIZE) then size := int(offset);
+    if (offset < Z_BUFSIZE) then size := integer(offset);
 
     size := gzread (f, s^.outbuf, size);
     if (size <= 0) then begin
@@ -1088,7 +1097,7 @@ var
 begin
   s := gz_streamp(f);
 
-  if (s=NIL) or (s^.mode<>'r') then
+  if (s=nil) or (s^.mode<>'r') then
     gzeof := false
   else
     gzeof := s^.z_eof;
@@ -1101,9 +1110,9 @@ end;
 
 ============================================================================}
 
-procedure putLong (var f:file; x:uLong);
+procedure putLong (var f:file; x:cardinal);
 var
-  n : int;
+  n : integer;
   c : byte;
 begin
   for n:=0 to 3 do begin
@@ -1123,13 +1132,13 @@ end;
 
 ============================================================================}
 
-function gzclose (f:gzFile) : int;
+function gzclose (f:gzFile) : integer;
 var
-  err : int;
+  err : integer;
   s   : gz_streamp;
 begin
   s := gz_streamp(f);
-  if (s = NIL) then begin
+  if (s = nil) then begin
     gzclose := Z_STREAM_ERROR;
     exit;
   end;
@@ -1164,13 +1173,13 @@ end;
 
 ============================================================================}
 
-function gzerror (f:gzfile; var errnum:int) : string;
+function gzerror (f:gzfile; var errnum:integer) : string;
 var
  m : string;
  s : gz_streamp;
 begin
   s := gz_streamp(f);
-  if (s = NIL) then begin
+  if (s = nil) then begin
     errnum := Z_STREAM_ERROR;
     gzerror := zError(Z_STREAM_ERROR);
     end;

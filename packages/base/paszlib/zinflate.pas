@@ -15,7 +15,7 @@ interface
 uses
   zutil, zbase, infblock, infutil;
 
-function inflateInit(var z : z_stream) : int;
+function inflateInit(var z : z_stream) : integer;
 
 {    Initializes the internal stream state for decompression. The fields
    zalloc, zfree and opaque must be initialized before by the caller.  If
@@ -32,16 +32,16 @@ function inflateInit(var z : z_stream) : int;
 
 function inflateInit_(z : z_streamp;
                       const version : string;
-                      stream_size : int) : int;
+                      stream_size : integer) : integer;
 
 
 function inflateInit2_(var z: z_stream;
-                       w : int;
+                       w : integer;
                        const version : string;
-                       stream_size : int) : int;
+                       stream_size : integer) : integer;
 
 function inflateInit2(var z: z_stream;
-                       windowBits : int) : int;
+                       windowBits : integer) : integer;
 
 {
      This is another version of inflateInit with an extra parameter. The
@@ -65,7 +65,7 @@ function inflateInit2(var z: z_stream;
 
 
 
-function inflateEnd(var z : z_stream) : int;
+function inflateEnd(var z : z_stream) : integer;
 
 {
    All dynamically allocated data structures for this stream are freed.
@@ -77,7 +77,7 @@ function inflateEnd(var z : z_stream) : int;
    static string (which must not be deallocated).
 }
 
-function inflateReset(var z : z_stream) : int;
+function inflateReset(var z : z_stream) : integer;
 
 {
    This function is equivalent to inflateEnd followed by inflateInit,
@@ -90,7 +90,7 @@ function inflateReset(var z : z_stream) : int;
 
 
 function inflate(var z : z_stream;
-                 f : int) : int;
+                 f : integer) : integer;
 {
   inflate decompresses as much data as possible, and stops when the input
   buffer becomes empty or the output buffer becomes full. It may introduce
@@ -160,8 +160,8 @@ function inflate(var z : z_stream;
 
 
 function inflateSetDictionary(var z : z_stream;
-                              dictionary : pBytef; {const array of byte}
-                              dictLength : uInt) : int;
+                              dictionary : Pbyte; {const array of byte}
+                              dictLength : cardinal) : integer;
 
 {
      Initializes the decompression dictionary from the given uncompressed byte
@@ -179,7 +179,7 @@ function inflateSetDictionary(var z : z_stream;
    inflate().
 }
 
-function inflateSync(var z : z_stream) : int;
+function inflateSync(var z : z_stream) : integer;
 
 {
   Skips invalid compressed data until a full flush point (see above the
@@ -196,7 +196,7 @@ function inflateSync(var z : z_stream) : int;
 }
 
 
-function inflateSyncPoint(var z : z_stream) : int;
+function inflateSyncPoint(var z : z_stream) : integer;
 
 
 implementation
@@ -204,7 +204,7 @@ implementation
 uses
   adler;
 
-function inflateReset(var z : z_stream) : int;
+function inflateReset(var z : z_stream) : integer;
 begin
   if (z.state = Z_NULL) then
   begin
@@ -226,7 +226,7 @@ begin
 end;
 
 
-function inflateEnd(var z : z_stream) : int;
+function inflateEnd(var z : z_stream) : integer;
 begin
   if (z.state = Z_NULL) or not Assigned(z.zfree) then
   begin
@@ -245,9 +245,9 @@ end;
 
 
 function inflateInit2_(var z: z_stream;
-                       w : int;
+                       w : integer;
                        const version : string;
-                       stream_size : int) : int;
+                       stream_size : integer) : integer;
 begin
   if (version = '') or (version[1] <> ZLIB_VERSION[1]) or
       (stream_size <> sizeof(z_stream)) then
@@ -263,7 +263,7 @@ begin
     {$IFDEF FPC}  z.zalloc := @zcalloc;  {$ELSE}
     z.zalloc := zcalloc;
     {$endif}
-    z.opaque := voidpf(0);
+    z.opaque := nil;
   end;
   if not Assigned(z.zfree) then
     {$IFDEF FPC}  z.zfree := @zcfree;  {$ELSE}
@@ -294,16 +294,16 @@ begin
     inflateInit2_ := Z_STREAM_ERROR;
     exit;
   end;
-  z.state^.wbits := uInt(w);
+  z.state^.wbits := cardinal(w);
 
   { create inflate_blocks state }
   if z.state^.nowrap then
-    z.state^.blocks := inflate_blocks_new(z, NIL, uInt(1) shl w)
+    z.state^.blocks := inflate_blocks_new(z, NIL, cardinal(1) shl w)
   else
   {$IFDEF FPC}
-    z.state^.blocks := inflate_blocks_new(z, @adler32, uInt(1) shl w);
+    z.state^.blocks := inflate_blocks_new(z, @adler32, cardinal(1) shl w);
   {$ELSE}
-    z.state^.blocks := inflate_blocks_new(z, adler32, uInt(1) shl w);
+    z.state^.blocks := inflate_blocks_new(z, adler32, cardinal(1) shl w);
   {$ENDIF}
   if (z.state^.blocks = Z_NULL) then
   begin
@@ -319,13 +319,13 @@ begin
   inflateInit2_ :=  Z_OK;
 end;
 
-function inflateInit2(var z: z_stream; windowBits : int) : int;
+function inflateInit2(var z: z_stream; windowBits : integer) : integer;
 begin
   inflateInit2 := inflateInit2_(z, windowBits, ZLIB_VERSION, sizeof(z_stream));
 end;
 
 
-function inflateInit(var z : z_stream) : int;
+function inflateInit(var z : z_stream) : integer;
 { inflateInit is a macro to allow checking the zlib version
   and the compiler's view of z_stream:  }
 begin
@@ -334,7 +334,7 @@ end;
 
 function inflateInit_(z : z_streamp;
                       const version : string;
-                      stream_size : int) : int;
+                      stream_size : integer) : integer;
 begin
   { initialize state }
   if (z = Z_NULL) then
@@ -344,10 +344,10 @@ begin
 end;
 
 function inflate(var z : z_stream;
-                 f : int) : int;
+                 f : integer) : integer;
 var
-  r : int;
-  b : uInt;
+  r : integer;
+  b : cardinal;
 begin
   if (z.state = Z_NULL) or (z.next_in = Z_NULL) then
   begin
@@ -396,10 +396,10 @@ begin
         end;
         r := f;
 
-        {z.state^.sub.check.need := uLong(NEXTBYTE(z)) shl 24;}
+        {z.state^.sub.check.need := cardinal(NEXTBYTE(z)) shl 24;}
         Dec(z.avail_in);
         Inc(z.total_in);
-        z.state^.sub.check.need := uLong(z.next_in^) shl 24;
+        z.state^.sub.check.need := cardinal(z.next_in^) shl 24;
         Inc(z.next_in);
 
         z.state^.mode := CHECK3;   { falltrough }
@@ -413,10 +413,10 @@ begin
           exit;
         end;
         r := f;
-        {Inc( z.state^.sub.check.need, uLong(NEXTBYTE(z)) shl 16);}
+        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) shl 16);
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
         Inc(z.next_in);
 
         z.state^.mode := CHECK2;   { falltrough }
@@ -431,10 +431,10 @@ begin
         end;
         r := f;
 
-        {Inc( z.state^.sub.check.need, uLong(NEXTBYTE(z)) shl 8);}
+        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) shl 8);
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
         Inc(z.next_in);
 
         z.state^.mode := CHECK1;   { falltrough }
@@ -448,10 +448,10 @@ begin
           exit;
         end;
         r := f;
-        {Inc( z.state^.sub.check.need, uLong(NEXTBYTE(z)) );}
+        {Inc( z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) );
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) );
         Inc(z.next_in);
 
 
@@ -547,10 +547,10 @@ begin
         end;
         r := f;
 
-        {z.state^.sub.check.need := uLong(NEXTBYTE(z)) shl 24;}
+        {z.state^.sub.check.need := cardinal(NEXTBYTE(z)) shl 24;}
         Dec(z.avail_in);
         Inc(z.total_in);
-        z.state^.sub.check.need :=  uLong(z.next_in^) shl 24;
+        z.state^.sub.check.need :=  cardinal(z.next_in^) shl 24;
         Inc(z.next_in);
 
         z.state^.mode := DICT3;        { falltrough }
@@ -563,10 +563,10 @@ begin
           exit;
         end;
         r := f;
-        {Inc(z.state^.sub.check.need, uLong(NEXTBYTE(z)) shl 16);}
+        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 16);}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) shl 16);
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 16);
         Inc(z.next_in);
 
         z.state^.mode := DICT2;        { falltrough }
@@ -580,10 +580,10 @@ begin
         end;
         r := f;
 
-        {Inc(z.state^.sub.check.need, uLong(NEXTBYTE(z)) shl 8);}
+        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) shl 8);}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) shl 8);
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) shl 8);
         Inc(z.next_in);
 
         z.state^.mode := DICT1;        { falltrough }
@@ -596,10 +596,10 @@ begin
           exit;
         end;
         { r := f;    ---  wird niemals benutzt }
-        {Inc(z.state^.sub.check.need, uLong(NEXTBYTE(z)) );}
+        {Inc(z.state^.sub.check.need, cardinal(NEXTBYTE(z)) );}
         Dec(z.avail_in);
         Inc(z.total_in);
-        Inc(z.state^.sub.check.need, uLong(z.next_in^) );
+        Inc(z.state^.sub.check.need, cardinal(z.next_in^) );
         Inc(z.next_in);
 
         z.adler := z.state^.sub.check.need;
@@ -632,10 +632,10 @@ begin
 end;
 
 function inflateSetDictionary(var z : z_stream;
-                              dictionary : pBytef; {const array of byte}
-                              dictLength : uInt) : int;
+                              dictionary : Pbyte; {const array of byte}
+                              dictLength : cardinal) : integer;
 var
-  length : uInt;
+  length : cardinal;
 begin
   length := dictLength;
 
@@ -644,14 +644,14 @@ begin
     inflateSetDictionary := Z_STREAM_ERROR;
     exit;
   end;
-  if (adler32(Long(1), dictionary, dictLength) <> z.adler) then
+  if (adler32(1, dictionary, dictLength) <> z.adler) then
   begin
     inflateSetDictionary := Z_DATA_ERROR;
     exit;
   end;
-  z.adler := Long(1);
+  z.adler := 1;
 
-  if (length >= (uInt(1) shl z.state^.wbits)) then
+  if (length >= (1 shl z.state^.wbits)) then
   begin
     length := (1 shl z.state^.wbits)-1;
     Inc( dictionary, dictLength - length);
@@ -662,14 +662,14 @@ begin
 end;
 
 
-function inflateSync(var z : z_stream) : int;
+function inflateSync(var z : z_stream) : integer;
 const
   mark : packed array[0..3] of byte = (0, 0, $ff, $ff);
 var
-  n : uInt;       { number of bytes to look at }
-  p : pBytef;     { pointer to bytes }
-  m : uInt;       { number of marker bytes found in a row }
-  r, w : uLong;   { temporaries to save total_in and total_out }
+  n : cardinal;       { number of bytes to look at }
+  p : Pbyte;     { pointer to bytes }
+  m : cardinal;       { number of marker bytes found in a row }
+  r, w : cardinal;   { temporaries to save total_in and total_out }
 begin
   { set up }
   if (z.state = Z_NULL) then
@@ -706,7 +706,7 @@ begin
   end;
 
   { restore }
-  Inc(z.total_in, ptr2int(p) - ptr2int(z.next_in));
+  Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
   z.next_in := p;
   z.avail_in := n;
   z.state^.sub.marker := m;
@@ -737,7 +737,7 @@ end;
   waiting for these length bytes.
 }
 
-function inflateSyncPoint(var z : z_stream) : int;
+function inflateSyncPoint(var z : z_stream) : integer;
 begin
   if (z.state = Z_NULL) or (z.state^.blocks = Z_NULL) then
   begin

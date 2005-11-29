@@ -1,4 +1,4 @@
-Unit Crc;
+unit crc;
 
 {
   crc32.c -- compute the CRC-32 of a data stream
@@ -17,7 +17,7 @@ uses
   zutil, zbase;
 
 
-function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
+function crc32(crc : cardinal; buf : Pbyte; len : cardinal) : cardinal;
 
 {  Update a running crc with the bytes buf[0..len-1] and return the updated
    crc. If buf is NULL, this function returns the required initial value
@@ -26,9 +26,9 @@ function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
    Usage example:
 
     var
-      crc : uLong;
+      crc : cardinal;
     begin
-      crc := crc32(0, Z_NULL, 0);
+      crc := crc32(0, nil, 0);
 
       while (read_buffer(buffer, length) <> EOF) do
         crc := crc32(crc, buffer, length);
@@ -38,7 +38,7 @@ function crc32(crc : uLong; buf : pBytef; len : uInt) : uLong;
 
 }
 
-function get_crc_table : puLong;  { can be used by asm versions of crc32() }
+function get_crc_table : Pcardinal;  { can be used by asm versions of crc32() }
 
 
 implementation
@@ -80,9 +80,9 @@ var
 {local}
 procedure make_crc_table;
 var
- c    : uLong;
- n,k  : int;
- poly : uLong; { polynomial exclusive-or pattern }
+ c    : cardinal;
+ n,k  : integer;
+ poly : cardinal; { polynomial exclusive-or pattern }
 
 const
  { terms of polynomial defining this crc (except x^32): }
@@ -90,13 +90,13 @@ const
 
 begin
   { make exclusive-or pattern from polynomial ($EDB88320) }
-  poly := Long(0);
+  poly := longint(0);
   for n := 0 to (sizeof(p) div sizeof(Byte))-1 do
-    poly := poly or (Long(1) shl (31 - p[n]));
+    poly := poly or (longint(1) shl (31 - p[n]));
 
   for n := 0 to 255 do
   begin
-    c := uLong(n);
+    c := cardinal(n);
     for k := 0 to 7 do
     begin
       if (c and 1) <> 0 then
@@ -116,7 +116,7 @@ end;
 
 {local}
 const
-  crc_table : array[0..256-1] of uLongf = (
+  crc_table : array[0..256-1] of cardinal = (
   $00000000, $77073096, $ee0e612c, $990951ba, $076dc419,
   $706af48f, $e963a535, $9e6495a3, $0edb8832, $79dcb8a4,
   $e0d5e91e, $97d2d988, $09b64c2b, $7eb17cbd, $e7b82d07,
@@ -175,21 +175,21 @@ const
 { =========================================================================
   This function can be used by asm versions of crc32() }
 
-function get_crc_table : {const} puLong;
+function get_crc_table : {const} Pcardinal;
 begin
 {$ifdef DYNAMIC_CRC_TABLE}
   if (crc_table_empty) then
     make_crc_table;
 {$endif}
-  get_crc_table :=  {const} puLong(@crc_table);
+  get_crc_table :=  {const} Pcardinal(@crc_table);
 end;
 
 { ========================================================================= }
 
-function crc32 (crc : uLong; buf : pBytef; len : uInt): uLong;
+function crc32 (crc : cardinal; buf : Pbyte; len : cardinal): cardinal;
 begin
-  if (buf = Z_NULL) then
-    crc32 := Long(0)
+  if (buf = nil) then
+    crc32 := 0
   else
   begin
 
@@ -198,38 +198,38 @@ begin
       make_crc_table;
 {$ENDIF}
 
-    crc := crc xor uLong($ffffffff);
+    crc := crc xor cardinal($ffffffff);
     while (len >= 8) do
     begin
       {DO8(buf)}
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
 
-      Dec(len, 8);
+      dec(len, 8);
     end;
     if (len <> 0) then
     repeat
       {DO1(buf)}
-      crc := crc_table[(int(crc) xor buf^) and $ff] xor (crc shr 8);
+      crc := crc_table[(integer(crc) xor buf^) and $ff] xor (crc shr 8);
       inc(buf);
 
-      Dec(len);
+      dec(len);
     until (len = 0);
-    crc32 := crc xor uLong($ffffffff);
+    crc32 := crc xor cardinal($ffffffff);
   end;
 end;
 

@@ -17,24 +17,16 @@ program example;
 {$DEFINE TEST_FLUSH}
 
 uses
-{$ifdef ver80}
- WinCrt,
-{$endif}
-{$ifdef you may have to define this in Delphi < 5}
   strings,
-{$endif}
-{$ifndef MSDOS}
-  SysUtils,
-{$endif}
   zutil,
   zbase,
-  gzIo,
-  zInflate,
-  zDeflate,
-  zCompres,
-  zUnCompr
-{$ifdef MemCheck}
-  , MemCheck in '..\..\monotekt\pas\memcheck\memcheck.pas'
+  gzio,
+  zinflate,
+  zdeflate,
+  zcompres,
+  zuncompr
+{$ifdef memcheck}
+  , memcheck in '..\..\monotekt\pas\memcheck\memcheck.pas'
 {$endif}
 ;
 
@@ -45,7 +37,7 @@ begin
   Halt(1);
 end;
 
-procedure CHECK_ERR(err : int; msg : string);
+procedure CHECK_ERR(err : integer; msg : string);
 begin
   if (err <> Z_OK) then
   begin
@@ -63,21 +55,21 @@ const
 const
   dictionary : PChar = 'hello';
 var
-  dictId : uLong; { Adler32 value of the dictionary }
+  dictId : cardinal; { Adler32 value of the dictionary }
 {$ENDIF}
 
 { ===========================================================================
   Test compress() and uncompress() }
 
 {$IFDEF TEST_COMPRESS}
-procedure test_compress(compr : pBytef; var comprLen : uLong;
-                        uncompr : pBytef; uncomprLen : uLong);
+procedure test_compress(compr : Pbyte; var comprLen : cardinal;
+                        uncompr : Pbyte; uncomprLen : cardinal);
 var
-  err : int;
-  len : uLong;
+  err : integer;
+  len : cardinal;
 begin
   len := strlen(hello)+1;
-  err := compress(compr, comprLen, pBytef(hello)^, len);
+  err := compress(compr, comprLen, Pbyte(hello)^, len);
   CHECK_ERR(err, 'compress');
 
   strcopy(PChar(uncompr), 'garbage');
@@ -101,11 +93,11 @@ end;
 {$IFDEF TEST_GZIO}
 procedure test_gzio(const outf : string; { output file }
                     const inf : string;  { input file }
-                    uncompr : pBytef;
-                    uncomprLen : int);
+                    uncompr : Pbyte;
+                    uncomprLen : integer);
 var
-  err : int;
-  len : int;
+  err : integer;
+  len : integer;
 var
   zfile : gzFile;
   pos : z_off_t;
@@ -137,7 +129,7 @@ begin
     Stop;
   end;
   {$ENDIF}
-  gzseek(zfile, Long(1), SEEK_CUR); { add one zero byte }
+  gzseek(zfile, longint(1), SEEK_CUR); { add one zero byte }
   gzclose(zfile);
 
   zfile := gzopen(inf, 'r');
@@ -146,7 +138,7 @@ begin
 
   strcopy(pchar(uncompr), 'garbage');
 
-  uncomprLen := gzread(zfile, uncompr, uInt(uncomprLen));
+  uncomprLen := gzread(zfile, uncompr, cardinal(uncomprLen));
   if (uncomprLen <> len) then
   begin
     WriteLn('gzread err: ', gzerror(zfile, err));
@@ -160,7 +152,7 @@ begin
   else
     WriteLn('gzread(): ', pchar(uncompr));
 
-  pos := gzseek(zfile, Long(-8), SEEK_CUR);
+  pos := gzseek(zfile, longint(-8), SEEK_CUR);
   if (pos <> 6) or (gztell(zfile) <> pos) then
   begin
     WriteLn('gzseek error, pos=',pos,', gztell=',gztell(zfile));
@@ -196,11 +188,11 @@ end;
   Test deflate() with small buffers }
 
 {$IFDEF TEST_DEFLATE}
-procedure test_deflate(compr : pBytef; comprLen : uLong);
+procedure test_deflate(compr : Pbyte; comprLen : cardinal);
 var
   c_stream : z_stream; { compression stream }
-  err : int;
-  len : int;
+  err : integer;
+  len : integer;
 begin
   len := strlen(hello)+1;
   c_stream.zalloc := NIL; {alloc_func(0);}
@@ -210,10 +202,10 @@ begin
   err := deflateInit(c_stream, Z_DEFAULT_COMPRESSION);
   CHECK_ERR(err, 'deflateInit');
 
-  c_stream.next_in  := pBytef(hello);
+  c_stream.next_in  := Pbyte(hello);
   c_stream.next_out := compr;
 
-  while (c_stream.total_in <> uLong(len)) and (c_stream.total_out < comprLen) do
+  while (c_stream.total_in <> cardinal(len)) and (c_stream.total_out < comprLen) do
   begin
     c_stream.avail_out := 1; { force small buffers }
     c_stream.avail_in := 1;
@@ -241,10 +233,10 @@ end;
 }
 
 {$IFDEF TEST_INFLATE}
-procedure test_inflate(compr : pBytef; comprLen : uLong;
-                       uncompr : pBytef;  uncomprLen : uLong);
+procedure test_inflate(compr : Pbyte; comprLen : cardinal;
+                       uncompr : Pbyte;  uncomprLen : cardinal);
 var
-  err : int;
+  err : integer;
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
@@ -291,11 +283,11 @@ end;
  }
 
 {$IFDEF TEST_DEFLATE}
-procedure test_large_deflate(compr : pBytef; comprLen : uLong;
-                             uncompr : pBytef;  uncomprLen : uLong);
+procedure test_large_deflate(compr : Pbyte; comprLen : cardinal;
+                             uncompr : Pbyte;  uncomprLen : cardinal);
 var
   c_stream : z_stream; { compression stream }
-  err : int;
+  err : integer;
 begin
   c_stream.zalloc := NIL; {alloc_func(0);}
   c_stream.zfree := NIL;  {free_func(0);}
@@ -305,13 +297,13 @@ begin
   CHECK_ERR(err, 'deflateInit');
 
   c_stream.next_out := compr;
-  c_stream.avail_out := uInt(comprLen);
+  c_stream.avail_out := cardinal(comprLen);
 
   { At this point, uncompr is still mostly zeroes, so it should compress
     very well: }
 
   c_stream.next_in := uncompr;
-  c_stream.avail_in := uInt(uncomprLen);
+  c_stream.avail_in := cardinal(uncomprLen);
   err := deflate(c_stream, Z_NO_FLUSH);
   CHECK_ERR(err, 'deflate');
   if (c_stream.avail_in <> 0) then
@@ -323,14 +315,14 @@ begin
   { Feed in already compressed data and switch to no compression: }
   deflateParams(c_stream, Z_NO_COMPRESSION, Z_DEFAULT_STRATEGY);
   c_stream.next_in := compr;
-  c_stream.avail_in := uInt(comprLen div 2);
+  c_stream.avail_in := cardinal(comprLen div 2);
   err := deflate(c_stream, Z_NO_FLUSH);
   CHECK_ERR(err, 'deflate');
 
   { Switch back to compressing mode: }
   deflateParams(c_stream, Z_BEST_COMPRESSION, Z_FILTERED);
   c_stream.next_in := uncompr;
-  c_stream.avail_in := uInt(uncomprLen);
+  c_stream.avail_in := cardinal(uncomprLen);
   err := deflate(c_stream, Z_NO_FLUSH);
   CHECK_ERR(err, 'deflate');
 
@@ -349,10 +341,10 @@ end;
   Test inflate() with large buffers }
 
 {$IFDEF TEST_INFLATE}
-procedure test_large_inflate(compr : pBytef; comprLen : uLong;
-                             uncompr : pBytef;  uncomprLen : uLong);
+procedure test_large_inflate(compr : Pbyte; comprLen : cardinal;
+                             uncompr : Pbyte;  uncomprLen : cardinal);
 var
-  err : int;
+  err : integer;
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
@@ -362,7 +354,7 @@ begin
   d_stream.opaque := NIL; {voidpf(0);}
 
   d_stream.next_in  := compr;
-  d_stream.avail_in := uInt(comprLen);
+  d_stream.avail_in := cardinal(comprLen);
 
   err := inflateInit(d_stream);
   CHECK_ERR(err, 'inflateInit');
@@ -370,7 +362,7 @@ begin
   while TRUE do
   begin
     d_stream.next_out := uncompr;            { discard the output }
-    d_stream.avail_out := uInt(uncomprLen);
+    d_stream.avail_out := cardinal(uncomprLen);
     err := inflate(d_stream, Z_NO_FLUSH);
     if (err = Z_STREAM_END) then
       break;
@@ -394,11 +386,11 @@ end;
   Test deflate() with full flush
  }
 {$IFDEF TEST_FLUSH}
-procedure test_flush(compr : pBytef; var comprLen : uLong);
+procedure test_flush(compr : Pbyte; var comprLen : cardinal);
 var
   c_stream : z_stream; { compression stream }
-  err : int;
-  len : int;
+  err : integer;
+  len : integer;
 
 begin
   len := strlen(hello)+1;
@@ -409,10 +401,10 @@ begin
   err := deflateInit(c_stream, Z_DEFAULT_COMPRESSION);
   CHECK_ERR(err, 'deflateInit');
 
-  c_stream.next_in := pBytef(hello);
+  c_stream.next_in := Pbyte(hello);
   c_stream.next_out := compr;
   c_stream.avail_in := 3;
-  c_stream.avail_out := uInt(comprLen);
+  c_stream.avail_out := cardinal(comprLen);
 
   err := deflate(c_stream, Z_FULL_FLUSH);
   CHECK_ERR(err, 'deflate');
@@ -435,10 +427,10 @@ end;
   Test inflateSync()
  }
 {$IFDEF TEST_SYNC}
-procedure test_sync(compr : pBytef; comprLen : uLong;
-                    uncompr : pBytef; uncomprLen : uLong);
+procedure test_sync(compr : Pbyte; comprLen : cardinal;
+                    uncompr : Pbyte; uncomprLen : cardinal);
 var
-  err : int;
+  err : integer;
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
@@ -454,12 +446,12 @@ begin
   CHECK_ERR(err, 'inflateInit');
 
   d_stream.next_out := uncompr;
-  d_stream.avail_out := uInt(uncomprLen);
+  d_stream.avail_out := cardinal(uncomprLen);
 
   inflate(d_stream, Z_NO_FLUSH);
   CHECK_ERR(err, 'inflate');
 
-  d_stream.avail_in := uInt(comprLen-2);   { read all compressed data }
+  d_stream.avail_in := cardinal(comprLen-2);   { read all compressed data }
   err := inflateSync(d_stream);           { but skip the damaged part }
   CHECK_ERR(err, 'inflateSync');
 
@@ -481,10 +473,10 @@ end;
   Test deflate() with preset dictionary
  }
 {$IFDEF TEST_DICT}
-procedure test_dict_deflate(compr : pBytef; comprLen : uLong);
+procedure test_dict_deflate(compr : Pbyte; comprLen : cardinal);
 var
   c_stream : z_stream; { compression stream }
-  err : int;
+  err : integer;
 begin
   c_stream.zalloc := NIL; {(alloc_func)0;}
   c_stream.zfree := NIL; {(free_func)0;}
@@ -494,15 +486,15 @@ begin
   CHECK_ERR(err, 'deflateInit');
 
   err := deflateSetDictionary(c_stream,
-                              pBytef(dictionary), StrLen(dictionary));
+                              Pbyte(dictionary), StrLen(dictionary));
   CHECK_ERR(err, 'deflateSetDictionary');
 
   dictId := c_stream.adler;
   c_stream.next_out := compr;
-  c_stream.avail_out := uInt(comprLen);
+  c_stream.avail_out := cardinal(comprLen);
 
-  c_stream.next_in := pBytef(hello);
-  c_stream.avail_in := uInt(strlen(hello)+1);
+  c_stream.next_in := Pbyte(hello);
+  c_stream.avail_in := cardinal(strlen(hello)+1);
 
   err := deflate(c_stream, Z_FINISH);
   if (err <> Z_STREAM_END) then
@@ -517,10 +509,10 @@ end;
 { ===========================================================================
   Test inflate() with a preset dictionary }
 
-procedure test_dict_inflate(compr : pBytef; comprLen : uLong;
-                            uncompr : pBytef; uncomprLen : uLong);
+procedure test_dict_inflate(compr : Pbyte; comprLen : cardinal;
+                            uncompr : Pbyte; uncomprLen : cardinal);
 var
-  err : int;
+  err : integer;
   d_stream : z_stream; { decompression stream }
 begin
   strcopy(PChar(uncompr), 'garbage');
@@ -530,13 +522,13 @@ begin
   d_stream.opaque := NIL;              { voidpf(0); }
 
   d_stream.next_in  := compr;
-  d_stream.avail_in := uInt(comprLen);
+  d_stream.avail_in := cardinal(comprLen);
 
   err := inflateInit(d_stream);
   CHECK_ERR(err, 'inflateInit');
 
   d_stream.next_out := uncompr;
-  d_stream.avail_out := uInt(uncomprLen);
+  d_stream.avail_out := cardinal(uncomprLen);
 
   while TRUE do
   begin
@@ -550,7 +542,7 @@ begin
         WriteLn('unexpected dictionary');
 	Stop;
       end;
-      err := inflateSetDictionary(d_stream, pBytef(dictionary),
+      err := inflateSetDictionary(d_stream, Pbyte(dictionary),
 				     StrLen(dictionary));
     end;
     CHECK_ERR(err, 'inflate with dict');
@@ -571,13 +563,13 @@ begin
 end;
 {$ENDIF}
 
-function GetFromFile(buf : pBytef; FName : string;
-                     var MaxLen : uInt) : boolean;
+function GetFromFile(buf : Pbyte; FName : string;
+                     var MaxLen : cardinal) : boolean;
 const
   zOfs = 0;
 var
   f : file;
-  Len : uLong;
+  Len : cardinal;
 begin
   assign(f, FName);
   GetFromFile := false;
@@ -604,17 +596,17 @@ end;
 }
 
 var
-  compr, uncompr : pBytef;
+  compr, uncompr : Pbyte;
 const
   msdoslen = 25000;
-  comprLenL : uLong = msdoslen div sizeof(uInt); { don't overflow on MSDOS }
-  uncomprLenL : uLong = msdoslen div sizeof(uInt);
+  comprLenL : cardinal = msdoslen div sizeof(cardinal); { don't overflow on MSDOS }
+  uncomprLenL : cardinal = msdoslen div sizeof(cardinal);
 var
   zVersion,
   myVersion : string;
 var
-  comprLen : uInt;
-  uncomprLen : uInt;
+  comprLen : cardinal;
+  uncomprLen : cardinal;
 begin
   {$ifdef MemCheck}
   MemChk;
@@ -635,20 +627,20 @@ begin
       WriteLn('warning: different zlib version');
     end;
 
-  GetMem(compr, comprLen*sizeof(uInt));
-  GetMem(uncompr, uncomprLen*sizeof(uInt));
+  GetMem(compr, comprLen*sizeof(cardinal));
+  GetMem(uncompr, uncomprLen*sizeof(cardinal));
   { compr and uncompr are cleared to avoid reading uninitialized
     data and to ensure that uncompr compresses well. }
 
-  if (compr = Z_NULL) or (uncompr = Z_NULL) then
+  if (compr = nil) or (uncompr = nil) then
   begin
     WriteLn('out of memory');
     Stop;
   end;
-  FillChar(compr^, comprLen*sizeof(uInt), 0);
-  FillChar(uncompr^, uncomprLen*sizeof(uInt), 0);
+  FillChar(compr^, comprLen*sizeof(cardinal), 0);
+  FillChar(uncompr^, uncomprLen*sizeof(cardinal), 0);
 
-  if (compr = Z_NULL) or (uncompr = Z_NULL) then
+  if (compr = nil) or (uncompr = nil) then
   begin
     WriteLn('out of memory');
     Stop;
@@ -659,10 +651,10 @@ begin
 
   {$IFDEF TEST_GZIO}
   Case ParamCount of
-    0:  test_gzio('foo.gz', 'foo.gz', uncompr, int(uncomprLen));
-    1:  test_gzio(ParamStr(1), 'foo.gz', uncompr, int(uncomprLen));
+    0:  test_gzio('foo.gz', 'foo.gz', uncompr, integer(uncomprLen));
+    1:  test_gzio(ParamStr(1), 'foo.gz', uncompr, integer(uncomprLen));
   else
-    test_gzio(ParamStr(1), ParamStr(2), uncompr, int(uncomprLen));
+    test_gzio(ParamStr(1), ParamStr(2), uncompr, integer(uncomprLen));
   end;
   {$ENDIF}
 
@@ -699,6 +691,6 @@ begin
   test_dict_inflate(compr, comprLen, uncompr, uncomprLen);
   {$ENDIF}
   readln;
-  FreeMem(compr, comprLen*sizeof(uInt));
-  FreeMem(uncompr, uncomprLen*sizeof(uInt));
+  FreeMem(compr, comprLen*sizeof(cardinal));
+  FreeMem(uncompr, uncomprLen*sizeof(cardinal));
 end.

@@ -9,47 +9,6 @@ interface
 
 {$I zconf.inc}
 
-{ Type declarations }
-
-type
-  {Byte   = usigned char;  8 bits}
-  Bytef  = byte;
-  charf  = byte;
-
-{$IFDEF FPC}
-  int    = longint;
-{$ELSE}
-  int    = integer;
-{$ENDIF}
-
-  intf   = int;
-{$IFDEF MSDOS}
-  uInt   = Word;
-{$ELSE}
-  {$IFDEF FPC}
-    uInt   = longint;     { 16 bits or more }
-    {$INFO Cardinal}
-  {$ELSE}
-    uInt   = cardinal;     { 16 bits or more }
-  {$ENDIF}
-{$ENDIF}
-  uIntf  = uInt;
-
-  Long   = longint;
-  uLong  = Cardinal;
-  uLongf = uLong;
-
-  voidp  = pointer;
-  voidpf = voidp;
-  pBytef = ^Bytef;
-  pIntf  = ^intf;
-  puIntf = ^uIntf;
-  puLong = ^uLongf;
-
-  ptr2int = uInt;
-{ a pointer to integer casting is used to do pointer arithmetic.
-  ptr2int must be an integer type and sizeof(ptr2int) must be less
-  than sizeof(pointer) - Nomssi }
 
 const
   {$IFDEF MAXSEG_64K}
@@ -59,42 +18,27 @@ const
   {$ENDIF}
 
 type
-  zByteArray = array[0..(MaxMemBlock div SizeOf(Bytef))-1] of Bytef;
+  zByteArray = array[0..(MaxMemBlock div SizeOf(byte))-1] of byte;
   pzByteArray = ^zByteArray;
 type
-  zIntfArray = array[0..(MaxMemBlock div SizeOf(Intf))-1] of Intf;
+  zIntfArray = array[0..(MaxMemBlock div SizeOf(byte))-1] of integer;
   pzIntfArray = ^zIntfArray;
 type
-  zuIntArray = array[0..(MaxMemBlock div SizeOf(uInt))-1] of uInt;
+  zuIntArray = array[0..(MaxMemBlock div SizeOf(cardinal))-1] of cardinal;
   PuIntArray = ^zuIntArray;
-
-{ Type declarations - only for deflate }
-
-type
-  uch  = Byte;
-  uchf = uch; { FAR }
-  ush  = Word;
-  ushf = ush;
-  ulg  = LongInt;
-
-  unsigned = uInt;
-
-  pcharf = ^charf;
-  puchf = ^uchf;
-  pushf = ^ushf;
 
 type
   zuchfArray = zByteArray;
   puchfArray = ^zuchfArray;
 type
-  zushfArray = array[0..(MaxMemBlock div SizeOf(ushf))-1] of ushf;
+  zushfArray = array[0..(MaxMemBlock div SizeOf(word))-1] of word;
   pushfArray = ^zushfArray;
 
-procedure zmemcpy(destp : pBytef; sourcep : pBytef; len : uInt);
-function zmemcmp(s1p, s2p : pBytef; len : uInt) : int;
-procedure zmemzero(destp : pBytef; len : uInt);
-procedure zcfree(opaque : voidpf; ptr : voidpf);
-function zcalloc (opaque : voidpf; items : uInt; size : uInt) : voidpf;
+procedure zmemcpy(destp : Pbyte; sourcep : Pbyte; len : cardinal);
+function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
+procedure zmemzero(destp : Pbyte; len : cardinal);
+procedure zcfree(opaque : pointer; ptr : pointer);
+function zcalloc (opaque : pointer; items : cardinal; size : cardinal) : pointer;
 
 implementation
 
@@ -205,7 +149,7 @@ type
     size: Pointer;
   end;
 type
-  HugePtr = voidpf;
+  HugePtr = pointer;
 
 
  procedure IncPtr(var p:pointer;count:word);
@@ -295,7 +239,7 @@ begin
   end;
 end;
 
-procedure GetMemHuge(var p:HugePtr;memsize:Longint);
+procedure GetMemHuge(var p:HugePtr;memsize:longint);
 const
   blocksize = $FFF0;
 var
@@ -376,16 +320,16 @@ end;
 
 {$ENDIF}
 
-procedure zmemcpy(destp : pBytef; sourcep : pBytef; len : uInt);
+procedure zmemcpy(destp : Pbyte; sourcep : Pbyte; len : cardinal);
 begin
   Move(sourcep^, destp^, len);
 end;
 
-function zmemcmp(s1p, s2p : pBytef; len : uInt) : int;
+function zmemcmp(s1p, s2p : Pbyte; len : cardinal) : integer;
 var
-  j : uInt;
+  j : cardinal;
   source,
-  dest : pBytef;
+  dest : Pbyte;
 begin
   source := s1p;
   dest := s2p;
@@ -393,7 +337,7 @@ begin
   begin
     if (source^ <> dest^) then
     begin
-      zmemcmp := 2*Ord(source^ > dest^)-1;
+      zmemcmp := 2*ord(source^ > dest^)-1;
       exit;
     end;
     Inc(source);
@@ -402,19 +346,19 @@ begin
   zmemcmp := 0;
 end;
 
-procedure zmemzero(destp : pBytef; len : uInt);
+procedure zmemzero(destp : Pbyte; len : cardinal);
 begin
   FillChar(destp^, len, 0);
 end;
 
-procedure zcfree(opaque : voidpf; ptr : voidpf);
+procedure zcfree(opaque : pointer; ptr : pointer);
 {$ifdef Delphi16}
 var
   Handle : THandle;
 {$endif}
 {$IFDEF FPC}
 var
-  memsize : uint;
+  memsize : cardinal;
 {$ENDIF}
 begin
   {$IFDEF DPMI}
@@ -432,9 +376,9 @@ begin
         GlobalFree(Handle);
         {$else}
           {$IFDEF FPC}
-          Dec(puIntf(ptr));
-          memsize := puIntf(ptr)^;
-          FreeMem(ptr, memsize+SizeOf(uInt));
+          dec(Pcardinal(ptr));
+          memsize := Pcardinal(ptr)^;
+          FreeMem(ptr, memsize+SizeOf(cardinal));
           {$ELSE}
           FreeMem(ptr);  { Delphi 2,3,4 }
           {$ENDIF}
@@ -444,15 +388,15 @@ begin
   {$ENDIF}
 end;
 
-function zcalloc (opaque : voidpf; items : uInt; size : uInt) : voidpf;
+function zcalloc (opaque : pointer; items : cardinal; size : cardinal) : pointer;
 var
-  p : voidpf;
-  memsize : uLong;
+  p : pointer;
+  memsize : cardinal;
 {$ifdef Delphi16}
   handle : THandle;
 {$endif}
 begin
-  memsize := uLong(items) * size;
+  memsize := items * size;
   {$IFDEF DPMI}
   p := GlobalAllocPtr(gmem_moveable, memsize);
   {$ELSE}
@@ -467,9 +411,9 @@ begin
         p := GlobalLock(Handle);
         {$else}
           {$IFDEF FPC}
-          GetMem(p, memsize+SizeOf(uInt));
-          puIntf(p)^:= memsize;
-          Inc(puIntf(p));
+          getmem(p, memsize+sizeOf(cardinal));
+          Pcardinal(p)^:= memsize;
+          inc(Pcardinal(p));
           {$ELSE}
           GetMem(p, memsize);  { Delphi: p := AllocMem(memsize); }
           {$ENDIF}

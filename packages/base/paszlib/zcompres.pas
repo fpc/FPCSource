@@ -18,10 +18,10 @@ uses
                         { utility functions }
 
 {EXPORT}
-function compress (dest : pBytef;
-                   var destLen : uLong;
+function compress (dest : Pbyte;
+                   var destLen : cardinal;
                    const source : array of Byte;
-                   sourceLen : uLong) : int;
+                   sourceLen : cardinal) : integer;
 
  { Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -35,11 +35,11 @@ function compress (dest : pBytef;
    buffer. }
 
 {EXPORT}
-function compress2 (dest : pBytef;
-                    var destLen : uLong;
+function compress2 (dest : Pbyte;
+                    var destLen : cardinal;
                     const source : array of byte;
-                    sourceLen : uLong;
-                    level : int) : int;
+                    sourceLen : cardinal;
+                    level : integer) : integer;
 {  Compresses the source buffer into the destination buffer. The level
    parameter has the same meaning as in deflateInit.  sourceLen is the byte
    length of the source buffer. Upon entry, destLen is the total size of the
@@ -54,28 +54,28 @@ implementation
 
 { ===========================================================================
 }
-function compress2 (dest : pBytef;
-                    var destLen : uLong;
+function compress2 (dest : Pbyte;
+                    var destLen : cardinal;
                     const source : array of byte;
-                    sourceLen : uLong;
-                    level : int) : int;
+                    sourceLen : cardinal;
+                    level : integer) : integer;
 var
   stream : z_stream;
-  err : int;
+  err : integer;
 begin
-  stream.next_in := pBytef(@source);
-  stream.avail_in := uInt(sourceLen);
+  stream.next_in := Pbyte(@source);
+  stream.avail_in := cardinal(sourceLen);
 {$ifdef MAXSEG_64K}
   { Check for source > 64K on 16-bit machine: }
-  if (uLong(stream.avail_in) <> sourceLen) then
+  if (cardinal(stream.avail_in) <> sourceLen) then
   begin
     compress2 := Z_BUF_ERROR;
     exit;
   end;
 {$endif}
   stream.next_out := dest;
-  stream.avail_out := uInt(destLen);
-  if (uLong(stream.avail_out) <> destLen) then
+  stream.avail_out := cardinal(destLen);
+  if (cardinal(stream.avail_out) <> destLen) then
   begin
     compress2 := Z_BUF_ERROR;
     exit;
@@ -110,10 +110,10 @@ end;
 
 { ===========================================================================
  }
-function compress (dest : pBytef;
-                   var destLen : uLong;
+function compress (dest : Pbyte;
+                   var destLen : cardinal;
                    const source : array of Byte;
-                   sourceLen : uLong) : int;
+                   sourceLen : cardinal) : integer;
 begin
   compress := compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 end;

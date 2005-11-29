@@ -31,40 +31,40 @@ uses
    buffer, or Z_DATA_ERROR if the input data was corrupted.
 }
 
-function uncompress (dest : pBytef;
-                     var destLen : uLong;
+function uncompress (dest : Pbyte;
+                     var destLen : cardinal;
                      const source : array of byte;
-                     sourceLen : uLong) : int;
+                     sourceLen : cardinal) : integer;
 
 implementation
 
-function uncompress (dest : pBytef;
-                     var destLen : uLong;
+function uncompress (dest : Pbyte;
+                     var destLen : cardinal;
                      const source : array of byte;
-                     sourceLen : uLong) : int;
+                     sourceLen : cardinal) : integer;
 var
   stream : z_stream;
-  err : int;
+  err : integer;
 begin
-  stream.next_in := pBytef(@source);
-  stream.avail_in := uInt(sourceLen);
+  stream.next_in := Pbyte(@source);
+  stream.avail_in := cardinal(sourceLen);
   { Check for source > 64K on 16-bit machine: }
-  if (uLong(stream.avail_in) <> sourceLen) then
+  if (cardinal(stream.avail_in) <> sourceLen) then
   begin
     uncompress := Z_BUF_ERROR;
     exit;
   end;
 
   stream.next_out := dest;
-  stream.avail_out := uInt(destLen);
-  if (uLong(stream.avail_out) <> destLen) then
+  stream.avail_out := cardinal(destLen);
+  if (cardinal(stream.avail_out) <> destLen) then
   begin
     uncompress := Z_BUF_ERROR;
     exit;
   end;
 
-  stream.zalloc := NIL;       { alloc_func(0); }
-  stream.zfree := NIL;        { free_func(0); }
+  stream.zalloc := nil;       { alloc_func(0); }
+  stream.zfree := nil;        { free_func(0); }
 
   err := inflateInit(stream);
   if (err <> Z_OK) then

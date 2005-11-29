@@ -69,7 +69,7 @@ uses
 
 
 { Compile with -DMAXSEG_64K if the alloc function cannot allocate more
-  than 64k bytes at a time (needed on systems with 16-bit int). }
+  than 64k bytes at a time (needed on systems with 16-bit integer). }
 
 { Maximum value for memLevel in deflateInit2 }
 {$ifdef MAXSEG_64K}
@@ -121,9 +121,9 @@ type
   inflate_huft = Record
     Exop,             { number of extra bits or operation }
     bits : Byte;      { number of bits in this code or subcode }
-    {pad : uInt;}       { pad structure to a power of 2 (4 bytes for }
-                      {  16-bit, 8 bytes for 32-bit int's) }
-    base : uInt;      { literal, length base, or distance base }
+    {pad : cardinal;}       { pad structure to a power of 2 (4 bytes for }
+                      {  16-bit, 8 bytes for 32-bit integer's) }
+    base : cardinal;      { literal, length base, or distance base }
                       { or table offset }
   End;
 
@@ -154,17 +154,17 @@ type
     mode : inflate_codes_mode;        { current inflate_codes mode }
 
     { mode dependent information }
-    len : uInt;
+    len : cardinal;
     sub : record                      { submode }
       Case Byte of
       0:(code : record                { if LEN or DIST, where in tree }
           tree : pInflate_huft;       { pointer into tree }
-          need : uInt;                { bits needed }
+          need : cardinal;                { bits needed }
          end);
-      1:(lit : uInt);                 { if LIT, literal }
+      1:(lit : cardinal);                 { if LIT, literal }
       2:(copy: record                 { if EXT or COPY, where and how much }
-           get : uInt;                { bits to get for extra }
-           dist : uInt;               { distance back to copy from }
+           get : cardinal;                { bits to get for extra }
+           dist : cardinal;               { distance back to copy from }
          end);
     end;
 
@@ -176,10 +176,10 @@ type
   end;
 
 type
-  check_func = function(check : uLong;
-                        buf : pBytef;
+  check_func = function(check : cardinal;
+                        buf : Pbyte;
                         {const buf : array of byte;}
-	                len : uInt) : uLong;
+	                len : cardinal) : cardinal;
 type
   inflate_block_mode =
      (ZTYPE,    { get type bits (3, including end bit) }
@@ -204,12 +204,12 @@ type
     { mode dependent information }
     sub : record                  { submode }
     case Byte of
-    0:(left : uInt);              { if STORED, bytes left to copy }
+    0:(left : cardinal);              { if STORED, bytes left to copy }
     1:(trees : record             { if DTREE, decoding info for trees }
-        table : uInt;               { table lengths (14 bits) }
-        index : uInt;               { index into blens (or border) }
+        table : cardinal;               { table lengths (14 bits) }
+        index : cardinal;               { index into blens (or border) }
         blens : PuIntArray;         { bit lengths of codes }
-        bb : uInt;                  { bit length tree depth }
+        bb : cardinal;                  { bit length tree depth }
         tb : pInflate_huft;         { bit length decoding tree }
       end);
     2:(decode : record            { if CODES, current state }
@@ -221,15 +221,15 @@ type
     last : boolean;               { true if this block is the last block }
 
     { mode independent information }
-    bitk : uInt;            { bits in bit buffer }
-    bitb : uLong;           { bit buffer }
+    bitk : cardinal;            { bits in bit buffer }
+    bitb : cardinal;           { bit buffer }
     hufts : huft_ptr; {pInflate_huft;}  { single malloc for tree space }
-    window : pBytef;        { sliding window }
-    zend : pBytef;          { one byte after sliding window }
-    read : pBytef;          { window read pointer }
-    write : pBytef;         { window write pointer }
+    window : Pbyte;        { sliding window }
+    zend : Pbyte;          { one byte after sliding window }
+    read : Pbyte;          { window read pointer }
+    write : Pbyte;         { window write pointer }
     checkfn : check_func;   { check function }
-    check : uLong;          { check on output }
+    check : cardinal;          { check on output }
   end;
 
 type
@@ -259,45 +259,45 @@ type
      { mode dependent information }
      sub : record          { submode }
        case byte of
-       0:(method : uInt);  { if FLAGS, method byte }
+       0:(method : cardinal);  { if FLAGS, method byte }
        1:(check : record   { if CHECK, check values to compare }
-           was : uLong;        { computed check value }
-           need : uLong;       { stream check value }
+           was : cardinal;        { computed check value }
+           need : cardinal;       { stream check value }
           end);
-       2:(marker : uInt);  { if BAD, inflateSync's marker bytes count }
+       2:(marker : cardinal);  { if BAD, inflateSync's marker bytes count }
      end;
 
      { mode independent information }
      nowrap : boolean;      { flag for no wrapper }
-     wbits : uInt;          { log2(window size)  (8..15, defaults to 15) }
+     wbits : cardinal;          { log2(window size)  (8..15, defaults to 15) }
      blocks : pInflate_blocks_state;    { current inflate_blocks state }
    end;
 
 type
-  alloc_func = function(opaque : voidpf; items : uInt; size : uInt) : voidpf;
-  free_func = procedure(opaque : voidpf; address : voidpf);
+  alloc_func = function(opaque : pointer; items : cardinal; size : cardinal) : pointer;
+  free_func = procedure(opaque : pointer; address : pointer);
 
 type
   z_streamp = ^z_stream;
   z_stream = record
-    next_in : pBytef;     { next input byte }
-    avail_in : uInt;      { number of bytes available at next_in }
-    total_in : uLong;     { total nb of input bytes read so far }
+    next_in : Pbyte;     { next input byte }
+    avail_in : cardinal;      { number of bytes available at next_in }
+    total_in : cardinal;     { total nb of input bytes read so far }
 
-    next_out : pBytef;    { next output byte should be put there }
-    avail_out : uInt;     { remaining free space at next_out }
-    total_out : uLong;    { total nb of bytes output so far }
+    next_out : Pbyte;    { next output byte should be put there }
+    avail_out : cardinal;     { remaining free space at next_out }
+    total_out : cardinal;    { total nb of bytes output so far }
 
     msg : string[255];         { last error message, '' if no error }
     state : pInternal_state; { not visible by applications }
 
     zalloc : alloc_func;  { used to allocate the internal state }
     zfree : free_func;    { used to free the internal state }
-    opaque : voidpf;      { private data object passed to zalloc and zfree }
+    opaque : pointer;      { private data object passed to zalloc and zfree }
 
-    data_type : int;      { best guess about the data type: ascii or binary }
-    adler : uLong;        { adler32 value of the uncompressed data }
-    reserved : uLong;     { reserved for future use }
+    data_type : integer;      { best guess about the data type: ascii or binary }
+    adler : cardinal;        { adler32 value of the uncompressed data }
+    reserved : cardinal;     { reserved for future use }
   end;
 
 
@@ -371,7 +371,7 @@ const  { constants }
 
   {$IFDEF GZIO}
 var
-  errno : int;
+  errno : integer;
   {$ENDIF}
 
         { common constants }
@@ -412,13 +412,13 @@ function zlibVersion : string;
   not compatible with the zlib.h header file used by the application.
   This check is automatically made by deflateInit and inflateInit. }
 
-function zError(err : int) : string;
+function zError(err : integer) : string;
 
-function ZALLOC (var strm : z_stream; items : uInt; size : uInt) : voidpf;
+function ZALLOC (var strm : z_stream; items : cardinal; size : cardinal) : pointer;
 
-procedure ZFREE (var strm : z_stream; ptr : voidpf);
+procedure ZFREE (var strm : z_stream; ptr : pointer);
 
-procedure TRY_FREE (var strm : z_stream; ptr : voidpf);
+procedure TRY_FREE (var strm : z_stream; ptr : pointer);
 
 const
   ZLIB_VERSION : string[10] = '1.1.2';
@@ -437,7 +437,7 @@ const
             'incompatible version',{ Z_VERSION_ERROR (-6) }
             '');
 const
-  z_verbose : int = 1;
+  z_verbose : integer = 1;
 
 {$IFDEF DEBUG}
 procedure z_error (m : string);
@@ -445,7 +445,7 @@ procedure z_error (m : string);
 
 implementation
 
-function zError(err : int) : string;
+function zError(err : integer) : string;
 begin
   zError := z_errmsg[Z_NEED_DICT-err];
 end;
@@ -504,17 +504,17 @@ begin
     WriteLn(x);
 end;
 
-function ZALLOC (var strm : z_stream; items : uInt; size : uInt) : voidpf;
+function ZALLOC (var strm : z_stream; items : cardinal; size : cardinal) : pointer;
 begin
   ZALLOC := strm.zalloc(strm.opaque, items, size);
 end;
 
-procedure ZFREE (var strm : z_stream; ptr : voidpf);
+procedure ZFREE (var strm : z_stream; ptr : pointer);
 begin
   strm.zfree(strm.opaque, ptr);
 end;
 
-procedure TRY_FREE (var strm : z_stream; ptr : voidpf);
+procedure TRY_FREE (var strm : z_stream; ptr : pointer);
 begin
   {if @strm <> Z_NULL then}
     strm.zfree(strm.opaque, ptr);

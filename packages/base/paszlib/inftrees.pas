@@ -1,4 +1,4 @@
-Unit InfTrees;
+unit inftrees;
 
 { inftrees.h -- header to use inftrees.c
   inftrees.c -- generate Huffman trees for efficient decoding
@@ -13,7 +13,7 @@ Unit InfTrees;
   For conditions of distribution and use, see copyright notice in readme.txt
 }
 
-Interface
+interface
 
 {$I zconf.inc}
 
@@ -32,36 +32,36 @@ const
 
 {$ifdef DEBUG}
 var
-  inflate_hufts : uInt;
+  inflate_hufts : cardinal;
 {$endif}
 
 function inflate_trees_bits(
-  var c : array of uIntf;  { 19 code lengths }
-  var bb : uIntf;          { bits tree desired/actual depth }
+  var c : array of cardinal;  { 19 code lengths }
+  var bb : cardinal;          { bits tree desired/actual depth }
   var tb : pinflate_huft;  { bits tree result }
   var hp : array of Inflate_huft;      { space for trees }
   var z : z_stream         { for messages }
-    ) : int;
+    ) : integer;
 
 function inflate_trees_dynamic(
-    nl : uInt;                    { number of literal/length codes }
-    nd : uInt;                    { number of distance codes }
-    var c : Array of uIntf;           { that many (total) code lengths }
-    var bl : uIntf;               { literal desired/actual bit depth }
-    var bd : uIntf;               { distance desired/actual bit depth }
+    nl : cardinal;                    { number of literal/length codes }
+    nd : cardinal;                    { number of distance codes }
+    var c : Array of cardinal;           { that many (total) code lengths }
+    var bl : cardinal;               { literal desired/actual bit depth }
+    var bd : cardinal;               { distance desired/actual bit depth }
 var tl : pInflate_huft;           { literal/length tree result }
 var td : pInflate_huft;           { distance tree result }
 var hp : array of Inflate_huft;   { space for trees }
 var z : z_stream                  { for messages }
-     ) : int;
+     ) : integer;
 
 function inflate_trees_fixed (
-    var bl : uInt;                { literal desired/actual bit depth }
-    var bd : uInt;                { distance desired/actual bit depth }
+    var bl : cardinal;                { literal desired/actual bit depth }
+    var bd : cardinal;                { distance desired/actual bit depth }
     var tl : pInflate_huft;       { literal/length tree result }
     var td : pInflate_huft;       { distance tree result }
     var z : z_stream              { for memory allocation }
-     ) : int;
+     ) : integer;
 
 
 implementation
@@ -79,23 +79,23 @@ const
 
 const
 { Tables for deflate from PKZIP's appnote.txt. }
-  cplens : Array [0..30] Of uInt  { Copy lengths for literal codes 257..285 }
+  cplens : Array [0..30] Of cardinal  { Copy lengths for literal codes 257..285 }
      = (3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0);
         { actually lengths - 2; also see note #13 above about 258 }
 
   invalid_code = 112;
 
-  cplext : Array [0..30] Of uInt  { Extra bits for literal codes 257..285 }
+  cplext : Array [0..30] Of cardinal  { Extra bits for literal codes 257..285 }
      = (0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, invalid_code, invalid_code);
 
-  cpdist : Array [0..29] Of uInt { Copy offsets for distance codes 0..29 }
+  cpdist : Array [0..29] Of cardinal { Copy offsets for distance codes 0..29 }
      = (1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
         8193, 12289, 16385, 24577);
 
-  cpdext : Array [0..29] Of uInt { Extra bits for distance codes }
+  cpdext : Array [0..29] Of cardinal { Extra bits for distance codes }
      = (0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
         12, 12, 13, 13);
@@ -138,48 +138,48 @@ const
 {$DEFINE USE_PTR}
 
 function huft_build(
-var b : array of uIntf;    { code lengths in bits (all assumed <= BMAX) }
-    n : uInt;              { number of codes (assumed <= N_MAX) }
-    s : uInt;              { number of simple-valued codes (0..s-1) }
-const d : array of uIntf;  { list of base values for non-simple codes }
+var b : array of cardinal;    { code lengths in bits (all assumed <= BMAX) }
+    n : cardinal;              { number of codes (assumed <= N_MAX) }
+    s : cardinal;              { number of simple-valued codes (0..s-1) }
+const d : array of cardinal;  { list of base values for non-simple codes }
 { array of word }
-const e : array of uIntf;  { list of extra bits for non-simple codes }
+const e : array of cardinal;  { list of extra bits for non-simple codes }
 { array of byte }
   t : ppInflate_huft;     { result: starting table }
-var m : uIntf;             { maximum lookup bits, returns actual }
+var m : cardinal;             { maximum lookup bits, returns actual }
 var hp : array of inflate_huft;  { space for trees }
-var hn : uInt;             { hufts used in space }
-var v : array of uIntf     { working area: values in order of bit length }
-   ) : int;
+var hn : cardinal;             { hufts used in space }
+var v : array of cardinal     { working area: values in order of bit length }
+   ) : integer;
 { Given a list of code lengths and a maximum table size, make a set of
   tables to decode that set of codes.  Return Z_OK on success, Z_BUF_ERROR
   if the given code set is incomplete (the tables are still built in this
   case), Z_DATA_ERROR if the input is invalid (an over-subscribed set of
   lengths), or Z_MEM_ERROR if not enough memory. }
 Var
-  a : uInt;                     { counter for codes of length k }
-  c : Array [0..BMAX] Of uInt;  { bit length count table }
-  f : uInt;                     { i repeats in table every f entries }
-  g : int;                      { maximum code length }
-  h : int;                      { table level }
-  i : uInt;  {register}         { counter, current code }
-  j : uInt;  {register}         { counter }
-  k : Int;   {register}         { number of bits in current code }
-  l : int;			{ bits per table (returned in m) }
-  mask : uInt;                  { (1 shl w) - 1, to avoid cc -O bug on HP }
-  p : ^uIntf; {register}        { pointer into c[], b[], or v[] }
+  a : cardinal;                     { counter for codes of length k }
+  c : Array [0..BMAX] Of cardinal;  { bit length count table }
+  f : cardinal;                     { i repeats in table every f entries }
+  g : integer;                      { maximum code length }
+  h : integer;                      { table level }
+  i : cardinal;  {register}         { counter, current code }
+  j : cardinal;  {register}         { counter }
+  k : integer;   {register}         { number of bits in current code }
+  l : integer;			{ bits per table (returned in m) }
+  mask : cardinal;                  { (1 shl w) - 1, to avoid cc -O bug on HP }
+  p : ^cardinal; {register}        { pointer into c[], b[], or v[] }
   q : pInflate_huft;            { points to current table }
   r : inflate_huft;             { table entry for structure assignment }
   u : Array [0..BMAX-1] Of pInflate_huft; { table stack }
-  w : int;   {register}         { bits before this table = (l*h) }
-  x : Array [0..BMAX] Of uInt;  { bit offsets, then code stack }
+  w : integer;   {register}         { bits before this table = (l*h) }
+  x : Array [0..BMAX] Of cardinal;  { bit offsets, then code stack }
   {$IFDEF USE_PTR}
-  xp : puIntf;                  { pointer into x }
+  xp : Pcardinal;                  { pointer into x }
   {$ELSE}
-  xp : uInt;
+  xp : cardinal;
   {$ENDIF}
-  y : int;                      { number of dummy codes added }
-  z : uInt;                     { number of entries in current table }
+  y : integer;                      { number of dummy codes added }
+  z : cardinal;                     { number of entries in current table }
 Begin
   { Generate counts for each bit length }
   FillChar(c,SizeOf(c),0) ;     { clear c[] }
@@ -201,13 +201,13 @@ Begin
     if (c[j] <> 0) then
       break;
   k := j ;                      { minimum code length }
-  if (uInt(l) < j) then
+  if (cardinal(l) < j) then
     l := j;
   for i := BMAX downto 1 do
     if (c[i] <> 0) then
       break ;
   g := i ;                      { maximum code length }
-  if (uInt(l) > i) then
+  if (cardinal(l) > i) then
      l := i;
   m := l;
 
@@ -301,7 +301,7 @@ Begin
 
         { table size upper limit }
         z := g - w;
-        If (z > uInt(l)) Then
+        If (z > cardinal(l)) Then
           z := l;
 
         { try a k-w bit table }
@@ -362,11 +362,11 @@ Begin
         if (h <> 0) then
         begin
           x[h] := i;             { save pattern for backing up }
-          r.bits := Byte(l);     { bits to dump before this table }
-          r.exop := Byte(j);     { bits in this table }
+          r.bits := byte(l);     { bits to dump before this table }
+          r.exop := byte(j);     { bits in this table }
           j := i shr (w - l);
-          {r.base := uInt( q - u[h-1] -j);}   { offset to this table }
-          r.base := (ptr2int(q) - ptr2int(u[h-1]) ) div sizeof(q^) - j;
+          {r.base := cardinal( q - u[h-1] -j);}   { offset to this table }
+          r.base := (ptrint(q) - ptrint(u[h-1]) ) div sizeof(q^) - j;
           huft_Ptr(u[h-1])^[j] := r;  { connect to last table }
         end
         else
@@ -374,11 +374,11 @@ Begin
       end;
 
       { set up table entry in r }
-      r.bits := Byte(k - w);
+      r.bits := byte(k - w);
 
       { C-code: if (p >= v + n) - see ZUTIL.PAS for comments }
 
-      if ptr2int(p)>=ptr2int(@(v[n])) then  { also works under DPMI ?? }
+      if ptrint(p)>=ptrint(@(v[n])) then  { also works under DPMI ?? }
         r.exop := 128 + 64                  { out of values--invalid code }
       else
         if (p^ < s) then
@@ -392,7 +392,7 @@ Begin
         end
         Else
         begin
-          r.exop := Byte(e[p^-s] + 16 + 64);  { non-simple--look up in lists }
+          r.exop := byte(e[p^-s] + 16 + 64);  { non-simple--look up in lists }
           r.base := d[p^-s];
           Inc (p);
         end ;
@@ -438,27 +438,27 @@ end; { huft_build}
 
 
 function inflate_trees_bits(
-  var c : array of uIntf;  { 19 code lengths }
-  var bb : uIntf;          { bits tree desired/actual depth }
+  var c : array of cardinal;  { 19 code lengths }
+  var bb : cardinal;          { bits tree desired/actual depth }
   var tb : pinflate_huft;  { bits tree result }
   var hp : array of Inflate_huft;      { space for trees }
   var z : z_stream         { for messages }
-    ) : int;
+    ) : integer;
 var
-  r : int;
-  hn : uInt;          { hufts used in space }
+  r : integer;
+  hn : cardinal;          { hufts used in space }
   v : PuIntArray;     { work area for huft_build }
 begin
   hn := 0;
-  v := PuIntArray( ZALLOC(z, 19, sizeof(uInt)) );
-  if (v = Z_NULL) then
+  v := PuIntArray( ZALLOC(z, 19, sizeof(cardinal)) );
+  if (v = nil) then
   begin
     inflate_trees_bits := Z_MEM_ERROR;
     exit;
   end;
 
   r := huft_build(c, 19, 19, cplens, cplext,
-                             {puIntf(Z_NULL), puIntf(Z_NULL),}
+                             {Pcardinal(nil), Pcardinal(nil),}
                   @tb, bb, hp, hn, v^);
   if (r = Z_DATA_ERROR) then
     z.msg := 'oversubscribed dynamic bit lengths tree'
@@ -474,25 +474,25 @@ end;
 
 
 function inflate_trees_dynamic(
-    nl : uInt;                    { number of literal/length codes }
-    nd : uInt;                    { number of distance codes }
-    var c : Array of uIntf;           { that many (total) code lengths }
-    var bl : uIntf;          { literal desired/actual bit depth }
-    var bd : uIntf;          { distance desired/actual bit depth }
+    nl : cardinal;                    { number of literal/length codes }
+    nd : cardinal;                    { number of distance codes }
+    var c : Array of cardinal;           { that many (total) code lengths }
+    var bl : cardinal;          { literal desired/actual bit depth }
+    var bd : cardinal;          { distance desired/actual bit depth }
 var tl : pInflate_huft;           { literal/length tree result }
 var td : pInflate_huft;           { distance tree result }
 var hp : array of Inflate_huft;   { space for trees }
 var z : z_stream                  { for messages }
-     ) : int;
+     ) : integer;
 var
-  r : int;
-  hn : uInt;          { hufts used in space }
+  r : integer;
+  hn : cardinal;          { hufts used in space }
   v : PuIntArray;     { work area for huft_build }
 begin
   hn := 0;
   { allocate work area }
-  v := PuIntArray( ZALLOC(z, 288, sizeof(uInt)) );
-  if (v = Z_NULL) then
+  v := PuIntArray( ZALLOC(z, 288, sizeof(cardinal)) );
+  if (v = nil) then
   begin
     inflate_trees_dynamic := Z_MEM_ERROR;
     exit;
@@ -560,8 +560,8 @@ const
   FIXEDH = 544;      { number of hufts used by fixed tables }
 var
   fixed_mem : array[0..FIXEDH-1] of inflate_huft;
-  fixed_bl : uInt;
-  fixed_bd : uInt;
+  fixed_bl : cardinal;
+  fixed_bd : cardinal;
   fixed_tl : pInflate_huft;
   fixed_td : pInflate_huft;
 
@@ -571,18 +571,18 @@ var
 
 {local}
 const
-  fixed_bl = uInt(9);
+  fixed_bl = 9;
 {local}
 const
-  fixed_bd = uInt(5);
+  fixed_bd = 5;
 {local}
 const
   fixed_tl : array [0..288-1] of inflate_huft = (
     Exop,             { number of extra bits or operation }
-    bits : Byte;      { number of bits in this code or subcode }
-    {pad : uInt;}       { pad structure to a power of 2 (4 bytes for }
-                      {  16-bit, 8 bytes for 32-bit int's) }
-    base : uInt;      { literal, length base, or distance base }
+    bits : byte;      { number of bits in this code or subcode }
+    {pad : cardinal;}       { pad structure to a power of 2 (4 bytes for }
+                      {  16-bit, 8 bytes for 32-bit integer's) }
+    base : cardinal;      { literal, length base, or distance base }
                       { or table offset }
 
     ((96,7),256), ((0,8),80), ((0,8),16), ((84,8),115), ((82,7),31),
@@ -708,21 +708,21 @@ const
 {$ENDIF}
 
 function inflate_trees_fixed(
-var bl : uInt;               { literal desired/actual bit depth }
-var bd : uInt;               { distance desired/actual bit depth }
+var bl : cardinal;               { literal desired/actual bit depth }
+var bd : cardinal;               { distance desired/actual bit depth }
 var tl : pInflate_huft;      { literal/length tree result }
 var td : pInflate_huft;      { distance tree result }
 var  z : z_stream            { for memory allocation }
-      ) : int;
+      ) : integer;
 type
   pFixed_table = ^fixed_table;
-  fixed_table = array[0..288-1] of uIntf;
+  fixed_table = array[0..288-1] of cardinal;
 var
-  k : int;                   { temporary variable }
+  k : integer;                   { temporary variable }
   c : pFixed_table;          { length list for huft_build }
   v : PuIntArray;            { work area for huft_build }
 var
-  f : uInt;                  { number of hufts used in fixed_mem }
+  f : cardinal;                  { number of hufts used in fixed_mem }
 begin
   { build fixed tables if not already (multiple overlapped executions ok) }
   if not fixed_built then
@@ -730,14 +730,14 @@ begin
     f := 0;
 
     { allocate memory }
-    c := pFixed_table( ZALLOC(z, 288, sizeof(uInt)) );
-    if (c = Z_NULL) then
+    c := pFixed_table( ZALLOC(z, 288, sizeof(cardinal)) );
+    if (c = nil) then
     begin
       inflate_trees_fixed := Z_MEM_ERROR;
       exit;
     end;
-    v := PuIntArray( ZALLOC(z, 288, sizeof(uInt)) );
-    if (v = Z_NULL) then
+    v := PuIntArray( ZALLOC(z, 288, sizeof(cardinal)) );
+    if (v = nil) then
     begin
       ZFREE(z, c);
       inflate_trees_fixed := Z_MEM_ERROR;
