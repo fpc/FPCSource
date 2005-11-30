@@ -541,6 +541,12 @@ end;
 function TField.GetData(Buffer: Pointer): Boolean;
 
 begin
+  Result:=GetData(Buffer,True);
+end;
+
+function TField.GetData(Buffer: Pointer; NativeFormat : Boolean): Boolean;
+
+begin
   IF FDataset=Nil then
     DatabaseErrorFmt(SNoDataset,[FieldName]);
   If FVAlidating then
@@ -550,7 +556,7 @@ begin
       Move (FValueBuffer^,Buffer^ ,DataSize);
     end
   else
-    Result:=FDataset.GetFieldData(Self,Buffer);
+    Result:=FDataset.GetFieldData(Self,Buffer,NativeFormat);
 end;
 
 function TField.GetDataSize: Word;
@@ -768,9 +774,15 @@ end;
 procedure TField.SetData(Buffer: Pointer);
 
 begin
+ SetData(Buffer,True);
+end;
+
+procedure TField.SetData(Buffer: Pointer; NativeFormat : Boolean);
+
+begin
   If Not Assigned(FDataset) then
     EDatabaseError.CreateFmt(SNoDataset,[FieldName]);
-  FDataSet.SetFieldData(Self,Buffer, False);
+  FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
 Procedure TField.SetDataset (Value : TDataset);
@@ -1749,7 +1761,7 @@ end;
 function TDateTimeField.GetAsDateTime: TDateTime;
 
 begin
-  If Not GetData(@Result) then
+  If Not GetData(@Result,False) then
     Result:=0;
 end;
 
@@ -1763,7 +1775,7 @@ function TDateTimeField.GetAsVariant: Variant;
 Var d : tDateTime;
 
 begin
-  If Getdata(@d) then
+  If Getdata(@d,False) then
     Result := d
   else
     Result:=Null;
@@ -1796,7 +1808,7 @@ Var R : TDateTime;
     F : String;
 
 begin
-  If Not Getdata(@R) then
+  If Not Getdata(@R,False) then
     TheText:=''
   else
     begin
@@ -1817,7 +1829,7 @@ end;
 procedure TDateTimeField.SetAsDateTime(AValue: TDateTime);
 
 begin
-  SetData(@Avalue);
+  SetData(@Avalue,False);
 end;
 
 
@@ -1834,7 +1846,7 @@ Var R : TDateTime;
 
 begin
   R:=StrToDateTime(AVAlue);
-  SetData(@R);
+  SetData(@R,False);
 end;
 
 
