@@ -1,5 +1,7 @@
 unit zdeflate;
 
+{$goto on}
+
 { Orginal: deflate.h -- internal compression state
            deflate.c -- compress data using the deflation algorithm
   Copyright (C) 1995-1996 Jean-loup Gailly.

@@ -1,5 +1,7 @@
 unit infblock;
 
+{$goto on}
+
 { infblock.h and
   infblock.c -- interpret and process block types to last block
   Copyright (C) 1995-1998 Mark Adler
