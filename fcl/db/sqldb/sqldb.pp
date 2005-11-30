@@ -88,7 +88,6 @@ type
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
-
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual; abstract;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
@@ -196,6 +195,7 @@ type
     function Fetch : boolean; override;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; override;
     // abstract & virtual methods of TDataset
+    procedure DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean); override;
     procedure UpdateIndexDefs; override;
     procedure SetDatabase(Value : TDatabase); override;
     Procedure SetTransaction(Value : TDBTransaction); override;
@@ -676,6 +676,16 @@ function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean;
 
 begin
   result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer)
+end;
+
+procedure TSQLQuery.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean); 
+
+begin
+  { 
+    all data is in native format for these types, so no conversion is needed.
+  }
+  If not (Field.DataType in [ftDate,ftTime,ftDateTime]) then
+    Inherited DataConvert(Field,Source,Dest,ToNative);
 end;
 
 procedure TSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
