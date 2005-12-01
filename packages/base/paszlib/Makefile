@@ -233,103 +233,103 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=paszlib
 override PACKAGE_VERSION=2.0.0
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=paszlib adler crc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_EXAMPLES+=example minigzip
@@ -1159,105 +1159,138 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl 
+override REQUIRE_PACKAGES=rtl hash
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_HASH=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1283,6 +1316,32 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_HASH
+PACKAGEDIR_HASH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /hash/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_HASH),)
+ifneq ($(wildcard $(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)),)
+UNITDIR_HASH=$(PACKAGEDIR_HASH)/units/$(TARGETSUFFIX)
+else
+UNITDIR_HASH=$(PACKAGEDIR_HASH)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_HASH)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_HASH) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_HASH)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_HASH=
+UNITDIR_HASH:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /hash/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_HASH),)
+UNITDIR_HASH:=$(firstword $(UNITDIR_HASH))
+else
+UNITDIR_HASH=
+endif
+endif
+ifdef UNITDIR_HASH
+override COMPILER_UNITDIR+=$(UNITDIR_HASH)
 endif
 endif
 ifndef NOCPUDEF
