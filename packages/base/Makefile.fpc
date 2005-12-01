@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=paszlib pasjpeg regexpr netdb md5
+dirs=paszlib pasjpeg regexpr netdb hash
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
             pthreads sqlite libc
 dirs_win32=gdbint mysql ibase odbc sqlite postgres
