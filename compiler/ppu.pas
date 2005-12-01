@@ -268,7 +268,7 @@ implementation
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
-    crc,
+    fpccrc,
     cutils;
 
 {*****************************************************************************
