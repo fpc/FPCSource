@@ -269,9 +269,6 @@ begin
 
   inherited dointernalconnect;
 
-  if (DatabaseName = '') then
-    DatabaseError(SErrNoDatabaseName,self);
-
   FConnectString := '';
   if (UserName <> '') then FConnectString := FConnectString + ' user=''' + UserName + '''';
   if (Password <> '') then FConnectString := FConnectString + ' password=''' + Password + '''';

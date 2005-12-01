@@ -297,7 +297,8 @@ end;
 
 procedure TSQLConnection.DoInternalConnect;
 begin
-// Empty abstract
+  if (DatabaseName = '') then
+    DatabaseError(SErrNoDatabaseName,self);
 end;
 
 procedure TSQLConnection.DoInternalDisconnect;
