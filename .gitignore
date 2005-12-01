@@ -512,6 +512,13 @@ packages/base/gdbint/*.ppu
 packages/base/gdbint/*.s
 packages/base/gdbint/fpcmade.*
 packages/base/gdbint/units
+packages/base/hash/*.bak
+packages/base/hash/*.exe
+packages/base/hash/*.o
+packages/base/hash/*.ppu
+packages/base/hash/*.s
+packages/base/hash/fpcmade.*
+packages/base/hash/units
 packages/base/ibase/*.bak
 packages/base/ibase/*.exe
 packages/base/ibase/*.o
@@ -540,13 +547,6 @@ packages/base/libc/*.ppu
 packages/base/libc/*.s
 packages/base/libc/fpcmade.*
 packages/base/libc/units
-packages/base/md5/*.bak
-packages/base/md5/*.exe
-packages/base/md5/*.o
-packages/base/md5/*.ppu
-packages/base/md5/*.s
-packages/base/md5/fpcmade.*
-packages/base/md5/units
 packages/base/mysql/*.bak
 packages/base/mysql/*.exe
 packages/base/mysql/*.o
