@@ -41,9 +41,6 @@ interface
 
 {$I zconf.inc}
 
-uses
-  zutil;
-
 { zconf.h -- configuration of the zlib compression library }
 { zutil.c -- target dependent utility functions for the compression library }
 
