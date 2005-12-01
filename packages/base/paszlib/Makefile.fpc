@@ -10,7 +10,7 @@ version=2.0.0
 packages=hash
 
 [target]
-units=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+units=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr
 examples=example minigzip
 
 [install]
