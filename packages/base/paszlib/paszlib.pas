@@ -104,7 +104,7 @@ function get_crc_table:pointer;
 implementation
 
 uses
-  zutil,zdeflate,zinflate,zcompres,zuncompr,gzio,adler,crc;
+  zdeflate,zinflate,zcompres,zuncompr,gzio,adler,crc;
 
 function zlibVersion:string;
 begin
