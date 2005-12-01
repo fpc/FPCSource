@@ -6,14 +6,11 @@ uses
   zbase;
 
 const
-  ZLIB_VERSION = '1.1.2';
+  ZLIB_VERSION = '1.2';
 
 type
   { Compatibility types }
   z_off_t = longint;
-
-  TAllocfunc = function (opaque:pointer; items:cardinal; size:cardinal):pointer;
-  TFreeFunc = procedure (opaque:pointer; address:pointer);
 
   TInternalState = record
     end;
