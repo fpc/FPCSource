@@ -21,7 +21,7 @@ uses
   {$else}
   dos,
   {$endif}
-  zutil, zbase, crc, zdeflate, zinflate;
+  zbase, crc, zdeflate, zinflate;
 
 type gzFile = pointer;
 type z_off_t = longint;

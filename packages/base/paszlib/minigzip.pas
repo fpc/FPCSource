@@ -18,7 +18,7 @@ program minigzip;
 }
 
 uses
-  gzio, zutil;
+  gzio;
 
 const
   BUFLEN       = 16384 ;

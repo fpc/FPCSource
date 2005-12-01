@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase, infblock, infutil;
+  zbase, infblock, infutil;
 
 function inflateInit(var z : z_stream) : integer;
 

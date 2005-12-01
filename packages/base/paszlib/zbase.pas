@@ -100,6 +100,17 @@ const
 const
   DEF_WBITS = MAX_WBITS;
 
+
+type  Pbytearray=^Tbytearray;
+      Pwordarray=^Twordarray;
+      Pcardinalarray=^Tcardinalarray;
+
+      Tbytearray = array [0..maxint div sizeof(byte)-1] of byte;
+      Twordarray = array [0..maxint div sizeof(word)-1] of word;
+      Tintegerarray = array [0..maxint div sizeof(integer)-1] of integer;
+      Tcardinalarray = array [0..maxint div sizeof(cardinal)-1] of cardinal;
+
+
 { The memory requirements for deflate are (in bytes):
             1 shl (windowBits+2)   +  1 shl (memLevel+9)
  that is: 128K for windowBits=15  +  128K for memLevel = 8  (default values)
@@ -128,7 +139,7 @@ type
   End;
 
 type
-  huft_field = Array[0..(MaxMemBlock div SizeOf(inflate_huft))-1] of inflate_huft;
+  huft_field = Array[0..(maxint div SizeOf(inflate_huft))-1] of inflate_huft;
   huft_ptr = ^huft_field;
 type
   ppInflate_huft = ^pInflate_huft;
@@ -208,7 +219,7 @@ type
     1:(trees : record             { if DTREE, decoding info for trees }
         table : cardinal;               { table lengths (14 bits) }
         index : cardinal;               { index into blens (or border) }
-        blens : PuIntArray;         { bit lengths of codes }
+        blens : Pcardinalarray;         { bit lengths of codes }
         bb : cardinal;                  { bit length tree depth }
         tb : pInflate_huft;         { bit length decoding tree }
       end);

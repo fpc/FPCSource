@@ -18,7 +18,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 
 { Maximum size of dynamic tree.  The maximum found in a long but non-
@@ -447,10 +447,10 @@ function inflate_trees_bits(
 var
   r : integer;
   hn : cardinal;          { hufts used in space }
-  v : PuIntArray;     { work area for huft_build }
+  v : Pcardinalarray;     { work area for huft_build }
 begin
   hn := 0;
-  v := PuIntArray( ZALLOC(z, 19, sizeof(cardinal)) );
+  v := Pcardinalarray( ZALLOC(z, 19, sizeof(cardinal)) );
   if (v = nil) then
   begin
     inflate_trees_bits := Z_MEM_ERROR;
@@ -487,11 +487,11 @@ var z : z_stream                  { for messages }
 var
   r : integer;
   hn : cardinal;          { hufts used in space }
-  v : PuIntArray;     { work area for huft_build }
+  v : Pcardinalarray;     { work area for huft_build }
 begin
   hn := 0;
   { allocate work area }
-  v := PuIntArray( ZALLOC(z, 288, sizeof(cardinal)) );
+  v := Pcardinalarray( ZALLOC(z, 288, sizeof(cardinal)) );
   if (v = nil) then
   begin
     inflate_trees_dynamic := Z_MEM_ERROR;
@@ -517,7 +517,7 @@ begin
   end;
 
   { build distance tree }
-  r := huft_build(puIntArray(@c[nl])^, nd, 0,
+  r := huft_build(Pcardinalarray(@c[nl])^, nd, 0,
                   cpdist, cpdext, @td, bd, hp, hn, v^);
   if (r <> Z_OK) or ((bd = 0) and (nl > 257)) then
   begin
@@ -719,8 +719,8 @@ type
   fixed_table = array[0..288-1] of cardinal;
 var
   k : integer;                   { temporary variable }
-  c : pFixed_table;          { length list for huft_build }
-  v : PuIntArray;            { work area for huft_build }
+  c : pFixed_table;              { length list for huft_build }
+  v : Pcardinalarray;            { work area for huft_build }
 var
   f : cardinal;                  { number of hufts used in fixed_mem }
 begin
@@ -736,7 +736,7 @@ begin
       inflate_trees_fixed := Z_MEM_ERROR;
       exit;
     end;
-    v := PuIntArray( ZALLOC(z, 288, sizeof(cardinal)) );
+    v := Pcardinalarray( ZALLOC(z, 288, sizeof(cardinal)) );
     if (v = nil) then
     begin
       ZFREE(z, c);

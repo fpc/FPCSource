@@ -16,7 +16,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 function inflate_blocks_new(var z : z_stream;
                             c : check_func;  { check function }
@@ -514,7 +514,7 @@ begin
         end;
   {$endif}
         t := 258 + (t and $1f) + ((t shr 5) and $1f);
-        s.sub.trees.blens := puIntArray( ZALLOC(z, t, sizeof(cardinal)) );
+        s.sub.trees.blens := Pcardinalarray( ZALLOC(z, t, sizeof(cardinal)) );
         if (s.sub.trees.blens = nil) then
         begin
           r := Z_MEM_ERROR;

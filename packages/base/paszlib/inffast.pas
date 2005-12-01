@@ -16,7 +16,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 function inflate_fast( bl : cardinal;
                        bd : cardinal;

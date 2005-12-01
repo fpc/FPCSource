@@ -1,4 +1,4 @@
-Unit trees;
+unit trees;
 
 {$T-}
 {$define ORG_DEBUG}
@@ -42,7 +42,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 { ===========================================================================
   Internal compression state. }
@@ -102,7 +102,7 @@ type
   dtree_type = array[0..2*D_CODES+1-1] of ct_data;  { distance tree }
   htree_type = array[0..2*BL_CODES+1-1] of ct_data;  { Huffman tree for bit lengths }
   { generic tree type }
-  tree_type = array[0..(MaxMemBlock div SizeOf(ct_data))-1] of ct_data;
+  tree_type = array[0..(maxint div SizeOf(ct_data))-1] of ct_data;
 
   tree_ptr = ^tree_type;
   ltree_ptr = ^ltree_type;
@@ -115,7 +115,7 @@ type
   static_tree_desc =
          record
     {const} static_tree : tree_ptr;     { static tree or NIL }
-    {const} extra_bits : pzIntfArray;   { extra bits for each code or NIL }
+    {const} extra_bits : Pintegerarray;   { extra bits for each code or NIL }
             extra_base : integer;           { base index for extra_bits }
             elems : integer;                { max number of elements in the tree }
             max_length : integer;           { max bit length for the codes }
@@ -135,7 +135,7 @@ type
 
   pPosf = ^Posf;
 
-  zPosfArray = array[0..(MaxMemBlock div SizeOf(Posf))-1] of Posf;
+  zPosfArray = array[0..(maxint div SizeOf(Posf))-1] of Posf;
   pzPosfArray = ^zPosfArray;
 
 { A Pos is an index in the character window. We use short instead of integer to
@@ -146,7 +146,7 @@ type
   deflate_state = record
     strm : z_streamp;          { pointer back to this zlib stream }
     status : integer;              { as the name implies }
-    pending_buf : pzByteArray; { output still pending }
+    pending_buf : Pbytearray; { output still pending }
     pending_buf_size : longint;    { size of pending_buf }
     pending_out : Pbyte;      { next pending byte to output to the stream }
     pending : integer;             { nb of bytes in the pending buffer }
@@ -161,7 +161,7 @@ type
     w_bits : cardinal;             { log2(w_size)  (8..16) }
     w_mask : cardinal;             { w_size - 1 }
 
-    window : pzByteArray;
+    window : Pbytearray;
     { Sliding window. Input bytes are read into the second half of the window,
       and move to the first half later to keep a dictionary of at least wSize
       bytes. With this organization, matches are limited to a distance of
@@ -248,7 +248,7 @@ type
     { Depth of each subtree used as tie breaker for trees of equal frequency }
 
 
-    l_buf : puchfArray;       { buffer for literals or lengths }
+    l_buf : Pbytearray;       { buffer for literals or lengths }
 
     lit_bufsize : cardinal;
     { Size of match buffer for literals/lengths.  There are 4 reasons for
@@ -272,7 +272,7 @@ type
 
     last_lit : cardinal;      { running index in l_buf }
 
-    d_buf : pushfArray;
+    d_buf : Pwordarray;
     { Buffer for distances. To simplify the code, d_buf and l_buf have
       the same number of elements. To use different lengths, an extra flag
       array would be necessary. }
@@ -1245,7 +1245,7 @@ var
   tree : tree_ptr;
   max_code : integer;
   stree : tree_ptr; {const}
-  extra : pzIntfArray; {const}
+  extra : Pintegerarray; {const}
   base : integer;
   max_length : integer;
   h : integer;              { heap index }

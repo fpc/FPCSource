@@ -13,9 +13,6 @@ interface
 
 {$I zconf.inc}
 
-uses
-  zutil;
-
 function adler32(adler : cardinal; buf : Pbyte; len : cardinal) : cardinal;
 
 {    Update a running Adler-32 checksum with the bytes buf[0..len-1] and

@@ -60,7 +60,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+ zbase;
 
 
 function deflateInit_(strm : z_streamp;
@@ -509,7 +509,7 @@ var
   s : deflate_state_ptr;
   noheader : integer;
 
-  overlay : pushfArray;
+  overlay : Pwordarray;
   { We overlay pending_buf and d_buf+l_buf. This works since the average
     output size for (length,distance) codes is <= 24 bits. }
 begin
@@ -568,14 +568,14 @@ begin
   s^.hash_mask := s^.hash_size - 1;
   s^.hash_shift :=  ((s^.hash_bits+MIN_MATCH-1) div MIN_MATCH);
 
-  s^.window := pzByteArray (ZALLOC(strm, s^.w_size, 2*sizeof(Byte)));
+  s^.window := Pbytearray (ZALLOC(strm, s^.w_size, 2*sizeof(Byte)));
   s^.prev   := pzPosfArray (ZALLOC(strm, s^.w_size, sizeof(Pos)));
   s^.head   := pzPosfArray (ZALLOC(strm, s^.hash_size, sizeof(Pos)));
 
   s^.lit_bufsize := 1 shl (memLevel + 6); { 16K elements by default }
 
-  overlay := pushfArray (ZALLOC(strm, s^.lit_bufsize, sizeof(word)+2));
-  s^.pending_buf := pzByteArray (overlay);
+  overlay := Pwordarray (ZALLOC(strm, s^.lit_bufsize, sizeof(word)+2));
+  s^.pending_buf := Pbytearray(overlay);
   s^.pending_buf_size := longint(s^.lit_bufsize) * (sizeof(word)+longint(2));
 
   if (s^.window = Z_NULL) or (s^.prev = Z_NULL) or (s^.head = Z_NULL)
@@ -587,8 +587,8 @@ begin
     deflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
-  s^.d_buf := pushfArray( @overlay^[s^.lit_bufsize div sizeof(word)] );
-  s^.l_buf := puchfArray( @s^.pending_buf^[(1+sizeof(word))*s^.lit_bufsize] );
+  s^.d_buf := Pwordarray( @overlay^[s^.lit_bufsize div sizeof(word)] );
+  s^.l_buf := Pbytearray( @s^.pending_buf^[(1+sizeof(word))*s^.lit_bufsize] );
 
   s^.level := level;
   s^.strategy := strategy;
@@ -1065,7 +1065,7 @@ function deflateCopy (dest, source : z_streamp) : integer;
 var
   ds : deflate_state_ptr;
   ss : deflate_state_ptr;
-  overlay : pushfArray;
+  overlay : Pwordarray;
 {$endif}
 begin
 {$ifdef MAXSEG_64K}
@@ -1091,11 +1091,11 @@ begin
   ds^ := ss^;
   ds^.strm := dest;
 
-  ds^.window := pzByteArray ( ZALLOC(dest^, ds^.w_size, 2*sizeof(Byte)) );
+  ds^.window := Pbytearray ( ZALLOC(dest^, ds^.w_size, 2*sizeof(Byte)) );
   ds^.prev   := pzPosfArray ( ZALLOC(dest^, ds^.w_size, sizeof(Pos)) );
   ds^.head   := pzPosfArray ( ZALLOC(dest^, ds^.hash_size, sizeof(Pos)) );
-  overlay := pushfArray ( ZALLOC(dest^, ds^.lit_bufsize, sizeof(word)+2) );
-  ds^.pending_buf := pzByteArray ( overlay );
+  overlay := Pwordarray ( ZALLOC(dest^, ds^.lit_bufsize, sizeof(word)+2) );
+  ds^.pending_buf := Pbytearray ( overlay );
 
   if (ds^.window = Z_NULL) or (ds^.prev = Z_NULL) or (ds^.head = Z_NULL)
      or (ds^.pending_buf = Z_NULL) then
@@ -1111,8 +1111,8 @@ begin
   move(Pbyte(ss^.pending_buf)^,Pbyte(ds^.pending_buf)^,cardinal(ds^.pending_buf_size));
 
   ds^.pending_out := @ds^.pending_buf^[ptrint(ss^.pending_out) - ptrint(ss^.pending_buf)];
-  ds^.d_buf := pushfArray (@overlay^[ds^.lit_bufsize div sizeof(word)] );
-  ds^.l_buf := puchfArray (@ds^.pending_buf^[(1+sizeof(word))*ds^.lit_bufsize]);
+  ds^.d_buf := Pwordarray(@overlay^[ds^.lit_bufsize div sizeof(word)] );
+  ds^.l_buf := Pbytearray(@ds^.pending_buf^[(1+sizeof(word))*ds^.lit_bufsize]);
 
   ds^.l_desc.dyn_tree := tree_ptr(@ds^.dyn_ltree);
   ds^.d_desc.dyn_tree := tree_ptr(@ds^.dyn_dtree);
@@ -1260,13 +1260,13 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
   strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH - 1]));
   scan_start := pushf(scan)^;
-  scan_end   := pushfArray(scan)^[best_len-1];   { fix }
+  scan_end   := Pwordarray(scan)^[best_len-1];   { fix }
 {$else}
   strend := Pbyte(@(s.window^[s.strstart + MAX_MATCH]));
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
-  scan_end1  := pzByteArray(scan)^[best_len-1];
+  scan_end1  := Pbytearray(scan)^[best_len-1];
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
-  scan_end   := pzByteArray(scan)^[best_len];
+  scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
 
     { The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
@@ -1353,13 +1353,13 @@ distances are limited to MAX_DIST instead of WSIZE. }
 {$else} { UNALIGNED_OK }
 
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
-        if (pzByteArray(match)^[best_len]   <> scan_end) or
-           (pzByteArray(match)^[best_len-1] <> scan_end1) or
+        if (Pbytearray(match)^[best_len]   <> scan_end) or
+           (Pbytearray(match)^[best_len-1] <> scan_end1) or
            (match^ <> scan^) then
           goto nextstep; {continue;}
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
         inc(match);
-        if (match^ <> pzByteArray(scan)^[1]) then
+        if (match^ <> Pbytearray(scan)^[1]) then
           goto nextstep; {continue;}
 
         { The check at best_len-1 can be removed because it will be made
@@ -1407,10 +1407,10 @@ distances are limited to MAX_DIST instead of WSIZE. }
               break;
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
 {$ifdef UNALIGNED_OK}
-            scan_end   := pzByteArray(scan)^[best_len-1];
+            scan_end   := Pbytearray(scan)^[best_len-1];
 {$else}
-            scan_end1  := pzByteArray(scan)^[best_len-1];
-            scan_end   := pzByteArray(scan)^[best_len];
+            scan_end1  := Pbytearray(scan)^[best_len-1];
+            scan_end   := Pbytearray(scan)^[best_len];
 {$endif}
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
         end;

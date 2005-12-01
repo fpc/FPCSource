@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 function inflate_codes_new (bl : cardinal;
                             bd : cardinal;

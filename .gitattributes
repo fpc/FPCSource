@@ -1699,7 +1699,6 @@ packages/base/paszlib/zconf.inc svneol=native#text/plain
 packages/base/paszlib/zdeflate.pas svneol=native#text/plain
 packages/base/paszlib/zinflate.pas svneol=native#text/plain
 packages/base/paszlib/zuncompr.pas svneol=native#text/plain
-packages/base/paszlib/zutil.pas svneol=native#text/plain
 packages/base/postgres/Makefile svneol=native#text/plain
 packages/base/postgres/Makefile.fpc svneol=native#text/plain
 packages/base/postgres/README -text

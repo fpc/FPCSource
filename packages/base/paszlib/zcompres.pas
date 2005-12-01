@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase, zdeflate;
+  zbase, zdeflate;
 
                         { utility functions }
 
