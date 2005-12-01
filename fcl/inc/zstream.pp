@@ -117,17 +117,6 @@ Const
   SSeekError = 'Compression stream seek error';
   SInvalidSeek = 'Invalid Compression seek operation';
 
-function zlibAllocMem(opaque:pointer; items:uInt; size:uInt):pointer;{$ifndef usepaszlib}cdecl;{$endif}
-begin
-  Result:=GetMem(Items*Size);
-end;
-
-procedure zlibFreeMem(opaque:pointer; address:pointer);{$ifndef usepaszlib}cdecl;{$endif}
-begin
-  FreeMem(address);
-end;
-
-
 procedure TCompressionStream.CompressBuf(const InBuf: Pointer; InBytes: Integer;
                       var OutBuf: Pointer; var OutBytes: Integer);
 var
@@ -135,8 +124,6 @@ var
   P: Pointer;
 begin
   FillChar(strm, sizeof(strm), 0);
-  strm.zalloc := @zlibAllocMem;
-  strm.zfree := @zlibFreeMem;
   OutBytes := ((InBytes + (InBytes div 10) + 12) + 255) and not 255;
   OutBuf:=GetMem(OutBytes);
   try
@@ -144,7 +131,7 @@ begin
     strm.avail_in := InBytes;
     strm.next_out := OutBuf;
     strm.avail_out := OutBytes;
-    CompressionCheck(deflateInit_(strm, Z_BEST_COMPRESSION, ZLIB_VERSION, sizeof(strm)));
+    CompressionCheck(deflateInit(strm, Z_BEST_COMPRESSION));
     try
       while CompressionCheck(deflate(strm, Z_FINISH)) <> Z_STREAM_END do
       begin
@@ -176,8 +163,6 @@ Type
   PByte = ^Byte;
 begin
   FillChar(strm, sizeof(strm), 0);
-  strm.zalloc := @zlibAllocMem;
-  strm.zfree := @zlibFreeMem;
   BufInc := (InBytes + 255) and not 255;
   if OutEstimate = 0 then
     OutBytes := BufInc
@@ -189,7 +174,7 @@ begin
     strm.avail_in := InBytes;
     strm.next_out := OutBuf;
     strm.avail_out := OutBytes;
-    DecompressionCheck(inflateInit_(strm, ZLIB_VERSION, sizeof(strm)));
+    DecompressionCheck(inflateInit(strm));
     try
       while DecompressionCheck(inflate(strm, Z_FINISH)) <> Z_STREAM_END do
       begin
@@ -218,8 +203,6 @@ begin
   inherited Create;
   FStrm := Strm;
   FStrmPos := Strm.Position;
-  FZRec.zalloc := @zlibAllocMem;
-  FZRec.zfree := @zlibFreeMem;
 end;
 
 procedure TCustomZLibStream.Progress(Sender: TObject);
@@ -239,7 +222,7 @@ begin
   inherited Create(Dest);
   FZRec.next_out := @FBuffer;
   FZRec.avail_out := sizeof(FBuffer);
-  CompressionCheck(deflateInit_(FZRec, Levels[CompressionLevel], ZLIB_VERSION, sizeof(FZRec)));
+  CompressionCheck(deflateInit(FZRec, Levels[CompressionLevel]));
 end;
 
 destructor TCompressionStream.Destroy;
@@ -326,7 +309,7 @@ constructor TDecompressionStream.Create(Source: TStream);
 begin
   inherited Create(Source);
   FZRec.next_in := @FBuffer;
-  DecompressionCheck(inflateInit_(FZRec, ZLIB_VERSION, sizeof(FZRec)));
+  DecompressionCheck(inflateInit(FZRec));
 end;
 
 destructor TDecompressionStream.Destroy;
