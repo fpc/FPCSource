@@ -11,12 +11,6 @@ unit crc;
 
 interface
 
-{$I zconf.inc}
-
-uses
-  zutil, zbase;
-
-
 function crc32(crc : cardinal; buf : Pbyte; len : cardinal) : cardinal;
 
 {  Update a running crc with the bytes buf[0..len-1] and return the updated
