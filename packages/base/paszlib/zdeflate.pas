@@ -186,6 +186,14 @@ function deflateInit2 (var strm : z_stream;
                        windowBits : integer;
                        memLevel : integer;
                        strategy : integer) : integer;
+function deflateInit2_(var strm : z_stream;
+                       level : integer;
+                       method : integer;
+                       windowBits : integer;
+                       memLevel : integer;
+                       strategy : integer;
+                       const version : string;
+                       stream_size : integer) : integer;
 
 {  This is another version of deflateInit with more compression options. The
    fields next_in, zalloc, zfree and opaque must be initialized before by
