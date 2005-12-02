@@ -71,9 +71,9 @@ function deflateParams(var strm:TZstream; level:longint; strategy:longint):longi
 function inflateSetDictionary(var strm:TZStream;dictionary : Pchar; dictLength:cardinal):longint;inline;
 function inflateSync(var strm:TZStream):longint;inline;
 function inflateReset(var strm:TZStream):longint;inline;
-function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;inline;
-function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;inline;
-function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;inline;
+function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
+function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;
+function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
 function gzopen(path:Pchar; mode:Pchar):gzFile;inline;
 function gzsetparams(Thefile:gzFile; level:longint; strategy:longint):longint;inline;
 function gzread(thefile:gzFile; buf : pointer; len:cardinal):longint;inline;
@@ -168,7 +168,7 @@ begin
   inflateReset:=zinflate.inflateReset(strm);
 end;
 
-function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;inline;
+function compress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;
@@ -177,7 +177,7 @@ begin
   compress:=zcompres.compress(Pbyte(dest),destlen,Pbytearray(source)^,sourcelen);
 end;
 
-function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;inline;
+function compress2(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal; level:longint):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;
@@ -186,7 +186,7 @@ begin
   compress2:=zcompres.compress2(Pbyte(dest),destlen,Pbytearray(source)^,sourcelen,level);
 end;
 
-function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;inline;
+function uncompress(dest:Pchar;var destLen:cardinal; source : Pchar; sourceLen:cardinal):longint;
 
 type Pbytearray=^Tbytearray;
      Tbytearray=array[0..0] of byte;

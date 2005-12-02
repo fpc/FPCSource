@@ -231,103 +231,103 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint mysql ibase odbc sqlite postgres
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint mysql ibase odbc sqlite postgres
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc sqlite pthreads
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=paszlib pasjpeg regexpr netdb hash  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite libc
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/base
@@ -1366,11 +1366,11 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1383,19 +1383,19 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1404,18 +1404,18 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1427,18 +1427,18 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1448,32 +1448,32 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1483,39 +1483,39 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1528,11 +1528,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1544,11 +1544,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1558,25 +1558,25 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1586,18 +1586,18 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1610,11 +1610,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1624,18 +1624,18 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
 TARGET_DIRS_IBASE=1
@@ -1646,18 +1646,18 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1670,11 +1670,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1684,18 +1684,18 @@ TARGET_DIRS_ORACLE=1
 TARGET_DIRS_ODBC=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1708,11 +1708,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1724,11 +1724,11 @@ TARGET_DIRS_SQLITE=1
 TARGET_DIRS_PTHREADS=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
+TARGET_DIRS_HASH=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_PASJPEG=1
 TARGET_DIRS_REGEXPR=1
 TARGET_DIRS_NETDB=1
-TARGET_DIRS_HASH=1
 TARGET_DIRS_GDBINT=1
 TARGET_DIRS_LIBASYNC=1
 TARGET_DIRS_MYSQL=1
@@ -1739,6 +1739,51 @@ TARGET_DIRS_ODBC=1
 TARGET_DIRS_PTHREADS=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_LIBC=1
+endif
+ifdef TARGET_DIRS_HASH
+hash_all:
+	$(MAKE) -C hash all
+hash_debug:
+	$(MAKE) -C hash debug
+hash_smart:
+	$(MAKE) -C hash smart
+hash_release:
+	$(MAKE) -C hash release
+hash_units:
+	$(MAKE) -C hash units
+hash_examples:
+	$(MAKE) -C hash examples
+hash_shared:
+	$(MAKE) -C hash shared
+hash_install:
+	$(MAKE) -C hash install
+hash_sourceinstall:
+	$(MAKE) -C hash sourceinstall
+hash_exampleinstall:
+	$(MAKE) -C hash exampleinstall
+hash_distinstall:
+	$(MAKE) -C hash distinstall
+hash_zipinstall:
+	$(MAKE) -C hash zipinstall
+hash_zipsourceinstall:
+	$(MAKE) -C hash zipsourceinstall
+hash_zipexampleinstall:
+	$(MAKE) -C hash zipexampleinstall
+hash_zipdistinstall:
+	$(MAKE) -C hash zipdistinstall
+hash_clean:
+	$(MAKE) -C hash clean
+hash_distclean:
+	$(MAKE) -C hash distclean
+hash_cleanall:
+	$(MAKE) -C hash cleanall
+hash_info:
+	$(MAKE) -C hash info
+hash_makefiles:
+	$(MAKE) -C hash makefiles
+hash:
+	$(MAKE) -C hash all
+.PHONY: hash_all hash_debug hash_smart hash_release hash_units hash_examples hash_shared hash_install hash_sourceinstall hash_exampleinstall hash_distinstall hash_zipinstall hash_zipsourceinstall hash_zipexampleinstall hash_zipdistinstall hash_clean hash_distclean hash_cleanall hash_info hash_makefiles hash
 endif
 ifdef TARGET_DIRS_PASZLIB
 paszlib_all:
@@ -1919,51 +1964,6 @@ netdb_makefiles:
 netdb:
 	$(MAKE) -C netdb all
 .PHONY: netdb_all netdb_debug netdb_smart netdb_release netdb_units netdb_examples netdb_shared netdb_install netdb_sourceinstall netdb_exampleinstall netdb_distinstall netdb_zipinstall netdb_zipsourceinstall netdb_zipexampleinstall netdb_zipdistinstall netdb_clean netdb_distclean netdb_cleanall netdb_info netdb_makefiles netdb
-endif
-ifdef TARGET_DIRS_HASH
-hash_all:
-	$(MAKE) -C hash all
-hash_debug:
-	$(MAKE) -C hash debug
-hash_smart:
-	$(MAKE) -C hash smart
-hash_release:
-	$(MAKE) -C hash release
-hash_units:
-	$(MAKE) -C hash units
-hash_examples:
-	$(MAKE) -C hash examples
-hash_shared:
-	$(MAKE) -C hash shared
-hash_install:
-	$(MAKE) -C hash install
-hash_sourceinstall:
-	$(MAKE) -C hash sourceinstall
-hash_exampleinstall:
-	$(MAKE) -C hash exampleinstall
-hash_distinstall:
-	$(MAKE) -C hash distinstall
-hash_zipinstall:
-	$(MAKE) -C hash zipinstall
-hash_zipsourceinstall:
-	$(MAKE) -C hash zipsourceinstall
-hash_zipexampleinstall:
-	$(MAKE) -C hash zipexampleinstall
-hash_zipdistinstall:
-	$(MAKE) -C hash zipdistinstall
-hash_clean:
-	$(MAKE) -C hash clean
-hash_distclean:
-	$(MAKE) -C hash distclean
-hash_cleanall:
-	$(MAKE) -C hash cleanall
-hash_info:
-	$(MAKE) -C hash info
-hash_makefiles:
-	$(MAKE) -C hash makefiles
-hash:
-	$(MAKE) -C hash all
-.PHONY: hash_all hash_debug hash_smart hash_release hash_units hash_examples hash_shared hash_install hash_sourceinstall hash_exampleinstall hash_distinstall hash_zipinstall hash_zipsourceinstall hash_zipexampleinstall hash_zipdistinstall hash_clean hash_distclean hash_cleanall hash_info hash_makefiles hash
 endif
 ifdef TARGET_DIRS_GDBINT
 gdbint_all:

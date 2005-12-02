@@ -7,7 +7,7 @@ name=fcl
 version=2.0.0
 
 [require]
-packages=paszlib
+packages=paszlib hash
 packages_linux=netdb libasync pthreads
 packages_freebsd=netdb libasync pthreads
 packages_darwin=netdb libasync pthreads

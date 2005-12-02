@@ -15,7 +15,7 @@ dirs_freebsd=fpcres
 rsts=rstconv
 
 [require]
-packages=fcl
+packages=fcl paszlib hash
 
 [clean]
 units=ptopu
