@@ -409,7 +409,7 @@ var
 
 var
   prevreginfo: toptreginfo;
-  hp2, hp3{, EndMod},highPrev, orgPrev, pprev: tai;
+  hp2, hp3{, EndMod}, prevhp3, highPrev, orgPrev, pprev: tai;
   {Cnt,} OldNrofMods: Longint;
   startRegInfo, OrgRegInfo, HighRegInfo: toptreginfo;
   regModified, lastregloadremoved: array[RS_EAX..RS_ESP] of boolean;
@@ -520,13 +520,22 @@ begin {CheckSequence}
           if not flagResultsNeeded then
             flagResultsNeeded := ptaiprop(hp3.optinfo)^.FlagsUsed;
           inc(Found);
+          prevhp3 := hp3;
           if (Found <> OldNrofMods) then
             if not GetNextInstruction(hp2, hp2) or
                not GetNextInstruction(hp3, hp3) then
               break;
         end;
 
-      getnextinstruction(hp3,hp3);
+      if assigned(hp3) then
+        begin
+          prevhp3 := hp3;
+          getnextinstruction(hp3,hp3);
+        end;
+      if not assigned(hp3) or
+         { a marker has no optinfo, which is used below }
+         (hp3.typ = ait_marker) then
+        hp3 := prevhp3;
 {
 a) movl  -4(%ebp),%edx
    movl -12(%ebp),%ecx
