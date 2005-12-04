@@ -558,9 +558,9 @@ implementation
     destructor tstringconstnode.destroy;
       begin
         if st_type=st_widestring then
-         donewidestring(pcompilerwidestring(value_str))
+          donewidestring(pcompilerwidestring(value_str))
         else
-         ansistringdispose(value_str,len);
+          ansistringdispose(value_str,len);
         inherited destroy;
       end;
 

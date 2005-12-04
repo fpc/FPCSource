@@ -104,6 +104,7 @@ unit widestr;
            reallocmem(r^.data,sizeof(tcompilerwidechar)*l)
          else
            getmem(r^.data,sizeof(tcompilerwidechar)*l);
+         r^.maxlen:=l;
       end;
 
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
@@ -118,8 +119,8 @@ unit widestr;
     procedure concatwidestrings(s1,s2 : pcompilerwidestring);
       begin
          setlengthwidestring(s1,s1^.len+s2^.len);
-         inc(s1^.len,s2^.len);
          move(s2^.data^,s1^.data[s1^.len],s2^.len*sizeof(tcompilerwidechar));
+         inc(s1^.len,s2^.len);
       end;
 
     procedure copywidestring(s,d : pcompilerwidestring);
