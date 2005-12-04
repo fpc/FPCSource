@@ -288,6 +288,12 @@ implementation
 
         if b then
          begin
+           { resolve all postponed switch changes }
+           if localswitcheschanged then
+             begin
+               aktlocalswitches:=nextaktlocalswitches;
+               localswitcheschanged:=false;
+             end;
            { turn ansistrings on by default ? }
            if (m_delphi in aktmodeswitches) then
             begin
