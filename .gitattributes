@@ -639,7 +639,11 @@ fcl/db/sqldb/interbase/Makefile.fpc svneol=native#text/plain
 fcl/db/sqldb/interbase/ibconnection.pp svneol=native#text/plain
 fcl/db/sqldb/mysql/Makefile svneol=native#text/plain
 fcl/db/sqldb/mysql/Makefile.fpc svneol=native#text/plain
+fcl/db/sqldb/mysql/mysql40conn.pas svneol=native#text/plain
+fcl/db/sqldb/mysql/mysql41conn.pas svneol=native#text/plain
 fcl/db/sqldb/mysql/mysql4conn.pas svneol=native#text/plain
+fcl/db/sqldb/mysql/mysql50conn.pas svneol=native#text/plain
+fcl/db/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile.fpc svneol=native#text/plain
 fcl/db/sqldb/odbc/odbcconn.pas svneol=native#text/plain
@@ -1388,6 +1392,7 @@ packages/base/mysql/Makefile.fpc svneol=native#text/plain
 packages/base/mysql/README -text
 packages/base/mysql/mkdb -text
 packages/base/mysql/my4_sys.pp svneol=native#text/plain
+packages/base/mysql/mysql.inc svneol=native#text/plain
 packages/base/mysql/mysql3.pp svneol=native#text/plain
 packages/base/mysql/mysql3_com.pp svneol=native#text/plain
 packages/base/mysql/mysql3_comdyn.pp svneol=native#text/plain
@@ -1397,6 +1402,10 @@ packages/base/mysql/mysql3dyn.pp svneol=native#text/plain
 packages/base/mysql/mysql3impl.inc svneol=native#text/plain
 packages/base/mysql/mysql3types.inc svneol=native#text/plain
 packages/base/mysql/mysql4.pp svneol=native#text/plain
+packages/base/mysql/mysql40.pp svneol=native#text/plain
+packages/base/mysql/mysql40dyn.pp svneol=native#text/plain
+packages/base/mysql/mysql41.pp svneol=native#text/plain
+packages/base/mysql/mysql41dyn.pp svneol=native#text/plain
 packages/base/mysql/mysql4_com.pp svneol=native#text/plain
 packages/base/mysql/mysql4_comdyn.pp svneol=native#text/plain
 packages/base/mysql/mysql4_comtypes.inc svneol=native#text/plain
@@ -1404,6 +1413,8 @@ packages/base/mysql/mysql4_version.pp svneol=native#text/plain
 packages/base/mysql/mysql4dyn.pp svneol=native#text/plain
 packages/base/mysql/mysql4impl.inc svneol=native#text/plain
 packages/base/mysql/mysql4types.inc svneol=native#text/plain
+packages/base/mysql/mysql50.pp svneol=native#text/plain
+packages/base/mysql/mysql50dyn.pp svneol=native#text/plain
 packages/base/mysql/mysqls.c -text
 packages/base/mysql/mysqls.pp svneol=native#text/plain
 packages/base/mysql/rmdb -text
