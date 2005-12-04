@@ -82,7 +82,6 @@ ResourceString
   SErrExecuteFailed = 'Execution of query failed';
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
-  SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
   SErrPrepareFailed = 'Preparation of query failed.';
 
 const Oid_Bool     = 16;

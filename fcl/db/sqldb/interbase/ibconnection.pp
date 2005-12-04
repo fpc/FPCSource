@@ -90,9 +90,6 @@ implementation
 
 uses strutils;
 
-resourcestring
-  SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
-
 type
   TTm = packed record
     tm_sec : longint;
