@@ -1613,7 +1613,8 @@ implementation
                    else
                      begin
                        if (resulttype.def.deftype=enumdef) and
-                          (tenumdef(resulttype.def).has_jumps) then
+                          (tenumdef(resulttype.def).has_jumps) and
+                          not(m_delphi in aktmodeswitches) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
 
