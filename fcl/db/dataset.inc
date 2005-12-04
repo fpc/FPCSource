@@ -538,7 +538,7 @@ begin
               end;
   else
     try
-      TS:=MSecsToTimeStamp(Data.DateTime);
+      TS:=MSecsToTimeStamp(trunc(Data.DateTime));
     except
     end;
   end;  
