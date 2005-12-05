@@ -1004,6 +1004,12 @@ Begin
   Move(Tmp[1], Buffer[0], Result);
 End;
 
+const
+{$if sizeof(extended) > sizeof(double)}
+  maxdigits = 15;
+{$else}
+  maxdigits = 14;
+{$endif}
 
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Var
@@ -1017,7 +1023,7 @@ Begin
     ffGeneral:
 
       Begin
-        If (Precision = -1) Or (Precision > 15) Then Precision := 15;
+        If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         TooSmall := (Abs(Value) < 0.00001) and (Value>0.0);
         If Not TooSmall Then
         Begin
@@ -1064,7 +1070,7 @@ Begin
     ffExponent:
 
       Begin
-        If (Precision = -1) Or (Precision > 15) Then Precision := 15;
+        If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         Str(Value:Precision + 8, Result);
         Result[3] := DecimalSeparator;
         P:=4;
@@ -1096,7 +1102,7 @@ Begin
 
       Begin
         If Digits = -1 Then Digits := 2
-        Else If Digits > 15 Then Digits := 15;
+        Else If Digits > maxdigits Then Digits := maxdigits;
         Str(Value:0:Digits, Result);
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
@@ -1738,8 +1744,8 @@ Begin
     N := Decimals + Result.Exponent
   Else
     N := Precision;
-  If N > 15 Then
-    N := 15;
+  If N > maxdigits Then
+    N := maxdigits;
   If N = 0 Then
     Begin
     If Result.Digits[0] >= '5' Then
