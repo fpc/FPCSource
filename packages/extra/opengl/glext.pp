@@ -30,7 +30,7 @@ uses
   {$IFDEF Win32}
   Windows,
   {$ELSE}
-  DLLFuncs,
+  dynlibs,
   {$ENDIF}
   GL;
 

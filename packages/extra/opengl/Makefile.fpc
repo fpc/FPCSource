@@ -14,12 +14,13 @@ packages_openbsd=x11
 packages_darwin=x11
 
 [target]
-units=gl glu glut glext
-units_linux=dllfuncs glx
-units_freebsd=dllfuncs glx
-units_netbsd=dllfuncs glx
-units_openbsd=dllfuncs glx
-units_darwin=dllfuncs glx
+units=gl glu glut
+units_win32=glext
+units_linux=glx glext
+units_freebsd=glx glext
+units_netbsd=glx glext
+units_openbsd=glx glext
+units_darwin=glx glext
 exampledirs=examples
 
 [install]

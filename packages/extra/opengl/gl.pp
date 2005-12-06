@@ -67,7 +67,7 @@ uses
   {$IFDEF MorphOS}
   TinyGL
   {$ELSE MorphOS}
-  DLLFuncs
+  dynlibs
   {$ENDIF MorphOS}
   {$ENDIF Win32};
 
