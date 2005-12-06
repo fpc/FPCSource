@@ -520,7 +520,7 @@ implementation
              else
               begin
                 { open string ? }
-                if (varspez=vs_var) and
+                if (varspez in [vs_out,vs_var]) and
                         (
                           (
                             ((token=_STRING) or (idtoken=_SHORTSTRING)) and
