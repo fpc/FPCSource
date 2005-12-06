@@ -42,7 +42,7 @@ uses
   {$IFDEF MORPHOS}
   TinyGL,
   {$ELSE}
-  DLLFuncs,
+  dynlibs,
   {$ENDIF}
   {$ENDIF}
   GL;

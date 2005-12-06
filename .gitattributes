@@ -2828,7 +2828,6 @@ packages/extra/numlib/tpnumlib.pas svneol=native#text/plain
 packages/extra/numlib/typ.pas svneol=native#text/plain
 packages/extra/opengl/Makefile svneol=native#text/plain
 packages/extra/opengl/Makefile.fpc svneol=native#text/plain
-packages/extra/opengl/dllfuncs.pp svneol=native#text/plain
 packages/extra/opengl/examples/Makefile svneol=native#text/plain
 packages/extra/opengl/examples/Makefile.fpc svneol=native#text/plain
 packages/extra/opengl/examples/bounce.pp svneol=native#text/plain
