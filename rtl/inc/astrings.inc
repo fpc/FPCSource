@@ -752,7 +752,7 @@ begin
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
-Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then

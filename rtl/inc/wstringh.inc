@@ -28,8 +28,8 @@ Function UpCase(const s : WideString) : WideString;
 
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
 Procedure Delete (Var S : WideString; Index,Size: SizeInt);
-Procedure SetString (Var S : WideString; Buf : PWideChar; Len : SizeInt);
-Procedure SetString (Var S : WideString; Buf : PChar; Len : SizeInt);
+Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
+Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 
 function WideCharToString(S : PWideChar) : AnsiString;
 function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
