@@ -776,8 +776,9 @@ implementation
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and
                            not(vo_is_external in hsym.varoptions) and
-                           (hsym.owner.symtabletype in [localsymtable,staticsymtable]) and
-                           (hsym.owner=current_procinfo.procdef.localst) then
+                           (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
+                           ((hsym.owner=current_procinfo.procdef.localst) or
+                            (vo_is_funcret in hsym.varoptions)) then
                           begin
                             if (vo_is_funcret in hsym.varoptions) then
                                CGMessage(sym_w_function_result_not_set)
