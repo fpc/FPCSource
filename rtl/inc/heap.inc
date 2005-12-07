@@ -131,6 +131,7 @@ var
   internal_status : TFPCHeapStatus;
 
   freelists_fixed    : tfreelists;
+  freelists_free_chunk : array[1..maxblockindex] of boolean;
   freelist_var       : pmemchunk_var;
   freeoslist         : poschunk;
   freeoslistcount    : dword;
@@ -902,6 +903,8 @@ begin
   if assigned(freelists_fixed[s]) then
     freelists_fixed[s]^.prev_fixed := nil;
   poc := poschunk(pointer(pcurr)-((pcurr^.size shr 16)*(pcurr^.size and fixedsizemask)+sizeof(toschunk)));
+  if (poc^.used = 0) then
+    freelists_free_chunk[s] := false;
   inc(poc^.used);
   { statistics }
   inc(internal_status.currheapused,size);
@@ -1029,8 +1032,11 @@ begin
   dec(poc^.used);
   if poc^.used = 0 then
   begin
-    // block eligable for freeing
-    append_to_oslist_fixed(blockindex, pcurrsize, poc);
+    if (freelists_free_chunk[blockindex]) then
+      // block eligable for freeing
+      append_to_oslist_fixed(blockindex, pcurrsize, poc)
+    else
+      freelists_free_chunk[blockindex] := true;
   end;
   SysFreeMem_Fixed := pcurrsize;
 {$ifdef TestFreeLists}
@@ -1311,6 +1317,7 @@ end;
 procedure InitHeap;
 begin
   FillChar(freelists_fixed,sizeof(tfreelists),0);
+  FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
   freelist_var := nil;
   freeoslist := nil;
   freeoslistcount := 0;
