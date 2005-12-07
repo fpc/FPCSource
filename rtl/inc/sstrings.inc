@@ -830,7 +830,7 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
 end;
 
 
-Procedure SetString (Var S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
 begin
   If Len > High(S) then
     Len := High(S);

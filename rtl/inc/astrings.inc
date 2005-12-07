@@ -751,7 +751,7 @@ begin
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
-Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt);
+Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt);
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then

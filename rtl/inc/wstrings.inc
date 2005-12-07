@@ -933,7 +933,7 @@ begin
 end;
 
 
-Procedure SetString (Var S : WideString; Buf : PWideChar; Len : SizeInt);
+Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
 var
   BufLen: SizeInt;
 begin
@@ -949,7 +949,7 @@ begin
 end;
 
 
-Procedure SetString (Var S : WideString; Buf : PChar; Len : SizeInt);
+Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 var
   BufLen: SizeInt;
 begin
