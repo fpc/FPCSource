@@ -719,7 +719,7 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              (vo_is_hidden_para in tabstractvarsym(p).varoptions) then
+              ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(p).varoptions = [vo_is_hidden_para]) then
              exit;
            if (tstoredsym(p).refs=0) then
              begin
