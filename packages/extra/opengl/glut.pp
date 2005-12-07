@@ -135,6 +135,7 @@ const
   GLUT_NORMAL                     = 0;
   GLUT_OVERLAY                    = 1;
 
+{$ifdef win32}
   // Stroke font constants (use these in GLUT program).
   GLUT_STROKE_ROMAN               = Pointer(0);
   GLUT_STROKE_MONO_ROMAN          = Pointer(1);
@@ -147,6 +148,23 @@ const
   GLUT_BITMAP_HELVETICA_10        = Pointer(6);
   GLUT_BITMAP_HELVETICA_12        = Pointer(7);
   GLUT_BITMAP_HELVETICA_18        = Pointer(8);
+{$else win32}
+var
+  // Stroke font constants (use these in GLUT program).
+  GLUT_STROKE_ROMAN               : Pointer;
+  GLUT_STROKE_MONO_ROMAN          : Pointer;
+
+  // Bitmap font constants (use these in GLUT program).
+  GLUT_BITMAP_9_BY_15             : Pointer;
+  GLUT_BITMAP_8_BY_13             : Pointer;
+  GLUT_BITMAP_TIMES_ROMAN_10      : Pointer;
+  GLUT_BITMAP_TIMES_ROMAN_24      : Pointer;
+  GLUT_BITMAP_HELVETICA_10        : Pointer;
+  GLUT_BITMAP_HELVETICA_12        : Pointer;
+  GLUT_BITMAP_HELVETICA_18        : Pointer;
+
+const
+{$endif win32}
 
   // glutGet parameters.
   GLUT_WINDOW_X                   = 100;
@@ -716,6 +734,17 @@ begin
     @glutEnterGameMode := GetGLutProcAddress(hDLL, 'glutEnterGameMode');
     @glutLeaveGameMode := GetGLutProcAddress(hDLL, 'glutLeaveGameMode');
     @glutGameModeGet := GetGLutProcAddress(hDLL, 'glutGameModeGet');
+{$ifndef win32}
+    GLUT_STROKE_ROMAN := GetGLutProcAddress(hDll, 'glutStrokeRoman');
+    GLUT_STROKE_MONO_ROMAN := GetGLutProcAddress(hDll,'glutStrokeMonoRoman');
+    GLUT_BITMAP_9_BY_15 := GetGLutProcAddress(hDll, 'glutBitmap9By15');
+    GLUT_BITMAP_8_BY_13 := GetGLutProcAddress(hDll, 'glutBitmap8By13');
+    GLUT_BITMAP_TIMES_ROMAN_10 := GetGLutProcAddress(hDll, 'glutBitmapTimesRoman10');
+    GLUT_BITMAP_TIMES_ROMAN_24 := GetGLutProcAddress(hDll, 'glutBitmapTimesRoman24');
+    GLUT_BITMAP_HELVETICA_10 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica10');
+    GLUT_BITMAP_HELVETICA_12 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica12');
+    GLUT_BITMAP_HELVETICA_18 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica18');
+{$endif win32}
   except
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
