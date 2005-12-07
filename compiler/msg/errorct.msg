@@ -2004,7 +2004,7 @@ unit_u_skipping_reresolving_unit=10059_U_No es torna a resoldre l'unitat $1, enc
 #
 # 11039 is the las used one
 #
-option_usage=11000_$1 [opcions] <fitxer-entrada> [opcions]
+option_usage=11000_O_$1 [opcions] <fitxer-entrada> [opcions]
 # BeginOfTeX
 %
 % \section{Command-line handling errors}

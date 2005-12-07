@@ -1,4 +1,4 @@
-Unit InfCodes;
+unit infcodes;
 
 { infcodes.c -- process literals and length/distance pairs
   Copyright (C) 1995-1998 Mark Adler
@@ -13,20 +13,17 @@ interface
 {$I zconf.inc}
 
 uses
-  {$IFDEF STRUTILS_DEBUG}
-  strutils,
-  {$ENDIF}
-  zutil, zbase;
+  zbase;
 
-function inflate_codes_new (bl : uInt;
-                            bd : uInt;
+function inflate_codes_new (bl : cardinal;
+                            bd : cardinal;
                             tl : pInflate_huft;
                             td : pInflate_huft;
                             var z : z_stream): pInflate_codes_state;
 
 function inflate_codes(var s : inflate_blocks_state;
                        var z : z_stream;
-                       r : int) : int;
+                       r : integer) : integer;
 
 procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
@@ -37,8 +34,8 @@ uses
   infutil, inffast;
 
 
-function inflate_codes_new (bl : uInt;
-                            bd : uInt;
+function inflate_codes_new (bl : cardinal;
+                            bd : cardinal;
                             tl : pInflate_huft;
                             td : pInflate_huft;
                             var z : z_stream): pInflate_codes_state;
@@ -53,7 +50,7 @@ begin
     c^.dbits := Byte(bd);
     c^.ltree := tl;
     c^.dtree := td;
-    {$IFDEF STRUTILS_DEBUG}
+    {$IFDEF DEBUG}
     Tracev('inflate:       codes new');
     {$ENDIF}
   end;
@@ -63,18 +60,18 @@ end;
 
 function inflate_codes(var s : inflate_blocks_state;
                        var z : z_stream;
-                       r : int) : int;
+                       r : integer) : integer;
 var
-  j : uInt;               { temporary storage }
+  j : cardinal;               { temporary storage }
   t : pInflate_huft;      { temporary pointer }
-  e : uInt;               { extra bits or operation }
-  b : uLong;              { bit buffer }
-  k : uInt;               { bits in bit buffer }
-  p : pBytef;             { input data pointer }
-  n : uInt;               { bytes available there }
-  q : pBytef;             { output window write pointer }
-  m : uInt;               { bytes to end of window or read pointer }
-  f : pBytef;             { pointer to copy strings from }
+  e : cardinal;               { extra bits or operation }
+  b : cardinal;              { bit buffer }
+  k : cardinal;               { bits in bit buffer }
+  p : Pbyte;             { input data pointer }
+  n : cardinal;               { bytes available there }
+  q : Pbyte;             { output window write pointer }
+  m : cardinal;               { bytes to end of window or read pointer }
+  f : Pbyte;             { pointer to copy strings from }
 var
   c : pInflate_codes_state;
 begin
@@ -86,10 +83,10 @@ begin
   b := s.bitb;
   k := s.bitk;
   q := s.write;
-  if ptr2int(q) < ptr2int(s.read) then
-    m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+  if ptrint(q) < ptrint(s.read) then
+    m := cardinal(ptrint(s.read)-ptrint(q)-1)
   else
-    m := uInt(ptr2int(s.zend)-ptr2int(q));
+    m := cardinal(ptrint(s.zend)-ptrint(q));
 
   { process input and output based on current state }
   while True do
@@ -104,7 +101,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+        Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
         z.next_in := p;
         s.write := q;
 
@@ -115,10 +112,10 @@ begin
         b := s.bitb;
         k := s.bitk;
         q := s.write;
-        if ptr2int(q) < ptr2int(s.read) then
-          m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+        if ptrint(q) < ptrint(s.read) then
+          m := cardinal(ptrint(s.read)-ptrint(q)-1)
         else
-          m := uInt(ptr2int(s.zend)-ptr2int(q));
+          m := cardinal(ptrint(s.zend)-ptrint(q));
 
         if (r <> Z_OK) then
         begin
@@ -149,33 +146,33 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
           exit;
         end;
-        Dec(n);
-        b := b or (uLong(p^) shl k);
+        dec(n);
+        b := b or (cardinal(p^) shl k);
         Inc(p);
         Inc(k, 8);
       end;
       t := c^.sub.code.tree;
-      Inc(t, uInt(b) and inflate_mask[j]);
+      Inc(t, cardinal(b) and inflate_mask[j]);
       {DUMPBITS(t^.bits);}
       b := b shr t^.bits;
-      Dec(k, t^.bits);
+      dec(k, t^.bits);
 
-      e := uInt(t^.exop);
+      e := cardinal(t^.exop);
       if (e = 0) then            { literal }
       begin
         c^.sub.lit := t^.base;
-       {$IFDEF STRUTILS_DEBUG}
+       {$IFDEF DEBUG}
         if (t^.base >= $20) and (t^.base < $7f) then
           Tracevv('inflate:         literal '+char(t^.base))
         else
           Tracevv('inflate:         literal '+IntToStr(t^.base));
-        {$ENDIF}
+        {$ENDIF}          
         c^.mode := LIT;
         continue;  { break switch statement }
       end;
@@ -194,9 +191,9 @@ begin
       end;
       if (e and 32 <> 0) then            { end of block }
       begin
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Tracevv('inflate:         end of block');
-        {$ENDIF}
+        {$ENDIF}        
         c^.mode := WASH;
         continue;         { break C-switch statement }
       end;
@@ -207,7 +204,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -228,25 +225,25 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
           exit;
         end;
-        Dec(n);
-        b := b or (uLong(p^) shl k);
+        dec(n);
+        b := b or (cardinal(p^) shl k);
         Inc(p);
         Inc(k, 8);
       end;
-      Inc(c^.len, uInt(b and inflate_mask[j]));
+      Inc(c^.len, cardinal(b and inflate_mask[j]));
       {DUMPBITS(j);}
       b := b shr j;
-      Dec(k, j);
+      dec(k, j);
 
       c^.sub.code.need := c^.dbits;
       c^.sub.code.tree := c^.dtree;
-      {$IFDEF STRUTILS_DEBUG}
+      {$IFDEF DEBUG}
       Tracevv('inflate:         length '+IntToStr(c^.len));
       {$ENDIF}
       c^.mode := DIST;
@@ -267,23 +264,23 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
           exit;
         end;
-        Dec(n);
-        b := b or (uLong(p^) shl k);
+        dec(n);
+        b := b or (cardinal(p^) shl k);
         Inc(p);
         Inc(k, 8);
       end;
-      t := @huft_ptr(c^.sub.code.tree)^[uInt(b) and inflate_mask[j]];
+      t := @huft_ptr(c^.sub.code.tree)^[cardinal(b) and inflate_mask[j]];
       {DUMPBITS(t^.bits);}
       b := b shr t^.bits;
-      Dec(k, t^.bits);
+      dec(k, t^.bits);
 
-      e := uInt(t^.exop);
+      e := cardinal(t^.exop);
       if (e and 16 <> 0) then            { distance }
       begin
         c^.sub.copy.get := e and 15;
@@ -304,7 +301,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -325,22 +322,22 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
           exit;
         end;
-        Dec(n);
-        b := b or (uLong(p^) shl k);
+        dec(n);
+        b := b or (cardinal(p^) shl k);
         Inc(p);
         Inc(k, 8);
       end;
-      Inc(c^.sub.copy.dist, uInt(b) and inflate_mask[j]);
+      Inc(c^.sub.copy.dist, cardinal(b) and inflate_mask[j]);
       {DUMPBITS(j);}
       b := b shr j;
-      Dec(k, j);
-      {$IFDEF STRUTILS_DEBUG}
+      dec(k, j);
+      {$IFDEF DEBUG}
       Tracevv('inflate:         distance '+ IntToStr(c^.sub.copy.dist));
       {$ENDIF}
       c^.mode := COPY;
@@ -349,11 +346,11 @@ begin
   COPY:          { o: copying bytes in window, waiting for space }
     begin
       f := q;
-      Dec(f, c^.sub.copy.dist);
-      if (uInt(ptr2int(q) - ptr2int(s.window)) < c^.sub.copy.dist) then
+      dec(f, c^.sub.copy.dist);
+      if (cardinal(ptrint(q) - ptrint(s.window)) < c^.sub.copy.dist) then
       begin
         f := s.zend;
-        Dec(f, c^.sub.copy.dist - uInt(ptr2int(q) - ptr2int(s.window)));
+        dec(f, c^.sub.copy.dist - cardinal(ptrint(q) - ptrint(s.window)));
       end;
 
       while (c^.len <> 0) do
@@ -365,10 +362,10 @@ begin
           if (q = s.zend) and (s.read <> s.window) then
           begin
             q := s.window;
-            if ptr2int(q) < ptr2int(s.read) then
-              m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+            if ptrint(q) < ptrint(s.read) then
+              m := cardinal(ptrint(s.read)-ptrint(q)-1)
             else
-              m := uInt(ptr2int(s.zend)-ptr2int(q));
+              m := cardinal(ptrint(s.zend)-ptrint(q));
           end;
 
           if (m = 0) then
@@ -377,19 +374,19 @@ begin
             s.write := q;
             r := inflate_flush(s,z,r);
             q := s.write;
-            if ptr2int(q) < ptr2int(s.read) then
-              m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+            if ptrint(q) < ptrint(s.read) then
+              m := cardinal(ptrint(s.read)-ptrint(q)-1)
             else
-              m := uInt(ptr2int(s.zend)-ptr2int(q));
+              m := cardinal(ptrint(s.zend)-ptrint(q));
 
             {WRAP}
             if (q = s.zend) and (s.read <> s.window) then
             begin
               q := s.window;
-              if ptr2int(q) < ptr2int(s.read) then
-                m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+              if ptrint(q) < ptrint(s.read) then
+                m := cardinal(ptrint(s.read)-ptrint(q)-1)
               else
-                m := uInt(ptr2int(s.zend)-ptr2int(q));
+                m := cardinal(ptrint(s.zend)-ptrint(q));
             end;
 
             if (m = 0) then
@@ -398,7 +395,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+              Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_codes := inflate_flush(s,z,r);
@@ -412,11 +409,11 @@ begin
         q^ := f^;
         Inc(q);
         Inc(f);
-        Dec(m);
+        dec(m);
 
         if (f = s.zend) then
           f := s.window;
-        Dec(c^.len);
+        dec(c^.len);
       end;
       c^.mode := START;
       { C-switch break; not needed }
@@ -430,10 +427,10 @@ begin
         if (q = s.zend) and (s.read <> s.window) then
         begin
           q := s.window;
-          if ptr2int(q) < ptr2int(s.read) then
-            m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+          if ptrint(q) < ptrint(s.read) then
+            m := cardinal(ptrint(s.read)-ptrint(q)-1)
           else
-            m := uInt(ptr2int(s.zend)-ptr2int(q));
+            m := cardinal(ptrint(s.zend)-ptrint(q));
         end;
 
         if (m = 0) then
@@ -442,19 +439,19 @@ begin
           s.write := q;
           r := inflate_flush(s,z,r);
           q := s.write;
-          if ptr2int(q) < ptr2int(s.read) then
-            m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+          if ptrint(q) < ptrint(s.read) then
+            m := cardinal(ptrint(s.read)-ptrint(q)-1)
           else
-            m := uInt(ptr2int(s.zend)-ptr2int(q));
+            m := cardinal(ptrint(s.zend)-ptrint(q));
 
           {WRAP}
           if (q = s.zend) and (s.read <> s.window) then
           begin
             q := s.window;
-            if ptr2int(q) < ptr2int(s.read) then
-              m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+            if ptrint(q) < ptrint(s.read) then
+              m := cardinal(ptrint(s.read)-ptrint(q)-1)
             else
-              m := uInt(ptr2int(s.zend)-ptr2int(q));
+              m := cardinal(ptrint(s.zend)-ptrint(q));
           end;
 
           if (m = 0) then
@@ -463,7 +460,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+            Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_codes := inflate_flush(s,z,r);
@@ -476,7 +473,7 @@ begin
       {OUTBYTE(c^.sub.lit);}
       q^ := c^.sub.lit;
       Inc(q);
-      Dec(m);
+      dec(m);
 
       c^.mode := START;
       {break;}
@@ -486,22 +483,22 @@ begin
       {$ifdef patch112}
       if (k > 7) then           { return unused byte, if any }
       begin
-        {$IFDEF STRUTILS_DEBUG}
+        {$IFDEF DEBUG}
         Assert(k < 16, 'inflate_codes grabbed too many bytes');
         {$ENDIF}
-        Dec(k, 8);
+        dec(k, 8);
         Inc(n);
-        Dec(p);                    { can always return one }
+        dec(p);                    { can always return one }
       end;
       {$endif}
       {FLUSH}
       s.write := q;
       r := inflate_flush(s,z,r);
       q := s.write;
-      if ptr2int(q) < ptr2int(s.read) then
-        m := uInt(ptr2int(s.read)-ptr2int(q)-1)
+      if ptrint(q) < ptrint(s.read) then
+        m := cardinal(ptrint(s.read)-ptrint(q)-1)
       else
-        m := uInt(ptr2int(s.zend)-ptr2int(q));
+        m := cardinal(ptrint(s.zend)-ptrint(q));
 
       if (s.read <> s.write) then
       begin
@@ -509,7 +506,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+        Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
         z.next_in := p;
         s.write := q;
         inflate_codes := inflate_flush(s,z,r);
@@ -526,7 +523,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -539,7 +536,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -552,7 +549,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptr2int(p)-ptr2int(z.next_in));
+      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -568,7 +565,7 @@ procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
 begin
   ZFREE(z, c);
-  {$IFDEF STRUTILS_DEBUG}
+  {$IFDEF DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

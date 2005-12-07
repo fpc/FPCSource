@@ -49,6 +49,7 @@ Abstract:
 {$ELSE}
   {$DEFINE extdecl := cdecl}
   {$IFDEF MorphOS}
+    {$INLINE ON}
     {$DEFINE GL_UNIT}
   {$ELSE}
     {$LINKLIB c}

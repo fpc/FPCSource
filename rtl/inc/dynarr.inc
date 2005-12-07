@@ -20,7 +20,7 @@ type
    { to calculate memory requirements       }
    pdynarray = ^tdynarray;
    tdynarray = packed record
-      refcount : longint;
+      refcount : ptrint;
       high : tdynarrayindex;
    end;
 

@@ -143,7 +143,7 @@ end;
 
 procedure Exec (const Path: PathStr; const ComLine: ComStr);
 {Execute a program.}
-var Args: PByteArray;
+var Args0, Args: PByteArray;
     ArgSize: word;
     Res: TResultCodes;
     ObjName: string;
@@ -157,15 +157,23 @@ var Args: PByteArray;
     CISize: cardinal;
     Prio: byte;
 const
-    MaxArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
+    MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
 begin
 {  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
   QName := FExpand (Path);
   if ComLine = '' then
-   Args := nil
+   begin
+    Args0 := nil;
+    Args := nil;
+   end
   else
    begin
-    GetMem (Args, MaxArgsSize);
+    GetMem (Args0, MaxArgsSize);
+    Args := Args0;
+(* Work around a bug in OS/2 - argument to DosExecPgm *)
+(* should not cross 64K boundary. *)
+    if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
+     Inc (Args, 1024);
     ArgSize := 0;
     Move (QName [1], Args^ [ArgSize], Length (QName));
     Inc (ArgSize, Length (QName));
@@ -230,8 +238,8 @@ begin
   if RC <> 0 then
    LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
   DosError := RC;
-  if Args <> nil then
-   FreeMem (Args, MaxArgsSize);
+  if Args0 <> nil then
+   FreeMem (Args0, MaxArgsSize);
 end;
 
 

@@ -6,8 +6,11 @@
 name=paszlib
 version=2.0.3
 
+[require]
+packages=hash
+
 [target]
-units=paszlib adler gzcrc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
+units=paszlib adler gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr
 examples=example minigzip
 
 [install]

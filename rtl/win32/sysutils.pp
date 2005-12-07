@@ -581,7 +581,7 @@ procedure GetFormatSettings;
 var
   HF  : Shortstring;
   LID : LCID;
-  I,Day,DateOrder : longint;
+  I,Day : longint;
 begin
   LID := GetThreadLocale;
   { Date stuff }
@@ -597,21 +597,8 @@ begin
     LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
     end;
   DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
-  DateOrder := GetLocaleInt(LID, LOCALE_IDate, 0);
-  Case DateOrder Of
-     1: Begin
-        ShortDateFormat := 'dd/mm/yyyy';
-        LongDateFormat := 'dddd, d. mmmm yyyy';
-        End;
-     2: Begin
-        ShortDateFormat := 'yyyy/mm/dd';
-        LongDateFormat := 'dddd, yyyy mmmm d.';
-        End;
-  else
-    // Default american settings...
-    ShortDateFormat := 'mm/dd/yyyy';
-    LongDateFormat := 'dddd, mmmm d. yyyy';
-  End;
+  ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
+  LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
   { Time stuff }
   TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
   TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');

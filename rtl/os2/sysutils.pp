@@ -911,14 +911,14 @@ var
  Prio: byte;
  E: EOSError;
  CommandLine: ansistring;
- Args: PByteArray;
+ Args0, Args: PByteArray;
  ObjNameBuf: PChar;
  ArgSize: word;
  Res: TResultCodes;
  ObjName: shortstring;
 
 const
- MaxArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
+ MaxArgsSize = 3072; (* Amount of memory reserved for arguments in bytes. *)
  ObjBufSize = 512;
 
 begin
@@ -926,10 +926,18 @@ begin
  GetMem (ObjNameBuf, ObjBufSize);
  FillChar (ObjNameBuf^, ObjBufSize, 0);
  if ComLine = '' then
-  Args := nil
+  begin
+   Args0 := nil;
+   Args := nil;
+  end
  else
   begin
-   GetMem (Args, MaxArgsSize);
+   GetMem (Args0, MaxArgsSize);
+   Args := Args0;
+(* Work around a bug in OS/2 - argument to DosExecPgm *)
+(* should not cross 64K boundary. *)
+   if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
+    Inc (Args, 1024);
    ArgSize := 0;
    Move (Path [1], Args^ [ArgSize], Length (Path));
    Inc (ArgSize, Length (Path));
@@ -943,8 +951,8 @@ begin
    Args^ [ArgSize] := 0;
   end;
  Result := DosExecPgm (ObjNameBuf, ObjBufSize, 0, Args, nil, Res, PChar (Path));
- if Args <> nil then
-  FreeMem (Args, MaxArgsSize);
+ if Args0 <> nil then
+  FreeMem (Args0, MaxArgsSize);
  if Result = 0 then
   begin
    Result := Res.ExitCode;

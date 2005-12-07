@@ -4,7 +4,7 @@ PASZLIB 1.0                                                   May 11th, 1998
 
 Based on the zlib 1.1.2, a general purpose data compression library.
 
-Copyright (C) 1998 by NOMSSI NZALI Jacques H. C. 
+Copyright (C) 1998,1999,2000 by NOMSSI NZALI Jacques H. C. 
 [kn&n DES]         See "Legal issues" for conditions of distribution and use.
 _____________________________________________________________________________
 
@@ -31,17 +31,23 @@ plus a few kilobytes for small objects.
 Change Log
 ==========
 
-May 7th 1999   - Some changes for FPC
-                 deflateCopy() has new parameters
-                 trees.pas - record constant definition
-June 17th 1998 - Applied official 1.1.2 patch. 
-		 Memcheck turned off by default.
-                 zutil.pas patch for Delphi 1 memory allocation corrected.
-                 dzlib.txt file added.
-                 compress2() is now exported
+March 24th 2000 - minizip code by Gilles Vollant ported to Pascal. 
+                  z_stream.msg defined as string[255] to avoid problems
+                  with Delphi 2+ dynamic string handling.
+                  changes to silence Delphi 5 compiler warning. If you
+                  have Delphi 5, defines Delphi5 in zconf.inc
+                              
+May 7th 1999    - Some changes for FPC
+                  deflateCopy() has new parameters
+                  trees.pas - record constant definition
+June 17th 1998  - Applied official 1.1.2 patch. 
+	          Memcheck turned off by default.
+                  zutil.pas patch for Delphi 1 memory allocation corrected.
+                  dzlib.txt file added.
+                  compress2() is now exported
 
-June 25th 1998 - fixed a conversion bug: in inftrees.pas, ZFREE(z, v) was
-                 missing in line 574;
+June 25th 1998 -  fixed a conversion bug: in inftrees.pas, ZFREE(z, v) was
+                  missing in line 574;
 
 File list
 =========
@@ -65,7 +71,6 @@ infcodes.pas   process literals and length/distance pairs
 inffast.pas    process literals and length/distance pairs fast
 inftrees.pas   generate Huffman trees for efficient decoding
 infutil.pas    types and macros common to blocks and codes
-minigzip.pas   simulate gzip using the zlib compression library
 strutils.pas   string utilities
 trees.pas      output deflated data using Huffman coding
 zcompres.pas   compress a memory buffer
@@ -75,15 +80,21 @@ zlib.pas       zlib data structures. read the comments there!
 zuncompr.pas   decompress a memory buffer
 zutil.pas
 
+minizip/ziputils.pas data structure and IO on .zip file 
+minizip/unzip.pas  
+minizip/zip.pas
+      
 Test applications
 
 example.pas    usage example of the zlib compression library
 minigzip.pas   simulate gzip using the zlib compression library
+minizip/miniunz.pas  simulates unzip using the zlib compression library
+minizip/minizip.pas  simulates zip using the zlib compression library
 
 Legal issues
 ============
 
-Copyright (C) 1998 by Jacques Nomssi Nzali
+Copyright (C) 1998,1999,2000 by Jacques Nomssi Nzali
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the author be held liable for any damages
@@ -114,5 +125,5 @@ Comments) 1950 to 1952 in the files ftp://ds.internic.net/rfc/rfc1950.txt
 (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
 These documents are also available in other formats from
 ftp://ftp.uu.net/graphics/png/documents/zlib/zdoc-index.html.
-_____________________________________________________________________________
-Jacques Nomssi Nzali <mailto:nomssi@physik.tu-chemnitz.de> May 7th, 1999
+____________________________________________________________________________
+Jacques Nomssi Nzali <mailto:nomssi@physik.tu-chemnitz.de> March 24th, 2000

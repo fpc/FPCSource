@@ -13,15 +13,15 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase, zDeflate;
+  zbase, zdeflate;
 
                         { utility functions }
 
 {EXPORT}
-function compress (dest : pBytef;
-                   var destLen : uLong;
-                   source : pBytef;
-                   sourceLen : uLong) : int;
+function compress (dest : Pbyte;
+                   var destLen : cardinal;
+                   const source : array of Byte;
+                   sourceLen : cardinal) : integer;
 
  { Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer. Upon entry, destLen is the total
@@ -35,11 +35,11 @@ function compress (dest : pBytef;
    buffer. }
 
 {EXPORT}
-function compress2 (dest : pBytef;
-                    var destLen : uLong;
-                    source : pBytef;
-                    sourceLen : uLong;
-                    level : int) : int;
+function compress2 (dest : Pbyte;
+                    var destLen : cardinal;
+                    const source : array of byte;
+                    sourceLen : cardinal;
+                    level : integer) : integer;
 {  Compresses the source buffer into the destination buffer. The level
    parameter has the same meaning as in deflateInit.  sourceLen is the byte
    length of the source buffer. Upon entry, destLen is the total size of the
@@ -54,36 +54,32 @@ implementation
 
 { ===========================================================================
 }
-function compress2 (dest : pBytef;
-                    var destLen : uLong;
-                    source : pbytef;
-                    sourceLen : uLong;
-                    level : int) : int;
+function compress2 (dest : Pbyte;
+                    var destLen : cardinal;
+                    const source : array of byte;
+                    sourceLen : cardinal;
+                    level : integer) : integer;
 var
   stream : z_stream;
-  err : int;
+  err : integer;
 begin
-  stream.next_in := source;
-  stream.avail_in := uInt(sourceLen);
+  stream.next_in := Pbyte(@source);
+  stream.avail_in := cardinal(sourceLen);
 {$ifdef MAXSEG_64K}
   { Check for source > 64K on 16-bit machine: }
-  if (uLong(stream.avail_in) <> sourceLen) then
+  if (cardinal(stream.avail_in) <> sourceLen) then
   begin
     compress2 := Z_BUF_ERROR;
     exit;
   end;
 {$endif}
   stream.next_out := dest;
-  stream.avail_out := uInt(destLen);
-  if (uLong(stream.avail_out) <> destLen) then
+  stream.avail_out := cardinal(destLen);
+  if (cardinal(stream.avail_out) <> destLen) then
   begin
     compress2 := Z_BUF_ERROR;
     exit;
   end;
-
-  stream.zalloc := NIL;       { alloc_func(0); }
-  stream.zfree := NIL;        { free_func(0); }
-  stream.opaque := NIL;       { voidpf(0); }
 
   err := deflateInit(stream, level);
   if (err <> Z_OK) then
@@ -110,10 +106,10 @@ end;
 
 { ===========================================================================
  }
-function compress (dest : pBytef;
-                   var destLen : uLong;
-                   source : pBytef;
-                   sourceLen : uLong) : int;
+function compress (dest : Pbyte;
+                   var destLen : cardinal;
+                   const source : array of Byte;
+                   sourceLen : cardinal) : integer;
 begin
   compress := compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 end;

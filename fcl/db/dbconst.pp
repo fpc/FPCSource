@@ -30,6 +30,7 @@ Const
   SErrColumnNotFound       = 'Column "%s" not found.';
   SErrDatabasenAssigned    = 'Database not assigned!';
   SErrNoDatabaseAvailable  = 'Invalid operation: Not attached to database';
+  SErrNoDatabaseName       = 'Database connect string (DatabaseName) not filled in!';
   SErrNoSelectStatement    = 'Cannot open a non-select statement';
   SErrNoStatement          = 'SQL statement not set';
   SErrTransAlreadyActive   = 'Transaction already active';

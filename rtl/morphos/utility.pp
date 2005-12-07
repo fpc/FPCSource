@@ -15,7 +15,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$inline on}
 unit utility;
 
 interface
@@ -30,7 +30,22 @@ var
 {$include utild2.inc}
 {$include utilf.inc}
 
+function TAG_(value: pointer): longword; inline;
+function TAG_(value: pchar): longword; inline;
+
+
 implementation
+
+function TAG_(value: pointer): longword; inline;
+begin
+  TAG_:=longword(value);
+end;
+
+function TAG_(value: pchar): longword; inline;
+begin
+  TAG_:=longword(value);
+end;
+
 
 begin
   UtilityBase:=MOS_UtilityBase;

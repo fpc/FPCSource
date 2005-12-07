@@ -1203,8 +1203,20 @@ const
                 if regcounter2 in rg[R_INTREGISTER].used_in_proc then
                   begin
                      usesgpr:=true;
-                     a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href);
-                     dec(href.offset,4);
+                     if (regcounter2 <= RS_R22) or
+                        ((cs_littlesize in aktglobalswitches) and
+                         { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
+                         (regcounter2 <= RS_R29)) then
+                       begin
+                         dec(href.offset,(RS_R31-regcounter2+1)*sizeof(aint));
+                         list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href));
+                         break;
+                       end
+                     else
+                       begin
+                         a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href);
+                         dec(href.offset,4);
+                       end;
                   end;
               end;
 {
@@ -1344,8 +1356,20 @@ const
                 if regcounter2 in rg[R_INTREGISTER].used_in_proc then
                   begin
                      usesgpr:=true;
-                     a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter2,R_SUBNONE));
-                     dec(href.offset,4);
+                     if (regcounter2 <= RS_R22) or
+                        ((cs_littlesize in aktglobalswitches) and
+                         { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
+                         (regcounter2 <= RS_R29)) then
+                       begin
+                         dec(href.offset,(RS_R31-regcounter2+1)*sizeof(aint));
+                         list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href));
+                         break;
+                       end
+                     else
+                       begin
+                         a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter2,R_SUBNONE));
+                         dec(href.offset,4);
+                       end;
                   end;
               end;
 

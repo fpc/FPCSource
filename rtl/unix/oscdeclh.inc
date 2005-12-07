@@ -88,7 +88,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint; cdecl; external clib name 'settimeofday';
     function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
     {$ifdef HAS_UGETRLIMIT}
-    function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'ugetrlimit';
+    { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }
+    function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
     {$endif}
 
 {$ifdef linux}

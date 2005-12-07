@@ -1,4 +1,4 @@
-Unit zUnCompr;
+unit zuncompr;
 
 { uncompr.c -- decompress a memory buffer
   Copyright (C) 1995-1998 Jean-loup Gailly.
@@ -13,7 +13,7 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase, zInflate;
+  zbase, zinflate;
 
 { ===========================================================================
      Decompresses the source buffer into the destination buffer.  sourceLen is
@@ -31,40 +31,37 @@ uses
    buffer, or Z_DATA_ERROR if the input data was corrupted.
 }
 
-function uncompress (dest : pBytef;
-                     var destLen : uLong;
-                     source : pBytef;
-                     sourceLen : uLong) : int;
+function uncompress (dest : Pbyte;
+                     var destLen : cardinal;
+                     const source : array of byte;
+                     sourceLen : cardinal) : integer;
 
 implementation
 
-function uncompress (dest : pBytef;
-                     var destLen : uLong;
-                     source : pBytef;
-                     sourceLen : uLong) : int;
+function uncompress (dest : Pbyte;
+                     var destLen : cardinal;
+                     const source : array of byte;
+                     sourceLen : cardinal) : integer;
 var
   stream : z_stream;
-  err : int;
+  err : integer;
 begin
-  stream.next_in := source;
-  stream.avail_in := uInt(sourceLen);
+  stream.next_in := Pbyte(@source);
+  stream.avail_in := cardinal(sourceLen);
   { Check for source > 64K on 16-bit machine: }
-  if (uLong(stream.avail_in) <> sourceLen) then
+  if (cardinal(stream.avail_in) <> sourceLen) then
   begin
     uncompress := Z_BUF_ERROR;
     exit;
   end;
 
   stream.next_out := dest;
-  stream.avail_out := uInt(destLen);
-  if (uLong(stream.avail_out) <> destLen) then
+  stream.avail_out := cardinal(destLen);
+  if (cardinal(stream.avail_out) <> destLen) then
   begin
     uncompress := Z_BUF_ERROR;
     exit;
   end;
-
-  stream.zalloc := NIL;       { alloc_func(0); }
-  stream.zfree := NIL;        { free_func(0); }
 
   err := inflateInit(stream);
   if (err <> Z_OK) then

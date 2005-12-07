@@ -90,9 +90,6 @@ implementation
 
 uses strutils;
 
-resourcestring
-  SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
-
 type
   TTm = packed record
     tm_sec : longint;
@@ -243,8 +240,6 @@ begin
      DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
   if Length(CharSet) > 0 then
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
-  if (DatabaseName = '') then
-    DatabaseError(SErrNoDatabaseName,self);
 
   FSQLDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FSQLDatabaseHandle,

@@ -168,12 +168,6 @@ unit cpubase;
         'ge','pl','gt','t','hi','vc','le','vs'
       );
 
-      inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
-{$warning TODO, this is just a copy!}
-         C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
-         C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
-      );
-
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
@@ -334,6 +328,9 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
 
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+
 implementation
 
     uses
@@ -458,5 +455,22 @@ implementation
         result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
+
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        inverse:array[TAsmCond] of TAsmCond=(C_None,
+{$warning TODO, this is just a copy!}
+           C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
+           C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+        );
+      begin
+        result := inverse[c];
+      end;
+
+
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result := c1 = c2;
+      end;
 
 end.

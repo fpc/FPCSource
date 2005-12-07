@@ -2,7 +2,7 @@
 { Submitted by "Matthias Hryniszak" on  2005-02-26 }
 { e-mail: matthias@hryniszak.de }
 uses
-  SysUtils;
+  {$ifdef unix}cwstring, {$endif}SysUtils;
 
 var
   S: WideString;

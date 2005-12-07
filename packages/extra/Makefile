@@ -231,19 +231,19 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits
+override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -261,10 +261,10 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_DIRS+=unzip zlib
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -279,31 +279,31 @@ ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=unzip zlib x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1344,6 +1344,7 @@ fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1380,6 +1381,7 @@ TARGET_DIRS_TCL=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_FPGTK=1
 TARGET_DIRS_WINUNITS=1
+TARGET_DIRS_FFTW=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_OS2UNITS=1
@@ -1396,6 +1398,7 @@ endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1480,6 +1483,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1506,6 +1510,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1576,6 +1581,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1623,6 +1629,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1644,6 +1651,7 @@ endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1691,6 +1699,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1717,6 +1726,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1739,6 +1749,7 @@ endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1765,6 +1776,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_UNZIP=1
 TARGET_DIRS_ZLIB=1
+TARGET_DIRS_FFTW=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1877,6 +1889,51 @@ zlib_makefiles:
 zlib:
 	$(MAKE) -C zlib all
 .PHONY: zlib_all zlib_debug zlib_smart zlib_release zlib_units zlib_examples zlib_shared zlib_install zlib_sourceinstall zlib_exampleinstall zlib_distinstall zlib_zipinstall zlib_zipsourceinstall zlib_zipexampleinstall zlib_zipdistinstall zlib_clean zlib_distclean zlib_cleanall zlib_info zlib_makefiles zlib
+endif
+ifdef TARGET_DIRS_FFTW
+fftw_all:
+	$(MAKE) -C fftw all
+fftw_debug:
+	$(MAKE) -C fftw debug
+fftw_smart:
+	$(MAKE) -C fftw smart
+fftw_release:
+	$(MAKE) -C fftw release
+fftw_units:
+	$(MAKE) -C fftw units
+fftw_examples:
+	$(MAKE) -C fftw examples
+fftw_shared:
+	$(MAKE) -C fftw shared
+fftw_install:
+	$(MAKE) -C fftw install
+fftw_sourceinstall:
+	$(MAKE) -C fftw sourceinstall
+fftw_exampleinstall:
+	$(MAKE) -C fftw exampleinstall
+fftw_distinstall:
+	$(MAKE) -C fftw distinstall
+fftw_zipinstall:
+	$(MAKE) -C fftw zipinstall
+fftw_zipsourceinstall:
+	$(MAKE) -C fftw zipsourceinstall
+fftw_zipexampleinstall:
+	$(MAKE) -C fftw zipexampleinstall
+fftw_zipdistinstall:
+	$(MAKE) -C fftw zipdistinstall
+fftw_clean:
+	$(MAKE) -C fftw clean
+fftw_distclean:
+	$(MAKE) -C fftw distclean
+fftw_cleanall:
+	$(MAKE) -C fftw cleanall
+fftw_info:
+	$(MAKE) -C fftw info
+fftw_makefiles:
+	$(MAKE) -C fftw makefiles
+fftw:
+	$(MAKE) -C fftw all
+.PHONY: fftw_all fftw_debug fftw_smart fftw_release fftw_units fftw_examples fftw_shared fftw_install fftw_sourceinstall fftw_exampleinstall fftw_distinstall fftw_zipinstall fftw_zipsourceinstall fftw_zipexampleinstall fftw_zipdistinstall fftw_clean fftw_distclean fftw_cleanall fftw_info fftw_makefiles fftw
 endif
 ifdef TARGET_DIRS_X11
 x11_all:

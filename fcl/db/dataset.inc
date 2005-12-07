@@ -498,8 +498,89 @@ end;
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
   
+Const
+  TempBufSize = 1024; { Let's not exaggerate.}
+    
+Var
+  Buf : Array[1..TempBufSize] of Char;
+  P : PChar; 
 begin
-  Result := GetFieldData(Field, Buffer);
+  If NativeFormat then
+    Result:=GetFieldData(Field, Buffer)
+  else
+    begin
+    If (Field.DataSize<=TempBufSize) then
+      P:=@Buf
+    else
+      P:=GetMem(Field.DataSize);
+    Result:=GetFieldData(Field,P);
+    If Result then
+      DataConvert(Field,P,Buffer,False);
+    If (P<>@Buf) then
+      FreeMem(P);
+    end;  
+end;
+
+Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
+
+var
+  TS: TTimeStamp;
+
+begin
+  TS.Date:=0;
+  TS.Time:=0;
+  case DT of
+    ftDate: TS.Date := Data.Date;
+    ftTime: With TS do
+              begin
+              Time := Data.Time;
+              Date := DateDelta;
+              end;
+  else
+    try
+      TS:=MSecsToTimeStamp(trunc(Data.DateTime));
+    except
+    end;
+  end;  
+  Result:=TimeStampToDateTime(TS);
+end; 
+
+Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
+
+var
+  TS : TTimeStamp;
+  
+begin
+  TS:=DateTimeToTimeStamp(Data);
+  With Result do
+    case DT of
+      ftDate: 
+        Date:=TS.Date;
+      ftTime: 
+        Time:=TS.Time;
+    else
+      DateTime:=TimeStampToMSecs(TS);
+    end;
+end;
+
+procedure TDataSet.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean);
+
+Type
+  PDateTime = ^TDateTime;
+  PDateTimeRec = ^TDateTimeRec;
+
+Var
+  DT : TFieldType; 
+ 
+begin
+  DT:=Field.DataType;
+  case DT of
+    ftDate, ftTime, ftDateTime:
+      if ToNative then
+         PDateTimeRec(Dest)^:=DateTimeToDateTimeRec(DT,PDateTime(Source)^) 
+       else
+         PDateTime(Dest)^:=DateTimeRecToDateTime(DT,PDateTimeRec(Source)^);
+  end;
 end;
 
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer);
@@ -511,8 +592,27 @@ end;
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 
+Const
+  TempBufSize = 1024; { Let's not exaggerate.}
+    
+Var
+  Buf : Array[1..TempBufSize] of Char;
+  P : PChar; 
+
 begin
-  SetFieldData(Field, Buffer);
+  if NativeFormat then
+    SetFieldData(Field, Buffer)
+  else 
+    begin
+    if Field.DataSize<=dsMaxStringSize then
+      P:=GetMem(Field.DataSize)
+    else
+      P:=@Buf;  
+    DataConvert(Field,Buffer,P,True);
+    SetFieldData(Field,P);
+    If (P<>@Buf) then
+      FreeMem(P);
+    end;  
 end;
 
 Function TDataset.GetField (Index : Longint) : TField;

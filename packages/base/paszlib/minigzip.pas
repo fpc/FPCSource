@@ -18,10 +18,7 @@ program minigzip;
 }
 
 uses
-  {$IFDEF VER80}
-  WinCrt,
-  {$ENDIF}
-  gzio, zutil;
+  gzio;
 
 const
   BUFLEN       = 16384 ;
@@ -54,9 +51,9 @@ end;
 
 procedure gz_compress (var infile:file; outfile:gzFile);
 var
-  len   : uInt;
+  len   : cardinal;
   ioerr : integer;
-  err   : int;
+  err   : integer;
 begin
 
   while true do begin
@@ -91,10 +88,10 @@ end;
 
 procedure gz_uncompress (infile:gzFile; var outfile:file);
 var
-  len     : int;
-  written : uInt;
+  len     : integer;
+  written : cardinal;
   ioerr   : integer;
-  err     : int;
+  err     : integer;
 begin
   while true do begin
 

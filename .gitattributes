@@ -83,7 +83,6 @@ compiler/comprsrc.pas svneol=native#text/plain
 compiler/cp437.pas svneol=native#text/plain
 compiler/cp850.pas svneol=native#text/plain
 compiler/cp8859_1.pas svneol=native#text/plain
-compiler/crc.pas svneol=native#text/plain
 compiler/cresstr.pas svneol=native#text/plain
 compiler/cstreams.pas svneol=native#text/plain
 compiler/cutils.pas svneol=native#text/plain
@@ -93,6 +92,7 @@ compiler/dwarf.pas svneol=native#text/plain
 compiler/export.pas svneol=native#text/plain
 compiler/finput.pas svneol=native#text/plain
 compiler/fmodule.pas svneol=native#text/plain
+compiler/fpccrc.pas svneol=native#text/plain
 compiler/fpcdefs.inc svneol=native#text/plain
 compiler/fppu.pas svneol=native#text/plain
 compiler/gdb.pas svneol=native#text/plain
@@ -1117,6 +1117,14 @@ packages/base/gdbint/gdbobjs.inc svneol=native#text/plain
 packages/base/gdbint/gdbver.pp svneol=native#text/plain
 packages/base/gdbint/symify.pp svneol=native#text/plain
 packages/base/gdbint/testgdb.pp svneol=native#text/plain
+packages/base/hash/Makefile svneol=native#text/plain
+packages/base/hash/Makefile.fpc svneol=native#text/plain
+packages/base/hash/crc.pas -text
+packages/base/hash/fpmake.inc svneol=native#text/plain
+packages/base/hash/fpmake.pp svneol=native#text/plain
+packages/base/hash/md5.pp svneol=native#text/plain
+packages/base/hash/md5.ref -text
+packages/base/hash/md5test.pp svneol=native#text/plain
 packages/base/ibase/Makefile svneol=native#text/plain
 packages/base/ibase/Makefile.fpc svneol=native#text/plain
 packages/base/ibase/README -text
@@ -1382,11 +1390,6 @@ packages/base/libc/wordexph.inc svneol=native#text/plain
 packages/base/libc/wordsizeh.inc svneol=native#text/plain
 packages/base/libc/xlocaleh.inc svneol=native#text/plain
 packages/base/libc/xopen_limh.inc svneol=native#text/plain
-packages/base/md5/Makefile svneol=native#text/plain
-packages/base/md5/Makefile.fpc svneol=native#text/plain
-packages/base/md5/md5.pp svneol=native#text/plain
-packages/base/md5/md5.ref -text
-packages/base/md5/md5test.pp svneol=native#text/plain
 packages/base/mysql/Makefile svneol=native#text/plain
 packages/base/mysql/Makefile.fpc svneol=native#text/plain
 packages/base/mysql/README -text
@@ -1561,7 +1564,6 @@ packages/base/paszlib/Makefile.fpc svneol=native#text/plain
 packages/base/paszlib/adler.pas svneol=native#text/plain
 packages/base/paszlib/changes.txt svneol=native#text/plain
 packages/base/paszlib/example.pas svneol=native#text/plain
-packages/base/paszlib/gzcrc.pas svneol=native#text/plain
 packages/base/paszlib/gzio.pas svneol=native#text/plain
 packages/base/paszlib/infblock.pas svneol=native#text/plain
 packages/base/paszlib/infcodes.pas svneol=native#text/plain
@@ -1578,7 +1580,6 @@ packages/base/paszlib/zconf.inc svneol=native#text/plain
 packages/base/paszlib/zdeflate.pas svneol=native#text/plain
 packages/base/paszlib/zinflate.pas svneol=native#text/plain
 packages/base/paszlib/zuncompr.pas svneol=native#text/plain
-packages/base/paszlib/zutil.pas svneol=native#text/plain
 packages/base/postgres/Makefile svneol=native#text/plain
 packages/base/postgres/Makefile.fpc svneol=native#text/plain
 packages/base/postgres/README -text
@@ -1787,6 +1788,11 @@ packages/extra/cdrom/scsidefs.pp svneol=native#text/plain
 packages/extra/cdrom/showcds.pp svneol=native#text/plain
 packages/extra/cdrom/wincd.pp svneol=native#text/plain
 packages/extra/cdrom/wnaspi32.pp svneol=native#text/plain
+packages/extra/fftw/Makefile -text
+packages/extra/fftw/Makefile.fpc -text
+packages/extra/fftw/example.pas -text
+packages/extra/fftw/fftw_s.pas -text
+packages/extra/fftw/readme.txt -text
 packages/extra/forms/Makefile svneol=native#text/plain
 packages/extra/forms/Makefile.fpc svneol=native#text/plain
 packages/extra/forms/README -text
@@ -2671,7 +2677,6 @@ packages/extra/opengl/glut.pp svneol=native#text/plain
 packages/extra/opengl/glx.pp svneol=native#text/plain
 packages/extra/opengl/readme -text
 packages/extra/opengl/tinygl.inc -text
-packages/extra/opengl/tinygl.pp -text
 packages/extra/opengl/tinyglh.inc -text
 packages/extra/os2units/Makefile svneol=native#text/plain
 packages/extra/os2units/Makefile.fpc svneol=native#text/plain
@@ -3105,6 +3110,7 @@ packages/extra/x11/Makefile svneol=native#text/plain
 packages/extra/x11/Makefile.fpc svneol=native#text/plain
 packages/extra/x11/cursorfont.pp svneol=native#text/plain
 packages/extra/x11/keysym.pp svneol=native#text/plain
+packages/extra/x11/randr.inc svneol=native#text/plain
 packages/extra/x11/x.pp svneol=native#text/plain
 packages/extra/x11/xatom.pp svneol=native#text/plain
 packages/extra/x11/xcms.pp svneol=native#text/plain
@@ -3116,6 +3122,7 @@ packages/extra/x11/xinerama.pp svneol=native#text/plain
 packages/extra/x11/xkb.pp svneol=native#text/plain
 packages/extra/x11/xkblib.pp svneol=native#text/plain
 packages/extra/x11/xlib.pp svneol=native#text/plain
+packages/extra/x11/xrandr.pp svneol=native#text/plain
 packages/extra/x11/xrender.pp svneol=native#text/plain
 packages/extra/x11/xresource.pp svneol=native#text/plain
 packages/extra/x11/xshm.pp svneol=native#text/plain
@@ -3558,6 +3565,8 @@ rtl/morphos/hardware.pas svneol=native#text/plain
 rtl/morphos/inputevent.pas svneol=native#text/plain
 rtl/morphos/intuition.pas svneol=native#text/plain
 rtl/morphos/layers.pas svneol=native#text/plain
+rtl/morphos/mui.pas -text
+rtl/morphos/muihelper.pas -text
 rtl/morphos/prt0.as -text
 rtl/morphos/sysdir.inc svneol=native#text/plain
 rtl/morphos/sysfile.inc svneol=native#text/plain
@@ -3570,6 +3579,7 @@ rtl/morphos/sysutils.pp svneol=native#text/plain
 rtl/morphos/timer.pp svneol=native#text/plain
 rtl/morphos/timerd.inc svneol=native#text/plain
 rtl/morphos/timerf.inc svneol=native#text/plain
+rtl/morphos/tinygl.pp -text
 rtl/morphos/tthread.inc svneol=native#text/plain
 rtl/morphos/utild1.inc svneol=native#text/plain
 rtl/morphos/utild2.inc svneol=native#text/plain
@@ -4817,7 +4827,8 @@ tests/tbs/tb0484.pp svneol=native#text/plain
 tests/tbs/tb0485.pp svneol=native#text/plain
 tests/tbs/tb0486.pp svneol=native#text/plain
 tests/tbs/tb0487.pp svneol=native#text/plain
-tests/tbs/tb0488.pp svneol=native#text/plain
+tests/tbs/tb0488a.pp svneol=native#text/plain
+tests/tbs/tb0488b.pp -text
 tests/tbs/tb0489.pp svneol=native#text/plain
 tests/tbs/tb0490.pp svneol=native#text/plain
 tests/tbs/tb0491.pp svneol=native#text/plain
@@ -4826,6 +4837,9 @@ tests/tbs/tb0493.pp svneol=native#text/plain
 tests/tbs/tb0494.pp -text
 tests/tbs/tb0495.pp svneol=native#text/plain
 tests/tbs/tb0496.pp svneol=native#text/plain
+tests/tbs/tb0497.pp -text
+tests/tbs/tb0497a.pp -text
+tests/tbs/tb0497b.pp -text
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain
@@ -6027,6 +6041,7 @@ tests/webtbs/tw3898.pp svneol=native#text/plain
 tests/webtbs/tw3899.pp svneol=native#text/plain
 tests/webtbs/tw3900.pp svneol=native#text/plain
 tests/webtbs/tw3913.pp svneol=native#text/plain
+tests/webtbs/tw3930.pp -text
 tests/webtbs/tw3931a.pp svneol=native#text/plain
 tests/webtbs/tw3939.pp svneol=native#text/plain
 tests/webtbs/tw3953a.pp svneol=native#text/plain
@@ -6114,6 +6129,8 @@ tests/webtbs/tw4529.pp -text svneol=unset#text/plain
 tests/webtbs/tw4533.pp svneol=native#text/plain
 tests/webtbs/tw4537.pp svneol=native#text/plain
 tests/webtbs/tw4540.pp -text svneol=unset#text/plain
+tests/webtbs/tw4557.pp svneol=native#text/plain
+tests/webtbs/tw4566.pp -text svneol=unset#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain

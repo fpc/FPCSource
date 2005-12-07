@@ -97,7 +97,7 @@ implementation
          begin
            { update the codegenerror boolean with the previous result of this node }
            if (nf_error in p.flags) then
-            codegenerror:=true;
+             codegenerror:=true;
          end;
       end;
 

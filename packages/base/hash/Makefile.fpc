@@ -3,11 +3,11 @@
 #
 
 [package]
-name=md5
-version=2.0.3
+name=hash
+version=2.0.0
 
 [target]
-units=md5
+units=md5 crc
 examples=md5test
 
 [install]

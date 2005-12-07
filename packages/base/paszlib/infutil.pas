@@ -17,46 +17,46 @@ interface
 {$I zconf.inc}
 
 uses
-  zutil, zbase;
+  zbase;
 
 { copy as much as possible from the sliding window to the output area }
 function inflate_flush(var s : inflate_blocks_state;
                        var z : z_stream;
-                       r : int) : int;
+                       r : integer) : integer;
 
 { And'ing with mask[n] masks the lower n bits }
 const
-  inflate_mask : array[0..17-1] of uInt = (
+  inflate_mask : array[0..17-1] of cardinal = (
     $0000,
     $0001, $0003, $0007, $000f, $001f, $003f, $007f, $00ff,
     $01ff, $03ff, $07ff, $0fff, $1fff, $3fff, $7fff, $ffff);
 
-{procedure GRABBITS(j : int);}
-{procedure DUMPBITS(j : int);}
-{procedure NEEDBITS(j : int);}
+{procedure GRABBITS(j : integer);}
+{procedure DUMPBITS(j : integer);}
+{procedure NEEDBITS(j : integer);}
 
 implementation
 
 { macros for bit input with no checking and for returning unused bytes }
-procedure GRABBITS(j : int);
+procedure GRABBITS(j : integer);
 begin
   {while (k < j) do
   begin
-    Dec(z^.avail_in);
-    Inc(z^.total_in);
+    dec(z^.avail_in);
+    inc(z^.total_in);
     b := b or (uLong(z^.next_in^) shl k);
-    Inc(z^.next_in);
-    Inc(k, 8);
+    inc(z^.next_in);
+    inc(k, 8);
   end;}
 end;
 
-procedure DUMPBITS(j : int);
+procedure DUMPBITS(j : integer);
 begin
   {b := b shr j;
-  Dec(k, j);}
+  dec(k, j);}
 end;
 
-procedure NEEDBITS(j : int);
+procedure NEEDBITS(j : integer);
 begin
  (*
           while (k < j) do
@@ -70,16 +70,16 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, LongInt(p)-LongInt(z.next_in));
+              inc(z.total_in, LongInt(p)-LongInt(z.next_in));
               z.next_in := p;
               s.write := q;
               result := inflate_flush(s,z,r);
               exit;
             end;
-            Dec(n);
+            dec(n);
             b := b or (uLong(p^) shl k);
-            Inc(p);
-            Inc(k, 8);
+            inc(p);
+            inc(k, 8);
           end;
  *)
 end;
@@ -94,9 +94,9 @@ begin
     begin
       q := s.window;
       if LongInt(q) < LongInt(s.read) then
-        m := uInt(LongInt(s.read)-LongInt(q)-1)
+        m := cardinal(LongInt(s.read)-LongInt(q)-1)
       else
-        m := uInt(LongInt(s.zend)-LongInt(q));
+        m := cardinal(LongInt(s.zend)-LongInt(q));
     end;
 
     if (m = 0) then
@@ -106,18 +106,18 @@ begin
       r := inflate_flush(s,z,r);
       q := s.write;
       if LongInt(q) < LongInt(s.read) then
-        m := uInt(LongInt(s.read)-LongInt(q)-1)
+        m := cardinal(LongInt(s.read)-LongInt(q)-1)
       else
-        m := uInt(LongInt(s.zend)-LongInt(q));
+        m := cardinal(LongInt(s.zend)-LongInt(q));
 
       {WRAP}
       if (q = s.zend) and (s.read <> s.window) then
       begin
         q := s.window;
         if LongInt(q) < LongInt(s.read) then
-          m := uInt(LongInt(s.read)-LongInt(q)-1)
+          m := cardinal(LongInt(s.read)-LongInt(q)-1)
         else
-          m := uInt(LongInt(s.zend)-LongInt(q));
+          m := cardinal(LongInt(s.zend)-LongInt(q));
       end;
 
       if (m = 0) then
@@ -126,7 +126,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, LongInt(p)-LongInt(z.next_in));
+        inc(z.total_in, LongInt(p)-LongInt(z.next_in));
         z.next_in := p;
         s.write := q;
         result := inflate_flush(s,z,r);
@@ -141,29 +141,29 @@ end;
 { copy as much as possible from the sliding window to the output area }
 function inflate_flush(var s : inflate_blocks_state;
                        var z : z_stream;
-                       r : int) : int;
+                       r : integer) : integer;
 var
-  n : uInt;
-  p : pBytef;
-  q : pBytef;
+  n : cardinal;
+  p : Pbyte;
+  q : Pbyte;
 begin
   { local copies of source and destination pointers }
   p := z.next_out;
   q := s.read;
 
   { compute number of bytes to copy as far as end of window }
-  if ptr2int(q) <= ptr2int(s.write) then
-    n := uInt(ptr2int(s.write) - ptr2int(q))
+  if ptrint(q) <= ptrint(s.write) then
+    n := cardinal(ptrint(s.write) - ptrint(q))
   else
-    n := uInt(ptr2int(s.zend) - ptr2int(q));
+    n := cardinal(ptrint(s.zend) - ptrint(q));
   if (n > z.avail_out) then
     n := z.avail_out;
   if (n <> 0) and (r = Z_BUF_ERROR) then
     r := Z_OK;
 
   { update counters }
-  Dec(z.avail_out, n);
-  Inc(z.total_out, n);
+  dec(z.avail_out, n);
+  inc(z.total_out, n);
 
 
   { update check information }
@@ -174,9 +174,9 @@ begin
   end;
 
   { copy as far as end of window }
-  zmemcpy(p, q, n);
-  Inc(p, n);
-  Inc(q, n);
+  move(q^,p^,n);
+  inc(p, n);
+  inc(q, n);
 
   { see if more to copy at beginning of window }
   if (q = s.zend) then
@@ -187,15 +187,15 @@ begin
       s.write := s.window;
 
     { compute bytes to copy }
-    n := uInt(ptr2int(s.write) - ptr2int(q));
+    n := cardinal(ptrint(s.write) - ptrint(q));
     if (n > z.avail_out) then
       n := z.avail_out;
     if (n <> 0) and (r = Z_BUF_ERROR) then
       r := Z_OK;
 
     { update counters }
-    Dec( z.avail_out, n);
-    Inc( z.total_out, n);
+    dec( z.avail_out, n);
+    inc( z.total_out, n);
 
     { update check information }
     if Assigned(s.checkfn) then
@@ -205,9 +205,9 @@ begin
     end;
 
     { copy }
-    zmemcpy(p, q, n);
-    Inc(p, n);
-    Inc(q, n);
+    move(q^,p^,n);
+    inc(p, n);
+    inc(q, n);
   end;
 
 
