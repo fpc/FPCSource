@@ -71,10 +71,21 @@ const
   {$IFDEF KYLIX}
     gtklib = 'libgtk-x11-2.0.so';
   {$ELSE}
-    {$ifdef UseCustomLibs}
-    gtklib = '';
+    {$ifdef darwin}
+      gtklib = 'gtk-x11-2.0';
+      {$linklib gtk-x11-2.0}
+      {$linklib gdk-x11-2.0}
+      {$linklib pango-1.0.0}
+      {$linklib glib-2.0.0}
+      {$linklib gobject-2.0.0} 
+      {$linklib gdk_pixbuf-2.0.0} 
+      {$linklib atk-1.0.0}
     {$else}
-    gtklib = 'libgtk-x11-2.0.so';
+      {$ifdef UseCustomLibs}
+      gtklib = '';
+      {$else}
+      gtklib = 'libgtk-x11-2.0.so';
+      {$endif}
     {$endif}
   {$ENDIF}
 {$endif}
