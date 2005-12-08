@@ -43,10 +43,21 @@ const
   {$smartlink on}
   {$ENDIF}
 {$else}
-  {$ifdef UseCustomLibs}
-  gdkpixbuflib = '';
+  {$ifdef darwin}
+    gdkpixbuflib = 'gdk_pixbuf-2.0.0';
+    {$linklib gtk-x11-2.0}
+    {$linklib gdk-x11-2.0}
+    {$linklib pango-1.0.0}
+    {$linklib glib-2.0.0}
+    {$linklib gobject-2.0.0} 
+    {$linklib gdk_pixbuf-2.0.0} 
+    {$linklib atk-1.0.0}
   {$else}
-  gdkpixbuflib = 'libgdk_pixbuf-2.0.so';
+    {$ifdef UseCustomLibs}
+    gdkpixbuflib = '';
+    {$else}
+    gdkpixbuflib = 'libgdk_pixbuf-2.0.so';
+    {$endif}
   {$endif}
 {$endif}
 
