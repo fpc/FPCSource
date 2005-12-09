@@ -47,6 +47,8 @@
          lstr2 : SizeInt;
       begin
          strpos:=nil;
+         if (str1 = nil) or (str2 = nil) then
+           exit;
          p:=strscan(str1,str2^);
          if p=nil then
            exit;
