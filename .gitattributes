@@ -5161,6 +5161,7 @@ tests/test/tstring4.pp svneol=native#text/plain
 tests/test/tstring5.pp svneol=native#text/plain
 tests/test/tstring6.pp svneol=native#text/plain
 tests/test/tstring7.pp svneol=native#text/plain
+tests/test/tstring8.pp svneol=native#text/plain
 tests/test/tstrreal1.pp svneol=native#text/plain
 tests/test/tstrreal2.pp svneol=native#text/plain
 tests/test/tsubdecl.pp svneol=native#text/plain
