@@ -142,7 +142,7 @@ implementation
          resulttypepass(left);
          if assigned(right) then
           resulttypepass(right);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -211,7 +211,7 @@ implementation
          result:=nil;
          resulttype:=booltype;
          resulttypepass(right);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -238,7 +238,7 @@ implementation
            end;
 
          resulttypepass(left);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -344,8 +344,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -595,7 +595,7 @@ implementation
          expectloc:=LOC_VOID;
          { evalutes the case expression }
          firstpass(left);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
          registersint:=left.registersint;

@@ -80,7 +80,7 @@ interface
             { consider it set function set if the offset was loaded }
            if assigned(aktprocdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+             tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
            s:='';
          end;
 
@@ -89,7 +89,7 @@ interface
        s:='';
        if assigned(aktprocdef.funcretsym) and
           is_fpu(aktprocdef.rettype.def) then
-         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+         tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
        { !!!!!
        if (not is_void(aktprocdef.rettype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
@@ -149,7 +149,7 @@ interface
                                    ret_in_acc(aktprocdef.rettype.def) and
                                    ((pos('AX',upper(hs))>0) or
                                    (pos('AL',upper(hs))>0)) then
-                                  tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                                  tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
                                 }
                                 if ((s[length(s)]<>'0') or (hs[1]<>'x')) then
                                   begin
@@ -197,7 +197,7 @@ interface
                                                     inc(l,aktprocdef.parast.address_fixup);
                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer]+')';
                                                     if pos(',',s) > 0 then
-                                                      tvarsym(sym).varstate:=vs_used;
+                                                      tvarsym(sym).varstate:=vs_readwritten;
                                                  end;
                                             end
                                           { I added that but it creates a problem in line.ppi
@@ -277,7 +277,7 @@ interface
               '{',';',#10,#13:
                 begin
                    if pos(retstr,s) > 0 then
-                     tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                     tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
                    writeasmline;
                    c:=current_scanner.asmgetchar;
                 end;

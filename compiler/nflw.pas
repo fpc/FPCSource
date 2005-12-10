@@ -381,7 +381,7 @@ implementation
          { loop instruction }
          if assigned(right) then
            resulttypepass(right);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -559,7 +559,7 @@ implementation
          { else path }
          if assigned(t1) then
            resulttypepass(t1);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -834,7 +834,7 @@ implementation
                 cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
                 left);
             resulttypepass(left);
-            set_varstate(left,vs_used,[vsf_must_be_valid]);
+            set_varstate(left,vs_read,[vsf_must_be_valid]);
           end;
         resulttype:=voidtype;
       end;
@@ -1175,7 +1175,7 @@ implementation
            begin
               { first para must be a _class_ }
               resulttypepass(left);
-              set_varstate(left,vs_used,[vsf_must_be_valid]);
+              set_varstate(left,vs_read,[vsf_must_be_valid]);
               if codegenerror then
                exit;
               if not(is_class(left.resulttype.def)) then
@@ -1304,16 +1304,19 @@ implementation
          resulttype:=voidtype;
 
          resulttypepass(left);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         // "try block" is "used"? (JM)
+         set_varstate(left,vs_readwritten,[vsf_must_be_valid]);
 
          resulttypepass(right);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         // "except block" is "used"? (JM)
+         set_varstate(right,vs_readwritten,[vsf_must_be_valid]);
 
          { special finally block only executed when there was an exception }
          if assigned(t1) then
            begin
              resulttypepass(t1);
-             set_varstate(t1,vs_used,[vsf_must_be_valid]);
+             // "finally block" is "used"? (JM)
+             set_varstate(t1,vs_readwritten,[vsf_must_be_valid]);
            end;
       end;
 

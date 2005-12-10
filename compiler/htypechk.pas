@@ -141,11 +141,11 @@ interface
     { takes care of type casts etc.                 }
     procedure set_unique(p : tnode);
 
-    function  valid_for_formal_var(p : tnode) : boolean;
-    function  valid_for_formal_const(p : tnode) : boolean;
-    function  valid_for_var(p:tnode):boolean;
-    function  valid_for_assignment(p:tnode):boolean;
-    function  valid_for_addr(p : tnode) : boolean;
+    function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
+    function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
+    function  valid_for_var(p:tnode; report_errors: boolean):boolean;
+    function  valid_for_assignment(p:tnode; report_errors: boolean):boolean;
+    function  valid_for_addr(p : tnode; report_errors: boolean) : boolean;
 
     function allowenumop(nt:tnodetype):boolean;
 
@@ -735,6 +735,20 @@ implementation
 
 
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
+      const
+        vstrans: array[tvarstate,tvarstate] of tvarstate = (
+          { vs_none -> ... }
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_written,vs_readwritten),
+          { vs_declared -> ... }
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_written,vs_readwritten),
+          { vs_initialised -> ... }
+          (vs_none,vs_initialised,vs_initialised,vs_read,vs_written,vs_readwritten),
+          { vs_read -> ... }
+          (vs_none,vs_read,vs_read,vs_read,vs_readwritten,vs_readwritten),
+          { vs_written -> ... }
+          (vs_none,vs_written,vs_written,vs_readwritten,vs_written,vs_readwritten),
+          { vs_readwritten -> ... }
+          (vs_none,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten));
       var
         hsym : tabstractvarsym;
       begin
@@ -758,7 +772,7 @@ implementation
                p:=tunarynode(p).left;
              vecn:
                begin
-                 set_varstate(tbinarynode(p).right,vs_used,[vsf_must_be_valid]);
+                 set_varstate(tbinarynode(p).right,vs_readwritten,[vsf_must_be_valid]);
                  if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid);
                  p:=tunarynode(p).left;
@@ -801,9 +815,8 @@ implementation
                               end;
                           end;
                       end;
-                    { don't override vs_used with vs_assigned }
-                    if hsym.varstate<>vs_used then
-                      hsym.varstate:=newstate;
+                    { don't override vs_readwritten with vs_initialised }
+                    hsym.varstate := vstrans[hsym.varstate,newstate];
                   end;
                  break;
                end;
@@ -837,7 +850,7 @@ implementation
       end;
 
 
-    function  valid_for_assign(p:tnode;opts:TValidAssigns):boolean;
+    function  valid_for_assign(p:tnode;opts:TValidAssigns; report_errors: boolean):boolean;
       var
         hp : tnode;
         gotstring,
@@ -871,7 +884,8 @@ implementation
         if not(valid_void in opts) and
            is_void(hp.resulttype.def) then
          begin
-           CGMessagePos(hp.fileinfo,errmsg);
+           if report_errors then
+             CGMessagePos(hp.fileinfo,errmsg);
            exit;
          end;
         while assigned(hp) do
@@ -906,7 +920,8 @@ implementation
                             ) then
                         result:=true
                       else
-                        CGMessagePos(hp.fileinfo,errmsg);
+                        if report_errors then
+                          CGMessagePos(hp.fileinfo,errmsg);
                     end
                   else
                     begin
@@ -928,7 +943,8 @@ implementation
                          ) then
                         result:=true
                       else
-                        CGMessagePos(hp.fileinfo,errmsg);
+                        if report_errors then
+                          CGMessagePos(hp.fileinfo,errmsg);
                     end;
                 end
               else
@@ -977,13 +993,15 @@ implementation
                        (todef.size<fromdef.size) then
                       make_not_regable(hp)
                     else
-                      CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                      if report_errors then
+                        CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
                   end;
                  { don't allow assignments to typeconvs that need special code }
                  if not(gotsubscript or gotvec or gotderef) and
                     not(ttypeconvnode(hp).assign_allowed) then
                    begin
-                     CGMessagePos(hp.fileinfo,errmsg);
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,errmsg);
                      exit;
                    end;
                  case hp.resulttype.def.deftype of
@@ -1017,7 +1035,8 @@ implementation
                    of reference. }
                  if not(gotsubscript or gotderef or gotvec) then
                    begin
-                     CGMessagePos(hp.fileinfo,errmsg);
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,errmsg);
                      exit;
                    end;
                  hp:=tunarynode(hp).left;
@@ -1028,7 +1047,12 @@ implementation
                  { loop counter? }
                  if not(Valid_Const in opts) and
                     (vo_is_loop_counter in tsubscriptnode(hp).vs.varoptions) then
-                   CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname);
+                   begin
+                     if report_errors then
+                       CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname)
+                     else
+                       exit;
+                   end;                     
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
@@ -1059,7 +1083,8 @@ implementation
                       (hp.resulttype.def.deftype=stringdef) then
                      result:=true
                  else
-                  CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                  if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
              niln,
@@ -1069,7 +1094,8 @@ implementation
                  if gotderef then
                   result:=true
                  else
-                  CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                  if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
              addrn :
@@ -1077,7 +1103,8 @@ implementation
                  if gotderef then
                   result:=true
                  else
-                  CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
+                  if report_errors then
+                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
              calln :
@@ -1123,7 +1150,8 @@ implementation
                    if ([valid_const,valid_addr] * opts = [valid_const]) then
                      result:=true
                  else
-                  CGMessagePos(hp.fileinfo,errmsg);
+                  if report_errors then
+                   CGMessagePos(hp.fileinfo,errmsg);
                  exit;
                end;
              inlinen :
@@ -1132,7 +1160,8 @@ implementation
                     (tinlinenode(hp).inlinenumber in [in_typeof_x]) then
                    result:=true
                  else
-                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                   if report_errors then
+                    CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
              loadn :
@@ -1147,7 +1176,10 @@ implementation
                        if not(Valid_Const in opts) and
                           not gotderef and
                           (vo_is_loop_counter in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                         CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname);
+                         if report_errors then
+                          CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname)
+                         else
+                          exit;
                        { derefed pointer }
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
@@ -1155,7 +1187,8 @@ implementation
                           if gotderef or gotdynarray or (Valid_Const in opts) then
                            result:=true
                           else
-                           CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
+                           if report_errors then
+                            CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
                           exit;
                         end;
                        { Are we at a with symtable, then we need to process the
@@ -1179,7 +1212,8 @@ implementation
                           (valid_const in opts) then
                         result:=true
                        else
-                        CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+                        if report_errors then
+                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
                        exit;
                      end;
                    procsym :
@@ -1187,7 +1221,8 @@ implementation
                        if (Valid_Const in opts) then
                          result:=true
                        else
-                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                         if report_errors then
+                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
                    labelsym :
@@ -1195,7 +1230,8 @@ implementation
                        if (Valid_Addr in opts) then
                          result:=true
                        else
-                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                         if report_errors then
+                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
                    constsym:
@@ -1204,19 +1240,22 @@ implementation
                          (valid_addr in opts) then
                          result:=true
                        else
-                         CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                         if report_errors then
+                          CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
                    else
                      begin
-                       CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                       if report_errors then
+                        CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                        exit;
                      end;
                  end;
                end;
              else
                begin
-                 CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                 if report_errors then
+                  CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
             end;
@@ -1224,34 +1263,34 @@ implementation
       end;
 
 
-    function  valid_for_var(p:tnode):boolean;
+    function  valid_for_var(p:tnode; report_errors: boolean):boolean;
       begin
-        valid_for_var:=valid_for_assign(p,[]);
+        valid_for_var:=valid_for_assign(p,[],report_errors);
       end;
 
 
-    function  valid_for_formal_var(p : tnode) : boolean;
+    function  valid_for_formal_var(p : tnode; report_errors: boolean) : boolean;
       begin
-        valid_for_formal_var:=valid_for_assign(p,[valid_void]);
+        valid_for_formal_var:=valid_for_assign(p,[valid_void],report_errors);
       end;
 
 
-    function  valid_for_formal_const(p : tnode) : boolean;
+    function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
       begin
         valid_for_formal_const:=(p.resulttype.def.deftype=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const]);
+          valid_for_assign(p,[valid_void,valid_const],report_errors);
       end;
 
 
-    function  valid_for_assignment(p:tnode):boolean;
+    function  valid_for_assignment(p:tnode; report_errors: boolean):boolean;
       begin
-        valid_for_assignment:=valid_for_assign(p,[valid_property]);
+        valid_for_assignment:=valid_for_assign(p,[valid_property],report_errors);
       end;
 
 
-    function  valid_for_addr(p : tnode) : boolean;
+    function  valid_for_addr(p : tnode; report_errors: boolean) : boolean;
       begin
-        result:=valid_for_assign(p,[valid_const,valid_addr,valid_void]);
+        result:=valid_for_assign(p,[valid_const,valid_addr,valid_void],report_errors);
       end;
 
 
@@ -2134,7 +2173,7 @@ implementation
           begin
             { Maybe passing the correct type but passing a const to var parameter }
             if (compare_defs(pt.resulttype.def,wrongpara.vartype.def,pt.nodetype)<>te_incompatible) and
-               not valid_for_var(pt.left) then
+               not valid_for_var(pt.left,true) then
               CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
               CGMessagePos2(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,

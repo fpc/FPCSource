@@ -550,7 +550,7 @@ type
                    floatdef :
                      inserttypeconv(left,s64floattype);
                  end;
-                 set_varstate(left,vs_used,[vsf_must_be_valid]);
+                 set_varstate(left,vs_read,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                  { also update parasym type to get the correct parameter location
                    for the new types }
@@ -559,7 +559,7 @@ type
              else
               if (vo_is_hidden_para in parasym.varoptions) then
                begin
-                 set_varstate(left,vs_used,[vsf_must_be_valid]);
+                 set_varstate(left,vs_read,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                end
              else
@@ -660,12 +660,12 @@ type
                        vs_var,
                        vs_out :
                          begin
-                           if not valid_for_formal_var(left) then
+                           if not valid_for_formal_var(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
                          begin
-                           if not valid_for_formal_const(left) then
+                           if not valid_for_formal_const(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                      end;
@@ -674,7 +674,7 @@ type
                    begin
                      { check if the argument is allowed }
                      if (parasym.varspez in [vs_out,vs_var]) then
-                       valid_for_var(left);
+                       valid_for_var(left,true);
                    end;
 
                  if parasym.varspez = vs_var then
@@ -701,11 +701,11 @@ type
                   begin
                     case parasym.varspez of
                       vs_out :
-                        set_varstate(left,vs_used,[]);
+                        set_varstate(left,vs_written,[]);
                       vs_var :
-                        set_varstate(left,vs_used,[vsf_must_be_valid,vsf_use_hints]);
+                        set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
                       else
-                        set_varstate(left,vs_used,[vsf_must_be_valid]);
+                        set_varstate(left,vs_read,[vsf_must_be_valid]);
                     end;
                   end;
                  { must only be done after typeconv PM }
@@ -1569,7 +1569,7 @@ type
          { procedure variable ? }
          if assigned(right) then
            begin
-              set_varstate(right,vs_used,[vsf_must_be_valid]);
+              set_varstate(right,vs_read,[vsf_must_be_valid]);
               resulttypepass(right);
               if codegenerror then
                exit;
@@ -1877,14 +1877,15 @@ type
                     )
                    )
                   ) then
-                 set_varstate(methodpointer,vs_used,[])
+                 set_varstate(methodpointer,vs_read,[])
                else
-                 set_varstate(methodpointer,vs_used,[vsf_must_be_valid]);
+                 set_varstate(methodpointer,vs_read,[vsf_must_be_valid]);
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
                   (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
-                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
+                 set_varstate(hpt,vs_read,[]);
+//                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_readwritten;
              end;
 
             { if we are calling the constructor check for abstract

@@ -801,7 +801,7 @@ Begin
       begin
         { we always assume in asm statements that     }
         { that the variable is valid.                 }
-        tabstractvarsym(sym).varstate:=vs_used;
+        tabstractvarsym(sym).varstate:=vs_readwritten;
         inc(tabstractvarsym(sym).refs);
         { variable can't be placed in a register }
         tabstractvarsym(sym).varregable:=vr_none;

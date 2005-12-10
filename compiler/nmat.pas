@@ -144,8 +144,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -475,8 +475,8 @@ implementation
          result:=nil;
          resulttypepass(left);
          resulttypepass(right);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -594,7 +594,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
@@ -826,7 +826,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,vs_used,[]);
+         set_varstate(left,vs_read,[]);
          if codegenerror then
            exit;
 
