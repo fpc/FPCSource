@@ -5325,6 +5325,7 @@ tests/test/testmovd.pp svneol=native#text/plain
 tests/test/tests.pp svneol=native#text/plain
 tests/test/testsse2.pp svneol=native#text/plain
 tests/test/testv1.pp svneol=native#text/plain
+tests/test/testv10.pp svneol=native#text/plain
 tests/test/testv2.pp svneol=native#text/plain
 tests/test/testv3.pp svneol=native#text/plain
 tests/test/testv4.pp svneol=native#text/plain
