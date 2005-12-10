@@ -6392,6 +6392,7 @@ tests/webtbs/tw4519.pp -text svneol=unset#text/plain
 tests/webtbs/tw4520.pp -text svneol=unset#text/plain
 tests/webtbs/tw4529.pp -text svneol=unset#text/plain
 tests/webtbs/tw4533.pp svneol=native#text/plain
+tests/webtbs/tw4534.pp svneol=native#text/plain
 tests/webtbs/tw4537.pp svneol=native#text/plain
 tests/webtbs/tw4540.pp -text svneol=unset#text/plain
 tests/webtbs/tw4557.pp svneol=native#text/plain
