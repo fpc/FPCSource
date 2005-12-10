@@ -727,23 +727,26 @@ implementation
              symdone:=false;
              sc.reset;
              repeat
-               case symtablestack.symtabletype of
-                 localsymtable :
-                   vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype,[]);
-                 staticsymtable,
-                 globalsymtable :
-                   vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype,[]);
-                 recordsymtable,
-                 objectsymtable :
-                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
-                 else
-                   internalerror(200411064);
-               end;
-               symtablestack.insert(vs);
-               if assigned(vs.owner) then
-                sc.insert(vs)
-               else
-                vs.free;
+               if (token = _ID) then
+                 begin
+                   case symtablestack.symtabletype of
+                     localsymtable :
+                       vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype,[]);
+                     staticsymtable,
+                     globalsymtable :
+                       vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype,[]);
+                     recordsymtable,
+                     objectsymtable :
+                       vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
+                     else
+                       internalerror(200411064);
+                   end;
+                   symtablestack.insert(vs);
+                   if assigned(vs.owner) then
+                     sc.insert(vs)
+                   else
+                     vs.free;
+                 end;
                consume(_ID);
              until not try_to_consume(_COMMA);
              consume(_COLON);
