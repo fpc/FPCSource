@@ -1497,9 +1497,7 @@ implementation
          if current_module.uses_imports then
            importlib.generatelib;
 
-         if islibrary or
-            (target_info.system in [system_i386_WIN32,system_i386_wdosx]) or
-            (target_info.system=system_i386_NETWARE) then
+         if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
 
          { insert Tables and StackLength }
