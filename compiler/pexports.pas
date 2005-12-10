@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2005 by Florian Klaempfl
 
     This unit handles the exports parsing
 
@@ -28,8 +28,6 @@ interface
     { reads an exports statement in a library }
     procedure read_exports;
 
-    var
-      BinaryContainsExports: boolean = false;
 implementation
 
     uses
@@ -38,6 +36,7 @@ implementation
        { global }
        globals,tokens,verbose,
        systems,
+       ppu,fmodule,
        { symtable }
        symconst,symbase,symtype,symsym,
        { pass 1 }
@@ -78,7 +77,7 @@ implementation
         end;
 
       begin
-         BinaryContainsExports:=true;
+         current_module.flags:=current_module.flags or uf_has_exports;
          DefString:='';
          InternalProcName:='';
          consume(_EXPORTS);

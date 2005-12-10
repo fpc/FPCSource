@@ -242,7 +242,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
@@ -571,6 +571,23 @@ begin
 end;
 
 
+function contains_exports : boolean;
+  var
+    hp : tused_unit;
+  begin
+    result:=((current_module.flags and uf_has_exports)=uf_has_exports);
+    if not result then
+      begin
+      hp:=tused_unit(usedunits.first);
+      While Assigned(hp) and not result do
+        begin
+          result:=((hp.u.flags and uf_has_exports)=uf_has_exports);
+          hp:=tused_unit(hp.next);
+        end;
+      end;
+  end;
+
+
 function TLinkerLinux.MakeExecutable:boolean;
 var
   binstr : String;
@@ -618,6 +635,11 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
+  { create dynamic symbol table? }
+  if contains_exports then
+    cmdstr:=cmdstr+' -E';
+
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
 { Remove ReponseFile }

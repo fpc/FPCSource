@@ -150,6 +150,7 @@ const
   uf_local_symtable = $20000; { this unit has a local symtable stored }
   uf_uses_variants  = $40000; { this unit uses variants }
   uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
+  uf_has_exports = $100000;   { this module or a used unit has exports }
 
 
 type

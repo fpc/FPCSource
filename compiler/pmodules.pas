@@ -1418,7 +1418,7 @@ implementation
            DLL will include the edata section }
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            BinaryContainsExports then
+            ((current_module.flags or uf_has_exports)<>0) then
            asmlist[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
 
          If resourcestrings.ResStrCount>0 then
@@ -1551,10 +1551,9 @@ implementation
             if (not current_module.is_unit) then
              begin
                if DLLSource then
-                linker.MakeSharedLibrary
+                 linker.MakeSharedLibrary
                else
-                linker.MakeExecutable;
-               BinaryContainsExports:=false;
+                 linker.MakeExecutable;
              end;
           end;
       end;
