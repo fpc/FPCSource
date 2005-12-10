@@ -85,7 +85,7 @@ Begin
     tlbsLF: TextRec(t).LineEnd := #10;
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
-  End;  
+  End;
   Move(s[1],TextRec(t).Name,Length(s));
 End;
 
@@ -267,7 +267,9 @@ End;
 
 Function SeekEof (Var t : Text) : Boolean;
 var
-  oldfilepos, oldbufpos, oldbufend, reads: longint;
+  oldfilepos : Int64;
+  oldbufpos, oldbufend : SizeInt;
+  reads: longint;
   isdevice: boolean;
 Begin
   If (InOutRes<>0) then
@@ -310,13 +312,14 @@ Begin
         end;
      end;
     case TextRec(t).Bufptr^[TextRec(t).BufPos] of
-         #26 : if CtrlZMarksEOF then
-                begin
-                 SeekEof := true;
-                 break;
-                end;
-     #10,#13,
-      #9,' ' : ;
+      #26 :
+        if CtrlZMarksEOF then
+          begin
+            SeekEof := true;
+            break;
+          end;
+     #10,#13,#9,' ' :
+       ;
     else
      begin
        SeekEof := false;
@@ -420,8 +423,7 @@ Begin
 End;
 
 
-
-Procedure SetTextBuf(Var F : Text; Var Buf; Size : Longint);
+Procedure SetTextBuf(Var F : Text; Var Buf; Size : SizeInt);
 Begin
   TextRec(f).BufPtr:=@Buf;
   TextRec(f).BufSize:=Size;
@@ -451,11 +453,11 @@ end;
                                Write(Ln)
 *****************************************************************************}
 
-Procedure fpc_WriteBuffer(var f:Text;const b;len:longint);[Public,Alias:'FPC_WRITEBUFFER'];
+Procedure fpc_WriteBuffer(var f:Text;const b;len:SizeInt);[Public,Alias:'FPC_WRITEBUFFER'];
 var
   p   : pchar;
   left,
-  idx : longint;
+  idx : SizeInt;
 begin
   p:=pchar(@b);
   idx:=0;
@@ -535,7 +537,6 @@ End;
 
 { provide local access to write_str }
 procedure Write_Str(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
-
 
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; compilerproc;
 var
@@ -629,6 +630,7 @@ begin
     else InOutRes:=103;
   end;
 end;
+
 
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; compilerproc;
 var
@@ -958,7 +960,7 @@ End;
 
 Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; compilerproc;
 var
-  slen,len : longint;
+  slen,len : SizeInt;
 Begin
   slen:=0;
   Repeat

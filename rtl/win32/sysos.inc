@@ -250,6 +250,27 @@ var
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external 'kernel32' name 'GetCurrentDirectoryA';
 
+   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
+   function FreeLibrary(hLibModule:THandle):ByteBool; stdcall; external KernelDLL name 'FreeLibrary';
+   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
+
+   var
+     SetFilePointerEx : function(hFile : THandle;
+       liDistanceToMove : int64;lpNewFilePointer : pint64;
+       dwMoveMethod : DWord) : ByteBool;stdcall;
+
+  procedure SetupProcVars;
+    var
+      hinstLib : THandle;
+    begin
+      SetFilePointerEx:=nil;
+      hinstLib:=LoadLibrary(KernelDLL);
+      if hinstLib<>0 then
+        begin
+          pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
+          FreeLibrary(hinstLib);
+        end;
+    end;
 
 
    Procedure Errno2InOutRes;

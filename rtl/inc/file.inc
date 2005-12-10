@@ -123,7 +123,7 @@ Begin
 End;
 
 
-Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;var Result:Longint);[IOCheck];
+Procedure BlockWrite(Var f:File;Const Buf;Count:Int64;var Result:Int64);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in result
 }
@@ -141,41 +141,50 @@ Begin
 End;
 
 
+Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;var Result:Longint);[IOCheck];
+{
+  Write Count records from Buf to file f, return written records in result
+}
+var
+  l : Int64;
+Begin
+  BlockWrite(f,Buf,Count,l);
+  Result:=longint(l);
+End;
+
+
 Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Word);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
 var
-  l : longint;
+  l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=word(l);
 End;
-
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Cardinal;var Result:Cardinal);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
 var
-  l : longint;
+  l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
-
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Integer);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
 var
-  l : longint;
+  l : Int64;
 Begin
   BlockWrite(f,Buf,Count,l);
   Result:=integer(l);
 End;
-
 
 Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);[IOCheck];
 {
@@ -183,15 +192,14 @@ Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);[IOCheck];
   InOutRes is set
 }
 var
-  Result : Longint;
+  Result : Int64;
 Begin
   BlockWrite(f,Buf,Count,Result);
   If (InOutRes=0) and (Result<Count) and (Count>0) Then
    InOutRes:=101;
 End;
 
-
-Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOCheck];
+Procedure BlockRead(var f:File;var Buf;Count:Int64;var Result:Int64);[IOCheck];
 {
   Read Count records from file f ro Buf, return number of read records in
   Result
@@ -209,6 +217,17 @@ Begin
   end;
 End;
 
+Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOCheck];
+{
+  Read Count records from file f ro Buf, return number of read records in
+  Result
+}
+var
+  l : int64;
+Begin
+  BlockRead(f,Buf,Count,l);
+  Result:=longint(l);
+End;
 
 Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
 {
@@ -216,12 +235,11 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
   Result
 }
 var
-  l : longint;
+  l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=word(l);
 End;
-
 
 Procedure BlockRead(var f:File;var Buf;count:Cardinal;var Result:Cardinal);[IOCheck];
 {
@@ -229,12 +247,11 @@ Procedure BlockRead(var f:File;var Buf;count:Cardinal;var Result:Cardinal);[IOCh
   Result
 }
 var
-  l : longint;
+  l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
-
 
 Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);[IOCheck];
 {
@@ -242,20 +259,19 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);[IOCheck];
   Result
 }
 var
-  l : longint;
+  l : int64;
 Begin
   BlockRead(f,Buf,Count,l);
   Result:=integer(l);
 End;
 
-
-Procedure BlockRead(Var f:File;Var Buf;Count:Longint);[IOCheck];
+Procedure BlockRead(Var f:File;Var Buf;Count:Int64);[IOCheck];
 {
   Read Count records from file f to Buf, if none are read and Count>0 then
   InOutRes is set
 }
 var
-  Result : Longint;
+  Result : int64;
 Begin
   BlockRead(f,Buf,Count,Result);
   If (InOutRes=0) and (Result<Count) and (Count>0) Then
@@ -263,7 +279,7 @@ Begin
 End;
 
 
-Function FilePos(var f:File):Longint;[IOCheck];
+Function FilePos(var f:File):Int64;[IOCheck];
 {
   Return current Position In file f in records
 }
@@ -280,7 +296,7 @@ Begin
 End;
 
 
-Function FileSize(var f:File):Longint;[IOCheck];
+Function FileSize(var f:File):Int64;[IOCheck];
 {
   Return the size of file f in records
 }
@@ -315,7 +331,7 @@ Begin
 End;
 
 
-Procedure Seek(var f:File;Pos:Longint);[IOCheck];
+Procedure Seek(var f:File;Pos:Int64);[IOCheck];
 {
   Goto record Pos in file f
 }
@@ -328,7 +344,6 @@ Begin
     else InOutRes:=103;
   end;
 End;
-
 
 Procedure Truncate(Var f:File);[IOCheck];
 {

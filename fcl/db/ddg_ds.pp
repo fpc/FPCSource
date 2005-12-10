@@ -361,13 +361,13 @@ begin
   BlockWrite(FDataFile, PDDGData(Buffer)^, 1);
   if DoAppend then
   begin
-    FIndexList.Add(Pointer(FileSize(FDataFile) - 1));
+    FIndexList.Add(Pointer(PtrInt(FileSize(FDataFile) - 1)));
     InternalLast;
   end
   else begin
     if FRecordPos = -1 then RecPos := 0
     else RecPos := FRecordPos;
-    FIndexList.Insert(RecPos, Pointer(FileSize(FDataFile) - 1));
+    FIndexList.Insert(RecPos, Pointer(PtrInt(FileSize(FDataFile) - 1)));
   end;
   FIndexList.SaveToFile(FIdxName);
 end;
