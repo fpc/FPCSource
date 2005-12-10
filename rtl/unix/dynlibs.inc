@@ -24,7 +24,7 @@ Type
   TLibHandle = PtrInt;
 
 Const
-  NilHandle : TLibHandle = 0;
+  NilHandle = TLibHandle(0);
 
 {$else}
 
