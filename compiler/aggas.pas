@@ -204,12 +204,30 @@ implementation
           '.debug_frame',
           'fpc.resptrs'
         );
+        secnames_pic : array[tasmsectiontype] of string[12] = ('',
+          '.text','.data.rel','.data.rel','.bss','.threadvar',
+          'common',
+          '.note',
+          '__TEXT', { stubs }
+          '.stab','.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame',
+          'fpc.resptrs'
+        );
+      var
+        secname : string;
       begin
+        if cs_create_pic in aktmoduleswitches then
+          secname:=secnames_pic[atype]
+        else
+          secname:=secnames[atype];
+
         if use_smartlink_section and
            (aname<>'') then
-          result:=secnames[atype]+'.'+aname
+          result:=secname+'.'+aname
         else
-          result:=secnames[atype];
+          result:=secname;
       end;
 
 
