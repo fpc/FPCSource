@@ -74,6 +74,7 @@ Var
   DestPath,
   PPLExt,
   LibExt      : string;
+  DoStrip,
   Batch,
   Quiet,
   MakeStatic  : boolean;
@@ -478,7 +479,7 @@ begin
   else
    begin
      Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names+' '+libs)<>0;
-     if not Err then
+     if (not Err) and dostrip then
       Shell(stripbin+' --strip-unneeded '+OutputFile);
    end;
   If Err then
@@ -501,7 +502,7 @@ Procedure usage;
   Print usage and exit.
 }
 begin
-  Writeln(paramstr(0),': [-qhwvbs] [-e ext] [-o name] [-d path] file [file ...]');
+  Writeln(paramstr(0),': [-qhwvbsS] [-e ext] [-o name] [-d path] file [file ...]');
   Halt(0);
 end;
 
@@ -520,6 +521,7 @@ begin
   ObjFiles:=Nil;
   Quiet:=False;
   Batch:=False;
+  DoStrip:=False;
   OutputFile:='';
   PPLExt:='ppu';
   ArBin:='ar';
@@ -529,7 +531,7 @@ begin
     c:=Getopt (ShortOpts);
     Case C of
       EndOfOptions : break;
-      's' : MakeStatic:=True;
+      'S' : MakeStatic:=True;
       'o' : OutputFile:=OptArg;
       'd' : DestPath:=OptArg;
       'e' : PPLext:=OptArg;
@@ -539,6 +541,7 @@ begin
               LdBin:='ldw';
             end;
       'b' : Batch:=true;
+      's' : DoStrip:=true;
       '?' : Usage;
       'h' : Usage;
     end;
