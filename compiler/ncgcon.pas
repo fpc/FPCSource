@@ -85,6 +85,7 @@ implementation
          hp1 : tai;
          lastlabel : tasmlabel;
          realait : taitype;
+         value_real_sign, hp1_sign: pbyte;
 {$ifdef ARM}
          hiloswapped : boolean;
 {$endif ARM}
@@ -111,22 +112,22 @@ implementation
                          begin
                             if is_number_float(value_real) and
                               (
-                               ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real) and is_number_float(tai_real_32bit(hp1).value)) or
+                               ((realait=ait_real_32bit) and (tai_real_32bit(hp1).value=value_real) and is_number_float(tai_real_32bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_32bit(hp1).value))) or
                                ((realait=ait_real_64bit) and
 {$ifdef ARM}
                                  ((tai_real_64bit(hp1).formatoptions=fo_hiloswapped)=hiloswapped) and
 {$endif ARM}
-                                 (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value)) or
-                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value)) or
+                                 (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_64bit(hp1).value))) or
+                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
 {$ifdef cpufloat128}
-                               ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value)) or
+                               ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_128bit(hp1).value))) or
 {$endif cpufloat128}
-                               ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real) and is_number_float(tai_comp_64bit(hp1).value))
+                               ((realait=ait_comp_64bit) and (tai_comp_64bit(hp1).value=value_real) and is_number_float(tai_comp_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_comp_64bit(hp1).value)))
                               ) then
                               begin
-                                 { found! }
-                                 lab_real:=lastlabel;
-                                 break;
+                                { found! }
+                                lab_real:=lastlabel;
+                                break;
                               end;
                          end;
                        lastlabel:=nil;

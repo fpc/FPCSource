@@ -338,6 +338,8 @@ interface
 
     procedure SetFPUExceptionMask(const Mask: TFPUExceptionMask);
     function is_number_float(d : double) : boolean;
+    { discern +0.0 and -0.0 }
+    function get_real_sign(r: bestreal): longint;
 
     function SetAktProcCall(const s:string; changeInit: boolean):boolean;
     function SetProcessor(const s:string; changeInit: boolean):boolean;
@@ -1810,6 +1812,23 @@ end;
 {$endif FPC_BIG_ENDIAN}
         end;
 
+    function get_real_sign(r: bestreal): longint;
+      var
+        p: pbyte;
+      begin
+        p := @r;
+{$ifdef CPU_ARM}
+        inc(p,4);
+{$else}   
+{$ifdef FPC_LITTLE_ENDIAN}
+        inc(p,sizeof(r)-1);
+{$endif}          
+{$endif}             
+        if (p^ and $80) = 0 then
+          result := 1
+        else
+          result := -1;
+      end;
 
     function convertdoublearray(d : tdoublearray) : tdoublearray;{$ifdef USEINLINE}inline;{$endif}
 {$ifdef CPUARM}
