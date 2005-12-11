@@ -36,7 +36,34 @@ implementation
 // load implementation for prototypes from current dir.
 {$i termiosproc.inc}
 
-// load ttyname from unix dir.
-{$i ttyname.inc}
+{We can implement ttyname more efficiently using proc than by including the
+ generic ttyname.inc file.}
+
+function TTYName(Handle:cint):string;
+
+{ Return the name of the current tty described by handle f.
+  returns empty string in case of an error.}
+
+var s:string[32];
+    t:string[64];
+
+begin
+  ttyname:='';
+  if isatty(handle)=1 then
+    begin
+      str(handle,s);
+      t:='/proc/self/fd/'+s+#0;
+      fpreadlink(@t[1],@ttyname[1],255);
+      ttyname[0]:=char(strlen(@ttyname[1]));
+    end;
+end;
+
+function TTYName(var F:Text):string;inline;
+{
+  Idem as previous, only now for text variables;
+}
+begin
+  TTYName:=TTYName(textrec(f).handle);
+end;
 
 end.
