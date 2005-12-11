@@ -91,7 +91,7 @@
  Free Vision, the windowing library on which the IDE is
  based, is more advanced than a VT100 terminal can
  handle. Unfortunately, Unix terminal emulators provide
- mostly VT100 functinality, and do not allow access to
+ mostly VT100 functionality, and do not allow access to
  all VGA characters.
 
  On a VT100 compatible terminal, Free Vision replaces VGA
@@ -105,9 +105,9 @@
  switches into Linux console mode and makes use of the
  /dev/vcsa* devices to display the full character set. To
  make use of this mode, you must use a VGA console font in
- codepage 437, 850, 852 etc. encoding. If your distribution
- uses /etc/sysconfig/console, these are good values to put
- into it:
+ codepage 437, 850, 852 etc. encoding. If your distrib-
+ ution uses /etc/sysconfig/console, these are good values
+ to put into that file:
 
  CONSOLE_FONT="cp850-8x16"
  CONSOLE_SCREENMAP="8859-1_to_uni.trans"
@@ -121,9 +121,9 @@
  It will change the ownership of the /dev/vcsa device the
  user is using to him until he logs out.
 
- The Linux console mode can be combined with fbdev. At high
- resolutions, i.e. 1024x768, the IDE becomes very pleasant
- to work with.
+ The Linux console mode can be combined with fbdev. At
+ high resolutions, i.e. 1024x768, the IDE becomes very
+ pleasant to work with.
 
   More information Ü
  ßßßßßßßßßßßßßßßßßßß
