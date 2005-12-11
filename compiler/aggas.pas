@@ -266,13 +266,17 @@ implementation
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
 
     function needsObject(hp : tai_symbol) : boolean;
-    begin
-      needsObject :=
-          assigned(hp.next) and
-          (tai_symbol(hp.next).typ in [ait_const_rva_symbol,
-             ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
-             ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit]);
-    end;
+      begin
+        needsObject :=
+            (
+              assigned(hp.next) and
+               (tai_symbol(hp.next).typ in [ait_const_rva_symbol,
+                ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
+                ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
+            ) or
+            (hp.sym.typ=AT_DATA);
+
+      end;
 
     var
       ch       : char;
