@@ -24,11 +24,7 @@
 Program ppumove;
 uses
 {$ifdef unix}
-  {$ifdef ver1_0}
-  linux,
-  {$else}
   Baseunix,Unix, UnixUtil,
-  {$endif}
 {$else unix}
   dos,
 {$endif unix}
@@ -114,7 +110,7 @@ begin
      exit;
    end;
 {$ifdef unix}
-  Shell:={$ifdef ver1_0}linux{$else}unix{$endif}.shell(s);
+  Shell:=unix.shell(s);
 {$else}
   exec(getenv('COMSPEC'),'/C '+s);
   Shell:=DosExitCode;
@@ -134,7 +130,7 @@ Var
 {$endif}
 begin
 {$ifdef unix}
-  FileExists:={$ifdef VER1_0}FStat{$ELSE}FpStat{$endif} (F,Info){$ifndef VER1_0}=0{$endif};
+  FileExists:=FpStat(F,Info)=0;
 {$else}
   FindFirst (F,anyfile,Info);
   FileExists:=DosError=0;
@@ -478,7 +474,7 @@ begin
    Err:=Shell(arbin+' rs '+outputfile+' '+names)<>0
   else
    begin
-     Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names+' '+libs)<>0;
+     Err:=Shell(ldbin+' -shared -E -o '+OutputFile+' '+names+' '+libs)<>0;
      if (not Err) and dostrip then
       Shell(stripbin+' --strip-unneeded '+OutputFile);
    end;
@@ -486,7 +482,7 @@ begin
    Error('Fatal: Library building stage failed.',true);
 { fix permission to 644, so it's not 755 }
 {$ifdef unix}
-  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}(OutputFile,420);
+  FPChmod(OutputFile,420);
 {$endif}
 { Rename to the destpath }
   if DestPath<>'' then
@@ -621,7 +617,7 @@ begin
       Writeln('Writing pmove'+BatchExt);
      Close(BatchFile);
 {$ifdef unix}
-  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}('pmove'+BatchExt,493);
+  FPChmod('pmove'+BatchExt,493);
 {$endif}
    end;
 { The End }
