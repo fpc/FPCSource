@@ -16,6 +16,7 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst \
       cthreads classes strutils rtlconsts dos objects cwstring fpcylix fpmkunit
+programs=grab_vcsa
 
 rsts=math varutils typinfo variants sysconst rtlconsts fpmkunit
 
@@ -53,6 +54,9 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
+
+# Hack to make grab_vcsa compile
+override FPCOPT+=-Fo$(COMPILER_UNITTARGETDIR)
 
 ifneq ($(CPU_TARGET),powerpc64)
 GGIGRAPH_UNIT=ggigraph
