@@ -470,9 +470,11 @@ implementation
                        asmwrite(#9'.globl ');
                        asmwriteln(Tai_datablock(hp).sym.name);
                      end;
+                   asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+',@object');
+                   asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
                    asmwrite(Tai_datablock(hp).sym.name);
                    asmwriteln(':');
-                   asmwriteln(#9'.space '+tostr(Tai_datablock(hp).size));
+                   asmwriteln(#9'.zero '+tostr(Tai_datablock(hp).size));
                  end;
              end;
 
