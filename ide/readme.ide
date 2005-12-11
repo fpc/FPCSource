@@ -86,6 +86,45 @@
  help system by going to Help menu, selecting Files and
  adding them to the list.
 
+  Linux and FreeBSD Ü
+ ßßßßßßßßßßßßßßßßßßßß
+ Free Vision, the windowing library on which the IDE is
+ based, is more advanced than a VT100 terminal can
+ handle. Unfortunately, Unix terminal emulators provide
+ mostly VT100 functinality, and do not allow access to
+ all VGA characters.
+
+ On a VT100 compatible terminal, Free Vision replaces VGA
+ characters as good as possible using the characters that
+ the VT100 does have. This works very well, but it means
+ that window borders arrows and other characters do not
+ look optimal. Free Vision uses a slightly enhanced
+ version of this VT100 mode on FreeBSD.
+
+ When running on the Linux console (no X) Free Vision
+ switches into Linux console mode and makes use of the
+ /dev/vcsa* devices to display the full character set. To
+ make use of this mode, you must use a VGA console font in
+ codepage 437, 850, 852 etc. encoding. If your distribution
+ uses /etc/sysconfig/console, these are good values to put
+ into it:
+
+ CONSOLE_FONT="cp850-8x16"
+ CONSOLE_SCREENMAP="8859-1_to_uni.trans"
+ CONSOLE_UNICODEMAP=""
+
+ To allow non-root users to use the Linux console mode you
+ must make sure they have permission to use /dev/vcsa*.
+ The best way to do this is to make sure the utility
+ "grab_vcsa" is in a directory pointed to by the
+ environment variable "PATH" and configured setuid root.
+ It will change the ownership of the /dev/vcsa device the
+ user is using to him until he logs out.
+
+ The Linux console mode can be combined with fbdev. At high
+ resolutions, i.e. 1024x768, the IDE becomes very pleasant
+ to work with.
+
   More information Ü
  ßßßßßßßßßßßßßßßßßßß
  If you need more informations you can:
