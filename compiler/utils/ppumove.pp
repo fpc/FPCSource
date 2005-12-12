@@ -24,11 +24,7 @@
 Program ppumove;
 uses
 {$ifdef unix}
-  {$ifdef ver1_0}
-  linux,
-  {$else}
   Baseunix,Unix, UnixUtil,
-  {$endif}
 {$else unix}
   dos,
 {$endif unix}
@@ -36,9 +32,9 @@ uses
   getopts;
 
 const
-  Version   = 'Version 1.00';
+  Version   = 'Version 1.0.2';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2002 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:qhsvbw';
   BufSize = 4096;
@@ -74,12 +70,14 @@ Var
   DestPath,
   PPLExt,
   LibExt      : string;
+  DoStrip,
   Batch,
   Quiet,
   MakeStatic  : boolean;
   Buffer      : Pointer;
   ObjFiles    : PLinkOEnt;
   BatchFile   : Text;
+  Libs        : ansistring;
 
 {*****************************************************************************
                                  Helpers
@@ -112,7 +110,7 @@ begin
      exit;
    end;
 {$ifdef unix}
-  Shell:={$ifdef ver1_0}linux{$else}unix{$endif}.shell(s);
+  Shell:=unix.shell(s);
 {$else}
   exec(getenv('COMSPEC'),'/C '+s);
   Shell:=DosExitCode;
@@ -132,7 +130,7 @@ Var
 {$endif}
 begin
 {$ifdef unix}
-  FileExists:={$ifdef VER1_0}FStat{$ELSE}FpStat{$endif} (F,Info){$ifndef VER1_0}=0{$endif};
+  FileExists:=FpStat(F,Info)=0;
 {$else}
   FindFirst (F,anyfile,Info);
   FileExists:=DosError=0;
@@ -372,10 +370,22 @@ begin
   { don't write ibend, that's written automaticly }
     if b<>ibend then
      begin
-       repeat
-         inppu.getdatabuf(buffer^,bufsize,l);
-         outppu.putdata(buffer^,l);
-       until l<bufsize;
+       if b=iblinkothersharedlibs then
+         begin
+           while not inppu.endofentry do
+             begin
+               s:=inppu.getstring;
+               m:=inppu.getlongint;
+               libs:=libs+' -l'+s;
+               outppu.putstring(s);
+               outppu.putlongint(m);
+             end;
+         end
+       else
+         repeat
+           inppu.getdatabuf(buffer^,bufsize,l);
+           outppu.putdata(buffer^,l);
+         until l<bufsize;
        outppu.writeentry(b);
      end;
   until b=ibend;
@@ -458,21 +468,21 @@ begin
      exit;
    end;
   If not Quiet then
-   WriteLn(names);
+    WriteLn(names+Libs);
 { Run ar or ld to create the lib }
   If MakeStatic then
    Err:=Shell(arbin+' rs '+outputfile+' '+names)<>0
   else
    begin
-     Err:=Shell(ldbin+' -shared -o '+OutputFile+' '+names)<>0;
-     if not Err then
+     Err:=Shell(ldbin+' -shared -E -o '+OutputFile+' '+names+' '+libs)<>0;
+     if (not Err) and dostrip then
       Shell(stripbin+' --strip-unneeded '+OutputFile);
    end;
   If Err then
    Error('Fatal: Library building stage failed.',true);
 { fix permission to 644, so it's not 755 }
 {$ifdef unix}
-  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}(OutputFile,420);
+  FPChmod(OutputFile,420);
 {$endif}
 { Rename to the destpath }
   if DestPath<>'' then
@@ -488,7 +498,7 @@ Procedure usage;
   Print usage and exit.
 }
 begin
-  Writeln(paramstr(0),': [-qhwvbs] [-e ext] [-o name] [-d path] file [file ...]');
+  Writeln(paramstr(0),': [-qhwvbsS] [-e ext] [-o name] [-d path] file [file ...]');
   Halt(0);
 end;
 
@@ -507,6 +517,7 @@ begin
   ObjFiles:=Nil;
   Quiet:=False;
   Batch:=False;
+  DoStrip:=False;
   OutputFile:='';
   PPLExt:='ppu';
   ArBin:='ar';
@@ -516,7 +527,7 @@ begin
     c:=Getopt (ShortOpts);
     Case C of
       EndOfOptions : break;
-      's' : MakeStatic:=True;
+      'S' : MakeStatic:=True;
       'o' : OutputFile:=OptArg;
       'd' : DestPath:=OptArg;
       'e' : PPLext:=OptArg;
@@ -526,6 +537,7 @@ begin
               LdBin:='ldw';
             end;
       'b' : Batch:=true;
+      's' : DoStrip:=true;
       '?' : Usage;
       'h' : Usage;
     end;
@@ -545,6 +557,7 @@ end;
 var
   i : longint;
 begin
+  Libs:='';
   ProcessOpts;
 { Write Header }
   if not Quiet then
@@ -604,7 +617,7 @@ begin
       Writeln('Writing pmove'+BatchExt);
      Close(BatchFile);
 {$ifdef unix}
-  {$ifdef VER1_0}ChMod{$ELSE}FPChmod{$endif}('pmove'+BatchExt,493);
+  FPChmod('pmove'+BatchExt,493);
 {$endif}
    end;
 { The End }
