@@ -218,7 +218,8 @@ implementation
       var
         secname : string;
       begin
-        if cs_create_pic in aktmoduleswitches then
+        if (cs_create_pic in aktmoduleswitches) and
+           not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
