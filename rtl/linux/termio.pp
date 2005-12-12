@@ -58,7 +58,7 @@ begin
     end;
 end;
 
-function TTYName(var F:Text):string;inline;
+function TTYName(var F:Text):string;
 {
   Idem as previous, only now for text variables;
 }
