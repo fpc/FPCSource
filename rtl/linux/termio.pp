@@ -58,7 +58,7 @@ begin
     end;
 end;
 
-function TTYName(var F:Text):string;inline;
+function TTYName(var F:Text):string;{$ifndef ver2_0}inline;{$endif}
 {
   Idem as previous, only now for text variables;
 }
