@@ -413,20 +413,20 @@ Var
   standardConverters : Array[0..4] Of ^PHermesConverter;
   equalConverters : Array[0..3] Of PHermesConverter;
 
-{$I malloc.pp}
+{$I malloc.inc}
 
-{$I debug.pp}
+{$I debug.inc}
 
-{$I dither.pp}
-{$I headp.pp}
+{$I dither.inc}
+{$I headp.inc}
 {$IFDEF I386_ASSEMBLER}
-  {$I i386/headi386.pp}
-  {$I i386/headmmx.pp}
+  {$I i386/headi386.inc}
+  {$I i386/headmmx.inc}
 {$ENDIF I386_ASSEMBLER}
-{$I factconv.pp}
-{$I list.pp}
-{$I utility.pp}
-{$I format.pp}
+{$I factconv.inc}
+{$I list.inc}
+{$I utility.inc}
+{$I format.inc}
 {$I palette.inc}
 {$I convert.inc}
 {$I clear.inc}

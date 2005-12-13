@@ -22,21 +22,21 @@
 {$MACRO ON}
 {$define CONVERT_PARAMETERS:=source, dest : Pchar8; count, inc_source : DWord}
 
-{$I p_16.pp}
-{$I p_24.pp}
-{$I p_32.pp}
+{$I p_16.inc}
+{$I p_24.inc}
+{$I p_32.inc}
 { $I p32aoblt.pp}
-{$I p_clr.pp}
-{$I p_cnv.pp}
-{$I p_cpy.pp}
-{$I p_g.pp}
-{$I p_ga.pp}
-{$I p_gac.pp}
+{$I p_clr.inc}
+{$I p_cnv.inc}
+{$I p_cpy.inc}
+{$I p_g.inc}
+{$I p_ga.inc}
+{$I p_gac.inc}
 { $I p_gaoblt.pp}
-{$I p_gca.pp}
-{$I p_gcc.pp}
+{$I p_gca.inc}
+{$I p_gcc.inc}
 { $I p_gccblt.pp}
 { $I p_gcoblt.pp}
-{$I p_i8.pp}
-{$I p_muhmu.pp}
-{$I d_32.pp}
+{$I p_i8.inc}
+{$I p_muhmu.inc}
+{$I d_32.inc}
