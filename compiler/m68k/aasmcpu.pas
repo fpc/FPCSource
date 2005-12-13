@@ -430,6 +430,7 @@ type
 
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
+//        writeln('is_same_reg_move');
         result:=(((opcode=A_MOVE) or (opcode=A_EXG)) and
                  (regtype = R_INTREGISTER) and
                  (ops=2) and

@@ -178,8 +178,10 @@ interface
         i : tsuperregister;
       begin
         case o.typ of
-          top_reg:
+          top_reg: begin
             getopstr:=gas_regname(o.reg);
+//            writeln('top_reg:',getopstr,'!');
+            end;
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
@@ -320,9 +322,10 @@ interface
                          (op = A_MULU) or
                          (op = A_MULS) or
                          (op = A_DIVS) or
-                         (op = A_DIVU)) and (i=1) then
+                         (op = A_DIVU)) and (i=2) then
+                      begin
                         sep:=':'
-                      else
+                      end else
                         sep:=',';
                       s:=s+sep+getopstr(taicpu(hp).oper[i]^)
                     end;

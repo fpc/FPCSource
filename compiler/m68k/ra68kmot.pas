@@ -168,12 +168,12 @@ const
         str2opentry: tstr2opentry;
         hs : string;
         j : byte;
-      Begin
+      begin
         is_asmopcode:=false;
         { first of all we remove the suffix }
         j:=pos('.',s);
         if j>0 then
-          hs:=copy(s,3,255)
+          hs:=copy(s,1,j-1)
         else
           hs:=s;
 
@@ -209,7 +209,8 @@ const
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
         is_register:=false;
-        actasmregister:=gas_regnum_search(lower(s));
+        // FIX ME!!! Ugly, needs a proper fix (KB)
+        actasmregister:=gas_regnum_search('%'+lower(s));
         if actasmregister<>NR_NO then
           begin
             is_register:=true;
@@ -1414,12 +1415,14 @@ const
                   end;
    { // Register, a variable reference or a constant reference // }
      AS_REGISTER: begin
+//                   writeln('register! ',actasmpattern);
                    { save the type of register used. }
                    tempstr := actasmpattern;
                    Consume(AS_REGISTER);
                    { // Simple register // }
                    if (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA) then
                    begin
+//                        writeln('simple reg');
                         if not (oper.opr.typ in [OPR_NONE,OPR_REGISTER]) then
                          Message(asmr_e_invalid_operand_type);
                         oper.opr.typ := OPR_REGISTER;
@@ -1643,6 +1646,7 @@ const
          BuildOperand(Instr.Operands[operandnum] as tm68koperand);
      end; { end case }
     end; { end while }
+    instr.Ops:=operandnum;
   end;
 
 

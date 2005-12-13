@@ -1458,14 +1458,14 @@ type
                  begin
                    hiddentree:=gen_vmt_tree;
                  end
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
               else
                if vo_is_syscall_lib in currpara.varoptions then
                  begin
                    { lib parameter has no special type but proccalloptions must be a syscall }
                    hiddentree:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
                  end
-{$endif powerpc}
+{$endif powerpc or m68k}
               else
                if vo_is_parentfp in currpara.varoptions then
                  begin

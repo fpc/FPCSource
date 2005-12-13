@@ -34,7 +34,7 @@ interface
           function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
-          procedure pass_2;override;
+//          procedure pass_2;override;
        end;
 
 implementation
@@ -212,7 +212,7 @@ implementation
          location.register := hreg1;
       end;
 
-
+{
     procedure tm68ktypeconvnode.pass_2;
 {$ifdef TESTOBJEXT2}
       var
@@ -232,7 +232,7 @@ implementation
            end;
          second_call_helper(convtype);
       end;
-
+}
 
 begin
    ctypeconvnode:=tm68ktypeconvnode;

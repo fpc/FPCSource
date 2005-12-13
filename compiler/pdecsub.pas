@@ -1230,16 +1230,45 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
 var
   vs  : tparavarsym;
   sym : tsym;
   symtable : tsymtable;
-{$endif powerpc}
+{$endif defined(powerpc) or defined(m68k)}
 begin
   if pd.deftype<>procdef then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
+{$ifdef m68k}
+   if target_info.system in [system_m68k_amiga] then
+    begin
+      include(pd.procoptions,po_syscall_legacy);
+
+      if consume_sym(sym,symtable) then
+        begin
+          if (sym.typ=globalvarsym) and
+             (
+              (tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vartype.def)
+             ) then
+            begin
+              tprocdef(pd).libsym:=sym;
+              if po_syscall_legacy in tprocdef(pd).procoptions then
+                begin
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  paramanager.parseparaloc(vs,'A6');
+                  pd.parast.insert(vs);
+                end
+            end
+          else
+            Message(parser_e_32bitint_or_pointer_variable_expected);
+        end;
+      { FIX ME!!! 68k amigaos syscalls needs explicit funcretloc support to be complete (KB) }
+      (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
+      (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
+    end;
+{$endif m68k}
 {$ifdef powerpc}
    if target_info.system in [system_powerpc_morphos] then
     begin

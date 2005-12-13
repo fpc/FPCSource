@@ -43,11 +43,11 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+	   procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          private
            procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
            function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                                var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;   
-	   procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
            function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
        end;
 

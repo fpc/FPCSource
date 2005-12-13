@@ -35,7 +35,7 @@ unit cpunode;
          after the generic one (FK)
        }
          ncpuadd,
-//       nppccal,
+         n68kcal,
 //       nppccon,
 //       nppcflw,
 //       nppcmem,

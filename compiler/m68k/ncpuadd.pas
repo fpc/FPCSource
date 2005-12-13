@@ -168,6 +168,7 @@ implementation
       tmpreg : tregister;
       op : tasmop;
      begin
+       writeln('second_cmpordinal');
        { set result location }
        location_reset(location,LOC_JUMP,OS_NO);
 
@@ -320,6 +321,7 @@ implementation
 
     procedure t68kaddnode.second_cmp64bit;
      begin
+      writeln('second_cmp64bit');
 (*        load_left_right(true,false);
 
         case nodetype of

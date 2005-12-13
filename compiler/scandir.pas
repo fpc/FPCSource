@@ -912,6 +912,8 @@ implementation
       var
         sctype : string;
       begin
+        { not needed on amiga/m68k for now, because there's only one }
+        { syscall convention (legacy) (KB) }
         if not (target_info.system in [system_powerpc_morphos]) then
           comment (V_Warning,'Syscall directive is useless on this target.');
         current_scanner.skipspace;

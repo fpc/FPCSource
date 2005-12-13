@@ -480,11 +480,11 @@ interface
           refcount : longint;
           _class : tobjectdef;
           _classderef : tderef;
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(m68k)}
           { library symbol for AmigaOS/MorphOS }
           libsym : tsym;
           libsymderef : tderef;
-{$endif powerpc}
+{$endif powerpc or m68k}
           { name of the result variable to insert in the localsymtable }
           resultname : stringid;
           { true, if the procedure is only declared

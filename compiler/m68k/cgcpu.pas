@@ -403,7 +403,7 @@ unit cgcpu;
         opcode := topcg2tasmop[op];
         case op of
           OP_ADD :
-              Begin
+              begin
                 if (a >= 1) and (a <= 8) then
                     list.concat(taicpu.op_const_reg(A_ADDQ,S_L,a, reg))
                 else
@@ -414,20 +414,20 @@ unit cgcpu;
               end;
           OP_AND,
           OP_OR:
-              Begin
+              begin
                  list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
               end;
           OP_DIV :
-              Begin
+              begin
                  internalerror(20020816);
               end;
           OP_IDIV :
-              Begin
+              begin
                  internalerror(20020816);
               end;
           OP_IMUL :
-              Begin
-             if aktoptprocessor = MC68000 then
+              begin
+                if aktoptprocessor = MC68000 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -445,18 +445,17 @@ unit cgcpu;
                     begin
                       if (isaddressregister(reg)) then
                        begin
-                         scratch_reg := cg.getintregister(list,OS_INT);
+                         scratch_reg := getintregister(list,OS_INT);
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULS,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                         cg.ungetcpuregister(list,scratch_reg);
                        end
                       else
                          list.concat(taicpu.op_const_reg(A_MULS,S_L,a,reg));
                     end;
               end;
           OP_MUL :
-              Begin
+              begin
                  if aktoptprocessor = MC68000 then
                    begin
                      r:=NR_D0;
@@ -474,11 +473,10 @@ unit cgcpu;
                     begin
                       if (isaddressregister(reg)) then
                        begin
-                         scratch_reg := cg.getintregister(list,OS_INT);
+                         scratch_reg := getintregister(list,OS_INT);
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULU,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                         cg.ungetcpuregister(list,scratch_reg);
                        end
                       else
                          list.concat(taicpu.op_const_reg(A_MULU,S_L,a,reg));
@@ -487,17 +485,16 @@ unit cgcpu;
           OP_SAR,
           OP_SHL,
           OP_SHR :
-              Begin
+              begin
                 if (a >= 1) and (a <= 8) then
                  begin
                    { now allowed to shift an address register }
                    if (isaddressregister(reg)) then
                      begin
-                       scratch_reg := cg.getintregister(list,OS_INT);
+                       scratch_reg := getintregister(list,OS_INT);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                        list.concat(taicpu.op_const_reg(opcode,S_L,a, scratch_reg));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
-                       cg.ungetcpuregister(list,scratch_reg);
                      end
                    else
                      list.concat(taicpu.op_const_reg(opcode,S_L,a, reg));
@@ -514,15 +511,13 @@ unit cgcpu;
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg2,reg));
-                       cg.ungetcpuregister(list,scratch_reg2);
                      end
                    else
                      list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, reg));
-                   cg.ungetcpuregister(list,scratch_reg);
                  end;
               end;
           OP_SUB :
-              Begin
+              begin
                 if (a >= 1) and (a <= 8) then
                     list.concat(taicpu.op_const_reg(A_SUBQ,S_L,a,reg))
                 else
@@ -547,7 +542,7 @@ unit cgcpu;
       begin
         case op of
           OP_ADD :
-              Begin
+              begin
                  if aktoptprocessor = ColdFire then
                   begin
                     { operation only allowed only a longword }
@@ -563,11 +558,11 @@ unit cgcpu;
           OP_AND,OP_OR,
           OP_SAR,OP_SHL,
           OP_SHR,OP_SUB,OP_XOR :
-              Begin
+              begin
                  { load to data registers }
                  if (isaddressregister(reg1)) then
                    begin
-                     hreg1 := cg.getintregister(list,OS_INT);
+                     hreg1 := getintregister(list,OS_INT);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1));
                    end
                  else
@@ -575,7 +570,7 @@ unit cgcpu;
 
                  if (isaddressregister(reg2))  then
                    begin
-                      hreg2:= cg.getintregister(list,OS_INT);
+                      hreg2:= getintregister(list,OS_INT);
                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
                    end
                  else
@@ -600,25 +595,22 @@ unit cgcpu;
                     list.concat(taicpu.op_reg_reg(topcg2tasmop[op],TCGSize2OpSize[size],hreg1, hreg2));
                   end;
 
-                 if reg1 <> hreg1 then
-                    cg.ungetcpuregister(list,hreg1);
                  { move back result into destination register }
                  if reg2 <> hreg2 then
                    begin
                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                      cg.ungetcpuregister(list,hreg2);
                    end;
               end;
           OP_DIV :
-              Begin
+              begin
                  internalerror(20020816);
               end;
           OP_IDIV :
-              Begin
+              begin
                  internalerror(20020816);
               end;
           OP_IMUL :
-              Begin
+              begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
                  if aktoptprocessor = MC68000 then
@@ -636,12 +628,14 @@ unit cgcpu;
                    end
                   else
                     begin
+//                     writeln('doing 68020');
+
                      if (isaddressregister(reg1)) then
-                       hreg1 := cg.getintregister(list,OS_INT)
+                       hreg1 := getintregister(list,OS_INT)
                      else
                        hreg1 := reg1;
                      if (isaddressregister(reg2))  then
-                       hreg2:= cg.getintregister(list,OS_INT)
+                       hreg2:= getintregister(list,OS_INT)
                      else
                        hreg2 := reg2;
 
@@ -650,18 +644,16 @@ unit cgcpu;
 
                      list.concat(taicpu.op_reg_reg(A_MULS,S_L,reg1,reg2));
 
-                     if reg1 <> hreg1 then
-                       cg.ungetcpuregister(list,hreg1);
                      { move back result into destination register }
+
                      if reg2 <> hreg2 then
                        begin
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                          cg.ungetcpuregister(list,hreg2);
                        end;
                     end;
               end;
           OP_MUL :
-              Begin
+              begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
                  if aktoptprocessor = MC68000 then
@@ -695,16 +687,12 @@ unit cgcpu;
                      else
                        hreg2 := reg2;
 
-
                      list.concat(taicpu.op_reg_reg(A_MULU,S_L,reg1,reg2));
 
-                     if reg1<>hreg1 then
-                       cg.ungetcpuregister(list,hreg1);
                      { move back result into destination register }
                      if reg2<>hreg2 then
                        begin
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                          cg.ungetcpuregister(list,hreg2);
                        end;
                     end;
               end;
@@ -720,7 +708,7 @@ unit cgcpu;
 
                 if (isaddressregister(reg2)) then
                   begin
-                     hreg2 := cg.getintregister(list,OS_INT);
+                     hreg2 := getintregister(list,OS_INT);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
                    end
                   else
@@ -740,7 +728,6 @@ unit cgcpu;
                 if reg2 <> hreg2 then
                   begin
                     list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
-                    cg.ungetcpuregister(list,hreg2);
                   end;
 
               end;
@@ -768,13 +755,12 @@ unit cgcpu;
                  only longword comparison is supported,
                  and only on data registers.
                }
-               hregister := cg.getintregister(list,OS_INT);
+               hregister := getintregister(list,OS_INT);
                { always move to a data register }
                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,hregister));
                { sign/zero extend the register }
                sign_extend(list, size,hregister);
                list.concat(taicpu.op_const_reg(A_CMPI,S_L,a,hregister));
-               cg.ungetcpuregister(list,hregister);
              end
            else
              begin
@@ -839,7 +825,6 @@ unit cgcpu;
                   list.concat(taicpu.op_reg(A_NEG,S_B,hreg));
                 end;
              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg,reg));
-             cg.ungetcpuregister(list,hreg);
             end
           else
           begin
@@ -986,8 +971,6 @@ unit cgcpu;
                 end;
 
               { restore the registers that we have just used olny if they are used! }
-              ungetcpuregister(list, iregister);
-              ungetcpuregister(list, jregister);
               if jregister = NR_A1 then
                 hp2.base := NR_NO;
               if iregister = NR_A0 then
@@ -998,9 +981,6 @@ unit cgcpu;
 
 //           if delsource then
 //               tg.ungetiftemp(list,source);
-
-// Not needed? (KB)
-//           ungetcpuregister(list,hregister);
     end;
 
     procedure tcg68k.g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef);
@@ -1052,6 +1032,7 @@ unit cgcpu;
         r,hregister : tregister;
         ref : treference;
       begin
+//         writeln('g_proc_exit');
          { Routines with the poclearstack flag set use only a ret.
            also routines with parasize=0     }
          if current_procinfo.procdef.proccalloption in clearstack_pocalls then
@@ -1208,6 +1189,7 @@ unit cgcpu;
    hreg1, hreg2 : tregister;
    opcode : tasmop;
   begin
+//    writeln('a_op64_reg_reg');
     opcode := topcg2tasmop[op];
     case op of
       OP_ADD :
@@ -1270,6 +1252,7 @@ unit cgcpu;
    lowvalue : cardinal;
    highvalue : cardinal;
   begin
+//    writeln('a_op64_const_reg');
     { is it optimized out ? }
 //    if cg.optimize64_op_const_reg(list,op,value,reg) then
 //       exit;
