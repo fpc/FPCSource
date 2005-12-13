@@ -18,6 +18,8 @@ Const
 Type
   cfloat = Single;
 
+{$linklib Xext}
+
 {$INCLUDE xf86dga1.inc}
 
 Const
