@@ -3857,7 +3857,6 @@ rtl/linux/errno.inc svneol=native#text/plain
 rtl/linux/fpcylix.pp svneol=native#text/plain
 rtl/linux/fpmake.inc svneol=native#text/plain
 rtl/linux/gpm.pp svneol=native#text/plain
-rtl/linux/grab_vcsa.pp -text
 rtl/linux/i386/bsyscall.inc svneol=native#text/plain
 rtl/linux/i386/cprt0.as -text
 rtl/linux/i386/cprt21.as -text
@@ -6790,6 +6789,7 @@ utils/fprcp/expr.pp svneol=native#text/plain
 utils/fprcp/fprcp.pp svneol=native#text/plain
 utils/fprcp/pasprep.pp svneol=native#text/plain
 utils/fprcp/use_demo.bat -text
+utils/grab_vcsa.pp -text
 utils/h2pas/Makefile svneol=native#text/plain
 utils/h2pas/Makefile.fpc svneol=native#text/plain
 utils/h2pas/README -text

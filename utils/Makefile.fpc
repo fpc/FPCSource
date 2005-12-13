@@ -9,6 +9,7 @@ version=2.0.0
 [target]
 dirs=fpcm tply h2pas fprcp dxegen fpdoc 
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32
+programs_linux=grab_vcsa
 dirs_win32=fpmc fpcres
 dirs_linux=fpcres
 dirs_freebsd=fpcres
