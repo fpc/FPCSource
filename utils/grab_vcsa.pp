@@ -88,7 +88,6 @@ begin
             halt(result_chmod_error);
           if fpchmod(vcsa,ttystat.mode)<>0 then
             halt(result_chmod_error);
-          writeln(vcsa);
           exitcode:=result_success;
         end;
     end;
