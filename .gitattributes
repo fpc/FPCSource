@@ -3551,9 +3551,9 @@ rtl/amiga/Makefile.fpc svneol=native#text/plain
 rtl/amiga/crt.pp svneol=native#text/plain
 rtl/amiga/dos.pp svneol=native#text/plain
 rtl/amiga/graph.pp svneol=native#text/plain
+rtl/amiga/m68k/prt0.as -text
 rtl/amiga/os.inc svneol=native#text/plain
 rtl/amiga/printer.pp svneol=native#text/plain
-rtl/amiga/prt0.as -text
 rtl/amiga/readme -text
 rtl/arm/arm.inc svneol=native#text/plain
 rtl/arm/int64p.inc svneol=native#text/plain
