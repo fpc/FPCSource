@@ -521,9 +521,10 @@ implementation
                 { opportunity quite difficult to detect (JM)               }
                 resulttypepass(tbinarynode(right).left);
                 resulttypepass(tbinarynode(right).right);
-                if (is_char(tbinarynode(right).right.resulttype.def) or
+                if (tbinarynode(right).right.nodetype=stringconstn) or
+		   is_char(tbinarynode(right).right.resulttype.def) or
                    is_shortstring(tbinarynode(right).right.resulttype.def) or
-                   is_ansistring(tbinarynode(right).right.resulttype.def)) then
+                   is_ansistring(tbinarynode(right).right.resulttype.def) then
                   begin
                     { remove property flag so it'll not trigger an error }
                     exclude(left.flags,nf_isproperty);
