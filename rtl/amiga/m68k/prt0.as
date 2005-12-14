@@ -66,9 +66,6 @@ __exit:
    rts
 
    .data
-   .align 4
-__stklen:
-   .long 262144
 
    .globl _ExecBase
    .globl SysBase
