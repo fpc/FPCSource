@@ -110,8 +110,8 @@ Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
-Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); compilerproc;
-Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); compilerproc;
+Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
+Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
@@ -169,8 +169,8 @@ Procedure fpc_Writeln_End(var f:Text); compilerproc;
 Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); compilerproc;
 Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); compilerproc;
-Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; S : AnsiString); compilerproc;
-Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; S : WideString); compilerproc;
+Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); compilerproc;
+Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideString); compilerproc;
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); compilerproc;
 Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerproc;
 {$ifndef CPU64}

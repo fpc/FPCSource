@@ -449,7 +449,7 @@ begin
   PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
-Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; compilerproc;
+Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; compilerproc;
 var
    ofs : SizeInt;
 begin
@@ -461,7 +461,7 @@ begin
    PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
-Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; compilerproc;
+Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; compilerproc;
 var
    ofs : SizeInt;
 begin
