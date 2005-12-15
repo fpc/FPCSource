@@ -475,8 +475,10 @@ implementation
                        asmwrite(#9'.globl ');
                        asmwriteln(Tai_datablock(hp).sym.name);
                      end;
-                   asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+',@object');
-                   asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
+                   if (tf_needs_symbol_type in target_info.flags) then
+                     asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+',@object');
+                   if (tf_needs_symbol_size in target_info.flags) and (Tai_datablock(hp).sym.size > 0) then
+                     asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
                    asmwrite(Tai_datablock(hp).sym.name);
                    asmwriteln(':');
                    asmwriteln(#9'.zero '+tostr(Tai_datablock(hp).size));
