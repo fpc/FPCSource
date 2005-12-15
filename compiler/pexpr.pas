@@ -493,6 +493,7 @@ implementation
                   (is_object(p1.resulttype.def) and
                    (oo_has_constructor in tobjectdef(p1.resulttype.def).objectoptions)) or
                   is_open_array(p1.resulttype.def) or
+                  is_array_of_const(p1.resulttype.def) or
                   is_open_string(p1.resulttype.def)
                  ) then
                statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
