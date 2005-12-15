@@ -85,6 +85,7 @@ begin
   S:=Nil;
 end;
 
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
@@ -106,6 +107,8 @@ Begin
     DisposeAnsiString (S);        { Remove...}
 end;
 
+{$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+
 { also define alias for internal use in the system unit }
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 
@@ -117,6 +120,7 @@ Begin
   If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
   inclocked(PAnsiRec(S-FirstOff)^.Ref);
 end;
+
 
 { also define alias which can be used inside the system unit }
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
@@ -410,12 +414,10 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
-function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
-
+function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; 
 Var
   SNew : Pointer;
   L    : SizeInt;
-
 begin
   L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
   SNew:=NewAnsiString (L);
@@ -426,6 +428,8 @@ begin
   pointer(result):=SNew;
 end;
 
+
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
 // MV: inline the basic checks for case that S is already unique.
 // Rest is too complex to inline, so factor that out as a call.
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
@@ -440,6 +444,8 @@ begin
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
     result:=fpc_truely_ansistr_unique(s);
 end;
+{$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+
 
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
 begin

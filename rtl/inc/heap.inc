@@ -315,7 +315,7 @@ end;
 
 
 { Delphi style }
-function FreeMem(p:pointer):ptrint;
+function FreeMem(p:pointer):ptrint;[Public,Alias:'FPC_FREEMEM_X'];
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
@@ -331,6 +331,7 @@ begin
      Freemem := MemoryManager.FreeMem(p);
    end;
 end;
+
 
 function FreeMemory(p:pointer):ptrint;
 
