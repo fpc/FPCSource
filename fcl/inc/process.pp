@@ -88,7 +88,8 @@ Type
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
-    procedure CloseProcessHandles;
+  Protected  
+    procedure CloseProcessHandles; virtual;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;

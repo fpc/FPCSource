@@ -18,7 +18,9 @@ Const
 Type
   cfloat = Single;
 
-{$INCLUDE xf86dga1.pp}
+{$linklib Xext}
+
+{$INCLUDE xf86dga1.inc}
 
 Const
   X_XDGAQueryVersion           = 0;

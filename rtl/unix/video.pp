@@ -27,7 +27,10 @@ uses
 {$i video.inc}
 
 
-Type TConsoleType = (ttyNetwork,ttyLinux,ttyFreeBSD,ttyNetBSD);
+Type TConsoleType = (ttyNetwork
+                     {$ifdef linux},ttyLinux{$endif}
+                     ,ttyFreeBSD
+                     ,ttyNetBSD);
 
 var
   LastCursorType : byte;
@@ -604,6 +607,71 @@ begin
   restoreRawSettings(preInitVideoTio);
 end;
 
+{$ifdef linux}
+function try_grab_vcsa_in_path(path:Pchar;len:cardinal):boolean;
+
+const  grab_vcsa='/grab_vcsa';
+       grab_vcsa_s:array[1..length(grab_vcsa)] of char=grab_vcsa;
+
+var p:Pchar;
+    child:Tpid;
+    status:cint;
+    pstat:stat;
+
+begin
+  getmem(p,len+length(grab_vcsa)+1);
+  move(path^,p^,len);
+  move(grab_vcsa_s,(p+len)^,length(grab_vcsa));
+  (p+len+length(grab_vcsa))^:=#0;
+  {Check if file exists.}
+  if fpstat(p,pstat)<>0 then
+    begin
+      try_grab_vcsa_in_path:=false;
+      exit;
+    end;
+  child:=fpfork;
+  if child=0 then
+    begin
+      fpexecve(p,nil,nil);
+      halt(255); {fpexec must have failed...}
+    end;
+  fpwaitpid(child,status,0);
+  try_grab_vcsa_in_path:=status=0; {Return true if success.}
+  freemem(p);
+end;
+
+function try_grab_vcsa:boolean;
+
+{If we cannot open /dev/vcsa0-31 it usually because we do not have
+ permission. At login the owner of the tty you login is set to yourself.
+
+ This is not done for vcsa, which is kinda strange as vcsa is revoke from
+ you when you log out. We try to call a setuid root helper which chowns
+ the vcsa device so we can get access to the screen buffer...}
+
+var path,p:Pchar;
+
+begin
+  try_grab_vcsa:=false;
+  path:=fpgetenv('PATH');
+  if path=nil then
+    exit;
+  p:=strscan(path,':');
+  while p<>nil do
+    begin
+      if try_grab_vcsa_in_path(path,p-path) then
+        begin
+          try_grab_vcsa:=true;
+          exit;
+        end;
+      path:=p+1;
+      p:=strscan(path,':');
+    end;
+  if try_grab_vcsa_in_path(path,strlen(path)) then
+    exit;
+end;
+{$endif}
+
 procedure SysInitVideo;
 const
   fontstr : string[3]=#27'(K';
@@ -635,13 +703,22 @@ begin
       begin
         { running on the console }
         Case ThisTTY[9] of
+        {$ifdef linux}
          '0'..'9' : begin { running Linux on native console or native-emulation }
                      FName:='/dev/vcsa' + ThisTTY[9];
                      { open console, $1b6=rw-rw-rw- }
                      TTYFd:=fpOpen(FName, $1b6, O_RdWr);
-                     IF TTYFd <>-1 Then
-                       Console:=ttyLinux;
+                     if TTYFd<>-1 Then
+                       console:=ttyLinux
+                     else
+                       if try_grab_vcsa then
+                         begin
+                           TTYFd:=fpOpen(FName, $1b6, O_RdWr);
+                           if TTYFd<>-1 Then
+                             console:=Ttylinux;
+                         end;
                     end;
+        {$endif}
          'v'  :  { check for (Free?)BSD native}
                 If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
                  Console:=ttyFreeBSD;   {TTYFd ?}
@@ -649,12 +726,16 @@ begin
        end;
      If (Copy(fpGetEnv('TERM'),1,4)='cons') Then                // cons<lines>
        Console:=ttyFreeBSD;
+   {$ifdef linux}
      If Console<>ttylinux Then
       begin
         { running on a remote terminal, no error with /dev/vcsa }
         LowAscii:=false;
         //TTYFd:=stdoutputhandle;
       end;
+   {$else}
+     lowascii:=false;
+   {$endif}
      fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
       WS.ws_Col:=80;
@@ -671,8 +752,10 @@ begin
      LastCursorType:=$ff;
      ScreenColor:=True;
      { Start with a clear screen }
+   {$ifdef linux}
      if Console<>ttylinux then
       begin
+   {$endif}
         prev_term:=cur_term;
         setupterm(nil, stdoutputhandle, err);
         can_delete_term:=assigned(prev_term) and (prev_term<>cur_term);
@@ -683,12 +766,14 @@ begin
         SetCursorType(crUnderLine);
         If Console=ttyFreeBSD Then
           SendEscapeSeqNdx(exit_am_mode);
+   {$ifdef linux}
       end
      else if not assigned(cur_term) then
        begin
          setupterm(nil, stdoutputhandle, err);
          can_delete_term:=false;
        end;
+   {$endif}
      if assigned(cur_term_Strings) then
        begin
          ACSIn:=StrPas(cur_term_Strings^[enter_alt_charset_mode]);
@@ -721,17 +806,21 @@ end;
 procedure SysDoneVideo;
 begin
   prepareDoneVideo;
+{$ifdef linux}
   if Console=ttylinux then
    SetCursorPos(0,0)
   else
    begin
+{$endif}
      SendEscapeSeqNdx(exit_ca_mode);
      SendEscapeSeqNdx(cursor_home);
      SendEscapeSeqNdx(cursor_normal);
      SendEscapeSeqNdx(cursor_visible);
      SetCursorType(crUnderLine);
      SendEscapeSeq(#27'[H');
+{$ifdef linux}
    end;
+{$endif}
   ACSIn:='';
   ACSOut:='';
   doneVideoDone;
@@ -752,13 +841,17 @@ end;
 
 procedure SysClearScreen;
 begin
+{$ifdef linux}
   if Console=ttylinux then
     UpdateScreen(true)
   else
     begin
-    SendEscapeSeq(#27'[0m');
-    SendEscapeSeqNdx(clear_screen);
+{$endif}
+      SendEscapeSeq(#27'[0m');
+      SendEscapeSeqNdx(clear_screen);
+{$ifdef linux}
     end;
+{$endif}
 end;
 
 
@@ -805,6 +898,7 @@ begin
    DoUpdate:=true;
   if not DoUpdate then
    exit;
+{$ifdef linux}
   if Console=ttylinux then
    begin
      fplSeek(TTYFd, 4, Seek_Set);
@@ -812,8 +906,11 @@ begin
    end
   else
    begin
+{$endif}
      UpdateTTY(force);
+{$ifdef linux}
    end;
+{$endif}
   Move(VideoBuf^, OldVideoBuf^, VideoBufSize);
 end;
 
@@ -831,6 +928,7 @@ var
 begin
  if (CursorX=NewCursorX) and (CursorY=NewCursorY) then
     exit;
+{$ifdef linux}
   if Console=ttylinux then
    begin
      fplSeek(TTYFd, 2, Seek_Set);
@@ -840,9 +938,12 @@ begin
    end
   else
    begin
+{$endif}
      { newcursorx,y and CursorX,Y are 0 based ! }
      SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
+{$ifdef linux}
    end;
+{$endif}
   CursorX:=NewCursorX;
   CursorY:=NewCursorY;
 end;

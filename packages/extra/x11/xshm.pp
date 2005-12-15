@@ -6,6 +6,7 @@ uses
 {$ifndef os2}
   {$LinkLib c}
   {$LinkLib X11}
+  {$LinkLib Xext}
 const
   libX11='X11';
 {$else}
