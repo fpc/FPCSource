@@ -1130,7 +1130,7 @@ begin
           ((p.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p.typ = ait_label) and
             labelCanBeSkipped(tai_label(p))) or
-           ((p.typ = ait_marker) and 
+           ((p.typ = ait_marker) and
             (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend]))) do
          p := tai(p.next);
     while assigned(p) and
@@ -2587,7 +2587,7 @@ begin
                   if (taicpu(p).ops >= 2) then
                     ReadOp(curprop,taicpu(p).oper[1]^);
                   if (taicpu(p).ops <= 2) then
-                    if (taicpu(p).oper[1]^.typ = top_none) then
+                    if (taicpu(p).ops=1) then
                       begin
                         readreg(curprop,RS_EAX);
 {$ifdef statedebug}
