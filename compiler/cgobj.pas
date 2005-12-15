@@ -1489,6 +1489,7 @@ implementation
         decrfunc : string;
         needrtti : boolean;
         cgpara1,cgpara2 : TCGPara;
+        tempreg1,tempreg2 : TRegister;
       begin
         cgpara1.init;
         cgpara2.init;
@@ -1527,14 +1528,20 @@ implementation
             if needrtti then
              begin
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-               paramanager.allocparaloc(list,cgpara2);
-               a_paramaddr_ref(list,href,cgpara2);
+               tempreg2:=getaddressregister(list);
+               a_loadaddr_ref_reg(list,href,tempreg2);
              end;
-            paramanager.allocparaloc(list,cgpara1);
-            a_paramaddr_ref(list,ref,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
+            tempreg1:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tempreg1);
             if needrtti then
-              paramanager.freeparaloc(list,cgpara2);
+              begin
+                paramanager.allocparaloc(list,cgpara2);
+                a_param_reg(list,OS_ADDR,tempreg2,cgpara2);
+                paramanager.freeparaloc(list,cgpara2);
+              end;
+            paramanager.allocparaloc(list,cgpara1);
+            a_param_reg(list,OS_ADDR,tempreg1,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,decrfunc);
             deallocallcpuregisters(list);
@@ -1601,10 +1608,7 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
-           begin
-             g_decrrefcount(list,t,ref);
-             a_load_const_ref(list,OS_ADDR,0,ref);
-           end
+            g_decrrefcount(list,t,ref)
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
