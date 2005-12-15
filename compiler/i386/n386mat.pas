@@ -61,110 +61,200 @@ implementation
                              TI386MODDIVNODE
 *****************************************************************************}
 
-    procedure ti386moddivnode.pass_2;
+    function log2(i : dword) : dword;
+      begin
+        result:=0;
+        i:=i shr 1;
+        while i<>0 do
+          begin
+            i:=i shr 1;
+            inc(result);
+          end;
+      end;
 
-    var  hreg1,hreg2:Tregister;
-         power:longint;
-         hl:Tasmlabel;
-         op:Tasmop;
 
-    begin
-      secondpass(left);
-      if codegenerror then
-        exit;
-      secondpass(right);
-      if codegenerror then
-        exit;
+   procedure ti386moddivnode.pass_2;
+      var
+        hreg1,hreg2:Tregister;
+        power:longint;
+        hl:Tasmlabel;
+        op:Tasmop;
+        e : longint;
+        d,l,s,m,a : dword;
+        m_low,m_high,j,k : qword;
+      begin
+        secondpass(left);
+        if codegenerror then
+          exit;
+        secondpass(right);
+        if codegenerror then
+          exit;
 
-      if is_64bitint(resulttype.def) then
-        { should be handled in pass_1 (JM) }
-        internalerror(200109052);
-      { put numerator in register }
-      location_reset(location,LOC_REGISTER,OS_INT);
-      location_force_reg(exprasmlist,left.location,OS_INT,false);
-      hreg1:=left.location.register;
+        if is_64bitint(resulttype.def) then
+          { should be handled in pass_1 (JM) }
+          internalerror(200109052);
+        { put numerator in register }
+        location_reset(location,LOC_REGISTER,OS_INT);
+        location_force_reg(exprasmlist,left.location,OS_INT,false);
+        hreg1:=left.location.register;
 
-      if (nodetype=divn) and (right.nodetype=ordconstn) and
-         ispowerof2(tordconstnode(right).value,power) then
-        begin
-          { for signed numbers, the numerator must be adjusted before the
-            shift instruction, but not wih unsigned numbers! Otherwise,
-            "Cardinal($ffffffff) div 16" overflows! (JM) }
-          if is_signed(left.resulttype.def) Then
-            begin
-              if (aktOptProcessor <> class386) and
-                 not(cs_littlesize in aktglobalswitches) then
-                { use a sequence without jumps, saw this in
-                  comp.compilers (JM) }
-                begin
-                  { no jumps, but more operations }
-                  hreg2:=cg.getintregister(exprasmlist,OS_INT);
-                  emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
-                  {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
-                  emit_const_reg(A_SAR,S_L,31,hreg2);
-                  {If signed, hreg2=right value-1, otherwise 0.}
-                  emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
-                  { add to the left value }
-                  emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
-                  { do the shift }
-                  emit_const_reg(A_SAR,S_L,power,hreg1);
-                end
-              else
-                begin
-                  { a jump, but less operations }
-                  emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
-                  objectlibrary.getjumplabel(hl);
-                  cg.a_jmp_flags(exprasmlist,F_NS,hl);
-                  if power=1 then
-                    emit_reg(A_INC,S_L,hreg1)
-                  else
-                    emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
-                  cg.a_label(exprasmlist,hl);
-                  emit_const_reg(A_SAR,S_L,power,hreg1);
-                end
-            end
-          else
-            emit_const_reg(A_SHR,S_L,power,hreg1);
-          location.register:=hreg1;
-        end
-      else
-        begin
-          cg.getcpuregister(exprasmlist,NR_EAX);
-          emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
-          cg.getcpuregister(exprasmlist,NR_EDX);
-          {Sign extension depends on the left type.}
-          if torddef(left.resulttype.def).typ=u32bit then
-            emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
-          else
-            emit_none(A_CDQ,S_NO);
+        if (nodetype=divn) and (right.nodetype=ordconstn) then
+          begin
+            if ispowerof2(tordconstnode(right).value,power) then
+              begin
+                { for signed numbers, the numerator must be adjusted before the
+                  shift instruction, but not wih unsigned numbers! Otherwise,
+                  "Cardinal($ffffffff) div 16" overflows! (JM) }
+                if is_signed(left.resulttype.def) Then
+                  begin
+                    if (aktOptProcessor <> class386) and
+                       not(cs_littlesize in aktglobalswitches) then
+                      { use a sequence without jumps, saw this in
+                        comp.compilers (JM) }
+                      begin
+                        { no jumps, but more operations }
+                        hreg2:=cg.getintregister(exprasmlist,OS_INT);
+                        emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
+                        {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
+                        emit_const_reg(A_SAR,S_L,31,hreg2);
+                        {If signed, hreg2=right value-1, otherwise 0.}
+                        emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
+                        { add to the left value }
+                        emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
+                        { do the shift }
+                        emit_const_reg(A_SAR,S_L,power,hreg1);
+                      end
+                    else
+                      begin
+                        { a jump, but less operations }
+                        emit_reg_reg(A_TEST,S_L,hreg1,hreg1);
+                        objectlibrary.getjumplabel(hl);
+                        cg.a_jmp_flags(exprasmlist,F_NS,hl);
+                        if power=1 then
+                          emit_reg(A_INC,S_L,hreg1)
+                        else
+                          emit_const_reg(A_ADD,S_L,tordconstnode(right).value-1,hreg1);
+                        cg.a_label(exprasmlist,hl);
+                        emit_const_reg(A_SAR,S_L,power,hreg1);
+                      end
+                  end
+                else
+                  emit_const_reg(A_SHR,S_L,power,hreg1);
+                location.register:=hreg1;
+              end
+            else
+              begin
+                e:=tordconstnode(right).value;
+                d:=abs(e);
+                { Determine algorithm (a), multiplier (m), and shift factor (s) for 32-bit
+                  signed integer division. Based on: Granlund, T.; Montgomery, P.L.:
+                  "Division by Invariant Integers using Multiplication". SIGPLAN Notices,
+                  Vol. 29, June 1994, page 61.
+                }
 
-          {Division depends on the right type.}
-          if Torddef(right.resulttype.def).typ=u32bit then
-            op:=A_DIV
-          else
-            op:=A_IDIV;
+                l:=log2(d);
+                j:=qword($80000000) mod qword(d);
+                k:=(qword(1) shl (32+l)) div (qword($80000000-j));
+                m_low:=((qword(1)) shl (32+l)) div d;
+                m_high:=(((qword(1)) shl (32+l)) + k) div d;
+                while ((m_low shr 1) < (m_high shr 1)) and (l > 0) do
+                  begin
+                    m_low:=m_low shr 1;
+                    m_high:=m_high shr 1;
+                    dec(l);
+                  end;
+                m:=m_high;
+                s:=l;
+                if (m_high shr 31)<>0 then
+                  a:=1
+                else
+                  a:=0;
+                cg.getcpuregister(exprasmlist,NR_EAX);
+                emit_const_reg(A_MOV,S_L,m,NR_EAX);
+                cg.getcpuregister(exprasmlist,NR_EDX);
+                emit_reg(A_IMUL,S_L,hreg1);
+                emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
+                if a<>0 then
+                  begin
+                    emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
+                  {
+                    printf ("; dividend: memory location or register other than EAX or EDX\n");
+                    printf ("\n");
+                    printf ("MOV EAX, 0%08LXh\n", m);
+                    printf ("IMUL dividend\n");
+                    printf ("MOV EAX, dividend\n");
+                    printf ("ADD EDX, EAX\n");
+                    if (s) printf ("SAR EDX, %d\n", s);
+                    printf ("SHR EAX, 31\n");
+                    printf ("ADD EDX, EAX\n");
+                    if (e < 0) printf ("NEG EDX\n");
+                    printf ("\n");
+                    printf ("; quotient now in EDX\n");
+                  }
+                  end;
+                {
+                  printf ("; dividend: memory location of register other than EAX or EDX\n");
+                  printf ("\n");
+                  printf ("MOV EAX, 0%08LXh\n", m);
+                  printf ("IMUL dividend\n");
+                  printf ("MOV EAX, dividend\n");
+                  if (s) printf ("SAR EDX, %d\n", s);
+                  printf ("SHR EAX, 31\n");
+                  printf ("ADD EDX, EAX\n");
+                  if (e < 0) printf ("NEG EDX\n");
+                  printf ("\n");
+                  printf ("; quotient now in EDX\n");
+                }
+                if s<>0 then
+                  emit_const_reg(A_SAR,S_L,s,NR_EDX);
+                emit_const_reg(A_SHR,S_L,31,NR_EAX);
+                emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
+                if e<0 then
+                  emit_reg(A_NEG,S_L,NR_EDX);
+                cg.ungetcpuregister(exprasmlist,NR_EDX);
+                cg.ungetcpuregister(exprasmlist,NR_EAX);
+                location.register:=cg.getintregister(exprasmlist,OS_INT);
+                cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register)
+              end;
+          end
+        else
+          begin
+            cg.getcpuregister(exprasmlist,NR_EAX);
+            emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
+            cg.getcpuregister(exprasmlist,NR_EDX);
+            {Sign extension depends on the left type.}
+            if torddef(left.resulttype.def).typ=u32bit then
+              emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
+            else
+              emit_none(A_CDQ,S_NO);
 
-          if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-            emit_ref(op,S_L,right.location.reference)
-          else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-            emit_reg(op,S_L,right.location.register)
-          else
-            begin
-              hreg1:=cg.getintregister(exprasmlist,right.location.size);
-              cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hreg1);
-              emit_reg(op,S_L,hreg1);
-            end;
+            {Division depends on the right type.}
+            if Torddef(right.resulttype.def).typ=u32bit then
+              op:=A_DIV
+            else
+              op:=A_IDIV;
 
-          {Copy the result into a new register. Release EAX & EDX.}
-          cg.ungetcpuregister(exprasmlist,NR_EDX);
-          cg.ungetcpuregister(exprasmlist,NR_EAX);
-          location.register:=cg.getintregister(exprasmlist,OS_INT);
-          if nodetype=divn then
-            cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EAX,location.register)
-          else
-            cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register);
-        end;
-    end;
+            if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+              emit_ref(op,S_L,right.location.reference)
+            else if right.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+              emit_reg(op,S_L,right.location.register)
+            else
+              begin
+                hreg1:=cg.getintregister(exprasmlist,right.location.size);
+                cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hreg1);
+                emit_reg(op,S_L,hreg1);
+              end;
+
+            {Copy the result into a new register. Release EAX & EDX.}
+            cg.ungetcpuregister(exprasmlist,NR_EDX);
+            cg.ungetcpuregister(exprasmlist,NR_EAX);
+            location.register:=cg.getintregister(exprasmlist,OS_INT);
+            if nodetype=divn then
+              cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EAX,location.register)
+            else
+              cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register);
+          end;
+      end;
 
 
 {*****************************************************************************
