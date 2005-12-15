@@ -105,8 +105,8 @@ Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword
 Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; compilerproc;
 {$endif CPU64}
 
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); compilerproc;
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
+Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
