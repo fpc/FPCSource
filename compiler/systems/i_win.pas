@@ -70,7 +70,7 @@ unit i_win;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 4;
+                procalign       : 16;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
@@ -132,7 +132,7 @@ unit i_win;
             endian       : endian_little;
             alignment    :
               (
-                procalign       : 8;
+                procalign       : 16;
                 loopalign       : 8;
                 jumpalign       : 0;
                 constalignmin   : 0;
