@@ -469,14 +469,30 @@ implementation
       begin
         if not assigned(p.resulttype.def) then
           resulttypepass(p);
-        result:=ccallnode.createintern('fpc_finalize',
-              ccallparanode.create(
-                  caddrnode.create_internal(
-                      crttinode.create(
-                          tstoreddef(p.resulttype.def),initrtti)),
-              ccallparanode.create(
-                  caddrnode.create_internal(p),
-              nil)));
+        if is_ansistring(p.resulttype.def) then
+          begin
+            result:=ccallnode.createintern('fpc_ansistr_decr_ref',
+                  ccallparanode.create(
+                    ctypeconvnode.create_internal(p,voidpointertype),
+                  nil));
+          end
+        else
+        if is_widestring(p.resulttype.def) then
+          begin
+            result:=ccallnode.createintern('fpc_widestr_decr_ref',
+                  ccallparanode.create(
+                    ctypeconvnode.create_internal(p,voidpointertype),
+                  nil));
+          end
+        else
+          result:=ccallnode.createintern('fpc_finalize',
+                ccallparanode.create(
+                    caddrnode.create_internal(
+                        crttinode.create(
+                            tstoreddef(p.resulttype.def),initrtti)),
+                ccallparanode.create(
+                    caddrnode.create_internal(p),
+                nil)));
       end;
 
 
