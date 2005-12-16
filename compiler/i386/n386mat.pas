@@ -170,7 +170,7 @@ implementation
                 else
                   a:=0;
                 cg.getcpuregister(exprasmlist,NR_EAX);
-                emit_const_reg(A_MOV,S_L,m,NR_EAX);
+                emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
                 cg.getcpuregister(exprasmlist,NR_EDX);
                 emit_reg(A_IMUL,S_L,hreg1);
                 emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
