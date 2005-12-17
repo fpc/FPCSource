@@ -772,7 +772,7 @@ implementation
                p:=tunarynode(p).left;
              vecn:
                begin
-                 set_varstate(tbinarynode(p).right,vs_readwritten,[vsf_must_be_valid]);
+                 set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
                  if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid);
                  p:=tunarynode(p).left;
