@@ -11,8 +11,6 @@ uses Dynlibs, sysutils;
 {$ENDIF}
 
 {$IFDEF Unix}
-  {$LINKLIB c}
-  {$LINKLIB crypt}
   {$DEFINE extdecl:=cdecl}
   const
     gdslib = 'libgds.so';
