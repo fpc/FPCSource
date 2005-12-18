@@ -112,6 +112,7 @@ unit paramgr;
           procedure duplicateparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
           function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;abstract;
+          function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;virtual;abstract;
        end;
 
 

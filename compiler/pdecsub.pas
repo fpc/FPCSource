@@ -862,7 +862,9 @@ implementation
       var
         pd : tprocdef;
         isclassmethod : boolean;
+        locationstr: string;
       begin
+        locationstr:='';
         pd:=nil;
         isclassmethod:=false;
         { read class method }
@@ -892,6 +894,30 @@ implementation
                          single_type(pd.rettype,false);
                          pd.test_if_fpu_result;
                          dec(testcurobject);
+                         
+                         if (target_info.system in [system_m68k_amiga]) then
+                          begin
+                           if (idtoken=_LOCATION) then
+                            begin
+                             if po_explicitparaloc in pd.procoptions then
+                              begin
+                               consume(_LOCATION);
+                               locationstr:=pattern;
+                               consume(_CSTRING);
+                              end
+                             else
+                              { I guess this needs a new message... (KB) }
+                              Message(parser_e_paraloc_all_paras);
+                            end
+                           else
+                            begin
+                             if po_explicitparaloc in pd.procoptions then
+                              { assign default locationstr, if none specified }
+                              { and we've arguments with explicit paraloc }
+                              locationstr:='D0'; 
+                            end;    
+                          end;
+                          
                        end
                       else
                        begin
@@ -1021,6 +1047,13 @@ implementation
         if not(check_proc_directive(false)) then
           consume(_SEMICOLON);
         result:=pd;
+
+        if locationstr<>'' then
+         begin
+           if not(paramanager.parsefuncretloc(pd,upper(locationstr))) then
+             { I guess this needs a new message... (KB) }
+             message(parser_e_illegal_explicit_paraloc);
+         end;
       end;
 
 
@@ -1264,7 +1297,6 @@ begin
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
         end;
-      { FIX ME!!! 68k amigaos syscalls needs explicit funcretloc support to be complete (KB) }
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
     end;

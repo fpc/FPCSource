@@ -385,6 +385,9 @@ interface
 {$ifdef i386}
           fpu_used        : longint;    { how many stack fpu must be empty }
 {$endif i386}
+{$ifdef m68k}
+          exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
+{$endif}
           funcretloc : array[tcallercallee] of TLocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
