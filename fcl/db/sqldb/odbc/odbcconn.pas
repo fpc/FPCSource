@@ -687,7 +687,7 @@ begin
       SQL_LONGVARBINARY: begin FieldType:=ftBlob;       FieldSize:=ColumnSize; end;
       SQL_TYPE_DATE:     begin FieldType:=ftDate;       FieldSize:=0; end;
       SQL_TYPE_TIME:     begin FieldType:=ftTime;       FieldSize:=0; end;
-      SQL_TYPE_TIMESTAMP:begin FieldType:=ftTimeStamp;  FieldSize:=0; end;
+      SQL_TYPE_TIMESTAMP:begin FieldType:=ftDateTime;   FieldSize:=0; end;
 {      SQL_TYPE_UTCDATETIME:FieldType:=ftUnknown;}
 {      SQL_TYPE_UTCTIME:   FieldType:=ftUnknown; }
 {      SQL_INTERVAL_MONTH:           FieldType:=ftUnknown;}
@@ -706,6 +706,12 @@ begin
 {      SQL_GUID:          begin FieldType:=ftGuid;       FieldSize:=ColumnSize; end; } // no TGuidField exists yet in the db unit
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
+    end;
+    
+    if (FieldType in [ftString,ftFixedChar]) and // field types mapped to TStringField
+       (FieldSize >= dsMaxStringSize) then
+    begin
+      FieldSize:=dsMaxStringSize-1;
     end;
 
     // add FieldDef
