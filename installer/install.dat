@@ -293,7 +293,7 @@ pack=Commo~n~
 # Common 1
 package=docs-pdf.zip,Documentation (~P~DF)
 # Common 2
-package=doc-html.zip[doc-htm.zip],Documentation (~H~MTL)
+package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 3
 package=demo.zip,D~e~mos
 

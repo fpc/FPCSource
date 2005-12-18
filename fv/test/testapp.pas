@@ -45,9 +45,9 @@ PROGRAM TestApp;
      {$ifdef TEST}
      AsciiTab,
      {$endif TEST}
-     {$ifdef DEBUG}
+     { $ifdef DEBUG
      Gfvgraph,
-     {$endif DEBUG}
+     $endif DEBUG}
      Gadgets, TimedDlg, MsgBox;
 
 
@@ -122,7 +122,7 @@ Var
 {$endif DEBUG}
 begin
   inherited Idle;
-{$ifdef DEBUG}
+{ $ifdef DEBUG
    if WriteDebugInfo then
      begin
       WasSet:=true;
@@ -131,13 +131,13 @@ begin
    else
       WasSet:=false;
    if WriteDebugInfo then
-{$endif DEBUG}
+$endif DEBUG}
   Clock^.Update;
   Heap^.Update;
-{$ifdef DEBUG}
+{ $ifdef DEBUG
    if WasSet then
      WriteDebugInfo:=true;
-{$endif DEBUG}
+$endif DEBUG}
   if Desktop^.FirstThat(@IsTileable) <> nil then
     EnableCommands([cmTile, cmCascade])
   else
