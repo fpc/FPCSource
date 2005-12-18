@@ -1282,8 +1282,14 @@ implementation
            href : treference;
          begin
             case paraloc.loc of
-              LOC_REGISTER :
-                cg.a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+              LOC_REGISTER : 
+                begin
+                  {$IFDEF CPUPOWERPC64}
+                  if (paraloc.shiftval <> 0) then
+                    cg.a_op_const_reg_reg(list, OP_SHL, OS_INT, paraloc.shiftval, paraloc.register, paraloc.register);
+                  {$ENDIF CPUPOWERPC64}
+                  cg.a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+                end;
               LOC_MMREGISTER :
                 cg.a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
               LOC_FPUREGISTER :
