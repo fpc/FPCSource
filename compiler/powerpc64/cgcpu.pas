@@ -373,7 +373,7 @@ begin
               location^.register)
           else
           {$IFDEF extdebug}
-            list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO')));
+            list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO, sizeleft ' + inttostr(sizeleft))));
           {$ENDIF extdebug}
 
             { load non-integral sized memory location into register. This 
@@ -430,15 +430,12 @@ begin
                 { the block is > 8 bytes, so we have to store any bytes not
                  a multiple of the register size beginning with the MSB }
                 adjusttail := true;
-            end; 
-(*          
-            { Comment this in (for gcc compat) and be prepared for a whole bunch of errors :/ }
-            
+            end;           
             if (adjusttail) and (sizeleft < tcgsize2size[OS_INT]) then
               a_op_const_reg(list, OP_SHL, OS_INT, 
                 (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT], 
                 location^.register);
-*)
+
         end;
       LOC_REFERENCE:
         begin

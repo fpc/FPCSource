@@ -29,7 +29,12 @@ uses
   symdef, node, ncal, ncgcal;
 
 type
+
+  tppccallparanode = class(tcgcallparanode)
+  end;
+
   tppccallnode = class(tcgcallnode)
+    procedure do_syscall; override;
   end;
 
 implementation
@@ -44,8 +49,15 @@ uses
   ncgutil, cgutils, cgobj, tgobj, regvars, rgobj, rgcpu,
   cgcpu, cpupi, procinfo;
 
+procedure tppccallnode.do_syscall;
+begin
+  { no MorphOS style syscalls supported. Only implemented to avoid abstract 
+   method not implemented compiler warning. }
+  internalerror(2005120401);
+end;
 
 begin
+  ccallparanode:=tppccallparanode;
   ccallnode := tppccallnode;
 end.
 

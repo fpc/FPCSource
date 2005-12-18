@@ -264,6 +264,7 @@ function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
+
 var
   stack_offset: longint;
   paralen: aint;
@@ -274,6 +275,8 @@ var
   hp: tparavarsym;
   loc: tcgloc;
   paracgsize: tcgsize;
+
+  parashift : byte;
 
 begin
 {$IFDEF extdebug}
@@ -288,13 +291,13 @@ begin
   stack_offset := cur_stack_offset;
 
   for i := 0 to paras.count - 1 do begin
+    parashift := 0;
+
     hp := tparavarsym(paras[i]);
     paradef := hp.vartype.def;
-    { Syscall for Morphos can have already a paraloc set }
+    { Syscall for Morphos can have already a paraloc set; not supported on ppc64 }
     if (vo_has_explicit_paraloc in hp.varoptions) then begin
-      if not (vo_is_syscall_lib in hp.varoptions) then
-        internalerror(200412153);
-      continue;
+      internalerror(200412153);
     end;
     hp.paraloc[side].reset;
     { currently only support C-style array of const }
@@ -327,8 +330,8 @@ begin
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
         if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
-          (not trecorddef(hp.vartype.def).isunion) and
-          (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) then begin
+          (not trecorddef(hp.vartype.def).isunion)  and
+          (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef, enumdef, floatdef])  then begin
           paradef :=
             tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
           loc := getparaloc(paradef);
@@ -336,6 +339,8 @@ begin
         end else begin
           loc := LOC_REGISTER;
           paracgsize := int_cgsize(paralen);
+          if (paralen in [3,5,6,7]) then
+            parashift := (tcgsize2size[paracgsize]-paralen) * 8;
         end;
       end else begin
         loc := getparaloc(paradef);
@@ -369,17 +374,22 @@ begin
       end else
         internalerror(2005011310);
     { can become < 0 for e.g. 3-byte records }
+
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
       if (loc = LOC_REGISTER) and (nextintreg <= RS_R10) then begin
         paraloc^.loc := loc;
-        { make sure we don't lose whether or not the type is signed }
-        if (paradef.deftype <> orddef) then
-          paracgsize := int_cgsize(paralen);
-        if (paracgsize in [OS_NO]) then
-          paraloc^.size := OS_INT
+        paraloc^.shiftval := parashift;
+
+        if (paracgsize <> OS_NO) then
+          { make sure we don't lose whether or not the type is signed }
+          if (paradef.deftype <> orddef) then
+            paraloc^.size := int_cgsize(paralen)
+          else
+            paraloc^.size := paracgsize
         else
-          paraloc^.size := paracgsize;
+          paraloc^.size := OS_INT;
+
         paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
         inc(nextintreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
