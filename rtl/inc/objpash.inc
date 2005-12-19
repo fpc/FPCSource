@@ -53,9 +53,12 @@
      type
        TextFile = Text;
 
-       { now the let's declare the base classes for the class object }
-       { model                                                       }
+       { now the let's declare the base classes for the class object
+         model. The compiler expects TObject and IUnknown to be defined
+         first as forward classes }
        TObject = class;
+       IUnknown = interface;
+
        TClass  = class of tobject;
        PClass  = ^tclass;
 
