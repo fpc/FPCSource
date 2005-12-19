@@ -538,7 +538,10 @@ var
   begin
     PrevSpaces := 0;
     CurParent := RootLinkNode;
-    PrevSibling := nil;
+    PrevSibling := CurParent.FirstChild;
+    if assigned(PrevSibling) then
+      while assigned(PrevSibling.NextSibling) do
+        PrevSibling := PrevSibling.NextSibling;
     StackIndex := 0;
     while True do
     begin
