@@ -197,7 +197,7 @@ Begin
     End;
   End;
 
-  error += Round(Sqrt(mindist) * 290);
+  error:=error+round(Sqrt(mindist) * 290);
   Case dither Of
     0 : best2 := best1;
     1 : Begin
@@ -226,7 +226,7 @@ Begin
       b := s[0];
       g := s[1];
       r := s[2];
-      CGACalcError += precalcerror[back, pal]^[b Shr 4, g Shr 4, r Shr 4];
+      inc(CGACalcError,precalcerror[back, pal]^[b Shr 4, g Shr 4, r Shr 4]);
       Inc(s, 4{ + 4 + 4 + 4});
     End;
 //    Inc(s, 320*4*3);
