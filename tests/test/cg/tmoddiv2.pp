@@ -27,7 +27,7 @@ begin
 	my_modulus := temp or ((not m) and mask1 and mask2);	
 end;
 
-function i32_modulus(x, m : integer) : integer; 
+function i32_modulus(x, m : integer) : integer;
 var
     temp : integer;
 begin
@@ -44,7 +44,7 @@ begin
 end;
 
 var
-	i : integer; 
+	i : integer;
 	j, k : longint;
 	res, res2 : longint;
 	
@@ -275,7 +275,7 @@ begin
 		assert((y div 3) = (y div z), 'Wrong uint32 division by 3 for y=' + hexstr(y,sizeof(y)*2) + ' z=' + hexstr(z, sizeof(z)*2));
 	end;
 	writeln('Success.');
-	
+
 	write('positive uint32 modulus test (3)...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
@@ -321,7 +321,7 @@ begin
 	end;
 	writeln('Success.');	
 	
-	
+
 	write('positive uint32 division test...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
@@ -330,7 +330,7 @@ begin
 		assert((y div 512) = (y div z), 'Wrong uint32 division by 512 for y=' + hexstr(y,sizeof(y)*2) + ' z=' + hexstr(z, sizeof(z)*2));
 	end;
 	writeln('Success.');
-	
+
 	write('positive uint32 modulus test...');
 	for i := -10000 to 10000 do begin
 		y := random(high(integer));
@@ -338,6 +338,25 @@ begin
 		z := 512;
 		assert((y mod 512) = (u32_modulus(y,z)), 'Wrong uint32 modulus by 512 for y=' + hexstr(y,sizeof(y)*2) + ' z=' + hexstr(z, sizeof(z)*2));
 	end;
-	writeln('Success.');		
+	writeln('Success.');
+
+        { extra test for div by constant optimization }
+	write('positive uint32 division test...');
+	for i := -10000 to 10000 do begin
+		y := random(high(integer));
+		if (random(2) = 1) then y := 2 * y;
+		z := $deadbeef;
+		assert((y div $deadbeef) = (y div z), 'Wrong uint32 division by $deadbeaf for y=' + hexstr(y,sizeof(y)*2) + ' z=' + hexstr(z, sizeof(z)*2));
+	end;
+	writeln('Success.');
+
+	write('positive uint32 division test...');
+	for i := -10000 to 10000 do begin
+		y := random(high(integer));
+		if (random(2) = 1) then y := 2 * y;
+		z := $b16beef;
+		assert((y div $b16beef) = (y div z), 'Wrong uint32 division by $b16beef for y=' + hexstr(y,sizeof(y)*2) + ' z=' + hexstr(z, sizeof(z)*2));
+	end;
+	writeln('Success.');
 end.
 

@@ -80,7 +80,7 @@ implementation
         hl:Tasmlabel;
         op:Tasmop;
         e : longint;
-        d,l,s,m,a : dword;
+        d,l,r,s,m,a,n,t : dword;
         m_low,m_high,j,k : qword;
       begin
         secondpass(left);
@@ -144,78 +144,174 @@ implementation
               end
             else
               begin
-                e:=tordconstnode(right).value;
-                d:=abs(e);
-                { Determine algorithm (a), multiplier (m), and shift factor (s) for 32-bit
-                  signed integer division. Based on: Granlund, T.; Montgomery, P.L.:
-                  "Division by Invariant Integers using Multiplication". SIGPLAN Notices,
-                  Vol. 29, June 1994, page 61.
-                }
+                if is_signed(left.resulttype.def) then
+                  begin
+                    e:=tordconstnode(right).value;
+                    d:=abs(e);
+                    { Determine algorithm (a), multiplier (m), and shift factor (s) for 32-bit
+                      signed integer division. Based on: Granlund, T.; Montgomery, P.L.:
+                      "Division by Invariant Integers using Multiplication". SIGPLAN Notices,
+                      Vol. 29, June 1994, page 61.
+                    }
 
-                l:=log2(d);
-                j:=qword($80000000) mod qword(d);
-                k:=(qword(1) shl (32+l)) div (qword($80000000-j));
-                m_low:=((qword(1)) shl (32+l)) div d;
-                m_high:=(((qword(1)) shl (32+l)) + k) div d;
-                while ((m_low shr 1) < (m_high shr 1)) and (l > 0) do
-                  begin
-                    m_low:=m_low shr 1;
-                    m_high:=m_high shr 1;
-                    dec(l);
-                  end;
-                m:=m_high;
-                s:=l;
-                if (m_high shr 31)<>0 then
-                  a:=1
-                else
-                  a:=0;
-                cg.getcpuregister(exprasmlist,NR_EAX);
-                emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
-                cg.getcpuregister(exprasmlist,NR_EDX);
-                emit_reg(A_IMUL,S_L,hreg1);
-                emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
-                if a<>0 then
-                  begin
+                    l:=log2(d);
+                    j:=qword($80000000) mod qword(d);
+                    k:=(qword(1) shl (32+l)) div (qword($80000000-j));
+                    m_low:=((qword(1)) shl (32+l)) div d;
+                    m_high:=(((qword(1)) shl (32+l)) + k) div d;
+                    while ((m_low shr 1) < (m_high shr 1)) and (l > 0) do
+                      begin
+                        m_low:=m_low shr 1;
+                        m_high:=m_high shr 1;
+                        dec(l);
+                      end;
+                    m:=m_high;
+                    s:=l;
+                    if (m_high shr 31)<>0 then
+                      a:=1
+                    else
+                      a:=0;
+                    cg.getcpuregister(exprasmlist,NR_EAX);
+                    emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
+                    cg.getcpuregister(exprasmlist,NR_EDX);
+                    emit_reg(A_IMUL,S_L,hreg1);
+                    emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
+                    if a<>0 then
+                      begin
+                        emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
+                        {
+                          printf ("; dividend: memory location or register other than EAX or EDX\n");
+                          printf ("\n");
+                          printf ("MOV EAX, 0%08LXh\n", m);
+                          printf ("IMUL dividend\n");
+                          printf ("MOV EAX, dividend\n");
+                          printf ("ADD EDX, EAX\n");
+                          if (s) printf ("SAR EDX, %d\n", s);
+                          printf ("SHR EAX, 31\n");
+                          printf ("ADD EDX, EAX\n");
+                          if (e < 0) printf ("NEG EDX\n");
+                          printf ("\n");
+                          printf ("; quotient now in EDX\n");
+                        }
+                      end;
+                      {
+                        printf ("; dividend: memory location of register other than EAX or EDX\n");
+                        printf ("\n");
+                        printf ("MOV EAX, 0%08LXh\n", m);
+                        printf ("IMUL dividend\n");
+                        printf ("MOV EAX, dividend\n");
+                        if (s) printf ("SAR EDX, %d\n", s);
+                        printf ("SHR EAX, 31\n");
+                        printf ("ADD EDX, EAX\n");
+                        if (e < 0) printf ("NEG EDX\n");
+                        printf ("\n");
+                        printf ("; quotient now in EDX\n");
+                      }
+                    if s<>0 then
+                      emit_const_reg(A_SAR,S_L,s,NR_EDX);
+                    emit_const_reg(A_SHR,S_L,31,NR_EAX);
                     emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
-                  {
-                    printf ("; dividend: memory location or register other than EAX or EDX\n");
-                    printf ("\n");
-                    printf ("MOV EAX, 0%08LXh\n", m);
-                    printf ("IMUL dividend\n");
-                    printf ("MOV EAX, dividend\n");
-                    printf ("ADD EDX, EAX\n");
-                    if (s) printf ("SAR EDX, %d\n", s);
-                    printf ("SHR EAX, 31\n");
-                    printf ("ADD EDX, EAX\n");
-                    if (e < 0) printf ("NEG EDX\n");
-                    printf ("\n");
-                    printf ("; quotient now in EDX\n");
-                  }
-                  end;
-                {
-                  printf ("; dividend: memory location of register other than EAX or EDX\n");
-                  printf ("\n");
-                  printf ("MOV EAX, 0%08LXh\n", m);
-                  printf ("IMUL dividend\n");
-                  printf ("MOV EAX, dividend\n");
-                  if (s) printf ("SAR EDX, %d\n", s);
-                  printf ("SHR EAX, 31\n");
-                  printf ("ADD EDX, EAX\n");
-                  if (e < 0) printf ("NEG EDX\n");
-                  printf ("\n");
-                  printf ("; quotient now in EDX\n");
-                }
-                if s<>0 then
-                  emit_const_reg(A_SAR,S_L,s,NR_EDX);
-                emit_const_reg(A_SHR,S_L,31,NR_EAX);
-                emit_reg_reg(A_ADD,S_L,NR_EAX,NR_EDX);
-                if e<0 then
-                  emit_reg(A_NEG,S_L,NR_EDX);
-                cg.ungetcpuregister(exprasmlist,NR_EDX);
-                cg.ungetcpuregister(exprasmlist,NR_EAX);
-                location.register:=cg.getintregister(exprasmlist,OS_INT);
-                cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register)
-              end;
+                    if e<0 then
+                      emit_reg(A_NEG,S_L,NR_EDX);
+                    cg.ungetcpuregister(exprasmlist,NR_EDX);
+                    cg.ungetcpuregister(exprasmlist,NR_EAX);
+                    location.register:=cg.getintregister(exprasmlist,OS_INT);
+                    cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register)
+                  end
+                else
+                  begin
+                    d:=tordconstnode(right).value;
+                    if d>=$80000000 then
+                      begin
+                        emit_const_reg(A_CMP,S_L,d,hreg1);
+                        location.register:=cg.getintregister(exprasmlist,OS_INT);
+                        emit_const_reg(A_MOV,S_L,0,location.register);
+                        emit_const_reg(A_SBB,S_L,-1,location.register);
+                      end
+                    else
+                      begin
+                        { Reduce divisor until it becomes odd }
+                        n:=0;
+                        t:=d;
+                        while (t and 1)=0 do
+                          begin
+                            t:=t shr 1;
+                            inc(n);
+                          end;
+                        { Generate m, s for algorithm 0. Based on: Granlund, T.; Montgomery,
+                        P.L.: "Division by Invariant Integers using Multiplication".
+                        SIGPLAN Notices, Vol. 29, June 1994, page 61.
+                        }
+                        l:=log2(t)+1;
+                        j:=qword($ffffffff) mod qword(t);
+                        k:=(qword(1) shl (32+l)) div (qword($ffffffff-j));
+                        m_low:=((qword(1)) shl (32+l)) div t;
+                        m_high:=(((qword(1)) shl (32+l)) + k) div t;
+                        while ((m_low shr 1) < (m_high shr 1)) and (l>0) do
+                          begin
+                            m_low:=m_low shr 1;
+                            m_high:=m_high shr 1;
+                            l:=l-1;
+                          end;
+                        if (m_high shr 32)=0 then
+                          begin
+                            m:=dword(m_high);
+                            s:=l;
+                            a:=0;
+                          end
+
+                        { Generate m, s for algorithm 1. Based on: Magenheimer, D.J.; et al:
+                        "Integer Multiplication and Division on the HP Precision Architecture".
+                        IEEE Transactions on Computers, Vol 37, No. 8, August 1988, page 980.
+                        }
+                        else
+                          begin
+                            s:=log2(t);
+                            m_low:=(qword(1) shl (32+s)) div qword(t);
+                            r:=dword(((qword(1)) shl (32+s)) mod qword(t));
+                            if (r < ((t>>1)+1)) then
+                              m:=dword(m_low)
+                            else
+                              m:=dword(m_low)+1;
+                            a:=1;
+                          end;
+                        { Reduce multiplier for either algorithm to smallest possible }
+                        while (m and 1)=0 do
+                          begin
+                            m:=m shr 1;
+                            dec(s);
+                          end;
+                        { Adjust multiplier for reduction of even divisors }
+                        inc(s,n);
+                        cg.getcpuregister(exprasmlist,NR_EAX);
+                        emit_const_reg(A_MOV,S_L,aint(m),NR_EAX);
+                        cg.getcpuregister(exprasmlist,NR_EDX);
+                        emit_reg(A_MUL,S_L,hreg1);
+                        if a<>0 then
+                          begin
+                            {
+                            printf ("; dividend: register other than EAX or memory location\n");
+                            printf ("\n");
+                            printf ("MOV EAX, 0%08lXh\n", m);
+                            printf ("MUL dividend\n");
+                            printf ("ADD EAX, 0%08lXh\n", m);
+                            printf ("ADC EDX, 0\n");
+                            if (s) printf ("SHR EDX, %d\n", s);
+                            printf ("\n");
+                            printf ("; quotient now in EDX\n");
+                            }
+                            emit_const_reg(A_ADD,S_L,m,NR_EAX);
+                            emit_const_reg(A_ADC,S_L,0,NR_EDX);
+                          end;
+                        if s<>0 then
+                          emit_const_reg(A_SHR,S_L,s,NR_EDX);
+                        cg.ungetcpuregister(exprasmlist,NR_EDX);
+                        cg.ungetcpuregister(exprasmlist,NR_EAX);
+                        location.register:=cg.getintregister(exprasmlist,OS_INT);
+                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register)
+                      end;
+                  end
+              end
           end
         else
           begin
