@@ -1,59 +1,67 @@
-{$mode objfpc}{$H+}
+{$IFDEF FPC}
+   {$mode objfpc}{$H+}
+{$ELSE}
+   {$APPTYPE CONSOLE}
+{$ENDIF}
 
 uses
-   Classes, SysUtils, TypInfo;
-
+   SysUtils,
+   TypInfo,
+   Classes;
 
 type
-{$M+}
-   TMyTestObject = class;
-{$M-}
-
-
-   TSomeOtherClass = class(TObject)
+   TAObject = class(TPersistent)
    private
-      FName: string;
-   public
-     property Name: string read FName write FName;
-   end;
-
-
-   TMyTestObject = class(TObject)
-   private
-      FIntProp: integer;
-      FStringProp: string;
-   public
+     FCaption: string;
    published
-     property StringProp: string read FStringProp write FStringProp;
-     property IntProp: integer read FIntProp write FIntProp;
+     property Caption: string read FCaption write FCaption;
    end;
 
+   TBObject = class(TAObject)
+   private
+     FIntProp: Integer;
+     FStrProp: String;
+   published
+     property IntProp: Integer read FIntProp write FIntProp;
+     property StrProp: String read FStrProp write FStrProp;
+   end;
+
+
+   TCObject = class(TBObject)
+   private
+      FAStrProp: String;
+   published
+     property AnotherStrProp: String read FAStrProp write FAStrProp;
+   end;
 
 procedure ShowProperties;
 var
-   O: TMyTestObject;
+   Obj: TCObject;
    i: Longint;
    lPropFilter: TTypeKinds;
    lCount: Longint;
    lSize: Integer;
    lList: PPropList;
 begin
-   O := TMyTestObject.Create;
-   lPropFilter := [tkInteger, tkAString];
+   Obj := TCObject.Create;
+   lPropFilter := [tkInteger, tkLString {$ifdef FPC}, tkAString{$endif}];
 
-   lCount  := GetPropList(O.ClassInfo, lPropFilter, nil, false);
+   lCount  := GetPropList(Obj.ClassInfo, lPropFilter, nil, false);
    lSize   := lCount * SizeOf(Pointer);
    GetMem(lList, lSize);
 
    Writeln('Total property Count: ' + IntToStr(lCount));
-   lCount := GetPropList(O.ClassInfo, lPropFilter, lList, false);
+   lCount := GetPropList(Obj.ClassInfo, lPropFilter, lList, false);
    for i := 0 to lCount-1 do
    begin
      Writeln('Property '+IntToStr(i+1)+': ' + lList^[i]^.Name);
    end;
 
+   if (lList^[0]^.Name<>'Caption') then
+     halt(1);
+
    FreeMem(lList);
-   O.Free;
+   Obj.Free;
    Writeln('---------------');
 end;
 
