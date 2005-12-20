@@ -600,9 +600,13 @@ Var
   TP : PPropInfo;
   Count : Longint;
 begin
+  // Get this objects TOTAL published properties count
+  TD:=GetTypeData(TypeInfo);
+  // Clear list
+  FillChar(PropList^,TD^.PropCount*sizeof(Pointer),0);
   repeat
     TD:=GetTypeData(TypeInfo);
-    // Get this objects TOTAL published properties count
+    // published properties count for this object
     TP:=aligntoptr(PPropInfo(aligntoptr((@TD^.UnitName+Length(TD^.UnitName)+1))));
     Count:=PWord(TP)^;
     // Now point TP to first propinfo record.
@@ -610,7 +614,9 @@ begin
     tp:=aligntoptr(tp);
     While Count>0 do
       begin
-        PropList^[TP^.NameIndex]:=TP;
+        // Don't overwrite properties with the same name
+        if PropList^[TP^.NameIndex]=nil then
+          PropList^[TP^.NameIndex]:=TP;
         // Point to TP next propinfo record.
         // Located at Name[Length(Name)+1] !
         TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));

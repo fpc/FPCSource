@@ -214,6 +214,7 @@ interface
        tobjectdef = class(tabstractrecorddef)
        private
           procedure count_published_properties(sym:tnamedindexitem;arg:pointer);
+          procedure collect_published_properties(sym:tnamedindexitem;arg:pointer);
           procedure write_property_info(sym : tnamedindexitem;arg:pointer);
           procedure generate_published_child_rtti(sym : tnamedindexitem;arg:pointer);
           procedure count_published_fields(sym:tnamedindexitem;arg:pointer);
@@ -255,7 +256,6 @@ interface
           function  rtti_name : string;
           procedure check_forwards;
           function  is_related(d : tdef) : boolean;override;
-          function  next_free_name_index : longint;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
           function searchdestructor : tprocdef;
@@ -4175,6 +4175,55 @@ implementation
                               TOBJECTDEF
 ***************************************************************************}
 
+    type
+       tproptablelistitem = class(TLinkedListItem)
+          index : longint;
+          def   : tobjectdef;
+       end;
+
+       tpropnamelistitem = class(TLinkedListItem)
+          index : longint;
+          name  : stringid;
+          owner : tsymtable;
+       end;
+
+    var
+       proptablelist  : tlinkedlist;
+       propnamelist   : tlinkedlist;
+
+    function searchproptablelist(p : tobjectdef) : tproptablelistitem;
+      var
+         hp : tproptablelistitem;
+      begin
+         hp:=tproptablelistitem(proptablelist.first);
+         while assigned(hp) do
+           if hp.def=p then
+             begin
+                result:=hp;
+                exit;
+             end
+           else
+             hp:=tproptablelistitem(hp.next);
+         result:=nil;
+      end;
+
+
+    function searchpropnamelist(const n:string) : tpropnamelistitem;
+      var
+         hp : tpropnamelistitem;
+      begin
+         hp:=tpropnamelistitem(propnamelist.first);
+         while assigned(hp) do
+           if hp.name=n then
+             begin
+                result:=hp;
+                exit;
+             end
+           else
+             hp:=tpropnamelistitem(hp.next);
+         result:=nil;
+      end;
+
 
    constructor tobjectdef.create(ot : tobjectdeftype;const n : string;c : tobjectdef);
      begin
@@ -4499,41 +4548,16 @@ implementation
      end;
 
 
-(*   procedure tobjectdef._searchdestructor(sym : tnamedindexitem;arg:pointer);
-
-     var
-        p : pprocdeflist;
-
-     begin
-        { if we found already a destructor, then we exit }
-        if assigned(sd) then
-          exit;
-        if tsym(sym).typ=procsym then
-          begin
-             p:=tprocsym(sym).defs;
-             while assigned(p) do
-               begin
-                  if p^.def.proctypeoption=potype_destructor then
-                    begin
-                       sd:=p^.def;
-                       exit;
-                    end;
-                  p:=p^.next;
-               end;
-          end;
-     end;*)
-
     procedure _searchdestructor(sym:Tnamedindexitem;sd:pointer);
-
-    begin
+      begin
         { if we found already a destructor, then we exit }
         if (ppointer(sd)^=nil) and
            (Tsym(sym).typ=procsym) then
           ppointer(sd)^:=Tprocsym(sym).search_procdef_bytype(potype_destructor);
-    end;
+      end;
+
 
    function tobjectdef.searchdestructor : tprocdef;
-
      var
         o : tobjectdef;
         sd : tprocdef;
@@ -4628,17 +4652,38 @@ implementation
       end;
 
 
+    procedure tobjectdef.collect_published_properties(sym:tnamedindexitem;arg:pointer);
+      var
+        hp : tpropnamelistitem;
+      begin
+         if (tsym(sym).typ=propertysym) and
+            (sp_published in tsym(sym).symoptions) then
+           begin
+             hp:=searchpropnamelist(tsym(sym).name);
+             if not(assigned(hp)) then
+               begin
+                  hp:=tpropnamelistitem.create;
+                  hp.name:=tsym(sym).name;
+                  hp.index:=propnamelist.count;
+                  hp.owner:=tsym(sym).owner;
+                  propnamelist.concat(hp);
+               end;
+          end;
+      end;
+
+
     procedure tobjectdef.count_published_properties(sym:tnamedindexitem;arg:pointer);
       begin
-         if needs_prop_entry(tsym(sym)) and
-            (tsym(sym).typ<>fieldvarsym) then
-           inc(count);
+         if (tsym(sym).typ=propertysym) and
+            (sp_published in tsym(sym).symoptions) then
+           inc(plongint(arg)^);
       end;
 
 
     procedure tobjectdef.write_property_info(sym : tnamedindexitem;arg:pointer);
       var
          proctypesinfo : byte;
+         propnameitem  : tpropnamelistitem;
 
       procedure writeproc(proc : tsymlist; shiftvalue : byte);
 
@@ -4708,62 +4753,37 @@ implementation
         end;
 
       begin
-         if needs_prop_entry(tsym(sym)) then
-           case tsym(sym).typ of
-              fieldvarsym:
-                begin
-{$ifdef dummy}
-                   if not(tvarsym(sym).vartype.def.deftype=objectdef) or
-                     not(tobjectdef(tvarsym(sym).vartype.def).is_class) then
-                     internalerror(1509992);
-                   { access to implicit class property as field }
-                   proctypesinfo:=(0 shl 0) or (0 shl 2) or (0 shl 4);
-                   asmlist[al_rtti].concat(Tai_const_symbol.Createname(tvarsym(sym.vartype.def.get_rtti_label),AT_DATA,0));
-                   asmlist[al_rtti].concat(Tai_const.create(ait_const_ptr,tvarsym(sym.address)));
-                   asmlist[al_rtti].concat(Tai_const.create(ait_const_ptr,tvarsym(sym.address)));
-                   { by default stored }
-                   asmlist[al_rtti].concat(Tai_const.Create_32bit(1));
-                   { index as well as ... }
-                   asmlist[al_rtti].concat(Tai_const.Create_32bit(0));
-                   { default value are zero }
-                   asmlist[al_rtti].concat(Tai_const.Create_32bit(0));
-                   asmlist[al_rtti].concat(Tai_const.Create_16bit(count));
-                   inc(count);
-                   asmlist[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
-                   asmlist[al_rtti].concat(Tai_const.Create_8bit(length(tvarsym(sym.realname))));
-                   asmlist[al_rtti].concat(Tai_string.Create(tvarsym(sym.realname)));
-{$endif dummy}
-                end;
-              propertysym:
-                begin
-                   if ppo_indexed in tpropertysym(sym).propoptions then
-                     proctypesinfo:=$40
-                   else
-                     proctypesinfo:=0;
-                   asmlist[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
-                   writeproc(tpropertysym(sym).readaccess,0);
-                   writeproc(tpropertysym(sym).writeaccess,2);
-                   { isn't it stored ? }
-                   if not(ppo_stored in tpropertysym(sym).propoptions) then
-                     begin
-                        asmlist[al_rtti].concat(Tai_const.create_sym(nil));
-                        proctypesinfo:=proctypesinfo or (3 shl 4);
-                     end
-                   else
-                     writeproc(tpropertysym(sym).storedaccess,4);
-                   asmlist[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).index));
-                   asmlist[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).default));
-                   asmlist[al_rtti].concat(Tai_const.Create_16bit(count));
-                   inc(count);
-                   asmlist[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
-                   asmlist[al_rtti].concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
-                   asmlist[al_rtti].concat(Tai_string.Create(tpropertysym(sym).realname));
+         if (tsym(sym).typ=propertysym) and
+            (sp_published in tsym(sym).symoptions) then
+           begin
+             if ppo_indexed in tpropertysym(sym).propoptions then
+               proctypesinfo:=$40
+             else
+               proctypesinfo:=0;
+             asmlist[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
+             writeproc(tpropertysym(sym).readaccess,0);
+             writeproc(tpropertysym(sym).writeaccess,2);
+             { isn't it stored ? }
+             if not(ppo_stored in tpropertysym(sym).propoptions) then
+               begin
+                  asmlist[al_rtti].concat(Tai_const.create_sym(nil));
+                  proctypesinfo:=proctypesinfo or (3 shl 4);
+               end
+             else
+               writeproc(tpropertysym(sym).storedaccess,4);
+             asmlist[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).index));
+             asmlist[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).default));
+             propnameitem:=searchpropnamelist(tpropertysym(sym).name);
+             if not assigned(propnameitem) then
+               internalerror(200512201);
+             asmlist[al_rtti].concat(Tai_const.Create_16bit(propnameitem.index));
+             asmlist[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
+             asmlist[al_rtti].concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
+             asmlist[al_rtti].concat(Tai_string.Create(tpropertysym(sym).realname));
 {$ifdef cpurequiresproperalignment}
-                   asmlist[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+             asmlist[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
-                end;
-              else internalerror(1509992);
-           end;
+          end;
       end;
 
 
@@ -4797,61 +4817,31 @@ implementation
       end;
 
 
-    type
-       tclasslistitem = class(TLinkedListItem)
-          index : longint;
-          p : tobjectdef;
-       end;
-
-    var
-       classtablelist : tlinkedlist;
-       tablecount : longint;
-
-    function searchclasstablelist(p : tobjectdef) : tclasslistitem;
-
-      var
-         hp : tclasslistitem;
-
-      begin
-         hp:=tclasslistitem(classtablelist.first);
-         while assigned(hp) do
-           if hp.p=p then
-             begin
-                searchclasstablelist:=hp;
-                exit;
-             end
-           else
-             hp:=tclasslistitem(hp.next);
-         searchclasstablelist:=nil;
-      end;
-
-
     procedure tobjectdef.count_published_fields(sym:tnamedindexitem;arg:pointer);
       var
-         hp : tclasslistitem;
+         hp : tproptablelistitem;
       begin
-         if needs_prop_entry(tsym(sym)) and
-          (tsym(sym).typ=fieldvarsym) then
+         if (tsym(sym).typ=fieldvarsym) and
+            (sp_published in tsym(sym).symoptions) then
           begin
              if tfieldvarsym(sym).vartype.def.deftype<>objectdef then
                internalerror(0206001);
-             hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
+             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                begin
-                  hp:=tclasslistitem.create;
-                  hp.p:=tobjectdef(tfieldvarsym(sym).vartype.def);
-                  hp.index:=tablecount;
-                  classtablelist.concat(hp);
-                  inc(tablecount);
+                  hp:=tproptablelistitem.create;
+                  hp.def:=tobjectdef(tfieldvarsym(sym).vartype.def);
+                  hp.index:=proptablelist.count+1;
+                  proptablelist.concat(hp);
                end;
-             inc(count);
+             inc(plongint(arg)^);
           end;
       end;
 
 
     procedure tobjectdef.writefields(sym:tnamedindexitem;arg:pointer);
       var
-         hp : tclasslistitem;
+         hp : tproptablelistitem;
       begin
          if needs_prop_entry(tsym(sym)) and
           (tsym(sym).typ=fieldvarsym) then
@@ -4860,7 +4850,7 @@ implementation
              asmlist[al_rtti].concat(Tai_align.Create(sizeof(AInt)));
 {$endif cpurequiresproperalignment}
              asmlist[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
-             hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
+             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
              asmlist[al_rtti].concat(Tai_const.Create_16bit(hp.index));
@@ -4874,62 +4864,57 @@ implementation
       var
          fieldtable,
          classtable : tasmlabel;
-         hp : tclasslistitem;
-
+         hp : tproptablelistitem;
+         fieldcount : longint;
       begin
-         classtablelist:=TLinkedList.Create;
+         proptablelist:=TLinkedList.Create;
          objectlibrary.getdatalabel(fieldtable);
          objectlibrary.getdatalabel(classtable);
-         count:=0;
-         tablecount:=0;
          maybe_new_object_file(asmlist[al_rtti]);
          new_section(asmlist[al_rtti],sec_rodata,classtable.name,const_align(sizeof(aint)));
          { fields }
-         symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
+         fieldcount:=0;
+         symtable.foreach(@count_published_fields,@fieldcount);
          asmlist[al_rtti].concat(Tai_label.Create(fieldtable));
-         asmlist[al_rtti].concat(Tai_const.Create_16bit(count));
+         asmlist[al_rtti].concat(Tai_const.Create_16bit(fieldcount));
 {$ifdef cpurequiresproperalignment}
          asmlist[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
          asmlist[al_rtti].concat(Tai_const.Create_sym(classtable));
-         symtable.foreach({$ifdef FPC}@{$endif}writefields,nil);
+         symtable.foreach(@writefields,nil);
 
          { generate the class table }
          asmlist[al_rtti].concat(tai_align.create(const_align(sizeof(aint))));
          asmlist[al_rtti].concat(Tai_label.Create(classtable));
-         asmlist[al_rtti].concat(Tai_const.Create_16bit(tablecount));
+         asmlist[al_rtti].concat(Tai_const.Create_16bit(proptablelist.count));
 {$ifdef cpurequiresproperalignment}
          asmlist[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
-         hp:=tclasslistitem(classtablelist.first);
+         hp:=tproptablelistitem(proptablelist.first);
          while assigned(hp) do
            begin
-              asmlist[al_rtti].concat(Tai_const.Createname(tobjectdef(hp.p).vmt_mangledname,AT_DATA,0));
-              hp:=tclasslistitem(hp.next);
+              asmlist[al_rtti].concat(Tai_const.Createname(tobjectdef(hp.def).vmt_mangledname,AT_DATA,0));
+              hp:=tproptablelistitem(hp.next);
            end;
 
          generate_field_table:=fieldtable;
-         classtablelist.free;
-      end;
-
-
-    function tobjectdef.next_free_name_index : longint;
-      var
-         i : longint;
-      begin
-         if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-           i:=childof.next_free_name_index
-         else
-           i:=0;
-         count:=0;
-         symtable.foreach(@count_published_properties,nil);
-         next_free_name_index:=i+count;
+         proptablelist.free;
+         proptablelist:=nil;
       end;
 
 
     procedure tobjectdef.write_rtti_data(rt:trttitype);
+
+        procedure collect_unique_published_props(pd:tobjectdef);
+        begin
+          if assigned(pd.childof) then
+            collect_unique_published_props(pd.childof);
+          pd.symtable.foreach(@collect_published_properties,nil);
+        end;
+
       var
         i : longint;
+        propcount : longint;
       begin
          case objecttype of
             odt_class:
@@ -4965,6 +4950,10 @@ implementation
              end;
            fullrtti :
              begin
+               { Collect unique property names with nameindex }
+               propnamelist:=TLinkedList.Create;
+               collect_unique_published_props(self);
+
                if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
                  begin
                    if (oo_has_vmt in objectoptions) then
@@ -4982,15 +4971,8 @@ implementation
 
                if objecttype in [odt_object,odt_class] then
                  begin
-                   { count total number of properties }
-                   if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-                     count:=childof.next_free_name_index
-                   else
-                     count:=0;
-
-                   { write it }
-                   symtable.foreach(@count_published_properties,nil);
-                   asmlist[al_rtti].concat(Tai_const.Create_16bit(count));
+                   { total number of unique properties }
+                   asmlist[al_rtti].concat(Tai_const.Create_16bit(propnamelist.count));
                  end
                else
                  { interface: write flags, iid and iidstr }
@@ -5038,28 +5020,20 @@ implementation
 {$endif cpurequiresproperalignment}
                  end;
 
+               { write published properties for this object }
                if objecttype in [odt_object,odt_class] then
                  begin
-                   { write published properties count }
-                   count:=0;
-                   symtable.foreach(@count_published_properties,nil);
-                   asmlist[al_rtti].concat(Tai_const.Create_16bit(count));
-
+                   propcount:=0;
+                   symtable.foreach(@count_published_properties,@propcount);
+                   asmlist[al_rtti].concat(Tai_const.Create_16bit(propcount));
 {$ifdef cpurequiresproperalignment}
                    asmlist[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
                  end;
-
-               { count is used to write nameindex   }
-
-               { but we need an offset of the owner }
-               { to give each property an own slot  }
-               if assigned(childof) and (oo_can_have_published in childof.objectoptions) then
-                 count:=childof.next_free_name_index
-               else
-                 count:=0;
-
                symtable.foreach(@write_property_info,nil);
+
+               propnamelist.free;
+               propnamelist:=nil;
              end;
          end;
       end;

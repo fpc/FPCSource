@@ -5638,6 +5638,7 @@ tests/test/trtti1.pp svneol=native#text/plain
 tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
 tests/test/trtti4.pp svneol=native#text/plain
+tests/test/trtti5.pp svneol=native#text/plain
 tests/test/tset1.pp svneol=native#text/plain
 tests/test/tset2.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
