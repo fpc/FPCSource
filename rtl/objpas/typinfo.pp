@@ -138,7 +138,7 @@ unit typinfo;
                RawIntfFlags : TIntfFlagsBase;
                IID: TGUID;
                RawIntfUnit: ShortString;
-               IIDStr: ShortString;               
+               IIDStr: ShortString;
               );
       end;
 
@@ -288,19 +288,19 @@ Type
   EPropertyError  = Class(Exception);
   TGetPropValue   = Function (Instance: TObject; const PropName: string; PreferStrings: Boolean) : Variant;
   TSetPropValue   = Procedure (Instance: TObject; const PropName: string; const Value: Variant);
-  TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;  
+  TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;
   TSetVariantProp = Procedure (Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
-  
+
 Const
   OnGetPropValue   : TGetPropValue = Nil;
   OnSetPropValue   : TSetPropValue = Nil;
   OnGetVariantprop : TGetVariantProp = Nil;
   OnSetVariantprop : TSetVariantProp = Nil;
- 
+
 Implementation
 
 uses rtlconsts;
-  
+
 type
   PMethod = ^TMethod;
 
@@ -369,7 +369,7 @@ begin
   PT:=GetTypeData(enum1);
   Count:=0;
   Result:=0;
-  
+
   PS:=@PT^.NameList;
   While (PByte(PS)^<>0) do
     begin
@@ -600,25 +600,24 @@ Var
   TP : PPropInfo;
   Count : Longint;
 begin
-  TD:=GetTypeData(TypeInfo);
-  // Get this objects TOTAL published properties count
-  TP:=aligntoptr(PPropInfo(aligntoptr((@TD^.UnitName+Length(TD^.UnitName)+1))));
-  Count:=PWord(TP)^;
-  // Now point TP to first propinfo record.
-  Inc(Pointer(TP),SizeOF(Word));
-  tp:=aligntoptr(tp);
-  While Count>0 do
-    begin
-      PropList^[0]:=TP;
-      Inc(Pointer(PropList),SizeOf(Pointer));
-      // Point to TP next propinfo record.
-      // Located at Name[Length(Name)+1] !
-      TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
-      Dec(Count);
-    end;
-  // recursive call for parent info.
-  If TD^.Parentinfo<>Nil then
-    GetPropInfos (TD^.ParentInfo,PropList);
+  repeat
+    TD:=GetTypeData(TypeInfo);
+    // Get this objects TOTAL published properties count
+    TP:=aligntoptr(PPropInfo(aligntoptr((@TD^.UnitName+Length(TD^.UnitName)+1))));
+    Count:=PWord(TP)^;
+    // Now point TP to first propinfo record.
+    Inc(Pointer(TP),SizeOF(Word));
+    tp:=aligntoptr(tp);
+    While Count>0 do
+      begin
+        PropList^[TP^.NameIndex]:=TP;
+        // Point to TP next propinfo record.
+        // Located at Name[Length(Name)+1] !
+        TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
+        Dec(Count);
+      end;
+    TypeInfo:=TD^.Parentinfo;
+  until TypeInfo=nil;
 end;
 
 Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);
