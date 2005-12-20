@@ -149,14 +149,16 @@ implementation
            if classtype in [odt_interfacecom,odt_class] then
              begin
                 aktobjectdef.objecttype:=classtype;
+                { set published flag in $M+ mode or it is inherited }
                 if (cs_generate_rtti in aktlocalswitches) or
                     (assigned(aktobjectdef.childof) and
                      (oo_can_have_published in aktobjectdef.childof.objectoptions)) then
-                  begin
-                     include(aktobjectdef.objectoptions,oo_can_have_published);
-                     { in "publishable" classes the default access type is published }
-                     current_object_option:=[sp_published];
-                  end;
+                  include(aktobjectdef.objectoptions,oo_can_have_published);
+                { in "publishable" classes the default access type is published, this is
+                  done separate from above if-statement because the option can be
+                  inherited from the forward class definition }
+                if (oo_can_have_published in aktobjectdef.objectoptions) then
+                  current_object_option:=[sp_published];
              end;
         end;
 
@@ -243,6 +245,9 @@ implementation
                           (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
                          interface_iunknown:=aktobjectdef;
                        include(aktobjectdef.objectoptions,oo_is_forward);
+                       if (cs_generate_rtti in aktlocalswitches) and
+                          (classtype=odt_interfacecom) then
+                         include(aktobjectdef.objectoptions,oo_can_have_published);
                        object_dec:=aktobjectdef;
                        typecanbeforward:=storetypecanbeforward;
                        readobjecttype:=false;
@@ -294,10 +299,11 @@ implementation
                           class_tobject:=aktobjectdef;
                         aktobjectdef.objecttype:=odt_class;
                         include(aktobjectdef.objectoptions,oo_is_forward);
+                        if (cs_generate_rtti in aktlocalswitches) then
+                          include(aktobjectdef.objectoptions,oo_can_have_published);
                         { all classes must have a vmt !!  at offset zero }
                         if not(oo_has_vmt in aktobjectdef.objectoptions) then
                           aktobjectdef.insertvmt;
-
                         object_dec:=aktobjectdef;
                         typecanbeforward:=storetypecanbeforward;
                         readobjecttype:=false;
@@ -522,19 +528,6 @@ implementation
 
          { read list of parent classes }
          readparentclasses;
-
-(*
-         { keep reference to implicit parent classes }
-         if (cs_compilesystem in aktmoduleswitches) then
-           begin
-             if (classtype=odt_class) and
-                (upper(n)='TOBJECT') then
-               class_tobject:=aktobjectdef
-             else if (classtype=odt_interfacecom) and
-                     (upper(n)='IUNKNOWN') then
-               interface_iunknown:=aktobjectdef;
-           end;
-*)
 
          { default access is public }
          there_is_a_destructor:=false;
