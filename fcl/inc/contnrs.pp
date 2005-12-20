@@ -64,7 +64,7 @@ Type
     property List: TFPList read FList;
   end;
 
-  
+
   TObjectList = class(TList)
   private
     ffreeobjects : boolean;
@@ -171,16 +171,16 @@ Type
     Function Pop: TObject;
     Function Peek: TObject;
   end;
-  
+
 { ---------------------------------------------------------------------
     Hash support, implemented by Dean Zobec
   ---------------------------------------------------------------------}
- 
+
 
   { Must return a Longword value in the range 0..TableSize,
    usually via a mod operator;  }
   THashFunction = function(const S: string; const TableSize: Longword): Longword;
-  
+
   TIteratorMethod = procedure(Item: Pointer; const Key: string;
      var Continue: Boolean) of object;
 
@@ -212,7 +212,7 @@ Type
     function GetVoidSlots: Longword;
     function GetLoadFactor: double;
     function GetAVGChainLen: double;
-    function GetMaxChainLength: Longword;
+    function GetMaxChainLength: Int64;
     function Chain(const index: Longword):TFPObjectList;
   protected
     function ChainLength(const ChainIndex: Longword): Longword; virtual;
@@ -256,7 +256,7 @@ ResourceString
   DuplicateMsg = 'An item with key %0:s already exists';
   KeyNotFoundMsg = 'Method: %0:s key [''%1:s''] not found in container';
   NotEmptyMsg = 'Hash table not empty.';
-  
+
 const
   NPRIMES = 28;
 
@@ -828,7 +828,7 @@ begin
  end;
  Result := (Result and $7FFFFFFF) mod TableSize;
 end;
-  
+
 { THTNode }
 
 constructor THTNode.CreateWith(const AString: string);
@@ -1131,7 +1131,7 @@ begin
   result := Count / (FHashTableSize - VoidSlots);
 end;
 
-function TFPHashTable.GetMaxChainLength: Longword;
+function TFPHashTable.GetMaxChainLength: Int64;
 var
   i: Longword;
 begin
