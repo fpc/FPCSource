@@ -1608,7 +1608,10 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
-            g_decrrefcount(list,t,ref)
+            begin
+              g_decrrefcount(list,t,ref);
+              a_load_const_ref(list,OS_ADDR,0,ref);
+            end
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);

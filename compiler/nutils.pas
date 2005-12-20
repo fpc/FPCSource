@@ -466,23 +466,34 @@ implementation
 
 
     function finalize_data_node(p:tnode):tnode;
+      var
+        newstatement : tstatementnode;
       begin
         if not assigned(p.resulttype.def) then
           resulttypepass(p);
         if is_ansistring(p.resulttype.def) then
           begin
-            result:=ccallnode.createintern('fpc_ansistr_decr_ref',
+            result:=internalstatements(newstatement);
+            addstatement(newstatement,ccallnode.createintern('fpc_ansistr_decr_ref',
                   ccallparanode.create(
                     ctypeconvnode.create_internal(p,voidpointertype),
-                  nil));
+                  nil)));
+            addstatement(newstatement,cassignmentnode.create(
+               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
+               cnilnode.create
+               ));
           end
-        else
-        if is_widestring(p.resulttype.def) then
+        else if is_widestring(p.resulttype.def) then
           begin
-            result:=ccallnode.createintern('fpc_widestr_decr_ref',
+            result:=internalstatements(newstatement);
+            addstatement(newstatement,ccallnode.createintern('fpc_widestr_decr_ref',
                   ccallparanode.create(
                     ctypeconvnode.create_internal(p,voidpointertype),
-                  nil));
+                  nil)));
+            addstatement(newstatement,cassignmentnode.create(
+               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
+               cnilnode.create
+               ));
           end
         else
           result:=ccallnode.createintern('fpc_finalize',
