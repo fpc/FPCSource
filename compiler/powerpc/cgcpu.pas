@@ -97,6 +97,9 @@ unit cgcpu;
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
         procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+        function g_darwin_indirect_sym_load(list: taasmoutput; const symname: string): tregister;
+
       private
 
         (* NOT IN USE: *)
@@ -1802,7 +1805,7 @@ const
            { occurs, so now only ref.offset has to be loaded                         }
            else
              a_load_const_reg(list,OS_32,ref2.offset,r)
-         else if ref.index <> NR_NO Then
+         else if ref2.index <> NR_NO Then
            list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
          else if (ref2.base <> NR_NO) and
                  (r <> ref2.base) then
@@ -2111,12 +2114,47 @@ const
       end;
 
 
+     function tcgppc.g_darwin_indirect_sym_load(list: taasmoutput; const symname: string): tregister;
+        var
+          l: tasmsymbol;
+          ref: treference;
+        begin
+          l:=objectlibrary.getasmsymbol('L'+symname+'$non_lazy_ptr');
+          if not(assigned(l)) then
+            begin
+              l:=objectlibrary.newasmsymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+              asmlist[al_picdata].concat(tai_symbol.create(l,0));
+              asmlist[al_picdata].concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(symname,AB_EXTERNAL,AT_DATA)));
+              asmlist[al_picdata].concat(tai_const.create_32bit(0));
+            end;
+          reference_reset_symbol(ref,l,0);
+{         ref.base:=current_procinfo.got;
+          ref.relsymbol:=current_procinfo.gotlabel;}
+          result := cg.getaddressregister(exprasmlist);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
+        end;
+
     function tcgppc.fixref(list: taasmoutput; var ref: treference): boolean;
 
        var
          tmpreg: tregister;
        begin
          result := false;
+
+         if (target_info.system = system_powerpc_darwin) and
+            assigned(ref.symbol) and
+            (ref.symbol.defbind = AB_EXTERNAL) then
+           begin
+             tmpreg := g_darwin_indirect_sym_load(list,ref.symbol.name);
+             if (ref.base = NR_NO) then
+               ref.base := tmpreg
+             else if (ref.index = NR_NO) then
+               ref.index := tmpreg
+             else
+               list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.base,tmpreg));
+             ref.symbol := nil;
+           end;
+
          if (ref.base = NR_NO) then
            begin
              ref.base := ref.index;

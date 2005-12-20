@@ -126,14 +126,7 @@ implementation
                begin
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
-                  if (target_info.system=system_powerpc_darwin) and
-                     ([vo_is_dll_var,vo_is_external] * tabstractvarsym(symtableentry).varoptions <> []) then
-                    begin
-                      if not(pi_needs_got in current_procinfo.flags) then
-                        internalerror(200403022);
-                      generate_picvaraccess;
-                    end
-                  else if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
+                  if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
                   { DLL variable }
                     begin
                       hregister:=cg.getaddressregister(exprasmlist);
@@ -236,24 +229,14 @@ implementation
                               globalsymtable,
                               staticsymtable :
                                 begin
-                                  if (target_info.system=system_powerpc_darwin) and
-                                    (cs_create_pic in aktmoduleswitches) then
-                                    begin
-                                      generate_picvaraccess;
-                                      if not(pi_needs_got in current_procinfo.flags) then
-                                        internalerror(200403023);
-                                    end
+                                  if tabstractnormalvarsym(symtableentry).localloc.loc=LOC_INVALID then
+                                    reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
                                   else
-                                    begin
-                                      if tabstractnormalvarsym(symtableentry).localloc.loc=LOC_INVALID then
-                                        reference_reset_symbol(location.reference,objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
-                                      else
-                                        location:=tglobalvarsym(symtableentry).localloc;
+                                    location:=tglobalvarsym(symtableentry).localloc;
 {$ifdef segment_threadvars}
-                                      if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
-                                        location.reference.segment:=NR_GS;
+                                  if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
+                                    location.reference.segment:=NR_GS;
 {$endif}
-                                    end;
                                 end;
                               else
                                 internalerror(200305102);

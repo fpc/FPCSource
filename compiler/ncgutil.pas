@@ -1970,9 +1970,7 @@ implementation
                               staticsymtable :
                                 begin
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
-                                  if not((target_info.system=system_powerpc_darwin) and
-                                    (cs_create_pic in aktmoduleswitches)) and
-                                     not(vo_is_dll_var in varoptions) {$ifndef segment_threadvars} and
+                                  if not(vo_is_dll_var in varoptions) {$ifndef segment_threadvars} and
                                      not(vo_is_thread_var in varoptions) {$endif} then
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
                                 end;
