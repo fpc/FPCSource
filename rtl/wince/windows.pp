@@ -38,7 +38,6 @@ interface
 
 {$ifdef UNDER_CE}
 {$define UNICODE}  //ce is unicode only
-//{$define _X86_}  //for testing compilation
 {$calling cedcl}
 {$endif UNDER_CE}
 
@@ -64,12 +63,13 @@ interface
 
 {$ifdef UNDER_CE}
 {$i aygshell.inc}
-//{$i commctrl.inc}
+{$i commctrl.inc}
 {$endif UNDER_CE}
+
+{$undef read_interface}
 
 implementation
 
-{$undef read_interface}
 {$define read_implementation}
 
 {$i base.inc}
@@ -94,9 +94,10 @@ implementation
 
 {$ifdef UNDER_CE}
 {$i aygshell.inc}
-//{$i commctrl.inc}
+{$i commctrl.inc}
 {$endif UNDER_CE}
 
 {$undef read_implementation}
 
+begin
 end.

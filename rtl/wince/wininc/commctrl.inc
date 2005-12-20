@@ -121,39 +121,41 @@
 // consts
 //*****************************************************************************
 const
-
+  { already defined in defines.inc
   TBSTATE_CHECKED         = $01;
   TBSTATE_PRESSED         = $02;
   TBSTATE_ENABLED         = $04;
   TBSTATE_HIDDEN          = $08;
   TBSTATE_INDETERMINATE   = $10;
   TBSTATE_WRAP            = $20;
+  }
   TBSTATE_ELLIPSES        = $40;
   TBSTATE_HIGHLIGHTED     = $80;
 
+  { already defined in defines.inc
   TBSTYLE_BUTTON          = $0000;
   TBSTYLE_SEP             = $0001;
   TBSTYLE_CHECK           = $0002;
   TBSTYLE_GROUP           = $0004;
   TBSTYLE_CHECKGROUP      =(TBSTYLE_GROUP or TBSTYLE_CHECK);
+  }
   TBSTYLE_DROPDOWN        = $0008;
   TBSTYLE_AUTOSIZE        = $0010; // automatically calculate the cx of the button
-
+  { already defined in defines.inc
   TBSTYLE_TOOLTIPS        = $0100;
   TBSTYLE_WRAPABLE        = $0200;
   TBSTYLE_ALTDRAG         = $0400;
+  }
   TBSTYLE_FLAT            = $0800;
   TBSTYLE_LIST            = $1000;
   TBSTYLE_CUSTOMERASE     = $2000;
   TBSTYLE_TRANSPARENT     = $8000;
-
   I_IMAGENONE  = -2; // Desktop listview uses this same value for I_IMAGENONE when (_WIN32_IE >= 0x0501)
   
 //*****************************************************************************
 // types
 //*****************************************************************************
 
-type
 
 
 //*****************************************************************************
