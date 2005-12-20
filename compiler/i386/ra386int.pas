@@ -920,6 +920,11 @@ Unit Ra386int;
                 def:=nil;
                 tempstr:=actasmpattern;
                 prevtok:=prevasmtoken;
+                { stop parsing a constant expression if we find an opcode after a
+                  non-operator like "db $66 mov eax,ebx" }
+                if (prevtok in [AS_ID,AS_INTNUM,AS_RPAREN]) and
+                   is_asmopcode(actasmpattern) then
+                  break;
                 consume(AS_ID);
                 if SearchIConstant(tempstr,l) then
                  begin
@@ -1038,6 +1043,10 @@ Unit Ra386int;
                 if (hs<>'') and not(actasmtoken in [AS_MINUS,AS_PLUS,AS_COMMA,AS_SEPARATOR,AS_END,AS_RBRACKET]) then
                  Message(asmr_e_only_add_relocatable_symbol);
               end;
+            AS_ALIGN,
+            AS_DB,
+            AS_DW,
+            AS_DD,
             AS_END,
             AS_RBRACKET,
             AS_SEPARATOR,
@@ -1961,7 +1970,14 @@ Unit Ra386int;
                  ConcatConstant(curlist,value,constsize);
               end;
             AS_COMMA:
-              Consume(AS_COMMA);
+              begin
+                Consume(AS_COMMA);
+              end;
+            AS_ALIGN,
+            AS_DB,
+            AS_DW,
+            AS_DD,
+            AS_OPCODE,
             AS_END,
             AS_SEPARATOR:
               break;
