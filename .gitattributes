@@ -5310,7 +5310,6 @@ tests/tbs/tb0496.pp svneol=native#text/plain
 tests/tbs/tb0497.pp -text
 tests/tbs/tb0497a.pp -text
 tests/tbs/tb0497b.pp -text
-tests/tbs/tb0498.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain
@@ -5638,6 +5637,7 @@ tests/test/tresstr.pp svneol=native#text/plain
 tests/test/trtti1.pp svneol=native#text/plain
 tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
+tests/test/trtti4.pp svneol=native#text/plain
 tests/test/tset1.pp svneol=native#text/plain
 tests/test/tset2.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
