@@ -131,7 +131,9 @@ unit cpupara;
             classrefdef:
               result:=LOC_REGISTER;
             recorddef:
-              if (target_info.abi<>abi_powerpc_aix) then
+              if (target_info.abi<>abi_powerpc_aix) or
+                 ((p.size >= 3) and
+                  ((p.size mod 4) <> 0)) then
                 result:=LOC_REFERENCE
               else
                 result:=LOC_REGISTER;
@@ -377,6 +379,7 @@ unit cpupara;
                     paralen := paradef.size
                   else
                     paralen := tcgsize2size[def_cgsize(paradef)];
+                  loc := getparaloc(paradef);
                   if (target_info.abi = abi_powerpc_aix) and
                      (paradef.deftype = recorddef) and
                      (hp.varspez in [vs_value,vs_const]) then
@@ -392,18 +395,15 @@ unit cpupara;
                         begin
                           paradef :=
                            tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
-                          loc := getparaloc(paradef);
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
                         begin
-                          loc := LOC_REGISTER;
                           paracgsize := int_cgsize(paralen);
                         end;
                     end
                   else
                     begin
-                      loc:=getparaloc(paradef);
                       paracgsize:=def_cgsize(paradef);
                       { for things like formaldef }
                       if (paracgsize=OS_NO) then
