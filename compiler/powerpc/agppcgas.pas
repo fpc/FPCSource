@@ -32,7 +32,8 @@ unit agppcgas;
        aasmbase,
        aasmtai,
        aggas,
-       cpubase;
+       cpubase,
+       globtype;
 
     type
       PPPCGNUAssembler=^TPPCGNUAssembler;
@@ -40,13 +41,15 @@ unit agppcgas;
         function sectionname(atype:tasmsectiontype;const aname:string):string;override;
         procedure WriteExtraHeader;override;
         procedure WriteInstruction(hp : tai);override;
+       private
+        debugframecount: aint;
       end;
 
 
   implementation
 
     uses
-       cutils,globals,verbose,globtype,
+       cutils,globals,verbose,
        cgbase,cgutils,systems,
        assemble,
        itcpugas,
@@ -88,7 +91,7 @@ unit agppcgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
           );
@@ -101,9 +104,17 @@ unit agppcgas;
 
     function TPPCGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
       begin
-        if (target_info.system = system_powerpc_darwin) and
-           (atype = sec_bss) then
-          atype := sec_code;
+        if (target_info.system = system_powerpc_darwin) then
+          case atype of
+            sec_bss:
+              atype := sec_code;
+            sec_debug_frame:
+              begin
+                result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
+                inc(debugframecount);
+                exit;
+              end;
+          end;
         result := inherited sectionname(atype,aname);
       end;
 

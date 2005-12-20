@@ -34,7 +34,7 @@ interface
       dos,
 {$ENDIF USE_SYSUTILS}
       cclasses,
-      globals,
+      globtype,globals,
       aasmbase,aasmtai,aasmcpu,
       assemble;
 
@@ -56,13 +56,18 @@ interface
       public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
+      private
+        setcount: longint;
+        procedure WriteDecodedSleb128(a: aint);
+        procedure WriteDecodedUleb128(a: aword);
+        function NextSetLabel: string;
       end;
 
 
 implementation
 
     uses
-      cutils,globtype,systems,
+      cutils,systems,
       fmodule,finput,verbose,
       itcpugas
       ;
@@ -190,6 +195,12 @@ implementation
 {                          GNU Assembler writer                              }
 {****************************************************************************}
 
+    function TGNUAssembler.NextSetLabel: string;
+      begin
+        inc(setcount);
+        result := target_asm.labelprefix+'$set$'+tostr(setcount);
+      end;
+
     function TGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
@@ -264,6 +275,53 @@ implementation
       end;
 
 
+    procedure TGNUAssembler.WriteDecodedUleb128(a: aword);
+      var
+        b: byte;
+      begin
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if (a <> 0) then
+            b := b or $80;
+          AsmWrite(tostr(b));
+          if (a <> 0) then
+            AsmWrite(',')
+          else
+            break;
+        until false;
+      end;
+
+
+    procedure TGNUAssembler.WriteDecodedSleb128(a: aint);
+      var
+        b, size: byte;
+        neg, more: boolean;
+      begin
+        more := true;
+        neg := a < 0;
+        size := sizeof(a)*8;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if (neg) then
+            a := a or -(1 shl (size - 7));
+          if (((a = 0) and
+               (a and $40 = 0)) or
+              ((a = -1) and
+               (a and $40 <> 0))) then
+            more := false
+          else
+            b := b or $80;
+          AsmWrite(tostr(b));
+          if (more) then
+            AsmWrite(',')
+          else
+            break;
+        until false;
+      end;
+
+
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
 
     function needsObject(hp : tai_symbol) : boolean;
@@ -284,7 +342,7 @@ implementation
       hp       : tai;
       hp1      : tailineinfo;
       consttyp : taitype;
-      s        : string;
+      s,t      : string;
       i,pos,l  : longint;
       InlineLevel : longint;
       last_align : longint;
@@ -524,35 +582,63 @@ implementation
            ait_const_rva_symbol,
            ait_const_indirect_symbol :
              begin
-               AsmWrite(ait_const2str[hp.typ]);
-               consttyp:=hp.typ;
-               l:=0;
-               repeat
-                 if assigned(tai_const(hp).sym) then
-                   begin
-                     if assigned(tai_const(hp).endsym) then
-                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+              if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+                 (hp.typ in [ait_const_uleb128bit,ait_const_sleb128bit]) then
+                begin
+                  AsmWrite(ait_const2str[ait_const_8bit]);
+                  case hp.typ of
+                    ait_const_uleb128bit:
+                      WriteDecodedUleb128(aword(tai_const(hp).value));
+                    ait_const_sleb128bit:
+                      WriteDecodedSleb128(aint(tai_const(hp).value));
+                  end
+                end
+               else
+                 begin
+                   AsmWrite(ait_const2str[hp.typ]);
+                   consttyp:=hp.typ;
+                   l:=0;
+                   t := '';
+                   repeat
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if assigned(tai_const(hp).endsym) then
+                           begin
+                             if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+                               begin
+                                 s := NextSetLabel;
+                                 t := #9'.set '+s+','+tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name;
+                               end
+                             else
+                               s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                            end
+                         else
+                           s:=tai_const(hp).sym.name;
+                         if tai_const(hp).value<>0 then
+                           s:=s+tostr_with_plus(tai_const(hp).value);
+                       end
                      else
-                       s:=tai_const(hp).sym.name;
-                     if tai_const(hp).value<>0 then
-                       s:=s+tostr_with_plus(tai_const(hp).value);
-                   end
-                 else
-                   s:=tostr(tai_const(hp).value);
-                 AsmWrite(s);
-                 inc(l,length(s));
-                 { Values with symbols are written on a single line to improve
-                   reading of the .s file (PFV) }
-                 if assigned(tai_const(hp).sym) or
-                    not(CurrSecType in [sec_data,sec_rodata]) or
-                    (l>line_length) or
-                    (hp.next=nil) or
-                    (tai(hp.next).typ<>consttyp) or
-                    assigned(tai_const(hp.next).sym) then
-                   break;
-                 hp:=tai(hp.next);
-                 AsmWrite(',');
-               until false;
+                       s:=tostr(tai_const(hp).value);
+                     AsmWrite(s);
+                     inc(l,length(s));
+                     { Values with symbols are written on a single line to improve
+                       reading of the .s file (PFV) }
+                     if assigned(tai_const(hp).sym) or
+                        not(CurrSecType in [sec_data,sec_rodata]) or
+                        (l>line_length) or
+                        (hp.next=nil) or
+                        (tai(hp.next).typ<>consttyp) or
+                        assigned(tai_const(hp.next).sym) then
+                       break;
+                     hp:=tai(hp.next);
+                     AsmWrite(',');
+                   until false;
+                   if (t <> '') then
+                     begin
+                       AsmLn;
+                       AsmWrite(t);
+                     end;
+                 end;
                AsmLn;
              end;
 
