@@ -345,19 +345,23 @@ implementation
                 begin
                    consume(_INDEX);
                    pt:=comp_expr(true);
+                   { Only allow enum and integer indexes. Convert all integer
+                     values to s32int to be compatible with delphi, because the
+                     procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resulttype.def)
-{$ifndef cpu64bit}
-                      and (not is_64bitint(pt.resulttype.def))
-{$endif}
-                      then
-                     p.index:=tordconstnode(pt).value
+                      and (not is_64bitint(pt.resulttype.def)) then
+                     begin
+                       if is_integer(pt.resulttype.def) then
+                         inserttypeconv_internal(pt,s32inttype);
+                       p.index:=tordconstnode(pt).value;
+                     end
                    else
                      begin
                        Message(parser_e_invalid_property_index_value);
                        p.index:=0;
                      end;
-                   p.indextype.setdef(pt.resulttype.def);
+                   p.indextype:=pt.resulttype;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
                    inc(paranr);
@@ -403,7 +407,7 @@ implementation
                      { we ignore hidden stuff here because the property access symbol might have
                        non default calling conventions which might change the hidden stuff;
                        see tw3216.pp (FK) }
-                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert]);
+                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden]);
                      if not assigned(p.readaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -447,7 +451,7 @@ implementation
                      { Insert hidden parameters }
                      handle_calling_convention(writeprocdef);
                      { search procdefs matching writeprocdef }
-                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults,cpo_allowconvert]);
+                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults]);
                      if not assigned(p.writeaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
