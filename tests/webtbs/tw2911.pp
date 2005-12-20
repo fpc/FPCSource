@@ -4,9 +4,9 @@
 { Submitted by "Chris Hilder" on  2004-01-19 }
 { e-mail: cj.hilder@astronomyinyourhands.com }
 program bug_demo;
-{$LONGSTRINGS ON}
 
 {$ifdef fpc}{$Mode objfpc}{$endif}
+{$LONGSTRINGS ON}
 
 type
         RecordWithStrings =
