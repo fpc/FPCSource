@@ -110,7 +110,7 @@ implementation
               end;
 
             do_member_read(classh,false,sym,p2,again,[]);
-            
+
             { we need the real called method }
             do_resulttypepass(p2);
 
@@ -127,7 +127,7 @@ implementation
                   end
                 else
                   begin
-                   { Free is not a destructor 
+                   { Free is not a destructor
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_destructor) then
                       Message(parser_e_expr_have_to_be_destructor_call);
                    }
@@ -678,9 +678,6 @@ implementation
         ppn     : tcallparanode;
         paradef : tdef;
         counter : integer;
-{$ifdef ansistring_bits}
-        mode    : byte;
-{$endif ansistring_bits}
       begin
         { for easy exiting if something goes wrong }
         result := cerrornode.create;
@@ -704,40 +701,12 @@ implementation
            ppn:=tcallparanode(ppn.right);
          end;
         paradef:=ppn.left.resulttype.def;
-{$ifdef ansistring_bits}
-        if is_ansistring(paradef) then
-          case Tstringdef(paradef).string_typ of
-            st_ansistring16:
-              mode:=16;
-            st_ansistring32:
-              mode:=32;
-            st_ansistring64:
-              mode:=64;
-          end;
-        if (is_chararray(paradef) and (paradef.size>255)) or
-           ((cs_ansistrings in aktlocalswitches) and is_pchar(paradef)) then
-          case aktansistring_bits of
-            sb_16:
-              mode:=16;
-            sb_32:
-              mode:=32;
-            sb_64:
-              mode:=64;
-          end;
-        if mode=16 then
-          copynode:=ccallnode.createintern('fpc_ansistr16_copy',paras)
-        else if mode=32 then
-          copynode:=ccallnode.createintern('fpc_ansistr32_copy',paras)
-        else if mode=64 then
-          copynode:=ccallnode.createintern('fpc_ansistr64_copy',paras)
-{$else}
         if is_ansistring(paradef) or
            (is_chararray(paradef) and
             (paradef.size>255)) or
            ((cs_ansistrings in aktlocalswitches) and
             is_pchar(paradef)) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
-{$endif}
         else
          if is_widestring(paradef) or
             is_widechararray(paradef) or

@@ -83,6 +83,10 @@ interface
           lasttoken,
           nexttoken    : ttoken;
 
+          replaysavetoken : ttoken;
+          replaytokenbuf,
+          recordtokenbuf : tdynamicarray;
+
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
@@ -121,6 +125,11 @@ interface
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
+          procedure recordtoken;
+          procedure startrecordtokens(buf:tdynamicarray);
+          procedure stoprecordtokens;
+          procedure replaytoken;
+          procedure startreplaytokens(buf:tdynamicarray);
           procedure readchar;
           procedure readstring;
           procedure readnumber;
@@ -136,7 +145,7 @@ interface
           procedure skipcomment;
           procedure skipdelphicomment;
           procedure skipoldtpcomment;
-          procedure readtoken;
+          procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
           function  asmgetcharstart : char;
           function  asmgetchar:char;
@@ -1741,6 +1750,119 @@ compile time variables as the old format (0/1), continue to work.
       end;
 
 
+    procedure tscannerfile.startrecordtokens(buf:tdynamicarray);
+      begin
+        if not assigned(buf) then
+          internalerror(200511172);
+        if assigned(recordtokenbuf) then
+          internalerror(200511173);
+        recordtokenbuf:=buf;
+      end;
+
+
+    procedure tscannerfile.stoprecordtokens;
+      begin
+        if not assigned(recordtokenbuf) then
+          internalerror(200511174);
+        recordtokenbuf:=nil;
+      end;
+
+
+    procedure tscannerfile.recordtoken;
+      begin
+        if not assigned(recordtokenbuf) then
+          internalerror(200511176);
+        recordtokenbuf.write(token,1);
+        if token=_ID then
+          recordtokenbuf.write(idtoken,1);
+        case token of
+          _CWCHAR,
+          _CWSTRING :
+            begin
+              recordtokenbuf.write(patternw^.len,sizeof(sizeint));
+              recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+            end;
+          _CCHAR,
+          _CSTRING,
+          _INTCONST,
+          _REALNUMBER :
+            begin
+              recordtokenbuf.write(pattern[0],1);
+              recordtokenbuf.write(pattern[1],length(pattern));
+            end;
+          _ID :
+            begin
+              recordtokenbuf.write(orgpattern[0],1);
+              recordtokenbuf.write(orgpattern[1],length(orgpattern));
+            end;
+        end;
+      end;
+
+
+    procedure tscannerfile.startreplaytokens(buf:tdynamicarray);
+      begin
+        if not assigned(buf) then
+          internalerror(200511175);
+        { save current token }
+        if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
+          internalerror(200511178);
+        replaysavetoken:=token;
+        dec(inputpointer);
+        { install buffer }
+        replaytokenbuf:=buf;
+        { reload next token }
+        replaytokenbuf.seek(0);
+        replaytoken;
+      end;
+
+
+    procedure tscannerfile.replaytoken;
+      var
+        wlen : sizeint;
+      begin
+        if not assigned(replaytokenbuf) then
+          internalerror(200511177);
+        { End of replay buffer? Then load the next char from the file again }
+        if replaytokenbuf.pos>=replaytokenbuf.size then
+          begin
+            replaytokenbuf:=nil;
+            c:=inputpointer^;
+            inc(inputpointer);
+            token:=replaysavetoken;
+            exit;
+          end;
+        { load token from the buffer }
+        replaytokenbuf.read(token,1);
+        if token=_ID then
+          replaytokenbuf.read(idtoken,1);
+        case token of
+          _CWCHAR,
+          _CWSTRING :
+            begin
+              replaytokenbuf.read(wlen,sizeof(SizeInt));
+              setlengthwidestring(patternw,wlen);
+              replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+              pattern:='';
+            end;
+          _CCHAR,
+          _CSTRING,
+          _INTCONST,
+          _REALNUMBER :
+            begin
+              replaytokenbuf.read(pattern[0],1);
+              replaytokenbuf.read(pattern[1],length(pattern));
+              orgpattern:='';
+            end;
+          _ID :
+            begin
+              replaytokenbuf.read(orgpattern[0],1);
+              replaytokenbuf.read(orgpattern[1],length(orgpattern));
+              pattern:=upper(orgpattern);
+            end;
+        end;
+      end;
+
+
     procedure tscannerfile.addfile(hp:tinputfile);
       begin
         saveinputfile;
@@ -2776,7 +2898,7 @@ compile time variables as the old format (0/1), continue to work.
                                Token Scanner
 ****************************************************************************}
 
-    procedure tscannerfile.readtoken;
+    procedure tscannerfile.readtoken(allowrecordtoken:boolean);
       var
         code    : integer;
         len,
@@ -2795,6 +2917,19 @@ compile time variables as the old format (0/1), continue to work.
             aktlocalswitches:=nextaktlocalswitches;
             localswitcheschanged:=false;
           end;
+
+        { record tokens? }
+        if allowrecordtoken and
+           assigned(recordtokenbuf) then
+          recordtoken;
+
+        { replay tokens? }
+        if assigned(replaytokenbuf) then
+          begin
+            replaytoken;
+            goto exit_label;
+          end;
+
       { was there already a token read, then return that token }
         if nexttoken<>NOTOKEN then
          begin
@@ -2885,7 +3020,7 @@ compile time variables as the old format (0/1), continue to work.
                      { handle empty macros }
                        if c=#0 then
                          reload;
-                       readtoken;
+                       readtoken(false);
                        { that's all folks }
                        dec(yylexcount);
                        exit;
@@ -3028,7 +3163,7 @@ compile time variables as the old format (0/1), continue to work.
                      begin
                        c:=#0;{Signal skipoldtpcomment to reload a char }
                        skipoldtpcomment;
-                       readtoken;
+                       readtoken(false);
                        exit;
                      end;
                    '.' :
@@ -3123,7 +3258,7 @@ compile time variables as the old format (0/1), continue to work.
                    '/' :
                      begin
                        skipdelphicomment;
-                       readtoken;
+                       readtoken(false);
                        exit;
                      end;
                  end;
@@ -3422,54 +3557,64 @@ compile time variables as the old format (0/1), continue to work.
              '>' :
                begin
                  readchar;
-                 case c of
-                   '=' :
-                     begin
-                       readchar;
-                       token:=_GTE;
-                       goto exit_label;
+                 if (block_type=bt_type) then
+                   token:=_RSHARPBRACKET
+                 else
+                   begin
+                     case c of
+                       '=' :
+                         begin
+                           readchar;
+                           token:=_GTE;
+                           goto exit_label;
+                         end;
+                       '>' :
+                         begin
+                           readchar;
+                           token:=_OP_SHR;
+                           goto exit_label;
+                         end;
+                       '<' :
+                         begin { >< is for a symetric diff for sets }
+                           readchar;
+                           token:=_SYMDIF;
+                           goto exit_label;
+                         end;
                      end;
-                   '>' :
-                     begin
-                       readchar;
-                       token:=_OP_SHR;
-                       goto exit_label;
-                     end;
-                   '<' :
-                     begin { >< is for a symetric diff for sets }
-                       readchar;
-                       token:=_SYMDIF;
-                       goto exit_label;
-                     end;
-                 end;
-                 token:=_GT;
+                     token:=_GT;
+                   end;
                  goto exit_label;
                end;
 
              '<' :
                begin
                  readchar;
-                 case c of
-                   '>' :
-                     begin
-                       readchar;
-                       token:=_UNEQUAL;
-                       goto exit_label;
+                 if (block_type=bt_type) then
+                   token:=_LSHARPBRACKET
+                 else
+                   begin
+                     case c of
+                       '>' :
+                         begin
+                           readchar;
+                           token:=_UNEQUAL;
+                           goto exit_label;
+                         end;
+                       '=' :
+                         begin
+                           readchar;
+                           token:=_LTE;
+                           goto exit_label;
+                         end;
+                       '<' :
+                         begin
+                           readchar;
+                           token:=_OP_SHL;
+                           goto exit_label;
+                         end;
                      end;
-                   '=' :
-                     begin
-                       readchar;
-                       token:=_LTE;
-                       goto exit_label;
-                     end;
-                   '<' :
-                     begin
-                       readchar;
-                       token:=_OP_SHL;
-                       goto exit_label;
-                     end;
-                 end;
-                 token:=_LT;
+                     token:=_LT;
+                   end;
                  goto exit_label;
                end;
 

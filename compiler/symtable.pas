@@ -314,13 +314,7 @@ implementation
                  ibprocdef : hp:=tprocdef.ppuload(ppufile);
           ibshortstringdef : hp:=tstringdef.loadshort(ppufile);
            iblongstringdef : hp:=tstringdef.loadlong(ppufile);
-{$ifdef ansistring_bits}
-         ibansistring16def : hp:=tstringdef.loadansi(ppufile,sb_16);
-         ibansistring32def : hp:=tstringdef.loadansi(ppufile,sb_32);
-         ibansistring64def : hp:=tstringdef.loadansi(ppufile,sb_64);
-{$else}
            ibansistringdef : hp:=tstringdef.loadansi(ppufile);
-{$endif}
            ibwidestringdef : hp:=tstringdef.loadwide(ppufile);
                ibrecorddef : hp:=trecorddef.ppuload(ppufile);
                ibobjectdef : hp:=tobjectdef.ppuload(ppufile);
@@ -331,6 +325,7 @@ implementation
              ibclassrefdef : hp:=tclassrefdef.ppuload(ppufile);
                ibformaldef : hp:=tformaldef.ppuload(ppufile);
               ibvariantdef : hp:=tvariantdef.ppuload(ppufile);
+            ibundefineddef : hp:=tundefineddef.ppuload(ppufile);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
            else
@@ -1672,7 +1667,12 @@ implementation
                   objects
                   parameters
               }
-              if not(srsymtable.symtabletype in [recordsymtable,objectsymtable,parasymtable]) then
+              if not(srsymtable.symtabletype in [recordsymtable,objectsymtable,parasymtable]) or
+                 (assigned(srsymtable.defowner) and
+                  (
+                   (df_generic in tdef(srsymtable.defowner).defoptions) or
+                   (df_specialization in tdef(srsymtable.defowner).defoptions))
+                  ) then
                 begin
                   srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
                   if assigned(srsym) and

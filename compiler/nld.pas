@@ -245,20 +245,7 @@ implementation
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 begin
-                 {$ifdef ansistring_bits}
-                   case aktansistring_bits of
-                     sb_16:
-                       resulttype:=cansistringtype16;
-                     sb_32:
-                       resulttype:=cansistringtype32;
-                     sb_64:
-                       resulttype:=cansistringtype64;
-                   end;
-                 {$else}
-                   resulttype:=cansistringtype
-                 {$endif}
-                 end
+                 resulttype:=cansistringtype
                else
                  internalerror(22799);
              end;

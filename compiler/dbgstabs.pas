@@ -730,7 +730,11 @@ implementation
             result:=strpnew('*f'+def_stab_number(tprocvardef(def).rettype.def));
           objectdef :
             result:=objectdef_stabstr(tobjectdef(def));
+          undefineddef :
+            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
         end;
+        if result=nil then
+          internalerror(200512203);
       end;
 
 
@@ -798,10 +802,15 @@ implementation
       var
         anc : tobjectdef;
         oldtypesym : tsym;
-//        nb  : string[12];
       begin
         if (def.stab_state in [stab_state_writing,stab_state_written]) then
           exit;
+        { never write generic template defs }
+        if df_generic in def.defoptions then
+          begin
+            def.stab_state:=stab_state_written;
+            exit;
+          end;
         { to avoid infinite loops }
         def.stab_state := stab_state_writing;
         { write dependencies first }
@@ -857,31 +866,7 @@ implementation
               tobjectdef(def).symtable.foreach(@method_write_defs,list);
             end;
         end;
-(*
-        { Handle pointerdefs to records and objects to avoid recursion }
-        if (def.deftype=pointerdef) and
-           (tpointerdef(def).pointertype.def.deftype in [recorddef,objectdef]) then
-          begin
-            def.stab_state:=stab_state_used;
-            write_def_stabstr(list,def);
-            {to avoid infinite recursion in record with next-like fields }
-            if tdef(tpointerdef(def).pointertype.def).stab_state=stab_state_writing then
-              begin
-                if assigned(tpointerdef(def).pointertype.def.typesym) then
-                  begin
-                    if is_class(tpointerdef(def).pointertype.def) then
-                      nb:=def_stab_classnumber(tobjectdef(tpointerdef(def).pointertype.def))
-                    else
-                      nb:=def_stab_number(tpointerdef(def).pointertype.def);
-                    list.concat(Tai_stab.create(stab_stabs,def_stabstr_evaluate(
-                            def,'"${sym_name}:t${numberstring}=*$1=xs$2:",${N_LSYM},0,0,0',
-                            [nb,tpointerdef(def).pointertype.def.typesym.name])));
-                  end;
-                def.stab_state:=stab_state_written;
-              end
-          end
-        else
-*)
+
         case def.deftype of
           objectdef :
             begin

@@ -75,7 +75,7 @@ implementation
        nmat,nadd,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
        { parser }
        scanner,
-       pbase,pinline,
+       pbase,pinline,ptype,
        { codegen }
        cgbase,procinfo,cpuinfo
        ;
@@ -139,18 +139,7 @@ implementation
           else
             begin
                if cs_ansistrings in aktlocalswitches then
-                 {$ifdef ansistring_bits}
-                 case aktansistring_bits of
-                   sb_16:
-                     t:=cansistringtype16;
-                   sb_32:
-                     t:=cansistringtype32;
-                   sb_64:
-                     t:=cansistringtype64;
-                 end
-                 {$else}
                  t:=cansistringtype
-                 {$endif}
                else
                  t:=cshortstringtype;
             end;
@@ -1323,7 +1312,8 @@ implementation
                        if (htype.def=cvarianttype.def) and
                           not(cs_compilesystem in aktmoduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       if try_to_consume(_LKLAMMER) then
+                       if (block_type<>bt_type) and
+                          try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
@@ -1450,18 +1440,7 @@ implementation
                         begin
                           p1:=cloadnode.create(srsym,srsymtable);
                           do_resulttypepass(p1);
-                        {$ifdef ansistring_bits}
-                          case aktansistring_bits of
-                            sb_16:
-                              p1.resulttype:=cansistringtype16;
-                            sb_32:
-                              p1.resulttype:=cansistringtype32;
-                            sb_64:
-                              p1.resulttype:=cansistringtype64;
-                          end;
-                        {$else}
                           p1.resulttype:=cansistringtype;
-                        {$endif}
                         end;
                       constguid :
                         p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
@@ -2425,9 +2404,10 @@ implementation
 
            else
              begin
-               p1:=cerrornode.create;
-               consume(token);
                Message(parser_e_illegal_expression);
+               p1:=cerrornode.create;
+               { recover }
+               consume(token);
              end;
         end;
 

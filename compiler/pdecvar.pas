@@ -768,17 +768,20 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             if options*[vd_record,vd_object]<>[] then
+             if ((vd_record in options) or
+                 (vd_object in options)) and
+                not(df_generic in tdef(symtablestack.defowner).defoptions) and
+                not(df_specialization in tdef(symtablestack.defowner).defoptions) then
               begin
                 { for records, don't search the recordsymtable for
                   the symbols of the types }
                 oldsymtablestack:=symtablestack;
                 symtablestack:=symtablestack.next;
-                read_type(tt,'',false);
+                read_anon_type(tt,false);
                 symtablestack:=oldsymtablestack;
               end
              else
-              read_type(tt,'',false);
+              read_anon_type(tt,false);
              ignore_equal:=false;
              { Process procvar directives }
              if (tt.def.deftype=procvardef) and
@@ -1209,7 +1212,7 @@ implementation
                    the symbols of the types }
                  oldsymtablestack:=symtablestack;
                  symtablestack:=symtablestack.next;
-                 read_type(casetype,'',true);
+                 read_anon_type(casetype,true);
                  symtablestack:=oldsymtablestack;
                end
               else
@@ -1220,7 +1223,7 @@ implementation
                     the symbols of the types }
                   oldsymtablestack:=symtablestack;
                   symtablestack:=symtablestack.next;
-                  read_type(casetype,'',true);
+                  read_anon_type(casetype,true);
                   symtablestack:=oldsymtablestack;
                   fieldvs:=tfieldvarsym.create(sorg,vs_value,casetype,[]);
                   tabstractrecordsymtable(symtablestack).insertfield(fieldvs,true);

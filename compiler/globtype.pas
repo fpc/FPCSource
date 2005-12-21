@@ -244,10 +244,6 @@ than 255 characters. That's why using Ansi Strings}
        );
        tprocinfoflags=set of tprocinfoflag;
 
-{$ifdef ansistring_bits}
-       Tstringbits=(sb_16,sb_32,sb_64);
-{$endif}
-
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
            'CDecl',

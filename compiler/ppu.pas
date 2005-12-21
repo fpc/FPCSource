@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=50;
+  CurrentPPUVersion=51;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -116,15 +116,10 @@ const
   ibfloatdef       = 52;
   ibclassrefdef    = 53;
   iblongstringdef  = 54;
-{$ifdef ansistring_bits}
-  ibansistring16def  = 58;
-  ibansistring32def  = 55;
-  ibansistring64def  = 59;
-{$else}
   ibansistringdef  = 55;
-{$endif}
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
+  ibundefineddef   = 58;
   {implementation/objectdata}
   ibnodetree       = 80;
   ibasmsymbols     = 81;

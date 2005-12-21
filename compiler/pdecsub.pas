@@ -639,6 +639,7 @@ implementation
         orgsp,sp : stringid;
         sym : tsym;
         srsym : tsym;
+        oldsymtablestack,
         srsymtable : tsymtable;
         storepos,
         procstartfilepos : tfileposinfo;
@@ -838,6 +839,31 @@ implementation
         pd._class:=aclass;
         pd.procsym:=aprocsym;
         pd.proctypeoption:=potype;
+
+        { methods inherit df_generic or df_specialization from the objectdef }
+        if assigned(pd._class) then
+          begin
+            if (df_generic in pd._class.defoptions) then
+              include(pd.defoptions,df_generic);
+            if (df_specialization in pd._class.defoptions) then
+              begin
+                include(pd.defoptions,df_specialization);
+                { Find corresponding genericdef, we need it later to
+                  replay the tokens to generate the body }
+                if not assigned(pd._class.genericdef) then
+                  internalerror(200512113);
+                st:=pd._class.genericdef.getsymtable(gs_record);
+                if not assigned(st) then
+                  internalerror(200512114);
+                { We are parsing the same objectdef, the def index numbers
+                  are the same }
+                pd.genericdef:=tstoreddef(st.getdefnr(pd.indexnr));
+                if not assigned(pd.genericdef) or
+                   (pd.genericdef.deftype<>procdef) then
+                  internalerror(200512115);
+              end;
+          end;
+
         { methods need to be exported }
         if assigned(aclass) and
            (
@@ -852,7 +878,25 @@ implementation
 
         { parse parameters }
         if token=_LKLAMMER then
-          parse_parameter_dec(pd);
+          begin
+            { Add objectsymtable to be able to find generic type definitions }
+            oldsymtablestack:=symtablestack;
+            if assigned(pd._class) and
+               (pd.parast.symtablelevel=normal_function_level) and
+               (symtablestack.symtabletype<>objectsymtable) then
+              begin
+                pd._class.symtable.next:=symtablestack;
+                symtablestack:=pd._class.symtable;
+              end;
+            { Add parameter symtable }
+            if pd.parast.symtabletype<>staticsymtable then
+              begin
+                 pd.parast.next:=symtablestack;
+                 symtablestack:=pd.parast;
+              end;
+            parse_parameter_dec(pd);
+            symtablestack:=oldsymtablestack;
+          end;
 
         result:=true;
       end;

@@ -184,7 +184,7 @@ implementation
          current_module.scanner:=current_scanner;
        { loop until EOF is found }
          repeat
-           current_scanner^.readtoken;
+           current_scanner^.readtoken(true);
            preprocfile^.AddSpace;
            case token of
              _ID :
@@ -465,7 +465,7 @@ implementation
          macrosymtablestack:= current_module.localmacrosymtable;
 
          { read the first token }
-         current_scanner.readtoken;
+         current_scanner.readtoken(false);
 
          { init code generator for a new module }
          init_module;

@@ -575,11 +575,7 @@ implementation
                        case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
-                       {$ifdef ansistring_bits}
-                         st_ansistring16,st_ansistring32,st_ansistring64:
-                       {$else}
                          st_ansistring:
-                       {$endif}
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
@@ -713,11 +709,7 @@ implementation
                       case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
-                       {$ifdef ansistring_bits}
-                         st_ansistring16,st_ansistring32,st_ansistring64:
-                       {$else}
                          st_ansistring:
-                       {$endif}
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);

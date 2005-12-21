@@ -59,12 +59,16 @@ interface
           inittablesymderef : tderef;
           { local (per module) rtti and init tables }
           localrttilab  : array[trttitype] of tasmlabel;
-          { linked list of global definitions }
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
 {$endif}
+          { generic support }
+          genericdef      : tstoreddef;
+          genericdefderef : tderef;
+          generictokenbuf : tdynamicarray;
           constructor create;
           constructor ppuloaddef(ppufile:tcompilerppufile);
+          destructor  destroy;override;
           procedure reset;virtual;
           function getcopy : tstoreddef;virtual;
           procedure ppuwritedef(ppufile:tcompilerppufile);
@@ -86,6 +90,8 @@ interface
           { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
+          { generics }
+          procedure initgeneric;
        private
           savesize  : aint;
        end;
@@ -133,6 +139,13 @@ interface
           forwardpos : tfileposinfo;
           constructor create(const s:string;const pos : tfileposinfo);
           destructor destroy;override;
+          function  gettypename:string;override;
+       end;
+
+       tundefineddef = class(tstoreddef)
+          constructor create;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
        end;
 
@@ -552,13 +565,8 @@ interface
           constructor loadshort(ppufile:tcompilerppufile);
           constructor createlong(l : aint);
           constructor loadlong(ppufile:tcompilerppufile);
-       {$ifdef ansistring_bits}
-          constructor createansi(l:aint;bits:Tstringbits);
-          constructor loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
-       {$else}
           constructor createansi(l : aint);
           constructor loadansi(ppufile:tcompilerppufile);
-       {$endif}
           constructor createwide(l : aint);
           constructor loadwide(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
@@ -634,6 +642,7 @@ interface
        charpointertype,           { pointer for Char-Pointerdef }
        widecharpointertype,       { pointer for WideChar-Pointerdef }
        voidfarpointertype,
+       cundefinedtype,
        cformaltype,               { unique formal definition }
        voidtype,                  { Void (procedure) }
        cchartype,                 { Char }
@@ -653,13 +662,7 @@ interface
        s64currencytype,           { pointer to a currency type }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
-{$ifdef ansistring_bits}
-       cansistringtype16,         { pointer to type of ansi string const  }
-       cansistringtype32,         { pointer to type of ansi string const  }
-       cansistringtype64,         { pointer to type of ansi string const  }
-{$else}
        cansistringtype,           { pointer to type of ansi string const  }
-{$endif}
        cwidestringtype,           { pointer to type of wide string const  }
        openshortstringtype,       { pointer to type of an open shortstring,
                                     needed for readln() }
@@ -899,10 +902,23 @@ implementation
          if registerdef then
            symtablestack.registerdef(self);
          fillchar(localrttilab,sizeof(localrttilab),0);
+         generictokenbuf:=nil;
+         genericdef:=nil;
+      end;
+
+
+    destructor tstoreddef.destroy;
+      begin
+        if assigned(generictokenbuf) then
+          generictokenbuf.free;
+        inherited destroy;
       end;
 
 
     constructor tstoreddef.ppuloaddef(ppufile:tcompilerppufile);
+      var
+        sizeleft,i : longint;
+        buf  : array[0..255] of byte;
       begin
          inherited create;
 {$ifdef EXTDEBUG}
@@ -917,6 +933,23 @@ implementation
           ppufile.getderef(rttitablesymderef);
          if df_has_inittable in defoptions then
           ppufile.getderef(inittablesymderef);
+         if df_generic in defoptions then
+           begin
+             sizeleft:=ppufile.getlongint;
+             initgeneric;
+             while sizeleft>0 do
+               begin
+                 if sizeleft>sizeof(buf) then
+                   i:=sizeof(buf)
+                 else
+                   i:=sizeleft;
+                 ppufile.getdata(buf,i);
+                 generictokenbuf.write(buf,i);
+                 dec(sizeleft,i);
+               end;
+           end;
+        if df_specialization in defoptions then
+          ppufile.getderef(genericdefderef);
       end;
 
 
@@ -939,6 +972,10 @@ implementation
 
 
     procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
+      var
+        sizeleft,i : longint;
+        buf  : array[0..255] of byte;
+        oldintfcrc : boolean;
       begin
         ppufile.putword(indexnr);
         ppufile.putderef(typesymderef);
@@ -947,6 +984,32 @@ implementation
          ppufile.putderef(rttitablesymderef);
         if df_has_inittable in defoptions then
          ppufile.putderef(inittablesymderef);
+        if df_generic in defoptions then
+          begin
+            oldintfcrc:=ppufile.do_interface_crc;
+            ppufile.do_interface_crc:=false;
+            if assigned(generictokenbuf) then
+              begin
+                sizeleft:=generictokenbuf.size;
+                generictokenbuf.seek(0);
+              end
+            else
+              sizeleft:=0;
+            ppufile.putlongint(sizeleft);
+            while sizeleft>0 do
+              begin
+                if sizeleft>sizeof(buf) then
+                  i:=sizeof(buf)
+                else
+                  i:=sizeleft;
+                generictokenbuf.read(buf,i);
+                ppufile.putdata(buf,i);
+                dec(sizeleft,i);
+              end;
+            ppufile.do_interface_crc:=oldintfcrc;
+          end;
+        if df_specialization in defoptions then
+          ppufile.putderef(genericdefderef);
       end;
 
 
@@ -955,6 +1018,7 @@ implementation
         typesymderef.build(typesym);
         rttitablesymderef.build(rttitablesym);
         inittablesymderef.build(inittablesym);
+        genericdefderef.build(genericdef);
       end;
 
 
@@ -970,6 +1034,8 @@ implementation
           rttitablesym:=trttisym(rttitablesymderef.resolve);
         if df_has_inittable in defoptions then
           inittablesym:=trttisym(inittablesymderef.resolve);
+        if df_specialization in defoptions then
+          genericdef:=tstoreddef(genericdefderef.resolve);
       end;
 
 
@@ -1091,6 +1157,13 @@ implementation
      end;
 
 
+   procedure tstoreddef.initgeneric;
+     begin
+       if assigned(generictokenbuf) then
+         internalerror(200512131);
+       generictokenbuf:=tdynamicarray.create(256);
+     end;
+
 
 {****************************************************************************
                                Tstringdef
@@ -1135,40 +1208,7 @@ implementation
          savesize:=sizeof(aint);
       end;
 
-{$ifdef ansistring_bits}
-    constructor tstringdef.createansi(l:aint;bits:Tstringbits);
-      begin
-         inherited create;
-         case bits of
-           sb_16:
-             string_typ:=st_ansistring16;
-           sb_32:
-             string_typ:=st_ansistring32;
-           sb_64:
-             string_typ:=st_ansistring64;
-         end;
-         deftype:=stringdef;
-         len:=l;
-         savesize:=POINTER_SIZE;
-      end;
 
-
-    constructor tstringdef.loadansi(ppufile:tcompilerppufile;bits:Tstringbits);
-      begin
-         inherited ppuloaddef(ppufile);
-         deftype:=stringdef;
-         case bits of
-           sb_16:
-             string_typ:=st_ansistring16;
-           sb_32:
-             string_typ:=st_ansistring32;
-           sb_64:
-             string_typ:=st_ansistring64;
-         end;
-         len:=ppufile.getaint;
-         savesize:=POINTER_SIZE;
-      end;
-{$else}
     constructor tstringdef.createansi(l:aint);
       begin
          inherited create;
@@ -1180,7 +1220,6 @@ implementation
 
 
     constructor tstringdef.loadansi(ppufile:tcompilerppufile);
-
       begin
          inherited ppuloaddef(ppufile);
          deftype:=stringdef;
@@ -1188,7 +1227,7 @@ implementation
          len:=ppufile.getaint;
          savesize:=sizeof(aint);
       end;
-{$endif}
+
 
     constructor tstringdef.createwide(l : aint);
       begin
@@ -1221,17 +1260,10 @@ implementation
 
 
     function tstringdef.stringtypname:string;
-{$ifdef ansistring_bits}
-      const
-        typname:array[tstringtype] of string[9]=('',
-          'shortstr','longstr','ansistr16','ansistr32','ansistr64','widestr'
-        );
-{$else}
       const
         typname:array[tstringtype] of string[8]=('',
           'shortstr','longstr','ansistr','widestr'
         );
-{$endif}
       begin
         stringtypname:=typname[string_typ];
       end;
@@ -1252,13 +1284,7 @@ implementation
          case string_typ of
             st_shortstring : ppufile.writeentry(ibshortstringdef);
             st_longstring : ppufile.writeentry(iblongstringdef);
-         {$ifdef ansistring_bits}
-            st_ansistring16 : ppufile.writeentry(ibansistring16def);
-            st_ansistring32 : ppufile.writeentry(ibansistring32def);
-            st_ansistring64 : ppufile.writeentry(ibansistring64def);
-         {$else}
             st_ansistring : ppufile.writeentry(ibansistringdef);
-         {$endif}
             st_widestring : ppufile.writeentry(ibwidestringdef);
          end;
       end;
@@ -1266,24 +1292,14 @@ implementation
 
     function tstringdef.needs_inittable : boolean;
       begin
-      {$ifdef ansistring_bits}
-         needs_inittable:=string_typ in [st_ansistring16,st_ansistring32,st_ansistring64,st_widestring];
-      {$else}
          needs_inittable:=string_typ in [st_ansistring,st_widestring];
-      {$endif}
       end;
 
 
     function tstringdef.gettypename : string;
-{$ifdef ansistring_bits}
-      const
-         names : array[tstringtype] of string[20] = ('',
-           'shortstring','longstring','ansistring16','ansistring32','ansistring64','widestring');
-{$else}
       const
          names : array[tstringtype] of string[20] = ('',
            'ShortString','LongString','AnsiString','WideString');
-{$endif}
       begin
          gettypename:=names[string_typ];
       end;
@@ -1312,29 +1328,11 @@ implementation
     procedure tstringdef.write_rtti_data(rt:trttitype);
       begin
          case string_typ of
-          {$ifdef ansistring_bits}
-            st_ansistring16:
-              begin
-                 asmlist[al_rtti].concat(Tai_const.Create_8bit(tkA16String));
-                 write_rtti_name;
-              end;
-            st_ansistring32:
-              begin
-                 asmlist[al_rtti].concat(Tai_const.Create_8bit(tkA32String));
-                 write_rtti_name;
-              end;
-            st_ansistring64:
-              begin
-                 asmlist[al_rtti].concat(Tai_const.Create_8bit(tkA64String));
-                 write_rtti_name;
-              end;
-          {$else}
             st_ansistring:
               begin
                  asmlist[al_rtti].concat(Tai_const.Create_8bit(tkAString));
                  write_rtti_name;
               end;
-          {$endif}
             st_widestring:
               begin
                  asmlist[al_rtti].concat(Tai_const.Create_8bit(tkWString));
@@ -5377,6 +5375,36 @@ implementation
         if assigned(tosymname) then
           stringdispose(tosymname);
         inherited destroy;
+      end;
+
+
+{****************************************************************************
+                               TUNDEFINEDDEF
+****************************************************************************}
+
+   constructor tundefineddef.create;
+     begin
+        inherited create;
+        deftype:=undefineddef;
+     end;
+
+
+    constructor tundefineddef.ppuload(ppufile:tcompilerppufile);
+      begin
+         inherited ppuloaddef(ppufile);
+         deftype:=undefineddef;
+      end;
+
+    function tundefineddef.gettypename:string;
+      begin
+        gettypename:='<undefined type>';
+      end;
+
+
+    procedure tundefineddef.ppuwrite(ppufile:tcompilerppufile);
+      begin
+         inherited ppuwritedef(ppufile);
+         ppufile.writeentry(ibundefineddef);
       end;
 
 

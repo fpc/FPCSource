@@ -186,6 +186,24 @@ implementation
             exit;
           end;
 
+         { undefined def? then mark it as equal }
+         if (def_from.deftype=undefineddef) or
+            (def_to.deftype=undefineddef) then
+          begin
+            doconv:=tc_equal;
+            compare_defs_ext:=te_equal;
+            exit;
+          end;
+
+         { undefined def? then mark it as equal }
+         if (def_from.deftype=undefineddef) or
+            (def_to.deftype=undefineddef) then
+          begin
+            doconv:=tc_equal;
+            compare_defs_ext:=te_equal;
+            exit;
+          end;
+
          { we walk the wanted (def_to) types and check then the def_from
            types if there is a conversion possible }
          case def_to.deftype of

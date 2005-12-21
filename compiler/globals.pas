@@ -210,9 +210,6 @@ interface
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
        initpackenum       : shortint;
-     {$ifdef ansistring_bits}
-       initansistring_bits: Tstringbits;
-     {$endif}
        initalignment      : talignmentinfo;
        initoptprocessor,
        initspecificoptprocessor : tprocessors;
@@ -234,9 +231,6 @@ interface
        {$ENDIF}
        aktpackrecords,
        aktpackenum        : shortint;
-     {$ifdef ansistring_bits}
-       aktansistring_bits : Tstringbits;
-     {$endif}
        aktmaxfpuregisters : longint;
        aktalignment       : talignmentinfo;
        aktoptprocessor,
@@ -1820,11 +1814,11 @@ end;
         p := @r;
 {$ifdef CPU_ARM}
         inc(p,4);
-{$else}   
+{$else}
 {$ifdef FPC_LITTLE_ENDIAN}
         inc(p,sizeof(r)-1);
-{$endif}          
-{$endif}             
+{$endif}
+{$endif}
         if (p^ and $80) = 0 then
           result := 1
         else

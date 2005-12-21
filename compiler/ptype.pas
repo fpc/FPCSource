@@ -26,7 +26,7 @@ unit ptype;
 interface
 
     uses
-       globtype,symtype;
+       globtype,cclasses,symtype,symdef;
 
     const
        { forward types should only be possible inside a TYPE statement }
@@ -41,7 +41,8 @@ interface
     { tdef }
     procedure single_type(var tt:ttype;isforwarddef:boolean);
 
-    procedure read_type(var tt:ttype;const name : stringid;parseprocvardir:boolean);
+    procedure read_named_type(var tt:ttype;const name : stringid;genericdef:tstoreddef;genericlist:tsinglelist;parseprocvardir:boolean);
+    procedure read_anon_type(var tt : ttype;parseprocvardir:boolean);
 
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
@@ -60,7 +61,7 @@ implementation
        { target }
        paramgr,
        { symtable }
-       symconst,symbase,symdef,symsym,symtable,
+       symconst,symbase,symsym,symtable,
        defutil,defcmp,
        { pass 1 }
        node,
@@ -68,6 +69,101 @@ implementation
        { parser }
        scanner,
        pbase,pexpr,pdecsub,pdecvar,pdecobj;
+
+
+    procedure generate_specialization(var pt1:tnode;const name:string);
+      var
+        st  : tsymtable;
+        pt2 : tnode;
+        first,
+        err : boolean;
+        sym : tsym;
+        genericdef : tstoreddef;
+        generictype : ttypesym;
+        generictypelist : tsinglelist;
+      begin
+        { retrieve generic def that we are going to replace }
+        genericdef:=tstoreddef(pt1.resulttype.def);
+        pt1.resulttype.reset;
+        if not(df_generic in genericdef.defoptions) then
+          begin
+            Comment(V_Error,'Specialization is only supported for generic types');
+            pt1.resulttype:=generrortype;
+            { recover }
+{$ifdef GENERICSHARPBRACKET}
+            consume(_LSHARPBRACKET);
+{$endif GENERICSHARPBRACKET}
+            consume(_LKLAMMER);
+            repeat
+              pt2:=factor(false);
+              pt2.free;
+            until not try_to_consume(_COMMA);
+{$ifdef GENERICSHARPBRACKET}
+            consume(_RSHARPBRACKET);
+{$endif GENERICSHARPBRACKET}
+            consume(_RKLAMMER);
+            exit;
+          end;
+{$ifdef GENERICSHARPBRACKET}
+        consume(_LSHARPBRACKET);
+{$endif GENERICSHARPBRACKET}
+        consume(_LKLAMMER);
+        { Parse generic parameters, for each undefineddef in the symtable of
+          the genericdef we need to have a new def }
+        err:=false;
+        first:=true;
+        generictypelist:=tsinglelist.create;
+        case genericdef.deftype of
+          procdef :
+            st:=genericdef.getsymtable(gs_para);
+          objectdef,
+          recorddef :
+            st:=genericdef.getsymtable(gs_record);
+        end;
+        if not assigned(st) then
+          internalerror(200511182);
+        sym:=tsym(st.symindex.first);
+        while assigned(sym) do
+          begin
+            if (sym.typ=typesym) and
+               (ttypesym(sym).restype.def.deftype=undefineddef) then
+              begin
+                if not first then
+                  begin
+                    consume(_COMMA);
+                    first:=false;
+                  end;
+                pt2:=factor(false);
+                if pt2.nodetype=typen then
+                  begin
+                    generictype:=ttypesym.create(sym.realname,pt2.resulttype);
+                    generictypelist.insert(generictype);
+                  end
+                else
+                  begin
+                    Message(type_e_type_id_expected);
+                    err:=true;
+                  end;
+                pt2.free;
+              end;
+            sym:=tsym(sym.indexnext);
+          end;
+        { Reparse the original type definition }
+        if not err then
+          begin
+            if not assigned(genericdef.generictokenbuf) then
+              internalerror(200511171);
+            current_scanner.startreplaytokens(genericdef.generictokenbuf);
+            read_named_type(pt1.resulttype,name,genericdef,generictypelist,false);
+            { Consume the semicolon if it is also recorded }
+            try_to_consume(_SEMICOLON);
+          end;
+        generictypelist.free;
+{$ifdef GENERICSHARPBRACKET}
+        consume(_RSHARPBRACKET);
+{$endif GENERICSHARPBRACKET}
+        consume(_RKLAMMER);
+      end;
 
 
     procedure id_type(var tt : ttype;isforwarddef:boolean);
@@ -188,6 +284,7 @@ implementation
           case token of
             _STRING:
               string_dec(tt);
+
             _FILE:
               begin
                  consume(_FILE);
@@ -200,8 +297,10 @@ implementation
                  else
                    tt:=cfiletype;
               end;
+
             _ID:
               id_type(tt,isforwarddef);
+
             else
               begin
                 message(type_e_type_id_expected);
@@ -244,7 +343,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_type(var tt : ttype;const name : stringid;parseprocvardir:boolean);
+    procedure read_named_type(var tt : ttype;const name : stringid;genericdef:tstoreddef;genericlist:tsinglelist;parseprocvardir:boolean);
       var
         pt : tnode;
         tt2 : ttype;
@@ -259,6 +358,7 @@ implementation
         var
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
+           ispecialization : boolean;
         begin
            { use of current parsed object:
               - classes can be used also in classes
@@ -275,6 +375,8 @@ implementation
                tt.setdef(aktobjectdef);
                exit;
              end;
+           { Generate a specialization? }
+           ispecialization:=try_to_consume(_SPECIALIZE);
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
            if (token=_POINTPOINT) then
@@ -322,9 +424,13 @@ implementation
              end
            else
              begin
-               { a simple type renaming }
+               { a simple type renaming or generic specialization }
                if (pt1.nodetype=typen) then
-                 tt:=ttypenode(pt1).resulttype
+                 begin
+                   if ispecialization then
+                     generate_specialization(pt1,name);
+                   tt:=ttypenode(pt1).resulttype;
+                 end
                else
                  Message(sym_e_error_in_type_def);
              end;
@@ -390,7 +496,7 @@ implementation
                     be parsed by readtype (PFV) }
                   if token=_LKLAMMER then
                    begin
-                     read_type(ht,'',true);
+                     read_anon_type(ht,true);
                      setdefdecl(ht);
                    end
                   else
@@ -458,7 +564,7 @@ implementation
                 tt.setdef(ap);
              end;
            consume(_OF);
-           read_type(tt2,'',true);
+           read_anon_type(tt2,true);
            { if no error, set element type }
            if assigned(ap) then
              ap.setelementtype(tt2);
@@ -544,7 +650,7 @@ implementation
               begin
                 consume(_SET);
                 consume(_OF);
-                read_type(tt2,'',true);
+                read_anon_type(tt2,true);
                 if assigned(tt2.def) then
                  begin
                    case tt2.def.deftype of
@@ -591,7 +697,7 @@ implementation
                     oldaktpackrecords:=aktpackrecords;
                     aktpackrecords:=1;
                     if token in [_CLASS,_OBJECT] then
-                      tt.setdef(object_dec(name,nil))
+                      tt.setdef(object_dec(name,genericdef,genericlist,nil))
                     else
                       tt.setdef(record_dec);
                     aktpackrecords:=oldaktpackrecords;
@@ -602,7 +708,7 @@ implementation
             _INTERFACE,
             _OBJECT:
               begin
-                tt.setdef(object_dec(name,nil));
+                tt.setdef(object_dec(name,genericdef,genericlist,nil));
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -645,5 +751,12 @@ implementation
          if tt.def=nil then
           tt:=generrortype;
       end;
+
+
+    procedure read_anon_type(var tt : ttype;parseprocvardir:boolean);
+      begin
+        read_named_type(tt,'',nil,nil,parseprocvardir);
+      end;
+
 
 end.

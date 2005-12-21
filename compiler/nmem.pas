@@ -714,11 +714,7 @@ implementation
                 case tstringdef(left.resulttype.def).string_typ of
                    st_widestring :
                      resulttype:=cwidechartype;
-                 {$ifdef ansistring_bits}
-                   st_ansistring16,st_ansistring32,st_ansistring64 :
-                 {$else}
                    st_ansistring :
-                 {$endif}
                      resulttype:=cchartype;
                    st_longstring :
                      resulttype:=cchartype;

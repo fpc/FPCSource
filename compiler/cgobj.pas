@@ -1434,20 +1434,7 @@ implementation
          if is_interfacecom(t) then
           incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
-       {$ifdef ansistring_bits}
-           begin
-             case Tstringdef(t).string_typ of
-               st_ansistring16:
-                 incrfunc:='FPC_ANSISTR16_INCR_REF';
-               st_ansistring32:
-                 incrfunc:='FPC_ANSISTR32_INCR_REF';
-               st_ansistring64:
-                 incrfunc:='FPC_ANSISTR64_INCR_REF';
-             end;
-           end
-       {$else}
-            incrfunc:='FPC_ANSISTR_INCR_REF'
-       {$endif}
+          incrfunc:='FPC_ANSISTR_INCR_REF'
          else if is_widestring(t) then
           incrfunc:='FPC_WIDESTR_INCR_REF'
          else if is_dynamic_array(t) then
@@ -1499,20 +1486,7 @@ implementation
         if is_interfacecom(t) then
           decrfunc:='FPC_INTF_DECR_REF'
         else if is_ansistring(t) then
-       {$ifdef ansistring_bits}
-           begin
-             case Tstringdef(t).string_typ of
-               st_ansistring16:
-                 decrfunc:='FPC_ANSISTR16_DECR_REF';
-               st_ansistring32:
-                 decrfunc:='FPC_ANSISTR32_DECR_REF';
-               st_ansistring64:
-                 decrfunc:='FPC_ANSISTR64_DECR_REF';
-             end;
-           end
-       {$else}
-            decrfunc:='FPC_ANSISTR_DECR_REF'
-       {$endif}
+          decrfunc:='FPC_ANSISTR_DECR_REF'
          else if is_widestring(t) then
           decrfunc:='FPC_WIDESTR_DECR_REF'
          else if is_dynamic_array(t) then

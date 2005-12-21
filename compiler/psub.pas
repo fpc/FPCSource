@@ -65,6 +65,7 @@ interface
     { reads declarations in the interface part of a unit }
     procedure read_interface_declarations;
 
+    procedure generate_specialization_procs;
 
 
 implementation
@@ -622,6 +623,10 @@ implementation
         if Errorcount<>0 then
           exit;
 
+        { No code can be generated for generic template }
+        if (df_generic in procdef.defoptions) then
+          internalerror(200511152);
+
         { The RA and Tempgen shall not be available yet }
         if assigned(tg) then
           internalerror(200309201);
@@ -672,7 +677,7 @@ implementation
         add_entry_exit_code;
 
         { only do secondpass if there are no errors }
-        if ErrorCount=0 then
+        if (ErrorCount=0) then
           begin
             { set the start offset to the start of the temp area in the stack }
             tg:=ttgobj.create;
@@ -991,9 +996,13 @@ implementation
       var
          oldprocinfo : tprocinfo;
          oldblock_type : tblock_type;
+         oldconstsymtable : tsymtable;
+         st : tsymtable;
       begin
          oldprocinfo:=current_procinfo;
          oldblock_type:=block_type;
+         oldconstsymtable:=constsymtable;
+
          { reset break and continue labels }
          block_type:=bt_body;
 
@@ -1027,8 +1036,31 @@ implementation
          entrypos:=aktfilepos;
          entryswitches:=aktlocalswitches;
 
+         if (df_generic in procdef.defoptions) then
+           begin
+             { start token recorder for generic template }
+             procdef.initgeneric;
+             current_scanner.startrecordtokens(procdef.generictokenbuf);
+           end;
+
          { parse the code ... }
          code:=block(current_module.islibrary);
+
+         if (df_generic in procdef.defoptions) then
+           begin
+             { stop token recorder for generic template }
+             current_scanner.stoprecordtokens;
+
+             { Give a warning for accesses in the static symtable that aren't visible
+               outside the current unit }
+             st:=procdef.owner;
+             while (st.symtabletype=objectsymtable) do
+               st:=st.defowner.owner;
+             if (pi_uses_static_symtable in flags) and
+                (st.symtabletype<>staticsymtable) then
+               Comment(V_Warning,'Global Generic template references static symtable');
+           end;
+
          { save exit info }
          exitswitches:=aktlocalswitches;
          exitpos:=last_endtoken_filepos;
@@ -1096,6 +1128,8 @@ implementation
            allow_only_static:=false;
          current_procinfo:=oldprocinfo;
 
+         { Restore old state }
+         constsymtable:=oldconstsymtable;
          block_type:=oldblock_type;
       end;
 
@@ -1114,6 +1148,115 @@ implementation
              vartype.def.needs_inittable and
              (varspez in [vs_value,vs_out])) then
             include(current_procinfo.flags,pi_do_call);
+      end;
+
+
+
+    procedure read_proc_body(old_current_procinfo:tprocinfo;pd:tprocdef);
+      {
+        Parses the procedure directives, then parses the procedure body, then
+        generates the code for it
+      }
+
+      procedure do_generate_code(pi:tcgprocinfo);
+        var
+          hpi : tcgprocinfo;
+        begin
+          { generate code for this procedure }
+          pi.generate_code;
+          { process nested procs }
+          hpi:=tcgprocinfo(pi.nestedprocs.first);
+          while assigned(hpi) do
+           begin
+             do_generate_code(hpi);
+             hpi:=tcgprocinfo(hpi.next);
+           end;
+          pi.resetprocdef;
+        end;
+
+      var
+        oldfailtokenmode : tmodeswitch;
+        isnestedproc     : boolean;
+      begin
+        Message1(parser_d_procedure_start,pd.fullprocname(false));
+
+        { create a new procedure }
+        current_procinfo:=cprocinfo.create(old_current_procinfo);
+        current_module.procinfo:=current_procinfo;
+        current_procinfo.procdef:=pd;
+        isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
+
+        { Insert mangledname }
+        pd.aliasnames.insert(pd.mangledname);
+
+        { Handle Export of this procedure }
+        if (po_exports in pd.procoptions) and
+           (target_info.system in [system_i386_os2,system_i386_emx]) then
+          begin
+            pd.aliasnames.insert(pd.procsym.realname);
+            if cs_link_deffile in aktglobalswitches then
+              deffile.AddExport(pd.mangledname);
+          end;
+
+        { Insert result variables in the localst }
+        insert_funcret_local(pd);
+
+        { check if there are para's which require initing -> set }
+        { pi_do_call (if not yet set)                            }
+        if not(pi_do_call in current_procinfo.flags) then
+          pd.parast.foreach_static(@check_init_paras,nil);
+
+        { set _FAIL as keyword if constructor }
+        if (pd.proctypeoption=potype_constructor) then
+         begin
+           oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
+           tokeninfo^[_FAIL].keyword:=m_all;
+         end;
+
+        tcgprocinfo(current_procinfo).parse_body;
+
+        { When it's a nested procedure then defer the code generation,
+          when back at normal function level then generate the code
+          for all defered nested procedures and the current procedure }
+        if isnestedproc then
+          tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
+        else
+          begin
+            { We can't support inlining for procedures that have nested
+              procedures because the nested procedures use a fixed offset
+              for accessing locals in the parent procedure (PFV) }
+            if (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
+              begin
+                if (df_generic in current_procinfo.procdef.defoptions) then
+{$warning TODO Add error message for nested procs in generics}
+                  internalerror(200511151)
+                else if (po_inline in current_procinfo.procdef.procoptions) then
+                  begin
+                    Message1(parser_w_not_supported_for_inline,'nested procedures');
+                    Message(parser_w_inlining_disabled);
+                    current_procinfo.procdef.proccalloption:=pocall_default;
+                  end;
+              end;
+            if not(df_generic in current_procinfo.procdef.defoptions) then
+              do_generate_code(tcgprocinfo(current_procinfo));
+          end;
+
+        { reset _FAIL as _SELF normal }
+        if (pd.proctypeoption=potype_constructor) then
+          tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
+
+        { release procinfo }
+        if tprocinfo(current_module.procinfo)<>current_procinfo then
+          internalerror(200304274);
+        current_module.procinfo:=current_procinfo.parent;
+        if not isnestedproc then
+          current_procinfo.free;
+
+        { For specialization we didn't record the last semicolon. Moving this parsing
+          into the parse_body routine is not done because of having better file position
+          information available }
+        if not(df_specialization in current_procinfo.procdef.defoptions) then
+          consume(_SEMICOLON);
       end;
 
 
@@ -1141,15 +1284,11 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
-        oldconstsymtable : tsymtable;
-        oldfailtokenmode : tmodeswitch;
         pdflags          : tpdflags;
         pd               : tprocdef;
-        isnestedproc     : boolean;
         s                : string;
       begin
          { save old state }
-         oldconstsymtable:=constsymtable;
          old_current_procinfo:=current_procinfo;
 
          { reset current_procinfo.procdef to nil to be sure that nothing is writing
@@ -1233,75 +1372,7 @@ implementation
          { compile procedure when a body is needed }
          if (pd_body in pdflags) then
            begin
-             Message1(parser_d_procedure_start,pd.fullprocname(false));
-
-             { create a new procedure }
-             current_procinfo:=cprocinfo.create(old_current_procinfo);
-             current_module.procinfo:=current_procinfo;
-             current_procinfo.procdef:=pd;
-             isnestedproc:=(current_procinfo.procdef.parast.symtablelevel>normal_function_level);
-
-             { Insert mangledname }
-             pd.aliasnames.insert(pd.mangledname);
-
-             { Handle Export of this procedure }
-             if (po_exports in pd.procoptions) and
-                (target_info.system in [system_i386_os2,system_i386_emx]) then
-               begin
-                 pd.aliasnames.insert(pd.procsym.realname);
-                 if cs_link_deffile in aktglobalswitches then
-                   deffile.AddExport(pd.mangledname);
-               end;
-
-             { Insert result variables in the localst }
-             insert_funcret_local(pd);
-
-             { check if there are para's which require initing -> set }
-             { pi_do_call (if not yet set)                            }
-             if not(pi_do_call in current_procinfo.flags) then
-               pd.parast.foreach_static(@check_init_paras,nil);
-
-             { set _FAIL as keyword if constructor }
-             if (pd.proctypeoption=potype_constructor) then
-              begin
-                oldfailtokenmode:=tokeninfo^[_FAIL].keyword;
-                tokeninfo^[_FAIL].keyword:=m_all;
-              end;
-
-             tcgprocinfo(current_procinfo).parse_body;
-
-             { When it's a nested procedure then defer the code generation,
-               when back at normal function level then generate the code
-               for all defered nested procedures and the current procedure }
-             if isnestedproc then
-               tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
-             else
-               begin
-                 { We can't support inlining for procedures that have nested
-                   procedures because the nested procedures use a fixed offset
-                   for accessing locals in the parent procedure (PFV) }
-                 if (po_inline in current_procinfo.procdef.procoptions) and
-                    (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
-                   begin
-                     Message1(parser_w_not_supported_for_inline,'nested procedures');
-                     Message(parser_w_inlining_disabled);
-                     current_procinfo.procdef.proccalloption:=pocall_default;
-                   end;
-                 do_generate_code(tcgprocinfo(current_procinfo));
-               end;
-
-             { reset _FAIL as _SELF normal }
-             if (pd.proctypeoption=potype_constructor) then
-               tokeninfo^[_FAIL].keyword:=oldfailtokenmode;
-
-             { release procinfo }
-             if tprocinfo(current_module.procinfo)<>current_procinfo then
-               internalerror(200304274);
-             current_module.procinfo:=current_procinfo.parent;
-             if not isnestedproc then
-               current_procinfo.free;
-
-             consume(_SEMICOLON);
+             read_proc_body(old_current_procinfo,pd);
            end
          else
            begin
@@ -1347,9 +1418,6 @@ implementation
                    end;
                end;
            end;
-
-         { Restore old state }
-         constsymtable:=oldconstsymtable;
 
          current_procinfo:=old_current_procinfo;
       end;
@@ -1482,5 +1550,61 @@ implementation
           symtablestack.foreach_static(@check_forward_class,nil);
       end;
 
+
+{****************************************************************************
+                      SPECIALIZATION BODY GENERATION
+****************************************************************************}
+
+
+    procedure specialize_objectdefs(p:tnamedindexitem;arg:pointer);
+      var
+        hp : tdef;
+        oldaktfilepos : tfileposinfo;
+      begin
+        if not((tsym(p).typ=typesym) and
+               (ttypesym(p).restype.def.deftype=objectdef) and
+               (df_specialization in ttypesym(p).restype.def.defoptions)
+              ) then
+          exit;
+
+        { definitions }
+        hp:=tdef(tobjectdef(ttypesym(p).restype.def).symtable.defindex.first);
+        while assigned(hp) do
+         begin
+           if hp.deftype=procdef then
+             begin
+               if not(
+                      assigned(tprocdef(hp).genericdef) and
+                      (tprocdef(hp).genericdef.deftype=procdef) and
+                      assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf)
+                     ) then
+                 internalerror(200512111);
+               oldaktfilepos:=aktfilepos;
+               aktfilepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+               akttokenpos:=aktfilepos;
+               current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+               read_proc_body(nil,tprocdef(hp));
+               aktfilepos:=oldaktfilepos;
+             end;
+           hp:=tdef(hp.indexnext);
+         end;
+      end;
+
+
+    procedure generate_specialization_procs;
+      var
+        oldsymtablestack : tsymtable;
+      begin
+        if assigned(current_module.globalsymtable) then
+          current_module.globalsymtable.foreach_static(@specialize_objectdefs,nil);
+        if assigned(current_module.localsymtable) then
+          begin
+            oldsymtablestack:=symtablestack;
+            current_module.localsymtable.next:=symtablestack;
+            symtablestack:=current_module.localsymtable;
+            current_module.localsymtable.foreach_static(@specialize_objectdefs,nil);
+            symtablestack:=oldsymtablestack;
+          end;
+      end;
 
 end.

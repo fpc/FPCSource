@@ -1091,6 +1091,9 @@ implementation
              release_main_proc(pd);
            end;
 
+         { Generate specializations of objectdefs methods }
+         generate_specialization_procs;
+
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
          force_init_final:=tglobalsymtable(current_module.globalsymtable).needs_init_final or
@@ -1404,6 +1407,9 @@ implementation
          { save file pos for debuginfo }
          current_module.mainfilepos:=current_procinfo.entrypos;
          release_main_proc(pd);
+
+         { Generate specializations of objectdefs methods }
+         generate_specialization_procs;
 
          { should we force unit initialization? }
          if tstaticsymtable(current_module.localsymtable).needs_init_final then

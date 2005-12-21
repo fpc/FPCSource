@@ -158,13 +158,7 @@ implementation
 {$ifdef support_longstring}
         addtype('LongString',clongstringtype);
 {$endif support_longstring}
-{$ifdef ansistring_bits}
-        addtype('AnsiString',cansistringtype16);
-        addtype('AnsiString',cansistringtype32);
-        addtype('AnsiString',cansistringtype64);
-{$else}
         addtype('AnsiString',cansistringtype);
-{$endif}
         addtype('WideString',cwidestringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',booltype);
@@ -185,6 +179,7 @@ implementation
         addtype('Variant',cvarianttype);
         addtype('OleVariant',colevarianttype);
         { Internal types }
+        addtype('$undefined',cundefinedtype);
         addtype('$formal',cformaltype);
         addtype('$void',voidtype);
         addtype('$byte',u8inttype);
@@ -199,13 +194,7 @@ implementation
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
         addtype('$longstring',clongstringtype);
-      {$ifdef ansistring_bits}
-        addtype('$ansistring16',cansistringtype16);
-        addtype('$ansistring32',cansistringtype32);
-        addtype('$ansistring64',cansistringtype64);
-      {$else}
         addtype('$ansistring',cansistringtype);
-      {$endif}
         addtype('$widestring',cwidestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
@@ -277,19 +266,14 @@ implementation
         loadtype('longint',s32inttype);
         loadtype('qword',u64inttype);
         loadtype('int64',s64inttype);
+        loadtype('undefined',cundefinedtype);
         loadtype('formal',cformaltype);
         loadtype('void',voidtype);
         loadtype('char',cchartype);
         loadtype('widechar',cwidechartype);
         loadtype('shortstring',cshortstringtype);
         loadtype('longstring',clongstringtype);
-      {$ifdef ansistring_bits}
-        loadtype('ansistring16',cansistringtype16);
-        loadtype('ansistring32',cansistringtype32);
-        loadtype('ansistring64',cansistringtype64);
-      {$else}
         loadtype('ansistring',cansistringtype);
-      {$endif}
         loadtype('widestring',cwidestringtype);
         loadtype('openshortstring',openshortstringtype);
         loadtype('openchararray',openchararraytype);
@@ -332,6 +316,7 @@ implementation
         { create definitions for constants }
         oldregisterdef:=registerdef;
         registerdef:=false;
+        cundefinedtype.setdef(tundefineddef.create);
         cformaltype.setdef(tformaldef.create);
         voidtype.setdef(torddef.create(uvoid,0,0));
         u8inttype.setdef(torddef.create(u8bit,0,255));
@@ -348,13 +333,7 @@ implementation
         cshortstringtype.setdef(tstringdef.createshort(255));
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype.setdef(tstringdef.createlong(-1));
-      {$ifdef ansistring_bits}
-        cansistringtype16.setdef(tstringdef.createansi(-1,sb_16));
-        cansistringtype32.setdef(tstringdef.createansi(-1,sb_32));
-        cansistringtype64.setdef(tstringdef.createansi(-1,sb_64));
-      {$else}
         cansistringtype.setdef(tstringdef.createansi(-1));
-      {$endif}
         cwidestringtype.setdef(tstringdef.createwide(-1));
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype.setdef(tstringdef.createshort(0));

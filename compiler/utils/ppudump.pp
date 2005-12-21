@@ -748,33 +748,85 @@ end;
 procedure readcommondef(const s:string);
 type
   tdefoption=(df_none,
-    df_has_inittable,           { init data has been generated }
-    df_has_rttitable,           { rtti data has been generated }
-    df_unique
+    { init data has been generated }
+    df_has_inittable,
+    { rtti data has been generated }
+    df_has_rttitable,
+    { type is unique, i.e. declared with type = type <tdef>; }
+    df_unique,
+    { type is a generic }
+    df_generic,
+    { type is a specialization of a generic type }
+    df_specialization
   );
   tdefoptions=set of tdefoption;
+  tdefopt=record
+    mask : tdefoption;
+    str  : string[30];
+  end;
+const
+  defopts=5;
+  defopt : array[1..defopts] of tdefopt=(
+     (mask:df_has_inittable;  str:'InitTable'),
+     (mask:df_has_rttitable;  str:'RTTITable'),
+     (mask:df_unique;         str:'Unique Type'),
+     (mask:df_generic;        str:'Generic'),
+     (mask:df_specialization; str:'Specialization')
+  );
 var
-  defopts : tdefoptions;
+  defoptions : tdefoptions;
+  i      : longint;
+  first  : boolean;
+  tokenbufsize : longint;
+  tokenbuf : pointer;
 begin
   writeln(space,'** Definition Nr. ',ppufile.getword,' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
   readderef;
-  ppufile.getsmallset(defopts);
+  write  (space,'       DefOptions : ');
+  ppufile.getsmallset(defoptions);
+  if defoptions<>[] then
+    begin
+      first:=true;
+      for i:=1to defopts do
+       if (defopt[i].mask in defoptions) then
+        begin
+          if first then
+            first:=false
+          else
+            write(', ');
+          write(defopt[i].str);
+        end;
+    end;
+  writeln;
 
-  if df_unique in defopts then
+  if df_unique in defoptions then
     writeln  (space,'      Unique type symbol');
 
-  if df_has_rttitable in defopts then
-   begin
-     write  (space,'      RTTI symbol : ');
-     readderef;
-   end;
-  if df_has_inittable in defopts then
-   begin
-     write  (space,'      Init symbol : ');
-     readderef;
-   end;
+  if df_has_rttitable in defoptions then
+    begin
+      write  (space,'      RTTI symbol : ');
+      readderef;
+    end;
+  if df_has_inittable in defoptions then
+    begin
+      write  (space,'      Init symbol : ');
+      readderef;
+    end;
+  if df_generic in defoptions then
+    begin
+      tokenbufsize:=ppufile.getlongint;
+      writeln(space,' Tokenbuffer size : ',tokenbufsize);
+      tokenbuf:=allocmem(tokenbufsize);
+      ppufile.getdata(tokenbuf^,tokenbufsize);
+      freemem(tokenbuf);
+    end;
+  if df_specialization in defoptions then
+    begin
+      write  (space,' Orig. GenericDef : ');
+      readderef;
+    end;
 end;
 
 
@@ -1680,7 +1732,10 @@ begin
            end;
 
          ibformaldef :
-           readcommondef('Generic Definition (void-typ)');
+           readcommondef('Generic definition (void-typ)');
+
+         ibundefineddef :
+           readcommondef('Undefined definition (generic parameter)');
 
          ibenumdef :
            begin
