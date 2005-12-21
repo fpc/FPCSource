@@ -104,7 +104,7 @@ type
     destructor Destroy; override;
     property ConnOptions: TConnOptions read FConnOptions;
     procedure ExecuteDirect(SQL : String); overload; virtual;
-    procedure ExecuteDirect(SQL : String; Transaction : TSQLTransaction); overload; virtual;
+    procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List :  TStrings); virtual;
@@ -176,7 +176,7 @@ type
 //    FSchemaInfo          : TSchemaInfo;
 
     procedure FreeFldBuffers;
-    procedure InitUpdates(SQL : string);
+    procedure InitUpdates(ASQL : string);
     function GetIndexDefs : TIndexDefs;
     function GetStatementType : TStatementType;
     procedure SetIndexDefs(AValue : TIndexDefs);
@@ -187,7 +187,7 @@ type
     procedure OnChangeSQL(Sender : TObject);
 
     procedure Execute;
-    Procedure SQLParser(var SQL : string);
+    Procedure SQLParser(var ASQL : string);
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
@@ -316,16 +316,16 @@ begin
   ExecuteDirect(SQL,FTransaction);
 end;
 
-Procedure TSQLConnection.ExecuteDirect(SQL: String; Transaction : TSQLTransaction);
+Procedure TSQLConnection.ExecuteDirect(SQL: String; ATransaction : TSQLTransaction);
 
 var Cursor : TSQLCursor;
 
 begin
-  if not assigned(Transaction) then
+  if not assigned(ATransaction) then
     DatabaseError(SErrTransactionnSet);
 
   if not Connected then Open;
-  if not Transaction.Active then Transaction.StartTransaction;
+  if not ATransaction.Active then ATransaction.StartTransaction;
 
   try
     Cursor := AllocateCursorHandle;
@@ -337,8 +337,8 @@ begin
 
     Cursor.FStatementType := stNone;
 
-    PrepareStatement(cursor,Transaction,SQL,Nil);
-    execute(cursor,Transaction, Nil);
+    PrepareStatement(cursor,ATransaction,SQL,Nil);
+    execute(cursor,ATransaction, Nil);
     UnPrepareStatement(Cursor);
   finally;
     DeAllocateCursorHandle(Cursor);
@@ -627,7 +627,7 @@ begin
       FCursor := Db.AllocateCursorHandle;
 
     FSQLBuf := TrimRight(FSQL.Text);
-    
+
     if FSQLBuf = '' then
       DatabaseError(SErrNoStatement);
 
@@ -679,10 +679,10 @@ begin
   result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer)
 end;
 
-procedure TSQLQuery.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean); 
+procedure TSQLQuery.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean);
 
 begin
-  { 
+  {
     all data is in native format for these types, so no conversion is needed.
   }
   If not (Field.DataType in [ftDate,ftTime,ftDateTime]) then
@@ -721,7 +721,7 @@ begin
   end;
 end;
 
-procedure TSQLQuery.SQLParser(var SQL : string);
+procedure TSQLQuery.SQLParser(var ASQL : string);
 
 type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppBogus);
 
@@ -733,12 +733,12 @@ Var
   StrLength               : Integer;
 
 begin
-  PSQL:=Pchar(SQL);
+  PSQL:=Pchar(ASQL);
   ParsePart := ppStart;
 
   CurrentP := PSQL-1;
   PhraseP := PSQL;
-  
+
   FWhereStartPos := 0;
   FWhereStopPos := 0;
 
@@ -754,7 +754,7 @@ begin
         Setlength(S,strLength);
         if strLength > 0 then Move(PhraseP^,S[1],(strLength));
         s := uppercase(s);
-        
+
         case ParsePart of
           ppStart  : begin
                      FCursor.FStatementType := (Database as tsqlconnection).StrToStatementType(s);
@@ -815,13 +815,13 @@ begin
   until CurrentP^=#0;
   if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
     begin
-    system.insert('(',SQL,FWhereStartPos+1);
+    system.insert('(',ASQL,FWhereStartPos+1);
     inc(FWhereStopPos);
-    system.insert(')',SQL,FWhereStopPos);
+    system.insert(')',ASQL,FWhereStopPos);
     end
 end;
 
-procedure TSQLQuery.InitUpdates(SQL : string);
+procedure TSQLQuery.InitUpdates(ASQL : string);
 
 
 begin

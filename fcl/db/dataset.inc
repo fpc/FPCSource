@@ -497,13 +497,13 @@ end;
 
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
-  
+
 Const
   TempBufSize = 1024; { Let's not exaggerate.}
-    
+
 Var
   Buf : Array[1..TempBufSize] of Char;
-  P : PChar; 
+  P : PChar;
 begin
   If NativeFormat then
     Result:=GetFieldData(Field, Buffer)
@@ -518,7 +518,7 @@ begin
       DataConvert(Field,P,Buffer,False);
     If (P<>@Buf) then
       FreeMem(P);
-    end;  
+    end;
 end;
 
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
@@ -541,22 +541,22 @@ begin
       TS:=MSecsToTimeStamp(trunc(Data.DateTime));
     except
     end;
-  end;  
+  end;
   Result:=TimeStampToDateTime(TS);
-end; 
+end;
 
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
 
 var
   TS : TTimeStamp;
-  
+
 begin
   TS:=DateTimeToTimeStamp(Data);
   With Result do
     case DT of
-      ftDate: 
+      ftDate:
         Date:=TS.Date;
-      ftTime: 
+      ftTime:
         Time:=TS.Time;
     else
       DateTime:=TimeStampToMSecs(TS);
@@ -570,14 +570,14 @@ Type
   PDateTimeRec = ^TDateTimeRec;
 
 Var
-  DT : TFieldType; 
- 
+  DT : TFieldType;
+
 begin
   DT:=Field.DataType;
   case DT of
     ftDate, ftTime, ftDateTime:
       if ToNative then
-         PDateTimeRec(Dest)^:=DateTimeToDateTimeRec(DT,PDateTime(Source)^) 
+         PDateTimeRec(Dest)^:=DateTimeToDateTimeRec(DT,PDateTime(Source)^)
        else
          PDateTime(Dest)^:=DateTimeRecToDateTime(DT,PDateTimeRec(Source)^);
   end;
@@ -594,25 +594,25 @@ procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
 
 Const
   TempBufSize = 1024; { Let's not exaggerate.}
-    
+
 Var
   Buf : Array[1..TempBufSize] of Char;
-  P : PChar; 
+  P : PChar;
 
 begin
   if NativeFormat then
     SetFieldData(Field, Buffer)
-  else 
+  else
     begin
     if Field.DataSize<=dsMaxStringSize then
       P:=GetMem(Field.DataSize)
     else
-      P:=@Buf;  
+      P:=@Buf;
     DataConvert(Field,Buffer,P,True);
     SetFieldData(Field,P);
     If (P<>@Buf) then
       FreeMem(P);
-    end;  
+    end;
 end;
 
 Function TDataset.GetField (Index : Longint) : TField;
@@ -1560,16 +1560,16 @@ begin
   Result:=(Bof and Eof);
 end;
 
-Function TDataset.IsLinkedTo(DataSource: TDataSource): Boolean;
+Function TDataset.IsLinkedTo(ADataSource: TDataSource): Boolean;
 
 begin
 //!! Not tested, I never used nested DS
-  if (DataSource = nil) or (DataSource.Dataset = nil) then begin
+  if (ADataSource = nil) or (ADataSource.Dataset = nil) then begin
     Result := False
-  end else if DataSource.Dataset = Self then begin
+  end else if ADataSource.Dataset = Self then begin
     Result := True;
   end else begin
-    Result := DataSource.Dataset.IsLinkedTo(DataSource.Dataset.DataSource);
+    Result := ADataSource.Dataset.IsLinkedTo(ADataSource.Dataset.DataSource);
   end;
 //!! DataSetField not implemented
 end;
@@ -1991,12 +1991,12 @@ begin
   Result := False;
 end;
 
-Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; 
+Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
 
 begin
   Result := False;
 end;
-          
+
 
 Procedure TDataset.UnRegisterDataSource(ADatasource : TDatasource);
 

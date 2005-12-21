@@ -33,7 +33,7 @@ Type
     Constructor Create(AOWner : TSimpleIPCClient); override;
     Procedure Connect; override;
     Procedure Disconnect; override;
-    Procedure SendMessage(MsgType : TMessageType; Stream : TStream); override;
+    Procedure SendMessage(MsgType : TMessageType; AStream : TStream); override;
     Function  ServerRunning : Boolean; override;
     Property FileName : String Read FFileName;
     Property Stream : TFileStream Read FStream;
@@ -67,7 +67,7 @@ begin
   FreeAndNil(FStream);
 end;
 
-procedure TPipeClientComm.SendMessage(MsgType : TMessagetype; Stream: TStream);
+procedure TPipeClientComm.SendMessage(MsgType : TMessagetype; AStream: TStream);
 
 Var
   Hdr : TMsgHeader;
@@ -76,9 +76,9 @@ Var
 begin
   Hdr.Version:=MsgVersion;
   Hdr.msgType:=mtString;
-  Hdr.MsgLen:=Stream.Size;
+  Hdr.MsgLen:=AStream.Size;
   FStream.WriteBuffer(hdr,SizeOf(hdr));
-  FStream.CopyFrom(Stream,0);
+  FStream.CopyFrom(AStream,0);
 end;
 
 function TPipeClientComm.ServerRunning: Boolean;
@@ -90,7 +90,7 @@ end;
 { ---------------------------------------------------------------------
     TPipeServerComm
   ---------------------------------------------------------------------}
-  
+
 Type
   TPipeServerComm = Class(TIPCServerComm)
   Private
@@ -175,7 +175,7 @@ Function TSimpleIPCServer.CommClass : TIPCServerCommClass;
 begin
   if (DefaultIPCServerClass<>Nil) then
     Result:=DefaultIPCServerClass
-  else  
+  else
     Result:=TPipeServerComm;
 end;
 
@@ -183,6 +183,6 @@ function TSimpleIPCClient.CommClass: TIPCClientCommClass;
 begin
   if (DefaultIPCClientClass<>Nil) then
     Result:=DefaultIPCClientClass
-  else  
+  else
     Result:=TPipeClientComm;
 end;
