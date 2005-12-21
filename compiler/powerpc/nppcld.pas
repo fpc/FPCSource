@@ -31,7 +31,6 @@ unit nppcld;
     type
       tppcloadnode = class(tcgloadnode)
         procedure pass_2; override;
-        procedure generate_picvaraccess;override;
       end;
 
 
@@ -40,10 +39,9 @@ unit nppcld;
     uses
       verbose,
       systems,
-      globtype,globals,
-      cpubase,
-      cgutils,cgobj,
-      aasmbase,aasmtai,
+      globtype,globals,defutil,
+      cpubase, aasmbase, aasmtai,
+      cgutils,cgbase,cgobj,cgcpu,
       symconst,symsym,
       procinfo,
       nld;
@@ -53,73 +51,36 @@ unit nppcld;
       var
         l : tasmsymbol;
         ref : treference;
+        symname: string;
       begin
+        symname := '';
         case target_info.system of
           system_powerpc_darwin:
             begin
-              if (symtableentry.typ = procsym) and
-                 (tprocsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
-                 (
-                  (not tprocsym(symtableentry).owner.iscurrentunit) or
-                  (po_external in tprocsym(symtableentry).procdef[1].procoptions)
-                 ) then
-                begin
-                  l:=objectlibrary.getasmsymbol('L'+tprocsym(symtableentry).procdef[1].mangledname+'$non_lazy_ptr');
-                  if not(assigned(l)) then
-                    begin
-                      l:=objectlibrary.newasmsymbol('L'+tprocsym(symtableentry).procdef[1].mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
-                      picdata.concat(tai_symbol.create(l,0));
-                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tprocsym(symtableentry).procdef[1].mangledname,AB_EXTERNAL,AT_DATA)));
-                      picdata.concat(tai_const.create_32bit(0));
-                    end;
-                  reference_reset_symbol(ref,l,0);
-                  reference_reset_base(location.reference,cg.getaddressregister(exprasmlist),0);
-                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,ref,location.reference.base);
-                end
-              else
-                inherited pass_2;
+              case symtableentry.typ of
+                procsym:
+                  begin
+                    if (po_external in tprocsym(symtableentry).procdef[1].procoptions) then
+                      symname := tprocsym(symtableentry).procdef[1].mangledname;
+                  end;
+                globalvarsym:
+                  begin
+                    if ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) then
+                      symname := tglobalvarsym(symtableentry).mangledname;
+                  end;
+              end;
             end;
-          else
-            inherited pass_2;
         end;
+        if (symname = '') then
+          inherited pass_2
+        else
+          begin
+            location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
+            reference_reset_base(location.reference,cg.getaddressregister(exprasmlist),0);
+            location.reference.base := tcgppc(cg).g_darwin_indirect_sym_load(exprasmlist,symname);
+          end;
       end;
-
-    procedure tppcloadnode.generate_picvaraccess;
-      var
-        l : tasmsymbol;
-        ref : treference;
-      begin
-        case target_info.system of
-          system_powerpc_darwin:
-            begin
-              if ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) or
-                 ((tglobalvarsym(symtableentry).owner.symtabletype in [staticsymtable,globalsymtable]) and
-                  (not(tglobalvarsym(symtableentry).owner.iscurrentunit) or
-                   (cs_create_pic in aktmoduleswitches))) then
-                begin
-                  l:=objectlibrary.getasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr');
-                  if not(assigned(l)) then
-                    begin
-                      l:=objectlibrary.newasmsymbol('L'+tglobalvarsym(symtableentry).mangledname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
-                      picdata.concat(tai_symbol.create(l,0));
-                      picdata.concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA)));
-                      picdata.concat(tai_const.create_32bit(0));
-                    end;
-
-                  reference_reset_symbol(ref,l,0);
-{                  ref.base:=current_procinfo.got;
-                  ref.relsymbol:=current_procinfo.gotlabel;}
-                  reference_reset_base(location.reference,cg.getaddressregister(exprasmlist),0);
-                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,ref,location.reference.base);
-                end
-              else
-                internalerror(200403021);
-            end
-          else
-            internalerror(200402291);
-        end;
-      end;
-
+      
 
 begin
    cloadnode:=tppcloadnode;
