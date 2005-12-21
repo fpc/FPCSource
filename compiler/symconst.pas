@@ -140,7 +140,8 @@ type
     sp_has_overloaded,
     sp_internal,  { internal symbol, not reported as unused }
     sp_strictprivate,
-    sp_strictprotected
+    sp_strictprotected,
+    sp_implicitrename
   );
   tsymoptions=set of tsymoption;
 
