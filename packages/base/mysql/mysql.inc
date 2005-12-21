@@ -495,14 +495,12 @@ uses
 
     function get_tty_password(opt_message:Pchar):Pchar;cdecl;external mysqllib name 'get_tty_password';
     function mysql_errno_to_sqlstate(mysql_errno:dword):Pchar;cdecl;external mysqllib name 'mysql_errno_to_sqlstate';
-{$ENDIF}
 
     { Some other useful functions  }
 {$IFDEF mysql50}
     function modify_defaults_file(file_location:Pchar; option:Pchar; option_value:Pchar; section_name:Pchar; remove_option:longint):longint;cdecl;external mysqllib name 'load_defaults';
 {$ENDIF}
 
-{$IFNDEF LinkDynamically}
     function load_defaults(conf_file:Pchar; groups:PPchar; argc:Plongint; argv:PPPchar):longint;cdecl;external mysqllib name 'load_defaults';
     function my_init:my_bool;cdecl;external mysqllib name 'my_init';
     function my_thread_init:my_bool;cdecl;external mysqllib name 'my_thread_init';
@@ -1452,11 +1450,13 @@ uses
 
     function mysql_reload(mysql : PMySQL) : longint;
 
+{$IFNDEF LinkDynamically}
 {$ifdef USE_OLD_FUNCTIONS}
     function mysql_connect(mysql:PMYSQL; host:Pchar; user:Pchar; passwd:Pchar):PMYSQL;extdecl;external External_library name 'mysql_connect';
     function mysql_create_db(mysql:PMYSQL; DB:Pchar):longint;extdecl;external External_library name 'mysql_create_db';
     function mysql_drop_db(mysql:PMYSQL; DB:Pchar):longint;extdecl;external External_library name 'mysql_drop_db';
     function mysql_reload(mysql : PMySQL) : longint;
+{$endif}
 {$endif}
 
 {$define HAVE_MYSQL_REAL_CONNECT}    
