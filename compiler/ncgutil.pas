@@ -54,6 +54,7 @@ interface
 
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
+    procedure alloc_proc_symbol(pd: tprocdef);
     procedure gen_proc_symbol(list:Taasmoutput);
     procedure gen_proc_symbol_end(list:Taasmoutput);
     procedure gen_proc_entry_code(list:Taasmoutput);
@@ -1651,6 +1652,25 @@ implementation
 {****************************************************************************
                                 Entry/Exit
 ****************************************************************************}
+
+    procedure alloc_proc_symbol(pd: tprocdef);
+     var
+        sym: tai_symbol;
+        item: tstringlistitem;
+      begin
+        item := tstringlistitem(pd.aliasnames.first);
+        while assigned(item) do
+          begin
+            if (cs_profile in aktmoduleswitches) or
+               (po_global in current_procinfo.procdef.procoptions) then
+              sym := Tai_symbol.createname_global(item.str,AT_FUNCTION,0)
+            else
+              sym := Tai_symbol.createname(item.str,AT_FUNCTION,0);
+            sym.free;
+            item := tstringlistitem(item.next);
+          end;
+       end;
+
 
     procedure gen_proc_symbol(list:Taasmoutput);
       var
