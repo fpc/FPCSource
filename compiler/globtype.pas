@@ -177,7 +177,7 @@ than 255 characters. That's why using Ansi Strings}
 
        { currently parsed block type }
        tblock_type = (bt_none,
-         bt_general,bt_type,bt_const,bt_except,bt_body
+         bt_general,bt_type,bt_const,bt_except,bt_body,bt_specialize
        );
 
        { Temp types }

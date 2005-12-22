@@ -1312,7 +1312,7 @@ implementation
                        if (htype.def=cvarianttype.def) and
                           not(cs_compilesystem in aktmoduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       if (block_type<>bt_type) and
+                       if (block_type<>bt_specialize) and
                           try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true);
@@ -1392,7 +1392,7 @@ implementation
                                 { For a type block we simply return only
                                   the type. For all other blocks we return
                                   a loadvmt node }
-                                if (block_type<>bt_type) then
+                                if not(block_type in [bt_type,bt_specialize]) then
                                   p1:=cloadvmtaddrnode.create(p1);
                               end;
                            end

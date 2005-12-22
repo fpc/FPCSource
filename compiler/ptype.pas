@@ -359,7 +359,9 @@ implementation
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
            ispecialization : boolean;
+           old_block_type : tblock_type;
         begin
+           old_block_type:=block_type;
            { use of current parsed object:
               - classes can be used also in classes
               - objects can be parameters }
@@ -376,12 +378,13 @@ implementation
                exit;
              end;
            { Generate a specialization? }
-           ispecialization:=try_to_consume(_SPECIALIZE);
+           if try_to_consume(_SPECIALIZE) then
+             block_type:=bt_specialize;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));
-           if (token=_POINTPOINT) then
+           if (block_type<>bt_specialize) and
+              try_to_consume(_POINTPOINT) then
              begin
-               consume(_POINTPOINT);
                { get high value of range }
                pt2:=comp_expr(not(ignore_equal));
                { make both the same type or give an error. This is not
@@ -427,7 +430,7 @@ implementation
                { a simple type renaming or generic specialization }
                if (pt1.nodetype=typen) then
                  begin
-                   if ispecialization then
+                   if (block_type=bt_specialize) then
                      generate_specialization(pt1,name);
                    tt:=ttypenode(pt1).resulttype;
                  end
@@ -435,6 +438,7 @@ implementation
                  Message(sym_e_error_in_type_def);
              end;
            pt1.free;
+           block_type:=old_block_type;
         end;
 
         procedure array_dec;
