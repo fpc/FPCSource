@@ -682,12 +682,6 @@ implementation
             set_first_temp_offset;
             generate_parameter_info;
 
-            { allocate the symbol associated with the procedure, so that }
-            { references to itself are not treated as references to      }
-            { externals                                                  }
-            aktfilepos:=entrypos;
-            gen_proc_symbol(symlist);
-          
             { Allocate space in temp/registers for parast and localst }
             aktfilepos:=entrypos;
             gen_alloc_symtable(aktproccode,procdef.parast);
@@ -715,6 +709,12 @@ implementation
                 procdef.has_paraloc_info:=true;
               end;
 
+            { allocate the symbol associated with the procedure, so that }
+            { references to itself are not treated as references to      }
+            { externals                                                  }
+            aktfilepos:=entrypos;
+            gen_proc_symbol(symlist);
+          
             { generate code for the node tree }
             do_secondpass(code);
             aktproccode.concatlist(exprasmlist);
