@@ -609,7 +609,7 @@ implementation
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        templist, symlist : Taasmoutput;
+        templist : Taasmoutput;
         headertai : tai;
         curralign : longint;
       begin
@@ -642,7 +642,6 @@ implementation
         aktbreaklabel:=nil;
         aktcontinuelabel:=nil;
         templist:=Taasmoutput.create;
-        symlist:=Taasmoutput.create;
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;
@@ -688,12 +687,6 @@ implementation
             set_first_temp_offset;
             generate_parameter_info;
 
-            { allocate the symbol associated with the procedure, so that }
-            { references to itself are not treated as references to      }
-            { externals                                                  }
-            aktfilepos:=entrypos;
-            gen_proc_symbol(symlist);
-          
             { Allocate space in temp/registers for parast and localst }
             aktfilepos:=entrypos;
             gen_alloc_symtable(aktproccode,procdef.parast);
@@ -783,9 +776,10 @@ implementation
 
             { generate symbol and save end of header position }
             aktfilepos:=entrypos;
-            headertai:=tai(symlist.last);
+            gen_proc_symbol(templist);
+            headertai:=tai(templist.last);
             { insert symbol }
-            aktproccode.insertlist(symlist);
+            aktproccode.insertlist(templist);
 
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
@@ -911,6 +905,9 @@ implementation
       var
         _class,hp : tobjectdef;
       begin
+        { allocate the symbol for this procedure }
+        alloc_proc_symbol(procdef);
+
         { insert symtables for the class, but only if it is no nested function }
         if assigned(procdef._class) and
            not(assigned(parent) and
