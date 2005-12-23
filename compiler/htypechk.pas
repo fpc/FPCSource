@@ -773,8 +773,11 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
-                 if not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
-                   include(varstateflags,vsf_must_be_valid);
+                 if (newstate in [vs_read,vs_readwritten]) or
+                    not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
+                   include(varstateflags,vsf_must_be_valid)
+                 else if (newstate = vs_written) then
+                   exclude(varstateflags,vsf_must_be_valid);
                  p:=tunarynode(p).left;
                end;
              { do not parse calln }

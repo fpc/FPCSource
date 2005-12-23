@@ -564,8 +564,8 @@ implementation
           end;
 
         resulttypepass(right);
-        set_varstate(left,vs_written,[]);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
+        set_varstate(left,vs_written,[]);
         if codegenerror then
           exit;
 

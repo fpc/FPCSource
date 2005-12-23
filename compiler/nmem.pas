@@ -443,9 +443,12 @@ implementation
 
          { this is like the function addr }
          inc(parsing_para_level);
-         { this is actually only "read", but treat it nevertheless as modified }
-         { due to the possible use of pointers                                 }
-         set_varstate(left,vs_readwritten,[]);
+         { This is actually only "read", but treat it nevertheless as  }
+         { modified due to the possible use of pointers                }
+         { To avoid false positives regarding "uninitialised"          }
+         { warnings when using arrays, perform it in two steps         }
+         set_varstate(left,vs_written,[]);
+         set_varstate(left,vs_read,[]);
          dec(parsing_para_level);
       end;
 
@@ -660,11 +663,16 @@ implementation
            ansi/widestring needs to be valid }
          valid:=is_dynamic_array(left.resulttype.def) or
                 is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def);
+                is_widestring(left.resulttype.def) or
+                { implicit pointer dereference -> pointer is read }
+                (left.resulttype.def.deftype = pointerdef);
          if valid then
-           set_varstate(left,vs_read,[vsf_must_be_valid])
-         else
-           set_varstate(left,vs_read,[]);
+           set_varstate(left,vs_read,[vsf_must_be_valid]);
+{
+         A vecn is, just like a loadn, always part of an expression with its
+         own read/write and must_be_valid semantics. Therefore we don't have
+         to do anything else here, just like for loadn's
+}
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
