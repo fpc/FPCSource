@@ -404,7 +404,7 @@ type
 
 
 {$ifndef SYSTEM_HAS_FREXP}
-    function frexp(x:Real; var e:Integer ):Real;
+    function frexp(x:Real; out e:Integer ):Real;
     {*  frexp() extracts the exponent from x.  It returns an integer     *}
     {*  power of two to expnt and the significand between 0.5 and 1      *}
     {*  to y.  Thus  x = y * 2**expn.                                    *}
