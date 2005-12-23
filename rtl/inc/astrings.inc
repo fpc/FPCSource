@@ -586,7 +586,7 @@ begin
 end;
 
 
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
+Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -601,7 +601,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
+Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -616,7 +616,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
+Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -633,7 +633,7 @@ end;
 
 {$ifndef CPU64}
 
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -648,7 +648,7 @@ begin
 end;
 
 
-Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
+Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -665,7 +665,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss: ShortString;
 begin
@@ -674,7 +674,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -684,7 +684,7 @@ end;
 
 
 
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -695,7 +695,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -703,7 +703,7 @@ begin
   S:=SS;
 end;
 
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin

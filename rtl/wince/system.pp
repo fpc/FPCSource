@@ -1448,7 +1448,7 @@ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external Ke
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external KernelDLL name 'CharLowerBuffW';
 
 
-procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure WinCEWide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
   var
     i: integer;
   begin
@@ -1467,7 +1467,7 @@ procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     end;
   end;
 
-procedure WinCEAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure WinCEAnsi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
   var
     i: integer;
   begin

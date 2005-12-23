@@ -51,7 +51,7 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure DefaultWide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
 var
   i : SizeInt;
 begin
@@ -69,7 +69,7 @@ begin
 end;
 
 
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
 var
   i : SizeInt;
 begin
@@ -704,12 +704,12 @@ function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
      widestringmanager.Wide2AnsiMoveproc(S,result,Len);
   end;
 
-procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;var Dest : AnsiString);
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
   begin
      Dest:=WideCharLenToString(Src,Len);
   end;
 
-procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
   begin
      Dest:=WideCharToString(S);
   end;
@@ -965,7 +965,7 @@ begin
 end;
 
 
-Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; compilerproc;
+Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -980,7 +980,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_WideStr (Const S : WideString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; compilerproc;
+Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -995,7 +995,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; compilerproc;
+Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1012,7 +1012,7 @@ end;
 
 {$ifndef CPU64}
 
-Function fpc_Val_qword_WideStr (Const S : WideString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; compilerproc;
+Function fpc_Val_qword_WideStr (Const S : WideString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1027,7 +1027,7 @@ begin
 end;
 
 
-Function fpc_Val_int64_WideStr (Const S : WideString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; compilerproc;
+Function fpc_Val_int64_WideStr (Const S : WideString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1044,7 +1044,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : WideString);compilerproc;
+procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString);compilerproc;
 var
   ss : shortstring;
 begin
@@ -1053,7 +1053,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; Var S : WideString);compilerproc;
+Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; out S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1062,7 +1062,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; Var S : WideString);compilerproc;
+Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; out S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1073,7 +1073,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; Var S : WideString);compilerproc;
+Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; out S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin
@@ -1082,7 +1082,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; Var S : WideString);compilerproc;
+Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; out S : WideString);compilerproc;
 Var
   SS : ShortString;
 begin

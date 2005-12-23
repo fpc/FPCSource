@@ -340,14 +340,14 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure fpc_shortstr_SInt(v : valSInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; compilerproc;
+procedure fpc_shortstr_SInt(v : valSInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; compilerproc;
 begin
   int_str(v,s);
   if length(s)<len then
     s:=space(len-length(s))+s;
 end;
 
-procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
+procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; compilerproc;
 begin
   int_str(v,s);
   if length(s)<len then
@@ -356,7 +356,7 @@ end;
 
 {$ifndef CPU64}
 
-  procedure fpc_shortstr_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
+  procedure fpc_shortstr_qword(v : qword;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
     begin
        int_str(v,s);
        if length(s)<len then
@@ -364,7 +364,7 @@ end;
     end;
 
 
-  procedure fpc_shortstr_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
+  procedure fpc_shortstr_int64(v : int64;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
     begin
        int_str(v,s);
        if length(s)<len then
@@ -380,7 +380,7 @@ end;
 
 {$I real2str.inc}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
@@ -390,7 +390,7 @@ end;
    Array Of Char Str() helpers
 }
 
-procedure fpc_chararray_sint(v : valsint;len : SizeInt;var a:array of char);compilerproc;
+procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a:array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -406,7 +406,7 @@ begin
 end;
 
 
-procedure fpc_chararray_uint(v : valuint;len : SizeInt;var a : array of char);compilerproc;
+procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -424,7 +424,7 @@ end;
 
 {$ifndef CPU64}
 
-procedure fpc_chararray_qword(v : qword;len : SizeInt;var a : array of char);compilerproc;
+procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -440,7 +440,7 @@ begin
 end;
 
 
-procedure fpc_chararray_int64(v : int64;len : SizeInt;var a : array of char);compilerproc;
+procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -458,7 +458,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;var a : array of char);compilerproc;
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -476,7 +476,7 @@ end;
                            Val() Functions
 *****************************************************************************}
 
-Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):ValSInt;
+Function InitVal(const s:shortstring;out negativ:boolean;out base:byte):ValSInt;
 var
   Code : SizeInt;
 begin
@@ -527,7 +527,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
+Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; compilerproc;
 var
   u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base : byte;
@@ -580,10 +580,10 @@ end;
 
 { we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
 { we have to pass the DestSize parameter on (JM)                         }
-Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
+Function int_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
 
 
-Function fpc_Val_UInt_Shortstr(Const S: ShortString; var Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
+Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR']; compilerproc;
 var
   u, prev : ValUInt;
   base : byte;
@@ -618,7 +618,7 @@ end;
 
 {$ifndef CPU64}
 
-  Function fpc_val_int64_shortstr(Const S: ShortString; var Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
+  Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
    type
      QWordRec = packed record
        l1,l2: longint;
@@ -683,7 +683,7 @@ end;
   end;
 
 
-  Function fpc_val_qword_shortstr(Const S: ShortString; var Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
+  Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
     type qwordrec = packed record
       l1,l2: longint;
     end;
@@ -726,7 +726,7 @@ end;
 {$endif CPU64}
 
 
-Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
+Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 var
   hd,
   esign,sign : valreal;

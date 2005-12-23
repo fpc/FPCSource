@@ -107,7 +107,7 @@ var
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
 
-procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure Wide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
   var
     outlength,
     outoffset,
@@ -160,7 +160,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   end;
 
 
-procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure Ansi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
   var
     outlength,
     outoffset,

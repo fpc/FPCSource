@@ -34,16 +34,16 @@ Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 function WideCharToString(S : PWideChar) : AnsiString;
 function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
 function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
-procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;var Dest : AnsiString);
-procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
 
-procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
-procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+procedure DefaultWide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
 
 Type
   TWideStringManager = record
-    Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:ansistring;len:SizeInt);
-    Ansi2WideMoveProc : procedure(source:pchar;var dest:widestring;len:SizeInt);
+    Wide2AnsiMoveProc : procedure(source:pwidechar;out dest:ansistring;len:SizeInt);
+    Ansi2WideMoveProc : procedure(source:pchar;out dest:widestring;len:SizeInt);
 
 //    UpperUTF8 : procedure(p:PUTF8String);
 
