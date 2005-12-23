@@ -388,11 +388,14 @@ Procedure TDataset.DoInternalClose(DoCheck : Boolean);
 begin
   if DoCheck then
     CheckBrowsemode;
+  DoBeforeScroll;
+  DoBeforeClose;
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(-1);
   SetState(dsInactive);
   InternalClose;
+  DoAfterClose;
 end;
 
 Procedure TDataset.DoOnCalcFields;
