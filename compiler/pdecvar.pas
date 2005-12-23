@@ -175,7 +175,7 @@ implementation
                                 Message(type_e_ordinal_expr_expected)
                              end;
                             p.free;
-                            pl.addconst(sl_vec,idx);
+                            pl.addconst(sl_vec,idx,p.resulttype);
                             def:=tarraydef(def).elementtype.def;
                           end
                          else

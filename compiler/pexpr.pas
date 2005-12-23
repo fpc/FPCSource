@@ -186,7 +186,7 @@ implementation
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32inttype,true));
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuett,true));
              else
                internalerror(200110205);
            end;
@@ -219,12 +219,12 @@ implementation
               begin
                 addnode(tvecnode(p).left);
                 if tvecnode(p).right.nodetype=ordconstn then
-                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value)
+                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resulttype)
                 else
                   begin
                     Message(parser_e_illegal_expression);
                     { recovery }
-                    sl.addconst(sl_vec,0);
+                    sl.addconst(sl_vec,0,tvecnode(p).right.resulttype);
                   end;
              end;
             loadn :

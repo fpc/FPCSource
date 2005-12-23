@@ -164,7 +164,7 @@ interface
         next   : psymlistitem;
         case byte of
           0 : (sym : tsym; symderef : tderef);
-          1 : (value  : TConstExprInt);
+          1 : (value  : TConstExprInt; valuett: ttype);
           2 : (tt : ttype);
       end;
 
@@ -178,7 +178,7 @@ interface
         function  empty:boolean;
         procedure addsym(slt:tsltype;p:tsym);
         procedure addsymderef(slt:tsltype;const d:tderef);
-        procedure addconst(slt:tsltype;v:TConstExprInt);
+        procedure addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
         procedure addtype(slt:tsltype;const tt:ttype);
         procedure clear;
         function  getcopy:tsymlist;
@@ -670,7 +670,7 @@ implementation
       end;
 
 
-    procedure tsymlist.addconst(slt:tsltype;v:TConstExprInt);
+    procedure tsymlist.addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
       var
         hp : psymlistitem;
       begin
@@ -678,6 +678,7 @@ implementation
         fillchar(hp^,sizeof(tsymlistitem),0);
         hp^.sltype:=slt;
         hp^.value:=v;
+        hp^.valuett:=tt;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
@@ -740,11 +741,10 @@ implementation
              sl_load,
              sl_subscript :
                hp^.sym:=tsym(hp^.symderef.resolve);
+             sl_vec,
              sl_absolutetype,
              sl_typeconv :
                hp^.tt.resolve;
-             sl_vec :
-               ;
              else
               internalerror(200110205);
            end;
@@ -766,11 +766,10 @@ implementation
              sl_load,
              sl_subscript :
                hp^.symderef.build(hp^.sym);
+             sl_vec,
              sl_absolutetype,
              sl_typeconv :
                hp^.tt.buildderef;
-             sl_vec :
-               ;
              else
               internalerror(200110205);
            end;
@@ -1226,7 +1225,8 @@ implementation
             sl_vec :
               begin
                 idx:=getlongint;
-                p.addconst(slt,idx);
+                gettype(tt);
+                p.addconst(slt,idx,tt);
               end;
             else
               internalerror(200110204);
@@ -1386,7 +1386,10 @@ implementation
              sl_typeconv :
                puttype(hp^.tt);
              sl_vec :
-               putlongint(hp^.value);
+               begin
+                 putlongint(hp^.value);
+                 puttype(hp^.valuett);
+               end;
              else
               internalerror(200110205);
            end;
