@@ -2016,6 +2016,11 @@ implementation
          end
         else
          case token of
+           _RETURN :
+              begin
+                consume(_RETURN);
+                p1 := cexitnode.create(comp_expr(true));
+              end;
            _INHERITED :
              begin
                again:=true;
