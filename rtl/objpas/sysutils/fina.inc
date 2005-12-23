@@ -74,7 +74,7 @@ var i: longint;
 begin
 I := Length(FileName);
 while (I > 0) and not (FileName[I] in ['/', '\', ':']) do Dec(I);
-Result := Copy(FileName, I + 1, 255);
+Result := Copy(FileName, I + 1, maxint);
 end;
 
 function ExtractFileExt(const FileName: string): string;
