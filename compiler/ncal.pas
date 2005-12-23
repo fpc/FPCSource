@@ -677,7 +677,7 @@ type
                        valid_for_var(left,true);
                    end;
 
-                 if parasym.varspez = vs_var then
+                 if parasym.varspez in [vs_var,vs_out] then
                    set_unique(left);
 
                  { When the address needs to be pushed then the register is
