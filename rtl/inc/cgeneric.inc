@@ -21,10 +21,10 @@
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure bcopy(const source;out dest;count:sizeuint); cdecl; external 'c' name 'bcopy';
+procedure bcopy(const source;var dest;count:sizeuint); cdecl; external 'c' name 'bcopy';
 
 { we need this separate move declaration because we can't add a "public, alias" to the above }
-procedure Move(const source;out dest;count:sizeint); [public, alias: 'FPC_MOVE'];{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure Move(const source;var dest;count:sizeint); [public, alias: 'FPC_MOVE'];{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;
@@ -35,9 +35,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure memset(out x; value: byte; count: sizeuint); cdecl; external 'c';
+procedure memset(var x; value: byte; count: sizeuint); cdecl; external 'c';
 
-Procedure FillChar(out x;count: sizeint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count: sizeint;value:byte);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;
@@ -48,7 +48,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
 {$define FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (out x;count : sizeint;value : byte );{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure FillByte (var x;count : sizeint;value : byte );{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   if count <= 0 then
     exit;

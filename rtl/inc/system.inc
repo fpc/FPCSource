@@ -139,12 +139,12 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
-procedure fillchar(out x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;
 
-procedure fillchar(out x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
+procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
 end;

@@ -104,7 +104,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;out dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;
 var
   saveesi,saveedi : longint;
 asm
@@ -188,7 +188,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(out x;count:SizeInt;value:byte);assembler;
+Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
 
 asm
         {A push is prefered over a local variable because a local
@@ -229,7 +229,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 {$define FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(out x;count : SizeInt;value : word);assembler;
+procedure fillword(var x;count : SizeInt;value : word);assembler;
 var
   saveedi : longint;
 asm
@@ -266,7 +266,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
-procedure filldword(out x;count : SizeInt;value : dword);assembler;
+procedure filldword(var x;count : SizeInt;value : dword);assembler;
 var
   saveedi : longint;
 asm

@@ -22,7 +22,7 @@ type
   pstring = ^shortstring;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;out dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
 type
   bytearray    = array [0..high(sizeint)-1] of byte;
 var
@@ -45,7 +45,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
-Procedure FillChar(out x;count:SizeInt;value:byte);
+Procedure FillChar(var x;count:SizeInt;value:byte);
 type
   longintarray = array [0..high(sizeint) div 4-1] of longint;
   bytearray    = array [0..high(sizeint)-1] of byte;
@@ -74,7 +74,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
-procedure FillByte (out x;count : SizeInt;value : byte );
+procedure FillByte (var x;count : SizeInt;value : byte );
 begin
   FillChar (X,Count,CHR(VALUE));
 end;
@@ -82,7 +82,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(out x;count : SizeInt;value : word);
+procedure fillword(var x;count : SizeInt;value : word);
 type
   longintarray = array [0..high(sizeint) div 4-1] of longint;
   wordarray    = array [0..high(sizeint) div 2-1] of word;
@@ -109,7 +109,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
-procedure FillDWord(out x;count : SizeInt;value : DWord);
+procedure FillDWord(var x;count : SizeInt;value : DWord);
 type
   longintarray = array [0..high(sizeint) div 4-1] of longint;
 begin
@@ -287,7 +287,7 @@ end;
 
 
 {$ifndef FPC_SYSTEM_HAS_MOVECHAR0}
-procedure MoveChar0(Const buf1;out buf2;len:SizeInt);
+procedure MoveChar0(Const buf1;var buf2;len:SizeInt);
 var
   I : longint;
 begin

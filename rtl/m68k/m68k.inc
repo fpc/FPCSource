@@ -80,7 +80,7 @@ function Sptr : Longint;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure FillChar(out x;count:longint;value:byte);[public,alias: 'FPC_FILL_OBJECT'];
+procedure FillChar(var x;count:longint;value:byte);[public,alias: 'FPC_FILL_OBJECT'];
   begin
     asm
      move.l 8(a6), a0      { destination                   }
@@ -232,7 +232,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure move(const source;out dest;count : longint);
+procedure move(var source;var dest;count : longint);
 { base pointer+8 = source                  }
 { base pointer+12 = destination            }
 { base pointer+16 = number of bytes to move}
@@ -289,7 +289,7 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FILLWORD}
-procedure fillword(out x;count : longint;value : word);
+procedure fillword(var x;count : longint;value : word);
   begin
     asm
      move.l 8(a6), a0      { destination             }

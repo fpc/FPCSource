@@ -367,13 +367,13 @@ ThreadVar
 {$endif}
 {$endif}
 
-Procedure Move(const source;out dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
-Procedure FillChar(out x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(out x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure FillChar(out x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
-procedure FillByte(out x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
-Procedure FillWord(out x;count:SizeInt;Value:Word);
-procedure FillDWord(out x;count:SizeInt;value:DWord);
+Procedure Move(const source;var dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
+Procedure FillChar(var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
+procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
+Procedure FillWord(var x;count:SizeInt;Value:Word);
+procedure FillDWord(var x;count:SizeInt;value:DWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
@@ -382,7 +382,7 @@ function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareDWord(const buf1,buf2;len:SizeInt):SizeInt;
-procedure MoveChar0(const buf1;out buf2;len:SizeInt);
+procedure MoveChar0(const buf1;var buf2;len:SizeInt);
 function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];

@@ -209,7 +209,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;out dest;count:longint);[public, alias: 'FPC_MOVE'];assembler; nostackframe;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler; nostackframe;
 asm
           {  count <= 0 ?  }
           cmpwi   cr0,r5,0
@@ -436,7 +436,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
 
-Procedure FillChar(out x;count:longint;value:byte);assembler;
+Procedure FillChar(var x;count:longint;value:byte);assembler;
 { input: x in r3, count in r4, value in r5 }
 
 {$ifndef FPC_ABI_AIX}
@@ -573,7 +573,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FILLDWORD}
 {$define FPC_SYSTEM_HAS_FILLDWORD}
-procedure filldword(out x;count : longint;value : dword);
+procedure filldword(var x;count : longint;value : dword);
 assembler; nostackframe;
 asm
 {       registers:

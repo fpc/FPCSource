@@ -91,7 +91,7 @@ function Sptr:Pointer;assembler;nostackframe;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;out dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
 {
   Registers:
     %l0 temp. to do copying
