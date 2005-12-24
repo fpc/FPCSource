@@ -212,10 +212,16 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset);
-                   g_concatcopy(list,tmpref,ref,sizeleft);
-                   if assigned(location^.next) then
-                     internalerror(2005010710);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                  { doubles in softemu mode have a strange order of registers and references }
+                  if location^.size=OS_32 then
+                    g_concatcopy(list,tmpref,ref,4)
+                  else
+                    begin
+                      g_concatcopy(list,tmpref,ref,sizeleft);
+                      if assigned(location^.next) then
+                        internalerror(2005010710);
+                    end;
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER:
                 case location^.size of
