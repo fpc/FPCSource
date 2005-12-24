@@ -951,7 +951,7 @@ function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
     stdcall; external 'user32' name 'CharLowerBuffW';
 
 
-procedure Win32Wide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
+procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
     destlen: SizeInt;
   begin
@@ -961,7 +961,7 @@ procedure Win32Wide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
     WideCharToMultiByte(CP_ACP, 0, source, len+1, @dest[1], destlen, nil, nil);
   end;
 
-procedure Win32Ansi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
+procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
   var
     destlen: SizeInt;
   begin

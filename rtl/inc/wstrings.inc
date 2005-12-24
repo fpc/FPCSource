@@ -51,7 +51,7 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure DefaultWide2AnsiMove(source:pwidechar;out dest:ansistring;len:SizeInt);
+procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
 var
   i : SizeInt;
 begin
@@ -69,7 +69,7 @@ begin
 end;
 
 
-procedure DefaultAnsi2WideMove(source:pchar;out dest:widestring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
 var
   i : SizeInt;
 begin
