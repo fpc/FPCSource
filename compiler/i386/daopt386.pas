@@ -2588,7 +2588,7 @@ begin
                   if (taicpu(p).ops >= 2) then
                     ReadOp(curprop,taicpu(p).oper[1]^);
                   if (taicpu(p).ops <= 2) then
-                    if (taicpu(p).oper[1]^.typ = top_none) then
+                    if (taicpu(p).ops=1) then
                       begin
                         readreg(curprop,RS_EAX);
 {$ifdef statedebug}

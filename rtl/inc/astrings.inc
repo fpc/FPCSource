@@ -86,7 +86,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
   If the reference count is zero, deallocate the string;
@@ -109,7 +109,7 @@ Begin
 end;
 
 { also define alias for internal use in the system unit }
-Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
+Procedure fpc_ansistr_decr_ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc;
 Begin
@@ -453,7 +453,8 @@ begin
      exit;
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
-   move(Str[1],S[ofs+1],length(Str));
+   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
+   move(Str[1],(pointer(S)+ofs)^,length(Str));
    PByte(Pointer(S)+length(S))^:=0; { Terminating Zero }
 end;
 
@@ -467,7 +468,8 @@ begin
    strlength := length(str);
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
-   move(Str[1],S[ofs+1],strlength+1);
+   { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
+   move(Str[1],(pointer(S)+ofs)^,strlength+1);
 end;
 
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
