@@ -151,7 +151,7 @@ type
     rdev    : dev_t;
     pad2    : word;
     size,
-    blksze,
+    blksize,
     blocks,
     atime,
     unused1,
