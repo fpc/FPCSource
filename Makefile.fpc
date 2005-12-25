@@ -139,6 +139,14 @@ CLEANOPTS=FPC=$(PPNEW)
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
 INSTALLOPTS=FPC=$(PPNEW) ZIPDESTDIR=$(BASEDIR) FPCMAKE=$(FPCMAKENEW)
 
+# Not compile FV for following target(s)
+ifneq ($(wildcard fv),)
+NOFVTARGETS=wince
+ifeq ($(findstring $(OS_TARGET),$(NOFVTARGETS)),)
+FV=1
+endif
+endif
+
 # Compile also IDE (check for ide and fv dir)
 # Skipped by default for cross compiles, because it depends on libc
 ifndef CROSSCOMPILE
@@ -151,7 +159,6 @@ endif
 endif
 endif
 endif
-
 
 [rules]
 # These values can change
@@ -235,7 +242,9 @@ $(BUILDSTAMP):
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
         $(MAKE) fcl_clean $(CLEANOPTS)
+ifdef FV
         $(MAKE) fv_clean $(CLEANOPTS)
+endif
         $(MAKE) utils_clean $(CLEANOPTS)
 ifdef IDE
         $(MAKE) ide_clean $(CLEANOPTS)
@@ -244,7 +253,9 @@ endif
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+ifdef FV
         $(MAKE) fv_$(ALLTARGET) $(BUILDOPTS)
+endif
         $(MAKE) packages_extra_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
 ifdef IDE
@@ -264,7 +275,9 @@ installbase:
 installother:
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
+ifdef FV
         $(MAKE) fv_$(INSTALLTARGET) $(INSTALLOPTS)
+endif
         $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
@@ -276,7 +289,9 @@ zipinstallbase:
 zipinstallother:
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
         $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+ifdef FV
         $(MAKE) fv_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
+endif
         $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
