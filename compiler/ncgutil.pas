@@ -1655,7 +1655,6 @@ implementation
 
     procedure alloc_proc_symbol(pd: tprocdef);
      var
-        sym: tai_symbol;
         item: tstringlistitem;
       begin
         item := tstringlistitem(pd.aliasnames.first);
@@ -1663,10 +1662,9 @@ implementation
           begin
             if (cs_profile in aktmoduleswitches) or
                (po_global in current_procinfo.procdef.procoptions) then
-              sym := Tai_symbol.createname_global(item.str,AT_FUNCTION,0)
+               objectlibrary.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION)
             else
-              sym := Tai_symbol.createname(item.str,AT_FUNCTION,0);
-            sym.free;
+               objectlibrary.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION);
             item := tstringlistitem(item.next);
           end;
        end;

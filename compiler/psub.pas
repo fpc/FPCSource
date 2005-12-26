@@ -1337,6 +1337,13 @@ implementation
          { Restore old state }
          constsymtable:=oldconstsymtable;
 
+         { make sure that references to forward-declared functions are not }
+         { treated as references to external symbols, needed for darwin    }
+         if (po_global in pd.procoptions) then
+           objectlibrary.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+         else
+           objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+
          current_procinfo:=old_current_procinfo;
       end;
 
