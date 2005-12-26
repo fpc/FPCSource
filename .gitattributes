@@ -1041,7 +1041,9 @@ fcl/win32/syncobjs.pp svneol=native#text/plain
 fcl/win32/winreg.inc svneol=native#text/plain
 fcl/wince/eventlog.inc svneol=native#text/plain
 fcl/wince/ezcgi.inc svneol=native#text/plain
+fcl/wince/fileinfo.pp svneol=native#text/plain
 fcl/wince/pipes.inc svneol=native#text/plain
+fcl/wince/process.inc svneol=native#text/plain
 fcl/xml/Makefile svneol=native#text/plain
 fcl/xml/Makefile.fpc svneol=native#text/plain
 fcl/xml/README -text

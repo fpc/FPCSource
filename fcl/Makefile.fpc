@@ -14,6 +14,7 @@ packages_darwin=netdb libasync pthreads
 packages_netbsd=netdb libasync
 packages_openbsd=netdb libasync
 packages_win32=netdb
+packages_wince=netdb
 packages_os2=netdb
 packages_emx=netdb
 
@@ -32,6 +33,7 @@ units_netbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
 units_openbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
 units_linux=process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
 units_win32=process fileinfo resolve ssockets syncobjs simpleipc msgintf dbugintf
+units_wince=process fileinfo
 units_os2=resolve ssockets
 units_emx=resolve ssockets
 units_netware=resolve ssockets
