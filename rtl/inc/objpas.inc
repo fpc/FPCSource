@@ -373,9 +373,6 @@
 
       class function TObject.stringmessagetable : pstringmessagetable;
 
-        type
-           pdword = ^dword;
-
         begin
            stringmessagetable:=pstringmessagetable((pointer(Self)+vmtMsgStrPtr)^);
         end;
