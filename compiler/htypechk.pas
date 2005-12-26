@@ -798,7 +798,12 @@ implementation
                             (vo_is_funcret in hsym.varoptions)) then
                           begin
                             if (vo_is_funcret in hsym.varoptions) then
-                               CGMessage(sym_w_function_result_not_set)
+                              begin
+                                if (vsf_use_hints in varstateflags) then
+                                  CGMessage(sym_h_function_result_uninitialized)
+                                else
+                                  CGMessage(sym_w_function_result_uninitialized)
+                              end
                             else
                               begin
                                 if tloadnode(p).symtable.symtabletype=localsymtable then

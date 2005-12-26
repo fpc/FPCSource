@@ -1255,7 +1255,7 @@ type_e_illegal_count_var=04058_E_Illegal counter variable
 #
 # Symtable
 #
-# 05055 is the last used one
+# 05060 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1399,6 +1399,17 @@ sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initializ
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
+sym_w_function_result_uninitialized=05059_W_Function result variable does not seem to initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_function_result_uninitialized=05060_H_Function result variable does not seem to be initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+
 % \end{description}
 #
 # Codegenerator
