@@ -73,6 +73,7 @@ end;
 function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
 begin
   { nothing to do, not supported }
+  result := pmDouble;
 end;
 
 
