@@ -22,6 +22,12 @@ uses Dynlibs, sysutils;
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
 {$ENDIF}
+{$IFDEF Wince}
+  {$DEFINE extdecl:=stdcall}
+  const
+    gdslib = 'gds32.dll';
+    fbclib = 'fbclient.dll';
+{$ENDIF}
 
 type
   {  Unsigned types }

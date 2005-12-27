@@ -12,6 +12,7 @@ dirs_darwin=interbase postgres mysql odbc
 dirs_netbsd=interbase postgres mysql odbc
 dirs_openbsd=interbase postgres mysql odbc
 dirs_win32=interbase postgres mysql odbc
+dirs_wince=interbase postgres 
 units=sqldb
 rsts=sqldb
 
