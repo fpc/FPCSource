@@ -1338,11 +1338,17 @@ implementation
          constsymtable:=oldconstsymtable;
 
          { make sure that references to forward-declared functions are not }
-         { treated as references to external symbols, needed for darwin    }
-         if (po_global in pd.procoptions) then
-           objectlibrary.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
-         else
-           objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+         { treated as references to external symbols, needed for darwin.   }
+
+         { make sure we don't change the binding of real external symbols }
+         if not(po_external in pd.procoptions) then
+           begin
+             if (po_global in pd.procoptions) or
+                (cs_profile in aktmoduleswitches) then
+               objectlibrary.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+             else
+               objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+           end;
 
          current_procinfo:=old_current_procinfo;
       end;
