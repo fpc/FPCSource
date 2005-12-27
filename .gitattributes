@@ -1044,6 +1044,7 @@ fcl/wince/ezcgi.inc svneol=native#text/plain
 fcl/wince/fileinfo.pp svneol=native#text/plain
 fcl/wince/pipes.inc svneol=native#text/plain
 fcl/wince/process.inc svneol=native#text/plain
+fcl/wince/resolve.inc svneol=native#text/plain
 fcl/wince/simpleipc.inc svneol=native#text/plain
 fcl/wince/syncobjs.pp svneol=native#text/plain
 fcl/xml/Makefile svneol=native#text/plain
@@ -4556,6 +4557,7 @@ rtl/wince/i386/wprt0.as svneol=native#text/plain
 rtl/wince/messages.pp -text
 rtl/wince/readme-winceapi-port -text
 rtl/wince/readme.txt -text
+rtl/wince/sockets.pp svneol=native#text/plain
 rtl/wince/system.pp svneol=native#text/plain
 rtl/wince/sysutils.pp -text
 rtl/wince/tthread.inc -text
@@ -4573,6 +4575,7 @@ rtl/wince/wininc/redef.inc -text
 rtl/wince/wininc/struct.inc -text
 rtl/wince/wininc/unidef.inc -text
 rtl/wince/winres.inc -text
+rtl/wince/winsock.pp svneol=native#text/plain
 rtl/x86_64/int64p.inc svneol=native#text/plain
 rtl/x86_64/makefile.cpu -text
 rtl/x86_64/math.inc svneol=native#text/plain

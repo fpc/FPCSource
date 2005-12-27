@@ -16,11 +16,10 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       strutils convutils math dateutils \
       varutils variants \
       matrix ucomplex \
-      charset getopts
-
-# winsock initc cmem signals \
+      charset getopts winsock sockets
+# initc cmem signals \
 #    crt graph \
-#    wincrt winmouse winevent sockets printer \
+#    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
 #    winsysut fpmkunit
 

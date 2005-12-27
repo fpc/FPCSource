@@ -23,6 +23,61 @@
 
 //begin common win32 & wince
 
+
+type
+  PIID = PGUID;
+  TIID = TGUID;
+  THANDLE = HANDLE;
+
+  PSmallRect = ^TSmallRect;
+  TSmallRect = SMALL_RECT;
+
+  PCharInfo = ^TCharInfo;
+  TCharInfo = _CHAR_INFO;
+
+  TFarProc = FARPROC;
+  TFNDlgProc = FARPROC;
+  TFNThreadStartRoutine = FARPROC;
+  TFNTimerAPCRoutine    = FARPROC;
+  TFNFiberStartRoutine  = FARPROC;
+
+  PObjectTypeList = ^TObjectTypeList;
+  _OBJECT_TYPE_LIST = record
+     Level: WORD;
+     Sbz: WORD;
+     ObjectType: PGUID;
+  end;
+  TObjectTypeList = _OBJECT_TYPE_LIST;
+  OBJECT_TYPE_LIST = _OBJECT_TYPE_LIST;
+
+  AUDIT_EVENT_TYPE = DWORD;
+
+  PBlendFunction = ^TBlendFunction;
+  _BLENDFUNCTION = packed record
+    BlendOp: BYTE;
+    BlendFlags: BYTE;
+    SourceConstantAlpha: BYTE;
+    AlphaFormat: BYTE;
+  end;
+  TBlendFunction = _BLENDFUNCTION;
+  BLENDFUNCTION = _BLENDFUNCTION;
+
+  _WIN_CERTIFICATE =  Packed Record
+                       dwLength         : DWord;
+                       wRevision        : Word;
+                       wCertificateType : Word;
+                       bCertificate     : Array[0..0] of Byte;
+                      End;
+  TWinCertificate = _WIN_CERTIFICATE;
+  PWinCertificate = ^TWinCertificate;
+
+  TMaxLogPalette = Packed Record
+     palVersion    : Word;
+     palNumEntries : Word;
+     palPalEntry   : array[Byte] of TPaletteEntry;
+  end;
+  PMaxLogPalette = ^TMaxLogPalette;
+
 //
 //  A language ID is a 16 bit value which is the combination of a
 //  primary language ID and a secondary language ID.  The bits are
@@ -127,59 +182,6 @@ function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProc
 
 {$ifdef WIN32}
 //begin win32 or wince not checked
-type
-  PIID = PGUID;
-  TIID = TGUID;
-  THANDLE = HANDLE;
-
-  PSmallRect = ^TSmallRect;
-  TSmallRect = SMALL_RECT;
-
-  PCharInfo = ^TCharInfo;
-  TCharInfo = _CHAR_INFO;
-
-  TFarProc = FARPROC;
-  TFNDlgProc = FARPROC;
-  TFNThreadStartRoutine = FARPROC;
-  TFNTimerAPCRoutine    = FARPROC;
-  TFNFiberStartRoutine  = FARPROC;
-
-  PObjectTypeList = ^TObjectTypeList;
-  _OBJECT_TYPE_LIST = record
-     Level: WORD;
-     Sbz: WORD;
-     ObjectType: PGUID;
-  end;
-  TObjectTypeList = _OBJECT_TYPE_LIST;
-  OBJECT_TYPE_LIST = _OBJECT_TYPE_LIST;
-
-  AUDIT_EVENT_TYPE = DWORD;
-
-  PBlendFunction = ^TBlendFunction;
-  _BLENDFUNCTION = packed record
-    BlendOp: BYTE;
-    BlendFlags: BYTE;
-    SourceConstantAlpha: BYTE;
-    AlphaFormat: BYTE;
-  end;
-  TBlendFunction = _BLENDFUNCTION;
-  BLENDFUNCTION = _BLENDFUNCTION;
-
-  _WIN_CERTIFICATE =  Packed Record
-                       dwLength         : DWord;
-                       wRevision        : Word;
-                       wCertificateType : Word;
-                       bCertificate     : Array[0..0] of Byte;
-                      End;
-  TWinCertificate = _WIN_CERTIFICATE;
-  PWinCertificate = ^TWinCertificate;
-
-  TMaxLogPalette = Packed Record
-     palVersion    : Word;
-     palNumEntries : Word;
-     palPalEntry   : array[Byte] of TPaletteEntry;
-  end;
-  PMaxLogPalette = ^TMaxLogPalette;
 
 
 const

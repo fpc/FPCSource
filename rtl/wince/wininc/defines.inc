@@ -45,7 +45,9 @@
   Changes :
 
   08/15/2005 update for wince4.2 port,ORO06
+  12/27/2005 update
 }
+
 
 {$ifdef read_interface}
 
@@ -64,6 +66,7 @@
     MprDLLCore    = KernelDLL;
     ShellDLLCore  = KernelDLL;
     ShellDLL      = 'CEShell';
+    winsockdll    = 'ws2.dll';
 {$endif WINCE}
 
 {$ifdef WIN32}
@@ -81,7 +84,8 @@
     MprDLLCore    = 'mpr';
     ShellDLLCore  = 'shell32';
     ShellDLL      = ShellDLLCore;
-    
+    winsockdll    = 'winsock.dll';
+
 {$endif WIN32}
 
 {$PACKRECORDS C}

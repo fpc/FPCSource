@@ -392,7 +392,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  resolve ssockets syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo syncobjs simpleipc msgintf dbugintf
+override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo resolve ssockets syncobjs simpleipc msgintf dbugintf
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
@@ -452,7 +452,7 @@ ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo syncobjs simpleipc msgintf dbugintf
+override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo resolve ssockets syncobjs simpleipc msgintf dbugintf
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 override TARGET_UNITS+=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
