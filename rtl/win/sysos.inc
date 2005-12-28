@@ -221,12 +221,10 @@ threadvar
      stdcall;external KernelDLL name 'GetFileSize';
    function SetEndOfFile(h : thandle) : longbool;
      stdcall;external KernelDLL name 'SetEndOfFile';
-
-   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
    function FreeLibrary(hLibModule:THandle):ByteBool; stdcall; external KernelDLL name 'FreeLibrary';
-   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
 {$ifndef WINCE}
+   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
    function GetFileType(Handle:thandle):DWord;
      stdcall;external KernelDLL name 'GetFileType';
    function GetFileAttributes(p : pchar) : dword;
@@ -239,6 +237,7 @@ threadvar
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
      stdcall;external KernelDLL name 'CreateFileA';
+   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
    { Directory }
    function CreateDirectory(name : pointer;sec : pointer) : longbool;
@@ -249,6 +248,15 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external KernelDLL name 'GetCurrentDirectoryA';
+{$else WINCE}
+   function LoadLibraryW(lpLibFileName:PWideChar):THandle; stdcall; external KernelDLL name 'LoadLibraryW';
+   function LoadLibrary(lpLibFileName:PChar):THandle;
+   var buf: array[0..MaxPathLen] of WideChar;
+   begin
+    AnsiToWideBuf(lpLibFileName, -1, buf, SizeOf(buf));
+    LoadLibrary:=LoadLibraryW(PWideChar(lpLibFileName));
+   end;
+   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddressA';
 {$endif WINCE}
 
    var
