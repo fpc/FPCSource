@@ -1,5 +1,6 @@
 {$MODE objfpc}
 {$ASMMODE intel}
+{$goto on}
 
 Unit timeunit;
 
