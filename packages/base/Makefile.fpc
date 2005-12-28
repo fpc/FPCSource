@@ -7,6 +7,7 @@ dirs=hash paszlib pasjpeg regexpr netdb
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
             pthreads sqlite libc
 dirs_win32=gdbint mysql ibase odbc sqlite postgres
+dirs_wince=ibase sqlite postgres
 dirs_go32v2=gdbint
 dirs_netbsd=gdbint libasync \
             mysql ibase postgres oracle odbc 
