@@ -512,6 +512,13 @@ packages/base/gdbint/*.ppu
 packages/base/gdbint/*.s
 packages/base/gdbint/fpcmade.*
 packages/base/gdbint/units
+packages/base/graph/inc/*.bak
+packages/base/graph/inc/*.exe
+packages/base/graph/inc/*.o
+packages/base/graph/inc/*.ppu
+packages/base/graph/inc/*.s
+packages/base/graph/inc/fpcmade.*
+packages/base/graph/inc/units
 packages/base/hash/*.bak
 packages/base/hash/*.exe
 packages/base/hash/*.o
@@ -1773,13 +1780,6 @@ rtl/inc/*.o
 rtl/inc/*.ppu
 rtl/inc/*.s
 rtl/inc/fpcmade.*
-rtl/inc/graph/*.bak
-rtl/inc/graph/*.exe
-rtl/inc/graph/*.o
-rtl/inc/graph/*.ppu
-rtl/inc/graph/*.s
-rtl/inc/graph/fpcmade.*
-rtl/inc/graph/units
 rtl/inc/units
 rtl/linux/*.bak
 rtl/linux/*.exe

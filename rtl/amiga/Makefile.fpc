@@ -10,7 +10,7 @@ loaders=prt0
 units=system exec strings \
       dos crt objects printer \
       objpas macpas matrix \
-      heaptrc lineinfo getopts graph \
+      heaptrc lineinfo getopts \
       sysutils math typinfo ctypes
 rsts=math
 
@@ -59,7 +59,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 [rules]
 # Get the system independent include file names.
@@ -154,27 +153,3 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 
 ctypes$(PPUEXT) : $(INC)/ctypes.pp system$(PPUEXT)
         $(COMPILER) $(INC)/ctypes.pp $(REDIR)
-
-#
-# Revision 1.10  2004/10/30 12:36:48  peter
-#   * units are now created in separate directory units/cpu-os/
-#   * distclean uses cleanall rule and removes units dir
-#   * cross compile support fixed, it is now possible to cycle a ppcsparc
-#     without deleting ppc386
-#   * bintutilsperfix defaults to cpu-os-
-#
-# Revision 1.9  2004/08/25 16:57:22  olle
-#   * fix so that macpas.pp really is compiled
-#
-# Revision 1.8  2004/08/16 16:22:17  olle
-#   + Added unit macpas
-#
-# Revision 1.7  2004/07/07 21:37:29  daniel
-#   * Matrix unit included in build process
-#
-# Revision 1.6  2004/05/06 22:01:17  florian
-#   * changed extensions
-#
-# Revision 1.5  2004/05/06 21:12:41  florian
-#   * changed extensions
-#
