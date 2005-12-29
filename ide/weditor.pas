@@ -1167,8 +1167,8 @@ function BMBScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): Sw
 Var
   buffer : Array[0..MaxBufLength-1] of Byte Absolute block;
   s2     : String;
-  len,
-  numb   : Sw_word;
+  len    : Sw_Word;
+  numb   : Sw_Integer;
   found  : Boolean;
 begin
   len:=length(str);
@@ -1179,8 +1179,8 @@ begin
    end;
   s2[0]:=chr(len);       { sets the length to that of the search String }
   found:=False;
-  numb:=size-pred(len);
-  While (not found) and (numb>0) do
+  numb:=size-len;
+  While (not found) and (numb>=0) do
    begin
      { partial match }
      if buffer[numb] = ord(str[1]) then
@@ -1211,8 +1211,8 @@ function BMBIScan(var Block; Size: Sw_Word;const Str: String;const bt:BTable): S
 Var
   buffer : Array[0..MaxBufLength-1] of Char Absolute block;
   len,
-  numb,
-  x      : Sw_word;
+  x      : Sw_Word;
+  numb   : Sw_Integer;
   found  : Boolean;
   p      : pchar;
   c      : char;
@@ -1225,7 +1225,7 @@ begin
    end;
   found:=False;
   numb:=size-len;
-  While (not found) and (numb>0) do
+  While (not found) and (numb>=0) do
    begin
      { partial match }
      c:=buffer[numb];
