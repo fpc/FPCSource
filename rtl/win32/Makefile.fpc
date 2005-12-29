@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils varutils variants typinfo classes \
       cpu mmx charset ucomplex getopts \
-      wincrt winmouse winevent sockets printer \
+      winevent sockets printer \
       video mouse keyboard \
       winsysut fpmkunit
 
