@@ -1227,6 +1227,7 @@ packages/base/gdbint/gdbobjs.inc svneol=native#text/plain
 packages/base/gdbint/gdbver.pp svneol=native#text/plain
 packages/base/gdbint/symify.pp svneol=native#text/plain
 packages/base/gdbint/testgdb.pp svneol=native#text/plain
+packages/base/graph/Makefile -text
 packages/base/graph/Makefile.fpc svneol=native#text/plain
 packages/base/graph/amiga/graph.pp svneol=native#text/plain
 packages/base/graph/go32v2/graph.pp svneol=native#text/plain
