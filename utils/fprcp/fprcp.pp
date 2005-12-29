@@ -4,7 +4,7 @@ program FreePasResourcePreprocessor;
 {$endif}
 {$ifndef fpc}{$N+}{$endif}
 uses
- Comments,PasPrep,Expr
+ Comments,PasPrep,Expr,Classes
 {$ifndef win32}
 ,DOS;
 type
@@ -57,9 +57,12 @@ const
 var
  f:file;
  s:str255;
+ sValue1, sValue2: String;
  size,nextpos:longint;
  buf:pchars;
  i:longint;
+ AConstList: TStringList;
+ 
 function Entry(buf:pchars;Size,fromPos:longint;const sample:str255;casesent:longbool):longbool;
  var
   i:longint;
@@ -171,30 +174,7 @@ function GetSwitch(const switch:str255):str255;
    if paramstr(i)='-'+switch then
     GetSwitch:=paramstr(succ(i));
  end;
-procedure saveproc(const key,value:str255;CaseSent:longbool);{$ifndef fpc}far;{$endif}
- var
-  c:pReplaceRec;
- begin
-  new(c);
-  c^.next:=nil;
-  c^.CaseSentitive:=CaseSent;
-  getmem(c^.oldvalue,succ(length(key)));
-  c^.oldvalue^:=key;
-  getmem(c^.newvalue,succ(length(value)));
-  c^.newvalue^:=value;
-  if chainhdr=nil then
-   begin
-    chain:=c;
-    chainhdr:=chain;
-    ChainLen:=1;
-   end
-  else
-   begin
-    chain^.next:=c;
-    chain:=c;
-    inc(ChainLen);
-   end;
- end;
+
 type
  Tlanguage=(L_C,L_Pascal);
 function Language(s:str255):tLanguage;
@@ -270,6 +250,11 @@ function Up(const s:str255):str255;
    n[i]:=upcase(s[i]);
   Up:=n;
  end;
+procedure saveproc(const key,value:str255;CaseSent:longbool);{$ifndef fpc}far;{$endif}
+begin
+  AConstList.Values[Up(key)]:=Up(Value);
+end;
+
 procedure do_C(buf:pchars;size:longint;proc:pointer);
  type
   Tpushfunc=procedure(const key,value:str255;CaseSent:longBool);
@@ -339,9 +324,9 @@ procedure expandname(var s:str255;path:str255);
  end;
 function do_include(name:str255):longbool;
  var
-  buf:pchars;
-  f:file;
-  size:longint;
+  bufinclude:pchars;
+  finclude:file;
+  sizeinclude:longint;
   s1:str255;
  procedure trim;
   begin
@@ -359,19 +344,19 @@ function do_include(name:str255):longbool;
      s1:=GetSwitch('-path');
     expandname(name,s1);
    end;
-  assign(f,name);
-  reset(f,1);
-  size:=filesize(f);
-  GetMem(buf,size);
-  blockread(f,buf^,size);
-  close(f);
+  assign(finclude,name);
+  reset(finclude,1);
+  sizeinclude:=filesize(finclude);
+  GetMem(bufinclude,sizeinclude);
+  blockread(finclude,bufinclude^,sizeinclude);
+  close(finclude);
   case Language(name)of
    L_C:
-    do_C(buf,size,@saveProc);
+    do_C(bufinclude,sizeinclude,@saveProc);
    L_PASCAL:
-    do_pascal(buf,size,@saveProc);
+    do_pascal(bufinclude,sizeinclude,@saveProc);
   end;
-  FreeMem(buf,size);
+  FreeMem(bufinclude,sizeinclude);
   do_include:=true;
  end;
 function CheckRight(const s:str255;pos:longint):longbool;
@@ -393,18 +378,19 @@ function CheckLeft(const s:str255;pos:longint):longbool;
      CheckLeft:=not(s[pred(pos)]in['a'..'z','A'..'Z','0'..'9','_']);
    end;
  end;
-function Evaluate(Equation:Str255):Str255;
+function Evaluate(Equation:String):String;
  var
   x:double;
   Err:integer;
  begin
-  Eval(Equation,x,Err);
-  if(Err=0)and(frac(x)=0)then
-   str(x:1:0,Equation)
-  else
-   Equation:='';
-  Evaluate:=Equation;
- end;
+   Eval(Equation,x,Err);
+   if(Err=0)and(frac(x)=0)then
+    str(x:1:0,Equation)
+   else
+    Equation:='';
+   Evaluate:=Equation;
+end;
+
 type
  taccel=array[1..100]of pReplaceRec;
 var
@@ -412,7 +398,7 @@ var
  c:pReplaceRec;
  j,kk:longint;
  sss,sst:str255;
- MustBeReplaced:longbool;
+ bNoMore:Boolean;
 begin
  if(paramcount=0)or isSwitch('h')or isSwitch('-help')or((paramcount>1)and(GetSwitch('i')=''))then
   begin
@@ -441,130 +427,77 @@ begin
  if isSwitch('-disable-nested-pascal-comments')then
   PasNesting:=false;
  excludeComments(buf,size);
- for i:=1 to size do
-  begin
-   if entry(buf,size,i,'#include',true)then
-    do_include(GetWord(buf,size,i+length('#include'),nextpos));
-  end;
 
- getmem(Accel,sizeof(pReplaceRec)*ChainLen);
- c:=ChainHdr;
- i:=0;
- while c<>nil do
-  begin
-   inc(i);
-   Accel^[i]:=c;
-   c:=c^.next;
-  end;
- for i:=1 to pred(Chainlen)do
-  for j:=succ(i)to Chainlen do
-   if length(Accel^[j]^.newvalue^)>=length(Accel^[i]^.oldvalue^)then
-    repeat
-     MustBeReplaced:=false;
-     for kk:=1 to length(Accel^[j]^.newvalue^)do
-      begin
-       sss:=copy(Accel^[j]^.newvalue^,kk,length(Accel^[i]^.oldvalue^));
-       if length(sss)<>length(Accel^[i]^.oldvalue^)then
-        break
-       else if sss=Accel^[i]^.oldvalue^ then
-        begin
-         MustBeReplaced:=(CheckLeft(Accel^[j]^.newvalue^,kk)and CheckRight(Accel^[j]^.newvalue^,kk-1+
-                             length(Accel^[i]^.oldvalue^)));
-         if MustBeReplaced then
-          break;
-        end;
-      end;
-     if MustBeReplaced then
-      begin
-       sss:=Accel^[j]^.newvalue^;
-       delete(sss,kk,length(Accel^[i]^.oldvalue^));
-       insert(Accel^[i]^.newvalue^,sss,kk);
-       freemem(Accel^[j]^.newvalue,length(Accel^[j]^.newvalue^));
-       getmem(Accel^[j]^.newvalue,length(sss));
-       Accel^[j]^.newvalue^:=sss;
-      end;
-    until not MustBeReplaced;
- for j:=1 to Chainlen do
-  begin
-   sss:=Evaluate(Accel^[j]^.newvalue^);
-   freemem(Accel^[j]^.newvalue,length(Accel^[j]^.newvalue^));
-   getmem(Accel^[j]^.newvalue,length(sss));
-   Accel^[j]^.newvalue^:=sss;
-  end;
- if isSwitch('C')or isSwitch('-Cheader')then
-  for i:=1 to Chainlen do
-   begin
-    if Accel^[i]^.newvalue^<>''then
-     writeln('#define ',Accel^[i]^.oldvalue^,' ',Accel^[i]^.newvalue^)
-   end
- else
-  begin
-   sss:='';
-   i:=1;
-   sss:='';
-   while i<=size do
+ AConstList:=TStringList.Create;
+ //try
+  AConstList.BeginUpdate;
+  //try
+   //include file
+   for i:=1 to size do
     begin
-     if buf^[i]<>#10 then
-      sss:=sss+buf^[i]
-     else
-      begin
-       while(sss<>'')and(sss[1]<=#32)do
-        delete(sss,1,1);
-       sst:=sss;
-       for j:=1 to length(sst)do
-        sst[j]:=upcase(sst[j]);
-       if pos('#INCLUDE',sst)=0 then
-        begin
-         s:='';
-         for kk:=1 to length(sss)do
-          begin
-           if sss[kk]>#32 then
-            s:=s+sss[kk]
-           else if s<>'' then
-            begin
-             for j:=1 to ChainLen do
-              begin
-               if accel^[j]^.casesentitive then
-                begin
-                 if(accel^[j]^.oldvalue^=s)and(accel^[j]^.newvalue^<>'')then
-                  begin
-                   s:=accel^[j]^.newvalue^;
-                   break;
-                  end;
-                end
-               else
-                begin
-                 if(accel^[j]^.oldvalue^=Up(s))and(accel^[j]^.newvalue^<>'')then
-                  begin
-                   s:=accel^[j]^.newvalue^;
-                   break;
-                  end;
-                end;
-              end;
-             write(s,' ');
-             s:='';
-            end;
-          end;
-         writeln;
-         sss:='';
-        end
-       else
-        sss:='';
-      end;
-     inc(i);
+     if entry(buf,size,i,'#include',true)then
+      do_include(GetWord(buf,size,i+length('#include'),nextpos));
     end;
-  end;
- freemem(Accel,sizeof(pReplaceRec)*ChainLen);
- Chain:=ChainHdr;
- while Chain<>nil do
-  begin
-   c:=Chain;
-   Chain:=Chain^.next;
-   if c^.oldvalue<>nil then
-    freemem(c^.oldvalue,succ(length(c^.oldvalue^)));
-   if c^.newvalue<>nil then
-    freemem(c^.newvalue,succ(length(c^.newvalue^)));
-   dispose(c);
-  end;
- freemem(buf,size);
+   //finally 
+   AConstList.EndUpdate; //end;
+
+   //replace const-value if needed and evaluate
+   For i:=0 to (AConstList.Count-1) do begin
+    sValue1:=AConstList.ValueFromIndex[i];
+    repeat
+     sValue2:=AConstList.Values[sValue1];
+     bNoMore:=Length(sValue2)=0;
+     if (not bNoMore) then sValue1:=sValue2;
+    until bNoMore;
+    sValue2:=Evaluate(sValue1);
+    if Length(sValue2)>0
+    then AConstList.ValueFromIndex[i]:=Evaluate(sValue1);
+   end;
+ 
+   if isSwitch('C')or isSwitch('-Cheader')then begin
+    for i:=0 to AConstList.Count-1
+    do writeln('#define ',AConstList.Names[i],' ',AConstList.ValueFromIndex[i]);
+   end else begin
+    sss:='';
+    i:=1;
+    while i<=size do
+     begin
+      if buf^[i]<>#10 then
+       sss:=sss+buf^[i]
+      else
+       begin
+        while(sss<>'')and(sss[1]<=#32)do
+         delete(sss,1,1);
+        sst:=sss;
+        for j:=1 to length(sst)do sst[j]:=upcase(sst[j]);
+        if pos('#INCLUDE',sst)=0 then
+          begin
+           s:='';
+           for kk:=1 to length(sss)do
+            begin
+             if sss[kk]>#32 then
+              s:=s+sss[kk]
+             else if s<>'' then
+              begin
+               sValue1:=AConstList.Values[Up(s)];
+               if Length(sValue1)>0
+               then write(sValue1,' ')
+               else write(s,' ');
+               s:='';
+              end;
+            end;
+           writeln;
+           sss:='';
+          end
+         else
+          sss:='';
+       end;
+       inc(i);
+     end;
+    end;
+   freemem(buf,size);
+
+ //finally 
+ AConstList.Free; //end;
+ 
 end.

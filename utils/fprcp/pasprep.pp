@@ -57,6 +57,24 @@ function IsTypeDef(pos:longint):longbool;
      exit;
     end;
  end;
+procedure JumpToNext;
+var iLastword: Longint;
+begin
+  repeat
+   iLastword:=GetWord_Pos;
+   if GetWord_Pos>size then
+    exit;
+   GetWord;
+   i:=GetWord_Pos;
+   if(LastWord='EXTERNAL')or(LastWord='FORWARD')or(LastWord='INLINE')then
+    break
+   else if (LastWord='CONST')then begin
+          GetWord_Pos:=iLastword;
+          break;
+        end;
+  until false;
+end;
+
 procedure JumpToEnd;
  var
   mainBegin:str255;
@@ -151,13 +169,16 @@ procedure do_consts(savefunc:pointer);
 begin
  ClearComments(PasNesting,buf,size);
  i:=1;
+ GetWord_Pos:=0;
  while i<=size do
   begin
    old:=GetWord_Pos;
    GetWord;
    i:=GetWord_Pos;
-   if((LastWord='PROCEDURE')or(lastword='FUNCTION')or(lastword='OPERATOR'))and not isTypedef(old)then
+   if (lastword='OPERATOR')and not isTypedef(old)then
     JumpToEnd
+   else if ((LastWord='PROCEDURE')or(lastword='FUNCTION')) and not isTypedef(old) then
+    JumpToNext
    else if LastWord='CONST'then
     Do_Consts(proc)
    else if LastWord='IMPLEMENTATION'then
