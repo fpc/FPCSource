@@ -176,6 +176,11 @@ const
   StdWordDelims = [#0..' ',',','.',';','/','\',':','''','"','`'] + Brackets;
   StdSwitchChars = ['-','/'];
 
+function PosSet (const c:TSysCharSet;const s : ansistring ):Integer;
+function PosSet (const c:string;const s : ansistring ):Integer;
+function PosSetEx (const c:TSysCharSet;const s : ansistring;count:Integer ):Integer;
+function PosSetEx (const c:string;const s : ansistring;count:Integer ):Integer;
+
 implementation
 
 { ---------------------------------------------------------------------
@@ -1612,6 +1617,59 @@ begin
     dec(i);
     end;
   result:=binbufsize-i;
+end;
+
+function possetex (const c:TSysCharSet;const s : ansistring;count:Integer ):Integer;
+
+var i,j:Integer;
+
+begin
+ if pchar(s)=nil then
+  j:=0
+ else
+  begin
+   i:=length(s);
+   j:=count;
+   if j>i then
+    begin
+     result:=0;
+     exit;
+    end;
+   while (j<=i) and (not (s[j] in c)) do inc(j);
+   if (j>i) then
+    j:=0;                                         // not found.
+  end;
+ result:=j;
+end;
+
+function posset (const c:TSysCharSet;const s : ansistring ):Integer;
+
+begin
+  result:=possetex(c,s,1);
+end;
+
+function possetex (const c:string;const s : ansistring;count:Integer ):Integer;
+
+var cset : TSysCharSet;
+    i    : integer;
+begin
+  cset:=[];
+  if length(c)>0 then
+  for i:=1 to length(c) do
+    include(cset,c[i]);
+  result:=possetex(cset,s,count);
+end;
+
+function posset (const c:string;const s : ansistring ):Integer;
+
+var cset : TSysCharSet;
+    i    : integer;
+begin
+  cset:=[];
+  if length(c)>0 then
+    for i:=1 to length(c) do
+      include(cset,c[i]);
+  result:=possetex(cset,s,1);
 end;
 
 end.
