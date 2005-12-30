@@ -1044,10 +1044,9 @@ const
      { allocator here, because the register colouring has already occured !!    }
 
 
-     var regcounter,firstregfpu,firstreggpr: TSuperRegister;
+     var regcounter,firstregfpu,firstregint: TSuperRegister;
          href : treference;
          usesfpr,usesgpr,gotgot : boolean;
-         regcounter2, firstfpureg: Tsuperregister;
          cond : tasmcond;
          instr : taicpu;
 
@@ -1057,99 +1056,57 @@ const
         { following is the entry code as described in "Altivec Programming }
         { Interface Manual", bar the saving of AltiVec registers           }
         a_reg_alloc(list,NR_STACK_POINTER_REG);
-        a_reg_alloc(list,NR_R0);
 
-        usesfpr:=false;
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
-          case target_info.abi of
-            abi_powerpc_aix:
-              firstfpureg := RS_F14;
-            abi_powerpc_sysv:
-              firstfpureg := RS_F14;
-            else
-              internalerror(2003122903);
-          end;
-          for regcounter:=firstfpureg to RS_F31 do
-           begin
-             if regcounter in rg[R_FPUREGISTER].used_in_proc then
-              begin
-                usesfpr:= true;
-                firstregfpu:=regcounter;
-                break;
-              end;
-           end;
-
-        usesgpr:=false;
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          for regcounter2:=RS_R13 to RS_R31 do
-            begin
-              if regcounter2 in rg[R_INTREGISTER].used_in_proc then
-                begin
-                   usesgpr:=true;
-                   firstreggpr:=regcounter2;
-                   break;
-                end;
-            end;
-
-        { save link register? }
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          if (pi_do_call in current_procinfo.flags) or
-             ([cs_lineinfo,cs_debuginfo] * aktmoduleswitches <> []) then
-            begin
-               { save return address... }
-               list.concat(taicpu.op_reg(A_MFLR,NR_R0));
-               { ... in caller's frame }
-               case target_info.abi of
-                 abi_powerpc_aix:
-                   reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX);
-                 abi_powerpc_sysv:
-                   reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
-               end;
-               list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
-               a_reg_dealloc(list,NR_R0);
-            end;
-
-        { save the CR if necessary in callers frame. }
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          if target_info.abi = abi_powerpc_aix then
-            if false then { Not needed at the moment. }
+        usesgpr := false;
+        usesfpr := false;
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            { save link register? }
+            if (pi_do_call in current_procinfo.flags) or
+               ([cs_lineinfo,cs_debuginfo] * aktmoduleswitches <> []) then
               begin
                 a_reg_alloc(list,NR_R0);
-                list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_CR));
-                reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
+                { save return address... }
+                list.concat(taicpu.op_reg(A_MFLR,NR_R0));
+                { ... in caller's frame }
+                case target_info.abi of
+                  abi_powerpc_aix:
+                    reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX);
+                  abi_powerpc_sysv:
+                    reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
+                end;
                 list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
                 a_reg_dealloc(list,NR_R0);
               end;
 
-        { !!! always allocate space for all registers for now !!! }
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-{        if usesfpr or usesgpr then }
-          begin
-             a_reg_alloc(list,NR_R12);
-             { save end of fpr save area }
-             list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
-          end;
+(*
+            { save the CR if necessary in callers frame. }
+            if target_info.abi = abi_powerpc_aix then
+              if false then { Not needed at the moment. }
+                begin
+                  a_reg_alloc(list,NR_R0);
+                  list.concat(taicpu.op_reg_reg(A_MFSPR,NR_R0,NR_CR));
+                  reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
+                  list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
+                  a_reg_dealloc(list,NR_R0);
+                end;
+*)
 
+            firstregfpu := tppcprocinfo(current_procinfo).get_first_save_fpu_reg;
+            firstregint := tppcprocinfo(current_procinfo).get_first_save_int_reg;
+            usesgpr := firstregint <> 32;
+            usesfpr := firstregfpu <> 32;
 
-        if (not nostackframe) and
-           (localsize <> 0) then
-          begin
-            if (localsize <= high(smallint)) then
+            { !!! always allocate space for all registers for now !!! }
+{            if usesfpr or usesgpr then }
+             if (localsize <> 0) and
+                { check is imperfect, is actualy only necessary if there are }
+                { parameters to copy                                         }
+                (tppcprocinfo(current_procinfo).uses_stack_temps) then
               begin
-                reference_reset_base(href,NR_STACK_POINTER_REG,-localsize);
-                a_load_store(list,A_STWU,NR_STACK_POINTER_REG,href);
-              end
-            else
-              begin
-                reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                { can't use getregisterint here, the register colouring }
-                { is already done when we get here                      }
-                href.index := NR_R11;
-                a_reg_alloc(list,href.index);
-                a_load_const_reg(list,OS_S32,-localsize,href.index);
-                a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
-                a_reg_dealloc(list,href.index);
+                a_reg_alloc(list,NR_R12);
+                { save end of fpr save area }
+                list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
               end;
           end;
 
@@ -1157,7 +1114,7 @@ const
         gotgot:=false;
         if usesfpr then
           begin
-             { save floating-point registers
+{            save floating-point registers
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
                   a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g',AB_EXTERNAL,AT_FUNCTION));
@@ -1165,23 +1122,20 @@ const
                end
              else
                a_call_name(objectlibrary.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14),AB_EXTERNAL,AT_FUNCTION));
-             }
-             reference_reset_base(href,NR_R12,-8);
-             for regcounter:=firstregfpu to RS_F31 do
-              begin
-                if regcounter in rg[R_FPUREGISTER].used_in_proc then
-                 begin
-                    a_loadfpu_reg_ref(list,OS_F64,newreg(R_FPUREGISTER,regcounter,R_SUBNONE),href);
-                    dec(href.offset,8);
-                 end;
-               end;
+}
 
+             reference_reset_base(href,NR_R1,-8);
+             for regcounter:=firstregfpu to RS_F31 do
+               begin
+                 a_loadfpu_reg_ref(list,OS_F64,newreg(R_FPUREGISTER,regcounter,R_SUBNONE),href);
+                 dec(href.offset,8);
+               end;
              { compute start of gpr save area }
              inc(href.offset,4);
           end
         else
           { compute start of gpr save area }
-          reference_reset_base(href,NR_R12,-4);
+          reference_reset_base(href,NR_R1,-4);
 
         { save gprs and fetch GOT pointer }
         if usesgpr then
@@ -1195,33 +1149,27 @@ const
              else
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14),AB_EXTERNAL,AT_FUNCTION))
              }
-            for regcounter2:=RS_R13 to RS_R31 do
+            if (firstregint <= RS_R22) or
+               ((cs_littlesize in aktglobalswitches) and
+               { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
+                (firstregint <= RS_R29)) then
               begin
-                if regcounter2 in rg[R_INTREGISTER].used_in_proc then
-                  begin
-                     usesgpr:=true;
-                     if (regcounter2 <= RS_R22) or
-                        ((cs_littlesize in aktglobalswitches) and
-                         { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
-                         (regcounter2 <= RS_R29)) then
-                       begin
-                         dec(href.offset,(RS_R31-regcounter2+1)*sizeof(aint));
-                         list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href));
-                         break;
-                       end
-                     else
-                       begin
-                         a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href);
-                         dec(href.offset,4);
-                       end;
-                  end;
-              end;
+                dec(href.offset,(RS_R31-firstregint+1)*sizeof(aint));
+                list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
+              end
+            else
+              for regcounter:=firstregint to RS_R31 do
+                begin
+                  a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter,R_SUBNONE),href);
+                  dec(href.offset,4);
+                end;
 {
             r.enum:=R_INTREGISTER;
             r.:=;
             reference_reset_base(href,NR_R12,-((NR_R31-firstreggpr) shr 8+1)*4);
             list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
 }
+
           end;
 
 { see "!!! always allocate space for all registers for now !!!" above }
@@ -1258,16 +1206,40 @@ const
               end;
           end;
 *)
-        { save the CR if necessary ( !!! always done currently ) }
-        { still need to find out where this has to be done for SystemV
+
+        if (not nostackframe) and
+           (localsize <> 0) then
+          begin
+            if (localsize <= high(smallint)) then
+              begin
+                reference_reset_base(href,NR_STACK_POINTER_REG,-localsize);
+                a_load_store(list,A_STWU,NR_STACK_POINTER_REG,href);
+              end
+            else
+              begin
+                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                { can't use getregisterint here, the register colouring }
+                { is already done when we get here                      }
+                href.index := NR_R11;
+                a_reg_alloc(list,href.index);
+                a_load_const_reg(list,OS_S32,-localsize,href.index);
+                a_load_store(list,A_STWUX,NR_STACK_POINTER_REG,href);
+                a_reg_dealloc(list,href.index);
+              end;
+          end;
+
+        { save the CR if necessary ( !!! never done currently ) }
+{       still need to find out where this has to be done for SystemV
         a_reg_alloc(list,R_0);
         list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_CR);
         list.concat(taicpu.op_reg_ref(A_STW,scratch_register,
           new_reference(STACK_POINTER_REG,LA_CR)));
-        a_reg_dealloc(list,R_0); }
+        a_reg_dealloc(list,R_0);
+}
         { now comes the AltiVec context save, not yet implemented !!! }
 
       end;
+
 
     procedure tcgppc.g_proc_exit(list : taasmoutput;parasize : longint;nostackframe:boolean);
      { This procedure may be called before, as well as after g_stackframe_entry }
@@ -1275,105 +1247,64 @@ const
      { allocator here, because the register colouring has already occured !!    }
 
       var
-         regcounter,firstregfpu,firstreggpr: TsuperRegister;
+         regcounter,firstregfpu,firstregint: TsuperRegister;
          href : treference;
          usesfpr,usesgpr,genret : boolean;
-         regcounter2, firstfpureg:Tsuperregister;
          localsize: aint;
       begin
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          begin
-            { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
-            case target_info.abi of
-              abi_powerpc_aix:
-                firstfpureg := RS_F14;
-              abi_powerpc_sysv:
-                firstfpureg := RS_F14;
-              else
-                internalerror(2003122903);
-            end;
-            for regcounter:=firstfpureg to RS_F31 do
-             begin
-               if regcounter in rg[R_FPUREGISTER].used_in_proc then
-                begin
-                   usesfpr:=true;
-                   firstregfpu:=regcounter;
-                   break;
-                end;
-             end;
-          end;
-
         usesgpr:=false;
         if not (po_assembler in current_procinfo.procdef.procoptions) then
-          for regcounter2:=RS_R13 to RS_R31 do
-            begin
-              if regcounter2 in rg[R_INTREGISTER].used_in_proc then
-                begin
-                  usesgpr:=true;
-                  firstreggpr:=regcounter2;
-                  break;
-                end;
-            end;
+          begin
+            firstregfpu := tppcprocinfo(current_procinfo).get_first_save_fpu_reg;
+            firstregint := tppcprocinfo(current_procinfo).get_first_save_int_reg;
+            usesgpr := firstregint <> 32;
+            usesfpr := firstregfpu <> 32;
+          end;
 
         localsize:= tppcprocinfo(current_procinfo).calc_stackframe_size;
 
+        { adjust r1 }
+        { (register allocator is no longer valid at this time and an add of 0   }
+        { is translated into a move, which is then registered with the register }
+        { allocator, causing a crash                                            }
+        if (not nostackframe) and
+           (localsize <> 0) then
+          a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
+
         { no return (blr) generated yet }
         genret:=true;
-        if usesgpr or usesfpr then
+        if usesfpr then
           begin
-             { address of gpr save area to r11 }
-             { (register allocator is no longer valid at this time and an add of 0   }
-             { is translated into a move, which is then registered with the register }
-             { allocator, causing a crash                                            }
-             if (localsize <> 0) then
-               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,NR_STACK_POINTER_REG,NR_R12)
-             else
-               list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
-             if usesfpr then
-               begin
-                 reference_reset_base(href,NR_R12,-8);
-                 for regcounter := firstregfpu to RS_F31 do
-                  begin
-                    if regcounter in rg[R_FPUREGISTER].used_in_proc then
-                     begin
-                       a_loadfpu_ref_reg(list,OS_F64,href,newreg(R_FPUREGISTER,regcounter,R_SUBNONE));
-                       dec(href.offset,8);
-                     end;
-                  end;
-                 inc(href.offset,4);
-               end
-             else
-               reference_reset_base(href,NR_R12,-4);
-
-            for regcounter2:=RS_R13 to RS_R31 do
+            reference_reset_base(href,NR_R1,-8);
+            for regcounter := firstregfpu to RS_F31 do
               begin
-                if regcounter2 in rg[R_INTREGISTER].used_in_proc then
-                  begin
-                     usesgpr:=true;
-                     if (regcounter2 <= RS_R22) or
-                        ((cs_littlesize in aktglobalswitches) and
-                         { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
-                         (regcounter2 <= RS_R29)) then
-                       begin
-                         dec(href.offset,(RS_R31-regcounter2+1)*sizeof(aint));
-                         list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href));
-                         break;
-                       end
-                     else
-                       begin
-                         a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter2,R_SUBNONE));
-                         dec(href.offset,4);
-                       end;
-                  end;
+                a_loadfpu_ref_reg(list,OS_F64,href,newreg(R_FPUREGISTER,regcounter,R_SUBNONE));
+                dec(href.offset,8);
               end;
+            inc(href.offset,4);
+          end
+        else
+          reference_reset_base(href,NR_R1,-4);
 
-(*
-             reference_reset_base(href,r2,-((NR_R31-ord(firstreggpr)) shr 8+1)*4);
-             list.concat(taicpu.op_reg_ref(A_LMW,firstreggpr,href));
-*)
+        if (usesgpr) then
+          begin
+            if (firstregint <= RS_R22) or
+               ((cs_littlesize in aktglobalswitches) and
+                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
+                (firstregint <= RS_R29)) then
+              begin
+                dec(href.offset,(RS_R31-firstregint+1)*sizeof(aint));
+                list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
+              end
+            else
+              for regcounter:=firstregint to RS_R31 do
+                begin
+                  a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter,R_SUBNONE));
+                  dec(href.offset,4);
+                end;
           end;
 
 (*
@@ -1396,46 +1327,41 @@ const
           end;
 *)
 
-
         { if we didn't generate the return code, we've to do it now }
         if genret then
           begin
-             { adjust r1 }
-             { (register allocator is no longer valid at this time and an add of 0   }
-             { is translated into a move, which is then registered with the register }
-             { allocator, causing a crash                                            }
-             if (not nostackframe) and
-                (localsize <> 0) then
-               a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
-             { load link register? }
-             if not (po_assembler in current_procinfo.procdef.procoptions) then
-               begin
-                 if (pi_do_call in current_procinfo.flags) then
-                   begin
-                      case target_info.abi of
-                        abi_powerpc_aix:
-                          reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX);
-                        abi_powerpc_sysv:
-                          reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
+            { load link register? }
+            if not (po_assembler in current_procinfo.procdef.procoptions) then
+              begin
+                if (pi_do_call in current_procinfo.flags) then
+                  begin
+                    case target_info.abi of
+                      abi_powerpc_aix:
+                        reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX);
+                      abi_powerpc_sysv:
+                        reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
+                    end;
+                    list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
+                    list.concat(taicpu.op_reg(A_MTLR,NR_R0));
+                  end;
+
+(*
+                  { restore the CR if necessary from callers frame}
+                  if target_info.abi = abi_powerpc_aix then
+                    if false then { Not needed at the moment. }
+                      begin
+                        reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
+                        list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
+                        list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_CR));
+                        a_reg_dealloc(list,NR_R0);
                       end;
-                      list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
-                      list.concat(taicpu.op_reg(A_MTLR,NR_R0));
-                   end;
+*)
+              end;
 
-                 { restore the CR if necessary from callers frame}
-                 if target_info.abi = abi_powerpc_aix then
-                   if false then { Not needed at the moment. }
-                     begin
-                      reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
-                      list.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,href));
-                      list.concat(taicpu.op_reg_reg(A_MTSPR,NR_R0,NR_CR));
-                      a_reg_dealloc(list,NR_R0);
-                     end;
-               end;
-
-             list.concat(taicpu.op_none(A_BLR));
+            list.concat(taicpu.op_none(A_BLR));
           end;
       end;
+
 
     function tcgppc.save_regs(list : taasmoutput):longint;
     {Generates code which saves used non-volatile registers in

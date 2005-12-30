@@ -28,7 +28,8 @@ unit cpupi;
   interface
 
     uses
-       cutils,
+       cutils,globtype,
+       cgbase,
        procinfo,cpuinfo,psub;
 
     type
@@ -39,16 +40,24 @@ unit cpupi;
           procedure set_first_temp_offset;override;
           procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
+
+          function uses_stack_temps: boolean;
+         private
+          start_temp_offset: aint;
+          first_save_int_reg, first_save_fpu_reg: tsuperregister;
+         public
+          property get_first_save_int_reg: tsuperregister read first_save_int_reg;
+          property get_first_save_fpu_reg: tsuperregister read first_save_fpu_reg;
        end;
 
 
   implementation
 
     uses
-       globtype,globals,systems,
+       globals,systems,
        cpubase,
        aasmtai,
-       tgobj,
+       tgobj,cgobj,
        symconst,symsym,paramgr,symutil,
        verbose;
 
@@ -57,6 +66,9 @@ unit cpupi;
       begin
          inherited create(aparent);
          maxpushedparasize:=0;
+         start_temp_offset:=-1;
+         first_save_int_reg:=-1;
+         first_save_fpu_reg:=-1;
       end;
 
 
@@ -69,21 +81,26 @@ unit cpupi;
           begin
             case target_info.abi of
               abi_powerpc_aix:
-                ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
+                ofs:=maxpushedparasize+LinkageAreaSizeAIX;
               abi_powerpc_sysv:
-                ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
+                ofs:=maxpushedparasize+LinkageAreaSizeSYSV;
               else
                 internalerror(200402191);
             end;
             tg.setfirsttemp(ofs);
+            start_temp_offset := ofs;
           end
         else
           begin
             locals := 0;
+            start_temp_offset := 0;
             current_procinfo.procdef.localst.foreach_static(@count_locals,@locals);
             if locals <> 0 then
-              { at 0(r1), the previous value of r1 will be stored }
-              tg.setfirsttemp(4);
+              begin
+                { at 0(r1), the previous value of r1 will be stored }
+                tg.setfirsttemp(4);
+                start_temp_offset := 4;
+              end;
           end;
       end;
 
@@ -118,22 +135,59 @@ unit cpupi;
       end;
 
 
+    function tppcprocinfo.uses_stack_temps: boolean;
+      begin
+        if (start_temp_offset = -1) then
+          internalerror(200512301);
+        result := start_temp_offset <> tg.lasttemp;
+      end;
+
+
     function tppcprocinfo.calc_stackframe_size:longint;
       var
-        first_save_fpu_register: longint;
+        low_nonvol_fpu_reg, regcounter: tsuperregister;
       begin
-        { more or less copied from cgcpu.pas/g_stackframe_entry }
-        { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
-        case target_info.abi of
-          abi_powerpc_aix:
-            first_save_fpu_register := 14;
-          abi_powerpc_sysv:
-            first_save_fpu_register := 9;
-          else
-            internalerror(2003122903);
-        end;
         if not (po_assembler in procdef.procoptions) then
-          result := align(align((31-13+1)*4+(31-first_save_fpu_register+1)*8,16)+tg.lasttemp,16)
+          begin
+            first_save_fpu_reg := 32;
+            first_save_int_reg := 32;
+            { FIXME: has to be R_F14 instead of R_F8 for SYSV-64bit }
+            case target_info.abi of
+              abi_powerpc_aix:
+                low_nonvol_fpu_reg := RS_F14;
+              abi_powerpc_sysv:
+                low_nonvol_fpu_reg := RS_F14;
+              else
+                internalerror(2003122903);
+            end;
+            for regcounter := low_nonvol_fpu_reg to RS_F31 do
+              begin
+                if regcounter in cg.rg[R_FPUREGISTER].used_in_proc then
+                  begin
+                    first_save_fpu_reg := ord(regcounter) - ord(RS_F0);
+                    break;
+                  end;
+              end;
+            for regcounter := RS_R13 to RS_R31 do
+              begin
+                if regcounter in cg.rg[R_INTREGISTER].used_in_proc then
+                  begin
+                    first_save_int_reg := ord(regcounter) - ord(RS_R0);
+                    break;
+                  end;
+              end;
+            if not(pi_do_call in flags) and
+               (not uses_stack_temps) and
+               (((target_info.abi = abi_powerpc_aix) and
+                 ((32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8 <= 220)) or
+                ((target_info.abi = abi_powerpc_sysv) and
+                 (first_save_int_reg + first_save_fpu_reg = 64))) then
+              { don't allocate a stack frame }
+              result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8
+            else
+              result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8+tg.lasttemp;
+            result := align(result,16);
+          end
         else
           result := align(tg.lasttemp,16);
       end;
@@ -142,3 +196,4 @@ unit cpupi;
 begin
    cprocinfo:=tppcprocinfo;
 end.
+
