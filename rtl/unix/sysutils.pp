@@ -1022,10 +1022,6 @@ var
   e : EOSError;
 
 Begin
-  { always surround the name of the application by quotes
-    so that long filenames will always be accepted. But don't
-    do it if there are already double quotes!
-  }
   pid:=fpFork;
   if pid=0 then
    begin
