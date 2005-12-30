@@ -11,12 +11,12 @@ libc=y
 
 # clean package units
 [clean]
-units=$(GGI_GRAPH) graph
+units=$(GGIGRAPH_UNIT) $(GRPAH_UNIT)
 
 [target]
 dirs=
 units=
-units_linux=graph $(GGIGRAPH_UNIT)
+units_linux=$(GRPAH_UNIT) $(GGIGRAPH_UNIT)
 units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
 units_go32v2=graph
@@ -50,12 +50,16 @@ USELIBGGI=NO
 endif
 
 GGIGRAPH_UNIT=ggigraph
+GRAPH_UNIT=graph
 GRAPHUNIT_DIR=$(OS_TARGET)
 
 ifeq ($(OS_TARGET),linux)
 GRAPHUNIT_DIR=unix
 ifeq ($(CPU_TARGET),powerpc64)
 GGIGRAPH_UNIT=
+endif
+ifneq ($(CPU_TARGET),i386)
+GRAPH_UNIT=
 endif
 endif
 
