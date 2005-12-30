@@ -1154,7 +1154,7 @@ const
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                dec(href.offset,(RS_R31-firstregint+1)*sizeof(aint));
+                dec(href.offset,(RS_R31-firstregint)*sizeof(aint));
                 list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end
             else
@@ -1296,7 +1296,7 @@ const
                 { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                dec(href.offset,(RS_R31-firstregint+1)*sizeof(aint));
+                dec(href.offset,(RS_R31-firstregint)*sizeof(aint));
                 list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end
             else
