@@ -397,13 +397,27 @@ uses cutils, cclasses;
 
     function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-        result:=taicpu.op_reg_ref(A_LWZ,r,ref);
+        case getregtype(r) of
+          R_INTREGISTER:
+            result:=taicpu.op_reg_ref(A_LWZ,r,ref);
+          R_FPUREGISTER:
+            result:=taicpu.op_reg_ref(A_LFD,r,ref);
+          else
+            internalerror(2005123101);
+        end;
       end;
 
 
     function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-        result:=taicpu.op_reg_ref(A_STW,r,ref);
+        case getregtype(r) of
+          R_INTREGISTER:
+            result:=taicpu.op_reg_ref(A_STW,r,ref);
+          R_FPUREGISTER:
+            result:=taicpu.op_reg_ref(A_STFD,r,ref);
+          else
+            internalerror(2005123102);
+        end;
       end;
 
 
