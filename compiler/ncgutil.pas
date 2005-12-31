@@ -127,7 +127,11 @@ implementation
     regvars,dwarf,dbgbase,
     pass_1,pass_2,
     ncon,nld,nutils,
-    tgobj,cgobj;
+    tgobj,cgobj
+{$ifdef powerpc}
+    , cpupi
+{$endif}
+;
 
 
 {*****************************************************************************
@@ -1502,7 +1506,8 @@ implementation
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
-        cg.a_reg_dealloc(list,NR_R12);
+        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+          cg.a_reg_dealloc(list,NR_R12);
 {$endif powerpc}
 {$ifdef powerpc64}
         { unget the register that contains the stack pointer before the procedure entry, }

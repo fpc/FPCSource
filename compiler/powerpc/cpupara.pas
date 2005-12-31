@@ -54,7 +54,8 @@ unit cpupara;
     uses
        verbose,systems,
        defutil,
-       cgutils;
+       cgutils,
+       procinfo,cpupi;
 
 
     function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -507,7 +508,10 @@ unit cpupara;
                        if (side = callerside) then
                          paraloc^.reference.index:=NR_STACK_POINTER_REG
                        else
-                         paraloc^.reference.index:=NR_R12;
+                         begin
+                           paraloc^.reference.index:=NR_R12;
+                           tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+                         end;
                        paraloc^.reference.offset:=stack_offset;
                        inc(stack_offset,align(paralen,4));
                        paralen := 0;

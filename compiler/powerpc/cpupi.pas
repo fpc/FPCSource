@@ -43,11 +43,12 @@ unit cpupi;
 
           function uses_stack_temps: boolean;
          private
-          start_temp_offset: aint;
           first_save_int_reg, first_save_fpu_reg: tsuperregister;
          public
           property get_first_save_int_reg: tsuperregister read first_save_int_reg;
           property get_first_save_fpu_reg: tsuperregister read first_save_fpu_reg;
+
+          needs_frame_pointer: boolean;
        end;
 
 
@@ -66,9 +67,9 @@ unit cpupi;
       begin
          inherited create(aparent);
          maxpushedparasize:=0;
-         start_temp_offset:=-1;
          first_save_int_reg:=-1;
          first_save_fpu_reg:=-1;
+         needs_frame_pointer:=false;
       end;
 
 
@@ -88,19 +89,16 @@ unit cpupi;
                 internalerror(200402191);
             end;
             tg.setfirsttemp(ofs);
-            start_temp_offset := ofs;
           end
         else
           begin
             locals := 0;
-            start_temp_offset := 0;
             current_procinfo.procdef.localst.foreach_static(@count_locals,@locals);
             if locals <> 0 then
               begin
                 { at 0(r1), the previous value of r1 will be stored }
                 tg.setfirsttemp(4);
-                start_temp_offset := 4;
-              end;
+              end
           end;
       end;
 
@@ -137,9 +135,7 @@ unit cpupi;
 
     function tppcprocinfo.uses_stack_temps: boolean;
       begin
-        if (start_temp_offset = -1) then
-          internalerror(200512301);
-        result := start_temp_offset <> tg.lasttemp;
+        result := tg.firsttemp <> tg.lasttemp;
       end;
 
 

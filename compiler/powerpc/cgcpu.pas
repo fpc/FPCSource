@@ -1097,15 +1097,9 @@ const
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
 
-            { !!! always allocate space for all registers for now !!! }
-{            if usesfpr or usesgpr then }
-             if (localsize <> 0) and
-                { check is imperfect, is actualy only necessary if there are }
-                { parameters to copy                                         }
-                (tppcprocinfo(current_procinfo).uses_stack_temps) then
+             if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
               begin
                 a_reg_alloc(list,NR_R12);
-                { save end of fpr save area }
                 list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
               end;
           end;
@@ -1163,20 +1157,11 @@ const
                   a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter,R_SUBNONE),href);
                   dec(href.offset,4);
                 end;
-{
-            r.enum:=R_INTREGISTER;
-            r.:=;
-            reference_reset_base(href,NR_R12,-((NR_R31-firstreggpr) shr 8+1)*4);
-            list.concat(taicpu.op_reg_ref(A_STMW,firstreggpr,href));
-}
-
           end;
-
-{ see "!!! always allocate space for all registers for now !!!" above }
 
 {        done in ncgutil because it may only be released after the parameters }
 {        have been moved to their final resting place                         }
-{        if usesfpr or usesgpr then }
+{        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then }
 {          a_reg_dealloc(list,NR_R12); }
 
 
