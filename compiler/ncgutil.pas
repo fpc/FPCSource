@@ -1235,8 +1235,60 @@ implementation
       end;
 
 
-    procedure gen_load_para_value(list:TAAsmoutput);
+    procedure gen_alloc_regvar(list:TAAsmoutput;sym: tabstractnormalvarsym);
+      begin
+        case sym.localloc.loc of
+          LOC_CREGISTER:
+            begin
+{$ifndef cpu64bit}
+              if sym.localloc.size in [OS_64,OS_S64] then
+                begin
+                  sym.localloc.register64.reglo:=cg.getintregister(list,OS_32);
+                  sym.localloc.register64.reghi:=cg.getintregister(list,OS_32);
+                end
+              else
+{$endif cpu64bit}
+                sym.localloc.register:=cg.getintregister(list,sym.localloc.size);
+            end;
+          LOC_CFPUREGISTER:
+            begin
+              sym.localloc.register:=cg.getfpuregister(list,sym.localloc.size);
+            end;
+          LOC_CMMREGISTER:
+            begin
+             sym. localloc.register:=cg.getmmregister(list,sym.localloc.size);
+            end;
+        end;
+        { Allocate register already, to prevent first allocation to be
+          inside a loop }
+{$ifndef cpu64bit}
+        if sym.localloc.size in [OS_64,OS_S64] then
+          begin
+            cg.a_reg_sync(list,sym.localloc.register64.reglo);
+            cg.a_reg_sync(list,sym.localloc.register64.reghi);
+          end
+        else
+{$endif cpu64bit}
+          cg.a_reg_sync(list,sym.localloc.register);
 
+        if cs_asm_source in aktglobalswitches then
+          begin
+            case sym.localloc.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER :
+                begin
+                  if (cs_no_regalloc in aktglobalswitches) then
+                    list.concat(Tai_comment.Create(strpnew('Var '+sym.realname+' located in register '+
+                                std_regname(sym.localloc.register))))
+                  else
+                    list.concat(Tai_comment.Create(strpnew('Var '+sym.realname+' located in register')));
+                end;
+            end
+          end;
+      end;
+
+
+    procedure gen_load_para_value(list:TAAsmoutput);
 
        procedure get_para(const paraloc:TCGParaLocation);
          begin
@@ -1375,10 +1427,10 @@ implementation
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
             paraloc:=currpara.paraloc[calleeside].location;
             { skip e.g. empty records }
-            if (paraloc^.loc = LOC_VOID) then
-              continue;
             if not assigned(paraloc) then
               internalerror(200408203);
+            if (paraloc^.loc = LOC_VOID) then
+              continue;
             case currpara.localloc.loc of
               LOC_REFERENCE :
                 begin
@@ -1428,6 +1480,7 @@ implementation
                                 { paraloc^ -> high
                                   paraloc^.next -> low }
                                 unget_para(paraloc^);
+                                gen_alloc_regvar(list,currpara);
                                 gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
                                 unget_para(paraloc^.next^);
                                 gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo);
@@ -1437,6 +1490,7 @@ implementation
                                 { paraloc^ -> low
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
+                                gen_alloc_regvar(list,currpara);
                                 gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
                                 unget_para(paraloc^.next^);
                                 gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
@@ -1444,6 +1498,7 @@ implementation
                           end;
                         LOC_REFERENCE:
                           begin
+                            gen_alloc_regvar(list,currpara);
                             reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
                             cg64.a_load64_ref_reg(list,href,currpara.localloc.register64);
                             unget_para(paraloc^);
@@ -1458,6 +1513,7 @@ implementation
                       if assigned(paraloc^.next) then
                         internalerror(200410105);
                       unget_para(paraloc^);
+                      gen_alloc_regvar(list,currpara);
                       gen_load_reg(paraloc^,currpara.localloc.register);
                     end;
                 end;
@@ -1477,10 +1533,12 @@ implementation
                       dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
+                  gen_alloc_regvar(list,currpara);
                   cg.a_loadfpu_ref_reg(list,currpara.localloc.size,tempref,currpara.localloc.register);
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
+                  gen_alloc_regvar(list,currpara);
                   gen_load_reg(paraloc^,currpara.localloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
@@ -1489,6 +1547,7 @@ implementation
               LOC_CMMREGISTER :
                 begin
                   unget_para(paraloc^);
+                  gen_alloc_regvar(list,currpara);
                   gen_load_reg(paraloc^,currpara.localloc.register);
                   { data could come in two memory locations, for now
                     we simply ignore the sanity check (FK)
@@ -1891,6 +1950,31 @@ implementation
       end;
 
 
+    procedure init_regvar_loc(sym:tabstractnormalvarsym;cgsize:tcgsize);
+      begin
+        with sym do
+          begin
+            localloc.size:=cgsize;
+            case varregable of
+              vr_intreg :
+                begin
+                  localloc.loc:=LOC_CREGISTER;
+                end;
+              vr_fpureg :
+                begin
+                  localloc.loc:=LOC_CFPUREGISTER;
+                end;
+              vr_mmreg :
+                begin
+                  localloc.loc:=LOC_CMMREGISTER;
+                end;
+              else
+                internalerror(2004101010);
+            end;
+          end;
+      end;
+
+
     procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
       var
         sym     : tsym;
@@ -1923,45 +2007,9 @@ implementation
                         { When there is assembler code we can't use regvars }
                         if is_regvar then
                           begin
-                            localloc.size:=cgsize;
-                            case varregable of
-                              vr_intreg :
-                                begin
-                                  localloc.loc:=LOC_CREGISTER;
-{$ifndef cpu64bit}
-                                  if cgsize in [OS_64,OS_S64] then
-                                    begin
-                                      localloc.register64.reglo:=cg.getintregister(list,OS_32);
-                                      localloc.register64.reghi:=cg.getintregister(list,OS_32);
-                                    end
-                                  else
-{$endif cpu64bit}
-                                    localloc.register:=cg.getintregister(list,cgsize);
-                                end;
-                              vr_fpureg :
-                                begin
-                                  localloc.loc:=LOC_CFPUREGISTER;
-                                  localloc.register:=cg.getfpuregister(list,cgsize);
-                                end;
-                              vr_mmreg :
-                                begin
-                                  localloc.loc:=LOC_CMMREGISTER;
-                                  localloc.register:=cg.getmmregister(list,cgsize);
-                                end;
-                              else
-                                internalerror(2004101010);
-                            end;
-                            { Allocate register already, to prevent first allocation to be
-                              inside a loop }
-{$ifndef cpu64bit}
-                            if cgsize in [OS_64,OS_S64] then
-                              begin
-                                cg.a_reg_sync(list,localloc.register64.reglo);
-                                cg.a_reg_sync(list,localloc.register64.reghi);
-                              end
-                            else
-{$endif cpu64bit}
-                              cg.a_reg_sync(list,localloc.register);
+                            init_regvar_loc(tabstractnormalvarsym(sym),cgsize);
+                            if (st.symtabletype <> parasymtable) then
+                              gen_alloc_regvar(list,tabstractnormalvarsym(sym));
                           end
                         else
 {$endif NOT OLDREGVARS}
@@ -2008,11 +2056,14 @@ implementation
                           LOC_REGISTER,
                           LOC_CREGISTER :
                             begin
-                              if (cs_no_regalloc in aktglobalswitches) then
-                                list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register '+
-                                   std_regname(localloc.register))))
-                              else
-                                list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register')));
+                              if (st.symtabletype <> parasymtable) then
+                                begin
+                                  if (cs_no_regalloc in aktglobalswitches) then
+                                    list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register '+
+                                       std_regname(localloc.register))))
+                                  else
+                                    list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register')));
+                                end;
                             end;
                           LOC_REFERENCE :
                             begin
