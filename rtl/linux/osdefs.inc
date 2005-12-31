@@ -30,6 +30,7 @@
   {$define usegetcwd}
 {$endif}
 
-{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpux86)}
+{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386)}
   {$DEFINE has_ugetrlimit}
 {$endif}
+
