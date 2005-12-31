@@ -176,9 +176,9 @@ begin
            asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
            if (cs_create_pic in aktmoduleswitches) and
              { other targets need to be checked how it works }
-             (target_info.system in [system_x86_64_linux]) then
+             (target_info.system in [system_x86_64_linux,system_i386_linux]) then
              begin
-{$ifdef x86_64}
+{$ifdef x86}
                sym:=objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
                reference_reset_symbol(r,sym,0);
                if cs_create_pic in aktmoduleswitches then
@@ -186,7 +186,7 @@ begin
                else
                  r.refaddr:=addr_full;
                asmlist[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
-{$endif x86_64}
+{$endif x86}
              end
            else
              cg.a_jmp_name(asmlist[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
