@@ -1,5 +1,5 @@
 #
-#   $Id: cprt0.as,v 1.4 2004/07/03 21:50:30 daniel Exp $
+#   $Id: cprt0.as,v 1.3 2000/11/21 19:03:23 marco Exp $
 #   This file is part of the Free Pascal run time library.
 #   Copyright (c) 1999-2000 by Marco van de Voort, Michael Van Canneyt
 #                                                  and Peter Vreman
@@ -18,36 +18,48 @@
 #
 
         .file   "cprt0.as"
-        .version        "01.01"
-gcc2_compiled.:
-.globl __progname
-.section        .rodata
+        .ident  "FreePascal 2.0.x series with FreeBSD 5/6 patch"
+.section        .note.ABI-tag,"a",@progbits
+        .p2align 2
+        .type   abitag, @object
+        .size   abitag, 24
+abitag:
+        .long   8
+        .long   4
+        .long   1
+        .string "FreeBSD"
+        .long   504000
+        .section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
-        .ascii "\0"
-.data
+        .string ""
+.globl __progname
+	.data
         .p2align 2
         .type    __progname,@object
         .size    __progname,4
 __progname:
         .long .LC0
-        .align  4
+        .text
+        .p2align  2,,3
 ___fpucw:
         .long   0x1332
-
         .globl  ___fpc_brk_addr         /* heap management */
         .type   ___fpc_brk_addr,@object
         .size   ___fpc_brk_addr,4
 ___fpc_brk_addr:
         .long   0
 
-
-.text
-        .p2align 2
+	.text
+        .p2align 4,,15
 .globl _start
         .type    _start,@function
 _start:
         pushl %ebp
         movl %esp,%ebp
+	subl $40,%esp
+	call get_rtld_cleanup
+	movl %eax,%edx
+
         pushl %edi
         pushl %esi
         pushl %ebx
@@ -83,7 +95,7 @@ _start:
 .L2:
         movl $_DYNAMIC,%eax
         testl %eax,%eax
-        je .L9
+        je .LTLS
         pushl %edx
         call atexit
         addl $4,%esp
@@ -108,9 +120,12 @@ _start:
         call main
         pushl %eax
         jmp   _haltproc
-
+.LTLS:  
+	call _init_tls
+	jmp .L9
         .p2align 2,0x90
-        
+       
+ 
 .globl _haltproc
 .type _haltproc,@function
 
@@ -133,14 +148,25 @@ _haltproc:
          ret
         .p2align 2,0x90
 .Lfe1:
-
-
         .size    _start,.Lfe1-_start
         .comm   environ,4,4
-        .weak   _DYNAMIC
-        .ident  "GCC: (GNU) 2.7.2.1"
+        .p2align 4,,15
+        .type   get_rtld_cleanup, @function
+get_rtld_cleanup:
+        pushl   %ebp
+        movl    %esp, %ebp
+        subl    $4, %esp
+#APP
+        movl %edx,-4(%ebp)
+#NO_APP
+        movl    -4(%ebp), %eax
+        leave
+        ret
 
+        .weak   _DYNAMIC
+        .ident  "GCC: (GNU) 3.4.2 - FPC: 2.0.2"
 .bss
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
-        .comm operatingsystem_parameter_argv,4
+        .comm operatingsystem_parameter_argv,4        
+        
