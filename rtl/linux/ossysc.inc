@@ -476,7 +476,7 @@ end;
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
   FpGetRLimit := do_syscall(syscall_nr_getrlimit, 
-    TSysParam(resource), TSysParam(@rlim));
+    TSysParam(resource), TSysParam(rlim));
 end;
 
 {$ifdef HAS_UGETRLIMIT}
@@ -484,6 +484,6 @@ function fpugetrlimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
   FpUGetRLimit := do_syscall(syscall_nr_ugetrlimit,
     syscall_nr_getrlimit, 
-    TSysParam(resource), TSysParam(@rlim));
+    TSysParam(resource), TSysParam(rlim));
 end;
 {$endif}
