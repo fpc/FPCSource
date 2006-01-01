@@ -526,16 +526,10 @@ begin
   PC := PChar (PIB^.Cmd) + ArgLen;
 
 (* ArgLen contains size of command line arguments including leading space. *)
-  ArgLen := StrLen (PC);
-(* Just to make sure the leading space is there for all OS/2 versions... *)
-  if PC^ <> ' ' then
-   begin
-    CmdLine [ArgVLen] := ' ';
-    Inc (ArgVLen);
-   end;
+  ArgLen := Succ (StrLen (PC));
 
   SysReallocMem (CmdLine, ArgVLen + ArgLen);
-(* Ending #0 after program name gets overwritten with space from PIB^.Cmd. *)
+
   Move (PC^, CmdLine [ArgVLen], Succ (ArgLen));
 
 (* ArgV has space for 8 parameters from the first allocation. *)
