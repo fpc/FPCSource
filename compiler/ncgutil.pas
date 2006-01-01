@@ -2053,18 +2053,6 @@ implementation
                     if cs_asm_source in aktglobalswitches then
                       begin
                         case localloc.loc of
-                          LOC_REGISTER,
-                          LOC_CREGISTER :
-                            begin
-                              if (st.symtabletype <> parasymtable) then
-                                begin
-                                  if (cs_no_regalloc in aktglobalswitches) then
-                                    list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register '+
-                                       std_regname(localloc.register))))
-                                  else
-                                    list.concat(Tai_comment.Create(strpnew('Var '+realname+' located in register')));
-                                end;
-                            end;
                           LOC_REFERENCE :
                             begin
                               if not assigned(localloc.reference.symbol) then
