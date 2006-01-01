@@ -82,6 +82,7 @@ begin
                            '2': initoptprocessor := ClassPentium;
                            '3': initoptprocessor := ClassPentium2;
                            '4': initoptprocessor := ClassPentium4;
+                           '5': initoptprocessor := ClassPentiumM;
                            Else IllegalPara(Opt)
                          End;
                          Inc(j);
