@@ -55,6 +55,7 @@ unit cgx86;
         procedure a_call_name(list : taasmoutput;const s : string);override;
         procedure a_call_reg(list : taasmoutput;reg : tregister);override;
         procedure a_call_ref(list : taasmoutput;ref : treference);override;
+        procedure a_call_name_static(list : taasmoutput;const s : string);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
         procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
@@ -153,7 +154,8 @@ unit cgx86;
     uses
        globals,verbose,systems,cutils,
        dwarf,
-       symdef,defutil,paramgr,procinfo;
+       symdef,defutil,paramgr,procinfo,
+       fmodule;
 
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
@@ -400,6 +402,7 @@ unit cgx86;
             hreg:=getaddressregister(list);
             href.refaddr:=addr_pic;
             href.base:=current_procinfo.got;
+            include(current_procinfo.flags,pi_needs_got);
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,hreg));
 
             ref.symbol:=nil;
@@ -544,9 +547,26 @@ unit cgx86;
         sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
         reference_reset_symbol(r,sym,0);
         if cs_create_pic in aktmoduleswitches then
-          r.refaddr:=addr_pic
+          begin
+{$ifdef i386}
+            include(current_procinfo.flags,pi_needs_got);
+{$endif i386}
+            r.refaddr:=addr_pic
+          end
         else
           r.refaddr:=addr_full;
+        list.concat(taicpu.op_ref(A_CALL,S_NO,r));
+      end;
+
+
+    procedure tcgx86.a_call_name_static(list : taasmoutput;const s : string);
+      var
+        sym : tasmsymbol;
+        r : treference;
+      begin
+        sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+        reference_reset_symbol(r,sym,0);
+        r.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
 
@@ -718,6 +738,7 @@ unit cgx86;
                         reference_reset_symbol(tmpref,ref.symbol,0);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=current_procinfo.got;
+                        include(current_procinfo.flags,pi_needs_got);
                         list.concat(taicpu.op_ref_reg(A_MOV,S_L,tmpref,r));
 {$endif x86_64}
                         if offset<>0 then
@@ -1816,16 +1837,6 @@ unit cgx86;
               begin
                 cg.g_stackpointer_alloc(list,localsize);
               end;
-          end;
-
-        { allocate PIC register }
-        if (cs_create_pic in aktmoduleswitches) and
-           (tf_pic_uses_got in target_info.flags) then
-          begin
-            a_call_name(list,'FPC_GETEIPINEBX');
-            list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
-            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-            current_procinfo.got:=NR_PIC_OFFSET_REG;
           end;
       end;
 

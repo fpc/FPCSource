@@ -103,8 +103,14 @@ interface
         is_reset,
         is_unit,
         in_interface,             { processing the implementation part? }
-        in_global     : boolean;  { allow global settings }
-        mode_switch_allowed  : boolean;  { Whether a mode switch is still allowed at this point in the parsing.}
+        { allow global settings }
+        in_global     : boolean;
+        { Whether a mode switch is still allowed at this point in the parsing.}
+        mode_switch_allowed,
+        { generate pic helper which loads eip in ecx (for leave procedures) }
+        requires_ecx_pic_helper,
+        { generate pic helper which loads eip in ebx (for non leave procedures) }
+        requires_ebx_pic_helper : boolean;
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,

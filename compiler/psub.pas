@@ -611,7 +611,6 @@ implementation
         oldfilepos : tfileposinfo;
         templist : Taasmoutput;
         headertai : tai;
-        curralign : longint;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -798,6 +797,11 @@ implementation
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
 
+            { load got if necessary }
+            aktfilepos:=entrypos;
+            gen_got_load(templist);
+            aktproccode.insertlistafter(headertai,templist);
+
             { The procedure body is finished, we can now
               allocate the registers }
             cg.do_register_allocation(aktproccode,headertai);
@@ -866,15 +870,9 @@ implementation
                (cs_use_lineinfo in aktglobalswitches) then
               debuginfo.insertlineinfo(aktproccode);
 
-            { gprof uses 16 byte granularity }
-            if (cs_profile in aktmoduleswitches) then
-              curralign:=16
-            else
-              curralign:=aktalignment.procalign;
-
             { add the procedure to the al_procedures }
             maybe_new_object_file(asmlist[al_procedures]);
-            new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),curralign);
+            new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),getprocalign);
             asmlist[al_procedures].concatlist(aktproccode);
             { save local data (casetable) also in the same file }
             if assigned(aktlocaldata) and

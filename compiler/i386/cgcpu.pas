@@ -36,6 +36,8 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
+        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
+
         { passing parameter using push instead of mov }
         procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : tcgpara);override;
@@ -75,16 +77,23 @@ unit cgcpu;
       end;
 
 
-    procedure Tcg386.init_register_allocators;
+    procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
         if cs_create_pic in aktmoduleswitches then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
         rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
+      end;
+
+    procedure tcg386.do_register_allocation(list:Taasmoutput;headertai:tai);
+      begin
+        if pi_needs_got in current_procinfo.flags then
+          include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
+        inherited do_register_allocation(list,headertai);
       end;
 
 
@@ -556,7 +565,7 @@ unit cgcpu;
         if make_global then
          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
         else
-         List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
         g_adjust_self_value(list,procdef,ioffset);

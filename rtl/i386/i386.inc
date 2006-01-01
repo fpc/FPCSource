@@ -28,20 +28,22 @@ function cpuid_support : boolean;assembler;
     Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
   }
   asm
-     pushf
-     pushf
-     pop     eax
-     mov     ebx,eax
-     xor     eax,200000h
+    push   ebx
+    pushf
+    pushf
+    pop     eax
+    mov     ebx,eax
+    xor     eax,200000h
     push    eax
-     popf
-     pushf
-     pop     eax
-     popf
-     and     eax,200000h
-     and     ebx,200000h
-     cmp     eax,ebx
-     setnz   al
+    popf
+    pushf
+    pop     eax
+    popf
+    and     eax,200000h
+    and     ebx,200000h
+    cmp     eax,ebx
+    setnz   al
+    pop     ebx
   end;
 
 {$asmmode ATT}
@@ -53,9 +55,9 @@ function sse_support : boolean;
     if cpuid_support then
      begin
         asm
-           movl $1,%eax
-           cpuid
-           movl %edx,_edx
+          movl $1,%eax
+          cpuid
+          movl %edx,_edx
         end;
         sse_support:=(_edx and $2000000)<>0;
      end
@@ -95,12 +97,6 @@ begin
   setup_fastmove;
 end;
 
-
-function geteipasebx : pointer;assembler;[public,alias:'FPC_GETEIPINEBX'];
-asm
-  movl (%esp),%ebx
-  ret
-end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}

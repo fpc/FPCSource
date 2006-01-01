@@ -194,6 +194,9 @@ unit cgobj;
           procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
           procedure a_call_reg(list : taasmoutput;reg : tregister);virtual; abstract;
           procedure a_call_ref(list : taasmoutput;ref : treference);virtual; abstract;
+          { same as a_call_name, might be overriden on certain architectures to emit
+            static calls without usage of a got trampoline }
+          procedure a_call_name_static(list : taasmoutput;const s : string);virtual;
 
           { move instructions }
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);virtual; abstract;
@@ -2012,6 +2015,12 @@ implementation
           else
             internalerror(200309189);
         end;
+      end;
+
+
+    procedure tcg.a_call_name_static(list : taasmoutput;const s : string);
+      begin
+        a_call_name(list,s);
       end;
 
 {*****************************************************************************

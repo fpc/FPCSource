@@ -371,7 +371,6 @@ implementation
       end;
 
 
-
     procedure AddUnit(const s:string);
       var
         hp : tppumodule;
@@ -812,13 +811,13 @@ implementation
       end;
 
     procedure delete_duplicate_macros(p:TNamedIndexItem; arg:pointer);
-    var
-      hp: tsymentry;
-    begin
-      hp:= current_module.localmacrosymtable.search(p.name);
-      if assigned(hp) then
-        current_module.localmacrosymtable.delete(hp);
-    end;
+      var
+        hp: tsymentry;
+      begin
+        hp:= current_module.localmacrosymtable.search(p.name);
+        if assigned(hp) then
+          current_module.localmacrosymtable.delete(hp);
+      end;
 
     procedure proc_unit;
 
@@ -1172,6 +1171,9 @@ implementation
          gen_intf_wrappers(asmlist[al_procedures],current_module.globalsymtable);
          gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
 
+         { generate pic helpers to load eip if necessary }
+         gen_pic_helpers(asmlist[al_procedures]);
+
          { generate a list of threadvars }
 {$ifndef segment_threadvars}
          InsertThreadvars;
@@ -1494,6 +1496,8 @@ implementation
          { generate wrappers for interfaces }
          gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
 
+         { generate pic helpers to load eip if necessary }
+         gen_pic_helpers(asmlist[al_procedures]);
 {$ifndef segment_threadvars}
          { generate a list of threadvars }
          InsertThreadvars;

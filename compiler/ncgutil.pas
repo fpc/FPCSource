@@ -116,6 +116,11 @@ interface
 
     procedure location_free(list: taasmoutput; const location : TLocation);
 
+    function getprocalign : longint;
+
+    procedure gen_pic_helpers(list : taasmoutput);
+    procedure gen_got_load(list : taasmoutput);
+
 implementation
 
   uses
@@ -1339,7 +1344,7 @@ implementation
            href : treference;
          begin
             case paraloc.loc of
-              LOC_REGISTER : 
+              LOC_REGISTER :
                 begin
                   {$IFDEF CPUPOWERPC64}
                   if (paraloc.shiftval <> 0) then
@@ -1884,6 +1889,25 @@ implementation
           cg.g_restore_standard_registers(list);
       end;
 
+    procedure gen_got_load(list : taasmoutput);
+      begin
+        { if loading got is necessary for more cpus, it can be moved
+          to the cg }
+{$ifdef i386}
+        { allocate PIC register }
+        if (cs_create_pic in aktmoduleswitches) and
+           (tf_pic_uses_got in target_info.flags) and
+           (pi_needs_got in current_procinfo.flags) then
+          begin
+            current_module.requires_ebx_pic_helper:=true;
+            cg.a_call_name_static(list,'fpc_geteipasebx');
+            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
+            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
+            { ecx could be used in leave procedures }
+            current_procinfo.got:=NR_EBX;
+          end;
+{$endif i386}
+      end;
 
 {****************************************************************************
                            External handling
@@ -2272,6 +2296,44 @@ implementation
         cg.g_maybe_testself(list,href.base);
         cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
         cg.g_maybe_testvmt(list,vmtreg,objdef);
+      end;
+
+
+    function getprocalign : longint;
+      begin
+        { gprof uses 16 byte granularity }
+        if (cs_profile in aktmoduleswitches) then
+          result:=16
+        else
+         result:=aktalignment.procalign;
+      end;
+
+
+    procedure gen_pic_helpers(list : taasmoutput);
+      var
+        href : treference;
+      begin
+        { if other cpus require such helpers as well, it can be solved more cleaner }
+{$ifdef i386}
+        if current_module.requires_ebx_pic_helper then
+          begin
+            new_section(list,sec_code,'fpc_geteipasebx',0);
+            list.concat(tai_symbol.Createname('fpc_geteipasebx',AT_FUNCTION,getprocalign));
+            reference_reset(href);
+            href.base:=NR_ESP;
+            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_EBX));
+            list.concat(taicpu.op_none(A_RET,S_NO));
+          end;
+        if current_module.requires_ecx_pic_helper then
+          begin
+            new_section(list,sec_code,'fpc_geteipasecx',0);
+            list.concat(tai_symbol.Createname('fpc_geteipasecx',AT_FUNCTION,getprocalign));
+            reference_reset(href);
+            href.base:=NR_ESP;
+            list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_ECX));
+            list.concat(taicpu.op_none(A_RET,S_NO));
+          end;
+{$endif i386}
       end;
 
 end.
