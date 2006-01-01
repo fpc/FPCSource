@@ -679,11 +679,29 @@ Unit rappcgas;
 
     procedure tppcattreader.ConvertCalljmp(instr : tppcinstruction);
       begin
-        if instr.Operands[1].opr.typ=OPR_REFERENCE then
+        if instr.Operands[1].opr.typ = OPR_CONSTANT then
+          begin
+            if (instr.operands[1].opr.val > 31) or
+               (instr.operands[2].opr.typ <> OPR_CONSTANT) or
+               (instr.operands[2].opr.val > 31) or
+               not(instr.operands[3].opr.typ in [OPR_REFERENCE,OPR_SYMBOL]) then
+              Message(asmr_e_syn_operand);
+            { BO/BI notation }
+            instr.condition.simple := false;
+            instr.condition.bo := instr.operands[1].opr.val;
+            instr.condition.bi := instr.operands[2].opr.val;
+            instr.operands[1].free;
+            instr.operands[2].free;
+            instr.operands[2] := nil;
+            instr.operands[1] := instr.operands[3];
+            instr.operands[3] := nil;
+            instr.ops := 1;
+          end;
+        if instr.Operands[1].opr.typ = OPR_REFERENCE then
           begin
             instr.Operands[1].opr.ref.refaddr:=addr_full;
             if (instr.Operands[1].opr.ref.base<>NR_NO) or
-              (instr.Operands[1].opr.ref.index<>NR_NO) then
+               (instr.Operands[1].opr.ref.index<>NR_NO) then
               Message(asmr_e_syn_operand);
           end;
       end;
