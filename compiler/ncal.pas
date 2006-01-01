@@ -1693,7 +1693,9 @@ type
                              not(cnf_inherited in callnodeflags) and
                              ((m_tp_procvar in aktmodeswitches) or
                               (m_mac_procvar in aktmodeswitches)) and
-                             (symtableprocentry.procdef_count=1) then
+                             (symtableprocentry.procdef_count=1) and
+                             (not assigned(methodpointer) or
+                              (methodpointer.nodetype <> typen)) then
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
                               if assigned(methodpointer) then
