@@ -982,7 +982,9 @@ implementation
                      begin
                        if is_integer(hp.left.resulttype.def) and
                           not(is_64bitint(hp.left.resulttype.def)) then
-                         hp.left:=ctypeconvnode.create(hp.left,s32inttype);
+                         hp.left:=ctypeconvnode.create(hp.left,s32inttype)
+                       else if is_void(hp.left.resulttype.def) then
+                         CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                      end;
                    floatdef :
                      if not(is_currency(hp.left.resulttype.def)) then
