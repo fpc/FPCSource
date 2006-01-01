@@ -332,7 +332,7 @@ implementation
       var
          l3,oldclabel,oldblabel : tasmlabel;
          temptovalue : boolean;
-         temp1 : treference;
+//         temp1 : tregister;
          hop : topcg;
          hcond : topcmp;
          opsize : tcgsize;
@@ -368,10 +368,14 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              tg.GetTemp(exprasmlist,t1.resulttype.def.size,tt_normal,temp1);
+              location_force_reg(exprasmlist,t1.location,t1.location.size,true);
               temptovalue:=true;
+{
+              temp1 := cg.getintregister(exprasmlist,
+              tg.GetTemp(exprasmlist,t1.resulttype.def.size,tt_normal,temp1);
               cg.a_load_loc_ref(exprasmlist,opsize,t1.location,temp1);
               location_freetemp(exprasmlist,t1.location);
+}
            end
          else
            temptovalue:=false;
@@ -407,8 +411,8 @@ implementation
 
          if temptovalue then
            begin
-             cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,
-               temp1,left.location,aktbreaklabel);
+             cg.a_cmp_reg_loc_label(exprasmlist,opsize,hcond,
+               t1.location.register,left.location,aktbreaklabel);
            end
          else
            begin
@@ -504,9 +508,9 @@ implementation
          { jump                                     }
          if temptovalue then
            begin
-             cg.a_cmp_ref_loc_label(exprasmlist,opsize,hcond,temp1,
+             cg.a_cmp_reg_loc_label(exprasmlist,opsize,hcond,t1.location.register,
                left.location,l3);
-             tg.ungetiftemp(exprasmlist,temp1);
+{             tg.ungetiftemp(exprasmlist,temp1); }
            end
          else
            begin

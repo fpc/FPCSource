@@ -264,6 +264,7 @@ unit cgobj;
           procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
           procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
           procedure a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
+          procedure a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
@@ -1217,6 +1218,12 @@ implementation
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,reg,tmpreg,l);
+      end;
+
+
+    procedure tcg.a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
+      begin
+        a_cmp_loc_reg_label(list,size,swap_opcmp(cmp_op),loc,reg,l);
       end;
 
 

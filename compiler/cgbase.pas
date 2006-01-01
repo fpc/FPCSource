@@ -305,6 +305,9 @@ interface
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
 
+    { return the opcmp needed when swapping the operands }
+    function swap_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
+
     { return whether op is commutative }
     function commutativeop(op: topcg): boolean;{$ifdef USEINLINE}inline;{$endif}
 
@@ -548,6 +551,16 @@ implementation
            OC_B,OC_BE);
       begin
         inverse_opcmp := list[opcmp];
+      end;
+
+
+    function swap_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
+      const
+        list: array[TOpCmp] of TOpCmp =
+          (OC_NONE,OC_EQ,OC_LT,OC_GT,OC_LTE,OC_GTE,OC_NE,OC_AE,OC_A,
+           OC_BE,OC_B);
+      begin
+        swap_opcmp := list[opcmp];
       end;
 
 
