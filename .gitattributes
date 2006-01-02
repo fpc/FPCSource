@@ -5317,6 +5317,7 @@ tests/test/tinterface2.pp svneol=native#text/plain
 tests/test/tinterface3.pp svneol=native#text/plain
 tests/test/tinterface4.pp svneol=native#text/plain
 tests/test/tinterrupt.pp svneol=native#text/plain
+tests/test/tintfdef.pp svneol=native#text/plain
 tests/test/tintuint.pp svneol=native#text/plain
 tests/test/tlibrary1.pp svneol=native#text/plain
 tests/test/tlibrary2.pp svneol=native#text/plain
