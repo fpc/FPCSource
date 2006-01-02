@@ -352,10 +352,10 @@ Var
 begin
   PH:=ENtry;
   FName:=PH^.Name;
-  FHostAddress:=PH^.Addr;
+  FHostAddress:=NetToHost(PH^.Addr);
   FAddressCount:=1;
   GetMem(FAddresses,SizeOf(THostAddr));
-  FAddresses[0]:=PH^.Addr;
+  FAddresses[0]:=NetToHost(PH^.Addr);
   FAliases.CommaText:=PH^.Aliases;
 end;
 
@@ -399,7 +399,7 @@ begin
       begin
       GetMem(FAddresses,FAddressCount*SizeOf(THostAddr));
       For I:=0 to FAddressCount-1 do
-        FAddresses[I]:=PHostAddr(H_Addr[I])^;
+        FAddresses[I]:=NetToHost(PHostAddr(H_Addr[I])^);
       FHostAddress:=FAddresses[0];
       end;
     SaveAliases(H_Aliases);
@@ -478,7 +478,7 @@ Var
 begin
   PN:=ENtry;
   FName:=PN^.Name;
-  FNetAddress:=PN^.Addr;
+  FNetAddress:=NetToHost(PN^.Addr);
   FAliases.CommaText:=PN^.Aliases;
 end;
 
