@@ -653,7 +653,8 @@ implementation
           if symtablestack.symtabletype=localsymtable then
             begin
               consume(_EQUAL);
-              tcsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
+              tcsym:=ttypedconstsym.createtype('$default'+vs.realname,tt,false);
+              include(tcsym.symoptions,sp_internal);
               vs.defaultconstsym:=tcsym;
               symtablestack.insert(tcsym);
               readtypedconst(tt,tcsym,false);

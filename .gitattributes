@@ -6655,6 +6655,7 @@ tests/webtbs/tw4537.pp svneol=native#text/plain
 tests/webtbs/tw4540.pp -text svneol=unset#text/plain
 tests/webtbs/tw4557.pp svneol=native#text/plain
 tests/webtbs/tw4566.pp -text svneol=unset#text/plain
+tests/webtbs/tw4574.pp svneol=native#text/plain
 tests/webtbs/tw4599.pp svneol=native#text/plain
 tests/webtbs/tw4613.pp -text svneol=unset#text/plain
 tests/webtbs/tw4616.pp svneol=native#text/plain
