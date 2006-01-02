@@ -850,6 +850,7 @@ implementation
          pd : tprocdef;
          unitname8 : string[8];
          has_impl,ag: boolean;
+         globalvarsym : tglobalvarsym;
       begin
          if m_mac in aktmodeswitches then
            begin
@@ -1026,6 +1027,19 @@ implementation
          { generates static symbol table }
          st:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
          current_module.localsymtable:=st;
+
+{$ifdef i386}
+         if cs_create_pic in aktmoduleswitches then
+           begin
+             { insert symbol for got access in assembler code}
+             globalvarsym:=tglobalvarsym.create('_GLOBAL_OFFSET_TABLE_',vs_value,voidpointertype,[vo_is_external,vo_is_C_var]);
+             globalvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
+             current_module.localsymtable.insert(globalvarsym);
+             { avoid unnecessary warnings }
+             globalvarsym.varstate:=vs_read;
+             globalvarsym.refs:=1;
+           end;
+{$endif i386}
 
          { Swap the positions of the local and global macro sym table}
          if assigned(current_module.globalmacrosymtable) then
