@@ -15,8 +15,9 @@
 
  **********************************************************************}
 
-
 {$ASMMODE ATT}
+
+Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL0'];
 
@@ -27,33 +28,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -68,33 +62,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -110,33 +97,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -153,33 +133,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -197,33 +170,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -242,33 +208,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -289,33 +248,26 @@ asm
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+  movl  %eax,4(%edi)
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
   movl  %ebx,(%eax)
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  movl  %edx,(%eax)
-.LNoThread:
-{$endif REGCALL}
   movl  $-1,%eax
 .LSyscOK:
 end;
@@ -325,6 +277,3 @@ end;
 {$IFDEF SYS_LINUX}
   {$UNDEF SYSCALL_DEBUG}
 {$ENDIF SYS_LINUX}
-
-
-
