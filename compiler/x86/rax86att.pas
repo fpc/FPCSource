@@ -378,7 +378,12 @@ Implementation
                       consume(AS_AT);
                       if actasmtoken=AS_ID then
                         begin
+{$ifdef x86_64}
                           if actasmpattern='GOTPCREL' then
+{$endif x86_64}
+{$ifdef i386}
+                          if actasmpattern='GOT' then
+{$endif i386}
                             oper.opr.ref.refaddr:=addr_pic
                           else
                             Message(asmr_e_invalid_reference_syntax);
