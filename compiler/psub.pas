@@ -1244,14 +1244,15 @@ implementation
         if tprocinfo(current_module.procinfo)<>current_procinfo then
           internalerror(200304274);
         current_module.procinfo:=current_procinfo.parent;
-        if not isnestedproc then
-          current_procinfo.free;
 
         { For specialization we didn't record the last semicolon. Moving this parsing
           into the parse_body routine is not done because of having better file position
           information available }
         if not(df_specialization in current_procinfo.procdef.defoptions) then
           consume(_SEMICOLON);
+
+        if not isnestedproc then
+          current_procinfo.free;
       end;
 
 
