@@ -496,6 +496,13 @@ begin
   i := 0;
   repeat
     l := ord(pl[start]);
+    { compressed reply }
+    while (l >= 192) do
+      begin
+        { the -12 is because of the reply header length }
+        start := (l and not(192)) shl 8 + ord(pl[start+1]) - 12;
+        l := ord(pl[start]);
+      end;
     if l <> 0 then begin
       setlength(result,length(result)+l);
       move(pl[start+1],result[i+1],l);
