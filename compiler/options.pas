@@ -1292,6 +1292,12 @@ begin
   Option_read:=false;
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
+{ Maybe It's Directory ?}   //Jaro Change:
+  if DirectoryExists(filename) then
+    begin
+       Message1(option_config_is_dir,filename);
+       exit;
+    end;
 { open file }
   Message1(option_using_file,filename);
 {$ifdef USE_SYSUTILS}

@@ -2136,6 +2136,8 @@ option_found_file=11035_D_found source file name "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page
+option_config_is_dir=11040_F_Config file $1 is a directory
+% Directories can not be used as configuration files.
 %\end{description}
 # EndOfTeX
 

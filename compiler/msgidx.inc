@@ -662,13 +662,14 @@ const
   option_read_config_file=11034;
   option_found_file=11035;
   option_code_page_not_available=11039;
+  option_config_is_dir=11040;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39463;
+  MsgTxtSize = 39501;
 
   MsgIdxMax : array[1..20] of longint=(
     19,74,218,59,61,47,100,20,135,60,
-    40,1,1,1,1,1,1,1,1,1
+    41,1,1,1,1,1,1,1,1,1
   );
