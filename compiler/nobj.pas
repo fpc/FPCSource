@@ -129,7 +129,7 @@ implementation
     uses
        strings,
        globals,verbose,systems,
-       symtable,symconst,symtype,defcmp,
+       symtable,symconst,symtype,defcmp,defutil,
        dbgbase
        ;
 
@@ -706,8 +706,8 @@ implementation
                                      if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
                                         not((procdefcoll^.data.rettype.def.deftype=objectdef) and
                                          (pd.rettype.def.deftype=objectdef) and
-                                         is_class(procdefcoll^.data.rettype.def) and
-                                         is_class(pd.rettype.def) and
+                                         is_class_or_interface(procdefcoll^.data.rettype.def) and
+                                         is_class_or_interface(pd.rettype.def) and
                                          (tobjectdef(pd.rettype.def).is_related(
                                              tobjectdef(procdefcoll^.data.rettype.def)))) then
                                        Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
