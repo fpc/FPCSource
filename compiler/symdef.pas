@@ -3890,8 +3890,14 @@ implementation
         { This is not allowed anymore, the forward declaration
           already needs to create the correct mangledname, no changes
           afterwards are allowed (PFV) }
+        { Exception: interface definitions in mode macpas, since in that }
+        {   case no reference to the old name can exist yet (JM)         }
         if assigned(_mangledname) then
-          internalerror(200411171);
+          if ((m_mac in aktmodeswitches) and
+              (interfacedef)) then
+            stringdispose(_mangledname)
+          else
+            internalerror(200411171);
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
