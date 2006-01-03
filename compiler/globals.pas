@@ -39,8 +39,9 @@ interface
       Baseunix,unix,
   {$endif}
 {$endif}
-{$IFDEF USE_SYSUTILS}
+      { comphook pulls in sysutils anyways }
       SysUtils,
+{$IFDEF USE_SYSUTILS}
 {$ELSE USE_SYSUTILS}
       strings,
       dos,
@@ -617,19 +618,8 @@ implementation
 
 
     Function DirectoryExists ( Const F : String) : Boolean;
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      var
-         Info : SearchRec;
-{$ENDIF USE_SYSUTILS}
       begin
-{$IFDEF USE_SYSUTILS}
-        Result:=SysUtils.FileExists(f);
-{$ELSE USE_SYSUTILS}
-        findfirst(F,directory,info);
-        result:=(doserror=0);
-        findclose(Info);
-{$ENDIF USE_SYSUTILS}
+        Result:=SysUtils.DirectoryExists(f);
       end;
 
 
