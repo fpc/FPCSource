@@ -39,8 +39,9 @@ interface
       Baseunix,unix,
   {$endif}
 {$endif}
-{$IFDEF USE_SYSUTILS}
+      { comphook pulls in sysutils anyways }
       SysUtils,
+{$IFDEF USE_SYSUTILS}
 {$ELSE USE_SYSUTILS}
       strings,
       dos,
@@ -309,6 +310,7 @@ interface
     function  path_absolute(const s : string) : boolean;
     Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
+    Function  DirectoryExists ( Const F : String) : Boolean;
     function  FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
     Function  RemoveFile(const f:string):boolean;
     Function  RemoveDir(d:string):boolean;
@@ -617,6 +619,12 @@ implementation
            else
              do_comment(V_Tried,'Searching file '+F+'... not found');
          end;
+      end;
+
+
+    Function DirectoryExists ( Const F : String) : Boolean;
+      begin
+        Result:=SysUtils.DirectoryExists(f);
       end;
 
 
