@@ -143,7 +143,6 @@ implementation
       end;
 
 
-{$ifndef segment_threadvars}
     procedure InsertThreadvarTablesTable;
       var
         hp : tused_unit;
@@ -219,7 +218,7 @@ implementation
           end;
          ltvTable.Free;
       end;
-{$endif}
+
 
     Procedure InsertResourceInfo;
 
@@ -1189,9 +1188,8 @@ implementation
          gen_pic_helpers(asmlist[al_procedures]);
 
          { generate a list of threadvars }
-{$ifndef segment_threadvars}
-         InsertThreadvars;
-{$endif}
+         if not(tf_section_threadvars in target_info.flags) then
+           InsertThreadvars;
 
          { generate imports }
          if current_module.uses_imports then
@@ -1512,10 +1510,10 @@ implementation
 
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(asmlist[al_procedures]);
-{$ifndef segment_threadvars}
+
          { generate a list of threadvars }
-         InsertThreadvars;
-{$endif}
+         if not(tf_section_threadvars in target_info.flags) then
+           InsertThreadvars;
 
          { generate imports }
          if current_module.uses_imports then
@@ -1525,9 +1523,9 @@ implementation
            exportlib.generatelib;
 
          { insert Tables and StackLength }
-{$ifndef segment_threadvars}
-         insertThreadVarTablesTable;
-{$endif}
+         if not(tf_section_threadvars in target_info.flags) then
+           insertThreadVarTablesTable;
+
          insertResourceTablesTable;
          insertinitfinaltable;
          insertmemorysizes;

@@ -766,20 +766,41 @@ unit cgx86;
                 make_simple_ref(list,tmpref);
                 list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
               end;
-            if (segment<>NR_NO) then
-              if segment=NR_GS then
-                begin
-{$ifdef segment_threadvars}
-                  {Convert thread local address to a process global addres
-                   as we cannot handle far pointers.}
-                  reference_reset_symbol(tmpref,objectlibrary.newasmsymbol(
-                    '___fpc_threadvar_offset',AB_EXTERNAL,AT_DATA),0);
-                  tmpref.segment:=NR_GS;
-                  list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
-{$endif}
-                end
-            else
-              cgmessage(cg_e_cant_use_far_pointer_there);
+            if segment<>NR_NO then
+              begin
+                if (tf_section_threadvars in target_info.flags) then
+                  begin
+                    { Convert thread local address to a process global addres
+                      as we cannot handle far pointers.}
+                    case target_info.system of
+                      system_i386_linux:
+                        if segment=NR_GS then
+                          begin
+                            reference_reset_symbol(tmpref,objectlibrary.newasmsymbol(
+                              '___fpc_threadvar_offset',AB_EXTERNAL,AT_DATA),0);
+                            tmpref.segment:=NR_GS;
+                            list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
+                          end
+                        else
+                          cgmessage(cg_e_cant_use_far_pointer_there);
+                      system_i386_win32:
+                        if segment=NR_FS then
+                          begin
+                            allocallcpuregisters(list);
+                            a_call_name(list,'GetTls');
+                            deallocallcpuregisters(list);
+                            list.concat(Taicpu.op_reg_reg(A_ADD,tcgsize2opsize[OS_ADDR],NR_EAX,r));
+                          end
+                        else
+                          cgmessage(cg_e_cant_use_far_pointer_there);
+
+                      else
+                        cgmessage(cg_e_cant_use_far_pointer_there);
+                    end;
+                  end
+                else
+                  cgmessage(cg_e_cant_use_far_pointer_there);
+              end;
           end;
       end;
 

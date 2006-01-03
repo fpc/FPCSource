@@ -235,6 +235,10 @@ implementation
         else
           secname:=secnames[atype];
 
+        if (atype=sec_threadvar) and
+          (target_info.system=system_i386_win32) then
+          secname:='.tls';
+
         if use_smartlink_section and
            (aname<>'') then
           result:=secname+'.'+aname

@@ -46,7 +46,11 @@ unit i_linux;
             system       : system_i386_LINUX;
             name         : 'Linux for i386';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections},tf_needs_symbol_type];
+            flags        : [tf_needs_symbol_size,tf_pic_uses_got{,tf_smartlink_sections},
+{$ifdef segment_threadvars}
+                            tf_section_threadvars,
+{$endif segment_threadvars}
+                            tf_needs_symbol_type];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

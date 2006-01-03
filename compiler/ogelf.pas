@@ -320,9 +320,8 @@ implementation
         createsection(sec_code,'',0,[]);
         createsection(sec_data,'',0,[]);
         createsection(sec_bss,'',0,[]);
-{$ifdef segment_threadvars}
-        createsection(sec_threadvar,'',0,[]);
-{$endif}
+        if tf_section_threadvars in target_info.flags then
+          createsection(sec_threadvar,'',0,[]);
         { create stabs sections if debugging }
         if (cs_debuginfo in aktmoduleswitches) then
          begin

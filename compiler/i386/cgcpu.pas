@@ -208,10 +208,8 @@ unit cgcpu;
       begin
         with r do
           begin
-{$ifndef segment_threadvars}
             if (segment<>NR_NO) then
               cgmessage(cg_e_cant_use_far_pointer_there);
-{$endif}
             if use_push(cgpara) then
               begin
                 cgpara.check_simple_location;

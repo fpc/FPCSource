@@ -1940,23 +1940,26 @@ implementation
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;
         l:=sym.getsize;
-     {$ifndef segment_threadvars}
-        if (vo_is_thread_var in sym.varoptions) then
-          inc(l,sizeof(aint));
-        list:=asmlist[al_globals];
-        sectype:=sec_bss;
-     {$else}
-        if (vo_is_thread_var in sym.varoptions) then
+        if tf_section_threadvars in target_info.flags then
           begin
-            list:=asmlist[al_threadvars];
-            sectype:=sec_threadvar;
+            if (vo_is_thread_var in sym.varoptions) then
+              begin
+                list:=asmlist[al_threadvars];
+                sectype:=sec_threadvar;
+              end
+            else
+              begin
+                list:=asmlist[al_globals];
+                sectype:=sec_bss;
+              end;
           end
         else
           begin
+            if (vo_is_thread_var in sym.varoptions) then
+              inc(l,sizeof(aint));
             list:=asmlist[al_globals];
             sectype:=sec_bss;
           end;
-     {$endif}
         varalign:=var_align(l);
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
@@ -2065,8 +2068,8 @@ implementation
                               staticsymtable :
                                 begin
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
-                                  if not(vo_is_dll_var in varoptions) {$ifndef segment_threadvars} and
-                                     not(vo_is_thread_var in varoptions) {$endif} then
+                                  if not(vo_is_dll_var in varoptions) and ((tf_section_threadvars in target_info.flags) or
+                                     not(vo_is_thread_var in varoptions)) then
                                     reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
                                 end;
                               else
