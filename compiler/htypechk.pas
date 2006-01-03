@@ -643,7 +643,11 @@ implementation
             typeconvn :
               make_not_regable(ttypeconvnode(p).left);
             loadn :
-              if tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym] then
+              if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym]) or
+                 ((tloadnode(p).symtableentry.typ = paravarsym) and
+                  { not a nested variable }
+                  (assigned(tloadnode(p).left) or
+                   not(tparavarsym(tloadnode(p).symtableentry).varspez in [vs_var,vs_out]))) then
                 tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
          end;
       end;
