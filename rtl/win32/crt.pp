@@ -814,6 +814,7 @@ begin
   WindMinY := (ConsoleInfo.srWindow.Top) + 1;
   WindMaxX := (ConsoleInfo.srWindow.Right) + 1;
   WindMaxY := (ConsoleInfo.srWindow.Bottom) + 1;
+  WindMax:=((WindMaxY-1) Shl 8)+(WindMaxX-1);
 
   DoingNumChars := false;
   DoingNumCode := 0;
