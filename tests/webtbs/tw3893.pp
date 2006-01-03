@@ -1,6 +1,7 @@
 { Source provided for Free Pascal Bug Report 3893 }
 { Submitted by "George Bakhtadze" on  2005-04-14 }
 { e-mail: mirage@avagames.net }
+{%SKIPCPU=powerpc64,x86_64}
 program test;
 
 function GetPropertyValue: Pointer;
