@@ -437,7 +437,7 @@ const
       (str:'OVERLOAD'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OVERRIDE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'PLATFORM'      ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'PROPERTY'      ;special:false;keyword:m_class;op:NOTOKEN),
+      (str:'PROPERTY'      ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'REGISTER'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'RESIDENT'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SAFECALL'      ;special:false;keyword:m_none;op:NOTOKEN),
