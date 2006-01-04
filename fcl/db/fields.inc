@@ -344,14 +344,14 @@ begin
     inherited Assign(Source);
 end;
 
-procedure TField.AssignValue(const Value: TVarRec);
+procedure TField.AssignValue(const AValue: TVarRec);
   procedure Error;
   begin
     DatabaseErrorFmt(SFieldValueError, [DisplayName]);
   end;
 
 begin
-  with Value do
+  with AValue do
     case VType of
       vtInteger:
         AsInteger := VInteger;
@@ -785,24 +785,24 @@ begin
   FDataSet.SetFieldData(Self,Buffer, NativeFormat);
 end;
 
-Procedure TField.SetDataset (Value : TDataset);
+Procedure TField.SetDataset (AValue : TDataset);
 
 begin
 {$ifdef dsdebug}
   Writeln ('Setting dataset');
 {$endif}
-  If Value=FDataset then exit;
+  If AValue=FDataset then exit;
   If Assigned(FDataset) Then
     begin
     FDataset.CheckInactive;
     FDataset.FFieldList.Remove(Self);
     end;
-  If Assigned(Value) then
+  If Assigned(AValue) then
     begin
-    Value.CheckInactive;
-    Value.FFieldList.Add(Self);
+    AValue.CheckInactive;
+    AValue.FFieldList.Add(Self);
     end;
-  FDataset:=Value;
+  FDataset:=AValue;
 end;
 
 procedure TField.SetDataType(AValue: TFieldType);
@@ -1629,11 +1629,11 @@ begin
   else
     Fmt:=FEditFormat;
 
-  if ADisplayText then 
-    ff := ffCurrency 
-  else 
+  if ADisplayText then
+    ff := ffCurrency
+  else
     ff := ffFixed;
-        
+
   If fmt<>'' then
     TheText:=FormatFloat(fmt, E)
   else
@@ -2049,7 +2049,7 @@ function TBCDField.GetValue(var AValue: Currency): Boolean;
 begin
   Result := GetData(@AValue);
 end;
-  
+
 function TBCDField.GetDataSize: Word;
 
 begin

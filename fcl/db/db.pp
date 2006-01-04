@@ -257,7 +257,7 @@ type
     Function GetIndex : longint;
     procedure SetAlignment(const AValue: TAlignMent);
     procedure SetIndex(AValue: Integer);
-    Procedure SetDataset(Value : TDataset);
+    Procedure SetDataset(AValue : TDataset);
     function GetDisplayText: String;
     procedure SetDisplayLabel(const AValue: string);
     procedure SetDisplayWidth(const AValue: Longint);
@@ -314,7 +314,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(const Value: TVarRec);
+    procedure AssignValue(const AValue: TVarRec);
     procedure Clear; virtual;
     procedure FocusControl;
     function GetData(Buffer: Pointer): Boolean;
@@ -1123,7 +1123,7 @@ type
     procedure Insert;
     procedure InsertRecord(const Values: array of const);
     function IsEmpty: Boolean;
-    function IsLinkedTo(DataSource: TDataSource): Boolean;
+    function IsLinkedTo(ADataSource: TDataSource): Boolean;
     function IsSequenced: Boolean; virtual;
     procedure Last;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; virtual;
@@ -1431,7 +1431,7 @@ type
     property Params : TStrings read FParams Write FParams;
     property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
   end;
-  
+
     { TCustomConnection }
 
   TCustomConnection = class(TDatabase)
@@ -1458,7 +1458,7 @@ type
     property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;
     property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
   end;
-  
+
 
   { TBufDataset }
 
@@ -1550,12 +1550,12 @@ type
   { TParam }
 
   TBlobData = string;
-  
+
   TParamBinding = array of integer;
 
   TParamType = (ptUnknown, ptInput, ptOutput, ptInputOutput, ptResult);
   TParamTypes = set of TParamType;
-  
+
   TParamStyle = (psInterbase,psPostgreSQL);
 
   TParams = class;
@@ -1614,7 +1614,7 @@ type
     Function  GetDataSize: Integer;
     Procedure LoadFromFile(const FileName: string; BlobType: TBlobType);
     Procedure LoadFromStream(Stream: TStream; BlobType: TBlobType);
-    Procedure SetBlobData(Buffer: Pointer; Size: Integer);
+    Procedure SetBlobData(Buffer: Pointer; ASize: Integer);
     Procedure SetData(Buffer: Pointer);
     Property AsBlob : TBlobData read GetAsString write SetAsBlob;
     Property AsBoolean : Boolean read GetAsBoolean write SetAsBoolean;
@@ -1986,7 +1986,7 @@ function TIndexDefs.IndexOf(const Name: string): Longint;
 var i: LongInt;
 begin
   Result := -1;
-  for i := 0 to Count - 1 do 
+  for i := 0 to Count - 1 do
     if AnsiSameText(Items[i].Name, Name) then
     begin
       Result := i;

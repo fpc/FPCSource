@@ -174,10 +174,10 @@ type
   TStringPart = record
     Start,Stop:integer;
   end;
-  
+
 const
   ParamAllocStepSize = 8;
-  
+
 var
   p,ParamNameStart,BufStart:PChar;
   ParamName:string;
@@ -302,7 +302,7 @@ begin
       Inc(p);
     end;
   until false;
-  
+
   SetLength(ParamPart,ParamCount);
   SetLength(ParamBinding,ParamCount);
 
@@ -840,14 +840,14 @@ begin
     end;
 end;
 
-Procedure TParam.SetBlobData(Buffer: Pointer; Size: Integer);
+Procedure TParam.SetBlobData(Buffer: Pointer; ASize: Integer);
 
 Var
   Temp : String;
 
 begin
-  SetLength(Temp,Size);
-  Move(Buffer^,Temp,Size);
+  SetLength(Temp,ASize);
+  Move(Buffer^,Temp,ASize);
   AsBlob:=Temp;
 end;
 

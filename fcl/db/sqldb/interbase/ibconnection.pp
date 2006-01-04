@@ -116,7 +116,7 @@ begin
     p := @Status;
     msg := '';
     while isc_interprete(Buf, @p) > 0 do
-      Msg := Msg + #10' -' + StrPas(Buf);
+      Msg := Msg + LineEnding +' -' + StrPas(Buf);
     DatabaseError(ProcName + ': ' + Msg,self);
   end;
 end;
@@ -222,7 +222,8 @@ end;
 
 procedure TIBConnection.DoInternalConnect;
 var
-  DPB : string;
+  DPB           : string;
+  ADatabaseName : String;
 begin
 {$IfDef LinkDynamically}
   InitialiseIBase60;
@@ -242,7 +243,9 @@ begin
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
 
   FSQLDatabaseHandle := nil;
-  if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FSQLDatabaseHandle,
+  if HostName <> '' then ADatabaseName := HostName+':'+DatabaseName
+    else ADatabaseName := DatabaseName;
+  if isc_attach_database(@FStatus, Length(ADatabaseName), @ADatabaseName[1], @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
   SetDBDialect;
