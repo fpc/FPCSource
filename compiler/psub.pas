@@ -825,12 +825,6 @@ implementation
             free_regvars(aktproccode);
 {$endif OLDREGVARS}
 
-            { add code that will load the return value, this is not done
-              for assembler routines when they didn't reference the result
-              variable }
-            gen_load_return_value(templist);
-            aktproccode.concatlist(templist);
-
             { generate symbol and save end of header position }
             aktfilepos:=entrypos;
             gen_proc_symbol(templist);
@@ -843,6 +837,12 @@ implementation
             aktfilepos:=exitpos;
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
+
+            { add code that will load the return value, this is not done
+              for assembler routines when they didn't reference the result
+              variable }
+            gen_load_return_value(templist);
+            aktproccode.concatlist(templist);
 
             { Already reserve all registers for stack checking code and
               generate the call to the helper function }
