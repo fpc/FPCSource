@@ -201,7 +201,7 @@ scan_i_user_defined=02027_I_Benutzerdefiniert: $1
 scan_e_keyword_cant_be_a_macro=02028_E_Ein Makro, welches den selben Namen wie ein SchlÅsselwort hat, wird ignoriert
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_MakropufferÅberlauf wÑhrend des Lesens oder Expandierens eines Makros
-% Your macro or it's result  was too long for the compiler.
+% Your macro or it's result was too long for the compiler.
 scan_w_macro_too_deep=02030_W_Expansion des Makros Åberschreitet eine Makroschachtelungstiefe von 16
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
@@ -248,7 +248,7 @@ scan_t_back_in=02043_TL_Wieder zurÅck in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
 scan_w_unsupported_app_type=02044_W_Nicht unterstÅtzter Anwendungstyp: $1
-% You get this warning, ff you specify an unknown application type
+% You get this warning, if you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=02045_W_APPTYPE wird vom Zielbetriebssystem nicht unterstÅtzt
 % The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
@@ -299,7 +299,7 @@ scan_f_include_deep_ten=02062_F_Include-Dateien kînnen nur bis zu einer Tiefe vo
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
 scan_e_too_many_push=02063_F_Zu viele Ebenen von PUSH
-% A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
+% A maximum of 20 levels is allowed. This error occur only in mode MacPas.
 scan_e_too_many_pop=02064_E_POP ohne ein vorhergehendes PUSH
 % This error occur only in mode MacPas.
 scan_e_error_macro_lacks_value=02065_E_Das Makro "$1" besitzt keinen Wert
@@ -320,6 +320,8 @@ scan_c_switching_to_utf8=02071_C_UTF-8 Signatur gefunden, verwende UTF-8 Kode
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Compile time Ausdruck: Erwartete $1 aber erhielt $2 bei $3
 % Type check of a compile time expression failed.
+scan_n_app_type_not_support=02073_N_APPTYPE wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
 % \end{description}
 #
 # Parser
@@ -541,7 +543,7 @@ parser_e_dont_nest_export=03067_E_Mit EXPORT deklarierte Funktionen dÅrfen nicht
 parser_e_methods_dont_be_export=03068_E_Methoden dÅrfen nicht EXPORTiert werden
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern mÅssen exakt stimmen:  "$1" gefunden, "$2" erwartet
+parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern mÅssen exakt stimmen: "$1" gefunden, "$2" erwartet
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -562,7 +564,7 @@ parser_e_illegal_set_expr=03074_E_BereichsprÅfungsfehler im SET-Konstruktor oder
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Zeiger auf Objekt erwartet
 % You specified an illegal type in a \var{New} statement.
-% The extended synax of \var{New} needs an  object as a parameter.
+% The extended synax of \var{New} needs an object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_Ausdruck muss ein Konstruktor-Aufruf sein
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -581,7 +583,7 @@ parser_e_false_with_expr=03079_E_Typ des Ausdrucks muss eine Klasse oder ein Rec
 parser_e_void_function=03080_E_Prozeduren kînnen keinen Wert zurÅckliefern
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
-% procedure. Procedures  cannot return a value.
+% procedure. Procedures cannot return a value.
 parser_e_constructors_always_objects=03081_E_Konstruktoren und Destruktoren mÅssen Methoden sein
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
@@ -1170,14 +1172,14 @@ type_w_mixed_signed_unsigned=04035_W_Mischen von signed AusdrÅcken und Longwords
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Mischen von signed AusdrÅcken und kardinalen Typen hier kann einen BereichsprÅfungsfehler verursachen
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Grîssen ($1 -> $2) in der Zuweisung
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
@@ -1213,7 +1215,7 @@ type_w_instance_with_abstract=04046_W_Konstruktion der Klasse "$1" mit abstrakte
 % routine is ever called. All abstract methods should be overriden.
 type_h_in_range_check=04047_H_Der linke Operand des IN Operators sollte byte Grîsse haben
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
-% within 8-bits, this may lead to range check errors. The  \var{in} operator
+% within 8-bits, this may lead to range check errors. The \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
@@ -1254,7 +1256,7 @@ type_e_illegal_count_var=04058_E_Loop-Variable muss einen ordinalen Typ haben
 #
 # Symtable
 #
-# 05055 is the last used one
+# 05060 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1266,7 +1268,7 @@ sym_e_id_not_found=05000_E_Bezeichner "$1" nicht gefunden
 % variable.
 sym_f_internal_error_in_symtablestack=05001_F_Interner Fehler in SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 sym_e_duplicate_id=05002_E_Doppelter Bezeichner "$1"
 % The identifier was already declared in the current scope.
@@ -1305,7 +1307,7 @@ sym_e_ill_label_decl=05016_E_UngÅltige Label-Deklaration
 % procedure or function.
 sym_e_goto_and_label_not_supported=05017_E_GOTO und LABEL werden nicht unterstÅtzt (verwenden Sie den Schalter -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
-% with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
+% with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
 sym_e_label_not_found=05018_E_Label nicht gefunden
 % A \var{goto label} was encountered, but the label isn't declared.
@@ -1397,6 +1399,16 @@ sym_h_uninitialized_variable=05058_H_Die Variable "$1" scheint nicht initialisie
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
+% assigment)
+sym_w_function_result_uninitialized=05059_W_Die Ergebnisvariable der Funktion scheint nicht initialisiert zu sein
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_function_result_uninitialized=05060_H_Die Ergebnisvariable der Funktion scheint nicht initialisiert zu sein
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
 % \end{description}
 #
@@ -1833,7 +1845,7 @@ execinfo_x_codesize=09130_X_Grîsse des Codes: $1 Bytes
 execinfo_x_initdatasize=09131_X_Grîsse der initialisierten Daten: $1 Bytes
 execinfo_x_uninitdatasize=09132_X_Grîsse der nicht initialisierten Daten: $1 Bytes
 execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
-execinfo_x_stackcommit=09134_X_Stack Bereich "commited": $1 Bytes
+execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 
 #
 # Unit loading
@@ -2052,13 +2064,13 @@ option_no_nested_response_file=11003_E_Verschachtelte Response-Dateien werden ni
 % you cannot nest response files with the \var{@file} command-line option.
 option_no_source_found=11004_F_Kein Name fÅr Quelldatei auf der Kommandzeile
 % The compiler expects a source file name on the command line.
-option_no_option_found=11005_N_Keine Angeben in Konfigurationsdatei "$1" gefunden
+option_no_option_found=11005_N_Keine Angaben in Konfigurationsdatei "$1" gefunden
 % The compiler didn't find any option in that config file.
 option_illegal_para=11006_E_UngÅltiger Parameter: $1
 % You specified an unknown option.
 option_help_pages_para=11007_H_-? zeigt Hilfetext an
 % When an unknown option is given, this message is diplayed.
-option_too_many_cfg_files=11008_F_Zu viele verschachtelte Konfigurtionsdateien
+option_too_many_cfg_files=11008_F_Zu viele verschachtelte Konfigurationsdateien
 % You can only nest up to 16 config files.
 option_unable_open_file=11009_F_Kann Datei nicht îffnen $1
 % The option file cannot be found.
@@ -2111,18 +2123,20 @@ option_using_env=11027_T_Optionen werden aus dem environment $1 gelesen
 option_handling_option=11028_D_Handling der Option "$1"
 % Debug info that an option is found and will be handled
 option_help_press_enter=11029__*** DrÅcken sie die ENTER Taste ***
-option_start_reading_configfile=11030_H_Beginn des Lesens der config Datei $1
+option_start_reading_configfile=11030_H_Beginn des Lesens der Konfigurationsdatei $1
 % Starting of config file parsing.
-option_end_reading_configfile=11031_H_Ende des Lesens der config Datei $1
+option_end_reading_configfile=11031_H_Ende des Lesens der Konfigurationsdatei $1
 % End of config file parsing.
 option_interpreting_option=11032_D_Option "$1" interpretieren
 option_interpreting_firstpass_option=11036_D_firstpass Option "$1" interpretieren
 option_interpreting_file_option=11033_D_Datei Option "$1" interpretieren
-option_read_config_file=11034_D_config Datei "$1" lesen
+option_read_config_file=11034_D_Konfigurationsdatei "$1" lesen
 option_found_file=11035_D_Name der Quelldatei "$1" gefunden
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unbekannte code page
+option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
+% Directories can not be used as configuration files.
 %\end{description}
 # EndOfTeX
 
@@ -2254,7 +2268,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 *g2gg_Verwende gsym
 *g2gh_Heaptrace-Unit einbinden
 *g2gl_line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
-*g2gv_erzeuge tracable mit valgrind
+*g2gv_erzeuge ein mit valgrind trace-bares Programm
 *g2gw_erzeuge dwarf Informationen
 **1i_zeige alle Information Åber den Compiler
 **2iD_zeige Compilerdatum
@@ -2274,10 +2288,11 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Mgpc_versuche zu gpc kompatibel zu sein
 **2Mmacpas_versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
 **1n_Standard-Konfigurationsdatei ignorieren
-**1N<x>node tree Optimierung
+**1N<x>_node tree Optimierung
 **2Nu_unroll loops
 **1o<x>_die erzeugte, ausfÅhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
+3*2Oa_<type>=<values> Ausrichtung (alignment) von Mengen
 3*2Og_erzeuge kÅrzeren Code
 3*2OG_erzeuge schnelleren Code (Voreinstellung)
 **2Or_halte bestimmte Variablen in den Registern
@@ -2485,7 +2500,7 @@ P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 % The type identifier has not been defined yet.
 %%% sym_e_invalid_call_tvarsymmangledname=05011_E_UngÅltiger Aufruf von tvarsym.mangledname()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 %%% sym_b_param_list=05039_B_Deklaration gefunden: $1
 % You get this when you use the \var{-vb} switch. In case an overloaded
@@ -2534,13 +2549,13 @@ P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 % done the procedure needs a \var{EBP} stackframe.
 %%% cg_f_internal_error_in_getfloatreg=06021_F_Interner Fehler in getfloatreg(), Allozierungsfehler
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 %%% cg_f_unknown_float_type=06022_F_Unbekannter Fliesskommatyp
 % The compiler cannot determine the kind of float that occurs in an expression.
 %%% cg_f_secondvecn_base_defined_twice=06023_F_SecondVecn() Basis wurde zweimal definiert
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 %%% cg_f_extended_cg68k_not_supported=06024_F_Extended wird auf der m68k-Plattform nicht unterstÅtzt
 % The var{extended} type is not supported on the m68k platform.
@@ -2548,7 +2563,7 @@ P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 % The cardinal/dword is not supported on the m68k platform.
 %%% cg_f_internal_error_in_secondinline=06026_F_Interner Fehler in secondinline()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 %%% cg_e_stacklimit_in_local_routine=06028_E_Stacklimit in lokaler Routine Åberschritten
 % Your code requires a too big stack. Some operating systems pose limits
