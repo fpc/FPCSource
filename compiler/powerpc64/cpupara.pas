@@ -62,7 +62,8 @@ implementation
 uses
   verbose, systems,
   defutil,
-  cgutils;
+  cgutils,
+  procinfo, cpupi;
 
 function tppcparamanager.get_volatile_registers_int(calloption:
   tproccalloption): tcpuregisterset;
@@ -417,9 +418,11 @@ begin
         paraloc^.size := int_cgsize(paralen);
         if (side = callerside) then
           paraloc^.reference.index := NR_STACK_POINTER_REG
-        else
+        else begin
           { during procedure entry, NR_OLD_STACK_POINTER_REG contains the old stack pointer }
           paraloc^.reference.index := NR_OLD_STACK_POINTER_REG;
+          tppcprocinfo(current_procinfo).needs_frame_pointer := true;
+        end;
         paraloc^.reference.offset := stack_offset;
 
         { align temp contents to next register size }

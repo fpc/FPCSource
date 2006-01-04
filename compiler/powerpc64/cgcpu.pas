@@ -129,6 +129,8 @@ type
     { the sum of part of the original reference                       }
     function fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 
+    function load_got_symbol(list : taasmoutput; symbol : string) : tregister;
+    
     { returns whether a reference can be used immediately in a powerpc }
     { instruction                                                      }
     function issimpleref(const ref: treference): boolean;
@@ -1304,7 +1306,8 @@ begin
   { determine whether we need to save the link register }
   needslinkreg := 
     ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or 
-    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0)));
+    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0))) or
+    ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 
   a_reg_alloc(list, NR_STACK_POINTER_REG);
   a_reg_alloc(list, NR_R0);
@@ -1316,7 +1319,7 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (localsize > 0) then begin
+  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then begin
     a_reg_alloc(list, NR_OLD_STACK_POINTER_REG);
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
   end;
@@ -1441,7 +1444,8 @@ begin
   { determine whether we need to restore the link register }
   needslinkreg := 
     ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
-    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0)));
+    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0))) or
+    ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 
   { calculate stack frame }
   localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
@@ -1819,13 +1823,41 @@ begin
     (ref.offset = 0)));
 end;
 
+function tcgppc.load_got_symbol(list: taasmoutput; symbol : string) : tregister;
+var
+  l: tasmsymbol;
+  ref: treference;
+begin
+  l:=objectlibrary.getasmsymbol(symbol+'$got');
+  if not(assigned(l)) then begin
+    l:=objectlibrary.newasmsymbol(symbol+'$got',AB_COMMON,AT_DATA);
+    asmlist[al_picdata].concat(tai_symbol.create(l,0));
+    asmlist[al_picdata].concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(symbol,AB_EXTERNAL,AT_DATA)));
+    asmlist[al_picdata].concat(tai_const.create_32bit(0));
+  end;
+  reference_reset_symbol(ref,l,0);
+  ref.base := NR_R2;
+  result := cg.rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
+end;
+
 function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 var
-  tmpreg: tregister;
-  needsAlign : boolean;
+  tmpreg: tregister; 
+  name : string;
 begin
   result := false;
-  needsAlign := size in [OS_S32, OS_64, OS_S64];
+  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol)) and (ref.symbol.defbind = AB_EXTERNAL) then begin
+    if (length(name) > 100) then internalerror(123456);
+    tmpreg := load_got_symbol(list, ref.symbol.name);
+    if (ref.base = NR_NO) then
+      ref.base := tmpreg
+    else if (ref.index = NR_NO) then
+      ref.index := tmpreg
+    else
+      list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.base,tmpreg));
+    ref.symbol := nil;    
+  end;
 
   if (ref.base = NR_NO) then  begin
     ref.base := ref.index;

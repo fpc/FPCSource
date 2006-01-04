@@ -136,6 +136,9 @@ implementation
 {$ifdef powerpc}
     , cpupi
 {$endif}
+{$ifdef powerpc64}
+    , cpupi
+{$endif}
 ;
 
 
@@ -1346,10 +1349,10 @@ implementation
             case paraloc.loc of
               LOC_REGISTER :
                 begin
-                  {$IFDEF CPUPOWERPC64}
+                  {$IFDEF POWERPC64}
                   if (paraloc.shiftval <> 0) then
                     cg.a_op_const_reg_reg(list, OP_SHL, OS_INT, paraloc.shiftval, paraloc.register, paraloc.register);
-                  {$ENDIF CPUPOWERPC64}
+                  {$ENDIF POWERPC64}
                   cg.a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
                 end;
               LOC_MMREGISTER :
@@ -1576,7 +1579,8 @@ implementation
 {$ifdef powerpc64}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
-        cg.a_reg_dealloc(list, NR_OLD_STACK_POINTER_REG);
+        if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
+          cg.a_reg_dealloc(list, NR_OLD_STACK_POINTER_REG);
 {$endif powerpc64}
       end;
 

@@ -370,6 +370,10 @@ const
 
   ELF_STACK_ALIGN = 16;
 
+  { the size of the "red zone" which must not be changed by asynchronous calls
+   in the stack frame and can be used for storing temps }
+  RED_ZONE_SIZE = 288;
+
   {*****************************************************************************
                                     Helpers
   *****************************************************************************}

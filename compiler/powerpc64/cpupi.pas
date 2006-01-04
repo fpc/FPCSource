@@ -40,6 +40,8 @@ type
     procedure allocate_push_parasize(size: longint); override;
     function calc_stackframe_size: longint; override;
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
+
+    needs_frame_pointer : boolean;
   end;
 
 implementation
@@ -57,6 +59,7 @@ constructor tppcprocinfo.create(aparent: tprocinfo);
 begin
   inherited create(aparent);
   maxpushedparasize := 0;
+  needs_frame_pointer := false;
 end;
 
 procedure tppcprocinfo.set_first_temp_offset;
@@ -100,8 +103,12 @@ begin
   { more or less copied from cgcpu.pas/g_stackframe_entry }
   if not (po_assembler in procdef.procoptions) then begin
     // no VMX support
-    result := align(align(numgpr * tcgsize2size[OS_INT] +
-      numfpr * tcgsize2size[OS_FLOAT], ELF_STACK_ALIGN) + tg.lasttemp, ELF_STACK_ALIGN);
+    result := align(numgpr * tcgsize2size[OS_INT] +
+        numfpr * tcgsize2size[OS_FLOAT], ELF_STACK_ALIGN);
+
+    if not ((not (pi_do_call in flags)) and (tg.lasttemp = tg.firsttemp) and
+      (result <= RED_ZONE_SIZE)) then
+      result := align(result + tg.lasttemp, ELF_STACK_ALIGN);
   end else
     result := align(tg.lasttemp, ELF_STACK_ALIGN);
 end;
