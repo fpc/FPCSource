@@ -1082,9 +1082,14 @@ Begin
       exit;
      ReadNumeric(f,hs);
    end;
-  val(hs,u,code);
-  If code<>0 Then
-   InOutRes:=106;
+   if (hs = '') then
+    u := 0
+   else
+    begin
+      val(hs,u,code);
+      If code<>0 Then
+        InOutRes:=106;
+    end;
 End;
 
 
