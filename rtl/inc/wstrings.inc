@@ -438,21 +438,27 @@ begin
   widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
 end;
 
-Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
+Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
 var
   i  : SizeInt;
 begin
-  if arr[0]=#0 Then
-    { result is automatically set to '' }
-    exit;
-  i:=IndexChar(arr,high(arr)+1,#0);
-  if i = -1 then
+  if (zerobased) then
+    begin
+      if (arr[0]=#0) Then
+        { result is automatically set to '' }
+        exit;
+      i:=IndexChar(arr,high(arr)+1,#0);
+      if i = -1 then
+        i := high(arr)+1;
+    end 
+  else
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_WideStr,i);
   widestringmanager.Ansi2WideMoveProc (pchar(@arr),fpc_CharArray_To_WideStr,i);
 end;
 
-function fpc_WideCharArray_To_ShortStr(const arr: array of widechar): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
+
+function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
 var
   l: longint;
  index: longint;
@@ -464,39 +470,47 @@ begin
     l:=255
   else if l<0 then
     l:=0;
-  index:=IndexWord(arr[0],l,0);
-  if (index < 0) then
-    len := l
+  if zerobased then
+    begin
+      index:=IndexWord(arr[0],l,0);
+      if (index < 0) then
+        len := l
+      else
+        len := index;
+    end
   else
-    len := index;
+    len := l;
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
   fpc_WideCharArray_To_ShortStr := temp;
-  //fpc_WideCharArray_To_ShortStr[0]:=chr(len);
 end;
 
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
 var
   i  : SizeInt;
 begin
-  if arr[0]=#0 Then
-    { result is automatically set to '' }
-    exit;
-  i:=IndexWord(arr,high(arr)+1,0);
-  if i = -1 then
+  if (zerobased) then
+    begin
+      i:=IndexWord(arr,high(arr)+1,0);
+      if i = -1 then
+        i := high(arr)+1;
+    end 
+  else
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_AnsiStr,i);
   widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
 end;
 
-Function fpc_WideCharArray_To_WideStr(const arr: array of widechar): WideString; compilerproc;
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 var
   i  : SizeInt;
 begin
-  if arr[0]=#0 Then
-    { result is automatically set to '' }
-    exit;
-  i:=IndexWord(arr,high(arr)+1,0);
-  if i = -1 then
+  if (zerobased) then
+    begin
+      i:=IndexWord(arr,high(arr)+1,0);
+      if i = -1 then
+        i := high(arr)+1;
+    end 
+  else
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_WideStr,i);
   Move(pwidechar(@arr)^, PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1]))^,i*sizeof(WideChar));

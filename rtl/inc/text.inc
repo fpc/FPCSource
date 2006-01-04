@@ -538,7 +538,7 @@ End;
 { provide local access to write_str }
 procedure Write_Str(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
 
-Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; compilerproc;
+Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; compilerproc;
 var
   ArrayLen : longint;
   p : pchar;
@@ -549,11 +549,16 @@ Begin
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
         p:=pchar(@s);
-        { can't use StrLen, since that one could try to read past the end }
-        { of the heap (JM)                                                }
-        ArrayLen:=IndexByte(p^,high(s)+1,0);
-        { IndexByte returns -1 if not found (JM) }
-        if ArrayLen = -1 then
+        if (zerobased) then
+          begin
+            { can't use StrLen, since that one could try to read past the end }
+            { of the heap (JM)                                                }
+            ArrayLen:=IndexByte(p^,high(s)+1,0);
+            { IndexByte returns -1 if not found (JM) }
+            if ArrayLen = -1 then
+              ArrayLen := high(s)+1;
+          end
+        else
           ArrayLen := high(s)+1;
         If Len>ArrayLen Then
           fpc_WriteBlanks(f,Len-ArrayLen);
