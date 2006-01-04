@@ -234,6 +234,7 @@ type
         htype : ttype;
         ptemp : ttempcreatenode;
         usederef : boolean;
+        usevoidpointer : boolean;
         newinitstatement,
         newdonestatement : tstatementnode;
       begin
@@ -265,20 +266,33 @@ type
             usederef:=(p.resulttype.def.deftype in [arraydef,recorddef]) or
                       is_shortstring(p.resulttype.def) or
                       is_object(p.resulttype.def);
+            { avoid refcount increase }
+            usevoidpointer:=is_interface(p.resulttype.def);
+ 
             if usederef then
               htype.setdef(tpointerdef.create(p.resulttype))
             else
               htype:=p.resulttype;
-            ptemp:=ctempcreatenode.create(htype,htype.def.size,tt_persistent,true);
-            if usederef then
+
+            if usevoidpointer then
               begin
-                loadp:=caddrnode.create_internal(p);
-                refp:=cderefnode.create(ctemprefnode.create(ptemp));
+                ptemp:=ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+                loadp := ctypeconvnode.create_internal(p,voidpointertype);
+                refp:=ctypeconvnode.create_internal(ctemprefnode.create(ptemp),htype);
               end
             else
               begin
-                loadp:=p;
-                refp:=ctemprefnode.create(ptemp);
+                ptemp:=ctempcreatenode.create(htype,htype.def.size,tt_persistent,true);
+                if usederef then
+                  begin
+                    loadp:=caddrnode.create_internal(p);
+                    refp:=cderefnode.create(ctemprefnode.create(ptemp));
+                  end
+                else
+                  begin
+                    loadp:=p;
+                    refp:=ctemprefnode.create(ptemp)
+                  end
               end;
             addstatement(newinitstatement,ptemp);
             addstatement(newinitstatement,cassignmentnode.create(
@@ -296,7 +310,11 @@ type
               temp and converting it first from a persistent temp to
               normal temp }
             addstatement(newdonestatement,ctempdeletenode.create_normal_temp(ptemp));
-            addstatement(newdonestatement,ctemprefnode.create(ptemp));
+            if usevoidpointer then
+              addstatement(newdonestatement,ctypeconvnode.create_internal(
+                ctemprefnode.create(ptemp),htype))
+            else
+              addstatement(newdonestatement,ctemprefnode.create(ptemp));
             { call resulttypepass for new nodes }
             resulttypepass(p);
             resulttypepass(aktcallnode.methodpointerinit);
