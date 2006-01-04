@@ -710,9 +710,18 @@ implementation
                                          is_class_or_interface(pd.rettype.def) and
                                          (tobjectdef(pd.rettype.def).is_related(
                                              tobjectdef(procdefcoll^.data.rettype.def)))) then
-                                       Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                                procdefcoll^.data.fullprocname(false));
-
+                                       begin
+                                         if not((m_delphi in aktmodeswitches) and
+                                                is_interface(_class)) then
+                                           Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                                    procdefcoll^.data.fullprocname(false))
+                                         else
+                                          { Delphi allows changing the result type }
+                                          { of interface methods from anything to  }
+                                          { anything (JM)                          }
+                                           Message2(parser_w_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                                    procdefcoll^.data.fullprocname(false));
+                                       end;
                                      { check if the method to override is visible, check is only needed
                                        for the current parsed class. Parent classes are already validated and
                                        need to include all virtual methods including the ones not visible in the
