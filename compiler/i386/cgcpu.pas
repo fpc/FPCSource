@@ -264,7 +264,7 @@ unit cgcpu;
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
-            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
+            list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
         { return from proc }

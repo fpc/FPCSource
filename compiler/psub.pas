@@ -54,6 +54,8 @@ interface
         procedure add_to_symtablestack;
         procedure remove_from_symtablestack;
         procedure parse_body;
+
+        function stack_tainting_parameter : boolean;
       end;
 
 
@@ -96,7 +98,7 @@ implementation
        scanner,import,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgobj,cgobj,dbgbase,
+       tgobj,cgbase,cgobj,dbgbase,
        ncgutil,regvars
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
@@ -604,6 +606,29 @@ implementation
       end;
 
 
+    procedure check_for_stack(p : tnamedindexitem;arg:pointer);
+      begin
+         if tsym(p).typ=paravarsym then
+           begin
+             { check if there no parameter of the current procedure is stack dependend }
+             if is_open_array(tparavarsym(p).vartype.def) or
+               is_array_of_const(tparavarsym(p).vartype.def) then
+               pboolean(arg)^:=true;
+             if assigned(p) and
+                assigned(tparavarsym(p).paraloc[calleeside].location) and
+               (tparavarsym(p).paraloc[calleeside].location^.loc=LOC_REFERENCE) then
+               pboolean(arg)^:=true;
+           end;
+      end;
+
+
+    function tcgprocinfo.stack_tainting_parameter : boolean;
+      begin
+        result:=false;
+        procdef.parast.foreach_static(@check_for_stack,@result);
+      end;
+
+
     procedure tcgprocinfo.generate_code;
       var
         oldprocinfo : tprocinfo;
@@ -680,6 +705,38 @@ implementation
             { set the start offset to the start of the temp area in the stack }
             tg:=ttgobj.create;
 
+{$ifdef i386}
+            { try to strip the stack frame }
+            { set the framepointer to esp if:
+              - no assembler directive, those are handled elsewhere
+              - no exceptions are used
+              - no debug info
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no inline assembler
+            }
+            if (cs_optimize in aktglobalswitches) and
+               not(po_assembler in procdef.procoptions) and
+               ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
+                       pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter])=[]) then
+               begin
+                 { we need the parameter info here to determine if the procedure gets
+                   parameters on the stack
+
+                   calling generate_parameter_info doesn't hurt but it costs time
+                 }
+                 generate_parameter_info;
+                 if not(stack_tainting_parameter) then
+                   begin
+                     { Only need to set the framepointer }
+                     framepointer:=NR_STACK_POINTER_REG;
+                     tg.direction:=1;
+                   end;
+               end;
+{$endif i386}
+
             { Create register allocator }
             cg.init_register_allocators;
 
@@ -712,6 +769,7 @@ implementation
                 procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
                 procdef.has_paraloc_info:=true;
               end;
+
 
             { generate code for the node tree }
             do_secondpass(code);

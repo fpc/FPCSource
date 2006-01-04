@@ -1839,11 +1839,12 @@ unit cgx86;
         { save old framepointer }
         if not nostackframe then
           begin
+            list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               CGmessage(cg_d_stackframe_omited)
             else
               begin
-                list.concat(tai_regalloc.alloc(NR_FRAME_POINTER_REG,nil));
+
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }

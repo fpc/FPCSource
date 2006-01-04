@@ -130,6 +130,9 @@ interface
           procedure printnodedata(var t:text);override;
           function  para_count:longint;
           function  get_load_methodpointer:tnode;
+          { checks if there are any parameters which end up at the stack, i.e.
+            which have LOC_REFERENCE and set pi_has_stackparameter if this applies }
+          procedure check_stack_parameters;
        private
           AbstractMethodsList : TStringList;
        end;
@@ -2333,6 +2336,22 @@ type
       end;
 
 
+    procedure tcallnode.check_stack_parameters;
+      var
+        hp : tcallparanode;
+      begin
+        hp:=tcallparanode(left);
+        while assigned(hp) do
+          begin
+             if assigned(hp.parasym) and
+                assigned(hp.parasym.paraloc[callerside].location) and
+               (hp.parasym.paraloc[callerside].location^.loc=LOC_REFERENCE) then
+               include(current_procinfo.flags,pi_has_stackparameter);
+             hp:=tcallparanode(hp.right);
+          end;
+      end;
+
+
     function tcallnode.pass_1 : tnode;
       var
         st : tsymtable;
@@ -2378,7 +2397,16 @@ type
 
          { work trough all parameters to get the register requirements }
          if assigned(left) then
-           tcallparanode(left).det_registers;
+           begin
+             tcallparanode(left).det_registers;
+
+             if cs_optimize in aktglobalswitches then
+               begin
+                 { check for stacked parameters }
+                 check_stack_parameters;
+               end;
+           end;
+
 
          { order parameters }
          order_parameters;

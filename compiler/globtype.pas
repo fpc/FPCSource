@@ -240,7 +240,9 @@ than 255 characters. That's why using Ansi Strings}
          pi_needs_got,
          { references var/proc/type/const in static symtable,
            i.e. not allowed for inlining from other units }
-         pi_uses_static_symtable
+         pi_uses_static_symtable,
+         { set if the procedure has to push parameters onto the stack }
+         pi_has_stackparameter
        );
        tprocinfoflags=set of tprocinfoflag;
 
