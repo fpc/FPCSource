@@ -254,15 +254,20 @@ end;
 
 
 
-Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; compilerproc;
+Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
 var
   i  : SizeInt;
 begin
-  if arr[0]=#0 Then
-    { result is automatically set to '' }
-    exit;
-  i:=IndexChar(arr,high(arr)+1,#0);
-  if i = -1 then
+  if (zerobased) then
+    begin
+      if (arr[0]=#0) Then
+        { result is automatically set to '' }
+        exit;
+      i:=IndexChar(arr,high(arr)+1,#0);
+      if i = -1 then
+        i := high(arr)+1;
+    end
+  else
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_AnsiStr,i);
   Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);

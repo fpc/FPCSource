@@ -618,9 +618,9 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
-function fpc_chararray_to_shortstr(const arr: array of char):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
+function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean = true):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
-  l: longint;
+ l: longint;
  index: longint;
  len: byte;
 begin
@@ -629,11 +629,16 @@ begin
     l:=255
   else if l<0 then
     l:=0;
-  index:=IndexByte(arr[0],l,0);
-  if (index < 0) then
-    len := l
+  if (zerobased) then
+    begin
+      index:=IndexByte(arr[0],l,0);
+      if (index < 0) then
+        len := l
+      else
+        len := index;
+    end
   else
-    len := index;
+    len := l;
   move(arr[0],fpc_chararray_to_shortstr[1],len);
   fpc_chararray_to_shortstr[0]:=chr(len);
 end;

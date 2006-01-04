@@ -696,7 +696,9 @@ implementation
           chartype:='char';
         result := ccallnode.createinternres(
            'fpc_'+chartype+'array_to_'+tstringdef(resulttype.def).stringtypname,
-           ccallparanode.create(left,nil),resulttype);
+           ccallparanode.create(cordconstnode.create(
+             ord(tarraydef(left.resulttype.def).lowrange=0),booltype,false),
+           ccallparanode.create(left,nil)),resulttype);
         left := nil;
       end;
 
