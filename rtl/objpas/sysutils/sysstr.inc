@@ -773,7 +773,6 @@ end ;
 
 function StrToInt64(const S: string): int64;
 var Error: word;
-
 begin
   Val(S, result, Error);
   if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
@@ -788,6 +787,20 @@ begin
 end;
 
 
+function StrToQWord(const s: string): QWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+end;
+
+
+function TryStrQWord(const s: string; var i: QWord): boolean;
+var Error : word;
+begin
+  Val(s, i, Error);
+  TryStrQWord:=Error=0
+end;
 
 {   StrToIntDef converts the string S to an integer value,
     Default is returned in case S does not represent a valid integer value  }
@@ -795,20 +808,29 @@ end;
 function StrToIntDef(const S: string; Default: integer): integer;
 var Error: word;
 begin
-Val(S, result, Error);
-if Error <> 0 then result := Default;
+  Val(S, result, Error);
+  if Error <> 0 then result := Default;
 end ;
 
-{   StrToIntDef converts the string S to an integer value,
-    Default is returned in case S does not represent a valid integer value  }
+{   StrToInt64Def converts the string S to an int64 value,
+    Default is returned in case S does not represent a valid int64 value  }
 
 function StrToInt64Def(const S: string; Default: int64): int64;
 var Error: word;
 begin
-Val(S, result, Error);
-if Error <> 0 then result := Default;
+  Val(S, result, Error);
+  if Error <> 0 then result := Default;
 end ;
 
+{   StrToQWordDef converts the string S to an QWord value,
+    Default is returned in case S does not represent a valid QWord value  }
+
+function StrToQWordDef(const S: string; Default: QWord): QWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then result := Default;
+end;
 
 {   LoadStr returns the string resource Ident.   }
 
