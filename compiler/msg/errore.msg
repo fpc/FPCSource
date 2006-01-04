@@ -533,16 +533,16 @@ parser_e_cant_access_private_member=03063_E_Cannot access a private field of an 
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
+parser_e_overridden_methods_not_same_ret=03066_E_Overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
-parser_e_methods_dont_be_export=03068_E_methods can't be EXPORTed
+parser_e_methods_dont_be_export=03068_E_Methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed.
-parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got "$1" expected "$2"
+parser_e_call_by_ref_without_typeconv=03069_E_Call by var parameters have to match exactly: Got "$1" expected "$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -552,7 +552,7 @@ parser_e_no_super_class=03070_E_Class isn't a parent class of the current class
 parser_e_self_not_in_method=03071_E_SELF is only allowed in methods
 % You are trying to use the \var{self} parameter outside an object's method.
 % Only methods get passed the \var{self} parameters.
-parser_e_generic_methods_only_in_methods=03072_E_methods can be only in other methods called direct with type identifier of the class
+parser_e_generic_methods_only_in_methods=03072_E_Methods can be only in other methods called direct with type identifier of the class
 % A construction like \var{sometype.somemethod} is only allowed in a method.
 parser_e_illegal_colon_qualifier=03073_E_Illegal use of ':'
 % You are using the format \var{:} (colon) 2 times on an expression that
@@ -1018,6 +1018,16 @@ parser_e_protected_or_private_expected=03214_E_Protected or private expected
 % \var{strict} can be only used together with \var{protected} or \var{private}.
 parser_e_illegal_slice=03215_E_SLICE can't be used outside of parameter list
 % \var{slice} can be used only for arguments accepting an open array parameter
+parser_e_dispinterface_cant_have_parent=03216_E_A DISPINTERFACE can't have a parent class
+% A DISPINMTERFACE is a special type of interface which can't have a parent class
+parser_e_dispinterface_needs_a_guid=03217_E_A DISPINTERFACE needs a guid
+% A DISPINMTERFACE always needs an interface identification
+parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overriden by "$1" which has another return type)
+% If you declare overridden methods in a class definition, they must
+% have the same return type. Some versions of Delphi allow you to change the
+% return type of interface methods, and even to change procedures into
+% functions, but the resulting code may crash depending on the types used
+% and the way the methods are called.
 % \end{description}
 #
 # Type Checking
