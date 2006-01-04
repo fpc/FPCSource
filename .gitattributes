@@ -6665,6 +6665,7 @@ tests/webtbs/tw4616.pp svneol=native#text/plain
 tests/webtbs/tw4632.pp svneol=native#text/plain
 tests/webtbs/tw4633.pp svneol=native#text/plain
 tests/webtbs/tw4635.pp svneol=native#text/plain
+tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain
