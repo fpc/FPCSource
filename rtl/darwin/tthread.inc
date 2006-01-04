@@ -200,7 +200,7 @@ end;
 
 destructor TThread.Destroy;
 begin
-  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) then begin
+  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) and not ffinished then begin
     raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
   end;
   // if someone calls .Free on a thread with
