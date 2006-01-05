@@ -47,7 +47,6 @@ interface
 
     tforeachprocmethod = (pm_preprocess,pm_postprocess);
 
-
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
@@ -642,5 +641,21 @@ implementation
           foreachnodestatic(pm_preprocess,n,@callsimplify,nil);
         until not(treechanged);
       end;
+
+
+    function doaddnode(var n : tnode; arg: pointer): foreachnoderesult;
+      begin
+      end;
+
+
+    {
+    function createnodelist(var l : tlist;
+      begin
+        if assigned(l) then
+          l.clear
+        else
+          l:=tlist.create;
+
+     }
 
 end.
