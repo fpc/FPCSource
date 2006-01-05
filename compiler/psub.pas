@@ -724,7 +724,7 @@ implementation
             { set the start offset to the start of the temp area in the stack }
             tg:=ttgobj.create;
 
-{$ifdef i386}
+{$ifdef x86}
             { try to strip the stack frame }
             { set the framepointer to esp if:
               - no assembler directive, those are handled elsewhere
@@ -755,7 +755,7 @@ implementation
                      tg.direction:=1;
                    end;
                end;
-{$endif i386}
+{$endif x86}
 
             { Create register allocator }
             cg.init_register_allocators;
