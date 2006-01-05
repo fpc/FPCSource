@@ -226,6 +226,7 @@ interface
         procedure add(s:tsuperregister);
         function addnodup(s:tsuperregister): boolean;
         function get:tsuperregister;
+        function readidx(i:word):tsuperregister;
         procedure deleteidx(i:word);
         function delete(s:tsuperregister):boolean;
       end;
@@ -398,11 +399,19 @@ implementation
     procedure tsuperregisterworklist.deleteidx(i:word);
 
     begin
-      if length=0 then
+      if i>=length then
         internalerror(200310144);
       buf^[i]:=buf^[length-1];
       dec(length);
     end;
+
+
+    function tsuperregisterworklist.readidx(i:word):tsuperregister;
+      begin
+        if (i >= length) then
+          internalerror(2005010601);
+        result := buf^[i];
+      end;
 
 
     function tsuperregisterworklist.get:tsuperregister;

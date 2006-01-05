@@ -242,7 +242,9 @@ than 255 characters. That's why using Ansi Strings}
            i.e. not allowed for inlining from other units }
          pi_uses_static_symtable,
          { set if the procedure has to push parameters onto the stack }
-         pi_has_stackparameter
+         pi_has_stackparameter,
+         { set if the procedure has at least one got }
+         pi_has_goto
        );
        tprocinfoflags=set of tprocinfoflag;
 

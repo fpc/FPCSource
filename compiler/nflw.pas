@@ -973,6 +973,7 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_VOID;
+        include(current_procinfo.flags,pi_has_goto);
 
         if not(assigned(labelnode)) then
           begin

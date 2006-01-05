@@ -1295,6 +1295,22 @@ implementation
              sym. localloc.register:=cg.getmmregister(list,sym.localloc.size);
             end;
         end;
+
+        if (pi_has_goto in current_procinfo.flags) then
+          begin
+            { Allocate register already, to prevent first allocation to be
+              inside a loop }
+{$ifndef cpu64bit}
+            if sym.localloc.size in [OS_64,OS_S64] then
+              begin
+                cg.a_reg_sync(list,sym.localloc.register64.reglo);
+                cg.a_reg_sync(list,sym.localloc.register64.reghi);
+              end
+            else
+{$endif cpu64bit}
+             cg.a_reg_sync(list,sym.localloc.register);
+          end;
+
         if cs_asm_source in aktglobalswitches then
           begin
             case sym.localloc.loc of
@@ -2193,11 +2209,11 @@ implementation
         count: longint;
       begin
         for count := 1 to rv.intregvars.length do
-          cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.get,R_SUBWHOLE));
+          cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.fpuregvars.length do
-          cg.a_reg_sync(list,newreg(R_FPUREGISTER,rv.fpuregvars.get,R_SUBWHOLE));
+          cg.a_reg_sync(list,newreg(R_FPUREGISTER,rv.fpuregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.mmregvars.length do
-          cg.a_reg_sync(list,newreg(R_MMREGISTER,rv.mmregvars.get,R_SUBWHOLE));
+          cg.a_reg_sync(list,newreg(R_MMREGISTER,rv.mmregvars.readidx(count-1),R_SUBWHOLE));
       end;
 
 
@@ -2216,6 +2232,21 @@ implementation
                       for the sub procedures that can access local data
                       in the parent procedures }
                     case localloc.loc of
+                      LOC_CREGISTER :
+{$ifndef cpu64bit}
+                        if (pi_has_goto in current_procinfo.flags) then
+                          if def_cgsize(vartype.def) in [OS_64,OS_S64] then
+                            begin
+                              cg.a_reg_sync(list,localloc.register64.reglo);
+                              cg.a_reg_sync(list,localloc.register64.reghi);
+                            end
+                          else
+{$endif cpu64bit}
+                            cg.a_reg_sync(list,localloc.register);
+                      LOC_CFPUREGISTER,
+                      LOC_CMMREGISTER:
+                        if (pi_has_goto in current_procinfo.flags) then
+                          cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
                           case st.symtabletype of

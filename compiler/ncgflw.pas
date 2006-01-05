@@ -27,11 +27,14 @@ unit ncgflw;
 interface
 
     uses
-      aasmbase,node,nflw;
+      aasmbase,node,nflw,ncgutil;
 
     type
        tcgwhilerepeatnode = class(twhilerepeatnode)
           procedure pass_2;override;
+          procedure sync_regvars(checkusedregvars: boolean);
+
+          usedregvars: tusedregvars;
        end;
 
        tcgifnode = class(tifnode)
@@ -40,6 +43,9 @@ interface
 
        tcgfornode = class(tfornode)
           procedure pass_2;override;
+          procedure sync_regvars(checkusedregvars: boolean);
+
+          usedregvars: tusedregvars;
        end;
 
        tcgexitnode = class(texitnode)
@@ -90,7 +96,6 @@ implementation
       procinfo,cgbase,pass_2,parabase,
       cpubase,cpuinfo,
       nld,ncon,
-      ncgutil,
       tgobj,paramgr,
       regvars,
       cgutils,cgobj
@@ -100,13 +105,39 @@ implementation
                          Second_While_RepeatN
 *****************************************************************************}
 
+    procedure tcgwhilerepeatnode.sync_regvars(checkusedregvars: boolean);
+      begin
+         if (cs_regvars in aktglobalswitches) and
+            not(pi_has_goto in current_procinfo.flags) then
+           begin
+             if checkusedregvars then
+               begin
+                 usedregvars.intregvars.init;
+                 usedregvars.fpuregvars.init;
+                 usedregvars.mmregvars.init;
+
+                 { we have to synchronise both the regvars used in the loop }
+                 { and the ones in the while/until condition                }
+                 get_used_regvars(self,usedregvars);
+                 gen_sync_regvars(exprasmlist,usedregvars);
+               end
+             else
+               begin
+                 gen_sync_regvars(exprasmlist,usedregvars);
+                 usedregvars.intregvars.done;
+                 usedregvars.fpuregvars.done;
+                 usedregvars.mmregvars.done;
+               end;
+           end;
+      end;
+
+
     procedure tcgwhilerepeatnode.pass_2;
       var
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
          otlabel,oflabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
-         usedregvars: tusedregvars;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -118,6 +149,7 @@ implementation
          oldclabel:=aktcontinuelabel;
          oldblabel:=aktbreaklabel;
 
+         sync_regvars(true);
 {$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
@@ -159,21 +191,7 @@ implementation
          maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
 
-         if (cs_regvars in aktglobalswitches) then
-           begin
-             usedregvars.intregvars.init;
-             usedregvars.fpuregvars.init;
-             usedregvars.mmregvars.init;
-
-             { we have to synchronise both the regvars used in the loop and }
-             { and the ones in the while/until condition                    }
-             get_used_regvars(self,usedregvars);
-             gen_sync_regvars(exprasmlist,usedregvars);
-
-             usedregvars.intregvars.done;
-             usedregvars.fpuregvars.done;
-             usedregvars.mmregvars.done;
-           end;
+         sync_regvars(false);
 
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -241,15 +259,17 @@ implementation
 
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
+{
          if cs_regvars in aktglobalswitches then
            begin
-{             then_regvar_loaded_int := rg.regvar_loaded_int;
+             then_regvar_loaded_int := rg.regvar_loaded_int;
              then_regvar_loaded_other := rg.regvar_loaded_other;
              rg.regvar_loaded_int := org_regvar_loaded_int;
              rg.regvar_loaded_other := org_regvar_loaded_other;
              then_list := exprasmlist;
-             exprasmlist := taasmoutput.create;}
+             exprasmlist := taasmoutput.create;
            end;
+}
 
          if assigned(t1) then
            begin
@@ -346,6 +366,42 @@ implementation
                               SecondFor
 *****************************************************************************}
 
+    procedure tcgfornode.sync_regvars(checkusedregvars: boolean);
+      begin
+         if (cs_regvars in aktglobalswitches) and
+            not(pi_has_goto in current_procinfo.flags) then
+           begin
+             if checkusedregvars then
+               begin
+                 usedregvars.intregvars.init;
+                 usedregvars.fpuregvars.init;
+                 usedregvars.mmregvars.init;
+
+                 { We have to synchronise the loop variable and loop body. }
+                 { The loop end is not necessary, unless it's a register   }
+                 { variable. The start value also doesn't matter.          }
+
+                 { loop var }
+                 get_used_regvars(right,usedregvars);
+                 { loop body }
+                 get_used_regvars(t2,usedregvars);
+                 { end value if necessary }
+                 if (t1.location.loc = LOC_CREGISTER) then
+                   get_used_regvars(t1,usedregvars);
+
+                 gen_sync_regvars(exprasmlist,usedregvars);
+               end
+             else
+               begin
+                 gen_sync_regvars(exprasmlist,usedregvars);
+                 usedregvars.intregvars.done;
+                 usedregvars.fpuregvars.done;
+                 usedregvars.mmregvars.done;
+               end;
+           end;
+      end;
+
+
     procedure tcgfornode.pass_2;
       var
          l3,oldclabel,oldblabel : tasmlabel;
@@ -356,7 +412,6 @@ implementation
          count_var_is_signed,do_loopvar_at_end : boolean;
          cmp_const:Tconstexprint;
          oldflowcontrol : tflowcontrol;
-         usedregvars: tusedregvars;
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -417,6 +472,7 @@ implementation
            else
              hcond:=OC_A;
 
+         sync_regvars(true);
 {$ifdef OLDREGVARS}
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
@@ -695,30 +751,7 @@ implementation
          { this is the break label: }
          cg.a_label(exprasmlist,aktbreaklabel);
 
-         if (cs_regvars in aktglobalswitches) then
-           begin
-             usedregvars.intregvars.init;
-             usedregvars.fpuregvars.init;
-             usedregvars.mmregvars.init;
-
-             { We have to synchronise the loop variable and loop body. The  }
-             { loop end is not necessary, unless it's a register variable.  }
-             { The start value also doesn't matter                          }
-
-             { loop var }
-             get_used_regvars(right,usedregvars);
-             { loop body }
-             get_used_regvars(t2,usedregvars);
-             { end value if necessary }
-             if (t1.location.loc = LOC_CREGISTER) then
-               get_used_regvars(t1,usedregvars);
-
-             gen_sync_regvars(exprasmlist,usedregvars);
-
-             usedregvars.intregvars.done;
-             usedregvars.fpuregvars.done;
-             usedregvars.mmregvars.done;
-           end;
+         sync_regvars(false);
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;
