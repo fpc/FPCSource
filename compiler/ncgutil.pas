@@ -1893,6 +1893,7 @@ implementation
           cg.g_restore_standard_registers(list);
       end;
 
+
     procedure gen_got_load(list : taasmoutput);
       begin
         { if loading got is necessary for more cpus, it can be moved
