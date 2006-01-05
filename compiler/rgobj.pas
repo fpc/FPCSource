@@ -122,6 +122,7 @@ unit rgobj;
 
       --------------------------------------------------------------------}
       trgobj=class
+        extend_live_range_backwards: boolean;
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 
@@ -358,6 +359,7 @@ unit rgobj;
          { empty super register sets can cause very strange problems }
          if high(Ausable)=0 then
            internalerror(200210181);
+         extend_live_range_backwards := false;
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
@@ -674,9 +676,18 @@ unit rgobj;
         if supreg>=first_imaginary then
           with reginfo[supreg] do
             begin
-              if not assigned(live_start) then
-                live_start:=instr;
-              live_end:=instr;
+              if not(extend_live_range_backwards) then
+                begin
+                  if not assigned(live_start) then
+                    live_start:=instr;
+                  live_end:=instr;
+                end
+               else
+                 begin
+                   live_start := instr;
+                   if not assigned(live_end) then
+                     live_end := instr;
+                 end
             end;
       end;
 
