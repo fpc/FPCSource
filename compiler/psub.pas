@@ -56,6 +56,7 @@ interface
         procedure parse_body;
 
         function stack_tainting_parameter : boolean;
+        function has_assembler_child : boolean;
       end;
 
 
@@ -629,6 +630,24 @@ implementation
       end;
 
 
+    function tcgprocinfo.has_assembler_child : boolean;
+      var
+        hp : tcgprocinfo;
+      begin
+        result:=false;
+        hp:=tcgprocinfo(nestedprocs.first);
+        while assigned(hp) do
+          begin
+            if (hp.flags*[pi_has_assembler_block,pi_is_assembler])<>[] then
+              begin
+                result:=true;
+                exit;
+              end;
+            hp:=tcgprocinfo(hp.next);
+          end;
+      end;
+
+
     procedure tcgprocinfo.generate_code;
       var
         oldprocinfo : tprocinfo;
@@ -728,7 +747,8 @@ implementation
                    calling generate_parameter_info doesn't hurt but it costs time
                  }
                  generate_parameter_info;
-                 if not(stack_tainting_parameter) then
+                 if not(stack_tainting_parameter) and
+                   not(has_assembler_child) then
                    begin
                      { Only need to set the framepointer }
                      framepointer:=NR_STACK_POINTER_REG;
