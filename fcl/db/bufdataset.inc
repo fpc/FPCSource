@@ -605,7 +605,10 @@ begin
       if FUpdateBuffer[r].UpdateKind = ukDelete then
         InternalGotoBookmark(@(FUpdateBuffer[r].RecordNo))
       else
-        SetRecNo(FUpdateBuffer[r].RecordNo);
+        begin
+        InternalGotoBookMark(@FUpdateBuffer[r].RecordNo);
+        Resync([rmExact,rmCenter]);
+        end;
       if ApplyRecUpdate(FUpdateBuffer[r].UpdateKind) then
         begin
         buffer := FBBuffers[FUpdateBuffer[r].RecordNo];
@@ -638,7 +641,11 @@ begin
     end;
   Refresh;
   if not GetDeleted(pbyte(FBBuffers[savebookmark])) then
-    SetRecNo(SaveBookMark);
+    begin
+    InternalGotoBookMark(@SaveBookMark);
+    Resync([rmExact,rmCenter]);
+    end;
+
 end;
 
 procedure TBufDataset.InternalPost;
