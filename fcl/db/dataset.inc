@@ -1773,7 +1773,9 @@ begin
   CheckbrowseMode;
   UpdateCursorPos;
   InternalRefresh;
-  SetCurrentRecord(FActiverecord);
+{ SetCurrentRecord is called by UpdateCursorPos already, so as long as
+  InternalRefresh doesn't do strange things this should be ok. }
+//  SetCurrentRecord(FActiverecord);
   Resync([]);
 end;
 
