@@ -139,9 +139,9 @@ unit rgobj;
         procedure getcpuregister(list:Taasmoutput;r:Tregister);virtual;
         procedure ungetcpuregister(list:Taasmoutput;r:Tregister);virtual;
         {# Get multiple registers specified.}
-        procedure alloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
+        procedure alloccpuregisters(list:Taasmoutput;const r:Tcpuregisterset);virtual;
         {# Free multiple registers specified.}
-        procedure dealloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
+        procedure dealloccpuregisters(list:Taasmoutput;const r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
         procedure add_reg_instruction(instr:Tai;r:tregister);
         procedure add_move_instruction(instr:Taicpu);
@@ -490,7 +490,7 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.alloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);
+    procedure trgobj.alloccpuregisters(list:Taasmoutput;const r:Tcpuregisterset);
 
     var i:Tsuperregister;
 
@@ -501,7 +501,7 @@ unit rgobj;
     end;
 
 
-    procedure trgobj.dealloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);
+    procedure trgobj.dealloccpuregisters(list:Taasmoutput;const r:Tcpuregisterset);
 
     var i:Tsuperregister;
 

@@ -91,9 +91,9 @@ unit cgobj;
           procedure getcpuregister(list:Taasmoutput;r:Tregister);virtual;
           procedure ungetcpuregister(list:Taasmoutput;r:Tregister);virtual;
           {# Get multiple registers specified.}
-          procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
+          procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
           {# Free multiple registers specified.}
-          procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
+          procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
 
           procedure allocallcpuregisters(list:Taasmoutput);virtual;
           procedure deallocallcpuregisters(list:Taasmoutput);virtual;
@@ -615,7 +615,7 @@ implementation
       end;
 
 
-    procedure tcg.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure tcg.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].alloccpuregisters(list,r)
@@ -636,7 +636,7 @@ implementation
       end;
 
 
-    procedure tcg.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure tcg.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].dealloccpuregisters(list,r)
