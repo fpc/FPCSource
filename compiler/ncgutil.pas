@@ -39,6 +39,23 @@ interface
     type
       tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
 
+      pusedregvars = ^tusedregvars;
+      tusedregvars = record
+        intregvars, fpuregvars, mmregvars: Tsuperregisterworklist;
+      end;
+
+{
+      Not used currently, implemented because I thought we had to
+      synchronise around if/then/else as well, but not needed. May
+      still be useful for SSA once we get around to implementing
+      that (JM)
+
+      pusedregvarscommon = ^tusedregvarscommon;
+      tusedregvarscommon = record
+        allregvars, commonregvars, myregvars: tusedregvars;
+      end;
+}
+
     procedure firstcomplex(p : tbinarynode);
     procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
@@ -73,6 +90,17 @@ interface
     procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
     procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
     procedure gen_load_vmt_register(list:taasmoutput;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
+
+    procedure get_used_regvars(n: tnode; var rv: tusedregvars);
+    { adds the regvars used in n and its children to rv.allregvars,
+      those which were already in rv.allregvars to rv.commonregvars and
+      uses rv.myregvars as scratch (so that two uses of the same regvar
+      in a single tree to make it appear in commonregvars). Useful to
+      find out which regvars are used in two different node trees
+      (e.g. in the "else" and "then" path, or in various case blocks }
+//    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
+    procedure gen_sync_regvars(list:TAAsmoutput; var rv: tusedregvars);
+
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -1267,18 +1295,6 @@ implementation
              sym. localloc.register:=cg.getmmregister(list,sym.localloc.size);
             end;
         end;
-        { Allocate register already, to prevent first allocation to be
-          inside a loop }
-{$ifndef cpu64bit}
-        if sym.localloc.size in [OS_64,OS_S64] then
-          begin
-            cg.a_reg_sync(list,sym.localloc.register64.reglo);
-            cg.a_reg_sync(list,sym.localloc.register64.reghi);
-          end
-        else
-{$endif cpu64bit}
-          cg.a_reg_sync(list,sym.localloc.register);
-
         if cs_asm_source in aktglobalswitches then
           begin
             case sym.localloc.loc of
@@ -2100,6 +2116,91 @@ implementation
       end;
 
 
+    function do_get_used_regvars(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        rv: pusedregvars absolute arg;
+      begin
+        if (n.nodetype = loadn) and
+           (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
+          with tabstractnormalvarsym(tloadnode(n).symtableentry).localloc do
+            case loc of
+              LOC_CREGISTER:
+{$ifndef cpu64bit}
+                if size in [OS_64,OS_S64] then
+                  begin
+                    rv^.intregvars.addnodup(getsupreg(register64.reglo));
+                    rv^.intregvars.addnodup(getsupreg(register64.reghi));
+                end
+              else
+{$endif cpu64bit}
+                rv^.intregvars.addnodup(getsupreg(register));
+              LOC_CFPUREGISTER:
+                rv^.fpuregvars.addnodup(getsupreg(register));
+              LOC_CMMREGISTER:
+                rv^.mmregvars.addnodup(getsupreg(register));
+            end;
+        result := fen_true;
+      end;
+
+
+    procedure get_used_regvars(n: tnode; var rv: tusedregvars);
+      begin
+        foreachnodestatic(n,@do_get_used_regvars,@rv);
+      end;
+
+{
+    See comments at declaration of pusedregvarscommon
+
+    function do_get_used_regvars_common(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        rv: pusedregvarscommon absolute arg;
+      begin
+        if (n.nodetype = loadn) and
+           (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
+          with tabstractnormalvarsym(tloadnode(n).symtableentry).localloc do
+            case loc of
+              LOC_CREGISTER:
+                  { if not yet encountered in this node tree }
+                if (rv^.myregvars.intregvars.addnodup(getsupreg(register))) and
+                  { but nevertheless already encountered somewhere }
+                   not(rv^.allregvars.intregvars.addnodup(getsupreg(register))) then
+                  { then it's a regvar used in two or more node trees }
+                  rv^.commonregvars.intregvars.addnodup(getsupreg(register));
+              LOC_CFPUREGISTER:
+                if (rv^.myregvars.intregvars.addnodup(getsupreg(register))) and
+                   not(rv^.allregvars.intregvars.addnodup(getsupreg(register))) then
+                  rv^.commonregvars.intregvars.addnodup(getsupreg(register));
+              LOC_CMMREGISTER:
+                if (rv^.myregvars.intregvars.addnodup(getsupreg(register))) and
+                   not(rv^.allregvars.intregvars.addnodup(getsupreg(register))) then
+                  rv^.commonregvars.intregvars.addnodup(getsupreg(register));
+            end;
+        result := fen_true;
+      end;
+
+
+    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
+      begin
+        rv.myregvars.intregvars.clear;
+        rv.myregvars.fpuregvars.clear;
+        rv.myregvars.mmregvars.clear;
+        foreachnodestatic(n,@do_get_used_regvars_common,@rv);
+      end;
+}
+
+    procedure gen_sync_regvars(list:TAAsmoutput; var rv: tusedregvars);
+      var
+        count: longint;
+      begin
+        for count := 1 to rv.intregvars.length do
+          cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.get,R_SUBWHOLE));
+        for count := 1 to rv.fpuregvars.length do
+          cg.a_reg_sync(list,newreg(R_FPUREGISTER,rv.fpuregvars.get,R_SUBWHOLE));
+        for count := 1 to rv.mmregvars.length do
+          cg.a_reg_sync(list,newreg(R_MMREGISTER,rv.mmregvars.get,R_SUBWHOLE));
+      end;
+
+
     procedure gen_free_symtable(list:TAAsmoutput;st:tsymtable);
       var
         sym : tsym;
@@ -2115,19 +2216,6 @@ implementation
                       for the sub procedures that can access local data
                       in the parent procedures }
                     case localloc.loc of
-                      LOC_CREGISTER :
-{$ifndef cpu64bit}
-                        if def_cgsize(vartype.def) in [OS_64,OS_S64] then
-                          begin
-                            cg.a_reg_sync(list,localloc.register64.reglo);
-                            cg.a_reg_sync(list,localloc.register64.reghi);
-                          end
-                        else
-{$endif cpu64bit}
-                          cg.a_reg_sync(list,localloc.register);
-                      LOC_CFPUREGISTER,
-                      LOC_CMMREGISTER:
-                        cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
                           case st.symtabletype of

@@ -106,6 +106,7 @@ implementation
          oldclabel,oldblabel : tasmlabel;
          otlabel,oflabel : tasmlabel;
          oldflowcontrol : tflowcontrol;
+         usedregvars: tusedregvars;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -157,6 +158,23 @@ implementation
 
          maketojumpbool(exprasmlist,left,lr_load_regvars);
          cg.a_label(exprasmlist,lbreak);
+
+         if (cs_regvars in aktglobalswitches) then
+           begin
+             usedregvars.intregvars.init;
+             usedregvars.fpuregvars.init;
+             usedregvars.mmregvars.init;
+
+             { we have to synchronise both the regvars used in the loop and }
+             { and the ones in the while/until condition                    }
+             get_used_regvars(self,usedregvars);
+             gen_sync_regvars(exprasmlist,usedregvars);
+
+             usedregvars.intregvars.done;
+             usedregvars.fpuregvars.done;
+             usedregvars.mmregvars.done;
+           end;
+
          truelabel:=otlabel;
          falselabel:=oflabel;
 
@@ -338,6 +356,7 @@ implementation
          count_var_is_signed,do_loopvar_at_end : boolean;
          cmp_const:Tconstexprint;
          oldflowcontrol : tflowcontrol;
+         usedregvars: tusedregvars;
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -675,6 +694,31 @@ implementation
 
          { this is the break label: }
          cg.a_label(exprasmlist,aktbreaklabel);
+
+         if (cs_regvars in aktglobalswitches) then
+           begin
+             usedregvars.intregvars.init;
+             usedregvars.fpuregvars.init;
+             usedregvars.mmregvars.init;
+
+             { We have to synchronise the loop variable and loop body. The  }
+             { loop end is not necessary, unless it's a register variable.  }
+             { The start value also doesn't matter                          }
+
+             { loop var }
+             get_used_regvars(right,usedregvars);
+             { loop body }
+             get_used_regvars(t2,usedregvars);
+             { end value if necessary }
+             if (t1.location.loc = LOC_CREGISTER) then
+               get_used_regvars(t1,usedregvars);
+
+             gen_sync_regvars(exprasmlist,usedregvars);
+
+             usedregvars.intregvars.done;
+             usedregvars.fpuregvars.done;
+             usedregvars.mmregvars.done;
+           end;
 
          aktcontinuelabel:=oldclabel;
          aktbreaklabel:=oldblabel;

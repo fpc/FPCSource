@@ -224,6 +224,7 @@ interface
         destructor  done;
         procedure clear;
         procedure add(s:tsuperregister);
+        function addnodup(s:tsuperregister): boolean;
         function get:tsuperregister;
         procedure deleteidx(i:word);
         function delete(s:tsuperregister):boolean;
@@ -372,6 +373,18 @@ implementation
           reallocmem(buf,buflength*sizeof(Tsuperregister));
         end;
       buf^[length-1]:=s;
+    end;
+
+
+    function tsuperregisterworklist.addnodup(s:tsuperregister): boolean;
+
+    begin
+      addnodup := false;
+      if indexword(buf^,length,s) = -1 then
+        begin
+          add(s);
+          addnodup := true;
+        end;
     end;
 
 
