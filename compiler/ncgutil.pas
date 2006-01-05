@@ -2118,6 +2118,9 @@ implementation
                         else
 {$endif cpu64bit}
                           cg.a_reg_sync(list,localloc.register);
+                      LOC_CFPUREGISTER,
+                      LOC_CMMREGISTER:
+                        cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
                           case st.symtabletype of
