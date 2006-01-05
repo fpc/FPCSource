@@ -1953,7 +1953,7 @@ implementation
           if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
               hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
-              { Allocate register so the optimizer does remove the load }
+              { Allocate register so the optimizer does not remove the load }
               a_reg_alloc(list,hreg);
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,hreg);
               inc(href.offset,sizeof(aint));
