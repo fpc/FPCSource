@@ -110,7 +110,9 @@ implementation
         calln:
           begin
             { not in one statement, won't work because of b- }
+            result := foreachnode(tcallnode(n).methodpointerinit,f,arg) or result;
             result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
+            result := foreachnode(tcallnode(n).methodpointerdone,f,arg) or result;
           end;
         ifn, whilerepeatn, forn:
           begin
@@ -148,7 +150,9 @@ implementation
         case n.nodetype of
           calln:
             begin
+              result := foreachnodestatic(procmethod,tcallnode(n).methodpointerinit,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
+              result := foreachnodestatic(procmethod,tcallnode(n).methodpointerdone,f,arg) or result;
             end;
           ifn, whilerepeatn, forn:
             begin
