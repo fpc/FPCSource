@@ -593,6 +593,7 @@ var SaveBookmark : Integer;
 
 begin
   CheckBrowseMode;
+  if IsEmpty then exit;
   SaveBookMark := GetRecNo;
 
   r := 0;
@@ -639,7 +640,6 @@ begin
       end;
     inc(r);
     end;
-  Refresh;
   if not GetDeleted(pbyte(FBBuffers[savebookmark])) then
     begin
     InternalGotoBookMark(@SaveBookMark);
