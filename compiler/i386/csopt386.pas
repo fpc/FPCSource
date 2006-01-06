@@ -832,7 +832,7 @@ begin
 end;
 
 
-procedure ClearRegContentsFrom(supreg: tsuperregister; p, endP: tai);
+procedure ClearRegContentsFrom(asml: taasmoutput; supreg: tsuperregister; p, endP: tai);
 { first clears the contents of reg from p till endP. then the contents are }
 { cleared until the first instruction that changes reg                     }
 var
@@ -847,11 +847,7 @@ begin
   l := random(1000);
   hp := tai_comment.Create(strpnew(
           'cleared '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' from here... '+tostr(l)));
-  hp.next := p;
-  hp.previous := p.previous;
-  p.previous := hp;
-  if assigned(hp.previous) then
-    hp.previous.next := hp;
+  insertllitem(asml,p.previous,p,hp);
 {$endif replaceregdebug}
   ptaiprop(p.optinfo)^.Regs[supreg].typ := con_unknown;
   while (p <> endP) do
@@ -882,16 +878,12 @@ begin
     begin
       hp := tai_comment.Create(strpnew(
         'cleared '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' till here... '+tostr(l)));
-      hp.next := p;
-      hp.previous := p.previous;
-      p.previous := hp;
-      if assigned(hp.previous) then
-        hp.previous.next := hp;
+      insertllitem(asml,p.previous,p,hp);
     end;
 {$endif replaceregdebug}
 end;
 
-procedure RestoreRegContentsTo(supreg: tsuperregister; const c: TContent; p, endP: tai);
+procedure RestoreRegContentsTo(asml: taasmoutput; supreg: tsuperregister; const c: TContent; p, endP: tai);
 var
 {$ifdef replaceregdebug}
   l: longint;
@@ -907,11 +899,7 @@ begin
   l := random(1000);
   hp := tai_comment.Create(strpnew(
           'restored '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' with data from here... '+tostr(l)));
-  hp.next := p;
-  hp.previous := p.previous;
-  p.previous := hp;
-  if assigned(hp.previous) then
-    hp.previous.next := hp;
+  insertllitem(asml,p.previous,p,hp);
 {$endif replaceregdebug}
 {  ptaiprop(p.optinfo)^.Regs[reg] := c;}
   newrstate := c.rstate;
@@ -957,7 +945,7 @@ begin
     if ((p.typ = ait_label) or
        memconflict or
        invalsmemwrite) then
-      clearRegContentsFrom(supreg,p,p)
+      clearRegContentsFrom(asml,supreg,p,p)
     else if (ptaiprop(p.optinfo)^.Regs[supreg].rstate = newrstate) then
       incstate(ptaiprop(p.optinfo)^.Regs[supreg].rstate,20);
 {$ifdef replaceregdebug}
@@ -965,11 +953,7 @@ begin
     begin
       hp := tai_comment.Create(strpnew(
         'restored '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+' till here... '+tostr(l)));
-      hp.next := p;
-      hp.previous := p.previous;
-      p.previous := hp;
-      if assigned(hp.previous) then
-        hp.previous.next := hp;
+     insertllitem(asml,p,p.next,hp);
     end;
 {$endif replaceregdebug}
 end;
@@ -1360,8 +1344,9 @@ begin
       resnewregmodified := newregmodified;
       resorgregread := orgregread;
       resremovelast := removelast;
-      returnendp := endp;
     end;
+  { needed for replaceregdebug code }
+  returnendp := endp;
 end;
 
 
@@ -1380,29 +1365,24 @@ var
   endP, hp: tai;
   removeLast, sequenceEnd, newRegModified, orgRegRead,
     stateChanged, readStateChanged: Boolean;
+{$ifdef replaceregdebug}
+  l: longint;
+{$endif replaceregdebug}
 
 begin
   replacereg := false;
   if canreplacereg(orgsupreg,newsupreg,p,orgregcanbemodified,newregmodified, orgregread, removelast,endp) then
     begin
 {$ifdef replaceregdebug}
+      l := random(1000);
       hp := tai_comment.Create(strpnew(
         'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
-        ' from here...'));
-      hp.next := p;
-      hp.previous := p.previous;
-      p.previous := hp;
-      if assigned(hp.previous) then
-        hp.previous.next := hp;
-
+        ' from here... '+tostr(l)));
+      insertllitem(asml,p.previous,p,hp);
       hp := tai_comment.Create(strpnew(
         'replaced '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
-        ' till here'));
-      hp.next := endp.next;
-      hp.previous := endp;
-      endp.next := hp;
-      if assigned(hp.next) then
-        hp.next.previous := hp;
+        ' till here ' + tostr(l)));
+      insertllitem(asml,endp,endp.next,hp);
 {$endif replaceregdebug}
       replaceReg := true;
       returnEndP := endP;
@@ -1435,14 +1415,14 @@ begin
          RegLoadedWithNewValue(newsupreg,true,endP) then
         GetLastInstruction(endP,hp)
       else hp := endP;
-      RestoreRegContentsTo(newsupreg,c,seqstart,hp);
+      RestoreRegContentsTo(asml,newsupreg,c,seqstart,hp);
 
 { Ot is possible that the new register was modified (e.g. an add/sub), so if  }
 { it was replaced by oldreg in that instruction, oldreg's contents have been  }
 { changed. To take this into account, we simply set the contents of orgsupreg }
 { to "unknown" after this sequence                                            }
       if newRegModified then
-        ClearRegContentsFrom(orgsupreg,p,hp);
+        ClearRegContentsFrom(asml,orgsupreg,p,hp);
       if removeLast then
         ptaiprop(endp.optinfo)^.canBeRemoved := true;
       allocRegBetween(asml,newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE),p,endP,ptaiprop(p.optinfo)^.usedregs);
@@ -1451,24 +1431,16 @@ begin
 {$ifdef replaceregdebug}
      else
        begin
+         l := random(1000);
          hp := tai_comment.Create(strpnew(
            'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
-           ' from here...'));
-         hp.previous := p.previous;
-         hp.next := p;
-         p.previous := hp;
-        if assigned(hp.previous) then
-          hp.previous.next := hp;
-
-      hp := tai_comment.Create(strpnew(
-        'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
-        ' failed here'));
-      hp.next := endp.next;
-      hp.previous := endp;
-      endp.next := hp;
-      if assigned(hp.next) then
-        hp.next.previous := hp;
-       end;
+           ' from here... '+ tostr(l)));
+         insertllitem(asml,p.previous,p,hp);
+        hp := tai_comment.Create(strpnew(
+          'replacing '+std_regname(newreg(R_INTREGISTER,newsupreg,R_SUBWHOLE))+' with '+std_regname(newreg(R_INTREGISTER,orgsupreg,R_SUBWHOLE))+
+          ' failed here ' + tostr(l)));
+        insertllitem(asml,endp,endp.next,hp);
+      end;
 {$endif replaceregdebug}
 end;
 
@@ -1510,7 +1482,7 @@ begin
 end;
 
 
-procedure removePrevNotUsedLoad(p: tai; supreg: tsuperregister; check: boolean);
+procedure removePrevNotUsedLoad(asml: taasmoutput; p: tai; supreg: tsuperregister; check: boolean);
 { if check = true, it means the procedure has to check whether it isn't  }
 { possible that the contents are still used after p (used when removing  }
 { instructions because of a "call"), otherwise this is not necessary     }
@@ -1534,10 +1506,10 @@ begin
           { give the register that was modified by this instruction again }
           { the contents it had before this instruction                   }
           if getlastinstruction(startmod,beforestartmod) then
-            RestoreRegContentsTo(supreg,ptaiprop(beforestartmod.optinfo)^.regs[supreg],
+            RestoreRegContentsTo(asml,supreg,ptaiprop(beforestartmod.optinfo)^.regs[supreg],
              startmod,hp1)
           else
-            ClearRegContentsFrom(supreg,startmod,hp1);
+            ClearRegContentsFrom(asml,supreg,startmod,hp1);
         end;
 end;
 
@@ -1681,7 +1653,7 @@ begin
               getLastInstruction(reginfo.lastReload[reginfo.new2OldReg[regCounter]],hp)
             else
               hp := curprev;
-            clearRegContentsFrom(regCounter,prevSeq_next,hp);
+            clearRegContentsFrom(asml,regCounter,prevSeq_next,hp);
             getnextInstruction(hp,hp);
             allocRegBetween(asml,newreg(R_INTREGISTER,regCounter,R_SUBWHOLE),prevseqstart,hp,
               ptaiprop(prevseqstart.optinfo)^.usedregs);
@@ -1771,7 +1743,7 @@ begin
             for i := 1 to pred(cnt) do
               getNextInstruction(hp,hp);
             { curprev = instruction prior to start of sequence }
-            restoreRegContentsTo(regCounter,
+            restoreRegContentsTo(asml,regCounter,
               ptaiprop(curprev.optinfo)^.Regs[regcounter],
               curseqstart,hp);
           end;
@@ -1831,7 +1803,7 @@ begin
      released before the call
               A_CALL:
                 for regCounter := RS_EAX to RS_EBX do
-                  removePrevNotUsedLoad(p,regCounter,true);
+                  removePrevNotUsedLoad(asml,p,regCounter,true);
 }
               A_CLD: if GetLastInstruction(p, hp1) and
                         (ptaiprop(hp1.optinfo)^.DirFlag = F_NotSet) then
@@ -1939,7 +1911,7 @@ begin
                           begin
                              if (taicpu(p).oper[1]^.typ = top_reg) and
                                 not regInOp(getsupreg(taicpu(p).oper[1]^.reg),taicpu(p).oper[0]^) then
-                               removePrevNotUsedLoad(p,getsupreg(taicpu(p).oper[1]^.reg),false);
+                               removePrevNotUsedLoad(asml,p,getsupreg(taicpu(p).oper[1]^.reg),false);
                              if doSubOpts and
                                 (taicpu(p).opcode <> A_LEA) and
                                 (taicpu(p).oper[0]^.typ = top_ref) then
@@ -1992,7 +1964,7 @@ begin
                                         ptaiprop(startmod.optinfo)^.usedregs);
                                     end
                                   else
-                                    removePrevNotUsedLoad(p,getsupreg(taicpu(p).oper[1]^.reg),false);
+                                    removePrevNotUsedLoad(asml,p,getsupreg(taicpu(p).oper[1]^.reg),false);
 
                             end;
                           Top_Ref:
@@ -2071,7 +2043,7 @@ begin
                                   replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next),ptaiprop(hp5.optinfo)^.usedregs);
-                                  ClearRegContentsFrom(regcounter,hp5,p);
+                                  ClearRegContentsFrom(asml,regcounter,hp5,p);
                                 end;
                             end;
                         Ch_ROp2:
@@ -2124,7 +2096,7 @@ begin
                                   replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,
                                     tai(p.next.next),ptaiprop(hp5.optinfo)^.usedregs);
-                                  ClearRegContentsFrom(regcounter,hp5,p);
+                                  ClearRegContentsFrom(asml,regcounter,hp5,p);
                                 end;
                             end;
                       end;
