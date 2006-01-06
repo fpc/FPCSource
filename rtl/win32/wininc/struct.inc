@@ -1894,10 +1894,10 @@
      DLGITEMTEMPLATE = packed record
           style : DWORD;
           dwExtendedStyle : DWORD;
-          x : integer;
-          y : integer;
-          cx : integer;
-          cy : integer;
+          x : smallint;
+          y : smallint;
+          cx : smallint;
+          cy : smallint;
           id : WORD;
        end;
      LPDLGITEMTEMPLATE = ^DLGITEMTEMPLATE;
@@ -1908,10 +1908,10 @@
           style : DWORD;
           dwExtendedStyle : DWORD;
           cdit : WORD;
-          x : integer;
-          y : integer;
-          cx : integer;
-          cy : integer;
+          x : smallint;
+          y : smallint;
+          cx : smallint;
+          cy : smallint;
        end;
      LPDLGTEMPLATE = ^DLGTEMPLATE;
      LPCDLGTEMPLATE = ^DLGTEMPLATE;
