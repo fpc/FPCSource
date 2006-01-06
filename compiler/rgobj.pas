@@ -122,7 +122,6 @@ unit rgobj;
 
       --------------------------------------------------------------------}
       trgobj=class
-        extend_live_range_backwards: boolean;
         preserved_by_proc : tcpuregisterset;
         used_in_proc : tcpuregisterset;
 
@@ -171,6 +170,7 @@ unit rgobj;
                                       const r:Tsuperregisterset;
                                       const spilltemplist:Tspill_temp_list): boolean;virtual;
       private
+        do_extend_live_range_backwards: boolean;
         {# First imaginary register.}
         first_imaginary   : Tsuperregister;
         {# Highest register allocated until now.}
@@ -192,6 +192,9 @@ unit rgobj;
         frozen_moves,
         coalesced_moves,
         constrained_moves : Tlinkedlist;
+        extended_backwards,
+        backwards_was_first : tsuperregisterset;
+
 {$ifdef EXTDEBUG}
         procedure writegraph(loopidx:longint);
 {$endif EXTDEBUG}
@@ -228,6 +231,9 @@ unit rgobj;
         procedure select_spill;
         procedure assign_colours;
         procedure clear_interferences(u:Tsuperregister);
+        procedure set_live_range_backwards(b: boolean);
+       public
+        property extend_live_range_backwards: boolean read do_extend_live_range_backwards write set_live_range_backwards;
       end;
 
     const
@@ -664,6 +670,20 @@ unit rgobj;
     end;
 
 
+    procedure trgobj.set_live_range_backwards(b: boolean);
+      begin
+        if (b) then
+          begin
+            { new registers may be allocated }
+            supregset_reset(extended_backwards,false,high(tsuperregister));
+            supregset_reset(backwards_was_first,false,high(tsuperregister));
+            do_extend_live_range_backwards := true;
+          end
+        else
+          do_extend_live_range_backwards := false;
+      end;
+
+
     procedure trgobj.add_reg_instruction(instr:Tai;r:tregister);
       var
         supreg : tsuperregister;
@@ -684,9 +704,21 @@ unit rgobj;
                 end
                else
                  begin
-                   live_start := instr;
-                   if not assigned(live_end) then
-                     live_end := instr;
+                   if not supregset_in(extended_backwards,supreg) then
+                     begin
+                       supregset_include(extended_backwards,supreg);
+                       live_start := instr;
+                       if not assigned(live_end) then
+                         begin
+                           supregset_include(backwards_was_first,supreg);
+                           live_end := instr;
+                         end;
+                     end
+                   else
+                     begin
+                       if supregset_in(backwards_was_first,supreg) then
+                         live_end := instr;
+                     end
                  end
             end;
       end;
