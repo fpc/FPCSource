@@ -61,6 +61,11 @@ interface
          sec_debug_frame,
          { ELF resources }
          sec_fpc
+         {$IFDEF POWERPC64}
+         ,
+         { PPC64/Linux Table of contents section }
+         sec_toc
+         {$ENDIF POWERPC64}
        );
 
        TAsmSectionOption = (aso_alloconly,aso_executable);
@@ -589,6 +594,9 @@ implementation
           'eh_frame',
           'debug_frame',
           'fpc'
+          {$IFDEF POWERPC64}
+          , 'toc'
+          {$ENDIF POWERPC64}
         );
       begin
         if aname<>'' then
