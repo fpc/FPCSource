@@ -356,12 +356,31 @@ implementation
 
 
     procedure insertmemorysizes;
+{$IFDEF POWERPC}
+      var
+        stkcookie: string;
+{$ENDIF POWERPC}
       begin
         { stacksize can be specified and is now simulated }
         maybe_new_object_file(asmlist[al_globals]);
         new_section(asmlist[al_globals],sec_data,'__stklen', sizeof(aint));
         asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
         asmlist[al_globals].concat(Tai_const.Create_aint(stacksize));
+{$IFDEF POWERPC} 
+        { AmigaOS4 "stack cookie" support }
+        if ( target_info.system = system_powerpc_amiga ) then
+         begin
+           { this symbol is needed to ignite powerpc amigaos' }
+           { stack allocation magic for us with the given stack size. }
+           { note: won't work for m68k amigaos or morphos. (KB) }
+           str(stacksize,stkcookie);
+           stkcookie:='$STACK: '+stkcookie+#0;
+           maybe_new_object_file(asmlist[al_globals]);
+           new_section(asmlist[al_globals],sec_data,'__stack_cookie',length(stkcookie));
+           asmlist[al_globals].concat(Tai_symbol.Createname_global('__stack_cookie',AT_DATA,length(stkcookie)));
+           asmlist[al_globals].concat(Tai_string.Create(stkcookie));
+         end;
+{$ENDIF POWERPC}
         { Initial heapsize }
         maybe_new_object_file(asmlist[al_globals]);
         new_section(asmlist[al_globals],sec_data,'__heapsize',sizeof(aint));
