@@ -94,7 +94,7 @@ unit i_amiga;
           (
             system       : system_powerpc_Amiga;
             name         : 'AmigaOS for PowerPC';
-            shortname    : 'amigappc';
+            shortname    : 'amiga';
             flags        : [];
             cpu          : cpu_powerpc;
             unit_env     : '';
@@ -163,7 +163,7 @@ initialization
 {$endif CPU68}
 {$ifdef CPUPOWERPC}
   {$ifdef AMIGA}
-//    set_source_info(system_powerpc_Amiga_info);
+    set_source_info(system_powerpc_Amiga_info);
   {$endif AMIGA}
 {$endif CPUPOWERPC}
 end.

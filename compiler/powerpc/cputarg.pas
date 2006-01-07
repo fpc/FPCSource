@@ -47,6 +47,9 @@ implementation
     {$ifndef NOTARGETMORPHOS}
       ,t_morph
     {$endif}
+    {$ifndef NOTARGETAMIGA}
+      ,t_amiga
+    {$endif}
 
 {**************************************
              Assemblers

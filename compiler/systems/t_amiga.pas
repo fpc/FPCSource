@@ -1,7 +1,7 @@
 {
     Copyright (c) 2001-2002 by Peter Vreman
 
-    This unit implements support import,export,link routines
+    This unit implements support import, export, link routines
     for the (m68k/powerpc) Amiga target
 
     This program is free software; you can redistribute it and/or modify
@@ -39,5 +39,10 @@ implementation
 *****************************************************************************}
 
 initialization
-  RegisterTarget(system_m68k_amiga_info);
+{$ifdef m68k}
+  RegisterTarget(system_m68k_Amiga_info);
+{$endif m68k}
+{$ifdef powerpc}
+  RegisterTarget(system_powerpc_Amiga_info);
+{$endif powerpc}
 end.
