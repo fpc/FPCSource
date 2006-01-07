@@ -307,6 +307,8 @@ begin
         end;
       if switchLast then
         begin
+          lastreg1 := hp;
+          lastreg2 := hp;
           { this is in case of a storeback, make sure the same size of register }
           { contents as the initial move is transfered                          }
           doSwitchReg(taicpu(hp),reg1,reg2);
