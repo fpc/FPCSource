@@ -706,7 +706,8 @@ unit cgx86;
             instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
             { Notify the register allocator that we have written a move instruction so
               it can try to eliminate it. }
-            add_move_instruction(instr);
+            if reg1<>NR_ESP then
+              add_move_instruction(instr);
             list.concat(instr);
           end;
 {$ifdef x86_64}
@@ -1844,7 +1845,6 @@ unit cgx86;
               CGmessage(cg_d_stackframe_omited)
             else
               begin
-
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
