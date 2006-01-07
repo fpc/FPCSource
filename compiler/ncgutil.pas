@@ -1183,9 +1183,6 @@ implementation
                       if getsupreg(resloc.register64.reglo)<first_int_imreg then
                         begin
                           cg.getcpuregister(list,resloc.register64.reglo);
-                          cg.ungetcpuregister(list,resloc.register64.reglo);
-                          { for the optimizer }
-                          cg.a_reg_alloc(list,resloc.register64.reglo);
                         end;
                       case restmploc.loc of
                         LOC_REFERENCE :
@@ -1203,9 +1200,6 @@ implementation
                       if getsupreg(resloc.register64.reghi)<first_int_imreg then
                         begin
                           cg.getcpuregister(list,resloc.register64.reghi);
-                          cg.ungetcpuregister(list,resloc.register64.reghi);
-                          { for the optimizer }
-                          cg.a_reg_alloc(list,resloc.register64.reghi);
                         end;
                       case restmploc.loc of
                         LOC_REFERENCE :
@@ -1228,9 +1222,6 @@ implementation
                       if getsupreg(funcretloc.register)<first_int_imreg then
                         begin
                           cg.getcpuregister(list,funcretloc.register);
-                          cg.ungetcpuregister(list,hreg);
-                          { for the optimizer }
-                          cg.a_reg_alloc(list,funcretloc.register);
                         end;
                       { it could be that a structure is passed in memory but the function is expected to
                         return a pointer to this memory }
@@ -1245,7 +1236,6 @@ implementation
                   if getsupreg(funcretloc.register)<first_fpu_imreg then
                     begin
                       cg.getcpuregister(list,funcretloc.register);
-                      cg.ungetcpuregister(list,funcretloc.register);
                     end;
                   { we can't do direct moves between fpu and mm registers }
                   if restmploc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
@@ -1257,7 +1247,6 @@ implementation
                   if getsupreg(funcretloc.register)<first_mm_imreg then
                     begin
                       cg.getcpuregister(list,funcretloc.register);
-                      cg.ungetcpuregister(list,funcretloc.register);
                     end;
                   cg.a_loadmm_loc_reg(list,restmploc.size,restmploc,funcretloc.register,mms_movescalar);
                 end;
