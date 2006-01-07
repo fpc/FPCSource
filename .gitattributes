@@ -3580,6 +3580,7 @@ rtl/amiga/crt.pp svneol=native#text/plain
 rtl/amiga/dos.pp svneol=native#text/plain
 rtl/amiga/m68k/prt0.as -text
 rtl/amiga/os.inc svneol=native#text/plain
+rtl/amiga/powerpc/prt0.as -text
 rtl/amiga/printer.pp svneol=native#text/plain
 rtl/amiga/readme -text
 rtl/arm/arm.inc svneol=native#text/plain
