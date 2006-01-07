@@ -1186,7 +1186,7 @@ begin
   insertllitem(asml,p1.previous,p1,hp);
   hp := tai_comment.Create(strpnew('allocated '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+
     ' till here...'));
-  insertllitem(asml,p2,p1.next,hp);
+  insertllitem(asml,p2,p2.next,hp);
 {$endif allocregdebug}
   if not(supreg in initialusedregs) then
     begin
