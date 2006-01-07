@@ -68,6 +68,8 @@ unit cgobj;
           procedure init_register_allocators;virtual;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;virtual;
+          {# Set whether live_start or live_end should be updated when allocating registers, needed when e.g. generating initcode after the rest of the code. }
+          procedure set_regalloc_extend_backwards(b: boolean);
 
        {$ifdef flowgraph}
           procedure init_flowgraph;
@@ -657,6 +659,18 @@ implementation
           rg[rt].add_move_instruction(instr)
         else
           internalerror(200310095);
+      end;
+
+
+    procedure tcg.set_regalloc_extend_backwards(b: boolean);
+      var
+        rt : tregistertype;
+      begin
+        for rt:=low(rg) to high(rg) do
+          begin
+            if assigned(rg[rt]) then
+              rg[rt].extend_live_range_backwards := b;;
+          end;
       end;
 
 

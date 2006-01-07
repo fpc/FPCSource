@@ -722,6 +722,9 @@ implementation
               position and switches }
             aktfilepos:=entrypos;
             aktlocalswitches:=entryswitches;
+
+            cg.set_regalloc_extend_backwards(true);
+
             gen_entry_code(templist);
             aktproccode.insertlistafter(entry_asmnode.currenttai,templist);
             gen_initialize_code(templist);
@@ -731,6 +734,9 @@ implementation
               and switches }
             aktfilepos:=exitpos;
             aktlocalswitches:=exitswitches;
+
+            cg.set_regalloc_extend_backwards(false);
+
             gen_finalize_code(templist);
             { the finalcode must be concated if there was no position available,
               using insertlistafter will result in an insert at the start
@@ -791,6 +797,13 @@ implementation
                 gen_stack_check_call(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
+
+{
+        reactivate in case got patch is merged back as well
+            cg.set_regalloc_extend_backwards(true);
+            gen_load_got();
+            cg.set_regalloc_extend_backwards(false);
+}
 
             { The procedure body is finished, we can now
               allocate the registers }
