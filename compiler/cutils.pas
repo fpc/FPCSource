@@ -149,10 +149,10 @@ uses
       return the minimal of a and b
     }
       begin
-         if a>b then
-           min:=b
+         if a<=b then
+           min:=a
          else
-           min:=a;
+           min:=b;
       end;
 
 
@@ -161,10 +161,10 @@ uses
       return the minimal of a and b
     }
       begin
-         if a>b then
-           min:=b
+         if a<=b then
+           min:=a
          else
-           min:=a;
+           min:=b;
       end;
 
 
@@ -173,10 +173,10 @@ uses
       return the maximum of a and b
     }
       begin
-         if a<b then
-           max:=b
+         if a>=b then
+           max:=a
          else
-           max:=a;
+           max:=b;
       end;
 
 
@@ -185,10 +185,10 @@ uses
       return the maximum of a and b
     }
       begin
-         if a<b then
-           max:=b
+         if a>=b then
+           max:=a
          else
-           max:=a;
+           max:=b;
       end;
 
 
