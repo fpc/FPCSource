@@ -56,6 +56,7 @@ const   result_success=0;
         result_stat_error=2;
         result_chown_error=3;
         result_chmod_error=4;
+        result_not_owner_error=5;
 
 var thistty:string;
     vcs,vcsa:string;
@@ -74,6 +75,8 @@ begin
           {We are running on the Linux console}
           if fpstat(thistty,ttystat)<>0 then
             halt(result_stat_error);
+          if ttystat.uid<>fpgetuid then
+            halt(result_not_owner_error);
           vcs:='/dev/vcs'+copy(thistty,9,255);
           vcsa:='/dev/vcsa'+copy(thistty,9,255);
           
