@@ -2157,7 +2157,10 @@ const
              else if (ref.index = NR_NO) then
                ref.index := tmpreg
              else
-               list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.base,tmpreg));
+               begin
+                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+                 ref.base := tmpreg;
+               end;
              ref.symbol := nil;
            end;
 
