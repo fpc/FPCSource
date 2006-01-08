@@ -60,7 +60,9 @@ interface
          { dwarf }
          sec_debug_frame,
          { ELF resources }
-         sec_fpc
+         sec_fpc,
+         { Table of contents section }
+         sec_toc
        );
 
        TAsmSectionOption = (aso_alloconly,aso_executable);
@@ -588,7 +590,8 @@ implementation
           'idata2','idata4','idata5','idata6','idata7','edata',
           'eh_frame',
           'debug_frame',
-          'fpc'
+          'fpc',
+          'toc'
         );
       begin
         if aname<>'' then

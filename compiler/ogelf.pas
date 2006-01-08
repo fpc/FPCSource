@@ -356,7 +356,8 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame',
-          'fpc'
+          'fpc',
+		  ''
         );
       begin
         if (use_smartlink_section and

@@ -363,7 +363,8 @@ interface
           '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
           '.eh_frame',
           '.debug_frame',
-          '.fpc'
+          '.fpc',
+		  ''
         );
       begin
         AsmLn;

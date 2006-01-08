@@ -56,7 +56,7 @@ unit parabase;
              E.g. the value $5544433 is passed in bits 40-63 of the register (others are zero),
              but they should actually be stored in the first bits of the stack location reserved
              for this value. So they have to be shifted left by this amount of bits before. }
-             {$IFDEF CPUPOWERPC64}shiftval : byte;{$ENDIF CPUPOWERPC64}
+             {$IFDEF POWERPC64}shiftval : byte;{$ENDIF POWERPC64}
              register : tregister);
        end;
 
