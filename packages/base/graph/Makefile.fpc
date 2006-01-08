@@ -55,9 +55,12 @@ GRAPHUNIT_DIR=$(OS_TARGET)
 
 ifeq ($(OS_TARGET),linux)
 GRAPHUNIT_DIR=unix
+UNIXINCDEPS=$(UNIXINC)/graph16.inc
+
 ifeq ($(CPU_TARGET),powerpc64)
 GGIGRAPH_UNIT=
 endif
+
 ifneq ($(CPU_TARGET),i386)
 GRAPH_UNIT=
 endif
@@ -65,13 +68,14 @@ endif
 
 ifeq ($(OS_TARGET),freebsd)
 GRAPHUNIT_DIR=unix
+UNIXINCDEPS=$(UNIXINC)/graph16.inc
 endif
 
 [rules]
 include inc/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
+GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES)) $(UNIXINCDEPS)
 
-graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
+graph$(PPUEXT) : graph.pp $(GRAPHINCDEPS)
         $(COMPILER) -I$(GRAPHDIR) $(GRAPHUNIT_DIR)/graph.pp
 
 ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp $(GRAPHINCDEPS)
