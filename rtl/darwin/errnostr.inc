@@ -110,7 +110,7 @@ const
         // Intelligent device errors
         'Device power is off',                                   { EPWROFF }
         'Device error, e.g. paper out',                      { EDEVERR }
-        'Value too large to be stored in data type'   { EOVERFLOW }
+        'Value too large to be stored in data type',   { EOVERFLOW }
 // Program loading errors
         'Bad executable',                                         { EBADEXEC }
         'Bad CPU type in executable',                      { EBADARCH }
