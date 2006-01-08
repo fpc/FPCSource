@@ -1987,6 +1987,12 @@ ifeq ($(FPC_VERSION),1.0.6)
 override FPCOPTDEF+=HASUNIX
 endif
 endif
+ifdef CREATESHARED
+override FPCOPT+=-Cg
+ifeq ($(CPU_TARGET),i386)
+override FPCOPT+=-Aas
+endif
+endif
 ifdef OPT
 override FPCOPT+=$(OPT)
 endif
@@ -2113,8 +2119,8 @@ SHARED_LIBUNITS:=$(TARGET_UNITS)
 endif
 fpc_shared:
 ifdef HASSHAREDLIB
-	$(MAKE) all $(SHAREDOPTS)
-	$(PPUMOVE) $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME)
+	$(MAKE) all CREATESHARED=1 LINKSMART=1 CREATESMART=1
+	$(PPUMOVE) -q $(SHARED_LIBUNITS) -i$(COMPILER_UNITTARGETDIR) -o$(SHARED_FULLNAME)
 else
 	@$(ECHO) Shared Libraries not supported
 endif
