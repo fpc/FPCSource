@@ -66,7 +66,7 @@ interface
   implementation
 
     uses
-      globtype,systems,
+      globtype,globals,systems,
       cutils,verbose,
       aasmbase,aasmtai,aasmcpu,symsym,symconst,
       defutil,
@@ -430,8 +430,15 @@ interface
         if not tempinfo^.valid then
           internalerror(200108231);
         location:=tempinfo^.location;
-        if tempinfo^.location.loc=LOC_REFERENCE then
-          inc(location.reference.offset,offset);
+        case tempinfo^.location.loc of
+          LOC_REFERENCE:
+            begin
+              inc(location.reference.offset,offset);
+              { tempinfo^.valid should be set to false it it's a normal temp }
+            end;
+          LOC_REGISTER,LOC_FPUREGISTER:
+            tempinfo^.valid := false;
+        end;
       end;
 
 
@@ -467,33 +474,48 @@ interface
               if release_to_normal then
                 tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tt_normal)
               else
-                tg.UnGetTemp(exprasmlist,tempinfo^.location.reference);
+                begin
+                  tg.UnGetTemp(exprasmlist,tempinfo^.location.reference);
+                  tempinfo^.valid := false;
+                end;
             end;
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
-              { make sure the register allocator doesn't reuse the }
-              { register e.g. in the middle of a loop              }
-{$ifndef cpu64bit}
-              if tempinfo^.location.size in [OS_64,OS_S64] then
+              if not(cs_regvars in aktglobalswitches) or
+                 (pi_has_goto in current_procinfo.flags) then
                 begin
-                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reghi);
-                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reglo);
-                end
-              else
+                  { make sure the register allocator doesn't reuse the }
+                  { register e.g. in the middle of a loop              }
+{$ifndef cpu64bit}
+                  if tempinfo^.location.size in [OS_64,OS_S64] then
+                    begin
+                      cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reghi);
+                      cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reglo);
+                    end
+                  else
 {$endif cpu64bit}
-                cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+                    cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+                end;
               if release_to_normal then
-                tempinfo^.location.loc := LOC_REGISTER;
+                tempinfo^.location.loc := LOC_REGISTER
+              else
+                tempinfo^.valid := false;
             end;
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
             begin
-              { make sure the register allocator doesn't reuse the }
-              { register e.g. in the middle of a loop              }
-              cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+              if not(cs_regvars in aktglobalswitches) or
+                 (pi_has_goto in current_procinfo.flags) then
+                begin
+                  { make sure the register allocator doesn't reuse the }
+                  { register e.g. in the middle of a loop              }
+                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+                end;
               if release_to_normal then
-                tempinfo^.location.loc := LOC_FPUREGISTER;
+                tempinfo^.location.loc := LOC_FPUREGISTER
+              else
+                tempinfo^.valid := false;
             end;
           else
             internalerror(200507161);

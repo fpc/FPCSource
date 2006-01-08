@@ -159,7 +159,7 @@ implementation
     procinfo,paramgr,fmodule,
     regvars,dwarf,dbgbase,
     pass_1,pass_2,
-    ncon,nld,nutils,
+    nbas,ncon,nld,nutils,
     tgobj,cgobj
 {$ifdef powerpc}
     , cpupi
@@ -2121,29 +2121,50 @@ implementation
       end;
 
 
+    procedure add_regvars(var rv: tusedregvars; const location: tlocation);
+      begin
+        case location.loc of
+          LOC_CREGISTER:
+{$ifndef cpu64bit}
+            if location.size in [OS_64,OS_S64] then
+              begin
+                rv.intregvars.addnodup(getsupreg(location.register64.reglo));
+                rv.intregvars.addnodup(getsupreg(location.register64.reghi));
+              end
+            else
+{$endif cpu64bit}
+              rv.intregvars.addnodup(getsupreg(location.register));
+          LOC_CFPUREGISTER:
+            rv.fpuregvars.addnodup(getsupreg(location.register));
+          LOC_CMMREGISTER:
+            rv.mmregvars.addnodup(getsupreg(location.register));
+        end;
+      end;
+
+
     function do_get_used_regvars(var n: tnode; arg: pointer): foreachnoderesult;
       var
         rv: pusedregvars absolute arg;
       begin
-        if (n.nodetype = loadn) and
-           (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
-          with tabstractnormalvarsym(tloadnode(n).symtableentry).localloc do
-            case loc of
-              LOC_CREGISTER:
-{$ifndef cpu64bit}
-                if size in [OS_64,OS_S64] then
-                  begin
-                    rv^.intregvars.addnodup(getsupreg(register64.reglo));
-                    rv^.intregvars.addnodup(getsupreg(register64.reghi));
-                end
-              else
-{$endif cpu64bit}
-                rv^.intregvars.addnodup(getsupreg(register));
-              LOC_CFPUREGISTER:
-                rv^.fpuregvars.addnodup(getsupreg(register));
-              LOC_CMMREGISTER:
-                rv^.mmregvars.addnodup(getsupreg(register));
-            end;
+        case (n.nodetype) of
+          temprefn:
+            { We only have to synchronise a tempnode before a loop if it is }
+            { not created inside the loop, and only synchronise after the   }
+            { loop if it's not destroyed inside the loop. If it's created   }
+            { before the loop and not yet destroyed, then before the loop   }
+            { is secondpassed tempinfo^.valid will be true, and we get the  }
+            { correct registers. If it's not destroyed inside the loop,     }
+            { then after the loop has been secondpassed tempinfo^.valid     }
+            { be true and we also get the right registers. In other cases,  }
+            { tempinfo^.valid will be false and so we do not add            }
+            { unnecessary registers. This way, we don't have to look at     }
+            { tempcreate and tempdestroy nodes to get this info (JM)        }
+            if (ttemprefnode(n).tempinfo^.valid) then
+              add_regvars(rv^,ttemprefnode(n).tempinfo^.location);
+          loadn:
+            if (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
+              add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
+        end;
         result := fen_true;
       end;
 

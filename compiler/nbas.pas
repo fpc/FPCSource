@@ -133,6 +133,8 @@ interface
 
         { a node which is a reference to a certain temp }
         ttemprefnode = class(tnode)
+          tempinfo: ptempinfo;
+
           constructor create(const temp: ttempcreatenode); virtual;
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -145,9 +147,8 @@ interface
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
          protected
-          tempinfo: ptempinfo;
           offset : longint;
-        private
+         private
           tempidx : longint;
         end;
        ttemprefnodeclass = class of ttemprefnode;
