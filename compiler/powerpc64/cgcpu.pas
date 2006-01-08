@@ -118,7 +118,6 @@ type
 
     procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const
       labelname: string; ioffset: longint); override;
-
   private
 
     { Make sure ref is a valid reference for the PowerPC and sets the }
@@ -156,6 +155,10 @@ type
     function hasLargeOffset(const ref : TReference) : Boolean; inline;
 
     procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean);
+
+    { emits code to store the given value a into the TOC (if not already in there), and load it from there
+     as well }
+    procedure loadConstantPIC(list : taasmoutput; size : TCGSize; a : aint; reg : TRegister);
   end;
 
 const
@@ -311,6 +314,49 @@ begin
   end;
 end;
 
+{ returns the number of instruction required to load the given integer into a register.
+ This is basically a stripped down version of a_load_const_reg, increasing a counter
+ instead of emitting instructions. }
+function getInstructionLength(a : aint) : longint;
+
+  function get32bitlength(a : longint; var length : longint) : boolean; inline;
+  var 
+    is_half_signed : byte;
+  begin
+    { if the lower 16 bits are zero, do a single LIS }
+    if (smallint(a) = 0) and ((a shr 16) <> 0) then begin
+      inc(length);
+      get32bitlength := longint(a) < 0;
+    end else begin
+      is_half_signed := ord(smallint(lo(a)) < 0);
+      inc(length);
+      if smallint(hi(a) + is_half_signed) <> 0 then
+        inc(length);
+      get32bitlength := (smallint(a) < 0) or (a < 0);
+    end;
+  end;
+
+var
+  extendssign : boolean;
+
+begin
+  result := 0;
+  if (lo(a) = 0) and (hi(a) <> 0) then begin
+    get32bitlength(hi(a), result);
+    inc(result);
+  end else begin
+    extendssign := get32bitlength(lo(a), result);
+    if (extendssign) and (hi(a) = 0) then
+      inc(result)
+    else if (not 
+      ((extendssign and (longint(hi(a)) = -1)) or 
+       ((not extendssign) and (hi(a)=0)))
+      ) then begin
+      get32bitlength(hi(a), result);
+      inc(result);
+    end;
+  end;
+end;
 
 procedure tcgppc.init_register_allocators;
 begin
@@ -591,30 +637,42 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
     end;
   end;
 
-  { R0-safe version of the above (ADDIS doesn't work the same way with R0 as base), without
-   the return value. Unused until further testing shows that it is not really necessary;
-   loading the upper 32 bits of a value is now done using R12, which does not require
-   special treatment }
-  procedure load32bitconstantR0(list : taasmoutput; size : TCGSize; a : longint;
-    reg : TRegister);
+  { emits the code to load a constant by emitting various instructions into the output
+   code}
+  procedure loadConstantNormal(list: taasmoutput; size : TCgSize; a: aint; reg: TRegister);
+  var
+    extendssign : boolean;
   begin
-    { only 16 bit constant? (-2^15 <= a <= +2^15-1) }
-    if (a >= low(smallint)) and (a <= high(smallint)) then begin
-      list.concat(taicpu.op_reg_const(A_LI, reg, smallint(a)));
+    if (lo(a) = 0) and (hi(a) <> 0) then begin
+      { load only upper 32 bits, and shift }
+      load32bitconstant(list, size, hi(a), reg);
+      list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));    
     end else begin
-      { check if we have to start with LI or LIS, load as 32 bit constant }
-      if ((a and $FFFF) <> 0) then begin
-        list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(a shr 16)));
-        list.concat(taicpu.op_reg_reg_const(A_ORI, reg, reg, word(a)));
-      end else begin
-        list.concat(taicpu.op_reg_const(A_LIS, reg, smallint(a shr 16)));
+      { load lower 32 bits }
+      extendssign := load32bitconstant(list, size, lo(a), reg);
+      if (extendssign) and (hi(a) = 0) then
+        { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic 
+          sign extension, clear those bits }
+        a_load_reg_reg(list, OS_32, OS_64, reg, reg)
+      else if (not 
+        ((extendssign and (longint(hi(a)) = -1)) or 
+         ((not extendssign) and (hi(a)=0)))
+        ) then begin
+        { only load the upper 32 bits, if the automatic sign extension is not okay,
+          that is, _not_ if 
+          - loading the lower 32 bits resulted in -1 in the upper 32 bits, and the upper 
+           32 bits should contain -1
+          - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
+           32 bits should contain 0 }
+        load32bitconstant(list, size, hi(a), NR_R12);
+        { combine both registers }
+        list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R12, 32, 0));
       end;
     end;
   end;
 
-var
-  extendssign : boolean;
   {$IFDEF EXTDEBUG}
+var
   astring : string;
   {$ENDIF EXTDEBUG}
 
@@ -623,35 +681,15 @@ begin
   astring := 'a_load_const reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]);
   list.concat(tai_comment.create(strpnew(astring)));
   {$ENDIF EXTDEBUG}
-
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
-  if (lo(a) = 0) and (hi(a) <> 0) then begin
-    { load only upper 32 bits, and shift }
-    load32bitconstant(list, size, hi(a), reg);
-    list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));    
-  end else begin
-    { load lower 32 bits }
-    extendssign := load32bitconstant(list, size, lo(a), reg);
-    if (extendssign) and (hi(a) = 0) then
-      { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic 
-        sign extension, clear those bits }
-      a_load_reg_reg(list, OS_32, OS_64, reg, reg)
-    else if (not 
-      ((extendssign and (longint(hi(a)) = -1)) or 
-       ((not extendssign) and (hi(a)=0)))
-      ) then begin
-      { only load the upper 32 bits, if the automatic sign extension is not okay,
-        that is, _not_ if 
-        - loading the lower 32 bits resulted in -1 in the upper 32 bits, and the upper 
-         32 bits should contain -1
-        - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
-         32 bits should contain 0 }
-      load32bitconstant(list, size, hi(a), NR_R12);
-      { combine both registers }
-      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R12, 32, 0));
-    end;
-  end;
+  { if PIC or basic optimizations are enabled, and the number of instructions which would be 
+   required to load the value is greater than 2, store (and later load) the value from there }
+  if (((cs_fastoptimize in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and 
+    (getInstructionLength(a) > 2)) then
+    loadConstantPIC(list, size, a, reg)
+  else
+    loadConstantNormal(list, size, a, reg);
 end;
 
 procedure tcgppc.a_load_reg_ref(list: taasmoutput; fromsize, tosize: TCGSize;
@@ -962,7 +1000,7 @@ begin
   useReg := false;
   case (op) of
     OP_DIV, OP_IDIV:
-      if (cs_slowoptimize in aktglobalswitches) then
+      if (cs_optimize in aktglobalswitches) then
         do_constant_div(list, size, a, src, dst, op = OP_IDIV)
       else
         usereg := true; 
@@ -2085,6 +2123,31 @@ begin
   { this rather strange calculation is required because offsets of TReferences are unsigned }
   result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
 end;
+
+procedure tcgppc.loadConstantPIC(list : taasmoutput; size : TCGSize; a : aint; reg : TRegister);
+var
+  l: tasmsymbol;
+  ref: treference;
+  symbol : string;
+begin
+  symbol := 'toc$' + hexstr(a, sizeof(a)*2);
+  l:=objectlibrary.getasmsymbol(symbol);
+  if not(assigned(l)) then begin
+    l:=objectlibrary.newasmsymbol(symbol,AB_LOCAL, AT_LABEL);
+    asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
+    asmlist[al_picdata].concat(tai_symbol.create(l,0));
+    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + inttostr(a)));
+  end;
+  reference_reset_symbol(ref,l,0);
+  ref.base := NR_R2;
+  ref.refaddr := addr_pic;
+
+  {$IFDEF EXTDEBUG}
+  list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symbol)));
+  {$ENDIF EXTDEBUG}
+  cg.a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
+end;
+
 
 begin
   cg := tcgppc.create;
