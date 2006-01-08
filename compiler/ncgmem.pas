@@ -735,7 +735,7 @@ implementation
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                 internalerror(200304237);
-              isjump:=(right.location.loc=LOC_JUMP);
+              isjump:=(right.expectloc=LOC_JUMP);
               if isjump then
                begin
                  otl:=truelabel;
@@ -758,7 +758,9 @@ implementation
                begin
                  truelabel:=otl;
                  falselabel:=ofl;
-               end;
+               end
+              else if (right.location.loc = LOC_JUMP) then
+                internalerror(2006010801);
 
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
