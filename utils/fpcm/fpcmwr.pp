@@ -641,7 +641,9 @@ implementation
            FHasSection[sec_zipinstall]:=false;
            FHasSection[sec_distinstall]:=false;
          end;
-        FHasSection[sec_libs]:=FInput.HasVariable('lib_name');
+        { can't get shared lib generation working without it (FK)
+          FHasSection[sec_libs]:=FInput.HasVariable('lib_name');
+        }
         { Remove unused sections for targets }
         SkippedSecs:=0;
         if (not FInput.HasTargetVariable('target_units')) then
@@ -779,6 +781,10 @@ implementation
            AddTargetVariable('compiler_librarydir');
            AddTargetVariable('compiler_targetdir');
            AddTargetVariable('compiler_unittargetdir');
+           { shared }
+           AddTargetVariable('shared_libname');
+           AddTargetVariable('shared_libversion');
+           AddTargetVariable('shared_libunits');
            { default Dirs and extensions }
            AddIniSection('defaultdirs');
            if FInput.CheckLibcRequire then
@@ -808,7 +814,7 @@ implementation
            if FHasSection[sec_compile] then
             AddIniSection('compilerules');
            if FHasSection[sec_libs] then
-            AddIniSection('libraryrules');
+             AddIniSection('libraryrules');
            { install }
            if FHasSection[sec_install] then
             AddIniSection('installrules');
