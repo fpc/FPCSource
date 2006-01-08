@@ -37,15 +37,13 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(COMMON)
 targetdir=.
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.0
-libunits=$(SYSTEMUNIT) objpas strings \
-      unix  ports \
-      dos crt objects printer \
+[shared]
+libunits=$(SYSTEMUNIT) objpas strings dos \
+      unix baseunix unixtype unixutil \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc \
-      errors sockets ipc dl dynlibs varutils
+      $(CPU_UNITS) getopts \
+      errors sockets varutils \
+      classes variants sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -54,14 +52,14 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
+UNITPREFIX=rtl
+
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
 CPU_UNITS=x86 ports cpu mmx
 else
 CPU_UNITS=
 endif
-
-UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
