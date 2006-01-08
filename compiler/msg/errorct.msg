@@ -62,13 +62,13 @@ general_i_targetos=01002_I_SO objectiu: $1
 % operating system is.
 general_t_exepath=01003_T_S'està utilitzant el camí pels executables: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's binaries.
+% looks for its binaries.
 general_t_unitpath=01004_T_S'està utilitzant el camí de les unitats: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for compiled units. You can set this path with the \var{-Fu}
 general_t_includepath=01005_T_S'està utilitzant el camí dels inclosos: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's include files (files used in \var{\{\$I xxx\}} statements).
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
 general_t_librarypath=01006_T_S'està utilitzant el camí per les biblioteques : $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
@@ -198,7 +198,7 @@ scan_i_user_defined=02027_I_L'usuari ha definit: $1
 scan_e_keyword_cant_be_a_macro=02028_E_La paraula clau redefinida com a macro no té efecte
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Una macroinstrucció ha desbordat la memòria intermèdia mentre es llegia o s'expandia
-% Your macro or it's result  was too long for the compiler.
+% Your macro or its result was too long for the compiler.
 scan_w_macro_too_deep=02030_W_L'expansió de les macroinstruccions excedeix una profunditat de 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
@@ -245,7 +245,7 @@ scan_t_back_in=02043_TL_S'està tornant a $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
 scan_w_unsupported_app_type=02044_W_El tipus de l'aplicació "$1" no és compatible
-% You get this warning, ff you specify an unknown application type
+% You get this warning, if you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=02045_W_APPTYPE no és compatible amb el SO objectiu 
 % The \var{\{\$APPTYPE\}} directive is supported by certain operanting
@@ -296,9 +296,9 @@ scan_f_include_deep_ten=02062_F_Els fitxers inclosos superen els 16 niats
 % The compiler will expand no further, since this may be a sign that
 % recursion is used
 scan_e_too_many_push=02063_E_S'han trobat massa nivells de PUSH
-% A maximum of 20 levels is allowed. This error occur only in mode MacPas
+% A maximum of 20 levels is allowed. This error occurs only in mode MacPas
 scan_e_too_many_pop=02064_E_S'ha trobat POP sense PUSH anterior
-% This error occur only in mode MacPas
+% This error occurs only in mode MacPas
 scan_e_error_macro_lacks_value=02065_E_La macroinstrucció o variable del temps de compilació "$1" no te cap valor
 % Thus the conditional compile time expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_La posició del commutador és errònia, utilitzeu ON/OFF/DEFAULT o +/-/*
@@ -550,7 +550,7 @@ parser_e_illegal_set_expr=03074_E_S'ha produït un error de comprovació de l'abas
 % the same.
 parser_e_pointer_to_class_expected=03075_E_S'esperava un punter a un objecte
 % You specified an illegal type in a \var{New} statement.
-% The extended syntax of \var{New} needs an  object as a parameter.
+% The extended syntax of \var{New} needs an object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_L'expressió ha de ser una trucada al constructor
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -569,7 +569,7 @@ parser_e_false_with_expr=03079_E_El tipus de l'expressió ha de ser CLASS o RECOR
 parser_e_void_function=03080_E_Els procediments no poden retornar cap valor
 % In \fpc, you can specify a return value for a function when using 
 % the \var{exit} statement. This error occurs when you try to do this with a
-% procedure. Procedures  cannot return a value.
+% procedure. Procedures cannot return a value.
 parser_e_constructors_always_objects=03081_E_Els constructors i destructors han de ser mètodes
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
@@ -683,7 +683,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Els constructors virtuals nom
 % in classes.
 parser_e_no_default_property_available=03113_E_No hi ha cap propietat predeterminada disponible
 % You are trying to access a default property of a class, but this class (or one of
-% it's ancestors) does not have a default property.
+% its ancestors) does not have a default property.
 parser_e_cant_have_published=03114_E_La classe no pot tenir una secció PUBLISHED, utilitzeu el commutador {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
@@ -780,7 +780,7 @@ parser_e_self_in_non_message_handler=03146_E_SELF només pot ser un paràmetre exp
 parser_e_threadvars_only_sg=03147_E_Les variables del fil només poden ser estàtiques o globals
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
-% because every thread has it's own stack and local variables
+% because every thread has its own stack and local variables
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_L'assemblador directe no és compatible amb el format binari de la sortida
 % You can't use direct assembler when using a binary writer, choose an
@@ -831,7 +831,7 @@ parser_e_procname_to_short_for_export=03159_E_El nom del procediment és massa cu
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
-parser_e_dlltool_unit_var_problem=03160_E_No es pot generar una entrada DEFFILE  per les variables globals d'una unitat
+parser_e_dlltool_unit_var_problem=03160_E_No es pot generar una entrada DEFFILE per les variables globals d'una unitat
 parser_e_dlltool_unit_var_problem2=03161_E_Compileu sense l'opció -WD
 % You need to compile this file without the -WD switch on the
 % commandline
@@ -984,7 +984,7 @@ parser_e_upper_lower_than_lower=03206_E_El límit més alt és inferior al límit mé
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range
 parser_e_macpas_exit_wrong_param=03207_E_La sortida del paràmetre ha de ser el nom del procediment on s'utilitza
-% Non local exit is not allowed. This error occur only in mode MacPas.
+% Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_L'assignació de la variable "$1" del bucle FOR no és vàlida
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
@@ -1022,7 +1022,7 @@ type_e_mismatch=04000_E_Els tipus no concorden
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=04001_E_Els tipus son incompatibles: s'ha obtingut "$1",  s'esperava "$2"
+type_e_incompatible_types=04001_E_Els tipus son incompatibles: s'ha obtingut "$1", s'esperava "$2"
 % There is no conversion possible between the two types
 % Another possiblity is that they are declared in different
 % declarations:
@@ -1154,13 +1154,13 @@ type_w_mixed_signed_unsigned=04035_W_El resultat de la barreja d'expressions amb
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Barrejar expressions amb signe i cardinals aquí, pot causar errors de l'abast
 % If you use a binari operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_e_typecast_wrong_size_for_assignment=04037_E_La conversió de tipus té diferents tamanys ($1 -> $2) en les assignacions
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
@@ -1248,7 +1248,7 @@ sym_e_id_not_found=05000_E_No s'ha trobat l'dentificador "$1"
 % variable.
 sym_f_internal_error_in_symtablestack=05001_F_S'ha produït un error intern en SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 sym_e_duplicate_id=05002_E_L'identificador "$1" està duplicat
 % The identifier was already declared in the current scope.
@@ -1287,7 +1287,7 @@ sym_e_ill_label_decl=05016_E_La declaració de l'etiqueta no és vàlida
 % procedure or function.
 sym_e_goto_and_label_not_supported=05017_E_No es permeten GOTO i LABEL (utilitzeu el commutador -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
-% with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
+% with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
 sym_e_label_not_found=05018_E_No s'ha trobat l'etiqueta
 % A \var{goto label} was encountered, but the label isn't declared.
@@ -1941,7 +1941,7 @@ unit_u_ppu_invalid_fpumode=10042_U_S'està utilitzant una unitat la qual no ha es
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_S'estan carregant les unitats d'INTERFACE  desde $1
+unit_u_loading_interface_units=10043_U_S'estan carregant les unitats d'INTERFACE desde $1
 % When you use the \var{-vu} flag, the compiler warms that it starts
 % loading the units defined in the interface part of the unit
 unit_u_loading_implementation_units=10044_U_S'estan carregant les unitat d'IMPLEMENTATION desde $1
@@ -2320,8 +2320,8 @@ S*2Tlinux_Linux
 **2*_e : mostra errors (predet.)     0 : no mostrar res (excepte errors)
 **2*_w : mostra avisos               u : mostra info de les unitats
 **2*_n : mostra notes                t : mostra els fitxers selec./utilitz.
-**2*_h : mostra suggeriments         c : mostra els condicionals    
-**2*_i : mostra informació general   d : mostra l'informació del depurador  
+**2*_h : mostra suggeriments         c : mostra els condicionals
+**2*_i : mostra informació general   d : mostra l'informació del depurador
 **2*_l : mostra números de línia     r : compatibilitat Rhide/GCC
 **2*_a : mostra-ho tot               x : informació de l'executable (win32)
 **2*_v : escriu fpcdebug.txt amb     p : escriu tree.log amb arbre analitzat
