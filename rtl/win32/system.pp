@@ -1118,7 +1118,7 @@ end;
 procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
-    displayed in and messagebox }
+    displayed in a messagebox }
   StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
   StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
