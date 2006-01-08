@@ -848,12 +848,13 @@ const
           signed: boolean;
 
         begin
-          signed := cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE];
+          signed := cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE,OC_EQ,OC_NE];
           { in the following case, we generate more efficient code when }
-          { signed is true                                              }
+          { signed is false                                              }
           if (cmp_op in [OC_EQ,OC_NE]) and
-             (aword(a) > $ffff) then
-            signed := true;
+             (aword(a) >= $8000) and
+             (aword(a) <= $ffff) then
+            signed := false;
           if signed then
             if (a >= low(smallint)) and (a <= high(smallint)) Then
               list.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,reg,a))
