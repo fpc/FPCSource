@@ -18,7 +18,7 @@
                                Primitives
 ****************************************************************************}
 var
-  has_sse_support,has_mmx_support : boolean;
+  has_sse_support,has_mmx_support,os_supports_sse : boolean;
 
 {$asmmode intel}
 
@@ -59,7 +59,7 @@ function sse_support : boolean;
           cpuid
           movl %edx,_edx
         end;
-        sse_support:=(_edx and $2000000)<>0;
+        sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
      end
     else
      { a cpu with without cpuid instruction supports never sse }
@@ -88,14 +88,19 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
+{$define USE_FASTMOVE}
 {$i fastmove.inc}
 
 procedure fpc_cpuinit;
-begin
-  has_sse_support:=sse_support;
-  has_mmx_support:=mmx_support;
-  setup_fastmove;
-end;
+  begin
+    { because of the brain dead sse detection on x86, this test is post poned to fpc_cpucodeinit which
+      must be implemented OS dependend (FK)
+    has_sse_support:=sse_support;
+    has_mmx_support:=mmx_support;
+    setup_fastmove;
+    }
+    os_supports_sse:=false;
+  end;
 
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}

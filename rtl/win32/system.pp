@@ -170,7 +170,7 @@ var
       { the arg. is still present!                     }
       sysreallocmem(argv[idx],len+1);
     end;
-    
+
 begin
   SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
@@ -792,6 +792,10 @@ begin
         end;
 end;
 
+var
+  { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
+  sse_check : boolean;
+
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
 var
   res: longint;
@@ -836,7 +840,16 @@ begin
           must_reset_fpu := false;
         end;
       STATUS_ILLEGAL_INSTRUCTION:
-        err := 216;
+        { if we're testing sse support, simply set the flag and continue }
+        if sse_check then
+          begin
+            os_supports_sse:=false;
+            { if yes, then retry }
+            excep^.ExceptionRecord^.ExceptionCode := 0;
+            res:=EXCEPTION_CONTINUE_EXECUTION;
+          end
+        else
+          err := 216;
       STATUS_ACCESS_VIOLATION:
         { Athlon prefetch bug? }
         if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
@@ -930,6 +943,24 @@ begin
 end;
 
 {$endif Set_i386_Exception_handler}
+
+{ because of the brain dead sse detection on x86, this test is post poned }
+procedure fpc_cpucodeinit;
+  begin
+    os_supports_sse:=true;
+    sse_check:=true;
+    asm
+      { force an sse exception if no sse is supported, the exception handler sets
+        os_supports_sse to false then }
+      movq %xmm0,%xmm0
+    end;
+    sse_check:=false;
+    has_sse_support:=sse_support;
+    has_mmx_support:=mmx_support;
+    setup_fastmove;
+  end;
+
+
 
 
 {****************************************************************************
@@ -1142,6 +1173,8 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
+  { setup fastmove stuff }
+  fpc_cpucodeinit;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
