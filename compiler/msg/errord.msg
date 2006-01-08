@@ -63,13 +63,13 @@ general_i_targetos=01002_I_Zielbetriebssystem: $1
 % operating system is.
 general_t_exepath=01003_T_Der Pfad der ausfÅhrbaren Datei ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's binaries.
+% looks for its binaries.
 general_t_unitpath=01004_T_Der Unitpfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for compiled units. You can set this path with the \var{-Fu}
 general_t_includepath=01005_T_Der Includepfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's include files (files used in \var{\{\$I xxx\}} statements).
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
 general_t_librarypath=01006_T_Der Bibliothekspfad ist: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
@@ -299,9 +299,9 @@ scan_f_include_deep_ten=02062_F_Include-Dateien kînnen nur bis zu einer Tiefe vo
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
 scan_e_too_many_push=02063_F_Zu viele Ebenen von PUSH
-% A maximum of 20 levels is allowed. This error occur only in mode MacPas.
+% A maximum of 20 levels is allowed. This error occurs only in mode MacPas.
 scan_e_too_many_pop=02064_E_POP ohne ein vorhergehendes PUSH
-% This error occur only in mode MacPas.
+% This error occurs only in mode MacPas.
 scan_e_error_macro_lacks_value=02065_E_Das Makro "$1" besitzt keinen Wert
 % Thus the conditional compiling expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Zum Modusumschalten kann nur ON/OFF/DEFAULT oder +/-/* verwendet werden
@@ -696,7 +696,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Virtuelle Konstruktoren werde
 % in classes.
 parser_e_no_default_property_available=03113_E_Keine Default-Property verfÅgbar
 % You try to access a default property of a class, but this class (or one of
-% it's ancestors) doesn't have a default property.
+% its ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_Die Klasse kann keinen PUBLISHED Bereich haben, benutzen Sie den {$M+} Schalter
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
@@ -793,7 +793,7 @@ parser_e_self_in_non_message_handler=03146_E_SELF darf nur in Message-Handlern e
 parser_e_threadvars_only_sg=03147_E_Threadvariablen kînnen nur statisch oder global sein
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
-% because every thread has it's own stack and local variables
+% because every thread has its own stack and local variables
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_Direkter Assembler wird f+r binÑres Ausgabeformat nicht unterstÅtzt
 % You can't use direct assembler when using a binary writer, choose an
@@ -996,7 +996,7 @@ parser_e_upper_lower_than_lower=03206_E_High Range Limit < low Range Limit
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
 parser_e_macpas_exit_wrong_param=03207_E_Exits Parameter muss der Name der Prozedur sein, in der es benutzt wird
-% Non local exit is not allowed. This error occur only in mode MacPas.
+% Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_UngÅltige Zuweisung zur for-loop Variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
@@ -1023,6 +1023,12 @@ parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elt
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
 parser_e_dispinterface_needs_a_guid=03217_E_Ein DISPINTERFACE benîtigt einen GUID
 % A DISPINMTERFACE needs always an interface identification
+parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen RÅckgabetyp hat).
+% If you declare overridden methods in a class definition, they must
+% have the same return type. Some versions of Delphi allow you to change the
+% return type of interface methods, and even to change procedures into
+% functions, but the resulting code may crash depending on the types used
+% and the way the methods are called.
 % \end{description}
 #
 # Type Checking
@@ -1191,11 +1197,11 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enums mit Zuweisungen 
 % \end{verbatim}
 % you cannot use it as index of an array.
 type_e_classes_not_related=04039_E_Klassen- oder Objekttypen "$1" and "$2" sind nicht verwandt
-%  There is a typecast from one class or object to another while the class/object
-%  are not related. This will probably lead to errors
+% There is a typecast from one class or object to another while the class/object
+% are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Klassentypen "$1" und "$2" sind nicht verwandt
-%  There is a typecast from one class or object to another while the class/object
-%  are not related. This will probably lead to errors
+% There is a typecast from one class or object to another while the class/object
+% are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Klassen- oder Interface-Typ erwartet, aber "$1" erhalten
 type_e_type_is_not_completly_defined=04042_E_Typ "$1" ist nicht vollstÑndig definiert
 type_w_string_too_long=04043_W_String literal hat mehr Zeichen als short string length
@@ -2268,7 +2274,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 *g2gg_Verwende gsym
 *g2gh_Heaptrace-Unit einbinden
 *g2gl_line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
-*g2gv_erzeuge ein mit valgrind trace-bares Programm
+*g2gv_erzeuge ein mit valgrind verfolgbares (traceable) Programm
 *g2gw_erzeuge dwarf Informationen
 **1i_zeige alle Information Åber den Compiler
 **2iD_zeige Compilerdatum
@@ -2364,6 +2370,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
+P*2Tamiga_AmigaOS on PowerPC
 P*2Tdarwin_Darwin und MacOS X on PowerPC
 P*2Tlinux_Linux auf PowerPC
 P*2Tmacos_MacOS (classic) auf PowerPC

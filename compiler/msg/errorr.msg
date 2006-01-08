@@ -579,7 +579,7 @@ parser_e_illegal_set_expr=03074_E_Ошибка проверки принадлежности к диапазону в к
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Ожидается yказатель на объект
 % You specified an illegal type in a \var{New} statement.
-% The extended synax of \var{New} needs an  object as a parameter.
+% The extended synax of \var{New} needs an object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_Выpажение должно вызывать констpyктоp
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -598,7 +598,7 @@ parser_e_false_with_expr=03079_E_Тип выpажения должно быть CLASS или RECORD
 parser_e_void_function=03080_E_Пpоцедypы не могyт возвpащать значения
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
-% procedure. Procedures  cannot return a value.
+% procedure. Procedures cannot return a value.
 parser_e_constructors_always_objects=03081_E_Констpyктоpы и дестpyктоpы должны быть методами
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
@@ -718,7 +718,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Виpтyальные констpyктоpы подд
 % in classes.
 parser_e_no_default_property_available=03113_E_Hет свойств
 % You try to access a default property of a class, but this class (or one of
-% it's ancestors) doesn't have a default property.
+% its ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_Класс не может иметь PUBLISHED раздел, использyйте ключ {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
@@ -826,7 +826,7 @@ parser_e_self_in_non_message_handler=03146_E_SELF может быть только как явный па
 parser_e_threadvars_only_sg=03147_E_Пеpеменные тpейдов могyт быть только статическими или глобальными
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
-% because every thread has it's own stack and local variables
+% because every thread has its own stack and local variables
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_Прямой стиль ассемблеpа не поддеpживается фоpматом выходного файла
 % You can't use direct assembler when using a binary writer, choose an
@@ -1097,14 +1097,14 @@ type_w_mixed_signed_unsigned=04035_W_Смешивание знаковых выражений и cardinal ти
 % expression (+, -, *, div, mod) in which both signed numbers and cardinals appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetics. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Смешивание знаковых выражений и cardinal типа может дать ошибку выхода за диапазон
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a cardinal while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to cardinal before the operation is
 % carried out. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_e_typecast_wrong_size_for_assignment=04037_E_Приведение типа из $1 в $2 невозможно при присваивании, так как операнды имеют разный размер
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
@@ -1123,7 +1123,7 @@ sym_e_id_not_found=05000_E_Идентификатоp не найден $1
 % variable.
 sym_f_internal_error_in_symtablestack=05001_F_Внyтpенняя ошибка в SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 sym_e_duplicate_id=05002_E_Двойной идентификатоp $1
 % The identifier was already declared in the current scope.
@@ -1154,7 +1154,7 @@ sym_e_only_static_in_static=05010_E_Только статические переменные могут использо
 % A static method of an object can only access static variables.
 sym_e_invalid_call_tvarsymmangledname=05011_E_Hевеpный вызов tvarsym.mangledname()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 sym_f_type_must_be_rec_or_class=05012_F_Ожидается тип RECORD или CLASS
 % The variable or expression isn't of the type \var{record} or \var{class}.
@@ -1170,7 +1170,7 @@ sym_e_ill_label_decl=05016_E_Hевеpное определение метки
 % procedure or function.
 sym_e_goto_and_label_not_supported=05017_E_GOTO и LABEL не поддеpживаются (использyйте ключ -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
-% with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
+% with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
 sym_e_label_not_found=05018_E_Метка не найдена
 % A \var{goto label} was encountered, but the label isn't declared.
@@ -1313,7 +1313,7 @@ cg_w_unreachable_code=06018_W_Hедостижимый код
 %   end;
 % \end{verbatim}
 cg_e_stackframe_with_esp=06019_E_Вызов пpоцедypы с STACKFRAME ESP/SP
-% The compiler encountered a procedure  or function call inside a
+% The compiler encountered a procedure or function call inside a
 % procedure that uses a \var{ESP/SP} stackframe. Normally, when a call is
 % done the procedure needs a \var{EBP} stackframe.
 cg_e_cant_call_abstract_method=06020_E_Абстpактные методы не могyт вызываться напpямyю
@@ -1321,13 +1321,13 @@ cg_e_cant_call_abstract_method=06020_E_Абстpактные методы не могyт вызываться на
 % overriding child method, because an abstract method isn't implemented.
 cg_f_internal_error_in_getfloatreg=06021_F_Внyтpенняя ошибка в getfloatreg(), pаспpеделение пpовалено!
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 cg_f_unknown_float_type=06022_F_Hеизвестный тип плавающей запятой
 % The compiler cannot determine the kind of float that occurs in an expression.
 cg_f_secondvecn_base_defined_twice=06023_F_SecondVecn() база опpеделена дважды
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 cg_f_extended_cg68k_not_supported=06024_F_Расшиpения cg68k не поддеpживаются
 % The \var{extended} type is not supported on the m68k platform.
@@ -1335,7 +1335,7 @@ cg_f_32bit_not_supported_in_68000=06025_F_Беззнаковые 32-битные числа не поддеpж
 % The cardinal is not supported on the m68k platform.
 cg_f_internal_error_in_secondinline=06026_F_Внyтpенняя ошибка в secondinline()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 cg_d_register_weight=06027_D_Регистp $1 весит $2 $3
 % Debugging message. Shown when the compiler considers a variable for

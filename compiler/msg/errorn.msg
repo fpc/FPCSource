@@ -88,13 +88,13 @@ general_i_targetos=01002_I_Doelsysteem: $1
 % operating system is.
 general_t_exepath=01003_T_Programmalocatie: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's binaries.
+% looks for its binaries.
 general_t_unitpath=01004_T_Locatie units: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for compiled units. You can set this path with the \var{-Fu}
 general_t_includepath=01005_T_Locatie includes: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
-% looks for it's include files (files used in \var{\{\$I xxx\}} statements).
+% looks for its include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
 general_t_librarypath=01006_T_Locatie bibliotheken: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
@@ -248,7 +248,7 @@ scan_i_user_defined=02027_I_Gebruiker definitie: $1
 scan_e_keyword_cant_be_a_macro=02028_E_Sleutelwoord herdefinieren als macro heeft geen effect
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Macro buffer overflow bij lezen of expansie van macro
-% Your macro or it's result  was too long for the compiler.
+% Your macro or its result was too long for the compiler.
 scan_w_macro_too_deep=02030_W_Uitwerken van macros heeft niveau 16 overschreden
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
@@ -379,9 +379,9 @@ scan_f_include_deep_ten=02062_F_Include bestanden kunnen maar tot op 16 niveaus 
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
 scan_e_too_many_push=02063_F_Te veel PUSH niveaus
-% A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
+% A maximum of 20 levels is allowed. This error occurs only in mode MacPas.
 scan_e_too_many_pop=02064_E_POP instructie zonder voorafgaande PUSH instructie
-% This error occur only in mode MacPas.
+% This error occurs only in mode MacPas.
 scan_e_error_macro_lacks_value=02065_E_Macro of compilatie-variabele "$1" heeft geen waarde
 % Thus the conditional compile time expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_Verkeerde schakel-waarde. Gebruik ON/OFF/DEFAULT of +/-/*
@@ -643,7 +643,7 @@ parser_e_illegal_set_expr=03074_E_Bereikfout in setconstructor of dubbel setelem
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Pointer naar klasse verwacht
 % You specified an illegal type in a \var{New} statement.
-% The extended synax of \var{New} needs an  object as a parameter.
+% The extended synax of \var{New} needs an object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_Uitdrukking moet een constructoraanroep zijn.
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -662,7 +662,7 @@ parser_e_false_with_expr=03079_E_Type van uitdrukking moet class of record type 
 parser_e_void_function=03080_E_Procedures kunnen geen resultaat teruggeven
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
-% procedure. Procedures  cannot return a value.
+% procedure. Procedures cannot return a value.
 parser_e_constructors_always_objects=03081_E_Constructors en destructors moeten methoden zijn
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
@@ -777,7 +777,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Virtuele constructors worden 
 % in classes.
 parser_e_no_default_property_available=03113_E_Geen standaardeigenschap gevonden
 % You try to access a default property of a class, but this class (or one of
-% it's ancestors) doesn't have a default property.
+% its ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_De klasse kan geen gepubliceerde sectie hebben, gebruik {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
@@ -874,7 +874,7 @@ parser_e_self_in_non_message_handler=03146_E_Self kan alleen een explicite param
 parser_e_threadvars_only_sg=03147_E_Threadvariabelen kunnen alleen globaal of statisch zijn
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
-% because every thread has it's own stack and local variables
+% because every thread has its own stack and local variables
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_Directe assemblercode wordt niet ondersteund door de interne assembler.
 % You can't use direct assembler when using a binary writer, choose an
@@ -1003,7 +1003,7 @@ parser_e_illegal_field_or_method=03181_E_Ongekend klasse-veld of methode aanduid
 parser_w_proc_overriding_calling=03182_W_Aanroep-modus "$1Ã" vervangen door "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
-parser_e_no_procvarobj_const=03183_E_Getypeerde constanten van  type "procedure of object" kunnen alleen met NIL geinitialiseerd worden
+parser_e_no_procvarobj_const=03183_E_Getypeerde constanten van type "procedure of object" kunnen alleen met NIL geinitialiseerd worden
 % You can't assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
@@ -1091,7 +1091,7 @@ parser_e_upper_lower_than_lower=03206_E_Bovengrens kleiner dan ondergrens
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
 parser_e_macpas_exit_wrong_param=03207_E_Exit parameter moet de naam zijn van de procedure waarin het gebruikt wordt
-% Non local exit is not allowed. This error occur only in mode MacPas.
+% Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_Ongeldige toekenning aan lus-variabele "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
@@ -1275,14 +1275,14 @@ type_w_mixed_signed_unsigned=04035_W_Mengen van mogelijk negatieve uitdrukkingen
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Mengen van mogelijk negatieve uitdrukkingen en cardinals kan tot range check fouten leiden
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
-% matches the resulttype of the other one.
+% matches the result type of the other one.
 type_e_typecast_wrong_size_for_assignment=04037_E_Typecast heeft een verschillende grootte ($1 -> $2) in toekenning
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
@@ -1294,11 +1294,11 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enumeratie typen met v
 % \end{verbatim}
 % you cannot use it as index of an array.
 type_e_classes_not_related=04039_E_Klasse of object types "$1Ã" en "$2" zijn niet verwant
-%  There is a typecast from one class or object to another while the class/object
-%  are not related. This will probably lead to errors
+% There is a typecast from one class or object to another while the class/object
+% are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Klasse types "$1" en "$2" zijn niet verwant
-%  There is a typecast from one class or object to another while the class/object
-%  are not related. This will probably lead to errors
+% There is a typecast from one class or object to another while the class/object
+% are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Klasse of interface type verwacht, maar kreeg Ã"$1Ã"
 type_e_type_is_not_completly_defined=04042_E_Type "$1Ã" is niet volledig gedefinieerd
 type_w_string_too_long=04043_W_String constante heeft meer karakters dan de lengte van een shortstring
@@ -1308,7 +1308,7 @@ type_w_signed_unsigned_always_false=04044_W_De vergelijking is steeds onwaar omw
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % false. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_e vergelijking is steeds  waar omwille van de interval waarden
+type_w_signed_unsigned_always_true=04045_W_e vergelijking is steeds waar omwille van de interval waarden
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
@@ -1318,7 +1318,7 @@ type_w_instance_with_abstract=04046_W_Constructie van een klasse "$1" met abstra
 % routine is ever called. All abstract methods should be overriden.
 type_h_in_range_check=04047_H_De linker operand van de IN operator moet de grootte van een byte hebben
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
-% within 8-bits, this may lead to range check errors. The  \var{in} operator
+% within 8-bits, this may lead to range check errors. The \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
@@ -1371,7 +1371,7 @@ sym_e_id_not_found=05000_E_Symbool niet gevonden $1
 % variable.
 sym_f_internal_error_in_symtablestack=05001_F_Interne fout in SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
-% please contact the developers and try to provide  an exact description of
+% please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
 sym_e_duplicate_id=05002_E_Dubbel symbool $1
 % The identifier was already declared in the current scope.
@@ -1410,7 +1410,7 @@ sym_e_ill_label_decl=05016_E_Label foutief gedefineerd
 % procedure or function.
 sym_e_goto_and_label_not_supported=05017_E_GOTO en LABEL zijn afgezet (gebruik -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
-% with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
+% with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
 sym_e_label_not_found=05018_E_Label niet gevonden
 % A \var{goto label} was encountered, but the label isn't declared.
@@ -1833,7 +1833,7 @@ asmr_e_cannot_use_RESULT_here=07084_E_Kan RESULT aanduiding niet gebruiken in de
 % keyword.
 asmr_w_adding_explicit_args_fXX=07086_W_"$1Ã" zonder operand vertaald naar "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" vertaald naar "$1 %st,%st(n)"
-asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)"  vertaald naar  "$1 %st(n),%st"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" vertaald naar "$1 %st(n),%st"
 asmr_e_invalid_char_smaller=07089_E_Karakter < hier niet toegestaan
 % The shift operator requires the << characters. Only one
 % of those characters was found.
@@ -2097,7 +2097,7 @@ unit_u_check_time=10037_U_PPU Controleren van bestand $1 tijd $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kan unit $1 niet hercompileren, maar vond gewijzigde include bestanden
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_Bestand $1 is nieuwer dan release  PPU bestand $2
+unit_h_source_modified=10041_H_Bestand $1 is nieuwer dan release PPU bestand $2
 % A modified source file for a unit was found that was compiled with the
 % release flag (-Ur). The unit will not implicitly be recompiled because
 % this release flag is set.
@@ -2380,7 +2380,7 @@ option_help_pages=11025_[
 **2*_l : Toon regelnummers           c : Toon voorwaardelijken
 **2*_a : Toon alles                  0 : Toon alleen fouten
 **2*_b : Toon alle procedures        r : Rhide/GCC compatibiliteit modus
-**2*_    declaraties indien een     x : Executable informatie (alleen Win32)
+**2*_    declaraties indien een      x : Executable informatie (alleen Win32)
 **2*_    fout optreedt
 **1X_applicatie instellingen
 *L2Xc_link met de C bibliotheek
