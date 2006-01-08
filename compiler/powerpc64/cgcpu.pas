@@ -174,14 +174,6 @@ uses
   symconst, symsym, fmodule,
   rgobj, tgobj, cpupi, procinfo, paramgr;
 
-function ref2string(const ref : treference) : string;
-begin
-  result := 'base : ' + inttostr(ord(ref.base)) + ' index : ' + inttostr(ord(ref.index)) + ' refaddr : ' + inttostr(ord(ref.refaddr)) + ' offset : ' + inttostr(ref.offset) + ' symbol : ';
-  if (assigned(ref.symbol)) then
-    result := result + ref.symbol.name;
-end;
-
-
 { helper function which calculate "magic" values for replacement of unsigned 
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
@@ -383,7 +375,7 @@ begin
               location^.register)
           else
           {$IFDEF extdebug}
-          list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO, sizeleft ' + inttostr(sizeleft))));
+            list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO, sizeleft ' + inttostr(sizeleft))));
           {$ENDIF extdebug}
 
             { load non-integral sized memory location into register. This 
@@ -702,10 +694,6 @@ var
   ref2: treference;
 
 begin
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('a_load_ref_reg ' + ref2string(ref))));
-  {$ENDIF EXTDEBUG}
-
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   ref2 := ref;
@@ -886,7 +874,7 @@ var
       internalerror(2005061701);
     end else if (a = 1) then begin
       cg.a_load_reg_reg(exprasmlist, OS_INT, OS_INT, src, dst);
-    end else if (a = -1) and (signed) then begin
+    end else if (a = -1) then begin
       { note: only in the signed case possible..., may overflow }
       exprasmlist.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], dst, src));
     end else if (ispowerof2(a, power, isNegPower)) then begin
@@ -1510,35 +1498,31 @@ begin
   ref2 := ref;
   fixref(list, ref2, OS_64);
   { load a symbol }
-  if (assigned(ref2.symbol) or (hasLargeOffset(ref2))) then begin
-    { add the symbol's value to the base of the reference, and if the }
-    { reference doesn't have a base, create one                       }
-    reference_reset(tmpref);
-    tmpref.offset := ref2.offset;
-    tmpref.symbol := ref2.symbol;
-    tmpref.relsymbol := ref2.relsymbol;
-    { load 64 bit reference into r. If the reference already has a base register,
-     first load the 64 bit value into a temp register, then add it to the result
-     register rD }
-    if (ref2.base <> NR_NO) then begin
-      { already have a base register, so allocate a new one }
-      tempreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    end else begin
-      tempreg := r;
-    end;
+  if assigned(ref2.symbol) or (hasLargeOffset(ref2)) then begin
+      { add the symbol's value to the base of the reference, and if the }
+      { reference doesn't have a base, create one                       }
+      reference_reset(tmpref);
+      tmpref.offset := ref2.offset;
+      tmpref.symbol := ref2.symbol;
+      tmpref.relsymbol := ref2.relsymbol;
+      { load 64 bit reference into r. If the reference already has a base register,
+       first load the 64 bit value into a temp register, then add it to the result
+       register rD }
+      if (ref2.base <> NR_NO) then begin
+        { already have a base register, so allocate a new one }
+        tempreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+      end else begin
+        tempreg := r;
+      end;
 
-    { code for loading a reference from a symbol into a register rD }
-    (*
-    lis   rX,SYM@highest
-    ori   rX,SYM@higher
-    sldi  rX,rX,32
-    oris  rX,rX,SYM@h
-    ori   rX,rX,SYM@l
-    *)
-    {$IFDEF EXTDEBUG}
-    list.concat(tai_comment.create(strpnew('loadaddr_ref_reg ')));
-    {$ENDIF EXTDEBUG}
-    if (assigned(tmpref.symbol)) then begin
+      { code for loading a reference from a symbol into a register rD }
+      (*
+      lis   rX,SYM@highest
+      ori   rX,SYM@higher
+      sldi  rX,rX,32
+      oris  rX,rX,SYM@h
+      ori   rX,rX,SYM@l
+      *)
       tmpref.refaddr := addr_highest;
       list.concat(taicpu.op_reg_ref(A_LIS, tempreg, tmpref));
       tmpref.refaddr := addr_higher;
@@ -1548,30 +1532,27 @@ begin
       list.concat(taicpu.op_reg_reg_ref(A_ORIS, tempreg, tempreg, tmpref));
       tmpref.refaddr := addr_low;
       list.concat(taicpu.op_reg_reg_ref(A_ORI, tempreg, tempreg, tmpref));
-    end else
-      a_load_const_reg(list, OS_ADDR, tmpref.offset, tempreg);
 
-    { if there's already a base register, add the temp register contents to
-     the base register }
-    if (ref2.base <> NR_NO) then begin
-      list.concat(taicpu.op_reg_reg_reg(A_ADD, r, tempreg, ref2.base));
-    end;
-  end else if (ref2.offset <> 0) then begin
+      { if there's already a base register, add the temp register contents to
+       the base register }
+      if (ref2.base <> NR_NO) then begin
+        list.concat(taicpu.op_reg_reg_reg(A_ADD, r, tempreg, ref2.base));
+      end;
+  end else if ref2.offset <> 0 then begin
     { no symbol, but offset <> 0 }
-    if (ref2.base <> NR_NO) then begin
+    if ref2.base <> NR_NO then begin
       a_op_const_reg_reg(list, OP_ADD, OS_64, ref2.offset, ref2.base, r)
       { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never
        occurs, so now only ref.offset has to be loaded }
     end else begin
-      a_load_const_reg(list, OS_64, ref2.offset, r);
+      a_load_const_reg(list, OS_64, ref2.offset, r)
     end;
-  end else if (ref2.index <> NR_NO) then begin
+  end else if ref.index <> NR_NO then
     list.concat(taicpu.op_reg_reg_reg(A_ADD, r, ref2.base, ref2.index))
-  end else if (ref2.base <> NR_NO) and
-    (r <> ref2.base) then begin
+  else if (ref2.base <> NR_NO) and
+    (r <> ref2.base) then
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, ref2.base, r)
-    //list.concat(taicpu.op_reg_reg(A_MR, ref2.base, r));
-  end else begin
+  else begin
     list.concat(taicpu.op_reg_const(A_LI, r, 0));
   end;
 end;
@@ -1596,7 +1577,7 @@ begin
 {$IFDEF extdebug}
   if len > high(aint) then
     internalerror(2002072704);
-  list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
+  list.concat(tai_comment.create(strpnew('g_concatcopy')));
 {$ENDIF extdebug}
   { make sure short loads are handled as optimally as possible;
    note that the data here never overlaps, so we can do a forward
@@ -1606,7 +1587,6 @@ begin
 
   if (len <= maxmoveunit) then begin
     src := source; dst := dest;
-    list.concat(tai_comment.create(strpnew('g_concatcopy3 ' + inttostr(src.offset) + ' ' + inttostr(dst.offset))));
     while (len <> 0) do begin
       if (len = 8) then begin
         a_load_ref_ref(list, OS_64, OS_64, src, dst);    
@@ -1627,10 +1607,6 @@ begin
     end;
     exit;
   end;
-{$IFDEF extdebug}
-  list.concat(tai_comment.create(strpnew('g_concatcopy2 ' + inttostr(len) + ' bytes left ')));
-{$ENDIF extdebug}
-
 
   count := len div maxmoveunit;
 
@@ -1854,23 +1830,16 @@ var
 begin
   l:=objectlibrary.getasmsymbol(symbol+'$got');
   if not(assigned(l)) then begin
-    l:=objectlibrary.newasmsymbol(symbol+'$got',AB_LOCAL, AT_LABEL);
-    asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
+    l:=objectlibrary.newasmsymbol(symbol+'$got',AB_COMMON,AT_DATA);
     asmlist[al_picdata].concat(tai_symbol.create(l,0));
-    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
+    asmlist[al_picdata].concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(symbol,AB_EXTERNAL,AT_DATA)));
+    asmlist[al_picdata].concat(tai_const.create_32bit(0));
   end;
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
-  ref.refaddr := addr_pic;
-
-  result := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('loading got reference for ' + symbol)));
-  {$ENDIF EXTDEBUG}
-//  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
-  list.concat(taicpu.op_reg_ref(A_LD, result, ref));
+  result := cg.rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
 end;
-
 
 function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 var
@@ -1878,30 +1847,19 @@ var
   name : string;
 begin
   result := false;
-  { Avoids recursion. }
-  if (ref.refaddr = addr_pic) then exit;
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
-  {$ENDIF EXTDEBUG}
-
-  { if we have to create PIC, add the symbol to the TOC/GOT }
-  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol)) then begin
+  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol)) and (ref.symbol.defbind = AB_EXTERNAL) then begin
+    if (length(name) > 100) then internalerror(123456);
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
       ref.base := tmpreg
     else if (ref.index = NR_NO) then
       ref.index := tmpreg
-    else begin
-      a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, tmpreg, tmpreg);
-      ref.base := tmpreg;
-    end;
+    else
+      list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.base,tmpreg));
     ref.symbol := nil;    
-    {$IFDEF EXTDEBUG}
-    list.concat(tai_comment.create(strpnew('fixref-pic ' + ref2string(ref))));
-    {$ENDIF EXTDEBUG}
   end;
 
-  if (ref.base = NR_NO) then begin
+  if (ref.base = NR_NO) then  begin
     ref.base := ref.index;
     ref.index := NR_NO;
   end;
@@ -1910,14 +1868,9 @@ begin
       result := true;
       tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
       a_op_reg_reg_reg(list, OP_ADD, size, ref.base, ref.index, tmpreg);
-      ref.base := tmpreg;
       ref.index := NR_NO;
+      ref.base := tmpreg;
   end;
-  if (ref.index <> NR_NO) and (assigned(ref.symbol) or (ref.offset <> 0)) then
-    internalerror(2006010506);
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('fixref1 ' + ref2string(ref))));
-  {$ENDIF EXTDEBUG}
 end;
 
 procedure tcgppc.a_load_store(list: taasmoutput; op: tasmop; reg: tregister;
@@ -1931,18 +1884,6 @@ begin
     which is not possible to directly map to instructions of the PowerPC architecture }
   if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then
     internalerror(200310131);
-
-  { if this is a PIC'ed address, handle it and exit }
-  if (ref.refaddr = addr_pic) then begin
-    if (ref.offset <> 0) then
-      internalerror(2006010501);
-    if (ref.index <> NR_NO) then
-      internalerror(2006010502);
-    if (not assigned(ref.symbol)) then
-      internalerror(200601050);
-    list.concat(taicpu.op_reg_ref(op, reg, ref));
-    exit;
-  end;
  
   { for some instructions we need to check that the offset is divisible by at
    least four. If not, add the bytes which are "off" to the base register and
@@ -1962,12 +1903,10 @@ begin
        ref.offset := (ref.offset div 4) * 4;
      end;
   end;
-  {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('a_load_store1 ' + BoolToStr(ref.refaddr = addr_pic))));
-  {$ENDIF EXTDEBUG}
+
   { if we have to load/store from a symbol or large addresses, use a temporary register
    containing the address }
-  if (assigned(ref.symbol) or (hasLargeOffset(ref))) then begin
+  if assigned(ref.symbol) or (hasLargeOffset(ref)) then begin
     tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
 
     if (hasLargeOffset(ref) and (ref.base = NR_NO)) then begin
@@ -1997,20 +1936,17 @@ begin
       }
 
       tmpreg2 := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      if (assigned(tmpref.symbol)) then begin
-        tmpref.refaddr := addr_highest;
-        list.concat(taicpu.op_reg_ref(A_LIS, tmpreg, tmpref));
-        tmpref.refaddr := addr_higher;
-        list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg, tmpreg, tmpref));
+      tmpref.refaddr := addr_highest;
+      list.concat(taicpu.op_reg_ref(A_LIS, tmpreg, tmpref));
+      tmpref.refaddr := addr_higher;
+      list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg, tmpreg, tmpref));
 
-        tmpref.refaddr := addr_high;
-        list.concat(taicpu.op_reg_ref(A_LIS, tmpreg2, tmpref));
-        tmpref.refaddr := addr_low;
-        list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg2, tmpreg2, tmpref));
+      tmpref.refaddr := addr_high;
+      list.concat(taicpu.op_reg_ref(A_LIS, tmpreg2, tmpref));
+      tmpref.refaddr := addr_low;
+      list.concat(taicpu.op_reg_reg_ref(A_ORI, tmpreg2, tmpreg2, tmpref));
 
-        list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, tmpreg2, tmpreg, 32, 0));
-      end else
-        a_load_const_reg(list, OS_ADDR, tmpref.offset, tmpreg2);
+      list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, tmpreg2, tmpreg, 32, 0));
 
       reference_reset(tmpref);
       tmpref.base := ref.base;

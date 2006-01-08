@@ -301,7 +301,7 @@ interface
        end;
 
        tasmdirective=(asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
-                      asd_extern,asd_nasm_import{$IFDEF POWERPC64}, asd_toc_entry{$ENDIF POWERPC64});
+                      asd_extern,asd_nasm_import);
 
        tai_directive = class(tailineinfo)
           name : pstring;
@@ -633,7 +633,7 @@ interface
       stabtypestr : array[tstabtype] of string[5]=('stabs','stabn','stabd');
       directivestr : array[tasmdirective] of string[24]=(
         'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
-        'extern','nasm_import'{$IFDEF POWERPC64}, 'tc'{$ENDIF POWERPC64}
+        'extern','nasm_import'
       );
 
     var

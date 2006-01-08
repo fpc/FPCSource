@@ -115,7 +115,6 @@ begin
       if (target_info.system <> system_powerpc_darwin) then
         s := s + refaddr2str[refaddr];
     end;
-    if (refaddr = addr_pic) then s := s + ')';
 
     if (index = NR_NO) and (base <> NR_NO) then
     begin

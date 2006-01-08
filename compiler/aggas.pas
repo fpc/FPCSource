@@ -214,9 +214,6 @@ implementation
           '.eh_frame',
           '.debug_frame',
           'fpc.resptrs'
-          {$IFDEF POWERPC64}
-          , '.toc'
-          {$ENDIF}
         );
         secnames_pic : array[tasmsectiontype] of string[12] = ('',
           '.text','.data.rel','.data.rel','.bss','.threadvar',
@@ -228,9 +225,6 @@ implementation
           '.eh_frame',
           '.debug_frame',
           'fpc.resptrs'
-          {$IFDEF POWERPC64}
-          , '.toc'
-          {$ENDIF}
         );
       var
         secname : string;
@@ -812,7 +806,7 @@ implementation
                    AsmWriteLn('.size ' + tai_symbol(hp).sym.name + ', 24');
                    AsmWriteLn('.globl .' + tai_symbol(hp).sym.name);
                    AsmWriteLn('.type .' + tai_symbol(hp).sym.name + ', @function');
-                   { the dotted name is the name of the actual function entry }
+                   { the dotted name is the name of the actual function }
                    AsmWrite('.');
                  end
                else
@@ -854,11 +848,15 @@ implementation
                   AsmWriteLn(s+':');
                   AsmWrite(#9'.size'#9);
                   if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
-                    AsmWrite('.');
+                    begin
+                      AsmWrite('.');
+                    end;
                   AsmWrite(tai_symbol_end(hp).sym.name);
                   AsmWrite(', '+s+' - ');
                   if (target_info.system = system_powerpc64_linux) and (tai_symbol_end(hp).sym.typ = AT_FUNCTION) then
-                     AsmWrite('.');
+                    begin
+                      AsmWrite('.');
+                    end;
                   AsmWriteLn(tai_symbol_end(hp).sym.name);
                 end;
              end;
