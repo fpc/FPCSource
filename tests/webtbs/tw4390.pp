@@ -13,7 +13,7 @@ var
 BEGIN
   move(Buf,s[1],size);
   s[0]:=chr(size);
-  writeln('Writing: "',s,'"');
+//  writeln('Writing: "',s,'"');
   if s<>'TEST' then
     halt(1);
 END;
