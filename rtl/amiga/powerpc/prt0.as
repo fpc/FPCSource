@@ -125,3 +125,12 @@ OriginalStkPtr:
         .align 4
 stackArea:
         .long 0
+
+        # This is needed to be a proper Amiga OS4 executable
+        # This symbol _MUST NOT_ stripped out from the executable
+        # or else...
+        .globl __amigaos4__
+        .type __amigaos4__,@object
+        .size __amigaos4__,4
+__amigaos4__:
+        .long 1
