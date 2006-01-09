@@ -1160,7 +1160,9 @@ procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const 
 { note that this routine is both called from the peephole optimizer     }
 { where optinfo is not yet initialised) and from the cse (where it is)  }
 var
-  hp: tai;
+  hp, start: tai;
+  removedsomething,
+  firstRemovedWasAlloc,
   lastRemovedWasDealloc: boolean;
   supreg: tsuperregister;
 begin
@@ -1169,17 +1171,19 @@ begin
      (ptaiprop(p1.optinfo)^.usedregs <> initialusedregs) then
    internalerror(2004101010);
 {$endif EXTDEBUG}
-  supreg := getsupreg(reg);
-{ if not(supreg in rg.usableregsint+[RS_EDI,RS_ESI]) or
-     not(assigned(p1)) then}
- if not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_EDI,RS_ESI]) or
+  start := p1;
+ if (reg = NR_ESP) or
+    (reg = current_procinfo.framepointer) or
      not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
     exit;
+  supreg := getsupreg(reg);
   { make sure we allocate it for this instruction }
   getnextinstruction(p2,p2);
   lastRemovedWasDealloc := false;
+  removedSomething := false;
+  firstRemovedWasAlloc := false;
 {$ifdef allocregdebug}
   hp := tai_comment.Create(strpnew('allocating '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+
     ' from here...'));
@@ -1208,6 +1212,11 @@ begin
            (p1.typ = ait_regalloc) then
           if (getsupreg(tai_regalloc(p1).reg) = supreg) then
             begin
+              if not removedSomething then
+                begin
+                  firstRemovedWasAlloc := tai_regalloc(p1).ratype=ra_alloc;
+                  removedSomething := true;
+                end;
               lastRemovedWasDealloc := (tai_regalloc(p1).ratype=ra_dealloc);
               hp := tai(p1.Next);
               asml.Remove(p1);
@@ -1220,6 +1229,11 @@ begin
     end;
   if assigned(p1) then
     begin
+      if firstRemovedWasAlloc then
+        begin
+          hp := tai_regalloc.Alloc(reg,nil);
+          insertLLItem(asmL,start.previous,start,hp);        
+        end;
       if lastRemovedWasDealloc then
         begin
           hp := tai_regalloc.DeAlloc(reg,nil);
