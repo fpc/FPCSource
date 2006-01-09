@@ -1314,7 +1314,7 @@ var
   symtable : tsymtable;
 {$endif defined(powerpc) or defined(m68k)}
 begin
-  if pd.deftype<>procdef then
+  if (pd.deftype<>procdef) and (target_info.system <> system_powerpc_amiga) then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
 {$ifdef m68k}
@@ -1343,10 +1343,20 @@ begin
         end;
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
+  
+      tprocdef(pd).extnumber:=get_intconst;
     end;
 {$endif m68k}
 {$ifdef powerpc}
-   if target_info.system in [system_powerpc_morphos] then
+   if target_info.system = system_powerpc_amiga then
+    begin
+      include(pd.procoptions,po_syscall_sysv);
+      
+      (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
+      (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+    end else
+    
+   if target_info.system = system_powerpc_morphos then
     begin
       if idtoken=_LEGACY then
         begin
@@ -1366,7 +1376,7 @@ begin
       else if idtoken=_SYSVBASE then
         begin
           consume(_SYSVBASE);
-          include(pd.procoptions,po_syscall_sysvbase);
+          include(pd.procoptions,po_syscall_sysvbase);    
         end
       else if idtoken=_R12BASE then
         begin
@@ -1430,9 +1440,10 @@ begin
         end;
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
+
+      tprocdef(pd).extnumber:=get_intconst;
     end;
 {$endif powerpc}
-  tprocdef(pd).extnumber:=get_intconst;
 end;
 
 
@@ -1802,7 +1813,10 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      pd_flags : [pd_interface,pd_implemen,pd_notobject,pd_notobjintf];
+      { Different kind of syscalls are valid for AOS68k, AOSPPC and MOS. }
+      { FIX ME!!! MorphOS/AOS68k pd_flags should be: 
+        pd_interface, pd_implemen, pd_notobject, pd_notobjintf (KB) }
+      pd_flags : [pd_interface,pd_implemen,pd_procvar];
       handler  : @pd_syscall;
       pocall   : pocall_syscall;
       pooption : [];

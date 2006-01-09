@@ -68,6 +68,14 @@ implementation
         tmpref: treference;
       begin
         case target_info.system of
+          system_powerpc_amiga:
+            begin
+              // one syscall convention for Amiga/PowerPC
+              // which is quite standard
+              extra_call_code;
+              cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+              extra_post_call_code;
+            end;
           system_powerpc_morphos:
             begin
               if (po_syscall_sysv in tprocdef(procdefinition).procoptions) or

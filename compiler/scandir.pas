@@ -914,6 +914,8 @@ implementation
       begin
         { not needed on amiga/m68k for now, because there's only one }
         { syscall convention (legacy) (KB) }
+        { not needed on amiga/powerpc because there's only one }
+        { syscall convention (sysv) (KB) }
         if not (target_info.system in [system_powerpc_morphos]) then
           comment (V_Warning,'Syscall directive is useless on this target.');
         current_scanner.skipspace;

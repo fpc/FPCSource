@@ -119,6 +119,8 @@ implementation
 
          { target specific stuff }
          case target_info.system of
+           system_powerpc_amiga:
+             include(supported_calling_conventions,pocall_syscall);
            system_powerpc_morphos:
              include(supported_calling_conventions,pocall_syscall);
            system_m68k_amiga:
