@@ -1230,6 +1230,8 @@ packages/base/graph/Makefile -text
 packages/base/graph/Makefile.fpc svneol=native#text/plain
 packages/base/graph/amiga/graph.pp svneol=native#text/plain
 packages/base/graph/go32v2/graph.pp svneol=native#text/plain
+packages/base/graph/go32v2/vesa.inc svneol=native#text/plain
+packages/base/graph/go32v2/vesah.inc svneol=native#text/plain
 packages/base/graph/inc/clip.inc svneol=native#text/plain
 packages/base/graph/inc/fills.inc svneol=native#text/plain
 packages/base/graph/inc/fontdata.inc svneol=native#text/plain
@@ -3755,8 +3757,6 @@ rtl/go32v2/sysutils.pp svneol=native#text/plain
 rtl/go32v2/tthread.inc svneol=native#text/plain
 rtl/go32v2/v2prt0.as -text
 rtl/go32v2/varutils.pp svneol=native#text/plain
-rtl/go32v2/vesa.inc svneol=native#text/plain
-rtl/go32v2/vesah.inc svneol=native#text/plain
 rtl/go32v2/vesamode.pp svneol=native#text/plain
 rtl/go32v2/video.pp svneol=native#text/plain
 rtl/i386/cpu.pp svneol=native#text/plain
