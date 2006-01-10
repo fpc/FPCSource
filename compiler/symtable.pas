@@ -737,7 +737,7 @@ implementation
                 else
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
              end
-           else if tabstractvarsym(p).varstate=vs_assigned then
+           else if tabstractvarsym(p).varstate in [vs_written,vs_initialised] then
              begin
                 if (tsym(p).owner.symtabletype=parasymtable) then
                   begin

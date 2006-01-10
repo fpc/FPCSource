@@ -430,7 +430,7 @@ implementation
             else
 {$endif i386}
               if (nf_internal in flags) or
-                 valid_for_addr(left) then
+                 valid_for_addr(left,true) then
                 begin
                   if not(nf_typedaddr in flags) then
                     resulttype:=voidpointertype
@@ -443,7 +443,12 @@ implementation
 
          { this is like the function addr }
          inc(parsing_para_level);
-         set_varstate(left,vs_used,[]);
+         { This is actually only "read", but treat it nevertheless as  }
+         { modified due to the possible use of pointers                }
+         { To avoid false positives regarding "uninitialised"          }
+         { warnings when using arrays, perform it in two steps         }
+         set_varstate(left,vs_written,[]);
+         set_varstate(left,vs_read,[]);
          dec(parsing_para_level);
       end;
 
@@ -482,7 +487,7 @@ implementation
       begin
          result:=nil;
          resulttypepass(left);
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -647,12 +652,17 @@ implementation
            ansi/widestring needs to be valid }
          valid:=is_dynamic_array(left.resulttype.def) or
                 is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def);
+                is_widestring(left.resulttype.def) or
+                { implicit pointer dereference -> pointer is read }
+                (left.resulttype.def.deftype = pointerdef);
          if valid then
-           set_varstate(left,vs_used,[vsf_must_be_valid])
-         else
-           set_varstate(left,vs_used,[]);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+           set_varstate(left,vs_read,[vsf_must_be_valid]);
+{
+         A vecn is, just like a loadn, always part of an expression with its
+         own read/write and must_be_valid semantics. Therefore we don't have
+         to do anything else here, just like for loadn's
+}
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
@@ -893,7 +903,7 @@ implementation
         resulttype:=voidtype;
 
         resulttypepass(withrefnode);
-        set_varstate(withrefnode,vs_used,[vsf_must_be_valid]);
+        set_varstate(withrefnode,vs_read,[vsf_must_be_valid]);
         if codegenerror then
          exit;
 

@@ -125,7 +125,7 @@ implementation
          caseexpr:=comp_expr(true);
          { determines result type }
          do_resulttypepass(caseexpr);
-         set_varstate(caseexpr,vs_used,[vsf_must_be_valid]);
+         set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
          if (not assigned(casedef)) or
@@ -412,11 +412,11 @@ implementation
            needs to be done before the instruction block is
            parsed to have a valid hloopvar }
          resulttypepass(hfrom);
-         set_varstate(hfrom,vs_used,[vsf_must_be_valid]);
+         set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
          resulttypepass(hto);
-         set_varstate(hto,vs_used,[vsf_must_be_valid]);
+         set_varstate(hto,vs_read,[vsf_must_be_valid]);
          resulttypepass(hloopvar);
-         set_varstate(hloopvar,vs_used,[]);
+         set_varstate(hloopvar,vs_readwritten,[]);
 
          { ... now the instruction block }
          hblock:=statement;
@@ -1170,7 +1170,7 @@ implementation
         }
         if assigned(current_procinfo.procdef.funcretsym) and
            (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
-          tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_assigned;
+          tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }

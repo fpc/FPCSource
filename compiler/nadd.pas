@@ -162,8 +162,8 @@ implementation
          resulttypepass(left);
          resulttypepass(right);
          { both left and right need to be valid }
-         set_varstate(left,vs_used,[vsf_must_be_valid]);
-         set_varstate(right,vs_used,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
+         set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 

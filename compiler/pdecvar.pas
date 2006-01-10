@@ -656,7 +656,7 @@ implementation
               symtablestack.insert(tcsym);
               readtypedconst(tt,tcsym,false);
               { The variable has a value assigned }
-              vs.varstate:=vs_assigned;
+              vs.varstate:=vs_initialised;
             end
           else
             begin

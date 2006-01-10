@@ -572,7 +572,7 @@ type
                    floatdef :
                      inserttypeconv(left,s64floattype);
                  end;
-                 set_varstate(left,vs_used,[vsf_must_be_valid]);
+                 set_varstate(left,vs_read,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                  { also update parasym type to get the correct parameter location
                    for the new types }
@@ -581,7 +581,7 @@ type
              else
               if (vo_is_hidden_para in parasym.varoptions) then
                begin
-                 set_varstate(left,vs_used,[vsf_must_be_valid]);
+                 set_varstate(left,vs_read,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                end
              else
@@ -682,12 +682,12 @@ type
                        vs_var,
                        vs_out :
                          begin
-                           if not valid_for_formal_var(left) then
+                           if not valid_for_formal_var(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                        vs_const :
                          begin
-                           if not valid_for_formal_const(left) then
+                           if not valid_for_formal_const(left,true) then
                             CGMessagePos(left.fileinfo,parser_e_illegal_parameter_list);
                          end;
                      end;
@@ -696,7 +696,7 @@ type
                    begin
                      { check if the argument is allowed }
                      if (parasym.varspez in [vs_out,vs_var]) then
-                       valid_for_var(left);
+                       valid_for_var(left,true);
                    end;
 
                  if parasym.varspez in [vs_var,vs_out] then
@@ -723,11 +723,11 @@ type
                   begin
                     case parasym.varspez of
                       vs_out :
-                        set_varstate(left,vs_used,[]);
+                        set_varstate(left,vs_written,[]);
                       vs_var :
-                        set_varstate(left,vs_used,[vsf_must_be_valid,vsf_use_hints]);
+                        set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
                       else
-                        set_varstate(left,vs_used,[vsf_must_be_valid]);
+                        set_varstate(left,vs_read,[vsf_must_be_valid]);
                     end;
                   end;
                  { must only be done after typeconv PM }
@@ -1619,7 +1619,7 @@ type
          { procedure variable ? }
          if assigned(right) then
            begin
-              set_varstate(right,vs_used,[vsf_must_be_valid]);
+              set_varstate(right,vs_read,[vsf_must_be_valid]);
               resulttypepass(right);
               if codegenerror then
                exit;
@@ -1929,14 +1929,15 @@ type
                     )
                    )
                   ) then
-                 set_varstate(methodpointer,vs_used,[])
+                 set_varstate(methodpointer,vs_read,[])
                else
-                 set_varstate(methodpointer,vs_used,[vsf_must_be_valid]);
+                 set_varstate(methodpointer,vs_read,[vsf_must_be_valid]);
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
                   (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
-                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
+                 set_varstate(hpt,vs_read,[]);
+//                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_readwritten;
              end;
 
             { if we are calling the constructor check for abstract
@@ -2147,12 +2148,30 @@ type
       end;
 
 
+    function nonlocalvars(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        result := fen_false;
+        { this is just to play it safe, there are more safe situations }
+        if (n.nodetype = derefn) or
+           ((n.nodetype = loadn) and
+            { globals and fields of (possibly global) objects could always be changed in the callee }
+            ((tloadnode(n).symtable.symtabletype in [globalsymtable,objectsymtable]) or
+            { statics can only be modified by functions in the same unit }
+             ((tloadnode(n).symtable.symtabletype = staticsymtable) and
+              (tloadnode(n).symtable = tsymtable(arg))))) or
+           ((n.nodetype = subscriptn) and
+            (tsubscriptnode(n).vs.owner.symtabletype = objectsymtable)) then
+          result := fen_norecurse_true;
+      end;
+
+
     procedure tcallnode.createinlineparas(var createstatement, deletestatement: tstatementnode);
       var
         para: tcallparanode;
         tempnode: ttempcreatenode;
         tempnodes: ttempnodes;
         n: tnode;
+        paracomplexity: longint;
       begin
         { parameters }
         para := tcallparanode(left);
@@ -2170,38 +2189,80 @@ type
                 n := para.left.getcopy;
                 para.left.free;
                 para.left := n;
+                firstpass(para.left);
 
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
                 { we need to take care that we use the type of the defined parameter and not of the
                   passed parameter, because these can be different in case of a formaldef (PFV) }
+                paracomplexity := node_complexity(para.left);
+                { check if we have to create a temp, assign the parameter's }
+                { contents to that temp and then substitute the paramter    }
+                { with the temp everywhere in the function                  }
                 if
-                  (
-                   { the problem is that we can't take the address of a function result :( }
-                   (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
-                   (para.parasym.varspez = vs_value) or
-                   ((para.parasym.varspez = vs_const) and
-                    (para.parasym.vartype.def.deftype<>formaldef) and
-                   { the compiler expects that it can take the address of parameters passed by reference in
-                     the case of const so we can't replace the node simply by a constant node
-                     When playing with this code, ensure that
-                     function f(const a,b  : longint) : longint;inline;
-                       begin
-                         result:=a*b;
-                       end;
+                  ((tparavarsym(para.parasym).varregable = vr_none) and
+                   not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]))  or
+                  { we can't assign to formaldef temps }
+                  ((para.parasym.vartype.def.deftype<>formaldef) and
+                   (
+                    { if paracomplexity > 1, we normally take the address of   }
+                    { the parameter expression, store it in a temp and         }
+                    { substitute the dereferenced temp in the inlined function }
+                    { We can't do this if we can't take the address of the     }
+                    { parameter expression, so in that case assign to a temp   }
+                    ((paracomplexity > 1) and
+                     (not valid_for_addr(para.left,false) or
+                      (para.left.nodetype = calln) or
+                      is_constnode(para.left))) or
+                    { the problem is that we can't take the address of a function result :( }
+                    (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
+                    { we do not need to create a temp for value parameters }
+                    { which are not modified in the inlined function       }
+                    { const parameters can get vs_readwritten if their     }
+                    { address is taken                                     }
+                    ((((para.parasym.varspez = vs_value) and
+                       (para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
+                      { in case of const, this is only necessary if the     }
+                      { variable would be passed by value normally, or if   }
+                      { there is such a variable somewhere in an expression }
+                       ((para.parasym.varspez = vs_const) and
+                        (not paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
+                         (paracomplexity > 1)))) and
+                     { however, if we pass a global variable, an object field or}
+                     { an expression containing a pointer dereference as        }
+                     { parameter, this value could be modified in other ways as }
+                     { well and in such cases create a temp to be on the safe   }
+                     { side                                                     }
+                     foreachnodestatic(para.left,@nonlocalvars,pointer(symtableproc))) or
+                    { value parameters of which we know they are modified by }
+                    { definition have to be copied to a temp                 }
+                    ((para.parasym.varspez = vs_value) and
+                     not(para.parasym.varstate in [vs_initialised,vs_declared,vs_read])) or
+                    { the compiler expects that it can take the address of parameters passed by reference in
+                      the case of const so we can't replace the node simply by a constant node
+                      When playing with this code, ensure that
+                      function f(const a,b  : longint) : longint;inline;
+                        begin
+                          result:=a*b;
+                        end;
 
-                     [...]
-                     ...:=f(10,20));
-                     [...]
+                      [...]
+                      ...:=f(10,20));
+                      [...]
 
-                     is still folded. (FK)
-                     }
-                    (
-                      { this must be a not ... of course }
-                      not(paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption)) or
-                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF)
-                    ))
-                   ) then
+                      is still folded. (FK)
+                      }
+                    ((para.parasym.varspez = vs_const) and
+                     { const para's can get vs_readwritten if their address }
+                     { is taken                                             }
+                     ((para.parasym.varstate = vs_readwritten) or
+                      { call-by-reference const's may need to be passed by }
+                      { reference to function called in the inlined code   }
+                      (paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) and
+                       (not valid_for_addr(para.left,false) or
+                        is_constnode(para.left)))))
+                   )
+                  ) then
                   begin
                     { in theory, this is always regable, but ncgcall can't }
                     { handle it yet in all situations (JM)                 }
@@ -2226,7 +2287,11 @@ type
                         addstatement(deletestatement,ctempdeletenode.create_normal_temp(tempnode));
                       end
                   end
-                else if (node_complexity(para.left) > 1) then
+                { otherwise if the parameter is "complex", take the address   }
+                { of the parameter expression, store it in a temp and replace }
+                { occurrences of the parameter with dereferencings of this    }
+                { temp                                                        }
+                else if (paracomplexity > 1) then
                   begin
                     tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).varregable<>vr_none);
                     addstatement(createstatement,tempnode);

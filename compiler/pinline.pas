@@ -79,9 +79,9 @@ implementation
         p:=comp_expr(true);
         { calc return type }
         if is_new then
-          set_varstate(p,vs_assigned,[])
+          set_varstate(p,vs_written,[])
         else
-          set_varstate(p,vs_used,[vsf_must_be_valid]);
+          set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
         if (m_mac in aktmodeswitches) and
            is_class(p.resulttype.def) then
           begin
@@ -474,7 +474,7 @@ implementation
            ppn:=tcallparanode(paras);
            while assigned(ppn.right) do
             begin
-              set_varstate(ppn.left,vs_used,[vsf_must_be_valid]);
+              set_varstate(ppn.left,vs_read,[vsf_must_be_valid]);
               inserttypeconv(ppn.left,sinttype);
               inc(dims);
               ppn:=tcallparanode(ppn.right);
@@ -489,8 +489,8 @@ implementation
         { last param must be var }
         destppn:=ppn.left;
         inc(parsing_para_level);
-        valid_for_var(destppn);
-        set_varstate(destppn,vs_assigned,[]);
+        valid_for_var(destppn,true);
+        set_varstate(destppn,vs_written,[]);
         dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resulttype.def);

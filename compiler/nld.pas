@@ -576,8 +576,8 @@ implementation
           end;
 
         resulttypepass(right);
-        set_varstate(left,vs_assigned,[]);
-        set_varstate(right,vs_used,[vsf_must_be_valid]);
+        set_varstate(right,vs_read,[vsf_must_be_valid]);
+        set_varstate(left,vs_written,[]);
         if codegenerror then
           exit;
 
@@ -592,7 +592,7 @@ implementation
           CGMessage(type_e_operator_not_allowed);
 
         { test if node can be assigned, properties are allowed }
-        valid_for_assignment(left);
+        valid_for_assignment(left,true);
 
         { assigning nil to a dynamic array clears the array }
         if is_dynamic_array(left.resulttype.def) and
@@ -835,8 +835,8 @@ implementation
         result:=nil;
         resulttypepass(left);
         resulttypepass(right);
-        set_varstate(left,vs_used,[vsf_must_be_valid]);
-        set_varstate(right,vs_used,[vsf_must_be_valid]);
+        set_varstate(left,vs_read,[vsf_must_be_valid]);
+        set_varstate(right,vs_read,[vsf_must_be_valid]);
         if codegenerror then
          exit;
         resulttype:=left.resulttype;
@@ -900,7 +900,7 @@ implementation
            while assigned(hp) do
             begin
               resulttypepass(hp.left);
-              set_varstate(hp.left,vs_used,[vsf_must_be_valid]);
+              set_varstate(hp.left,vs_read,[vsf_must_be_valid]);
               if (htype.def=nil) then
                htype:=hp.left.resulttype
               else

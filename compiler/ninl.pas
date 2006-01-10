@@ -410,7 +410,7 @@ implementation
             left := filepara.right;
             filepara.right := nil;
             { the file para is a var parameter, but it must be valid already }
-            set_varstate(filepara.left,vs_used,[vsf_must_be_valid]);
+            set_varstate(filepara.left,vs_readwritten,[vsf_must_be_valid]);
             { check if we should make a temp to store the result of a complex }
             { expression (better heuristics, anyone?) (JM)                    }
             if (filepara.left.nodetype <> loadn) then
@@ -1334,7 +1334,7 @@ implementation
                      result:=hp;
                      goto myexit;
                    end;
-                  set_varstate(left,vs_used,[vsf_must_be_valid]);
+                  set_varstate(left,vs_read,[vsf_must_be_valid]);
                   if not is_integer(left.resulttype.def) then
                     CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename);
                   case inlinenumber of
@@ -1353,7 +1353,7 @@ implementation
 
               in_sizeof_x:
                 begin
-                  set_varstate(left,vs_used,[]);
+                  set_varstate(left,vs_read,[]);
                   if paramanager.push_high_param(vs_value,left.resulttype.def,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
@@ -1374,7 +1374,7 @@ implementation
 
               in_typeof_x:
                 begin
-                  set_varstate(left,vs_used,[]);
+                  set_varstate(left,vs_read,[]);
                   resulttype:=voidpointertype;
                 end;
 
@@ -1387,7 +1387,7 @@ implementation
                       result:=hp;
                       goto myexit;
                     end;
-                   set_varstate(left,vs_used,[vsf_must_be_valid]);
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                    case left.resulttype.def.deftype of
                      orddef :
                        begin
@@ -1451,7 +1451,7 @@ implementation
               in_chr_byte:
                 begin
                    { convert to explicit char() }
-                   set_varstate(left,vs_used,[vsf_must_be_valid]);
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                    hp:=ctypeconvnode.create_internal(left,cchartype);
                    left:=nil;
                    result:=hp;
@@ -1459,7 +1459,7 @@ implementation
 
               in_length_x:
                 begin
-                  set_varstate(left,vs_used,[vsf_must_be_valid]);
+                  set_varstate(left,vs_read,[vsf_must_be_valid]);
 
                   case left.resulttype.def.deftype of
                     variantdef:
@@ -1571,7 +1571,7 @@ implementation
 
               in_typeinfo_x:
                 begin
-                   set_varstate(left,vs_used,[vsf_must_be_valid]);
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resulttype:=voidpointertype;
                 end;
 
@@ -1595,7 +1595,7 @@ implementation
                     end;
                   { otherwise handle separately, because there could be a procvar, which }
                   { is 2*sizeof(pointer), while we must only check the first pointer     }
-                  set_varstate(tcallparanode(left).left,vs_used,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   resulttype:=booltype;
                 end;
 
@@ -1604,7 +1604,7 @@ implementation
 
               in_seg_x :
                 begin
-                  set_varstate(left,vs_used,[]);
+                  set_varstate(left,vs_read,[]);
                   result:=cordconstnode.create(0,s32inttype,false);
                   goto myexit;
                 end;
@@ -1612,7 +1612,7 @@ implementation
               in_pred_x,
               in_succ_x:
                 begin
-                   set_varstate(left,vs_used,[vsf_must_be_valid]);
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resulttype:=left.resulttype;
                    if not is_ordinal(resulttype.def) then
                      CGMessage(type_e_ordinal_expr_expected)
@@ -1655,8 +1655,8 @@ implementation
                   if assigned(left) then
                     begin
                        { first param must be var }
-                       valid_for_var(tcallparanode(left).left);
-                       set_varstate(tcallparanode(left).left,vs_used,[vsf_must_be_valid]);
+                       valid_for_var(tcallparanode(left).left,true);
+                       set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
 
                        if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
                           is_ordinal(left.resulttype.def) or
@@ -1667,7 +1667,7 @@ implementation
                           { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
-                             set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,[vsf_must_be_valid]);
+                             set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                              inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
                              if assigned(tcallparanode(tcallparanode(left).right).right) then
                                CGMessage(parser_e_illegal_expression);
@@ -1723,14 +1723,14 @@ implementation
                   { the parser already checks whether we have two (and exectly two) }
                   { parameters (JM)                                                 }
                   { first param must be var }
-                  valid_for_var(tcallparanode(left).left);
-                  set_varstate(tcallparanode(left).left,vs_used,[vsf_must_be_valid]);
+                  valid_for_var(tcallparanode(left).left,true);
+                  set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
                   { check type }
                   if (left.resulttype.def.deftype=setdef) then
                     begin
                       { insert a type conversion       }
                       { to the type of the set elements  }
-                      set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(tcallparanode(tcallparanode(left).right).left,
                         tsetdef(left.resulttype.def).elementtype);
                     end
@@ -1771,13 +1771,13 @@ implementation
                            if is_open_array(left.resulttype.def) or
                               is_array_of_const(left.resulttype.def) then
                             begin
-                              set_varstate(left,vs_used,[vsf_must_be_valid]);
+                              set_varstate(left,vs_read,[vsf_must_be_valid]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
                             if is_dynamic_array(left.resulttype.def) then
                               begin
-                                set_varstate(left,vs_used,[vsf_must_be_valid]);
+                                set_varstate(left,vs_read,[vsf_must_be_valid]);
                                 { can't use inserttypeconv because we need }
                                 { an explicit type conversion (JM)         }
                                 hp := ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil);
@@ -1803,7 +1803,7 @@ implementation
                          begin
                            if is_open_string(left.resulttype.def) then
 			     begin
-                               set_varstate(left,vs_used,[vsf_must_be_valid]);
+                               set_varstate(left,vs_read,[vsf_must_be_valid]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
 			     end
                            else
@@ -1830,7 +1830,7 @@ implementation
                     end
                   else
                     begin
-                      set_varstate(left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
                       resulttype:=pbestrealtype^;
                     end;
@@ -1851,7 +1851,7 @@ implementation
                     end
                   else
                     begin
-                      set_varstate(left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
                       resulttype:=s64inttype;
                     end;
@@ -1872,7 +1872,7 @@ implementation
                     end
                   else
                     begin
-                      set_varstate(left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
                       resulttype:=s64inttype;
                     end;
@@ -1884,7 +1884,7 @@ implementation
                     setconstrealvalue(frac(getconstrealvalue))
                   else
                     begin
-                      set_varstate(left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
                       resulttype:=pbestrealtype^;
                     end;
@@ -1896,7 +1896,7 @@ implementation
                     setconstrealvalue(int(getconstrealvalue))
                   else
                     begin
-                      set_varstate(left,vs_used,[vsf_must_be_valid]);
+                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
                       resulttype:=pbestrealtype^;
                     end;
@@ -1916,7 +1916,7 @@ implementation
                    setconstrealvalue(cos(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1928,7 +1928,7 @@ implementation
                    setconstrealvalue(sin(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1940,7 +1940,7 @@ implementation
                    setconstrealvalue(arctan(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1952,7 +1952,7 @@ implementation
                    setconstrealvalue(abs(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -1964,7 +1964,7 @@ implementation
                    setconstrealvalue(sqr(getconstrealvalue))
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      setfloatresulttype;
                    end;
                 end;
@@ -1981,7 +1981,7 @@ implementation
                    end
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      setfloatresulttype;
                    end;
                 end;
@@ -1998,7 +1998,7 @@ implementation
                    end
                   else
                    begin
-                     set_varstate(left,vs_used,[vsf_must_be_valid]);
+                     set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
                      resulttype:=pbestrealtype^;
                    end;
@@ -2018,11 +2018,11 @@ implementation
                   resulttype:=voidtype;
                   if assigned(left) then
                     begin
-                       set_varstate(tcallparanode(left).left,vs_used,[vsf_must_be_valid]);
+                       set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                        { check type }
                        if is_boolean(left.resulttype.def) then
                          begin
-                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_used,[vsf_must_be_valid]);
+                            set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                             { must always be a string }
                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
                          end

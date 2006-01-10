@@ -1548,7 +1548,7 @@ implementation
            DLL will include the edata section }
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
-            BinaryContainsExports then
+            ((current_module.flags and uf_has_exports)<>0) then
            codesegment.concat(tai_const.create_sym(exportlib.edatalabel));
 
          If ResourceStrings.ResStrCount>0 then
@@ -1626,9 +1626,7 @@ implementation
          if current_module.uses_imports then
            importlib.generatelib;
 
-         if islibrary or
-            (target_info.system in [system_i386_WIN32,system_i386_wdosx]) or
-            (target_info.system=system_i386_NETWARE) then
+         if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
 
          { insert Tables and StackLength }
@@ -1680,10 +1678,9 @@ implementation
             if (not current_module.is_unit) then
              begin
                if DLLSource then
-                linker.MakeSharedLibrary
+                 linker.MakeSharedLibrary
                else
-                linker.MakeExecutable;
-               BinaryContainsExports:=false;
+                 linker.MakeExecutable;
              end;
           end;
       end;

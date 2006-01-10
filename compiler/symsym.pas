@@ -1313,7 +1313,7 @@ implementation
     constructor tabstractvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(ppufile);
-         varstate:=vs_used;
+         varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
          ppufile.gettype(_vartype);

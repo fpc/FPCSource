@@ -83,6 +83,8 @@ ___fpucw:
         .type   ___fpc_brk_addr,@object
 	.comm   ___fpc_brk_addr,4        /* heap management */
 
+        .type operatingsystem_parameters,@object
+        .size operatingsystem_parameters,12
 operatingsystem_parameters:
 	.skip 3*4
 
