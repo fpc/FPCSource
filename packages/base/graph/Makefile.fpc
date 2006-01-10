@@ -11,12 +11,12 @@ libc=y
 
 # clean package units
 [clean]
-units=$(GGIGRAPH_UNIT) $(GRPAH_UNIT)
+units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
 
 [target]
 dirs=
 units=
-units_linux=$(GRPAH_UNIT) $(GGIGRAPH_UNIT)
+units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
 units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
 units_go32v2=graph
