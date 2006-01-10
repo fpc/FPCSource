@@ -629,7 +629,11 @@ begin
                                 taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                 tai_label(hp2).l.decrefs;
                                 taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
-                                taicpu(p).oper[0]^.ref^.symbol.increfs;
+                                { when free'ing hp1, the ref. isn't decresed, so we don't
+                                  increase it (FK)
+
+                                  taicpu(p).oper[0]^.ref^.symbol.increfs;
+                                }
                                 asml.remove(hp1);
                                 hp1.free;
                                 GetFinalDestination(asml, taicpu(p),0);

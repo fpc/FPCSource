@@ -45,7 +45,8 @@ Type
        ClassPentium,
        ClassPentium2,
        ClassPentium3,
-       ClassPentium4
+       ClassPentium4,
+       ClassPentiumM
       );
 
    tfputype =
@@ -53,7 +54,8 @@ Type
       fpu_soft,
       fpu_x87,
       fpu_sse,
-      fpu_sse2
+      fpu_sse2,
+      fpu_sse3
      );
 
 
@@ -76,18 +78,20 @@ Const
      'PENTIUM',
      'PENTIUM2',
      'PENTIUM3',
-     'PENTIUM4'
+     'PENTIUM4',
+     'PENTIUMM'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
      'SOFT',
      'X87',
      'SSE',
-     'SSE2'
+     'SSE2',
+     'SSE3'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2];
-   sse_doublescalar : set of tfputype = [fpu_sse2];
+   sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
+   sse_doublescalar : set of tfputype = [fpu_sse2,fpu_sse3];
 
 Implementation
 

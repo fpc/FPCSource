@@ -36,7 +36,7 @@ const
   Title     = 'PPU-Mover';
   Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 
-  ShortOpts = 'o:e:d:qhsvbw';
+  ShortOpts = 'o:e:d:i:qhsvbw';
   BufSize = 4096;
   PPUExt = 'ppu';
   ObjExt = 'o';
@@ -67,6 +67,7 @@ Var
   ArBin,LDBin,StripBin,
   OutputFile,
   OutputFileForLink,  { the name of the output file needed when linking }
+  InputPath,
   DestPath,
   PPLExt,
   LibExt      : string;
@@ -422,13 +423,13 @@ var
 {$endif}
 begin
 {$ifdef unix}
-  DoFile:=DoPPU(FileName,ForceExtension(FileName,PPLExt));
+  DoFile:=DoPPU(InputPath+FileName,InputPath+ForceExtension(FileName,PPLExt));
 {$else}
   DoFile:=false;
   findfirst(filename,$20,dir);
   while doserror=0 do
    begin
-     if not DoPPU(Dir.Name,ForceExtension(Dir.Name,PPLExt)) then
+     if not DoPPU(InputPath+Dir.Name,InputPath+ForceExtension(Dir.Name,PPLExt)) then
       exit;
      findnext(dir);
    end;
@@ -440,11 +441,10 @@ end;
 
 Procedure DoLink;
 {
-  Link the object files together to form a (shared) library, the only
-  problem here is the 255 char limit of Names
+  Link the object files together to form a (shared) library
 }
 Var
-  Names : String;
+  Names : ansistring;
   f     : file;
   Err   : boolean;
   P     : PLinkOEnt;
@@ -456,9 +456,9 @@ begin
   While p<>nil do
    begin
      if Names<>'' then
-      Names:=Names+' '+P^.name
+      Names:=Names+' '+InputPath+P^.name
      else
-      Names:=p^.Name;
+      Names:=InputPath+p^.Name;
      p:=p^.next;
    end;
   if Names='' then
@@ -530,6 +530,11 @@ begin
       'S' : MakeStatic:=True;
       'o' : OutputFile:=OptArg;
       'd' : DestPath:=OptArg;
+      'i' : begin
+              InputPath:=OptArg;
+              if InputPath[length(InputPath)]<>DirectorySeparator then
+                InputPath:=InputPath+DirectorySeparator;
+            end;
       'e' : PPLext:=OptArg;
       'q' : Quiet:=True;
       'w' : begin

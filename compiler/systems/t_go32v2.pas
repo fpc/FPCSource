@@ -231,10 +231,8 @@ begin
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if source_info.system=system_i386_go32v2 then
-    Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName))
-  else
-    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName));
+(* Potential issues with older ld version??? *)
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);

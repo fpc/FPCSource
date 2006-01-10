@@ -10,7 +10,7 @@ loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
-       crt  printer $(GGIGRAPH_UNIT) \
+      crt  printer \
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
@@ -37,15 +37,13 @@ includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(COMMON)
 targetdir=.
 
-[lib]
-libname=libfprtl.so
-libversion=2.0.3
-libunits=$(SYSTEMUNIT) objpas strings \
-      unix  ports \
-      dos crt objects printer \
+[shared]
+libunits=$(SYSTEMUNIT) objpas strings dos \
+      unix baseunix unixtype unixutil \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc \
-      errors sockets ipc dl dynlibs varutils
+      $(CPU_UNITS) getopts \
+      errors sockets varutils \
+      classes variants sysconst rtlconsts \
 
 [prerules]
 RTL=..
@@ -54,20 +52,14 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
-ifneq ($(CPU_TARGET),powerpc64)
-GGIGRAPH_UNIT=ggigraph
-else
-GGIGRAPH_UNIT=
-endif
+UNITPREFIX=rtl
 
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
-CPU_UNITS=x86 ports cpu mmx graph
+CPU_UNITS=x86 ports cpu mmx
 else
 CPU_UNITS=
 endif
-
-UNITPREFIX=rtl
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
@@ -92,16 +84,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-
-# Use new graph unit ?
-# NEWGRAPH=YES
-# Use LibGGI ?
-# Use
-#
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
 
 [rules]
 # Get the $(SYSTEMUNIT) independent include file names.
@@ -204,21 +186,6 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Graph
-#
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-graph$(PPUEXT) : graph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                 $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
-        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp
-
-
-ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                 $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp
 
 #
 # Delphi Compatible Units

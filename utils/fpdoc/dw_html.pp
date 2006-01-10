@@ -638,7 +638,7 @@ begin
   end;
 
   Path := Copy(AFilename, 1, EndIndex - 1);
-  if not FileExists(Path) then
+  if not DirectoryExists(Path) then
   begin
     CreatePath(Path);
     MkDir(Path);

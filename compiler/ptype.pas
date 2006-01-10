@@ -36,7 +36,6 @@ interface
        { hack, which allows to use the current parsed }
        { object type as function argument type  }
        testcurobject : byte;
-       curobjectname : stringid;
 
     { reads a string, file type or a type id and returns a name and }
     { tdef }
@@ -85,19 +84,20 @@ implementation
          s:=pattern;
          sorg:=orgpattern;
          pos:=akttokenpos;
-         { classes can be used also in classes }
-         if (curobjectname=pattern) and is_class_or_interface(aktobjectdef) then
+         { use of current parsed object:
+            - classes can be used also in classes
+            - objects can be parameters }
+         if (token=_ID) and
+            assigned(aktobjectdef) and
+            (aktobjectdef.objname^=pattern) and
+            (
+             (testcurobject=2) or
+             is_class_or_interface(aktobjectdef)
+            )then
            begin
-              tt.setdef(aktobjectdef);
-              consume(_ID);
-              exit;
-           end;
-         { objects can be parameters }
-         if (testcurobject=2) and (curobjectname=pattern) then
-           begin
-              tt.setdef(aktobjectdef);
-              consume(_ID);
-              exit;
+             consume(_ID);
+             tt.setdef(aktobjectdef);
+             exit;
            end;
          { try to load the symbol to see if it's a unitsym. Use the
            special searchsym_type that ignores records,objects and
@@ -260,19 +260,20 @@ implementation
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
         begin
-           { use of current parsed object ? }
-           if (token=_ID) and (testcurobject=2) and (curobjectname=pattern) then
+           { use of current parsed object:
+              - classes can be used also in classes
+              - objects can be parameters }
+           if (token=_ID) and
+              assigned(aktobjectdef) and
+              (aktobjectdef.objname^=pattern) and
+              (
+               (testcurobject=2) or
+               is_class_or_interface(aktobjectdef)
+              )then
              begin
-                consume(_ID);
-                tt.setdef(aktobjectdef);
-                exit;
-             end;
-           { classes can be used also in classes }
-           if (curobjectname=pattern) and is_class_or_interface(aktobjectdef) then
-             begin
-                tt.setdef(aktobjectdef);
-                consume(_ID);
-                exit;
+               consume(_ID);
+               tt.setdef(aktobjectdef);
+               exit;
              end;
            { we can't accept a equal in type }
            pt1:=comp_expr(not(ignore_equal));

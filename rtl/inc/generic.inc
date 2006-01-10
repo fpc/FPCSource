@@ -1012,7 +1012,7 @@ function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
-procedure int_str(l : longint;var s : string);
+procedure int_str(l : longint;out s : string);
 var
   value: longint;
   negative: boolean;
@@ -1053,7 +1053,7 @@ var
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
-procedure int_str(l : longword;var s : string);
+procedure int_str(l : longword;out s : string);
 begin
   s:='';
   if l = 0 then
@@ -1072,7 +1072,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
-procedure int_str(l : int64;var s : string);
+procedure int_str(l : int64;out s : string);
 var
   value: int64;
   negative: boolean;
@@ -1113,7 +1113,7 @@ var
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
-procedure int_str(l : qword;var s : string);
+procedure int_str(l : qword;out s : string);
 begin
   s:='';
   if l = 0 then

@@ -1815,6 +1815,7 @@ implementation
           begin
             inc(dupnr);
             dupsym.name:='dup'+tostr(dupnr)+dupsym.name;
+            include(tsym(dupsym).symoptions,sp_implicitrename);
           end;
       end;
 

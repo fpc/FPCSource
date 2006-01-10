@@ -197,7 +197,7 @@ implementation
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32inttype,true));
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuett,true));
              else
                internalerror(200110205);
            end;
@@ -230,12 +230,12 @@ implementation
               begin
                 addnode(tvecnode(p).left);
                 if tvecnode(p).right.nodetype=ordconstn then
-                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value)
+                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resulttype)
                 else
                   begin
                     Message(parser_e_illegal_expression);
                     { recovery }
-                    sl.addconst(sl_vec,0);
+                    sl.addconst(sl_vec,0,tvecnode(p).right.resulttype);
                   end;
              end;
             loadn :
@@ -493,6 +493,7 @@ implementation
                   (is_object(p1.resulttype.def) and
                    (oo_has_constructor in tobjectdef(p1.resulttype.def).objectoptions)) or
                   is_open_array(p1.resulttype.def) or
+                  is_array_of_const(p1.resulttype.def) or
                   is_open_string(p1.resulttype.def)
                  ) then
                statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
@@ -2036,6 +2037,11 @@ implementation
          end
         else
          case token of
+           _RETURN :
+              begin
+                consume(_RETURN);
+                p1 := cexitnode.create(comp_expr(true));
+              end;
            _INHERITED :
              begin
                again:=true;

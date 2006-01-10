@@ -73,7 +73,7 @@ begin
 end;
 
 
-Procedure DisposeAnsiString(Var S : Pointer);
+Procedure DisposeAnsiString(Var S : Pointer); {$IFNDEF VER2_0} Inline; {$ENDIF}
 {
   Deallocates a AnsiString From the heap.
 }
@@ -85,7 +85,7 @@ begin
   S:=Nil;
 end;
 
-
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF'];  compilerproc;
 {
   Decreases the ReferenceCount of a non constant ansistring;
@@ -101,17 +101,18 @@ Begin
   { check for constant strings ...}
   l:=@PAnsiRec(S-FirstOff)^.Ref;
   If l^<0 then exit;
-
   { declocked does a MT safe dec and returns true, if the counter is 0 }
   If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
 end;
 
+{$endif FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+
 { also define alias for internal use in the system unit }
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); [external name 'FPC_ANSISTR_DECR_REF'];
 
-Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc;
+Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [Public,Alias:'FPC_ANSISTR_INCR_REF'];  compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Begin
   If S=Nil then
     exit;
@@ -119,6 +120,7 @@ Begin
   If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
   inclocked(PAnsiRec(S-FirstOff)^.Ref);
 end;
+
 
 { also define alias which can be used inside the system unit }
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
@@ -417,30 +419,38 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; 
+Var
+  SNew : Pointer;
+  L    : SizeInt;
+begin
+  L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+  SNew:=NewAnsiString (L);
+  Move (Pointer(S)^,SNew^,L+1);
+  PAnsiRec(SNew-FirstOff)^.len:=L;
+  fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
+  pointer(S):=SNew;
+  pointer(result):=SNew;
+end;
 
-Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc;
+
+{$ifndef FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+// MV: inline the basic checks for case that S is already unique.
+// Rest is too complex to inline, so factor that out as a call.
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
 }
-Var
-  SNew : Pointer;
-  L    : SizeInt;
 begin
   pointer(result) := pointer(s);
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-   begin
-     L:=PAnsiRec(Pointer(S)-FirstOff)^.len;
-     SNew:=NewAnsiString (L);
-     Move (Pointer(S)^,SNew^,L+1);
-     PAnsiRec(SNew-FirstOff)^.len:=L;
-     fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
-     pointer(S):=SNew;
-     pointer(result):=SNew;
-   end;
+    result:=fpc_truely_ansistr_unique(s);
 end;
+{$endif FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+
 
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; compilerproc;
 begin
@@ -581,7 +591,7 @@ begin
 end;
 
 
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
+Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR']; compilerproc;
 Var
   SS : String;
 begin
@@ -596,7 +606,7 @@ begin
 end;
 
 
-Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
+Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -611,7 +621,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
+Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -628,7 +638,7 @@ end;
 
 {$ifndef CPU64}
 
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword; [public, alias:'FPC_VAL_QWORD_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -643,7 +653,7 @@ begin
 end;
 
 
-Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
+Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
 begin
@@ -660,7 +670,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss: ShortString;
 begin
@@ -669,7 +679,7 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc;
+Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -679,7 +689,7 @@ end;
 
 
 
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc;
+Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -690,7 +700,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc;
+Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -698,9 +708,7 @@ begin
   S:=SS;
 end;
 
-
-
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc;
+Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var
   SS : ShortString;
 begin
@@ -709,7 +717,6 @@ begin
 end;
 
 {$endif CPU64}
-
 
 Procedure Delete (Var S : AnsiString; Index,Size: SizeInt);
 Var
@@ -723,8 +730,8 @@ begin
      Size:=LS-Index+1;
   If (Size<=LS-Index) then
     begin
-    Dec(Index);
-    Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index-Size+1);
+      Dec(Index);
+      Move(PByte(Pointer(S))[Index+Size],PByte(Pointer(S))[Index],LS-Index-Size+1);
     end;
   Setlength(S,LS-Size);
 end;
@@ -760,7 +767,7 @@ begin
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
-Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt);
+Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF VER2_0} Inline; {$ENDIF}
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
@@ -788,5 +795,3 @@ begin
   for i := 1 to length (s) do
     result[i] := lowercase(s[i]);
 end;
-
-

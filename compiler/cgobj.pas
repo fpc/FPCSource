@@ -93,9 +93,9 @@ unit cgobj;
           procedure getcpuregister(list:Taasmoutput;r:Tregister);virtual;
           procedure ungetcpuregister(list:Taasmoutput;r:Tregister);virtual;
           {# Get multiple registers specified.}
-          procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
+          procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
           {# Free multiple registers specified.}
-          procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);virtual;
+          procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
 
           procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
 
@@ -263,6 +263,7 @@ unit cgobj;
           procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
           procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
           procedure a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
+          procedure a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
@@ -610,7 +611,7 @@ implementation
       end;
 
 
-    procedure tcg.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure tcg.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].alloccpuregisters(list,r)
@@ -619,7 +620,7 @@ implementation
       end;
 
 
-    procedure tcg.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure tcg.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].dealloccpuregisters(list,r)
@@ -1207,6 +1208,12 @@ implementation
       end;
 
 
+    procedure tcg.a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
+      begin
+        a_cmp_loc_reg_label(list,size,swap_opcmp(cmp_op),loc,reg,l);
+      end;
+
+
     procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
       begin
         case loc.loc of
@@ -1478,6 +1485,7 @@ implementation
         decrfunc : string;
         needrtti : boolean;
         cgpara1,cgpara2 : TCGPara;
+        tempreg1,tempreg2 : TRegister;
       begin
         cgpara1.init;
         cgpara2.init;
@@ -1516,14 +1524,20 @@ implementation
             if needrtti then
              begin
                reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-               paramanager.allocparaloc(list,cgpara2);
-               a_paramaddr_ref(list,href,cgpara2);
+               tempreg2:=getaddressregister(list);
+               a_loadaddr_ref_reg(list,href,tempreg2);
              end;
-            paramanager.allocparaloc(list,cgpara1);
-            a_paramaddr_ref(list,ref,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
+            tempreg1:=getaddressregister(list);
+            a_loadaddr_ref_reg(list,ref,tempreg1);
             if needrtti then
-              paramanager.freeparaloc(list,cgpara2);
+              begin
+                paramanager.allocparaloc(list,cgpara2);
+                a_param_reg(list,OS_ADDR,tempreg2,cgpara2);
+                paramanager.freeparaloc(list,cgpara2);
+              end;
+            paramanager.allocparaloc(list,cgpara1);
+            a_param_reg(list,OS_ADDR,tempreg1,cgpara1);
+            paramanager.freeparaloc(list,cgpara1);
             alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,decrfunc);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -1592,10 +1606,10 @@ implementation
          if is_ansistring(t) or
             is_widestring(t) or
             is_interfacecom(t) then
-           begin
-             g_decrrefcount(list,t,ref);
-             a_load_const_ref(list,OS_ADDR,0,ref);
-           end
+            begin
+              g_decrrefcount(list,t,ref);
+              a_load_const_ref(list,OS_ADDR,0,ref);
+            end
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);

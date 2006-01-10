@@ -1116,6 +1116,26 @@ packages/base/gdbint/gdbobjs.inc svneol=native#text/plain
 packages/base/gdbint/gdbver.pp svneol=native#text/plain
 packages/base/gdbint/symify.pp svneol=native#text/plain
 packages/base/gdbint/testgdb.pp svneol=native#text/plain
+packages/base/graph/Makefile -text
+packages/base/graph/Makefile.fpc svneol=native#text/plain
+packages/base/graph/amiga/graph.pp svneol=native#text/plain
+packages/base/graph/go32v2/graph.pp svneol=native#text/plain
+packages/base/graph/inc/clip.inc svneol=native#text/plain
+packages/base/graph/inc/fills.inc svneol=native#text/plain
+packages/base/graph/inc/fontdata.inc svneol=native#text/plain
+packages/base/graph/inc/graph.inc svneol=native#text/plain
+packages/base/graph/inc/graph.tex -text
+packages/base/graph/inc/graphh.inc svneol=native#text/plain
+packages/base/graph/inc/gtext.inc svneol=native#text/plain
+packages/base/graph/inc/makefile.inc svneol=native#text/plain
+packages/base/graph/inc/modes.inc svneol=native#text/plain
+packages/base/graph/inc/palette.inc svneol=native#text/plain
+packages/base/graph/unix/ggigraph.pp svneol=native#text/plain
+packages/base/graph/unix/graph.pp svneol=native#text/plain
+packages/base/graph/unix/graph16.inc svneol=native#text/plain
+packages/base/graph/win32/graph.pp svneol=native#text/plain
+packages/base/graph/win32/wincrt.pp svneol=native#text/plain
+packages/base/graph/win32/winmouse.pp svneol=native#text/plain
 packages/base/hash/Makefile svneol=native#text/plain
 packages/base/hash/Makefile.fpc svneol=native#text/plain
 packages/base/hash/crc.pas -text
@@ -3348,7 +3368,6 @@ rtl/amiga/Makefile svneol=native#text/plain
 rtl/amiga/Makefile.fpc svneol=native#text/plain
 rtl/amiga/crt.pp svneol=native#text/plain
 rtl/amiga/dos.pp svneol=native#text/plain
-rtl/amiga/graph.pp svneol=native#text/plain
 rtl/amiga/os.inc svneol=native#text/plain
 rtl/amiga/printer.pp svneol=native#text/plain
 rtl/amiga/prt0.as -text
@@ -3422,6 +3441,7 @@ rtl/darwin/Makefile svneol=native#text/plain
 rtl/darwin/Makefile.fpc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain
 rtl/darwin/errno.inc svneol=native#text/plain
+rtl/darwin/errnostr.inc -text
 rtl/darwin/pmutext.inc svneol=native#text/plain
 rtl/darwin/powerpc/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/powerpc/sighnd.inc svneol=native#text/plain
@@ -3460,6 +3480,7 @@ rtl/freebsd/Makefile.fpc svneol=native#text/plain
 rtl/freebsd/bsdport.txt svneol=native#text/plain
 rtl/freebsd/console.pp svneol=native#text/plain
 rtl/freebsd/errno.inc svneol=native#text/plain
+rtl/freebsd/errnostr.inc -text
 rtl/freebsd/i386/bsyscall.inc svneol=native#text/plain
 rtl/freebsd/i386/cprt0.as -text
 rtl/freebsd/i386/gprt0.as -text
@@ -3499,7 +3520,6 @@ rtl/go32v2/exit16.ah -text
 rtl/go32v2/exit16.asm -text
 rtl/go32v2/fpu.as -text
 rtl/go32v2/go32.pp svneol=native#text/plain
-rtl/go32v2/graph.pp svneol=native#text/plain
 rtl/go32v2/initc.pp svneol=native#text/plain
 rtl/go32v2/keyboard.pp svneol=native#text/plain
 rtl/go32v2/mouse.pp svneol=native#text/plain
@@ -3569,16 +3589,6 @@ rtl/inc/genset.inc svneol=native#text/plain
 rtl/inc/genstr.inc svneol=native#text/plain
 rtl/inc/genstrs.inc svneol=native#text/plain
 rtl/inc/getopts.pp svneol=native#text/plain
-rtl/inc/graph/clip.inc svneol=native#text/plain
-rtl/inc/graph/fills.inc svneol=native#text/plain
-rtl/inc/graph/fontdata.inc svneol=native#text/plain
-rtl/inc/graph/graph.inc svneol=native#text/plain
-rtl/inc/graph/graph.tex -text
-rtl/inc/graph/graphh.inc svneol=native#text/plain
-rtl/inc/graph/gtext.inc svneol=native#text/plain
-rtl/inc/graph/makefile.inc svneol=native#text/plain
-rtl/inc/graph/modes.inc svneol=native#text/plain
-rtl/inc/graph/palette.inc svneol=native#text/plain
 rtl/inc/heap.inc svneol=native#text/plain
 rtl/inc/heaph.inc svneol=native#text/plain
 rtl/inc/heaptrc.pp svneol=native#text/plain
@@ -3648,6 +3658,7 @@ rtl/linux/arm/syscallh.inc svneol=native#text/plain
 rtl/linux/arm/sysnr.inc svneol=native#text/plain
 rtl/linux/bunxsysc.inc svneol=native#text/plain
 rtl/linux/errno.inc svneol=native#text/plain
+rtl/linux/errnostr.inc -text
 rtl/linux/fpcylix.pp svneol=native#text/plain
 rtl/linux/gpm.pp svneol=native#text/plain
 rtl/linux/i386/bsyscall.inc svneol=native#text/plain
@@ -4200,9 +4211,6 @@ rtl/unix/errors.pp svneol=native#text/plain
 rtl/unix/genfdset.inc svneol=native#text/plain
 rtl/unix/genfuncs.inc svneol=native#text/plain
 rtl/unix/gensigset.inc svneol=native#text/plain
-rtl/unix/ggigraph.pp svneol=native#text/plain
-rtl/unix/graph.pp svneol=native#text/plain
-rtl/unix/graph16.inc svneol=native#text/plain
 rtl/unix/initc.pp svneol=native#text/plain
 rtl/unix/ipc.pp svneol=native#text/plain
 rtl/unix/ipccdecl.inc svneol=native#text/plain
@@ -4255,7 +4263,6 @@ rtl/win32/crt.pp svneol=native#text/plain
 rtl/win32/dos.pp svneol=native#text/plain
 rtl/win32/dynlibs.inc svneol=native#text/plain
 rtl/win32/gprt0.as -text
-rtl/win32/graph.pp svneol=native#text/plain
 rtl/win32/initc.pp svneol=native#text/plain
 rtl/win32/keyboard.pp svneol=native#text/plain
 rtl/win32/messages.pp svneol=native#text/plain
@@ -4280,7 +4287,6 @@ rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
 rtl/win32/win32.inc svneol=native#text/plain
 rtl/win32/win32res.inc svneol=native#text/plain
-rtl/win32/wincrt.pp svneol=native#text/plain
 rtl/win32/windows.pp svneol=native#text/plain
 rtl/win32/winevent.pp svneol=native#text/plain
 rtl/win32/wininc/Makefile svneol=native#text/plain
@@ -4298,7 +4304,6 @@ rtl/win32/wininc/struct.inc svneol=native#text/plain
 rtl/win32/wininc/unidef.inc svneol=native#text/plain
 rtl/win32/wininc/unidef.sed -text
 rtl/win32/wininc/unifun.inc svneol=native#text/plain
-rtl/win32/winmouse.pp svneol=native#text/plain
 rtl/win32/winsock.pp svneol=native#text/plain
 rtl/win32/winsysut.pp svneol=native#text/plain
 rtl/win32/wprt0.as -text
@@ -5047,6 +5052,7 @@ tests/tbs/tb0496.pp svneol=native#text/plain
 tests/tbs/tb0497a.pp -text
 tests/tbs/tb0497b.pp -text
 tests/tbs/tb0497c.pp -text
+tests/tbs/tb0498.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain
@@ -5091,19 +5097,32 @@ tests/test/cg/cdecl/taoc6.pp svneol=native#text/plain
 tests/test/cg/obj/amiga/m68k/ctest.o -text
 tests/test/cg/obj/ctest.c -text
 tests/test/cg/obj/darwin/powerpc/ctest.o -text
+tests/test/cg/obj/darwin/powerpc/tcext3.o -text
+tests/test/cg/obj/darwin/powerpc/tcext4.o -text
 tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/go32v2/i386/ctest.o -text
 tests/test/cg/obj/linux/arm/ctest.o -text
 tests/test/cg/obj/linux/i386/ctest.o -text
+tests/test/cg/obj/linux/i386/tcext3.o -text
+tests/test/cg/obj/linux/i386/tcext4.o -text
 tests/test/cg/obj/linux/m68k/ctest.o -text
 tests/test/cg/obj/linux/powerpc/ctest.o -text
+tests/test/cg/obj/linux/powerpc/tcext3.o -text
+tests/test/cg/obj/linux/powerpc/tcext4.o -text
+tests/test/cg/obj/linux/powerpc64/ctest.o -text
+tests/test/cg/obj/linux/powerpc64/tcext3.o -text
+tests/test/cg/obj/linux/powerpc64/tcext4.o -text
 tests/test/cg/obj/linux/sparc/ctest.o -text
 tests/test/cg/obj/linux/x86_64/ctest.o -text
 tests/test/cg/obj/macos/powerpc/ctest.o -text
 tests/test/cg/obj/netbsd/m68k/ctest.o -text
 tests/test/cg/obj/os2/i386/ctest.o -text
 tests/test/cg/obj/readme.txt svneol=native#text/plain
+tests/test/cg/obj/tcext3.c -text
+tests/test/cg/obj/tcext4.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
+tests/test/cg/obj/win32/i386/tcext3.o -text
+tests/test/cg/obj/win32/i386/tcext4.o -text
 tests/test/cg/ptest.pp svneol=native#text/plain
 tests/test/cg/taddbool.pp svneol=native#text/plain
 tests/test/cg/taddcard.pp svneol=native#text/plain
@@ -5131,6 +5150,8 @@ tests/test/cg/tcalcst8.pp svneol=native#text/plain
 tests/test/cg/tcalcst9.pp svneol=native#text/plain
 tests/test/cg/tcalext.pp svneol=native#text/plain
 tests/test/cg/tcalext2.pp svneol=native#text/plain
+tests/test/cg/tcalext3.pp -text
+tests/test/cg/tcalext4.pp -text
 tests/test/cg/tcalfun1.pp svneol=native#text/plain
 tests/test/cg/tcalfun2.pp svneol=native#text/plain
 tests/test/cg/tcalfun3.pp svneol=native#text/plain
@@ -5360,6 +5381,8 @@ tests/test/tresstr.pp svneol=native#text/plain
 tests/test/trtti1.pp svneol=native#text/plain
 tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
+tests/test/trtti4.pp svneol=native#text/plain
+tests/test/trtti5.pp svneol=native#text/plain
 tests/test/tset1.pp svneol=native#text/plain
 tests/test/tset2.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
@@ -5633,6 +5656,14 @@ tests/webtbf/tw4256.pp svneol=native#text/plain
 tests/webtbf/tw4359.pp svneol=native#text/plain
 tests/webtbf/tw4445.pp svneol=native#text/plain
 tests/webtbf/tw4529.pp svneol=native#text/plain
+tests/webtbf/tw4554a.pp svneol=native#text/plain
+tests/webtbf/tw4554b.pp svneol=native#text/plain
+tests/webtbf/tw4554c.pp svneol=native#text/plain
+tests/webtbf/tw4554d.pp svneol=native#text/plain
+tests/webtbf/tw4569a.pp svneol=native#text/plain
+tests/webtbf/tw4569b.pp svneol=native#text/plain
+tests/webtbf/tw4619a.pp -text svneol=unset#text/plain
+tests/webtbf/tw4619b.pp svneol=native#text/plain
 tests/webtbf/tw4647.pp svneol=native#text/plain
 tests/webtbf/tw4651.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
@@ -6294,6 +6325,7 @@ tests/webtbs/tw4100.pp svneol=native#text/plain
 tests/webtbs/tw4104.pp svneol=native#text/plain
 tests/webtbs/tw4115.pp svneol=native#text/plain
 tests/webtbs/tw4119.pp svneol=native#text/plain
+tests/webtbs/tw4136.pp svneol=native#text/plain
 tests/webtbs/tw4140.pp svneol=native#text/plain
 tests/webtbs/tw4150.pp svneol=native#text/plain
 tests/webtbs/tw4151.pp svneol=native#text/plain
@@ -6351,7 +6383,14 @@ tests/webtbs/tw4540.pp -text svneol=unset#text/plain
 tests/webtbs/tw4557.pp svneol=native#text/plain
 tests/webtbs/tw4566.pp -text svneol=unset#text/plain
 tests/webtbs/tw4574.pp svneol=native#text/plain
+tests/webtbs/tw4599.pp svneol=native#text/plain
+tests/webtbs/tw4613.pp -text svneol=unset#text/plain
+tests/webtbs/tw4616.pp svneol=native#text/plain
+tests/webtbs/tw4632.pp svneol=native#text/plain
+tests/webtbs/tw4633.pp svneol=native#text/plain
 tests/webtbs/tw4634.pp -text
+tests/webtbs/tw4635.pp svneol=native#text/plain
+tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain

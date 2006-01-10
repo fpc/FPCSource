@@ -2346,15 +2346,19 @@ const
                         if not assigned(ad) or not assigned(fd) then
                          break;
                         { retrieve names, remove reg for register parameters }
-                        s1:=ad.name;
-                        s2:=fd.name;
-                        { compare names }
-                        if (s1<>s2) then
-                         begin
-                           MessagePos3(pd.fileinfo,parser_e_header_different_var_names,
-                                       aprocsym.name,s1,s2);
-                           break;
-                         end;
+                        if not(sp_implicitrename in ad.symoptions) and
+                           not(sp_implicitrename in fd.symoptions) then
+                          begin
+                            s1:=ad.name;
+                            s2:=fd.name;
+                            { compare names }
+                            if (s1<>s2) then
+                             begin
+                               MessagePos3(pd.fileinfo,parser_e_header_different_var_names,
+                                           aprocsym.name,s1,s2);
+                               break;
+                             end;
+                          end;
                         ad:=tsym(ad.indexnext);
                         fd:=tsym(fd.indexnext);
                       until false;

@@ -184,6 +184,7 @@ implementation
          secondpass(left);
          location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
          case left.location.loc of
+            LOC_CREGISTER,
             LOC_REGISTER:
               begin
               {$ifdef cpu_uses_separate_address_registers}
@@ -197,7 +198,6 @@ implementation
               {$endif}
                   location.reference.base := left.location.register;
               end;
-            LOC_CREGISTER,
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin

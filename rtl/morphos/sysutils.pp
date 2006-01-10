@@ -427,16 +427,30 @@ begin
 end;
 
 
-Function DirectoryExists(const Directory: string): Boolean;
+function DirectoryExists(const Directory: string): Boolean;
 var
- s: string;
+  tmpStr : array[0..255] of Char;
+  tmpLock: LongInt;
+  FIB    : PFileInfoBlock;
 begin
-  { Get old directory }
-  s:=GetCurrentDir;
-  ChDir(Directory);
-  DirectoryExists := (IOResult = 0);
-  ChDir(s);
+  DirectoryExists:=False;
+  If (Directory='') or (InOutRes<>0) then exit;
+  tmpStr:=PathConv(Directory)+#0;
+  tmpLock:=0;
+
+  tmpLock:=Lock(@tmpStr,SHARED_LOCK);
+  if tmpLock=0 then exit;
+
+  FIB:=nil; new(FIB);
+
+  if (Examine(tmpLock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
+    DirectoryExists:=True;
+  end;
+
+  if tmpLock<>0 then Unlock(tmpLock);
+  if assigned(FIB) then dispose(FIB);
 end;
+
 
 
 {****************************************************************************

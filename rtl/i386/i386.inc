@@ -18,7 +18,7 @@
                                Primitives
 ****************************************************************************}
 var
-  has_sse_support,has_mmx_support : boolean;
+  has_sse_support,has_mmx_support,os_supports_sse : boolean;
 
 {$asmmode intel}
 
@@ -28,20 +28,22 @@ function cpuid_support : boolean;assembler;
     Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
   }
   asm
-     pushf
-     pushf
-     pop     eax
-     mov     ebx,eax
-     xor     eax,200000h
+    push   ebx
+    pushf
+    pushf
+    pop     eax
+    mov     ebx,eax
+    xor     eax,200000h
     push    eax
-     popf
-     pushf
-     pop     eax
-     popf
-     and     eax,200000h
-     and     ebx,200000h
-     cmp     eax,ebx
-     setnz   al
+    popf
+    pushf
+    pop     eax
+    popf
+    and     eax,200000h
+    and     ebx,200000h
+    cmp     eax,ebx
+    setnz   al
+    pop     ebx
   end;
 
 {$asmmode ATT}
@@ -53,11 +55,11 @@ function sse_support : boolean;
     if cpuid_support then
      begin
         asm
-           movl $1,%eax
-           cpuid
-           movl %edx,_edx
+          movl $1,%eax
+          cpuid
+          movl %edx,_edx
         end;
-        sse_support:=(_edx and $2000000)<>0;
+        sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
      end
     else
      { a cpu with without cpuid instruction supports never sse }
@@ -86,21 +88,20 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
+{$define USE_FASTMOVE}
 {$i fastmove.inc}
 
 procedure fpc_cpuinit;
-begin
-  has_sse_support:=sse_support;
-  has_mmx_support:=mmx_support;
-  setup_fastmove;
-end;
+  begin
+    { because of the brain dead sse detection on x86, this test is post poned to fpc_cpucodeinit which
+      must be implemented OS dependend (FK)
+    has_sse_support:=sse_support;
+    has_mmx_support:=mmx_support;
+    setup_fastmove;
+    }
+    os_supports_sse:=false;
+  end;
 
-
-function geteipasebx : pointer;assembler;[public,alias:'FPC_GETEIPINEBX'];
-asm
-  movl (%esp),%ebx
-  ret
-end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
@@ -1073,7 +1074,7 @@ end;
 
 { do a thread save inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function declocked(var l : longint) : boolean;assembler;
+function cpudeclocked(var l : longint) : boolean;assembler;
 
   asm
 {$ifndef REGCALL}
@@ -1081,35 +1082,45 @@ function declocked(var l : longint) : boolean;assembler;
 {$endif}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
-     jz         .Ldeclockednolock
      lock
      decl       (%eax)
-     jmp        .Ldeclockedend
-.Ldeclockednolock:
-     decl       (%eax);
-.Ldeclockedend:
      setzb      %al
   end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure inclocked(var l : longint);assembler;
+procedure cpuinclocked(var l : longint);assembler;
 
   asm
 {$ifndef REGCALL}
      movl       l,%eax
 {$endif}
-     { this check should be done because a lock takes a lot }
-     { of time!                                             }
-     cmpb       $0,IsMultithread
-     jz         .Linclockednolock
      lock
      incl       (%eax)
-     jmp        .Linclockedend
-.Linclockednolock:
-     incl       (%eax)
-.Linclockedend:
   end;
+
+// inline SMP check and normal lock.
+// the locked one is so slow, inlining doesn't matter.
+function declocked(var l : longint) : boolean; inline;
+
+begin
+  if not ismultithread then
+    begin
+     dec(l);
+     declocked:=l=0;
+    end
+   else
+    declocked:=cpudeclocked(l);
+end;
+
+procedure inclocked(var l : longint); inline;
+
+begin
+  if not ismultithread then
+    inc(l)
+   else
+    cpuinclocked(l);
+end;
+
 
 {****************************************************************************
                                   FPU
@@ -1135,5 +1146,82 @@ asm
     fwait
 end;
 
+{$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
+function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
+Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
+asm
+  cmpl $0,(%eax)
+  jne .Ldecr_ref_continue
+  ret
+.Ldecr_ref_continue:
+// Temps allocated between ebp-24 and ebp+0
+	subl	$4,%esp
+// Var S located in register
+// Var l located in register
+	movl	%eax,(%esp)
+.Lj3599:
+// [101] l:=@PAnsiRec(S-FirstOff)^.Ref;
+	movl	(%esp),%edx
+	movl	(%edx),%edx
+	subl	$8,%edx
+// [102] If l^<0 then exit;
+	movl	(%edx),%eax
+	testl	%eax,%eax
+	jl	.Lj3596
+.Lj3603:
+// [104] If declocked(l^) then	
+	movb	ismultithread,%al
+	testb	%al,%al
+	jne	.Lj3610
+	decl	(%edx)
+	je .Lj3620
+	addl $4,%esp
+	ret
+.Lj3610:
+	movl	%edx,%eax
+	call	cpudeclocked
+	movb	%al,%cl
+.Lj3613:
+	testb	%cl,%cl
+	je	.Lj3605
+.Lj3620:
+	movl	(%esp),%eax
+	movl	(%eax),%eax
+	subl  $8,%eax
+	call	FPC_FREEMEM_X
+	movl	(%esp),%eax
+	movl	$0,(%eax)
+.Lj3618:
+.Lj3605:
+.Lj3596:
+// [107] end;
+  addl $4,%esp
+end;
+
+function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;
+
+{$define FPC_SYSTEM_HAS_ANSISTR_UNIQUE}
+Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; compilerproc; nostackframe;assembler;
+asm
+// Var S located in register
+// Var $result located in register
+	movl	%eax,%edx
+// [437] pointer(result) := pointer(s);
+	movl	(%eax),%eax
+// [438] If Pointer(S)=Nil then
+	testl	%eax,%eax
+	je	.Lj4031
+.Lj4036:
+// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then	
+	movl	-8(%eax),%ecx
+	cmpl	$1,%ecx
+	je	.Lj4038
+// [441] result:=fpc_truely_ansistr_unique(s);
+	movl	%edx,%eax
+	call	fpc_truely_ansistr_unique
+.Lj4038:
+.Lj4031:
+// [442] end;
+end;
 

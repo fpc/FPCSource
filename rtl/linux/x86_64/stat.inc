@@ -48,7 +48,7 @@
           pad1_dummy : dword;
           rdev          : qword;
           size,
-          blksze,
+          blksize,
           blocks    : int64;
           atime,
           unused1_dummy,

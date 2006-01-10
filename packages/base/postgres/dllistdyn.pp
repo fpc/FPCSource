@@ -22,6 +22,10 @@ uses
   const
     pqlib = 'libpq.dll';
 {$ENDIF}
+{$IFDEF Wince}
+  const
+    pqlib = 'libpq.dll';
+{$ENDIF}
 
 {$i dllisttypes.inc}
 

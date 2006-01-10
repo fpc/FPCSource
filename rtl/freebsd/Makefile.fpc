@@ -67,7 +67,7 @@ override FPCOPT+=-dUNIX -dNOMOUSE
 endif
 
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=x86 ports cpu mmx graph
+CPU_UNITS=x86 ports cpu mmx
 else
 CPU_UNITS=
 endif
@@ -82,17 +82,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
-
-# Use new graph unit ?
-# NEWGRAPH=YES
-# Use LibGGI ?
-# Use
-#
-ifndef USELIBGGI
-USELIBGGI=NO
-endif
-
 
 [rules]
 # Get the system independent include file names.
@@ -174,17 +163,6 @@ crt$(PPUEXT) : $(UNIXINC)/crt.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
 
 printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Graph
-#
-
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-graph$(PPUEXT) : graph.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                 $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
-        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp
 
 #
 # Delphi Compatible Units

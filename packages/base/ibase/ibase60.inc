@@ -11,14 +11,18 @@ uses Dynlibs, sysutils;
 {$ENDIF}
 
 {$IFDEF Unix}
-  {$LINKLIB c}
-  {$LINKLIB crypt}
   {$DEFINE extdecl:=cdecl}
   const
     gdslib = 'libgds.so';
     fbclib = 'libfbclient.so';
 {$ENDIF}
 {$IFDEF Win32}
+  {$DEFINE extdecl:=stdcall}
+  const
+    gdslib = 'gds32.dll';
+    fbclib = 'fbclient.dll';
+{$ENDIF}
+{$IFDEF Wince}
   {$DEFINE extdecl:=stdcall}
   const
     gdslib = 'gds32.dll';

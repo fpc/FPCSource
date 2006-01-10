@@ -91,7 +91,7 @@ end;
 
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
 begin
-  fpSetSockOpt:=do_syscall(syscall_nr_SetSockOpt,S,optname,TSysParam(optval),optlen);
+  fpSetSockOpt:=do_syscall(syscall_nr_SetSockOpt,S,level,optname,TSysParam(optval),optlen);
   socketerror:=fpgeterrno;
 end;
 

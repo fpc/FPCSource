@@ -67,7 +67,6 @@ interface
     function PadSpace(const s:string;len:longint):string;
     function GetToken(var s:string;endchar:char):string;
     procedure uppervar(var s : string);
-    function hexstr(val : cardinal;cnt : cardinal) : string;
     function realtostr(e:extended):string;{$ifdef USEINLINE}inline;{$endif}
     function tostr(i : qword) : string;{$ifdef USEINLINE}inline;{$endif}overload;
     function tostr(i : int64) : string;{$ifdef USEINLINE}inline;{$endif}overload;
@@ -152,10 +151,10 @@ uses
       return the minimal of a and b
     }
       begin
-         if a>b then
-           min:=b
+         if a<=b then
+           min:=a
          else
-           min:=a;
+           min:=b;
       end;
 
 
@@ -164,10 +163,10 @@ uses
       return the minimal of a and b
     }
       begin
-         if a>b then
-           min:=b
+         if a<=b then
+           min:=a
          else
-           min:=a;
+           min:=b;
       end;
 
 
@@ -176,10 +175,10 @@ uses
       return the maximum of a and b
     }
       begin
-         if a<b then
-           max:=b
+         if a>=b then
+           max:=a
          else
-           max:=a;
+           max:=b;
       end;
 
 
@@ -188,10 +187,10 @@ uses
       return the maximum of a and b
     }
       begin
-         if a<b then
-           max:=b
+         if a>=b then
+           max:=a
          else
-           max:=a;
+           max:=b;
       end;
 
 
@@ -394,39 +393,6 @@ uses
              'a'..'z' :
                uppertbl[c]:=char(byte(c)-32);
            end;
-         end;
-      end;
-
-
-    function hexstr(val : cardinal;cnt : cardinal) : string;
-      const
-        HexTbl : array[0..15] of char='0123456789ABCDEF';
-      var
-        i,j : cardinal;
-      begin
-        { calculate required length }
-        i:=0;
-        j:=val;
-        while (j>0) do
-         begin
-           inc(i);
-           j:=j shr 4;
-         end;
-        { generate fillers }
-        j:=0;
-        while (i+j<cnt) do
-         begin
-           inc(j);
-           hexstr[j]:='0';
-         end;
-        { generate hex }
-        inc(j,i);
-        hexstr[0]:=chr(j);
-        while (val>0) do
-         begin
-           hexstr[j]:=hextbl[val and $f];
-           dec(j);
-           val:=val shr 4;
          end;
       end;
 

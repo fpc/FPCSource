@@ -171,8 +171,6 @@ Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
 
 
 Function VariantToSingle(Const VargSrc : TVarData) : Single;
-  var
-    e : extended;
   begin
     With VargSrc do
       Case (VType and VarTypeMask) of
@@ -187,13 +185,11 @@ Function VariantToSingle(Const VargSrc : TVarData) : Single;
           begin
             if not(TryStrToFloat(WideCharToString(vOleStr),Result)) then
               VariantTypeMismatch;
-             result:=e;
           end;
         VarString  :
           begin
             if not(TryStrToFloat(ansistring(vString),Result)) then
               VariantTypeMismatch;
-             result:=e;
           end;
 
         VarBoolean : Result:=Longint(VBoolean);

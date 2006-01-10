@@ -45,9 +45,9 @@
 
 {$ifndef SYSTEM_HAS_FREXP}
 {$define SYSTEM_HAS_FREXP}
-    function c_frexp(x: double; var e: longint): double; cdecl; external 'c' name 'frexp';
+    function c_frexp(x: double; out e: longint): double; cdecl; external 'c' name 'frexp';
 
-    function frexp(x:Real; var e:Integer ):Real; {$ifdef MATHINLINE}inline;{$endif}
+    function frexp(x:Real; out e:Integer ):Real; {$ifdef MATHINLINE}inline;{$endif}
     var
       l: longint;
     begin

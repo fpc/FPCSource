@@ -1050,7 +1050,11 @@ Unit AoptObj;
                                       taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                       tai_label(hp2).l.decrefs;
                                       taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
-                                      taicpu(p).oper[0]^.ref^.symbol.increfs;
+                                      { when freeing hp1, the reference count 
+                                        isn't decreased, so don't increase
+ 
+                                       taicpu(p).oper[0]^.ref^.symbol.increfs;
+                                      }
 {$ifdef SPARC}
                                       hp2:=tai(hp1.next);
                                       asml.remove(hp2);

@@ -1881,6 +1881,11 @@ implementation
                     case tfloatdef(resulttype.def).typ of
                       s64real:
                         result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
+                      s32real:
+                        begin
+                          result:=left;
+                          left:=nil;
+                        end;
                       else
                         internalerror(2005082704);
                     end;
@@ -1888,6 +1893,11 @@ implementation
                     case tfloatdef(resulttype.def).typ of
                       s32real:
                         result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
+                      s64real:
+                        begin
+                          result:=left;
+                          left:=nil;
+                        end;
                       else
                         internalerror(2005082703);
                     end;
@@ -1908,7 +1918,6 @@ implementation
 {$endif cpufpemu}
           begin
             first_real_to_real:=nil;
-            { comp isn't a floating type }
             if registersfpu<1 then
               registersfpu:=1;
             expectloc:=LOC_FPUREGISTER;

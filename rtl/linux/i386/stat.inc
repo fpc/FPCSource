@@ -27,7 +27,7 @@
           st_rdev       : word;
           pad2       : word;
           st_size,
-          st_blksze,
+          st_blksize,
           st_blocks,
           st_atime,
           unused1,
@@ -48,7 +48,7 @@
           rdev          : word;
           pad2_dummy    : word;
           size,
-          blksze,
+          blksize,
           blocks,
           atime,
           unused1_dummy,
@@ -76,7 +76,7 @@
           st_rdev       : int64;
           pad2          : word;
           st_size,
-          st_blksze,
+          st_blksize,
           st_blocks,
           st_atime,
           unused1,
@@ -97,7 +97,7 @@
           rdev       : int64;
           pad2_dummy : word;
           size,
-          blksze,
+          blksize,
           blocks,
           atime,
           unused1_dummy,

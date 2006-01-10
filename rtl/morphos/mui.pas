@@ -127,26 +127,25 @@ interface
      G: it's possible to get this attribute with GetAttr().
 
      Items marked with "Custom Class" are for use in custom classes only!
-   }
+  }
 
 uses exec, intuition,utility,graphics{,iffparse};
 {$WARNING IffParse required, look for FIX ME!!!}
 
+var
+  MUIMasterBase : pLibrary;
 
-  var
-    MUIMasterBase : pLibrary;
+const
+  MUIMASTER_NAME  : PChar = 'muimaster.library';
+  MUIMASTER_VMIN = 11;
+  MUIMASTER_VLATEST = 19;
 
-  const
-     MUIMASTER_NAME  : PChar = 'muimaster.library';
-     MUIMASTER_VMIN = 11;
-     MUIMASTER_VLATEST = 19;
+const
+  MUI_TRUE  = 1;
+  MUI_FALSE = 0;
 
-  const
-     MUI_TRUE  = 1;
-     MUI_FALSE = 0;
-
-  const
-     MUI_END = TAG_DONE; // this can be used instead of C End
+const
+  MUI_END = TAG_DONE; // this can be used instead of C End
 
   {
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -249,241 +248,272 @@ uses exec, intuition,utility,graphics{,iffparse};
        end;
      pMUIS_InfoClient = ^tMUIS_InfoClient;
 
-  {
-     Object Types for MUI_MakeObject()
-                                                                             }
-  { PChar label, LongWord flags  }
+      
 
-  const
+{ ** Object Types for MUI_MakeObject()                                      }
+{ ************************************************************************* }
+                                                                             
+const
+  MUIO_Label         = 1;    { PChar label, LongWord flags  }
+  MUIO_Button        = 2;    { PChar label  }
+  MUIO_Checkmark     = 3;    { PChar label  }
+  MUIO_Cycle         = 4;    { PChar label, PChar  entries  }
+  MUIO_Radio         = 5;    { PChar label, PChar  entries  }
+  MUIO_Slider        = 6;    { PChar label, LongInt min, LongInt max  }
+  MUIO_String        = 7;    { PChar label, LongInt maxlen  }
+  MUIO_PopButton     = 8;    { PChar imagespec  }
+  MUIO_HSpace        = 9;    { LongInt space    }
+  MUIO_VSpace        = 10;   { LongInt space    }
+  MUIO_HBar          = 11;   { LongInt space    }
+  MUIO_VBar          = 12;   { LongInt space    }
+  MUIO_MenustripNM   = 13;   { struct NewMenu  nm, LongWord flags  }
+  MUIO_Menuitem      = 14;   { PChar label, PChar shortcut, LongWord flags, LongWord data   }
+  MUIO_BarTitle      = 15;   { PChar label  }
+  MUIO_NumericButton = 16;   { PChar label, LongInt min, LongInt max, PChar format  }
 
-     MUIO_Label = 1;
-  { PChar label  }
-     MUIO_Button = 2;
-  { PChar label  }
-     MUIO_Checkmark = 3;
-  { PChar label, PChar  entries  }
-     MUIO_Cycle = 4;
-  { PChar label, PChar  entries  }
-     MUIO_Radio = 5;
-  { PChar label, LongInt min, LongInt max  }
-     MUIO_Slider = 6;
-  { PChar label, LongInt maxlen  }
-     MUIO_String = 7;
-  { PChar imagespec  }
-     MUIO_PopButton = 8;
-  { LongInt space    }
-     MUIO_HSpace = 9;
-  { LongInt space    }
-     MUIO_VSpace = 10;
-  { LongInt space    }
-     MUIO_HBar = 11;
-  { LongInt space    }
-     MUIO_VBar = 12;
-  { struct NewMenu  nm, LongWord flags  }
-     MUIO_MenustripNM = 13;
-  { PChar label, PChar shortcut, LongWord flags, LongWord data   }
-     MUIO_Menuitem = 14;
-  { PChar label  }
-     MUIO_BarTitle = 15;
-  { PChar label, LongInt min, LongInt max, PChar format  }
-     MUIO_NumericButton = 16;
-     MUIO_Menuitem_CopyStrings = 1 shl 30;
-     MUIO_Label_SingleFrame = 1 shl 8;
-     MUIO_Label_DoubleFrame = 1 shl 9;
-     MUIO_Label_LeftAligned = 1 shl 10;
-     MUIO_Label_Centered = 1 shl 11;
-     MUIO_Label_FreeVert = 1 shl 12;
-  { check for "localized" menu items such as "O\0Open"  }
-     MUIO_MenustripNM_CommandKeyCheck = 1 shl 0;
-  {
-     ARexx Interface
-                                                                             }
+  MUIO_Menuitem_CopyStrings = 1 shl 30;
 
-  type
-     tMUI_Command = record
-          mc_Name : Pchar;
-          mc_Template : Pchar;
-          mc_Parameters : LongInt;
-          mc_Hook : PHook;
-          mc_Reserved : array[0..4] of LongInt;
-       end;
-     pMUI_Command = ^tMUI_Command;
+  MUIO_Label_SingleFrame = 1 shl 8;
+  MUIO_Label_DoubleFrame = 1 shl 9;
+  MUIO_Label_LeftAligned = 1 shl 10;
+  MUIO_Label_Centered    = 1 shl 11;
+  MUIO_Label_FreeVert    = 1 shl 12;
+
+  MUIO_MenustripNM_CommandKeyCheck = 1 shl 0;   { check for "localized" menu items such as "O\0Open"  }
 
 
 
-    const
-     {  MC_TEMPLATE_ID : PCHar = not(0); }
-       MC_TEMPLATE_ID  = -1;
-       MUI_RXERR_BADDEFINITION = -(1);
-       MUI_RXERR_OUTOFMEMORY = -(2);
-       MUI_RXERR_UNKNOWNCOMMAND = -(3);
-       MUI_RXERR_BADSYNTAX = -(4);
-    {
-       Return values for MUI_Error()
-                                                                               }
-       MUIE_OK = 0;
-       MUIE_OutOfMemory = 1;
-       MUIE_OutOfGfxMemory = 2;
-       MUIE_InvalidWindowObject = 3;
-       MUIE_MissingLibrary = 4;
-       MUIE_NoARexx = 5;
-       MUIE_SingleTask = 6;
-    {
-       Standard MUI Images & Backgrounds
-                                                                               }
-    { These images are configured    }
-       MUII_WindowBack = 0;
-    { with the preferences program.  }
-       MUII_RequesterBack = 1;
-       MUII_ButtonBack = 2;
-       MUII_ListBack = 3;
-       MUII_TextBack = 4;
-       MUII_PropBack = 5;
-       MUII_PopupBack = 6;
-       MUII_SelectedBack = 7;
-       MUII_ListCursor = 8;
-       MUII_ListSelect = 9;
-       MUII_ListSelCur = 10;
-       MUII_ArrowUp = 11;
-       MUII_ArrowDown = 12;
-       MUII_ArrowLeft = 13;
-       MUII_ArrowRight = 14;
-       MUII_CheckMark = 15;
-       MUII_RadioButton = 16;
-       MUII_Cycle = 17;
-       MUII_PopUp = 18;
-       MUII_PopFile = 19;
-       MUII_PopDrawer = 20;
-       MUII_PropKnob = 21;
-       MUII_Drawer = 22;
-       MUII_HardDisk = 23;
-       MUII_Disk = 24;
-       MUII_Chip = 25;
-       MUII_Volume = 26;
-       MUII_RegisterBack = 27;
-       MUII_Network = 28;
-       MUII_Assign = 29;
-       MUII_TapePlay = 30;
-       MUII_TapePlayBack = 31;
-       MUII_TapePause = 32;
-       MUII_TapeStop = 33;
-       MUII_TapeRecord = 34;
-       MUII_GroupBack = 35;
-       MUII_SliderBack = 36;
-       MUII_SliderKnob = 37;
-       MUII_TapeUp = 38;
-       MUII_TapeDown = 39;
-       MUII_PageBack = 40;
-       MUII_ReadListBack = 41;
-       MUII_Count = 42;
-    { These are direct color     }
-       MUII_BACKGROUND = 128;
-    { combinations and are not   }
-       MUII_SHADOW = 129;
-    { affected by users prefs.   }
-       MUII_SHINE = 130;
-       MUII_FILL = 131;
-    { Generally, you should      }
-       MUII_SHADOWBACK = 132;
-    { avoid using them. Better   }
-       MUII_SHADOWFILL = 133;
-    { use one of the customized  }
-       MUII_SHADOWSHINE = 134;
-    { images above.              }
-       MUII_FILLBACK = 135;
-       MUII_FILLSHINE = 136;
-       MUII_SHINEBACK = 137;
-       MUII_FILLBACK2 = 138;
-       MUII_HSHINEBACK = 139;
-       MUII_HSHADOWBACK = 140;
-       MUII_HSHINESHINE = 141;
-       MUII_HSHADOWSHADOW = 142;
-       MUII_MARKSHINE = 143;
-       MUII_MARKHALFSHINE = 144;
-       MUII_MARKBACKGROUND = 145;
-       MUII_LASTPAT = 145;
-    {
-       Special values for some methods
-                                                                               }
-       MUIV_TriggerValue = $49893131;
-       MUIV_NotTriggerValue = $49893133;
-       MUIV_EveryTime = $49893131;
-       MUIV_Notify_Self = 1;
-       MUIV_Notify_Window = 2;
-       MUIV_Notify_Application = 3;
-       MUIV_Notify_Parent = 4;
+{ ** ARexx Interface                                                        }
+{ ************************************************************************* }
+
+type
+  tMUI_Command = record
+    mc_Name : Pchar;
+    mc_Template : Pchar;
+    mc_Parameters : LongInt;
+    mc_Hook : PHook;
+    mc_Reserved : array[0..4] of LongInt;
+  end;
+  pMUI_Command = ^tMUI_Command;
+
+const
+  MC_TEMPLATE_ID           = -1;   {  MC_TEMPLATE_ID : PCHar = not(0); }
+  MUI_RXERR_BADDEFINITION  = -1;
+  MUI_RXERR_OUTOFMEMORY    = -2;
+  MUI_RXERR_UNKNOWNCOMMAND = -3;
+  MUI_RXERR_BADSYNTAX      = -4;
 
 
-    const
-       MUIV_Application_ReturnID_Quit = -(1);
-       MUIV_List_Insert_Top = 0;
-       MUIV_List_Insert_Active = -(1);
-       MUIV_List_Insert_Sorted = -(2);
-       MUIV_List_Insert_Bottom = -(3);
-       MUIV_List_Remove_First = 0;
-       MUIV_List_Remove_Active = -(1);
-       MUIV_List_Remove_Last = -(2);
-       MUIV_List_Remove_Selected = -(3);
-       MUIV_List_Select_Off = 0;
-       MUIV_List_Select_On = 1;
-       MUIV_List_Select_Toggle = 2;
-       MUIV_List_Select_Ask = 3;
-       MUIV_List_GetEntry_Active = -(1);
-       MUIV_List_Select_Active = -(1);
-       MUIV_List_Select_All = -(2);
-       MUIV_List_Redraw_Active = -(1);
-       MUIV_List_Redraw_All = -(2);
-       MUIV_List_Move_Top = 0;
-       MUIV_List_Move_Active = -(1);
-       MUIV_List_Move_Bottom = -(2);
-    { only valid for second parameter  }
-       MUIV_List_Move_Next = -(3);
-    { only valid for second parameter  }
-       MUIV_List_Move_Previous = -(4);
-       MUIV_List_Exchange_Top = 0;
-       MUIV_List_Exchange_Active = -(1);
-       MUIV_List_Exchange_Bottom = -(2);
-    { only valid for second parameter  }
-       MUIV_List_Exchange_Next = -(3);
-    { only valid for second parameter  }
-       MUIV_List_Exchange_Previous = -(4);
-       MUIV_List_Jump_Top = 0;
-       MUIV_List_Jump_Active = -(1);
-       MUIV_List_Jump_Bottom = -(2);
-       MUIV_List_Jump_Up = -(4);
-       MUIV_List_Jump_Down = -(3);
-       MUIV_List_NextSelected_Start = -(1);
-       MUIV_List_NextSelected_End = -(1);
-       MUIV_DragQuery_Refuse = 0;
-       MUIV_DragQuery_Accept = 1;
-       MUIV_DragReport_Abort = 0;
-       MUIV_DragReport_Continue = 1;
-       MUIV_DragReport_Lock = 2;
-       MUIV_DragReport_Refresh = 3;
-    {
-       Control codes for text strings
-                                                                               }
-    { right justified  }
-       MUIX_R  = #27+'r';
-    { centered         }
-       MUIX_C = #27+'c';
-    { left justified   }
-       MUIX_L = #27+'l';
-    { normal      }
-       MUIX_N = #27+'n';
-    { bold        }
-       MUIX_B = #27+'b';
-    { italic      }
-       MUIX_I = #27+'i';
-    { underlined  }
-       MUIX_U = #27+'u';
-    { text pen            }
-       MUIX_PT = #27+'2';
-    { highlight text pen  }
-       MUIX_PH = #27+'8';
-    {
-       Parameter structures for some classes
-                                                                               }
+
+{ ** Return values for MUI_Error()                                          }
+{ ************************************************************************* }
+
+const
+  MUIE_OK                  = 0;
+  MUIE_OutOfMemory         = 1;
+  MUIE_OutOfGfxMemory      = 2;
+  MUIE_InvalidWindowObject = 3;
+  MUIE_MissingLibrary      = 4;
+  MUIE_NoARexx             = 5;
+  MUIE_SingleTask          = 6;
+
+
+
+{ ** Standard MUI Images & Backgrounds                                      }
+{ ************************************************************************* }
+
+const
+  MUII_WindowBack        = 0;     { These images are configured    }
+  MUII_RequesterBack     = 1;     { with the preferences program.  }
+  MUII_ButtonBack        = 2;
+  MUII_ListBack          = 3;
+  MUII_TextBack          = 4;
+  MUII_PropBack          = 5;
+  MUII_PopupBack         = 6;
+  MUII_SelectedBack      = 7;
+  MUII_ListCursor        = 8;
+  MUII_ListSelect        = 9;
+  MUII_ListSelCur        = 10;
+  MUII_ArrowUp           = 11;
+  MUII_ArrowDown         = 12;
+  MUII_ArrowLeft         = 13;
+  MUII_ArrowRight        = 14;
+  MUII_CheckMark         = 15;
+  MUII_RadioButton       = 16;
+  MUII_Cycle             = 17;
+  MUII_PopUp             = 18;
+  MUII_PopFile           = 19;
+  MUII_PopDrawer         = 20;
+  MUII_PropKnob          = 21;
+  MUII_Drawer            = 22;
+  MUII_HardDisk          = 23;
+  MUII_Disk              = 24;
+  MUII_Chip              = 25;
+  MUII_Volume            = 26;
+  MUII_RegisterBack      = 27;
+  MUII_Network           = 28;
+  MUII_Assign            = 29;
+  MUII_TapePlay          = 30;
+  MUII_TapePlayBack      = 31;
+  MUII_TapePause         = 32;
+  MUII_TapeStop          = 33;
+  MUII_TapeRecord        = 34;
+  MUII_GroupBack         = 35;
+  MUII_SliderBack        = 36;
+  MUII_SliderKnob        = 37;
+  MUII_TapeUp            = 38;
+  MUII_TapeDown          = 39;
+  MUII_PageBack          = 40;
+  MUII_ReadListBack      = 41;
+  MUII_PopFont           = 42;
+  MUII_ImageButtonBack   = 43;
+  MUII_ImageSelectedBack = 44;
+  MUII_GaugeFull         = 45;
+  MUII_GaugeEmpty        = 46;
+  MUII_Menudisplay       = 47;
+  MUII_PullOpen          = 48;
+  MUII_StringBack        = 49;
+  MUII_StringActiveBack  = 50;
+  MUII_Count             = 51;
+
+  MUII_BACKGROUND     = 128;     { These are direct color     }
+  MUII_SHADOW         = 129;     { combinations and are not   }
+  MUII_SHINE          = 130;     { affected by users prefs.   }
+  MUII_FILL           = 131;     
+  MUII_SHADOWBACK     = 132;     { Generally, you should      }
+  MUII_SHADOWFILL     = 133;     { avoid using them. Better   }
+  MUII_SHADOWSHINE    = 134;     { use one of the customized  }
+  MUII_FILLBACK       = 135;     { images above.              }
+  MUII_FILLSHINE      = 136;
+  MUII_SHINEBACK      = 137;
+  MUII_FILLBACK2      = 138;
+  MUII_HSHINEBACK     = 139;
+  MUII_HSHADOWBACK    = 140;
+  MUII_HSHINESHINE    = 141;
+  MUII_HSHADOWSHADOW  = 142;
+  MUII_MARKSHINE      = 143;
+  MUII_MARKHALFSHINE  = 144;
+  MUII_MARKBACKGROUND = 145;
+  MUII_BARBLOCK       = 146;
+  MUII_BARDETAIL      = 147;
+  MUII_LASTPAT        = 147;
+
+
+
+{ ** Special values for some methods                                        }
+{ ************************************************************************* }
+
+const
+  MUIV_TriggerValue    = $49893131;
+  MUIV_NotTriggerValue = $49893133;
+  MUIV_EveryTime       = $49893131;
+
+  MUIV_Notify_Self               = 1;
+  MUIV_Notify_Window             = 2;
+  MUIV_Notify_Application        = 3;
+  MUIV_Notify_Parent             = 4;
+  MUIV_Notify_ParentParent       = 5;
+  MUIV_Notify_ParentParentParent = 6;
+
+const
+  MUIV_Application_ReturnID_Quit = -1;
+
+  MUIV_List_Insert_Top    =  0;
+  MUIV_List_Insert_Active = -1;
+  MUIV_List_Insert_Sorted = -2;
+  MUIV_List_Insert_Bottom = -3;
+
+  MUIV_List_Remove_First    =  0;
+  MUIV_List_Remove_Active   = -1;
+  MUIV_List_Remove_Last     = -2;
+  MUIV_List_Remove_Selected = -3;
+
+  MUIV_List_Select_Off    = 0;
+  MUIV_List_Select_On     = 1;
+  MUIV_List_Select_Toggle = 2;
+  MUIV_List_Select_Ask    = 3;
+
+  MUIV_List_GetEntry_Active  = -1;
+  MUIV_List_EditEntry_Active = -1;
+  MUIV_List_Select_Active    = -1;
+  MUIV_List_Select_All       = -2;
+
+  MUIV_List_Redraw_Active    = -1;
+  MUIV_List_Redraw_All       = -2;
+
+  MUIV_List_Move_Top      =  0;
+  MUIV_List_Move_Active   = -1;
+  MUIV_List_Move_Bottom   = -2;
+  MUIV_List_Move_Next     = -3;     { only valid for second parameter  }
+  MUIV_List_Move_Previous = -4;     { only valid for second parameter  }
+
+  MUIV_List_Exchange_Top      =  0;
+  MUIV_List_Exchange_Active   = -1;
+  MUIV_List_Exchange_Bottom   = -2;
+  MUIV_List_Exchange_Next     = -3;     { only valid for second parameter  }
+  MUIV_List_Exchange_Previous = -4;     { only valid for second parameter  }
+
+  MUIV_List_Jump_Top    =  0;
+  MUIV_List_Jump_Active = -1;
+  MUIV_List_Jump_Bottom = -2;
+  MUIV_List_Jump_Up     = -4;
+  MUIV_List_Jump_Down   = -3;
+
+  MUIV_List_NextSelected_Start = -1;
+  MUIV_List_NextSelected_End   = -1;
+
+  MUIV_DragQuery_Refuse = 0;
+  MUIV_DragQuery_Accept = 1;
+
+  MUIV_DragReport_Abort    = 0;
+  MUIV_DragReport_Continue = 1;
+  MUIV_DragReport_Lock     = 2;
+  MUIV_DragReport_Refresh  = 3;
+
+  MUIV_CreateBubble_DontHidePointer = (1<<0);
+
+  MUIV_Application_OCW_ScreenPage = (1<<1);  { show just the screen page of the config window }
+
+  MUIV_ContextMenuBuild_Default = $ffffffff;
+
+{ FIX ME!!! #define MUIV_PushMethod_Delay(millis) MIN(0x0ffffff0,(((ULONG)millis)<<8)) }
+
+  MUIV_Family_GetChild_First    =  0;
+  MUIV_Family_GetChild_Last     = -1;
+  MUIV_Family_GetChild_Next     = -2;
+  MUIV_Family_GetChild_Previous = -3;
+  MUIV_Family_GetChild_Iterate  = -4;
+
+  MUIV_Group_GetChild_First    = MUIV_Family_GetChild_First;
+  MUIV_Group_GetChild_Last     = MUIV_Family_GetChild_Last;
+  MUIV_Group_GetChild_Next     = MUIV_Family_GetChild_Next;
+  MUIV_Group_GetChild_Previous = MUIV_Family_GetChild_Previous;
+  MUIV_Group_GetChild_Iterate  = MUIV_Family_GetChild_Iterate;
+
+
+
+{ ** Control codes for text strings                                         }
+{ ************************************************************************* }
+
+const
+  MUIX_R  = #27+'r';     { right justified  }
+  MUIX_C  = #27+'c';     { centered         }
+  MUIX_L  = #27+'l';     { left justified   }
+
+  MUIX_N  = #27+'n';     { normal      }
+  MUIX_B  = #27+'b';     { bold        }
+  MUIX_I  = #27+'i';     { italic      }
+  MUIX_U  = #27+'u';     { underlined  }
+
+  MUIX_PT = #27+'2';     { text pen            }
+  MUIX_PH = #27+'8';     { highlight text pen  }
+
+
+
+{ ** Parameter structures for some classes                                  }
+{ ************************************************************************* }
+
+{$WARNING Clean this mess... }
 
     type
        tMUI_Palette_Entry = record
@@ -653,1459 +683,1271 @@ uses exec, intuition,utility,graphics{,iffparse};
     { context (else vertical)      }
     { use this for unlimited MaxWidth/Height  }
        MBQ_MUI_MAXMAX = 10000;
-    {                                          }
-    { Begin of automatic header file creation  }
-    {                                          }
-    {                                                                           }
-    {  Notify                                                                   }
-    {                                                                           }
-
-
-    const
-       MUIC_Notify : PChar = 'Notify.mui';
-
-    { Methods  }
-    { V4   }
-
-    const
-       MUIM_CallHook = $8042b96b;
-    { V12  }
-       MUIM_Export = $80420f1c;
-    { V8   }
-       MUIM_FindUData = $8042c196;
-    { V11  }
-       MUIM_GetConfigItem = $80423edb;
-    { V8   }
-       MUIM_GetUData = $8042ed0c;
-    { V12  }
-       MUIM_Import = $8042d012;
-    { V4   }
-       MUIM_KillNotify = $8042d240;
-    { V16  }
-       MUIM_KillNotifyObj = $8042b145;
-    { V7   }
-       MUIM_MultiSet = $8042d356;
-    { V9   }
-       MUIM_NoNotifySet = $8042216f;
-    { V4   }
-       MUIM_Notify = $8042c9cb;
-    { V4   }
-       MUIM_Set = $8042549a;
-    { V4   }
-       MUIM_SetAsString = $80422590;
-    { V8   }
-       MUIM_SetUData = $8042c920;
-    { V11  }
-       MUIM_SetUDataOnce = $8042ca19;
-    { V6   }
-       MUIM_WriteLong = $80428d86;
-    { V6   }
-       MUIM_WriteString = $80424bf4;
-    { ...  }
-
-    type
-       tMUIP_CallHook = record
-            MethodID : LongWord;
-            Hook : PHook;
-            param1 : LongWord;
-         end;
-       pMUIP_CallHook = ^tMUIP_CallHook;
-
-       tMUIP_Export = record
-            MethodID : LongWord;
-            dataspace : pObject_;
-         end;
-       pMUIP_Export = ^tMUIP_Export;
-
-       tMUIP_FindUData = record
-            MethodID : LongWord;
-            udata : LongWord;
-         end;
-       pMUIP_FindUData = ^tMUIP_FindUData;
-
-       tMUIP_GetConfigItem = record
-            MethodID : LongWord;
-            id : LongWord;
-            storage : PLongWord;
-         end;
-       pMUIP_GetConfigItem = ^tMUIP_GetConfigItem;
-
-       tMUIP_GetUData = record
-            MethodID : LongWord;
-            udata : LongWord;
-            attr : LongWord;
-            storage : PLongWord;
-         end;
-       pMUIP_GetUData = ^tMUIP_GetUData;
-
-       tMUIP_Import = record
-            MethodID : LongWord;
-            dataspace : pObject_;
-         end;
-       pMUIP_Import = ^tMUIP_Import;
-
-       tMUIP_KillNotify = record
-            MethodID : LongWord;
-            TrigAttr : LongWord;
-         end;
-       pMUIP_KillNotify = ^tMUIP_KillNotify;
-
-       tMUIP_KillNotifyObj = record
-            MethodID : LongWord;
-            TrigAttr : LongWord;
-            dest : pObject_;
-         end;
-       pMUIP_KillNotifyObj = ^tMUIP_KillNotifyObj;
-
-    { ...  }
-       tMUIP_MultiSet = record
-            MethodID : LongWord;
-            attr : LongWord;
-            val : LongWord;
-            obj : Pointer;
-         end;
-       pMUIP_MultiSet = ^tMUIP_MultiSet;
-
-    { ...  }
-       tMUIP_NoNotifySet = record
-            MethodID : LongWord;
-            attr : LongWord;
-            format : Pchar;
-            val : LongWord;
-         end;
-       pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
-
-    { ...  }
-       tMUIP_Notify = record
-            MethodID : LongWord;
-            TrigAttr : LongWord;
-            TrigVal : LongWord;
-            DestObj : Pointer;
-            FollowParams : LongWord;
-         end;
-       pMUIP_Notify = ^tMUIP_Notify;
-
-       tMUIP_Set = record
-            MethodID : LongWord;
-            attr : LongWord;
-            val : LongWord;
-         end;
-       pMUIP_Set = ^tMUIP_Set;
-
-    { ...  }
-       tMUIP_SetAsString = record
-            MethodID : LongWord;
-            attr : LongWord;
-            format : Pchar;
-            val : LongWord;
-         end;
-       pMUIP_SetAsString = ^tMUIP_SetAsString;
-
-       tMUIP_SetUData = record
-            MethodID : LongWord;
-            udata : LongWord;
-            attr : LongWord;
-            val : LongWord;
-         end;
-       pMUIP_SetUData = ^tMUIP_SetUData;
-
-       tMUIP_SetUDataOnce = record
-            MethodID : LongWord;
-            udata : LongWord;
-            attr : LongWord;
-            val : LongWord;
-         end;
-       pMUIP_SetUDataOnce = ^tMUIP_SetUDataOnce;
-
-       tMUIP_WriteLong = record
-            MethodID : LongWord;
-            val : LongWord;
-            memory : PLongWord;
-         end;
-       pMUIP_WriteLong = ^tMUIP_WriteLong;
-
-       tMUIP_WriteString = record
-            MethodID : LongWord;
-            str : Pchar;
-            memory : Pchar;
-         end;
-       pMUIP_WriteString = ^tMUIP_WriteString;
-
-    { Attributes  }
-    { V4  ..g Object             }
-
-    const
-       MUIA_ApplicationObject = $8042d3ee;
-    { V5  ..g struct AppMessage    }
-       MUIA_AppMessage = $80421955;
-    { V4  isg LongInt               }
-       MUIA_HelpLine = $8042a825;
-    { V4  isg PChar             }
-       MUIA_HelpNode = $80420b85;
-    { V7  .s. BOOL               }
-       MUIA_NoNotify = $804237f9;
-    { V11 isg LongWord              }
-       MUIA_ObjectID = $8042d76e;
-    { V11 ..g Object             }
-       MUIA_Parent = $8042e35f;
-    { V4  ..g LongInt               }
-       MUIA_Revision = $80427eaa;
-    { V4  isg LongWord              }
-       MUIA_UserData = $80420313;
-    { V4  ..g LongInt               }
-       MUIA_Version = $80422301;
-    {                                                                           }
-    {  Family                                                                   }
-    {                                                                           }
-
-
-    const
-       MUIC_Family : PChar = 'Family.mui';
-
-    { Methods  }
-    { V8   }
-
-    const
-       MUIM_Family_AddHead = $8042e200;
-    { V8   }
-       MUIM_Family_AddTail = $8042d752;
-    { V8   }
-       MUIM_Family_Insert = $80424d34;
-    { V8   }
-       MUIM_Family_Remove = $8042f8a9;
-    { V8   }
-       MUIM_Family_Sort = $80421c49;
-    { V8   }
-       MUIM_Family_Transfer = $8042c14a;
-
-    type
-       tMUIP_Family_AddHead = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_Family_AddHead = ^tMUIP_Family_AddHead;
-
-       tMUIP_Family_AddTail = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_Family_AddTail = ^tMUIP_Family_AddTail;
-
-       tMUIP_Family_Insert = record
-            MethodID : LongWord;
-            obj : pObject_;
-            pred : pObject_;
-         end;
-       pMUIP_Family_Insert = ^tMUIP_Family_Insert;
-
-       tMUIP_Family_Remove = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_Family_Remove = ^tMUIP_Family_Remove;
-
-       tMUIP_Family_Sort = record
-            MethodID : LongWord;
-            obj : array[0..0] of pObject_;
-         end;
-       pMUIP_Family_Sort = ^tMUIP_Family_Sort;
-
-       tMUIP_Family_Transfer = record
-            MethodID : LongWord;
-            family : pObject_;
-         end;
-       pMUIP_Family_Transfer = ^tMUIP_Family_Transfer;
-
-    { Attributes  }
-    { V8  i.. Object             }
-
-    const
-       MUIA_Family_Child = $8042c696;
-    { V8  ..g struct MinList     }
-       MUIA_Family_List = $80424b9e;
-    {                                                                           }
-    {  Menustrip                                                                }
-    {                                                                           }
-
-
-    const
-       MUIC_Menustrip : PChar = 'Menustrip.mui';
-
-    { Methods  }
-    { Attributes  }
-    { V8  isg BOOL               }
-
-    const
-       MUIA_Menustrip_Enabled = $8042815b;
-    {                                                                           }
-    {  Menu                                                                     }
-    {                                                                           }
-
-
-    const
-       MUIC_Menu : PChar = 'Menu.mui';
-
-    { Methods  }
-    { Attributes  }
-    { V8  isg BOOL               }
-
-    const
-       MUIA_Menu_Enabled = $8042ed48;
-    { V8  isg PChar             }
-       MUIA_Menu_Title = $8042a0e3;
-    {                                                                           }
-    {  Menuitem                                                                 }
-    {                                                                           }
-
-
-    const
-       MUIC_Menuitem : PChar = 'Menuitem.mui';
-
-    { Methods  }
-    { Attributes  }
-    { V8  isg BOOL               }
-
-    const
-       MUIA_Menuitem_Checked = $8042562a;
-    { V8  isg BOOL               }
-       MUIA_Menuitem_Checkit = $80425ace;
-    { V16 isg BOOL               }
-       MUIA_Menuitem_CommandString = $8042b9cc;
-    { V8  isg BOOL               }
-       MUIA_Menuitem_Enabled = $8042ae0f;
-    { V8  isg LongInt               }
-       MUIA_Menuitem_Exclude = $80420bc6;
-    { V8  isg PChar             }
-       MUIA_Menuitem_Shortcut = $80422030;
-    { V8  isg PChar             }
-       MUIA_Menuitem_Title = $804218be;
-    { V8  isg BOOL               }
-       MUIA_Menuitem_Toggle = $80424d5c;
-    { V8  ..g struct MenuItem    }
-       MUIA_Menuitem_Trigger = $80426f32;
-       MUIV_Menuitem_Shortcut_Check = -(1);
-    {                                                                           }
-    {  Application                                                              }
-    {                                                                           }
-
-
-    const
-       MUIC_Application : PChar = 'Application.mui';
-
-    { Methods  }
-    { V14  }
-
-    const
-       MUIM_Application_AboutMUI = $8042d21d;
-    { V11  }
-       MUIM_Application_AddInputHandler = $8042f099;
-    { V11  }
-       MUIM_Application_CheckRefresh = $80424d68;
-
-    { MUI_OBSOLETE  }
-    { V4   }
-
-    const
-       MUIM_Application_InputBuffered = $80427e59;
-    { V4   }
-       MUIM_Application_Load = $8042f90d;
-    { V11  }
-       MUIM_Application_NewInput = $80423ba6;
-    { V11  }
-       MUIM_Application_OpenConfigWindow = $804299ba;
-    { V4   }
-       MUIM_Application_PushMethod = $80429ef8;
-    { V11  }
-       MUIM_Application_RemInputHandler = $8042e7af;
-    { V4   }
-       MUIM_Application_ReturnID = $804276ef;
-    { V4   }
-       MUIM_Application_Save = $804227ef;
-    { V11  }
-       MUIM_Application_SetConfigItem = $80424a80;
-
-    { V4   }
-
-    const
-       MUIM_Application_ShowHelp = $80426479;
-
-    type
-       tMUIP_Application_AboutMUI = record
-            MethodID : LongWord;
-            refwindow : pObject_;
-         end;
-       pMUIP_Application_AboutMUI = ^tMUIP_Application_AboutMUI;
-
-       tMUIP_Application_AddInputHandler = record
-            MethodID : LongWord;
-            ihnode : PMUI_InputHandlerNode;
-         end;
-       pMUIP_Application_AddInputHandler = ^tMUIP_Application_AddInputHandler;
-
-       tMUIP_Application_CheckRefresh = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Application_CheckRefresh = ^tMUIP_Application_CheckRefresh;
-
-       tMUIP_Application_GetMenuCheck = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-         end;
-       pMUIP_Application_GetMenuCheck = ^tMUIP_Application_GetMenuCheck;
-
-       tMUIP_Application_GetMenuState = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-         end;
-       pMUIP_Application_GetMenuState = ^tMUIP_Application_GetMenuState;
-
-       tMUIP_Application_Input = record
-            MethodID : LongWord;
-            signal : PLongWord;
-         end;
-       pMUIP_Application_Input = ^tMUIP_Application_Input;
-
-       tMUIP_Application_InputBuffered = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Application_InputBuffered = ^tMUIP_Application_InputBuffered;
-
-       tMUIP_Application_Load = record
-            MethodID : LongWord;
-            name : PChar;
-         end;
-
-       tMUIP_Application_NewInput = record
-            MethodID : LongWord;
-            signal : PLongWord;
-         end;
-       pMUIP_Application_NewInput = ^tMUIP_Application_NewInput;
-
-       tMUIP_Application_OpenConfigWindow = record
-            MethodID : LongWord;
-            flags : LongWord;
-         end;
-       pMUIP_Application_OpenConfigWindow = ^tMUIP_Application_OpenConfigWindow;
-
-    { ...  }
-       tMUIP_Application_PushMethod = record
-            MethodID : LongWord;
-            dest : pObject_;
-            count : LongInt;
-         end;
-       pMUIP_Application_PushMethod = ^tMUIP_Application_PushMethod;
-
-       tMUIP_Application_RemInputHandler = record
-            MethodID : LongWord;
-            ihnode : PMUI_InputHandlerNode;
-         end;
-       pMUIP_Application_RemInputHandler = ^tMUIP_Application_RemInputHandler;
-
-       tMUIP_Application_ReturnID = record
-            MethodID : LongWord;
-            retid : LongWord;
-         end;
-       pMUIP_Application_ReturnID = ^tMUIP_Application_ReturnID;
-
-       tMUIP_Application_Save = record
-            MethodID : LongWord;
-            name : PChar;
-         end;
-
-       tMUIP_Application_SetConfigItem = record
-            MethodID : LongWord;
-            item : LongWord;
-            data : Pointer;
-         end;
-       pMUIP_Application_SetConfigItem = ^tMUIP_Application_SetConfigItem;
-
-       tMUIP_Application_SetMenuCheck = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-            stat : LongInt;
-         end;
-       pMUIP_Application_SetMenuCheck = ^tMUIP_Application_SetMenuCheck;
-
-       tMUIP_Application_SetMenuState = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-            stat : LongInt;
-         end;
-       pMUIP_Application_SetMenuState = ^tMUIP_Application_SetMenuState;
-
-       tMUIP_Application_ShowHelp = record
-            MethodID : LongWord;
-            window : pObject_;
-            name : Pchar;
-            node : Pchar;
-            line : LongInt;
-         end;
-       pMUIP_Application_ShowHelp = ^tMUIP_Application_ShowHelp;
-
-    { Attributes  }
-    { V4  isg BOOL               }
-
-    const
-       MUIA_Application_Active = $804260ab;
-    { V4  i.g PChar             }
-       MUIA_Application_Author = $80424842;
-    { V4  i.g PChar             }
-       MUIA_Application_Base = $8042e07a;
-    { V4  ..g Broker             }
-       MUIA_Application_Broker = $8042dbce;
-    { V4  isg struct Hook        }
-       MUIA_Application_BrokerHook = $80428f4b;
-    { V6  ..g struct MsgPort     }
-       MUIA_Application_BrokerPort = $8042e0ad;
-    { V6  i.g LongInt               }
-       MUIA_Application_BrokerPri = $8042c8d0;
-    { V4  isg struct MUI_Command    }
-       MUIA_Application_Commands = $80428648;
-    { V4  i.g PChar             }
-       MUIA_Application_Copyright = $8042ef4d;
-    { V4  i.g PChar             }
-       MUIA_Application_Description = $80421fc6;
-    { V4  isg struct DiskObject    }
-       MUIA_Application_DiskObject = $804235cb;
-    { V4  ..g BOOL               }
-       MUIA_Application_DoubleStart = $80423bc6;
-    { V5  is. Object             }
-       MUIA_Application_DropObject = $80421266;
-    { V8  ..g BOOL               }
-       MUIA_Application_ForceQuit = $804257df;
-    { V8  isg PChar             }
-       MUIA_Application_HelpFile = $804293f4;
-    { V4  .sg BOOL               }
-       MUIA_Application_Iconified = $8042a07f;
-
-
-    const
-       MUIA_Application_MenuAction = $80428961;
-    { V4  ..g LongWord              }
-       MUIA_Application_MenuHelp = $8042540b;
-    { V8  i.. Object             }
-       MUIA_Application_Menustrip = $804252d9;
-    { V7  isg struct Hook        }
-       MUIA_Application_RexxHook = $80427c42;
-    { V4  ..g struct RxMsg       }
-       MUIA_Application_RexxMsg = $8042fd88;
-    { V4  .s. PChar             }
-       MUIA_Application_RexxString = $8042d711;
-    { V4  i.. BOOL               }
-       MUIA_Application_SingleTask = $8042a2c8;
-    { V4  .s. BOOL               }
-       MUIA_Application_Sleep = $80425711;
-    { V4  i.g PChar             }
-       MUIA_Application_Title = $804281b8;
-    { V10 i.. BOOL               }
-       MUIA_Application_UseCommodities = $80425ee5;
-    { V10 i.. BOOL               }
-       MUIA_Application_UseRexx = $80422387;
-    { V4  i.g PChar             }
-       MUIA_Application_Version = $8042b33f;
-    { V4  i.. Object             }
-       MUIA_Application_Window = $8042bfe0;
-    { V13 ..g struct List        }
-       MUIA_Application_WindowList = $80429abe;
-       MUIV_Application_Package_NetConnect = $a3ff7b49;
-    {                                                                           }
-    {  Window                                                                   }
-    {                                                                           }
-
-    const
-       MUIC_Window : PChar = 'Window.mui';
-
-    { V16  }
-
-    const
-       MUIM_Window_AddEventHandler = $804203b7;
-
-    { V16  }
-
-    const
-       MUIM_Window_RemEventHandler = $8042679e;
-    { V4   }
-       MUIM_Window_ScreenToBack = $8042913d;
-    { V4   }
-       MUIM_Window_ScreenToFront = $804227a4;
-
-    { V11  }
-
-    const
-       MUIM_Window_Snapshot = $8042945e;
-    { V4   }
-       MUIM_Window_ToBack = $8042152e;
-    { V4   }
-       MUIM_Window_ToFront = $8042554f;
-
-    type
-       tMUIP_Window_AddEventHandler = record
-            MethodID : LongWord;
-            ehnode : PMUI_EventHandlerNode;
-         end;
-       pMUIP_Window_AddEventHandler = ^tMUIP_Window_AddEventHandler;
-
-       tMUIP_Window_GetMenuCheck = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-         end;
-       pMUIP_Window_GetMenuCheck = ^tMUIP_Window_GetMenuCheck;
-
-       tMUIP_Window_GetMenuState = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-         end;
-        pMUIP_Window_GetMenuState =  ^tMUIP_Window_GetMenuState;
-
-       tMUIP_Window_RemEventHandler = record
-            MethodID : LongWord;
-            ehnode : PMUI_EventHandlerNode;
-         end;
-       pMUIP_Window_RemEventHandler = ^tMUIP_Window_RemEventHandler;
-
-       tMUIP_Window_ScreenToBack = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Window_ScreenToBack = ^tMUIP_Window_ScreenToBack;
-
-       tMUIP_Window_ScreenToFront = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Window_ScreenToFront = ^tMUIP_Window_ScreenToFront;
-
-       tMUIP_Window_SetCycleChain = record
-            MethodID : LongWord;
-            obj : array[0..0] of pObject_;
-         end;
-       pMUIP_Window_SetCycleChain = ^tMUIP_Window_SetCycleChain;
-
-       tMUIP_Window_SetMenuCheck = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-            stat : LongInt;
-         end;
-       pMUIP_Window_SetMenuCheck = ^tMUIP_Window_SetMenuCheck;
-
-       tMUIP_Window_SetMenuState = record
-            MethodID : LongWord;
-            MenuID : LongWord;
-            stat : LongInt;
-         end;
-       pMUIP_Window_SetMenuState = ^tMUIP_Window_SetMenuState;
-
-       tMUIP_Window_Snapshot = record
-            MethodID : LongWord;
-            flags : LongInt;
-         end;
-       pMUIP_Window_Snapshot = ^tMUIP_Window_Snapshot;
-
-       tMUIP_Window_ToBack = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Window_ToBack = ^tMUIP_Window_ToBack;
-
-       tMUIP_Window_ToFront = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Window_ToFront = ^tMUIP_Window_ToFront;
-
-    { Attributes  }
-    { V4  isg BOOL               }
-
-    const
-       MUIA_Window_Activate = $80428d2f;
-    { V4  .sg Object             }
-       MUIA_Window_ActiveObject = $80427925;
-    { V4  i.g LongInt               }
-       MUIA_Window_AltHeight = $8042cce3;
-    { V4  i.g LongInt               }
-       MUIA_Window_AltLeftEdge = $80422d65;
-    { V4  i.g LongInt               }
-       MUIA_Window_AltTopEdge = $8042e99b;
-    { V4  i.g LongInt               }
-       MUIA_Window_AltWidth = $804260f4;
-    { V5  i.. BOOL               }
-       MUIA_Window_AppWindow = $804280cf;
-    { V4  i.. BOOL               }
-       MUIA_Window_Backdrop = $8042c0bb;
-    { V4  i.. BOOL               }
-       MUIA_Window_Borderless = $80429b79;
-    { V4  i.. BOOL               }
-       MUIA_Window_CloseGadget = $8042a110;
-    { V4  ..g BOOL               }
-       MUIA_Window_CloseRequest = $8042e86e;
-    { V4  isg Object             }
-       MUIA_Window_DefaultObject = $804294d7;
-    { V4  i.. BOOL               }
-       MUIA_Window_DepthGadget = $80421923;
-    { V4  i.. BOOL               }
-       MUIA_Window_DragBar = $8042045d;
-    { V8  isg BOOL               }
-       MUIA_Window_FancyDrawing = $8042bd0e;
-    { V4  i.g LongInt               }
-       MUIA_Window_Height = $80425846;
-    { V4  isg LongWord              }
-       MUIA_Window_ID = $804201bd;
-    { V4  ..g struct InputEvent    }
-       MUIA_Window_InputEvent = $804247d8;
-    { V4  isg BOOL               }
-       MUIA_Window_IsSubWindow = $8042b5aa;
-    { V4  i.g LongInt               }
-       MUIA_Window_LeftEdge = $80426c65;
-    { MUI_OBSOLETE  }
-    { V8  isg LongWord              }
-
-    const
-       MUIA_Window_MenuAction = $80427521;
-    { V8  i.g Object             }
-       MUIA_Window_Menustrip = $8042855e;
-    { V10 ..g Object             }
-       MUIA_Window_MouseObject = $8042bf9b;
-    { V10 i.. BOOL               }
-       MUIA_Window_NeedsMouseObject = $8042372a;
-    { V4  is. BOOL               }
-       MUIA_Window_NoMenus = $80429df5;
-    { V4  .sg BOOL               }
-       MUIA_Window_Open = $80428aa0;
-    { V6  isg PChar             }
-       MUIA_Window_PublicScreen = $804278e4;
-    { V4  is. Object             }
-       MUIA_Window_RefWindow = $804201f4;
-    { V4  isg Object             }
-       MUIA_Window_RootObject = $8042cba5;
-    { V4  isg struct Screen      }
-       MUIA_Window_Screen = $8042df4f;
-    { V5  isg PChar             }
-       MUIA_Window_ScreenTitle = $804234b0;
-    { V4  i.. BOOL               }
-       MUIA_Window_SizeGadget = $8042e33d;
-    { V4  i.. BOOL               }
-       MUIA_Window_SizeRight = $80424780;
-    { V4  .sg BOOL               }
-       MUIA_Window_Sleep = $8042e7db;
-    { V4  isg PChar             }
-       MUIA_Window_Title = $8042ad3d;
-    { V4  i.g LongInt               }
-       MUIA_Window_TopEdge = $80427c66;
-    { V13 isg BOOL               }
-       MUIA_Window_UseBottomBorderScroller = $80424e79;
-    { V13 isg BOOL               }
-       MUIA_Window_UseLeftBorderScroller = $8042433e;
-    { V13 isg BOOL               }
-       MUIA_Window_UseRightBorderScroller = $8042c05e;
-    { V4  i.g LongInt               }
-       MUIA_Window_Width = $8042dcae;
-    { V4  ..g struct Window      }
-       MUIA_Window_Window = $80426a42;
-       MUIV_Window_ActiveObject_None = 0;
-       MUIV_Window_ActiveObject_Next = -(1);
-       MUIV_Window_ActiveObject_Prev = -(2);
-
-
-    const
-       MUIV_Window_AltHeight_Scaled = -(1000);
-       MUIV_Window_AltLeftEdge_Centered = -(1);
-       MUIV_Window_AltLeftEdge_Moused = -(2);
-       MUIV_Window_AltLeftEdge_NoChange = -(1000);
-       MUIV_Window_AltTopEdge_Centered = -(1);
-       MUIV_Window_AltTopEdge_Moused = -(2);
-
-
-    const
-       MUIV_Window_AltTopEdge_NoChange = -(1000);
-
-
-    const
-       MUIV_Window_AltWidth_Scaled = -(1000);
-
-
-
-    const
-       MUIV_Window_Height_Scaled = -(1000);
-       MUIV_Window_Height_Default = -(1001);
-       MUIV_Window_LeftEdge_Centered = -(1);
-       MUIV_Window_LeftEdge_Moused = -(2);
-
-
-    const
-       MUIV_Window_TopEdge_Centered = -(1);
-       MUIV_Window_TopEdge_Moused = -(2);
-
-
-    const
-       MUIV_Window_Width_Scaled = -(1000);
-       MUIV_Window_Width_Default = -(1001);
-    {                                                                           }
-    {  Aboutmui                                                                 }
-    {                                                                           }
-
-
-    const
-       MUIC_Aboutmui : PChar = 'Aboutmui.mui';
-
-    { Methods  }
-    { Attributes  }
-    { V11 i.. Object             }
-
-    const
-       MUIA_Aboutmui_Application = $80422523;
-    {                                                                           }
-    {  Area                                                                     }
-    {                                                                           }
-
-
-    const
-       MUIC_Area : PChar = 'Area.mui';
-
-    { Methods  }
-    { Custom Class  }
-    { V4   }
-
-    const
-       MUIM_AskMinMax = $80423874;
-    { Custom Class  }
-    { V4   }
-       MUIM_Cleanup = $8042d985;
-    { V11  }
-       MUIM_ContextMenuBuild = $80429d2e;
-    { V11  }
-       MUIM_ContextMenuChoice = $80420f0e;
-    { V18  }
-       MUIM_CreateBubble = $80421c41;
-    { V11  }
-       MUIM_CreateShortHelp = $80428e93;
-    { V18  }
-       MUIM_DeleteBubble = $804211af;
-    { V11  }
-       MUIM_DeleteShortHelp = $8042d35a;
-    { V11  }
-       MUIM_DragBegin = $8042c03a;
-    { V11  }
-       MUIM_DragDrop = $8042c555;
-    { V11  }
-       MUIM_DragFinish = $804251f0;
-    { V11  }
-       MUIM_DragQuery = $80420261;
-    { V11  }
-       MUIM_DragReport = $8042edad;
-    { Custom Class  }
-    { V4   }
-       MUIM_Draw = $80426f3f;
-    { V11  }
-       MUIM_DrawBackground = $804238ca;
-    { Custom Class  }
-    { V16  }
-       MUIM_HandleEvent = $80426d66;
-    { Custom Class  }
-    { V4   }
-       MUIM_HandleInput = $80422a1a;
-    { Custom Class  }
-    { V4   }
-       MUIM_Hide = $8042f20f;
-    { Custom Class  }
-    { V4   }
-       MUIM_Setup = $80428354;
-    { Custom Class  }
-    { V4   }
-       MUIM_Show = $8042cc84;
-
-    type
-
-     { MUI_MinMax structure holds information about minimum, maximum
-       and default dimensions of an object.  }
-       tMUI_MinMax = record
-            MinWidth : WORD;
-            MinHeight : WORD;
-            MaxWidth : WORD;
-            MaxHeight : WORD;
-            DefWidth : WORD;
-            DefHeight : WORD;
-         end;
-       pMUI_MinMax = ^tMUI_MinMax;
-
-       tMUIP_AskMinMax = record
-            MethodID : LongWord;
-            MinMaxInfo : PMUI_MinMax;
-         end;
-       pMUIP_AskMinMax = ^tMUIP_AskMinMax;
-
-    { Custom Class  }
-       tMUIP_Cleanup = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Cleanup  = ^tMUIP_Cleanup;
-
-    { Custom Class  }
-       tMUIP_ContextMenuBuild = record
-            MethodID : LongWord;
-            mx : LongInt;
-            my : LongInt;
-         end;
-       pMUIP_ContextMenuBuild = ^tMUIP_ContextMenuBuild;
-
-       tMUIP_ContextMenuChoice = record
-            MethodID : LongWord;
-            item : pObject_;
-         end;
-       pMUIP_ContextMenuChoice = ^tMUIP_ContextMenuChoice;
-
-       tMUIP_CreateBubble = record
-            MethodID : LongWord;
-            x : LongInt;
-            y : LongInt;
-            txt : Pchar;
-            flags : LongWord;
-         end;
-       pMUIP_CreateBubble = ^tMUIP_CreateBubble;
-
-       tMUIP_CreateShortHelp = record
-            MethodID : LongWord;
-            mx : LongInt;
-            my : LongInt;
-         end;
-       pMUIP_CreateShortHelp = ^tMUIP_CreateShortHelp;
-
-       tMUIP_DeleteBubble = record
-            MethodID : LongWord;
-            bubble : Pointer;
-         end;
-       pMUIP_DeleteBubble = ^tMUIP_DeleteBubble;
-
-       tMUIP_DeleteShortHelp = record
-            MethodID : LongWord;
-            help : PChar;
-         end;
-       pMUIP_DeleteShortHelp = ^tMUIP_DeleteShortHelp;
-
-       tMUIP_DragBegin = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_DragBegin = ^tMUIP_DragBegin;
-
-       tMUIP_DragDrop = record
-            MethodID : LongWord;
-            obj : pObject_;
-            x : LongInt;
-            y : LongInt;
-         end;
-       pMUIP_DragDrop = ^tMUIP_DragDrop;
-
-       tMUIP_DragFinish = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_DragFinish = ^tMUIP_DragFinish;
-
-       tMUIP_DragQuery = record
-            MethodID : LongWord;
-            obj : pObject_;
-         end;
-       pMUIP_DragQuery = ^tMUIP_DragQuery;
-
-       tMUIP_DragReport = record
-            MethodID : LongWord;
-            obj : pObject_;
-            x : LongInt;
-            y : LongInt;
-            update : LongInt;
-         end;
-       pMUIP_DragReport = ^tMUIP_DragReport;
-
-       tMUIP_Draw = record
-            MethodID : LongWord;
-            flags : LongWord;
-         end;
-       pMUIP_Draw = ^tMUIP_Draw;
-
-    { Custom Class  }
-       tMUIP_DrawBackground = record
-            MethodID : LongWord;
-            left : LongInt;
-            top : LongInt;
-            width : LongInt;
-            height : LongInt;
-            xoffset : LongInt;
-            yoffset : LongInt;
-            flags : LongInt;
-         end;
-       pMUIP_DrawBackground = ^tMUIP_DrawBackground;
-
-       tMUIP_HandleEvent = record
-            MethodID : LongWord;
-            imsg : PIntuiMessage;
-            muikey : LongInt;
-         end;
-       pMUIP_HandleEvent = ^tMUIP_HandleEvent;
-
-    { Custom Class  }
-       tMUIP_HandleInput = record
-            MethodID : LongWord;
-            imsg : PIntuiMessage;
-            muikey : LongInt;
-         end;
-       pMUIP_HandleInput = ^tMUIP_HandleInput;
-
-    { Custom Class  }
-       tMUIP_Hide = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Hide = ^tMUIP_Hide;
-
-    { Custom Class  }
-       tMUIP_Setup = record
-            MethodID : LongWord;
-            RenderInfo : PMUI_RenderInfo;
-         end;
-       pMUIP_Setup = ^tMUIP_Setup;
-
-    { Custom Class  }
-       tMUIP_Show = record
-            MethodID : LongWord;
-         end;
-       pMUIP_Show = ^tMUIP_Show;
-
-    { Custom Class  }
-    { Attributes  }
-    { V4  is. LongInt               }
-
-    const
-       MUIA_Background = $8042545b;
-    { V4  ..g LongInt               }
-       MUIA_BottomEdge = $8042e552;
-    { V11 isg Object             }
-       MUIA_ContextMenu = $8042b704;
-    { V11 ..g Object             }
-       MUIA_ContextMenuTrigger = $8042a2c1;
-    { V4  isg char               }
-       MUIA_ControlChar = $8042120b;
-    { V11 isg LongInt               }
-       MUIA_CycleChain = $80421ce7;
-    { V4  isg BOOL               }
-       MUIA_Disabled = $80423661;
-    { V11 isg BOOL               }
-       MUIA_Draggable = $80420b6e;
-    { V11 isg BOOL               }
-       MUIA_Dropable = $8042fbce;
-
-    { V4  is. BOOL               }
-
-    const
-       MUIA_FillArea = $804294a3;
-    { V4  i.. LongInt               }
-       MUIA_FixHeight = $8042a92b;
-    { V4  i.. PChar             }
-       MUIA_FixHeightTxt = $804276f2;
-    { V4  i.. LongInt               }
-       MUIA_FixWidth = $8042a3f1;
-    { V4  i.. PChar             }
-       MUIA_FixWidthTxt = $8042d044;
-    { V4  i.g struct TextFont    }
-       MUIA_Font = $8042be50;
-    { V4  i.. LongInt               }
-       MUIA_Frame = $8042ac64;
-    { V4  i.. BOOL               }
-       MUIA_FramePhantomHoriz = $8042ed76;
-    { V4  i.. PChar             }
-       MUIA_FrameTitle = $8042d1c7;
-    { V4  ..g LongInt               }
-       MUIA_Height = $80423237;
-    { V11 isg LongInt               }
-       MUIA_HorizDisappear = $80429615;
-    { V4  isg WORD               }
-       MUIA_HorizWeight = $80426db9;
-    { V4  i.g LongInt               }
-       MUIA_InnerBottom = $8042f2c0;
-    { V4  i.g LongInt               }
-       MUIA_InnerLeft = $804228f8;
-    { V4  i.g LongInt               }
-       MUIA_InnerRight = $804297ff;
-    { V4  i.g LongInt               }
-       MUIA_InnerTop = $80421eb6;
-    { V4  i.. LongInt               }
-       MUIA_InputMode = $8042fb04;
-    { V4  ..g LongInt               }
-       MUIA_LeftEdge = $8042bec6;
-    { V11 i.. LongInt               }
-       MUIA_MaxHeight = $804293e4;
-    { V11 i.. LongInt               }
-       MUIA_MaxWidth = $8042f112;
-    { V4  ..g BOOL               }
-       MUIA_Pressed = $80423535;
-    { V4  ..g LongInt               }
-       MUIA_RightEdge = $8042ba82;
-    { V4  isg BOOL               }
-       MUIA_Selected = $8042654b;
-    { V11 isg PChar             }
-       MUIA_ShortHelp = $80428fe3;
-    { V4  isg BOOL               }
-       MUIA_ShowMe = $80429ba8;
-    { V4  i.. BOOL               }
-       MUIA_ShowSelState = $8042caac;
-    { V4  ..g LongInt               }
-       MUIA_Timer = $80426435;
-    { V4  ..g LongInt               }
-       MUIA_TopEdge = $8042509b;
-    { V11 isg LongInt               }
-       MUIA_VertDisappear = $8042d12f;
-    { V4  isg WORD               }
-       MUIA_VertWeight = $804298d0;
-    { V4  i.. WORD               }
-       MUIA_Weight = $80421d1f;
-    { V4  ..g LongInt               }
-       MUIA_Width = $8042b59c;
-    { V4  ..g struct Window      }
-       MUIA_Window = $80421591;
-    { V4  ..g Object             }
-       MUIA_WindowObject = $8042669e;
-       MUIV_Font_Inherit = 0;
-       MUIV_Font_Normal = -(1);
-       MUIV_Font_List = -(2);
-       MUIV_Font_Tiny = -(3);
-       MUIV_Font_Fixed = -(4);
-       MUIV_Font_Title = -(5);
-       MUIV_Font_Big = -(6);
-       MUIV_Font_Button = -(7);
-       MUIV_Frame_None = 0;
-       MUIV_Frame_Button = 1;
-       MUIV_Frame_ImageButton = 2;
-       MUIV_Frame_Text = 3;
-       MUIV_Frame_String = 4;
-       MUIV_Frame_ReadList = 5;
-       MUIV_Frame_InputList = 6;
-       MUIV_Frame_Prop = 7;
-       MUIV_Frame_Gauge = 8;
-       MUIV_Frame_Group = 9;
-       MUIV_Frame_PopUp = 10;
-       MUIV_Frame_Virtual = 11;
-       MUIV_Frame_Slider = 12;
-       MUIV_Frame_Count = 13;
-       MUIV_InputMode_None = 0;
-       MUIV_InputMode_RelVerify = 1;
-       MUIV_InputMode_Immediate = 2;
-       MUIV_InputMode_Toggle = 3;
-    {                                                                           }
-    {  Rectangle                                                                }
-    {                                                                           }
-
-
-    const
-       MUIC_Rectangle : PChar = 'Rectangle.mui';
-
-    { Attributes  }
-    { V11 i.g PChar             }
-
-    const
-       MUIA_Rectangle_BarTitle = $80426689;
-    { V7  i.g BOOL               }
-       MUIA_Rectangle_HBar = $8042c943;
-    { V7  i.g BOOL               }
-       MUIA_Rectangle_VBar = $80422204;
-    {                                                                           }
-    {  Balance                                                                  }
-    {                                                                           }
-
-
-    const
-       MUIC_Balance : PChar = 'Balance.mui';
-
-    {                                                                           }
-    {  Image                                                                    }
-    {                                                                           }
-
-
-    const
-       MUIC_Image : PChar = 'Image.mui';
-
-    { Attributes  }
-    { V4  i.. BOOL               }
-
-    const
-       MUIA_Image_FontMatch = $8042815d;
-    { V4  i.. BOOL               }
-       MUIA_Image_FontMatchHeight = $80429f26;
-    { V4  i.. BOOL               }
-       MUIA_Image_FontMatchWidth = $804239bf;
-    { V4  i.. BOOL               }
-       MUIA_Image_FreeHoriz = $8042da84;
-    { V4  i.. BOOL               }
-       MUIA_Image_FreeVert = $8042ea28;
-    { V4  i.. struct Image       }
-       MUIA_Image_OldImage = $80424f3d;
-    { V4  i.. char               }
-       MUIA_Image_Spec = $804233d5;
-    { V4  is. LongInt               }
-       MUIA_Image_State = $8042a3ad;
-    {                                                                           }
-    {  Bitmap                                                                   }
-    {                                                                           }
-
-
-    const
-       MUIC_Bitmap : PChar = 'Bitmap.mui';
-
-    { Attributes  }
-    { V8  isg struct BitMap      }
-
-    const
-       MUIA_Bitmap_Bitmap = $804279bd;
-    { V8  isg LongInt               }
-       MUIA_Bitmap_Height = $80421560;
-    { V8  isg UBYTE              }
-       MUIA_Bitmap_MappingTable = $8042e23d;
-    { V11 isg LongInt               }
-       MUIA_Bitmap_Precision = $80420c74;
-    { V11 ..g struct BitMap      }
-       MUIA_Bitmap_RemappedBitmap = $80423a47;
-    { V8  isg LongWord              }
-       MUIA_Bitmap_SourceColors = $80425360;
-    { V8  isg LongInt               }
-       MUIA_Bitmap_Transparent = $80422805;
-    { V11 i.. BOOL               }
-       MUIA_Bitmap_UseFriend = $804239d8;
-    { V8  isg LongInt               }
-       MUIA_Bitmap_Width = $8042eb3a;
-    {                                                                           }
-    {  Bodychunk                                                                }
-    {                                                                           }
-
-
-    const
-       MUIC_Bodychunk : PChar = 'Bodychunk.mui';
-
-    { Attributes  }
-    { V8  isg UBYTE              }
-
-    const
-       MUIA_Bodychunk_Body = $8042ca67;
-    { V8  isg UBYTE              }
-       MUIA_Bodychunk_Compression = $8042de5f;
-    { V8  isg LongInt               }
-       MUIA_Bodychunk_Depth = $8042c392;
-    { V8  isg UBYTE              }
-       MUIA_Bodychunk_Masking = $80423b0e;
-    {                                                                           }
-    {  Text                                                                     }
-    {                                                                           }
-
-    const
-       MUIC_Text : PChar = 'Text.mui';
-
-    { Attributes  }
-    { V4  isg PChar             }
-
-    const
-       MUIA_Text_Contents = $8042f8dc;
-    { V4  i.. char               }
-       MUIA_Text_HiChar = $804218ff;
-    { V4  isg PChar             }
-       MUIA_Text_PreParse = $8042566d;
-    { V4  i.. BOOL               }
-       MUIA_Text_SetMax = $80424d0a;
-    { V4  i.. BOOL               }
-       MUIA_Text_SetMin = $80424e10;
-    { V11 i.. BOOL               }
-       MUIA_Text_SetVMax = $80420d8b;
-    {                                                                           }
-    {  Gadget                                                                   }
-    {                                                                           }
-
-    const
-       MUIC_Gadget : PChar = 'Gadget.mui';
-
-    { Attributes  }
-    { V11 ..g struct Gadget      }
-
-    const
-       MUIA_Gadget_Gadget = $8042ec1a;
-    {                                                                           }
-    {  String                                                                   }
-    {                                                                           }
-
-
-    const
-       MUIC_String : PChar = 'String.mui';
-
-    { Methods  }
-    { Attributes  }
-    { V4  isg PChar             }
-
-    const
-       MUIA_String_Accept = $8042e3e1;
-    { V4  ..g PChar             }
-       MUIA_String_Acknowledge = $8042026c;
-    { V11 isg BOOL               }
-       MUIA_String_AdvanceOnCR = $804226de;
-    { V4  isg Object             }
-       MUIA_String_AttachedList = $80420fd2;
-    { V4  .sg LongInt               }
-       MUIA_String_BufferPos = $80428b6c;
-    { V4  isg PChar             }
-       MUIA_String_Contents = $80428ffd;
-    { V4  .sg LongInt               }
-       MUIA_String_DisplayPos = $8042ccbf;
-    { V7  isg struct Hook        }
-       MUIA_String_EditHook = $80424c33;
-    { V4  i.g LongInt               }
-       MUIA_String_Format = $80427484;
-    { V4  isg LongWord              }
-       MUIA_String_Integer = $80426e8a;
-    { V11 isg BOOL               }
-       MUIA_String_LonelyEditHook = $80421569;
-    { V4  i.g LongInt               }
-       MUIA_String_MaxLen = $80424984;
-    { V4  isg PChar             }
-       MUIA_String_Reject = $8042179c;
-    { V4  i.g BOOL               }
-       MUIA_String_Secret = $80428769;
-       MUIV_String_Format_Left = 0;
-       MUIV_String_Format_Center = 1;
-       MUIV_String_Format_Right = 2;
-    {                                                                           }
-    {  Boopsi                                                                   }
-    {                                                                           }
-
-
-    const
-       MUIC_Boopsi : PChar = 'Boopsi.mui';
-
-    { Attributes  }
-    { V4  isg struct IClass      }
-
-    const
-       MUIA_Boopsi_Class = $80426999;
-    { V4  isg char               }
-       MUIA_Boopsi_ClassID = $8042bfa3;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_MaxHeight = $8042757f;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_MaxWidth = $8042bcb1;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_MinHeight = $80422c93;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_MinWidth = $80428fb2;
-    { V4  ..g Object             }
-       MUIA_Boopsi_Object = $80420178;
-    { V4  i.. LongWord              }
-       MUIA_Boopsi_Remember = $8042f4bd;
-    { V9  i.. BOOL               }
-       MUIA_Boopsi_Smart = $8042b8d7;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_TagDrawInfo = $8042bae7;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_TagScreen = $8042bc71;
-    { V4  isg LongWord              }
-       MUIA_Boopsi_TagWindow = $8042e11d;
-    {                                                                           }
-    {  Prop                                                                     }
-    {                                                                           }
-
-
-    const
-       MUIC_Prop : PChar = 'Prop.mui';
-
-    { Methods  }
-    { V16  }
-
-    const
-       MUIM_Prop_Decrease = $80420dd1;
-    { V16  }
-       MUIM_Prop_Increase = $8042cac0;
-
-    type
-       tMUIP_Prop_Decrease = record
-            MethodID : LongWord;
-            amount : LongInt;
-         end;
-       pMUIP_Prop_Decrease = ^tMUIP_Prop_Decrease;
-
-       tMUIP_Prop_Increase = record
-            MethodID : LongWord;
-            amount : LongInt;
-         end;
-       pMUIP_Prop_Increase = ^tMUIP_Prop_Increase;
-
-    { Attributes  }
-    { V4  isg LongInt               }
-
-    const
-       MUIA_Prop_Entries = $8042fbdb;
-    { V4  isg LongInt               }
-       MUIA_Prop_First = $8042d4b2;
-    { V4  i.g BOOL               }
-       MUIA_Prop_Horiz = $8042f4f3;
-    { V4  isg BOOL               }
-       MUIA_Prop_Slider = $80429c3a;
-    { V13 i.. LongInt               }
-       MUIA_Prop_UseWinBorder = $8042deee;
-    { V4  isg LongInt               }
-       MUIA_Prop_Visible = $8042fea6;
-       MUIV_Prop_UseWinBorder_None = 0;
-       MUIV_Prop_UseWinBorder_Left = 1;
-       MUIV_Prop_UseWinBorder_Right = 2;
-       MUIV_Prop_UseWinBorder_Bottom = 3;
-    {                                                                           }
-    {  Gauge                                                                    }
-    {                                                                           }
-
-
-    const
-       MUIC_Gauge : PChar = 'Gauge.mui';
-
-    { Attributes  }
-    { V4  isg LongInt               }
-
-    const
-       MUIA_Gauge_Current = $8042f0dd;
-    { V4  isg BOOL               }
-       MUIA_Gauge_Divide = $8042d8df;
-    { V4  i.. BOOL               }
-       MUIA_Gauge_Horiz = $804232dd;
-    { V7  isg PChar             }
-       MUIA_Gauge_InfoText = $8042bf15;
-    { V4  isg LongInt               }
-       MUIA_Gauge_Max = $8042bcdb;
-    {                                                                           }
-    {  Scale                                                                    }
-    {                                                                           }
-
-
-    const
-       MUIC_Scale : PChar = 'Scale.mui';
-
-    { Attributes  }
-    { V4  isg BOOL               }
-
-    const
-       MUIA_Scale_Horiz = $8042919a;
-    {                                                                           }
-    {  Colorfield                                                               }
-    {                                                                           }
-
-
-    const
-       MUIC_Colorfield : PChar = 'Colorfield.mui';
-
-    { Attributes  }
-    { V4  isg LongWord              }
-
-    const
-       MUIA_Colorfield_Blue = $8042d3b0;
-    { V4  isg LongWord              }
-       MUIA_Colorfield_Green = $80424466;
-    { V4  ..g LongWord              }
-       MUIA_Colorfield_Pen = $8042713a;
-    { V4  isg LongWord              }
-       MUIA_Colorfield_Red = $804279f6;
-    { V4  isg LongWord              }
-       MUIA_Colorfield_RGB = $8042677a;
-    {                                                                           }
-    {  List                                                                     }
-    {                                                                           }
-
-
-    const
-       MUIC_List : PChar = 'List.mui';
+
+
+
+{ ** Notify                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Notify : PChar = 'Notify.mui';
+
+{ ** Methods ** }
+const
+  MUIM_CallHook      = $8042b96b;     { V4   }
+  MUIM_Export        = $80420f1c;     { V12  }
+  MUIM_FindUData     = $8042c196;     { V8   }
+  MUIM_GetConfigItem = $80423edb;     { V11  }
+  MUIM_GetUData      = $8042ed0c;     { V8   }
+  MUIM_Import        = $8042d012;     { V12  }
+  MUIM_KillNotify    = $8042d240;     { V4   }
+  MUIM_KillNotifyObj = $8042b145;     { V16  }
+  MUIM_MultiSet      = $8042d356;     { V7   }
+  MUIM_NoNotifySet   = $8042216f;     { V9   }
+  MUIM_Notify        = $8042c9cb;     { V4   }
+  MUIM_Set           = $8042549a;     { V4   }
+  MUIM_SetAsString   = $80422590;     { V4   }
+  MUIM_SetUData      = $8042c920;     { V8   }
+  MUIM_SetUDataOnce  = $8042ca19;     { V11  }
+  MUIM_WriteLong     = $80428d86;     { V6   }
+  MUIM_WriteString   = $80424bf4;     { V6   }
+
+type
+  tMUIP_CallHook = record      { ...  }
+    MethodID : LongWord;
+    Hook : PHook;
+    param1 : LongWord;
+  end;
+  pMUIP_CallHook = ^tMUIP_CallHook;
+
+  tMUIP_Export = record
+    MethodID : LongWord;
+    dataspace : pObject_;
+  end;
+  pMUIP_Export = ^tMUIP_Export;
+
+  tMUIP_FindUData = record
+    MethodID : LongWord;
+    udata : LongWord;
+  end;
+  pMUIP_FindUData = ^tMUIP_FindUData;
+
+  tMUIP_GetConfigItem = record
+    MethodID : LongWord;
+    id : LongWord;
+    storage : PLongWord;
+  end;
+  pMUIP_GetConfigItem = ^tMUIP_GetConfigItem;
+
+  tMUIP_GetUData = record
+    MethodID : LongWord;
+    udata : LongWord;
+    attr : LongWord;
+    storage : PLongWord;
+  end;
+  pMUIP_GetUData = ^tMUIP_GetUData;
+
+  tMUIP_Import = record
+    MethodID : LongWord;
+    dataspace : pObject_;
+  end;
+  pMUIP_Import = ^tMUIP_Import;
+
+  tMUIP_KillNotify = record
+    MethodID : LongWord;
+    TrigAttr : LongWord;
+  end;
+  pMUIP_KillNotify = ^tMUIP_KillNotify;
+
+  tMUIP_KillNotifyObj = record
+    MethodID : LongWord;
+    TrigAttr : LongWord;
+    dest : pObject_;
+  end;
+  pMUIP_KillNotifyObj = ^tMUIP_KillNotifyObj;
+
+  tMUIP_MultiSet = record      { ...  }
+    MethodID : LongWord;
+    attr : LongWord;
+    val : LongWord;
+    obj : Pointer;
+  end;
+  pMUIP_MultiSet = ^tMUIP_MultiSet;
+
+  tMUIP_NoNotifySet = record   { ...  }
+    MethodID : LongWord;
+    attr : LongWord;
+    format : Pchar;
+    val : LongWord;
+  end;
+  pMUIP_NoNotifySet = ^tMUIP_NoNotifySet;
+
+  tMUIP_Notify = record        { ...  } 
+    MethodID : LongWord;
+    TrigAttr : LongWord;
+    TrigVal : LongWord;
+    DestObj : Pointer;
+    FollowParams : LongWord;
+  end;
+  pMUIP_Notify = ^tMUIP_Notify;
+
+  tMUIP_Set = record
+    MethodID : LongWord;
+    attr : LongWord;
+    val : LongWord;
+  end;
+  pMUIP_Set = ^tMUIP_Set;
+
+  tMUIP_SetAsString = record   { ...  }
+    MethodID : LongWord;
+    attr : LongWord;
+    format : Pchar;
+    val : LongWord;
+  end;
+  pMUIP_SetAsString = ^tMUIP_SetAsString;
+
+  tMUIP_SetUData = record
+    MethodID : LongWord;
+    udata : LongWord;
+    attr : LongWord;
+    val : LongWord;
+  end;
+  pMUIP_SetUData = ^tMUIP_SetUData;
+
+  tMUIP_SetUDataOnce = record
+    MethodID : LongWord;
+    udata : LongWord;
+    attr : LongWord;
+    val : LongWord;
+  end;
+  pMUIP_SetUDataOnce = ^tMUIP_SetUDataOnce;
+
+  tMUIP_WriteLong = record
+    MethodID : LongWord;
+    val : LongWord;
+    memory : PLongWord;
+  end;
+  pMUIP_WriteLong = ^tMUIP_WriteLong;
+
+  tMUIP_WriteString = record
+    MethodID : LongWord;
+    str : Pchar;
+    memory : Pchar;
+  end;
+  pMUIP_WriteString = ^tMUIP_WriteString;
+
+{ ** Attributes ** }
+const
+  MUIA_ApplicationObject = $8042d3ee;    { V4  ..g Object             }
+  MUIA_AppMessage        = $80421955;    { V5  ..g struct AppMessage  }
+  MUIA_HelpLine          = $8042a825;    { V4  isg LongInt            }
+  MUIA_HelpNode          = $80420b85;    { V4  isg PChar              }
+  MUIA_NoNotify          = $804237f9;    { V7  .s. BOOL               }
+  MUIA_NoNotifyMethod    = $80420a74;    { V20 .s. LongWord           }
+  MUIA_ObjectID          = $8042d76e;    { V11 isg LongWord           }
+  MUIA_Parent            = $8042e35f;    { V11 ..g Object             }
+  MUIA_Revision          = $80427eaa;    { V4  ..g LongInt            }
+  MUIA_UserData          = $80420313;    { V4  isg LongWord           }
+  MUIA_Version           = $80422301;    { V4  ..g LongInt            }
+
+
+
+{ ** Family                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Family : PChar = 'Family.mui';
+
+{ ** Methods ** }
+const
+  MUIM_Family_AddHead  = $8042e200;    { V8   }
+  MUIM_Family_AddTail  = $8042d752;    { V8   }
+  MUIM_Family_Insert   = $80424d34;    { V8   }
+  MUIM_Family_Remove   = $8042f8a9;    { V8   }
+  MUIM_Family_Sort     = $80421c49;    { V8   }
+  MUIM_Family_Transfer = $8042c14a;    { V8   }
+
+type
+  tMUIP_Family_AddHead = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_Family_AddHead = ^tMUIP_Family_AddHead;
+
+  tMUIP_Family_AddTail = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_Family_AddTail = ^tMUIP_Family_AddTail;
+
+  tMUIP_Family_Insert = record
+    MethodID : LongWord;
+    obj : pObject_;
+    pred : pObject_;
+  end;
+  pMUIP_Family_Insert = ^tMUIP_Family_Insert;
+
+  tMUIP_Family_Remove = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_Family_Remove = ^tMUIP_Family_Remove;
+
+  tMUIP_Family_Sort = record
+    MethodID : LongWord;
+    obj : array[0..0] of pObject_;
+  end;
+  pMUIP_Family_Sort = ^tMUIP_Family_Sort;
+
+  tMUIP_Family_Transfer = record
+    MethodID : LongWord;
+    family : pObject_;
+  end;
+  pMUIP_Family_Transfer = ^tMUIP_Family_Transfer;
+
+{ ** Attributes ** }
+const
+  MUIA_Family_Child = $8042c696;     { V8  i.. Object             }
+  MUIA_Family_List  = $80424b9e;     { V8  ..g struct MinList     }
+
+
+
+{ ** Menustrip                                                              }
+{ ************************************************************************* }
+
+const
+  MUIC_Menustrip : PChar = 'Menustrip.mui';
+
+{ ** Methods ** }
+const
+  MUIM_Menustrip_ExitChange = $8042ce4d; { V20  }
+  MUIM_Menustrip_InitChange = $8042dcd9; { V20  }
+
+type
+  tMUIP_Menustrip_ExitChange = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Menustrip_ExitChange = ^tMUIP_Menustrip_ExitChange;
+
+  tMUIP_Menustrip_InitChange = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Menustrip_InitChange = ^tMUIP_Menustrip_InitChange;
+
+{ ** Attributes ** }
+const
+  MUIA_Menustrip_Enabled = $8042815b;     { V8  isg BOOL               }
+
+
+
+{ ** Menu                                                                   }
+{ ************************************************************************* }
+
+const
+  MUIC_Menu : PChar = 'Menu.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Menu_Enabled = $8042ed48;     { V8  isg BOOL              }
+  MUIA_Menu_Title   = $8042a0e3;     { V8  isg PChar             }
+
+
+
+{ ** Menuitem                                                               }
+{ ************************************************************************* }
+
+const
+  MUIC_Menuitem : PChar = 'Menuitem.mui';
+
+{ ** Methods ** }
+
+{ ** Attributes ** }
+const
+  MUIA_Menuitem_Checked       = $8042562a;     { V8  isg BOOL              }
+  MUIA_Menuitem_Checkit       = $80425ace;     { V8  isg BOOL              }
+  MUIA_Menuitem_CommandString = $8042b9cc;     { V16 isg BOOL              }
+  MUIA_Menuitem_Enabled       = $8042ae0f;     { V8  isg BOOL              }
+  MUIA_Menuitem_Exclude       = $80420bc6;     { V8  isg LongInt           }
+  MUIA_Menuitem_Shortcut      = $80422030;     { V8  isg PChar             }
+  MUIA_Menuitem_Title         = $804218be;     { V8  isg PChar             }
+  MUIA_Menuitem_Toggle        = $80424d5c;     { V8  isg BOOL              }
+  MUIA_Menuitem_Trigger       = $80426f32;     { V8  ..g struct MenuItem   }
+
+const
+  MUIV_Menuitem_Shortcut_Check = -(1);
+
+
+
+{ ** Application                                                            }
+{ ************************************************************************* }
+
+const
+  MUIC_Application : PChar = 'Application.mui';
+
+{ ** Methods ** }
+const
+  MUIM_Application_AboutMUI           = $8042d21d;    { V14  }
+  MUIM_Application_AddInputHandler    = $8042f099;    { V11  }
+  MUIM_Application_BuildSettingsPanel = $8042b58f;    { V20  }
+  MUIM_Application_CheckRefresh       = $80424d68;    { V11  }
+  MUIM_Application_DefaultConfigItem  = $8042d934;    { V20  }
+  MUIM_Application_InputBuffered      = $80427e59;    { V4   }
+  MUIM_Application_Load               = $8042f90d;    { V4   }
+  MUIM_Application_NewInput           = $80423ba6;    { V11  }
+  MUIM_Application_OpenConfigWindow   = $804299ba;    { V11  }
+  MUIM_Application_PushMethod         = $80429ef8;    { V4   }
+  MUIM_Application_RemInputHandler    = $8042e7af;    { V11  }
+  MUIM_Application_ReturnID           = $804276ef;    { V4   }
+  MUIM_Application_Save               = $804227ef;    { V4   }
+  MUIM_Application_SetConfigItem      = $80424a80;    { V11  }
+  MUIM_Application_ShowHelp           = $80426479;    { V4   }
+
+type
+  tMUIP_Application_AboutMUI = record
+    MethodID : LongWord;
+    refwindow : pObject_;
+  end;
+  pMUIP_Application_AboutMUI = ^tMUIP_Application_AboutMUI;
+
+  tMUIP_Application_AddInputHandler = record
+    MethodID : LongWord;
+    ihnode : PMUI_InputHandlerNode;
+  end;
+  pMUIP_Application_AddInputHandler = ^tMUIP_Application_AddInputHandler;
+
+  tMUIP_Application_BuildSettingsPanel = record
+    MethodID : LongWord; 
+    number: LongWord;
+  end;
+  pMUIP_Application_BuildSettingsPanel = ^tMUIP_Application_BuildSettingsPanel;
+
+  tMUIP_Application_CheckRefresh = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Application_CheckRefresh = ^tMUIP_Application_CheckRefresh;
+
+  tMUIP_Application_DefaultConfigItem = record
+    MethodID : LongWord;
+    cfgid : LongWord;
+  end;
+  pMUIP_Application_DefaultConfigItem = ^tMUIP_Application_DefaultConfigItem;
+
+  tMUIP_Application_GetMenuCheck = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+  end;
+  pMUIP_Application_GetMenuCheck = ^tMUIP_Application_GetMenuCheck;
+
+  tMUIP_Application_GetMenuState = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+  end;
+  pMUIP_Application_GetMenuState = ^tMUIP_Application_GetMenuState;
+
+  tMUIP_Application_Input = record
+    MethodID : LongWord;
+    signal : PLongWord;
+  end;
+  pMUIP_Application_Input = ^tMUIP_Application_Input;
+
+  tMUIP_Application_InputBuffered = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Application_InputBuffered = ^tMUIP_Application_InputBuffered;
+
+  tMUIP_Application_Load = record
+    MethodID : LongWord;
+    name : PChar;
+  end;
+
+  tMUIP_Application_NewInput = record
+    MethodID : LongWord;
+    signal : PLongWord;
+  end;
+  pMUIP_Application_NewInput = ^tMUIP_Application_NewInput;
+
+  tMUIP_Application_OpenConfigWindow = record
+    MethodID : LongWord;
+    flags : LongWord;
+  end;
+  pMUIP_Application_OpenConfigWindow = ^tMUIP_Application_OpenConfigWindow;
+
+  tMUIP_Application_PushMethod = record    { ...  }
+    MethodID : LongWord;
+    dest : pObject_;
+    count : LongInt;
+  end;
+  pMUIP_Application_PushMethod = ^tMUIP_Application_PushMethod;
+
+  tMUIP_Application_RemInputHandler = record
+    MethodID : LongWord;
+    ihnode : PMUI_InputHandlerNode;
+  end;
+  pMUIP_Application_RemInputHandler = ^tMUIP_Application_RemInputHandler;
+
+  tMUIP_Application_ReturnID = record
+    MethodID : LongWord;
+    retid : LongWord;
+  end;
+  pMUIP_Application_ReturnID = ^tMUIP_Application_ReturnID;
+
+  tMUIP_Application_Save = record
+    MethodID : LongWord;
+    name : PChar;
+  end;
+
+  tMUIP_Application_SetConfigItem = record
+    MethodID : LongWord;
+    item : LongWord;
+    data : Pointer;
+  end;
+  pMUIP_Application_SetConfigItem = ^tMUIP_Application_SetConfigItem;
+
+  tMUIP_Application_SetMenuCheck = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+    stat : LongInt;
+  end;
+  pMUIP_Application_SetMenuCheck = ^tMUIP_Application_SetMenuCheck;
+
+  tMUIP_Application_SetMenuState = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+    stat : LongInt;
+  end;
+  pMUIP_Application_SetMenuState = ^tMUIP_Application_SetMenuState;
+
+  tMUIP_Application_ShowHelp = record
+    MethodID : LongWord;
+    window : pObject_;
+    name : Pchar;
+    node : Pchar;
+    line : LongInt;
+  end;
+  pMUIP_Application_ShowHelp = ^tMUIP_Application_ShowHelp;
+
+{ ** Attributes ** }
+const
+  MUIA_Application_Active         = $804260ab;    { V4  isg BOOL               }
+  MUIA_Application_Author         = $80424842;    { V4  i.g PChar              }
+  MUIA_Application_Base           = $8042e07a;    { V4  i.g PChar              }
+  MUIA_Application_Broker         = $8042dbce;    { V4  ..g Broker             }
+  MUIA_Application_BrokerHook     = $80428f4b;    { V4  isg struct Hook        }
+  MUIA_Application_BrokerPort     = $8042e0ad;    { V6  ..g struct MsgPort     }
+  MUIA_Application_BrokerPri      = $8042c8d0;    { V6  i.g LongInt            }
+  MUIA_Application_Commands       = $80428648;    { V4  isg struct MUI_Command }
+  MUIA_Application_Copyright      = $8042ef4d;    { V4  i.g PChar              }
+  MUIA_Application_Description    = $80421fc6;    { V4  i.g PChar              }
+  MUIA_Application_DiskObject     = $804235cb;    { V4  isg struct DiskObject  }
+  MUIA_Application_DoubleStart    = $80423bc6;    { V4  ..g BOOL               }
+  MUIA_Application_DropObject     = $80421266;    { V5  is. Object             }
+  MUIA_Application_ForceQuit      = $804257df;    { V8  ..g BOOL               }
+  MUIA_Application_HelpFile       = $804293f4;    { V8  isg PChar              }
+  MUIA_Application_Iconified      = $8042a07f;    { V4  .sg BOOL               }
+  MUIA_Application_MenuAction     = $80428961;    { V4  ..g LongWord           }
+  MUIA_Application_MenuHelp       = $8042540b;    { V4  ..g LongWord           }
+  MUIA_Application_Menustrip      = $804252d9;    { V8  i.. Object             }
+  MUIA_Application_RexxHook       = $80427c42;    { V7  isg struct Hook        }
+  MUIA_Application_RexxMsg        = $8042fd88;    { V4  ..g struct RxMsg       }
+  MUIA_Application_RexxString     = $8042d711;    { V4  .s. PChar              }
+  MUIA_Application_SingleTask     = $8042a2c8;    { V4  i.. BOOL               }
+  MUIA_Application_Sleep          = $80425711;    { V4  .s. BOOL               }
+  MUIA_Application_Title          = $804281b8;    { V4  i.g PChar              }
+  MUIA_Application_UseCommodities = $80425ee5;    { V10 i.. BOOL               }
+  MUIA_Application_UsedClasses    = $8042e9a7;    { V20 isg STRPTR *           }
+  MUIA_Application_UseRexx        = $80422387;    { V10 i.. BOOL               }
+  MUIA_Application_Version        = $8042b33f;    { V4  i.g PChar              }
+  MUIA_Application_Window         = $8042bfe0;    { V4  i.. Object             }
+  MUIA_Application_WindowList     = $80429abe;    { V13 ..g struct List        }
+
+
+
+{ ** Window                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Window : PChar = 'Window.mui';
+
+const
+  MUIM_Window_AddEventHandler = $804203b7;    { V16  }
+  MUIM_Window_Cleanup         = $8042ab26;    { V18  }
+  MUIM_Window_RemEventHandler = $8042679e;    { V16  }
+  MUIM_Window_ScreenToBack    = $8042913d;    { V4   }
+  MUIM_Window_ScreenToFront   = $804227a4;    { V4   }
+  MUIM_Window_Setup           = $8042c34c;    { V18  }
+  MUIM_Window_Snapshot        = $8042945e;    { V11  }
+  MUIM_Window_ToBack          = $8042152e;    { V4   }
+  MUIM_Window_ToFront         = $8042554f;    { V4   }
+
+type
+  tMUIP_Window_AddEventHandler = record
+    MethodID : LongWord;
+    ehnode : PMUI_EventHandlerNode;
+  end;
+  pMUIP_Window_AddEventHandler = ^tMUIP_Window_AddEventHandler;
+
+  tMUIP_Window_Cleanup = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_Cleanup = ^tMUIP_Window_Cleanup;
+
+  tMUIP_Window_GetMenuCheck = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+  end;
+  pMUIP_Window_GetMenuCheck = ^tMUIP_Window_GetMenuCheck;
+
+  tMUIP_Window_GetMenuState = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+  end;
+  pMUIP_Window_GetMenuState =  ^tMUIP_Window_GetMenuState;
+
+  tMUIP_Window_RemEventHandler = record
+    MethodID : LongWord;
+    ehnode : PMUI_EventHandlerNode;
+  end;
+  pMUIP_Window_RemEventHandler = ^tMUIP_Window_RemEventHandler;
+
+  tMUIP_Window_ScreenToBack = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_ScreenToBack = ^tMUIP_Window_ScreenToBack;
+
+  tMUIP_Window_ScreenToFront = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_ScreenToFront = ^tMUIP_Window_ScreenToFront;
+
+  tMUIP_Window_SetCycleChain = record
+    MethodID : LongWord;
+    obj : array[0..0] of pObject_;
+  end;
+  pMUIP_Window_SetCycleChain = ^tMUIP_Window_SetCycleChain;
+
+  tMUIP_Window_SetMenuCheck = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+    stat : LongInt;
+  end;
+  pMUIP_Window_SetMenuCheck = ^tMUIP_Window_SetMenuCheck;
+
+  tMUIP_Window_SetMenuState = record
+    MethodID : LongWord;
+    MenuID : LongWord;
+    stat : LongInt;
+  end;
+  pMUIP_Window_SetMenuState = ^tMUIP_Window_SetMenuState;
+
+  tMUIP_Window_Setup = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_Setup = ^tMUIP_Window_Setup;
+
+  tMUIP_Window_Snapshot = record
+    MethodID : LongWord;
+    flags : LongInt;
+  end;
+  pMUIP_Window_Snapshot = ^tMUIP_Window_Snapshot;
+
+  tMUIP_Window_ToBack = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_ToBack = ^tMUIP_Window_ToBack;
+
+  tMUIP_Window_ToFront = record
+    MethodID : LongWord;
+  end;
+  pMUIP_Window_ToFront = ^tMUIP_Window_ToFront;
+
+{ ** Attributes ** }
+const
+  MUIA_Window_Activate                = $80428d2f;    { V4  isg BOOL               }
+  MUIA_Window_ActiveObject            = $80427925;    { V4  .sg Object             }
+  MUIA_Window_AltHeight               = $8042cce3;    { V4  i.g LongInt            }
+  MUIA_Window_AltLeftEdge             = $80422d65;    { V4  i.g LongInt            }
+  MUIA_Window_AltTopEdge              = $8042e99b;    { V4  i.g LongInt            }
+  MUIA_Window_AltWidth                = $804260f4;    { V4  i.g LongInt            }
+  MUIA_Window_AppWindow               = $804280cf;    { V5  i.. BOOL               }
+  MUIA_Window_Backdrop                = $8042c0bb;    { V4  i.. BOOL               }
+  MUIA_Window_Borderless              = $80429b79;    { V4  i.. BOOL               }
+  MUIA_Window_CloseGadget             = $8042a110;    { V4  i.. BOOL               }
+  MUIA_Window_CloseRequest            = $8042e86e;    { V4  ..g BOOL               }
+  MUIA_Window_DefaultObject           = $804294d7;    { V4  isg Object             }
+  MUIA_Window_DepthGadget             = $80421923;    { V4  i.. BOOL               }
+  MUIA_Window_DragBar                 = $8042045d;    { V4  i.. BOOL               }
+  MUIA_Window_FancyDrawing            = $8042bd0e;    { V8  isg BOOL               }
+  MUIA_Window_Height                  = $80425846;    { V4  i.g LongInt            }
+  MUIA_Window_ID                      = $804201bd;    { V4  isg LongWord           }
+  MUIA_Window_InputEvent              = $804247d8;    { V4  ..g struct InputEvent  }
+  MUIA_Window_IsSubWindow             = $8042b5aa;    { V4  isg BOOL               }
+  MUIA_Window_LeftEdge                = $80426c65;    { V4  i.g LongInt            }
+  MUIA_Window_MenuAction              = $80427521;    { V8  isg LongWord           }
+  MUIA_Window_Menustrip               = $8042855e;    { V8  i.g Object             }
+  MUIA_Window_MouseObject             = $8042bf9b;    { V10 ..g Object             }
+  MUIA_Window_NeedsMouseObject        = $8042372a;    { V10 i.. BOOL               }
+  MUIA_Window_NoMenus                 = $80429df5;    { V4  is. BOOL               }
+  MUIA_Window_Open                    = $80428aa0;    { V4  .sg BOOL               }
+  MUIA_Window_PublicScreen            = $804278e4;    { V6  isg PChar              }
+  MUIA_Window_RefWindow               = $804201f4;    { V4  is. Object             }
+  MUIA_Window_RootObject              = $8042cba5;    { V4  isg Object             }
+  MUIA_Window_Screen                  = $8042df4f;    { V4  isg struct Screen      }
+  MUIA_Window_ScreenTitle             = $804234b0;    { V5  isg PChar              }
+  MUIA_Window_SizeGadget              = $8042e33d;    { V4  i.. BOOL               }
+  MUIA_Window_SizeRight               = $80424780;    { V4  i.. BOOL               }
+  MUIA_Window_Sleep                   = $8042e7db;    { V4  .sg BOOL               }
+  MUIA_Window_Title                   = $8042ad3d;    { V4  isg PChar              }
+  MUIA_Window_TopEdge                 = $80427c66;    { V4  i.g LongInt            }
+  MUIA_Window_UseBottomBorderScroller = $80424e79;    { V13 isg BOOL               }
+  MUIA_Window_UseLeftBorderScroller   = $8042433e;    { V13 isg BOOL               }
+  MUIA_Window_UseRightBorderScroller  = $8042c05e;    { V13 isg BOOL               }
+  MUIA_Window_Width                   = $8042dcae;    { V4  i.g LongInt            }
+  MUIA_Window_Window                  = $80426a42;    { V4  ..g struct Window      }
+
+const
+  MUIV_Window_ActiveObject_None  =  0;
+  MUIV_Window_ActiveObject_Next  = -1;
+  MUIV_Window_ActiveObject_Prev  = -2;
+  MUIV_Window_ActiveObject_Left  = -3;
+  MUIV_Window_ActiveObject_Right = -4;
+  MUIV_Window_ActiveObject_Up    = -5;
+  MUIV_Window_ActiveObject_Down  = -6;
+
+{ FIX ME!!! #define MUIV_Window_AltHeight_MinMax(p) (0-(p)) }
+{ FIX ME!!! #define MUIV_Window_AltHeight_Visible(p) (-100-(p)) }
+{ FIX ME!!! #define MUIV_Window_AltHeight_Screen(p) (-200-(p)) }
+  MUIV_Window_AltHeight_Scaled = -(1000);
+  MUIV_Window_AltLeftEdge_Centered = -(1);
+  MUIV_Window_AltLeftEdge_Moused = -(2);
+  MUIV_Window_AltLeftEdge_NoChange = -(1000);
+  MUIV_Window_AltTopEdge_Centered = -(1);
+  MUIV_Window_AltTopEdge_Moused = -(2);
+{ FIX ME!!! #define MUIV_Window_AltTopEdge_Delta(p) (-3-(p)) }
+  MUIV_Window_AltTopEdge_NoChange = -(1000);
+{ FIX ME!!! #define MUIV_Window_AltWidth_MinMax(p) (0-(p)) }
+{ FIX ME!!! #define MUIV_Window_AltWidth_Visible(p) (-100-(p)) }
+{ FIX ME!!! #define MUIV_Window_AltWidth_Screen(p) (-200-(p)) }
+  MUIV_Window_AltWidth_Scaled = -(1000);
+{ FIX ME!!! #define MUIV_Window_Height_MinMax(p) (0-(p))     }   
+{ FIX ME!!! #define MUIV_Window_Height_Visible(p) (-100-(p)) }
+{ FIX ME!!! #define MUIV_Window_Height_Screen(p) (-200-(p))  }
+  MUIV_Window_Height_Scaled = -(1000);
+  MUIV_Window_Height_Default = -(1001);
+  MUIV_Window_LeftEdge_Centered = -(1);
+  MUIV_Window_LeftEdge_Moused = -(2);
+{ FIX ME!!! #define MUIV_Window_LeftEdge_Right(n) (-1000-(n)) }
+  MUIV_Window_TopEdge_Centered = -(1);
+  MUIV_Window_TopEdge_Moused = -(2);
+{ FIX ME!!! #define MUIV_Window_TopEdge_Delta(p) (-3-(p)) }
+{ FIX ME!!! #define MUIV_Window_TopEdge_Bottom(n) (-1000-(n)) }
+{ FIX ME!!! #define MUIV_Window_Width_MinMax(p) (0-(p)) }
+{ FIX ME!!! #define MUIV_Window_Width_Visible(p) (-100-(p)) }
+{ FIX ME!!! #define MUIV_Window_Width_Screen(p) (-200-(p)) }
+  MUIV_Window_Width_Scaled = -(1000);
+  MUIV_Window_Width_Default = -(1001);
+
+
+
+{ ** Aboutmui                                                               }
+{ ************************************************************************* }
+
+const
+  MUIC_Aboutmui : PChar = 'Aboutmui.mui';
+
+{ ** Methods ** }
+
+{ ** Attributes ** }
+const
+  MUIA_Aboutmui_Application = $80422523;     { V11 i.. Object             }
+
+
+
+{ ** Area                                                                   }
+{ ************************************************************************* }
+
+const
+  MUIC_Area : PChar = 'Area.mui';
+
+{ ** Methods ** }
+const
+  MUIM_AskMinMax          = $80423874;     { Custom Class } { V4 }
+  MUIM_Cleanup            = $8042d985;     { Custom Class } { V4 }
+  MUIM_ContextMenuAdd     = $8042df9e;     { V20 }
+  MUIM_ContextMenuBuild   = $80429d2e;     { V11 }
+  MUIM_ContextMenuChoice  = $80420f0e;     { V11 }
+  MUIM_CreateBubble       = $80421c41;     { V18 }
+  MUIM_CreateShortHelp    = $80428e93;     { V11 }
+  MUIM_DeleteBubble       = $804211af;     { V18 }
+  MUIM_DeleteShortHelp    = $8042d35a;     { V11 }
+  MUIM_DoDrag             = $804216bb;     { V20 }
+  MUIM_DragBegin          = $8042c03a;     { V11 }
+  MUIM_DragDrop           = $8042c555;     { V11 }
+  MUIM_DragFinish         = $804251f0;     { V11 }
+  MUIM_DragQuery          = $80420261;     { V11 }
+  MUIM_DragReport         = $8042edad;     { V11 }
+  MUIM_Draw               = $80426f3f;     { Custom Class  } { V4 }
+  MUIM_DrawBackground     = $804238ca;     { V11 }
+  MUIM_HandleEvent        = $80426d66;     { Custom Class  } { V16 }
+  MUIM_HandleInput        = $80422a1a;     { Custom Class  } { V4 }
+  MUIM_Hide               = $8042f20f;     { Custom Class  } { V4 }
+  MUIM_Setup              = $80428354;     { Custom Class  } { V4 }
+  MUIM_Show               = $8042cc84;     { Custom Class  } { V4 }
+  MUIM_UpdateConfig       = $8042b0a9;     { V20 }
+
+type
+  { MUI_MinMax structure holds information about minimum, maximum
+    and default dimensions of an object.  }
+  tMUI_MinMax = record
+    MinWidth  : shortint;
+    MinHeight : shortint;
+    MaxWidth  : shortint;
+    MaxHeight : shortint;
+    DefWidth  : shortint;
+    DefHeight : shortint;
+  end;
+  pMUI_MinMax = ^tMUI_MinMax;
+
+  tMUIP_AskMinMax = record                 { Custom Class }
+    MethodID : LongWord;
+    MinMaxInfo : PMUI_MinMax;
+  end;
+  pMUIP_AskMinMax = ^tMUIP_AskMinMax;
+
+  tMUIP_Cleanup = record                   { Custom Class }
+    MethodID : LongWord;
+  end;
+  pMUIP_Cleanup  = ^tMUIP_Cleanup;
+
+  tMUIP_ContextMenuAdd = record
+    MethodID : LongWord;
+    menustrip : pObject_;
+    mx : LongInt;
+    my : LongInt;
+    mxp : pLongInt;
+    myp : pLongInt;
+  end;
+  pMUIP_ContextMenuAdd = ^tMUIP_ContextMenuAdd;
+
+  tMUIP_ContextMenuBuild = record
+    MethodID : LongWord;
+    mx : LongInt;
+    my : LongInt;
+  end;
+  pMUIP_ContextMenuBuild = ^tMUIP_ContextMenuBuild;
+
+  tMUIP_ContextMenuChoice = record
+    MethodID : LongWord;
+    item : pObject_;
+  end;
+  pMUIP_ContextMenuChoice = ^tMUIP_ContextMenuChoice;
+
+  tMUIP_CreateBubble = record
+    MethodID : LongWord;
+    x : LongInt;
+    y : LongInt;
+    txt : PChar;
+    flags : LongWord;
+  end;
+  pMUIP_CreateBubble = ^tMUIP_CreateBubble;
+
+  tMUIP_CreateShortHelp = record
+    MethodID : LongWord;
+    mx : LongInt;
+    my : LongInt;
+  end;
+  pMUIP_CreateShortHelp = ^tMUIP_CreateShortHelp;
+
+  tMUIP_DeleteBubble = record
+    MethodID : LongWord;
+    bubble : Pointer;
+  end;
+  pMUIP_DeleteBubble = ^tMUIP_DeleteBubble;
+
+  tMUIP_DeleteShortHelp = record
+    MethodID : LongWord;
+    help : PChar;
+  end;
+  pMUIP_DeleteShortHelp = ^tMUIP_DeleteShortHelp;
+
+  tMUIP_DoDrag = record
+    MethodID : LongWord;
+    touchx : LongInt;
+    touchy : LongInt;
+    flags : LongWord;
+  end;
+  pMUIP_DoDrag = ^tMUIP_DoDrag;
+
+  tMUIP_DragBegin = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_DragBegin = ^tMUIP_DragBegin;
+
+  tMUIP_DragDrop = record
+    MethodID : LongWord;
+    obj : pObject_;
+    x : LongInt;
+    y : LongInt;
+  end;
+  pMUIP_DragDrop = ^tMUIP_DragDrop;
+
+  tMUIP_DragFinish = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_DragFinish = ^tMUIP_DragFinish;
+
+  tMUIP_DragQuery = record
+    MethodID : LongWord;
+    obj : pObject_;
+  end;
+  pMUIP_DragQuery = ^tMUIP_DragQuery;
+
+  tMUIP_DragReport = record
+    MethodID : LongWord;
+    obj : pObject_;
+    x : LongInt;
+    y : LongInt;
+    update : LongInt;
+  end;
+  pMUIP_DragReport = ^tMUIP_DragReport;
+
+  tMUIP_Draw = record                      { Custom Class }
+    MethodID : LongWord;
+    flags : LongWord;
+  end;
+  pMUIP_Draw = ^tMUIP_Draw;
+
+  tMUIP_DrawBackground = record
+    MethodID : LongWord;
+    left : LongInt;
+    top : LongInt;
+    width : LongInt;
+    height : LongInt;
+    xoffset : LongInt;
+    yoffset : LongInt;
+    flags : LongInt;
+  end;
+  pMUIP_DrawBackground = ^tMUIP_DrawBackground;
+
+  tMUIP_HandleEvent = record               { Custom Class }
+    MethodID : LongWord;
+    imsg : PIntuiMessage;
+    muikey : LongInt;
+  end;
+  pMUIP_HandleEvent = ^tMUIP_HandleEvent;
+
+  tMUIP_HandleInput = record               { Custom Class }
+    MethodID : LongWord;
+    imsg : PIntuiMessage;
+    muikey : LongInt;
+  end;
+  pMUIP_HandleInput = ^tMUIP_HandleInput;
+
+  tMUIP_Hide = record                      { Custom Class }
+    MethodID : LongWord;
+  end;
+  pMUIP_Hide = ^tMUIP_Hide;
+
+  tMUIP_Setup = record                     { Custom Class }
+    MethodID : LongWord;
+    RenderInfo : PMUI_RenderInfo;
+  end;
+  pMUIP_Setup = ^tMUIP_Setup;
+
+  tMUIP_Show = record                      { Custom Class }
+    MethodID : LongWord;
+  end;
+  pMUIP_Show = ^tMUIP_Show;
+
+  tMUIP_UpdateConfig = record
+    MethodID : LongWord;
+    cfgid : LongWord;
+    redrawcount : LongInt;
+    redrawobj : array[0..63] of pObject_;
+    redrawflags : array[0..63] of byte;
+  end;
+  pMUIP_UpdateConfig = ^tMUIP_UpdateConfig;
+
+{ ** Attributes ** }
+const
+  MUIA_Background          = $8042545b;     { V4  is. LongInt            }
+  MUIA_BottomEdge          = $8042e552;     { V4  ..g LongInt            }
+  MUIA_ContextMenu         = $8042b704;     { V11 isg Object             }
+  MUIA_ContextMenuTrigger  = $8042a2c1;     { V11 ..g Object             }
+  MUIA_ControlChar         = $8042120b;     { V4  isg char               }
+  MUIA_CycleChain          = $80421ce7;     { V11 isg LongInt            }
+  MUIA_Disabled            = $80423661;     { V4  isg BOOL               }
+  MUIA_DoubleBuffer        = $8042a9c7;     { V20 isg BOOL               }
+  MUIA_Draggable           = $80420b6e;     { V11 isg BOOL               }
+  MUIA_Dropable            = $8042fbce;     { V11 isg BOOL               }
+  MUIA_FillArea            = $804294a3;     { V4  is. BOOL               }
+  MUIA_FixHeight           = $8042a92b;     { V4  i.. LongInt            }
+  MUIA_FixHeightTxt        = $804276f2;     { V4  i.. PChar              }
+  MUIA_FixWidth            = $8042a3f1;     { V4  i.. LongInt            }
+  MUIA_FixWidthTxt         = $8042d044;     { V4  i.. PChar              }
+  MUIA_Font                = $8042be50;     { V4  i.g struct TextFont    }
+  MUIA_Frame               = $8042ac64;     { V4  i.. LongInt            }
+  MUIA_FrameDynamic        = $804223c9;     { V20 isg BOOL               }
+  MUIA_FramePhantomHoriz   = $8042ed76;     { V4  i.. BOOL               }
+  MUIA_FrameTitle          = $8042d1c7;     { V4  i.. PChar              }
+  MUIA_FrameVisible        = $80426498;     { V20 isg BOOL               }
+  MUIA_Height              = $80423237;     { V4  ..g LongInt            }
+  MUIA_HorizDisappear      = $80429615;     { V11 isg LongInt            }
+  MUIA_HorizWeight         = $80426db9;     { V4  isg ShortInt           }
+  MUIA_InnerBottom         = $8042f2c0;     { V4  i.g LongInt            }
+  MUIA_InnerLeft           = $804228f8;     { V4  i.g LongInt            }
+  MUIA_InnerRight          = $804297ff;     { V4  i.g LongInt            }
+  MUIA_InnerTop            = $80421eb6;     { V4  i.g LongInt            }
+  MUIA_InputMode           = $8042fb04;     { V4  i.. LongInt            }
+  MUIA_LeftEdge            = $8042bec6;     { V4  ..g LongInt            }
+  MUIA_MaxHeight           = $804293e4;     { V11 i.. LongInt            }
+  MUIA_MaxWidth            = $8042f112;     { V11 i.. LongInt            }
+  MUIA_Pressed             = $80423535;     { V4  ..g BOOL               }
+  MUIA_RightEdge           = $8042ba82;     { V4  ..g LongInt            }
+  MUIA_Selected            = $8042654b;     { V4  isg BOOL               }
+  MUIA_ShortHelp           = $80428fe3;     { V11 isg PChar              }
+  MUIA_ShowMe              = $80429ba8;     { V4  isg BOOL               }
+  MUIA_ShowSelState        = $8042caac;     { V4  i.. BOOL               }
+  MUIA_Timer               = $80426435;     { V4  ..g LongInt            }
+  MUIA_TopEdge             = $8042509b;     { V4  ..g LongInt            }
+  MUIA_VertDisappear       = $8042d12f;     { V11 isg LongInt            }
+  MUIA_VertWeight          = $804298d0;     { V4  isg WORD               }
+  MUIA_Weight              = $80421d1f;     { V4  i.. WORD               }
+  MUIA_Width               = $8042b59c;     { V4  ..g LongInt            }
+  MUIA_Window              = $80421591;     { V4  ..g struct Window      }
+  MUIA_WindowObject        = $8042669e;     { V4  ..g Object             }
+
+const
+  MUIV_Font_Inherit     = 0;
+  MUIV_Font_Normal      = -1;
+  MUIV_Font_List        = -2;
+  MUIV_Font_Tiny        = -3;
+  MUIV_Font_Fixed       = -4;
+  MUIV_Font_Title       = -5;
+  MUIV_Font_Big         = -6;
+  MUIV_Font_Button      = -7;
+  MUIV_Font_Slider      = -8;
+  MUIV_Font_Gauge       = -9;
+  MUIV_Font_Menudisplay = -10;
+  MUIV_Frame_None            = 0;
+  MUIV_Frame_Button          = 1;
+  MUIV_Frame_ImageButton     = 2;
+  MUIV_Frame_Text            = 3;
+  MUIV_Frame_String          = 4;
+  MUIV_Frame_ReadList        = 5;
+  MUIV_Frame_InputList       = 6;
+  MUIV_Frame_Prop            = 7;
+  MUIV_Frame_Gauge           = 8;
+  MUIV_Frame_Group           = 9;
+  MUIV_Frame_PopUp           = 10;
+  MUIV_Frame_Virtual         = 11;
+  MUIV_Frame_Slider          = 12;
+  MUIV_Frame_SliderKnob      = 13;
+  MUIV_Frame_GaugeInner      = 14;
+  MUIV_Frame_Menudisplay     = 15;
+  MUIV_Frame_MenudisplayMenu = 16;
+  MUIV_Frame_PropKnob        = 17;
+  MUIV_Frame_Window          = 18;
+  MUIV_Frame_Requester       = 19;
+  MUIV_Frame_Page            = 20;
+  MUIV_Frame_Register        = 21;
+  MUIV_Frame_Count           = 22;
+  MUIV_InputMode_None      = 0;
+  MUIV_InputMode_RelVerify = 1;
+  MUIV_InputMode_Immediate = 2;
+  MUIV_InputMode_Toggle    = 3;
+
+
+
+{ ** Dtpic                                                                  }
+{ ************************************************************************* }
+
+const
+  MUIC_Dtpic : PChar = 'Dtpic.mui';
+
+{ ** Methods ** }
+
+{ ** Attributes ** }
+const
+  MUIA_Dtpic_Name         = $80423d72;      { V18 isg STRPTR            }
+
+
+
+{ ** Rectangle                                                              }
+{ ************************************************************************* }
+
+const
+  MUIC_Rectangle : PChar = 'Rectangle.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Rectangle_BarTitle = $80426689;      { V11 i.g PChar             }
+  MUIA_Rectangle_HBar     = $8042c943;      { V7  i.g BOOL              }
+  MUIA_Rectangle_VBar     = $80422204;      { V7  i.g BOOL              }
+
+
+
+{ ** Balance                                                                }
+{ ************************************************************************* }
+
+const
+  MUIC_Balance : PChar = 'Balance.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Balance_Quiet       = $80427486;     { V20 i.. LONG              }
+
+
+
+{ ** Image                                                                  }
+{ ************************************************************************* }
+
+const
+  MUIC_Image : PChar = 'Image.mui';
+
+{ ** Attributes ** }
+
+const
+  MUIA_Image_FontMatch       = $8042815d;     { V4  i.. BOOL               }
+  MUIA_Image_FontMatchHeight = $80429f26;     { V4  i.. BOOL               }
+  MUIA_Image_FontMatchWidth  = $804239bf;     { V4  i.. BOOL               }
+  MUIA_Image_FreeHoriz       = $8042da84;     { V4  i.. BOOL               }
+  MUIA_Image_FreeVert        = $8042ea28;     { V4  i.. BOOL               }
+  MUIA_Image_OldImage        = $80424f3d;     { V4  i.. struct Image       }
+  MUIA_Image_Spec            = $804233d5;     { V4  i.. char               }
+  MUIA_Image_State           = $8042a3ad;     { V4  is. LongInt            }
+
+
+
+{ ** Menubar                                                                }
+{ ************************************************************************* }
+
+const
+  MUIC_Menubar : PChar = 'Menubar.mui';
+
+
+
+{ ** Bitmap                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Bitmap : PChar = 'Bitmap.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Bitmap_Alpha          = $80423e71;     { V20 isg ULONG              }
+  MUIA_Bitmap_Bitmap         = $804279bd;     { V8  isg struct BitMap      }
+  MUIA_Bitmap_Height         = $80421560;     { V8  isg LongInt            }
+  MUIA_Bitmap_MappingTable   = $8042e23d;     { V8  isg UBYTE              }
+  MUIA_Bitmap_Precision      = $80420c74;     { V11 isg LongInt            }
+  MUIA_Bitmap_RemappedBitmap = $80423a47;     { V11 ..g struct BitMap      }
+  MUIA_Bitmap_SourceColors   = $80425360;     { V8  isg LongWord           }
+  MUIA_Bitmap_Transparent    = $80422805;     { V8  isg LongInt            }
+  MUIA_Bitmap_UseFriend      = $804239d8;     { V11 i.. BOOL               }
+  MUIA_Bitmap_Width          = $8042eb3a;     { V8  isg LongInt            }
+
+
+
+{ ** Bodychunk                                                              }
+{ ************************************************************************* }
+
+const
+  MUIC_Bodychunk : PChar = 'Bodychunk.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Bodychunk_Body        = $8042ca67;     { V8  isg UBYTE              }
+  MUIA_Bodychunk_Compression = $8042de5f;     { V8  isg UBYTE              }
+  MUIA_Bodychunk_Depth       = $8042c392;     { V8  isg LongInt            }
+  MUIA_Bodychunk_Masking     = $80423b0e;     { V8  isg UBYTE              }
+
+
+
+{ ** Text                                                                   }
+{ ************************************************************************* }
+
+const
+  MUIC_Text : PChar = 'Text.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Text_Contents    = $8042f8dc;     { V4  isg PChar             }
+  MUIA_Text_ControlChar = $8042e6d0;     { V20 isg char              }
+  MUIA_Text_Copy        = $80427727;     { V20 isg BOOL              }
+  MUIA_Text_HiChar      = $804218ff;     { V4  i.. char              }
+  MUIA_Text_PreParse    = $8042566d;     { V4  isg PChar             }
+  MUIA_Text_SetMax      = $80424d0a;     { V4  i.. BOOL              }
+  MUIA_Text_SetMin      = $80424e10;     { V4  i.. BOOL              }
+  MUIA_Text_SetVMax     = $80420d8b;     { V11 i.. BOOL              }
+  MUIA_Text_Shorten     = $80428bbd;     { V20 isg LONG              }
+  MUIA_Text_Shortened   = $80425a86;     { V20 ..g BOOL              }
+
+const
+  MUIV_Text_Shorten_Nothing = 0;
+  MUIV_Text_Shorten_Cutoff  = 1;
+  MUIV_Text_Shorten_Hide    = 2;
+
+
+
+{ ** Gadget                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Gadget : PChar = 'Gadget.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Gadget_Gadget    = $8042ec1a;     { V11 ..g struct Gadget      }
+
+
+
+{ ** String                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_String : PChar = 'String.mui';
+
+{ ** Methods ** }
+
+{ ** Attributes ** }
+const
+  MUIA_String_Accept         = $8042e3e1;     { V4  isg PChar             }
+  MUIA_String_Acknowledge    = $8042026c;     { V4  ..g PChar             }
+  MUIA_String_AdvanceOnCR    = $804226de;     { V11 isg BOOL              }
+  MUIA_String_AttachedList   = $80420fd2;     { V4  isg Object            }
+  MUIA_String_BufferPos      = $80428b6c;     { V4  .sg LongInt           }
+  MUIA_String_Contents       = $80428ffd;     { V4  isg PChar             }
+  MUIA_String_DisplayPos     = $8042ccbf;     { V4  .sg LongInt           }
+  MUIA_String_EditHook       = $80424c33;     { V7  isg struct Hook       }
+  MUIA_String_Format         = $80427484;     { V4  i.g LongInt           }
+  MUIA_String_Integer        = $80426e8a;     { V4  isg LongWord          }
+  MUIA_String_LonelyEditHook = $80421569;     { V11 isg BOOL              }
+  MUIA_String_MaxLen         = $80424984;     { V4  i.g LongInt           }
+  MUIA_String_Reject         = $8042179c;     { V4  isg PChar             }
+  MUIA_String_Secret         = $80428769;     { V4  i.g BOOL              }
+
+const
+  MUIV_String_Format_Left   = 0;
+  MUIV_String_Format_Center = 1;
+  MUIV_String_Format_Right  = 2;
+
+
+
+{ ** Boopsi                                                                 }
+{ ************************************************************************* }
+
+const
+  MUIC_Boopsi : PChar = 'Boopsi.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Boopsi_Class       = $80426999;    { V4  isg struct IClass      }
+  MUIA_Boopsi_ClassID     = $8042bfa3;    { V4  isg char               }
+  MUIA_Boopsi_MaxHeight   = $8042757f;    { V4  isg LongWord           }
+  MUIA_Boopsi_MaxWidth    = $8042bcb1;    { V4  isg LongWord           }
+  MUIA_Boopsi_MinHeight   = $80422c93;    { V4  isg LongWord           }
+  MUIA_Boopsi_MinWidth    = $80428fb2;    { V4  isg LongWord           }
+  MUIA_Boopsi_Object      = $80420178;    { V4  ..g Object             }
+  MUIA_Boopsi_Remember    = $8042f4bd;    { V4  i.. LongWord           }
+  MUIA_Boopsi_Smart       = $8042b8d7;    { V9  i.. BOOL               }
+  MUIA_Boopsi_TagDrawInfo = $8042bae7;    { V4  isg LongWord           }
+  MUIA_Boopsi_TagScreen   = $8042bc71;    { V4  isg LongWord           }
+  MUIA_Boopsi_TagWindow   = $8042e11d;    { V4  isg LongWord           }
+
+
+
+{ ** Prop                                                                   }
+{ ************************************************************************* }
+
+const
+  MUIC_Prop : PChar = 'Prop.mui';
+
+{ ** Methods ** }
+const
+  MUIM_Prop_Decrease = $80420dd1;    { V16  }
+  MUIM_Prop_Increase = $8042cac0;    { V16  }
+
+type
+  tMUIP_Prop_Decrease = record
+    MethodID : LongWord;
+    amount : LongInt;
+  end;
+  pMUIP_Prop_Decrease = ^tMUIP_Prop_Decrease;
+
+  tMUIP_Prop_Increase = record
+    MethodID : LongWord;
+    amount : LongInt;
+  end;
+  pMUIP_Prop_Increase = ^tMUIP_Prop_Increase;
+
+{ ** Attributes ** }
+const
+  MUIA_Prop_Entries      = $8042fbdb; { V4  isg LongInt            }
+  MUIA_Prop_First        = $8042d4b2; { V4  isg LongInt            }
+  MUIA_Prop_Horiz        = $8042f4f3; { V4  i.g BOOL               }
+  MUIA_Prop_Slider       = $80429c3a; { V4  isg BOOL               }
+  MUIA_Prop_UseWinBorder = $8042deee; { V13 i.. LongInt            }
+  MUIA_Prop_Visible      = $8042fea6; { V4  isg LongInt            }
+
+const  
+  MUIV_Prop_UseWinBorder_None = 0;
+  MUIV_Prop_UseWinBorder_Left = 1;
+  MUIV_Prop_UseWinBorder_Right = 2;
+  MUIV_Prop_UseWinBorder_Bottom = 3;
+
+
+
+{ ** Gauge                                                                  }
+{ ************************************************************************* }
+
+const
+  MUIC_Gauge : PChar = 'Gauge.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Gauge_Current  = $8042f0dd;    { V4  isg LongInt            }
+  MUIA_Gauge_Divide   = $8042d8df;    { V4  isg BOOL               }
+  MUIA_Gauge_Horiz    = $804232dd;    { V4  i.. BOOL               }
+  MUIA_Gauge_InfoRate = $804253c8;    { V4  isg LONG               }
+  MUIA_Gauge_InfoText = $8042bf15;    { V7  isg PChar              }
+  MUIA_Gauge_Max      = $8042bcdb;    { V4  isg LongInt            }
+
+
+
+{ ** Scale                                                                  }
+{ ************************************************************************* }
+
+const
+  MUIC_Scale : PChar = 'Scale.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Scale_Horiz = $8042919a;     { V4  isg BOOL               }
+
+
+
+{ ** Colorfield                                                             }
+{ ************************************************************************* }
+
+const
+  MUIC_Colorfield : PChar = 'Colorfield.mui';
+
+{ ** Attributes ** }
+const
+  MUIA_Colorfield_Blue  = $8042d3b0;    { V4  isg LongWord              }
+  MUIA_Colorfield_Green = $80424466;    { V4  isg LongWord              }
+  MUIA_Colorfield_Pen   = $8042713a;    { V4  ..g LongWord              }
+  MUIA_Colorfield_Red   = $804279f6;    { V4  isg LongWord              }
+  MUIA_Colorfield_RGB   = $8042677a;    { V4  isg LongWord              }
+
+
+
+{ ** List                                                                   }
+{ ************************************************************************* }
+
+const
+  MUIC_List : PChar = 'List.mui';
 
     { Methods  }
     { V4   }
@@ -3226,14 +3068,7 @@ uses exec, intuition,utility,graphics{,iffparse};
 
     { Methods  }
     { Attributes  }
-    {                                                                           }
-    {  Dtpic                                                                    }
-    {                                                                           }
 
-
-    const
-       MUIC_Dtpic : PChar = 'Dtpic.mui';
-    { Attributes  }
     {                                        }
     { End of automatic header file creation  }
     {                                        }
@@ -3588,60 +3423,60 @@ function MUIPen(pen : longint): longint;
 ** only valid if your class is inbetween the specified methods!
 *)
 
-function OBJ_App(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
-function OBJ_Win(obj : Pointer) : pObject_;       (* valid between MUIM_Setup/Cleanup *)
-function OBJ_Dri(obj : Pointer) : pDrawInfo;          (* valid between MUIM_Setup/Cleanup *)
-function OBJ_Screen(obj : Pointer) : pScreen;         (* valid between MUIM_Setup/Cleanup *)
-function OBJ_Pens(obj : Pointer) : pWord;             (* valid between MUIM_Setup/Cleanup *)
-function OBJ_Window(obj : Pointer) : pWindow;         (* valid between MUIM_Show/Hide *)
-function OBJ_Rp(obj : Pointer) : pRastPort;           (* valid between MUIM_Show/Hide *)
-function OBJ_Left(obj : Pointer) : smallint;           (* valid during MUIM_Draw *)
-function OBJ_Top(obj : Pointer) : smallint;            (* valid during MUIM_Draw *)
-function OBJ_Width(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
-function OBJ_Height(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
-function OBJ_Right(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
-function OBJ_Bottom(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
-function OBJ_AddLeft(obj : Pointer) : smallint;        (* valid during MUIM_Draw *)
-function OBJ_AddTop(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
-function OBJ_SubWidth(obj : Pointer) : smallint;       (* valid during MUIM_Draw *)
-function OBJ_SubHeight(obj : Pointer) : smallint;      (* valid during MUIM_Draw *)
-function OBJ_MLeft(obj : Pointer) : smallint;          (* valid during MUIM_Draw *)
-function OBJ_MTop(obj : Pointer) : smallint;           (* valid during MUIM_Draw *)
-function OBJ_MWidth(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
-function OBJ_MHeight(obj : Pointer) : smallint;        (* valid during MUIM_Draw *)
-function OBJ_MRight(obj : Pointer) : smallint;         (* valid during MUIM_Draw *)
-function OBJ_MBottom(obj : Pointer) : smallint;        (* valid during MUIM_Draw *)
-function OBJ_Font(obj : Pointer) : pTextFont;         (* valid between MUIM_Setup/Cleanup *)
-function OBJ_MinWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
-function OBJ_MinHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
-function OBJ_MaxWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
-function OBJ_MaxHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
-function OBJ_DefWidth(obj : Pointer) : LongWord;         (* valid between MUIM_Show/Hide *)
-function OBJ_DefHeight(obj : Pointer) : LongWord;        (* valid between MUIM_Show/Hide *)
-function OBJ_Flags(obj : Pointer) : LongWord;
+function OBJ_App(obj : Pointer) : pObject_;       inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_Win(obj : Pointer) : pObject_;       inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_Dri(obj : Pointer) : pDrawInfo;      inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_Screen(obj : Pointer) : pScreen;     inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_Pens(obj : Pointer) : pWord;         inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_Window(obj : Pointer) : pWindow;     inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_Rp(obj : Pointer) : pRastPort;       inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_Left(obj : Pointer) : smallint;      inline;     (* valid during MUIM_Draw *)
+function OBJ_Top(obj : Pointer) : smallint;       inline;     (* valid during MUIM_Draw *)
+function OBJ_Width(obj : Pointer) : smallint;     inline;     (* valid during MUIM_Draw *)
+function OBJ_Height(obj : Pointer) : smallint;    inline;     (* valid during MUIM_Draw *)
+function OBJ_Right(obj : Pointer) : smallint;     inline;     (* valid during MUIM_Draw *)
+function OBJ_Bottom(obj : Pointer) : smallint;    inline;     (* valid during MUIM_Draw *)
+function OBJ_AddLeft(obj : Pointer) : smallint;   inline;     (* valid during MUIM_Draw *)
+function OBJ_AddTop(obj : Pointer) : smallint;    inline;     (* valid during MUIM_Draw *)
+function OBJ_SubWidth(obj : Pointer) : smallint;  inline;     (* valid during MUIM_Draw *)
+function OBJ_SubHeight(obj : Pointer) : smallint; inline;     (* valid during MUIM_Draw *)
+function OBJ_MLeft(obj : Pointer) : smallint;     inline;     (* valid during MUIM_Draw *)
+function OBJ_MTop(obj : Pointer) : smallint;      inline;     (* valid during MUIM_Draw *)
+function OBJ_MWidth(obj : Pointer) : smallint;    inline;     (* valid during MUIM_Draw *)
+function OBJ_MHeight(obj : Pointer) : smallint;   inline;     (* valid during MUIM_Draw *)
+function OBJ_MRight(obj : Pointer) : smallint;    inline;     (* valid during MUIM_Draw *)
+function OBJ_MBottom(obj : Pointer) : smallint;   inline;     (* valid during MUIM_Draw *)
+function OBJ_Font(obj : Pointer) : pTextFont;     inline;     (* valid between MUIM_Setup/Cleanup *)
+function OBJ_MinWidth(obj : Pointer) : LongWord;  inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_MinHeight(obj : Pointer) : LongWord; inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_MaxWidth(obj : Pointer) : LongWord;  inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_MaxHeight(obj : Pointer) : LongWord; inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_DefWidth(obj : Pointer) : LongWord;  inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_DefHeight(obj : Pointer) : LongWord; inline;     (* valid between MUIM_Show/Hide *)
+function OBJ_Flags(obj : Pointer) : LongWord;     inline;
 
-function OBJ_Between(a,x,b : smallint): boolean;
-function OBJ_IsInObject(x,y : smallint; obj : pObject_): boolean;
+function OBJ_Between(a,x,b : smallint): boolean;                  inline;
+function OBJ_IsInObject(x,y : smallint; obj : pObject_): boolean; inline;
 
-function MUIV_Window_AltHeight_MinMax(p : longint) : longint;
-function MUIV_Window_AltHeight_Visible(p : longint) : longint;
-function MUIV_Window_AltHeight_Screen(p : longint) : longint;
-function MUIV_Window_AltTopEdge_Delta(p : longint) : longint;
-function MUIV_Window_AltWidth_MinMax(p : longint) : longint;
-function MUIV_Window_AltWidth_Visible(p : longint) : longint;
-function MUIV_Window_AltWidth_Screen(p : longint) : longint;
-function MUIV_Window_Height_MinMax(p : longint) : longint;
-function MUIV_Window_Height_Visible(p : longint) : longint;
-function MUIV_Window_Height_Screen(p : longint) : longint;
-function MUIV_Window_TopEdge_Delta(p : longint) : longint;
-function MUIV_Window_Width_MinMax(p : longint) : longint;
-function MUIV_Window_Width_Visible(p : longint) : longint;
-function MUIV_Window_Width_Screen(p : longint) : longint;
+function MUIV_Window_AltHeight_MinMax(p : longint) : longint;  inline;
+function MUIV_Window_AltHeight_Visible(p : longint) : longint; inline;
+function MUIV_Window_AltHeight_Screen(p : longint) : longint;  inline; 
+function MUIV_Window_AltTopEdge_Delta(p : longint) : longint;  inline;
+function MUIV_Window_AltWidth_MinMax(p : longint) : longint;   inline;
+function MUIV_Window_AltWidth_Visible(p : longint) : longint;  inline;
+function MUIV_Window_AltWidth_Screen(p : longint) : longint;   inline;
+function MUIV_Window_Height_MinMax(p : longint) : longint;     inline;
+function MUIV_Window_Height_Visible(p : longint) : longint;    inline;
+function MUIV_Window_Height_Screen(p : longint) : longint;     inline;
+function MUIV_Window_TopEdge_Delta(p : longint) : longint;     inline;
+function MUIV_Window_Width_MinMax(p : longint) : longint;      inline;
+function MUIV_Window_Width_Visible(p : longint) : longint;     inline;
+function MUIV_Window_Width_Screen(p : longint) : longint;      inline;
 
 
-function MAKE_ID(a,b,c,d : char): longword;
-function MUIget(obj: pObject_; attr: longword; store: longword): longword;
-function MUIset(obj: pObject_; attr: longword; value: longword): longword;
+function MAKE_ID(a,b,c,d : char): longword; inline;
+function MUIget(obj: pObject_; attr: longword; store: longword): longword; inline;
+function MUIset(obj: pObject_; attr: longword; value: longword): longword; inline;
 
 {
  Functions and procedures with array of longword go here

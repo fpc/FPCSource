@@ -44,8 +44,8 @@ unit cgx86;
 
         procedure getcpuregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetcpuregister(list:Taasmoutput;r:Tregister);override;
-        procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);override;
+        procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);override;
         function  uses_registers(rt:Tregistertype):boolean;override;
         procedure add_reg_instruction(instr:Tai;r:tregister);override;
         procedure dec_fpu_stack;
@@ -210,14 +210,14 @@ unit cgx86;
       end;
 
 
-    procedure Tcgx86.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure Tcgx86.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if rt<>R_FPUREGISTER then
           inherited alloccpuregisters(list,rt,r);
       end;
 
 
-    procedure Tcgx86.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure Tcgx86.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if rt<>R_FPUREGISTER then
           inherited dealloccpuregisters(list,rt,r);

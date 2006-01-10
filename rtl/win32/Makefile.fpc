@@ -10,11 +10,11 @@ loaders=wprt0 wdllprt0 gprt0 wcygprt0
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
       windows winsock initc cmem dynlibs signals \
-      dos crt objects graph messages \
+      dos crt objects messages \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils varutils variants typinfo classes \
       cpu mmx charset ucomplex getopts \
-      wincrt winmouse winevent sockets printer \
+      winevent sockets printer \
       video mouse keyboard \
       winsysut fpmkunit
 
@@ -61,7 +61,6 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 # Files used by windows.pp
 include $(WININC)/makefile.inc
@@ -134,10 +133,6 @@ sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(P
 
 initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 
-wincrt$(PPUEXT) : wincrt.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
-
-winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
-
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 
 #
@@ -149,17 +144,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(S
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Graph
-#
-
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                 $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) graph.pp
 
 
 #

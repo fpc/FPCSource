@@ -75,6 +75,8 @@ begin
       MOS_OrigDir:=tmpLock;
       tmpLock:=0;
     end;
+  end else begin
+    dosError2InOut(ERROR_DIR_NOT_FOUND);
   end;
 
   if tmpLock<>0 then Unlock(tmpLock);

@@ -20,7 +20,7 @@ type
   );
   { corresponding to single   double   extended   fixed      comp for i386 }
 
-Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; var s : string);
+Procedure str_real (len,f : longint; d : ValReal; real_type :treal_type; out s : string);
 {$ifdef SUPPORT_EXTENDED}
 type
   TSplitExtended = packed record

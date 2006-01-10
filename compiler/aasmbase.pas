@@ -771,7 +771,8 @@ implementation
            {$IFDEF EXTDEBUG}
            if (_typ <> AT_NONE) and
               (hp.typ <> _typ) and
-              not(cs_compilesystem in aktmoduleswitches) then
+              not(cs_compilesystem in aktmoduleswitches) and
+              (target_info.system <> system_powerpc_darwin) then
              begin
                //Writeln('Error symbol '+hp.name+' type is ',Ord(_typ),', should be ',Ord(hp.typ));
                InternalError(2004031501);

@@ -7,7 +7,7 @@ main=rtl
 loaders=prt0 exceptn fpu
 units=system objpas macpas strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
-      dos crt objects printer graph \
+      dos crt objects printer \
       sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
@@ -39,7 +39,6 @@ override FPCOPT+=-Ur
 endif
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 # Insert exception handler in system unit
 ifdef EXCEPTIONS_IN_SYSTEM
 override FPCOPT+=-dEXCEPTIONS_IN_SYSTEM
@@ -97,14 +96,6 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) system$(PPUEXT)
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 printer$(PPUEXT) : printer.pp system$(PPUEXT)
-#
-# Graph
-#
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-graph$(PPUEXT) : graph.pp go32$(PPUEXT) ports$(PPUEXT) system$(PPUEXT) \
-                 $(GRAPHINCDEPS) vesa.inc vesah.inc dpmi.inc
-        $(COMPILER) -Fi$(GRAPHDIR) graph.pp
 #
 # Delphi Compatible Units
 #

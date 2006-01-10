@@ -17,6 +17,8 @@ non-numeric constants;
 2) Old versions of windres cannot create .res files;
 3) in fprcp also source code written by Lars Fosdal 1987 and
    released to the public domain 1993 was used
+4) updated to accept defines.inc
+   parser was expecting body for procedure/function declaration
 
 files:
 readme.txt   - this file

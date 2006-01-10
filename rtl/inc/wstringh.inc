@@ -34,8 +34,8 @@ Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 function WideCharToString(S : PWideChar) : AnsiString;
 function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
 function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
-procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;var Dest : AnsiString);
-procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
 
 procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
 procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
