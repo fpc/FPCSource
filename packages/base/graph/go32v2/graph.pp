@@ -211,7 +211,7 @@ const
 {$endif fpc}
     end;
 
- Procedure PutPixel16(X,Y : Integer; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixel16(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
      dummy: byte;
@@ -321,7 +321,7 @@ const
    end;
 
 
- Function GetPixel16(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixel16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  Var dummy, offset: Word;
      shift: byte;
@@ -484,7 +484,7 @@ const
 {$endif asmgraph}
   end;
 
-Procedure GetScanLine16(x1, x2, y: integer; var data);
+Procedure GetScanLine16(x1, x2, y: smallint; var data);
 
 var dummylong: longint;
     Offset, count, count2, amount, index: word;
@@ -612,7 +612,7 @@ Begin
 {$Endif logging}
 End;
 
- Procedure DirectPutPixel16(X,Y : Integer); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixel16(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
   var
    color: word;
@@ -759,10 +759,10 @@ End;
  end;
 
 
-  procedure HLine16(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure HLine16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var
-      xtmp: integer;
+      xtmp: smallint;
       ScrOfs,HLength : word;
       LMask,RMask : byte;
 
@@ -890,10 +890,10 @@ End;
     Port[$3cf]:=0;
    end;
 
-  procedure VLine16(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure VLine16(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var
-     ytmp: integer;
+     ytmp: smallint;
      ScrOfs,i : longint;
      BitMask : byte;
 
@@ -1072,7 +1072,7 @@ End;
 {$endif fpc}
   end;
 
- Procedure PutPixel320(X,Y : Integer; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
   {$ifndef fpc}
   Begin
@@ -1140,7 +1140,7 @@ End;
  end;
 
 
- Function GetPixel320(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixel320(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
   {$ifndef fpc}
   Begin
    X:= X + StartXViewPort;
@@ -1184,7 +1184,7 @@ End;
   end;
 
 
- Procedure DirectPutPixel320(X,Y : Integer); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixel320(X,Y : smallint); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  var offset: word;
@@ -1337,7 +1337,7 @@ const CrtAddress: word = 0;
  end;
 
 
- Function GetPixelX(X,Y: Integer): word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixelX(X,Y: smallint): word; {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -1488,7 +1488,7 @@ const CrtAddress: word = 0;
    end;
   end;
 
- Procedure PutPixelX(X,Y: Integer; color:word); {$ifndef fpc}far;{$endif fpc}
+ Procedure PutPixelX(X,Y: smallint; color:word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
  var offset: word;
 {$endif asmgraph}
@@ -1542,7 +1542,7 @@ const CrtAddress: word = 0;
   end;
 
 
- Procedure DirectPutPixelX(X,Y: Integer); {$ifndef fpc}far;{$endif fpc}
+ Procedure DirectPutPixelX(X,Y: smallint); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in global coordinates. No clipping. }
 {$ifndef asmgraph}
  Var offset: Word;
@@ -1868,7 +1868,7 @@ const CrtAddress: word = 0;
 
    { VGA is never a direct color mode, so no need to check ... }
    Procedure SetVGARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer); {$ifndef fpc}far;{$endif fpc}
+      BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
     begin
       { translate the color number for 16 color mode }
       If MaxColor = 16 Then
@@ -1910,17 +1910,17 @@ const CrtAddress: word = 0;
 
 
    { VGA is never a direct color mode, so no need to check ... }
-  Procedure GetVGARGBPalette(ColorNum: integer; Var
-      RedValue, GreenValue, BlueValue : integer); {$ifndef fpc}far;{$endif fpc}
+  Procedure GetVGARGBPalette(ColorNum: smallint; Var
+      RedValue, GreenValue, BlueValue : smallint); {$ifndef fpc}far;{$endif fpc}
    begin
      If MaxColor = 16 Then
        ColorNum := ToRealCols16[ColorNum];
      Port[$03C7] := ColorNum;
      { we must convert to lsb values... because the vga uses the 6 msb bits }
      { which is not compatible with anything.                               }
-     RedValue := Integer(Port[$3C9]) shl 2;
-     GreenValue := Integer(Port[$3C9]) shl 2;
-     BlueValue := Integer(Port[$3C9]) shl 2;
+     RedValue := smallint(Port[$3C9]) shl 2;
+     GreenValue := smallint(Port[$3C9]) shl 2;
+     BlueValue := smallint(Port[$3C9]) shl 2;
    end;
 
 
