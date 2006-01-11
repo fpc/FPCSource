@@ -24,7 +24,7 @@ interface
       tsections=(sec_none,
         sec_units,sec_exes,sec_loaders,sec_examples,sec_rsts,
         sec_compile,sec_install,
-        sec_distinstall,sec_zipinstall,sec_clean,sec_libs,
+        sec_distinstall,sec_zipinstall,sec_clean,sec_shared,
         sec_command,sec_exts,sec_dirs,sec_tools,sec_info,sec_makefile
       );
 
@@ -53,7 +53,7 @@ interface
       rule2sec : array[trules] of tsections=(
         sec_compile,sec_compile,sec_compile,sec_compile,sec_compile,
         sec_examples,
-        sec_libs,
+        sec_shared,
         sec_install,sec_install,sec_install,sec_distinstall,
         sec_zipinstall,sec_zipinstall,sec_zipinstall,sec_zipinstall,
         sec_clean,sec_clean,sec_clean,
@@ -641,9 +641,7 @@ implementation
            FHasSection[sec_zipinstall]:=false;
            FHasSection[sec_distinstall]:=false;
          end;
-        { can't get shared lib generation working without it (FK)
-          FHasSection[sec_libs]:=FInput.HasVariable('lib_name');
-        }
+
         { Remove unused sections for targets }
         SkippedSecs:=0;
         if (not FInput.HasTargetVariable('target_units')) then
@@ -673,6 +671,7 @@ implementation
           generic compile rules }
         if SkippedSecs=4 then
          begin
+           FHasSection[sec_shared]:=false;
            FHasSection[sec_compile]:=false;
            if (not FInput.HasTargetVariable('package_name')) and
               (not FInput.HasTargetVariable('install_units')) and
@@ -782,9 +781,11 @@ implementation
            AddTargetVariable('compiler_targetdir');
            AddTargetVariable('compiler_unittargetdir');
            { shared }
-           AddTargetVariable('shared_libname');
-           AddTargetVariable('shared_libversion');
-           AddTargetVariable('shared_libunits');
+           AddVariable('shared_build');
+           AddVariable('shared_libname');
+           AddVariable('shared_libversion');
+           AddVariable('shared_libunits');
+           AddVariable('shared_build');
            { default Dirs and extensions }
            AddIniSection('defaultdirs');
            if FInput.CheckLibcRequire then
@@ -813,8 +814,8 @@ implementation
             AddIniSection('examplerules');
            if FHasSection[sec_compile] then
             AddIniSection('compilerules');
-           if FHasSection[sec_libs] then
-             AddIniSection('libraryrules');
+           if FHasSection[sec_shared] then
+             AddIniSection('sharedrules');
            { install }
            if FHasSection[sec_install] then
             AddIniSection('installrules');
