@@ -55,9 +55,6 @@ includedir_beos=posix
 includedir_emx=os2
 sourcedir=$(OS_TARGET) inc
 
-[libs]
-libname=fpfcl
-
 [install]
 fpcpackage=y
 

@@ -92,7 +92,11 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
+SHAREDTARGETS=linux
 SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
+ifneq ($(findstring $(OS_TARGET),$(SHAREDTARGETS)),)
+ALLTARGET=shared
+else
 ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
 ALLTARGET=smart
 else
@@ -100,7 +104,7 @@ ALLTARGET=all
 endif
 endif
 endif
-
+endif
 # Prefix for units
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
 PKGUNITSPRE=u
@@ -212,12 +216,17 @@ packages_base_all:
 packages_base_smart:
         $(MAKE) -C packages base_smart
 
+packages_base_shared:
+        $(MAKE) -C packages base_shared
+
 packages_extra_all:
         $(MAKE) -C packages extra_all
 
 packages_extra_smart:
         $(MAKE) -C packages extra_smart
 
+packages_extra_shared:
+        $(MAKE) -C packages extra_shared
 
 ##########################################################################
 # Packaging

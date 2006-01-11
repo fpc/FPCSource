@@ -30,3 +30,4 @@ fpcdir=..
 
 [rules]
 buildfv$(PPUEXT): $(wildcard *.pas *.inc)
+
