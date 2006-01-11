@@ -58,12 +58,11 @@ interface
 {$endif go32v2}
 
 {$ifdef linux}
- {$ifndef bsd}
   {$undef NotImplemented}
   {$LINKLIB libgdb.a}
- {$ifdef GDB_HAS_SIM}
-  {$LINKLIB libsim.a}
- {$endif GDB_HAS_SIM}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB libsim.a}
+  {$endif GDB_HAS_SIM}
   {$LINKLIB libbfd.a}
   {$LINKLIB libreadline.a}
   {$LINKLIB libopcodes.a}
@@ -73,8 +72,7 @@ interface
   {$LINKLIB m}
   {$LINKLIB dl}
   {$LINKLIB c}
-  {$LINKLIB gcc}
- {$endif bsd}
+  { don't link explicitly against (FK) $LINKLIB gcc}
 {$endif linux}
 
 {$ifdef freebsd}
