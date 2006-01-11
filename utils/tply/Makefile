@@ -677,6 +677,8 @@ endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 override COMPILER_OPTIONS+=-Sg
 endif
+override SHARED_BUILD=n
+override SHARED_BUILD=n
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif

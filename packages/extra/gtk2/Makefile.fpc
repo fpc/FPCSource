@@ -17,13 +17,12 @@ implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext
 [compiler]
 unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext
 
-[libs]
-libname=libfpgtk2.so
-libversion=2.0.0
-
 [install]
 buildunit=buildgtk2
 fpcpackage=y
+
+[shared]
+build=n
 
 [default]
 fpcdir=../../..
