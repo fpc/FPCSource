@@ -32,14 +32,14 @@ includedir_netbsd=unix
 includedir_openbsd=unix
 sourcedir=$(OS_TARGET) inc
 
-[libs]
-libname=fpgraph
-
 [install]
 fpcpackage=y
 
 [default]
 fpcdir=../../..
+
+[shared]
+build=n
 
 [prerules]
 GRAPHDIR=inc
