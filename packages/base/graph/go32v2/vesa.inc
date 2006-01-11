@@ -64,8 +64,8 @@ var
   WriteWindow: byte;      { Window number for writing. }
   winReadSeg : word;      { Address of segment for read  }
   winWriteSeg: word;      { Address of segment for writes}
-  CurrentReadBank : integer; { active read bank          }
-  CurrentWriteBank: integer; { active write bank         }
+  CurrentReadBank : smallint; { active read bank          }
+  CurrentWriteBank: smallint; { active write bank         }
 
   BankShift : word;       { address to shift by when switching banks. }
 
@@ -339,7 +339,7 @@ end;
 
 
 
-  procedure SetBankIndex(win: byte; BankNr: Integer); assembler;
+  procedure SetBankIndex(win: byte; BankNr: smallint); assembler;
    asm
 {$IFDEF REGCALL}
      mov  bl, al
@@ -366,7 +366,7 @@ end;
   { hardware supports it, because one window is used for   }
   { reading and one window is used for writing.            }
   {********************************************************}
-  procedure SetReadBank(BankNr: Integer);
+  procedure SetReadBank(BankNr: smallint);
    begin
      { check if this is the current bank... if so do nothing. }
      if BankNr = CurrentReadBank then exit;
@@ -384,7 +384,7 @@ end;
        CurrentWriteBank := CurrentReadBank;
    end;
 
-  procedure SetWriteBank(BankNr: Integer);
+  procedure SetWriteBank(BankNr: smallint);
    begin
      { check if this is the current bank... if so do nothing. }
      if BankNr = CurrentWriteBank then exit;
@@ -406,7 +406,7 @@ end;
  {*                     8-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA256(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA256(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -423,12 +423,12 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + x;
        begin
-         SetWriteBank(integer(offs shr 16));
+         SetWriteBank(smallint(offs shr 16));
          mem[WinWriteSeg : word(offs)] := byte(color);
        end;
   end;
 
-  procedure DirectPutPixVESA256(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA256(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : byte;
@@ -437,17 +437,17 @@ end;
      Case CurrentWriteMode of
        XorPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            col := mem[WinReadSeg : word(offs)] xor byte(CurrentColor);
          End;
        AndPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            col := mem[WinReadSeg : word(offs)] And byte(CurrentColor);
          End;
        OrPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            col := mem[WinReadSeg : word(offs)] or byte(currentcolor);
          End
        else
@@ -457,25 +457,25 @@ end;
            else col := Not(Byte(CurrentColor));
          End
      End;
-     SetWriteBank(integer(offs shr 16));
+     SetWriteBank(smallint(offs shr 16));
      mem[WinWriteSeg : word(offs)] := Col;
   end;
 
-  function GetPixVESA256(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA256(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + x;
-     SetReadBank(integer(offs shr 16));
+     SetReadBank(smallint(offs shr 16));
      GetPixVESA256:=mem[WinReadSeg : word(offs)];
   end;
 
-  Procedure GetScanLineVESA256(x1, x2, y: integer; var data); {$ifndef fpc}far;{$endif}
+  Procedure GetScanLineVESA256(x1, x2, y: smallint; var data); {$ifndef fpc}far;{$endif}
   var offs: Longint;
       l, amount, bankrest, index, pixels: longint;
-      curbank: integer;
+      curbank: smallint;
   begin
     inc(x1,StartXViewPort);
     inc(x2,StartXViewPort);
@@ -486,7 +486,7 @@ end;
     amount := x2-x1+1;
     Offs:=(Longint(y)+StartYViewPort+YOffset)*bytesperline+x1;
     Repeat
-      curbank := integer(offs shr 16);
+      curbank := smallint(offs shr 16);
       SetReadBank(curbank);
       {$ifdef logging}
       LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
@@ -561,11 +561,11 @@ end;
     Until amount = 0;
   end;
 
-  procedure HLineVESA256(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure HLineVESA256(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var Offs: Longint;
        mask, l, bankrest: longint;
-       curbank, hlength: integer;
+       curbank, hlength: smallint;
    Begin
     { must we swap the values? }
     if x > x2 then
@@ -603,7 +603,7 @@ end;
            AndPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -675,7 +675,7 @@ end;
            XorPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -747,7 +747,7 @@ end;
            OrPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -821,7 +821,7 @@ end;
                If CurrentWriteMode = NotPut Then
                  Mask := Not(Mask);
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8)+' -- '+strf(offs));
@@ -888,11 +888,11 @@ end;
        end;
    end;
 
-  procedure VLineVESA256(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure VLineVESA256(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var Offs: Longint;
        l, bankrest: longint;
-       curbank, vlength: integer;
+       curbank, vlength: smallint;
        col: byte;
    Begin
     { must we swap the values? }
@@ -930,7 +930,7 @@ end;
            AndPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -958,7 +958,7 @@ end;
            XorPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -986,7 +986,7 @@ end;
            OrPut:
              Begin
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  SetReadBank(curbank);
                  {$ifdef logging2}
@@ -1016,7 +1016,7 @@ end;
                If CurrentWriteMode = NotPut Then
                  Col := Not(Col);
                Repeat
-                 curbank := integer(offs shr 16);
+                 curbank := smallint(offs shr 16);
                  SetWriteBank(curbank);
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
@@ -1106,7 +1106,7 @@ end;
 {$endif}
        end;
      Repeat
-       SetWriteBank(integer(offs shr 16));
+       SetWriteBank(smallint(offs shr 16));
        If (amount > 7) and
           (((offs and 7) = 0) or
            (amount > 7+8-(offs and 7))) Then
@@ -1186,7 +1186,7 @@ type
   pbyte = ^byte;
   pword = ^word;
 
-  procedure DirectPutPixVESA256Linear(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA256Linear(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : byte;
@@ -1230,7 +1230,7 @@ type
        seg_move(get_ds,longint(@col),WinWriteSeg,offs+LinearPageOfs,1);
   end;
 
-  procedure PutPixVESA256Linear(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA256Linear(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -1255,7 +1255,7 @@ type
        seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,1);
   end;
 
-  function GetPixVESA256Linear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA256Linear(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : byte;
@@ -1274,7 +1274,7 @@ type
      GetPixVESA256Linear:=col;
   end;
 (*
-function SetVESADisplayStart(PageNum : word;x,y : integer):Boolean;
+function SetVESADisplayStart(PageNum : word;x,y : smallint):Boolean;
 var
   dregs : registers;
 begin
@@ -1309,7 +1309,7 @@ end;
  {*                    15/16bit pixels VESA mode routines                *}
  {************************************************************************}
 
-  procedure PutPixVESA32kOr64k(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA32kOr64k(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -1328,25 +1328,25 @@ end;
      end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(integer(offs shr 16));
+     SetWriteBank(smallint(offs shr 16));
 {$ifdef logging}
      logln('putpixvesa32kor64k offset: '+strf(word(offs)));
 {$endif logging}
      memW[WinWriteSeg : word(offs)] := color;
   end;
 
-  function GetPixVESA32kOr64k(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA32kOr64k(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
      X:= X + StartXViewPort;
      Y:= Y + StartYViewPort + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
-     SetReadBank(integer(offs shr 16));
+     SetReadBank(smallint(offs shr 16));
      GetPixVESA32kOr64k:=memW[WinReadSeg : word(offs)];
   end;
 
-  procedure DirectPutPixVESA32kOr64k(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA32kOr64k(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : word;
@@ -1356,21 +1356,21 @@ end;
 {$endif logging}
      y:= Y + YOffset;
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(integer((offs shr 16) and $ff));
+     SetWriteBank(smallint((offs shr 16) and $ff));
      Case CurrentWriteMode of
        XorPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] xor currentcolor;
          End;
        AndPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] And currentcolor;
          End;
        OrPut:
          Begin
-           SetReadBank(integer(offs shr 16));
+           SetReadBank(smallint(offs shr 16));
            memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] or currentcolor;
          End
        else
@@ -1391,7 +1391,7 @@ end;
  {*                    15/16bit pixels VESA mode routines  Linear mode   *}
  {************************************************************************}
 
-  procedure PutPixVESA32kor64kLinear(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA32kor64kLinear(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
   begin
@@ -1412,7 +1412,7 @@ end;
        seg_move(get_ds,longint(@color),WinWriteSeg,offs+LinearPageOfs,2);
   end;
 
-  function GetPixVESA32kor64kLinear(x, y : integer): word; {$ifndef fpc}far;{$endif fpc}
+  function GetPixVESA32kor64kLinear(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      color : word;
@@ -1427,7 +1427,7 @@ end;
      GetPixVESA32kor64kLinear:=color;
   end;
 
-  procedure DirectPutPixVESA32kor64kLinear(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA32kor64kLinear(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
      col : word;
@@ -1477,7 +1477,7 @@ end;
  {*                     4-bit pixels VESA mode routines                  *}
  {************************************************************************}
 
-  procedure PutPixVESA16(x, y : integer; color : word); {$ifndef fpc}far;{$endif fpc}
+  procedure PutPixVESA16(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
     var
      offs : longint;
      dummy : byte;
@@ -1495,7 +1495,7 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
-     SetWriteBank(integer(offs shr 16));
+     SetWriteBank(smallint(offs shr 16));
 
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
@@ -1511,14 +1511,14 @@ end;
   end;
 
 
- Function GetPixVESA16(X,Y: Integer):word; {$ifndef fpc}far;{$endif fpc}
+ Function GetPixVESA16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
  Var dummy, offset: Word;
      shift: byte;
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort + YOffset;
     offset := longint(Y) * BytesPerLine + (x div 8);
-    SetReadBank(integer(offset shr 16));
+    SetReadBank(smallint(offset shr 16));
     Port[$3ce] := 4;
     shift := 7 - (X and 7);
     Port[$3cf] := 0;
@@ -1533,7 +1533,7 @@ end;
   end;
 
 
-  procedure DirectPutPixVESA16(x, y : integer); {$ifndef fpc}far;{$endif fpc}
+  procedure DirectPutPixVESA16(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
     var
      offs : longint;
      dummy : byte;
@@ -1567,7 +1567,7 @@ end;
         Color := CurrentColor;
     end;
      offs := longint(y) * BytesPerLine + (x div 8);
-     SetWriteBank(integer(offs shr 16));
+     SetWriteBank(smallint(offs shr 16));
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
 
@@ -1658,7 +1658,7 @@ end;
 {$endif fpc}
 
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer);
+      BlueValue : smallint);
     var
      pal: palrec;
      regs: TDPMIRegisters;
@@ -1744,8 +1744,8 @@ end;
     end;
 
 
-  Procedure GetVESARGBPalette(ColorNum: integer; Var
-      RedValue, GreenValue, BlueValue : integer);
+  Procedure GetVESARGBPalette(ColorNum: smallint; Var
+      RedValue, GreenValue, BlueValue : smallint);
    var
     pal: PalRec;
 {$ifndef fpc}
@@ -1813,9 +1813,9 @@ end;
               end
             else
               begin
-                RedValue := Integer(pal.Red);
-                GreenValue := Integer(pal.Green);
-                BlueValue := Integer(pal.Blue);
+                RedValue := smallint(pal.Red);
+                GreenValue := smallint(pal.Green);
+                BlueValue := smallint(pal.Blue);
               end;
           end
         else
@@ -1824,7 +1824,7 @@ end;
 {$ELSE}
 
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
-      BlueValue : Integer); far;
+      BlueValue : smallint); far;
     var
      FunctionNr : byte;   { use blankbit or normal RAMDAC programming? }
      pal: ^palrec;
@@ -1881,8 +1881,8 @@ end;
 
 
 
-  Procedure GetVESARGBPalette(ColorNum: integer; Var RedValue, GreenValue,
-              BlueValue : integer); far;
+  Procedure GetVESARGBPalette(ColorNum: smallint; Var RedValue, GreenValue,
+              BlueValue : smallint); far;
    var
     Error: boolean;
     pal: ^palrec;
@@ -1913,9 +1913,9 @@ end;
           end;
           if not Error then
             begin
-              RedValue := Integer(pal^.Red);
-              GreenValue := Integer(pal^.Green);
-              BlueValue := Integer(pal^.Blue);
+              RedValue := smallint(pal^.Red);
+              GreenValue := smallint(pal^.Green);
+              BlueValue := smallint(pal^.Blue);
               Dispose(pal);
             end
           else
@@ -1933,14 +1933,14 @@ end;
 
 (*
 type
-  heaperrorproc=function(size:longint):integer;
+  heaperrorproc=function(size:longint):smallint;
 
 Const
   HeapErrorIsHooked : boolean = false;
   OldHeapError : HeapErrorProc = nil;
   DsLimit : dword = 0;
 
-  function NewHeapError(size : longint) : integer;
+  function NewHeapError(size : longint) : smallint;
     begin
       set_segment_limit(get_ds,DsLimit);
       NewHeapError:=OldHeapError(size);
