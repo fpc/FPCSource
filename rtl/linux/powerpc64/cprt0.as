@@ -3,7 +3,7 @@
  * version.
  *
  * Adapted from the glibc-sources (2.3.5) in the file
- * 
+ *
  *     sysdeps/powerpc/powerpc64/elf/start.S
  *
  * Original header follows.
@@ -31,12 +31,12 @@
 /* some macros which simplify the startup code */
 
 /* load the 64 bit value "value" into register ra */
-.macro LOAD_64BIT_VAL ra, value 
+.macro LOAD_64BIT_VAL ra, value
     lis       \ra,\value@highest
     ori       \ra,\ra,\value@higher
     sldi      \ra,\ra,32
     oris      \ra,\ra,\value@h
-    ori       \ra,\ra,\value@l    
+    ori       \ra,\ra,\value@l
 .endm
 
 /* create function prolog for symbol "fn" */
@@ -50,20 +50,20 @@
     .quad     .\fn, .TOC.@tocbase, 0
     .previous
     .size     \fn, 24
-    .type     \fn, @function	
+    .type     \fn, @function
     .globl    .\fn
 .\fn:
 .endm
 
-/* 
- * "ptrgl" glue code for calls via pointer. This function 
- * sequence loads the data from the function descriptor 
+/*
+ * "ptrgl" glue code for calls via pointer. This function
+ * sequence loads the data from the function descriptor
  * referenced by R11 into the CTR register (function address),
  * R2 (GOT/TOC pointer), and R11 (the outer frame pointer).
- * 
+ *
  * On entry, R11 must be set to point to the function descriptor.
  *
- * See also the 64-bit PowerPC ABI specification for more 
+ * See also the 64-bit PowerPC ABI specification for more
  * information, chapter 3.5.11 (in v1.7).
  */
 .section ".text"
@@ -81,18 +81,18 @@
 .type .ptrgl, @function
 .size .ptrgl, . - .ptrgl
 
-/* 
- * Function prolog/epilog helpers, which are part of the 64-bit 
+/*
+ * Function prolog/epilog helpers, which are part of the 64-bit
  * PowerPC ABI.
  *
- * See also the 64-bit PowerPC ABI specification for more 
+ * See also the 64-bit PowerPC ABI specification for more
  * information, chapter 3.5.5, "Register saving and restoring
  * function" (in v1.7).
  */
 
 /* Each _savegpr0_N routine saves the general registers from rN to r31,
- * inclusive. When the routine is called, r1 must point to the start 
- * of the general register save area. R0 must contain the old LR on 
+ * inclusive. When the routine is called, r1 must point to the start
+ * of the general register save area. R0 must contain the old LR on
  * entry.
  */
 _savegpr0_14: std 14,-144(1)
@@ -112,7 +112,7 @@ _savegpr0_27: std 27,-40(1)
 _savegpr0_28: std 28,-32(1)
 _savegpr0_29: std 29,-24(1)
 _savegpr0_30: std 30,-16(1)
-_savegpr0_31: 
+_savegpr0_31:
     std 31,-8(1)
     std 0, 16(1)
     blr
@@ -120,7 +120,7 @@ _savegpr0_31:
 .byte 0, 12, 64, 0, 0, 0, 0, 0
 
 /* Each _restgpr0_N routine restores the general registers from rN to r31,
- * inclusive. When the routine is called, r1 must point to the start 
+ * inclusive. When the routine is called, r1 must point to the start
  * of the general register save area.
  */
 _restgpr0_14: ld 14,-144(1)
@@ -138,7 +138,7 @@ _restgpr0_25: ld 25,-56(1)
 _restgpr0_26: ld 26,-48(1)
 _restgpr0_27: ld 27,-40(1)
 _restgpr0_28: ld 28,-32(1)
-_restgpr0_29: 
+_restgpr0_29:
     ld 0, 16(1)
     ld 29,-24(1)
     mtlr 0
@@ -254,7 +254,7 @@ _restfpr_25: lfd 25,-56(1)
 _restfpr_26: lfd 26,-48(1)
 _restfpr_27: lfd 27,-40(1)
 _restfpr_28: lfd 28,-32(1)
-_restfpr_29: 
+_restfpr_29:
     ld 0, 16(1)
     lfd 29,-24(1)
     mtlr 0
@@ -265,7 +265,7 @@ _restfpr_29:
 .byte 0, 12, 64, 0, 0, 0, 0, 0
 
 _restfpr_30: lfd 30,-16(1)
-_restfpr_31: 
+_restfpr_31:
     ld 0, 16(1)
     lfd 31,-8(1)
     mtlr 0
@@ -338,8 +338,8 @@ _restvr_31: addi r12,r0,-16
     blr
 */
 
-/* 
- * start_addresses is a structure containing the real 
+/*
+ * start_addresses is a structure containing the real
  * entry point (next to other things not interesting to
  * us here).
  *
@@ -372,9 +372,9 @@ FUNCTION_PROLOG _start
     /* put the address of start_addresses in r8...  */
     /* PPC64 ABI uses R13 for thread local, so we leave it alone */
     LOAD_64BIT_VAL 8, start_addresses
-    
+
     b   .__libc_start_main
-    nop                      /* a NOP for the linker */ 
+    nop                      /* a NOP for the linker */
 
 /*
  * This is our FreePascal main procedure which is called by
@@ -394,6 +394,9 @@ FUNCTION_PROLOG main_stub
 
     LOAD_64BIT_VAL 8, operatingsystem_parameter_envp
     std     5,0(8)
+
+    LOAD_64BIT_VAL 8, __stkptr
+    std     1,0(8)
 
     LOAD_64BIT_VAL 8, ___fpc_ret
     std     1,0(8)
@@ -425,6 +428,8 @@ ___fpc_ret:                            /* return address to libc */
     .quad   0
 
 .text
+    .comm __stkptr, 8
+
     .comm operatingsystem_parameter_argc, 4
     .comm operatingsystem_parameter_argv, 8
     .comm operatingsystem_parameter_envp, 8

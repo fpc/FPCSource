@@ -83,6 +83,9 @@ main_stub:
         movq    %rbp,___fpc_ret_rbp
         pushq   %rax
 
+        /* Save initial stackpointer */
+        movl    %rsp,__stkptr
+
         /* start the program */
         xorq    %rbp,%rbp
         call    PASCALMAIN
@@ -120,6 +123,8 @@ ___fpc_ret_rbp:
         .quad   0
 
 .bss
+        .comm __stkptr,8
+
         .comm operatingsystem_parameter_envp,8
         .comm operatingsystem_parameter_argc,8
         .comm operatingsystem_parameter_argv,8

@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Pascal run time librar~y.
+    This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
 
@@ -254,7 +254,7 @@ Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(initialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := initialstkptr - StackLength;
   { Set up signals handlers }
   InstallSignals;
   { Setup heap }

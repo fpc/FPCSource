@@ -63,6 +63,9 @@ _start:
 #        movw    %ds,%ax
 #        movw    %ax,%gs
 
+        /* Save initial stackpointer */
+        movl    %esp,__stkptr
+
         xorl    %ebp,%ebp
         call    PASCALMAIN
 
@@ -70,7 +73,7 @@ _start:
         .type   _haltproc,@function
 _haltproc:
 _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
-	movl    $252,%eax                /* exit_group */
+        movl    $252,%eax                /* exit_group */
         movzwl  operatingsystem_result,%ebx
         int     $0x80
         movl    $1,%eax                /* exit */
@@ -84,9 +87,11 @@ ___fpucw:
 
 
 .bss
-        .type   ___fpc_brk_addr,@object
-        .comm   ___fpc_brk_addr,4        /* heap management */
-
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
 
         .type operatingsystem_parameters,@object
         .size operatingsystem_parameters,12

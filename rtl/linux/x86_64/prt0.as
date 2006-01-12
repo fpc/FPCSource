@@ -48,6 +48,9 @@ _start:
         movq     %rax,operatingsystem_parameter_envp
         andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
+        /* Save initial stackpointer */
+        movl    %rsp,__stkptr
+
         xorq    %rbp, %rbp
         call    PASCALMAIN
 	jmp	_haltproc
@@ -69,6 +72,8 @@ __data_start:
         data_start = __data_start
 
 .bss
+        .comm __stkptr,8
+
         .comm operatingsystem_parameter_envp,8
         .comm operatingsystem_parameter_argc,8
         .comm operatingsystem_parameter_argv,8

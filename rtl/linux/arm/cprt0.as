@@ -62,6 +62,10 @@ _start:
 	str sp,[a3]
     	str a4,[ip]
 
+    /* Save initial stackpointer */
+	ldr ip,=__stkptr
+	str sp,[ip]
+
         /* Fetch address of fini */
         ldr ip, =_fini
 
@@ -108,6 +112,8 @@ __data_start:
 	data_start = __data_start
 
 .bss
+        .comm __stkptr,4
+
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4

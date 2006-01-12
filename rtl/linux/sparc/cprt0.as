@@ -29,6 +29,11 @@ _start:
        	or	%o1,%lo(operatingsystem_parameter_envp),%o1
        	st	%o2, [%o1]
 
+    /* Save initial stackpointer */
+	sethi	%hi(__stkptr),%o1
+	or	%o1,%lo(__stkptr),%o1
+	st	%sp, [%o1]
+
   /* reload the addresses for C startup code  */
         ld      [%sp+22*4], %o1
         add     %sp, 23*4, %o2
@@ -71,7 +76,7 @@ _start:
 
 .data
 
-        .comm   ___fpc_brk_addr,4        /* heap management */
+        .comm __stkptr,4
 
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4

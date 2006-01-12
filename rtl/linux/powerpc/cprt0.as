@@ -3,7 +3,7 @@
  * version.
  *
  * Adapted from the glibc-sources (2.3.5) in the file
- * 
+ *
  *     sysdeps/powerpc/powerpc32/elf/start.S
  *
  * Original header follows.
@@ -26,7 +26,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  
+   02111-1307 USA.
 */
 
 /* These are the various addresses we require.  */
@@ -60,7 +60,7 @@ _start:
     .globl  main_stub
     .type   main_stub, @function
 main_stub:
- /* save link register and setup stack frame */ 
+ /* save link register and setup stack frame */
     mflr    0
     stw     0, 0(1)
     stwu    1, -16(1)
@@ -73,6 +73,9 @@ main_stub:
 
     lis     11, operatingsystem_parameter_envp@ha
     stw      5, operatingsystem_parameter_envp@l(11);
+
+    lis 	11,__stkptr@ha
+	stw 	1,__stkptr@l(11);
 
     lis     11, ___fpc_ret@ha
     stw     1, ___fpc_ret@l(11)

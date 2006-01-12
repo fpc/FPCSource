@@ -62,6 +62,10 @@ _start:
 	str sp,[a3]
    	str a2,[ip]
 
+    /* Save initial stackpointer */
+	ldr ip,=__stkptr
+	str sp,[ip]
+
 	/* Let the libc call main and exit with its return code.  */
 	bl PASCALMAIN
 
@@ -82,6 +86,8 @@ __data_start:
 	data_start = __data_start
 
 .bss
+        .comm __stkptr,4
+
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
