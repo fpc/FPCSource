@@ -90,6 +90,7 @@ _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is e
 .bss
         .type   __stkptr,@object
         .size   __stkptr,4
+        .global __stkptr
 __stkptr:
         .skip   4
 

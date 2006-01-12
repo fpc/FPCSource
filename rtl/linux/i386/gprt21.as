@@ -120,6 +120,7 @@ ___fpc_ret_edi:
 
         .type   __stkptr,@object
         .size   __stkptr,4
+        .global __stkptr
 __stkptr:
         .skip   4
 
