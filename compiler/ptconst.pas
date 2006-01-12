@@ -85,18 +85,19 @@ implementation
          storefilepos : tfileposinfo;
          cursectype : TAsmSectionType;
          cural : tasmlist;
+         sizelabel : tasmlabel;
 
          procedure check_range(def:torddef);
-         begin
-            if ((tordconstnode(p).value>def.high) or
-                (tordconstnode(p).value<def.low)) then
-              begin
-                 if (cs_check_range in aktlocalswitches) then
-                   Message(parser_e_range_check_error)
-                 else
-                   Message(parser_w_range_check_error);
-              end;
-         end;
+           begin
+              if ((tordconstnode(p).value>def.high) or
+                  (tordconstnode(p).value<def.low)) then
+                begin
+                   if (cs_check_range in aktlocalswitches) then
+                     Message(parser_e_range_check_error)
+                   else
+                     Message(parser_w_range_check_error);
+                end;
+           end;
 
       begin
          old_block_type:=block_type;
@@ -1022,6 +1023,15 @@ implementation
          end;
       myexit:
          block_type:=old_block_type;
+
+         if assigned(sym) then
+           begin
+             storefilepos:=aktfilepos;
+             aktfilepos:=sym.fileinfo;
+
+             asmlist[cural].concat(tai_symbol_end.Createname(sym.mangledname));
+             aktfilepos:=storefilepos;
+           end;
       end;
 {$ifdef fpc}
   {$maxfpuregisters default}
