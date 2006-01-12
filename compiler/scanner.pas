@@ -1461,6 +1461,9 @@ compile time variables as the old format (0/1), continue to work.
             if hs='FPCVERSION' then
              hs:=version_string
            else
+            if hs='FPCDATE' then
+             hs:=date_string
+           else
             if hs='FPCTARGET' then
              hs:=target_cpu_string
            else
