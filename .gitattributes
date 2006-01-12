@@ -4521,7 +4521,6 @@ rtl/win32/signals.pp svneol=native#text/plain
 rtl/win32/sockets.pp svneol=native#text/plain
 rtl/win32/system.pp svneol=native#text/plain
 rtl/win32/sysutils.pp svneol=native#text/plain
-rtl/win32/syswin32.pp svneol=native#text/plain
 rtl/win32/tthread.inc svneol=native#text/plain
 rtl/win32/varutils.pp svneol=native#text/plain
 rtl/win32/video.pp svneol=native#text/plain

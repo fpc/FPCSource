@@ -5,14 +5,16 @@
      .globl _mainCRTStartup
 _mainCRTStartup:
      movb   $1,U_SYSTEM_ISCONSOLE
+     movl   %esp,__stkptr
      call   _FPC_EXE_Entry
      .globl _WinMainCRTStartup
 _WinMainCRTStartup:
      movb   $0,U_SYSTEM_ISCONSOLE
+     movl   %esp,__stkptr
      call   _FPC_EXE_Entry
-     
+
      .globl asm_exit
-asm_exit:     
+asm_exit:
     pushl   %eax
 	call	exitprocess
 
@@ -21,7 +23,7 @@ asm_exit:
 exitprocess:
 	jmp	*.L10
 	.balign 4,144
-	
+
 .text
 	.balign 4,144
 
@@ -38,7 +40,7 @@ exitprocess:
 
 .section .idata$5
 .L8:
-	
+
 
 .section .idata$5
 .L10:
@@ -55,14 +57,5 @@ exitprocess:
 .L6:
 	.ascii	"kernel32.dll\000"
 
-
-	
-
-// Revision 1.4  2002/11/30 18:17:35  carl
-//   + profiling support
-//
-// Revision 1.3  2002/07/28 20:43:51  florian
-//   * several fixes for linux/powerpc
-//   * several fixes to MT
-//
-//
+.bss
+    .comm   __stkptr,4

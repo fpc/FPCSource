@@ -1161,7 +1161,7 @@ const
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := initialstkptr - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
