@@ -84,7 +84,7 @@ main_stub:
         pushq   %rax
 
         /* Save initial stackpointer */
-        movl    %rsp,__stkptr
+        movq    %rsp,__stkptr
 
         /* start the program */
         xorq    %rbp,%rbp

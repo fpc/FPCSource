@@ -49,7 +49,7 @@ _start:
         andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
         /* Save initial stackpointer */
-        movl    %rsp,__stkptr
+        movq    %rsp,__stkptr
 
         xorq    %rbp, %rbp
         call    PASCALMAIN
