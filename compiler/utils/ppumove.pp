@@ -23,19 +23,19 @@
 {$endif}
 Program ppumove;
 uses
+  sysutils,
 {$ifdef unix}
   Baseunix,Unix, UnixUtil,
 {$else unix}
   dos,
 {$endif unix}
-  sysutils,
   ppu,
   getopts;
 
 const
-  Version   = 'Version 1.0.2';
+  Version   = 'Version 2.0.2';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2006 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:i:qhsvbw';
   BufSize = 4096;
