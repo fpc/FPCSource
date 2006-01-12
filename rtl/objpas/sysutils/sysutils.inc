@@ -206,9 +206,9 @@ begin
    end
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
+  Writeln(stdout,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
-      Writeln(stdout,BackTraceStrFunc(Addr));
       for i:=0 to FrameCount-1 do
         Writeln(stdout,BackTraceStrFunc(Frames[i]));
     end;
