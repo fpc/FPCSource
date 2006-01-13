@@ -365,6 +365,12 @@ begin
   Result := grOK;
 end;
 
+function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+begin
+  Result := GetFieldData(Field, Buffer);
+end;
+
 function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 var
@@ -411,6 +417,12 @@ begin
       else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
       end;
     end;
+end;
+
+procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+begin
+  SetFieldData(Field,Buffer);
 end;
 
 procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer);
