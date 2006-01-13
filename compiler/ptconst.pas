@@ -372,7 +372,7 @@ implementation
                         { convert to widestring stringconstn }
                         inserttypeconv(p,cwidestringtype);
                         if (p.nodetype=stringconstn) and
-                           (tstringconstnode(p).st_type=st_widestring) then
+                           (tstringconstnode(p).cst_type=cst_widestring) then
                          begin
                            pw:=pcompilerwidestring(tstringconstnode(p).value_str);
                            for i:=0 to tstringconstnode(p).len-1 do

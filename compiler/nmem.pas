@@ -649,7 +649,7 @@ implementation
          { implicitly convert stringconstant to stringdef,
            see tbs/tb0476.pp for a test }
          if (left.nodetype=stringconstn) and
-            (tstringconstnode(left).st_type=st_conststring) then
+            (tstringconstnode(left).cst_type=cst_conststring) then
            begin
              if tstringconstnode(left).len>255 then
                inserttypeconv(left,cansistringtype)

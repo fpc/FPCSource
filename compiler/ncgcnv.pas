@@ -135,23 +135,24 @@ interface
         hr : treference;
 
       begin
+         if left.nodetype<>stringconstn then
+           internalerror(200601131);
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         case tstringdef(left.resulttype.def).string_typ of
-           st_conststring :
+         case tstringconstnode(left).cst_type of
+           cst_conststring :
              begin
                location.register:=cg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
-           st_shortstring :
+           cst_shortstring :
              begin
                inc(left.location.reference.offset);
                location.register:=cg.getaddressregister(exprasmlist);
                cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
              end;
-           st_ansistring :
+           cst_ansistring :
              begin
-               if (left.nodetype=stringconstn) and
-                  (str_length(left)=0) then
+               if tstringconstnode(left).len=0 then
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
@@ -164,15 +165,14 @@ interface
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                 end;
              end;
-           st_longstring:
+           cst_longstring:
              begin
                {!!!!!!!}
                internalerror(8888);
              end;
-           st_widestring:
+           cst_widestring:
              begin
-               if (left.nodetype=stringconstn) and
-                  (str_length(left)=0) then
+               if tstringconstnode(left).len=0 then
                 begin
                   reference_reset(hr);
                   hr.symbol:=objectlibrary.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
@@ -200,8 +200,7 @@ interface
 
     procedure tcgtypeconvnode.second_string_to_chararray;
       begin
-        if (left.nodetype = stringconstn) and
-           (tstringdef(left.resulttype.def).string_typ=st_conststring) then
+        if is_chararray(left.resulttype.def) then
           begin
             location_copy(location,left.location);
             exit;

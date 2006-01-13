@@ -1261,7 +1261,7 @@ implementation
 
     function tstringdef.stringtypname:string;
       const
-        typname:array[tstringtype] of string[8]=('',
+        typname:array[tstringtype] of string[8]=(
           'shortstr','longstr','ansistr','widestr'
         );
       begin
@@ -1298,7 +1298,7 @@ implementation
 
     function tstringdef.gettypename : string;
       const
-         names : array[tstringtype] of string[20] = ('',
+         names : array[tstringtype] of string[10] = (
            'ShortString','LongString','AnsiString','WideString');
       begin
          gettypename:=names[string_typ];

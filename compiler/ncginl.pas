@@ -204,7 +204,7 @@ implementation
        { First call secondpass() before we can push the parameters, otherwise
          parameters allocated in the registers can be destroyed }
        { generate filename string parameter }
-       hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
+       hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex));
        firstpass(hp2);
        secondpass(hp2);
        if codegenerror then

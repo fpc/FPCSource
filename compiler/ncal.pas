@@ -267,7 +267,7 @@ type
                       is_object(p.resulttype.def);
             { avoid refcount increase }
             usevoidpointer:=is_interface(p.resulttype.def);
- 
+
             if usederef then
               htype.setdef(tpointerdef.create(p.resulttype))
             else
@@ -340,7 +340,7 @@ type
               { passing a string to an array of char }
               if (p.nodetype=stringconstn) then
                 begin
-                  len:=str_length(p);
+                  len:=tstringconstnode(p).len;
                   if len>0 then
                    dec(len);
                 end
@@ -396,7 +396,7 @@ type
                  { passing a string to an array of char }
                  if (p.nodetype=stringconstn) then
                    begin
-                     len:=str_length(p);
+                     len:=tstringconstnode(p).len;
                      if len>0 then
                       dec(len);
                    end

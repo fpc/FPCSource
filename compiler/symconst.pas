@@ -187,7 +187,6 @@ type
 
   { string types }
   tstringtype = (
-    st_conststring,
     st_shortstring,
     st_longstring,
     st_ansistring,

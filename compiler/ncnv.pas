@@ -716,7 +716,7 @@ implementation
             arrsize := highrange-lowrange+1;
           end;
         if (left.nodetype = stringconstn) and
-           (tstringdef(left.resulttype.def).string_typ=st_conststring) then
+           (tstringconstnode(left).cst_type=cst_conststring) then
            begin
              { if the array of char is large enough we can use the string
                constant directly. This is handled in ncgcnv }
@@ -805,7 +805,10 @@ implementation
                  donewidestring(ws);
                end
               else
-               hp:=cstringconstnode.createstr(chr(tordconstnode(left).value),tstringdef(resulttype.def).string_typ);
+                begin
+                  hp:=cstringconstnode.createstr(chr(tordconstnode(left).value));
+                  tstringconstnode(hp).changestringtype(resulttype);
+                end;
               result:=hp;
            end
          else

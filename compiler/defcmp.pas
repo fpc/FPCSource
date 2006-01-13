@@ -305,9 +305,7 @@ implementation
                      { Constant string }
                      if (fromtreetype=stringconstn) then
                       begin
-                        { we can change the stringconst node }
-                        if (tstringdef(def_from).string_typ=st_conststring) or
-                           (tstringdef(def_from).string_typ=tstringdef(def_to).string_typ) then
+                        if (tstringdef(def_from).string_typ=tstringdef(def_to).string_typ) then
                           eq:=te_equal
                         else
                          begin

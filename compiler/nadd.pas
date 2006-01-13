@@ -473,8 +473,8 @@ implementation
         { this isn't veryy efficient, but I don't think    }
         { that it does matter that much (FK)               }
         if (lt=stringconstn) and (rt=stringconstn) and
-          (tstringconstnode(left).st_type=st_widestring) and
-          (tstringconstnode(right).st_type=st_widestring) then
+          (tstringconstnode(left).cst_type=cst_widestring) and
+          (tstringconstnode(right).cst_type=cst_widestring) then
           begin
              initwidestring(ws1);
              initwidestring(ws2);
@@ -558,7 +558,7 @@ implementation
           begin
              case nodetype of
                 addn :
-                  t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,st_conststring);
+                  t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
                 ltn :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
                 lten :
@@ -1559,8 +1559,8 @@ implementation
               { generate better code for comparison with empty string, we
                 only need to compare the length with 0 }
               if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
-                 (((left.nodetype=stringconstn) and (str_length(left)=0)) or
-                  ((right.nodetype=stringconstn) and (str_length(right)=0))) then
+                 (((left.nodetype=stringconstn) and (tstringconstnode(left).len=0)) or
+                  ((right.nodetype=stringconstn) and (tstringconstnode(right).len=0))) then
                 begin
                   { switch so that the constant is always on the right }
                   if left.nodetype = stringconstn then

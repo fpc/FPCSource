@@ -85,7 +85,6 @@ implementation
          hp1 : tai;
          lastlabel : tasmlabel;
          realait : taitype;
-         value_real_sign, hp1_sign: pbyte;
 {$ifdef ARM}
          hiloswapped : boolean;
 {$endif ARM}
@@ -249,7 +248,7 @@ implementation
          i,mylength  : longint;
       begin
          { for empty ansistrings we could return a constant 0 }
-         if (st_type in [st_ansistring,st_widestring]) and (len=0) then
+         if (cst_type in [cst_ansistring,cst_widestring]) and (len=0) then
           begin
             location_reset(location,LOC_CONSTANT,OS_ADDR);
             location.value:=0;
@@ -285,8 +284,8 @@ implementation
                                (lastlabel<>nil) and
                                (tai_string(hp1).len=mylength) then
                               begin
-                                 case st_type of
-                                   st_conststring:
+                                 case cst_type of
+                                   cst_conststring:
                                      begin
                                        j:=0;
                                        same_string:=true;
@@ -303,7 +302,7 @@ implementation
                                              end;
                                          end;
                                      end;
-                                   st_shortstring:
+                                   cst_shortstring:
                                      begin
                                        { if shortstring then check the length byte first and
                                          set the start index to 1 }
@@ -325,8 +324,8 @@ implementation
                                              end;
                                          end;
                                      end;
-                                   st_ansistring,
-                                   st_widestring :
+                                   cst_ansistring,
+                                   cst_widestring :
                                      begin
                                        { before the string the following sequence must be found:
                                          <label>
@@ -386,8 +385,8 @@ implementation
                    new_section(asmlist[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
                    asmlist[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
-                   case st_type of
-                      st_ansistring:
+                   case cst_type of
+                      cst_ansistring:
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
@@ -410,7 +409,7 @@ implementation
                                 lab_str:=l2;
                              end;
                         end;
-                      st_widestring:
+                      cst_widestring:
                         begin
                            { an empty wide string is nil! }
                            if len=0 then
@@ -436,7 +435,7 @@ implementation
                                 lab_str:=l2;
                              end;
                         end;
-                      st_shortstring:
+                      cst_shortstring:
                         begin
                           { truncate strings larger than 255 chars }
                           if len>255 then
@@ -450,7 +449,7 @@ implementation
                           pc[l+1]:=#0;
                           asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,l+2));
                         end;
-                      st_conststring:
+                      cst_conststring:
                         begin
                           { include terminating zero }
                           getmem(pc,len+1);

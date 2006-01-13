@@ -85,13 +85,21 @@ interface
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
 
+       tconststringtype = (
+         cst_conststring,
+         cst_shortstring,
+         cst_longstring,
+         cst_ansistring,
+         cst_widestring
+       );
+
        tstringconstnode = class(tnode)
           value_str : pchar;
           len     : longint;
           lab_str : tasmlabel;
-          st_type : tstringtype;
-          constructor createstr(const s : string;st:tstringtype);virtual;
-          constructor createpchar(s : pchar;l : longint;st:tstringtype);virtual;
+          cst_type : tconststringtype;
+          constructor createstr(const s : string);virtual;
+          constructor createpchar(s : pchar;l : longint);virtual;
           constructor createwstr(w : pcompilerwidestring);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -158,7 +166,6 @@ interface
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
     function is_constresourcestringnode(p : tnode) : boolean;
-    function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
 
@@ -212,12 +219,6 @@ implementation
       end;
 
 
-    function str_length(p : tnode) : longint;
-
-      begin
-         str_length:=tstringconstnode(p).len;
-      end;
-
     function is_emptyset(p : tnode):boolean;
       begin
         is_emptyset:=(p.nodetype=setconstn) and
@@ -241,7 +242,7 @@ implementation
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
-              p1:=cstringconstnode.createpchar(pc,len,st_conststring);
+              p1:=cstringconstnode.createpchar(pc,len);
             end;
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
@@ -518,7 +519,7 @@ implementation
                              TSTRINGCONSTNODE
 *****************************************************************************}
 
-    constructor tstringconstnode.createstr(const s : string;st:tstringtype);
+    constructor tstringconstnode.createstr(const s : string);
       var
          l : longint;
       begin
@@ -530,7 +531,7 @@ implementation
          move(s[1],value_str^,l);
          value_str[l]:=#0;
          lab_str:=nil;
-         st_type:=st;
+         cst_type:=cst_conststring;
       end;
 
 
@@ -541,23 +542,23 @@ implementation
          initwidestring(pcompilerwidestring(value_str));
          copywidestring(w,pcompilerwidestring(value_str));
          lab_str:=nil;
-         st_type:=st_widestring;
+         cst_type:=cst_widestring;
       end;
 
 
-    constructor tstringconstnode.createpchar(s : pchar;l : longint;st:tstringtype);
+    constructor tstringconstnode.createpchar(s : pchar;l : longint);
       begin
          inherited create(stringconstn);
          len:=l;
          value_str:=s;
-         st_type:=st;
+         cst_type:=cst_conststring;
          lab_str:=nil;
       end;
 
 
     destructor tstringconstnode.destroy;
       begin
-        if st_type=st_widestring then
+        if cst_type=cst_widestring then
           donewidestring(pcompilerwidestring(value_str))
         else
           ansistringdispose(value_str,len);
@@ -570,9 +571,9 @@ implementation
         pw : pcompilerwidestring;
       begin
         inherited ppuload(t,ppufile);
-        st_type:=tstringtype(ppufile.getbyte);
+        cst_type:=tconststringtype(ppufile.getbyte);
         len:=ppufile.getlongint;
-        if st_type=st_widestring then
+        if cst_type=cst_widestring then
           begin
             initwidestring(pw);
             setlengthwidestring(pw,len);
@@ -592,9 +593,9 @@ implementation
     procedure tstringconstnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putbyte(byte(st_type));
+        ppufile.putbyte(byte(cst_type));
         ppufile.putlongint(len);
-        if st_type=st_widestring then
+        if cst_type=cst_widestring then
           ppufile.putdata(pcompilerwidestring(value_str)^.data,len*sizeof(tcompilerwidechar))
         else
           ppufile.putdata(value_str^,len);
@@ -622,10 +623,10 @@ implementation
 
       begin
          n:=tstringconstnode(inherited _getcopy);
-         n.st_type:=st_type;
+         n.cst_type:=cst_type;
          n.len:=len;
          n.lab_str:=lab_str;
-         if st_type=st_widestring then
+         if cst_type=cst_widestring then
            begin
              initwidestring(pcompilerwidestring(n.value_str));
              copywidestring(pcompilerwidestring(value_str),pcompilerwidestring(n.value_str));
@@ -640,8 +641,8 @@ implementation
         l : aint;
       begin
         result:=nil;
-        case st_type of
-          st_conststring :
+        case cst_type of
+          cst_conststring :
             begin
               { handle and store as array[0..len-1] of char }
               if len>0 then
@@ -651,13 +652,13 @@ implementation
               resulttype.setdef(tarraydef.create(0,l,s32inttype));
               tarraydef(resulttype.def).setelementtype(cchartype);
             end;
-          st_shortstring :
+          cst_shortstring :
             resulttype:=cshortstringtype;
-          st_ansistring :
+          cst_ansistring :
             resulttype:=cansistringtype;
-          st_widestring :
+          cst_widestring :
             resulttype:=cwidestringtype;
-          st_longstring :
+          cst_longstring :
             resulttype:=clongstringtype;
         end;
       end;
@@ -665,7 +666,7 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (st_type in [st_ansistring,st_widestring]) and
+        if (cst_type in [cst_ansistring,cst_widestring]) and
            (len=0) then
          expectloc:=LOC_CONSTANT
         else
@@ -698,6 +699,10 @@ implementation
 
 
     procedure tstringconstnode.changestringtype(const newtype:ttype);
+      const
+        st2cst : array[tstringtype] of tconststringtype = (
+          cst_shortstring,cst_longstring,cst_ansistring,cst_widestring
+        );
       var
         pw : pcompilerwidestring;
         pc : pchar;
@@ -706,7 +711,7 @@ implementation
           internalerror(200510011);
         { convert ascii 2 unicode }
         if (tstringdef(newtype.def).string_typ=st_widestring) and
-           (st_type<>st_widestring) then
+           (cst_type<>cst_widestring) then
           begin
             initwidestring(pw);
             ascii2unicode(value_str,len,pw);
@@ -715,7 +720,7 @@ implementation
           end
         else
           { convert unicode 2 ascii }
-          if (st_type=st_widestring) and
+          if (cst_type=cst_widestring) and
             (tstringdef(newtype.def).string_typ<>st_widestring) then
             begin
               pw:=pcompilerwidestring(value_str);
@@ -724,7 +729,7 @@ implementation
               donewidestring(pw);
               value_str:=pc;
             end;
-        st_type:=tstringdef(newtype.def).string_typ;
+        cst_type:=st2cst[tstringdef(newtype.def).string_typ];
         resulttype:=newtype;
       end;
 
