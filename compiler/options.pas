@@ -1127,7 +1127,7 @@ begin
                       end;
                     'I':
                       begin
-                        GenerateImportSection:=UnsetBool(More,j);
+                        GenerateImportSection:=not UnsetBool(More,j);
                       end;
                     'N':
                       begin
