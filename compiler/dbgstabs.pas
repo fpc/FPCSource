@@ -989,7 +989,7 @@ implementation
             strpcopy(p,'192,0,0,');
             {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
             strpcopy(strend(p),pd.mangledname);
-            if (target_info.use_function_relative_addresses) then
+            if (tf_use_function_relative_addresses in target_info.flags) then
               begin
                 strpcopy(strend(p),'-');
                 {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
@@ -997,7 +997,7 @@ implementation
               end;
             templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
             strpcopy(p,'224,0,0,'+stabsendlabel.name);
-            if (target_info.use_function_relative_addresses) then
+            if (tf_use_function_relative_addresses in target_info.flags) then
               begin
                 strpcopy(strend(p),'-');
                 {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
@@ -1491,7 +1491,7 @@ implementation
                 if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
                   begin
                      if assigned(currfuncname) and
-                        (target_info.use_function_relative_addresses) then
+                        (tf_use_function_relative_addresses in target_info.flags) then
                       begin
                         objectlibrary.getlabel(hlabel,alt_dbgline);
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(n_textline)+',0,'+tostr(currfileinfo.line)+','+

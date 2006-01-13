@@ -86,7 +86,6 @@ interface
     private
       cstring : array[0..127]of char;
       function DOSstubOK(var x:cardinal):boolean;
-      function FindDLL(const s:string;var founddll:string):boolean;
       function ExtractDllName(Const Name : string) : string;
     public
       function isSuitableFileType(x:cardinal):longbool;override;
@@ -132,6 +131,15 @@ implementation
          hp2 : twin32imported_item;
          hs  : string;
       begin
+         { If we don't generate imports then we need to only the dll for
+           the linker }
+         if not GenerateImportSection then
+           begin
+             hs:=AddExtension(module,target_info.sharedlibext);
+             current_module.linkdlls.add(hs,link_allways);
+             exit;
+           end;
+
          { procdef or funcname must be give, not both }
          if assigned(aprocdef) and (func<>'') then
            internalerror(200411161);
@@ -205,6 +213,15 @@ implementation
          hp2 : twin32imported_item;
          hs  : string;
       begin
+         { If we don't generate imports then we need to only the dll for
+           the linker }
+         if not GenerateImportSection then
+           begin
+             hs:=AddExtension(module,target_info.sharedlibext);
+             current_module.linkdlls.add(hs,link_allways);
+             exit;
+           end;
+
          hs:=AddExtension(module,target_info.sharedlibext);
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
@@ -224,6 +241,7 @@ implementation
          hp2.procdef:=nil;
          hp1.imported_items.concat(hp2);
       end;
+
 
     procedure timportlibwin32.generatenasmlib;
       var
@@ -865,7 +883,7 @@ begin
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
-  StaticLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;  if not Dontlinkstdlibpath Then
 end;
 
 
@@ -904,6 +922,14 @@ Var
 begin
   WriteResponseFile:=False;
   linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
+
+  if (cs_profile in aktmoduleswitches) then
+    begin
+      SharedLibFiles.Concat('c');
+      SharedLibFiles.Concat('gcc');
+      SharedLibFiles.Concat('gmon');
+      SharedLibFiles.Concat('kernel32');
+    end;
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -946,18 +972,10 @@ begin
    end;
   LinkRes.Add(')');
 
-
   { Write staticlibraries }
-  if (not StaticLibFiles.Empty) or (cs_profile in aktmoduleswitches) then
+  if (not StaticLibFiles.Empty) then
    begin
      LinkRes.Add('GROUP(');
-     if (cs_profile in aktmoduleswitches) then
-       begin
-         LinkRes.Add('-lc');
-         LinkRes.Add('-lgcc');
-         LinkRes.Add('-lgmon');
-         LinkRes.Add('-lkernel32');
-       end;
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
@@ -966,7 +984,7 @@ begin
      LinkRes.Add(')');
    end;
 
-  { Write sharedlibraries }
+  { Write sharedlibraries (=import libraries) }
   if not SharedLibFiles.Empty then
    begin
      LinkRes.Add('INPUT(') ;
@@ -984,6 +1002,21 @@ begin
         if i>0 then
          Delete(S,i,255);
         LinkRes.Add('-l'+s);
+      end;
+     LinkRes.Add(')');
+   end;
+
+  { Write DLLs (=direct DLL linking) }
+  if not DLLFiles.Empty then
+   begin
+     LinkRes.Add('INPUT(') ;
+     While not DLLFiles.Empty do
+      begin
+        s:=DLLFiles.GetFirst;
+        if FindDLL(s,s2) then
+          LinkRes.Add(MaybeQuoted(s2))
+        else
+          LinkRes.Add('-l'+s);
       end;
      LinkRes.Add(')');
    end;
@@ -1401,33 +1434,6 @@ end;
             DOSstubOK:=false;
          end;
       end;
-
-    function TDLLScannerWin32.FindDLL(const s:string;var founddll:string):boolean;
-      var
-        sysdir : string;
-        Found : boolean;
-      begin
-        Found:=false;
-        { Look for DLL in:
-          1. Current dir
-          2. Library Path
-          3. windir,windir/system,windir/system32 }
-        Found:=FindFile(s,'.'+source_info.DirSep,founddll);
-        if (not found) then
-         Found:=librarysearchpath.FindFile(s,founddll);
-        if (not found) then
-         begin
-           sysdir:=FixPath(GetEnv('windir'),false);
-           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
-         end;
-        if (not found) then
-         begin
-           message1(exec_w_libfile_not_found,s);
-           FoundDll:=s;
-         end;
-        FindDll:=Found;
-      end;
-
 
     function tDLLScannerWin32.ExtractDllName(Const Name : string) : string;
       var n : string;

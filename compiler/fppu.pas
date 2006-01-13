@@ -356,7 +356,7 @@ uses
                Message1(unit_t_unitsearch,AddExtension(sourcefn^,pasext));
                fnd:=FindFile(AddExtension(sourcefn^,pasext),'',hs);
              end;
-            if not fnd and ((m_mac in aktmodeswitches) or target_info.p_ext_support) then
+            if not fnd and ((m_mac in aktmodeswitches) or (tf_p_ext_support in target_info.flags)) then
              begin
                Message1(unit_t_unitsearch,AddExtension(sourcefn^,pext));
                fnd:=FindFile(AddExtension(sourcefn^,pext),'',hs);
@@ -930,6 +930,8 @@ uses
                readlinkcontainer(LinkotherStaticLibs);
              iblinkothersharedlibs :
                readlinkcontainer(LinkotherSharedLibs);
+             iblinkdlls :
+               readlinkcontainer(LinkDlls);
              ibderefmap :
                readderefmap;
              ibderefdata :
@@ -1038,6 +1040,7 @@ uses
          writelinkcontainer(linkotherofiles,iblinkotherofiles,false);
          writelinkcontainer(linkotherstaticlibs,iblinkotherstaticlibs,true);
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
+         writelinkcontainer(linkdlls,iblinkdlls,true);
          ppufile.do_crc:=true;
 
          { generate implementation deref data, the interface deref data is

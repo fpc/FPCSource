@@ -1772,7 +1772,7 @@ implementation
             list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
           else
             list.concat(Tai_symbol.createname(hs,AT_FUNCTION,0));
-          if target_info.use_function_relative_addresses then
+          if tf_use_function_relative_addresses in target_info.flags then
             list.concat(Tai_function_name.create(hs));
         until false;
 

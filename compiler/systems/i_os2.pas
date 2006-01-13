@@ -40,7 +40,7 @@ unit i_os2;
             system       : system_i386_OS2;
             name         : 'OS/2';
             shortname    : 'OS2';
-            flags        : [tf_need_export,tf_use_8_3];
+            flags        : [tf_need_export,tf_files_case_aware,tf_use_8_3];
             cpu          : cpu_i386;
             unit_env     : 'OS2UNITS';
             extradefines : '';
@@ -62,11 +62,9 @@ unit i_os2;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
             assem        : as_i386_as_aout;
             assemextern  : as_i386_as_aout;
             link         : nil;
@@ -93,8 +91,7 @@ unit i_os2;
               );
             first_parm_offset : 8;
             stacksize    : 256*1024;
-            DllScanSupported: false;
-            use_function_relative_addresses : false
+            abi          : abi_default;
           );
 
 

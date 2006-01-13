@@ -140,6 +140,7 @@ interface
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
+        linkdlls,
         linkotherofiles,           { objects,libs loaded from the source }
         linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
         linkotherstaticlibs  : tlinkcontainer;
@@ -418,6 +419,7 @@ implementation
         linkotherofiles:=TLinkContainer.Create;
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs:=TLinkContainer.Create;
+        linkdlls:=TLinkContainer.Create;
         crc:=0;
         interface_crc:=0;
         flags:=0;
@@ -507,6 +509,7 @@ implementation
         linkotherofiles.Free;
         linkotherstaticlibs.Free;
         linkothersharedlibs.Free;
+        linkdlls.Free;
         stringdispose(objfilename);
         stringdispose(newfilename);
         stringdispose(ppufilename);
@@ -641,6 +644,8 @@ implementation
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs.Free;
         linkothersharedlibs:=TLinkContainer.Create;
+        linkdlls.Free;
+        linkdlls:=TLinkContainer.Create;
         uses_imports:=false;
         do_compile:=false;
         do_reload:=false;

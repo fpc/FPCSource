@@ -32,7 +32,7 @@ unit i_nwl;
             system       : system_i386_netwlibc;
             name         : 'Netware for i386(libc)';
             shortname    : 'Netwlibc';
-            flags        : [];
+            flags        : [tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'NETWLIBCUNITS';
             extradefines : 'NETWARE;NETWARE_LIBC';
@@ -54,11 +54,9 @@ unit i_nwl;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '/';
-            files_case_relevent : false;
             assem        : as_i386_elf32;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_nwl;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
           );
 
   implementation

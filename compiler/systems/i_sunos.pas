@@ -32,7 +32,7 @@ unit i_sunos;
             system       : system_i386_solaris;
             name         : 'Solaris for i386';
             shortname    : 'solaris';
-            flags        : [tf_under_development];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC';
@@ -54,11 +54,9 @@ unit i_sunos;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            files_case_relevent : true;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_sunos;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
           );
 
        system_sparc_solaris_info : tsysteminfo =
@@ -94,7 +90,7 @@ unit i_sunos;
             system       : system_sparc_solaris;
             name         : 'Solaris for SPARC';
             shortname    : 'solaris';
-            flags        : [tf_needs_symbol_size];
+            flags        : [tf_needs_symbol_size,tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses];
             cpu          : cpu_SPARC;
             unit_env     : 'SOLARISUNITS';
             extradefines : 'UNIX;LIBC;';
@@ -116,11 +112,9 @@ unit i_sunos;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            files_case_relevent : true;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
@@ -147,8 +141,6 @@ unit i_sunos;
               );
             first_parm_offset : 92;
             stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
           );
 
   implementation

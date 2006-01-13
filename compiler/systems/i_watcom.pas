@@ -34,7 +34,7 @@ unit i_watcom;
             system       : system_i386_Watcom;
             name         : 'Watcom compatible DOS extenders';
             shortname    : 'WATCOM';
-            flags        : [tf_use_8_3];
+            flags        : [tf_use_8_3,tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'WATCOMUNITS';
             extradefines : 'DPMI';
@@ -56,11 +56,9 @@ unit i_watcom;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
             assem        : as_i386_wasm;
             assemextern  : as_gas;
             link         : nil;
@@ -87,8 +85,6 @@ unit i_watcom;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
-            DllScanSupported : false;
-            use_function_relative_addresses : true
           );
 
   implementation

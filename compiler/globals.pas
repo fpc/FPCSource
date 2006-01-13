@@ -178,6 +178,7 @@ interface
        dllrevision   : word;  { revision only for netware }
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
+       GenerateImportSection,
        RelocSection : boolean;
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;
@@ -628,7 +629,7 @@ implementation
         fn2 : string;
       begin
         result:=false;
-        if source_info.files_case_relevent then
+        if tf_files_case_sensitive in source_info.flags then
           begin
             {
               Search order for case sensitive systems:
@@ -663,6 +664,20 @@ implementation
                  end;
               end;
           end
+        else
+          if tf_files_case_aware in source_info.flags then
+            begin
+              {
+                Search order for case aware systems:
+                 1. NormalCase
+              }
+              FoundFile:=path+fn;
+              If FileExists(FoundFile) then
+               begin
+                 result:=true;
+                 exit;
+               end;
+           end
         else
           begin
             { None case sensitive only lowercase }
@@ -841,7 +856,8 @@ implementation
         if (not allowdot) and (s='.'+source_info.DirSep) then
          s:='';
         { return }
-        if source_info.files_case_relevent then
+        if (tf_files_case_aware in source_info.flags) or
+           (tf_files_case_sensitive in source_info.flags) then
          FixPath:=s
         else
          FixPath:=Lower(s);
@@ -979,7 +995,9 @@ implementation
      begin
        if source_info.system = system_powerpc_MACOS then
          FixFileName:= TranslatePathToMac(s, true)
-       else if source_info.files_case_relevent then
+       else
+        if (tf_files_case_aware in source_info.flags) or
+           (tf_files_case_sensitive in source_info.flags) then
         begin
           for i:=1 to length(s) do
            begin
@@ -1026,7 +1044,8 @@ implementation
         if (not allowdot) and (s='.'+target_info.DirSep) then
          s:='';
         { return }
-        if target_info.files_case_relevent then
+        if (tf_files_case_aware in target_info.flags) or
+           (tf_files_case_sensitive in target_info.flags) then
          TargetFixPath:=s
         else
          TargetFixPath:=Lower(s);
@@ -1039,7 +1058,9 @@ implementation
      begin
        if target_info.system = system_powerpc_MACOS then
          TargetFixFileName:= TranslatePathToMac(s, true)
-       else if target_info.files_case_relevent then
+       else
+        if (tf_files_case_aware in target_info.flags) or
+           (tf_files_case_sensitive in target_info.flags) then
          begin
            for i:=1 to length(s) do
            begin
@@ -2177,6 +2198,7 @@ end;
         nwcopyright  := '';
         UseDeffileForExports:=false;
         UseDeffileForExportsSetExplicitly:=false;
+        GenerateImportSection:=true;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;

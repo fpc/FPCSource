@@ -32,7 +32,7 @@ unit i_beos;
             system       : system_i386_BeOS;
             name         : 'Beos for i386';
             shortname    : 'Beos';
-            flags        : [tf_under_development,tf_needs_symbol_size];
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'BEOSUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -54,11 +54,9 @@ unit i_beos;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            p_ext_support : false;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            files_case_relevent : true;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_beos;
               );
             first_parm_offset : 8;
             stacksize    : 8192;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
           );
 
   implementation

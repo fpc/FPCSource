@@ -1496,7 +1496,7 @@ implementation
                  else
                    begin
                      { add import name to external list for DLL scanning }
-                     if target_info.DllScanSupported then
+                     if tf_has_dllscanner in target_info.flags then
                        current_module.externals.insert(tExternalsItem.create(proc_get_importname(pd)));
                    end;
                end;

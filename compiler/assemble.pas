@@ -865,7 +865,7 @@ Implementation
                 relocsym:=nil;
               end;
             if (nidx=N_Function) and
-               target_info.use_function_relative_addresses then
+               (tf_use_function_relative_addresses in target_info.flags) then
               ofs:=0;
             objectdata.writestab(ofs,relocsym,nidx,nother,nline,pstr);
           end;

@@ -32,7 +32,7 @@ unit i_go32v2;
             system       : system_i386_GO32V2;
             name         : 'GO32 V2 DOS extender';
             shortname    : 'Go32v2';
-            flags        : [tf_use_8_3];
+            flags        : [tf_use_8_3,tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'GO32V2UNITS';
             extradefines : 'DPMI';
@@ -54,11 +54,9 @@ unit i_go32v2;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
             assem        : as_i386_coff;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_go32v2;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            DllScanSupported : false;
-            use_function_relative_addresses : true
           );
 
   implementation

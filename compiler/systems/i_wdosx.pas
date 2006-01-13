@@ -32,7 +32,7 @@ unit i_wdosx;
             system       : system_i386_wdosx;
             name         : 'WDOSX DOS extender';
             shortname    : 'WDOSX';
-            flags        : [tf_use_8_3];
+            flags        : [tf_use_8_3,tf_use_function_relative_addresses,tf_has_dllscanner];
             cpu          : cpu_i386;
             unit_env     : 'WDOSXUNITS';
             extradefines : 'MSWINDOWS';
@@ -54,11 +54,9 @@ unit i_wdosx;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
             assem        : as_i386_pecoffwdosx;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_wdosx;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
           );
 
   implementation

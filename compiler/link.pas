@@ -44,12 +44,14 @@ Type
     TLinker = class(TAbstractLinker)
     public
        ObjectFiles,
+       DLLFiles,
        SharedLibFiles,
        StaticLibFiles  : TStringList;
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
        Procedure AddObject(const S,unitpath : String;isunit:boolean);
+       Procedure AddDLL(const S : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
        Procedure AddStaticCLibrary(const S : String);
@@ -85,6 +87,7 @@ var
 
 function FindObjectFile(s : string;const unitpath:string;isunit:boolean) : string;
 function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
+function FindDLL(const s:string;var founddll:string):boolean;
 
 procedure InitLinker;
 procedure DoneLinker;
@@ -177,6 +180,34 @@ begin
 end;
 
 
+    { searches a (windows) DLL file }
+    function FindDLL(const s:string;var founddll:string):boolean;
+      var
+        sysdir : string;
+        Found : boolean;
+      begin
+        Found:=false;
+        { Look for DLL in:
+          1. Current dir
+          2. Library Path
+          3. windir,windir/system,windir/system32 }
+        Found:=FindFile(s,'.'+source_info.DirSep,founddll);
+        if (not found) then
+         Found:=librarysearchpath.FindFile(s,founddll);
+        if (not found) then
+         begin
+           sysdir:=FixPath(GetEnv('windir'),false);
+           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
+         end;
+        if (not found) then
+         begin
+           message1(exec_w_libfile_not_found,s);
+           FoundDll:=s;
+         end;
+        FindDll:=Found;
+      end;
+
+
 { searches an library file }
 function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
 var
@@ -231,6 +262,7 @@ Constructor TLinker.Create;
 begin
   Inherited Create;
   ObjectFiles:=TStringList.Create_no_double;
+  DLLFiles:=TStringList.Create_no_double;
   SharedLibFiles:=TStringList.Create_no_double;
   StaticLibFiles:=TStringList.Create_no_double;
 end;
@@ -239,6 +271,7 @@ end;
 Destructor TLinker.Destroy;
 begin
   ObjectFiles.Free;
+  DLLFiles.Free;
   SharedLibFiles.Free;
   StaticLibFiles.Free;
 end;
@@ -308,15 +341,13 @@ begin
          end;
         { unit files }
         while not linkunitofiles.empty do
-        begin
           AddObject(linkunitofiles.getusemask(mask),path^,true);
-        end;
         while not linkunitstaticlibs.empty do
-         AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
+          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
         while not linkunitsharedlibs.empty do
-         AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
+          AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
       end;
-   { Other needed .o and libs, specified using $L,$LINKLIB,external }
+     { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask),path^,false);
@@ -324,6 +355,9 @@ begin
       AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
       AddSharedCLibrary(linkothersharedlibs.Getusemask(mask));
+     { (Windows) DLLs }
+     while not linkdlls.empty do
+      AddDLL(linkdlls.Getusemask(mask));
    end;
 end;
 
@@ -331,6 +365,12 @@ end;
 Procedure TLinker.AddObject(const S,unitpath : String;isunit:boolean);
 begin
   ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
+end;
+
+
+Procedure TLinker.AddDLL(const S : String);
+begin
+  DLLFiles.Concat(s);
 end;
 
 

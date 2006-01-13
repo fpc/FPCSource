@@ -1343,7 +1343,7 @@ begin
         end;
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tm68kparamanager).create_funcretloc_info(pd,callerside);
-  
+
       tprocdef(pd).extnumber:=get_intconst;
     end;
 {$endif m68k}
@@ -1351,11 +1351,11 @@ begin
    if target_info.system = system_powerpc_amiga then
     begin
       include(pd.procoptions,po_syscall_sysv);
-      
+
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
     end else
-    
+
    if target_info.system = system_powerpc_morphos then
     begin
       if idtoken=_LEGACY then
@@ -1376,7 +1376,7 @@ begin
       else if idtoken=_SYSVBASE then
         begin
           consume(_SYSVBASE);
-          include(pd.procoptions,po_syscall_sysvbase);    
+          include(pd.procoptions,po_syscall_sysvbase);
         end
       else if idtoken=_R12BASE then
         begin
@@ -1814,7 +1814,7 @@ const
     ),(
       idtok:_SYSCALL;
       { Different kind of syscalls are valid for AOS68k, AOSPPC and MOS. }
-      { FIX ME!!! MorphOS/AOS68k pd_flags should be: 
+      { FIX ME!!! MorphOS/AOS68k pd_flags should be:
         pd_interface, pd_implemen, pd_notobject, pd_notobjintf (KB) }
       pd_flags : [pd_interface,pd_implemen,pd_procvar];
       handler  : @pd_syscall;
@@ -2023,6 +2023,15 @@ const
 
 
     function proc_get_importname(pd:tprocdef):string;
+
+       function maybe_cprefix(const s:string):string;
+         begin
+           if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+             result:=s
+           else
+             result:=target_info.Cprefix+s;
+         end;
+
       begin
         result:='';
         if not(po_external in pd.procoptions) then
@@ -2036,20 +2045,32 @@ const
         { external name specified }
           if assigned(pd.import_name) then
             begin
-              { Win32 imports need to use the normal name since to functions
-                can refer to the same DLL function. This is also needed for compatability
-                with Delphi and TP7 }
-              if not(
-                     assigned(pd.import_dll) and
-                     (target_info.system in [system_i386_win32,system_i386_wdosx,
-                                             system_i386_emx,system_i386_os2,system_arm_wince,system_i386_wince])
-                    ) then
+              if assigned(pd.import_dll) then
                 begin
-                  if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                    result:=pd.import_name^
-                  else
-                    result:=target_info.Cprefix+pd.import_name^;
-                end;
+                  { If we are not using direct dll linking under win32 then imports
+                    need to use the normal name since to functions can refer to the
+                    same DLL function. This is also needed for compatability
+                    with Delphi and TP7 }
+                  case target_info.system of
+                    system_i386_win32 :
+                      begin
+                        { We need to use the name with a _ prefix if we let ld.exe do
+                          the importing for us }
+                        if not GenerateImportSection then
+                          result:=target_info.Cprefix+pd.import_name^;
+                      end;
+                    system_i386_wdosx,
+                    system_i386_emx,system_i386_os2,
+                    system_arm_wince,system_i386_wince :
+                      begin
+                        { keep normal mangledname }
+                      end;
+                    else
+                      result:=maybe_cprefix(pd.import_name^);
+                  end;
+                end
+              else
+                result:=maybe_cprefix(pd.import_name^);
             end
         else
           begin

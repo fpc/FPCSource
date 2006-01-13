@@ -1125,12 +1125,9 @@ begin
                         else
                           apptype:=app_gui;
                       end;
-                    'T':
+                    'I':
                       begin
-                        if UnsetBool(More, j) then
-                          apptype:=app_cui
-                        else
-                          apptype:=app_tool;
+                        GenerateImportSection:=UnsetBool(More,j);
                       end;
                     'N':
                       begin
@@ -1142,6 +1139,13 @@ begin
                         { support -WR+ / -WR- as synonyms to -WR / -WN }
                         RelocSection:=not UnsetBool(More,j);
                         RelocSectionSetExplicitly:=true;
+                      end;
+                    'T':
+                      begin
+                        if UnsetBool(More, j) then
+                          apptype:=app_cui
+                        else
+                          apptype:=app_tool;
                       end;
                     else
                       IllegalPara(opt);
@@ -1993,7 +1997,8 @@ begin
       inputextension:=sourceext
      else if FileExists(inputdir+inputfile+pasext) then
        inputextension:=pasext
-     else if ((m_mac in aktmodeswitches) or target_info.p_ext_support)
+     else if ((m_mac in aktmodeswitches) or
+              (tf_p_ext_support in target_info.flags))
              and FileExists(inputdir+inputfile+pext) then
        inputextension:=pext;
    end;

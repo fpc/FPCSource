@@ -259,7 +259,12 @@ interface
             tf_pic_uses_got,
             tf_library_needs_pic,
             tf_needs_symbol_type,
-            tf_section_threadvars
+            tf_section_threadvars,
+            tf_files_case_sensitive,
+            tf_files_case_aware,
+            tf_p_ext_support,
+            tf_has_dllscanner,
+            tf_use_function_relative_addresses
        );
 
        psysteminfo = ^tsysteminfo;
@@ -290,11 +295,9 @@ interface
           staticClibext,
           staticClibprefix : string[4];
           sharedClibprefix : string[4];
-          p_ext_support:Boolean; {Whether extension .p is supported by default}
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;
-          files_case_relevent : boolean;
           assem        : tasm;
           assemextern  : tasm; { external assembler, used by -a }
           link         : tabstractlinkerclass;
@@ -312,10 +315,8 @@ interface
             (see also FIRST_PARM_OFFSET in GCC source)
           }
           first_parm_offset : longint;
-          stacksize       : longint;
-          DllScanSupported : boolean;
-          use_function_relative_addresses : boolean;
-          abi : tabi;
+          stacksize    : longint;
+          abi          : tabi;
        end;
 
     const

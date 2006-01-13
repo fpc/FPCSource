@@ -32,7 +32,7 @@ unit i_win;
             system       : system_i386_WIN32;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
-            flags        : [{tf_section_threadvars}];
+            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses{,tf_section_threadvars}];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS';
@@ -54,11 +54,9 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : true;
             assem        : as_i386_pecoff;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
+            abi          : abi_default;
           );
 
        system_x64_win64_info : tsysteminfo =
@@ -94,7 +91,7 @@ unit i_win;
             system       : system_x86_64_win64;
             name         : 'Win64 for x64';
             shortname    : 'Win64';
-            flags        : [];
+            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
             extradefines : 'MSWINDOWS';
@@ -116,11 +113,9 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : true;
             assem        : as_x86_64_pecoff;
             assemextern  : as_x86_64_masm;
             link         : nil;
@@ -147,8 +142,7 @@ unit i_win;
               );
             first_parm_offset : 16;
             stacksize    : 262144;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
+            abi          : abi_default;
           );
 
        system_arm_wince_info : tsysteminfo =
@@ -156,7 +150,7 @@ unit i_win;
             system       : system_arm_wince;
             name         : 'WinCE for ARM';
             shortname    : 'WinCE';
-            flags        : [];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE';
@@ -178,11 +172,9 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : true;
             assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
@@ -209,8 +201,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
+            abi          : abi_default;
           );
 
        system_i386_wince_info : tsysteminfo =
@@ -218,7 +209,7 @@ unit i_win;
             system       : system_i386_wince;
             name         : 'WinCE for i386';
             shortname    : 'WinCE';
-            flags        : [];
+            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : '';
             extradefines : 'UNDER_CE';
@@ -240,11 +231,9 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : true;
             assem        : as_i386_pecoffwince;
             assemextern  : as_gas;
             link         : nil;
@@ -271,8 +260,7 @@ unit i_win;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
+            abi          : abi_default;
           );
 
 

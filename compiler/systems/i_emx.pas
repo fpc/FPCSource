@@ -62,11 +62,9 @@ unit i_emx;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            files_case_relevent : false;
             assem        : as_i386_as_aout;
             assemextern  : as_i386_as_aout;
             link         : nil;
@@ -93,8 +91,6 @@ unit i_emx;
               );
             first_parm_offset : 8;
             stacksize    : 256*1024;
-            DllScanSupported: false;
-            use_function_relative_addresses : false
           );
 
 

@@ -52,7 +52,7 @@ implementation
         KeepShared      : TStringList;
       begin
         { try to create import entries from system dlls }
-        if target_info.DllScanSupported and
+        if (tf_has_dllscanner in target_info.flags) and
            (not current_module.linkOtherSharedLibs.Empty) then
          begin
            { Init DLLScanner }
@@ -366,7 +366,7 @@ implementation
         new_section(asmlist[al_globals],sec_data,'__stklen', sizeof(aint));
         asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
         asmlist[al_globals].concat(Tai_const.Create_aint(stacksize));
-{$IFDEF POWERPC} 
+{$IFDEF POWERPC}
         { AmigaOS4 "stack cookie" support }
         if ( target_info.system = system_powerpc_amiga ) then
          begin

@@ -32,7 +32,7 @@ unit i_nwm;
             system       : system_i386_netware;
             name         : 'Netware for i386(clib)';
             shortname    : 'Netware';
-            flags        : [];
+            flags        : [tf_use_function_relative_addresses];
             cpu          : cpu_i386;
             unit_env     : 'NETWAREUNITS';
             extradefines : 'NETWARE_CLIB';
@@ -54,11 +54,9 @@ unit i_nwm;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
-            p_ext_support : false;
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '/';
-            files_case_relevent : false;
             assem        : as_i386_elf32;
             assemextern  : as_gas;
             link         : nil;
@@ -85,8 +83,6 @@ unit i_nwm;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
-            DllScanSupported:false;
-            use_function_relative_addresses : true
           );
 
   implementation

@@ -1146,7 +1146,7 @@ implementation
                              importlib.importvariable(tglobalvarsym(vs),C_name,dll_name);
                            end
                           else
-                           if target_info.DllScanSupported then
+                           if tf_has_dllscanner in target_info.flags then
                             current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
                         end;
                      end
