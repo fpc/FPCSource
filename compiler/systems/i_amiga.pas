@@ -32,7 +32,7 @@ unit i_amiga;
             system       : system_m68k_Amiga;
             name         : 'Commodore Amiga';
             shortname    : 'amiga';
-            flags        : [tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses];
             cpu          : cpu_m68k;
             unit_env     : '';
             extradefines : '';
@@ -83,7 +83,7 @@ unit i_amiga;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-    	    abi : abi_default;
+            abi : abi_default;
           );
 
        system_powerpc_amiga_info : tsysteminfo =
@@ -91,7 +91,7 @@ unit i_amiga;
             system       : system_powerpc_Amiga;
             name         : 'AmigaOS for PowerPC';
             shortname    : 'amiga';
-            flags        : [tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : '';
@@ -142,7 +142,7 @@ unit i_amiga;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-	        abi : abi_powerpc_sysv;
+            abi : abi_powerpc_sysv;
           );
 
   implementation
