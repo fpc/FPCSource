@@ -150,7 +150,7 @@ const
   TBSTYLE_LIST            = $1000;
   TBSTYLE_CUSTOMERASE     = $2000;
   TBSTYLE_TRANSPARENT     = $8000;
-  I_IMAGENONE  = -2; // Desktop listview uses this same value for I_IMAGENONE when (_WIN32_IE >= 0x0501)
+  I_IMAGENONE             = -2; // Desktop listview uses this same value for I_IMAGENONE when (_WIN32_IE >= 0x0501)
   
 //*****************************************************************************
 // types

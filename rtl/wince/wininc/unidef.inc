@@ -90,6 +90,7 @@ function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWS
 function DeleteFile(lpFileName:LPCWSTR):WINBOOL; external KernelDLL name 'DeleteFileW';
 function DefDlgProc(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLLCore name 'DefDlgProcW';
 function DefWindowProc(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLLCore name 'DefWindowProcW';
+function DialogBox(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
 function DialogBoxIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
 function DialogBoxIndirectParam(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):Integer; external UserDLLCore name 'DialogBoxIndirectParamW';
 function DispatchMessage(lpMsg:LPMSG):LONG; external UserDLLCore name 'DispatchMessageW';
@@ -228,6 +229,7 @@ function wvsprintf(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):Integer; exte
 
 //'ChooseColorW' not exported but 'ChooseColor' yes
 function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; external ComdlgDLL name 'ChooseColor';
+function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):Integer;
 //'EnumDisplaySettingsW' not exported but 'EnumDisplaySettings' with widechar header is
 function EnumDisplaySettings(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODEW):WINBOOL; external UserDLLCore name 'EnumDisplaySettings';
 //'EnumPropsExW' not exported but 'EnumPropsEx' with widechar header is
@@ -309,7 +311,6 @@ function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:LPCWSTR; _para4:DWORD; 
 function DefineDosDevice(dwFlags:DWORD; lpDeviceName:LPCWSTR; lpTargetPath:LPCWSTR):WINBOOL; external 'kernel32' name 'DefineDosDeviceW';
 function DefFrameProc(hWnd:HWND; hWndMDIClient:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefFrameProcW';
 function DefMDIChildProc(hWnd:HWND; uMsg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'DefMDIChildProcW';
-function DialogBox(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
 function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):Integer; external 'user32' name 'DialogBoxParamW';
 function DlgDirList(hDlg:HWND; lpPathSpec:LPWSTR; nIDListBox:Integer; nIDStaticPath:Integer; uFileType:UINT):Integer; external 'user32' name 'DlgDirListW';
 function DlgDirSelectEx(hDlg:HWND; lpString:LPWSTR; nCount:Integer; nIDListBox:Integer):WINBOOL; external 'user32' name 'DlgDirSelectExW';
@@ -556,6 +557,11 @@ begin
   CreateDialogIndirect:=CreateDialogIndirectParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
 end;
 
+function DialogBox(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
+begin
+  DialogBox:=DialogBoxParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
+end;
+
 function DialogBoxIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
 begin
   DialogBoxIndirect:=DialogBoxIndirectParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
@@ -565,6 +571,14 @@ end;
 
 {$ifdef WINCE}
 //begin wince only
+function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):Integer;
+begin
+ DialogBoxParam:=DialogBoxIndirectParam( hInstance,
+                                         LPCDLGTEMPLATEW(LoadResource(hInstance, FindResource(hInstance, lpTemplateName, RT_DIALOG))),
+                                         hWndParent,
+                                         lpDialogFunc,
+                                         dwInitParam);
+end;
 
 //end wince only
 {$endif WINCE}
@@ -575,11 +589,6 @@ end;
 function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 begin
   CreateDialog:=CreateDialogParam(hInstance,lpName,hWndParent,lpDialogFunc,0);
-end;
-
-function DialogBox(hInstance:HINST; lpTemplate:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):Integer;
-begin
-  DialogBox:=DialogBoxParam(hInstance,lpTemplate,hWndParent,lpDialogFunc,0);
 end;
 
 //end win32 only
