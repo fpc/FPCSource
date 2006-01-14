@@ -799,7 +799,8 @@ implementation
                            not(vo_is_external in hsym.varoptions) and
                            (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
                            ((hsym.owner=current_procinfo.procdef.localst) or
-                            (vo_is_funcret in hsym.varoptions)) then
+                            ((hsym.owner=current_procinfo.procdef.parast) and
+                             (vo_is_funcret in hsym.varoptions))) then
                           begin
                             if (vo_is_funcret in hsym.varoptions) then
                               begin
