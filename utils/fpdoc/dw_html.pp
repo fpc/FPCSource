@@ -339,7 +339,9 @@ begin
       else if s = '>' then
         s := 'greater'
       else if s = '>=' then
-        s := 'greaterthan';
+        s := 'greaterthan'
+      else if s = '><' then
+        s := 'symmetricdifference';
       Result := Result + s + '-';
       s := '';
       i := 1;
