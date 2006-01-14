@@ -40,30 +40,31 @@ type
     tkNumber,
     tkChar,
     // Simple (one-character) tokens
-    tkBraceOpen,        // '('
-    tkBraceClose,       // ')'
-    tkMul,              // '*'
-    tkPlus,             // '+'
-    tkComma,            // ','
-    tkMinus,            // '-'
-    tkDot,              // '.'
-    tkDivision,         // '/'
-    tkColon,            // ':'
-    tkSemicolon,        // ';'
-    tkLessThan,         // '<'
-    tkEqual,            // '='
-    tkGreaterThan,      // '>'
-    tkAt,               // '@'
-    tkSquaredBraceOpen, // '['
-    tkSquaredBraceClose,// ']'
-    tkCaret,            // '^'
+    tkBraceOpen,             // '('
+    tkBraceClose,            // ')'
+    tkMul,                   // '*'
+    tkPlus,                  // '+'
+    tkComma,                 // ','
+    tkMinus,                 // '-'
+    tkDot,                   // '.'
+    tkDivision,              // '/'
+    tkColon,                 // ':'
+    tkSemicolon,             // ';'
+    tkLessThan,              // '<'
+    tkEqual,                 // '='
+    tkGreaterThan,           // '>'
+    tkAt,                    // '@'
+    tkSquaredBraceOpen,      // '['
+    tkSquaredBraceClose,     // ']'
+    tkCaret,                 // '^'
     // Two-character tokens
-    tkDotDot,           // '..'
-    tkAssign,           // ':='
-    tkNotEqual,         // '<>'
-    tkLessEqualThan,	// '<='
-    tkGreaterEqualThan,	// '>='
-    tkPower,            // '**'
+    tkDotDot,                // '..'
+    tkAssign,                // ':='
+    tkNotEqual,              // '<>'
+    tkLessEqualThan, 	     // '<='
+    tkGreaterEqualThan,      // '>='
+    tkPower,                 // '**'
+    tkSymmetricalDifference, // '><'
     // Reserved words
     tkabsolute,
     tkand,
@@ -248,6 +249,7 @@ const
     '<=',
     '>=',
     '**',
+    '><',
     // Reserved words
     'absolute',
     'and',
@@ -796,6 +798,10 @@ begin
 	begin
 	  Inc(TokenStr);
 	  Result := tkGreaterEqualThan;
+        end else if TokenStr[0] = '<' then
+        begin
+	  Inc(TokenStr);
+	  Result := tkSymmetricalDifference;
 	end else
 	  Result := tkGreaterThan;
       end;
