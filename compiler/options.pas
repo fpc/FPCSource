@@ -793,6 +793,10 @@ begin
                          else
                            include(initglobalswitches,cs_gdb_valgrind);
                        end;
+                     'w' :
+                       begin
+                         paratargetdbg:=dbg_dwarf;
+                       end;
                      else
                        IllegalPara(opt);
                    end;
