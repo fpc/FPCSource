@@ -32,15 +32,18 @@ abitag:
         .section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
         .string ""
-.globl __progname
 	.data
         .p2align 2
+	.globl __progname
         .type    __progname,@object
         .size    __progname,4
 __progname:
         .long .LC0
         .text
         .p2align  2,,3
+	.type   __fpucw,@object
+        .size   __fpucw,4
+        .global __fpucw
 ___fpucw:
         .long   0x1332
         .globl  ___fpc_brk_addr         /* heap management */
@@ -165,8 +168,25 @@ get_rtld_cleanup:
 
         .weak   _DYNAMIC
         .ident  "GCC: (GNU) 3.4.2 - FPC: 2.0.2"
+
 .bss
-        .comm operatingsystem_parameter_envp,4
-        .comm operatingsystem_parameter_argc,4
-        .comm operatingsystem_parameter_argv,4        
-        
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
+
+        .type operatingsystem_parameters,@object
+        .size operatingsystem_parameters,12
+operatingsystem_parameters:
+        .skip 3*4
+
+        .global operatingsystem_parameter_envp
+        .global operatingsystem_parameter_argc
+        .global operatingsystem_parameter_argv
+        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
+        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
+        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+
+//.section .threadvar,"aw",@nobits
+        .comm   ___fpc_threadvar_offset,4

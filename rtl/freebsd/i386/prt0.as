@@ -20,17 +20,20 @@
         .file   "prt1.as"
         .version        "01.01"
 gcc2_compiled.:
-.globl __progname
 .section        .rodata
 .LC0:
         .ascii "\0"
 .data
         .p2align 2
+	.globl __progname
         .type    __progname,@object
         .size    __progname,4
 __progname:
         .long .LC0
         .align  4
+        .type   __fpucw,@object
+        .size   __fpucw,4
+        .global __fpucw
 ___fpucw:
         .long   0x1332
 
@@ -39,7 +42,6 @@ ___fpucw:
         .size   ___fpc_brk_addr,4
 ___fpc_brk_addr:
         .long   0
-
 
 .text
         .p2align 2
@@ -123,8 +125,25 @@ _actualsyscall:
         .weak   _DYNAMIC
         .ident  "GCC: (GNU) 2.7.2.1"
 
+
 .bss
-        .comm operatingsystem_parameter_envp,4
-        .comm operatingsystem_parameter_argc,4
-        .comm operatingsystem_parameter_argv,4
-	
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
+
+        .type operatingsystem_parameters,@object
+        .size operatingsystem_parameters,12
+operatingsystem_parameters:
+        .skip 3*4
+
+        .global operatingsystem_parameter_envp
+        .global operatingsystem_parameter_argc
+        .global operatingsystem_parameter_argv
+        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
+        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
+        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+
+//.section .threadvar,"aw",@nobits
+        .comm   ___fpc_threadvar_offset,4
