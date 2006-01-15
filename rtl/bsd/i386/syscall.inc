@@ -31,6 +31,8 @@ These functions are the same over all three BSDs, except that some have a
  {$DEFINE ErrnoWord}
 {$endif}
 
+Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
+
 procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
     asm
          int $0x80
