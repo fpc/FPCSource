@@ -58,23 +58,10 @@ $History: LEX.PAS $
 
 }
 
-{$IFDEF MsDos}
-{$M 16384,0,655360}
-{$ENDIF}
-{$IFDEF DPMI}
-{$M 32768}
-{$ENDIF}
-{$IFDEF Windows}
-{$M 32768,0}
-{$ENDIF}
-
 {$I-}
 program Lex;
 
 uses
-{$IFDEF Windows}
-  WinCrt,
-{$ENDIF}
   LexBase, LexTable, LexPos, LexDFA, LexOpt, LexList, LexRules, LexMsgs;
 
 
