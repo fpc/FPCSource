@@ -35,7 +35,11 @@ unit i_bsd;
             system       : system_i386_FreeBSD;
             name         : 'FreeBSD/ELF for i386';
             shortname    : 'FreeBSD';
-            flags        : [tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses,
+            {$ifdef segment_threadvars}
+                                        tf_section_threadvars,
+            {$endif segment_threadvars}
+                           tf_needs_symbol_type,tf_needs_symbol_size {,tf_smartlink_sections}];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';

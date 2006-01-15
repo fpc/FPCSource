@@ -206,10 +206,13 @@ begin
 end;
 
 
-procedure texportlibbsd.generatelib;
+procedure texportlibbsd.generatelib;  // straight t_linux copy for now.
 var
   hp2 : texported_item;
+  sym : tasmsymbol;
+  r : treference;
 begin
+  new_section(asmlist[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -220,19 +223,26 @@ begin
           is declared with cdecl }
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
-{$ifdef i386}
            { place jump in al_procedures }
-           asmlist[al_procedures].concat(Tai_align.Create_op(4,$90));
+           asmlist[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
            asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           asmlist[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           if (cs_create_pic in aktmoduleswitches) and
+             { other targets need to be checked how it works }
+             (target_info.system in [system_i386_freebsd]) then
+             begin
+{$ifdef x86}
+               sym:=objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+               reference_reset_symbol(r,sym,0);
+               if cs_create_pic in aktmoduleswitches then
+                 r.refaddr:=addr_pic
+               else
+                 r.refaddr:=addr_full;
+               asmlist[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
+{$endif x86}
+             end
+           else
+             cg.a_jmp_name(asmlist[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
            asmlist[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-{$endif i386}
-{$ifdef powerpc}
-           asmlist[al_procedures].concat(Tai_align.create(16));
-           asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           asmlist[al_procedures].concat(Taicpu.Op_sym(A_B,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           asmlist[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-{$endif powerpc}
          end;
       end
      else
@@ -243,7 +253,7 @@ end;
 
 
 {*****************************************************************************
-                                  TLINKERLINUX
+                                  TLINKERBSD
 *****************************************************************************}
 
 Constructor TLinkerBSD.Create;
@@ -457,7 +467,7 @@ begin
         else
          begin
            linklibc:=true;
-           linkdynamic:=false; { libc will include the ld-linux for us }
+           linkdynamic:=false; { libc will include the ld-* for us }
          end;
       end;
      { be sure that libc is the last lib }
