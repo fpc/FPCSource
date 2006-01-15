@@ -65,21 +65,9 @@ INTERFACE
 {$R-}         {No range checking}
 
 USES
-{$ifdef windows}
-wintypes,
-winprocs,
-{$ifdef Delphi}
-Messages,
-Sysutils,
-{$else Delphi}
-strings,
-windos,
-{$endif Delphi}
-{$else Windows}
-strings,
-dos,
-{$endif Windows}
-ziptypes;
+  strings,
+  dos,
+  ziptypes;
 
 {**********************************************************************}
 {**********************************************************************}
@@ -89,8 +77,6 @@ ziptypes;
 FUNCTION FileUnzip
 ( SourceZipFile, TargetDirectory, FileSpecs : pChar;
  Report : UnzipReportProc;Question : UnzipQuestionProc ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 
 {
 high level unzip
@@ -110,8 +96,6 @@ e.g.,
 }
 
 FUNCTION FileUnzipEx ( SourceZipFile, TargetDirectory, FileSpecs : pChar ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 high level unzip with no callback parameters;
 passes ZipReport & ZipQuestion internally, so you
@@ -122,8 +106,6 @@ e.g.,
 }
 
 FUNCTION ViewZip ( SourceZipFile, FileSpecs : pChar; Report : UnzipReportProc ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 view contents of zip file
 usage:
@@ -138,8 +120,6 @@ e.g.,
 }
 
 FUNCTION  SetUnZipReportProc ( aProc : UnzipReportProc ) : Pointer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 sets the internal unzip report procedure to aproc
 Returns: pointer to the original report procedure
@@ -150,8 +130,6 @@ e.g.,
 }
 
 FUNCTION  SetUnZipQuestionProc ( aProc : UnzipQuestionProc ) : Pointer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 sets the internal unzip question procedure to aproc
 Returns: pointer to the original "question" procedure
@@ -162,8 +140,6 @@ SetUnZipQuestionProc(QueryFileExistProc);
 }
 
 FUNCTION UnzipSize ( SourceZipFile : pChar;VAR Compressed : Longint ) : longint;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 { uncompressed and compressed zip size
  usage:
  SourceZipFile  = the zip file
@@ -179,15 +155,11 @@ e.g.,
 }
 
 PROCEDURE ChfUnzip_Init;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 initialise or reinitialise the shared data: !!! use with care !!!
 }
 
 FUNCTION SetNoRecurseDirs ( DontRecurse : Boolean ) : Boolean;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
 determine whether the UNZIP function should recreate
 the subdirectory structure;
@@ -201,14 +173,10 @@ the subdirectory structure;
 {**********************************************************************}
 {**********************************************************************}
 FUNCTION GetSupportedMethods : longint;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {Checks which pack methods are supported by the dll}
 {bit 8=1 -> Format 8 supported, etc.}
 
 FUNCTION UnzipFile ( in_name : pchar;out_name : pchar;offset : longint;hFileAction : word;cm_index : integer ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {usage:
  in_name:      name of zip file with full path
  out_name:     desired name for out file
@@ -244,8 +212,6 @@ FUNCTION UnzipFile ( in_name : pchar;out_name : pchar;offset : longint;hFileActi
 }
 
 FUNCTION  GetFirstInZip ( zipfilename : pchar;VAR zprec : tZipRec ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
  Get first entry from ZIP file
  e.g.,
@@ -253,8 +219,6 @@ FUNCTION  GetFirstInZip ( zipfilename : pchar;VAR zprec : tZipRec ) : integer;
 }
 
 FUNCTION  GetNextInZip ( VAR Zprec : tZiprec ) : integer;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
   Get next entry from ZIP file
 
@@ -263,8 +227,6 @@ FUNCTION  GetNextInZip ( VAR Zprec : tZiprec ) : integer;
 }
 
 FUNCTION  IsZip ( filename : pchar ) : boolean;
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
   VERY simple test for zip file
 
@@ -273,8 +235,6 @@ FUNCTION  IsZip ( filename : pchar ) : boolean;
 }
 
 PROCEDURE CloseZipFile ( VAR Zprec : tZiprec );  {Only free buffer, file only open in Getfirstinzip}
-{$ifdef Windows}{$ifdef Win32}STDCALL;{$else}EXPORT;{$endif Win32}{$endif Windows}
-{$ifdef DPMI} EXPORT; {$endif DPMI}
 {
   free ZIP buffers
 
@@ -384,10 +344,6 @@ TYPE
 VAR slide : pchar;            {Sliding dictionary for unzipping}
     inbuf : iobuf;            {input buffer}
     inpos, readpos : integer;  {position in input buffer, position read from file}
-{$ifdef windows}
-    dlghandle : word;         {optional: handle of a cancel and "%-done"-dialog}
-    dlgnotify : integer;      {notification code to tell dialog how far the decompression is}
-{$endif}
 
 VAR w : longint;                 {Current Position in slide}
     b : longint;              {Bit Buffer}
@@ -402,10 +358,6 @@ VAR w : longint;                 {Current Position in slide}
     totalabort,             {User pressed abort button, set in showpercent!}
     zipeof : boolean;         {read over end of zip section for this file}
     inuse : boolean;          {is unit already in use -> don't call it again!!!}
-{$ifdef windows}
-    oldpercent : integer;     {last percent value shown}
-    lastusedtime : longint;   {Time of last usage in timer ticks for timeout!}
-{$endif}
 
 (***************************************************************************)
 {.$I z_tables.pas}  {Tables for bit masking, huffman codes and CRC checking}
@@ -574,38 +526,6 @@ BEGIN
 {$endif}
 END;
 
-{************************* tell dialog to show % ******************************}
-{$ifdef windows}
-PROCEDURE messageloop;
-VAR msg : tmsg;
-BEGIN
-  lastusedtime := gettickcount;
-  WHILE PeekMessage ( Msg, 0, 0, 0, PM_Remove ) DO
-    IF ( dlghandle = 0 ) OR NOT IsDialogMessage ( dlghandle, msg ) THEN BEGIN
-      TranslateMessage ( Msg );
-      DispatchMessage ( Msg );
-    END;
-END;
-PROCEDURE showpercent; {use this with the low level functions only !!!}
-VAR percent : word;
-BEGIN
-  IF compsize <> 0 THEN BEGIN
-    percent := reachedsize * 100 DIV compsize;
-    IF percent > 100 THEN percent := 100;
-    IF ( percent <> oldpercent ) THEN BEGIN
-      oldpercent := percent;
-      IF dlghandle <> 0 THEN BEGIN     {Use dialog box for aborting}
-        {Sendmessage returns directly -> ppercent contains result}
-        sendmessage ( dlghandle, wm_command, dlgnotify, longint ( @percent ) );
-        totalabort := ( percent = $FFFF );   {Abort pressed!}
-      END ELSE
-        IF dlgnotify <> 0 THEN
-          totalabort := getasynckeystate ( dlgnotify ) < 0;  {break Key pressed!}
-    END;
-  END;
-END;
-{$endif}
-
 {************************** fill inbuf from infile *********************}
 
 PROCEDURE readbuf;
@@ -614,10 +534,6 @@ BEGIN
     readpos := sizeof ( inbuf ); {Simulates reading -> no blocking}
     zipeof := TRUE
   END ELSE BEGIN
-    {$ifdef windows}
-    messageloop;      {Other programs, or in DOS: keypressed?}
-    showpercent;      {Before, because it shows the data processed, not read!}
-    {$endif}
     {$I-}
     blockread ( infile, inbuf, sizeof ( inbuf ), readpos );
     {$I+}
@@ -1422,10 +1338,6 @@ BEGIN
       exit
     END;
     inc ( reachedsize, outcnt );
-    {$ifdef windows}
-    messageloop;      {Other programs, or in DOS: keypressed?}
-    showpercent;
-    {$endif}
   END;
   IF NOT totalabort THEN
     copystored := unzip_Ok
@@ -2326,22 +2238,6 @@ VAR err : integer;
     oldcurdir : string [ 80 ];
 
 BEGIN
-  {$ifdef windows}
-  IF inuse THEN BEGIN
-    {take care of crashed applications!}
-    IF ( lastusedtime <> 0 ) AND
-      ( abs ( gettickcount -lastusedtime ) > 30000 ) THEN BEGIN {1/2 minute timeout!!!}
-      {do not close files or free slide, they were already freed when application crashed!}
-      inuse := FALSE;
-      {memory for huffman trees is lost}
-    END ELSE BEGIN
-      unzipfile := unzip_inuse;
-      exit
-    END;
-  END;{inuse}
-
-  inuse := TRUE;
-  {$endif}
   getmem ( slide, wsize );
   fillchar ( slide [ 0 ], wsize, #0 );
   assign ( infile, in_name );
@@ -2439,44 +2335,23 @@ BEGIN
     IF ( p <> NIL ) AND ( p [ 1 ] = ':' ) THEN BEGIN
       strcopy ( buf0, 'c:\' );    {set drive}
       buf0 [ 0 ] := p [ 0 ];
-      {$ifdef windows}
-      setcurdir ( buf0 );
-      {$else}
       {$I-}
       chdir ( buf0 );
       {$I+}
       err := ioresult;
-      {$endif}
       p := strtok ( NIL, '\' );
     END;
 {$endif}
     WHILE ( p <> NIL ) AND ( p <> p1 ) DO BEGIN
-      {$ifdef windows}
-       {$ifdef Delphi}
-      {$I-}
-         chdir ( strpas ( p ) );
-      {$I+}
-         err := ioresult;
-       {$else Delphi}
-        setcurdir ( p );
-        err := doserror;
-       {$endif Delphi}
-      {$else Windows}
       {$I-}
       chdir ( strpas ( p ) );
       {$I+}
       err := ioresult;
-      {$endif}
       IF err <> 0 THEN BEGIN
-        {$ifdef windows}
-        createdir ( p );
-        err := doserror;
-        {$else}
         {$I-}
         mkdir ( strpas ( p ) );
         {$I+}
         err := ioresult;
-        {$endif}
         IF err = 0 THEN
           {$I-}
           chdir ( strpas ( p ) );
@@ -2516,13 +2391,6 @@ BEGIN
   totalabort := FALSE;
   zipeof := FALSE;
 
-  {$ifdef windows}
-  dlghandle := hFileAction;
-  dlgnotify := cm_index;
-  messageloop;
-  oldpercent := 0;
-  {$endif}
-
   crc32val := $FFFFFFFF;
 
   {Unzip correct type}
@@ -2555,11 +2423,6 @@ BEGIN
     unzipfile := unzip_CRCErr;
     erase ( outfile );
   END ELSE BEGIN
-    {$ifdef windows}
-    oldpercent := 100;       {100 percent}
-    IF dlghandle <> 0 THEN
-      sendmessage ( dlghandle, wm_command, dlgnotify, longint ( @oldpercent ) );
-    {$endif}
     filemode := 2;
     reset ( outfile );
     filemode := storefilemode;
@@ -2953,13 +2816,11 @@ END;
 {$endif Delphi}
 
 PROCEDURE DummyReport ( Retcode : longint;Rec : pReportRec );
-{$ifdef Windows}{$ifdef win32}STDCALL;{$else}EXPORT;{$endif}{$endif}
 {dummy report procedure}
 BEGIN
 END;
 
 FUNCTION DummyQuestion( Rec : pReportRec ) : Boolean;
-{$ifdef Windows}{$ifdef win32}STDCALL;{$else}EXPORT;{$endif}{$endif}
 {dummy question procedure}
 begin
   DummyQuestion:=true;
@@ -3106,7 +2967,7 @@ BEGIN
          END;
       END ELSE BEGIN
           rc := unzipfile ( thename, buf, r.headeroffset, 0,
-          {$ifdef windows}vk_escape{$else}27{$endif} ); {Escape interrupts}
+          27 ); {Escape interrupts}
       END;
 
       IF rc = unzip_ok
@@ -3303,10 +3164,6 @@ END; { SetNoRecurseDirs }
 PROCEDURE ChfUnzip_Init;
 BEGIN
    slide := NIL;       {unused}
-  {$ifdef windows}
-   inuse := FALSE;    {Not yet in use!}
-   lastusedtime := 0; {Not yet used}
-  {$endif}
   if inuse then; { to remove warning }
   SetUnZipReportProc ( NIL );
   SetUnZipQuestionProc ( NIL );
