@@ -37,38 +37,35 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
          jb .LErrorcode
          ret
 .LErrorcode:
-{$ifdef REGCALL}
+{$ifdef FPC_PIC}
+  call  fpc_geteipasebx
+  addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl  fpc_threadvar_relocate_proc@GOT(%ebx),%ecx
+  movl  (%ecx),%ecx
+  movl  Errno@GOT(%ebx),%edi
+{$else FPC_PIC}
+  leal  Errno,%edi
   movl  fpc_threadvar_relocate_proc,%ecx
+{$endif FPC_PIC}
   testl %ecx,%ecx
   jne   .LThread
-  movl  %eax,Errno+4
+ {$ifdef ErrnoWord}
+  movw   %ax,4(%edi)
+ {$else}
+  movl  %eax,4(%edi)
+ {$endif}
   jmp   .LNoThread
 .LThread:
   movl  %eax,%ebx
-  movl Errno,%eax
+  movl  (%edi),%eax
   call  *%ecx
-  movl  %ebx,(%eax)
+ {$ifdef ErrnoWord}
+  movw   %bx,4(%eax)
+ {$else}
+  movl  %ebx,4(%eax)
+ {$endif}
 .LNoThread:
-{$else}
-  movl  %eax,%edx
-  movl  fpc_threadvar_relocate_proc,%eax
-  testl %eax,%eax
-  jne   .LThread
-  movl  %edx,Errno+4
-  jmp   .LNoThread
-.LThread:
-  pushl %edx
-  pushl Errno
-  call  *%eax
-  popl  %edx
-  {$ifdef ErrnoWord}
-   movw  %dx,(%eax)
-  {$else}
-   movl %edx,(%eax)
-  {$endif}
-.LNoThread:
-{$endif REGCALL}
-  mov $-1,%eax
+  movl  $-1,%eax
 end;
 
 function FpSysCall(sysnr:TSysParam):TSysResult; oldfpccall; assembler; [public,alias:'FPC_DOSYS0'];
