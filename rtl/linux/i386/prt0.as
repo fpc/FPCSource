@@ -44,20 +44,27 @@ _start:
         /* First locate the start of the environment variables */
         popl    %ecx                    /* Get argc in ecx */
         movl    %esp,%ebx               /* Esp now points to the arguments */
-	leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
+        leal    4(%esp,%ecx,4),%eax     /* The start of the environment is: esp+4*eax+4 */
         andl    $0xfffffff8,%esp        /* Align stack */
 
-	leal    operatingsystem_parameters,%edi
-	stosl	/* Move the environment pointer */
-	xchg    %ecx,%eax
-	stosl   /* Move the argument counter    */
-	xchg	%ebx,%eax
-	stosl   /* Move the argument pointer    */
+        leal    operatingsystem_parameters,%edi
+        stosl   /* Move the environment pointer */
+        xchg    %ecx,%eax
+        stosl   /* Move the argument counter    */
+        xchg    %ebx,%eax
+        stosl   /* Move the argument pointer    */
 
 
         fninit                           /* initialize fpu */
         fwait
         fldcw   ___fpucw
+
+#        /* Initialize gs for thread local storage */
+#        movw    %ds,%ax
+#        movw    %ax,%gs
+
+        /* Save initial stackpointer */
+        movl    %esp,__stkptr
 
         xorl    %ebp,%ebp
         call    PASCALMAIN
@@ -66,7 +73,7 @@ _start:
         .type   _haltproc,@function
 _haltproc:
 _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
-	movl    $252,%eax                /* exit_group */
+        movl    $252,%eax                /* exit_group */
         movzwl  operatingsystem_result,%ebx
         int     $0x80
         movl    $1,%eax                /* exit */
@@ -80,17 +87,23 @@ ___fpucw:
 
 
 .bss
-        .type   ___fpc_brk_addr,@object
-	.comm   ___fpc_brk_addr,4        /* heap management */
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
 
         .type operatingsystem_parameters,@object
         .size operatingsystem_parameters,12
 operatingsystem_parameters:
-	.skip 3*4
+        .skip 3*4
 
-	.global operatingsystem_parameter_envp
-	.global operatingsystem_parameter_argc
-	.global operatingsystem_parameter_argv
-	.set operatingsystem_parameter_envp,operatingsystem_parameters+0
-	.set operatingsystem_parameter_argc,operatingsystem_parameters+4
-	.set operatingsystem_parameter_argv,operatingsystem_parameters+8
+        .global operatingsystem_parameter_envp
+        .global operatingsystem_parameter_argc
+        .global operatingsystem_parameter_argv
+        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
+        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
+        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+
+//.section .threadvar,"aw",@nobits
+        .comm   ___fpc_threadvar_offset,4

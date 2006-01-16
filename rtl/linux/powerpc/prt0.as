@@ -1,6 +1,3 @@
-/*
-  $Id: prt0.as,v 1.14 2004/08/18 14:26:50 karoly Exp $
-*/
 /* Startup code for programs linked with GNU libc.
    Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -44,8 +41,11 @@ _start:
 	lis 	11,operatingsystem_parameter_envp@ha
 	stw 	5,operatingsystem_parameter_envp@l(11);
 
+    lis 	11,__stkptr@ha
+	stw 	1,__stkptr@l(11);
+
 	bl	PASCALMAIN
-	
+
 	b	_haltproc
 
         .globl  _haltproc
@@ -60,58 +60,10 @@ _haltproc:
 	.globl	__data_start
 __data_start:
 data_start:
-        .globl  ___fpc_brk_addr         /* heap management */
-        .type   ___fpc_brk_addr,@object
-        .size   ___fpc_brk_addr,4
-___fpc_brk_addr:
-        .long   0
 
 .text
+        .comm __stkptr,4
+
         .comm operatingsystem_parameter_envp,4
         .comm operatingsystem_parameter_argc,4
         .comm operatingsystem_parameter_argv,4
-/*
-
-  Revision 1.14  2004/08/18 14:26:50  karoly
-    * quick fix to make it compile
-
-  Revision 1.13  2004/07/03 21:50:31  daniel
-    * Modified bootstrap code so separate prt0.as/prt0_10.as files are no
-      longer necessary
-
-  Revision 1.12  2004/05/26 20:48:17  florian
-    * _haltproc fixed
-
-  Revision 1.11  2004/01/04 17:23:57  florian
-    + header added
-
-  Revision 1.10  2003/05/12 22:36:45  florian
-    + added setup of argv, argc and envp
-
-  Revision 1.9  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/08/31 21:29:57  florian
-    * several PC related fixes
-
-  Revision 1.7  2002/08/31 16:13:12  florian
-    * made _start global
-
-  Revision 1.6  2002/08/31 14:02:23  florian
-    * r3 renamed to 3
-
-  Revision 1.5  2002/08/31 14:01:28  florian
-    * _haltproc to prt0.as added (Linux/PPC)
-
-  Revision 1.4  2002/08/31 13:11:11  florian
-    * several fixes for Linux/PPC compilation
-
-  Revision 1.3  2002/08/19 21:19:15  florian
-    * small fixes
-
-  Revision 1.2  2002/07/26 17:09:44  florian
-    * log fixed
-
-  Revision 1.1  2002/07/26 16:57:40  florian
-    + initial version, plain copy from glibc/sysdeps/powerpc/elf/start.S
-*/
