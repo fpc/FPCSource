@@ -898,8 +898,8 @@ begin
      {$else ARM}
        targetopts:='-b pe-i386 -m i386pe';
      {$endif ARM}
-     ExeCmd[1]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
        use short forms to avoid 128 char limitation problem }
      ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
@@ -1036,6 +1036,7 @@ var
   success : boolean;
   cmds,i       : longint;
   AsBinStr     : string[80];
+  GCSectionsStr,
   StripStr,
   RelocStr,
   AppTypeStr,
@@ -1049,9 +1050,13 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  GCSectionsStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
+  if (af_smartlink_sections in target_asm.flags) and
+     (tf_smartlink_sections in target_info.flags) then
+   GCSectionsStr:='--gc-sections';
   if target_info.system in [system_arm_wince,system_i386_wince] then
     begin
       AppTypeStr:='--subsystem wince';
@@ -1087,6 +1092,7 @@ begin
         Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
+        Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
         Replace(cmdstr,'$STRIP',StripStr);
         if not DefFile.Empty then
           begin

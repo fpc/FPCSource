@@ -98,7 +98,7 @@ implementation
 
         { Also create a smartlinked version ? }
         if (cs_create_smart in aktmoduleswitches) and
-           not(af_smartlink_sections in target_asm.flags) then
+           (not use_smartlink_section) then
          begin
            { regenerate the importssection for win32 }
            if assigned(asmlist[al_imports]) and

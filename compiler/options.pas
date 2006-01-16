@@ -2117,6 +2117,11 @@ begin
   if target_info.system=system_arm_wince then
     include(initmoduleswitches,cs_fp_emulation);
 
+  { Section smartlinking conflicts with import sections on Windows }
+  if GenerateImportSection and
+     (target_info.system in [system_i386_win32]) then
+    exclude(target_info.flags,tf_smartlink_sections);
+
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}
   exclude(initmoduleswitches,cs_create_smart);
