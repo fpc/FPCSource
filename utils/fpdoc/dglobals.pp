@@ -279,11 +279,15 @@ procedure TranslateDocStrings(const Lang: String);
 Function IsLinkNode(Node : TDomNode) : Boolean;
 Function IsExampleNode(Example : TDomNode) : Boolean;
 
-
+// returns true is link is an absolute URI
+Function IsLinkAbsolute(ALink: String): boolean;
 
 implementation
 
 uses SysUtils, Gettext, XMLRead;
+
+const
+  AbsoluteLinkPrefixes : array[0..2] of string = ('/', 'http://', 'ms-its:');
 
 
 { TObjectList }
@@ -697,6 +701,8 @@ var
 var
   s: String;
 begin
+  if not FileExists(AFileName) then
+    raise EInOutError.Create('File not found: ' + AFileName);
   Assign(f, AFilename);
   Reset(f);
   while not EOF(f) do
@@ -1214,6 +1220,18 @@ Function IsExampleNode(Example : TDomNode) : Boolean;
 
 begin
   Result:=Assigned(Example) and (Example.NodeType = ELEMENT_NODE) and (Example.NodeName = 'example')
+end;
+
+function IsLinkAbsolute(ALink: String): boolean;
+var
+  i: integer;
+begin
+  Result := false;
+  for i := low(AbsoluteLinkPrefixes) to high(AbsoluteLinkPrefixes) do
+    if CompareText(AbsoluteLinkPrefixes[i], copy(ALink,1,length(AbsoluteLinkPrefixes[i])))=0 then begin
+      Result := true;
+      break;
+    end;
 end;
 
 initialization
