@@ -1093,7 +1093,7 @@ implementation
              storefilepos:=aktfilepos;
              aktfilepos:=sym.fileinfo;
 
-             asmlist[cural].concat(tai_symbol_end.Createname(sym.mangledname));
+             curconstSegment.concat(tai_symbol_end.Createname(sym.mangledname));
              aktfilepos:=storefilepos;
            end;
       end;
