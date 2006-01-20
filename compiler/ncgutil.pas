@@ -1703,7 +1703,8 @@ implementation
           end;
 
         { call startup helpers from main program }
-        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+        if (current_procinfo.procdef.proctypeoption=potype_proginit) and
+           not(current_module.islibrary) then
          begin
            if (target_info.system = system_powerpc_darwin) or
               (target_info.system = system_powerpc_macos) then
