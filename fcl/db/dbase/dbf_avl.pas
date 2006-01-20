@@ -2,6 +2,11 @@ unit dbf_avl;
 
 interface
 
+{$I dbf_common.inc}
+
+uses
+  Dbf_Common;
+
 type
   TBal = -1..1;
 

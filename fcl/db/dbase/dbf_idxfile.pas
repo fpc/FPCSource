@@ -3063,6 +3063,9 @@ begin
   end else begin
     UpdateCurrent(PrevBuffer, NewBuffer);
   end;
+  // check range, disabled by delete/insert
+  if (FRoot.LowPage = 0) and (FRoot.HighPage = 0) then
+    ResyncRange(true);
 end;
 
 procedure TIndexFile.UpdateCurrent(PrevBuffer, NewBuffer: PChar);
@@ -3086,8 +3089,6 @@ begin
       // now set userkey to key to insert
       FUserKey := @TempBuffer[0];
       InsertCurrent;
-      // check range, disabled by delete/insert
-      ResyncRange(true);
     end;
   end;
 end;

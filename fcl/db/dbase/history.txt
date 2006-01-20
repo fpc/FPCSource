@@ -33,6 +33,45 @@ BUGS & WARNINGS
 
 
 ------------------------
+V6.4.7
+
+- fixed: 64bit compatibility
+- fixed: Field.FieldNo is relative to number of FieldDefs, may be larger
+- added: function Max for Delphi 3, needed by dbf_avl unit
+- added: BCB3 package files (thx to pzelotti)
+- fixed: add special case for copying from source TDbf in CopyFrom to retain
+    more precise field types
+- fixed: TDbf.CopyFrom to keep Fields and FieldDefs seperate
+- fixed: TDbfFieldDefs.Add to ignore size when it is zero
+- added: TDbf.Lookup and as such, lookup fields, should work now
+- added: defines for delphi 2006 and 2007
+- fixed: some range checking errors when swapping data
+- added: packages for delphi 2005 and 2006, c++ 2006 (from stan and others)
+- fixed: modifying records with active range
+- added: packages for kylix 3, fix casing (from jvargas)
+
+
+------------------------
+V6.4.6
+
+- fixed: FPC 2.0.1 implements "backward-compatible" fielddata 
+    for datetime fields in particular (from alexandrov)
+- fixed: only allow >255 field length for creating foxpro files; prevents
+    range check error (rep by miguel)
+- fixed: memo read: check number of bytes read, clear rest for safety
+- added: support for foxpro double, fieldtype 'B'
+- fixed: foxpro memo pageno is binary 4 byte integer, not ascii
+- added: default values are buffered, better/faster record insert
+- added: support for long character fields compiletime definable
+    (USE_LONG_CHAR_FIELDS)
+- fixed: added boolean field support in expressions (note: breaks existing)
+- fixed: compilation with USE_CACHE directive
+- fixed: add my own SwapWord function, because Swap seems buggy in fpc
+- fixed: VCL fieldtype ftDateTime was not translated to any native type
+    for non dBase VII and non FoxPro (hint by paul van helden)
+
+
+------------------------
 V6.4.5
 
 - fixed: index create string raises exception unknown type

@@ -178,7 +178,8 @@ begin
   FieldDef := AddFieldDef;
   FieldDef.FieldName := Name;
   FieldDef.FieldType := DataType;
-  FieldDef.Size := size;
+  if Size <> 0 then
+    FieldDef.Size := Size;
   FieldDef.Required := Required;
 end;
 
@@ -257,7 +258,7 @@ begin
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
   // for integer / float fields try fill in size/precision
-  SetDefaultSize;
+  CheckSizePrecision;
   // VCL does not have default value support
   AllocBuffers;
   FHasDefault := false;
@@ -363,7 +364,11 @@ begin
       end;
     'D' : FFieldType := ftDate;
     'M' : FFieldType := ftMemo;
-    'B' : FFieldType := ftBlob;
+    'B' : 
+      if DbfVersion = xFoxPro then
+        FFieldType := ftFloat
+      else
+        FFieldType := ftBlob;
     'G' : FFieldType := ftDBaseOle;
     'Y' :
       if DbfGlobals.CurrencyAsBCD then
@@ -387,7 +392,9 @@ begin
         FNativeFieldType := '@'
       else
       if DbfVersion = xFoxPro then
-        FNativeFieldType := 'T';
+        FNativeFieldType := 'T'
+      else
+        FNativeFieldType := 'D';
 {$ifdef SUPPORT_FIELDTYPES_V4}
     ftFixedChar,
     ftWideString,
@@ -466,8 +473,16 @@ begin
   case FNativeFieldType of
     'C':
       begin
-        if FSize < 0      then FSize := 0;
-        if FSize >= 65534 then FSize := 65534;
+        if FSize < 0 then 
+          FSize := 0;
+        if DbfVersion = xFoxPro then
+        begin
+          if FSize >= $FFFF then 
+            FSize := $FFFF;
+        end else begin
+          if FSize >= $FF then 
+            FSize := $FF;
+        end;
         FPrecision := 0;
       end;
     'L':
@@ -490,7 +505,10 @@ begin
       end;
     'M','G','B':
       begin
-        FSize := 10;
+        if DbfVersion = xFoxPro then
+          FSize := 4
+        else
+          FSize := 10;
         FPrecision := 0;
       end;
     '+','I':

@@ -52,6 +52,7 @@ type
     FIndexFiles: TList;
     FDbfVersion: TXBaseVersion;
     FPrevBuffer: PChar;
+    FDefaultBuffer: PChar;
     FRecordBufferSize: Integer;
     FLockUserLen: DWORD;
     FFileCodePage: Cardinal;
@@ -78,6 +79,7 @@ type
     
   protected
     procedure ConstructFieldDefs;
+    procedure InitDefaultBuffer;
     procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
     procedure WriteLockInfo(Buffer: PChar);
 
@@ -293,11 +295,6 @@ begin
   FFieldDefs := TDbfFieldDefs.Create(nil);
   FIndexNames := TStringList.Create;
   FIndexFiles := TList.Create;
-  FOnLocaleError := nil;
-  FOnIndexMissing := nil;
-  FMdxFile := nil;
-  FForceClose := false;
-  FCopyDateTimeAsString := false;
 
   // now initialize inherited
   inherited;
@@ -340,6 +337,7 @@ var
   MemoFileClass: TMemoFileClass;
   I: Integer;
   deleteLink: Boolean;
+  lModified: boolean;
   LangStr: PChar;
   version: byte;
 begin
@@ -350,6 +348,7 @@ begin
     OpenFile;
 
     // check if we opened an already existing file
+    lModified := false;
     if not FileCreated then
     begin
       HeaderSize := sizeof(rDbfHdr); // temporary
@@ -406,7 +405,7 @@ begin
         //             'RecordCount in Hdr : '+IntToStr(PDbfHdr(Header).RecordCount)+^M+
         //             'expected : '+IntToStr(RecordCount));
         PDbfHdr(Header)^.RecordCount := RecordCount;
-        WriteHeader;        // Correct it
+        lModified := true;
       end;
       // determine codepage
       if FDbfVersion >= xBaseVII then
@@ -474,10 +473,16 @@ begin
         FMemoFile.Open;
         // set header blob flag corresponding to field list
         if FDbfVersion <> xFoxPro then
+        begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF or $80;
+          lModified := true;
+        end;
       end else
         if FDbfVersion <> xFoxPro then
+        begin
           PDbfHdr(Header)^.VerDBF := PDbfHdr(Header)^.VerDBF and $7F;
+          lModified := true;
+        end;
       // check if mdx flagged
       if (FDbfVersion <> xFoxPro) and (PDbfHdr(Header)^.MDXFlag <> 0) then
       begin
@@ -510,13 +515,19 @@ begin
             FOnIndexMissing(deleteLink);
           // correct flag
           if deleteLink then
-            PDbfHdr(Header)^.MDXFlag := 0
-          else
+          begin
+            PDbfHdr(Header)^.MDXFlag := 0;
+            lModified := true;
+          end else
             FForceClose := true;
         end;
       end;
     end;
 
+    // record changes
+    if lModified then
+      WriteHeader;
+    
     // open indexes
     for I := 0 to FIndexFiles.Count - 1 do
       TIndexFile(FIndexFiles.Items[I]).Open;
@@ -557,8 +568,8 @@ begin
       end;
     end;
     FreeAndNil(FMdxFile);
-    if FPrevBuffer <> nil then
-      FreeMemAndNil(Pointer(FPrevBuffer));
+    FreeMemAndNil(Pointer(FPrevBuffer));
+    FreeMemAndNil(Pointer(FDefaultBuffer));
 
     // reset variables
     FFileLangId := 0;
@@ -644,7 +655,11 @@ begin
       // apply field transformation tricks
       lSize := lFieldDef.Size;
       lPrec := lFieldDef.Precision;
-      if (FDbfVersion = xFoxPro) and (lFieldDef.NativeFieldType = 'C') then
+      if (lFieldDef.NativeFieldType = 'C')
+{$ifndef USE_LONG_CHAR_FIELDS}
+          and (FDbfVersion = xFoxPro)
+{$endif}
+                then
       begin
         lPrec := lSize shr 8;
         lSize := lSize and $FF;
@@ -859,7 +874,11 @@ begin
       end;
 
       // apply field transformation tricks
-      if (lNativeFieldType = 'C') and (FDbfVersion = xFoxPro) then
+      if (lNativeFieldType = 'C') 
+{$ifdef USE_LONG_CHAR_FIELDS}
+          and (FDbfVersion = xFoxPro) 
+{$endif}
+                then
       begin
         lSize := lSize + lPrec shl 8;
         lPrec := 0;
@@ -913,17 +932,8 @@ begin
     if FFieldDefs.Count >= 4096 then
       raise EDbfError.CreateFmt(STRING_INVALID_FIELD_COUNT, [FFieldDefs.Count]);
 
-{
-    // removed check because additional data could be present in record
-
-    if (lFieldOffset <> PDbfHdr(Header).RecordSize) then
-    begin
-      // I removed the message because it confuses end-users.
-      // Though there is a major problem if the value is wrong...
-      // I try to fix it but it is likely to crash
-      PDbfHdr(Header).RecordSize := lFieldOffset;
-    end;
-}
+    // do not check FieldOffset = PDbfHdr(Header).RecordSize because additional 
+    // data could be present in record
 
     // get current position
     lPropHdrOffset := Stream.Position;
@@ -978,7 +988,6 @@ begin
       // read custom properties...not implemented
       // read RI properties...not implemented
     end;
-
   finally
     HeaderSize := PDbfHdr(Header)^.FullHdrSize;
     RecordSize := PDbfHdr(Header)^.RecordSize;
@@ -1410,6 +1419,7 @@ var
   ldd, ldm, ldy, lth, ltm, lts: Integer;
   date: TDateTime;
   timeStamp: TTimeStamp;
+  asciiContents: boolean;
 
 {$ifdef SUPPORT_INT64}
   function GetInt64FromStrLength(Src: Pointer; Size: Integer; Default: Int64): Int64;
@@ -1486,6 +1496,7 @@ begin
   FieldOffset := AFieldDef.Offset;
   FieldSize := AFieldDef.Size;
   Src := PChar(Src) + FieldOffset;
+  asciiContents := false;
   // field types that are binary and of which the fieldsize should not be truncated
   case AFieldDef.NativeFieldType of
     '+', 'I':
@@ -1495,7 +1506,7 @@ begin
           Result := PDWord(Src)^ <> 0;
           if Result and (Dst <> nil) then
           begin
-            PInteger(Dst)^ := SwapInt(PInteger(Src)^);
+            PDWord(Dst)^ := SwapInt(PDWord(Src)^);
             if Result then
               PInteger(Dst)^ := Integer(PDWord(Dst)^ xor $80000000);
           end;
@@ -1564,7 +1575,27 @@ begin
         end;
 {$endif}
       end;
+    'B':    // foxpro double
+      begin
+        Result := true;
+        if Dst <> nil then
+          PDouble(Dst)^ := PDouble(Src)^;
+      end;
+    'M':
+      begin
+        if FieldSize = 4 then
+        begin
+          Result := PInteger(Src)^ <> 0;
+          if Dst <> nil then
+            PInteger(Dst)^ := PInteger(Src)^;
+        end else
+          asciiContents := true;
+      end;
   else
+    asciiContents := true;
+  end;
+  if asciiContents then
+  begin
     //    SetString(s, PChar(Src) + FieldOffset, FieldSize );
     //    s := {TrimStr(s)} TrimRight(s);
     // truncate spaces at end by shortening fieldsize
@@ -1674,11 +1705,13 @@ const
 var
   FieldSize,FieldPrec: Integer;
   TempFieldDef: TDbfFieldDef;
-  Len, IntValue: Integer;
+  Len: Integer;
+  IntValue: dword;
   year, month, day: Word;
   hour, minute, sec, msec: Word;
   date: TDateTime;
   timeStamp: TTimeStamp;
+  asciiContents: boolean;
 
   procedure LoadDateFromSrc;
   begin
@@ -1714,6 +1747,7 @@ begin
 
   // copy field data to record buffer
   Dst := PChar(Dst) + TempFieldDef.Offset;
+  asciiContents := false;
   case TempFieldDef.NativeFieldType of
     '+', 'I':
       begin
@@ -1722,13 +1756,13 @@ begin
           if Src = nil then
             IntValue := 0
           else
-            IntValue := Integer(PDWord(Src)^ xor $80000000);
-          PInteger(Dst)^ := SwapInt(IntValue);
+            IntValue := PDWord(Src)^ xor $80000000;
+          PDWord(Dst)^ := SwapInt(IntValue);
         end else begin
           if Src = nil then
-            PInteger(Dst)^ := 0
+            PDWord(Dst)^ := 0
           else
-            PInteger(Dst)^ := PInteger(Src)^;
+            PDWord(Dst)^ := PDWord(Src)^;
         end;
       end;
     'O':
@@ -1790,7 +1824,29 @@ begin
         // TODO: data is little endian
 {$endif}
       end;
+    'B':
+      begin
+        if Src = nil then
+          PDouble(Dst)^ := 0
+        else
+          PDouble(Dst)^ := PDouble(Src)^;
+      end;
+    'M':
+      begin
+        if FieldSize = 4 then
+        begin
+          if Src = nil then
+            PInteger(Dst)^ := 0
+          else
+            PInteger(Dst)^ := PInteger(Src)^;
+        end else
+          asciiContents := true;
+      end;
   else
+    asciiContents := true;
+  end;
+  if asciiContents then
+  begin
     if Src = nil then
     begin
       FillChar(Dst^, FieldSize, ' ');
@@ -1848,34 +1904,46 @@ begin
   end;
 end;
 
-procedure TDbfFile.InitRecord(DestBuf: PChar);
+procedure TDbfFile.InitDefaultBuffer;
 var
+  lRecordSize: integer;
   TempFieldDef: TDbfFieldDef;
   I: Integer;
 begin
+  lRecordSize := PDbfHdr(Header)^.RecordSize;
   // clear buffer (assume all string, fix specific fields later)
-  FillChar(DestBuf^, RecordSize,' ');
+  //   note: Self.RecordSize is used for reading fielddefs too
+  GetMem(FDefaultBuffer, lRecordSize+1);
+  FillChar(FDefaultBuffer^, lRecordSize, ' ');
   
   // set nullflags field so that all fields are null
   if FNullField <> nil then
-    FillChar(PChar(DestBuf+FNullField.Offset)^, FNullField.Size, $FF);
-    
+    FillChar(PChar(FDefaultBuffer+FNullField.Offset)^, FNullField.Size, $FF);
+
   // check binary and default fields
   for I := 0 to FFieldDefs.Count-1 do
   begin
     TempFieldDef := FFieldDefs.Items[I];
-    // binary field?
-    if TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'Y'] then
-      FillChar(PChar(DestBuf+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
+    // binary field? (foxpro memo fields are binary, but dbase not)
+    if (TempFieldDef.NativeFieldType in ['I', 'O', '@', '+', '0', 'Y'])
+        or ((TempFieldDef.NativeFieldType = 'M') and (TempFieldDef.Size = 4)) then
+      FillChar(PChar(FDefaultBuffer+TempFieldDef.Offset)^, TempFieldDef.Size, 0);
     // copy default value?
     if TempFieldDef.HasDefault then
     begin
-      Move(TempFieldDef.DefaultBuf[0], DestBuf[TempFieldDef.Offset], TempFieldDef.Size);
+      Move(TempFieldDef.DefaultBuf[0], FDefaultBuffer[TempFieldDef.Offset], TempFieldDef.Size);
       // clear the null flag, this field has a value
       if FNullField <> nil then
-        UpdateNullField(DestBuf, TempFieldDef, unClear);
+        UpdateNullField(FDefaultBuffer, TempFieldDef, unClear);
     end;
   end;
+end;
+
+procedure TDbfFile.InitRecord(DestBuf: PChar);
+begin
+  if FDefaultBuffer = nil then
+    InitDefaultBuffer;
+  Move(FDefaultBuffer^, DestBuf^, RecordSize);
 end;
 
 procedure TDbfFile.ApplyAutoIncToBuffer(DestBuf: PChar);

@@ -233,8 +233,6 @@ type
 
   TRawStringFieldVar = class(TStringFieldVar)
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-
     procedure Refresh(Buffer: PChar); override;
   end;
 
@@ -253,8 +251,6 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-
     procedure Refresh(Buffer: PChar); override;
   end;
 
@@ -265,8 +261,6 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-
     procedure Refresh(Buffer: PChar); override;
   end;
 
@@ -278,8 +272,6 @@ type
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-
     procedure Refresh(Buffer: PChar); override;
   end;
 {$endif}
@@ -291,8 +283,16 @@ type
   protected
     function GetFieldVal: Pointer; override;
   public
-    constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
+    procedure Refresh(Buffer: PChar); override;
+  end;
 
+  TBooleanFieldVar = class(TFieldVar)
+  private
+    FFieldVal: boolean;
+    function GetFieldType: TExpressionType; override;
+  protected
+    function GetFieldVal: Pointer; override;
+  public
     procedure Refresh(Buffer: PChar); override;
   end;
 
@@ -319,11 +319,6 @@ begin
 end;
 
 //--TRawStringFieldVar----------------------------------------------------------
-constructor TRawStringFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-end;
-
 procedure TRawStringFieldVar.Refresh(Buffer: PChar);
 begin
   FFieldVal := Buffer + FieldDef.Offset;
@@ -359,11 +354,6 @@ begin
 end;
 
 //--TFloatFieldVar-----------------------------------------------------------
-constructor TFloatFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-end;
-
 function TFloatFieldVar.GetFieldVal: Pointer;
 begin
   Result := @FFieldVal;
@@ -382,11 +372,6 @@ begin
 end;
 
 //--TIntegerFieldVar----------------------------------------------------------
-constructor TIntegerFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-end;
-
 function TIntegerFieldVar.GetFieldVal: Pointer;
 begin
   Result := @FFieldVal;
@@ -406,11 +391,6 @@ end;
 {$ifdef SUPPORT_INT64}
 
 //--TLargeIntFieldVar----------------------------------------------------------
-constructor TLargeIntFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-end;
-
 function TLargeIntFieldVar.GetFieldVal: Pointer;
 begin
   Result := @FFieldVal;
@@ -430,11 +410,6 @@ end;
 {$endif}
 
 //--TDateTimeFieldVar---------------------------------------------------------
-constructor TDateTimeFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
-begin
-  inherited;
-end;
-
 function TDateTimeFieldVar.GetFieldVal: Pointer;
 begin
   Result := @FFieldVal;
@@ -449,6 +424,27 @@ procedure TDateTimeFieldVar.Refresh(Buffer: PChar);
 begin
   if not FDbfFile.GetFieldDataFromDef(FieldDef, ftDateTime, Buffer, @FFieldVal) then
     FFieldVal.DateTime := 0.0;
+end;
+
+//--TBooleanFieldVar---------------------------------------------------------
+function TBooleanFieldVar.GetFieldVal: Pointer;
+begin
+  Result := @FFieldVal;
+end;
+
+function TBooleanFieldVar.GetFieldType: TExpressionType;
+begin
+  Result := etBoolean;
+end;
+
+procedure TBooleanFieldVar.Refresh(Buffer: PChar);
+var
+  lFieldVal: word;
+begin
+  if FDbfFile.GetFieldDataFromDef(FieldDef, ftBoolean, Buffer, @lFieldVal) then
+    FFieldVal := lFieldVal <> 0
+  else
+    FFieldVal := false;
 end;
 
 //--Expression functions-----------------------------------------------------
@@ -1428,7 +1424,7 @@ begin
 
   // define field in parser
   case FieldInfo.FieldType of
-    ftString, ftBoolean:
+    ftString:
       begin
         if RawStringFields then
         begin
@@ -1440,6 +1436,11 @@ begin
           TempFieldVar := TAnsiStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
           DefineStringVariable(VarName, TempFieldVar.FieldVal);
         end;
+      end;
+    ftBoolean:
+      begin
+        TempFieldVar := TBooleanFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
+        DefineBooleanVariable(VarName, TempFieldVar.FieldVal);
       end;
     ftFloat:
       begin

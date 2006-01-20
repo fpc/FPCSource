@@ -17,7 +17,7 @@ uses
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 45;
+  TDBF_MINOR_VERSION      = 47;
   TDBF_SUB_MINOR_VERSION  = 0;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
@@ -44,6 +44,8 @@ type
       ftTime: (Time: Longint);
       ftDateTime: (DateTime: TDateTimeAlias);
   end;
+{$else}
+  PtrInt = Longint;
 {$endif}
 
   PSmallInt = ^SmallInt;
@@ -54,6 +56,10 @@ type
 
 {$ifdef SUPPORT_INT64}
   PLargeInt = ^Int64;
+{$endif}
+
+{$ifdef DELPHI_3}
+  dword = cardinal;
 {$endif}
 
 //-------------------------------------
@@ -98,7 +104,8 @@ function GetFreeMemory: Integer;
 {$endif}
 
 // OH 2000-11-15 dBase7 support. Swap Byte order for 4 and 8 Byte Integer
-function SwapInt(const Value: Cardinal): Cardinal;
+function SwapWord(const Value: word): word;
+function SwapInt(const Value: dword): dword;
 { SwapInt64 NOTE: do not call with same value for Value and Result ! }
 procedure SwapInt64(Value, Result: Pointer); register;
 
@@ -112,6 +119,7 @@ function MemScan(const Buffer: Pointer; Chr: Byte; Length: Integer): Pointer;
 {$ifdef DELPHI_3}
 {$ifndef DELPHI_4}
 function Min(x, y: integer): integer;
+function Max(x, y: integer): integer;
 {$endif}
 {$endif}
 
@@ -340,9 +348,14 @@ end;
 // Utility routines
 //====================================================================
 
+function SwapWord(const Value: word): word;
+begin
+  Result := ((Value and $FF) shl 8) or ((Value shr 8) and $FF);
+end;
+
 {$ifdef USE_ASSEMBLER_486_UP}
 
-function SwapInt(const Value: Cardinal): Cardinal; register; assembler;
+function SwapInt(const Value: dword): dword; register; assembler;
 asm
   BSWAP EAX;
 end;
@@ -464,6 +477,14 @@ begin
     result := x
   else
     result := y;
+end;
+
+function Max(x, y: integer): integer;
+begin
+  if x < y then
+    result := y
+  else
+    result := x;
 end;
 
 {$endif}

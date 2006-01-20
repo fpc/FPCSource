@@ -3,6 +3,12 @@
 
 {.$define USE_CACHE}
 
+// define the following if you want support for 65535 length character
+// fields for all dbase files (and not only foxpro); if you define this, 
+// you will not be able to read MS Excel generated .dbf files!
+
+{.$define USE_LONG_CHAR_FIELDS}
+
 // modifies unix unit dbf_wtil to use hungarian encodings (hack)
 
 {.$define HUNGARIAN}
@@ -14,10 +20,6 @@
 // test compatibility
 
 {.$define TDBF_UPDATE_FIRSTLAST_NODE}
-
-// use this to enable the lookup function which is still buggy
-
-{.$define USE_BUGGY_LOOKUP}
 
 // use this directive to suppress math exceptions,
 // instead NAN is returned.
@@ -131,6 +133,29 @@
   {$define DELPHI_3}
 {$endif}
 
+{$ifdef VER180} // Delphi 2006
+  {$define DELPHI_2006}
+  {$define DELPHI_2005}
+  {$define DELPHI_8}
+  {$define DELPHI_7}
+  {$define DELPHI_6}
+  {$define DELPHI_5}
+  {$define DELPHI_4}
+  {$define DELPHI_3}
+{$endif}
+
+{$ifdef VER190} // Delphi 2007
+  {$define DELPHI_2007}
+  {$define DELPHI_2006}
+  {$define DELPHI_2005}
+  {$define DELPHI_8}
+  {$define DELPHI_7}
+  {$define DELPHI_6}
+  {$define DELPHI_5}
+  {$define DELPHI_4}
+  {$define DELPHI_3}
+{$endif}
+
 //-------------------------------------------------------
 //--- Conclude supported features from delphi version ---
 //-------------------------------------------------------
@@ -195,13 +220,19 @@
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
   {$define SUPPORT_NEW_TRANSLATE}
-  {$define SUPPORT_BACKWARD_FIELDDATA}
   {$define SUPPORT_NEW_FIELDDATA}
   {$define SUPPORT_FIELDDEF_TPERSISTENT}
   {$define SUPPORT_FIELDTYPES_V4}
   {$define SUPPORT_UINT32_CARDINAL}
   {$define SUPPORT_REINTRODUCE}
   {$define SUPPORT_MATH_UNIT}
+
+  // FPC 2.0.x improvements
+  {$ifdef VER2}
+    {$ifndef VER2_0_0}
+      {$define SUPPORT_BACKWARD_FIELDDATA}
+    {$endif}
+  {$endif}
 
   // FPC 1.0.x exceptions: no 0/0 support
   {$ifdef VER1_0}
