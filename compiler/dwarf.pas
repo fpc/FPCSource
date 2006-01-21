@@ -117,6 +117,26 @@ implementation
       DW_CFA_start_frame = $f0;
       DW_CFA_end_frame   = $f1;
 
+      DW_LNS_copy            = $01;
+      DW_LNS_advance_pc      = $02;
+      DW_LNS_advance_line    = $03;
+      DW_LNS_set_file        = $04;
+      DW_LNS_set_column      = $05;
+      DW_LNS_negate_stmt     = $06;
+      DW_LNS_set_basic_block = $07;
+      DW_LNS_const_add_pc    = $08;
+
+      DW_LNS_fixed_advance_pc   = $09;
+      DW_LNS_set_prologue_end   = $0a;
+      DW_LNS_set_epilogue_begin = $0b;
+      DW_LNS_set_isa            = $0c;
+
+      DW_LNE_end_sequence = $01;
+      DW_LNE_set_address  = $02;
+      DW_LNE_define_file  = $03;
+      DW_LNE_lo_user      = $80;
+      DW_LNE_hi_user      = $ff;
+
 
 {****************************************************************************
                                   Helpers

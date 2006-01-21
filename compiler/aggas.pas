@@ -212,7 +212,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame',
+          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
           'fpc.resptrs',
           '.toc'
         );
@@ -224,7 +224,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame',
+          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
           'fpc.resptrs',
           '.toc'
         );

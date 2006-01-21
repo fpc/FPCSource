@@ -48,9 +48,12 @@ interface
 
        TAsmSectionType=(sec_none,
          sec_code,sec_data,sec_rodata,sec_bss,sec_threadvar,
-         sec_common, { used for executable creation }
-         sec_custom, { custom section, no prefix }
-         sec_stub,   { used for darwin import stubs }
+         { used for executable creation }
+         sec_common,
+         { custom section, no prefix }
+         sec_custom,
+         { used for darwin import stubs }
+         sec_stub,
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }
@@ -59,6 +62,9 @@ interface
          sec_eh_frame,
          { dwarf }
          sec_debug_frame,
+         sec_debug_info,
+         sec_debug_line,
+         sec_debug_abrev,
          { ELF resources }
          sec_fpc,
          { Table of contents section }
@@ -589,7 +595,7 @@ implementation
           'stab','stabstr',
           'idata2','idata4','idata5','idata6','idata7','edata',
           'eh_frame',
-          'debug_frame',
+          'debug_frame','debug_info','debug_line','debug_abrev',
           'fpc',
           'toc'
         );
