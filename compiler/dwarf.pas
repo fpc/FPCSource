@@ -80,6 +80,7 @@ interface
       public
         constructor create;
         procedure generate_code(list:taasmoutput);
+        procedure generate_initial_instructions(list:taasmoutput);virtual;
         { operations }
         procedure start_frame(list:taasmoutput);
         procedure end_frame(list:taasmoutput);
@@ -247,9 +248,32 @@ implementation
         FFrameEndLabel:=nil;
         FLastLocLabel:=nil;
         code_alignment_factor:=1;
-        data_alignment_factor:=-1;
+        data_alignment_factor:=-4;
       end;
 
+{$ifdef i386}
+    { if more cpu dependend stuff is implemented, this needs more refactoring }
+    procedure tdwarfcfi.generate_initial_instructions(list:taasmoutput);
+      begin
+        list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
+        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_STACK_POINTER_REG)));
+        list.concat(tai_const.create_uleb128bit(sizeof(aint)));
+        list.concat(tai_const.create_8bit(DW_CFA_offset_extended));
+        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_RETURN_ADDRESS_REG)));
+        list.concat(tai_const.create_uleb128bit((-sizeof(aint)) div data_alignment_factor));
+      end;
+{$else i386}
+    { if more cpu dependend stuff is implemented, this needs more refactoring }
+    procedure tdwarfcfi.generate_initial_instructions(list:taasmoutput);
+      begin
+        list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
+        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_STACK_POINTER_REG)));
+        list.concat(tai_const.create_uleb128bit(sizeof(aint)));
+        list.concat(tai_const.create_8bit(DW_CFA_offset_extended));
+        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_RETURN_ADDRESS_REG)));
+        list.concat(tai_const.create_uleb128bit((-sizeof(aint)) div data_alignment_factor));
+      end;
+{$endif i386}
 
     procedure tdwarfcfi.generate_code(list:taasmoutput);
       var
@@ -286,13 +310,8 @@ implementation
             def_cfa(stackpointer,sizeof(aint))
             cfa_offset_extended(returnaddres,-sizeof(aint))
         }
-{$warning TODO This needs to be target dependent}
-        list.concat(tai_const.create_8bit(DW_CFA_def_cfa));
-        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_STACK_POINTER_REG)));
-        list.concat(tai_const.create_uleb128bit(sizeof(aint)));
-        list.concat(tai_const.create_8bit(DW_CFA_offset_extended));
-        list.concat(tai_const.create_uleb128bit(dwarf_reg(NR_RETURN_ADDRESS_REG)));
-        list.concat(tai_const.create_uleb128bit((-sizeof(aint)) div data_alignment_factor));
+        generate_initial_instructions(list);
+
         list.concat(cai_align.create_zeros(4));
         list.concat(tai_label.create(lenendlabel));
         lenstartlabel:=nil;

@@ -33,7 +33,7 @@ unit i_win;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses
-                            {,tf_smartlink_sections}{,tf_section_threadvars}];
+                            {,tf_smartlink_sections}{,tf_section_threadvars},tf_needs_dwarf_cfi];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';

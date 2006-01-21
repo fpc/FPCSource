@@ -50,7 +50,8 @@ unit i_linux;
 {$ifdef segment_threadvars}
                             tf_section_threadvars,
 {$endif segment_threadvars}
-                            tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses];
+                            tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,
+                            tf_needs_dwarf_cfi];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';

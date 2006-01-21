@@ -258,7 +258,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
           );

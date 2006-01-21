@@ -1841,7 +1841,7 @@ unit cgx86;
         if not nostackframe then
           begin
             list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
-            if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+            if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               CGmessage(cg_d_stackframe_omited)
             else
               begin
@@ -1858,6 +1858,8 @@ unit cgx86;
             if localsize<>0 then
               begin
                 cg.g_stackpointer_alloc(list,localsize);
+                if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                  dwarfcfi.cfa_def_cfa_offset(list,localsize+sizeof(aint));
               end;
           end;
       end;
