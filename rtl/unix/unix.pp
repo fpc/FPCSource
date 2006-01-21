@@ -17,6 +17,10 @@ Interface
 
 Uses BaseUnix,UnixType;
 
+{$if defined(BSD) and defined(FPC_USE_LIBC)}
+{$define USE_VFORK}
+{$endif}
+
 {$i aliasptp.inc}
 
 { Get Types and Constants only exported in this unit }
@@ -128,8 +132,8 @@ Function AssignPipe  (var pipe_in,pipe_out:text):cint;
 Function AssignPipe  (var pipe_in,pipe_out:file):cint;
 //Function PClose      (Var F:text) : cint;
 //Function PClose      (Var F:file) : cint;
-Function POpen       (var F:text;const Prog:String;rw:char):cint;
-Function POpen       (var F:file;const Prog:String;rw:char):cint;
+Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
+Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 
@@ -736,7 +740,7 @@ begin
 end;
 
 
-function POpen(var F:text;const Prog:String;rw:char):cint;
+Function POpen(var F:text;const Prog:Ansistring;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -747,11 +751,12 @@ function POpen(var F:text;const Prog:String;rw:char):cint;
 var
   pipi,
   pipo : text;
-  pid  : pid_t;
+  pid  : cint;
   pl   : ^cint;
-{$ifndef FPC_USE_FPEXEC}
-  pp   : ppchar;
-{$endif not FPC_USE_FPEXEC}
+{$if not defined(FPC_USE_FPEXEC) or defined(USE_VFORK)}
+  pp : array[0..3] of pchar;
+  temp : string[255];
+{$endif not FPC_USE_FPEXEC or USE_VFORK}
   ret  : cint;
 begin
   rw:=upcase(rw);
@@ -760,9 +765,14 @@ begin
      FpSetErrno(ESysEnoent);
      exit(-1);
    end;
-  if AssignPipe(pipi,pipo)=-1 Then
-    Exit(-1);
-  pid:=fpfork;          // vfork in FreeBSD.
+  ret:=AssignPipe(pipi,pipo);
+  if ret=-1 then
+   exit(-1);
+{$ifdef USE_VFORK}
+  pid:=fpvfork;
+{$else USE_VFORK}
+  pid:=fpfork;
+{$endif USE_VFORK}
   if pid=-1 then
    begin
      close(pipi);
@@ -774,27 +784,53 @@ begin
    { We're in the child }
      if rw='W' then
       begin
+        if (textrec(pipi).handle <> stdinputhandle) then
+          begin
+            ret:=fpdup2(pipi,input);
+{$ifdef USE_VFORK}
+            fpclose(textrec(pipi).handle);
+{$else USE_VFORK}
+            close(pipi);
+{$endif USE_VFORK}
+          end;
+{$ifdef USE_VFORK}
+        fpclose(textrec(pipo).handle);
+{$else USE_VFORK}
         close(pipo);
-        ret:=fpdup2(pipi,input);
-        close(pipi);
+{$endif USE_VFORK}
         if ret=-1 then
-         halt(127);
+         fpexit(127);
       end
      else
       begin
+{$ifdef USE_VFORK}
+        fpclose(textrec(pipi).handle);
+{$else USE_VFORK}
         close(pipi);
-        ret:=fpdup2(pipo,output);
-        close(pipo);
-        if ret=-1 then
-         halt(127);
+{$endif USE_VFORK}
+        if (textrec(pipo).handle <> stdoutputhandle) then
+          begin
+            ret:=fpdup2(pipo,output);
+{$ifdef USE_VFORK}
+            fpclose(textrec(pipo).handle);
+{$else USE_VFORK}
+            close(pipo);
+{$endif USE_VFORK}
+          end;
+        if ret=1 then
+         fpexit(127);
       end;
-     {$ifdef FPC_USE_FPEXEC}
-     fpexecl('/bin/sh',['-c',Prog]);
+     {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
+     fpexecl(pchar('/bin/sh'),['-c',Prog]);
      {$else}
-     pp:=createshellargv(prog);
-     fpExecve(pp^,pp,envp);
+     temp:='/bin/sh'#0'-c'#0;
+     pp[0]:=@temp[1];
+     pp[1]:=@temp[9];
+     pp[2]:=@prog[1];
+     pp[3]:=Nil;
+     fpExecve('/bin/sh',@pp,envp);
      {$endif}
-     halt(127);
+     fpexit(127);
    end
   else
    begin
@@ -803,23 +839,22 @@ begin
       begin
         close(pipi);
         f:=pipo;
-        textrec(f).bufptr:=@textrec(f).buffer;
       end
      else
       begin
         close(pipo);
         f:=pipi;
-        textrec(f).bufptr:=@textrec(f).buffer;
       end;
+     textrec(f).bufptr:=@textrec(f).buffer;
    {Save the process ID - needed when closing }
      pl:=@(textrec(f).userdata[2]);
      pl^:=pid;
      textrec(f).closefunc:=@PCloseText;
    end;
- ret:=0;
+ POpen:=0;
 end;
 
-Function POpen(var F:file;const Prog:String;rw:char):cint;
+Function POpen(var F:file;const Prog:Ansistring;rw:char):cint;
 {
   Starts the program in 'Prog' and makes it's input or out put the
   other end of a pipe. If rw is 'w' or 'W', then whatever is written to
@@ -832,10 +867,10 @@ var
   pipo : file;
   pid  : cint;
   pl   : ^cint;
-{$ifndef FPC_USE_FPEXEC}
-  p,pp : ppchar;
+{$if not defined(FPC_USE_FPEXEC) or defined(USE_VFORK)}
+  pp : array[0..3] of pchar;
   temp : string[255];
-{$endif not FPC_USE_FPEXEC}
+{$endif not FPC_USE_FPEXEC or USE_VFORK}
   ret  : cint;
 begin
   rw:=upcase(rw);
@@ -847,7 +882,11 @@ begin
   ret:=AssignPipe(pipi,pipo);
   if ret=-1 then
    exit(-1);
+{$ifdef USE_VFORK}
+  pid:=fpvfork;
+{$else USE_VFORK}
   pid:=fpfork;
+{$endif USE_VFORK}
   if pid=-1 then
    begin
      close(pipi);
@@ -859,36 +898,53 @@ begin
    { We're in the child }
      if rw='W' then
       begin
+        if (filerec(pipi).handle <> stdinputhandle) then
+          begin
+            ret:=fpdup2(filerec(pipi).handle,stdinputhandle);
+{$ifdef USE_VFORK}
+            fpclose(filerec(pipi).handle);
+{$else USE_VFORK}
+            close(pipi);
+{$endif USE_VFORK}
+          end;
+{$ifdef USE_VFORK}
+        fpclose(filerec(pipo).handle);
+{$else USE_VFORK}
         close(pipo);
-        ret:=fpdup2(filerec(pipi).handle,stdinputhandle);
-        close(pipi);
+{$endif USE_VFORK}
         if ret=-1 then
-         halt(127);
+         fpexit(127);
       end
      else
       begin
+{$ifdef USE_VFORK}
+        fpclose(filerec(pipi).handle);
+{$else USE_VFORK}
         close(pipi);
-        ret:=fpdup2(filerec(pipo).handle,stdoutputhandle);
-        close(pipo);
+{$endif USE_VFORK}
+        if (filerec(pipo).handle <> stdoutputhandle) then
+          begin
+            ret:=fpdup2(filerec(pipo).handle,stdoutputhandle);
+{$ifdef USE_VFORK}
+            fpclose(filerec(pipo).handle);
+{$else USE_VFORK}
+            close(pipo);
+{$endif USE_VFORK}
+          end;
         if ret=1 then
-         halt(127);
+         fpexit(127);
       end;
-     {$ifdef FPC_USE_FPEXEC}
-     fpexecl('/bin/sh',['-c',Prog]);
+     {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
+     fpexecl(pchar('/bin/sh'),['-c',Prog]);
      {$else}
-     getmem(pp,sizeof(pchar)*4);
-     temp:='/bin/sh'#0'-c'#0+prog+#0;
-     p:=pp;
-     p^:=@temp[1];
-     inc(p);
-     p^:=@temp[9];
-     inc(p);
-     p^:=@temp[12];
-     inc(p);
-     p^:=Nil;
-     fpExecve(ansistring('/bin/sh'),pp,envp);
+     temp:='/bin/sh'#0'-c'#0;
+     pp[0]:=@temp[1];
+     pp[1]:=@temp[9];
+     pp[2]:=@prog[1];
+     pp[3]:=Nil;
+     fpExecve('/bin/sh',@pp,envp);
      {$endif}
-     halt(127);
+     fpexit(127);
    end
   else
    begin
@@ -931,8 +987,12 @@ begin
   AssignStream:=-1;
   if AssignPipe(streamin,pipo)=-1 Then
    exit(-1);
-  if AssignPipe(pipi,streamout)=-1 Then // shouldn't this close streamin and pipo?
-   exit(-1);
+  if AssignPipe(pipi,streamout)=-1 Then
+    begin
+      close(streamin);
+      close(pipo);
+      exit(-1);
+    end;
   pid:=fpfork;
   if pid=-1 then
    begin

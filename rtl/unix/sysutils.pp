@@ -20,6 +20,10 @@ interface
 { force ansistrings }
 {$H+}
 
+{$if defined(BSD) and defined(FPC_USE_LIBC)}
+{$define USE_VFORK}
+{$endif}
+
 {$DEFINE OS_FILESETDATEBYNAME}
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
@@ -984,7 +988,11 @@ Begin
   if ComLine <> '' then
     CommandLine := Commandline + ' ' + ComLine;
   {$endif}
+  {$ifdef USE_VFORK}
+  pid:=fpvFork;
+  {$else USE_VFORK}
   pid:=fpFork;
+  {$endif USE_VFORK}
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
