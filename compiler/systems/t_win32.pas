@@ -864,15 +864,15 @@ Procedure TLinkerWin32.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     ExeCmd[1]:='ld -b pe-i386 -m i386pe $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld -b pe-i386 -m i386pe $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
        use short forms to avoid 128 char limitation problem }
      ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     ExeCmd[3]:='ld $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     ExeCmd[3]:='ld -b pe-i386 -m i386pe $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
      { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
      DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     DllCmd[3]:='ld $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     DllCmd[3]:='ld -b pe-i386 -m i386pe $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
    end;
 end;
 

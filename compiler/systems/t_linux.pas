@@ -220,6 +220,14 @@ procedure TLinkerLinux.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
+
+const
+{$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif} 
+{$ifdef x86_64} platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
+{$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
+{$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
+{$ifdef arm}    platform_select='';{$endif} {unknown :( }
+
 {$ifdef m68k}
 var
   St : SearchRec;
@@ -227,8 +235,8 @@ var
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
+     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
