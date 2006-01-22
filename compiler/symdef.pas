@@ -4699,7 +4699,7 @@ implementation
         begin
            if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
-                asmlist[al_rtti].concat(Tai_const.create(ait_const_ptr,1));
+                asmlist[al_rtti].concat(Tai_const.create(aitconst_ptr,1));
                 typvalue:=3;
              end
            else if proc.firstsym^.sym.typ=fieldvarsym then
@@ -4732,7 +4732,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                asmlist[al_rtti].concat(Tai_const.create(ait_const_ptr,address));
+                asmlist[al_rtti].concat(Tai_const.create(aitconst_ptr,address));
                 typvalue:=0;
              end
            else
@@ -4748,7 +4748,7 @@ implementation
                 else
                   begin
                      { virtual method, write vmt offset }
-                     asmlist[al_rtti].concat(Tai_const.create(ait_const_ptr,
+                     asmlist[al_rtti].concat(Tai_const.create(aitconst_ptr,
                        tprocdef(proc.procdef)._class.vmtmethodoffset(tprocdef(proc.procdef).extnumber)));
                      typvalue:=2;
                   end;

@@ -926,12 +926,7 @@ Implementation
                objectdata.alloc(4);
              ait_comp_64bit :
                objectdata.alloc(8);
-             ait_const_64bit,
-             ait_const_32bit,
-             ait_const_16bit,
-             ait_const_8bit,
-             ait_const_rva_symbol,
-             ait_const_indirect_symbol :
+             ait_const:
                objectdata.alloc(tai_const(hp).size);
              ait_section:
                begin
@@ -1015,12 +1010,7 @@ Implementation
                objectdata.alloc(4);
              ait_comp_64bit :
                objectdata.alloc(8);
-             ait_const_64bit,
-             ait_const_32bit,
-             ait_const_16bit,
-             ait_const_8bit,
-             ait_const_rva_symbol,
-             ait_const_indirect_symbol :
+             ait_const:
                begin
                  objectdata.alloc(tai_const(hp).size);
                  if assigned(Tai_const(hp).sym) then
@@ -1153,29 +1143,32 @@ Implementation
                end;
              ait_string :
                objectdata.writebytes(Tai_string(hp).str^,Tai_string(hp).len);
-             ait_const_64bit,
-             ait_const_32bit,
-             ait_const_16bit,
-             ait_const_8bit :
+             ait_const :
                begin
-                 if assigned(tai_const(hp).sym) then
-                   begin
-                     if assigned(tai_const(hp).endsym) then
+                 case tai_const(hp).consttype of
+                   aitconst_64bit,
+                   aitconst_32bit,
+                   aitconst_16bit,
+                   aitconst_8bit :
+                     if assigned(tai_const(hp).sym) then
                        begin
-                         if tai_const(hp).endsym.section<>tai_const(hp).sym.section then
-                           internalerror(200404124);
-                         v:=tai_const(hp).endsym.address-tai_const(hp).sym.address+Tai_const(hp).value;
-                         objectdata.writebytes(v,tai_const(hp).size);
+                         if assigned(tai_const(hp).endsym) then
+                           begin
+                             if tai_const(hp).endsym.section<>tai_const(hp).sym.section then
+                               internalerror(200404124);
+                             v:=tai_const(hp).endsym.address-tai_const(hp).sym.address+Tai_const(hp).value;
+                             objectdata.writebytes(v,tai_const(hp).size);
+                           end
+                         else
+                           objectdata.writereloc(Tai_const(hp).value,Tai_const(hp).size,
+                                                 Tai_const(hp).sym,RELOC_ABSOLUTE);
                        end
                      else
-                       objectdata.writereloc(Tai_const(hp).value,Tai_const(hp).size,
-                                             Tai_const(hp).sym,RELOC_ABSOLUTE);
-                   end
-                 else
-                   objectdata.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                       objectdata.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_rva_symbol :
+                     objectdata.writereloc(Tai_const(hp).value,sizeof(aint),Tai_const(hp).sym,RELOC_RVA);
+                 end;
                end;
-             ait_const_rva_symbol :
-               objectdata.writereloc(Tai_const(hp).value,sizeof(aint),Tai_const(hp).sym,RELOC_RVA);
              ait_label :
                begin
                  objectdata.writesymbol(Tai_label(hp).l);

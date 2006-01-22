@@ -27,7 +27,7 @@ uses
   ppu;
 
 const
-  Version   = 'Version 2.0.0';
+  Version   = 'Version 2.0.2';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
 

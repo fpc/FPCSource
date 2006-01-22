@@ -227,9 +227,9 @@ implementation
 
     procedure tdwarfitem.generate_code(list:taasmoutput);
       const
-        enc2ait_const : array[tdwarfoperenc] of taitype = (
-          ait_const_uleb128bit,ait_const_sleb128bit,ait_const_ptr,
-          ait_const_32bit,ait_const_16bit,ait_const_8bit
+        enc2ait_const : array[tdwarfoperenc] of taiconst_type = (
+          aitconst_uleb128bit,aitconst_sleb128bit,aitconst_ptr,
+          aitconst_32bit,aitconst_16bit,aitconst_8bit
         );
       var
         i : integer;
@@ -318,7 +318,7 @@ implementation
         list.concat(tai_label.create(cielabel));
         objectlibrary.getjumplabel(lenstartlabel);
         objectlibrary.getjumplabel(lenendlabel);
-        list.concat(tai_const.create_rel_sym(ait_const_32bit,lenstartlabel,lenendlabel));
+        list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
         list.concat(tai_label.create(lenstartlabel));
         list.concat(tai_const.create_32bit(longint($ffffffff)));
         list.concat(tai_const.create_8bit(1));
@@ -356,14 +356,14 @@ implementation
                      PTRSIZE initial location = oper[0]
                      PTRSIZE function size = oper[1]
                   }
-                  list.concat(tai_const.create_rel_sym(ait_const_32bit,lenstartlabel,lenendlabel));
+                  list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
                   list.concat(tai_label.create(lenstartlabel));
                   { force label offset to 32bit }
                   tc:=tai_const.create_sym(cielabel);
-                  tc.typ:=ait_const_32bit;
+                  tc.consttype:=aitconst_32bit;
                   list.concat(tc);
                   list.concat(tai_const.create_sym(hp.oper[0].beginsym));
-                  list.concat(tai_const.create_rel_sym(ait_const_ptr,hp.oper[0].beginsym,hp.oper[0].endsym));
+                  list.concat(tai_const.create_rel_sym(aitconst_ptr,hp.oper[0].beginsym,hp.oper[0].endsym));
                 end;
               DW_CFA_End_Frame :
                 begin

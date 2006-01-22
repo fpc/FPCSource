@@ -349,7 +349,7 @@ implementation
       lastinfile   : tinputfile;
 
     const
-      ait_const2str : array[ait_const_128bit..ait_const_indirect_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
         #9'DD RVA'#9,#9'FIXMEINDIRECT'#9
@@ -388,7 +388,7 @@ implementation
       lines,
       InlineLevel : longint;
       i,j,l    : longint;
-      consttyp : taitype;
+      consttype : taiconst_type;
       do_line,DoNotSplitLine,
       quoted   : boolean;
     begin
@@ -516,40 +516,46 @@ implementation
                  AsmWriteLn(#9'PUBLIC'#9+tai_datablock(hp).sym.name);
                AsmWriteLn(PadTabs(tai_datablock(hp).sym.name,#0)+'DB'#9+tostr(tai_datablock(hp).size)+' DUP(?)');
              end;
-           ait_const_uleb128bit,
-           ait_const_sleb128bit,
-           ait_const_128bit,
-           ait_const_64bit,
-           ait_const_32bit,
-           ait_const_16bit,
-           ait_const_8bit,
-           ait_const_rva_symbol,
-           ait_const_indirect_symbol :
+           ait_const:
              begin
-               AsmWrite(ait_const2str[hp.typ]);
-               consttyp:=hp.typ;
-               l:=0;
-               repeat
-                 if assigned(tai_const(hp).sym) then
+               consttype:=tai_const(hp).consttype;
+               case consttype of
+                 aitconst_uleb128bit,
+                 aitconst_sleb128bit,
+                 aitconst_128bit,
+                 aitconst_64bit,
+                 aitconst_32bit,
+                 aitconst_16bit,
+                 aitconst_8bit,
+                 aitconst_rva_symbol,
+                 aitconst_indirect_symbol :
                    begin
-                     if assigned(tai_const(hp).endsym) then
-                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
-                     else
-                       s:=tai_const(hp).sym.name;
-                     if tai_const(hp).value<>0 then
-                       s:=s+tostr_with_plus(tai_const(hp).value);
-                   end
-                 else
-                   s:=tostr(tai_const(hp).value);
-                 AsmWrite(s);
-                 if (l>line_length) or
-                    (hp.next=nil) or
-                    (tai(hp.next).typ<>consttyp) then
-                   break;
-                 hp:=tai(hp.next);
-                 AsmWrite(',');
-               until false;
-               AsmLn;
+                     AsmWrite(ait_const2str[consttype]);
+                     l:=0;
+                     repeat
+                       if assigned(tai_const(hp).sym) then
+                         begin
+                           if assigned(tai_const(hp).endsym) then
+                             s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                           else
+                             s:=tai_const(hp).sym.name;
+                           if tai_const(hp).value<>0 then
+                             s:=s+tostr_with_plus(tai_const(hp).value);
+                         end
+                       else
+                         s:=tostr(tai_const(hp).value);
+                       AsmWrite(s);
+                       if (l>line_length) or
+                          (hp.next=nil) or
+                          (tai(hp.next).typ<>ait_const) or
+                          (tai_const(hp.next).consttype<>consttype) then
+                         break;
+                       hp:=tai(hp.next);
+                       AsmWrite(',');
+                     until false;
+                     AsmLn;
+                   end;
+               end;
              end;
 
            ait_real_32bit :
@@ -642,8 +648,7 @@ implementation
                 begin
                   AsmWrite(tai_label(hp).l.name);
                   if assigned(hp.next) and not(tai(hp.next).typ in
-                     [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                      ait_const_rva_symbol,
+                     [ait_const,
                       ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                    AsmWriteLn(':')
                   else
@@ -656,8 +661,7 @@ implementation
                  AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
                AsmWrite(tai_symbol(hp).sym.name);
                if assigned(hp.next) and not(tai(hp.next).typ in
-                  [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-                   ait_const_rva_symbol,
+                  [ait_const,
                    ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                 AsmWriteLn(':')
              end;

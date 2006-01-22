@@ -236,12 +236,7 @@ interface
                 case hp2.typ of
                   ait_label :
                      ReLabel(tasmsymbol(tai_label(hp2).l));
-                  ait_const_64bit,
-                  ait_const_32bit,
-                  ait_const_16bit,
-                  ait_const_8bit,
-                  ait_const_rva_symbol,
-                  ait_const_indirect_symbol :
+                  ait_const :
                      begin
                        if assigned(tai_const(hp2).sym) then
                          ReLabel(tai_const(hp2).sym);

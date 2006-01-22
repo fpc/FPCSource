@@ -336,13 +336,16 @@ implementation
                                        }
                                        hp2:=tai(lastlabelhp.previous);
                                        if assigned(hp2) and
-                                          (hp2.typ=ait_const_aint) and
+                                          (hp2.typ=ait_const) and
+                                          (tai_const(hp2).consttype=aitconst_aint) and
                                           (tai_const(hp2).value=-1) and
                                           assigned(hp2.previous) and
-                                          (tai(hp2.previous).typ=ait_const_aint) and
+                                          (tai(hp2.previous).typ=ait_const) and
+                                          (tai_const(hp2.previous).consttype=aitconst_aint) and
                                           (tai_const(hp2.previous).value=len) and
                                           assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const_ptr) and
+                                          (tai(hp2.previous.previous).typ=ait_const) and
+                                          (tai_const(hp2.previous.previous).consttype=aitconst_ptr) and
                                           assigned(hp2.previous.previous.previous) and
                                           (tai(hp2.previous.previous.previous).typ=ait_label) then
                                          begin
@@ -473,7 +476,7 @@ implementation
          hp1         : tai;
          lastlabel   : tasmlabel;
          i           : longint;
-         neededtyp   : taitype;
+         neededtyp   : taiconst_type;
          indexadjust : longint;
       type
          setbytes=array[0..31] of byte;
@@ -494,7 +497,7 @@ implementation
            exit;
          end;
         location_reset(location,LOC_CREFERENCE,OS_NO);
-        neededtyp:=ait_const_8bit;
+        neededtyp:=aitconst_8bit;
         lastlabel:=nil;
         { const already used ? }
         if not assigned(lab_set) then
@@ -507,9 +510,11 @@ implementation
                     lastlabel:=tai_label(hp1).l
                   else
                     begin
-                      if (lastlabel<>nil) and (hp1.typ=neededtyp) then
+                      if (lastlabel<>nil) and
+                        (hp1.typ=ait_const) and
+                        (tai_const(hp1).consttype=neededtyp) then
                         begin
-                          if (hp1.typ=ait_const_8bit) then
+                          if (tai_const(hp1).consttype=aitconst_8bit) then
                            begin
                              { compare normal set }
                              i:=0;

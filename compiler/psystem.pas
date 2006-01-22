@@ -498,12 +498,7 @@ implementation
         aiclass[ait_symbol_end]:=tai_symbol_end;
         aiclass[ait_directive]:=tai_directive;
         aiclass[ait_label]:=tai_label;
-        aiclass[ait_const_64bit]:=tai_const;
-        aiclass[ait_const_32bit]:=tai_const;
-        aiclass[ait_const_16bit]:=tai_const;
-        aiclass[ait_const_8bit]:=tai_const;
-        aiclass[ait_const_indirect_symbol]:=tai_const;
-        aiclass[ait_const_rva_symbol]:=tai_const;
+        aiclass[ait_const]:=tai_const;
         aiclass[ait_real_32bit]:=tai_real_32bit;
         aiclass[ait_real_64bit]:=tai_real_64bit;
         aiclass[ait_real_80bit]:=tai_real_80bit;

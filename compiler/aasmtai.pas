@@ -40,6 +40,8 @@ interface
        aasmbase;
 
     type
+       { keep the number of elements in this enumeration less or equal than 32 as long
+         as FPC knows only 4 byte and 32 byte sets (FK) }
        taitype = (
           ait_none,
           ait_align,
@@ -52,17 +54,7 @@ interface
           ait_symbol_end, { needed to calc the size of a symbol }
           ait_directive,
           ait_label,
-          { the const_xx must be below each other so it can be used as
-            array index }
-          ait_const_128bit,
-          ait_const_64bit,
-          ait_const_32bit,
-          ait_const_16bit,
-          ait_const_8bit,
-          ait_const_sleb128bit,
-          ait_const_uleb128bit,
-          ait_const_rva_symbol, { win32 only }
-          ait_const_indirect_symbol, { darwin only }
+          ait_const,
           ait_real_32bit,
           ait_real_64bit,
           ait_real_80bit,
@@ -88,16 +80,34 @@ interface
           ait_regalloc,
           ait_tempalloc,
           { used to mark assembler blocks and inlined functions }
-          ait_marker
+          ait_marker,
+          { new source file (dwarf) }
+          ait_file,
+          { new line in source file (dwarf) }
+          ait_line
           );
+
+        taiconst_type = (
+          aitconst_128bit,
+          aitconst_64bit,
+          aitconst_32bit,
+          aitconst_16bit,
+          aitconst_8bit,
+          aitconst_sleb128bit,
+          aitconst_uleb128bit,
+          { win32 only }
+          aitconst_rva_symbol,
+          { darwin only }
+          aitconst_indirect_symbol
+        );
 
     const
 {$ifdef cpu64bit}
-       ait_const_aint = ait_const_64bit;
-       ait_const_ptr  = ait_const_64bit;
+       aitconst_aint = aitconst_64bit;
+       aitconst_ptr  = aitconst_64bit;
 {$else cpu64bit}
-       ait_const_aint = ait_const_32bit;
-       ait_const_ptr  = ait_const_32bit;
+       aitconst_aint = aitconst_32bit;
+       aitconst_ptr  = aitconst_32bit;
 {$endif cpu64bit}
 
        taitypestr : array[taitype] of string[24] = (
@@ -112,15 +122,7 @@ interface
           'symbol_end',
           'symbol_directive',
           'label',
-          'const_128bit',
-          'const_64bit',
-          'const_32bit',
-          'const_16bit',
-          'const_8bit',
-          'const_sleb128bit',
-          'const_uleb128bit',
-          'const_rva_symbol',
-          'const_indirect_symbol',
+          'const',
           'real_32bit',
           'real_64bit',
           'real_80bit',
@@ -144,7 +146,9 @@ interface
           'cut',
           'regalloc',
           'tempalloc',
-          'marker'
+          'marker',
+          'file',
+          'line'
           );
 
     type
@@ -196,24 +200,22 @@ interface
       end;
       poper=^toper;
 
-{ ait_* types which don't result in executable code or which don't influence   }
-{ the way the program runs/behaves, but which may be encountered by the        }
-{ optimizer (= if it's sometimes added to the exprasm list). Update if you add }
-{ a new ait type!                                                              }
     const
+      { ait_* types which don't result in executable code or which don't influence
+        the way the program runs/behaves, but which may be encountered by the
+        optimizer (= if it's sometimes added to the exprasm list). Update if you add
+        a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
                    ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
 
-{ ait_* types which do not have line information (and hence which are of type
-  tai, otherwise, they are of type tailineinfo }
+      { ait_* types which do not have line information (and hence which are of type
+        tai, otherwise, they are of type tailineinfo }
       SkipLineInfo =[ait_label,
                      ait_regalloc,ait_tempalloc,
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
-                     ait_const_8bit,ait_const_16bit,ait_const_32bit,ait_const_64bit,ait_const_128bit,
-                     ait_const_sleb128bit,ait_const_uleb128bit,
-                     ait_const_rva_symbol,ait_const_indirect_symbol,
+                     ait_const,
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit
                     ];
 
@@ -364,9 +366,10 @@ interface
           sym,
           endsym  : tasmsymbol;
           value   : int64;
+          consttype : taiconst_type;
           { we use for the 128bit int64/qword for now because I can't imagine a
             case where we need 128 bit now (FK) }
-          constructor Create(_typ:taitype;_value : int64);
+          constructor Create(_typ:taiconst_type;_value : int64);
           constructor Create_128bit(_value : int64);
           constructor Create_64bit(_value : int64);
           constructor Create_32bit(_value : longint);
@@ -377,7 +380,7 @@ interface
           constructor Create_aint(_value : aint);
           constructor Create_sym(_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
-          constructor Create_rel_sym(_typ:taitype;_sym,_endsym:tasmsymbol);
+          constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Create_indirect_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
@@ -1087,10 +1090,11 @@ implementation
                                TAI_CONST
  ****************************************************************************}
 
-    constructor tai_const.Create(_typ:taitype;_value : int64);
+    constructor tai_const.Create(_typ:taiconst_type;_value : int64);
       begin
          inherited Create;
-         typ:=_typ;
+         typ:=ait_const;
+         consttype:=_typ;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1100,7 +1104,8 @@ implementation
     constructor tai_const.Create_128bit(_value : int64);
       begin
          inherited Create;
-         typ:=ait_const_128bit;
+         typ:=ait_const;
+         consttype:=aitconst_128bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1110,7 +1115,8 @@ implementation
     constructor tai_const.Create_64bit(_value : int64);
       begin
          inherited Create;
-         typ:=ait_const_64bit;
+         typ:=ait_const;
+         consttype:=aitconst_64bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1120,7 +1126,8 @@ implementation
     constructor tai_const.Create_32bit(_value : longint);
       begin
          inherited Create;
-         typ:=ait_const_32bit;
+         typ:=ait_const;
+         consttype:=aitconst_32bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1130,7 +1137,8 @@ implementation
     constructor tai_const.Create_16bit(_value : word);
       begin
          inherited Create;
-         typ:=ait_const_16bit;
+         typ:=ait_const;
+         consttype:=aitconst_16bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1140,7 +1148,8 @@ implementation
     constructor tai_const.Create_8bit(_value : byte);
       begin
          inherited Create;
-         typ:=ait_const_8bit;
+         typ:=ait_const;
+         consttype:=aitconst_8bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1150,7 +1159,8 @@ implementation
     constructor tai_const.Create_sleb128bit(_value : int64);
       begin
          inherited Create;
-         typ:=ait_const_sleb128bit;
+         typ:=ait_const;
+         consttype:=aitconst_sleb128bit;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1160,7 +1170,8 @@ implementation
     constructor tai_const.Create_uleb128bit(_value : qword);
       begin
          inherited Create;
-         typ:=ait_const_uleb128bit;
+         typ:=ait_const;
+         consttype:=aitconst_uleb128bit;
          value:=int64(_value);
          sym:=nil;
          endsym:=nil;
@@ -1170,7 +1181,8 @@ implementation
     constructor tai_const.Create_aint(_value : aint);
       begin
          inherited Create;
-         typ:=ait_const_aint;
+         typ:=ait_const;
+         consttype:=aitconst_aint;
          value:=_value;
          sym:=nil;
          endsym:=nil;
@@ -1180,7 +1192,8 @@ implementation
     constructor tai_const.Create_sym(_sym:tasmsymbol);
       begin
          inherited Create;
-         typ:=ait_const_ptr;
+         typ:=ait_const;
+         consttype:=aitconst_ptr;
          { sym is allowed to be nil, this is used to write nil pointers }
          sym:=_sym;
          endsym:=nil;
@@ -1194,7 +1207,8 @@ implementation
     constructor tai_const.Create_sym_offset(_sym:tasmsymbol;ofs:aint);
       begin
          inherited Create;
-         typ:=ait_const_ptr;
+         typ:=ait_const;
+         consttype:=aitconst_ptr;
          if not assigned(_sym) then
            internalerror(200404121);
          sym:=_sym;
@@ -1205,10 +1219,11 @@ implementation
       end;
 
 
-    constructor tai_const.Create_rel_sym(_typ:taitype;_sym,_endsym:tasmsymbol);
+    constructor tai_const.Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
       begin
          inherited Create;
-         typ:=_typ;
+         typ:=ait_const;
+         consttype:=_typ;
          sym:=_sym;
          endsym:=_endsym;
          value:=0;
@@ -1221,7 +1236,8 @@ implementation
     constructor tai_const.Create_rva_sym(_sym:tasmsymbol);
       begin
          inherited Create;
-         typ:=ait_const_rva_symbol;
+         typ:=ait_const;
+         consttype:=aitconst_rva_symbol;
          sym:=_sym;
          endsym:=nil;
          value:=0;
@@ -1233,7 +1249,8 @@ implementation
     constructor tai_const.Create_indirect_sym(_sym:tasmsymbol);
       begin
          inherited Create;
-         typ:=ait_const_indirect_symbol;
+         typ:=ait_const;
+         consttype:=aitconst_indirect_symbol;
          sym:=_sym;
          endsym:=nil;
          value:=0;
@@ -1245,7 +1262,8 @@ implementation
     constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
       begin
          inherited Create;
-         typ:=ait_const_ptr;
+         typ:=ait_const;
+         consttype:=aitconst_ptr;
          sym:=objectlibrary.newasmsymbol(name,AB_EXTERNAL,_symtyp);
          endsym:=nil;
          value:=ofs;
@@ -1257,7 +1275,8 @@ implementation
     constructor tai_const.Createname_rva(const name:string);
       begin
          inherited Create;
-         typ:=ait_const_rva_symbol;
+         typ:=ait_const;
+         consttype:=aitconst_rva_symbol;
          sym:=objectlibrary.newasmsymbol(name,AB_EXTERNAL,AT_FUNCTION);
          endsym:=nil;
          value:=0;
@@ -1269,6 +1288,7 @@ implementation
     constructor tai_const.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
+        consttype:=taiconst_type(ppufile.getbyte);
         sym:=ppufile.getasmsymbol;
         endsym:=ppufile.getasmsymbol;
         value:=ppufile.getint64;
@@ -1278,6 +1298,7 @@ implementation
     procedure tai_const.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+        ppufile.putbyte(byte(consttype));
         ppufile.putasmsymbol(sym);
         ppufile.putasmsymbol(endsym);
         ppufile.putint64(value);
@@ -1303,17 +1324,17 @@ implementation
 
     function tai_const.size:longint;
       begin
-        case typ of
-          ait_const_8bit :
+        case consttype of
+          aitconst_8bit :
             result:=1;
-          ait_const_16bit :
+          aitconst_16bit :
             result:=2;
-          ait_const_32bit :
+          aitconst_32bit :
             result:=4;
-          ait_const_64bit :
+          aitconst_64bit :
             result:=8;
-          ait_const_indirect_symbol,
-          ait_const_rva_symbol :
+          aitconst_indirect_symbol,
+          aitconst_rva_symbol :
             result:=sizeof(aint);
         end;
       end;

@@ -668,7 +668,7 @@ interface
       lastinfile   : tinputfile;
 
     const
-      ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
+      ait_const2str:array[aitconst_32bit..aitconst_8bit] of string[8]=
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
 
@@ -683,7 +683,7 @@ interface
       lines,
       InlineLevel : longint;
       i,j,l    : longint;
-      consttyp : taitype;
+      consttype : taiconst_type;
       found,
       do_line,DoNotSplitLine,
       quoted   : boolean;
@@ -816,111 +816,117 @@ interface
                    end;
               end;
 
-           ait_const_128bit:
+            ait_const:
               begin
-                internalerror(200404291);
-              end;
-           ait_const_64bit:
-              begin
-                if assigned(tai_const(hp).sym) then
-                  internalerror(200404292);
-                AsmWrite(ait_const2str[ait_const_32bit]);
-                if target_info.endian = endian_little then
-                  begin
-                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                    AsmWrite(',');
-                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                  end
-                else
-                  begin
-                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                    AsmWrite(',');
-                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                  end;
-                AsmLn;
-              end;
+                consttype:=tai_const(hp).consttype;
+                case consttype of
+                   aitconst_128bit:
+                      begin
+                        internalerror(200404291);
+                      end;
+                   aitconst_64bit:
+                      begin
+                        if assigned(tai_const(hp).sym) then
+                          internalerror(200404292);
+                        AsmWrite(ait_const2str[aitconst_32bit]);
+                        if target_info.endian = endian_little then
+                          begin
+                            AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                            AsmWrite(',');
+                            AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                          end
+                        else
+                          begin
+                            AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                            AsmWrite(',');
+                            AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                          end;
+                        AsmLn;
+                      end;
 
-           ait_const_uleb128bit,
-           ait_const_sleb128bit,
-           ait_const_32bit,
-           ait_const_16bit,
-           ait_const_8bit,
-           ait_const_rva_symbol,
-           ait_const_indirect_symbol :
-             begin
-               AsmWrite(ait_const2str[hp.typ]);
-               consttyp:=hp.typ;
-               l:=0;
-               repeat
-                 if assigned(tai_const(hp).sym) then
-                   begin
-                     if assigned(tai_const(hp).endsym) then
-                       begin
-                         if (tai_const(hp).endsym.typ = AT_FUNCTION) and use_PR then
-                           AsmWrite('.');
-
-                         s:=tai_const(hp).endsym.name;
-                         ReplaceForbiddenChars(s);
-                         AsmWrite(s);
-                         inc(l,length(s));
-
-                         if tai_const(hp).endsym.typ = AT_FUNCTION then
+                   aitconst_uleb128bit,
+                   aitconst_sleb128bit,
+                   aitconst_32bit,
+                   aitconst_16bit,
+                   aitconst_8bit,
+                   aitconst_rva_symbol,
+                   aitconst_indirect_symbol :
+                     begin
+                       AsmWrite(ait_const2str[consttype]);
+                       l:=0;
+                       repeat
+                         if assigned(tai_const(hp).sym) then
                            begin
-                             if use_PR then
-                               AsmWrite('[PR]')
+                             if assigned(tai_const(hp).endsym) then
+                               begin
+                                 if (tai_const(hp).endsym.typ = AT_FUNCTION) and use_PR then
+                                   AsmWrite('.');
+
+                                 s:=tai_const(hp).endsym.name;
+                                 ReplaceForbiddenChars(s);
+                                 AsmWrite(s);
+                                 inc(l,length(s));
+
+                                 if tai_const(hp).endsym.typ = AT_FUNCTION then
+                                   begin
+                                     if use_PR then
+                                       AsmWrite('[PR]')
+                                     else
+                                       AsmWrite('[DS]');
+                                   end;
+
+                                 AsmWrite('-');
+                                 inc(l,5); {Approx 5 extra, no need to be exactly}
+                               end;
+
+                             if (tai_const(hp).sym.typ = AT_FUNCTION) and use_PR then
+                               AsmWrite('.');
+
+                             s:= tai_const(hp).sym.name;
+                             ReplaceForbiddenChars(s);
+                             AsmWrite(s);
+                             inc(l,length(s));
+
+                             if tai_const(hp).sym.typ = AT_FUNCTION then
+                               begin
+                                 if use_PR then
+                                   AsmWrite('[PR]')
+                                 else
+                                   AsmWrite('[DS]');
+                               end;
+                             inc(l,5); {Approx 5 extra, no need to be exactly}
+
+                             if tai_const(hp).value > 0 then
+                               s:= '+'+tostr(tai_const(hp).value)
+                             else if tai_const(hp).value < 0 then
+                               s:= '-'+tostr(tai_const(hp).value)
                              else
-                               AsmWrite('[DS]');
+                               s:= '';
+                             if s<>'' then
+                               begin
+                                 AsmWrite(s);
+                                 inc(l,length(s));
+                               end;
+                           end
+                         else
+                           begin
+                             s:= tostr(tai_const(hp).value);
+                             AsmWrite(s);
+                             inc(l,length(s));
                            end;
 
-                         AsmWrite('-');
-                         inc(l,5); {Approx 5 extra, no need to be exactly}
-                       end;
-
-                     if (tai_const(hp).sym.typ = AT_FUNCTION) and use_PR then
-                       AsmWrite('.');
-
-                     s:= tai_const(hp).sym.name;
-                     ReplaceForbiddenChars(s);
-                     AsmWrite(s);
-                     inc(l,length(s));
-
-                     if tai_const(hp).sym.typ = AT_FUNCTION then
-                       begin
-                         if use_PR then
-                           AsmWrite('[PR]')
-                         else
-                           AsmWrite('[DS]');
-                       end;
-                     inc(l,5); {Approx 5 extra, no need to be exactly}
-
-                     if tai_const(hp).value > 0 then
-                       s:= '+'+tostr(tai_const(hp).value)
-                     else if tai_const(hp).value < 0 then
-                       s:= '-'+tostr(tai_const(hp).value)
-                     else
-                       s:= '';
-                     if s<>'' then
-                       begin
-                         AsmWrite(s);
-                         inc(l,length(s));
-                       end;
-                   end
-                 else
-                   begin
-                     s:= tostr(tai_const(hp).value);
-                     AsmWrite(s);
-                     inc(l,length(s));
-                   end;
-
-                 if (l>line_length) or
-                    (hp.next=nil) or
-                    (tai(hp.next).typ<>consttyp) then
-                   break;
-                 hp:=tai(hp.next);
-                 AsmWrite(',');
-               until false;
-               AsmLn;
-             end;
+                         if (l>line_length) or
+                            (hp.next=nil) or
+                            (tai(hp.next).typ<>ait_const) or
+                            (tai_const(hp.next).consttype<>consttype) then
+                           break;
+                         hp:=tai(hp.next);
+                         AsmWrite(',');
+                       until false;
+                       AsmLn;
+                     end;
+                end;
+              end;
 
             ait_real_64bit :
               begin

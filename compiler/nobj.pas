@@ -1293,8 +1293,8 @@ implementation
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         asmlist[al_globals].concat(Tai_const.Create(ait_const_ptr,tobjectsymtable(_class.symtable).datasize));
-         asmlist[al_globals].concat(Tai_const.Create(ait_const_ptr,-int64(tobjectsymtable(_class.symtable).datasize)));
+         asmlist[al_globals].concat(Tai_const.Create(aitconst_ptr,tobjectsymtable(_class.symtable).datasize));
+         asmlist[al_globals].concat(Tai_const.Create(aitconst_ptr,-int64(tobjectsymtable(_class.symtable).datasize)));
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin
@@ -1353,7 +1353,7 @@ implementation
           end;
          { write virtual methods }
          writevirtualmethods(asmlist[al_globals]);
-         asmlist[al_globals].concat(Tai_const.create(ait_const_ptr,0));
+         asmlist[al_globals].concat(Tai_const.create(aitconst_ptr,0));
          { write the size of the VMT }
          asmlist[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
       end;

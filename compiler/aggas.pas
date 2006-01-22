@@ -185,7 +185,7 @@ implementation
 
 
     const
-      ait_const2str : array[ait_const_128bit..ait_const_indirect_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
         #9'.rva'#9,#9'.indirect_symbol'#9
@@ -335,8 +335,7 @@ implementation
         needsObject :=
             (
               assigned(hp.next) and
-               (tai_symbol(hp.next).typ in [ait_const_rva_symbol,
-                ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_datablock,
+               (tai_symbol(hp.next).typ in [ait_const,ait_datablock,
                 ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
             ) or
             (hp.sym.typ=AT_DATA);
@@ -549,103 +548,107 @@ implementation
                  end;
              end;
 
-{$ifndef cpu64bit}
-           ait_const_128bit :
-              begin
-                internalerror(200404291);
-              end;
-
-           ait_const_64bit :
-              begin
-                if assigned(tai_const(hp).sym) then
-                  internalerror(200404292);
-                AsmWrite(ait_const2str[ait_const_32bit]);
-                if target_info.endian = endian_little then
-                  begin
-                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                    AsmWrite(',');
-                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                  end
-                else
-                  begin
-                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
-                    AsmWrite(',');
-                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
-                  end;
-                AsmLn;
-              end;
-{$endif cpu64bit}
-
-           ait_const_uleb128bit,
-           ait_const_sleb128bit,
-{$ifdef cpu64bit}
-           ait_const_128bit,
-           ait_const_64bit,
-{$endif cpu64bit}
-           ait_const_32bit,
-           ait_const_16bit,
-           ait_const_8bit,
-           ait_const_rva_symbol,
-           ait_const_indirect_symbol :
+           ait_const:
              begin
-              if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
-                 (hp.typ in [ait_const_uleb128bit,ait_const_sleb128bit]) then
-                begin
-                  AsmWrite(ait_const2str[ait_const_8bit]);
-                  case hp.typ of
-                    ait_const_uleb128bit:
-                      WriteDecodedUleb128(aword(tai_const(hp).value));
-                    ait_const_sleb128bit:
-                      WriteDecodedSleb128(aint(tai_const(hp).value));
-                  end
-                end
-               else
-                 begin
-                   AsmWrite(ait_const2str[hp.typ]);
-                   consttyp:=hp.typ;
-                   l:=0;
-                   t := '';
-                   repeat
-                     if assigned(tai_const(hp).sym) then
+               case tai_const(hp).consttype of
+{$ifndef cpu64bit}
+                 aitconst_128bit :
+                    begin
+                      internalerror(200404291);
+                    end;
+
+                 aitconst_64bit :
+                    begin
+                      if assigned(tai_const(hp).sym) then
+                        internalerror(200404292);
+                      AsmWrite(ait_const2str[aitconst_32bit]);
+                      if target_info.endian = endian_little then
+                        begin
+                          AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                          AsmWrite(',');
+                          AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                        end
+                      else
+                        begin
+                          AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                          AsmWrite(',');
+                          AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                        end;
+                      AsmLn;
+                    end;
+{$endif cpu64bit}
+                 aitconst_uleb128bit,
+                 aitconst_sleb128bit,
+{$ifdef cpu64bit}
+                 aitconst_128bit,
+                 aitconst_64bit,
+{$endif cpu64bit}
+                 aitconst_32bit,
+                 aitconst_16bit,
+                 aitconst_8bit,
+                 aitconst_rva_symbol,
+                 aitconst_indirect_symbol :
+                   begin
+                     if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+                        (tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) then
                        begin
-                         if assigned(tai_const(hp).endsym) then
-                           begin
-                             if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-                               begin
-                                 s := NextSetLabel;
-                                 t := #9'.set '+s+','+tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name;
-                               end
-                             else
-                               s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
-                            end
-                         else
-                           s:=tai_const(hp).sym.name;
-                         if tai_const(hp).value<>0 then
-                           s:=s+tostr_with_plus(tai_const(hp).value);
+                         AsmWrite(ait_const2str[aitconst_8bit]);
+                         case tai_const(hp).consttype of
+                           aitconst_uleb128bit:
+                             WriteDecodedUleb128(aword(tai_const(hp).value));
+                           aitconst_sleb128bit:
+                             WriteDecodedSleb128(aint(tai_const(hp).value));
+                         end
                        end
                      else
-                       s:=tostr(tai_const(hp).value);
-                     AsmWrite(s);
-                     inc(l,length(s));
-                     { Values with symbols are written on a single line to improve
-                       reading of the .s file (PFV) }
-                     if assigned(tai_const(hp).sym) or
-                        not(CurrSecType in [sec_data,sec_rodata]) or
-                        (l>line_length) or
-                        (hp.next=nil) or
-                        (tai(hp.next).typ<>consttyp) or
-                        assigned(tai_const(hp.next).sym) then
-                       break;
-                     hp:=tai(hp.next);
-                     AsmWrite(',');
-                   until false;
-                   if (t <> '') then
-                     begin
-                       AsmLn;
-                       AsmWrite(t);
-                     end;
+                       begin
+                         AsmWrite(ait_const2str[tai_const(hp).consttype]);
+                         consttyp:=hp.typ;
+                         l:=0;
+                         t := '';
+                         repeat
+                           if assigned(tai_const(hp).sym) then
+                             begin
+                               if assigned(tai_const(hp).endsym) then
+                                 begin
+                                   if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+                                     begin
+                                       s := NextSetLabel;
+                                       t := #9'.set '+s+','+tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name;
+                                     end
+                                   else
+                                     s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+                                  end
+                               else
+                                 s:=tai_const(hp).sym.name;
+                               if tai_const(hp).value<>0 then
+                                 s:=s+tostr_with_plus(tai_const(hp).value);
+                             end
+                           else
+                             s:=tostr(tai_const(hp).value);
+                           AsmWrite(s);
+                           inc(l,length(s));
+                           { Values with symbols are written on a single line to improve
+                             reading of the .s file (PFV) }
+                           if assigned(tai_const(hp).sym) or
+                              not(CurrSecType in [sec_data,sec_rodata]) or
+                              (l>line_length) or
+                              (hp.next=nil) or
+                              (tai(hp.next).typ<>consttyp) or
+                              assigned(tai_const(hp.next).sym) then
+                             break;
+                           hp:=tai(hp.next);
+                           AsmWrite(',');
+                         until false;
+                         if (t <> '') then
+                           begin
+                             AsmLn;
+                             AsmWrite(t);
+                           end;
+                       end;
+                      AsmLn;
+                   end;
                  end;
-               AsmLn;
              end;
 
 {$ifdef cpuextended}
