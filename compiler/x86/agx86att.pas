@@ -240,7 +240,7 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '--64 -o $OBJ $ASM';
             supported_target : system_any;
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
@@ -252,7 +252,7 @@ interface
             id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '--32 -o $OBJ $ASM';
             supported_target : system_any;
             flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
