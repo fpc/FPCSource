@@ -554,6 +554,13 @@ Implementation
           end;
       end;
 
+{$ifdef i386}
+    const format_option='--32';
+{$else}{$ifdef x86_64}
+    const format_option='--64';
+{$else}
+    const format_option='';
+{$endif}{$endif}
 
     procedure TExternalAssembler.AsmCreate(Aplace:tcutplace);
       begin
@@ -563,7 +570,7 @@ Implementation
         if DoPipe then
          begin
            Message1(exec_i_assembling_pipe,asmfile);
-           POpen(outfile,'as -o '+objfile,'W');
+           POpen(outfile,'as '+format_option+' -o '+objfile,'W');
          end
         else
 {$endif}
