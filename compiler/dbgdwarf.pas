@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2003-2004 by Peter Vreman and Florian Klaempfl
+    Copyright (c) 2003-2006 by Peter Vreman and Florian Klaempfl
 
     This units contains support for DWARF debug info generation
 
@@ -31,13 +31,19 @@ interface
 
     type
       TDebugInfoDwarf=class(TDebugInfo)
+        currfileidx : longint;
         procedure insertlineinfo(list:taasmoutput);override;
       end;
 
 implementation
 
     uses
-      Systems;
+      cutils,
+      globals,
+      Systems,
+      aasmbase,
+      finput,
+      fmodule;
 
     const
       dbg_dwarf_info : tdbginfo =
@@ -47,9 +53,6 @@ implementation
          );
 
     procedure tdebuginfodwarf.insertlineinfo(list:taasmoutput);
-      begin
-      end;
-      {
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -85,14 +88,14 @@ implementation
                     infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
-                        objectlibrary.getlabel(hlabel,alt_dbgfile);
-                        { emit stabs }
+                        inc(currfileidx);
                         if (infile.path^<>'') then
-                          list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_includefile)+
-                                            ',0,0,'+hlabel.name),hp);
-                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
-                                          ',0,0,'+hlabel.name),hp);
-                        list.insertbefore(tai_label.create(hlabel),hp);
+                          list.insertbefore(tai_file.create(
+                            BsToSlash(FixPath(infile.path^,false)+FixFileName(infile.name^)),currfileidx
+                          ),hp)
+                        else
+                          list.insertbefore(tai_file.create(
+                            FixFileName(infile.name^),currfileidx),hp);
                         { force new line info }
                         lastfileinfo.line:=-1;
                       end;
@@ -100,26 +103,14 @@ implementation
 
                 { line changed ? }
                 if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
-                  begin
-                     if assigned(currfuncname) and
-                        (tf_use_function_relative_addresses in target_info.flags) then
-                      begin
-                        objectlibrary.getlabel(hlabel,alt_dbgline);
-                        list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(n_textline)+',0,'+tostr(currfileinfo.line)+','+
-                                          hlabel.name+' - '+{$IFDEF POWERPC64}'.'+{$ENDIF POWERPC64}currfuncname^),hp);
-                        list.insertbefore(tai_label.create(hlabel),hp);
-                      end
-                     else
-                      list.insertbefore(Tai_stab.Create_str(stab_stabd,tostr(n_textline)+',0,'+tostr(currfileinfo.line)),hp);
-                  end;
+                  list.insertbefore(tai_loc.create(
+                    currfileidx,currfileinfo.line,currfileinfo.column),hp);
                 lastfileinfo:=currfileinfo;
               end;
 
             hp:=tai(hp.next);
           end;
       end;
-    }
-
 
 initialization
   RegisterDebugInfo(dbg_dwarf_info,TDebugInfoDwarf);

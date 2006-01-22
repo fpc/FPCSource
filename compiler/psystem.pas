@@ -526,6 +526,8 @@ implementation
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;
         aiclass[ait_marker]:=tai_marker;
+        aiclass[ait_file]:=tai_file;
+        aiclass[ait_loc]:=tai_loc;
       end;
 
 end.

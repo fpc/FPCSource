@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2004 by the Free Pascal team
+    Copyright (c) 1998-2006 by the Free Pascal team
 
     This unit implements generic GNU assembler (v2.8 or later)
 
@@ -793,6 +793,7 @@ implementation
                   AsmWriteLn(':');
                 end;
              end;
+
            ait_symbol :
              begin
                if tai_symbol(hp).is_global then
@@ -877,6 +878,21 @@ implementation
                  end;
              end;
 
+           ait_file :
+             begin
+               AsmWrite(#9'.file '+tostr(tai_file(hp).idx)+' "');
+
+               AsmWritePChar(tai_file(hp).str);
+               AsmWrite('"');
+               AsmLn;
+             end;
+
+           ait_loc :
+             begin
+               AsmWrite(#9'.loc '+tostr(tai_loc(hp).fileidx)+' '+tostr(tai_loc(hp).line)+' '+tostr(tai_loc(hp).column));
+               AsmLn;
+             end;
+
            ait_force_line,
            ait_function_name : ;
 
@@ -921,7 +937,7 @@ implementation
              end;
 
            else
-             internalerror(10000);
+             internalerror(2006012201);
          end;
          hp:=tai(hp.next);
        end;

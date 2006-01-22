@@ -51,7 +51,8 @@ interface
           ait_instruction,
           ait_datablock,
           ait_symbol,
-          ait_symbol_end, { needed to calc the size of a symbol }
+          { needed to calc the size of a symbol }
+          ait_symbol_end,
           ait_directive,
           ait_label,
           ait_const,
@@ -83,8 +84,8 @@ interface
           ait_marker,
           { new source file (dwarf) }
           ait_file,
-          { new line in source file (dwarf) }
-          ait_line
+          { new line/loc in source file (dwarf) }
+          ait_loc
           );
 
         taiconst_type = (
@@ -207,7 +208,8 @@ interface
         a new ait type!                                                              }
       SkipInstr = [ait_comment, ait_symbol,ait_section
                    ,ait_stab, ait_function_name, ait_force_line
-                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive];
+                   ,ait_regalloc, ait_tempalloc, ait_symbol_end, ait_directive
+                   ,ait_file,ait_loc];
 
       { ait_* types which do not have line information (and hence which are of type
         tai, otherwise, they are of type tailineinfo }
@@ -216,7 +218,8 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
                      ait_const,
-                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit
+                     ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
+                     ait_file,ait_loc
                     ];
 
 
@@ -514,104 +517,125 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
-      Taasmoutput=class;
+       { Generates a dwarf file location }
+       tai_file = class(tai)
+          str : pchar;
+          idx : longint;
+          constructor Create(_str : string;_idx : longint);
+          destructor Destroy; override;
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function getcopy:tlinkedlistitem;override;
+       end;
 
-      tadd_reg_instruction_proc=procedure(instr:Tai;r:tregister) of object;
-      Trggetproc=procedure(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister) of object;
-      Trgungetproc=procedure(list:Taasmoutput;position:Tai;r:Tregister) of object;
+       { Generates a dwarf line location }
+       tai_loc = class(tai)
+          fileidx,
+          line,
+          column : longint;
+          constructor Create(_fileidx,_line,_column : longint);
+          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+       end;
 
-       { Class template for assembler instructions
-       }
-       tai_cpu_abstract = class(tailineinfo)
-       protected
-          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
-          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
-          procedure ppubuildderefimploper(var o:toper);virtual;abstract;
-          procedure ppuderefoper(var o:toper);virtual;abstract;
-       public
-          { Condition flags for instruction }
-          condition : TAsmCond;
-          { Number of operands to instruction }
-          ops       : byte;
-          { Number of allocate oper structures }
-          opercnt   : byte;
-          { Operands of instruction }
-          oper      : array[0..max_operands-1] of poper;
-          { Actual opcode of instruction }
-          opcode    : tasmop;
+       Taasmoutput=class;
+
+       tadd_reg_instruction_proc=procedure(instr:Tai;r:tregister) of object;
+       Trggetproc=procedure(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister) of object;
+       Trgungetproc=procedure(list:Taasmoutput;position:Tai;r:Tregister) of object;
+
+        { Class template for assembler instructions
+        }
+        tai_cpu_abstract = class(tailineinfo)
+        protected
+           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
+           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
+           procedure ppubuildderefimploper(var o:toper);virtual;abstract;
+           procedure ppuderefoper(var o:toper);virtual;abstract;
+        public
+           { Condition flags for instruction }
+           condition : TAsmCond;
+           { Number of operands to instruction }
+           ops       : byte;
+           { Number of allocate oper structures }
+           opercnt   : byte;
+           { Operands of instruction }
+           oper      : array[0..max_operands-1] of poper;
+           { Actual opcode of instruction }
+           opcode    : tasmop;
 {$ifdef x86}
-          segprefix : tregister;
+           segprefix : tregister;
 {$endif x86}
-          { true if instruction is a jmp }
-          is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
-          Constructor Create(op : tasmop);virtual;
-          Destructor Destroy;override;
-          function getcopy:TLinkedListItem;override;
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
-          procedure SetCondition(const c:TAsmCond);
-          procedure allocate_oper(opers:longint);
-          procedure loadconst(opidx:longint;l:aint);
-          procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
-          procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
-          procedure loadref(opidx:longint;const r:treference);
-          procedure loadreg(opidx:longint;r:tregister);
-          procedure loadoper(opidx:longint;o:toper);
-          procedure clearop(opidx:longint);
-          { register allocator }
-          function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
-          function spilling_get_operation_type(opnr: longint): topertype;virtual;
-          function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
+           { true if instruction is a jmp }
+           is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
+           Constructor Create(op : tasmop);virtual;
+           Destructor Destroy;override;
+           function getcopy:TLinkedListItem;override;
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+           procedure buildderefimpl;override;
+           procedure derefimpl;override;
+           procedure SetCondition(const c:TAsmCond);
+           procedure allocate_oper(opers:longint);
+           procedure loadconst(opidx:longint;l:aint);
+           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
+           procedure loadlocal(opidx:longint;s:pointer;sofs:longint;indexreg:tregister;scale:byte;getoffset,forceref:boolean);
+           procedure loadref(opidx:longint;const r:treference);
+           procedure loadreg(opidx:longint;r:tregister);
+           procedure loadoper(opidx:longint;o:toper);
+           procedure clearop(opidx:longint);
+           { register allocator }
+           function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
+           function spilling_get_operation_type(opnr: longint): topertype;virtual;
+           function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
 
-          function  Pass1(offset:longint):longint;virtual;abstract;
-          procedure Pass2(objdata:TAsmObjectdata);virtual;abstract;
-       end;
-       tai_cpu_class = class of tai_cpu_abstract;
+           function  Pass1(offset:longint):longint;virtual;abstract;
+           procedure Pass2(objdata:TAsmObjectdata);virtual;abstract;
+        end;
+        tai_cpu_class = class of tai_cpu_abstract;
 
-       { alignment for operator }
-       tai_align_abstract = class(tai)
-          aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
-          fillsize  : byte;   { real size to fill }
-          fillop    : byte;   { value to fill with - optional }
-          use_op    : boolean;
-          constructor Create(b:byte);virtual;
-          constructor Create_op(b: byte; _op: byte);virtual;
-          constructor Create_zeros(b:byte);
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function calculatefillbuf(var buf : tfillbuffer):pchar;virtual;
-       end;
-       tai_align_class = class of tai_align_abstract;
+        { alignment for operator }
+        tai_align_abstract = class(tai)
+           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
+           fillsize  : byte;   { real size to fill }
+           fillop    : byte;   { value to fill with - optional }
+           use_op    : boolean;
+           constructor Create(b:byte);virtual;
+           constructor Create_op(b: byte; _op: byte);virtual;
+           constructor Create_zeros(b:byte);
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+           function calculatefillbuf(var buf : tfillbuffer):pchar;virtual;
+        end;
+        tai_align_class = class of tai_align_abstract;
 
-       taasmoutput = class(tlinkedlist)
-          constructor create;
-          function  empty : boolean;
-          function  getlasttaifilepos : pfileposinfo;
-          procedure InsertAfter(Item,Loc : TLinkedListItem);override;
-       end;
+        taasmoutput = class(tlinkedlist)
+           constructor create;
+           function  empty : boolean;
+           function  getlasttaifilepos : pfileposinfo;
+           procedure InsertAfter(Item,Loc : TLinkedListItem);override;
+        end;
 
-       { Type of asmlists. The order is important for the layout of the
-         information in the .o file. The stabs for the types must be defined
-         before they can be referenced and therefor they need to be written
-         first (PFV) }
-       Tasmlist=(al_stabsstart,
-                 al_stabs,
-                 al_procedures,
-                 al_globals,
-                 al_const,
-                 al_typedconsts,
-                 al_rotypedconsts,
-                 al_threadvars,
-                 al_imports,
-                 al_exports,
-                 al_resources,
-                 al_rtti,
-                 al_dwarf,
-                 al_picdata,
-                 al_resourcestrings,
-                 al_stabsend);
+        { Type of asmlists. The order is important for the layout of the
+          information in the .o file. The stabs for the types must be defined
+          before they can be referenced and therefor they need to be written
+          first (PFV) }
+        Tasmlist=(al_stabsstart,
+                  al_stabs,
+                  al_procedures,
+                  al_globals,
+                  al_const,
+                  al_typedconsts,
+                  al_rotypedconsts,
+                  al_threadvars,
+                  al_imports,
+                  al_exports,
+                  al_resources,
+                  al_rtti,
+                  al_dwarf,
+                  al_picdata,
+                  al_resourcestrings,
+                  al_stabsend);
     const
        TasmlistStr : array[tasmlist] of string[24] =(
            'al_stabsstart',
@@ -1900,6 +1924,93 @@ implementation
       end;
 
 
+{****************************************************************************
+                                    tai_file
+ ****************************************************************************}
+
+    constructor tai_file.Create(_str : string;_idx : longint);
+      begin
+        inherited Create;
+        typ:=ait_file;
+        str:=strpnew(_str);
+        idx:=_idx;
+      end;
+
+
+    destructor tai_file.destroy;
+      begin
+         strdispose(str);
+         inherited Destroy;
+      end;
+
+
+    constructor tai_file.ppuload(t:taitype;ppufile:tcompilerppufile);
+      var
+        len : longint;
+      begin
+        inherited ppuload(t,ppufile);
+        len:=ppufile.getlongint;
+        getmem(str,len+1);
+        ppufile.getdata(str^,len);
+        str[len]:=#0;
+        idx:=ppufile.getlongint;
+      end;
+
+
+    procedure tai_file.ppuwrite(ppufile:tcompilerppufile);
+      var
+        len : longint;
+      begin
+        inherited ppuwrite(ppufile);
+        len:=strlen(str);
+        ppufile.putlongint(len);
+        ppufile.putdata(str^,len);
+        ppufile.putlongint(idx);
+      end;
+
+
+    function tai_file.getcopy : tlinkedlistitem;
+      var
+        p : tlinkedlistitem;
+      begin
+        p:=inherited getcopy;
+        getmem(tai_comment(p).str,strlen(str)+1);
+        move(str^,tai_comment(p).str^,strlen(str)+1);
+        getcopy:=p;
+      end;
+
+
+{****************************************************************************
+                                    tai_loc
+ ****************************************************************************}
+
+    constructor tai_loc.Create(_fileidx,_line,_column : longint);
+      begin
+        inherited Create;
+        typ:=ait_loc;
+        fileidx:=_fileidx;
+        line:=_line;
+        column:=_column;
+      end;
+
+
+    constructor tai_loc.ppuload(t:taitype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        fileidx:=ppufile.getlongint;
+        line:=ppufile.getlongint;
+        column:=ppufile.getlongint;
+      end;
+
+
+    procedure tai_loc.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putlongint(fileidx);
+        ppufile.putlongint(line);
+        ppufile.putlongint(column);
+      end;
+
 {*****************************************************************************
                                TaiInstruction
 *****************************************************************************}
@@ -1992,7 +2103,6 @@ implementation
            typ:=top_local;
          end;
       end;
-
 
 
     procedure tai_cpu_abstract.loadref(opidx:longint;const r:treference);
