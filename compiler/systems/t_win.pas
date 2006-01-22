@@ -925,9 +925,9 @@ begin
 
   if (cs_profile in aktmoduleswitches) then
     begin
+      SharedLibFiles.Concat('gmon');
       SharedLibFiles.Concat('c');
       SharedLibFiles.Concat('gcc');
-      SharedLibFiles.Concat('gmon');
       SharedLibFiles.Concat('kernel32');
     end;
 
