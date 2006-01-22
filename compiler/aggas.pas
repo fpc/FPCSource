@@ -346,7 +346,7 @@ implementation
       ch       : char;
       hp       : tai;
       hp1      : tailineinfo;
-      consttyp : taitype;
+      consttype : taiconst_type;
       s,t      : string;
       i,pos,l  : longint;
       InlineLevel : longint;
@@ -550,7 +550,8 @@ implementation
 
            ait_const:
              begin
-               case tai_const(hp).consttype of
+               consttype:=tai_const(hp).consttype;
+               case consttype of
 {$ifndef cpu64bit}
                  aitconst_128bit :
                     begin
@@ -603,7 +604,6 @@ implementation
                      else
                        begin
                          AsmWrite(ait_const2str[tai_const(hp).consttype]);
-                         consttyp:=hp.typ;
                          l:=0;
                          t := '';
                          repeat
@@ -634,7 +634,8 @@ implementation
                               not(CurrSecType in [sec_data,sec_rodata]) or
                               (l>line_length) or
                               (hp.next=nil) or
-                              (tai(hp.next).typ<>consttyp) or
+                              (tai(hp.next).typ<>ait_const) or
+                              (tai_const(hp.next).consttype<>consttype) or
                               assigned(tai_const(hp.next).sym) then
                              break;
                            hp:=tai(hp.next);
