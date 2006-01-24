@@ -20,18 +20,37 @@ _start:
 _cmain:
      subl   $0x8,%esp
      andl   $0xfffffff0,%esp
-     pushl  etext
-     pushl  __image_base__
-     call   _monstartup
+
+     call    __gmon_start__
      call   ___main
+
+     movl   %esp,__stkptr
      call   _FPC_EXE_Entry
      ret
 
+        .globl  __gmon_start__
+__gmon_start__:
+        pushl   %ebp
+        movl    __monstarted,%eax
+        leal    0x1(%eax),%edx
+        movl    %esp,%ebp
+        movl    %edx,__monstarted
+        testl   %eax,%eax
+        jnz     .Lnomonstart
+        pushl   $etext                  /* Initialize gmon */
+        pushl   $_cmain
+        call    _monstartup
+        addl    $8,%esp
+.Lnomonstart:
+        movl   %ebp,%esp
+        popl   %ebp
+        ret
+
      .globl asm_exit
 asm_exit:
-    pushl  %eax
-    call   __mcleanup
-    popl   %eax
+    pushl   %eax
+    call    __mcleanup
+    popl    %eax
     pushl   %eax
     call    exitprocess
 
@@ -73,3 +92,7 @@ exitprocess:
 .section .idata$7
 .L6:
 	.ascii	"kernel32.dll\000"
+
+.bss
+    .lcomm __monstarted,4
+    .comm   __stkptr,4
