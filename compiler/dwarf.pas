@@ -314,10 +314,10 @@ implementation
            BYTE    return address register
            <...>   start sequence
         }
-        objectlibrary.getjumplabel(cielabel);
+        objectlibrary.getlabel(cielabel,alt_dbgframe);
         list.concat(tai_label.create(cielabel));
-        objectlibrary.getjumplabel(lenstartlabel);
-        objectlibrary.getjumplabel(lenendlabel);
+        objectlibrary.getlabel(lenstartlabel,alt_dbgframe);
+        objectlibrary.getlabel(lenendlabel,alt_dbgframe);
         list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
         list.concat(tai_label.create(lenstartlabel));
         list.concat(tai_const.create_32bit(longint($ffffffff)));
@@ -348,8 +348,8 @@ implementation
                   if (hp.ops<>1) or
                      (hp.oper[0].typ<>dop_reloffset) then
                     internalerror(200404126);
-                  objectlibrary.getjumplabel(lenstartlabel);
-                  objectlibrary.getjumplabel(lenendlabel);
+                  objectlibrary.getlabel(lenstartlabel,alt_dbgframe);
+                  objectlibrary.getlabel(lenendlabel,alt_dbgframe);
                   { FDE
                      DWORD length
                      DWORD CIE-pointer = cielabel
@@ -389,8 +389,8 @@ implementation
       begin
         if assigned(FFrameStartLabel) then
           internalerror(200404129);
-        objectlibrary.getjumplabel(FFrameStartLabel);
-        objectlibrary.getjumplabel(FFrameEndLabel);
+        objectlibrary.getlabel(FFrameStartLabel,alt_dbgframe);
+        objectlibrary.getlabel(FFrameEndLabel,alt_dbgframe);
         FLastloclabel:=FFrameStartLabel;
         list.concat(tai_label.create(FFrameStartLabel));
         al_dwarf.concat(tdwarfitem.create_reloffset(DW_CFA_start_frame,doe_32bit,FFrameStartLabel,FFrameEndLabel));
@@ -415,7 +415,7 @@ implementation
       begin
         if FLastloclabel=nil then
           internalerror(200404082);
-        objectlibrary.getjumplabel(currloclabel);
+        objectlibrary.getlabel(currloclabel,alt_dbgframe);
         list.concat(tai_label.create(currloclabel));
         al_dwarf.concat(tdwarfitem.create_reloffset(DW_CFA_advance_loc4,doe_32bit,FLastloclabel,currloclabel));
         FLastloclabel:=currloclabel;

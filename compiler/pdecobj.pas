@@ -55,7 +55,6 @@ implementation
       var
          there_is_a_destructor : boolean;
          classtype : tobjectdeftype;
-//         childof : tobjectdef;
 
       function constructor_head:tprocdef;
         var

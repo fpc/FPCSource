@@ -109,7 +109,7 @@ interface
        { is the label only there for getting an address (e.g. for i/o
          checks -> alt_addr) or is it a jump target (alt_jump), for debug
          info alt_dbgline and alt_dbgfile }
-       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype);
+       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
 
        TAsmLabel = class(TAsmSymbol)
          labelnr   : longint;
@@ -257,7 +257,7 @@ interface
 
     const
       { alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile }
-      asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t');
+      asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t','c');
 
     var
       objectlibrary : tasmlibrarydata;
