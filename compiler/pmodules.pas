@@ -125,7 +125,7 @@ implementation
         current_module.flags:=current_module.flags or uf_static_linked;
 
         if (cs_create_smart in aktmoduleswitches) and
-           not(af_smartlink_sections in target_asm.flags) then
+           not use_smartlink_section then
          begin
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
            current_module.flags:=current_module.flags or uf_smart_linked;

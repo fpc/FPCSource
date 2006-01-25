@@ -610,8 +610,7 @@ begin
    StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
-  if (af_smartlink_sections in target_asm.flags) and
-     (tf_smartlink_sections in target_info.flags) then
+  if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then

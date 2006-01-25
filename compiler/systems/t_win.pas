@@ -1054,8 +1054,7 @@ begin
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
-  if (af_smartlink_sections in target_asm.flags) and
-     (tf_smartlink_sections in target_info.flags) then
+  if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
   if target_info.system in [system_arm_wince,system_i386_wince] then
     begin
