@@ -680,9 +680,9 @@ unit cg64f32;
                else
                  begin
                    hreg:=cg.getintregister(list,OS_32);
+                   opsize:=OS_32;
 
-                   opsize := def_cgsize(fromdef);
-                   if opsize in [OS_64,OS_S64] then
+                   if l.size in [OS_64,OS_S64] then
                      a_load64high_ref_reg(list,l.reference,hreg)
                    else
                      cg.a_load_ref_reg(list,opsize,OS_32,l.reference,hreg);
