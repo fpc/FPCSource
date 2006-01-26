@@ -95,7 +95,6 @@
             69    FindMRUStringA
             70    FindMRUStringW
             65    FreeMRUList
-             1    InitCommonControls
              2    InitCommonControlsEx
             22    InvertRect
             55    IsCapEditAvailable
@@ -164,6 +163,10 @@ const
 
 
 {$endif read_interface}
+
+{ already defined in func.inc
+procedure InitCommonControls; external ComctlDLL name 'InitCommonControls';
+}
 
 {$ifdef read_implementation}
 

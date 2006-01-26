@@ -20,7 +20,8 @@
 
   09-28-2005 : orinaudo@gmail.com
    First release
-  
+  01-26-2006 : orinaudo@gmail.com
+   updated
 }
 
 {exported functions list = to do,
@@ -59,7 +60,6 @@
            226    DoEditContextMenu
            191    DrawAlignedIcon
             44    EditSubProc
-          2011    ExitWindowsEx
             13    FreeRegisteredAppInfo
            137    GetProtocol
             11    GetRegisteredAppInfo
@@ -97,7 +97,6 @@
            113    SHChangeNotifyRegister
             48    SHCheckForContextMenu
             86    SHClearStartedBit
-            10    SHCloseApps
             55    SHColorDisplay
             37    SHCommandBar_EnableCommand
             38    SHCommandBar_GetClientRect
@@ -146,7 +145,6 @@
            120    SHFreeScanners
             65    SHFullScreen
            213    SHGetActiveDialog
-             2    SHGetAppKeyAssoc
             90    SHGetAutoRunPath
            292    SHGetBitmapDimensions
            285    SHGetBitmapLogPixels
@@ -183,8 +181,6 @@
             30    SHHandleSipChange
             76    SHHdrGrpSepLineDraw
              8    SHImListPopup
-            56    SHInitDialog
-             9    SHInitExtraControls
            149    SHInitPresetMessages
             39    SHInputDialog
            181    SHInsertPresetMessage
@@ -196,8 +192,6 @@
            100    SHLoadContextMenuExtensions
            230    SHLoadFileContextMenuExtensions
            313    SHLoadFontFromResource
-            75    SHLoadImageFile
-            64    SHLoadImageResource
             91    SHLoadMenuPopup
            216    SHLoadSKFromReg
            121    SHLock
@@ -244,7 +238,6 @@
            118    SHScanBuffer
            119    SHScanFile
             97    SHSendBackToFocusWindow
-             3    SHSetAppKeyWndAssoc
            169    SHSetAsWatermark
            184    SHSetBack
            161    SHSetBubbleRegion
@@ -261,7 +254,6 @@
             67    SHShowContextMenu
           1004    SHShowSoftKeys
             79    SHSignalDone
-             4    SHSipInfo
            314    SHSipMightBlockUI
             21    SHSipPreference
            308    SHSkipDialogInitialFocus
@@ -317,18 +309,69 @@
 // consts
 //*****************************************************************************
 const
+
+
+  CEM_UPCASEALLWORDS     = (WM_USER + 1);
+  CEM_ENABLEUPCASE       = (WM_USER + 2);
+
+  IDC_COMMANDBANDS       = 100;
+  // Shell Menubar support
+  // These defines MUST be < 100.  This is so apps can use these defines
+  // to get strings from the shell.
+  IDS_SHNEW       =  1;
+  IDS_SHEDIT      =  2;
+  IDS_SHTOOLS     =  3;
+  IDS_SHVIEW      =  4;
+  IDS_SHFILE      =  5;
+  IDS_SHGO        =  6;
+  IDS_SHFAVORITES =  7;
+  IDS_SHOPEN      =  8;
+
+  // Shared New menu support
+  IDM_SHAREDNEW        = 10;
+  IDM_SHAREDNEWDEFAULT = 11;
+
+
   NOMENU                  = $FFFF;
   SHA_INPUTDIALOG         = $0001;
   SHACTI_FSIPUP           = $0001;
   SHACTI_FSIPONDEACTIVATE = $0002;
   SHACTI_FSIPRESERVED     = $FFFF xor SHACTI_FSIPUP xor SHACTI_FSIPUP;
 
+  // Valid dwFlags
   SHCMBF_EMPTYBAR      = $0001;
   SHCMBF_HIDDEN        = $0002; // create it hidden
   SHCMBF_HIDESIPBUTTON = $0004;
   SHCMBF_COLORBK       = $0008;
   SHCMBF_HMENU         = $0010; // specify an hmenu for resource rather than toolbar info
 
+  SHCMBM_SETSUBMENU    = (WM_USER + 400); // wparam == id of button, lParam == hmenu, return is old hmenu
+  SHCMBM_GETSUBMENU    = (WM_USER + 401); // lParam == ID
+  SHCMBM_GETMENU       = (WM_USER + 402); // get the owning hmenu (as specified in the load resource)
+
+  // Valid mask values
+  SHIDIM_FLAGS         = $0001;
+  // Valid flags
+  SHIDIF_DONEBUTTON          = $0001;
+  SHIDIF_SIZEDLG             = $0002;
+  SHIDIF_SIZEDLGFULLSCREEN   = $0004;
+  SHIDIF_SIPDOWN             = $0008;
+  SHIDIF_FULLSCREENNOMENUBAR = $0010;
+  SHIDIF_EMPTYMENU           = $0020;
+  SHIDIF_WANTSCROLLBAR       = $0040;
+
+  // Supported system parameters.
+  SPI_SETSIPINFO         = 224;
+  SPI_GETSIPINFO         = 225;
+  SPI_SETCURRENTIM       = 226;
+  SPI_GETCURRENTIM       = 227;
+  SPI_SETCOMPLETIONINFO  = 223;
+  SPI_APPBUTTONCHANGE    = 228;
+  SPI_RESERVED           = 229;
+  SPI_SYNCSETTINGSCHANGE = 230;
+
+  //Pocket PC  special controls
+  WC_SIPPREF             = 'SIPPREF';
 
 //*****************************************************************************
 // types
@@ -343,7 +386,14 @@ type
   end;
   PSHACTIVATEINFO=^SHACTIVATEINFO;
 
-  tagSHMENUBARINFO = record
+  SHINITDLGINFO = record
+    dwMask: DWORD;
+    hDlg: HWND;
+    dwFlags : DWORD ;
+   end;
+  PSHINITDLGINFO=^SHINITDLGINFO;
+
+  SHMENUBARINFO = record
     cbSize : DWORD;        // IN  - Indicates which members of struct are valid
     hwndParent : HWND ;    // IN
     dwFlags : DWORD ;      // IN  - Some features we want
@@ -354,16 +404,28 @@ type
     hwndMB : HWND ;        // OUT
     clrBk : COLORREF ;     // IN  - background color of the menu bar (excluding sip)
   end;
-  SHMENUBARINFO=tagSHMENUBARINFO;
-  PSHMENUBARINFO=^tagSHMENUBARINFO;
+  PSHMENUBARINFO=^SHMENUBARINFO;
+
 
 //*****************************************************************************
 // functions
 //*****************************************************************************
 
+{ already defined in func.inc
+function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external UserDLLAyg name 'ExitWindowsEx';
+}
+function SHCloseApps( dwMemSought : DWORD ): WINBOOL; external UserDLLAyg name 'SHCloseApps';
 function SHCreateMenuBar(pmbi : PSHMENUBARINFO ): WINBOOL; external UserDLLAyg name 'SHCreateMenuBar';
+function SHFindMenuBar(hwnd:HWND) : HWND; external UserDLLAyg name 'SHFindMenuBar';
 function SHHandleWMActivate(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO; dwFlags:DWORD  ): WINBOOL; external UserDLLAyg name 'SHHandleWMActivate';
 function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO): WINBOOL; external UserDLLAyg name 'SHHandleWMSettingChange';
+function SHInitDialog(pshidi: PSHINITDLGINFO): WINBOOL; external UserDLLAyg name 'SHInitDialog';
+function SHInitExtraControls: WINBOOL; external UserDLLAyg name 'SHInitExtraControls';
+function SHGetAppKeyAssoc( ptszApp: LPCTSTR ): Byte; external UserDLLAyg name 'SHGetAppKeyAssoc';
+function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg name 'SHLoadImageResource';
+function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg name 'SHLoadImageFile';
+function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
+function SHSetAppKeyWndAssoc( bVk: BYTE ; hwnd : HWND ): WINBOOL; external UserDLLAyg name 'SHSetAppKeyWndAssoc';
 
 {$endif read_interface}
 
