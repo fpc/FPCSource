@@ -79,11 +79,12 @@ end;
 Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 Var NewVideoBuf,NewOldVideoBuf : PVideoBuf;
-    S,I,C,R,NewVideoBufSize : longint;
+    I,C,R,NewVideoBufSize : longint;
+    s:word;
 
 begin
-  S:=SizeOf(TVideoCell);
-  NewVideoBufSize:=ScreenWidth*ScreenHeight*S;
+  S:=sizeOf(TVideoCell);
+  NewVideoBufSize:=ScreenWidth*ScreenHeight*s;
   GetMem(NewVideoBuf,NewVideoBufSize);
   GetMem(NewOldVideoBuf,NewVideoBufSize);
   // Move contents of old videobuffers to new if there are any.

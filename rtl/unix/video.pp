@@ -22,7 +22,7 @@ interface
 implementation
 
 uses
-  BaseUnix, Strings, TermInfo, termio;
+  BaseUnix, Strings, termio;
 
 {$i video.inc}
 
@@ -32,10 +32,127 @@ Type TConsoleType = (ttyNetwork
                      ,ttyFreeBSD
                      ,ttyNetBSD);
 
+type  Ttermcode=(
+        enter_alt_charset_mode,
+        exit_alt_charset_mode,
+        clear_screen,
+        cursor_home,
+        cursor_normal,
+        cursor_visible,
+        cursor_invisible,
+        enter_ca_mode,
+        exit_ca_mode,
+        exit_am_mode,
+        ena_acs
+      );
+      Ttermcodes=array[Ttermcode] of Pchar;
+      Ptermcodes=^Ttermcodes;
+
+const term_codes_ansi:Ttermcodes= {Linux escape sequences are equal to ansi sequences}
+        (#$1B#$5B#$31#$31#$6D,                              {enter_alt_charset_mode}
+         #$1B#$5B#$31#$30#$6D,                              {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         nil,                                               {cursor_normal}
+         nil,                                               {cursor_visible}
+         nil,                                               {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         nil,                                               {exit_am_mode}
+         nil);                                              {ena_acs}
+
+      term_codes_freebsd:Ttermcodes=
+        (nil,                                               {enter_alt_charset_mode}
+         nil,                                               {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         #$1B#$5B#$3D#$30#$43,                              {cursor_normal}
+         #$1B#$5B#$3D#$31#$43,                              {cursor_visible}
+         nil,                                               {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         nil,                                               {exit_am_mode}
+         nil);                                              {ena_acs}
+
+      term_codes_linux:Ttermcodes=
+        (#$1B#$5B#$31#$31#$6D,                              {enter_alt_charset_mode}
+         #$1B#$5B#$31#$30#$6D,                              {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         #$1B#$5B#$3F#$32#$35#$68#$1B#$5B#$3F#$30#$63,      {cursor_normal}
+         #$1B#$5B#$3F#$32#$35#$68#$1B#$5B#$3F#$30#$63,      {cursor_visible}
+         #$1B#$5B#$3F#$32#$35#$6C,                          {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         nil,                                               {exit_am_mode}
+         nil);                                              {ena_acs}
+
+      term_codes_vt100:Ttermcodes=
+        (#$0E,                                              {enter_alt_charset_mode}
+         #$0F,                                              {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A#$24#$3C#$35#$30#$3E,      {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         nil,                                               {cursor_normal}
+         nil,                                               {cursor_visible}
+         nil,                                               {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         #$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
+         #$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
+
+      term_codes_vt220:Ttermcodes=
+        (#$1B#$28#$30#$24#$3C#$32#$3E,                      {enter_alt_charset_mode}
+         #$1B#$28#$42#$24#$3C#$34#$3E,                      {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         nil,                                               {cursor_normal}
+         nil,                                               {cursor_visible}
+         nil,                                               {cursor_invisible}
+         nil,                                               {enter_ca_mode}
+         nil,                                               {exit_ca_mode}
+         #$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
+         #$1B#$29#$30);                                     {ena_acs}
+
+      term_codes_xterm:Ttermcodes=
+        (#$0E,                                              {enter_alt_charset_mode}
+         #$0F,                                              {exit_alt_charset_mode}
+         #$1B#$5B#$48#$1B#$5B#$32#$4A,                      {clear_screen}
+         #$1B#$5B#$48,                                      {cursor_home}
+         #$1B#$5B#$3F#$31#$32#$6C#$1B#$5B#$3F#$32#$35#$68,  {cursor_normal}
+         #$1B#$5B#$3F#$31#$32#$3B#$32#$35#$68,              {cursor_visible}
+         #$1B#$5B#$3F#$32#$35#$6C,                          {cursor_invisible}
+         #$1B#$5B#$3F#$31#$30#$34#$39#$68,                  {enter_ca_mode}
+         #$1B#$5B#$3F#$31#$30#$34#$39#$6C,                  {exit_ca_mode}
+         #$1B#$5B#$3F#$37#$6C,                              {exit_am_mode}
+         #$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
+
+
+const    terminal_names:array[0..8] of string[7]=(
+                        'ansi',
+                        'cons',
+                        'eterm',
+                        'gnome',
+                        'konsole',
+                        'linux',
+                        'vt100',
+                        'vt220',
+                        'xterm');
+         terminal_data:array[0..8] of Ptermcodes=(
+                        @term_codes_ansi,
+                        @term_codes_freebsd,
+                        @term_codes_xterm,
+                        @term_codes_xterm,
+                        @term_codes_xterm,
+                        @term_codes_linux,
+                        @term_codes_vt100,
+                        @term_codes_vt220,
+                        @term_codes_xterm);
+
 var
   LastCursorType : byte;
   TtyFd: Longint;
   Console: TConsoleType;
+  cur_term_strings:Ptermcodes;
 {$ifdef logging}
   f: file;
 
@@ -51,7 +168,7 @@ const
 
 const
 
-  can_delete_term : boolean = false;
+{  can_delete_term : boolean = false;}
   ACSIn : string = '';
   ACSOut : string = '';
   InACS : boolean =false;
@@ -147,7 +264,7 @@ begin
 end;
 
 
-function SendEscapeSeqNdx(Ndx: Word) : boolean;
+function SendEscapeSeqNdx(Ndx:Ttermcode) : boolean;
 var
   P,pdelay: PChar;
 begin
@@ -403,7 +520,7 @@ end;
     Spaces:=0;
   end;
 
-function GetTermString(ndx:word):String;
+function GetTermString(ndx:Ttermcode):String;
 var
    P,pdelay: PChar;
 begin
@@ -681,8 +798,11 @@ var
   WS: packed record
     ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
   end;
-  Err: Longint;
-  prev_term : TerminalCommon_ptr1;
+{  Err: Longint;}
+{  prev_term : TerminalCommon_ptr1;}
+  term:string;
+  i:word;
+
 begin
 {$ifndef CPUI386}
   LowAscii:=false;
@@ -697,7 +817,8 @@ begin
      fpWrite(stdoutputhandle,fontstr[1],length(fontstr));
      { running on a tty, find out whether locally or remotely }
      TTyfd:=-1;
-     Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
+     Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
+     cur_term_strings:=@term_codes_vt100; {Default: vt100}
      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
         not (ThisTTY[9] IN ['p'..'u','P']) then                 // FreeBSD has these
       begin
@@ -724,8 +845,12 @@ begin
                  Console:=ttyFreeBSD;   {TTYFd ?}
          end;
        end;
-     If (Copy(fpGetEnv('TERM'),1,4)='cons') Then                // cons<lines>
-       Console:=ttyFreeBSD;
+     term:=fpgetenv('TERM');
+     for i:=low(terminal_names) to high(terminal_names) do
+       if copy(term,1,length(terminal_names[i]))=terminal_names[i] then
+         cur_term_strings:=terminal_data[i];
+    if cur_term_strings=@term_codes_freebsd then
+      console:=ttyFreeBSD;
    {$ifdef linux}
      If Console<>ttylinux Then
       begin
@@ -756,9 +881,9 @@ begin
      if Console<>ttylinux then
       begin
    {$endif}
-        prev_term:=cur_term;
+{        prev_term:=cur_term;
         setupterm(nil, stdoutputhandle, err);
-        can_delete_term:=assigned(prev_term) and (prev_term<>cur_term);
+        can_delete_term:=assigned(prev_term) and (prev_term<>cur_term);}
         SendEscapeSeqNdx(cursor_home);
         SendEscapeSeqNdx(cursor_normal);
         SendEscapeSeqNdx(cursor_visible);
@@ -768,16 +893,16 @@ begin
           SendEscapeSeqNdx(exit_am_mode);
    {$ifdef linux}
       end
-     else if not assigned(cur_term) then
+{     else if not assigned(cur_term) then
        begin
          setupterm(nil, stdoutputhandle, err);
          can_delete_term:=false;
-       end;
+       end};
    {$endif}
      if assigned(cur_term_Strings) then
        begin
-         ACSIn:=StrPas(cur_term_Strings^[enter_alt_charset_mode]);
-         ACSOut:=StrPas(cur_term_Strings^[exit_alt_charset_mode]);
+         ACSIn:=StrPas(cur_term_strings^[enter_alt_charset_mode]);
+         ACSOut:=StrPas(cur_term_strings^[exit_alt_charset_mode]);
          if (ACSIn<>'') and (ACSOut<>'') then
            SendEscapeSeqNdx(ena_acs);
          if pos('$<',ACSIn)>0 then
@@ -828,11 +953,11 @@ begin
    According to Pierre this could be more a NCurses version thing that
    a FreeBSD one. FreeBSD 4.4 has ncurses 5.
    MvdV102003: Since I ran 1.1 with newer FreeBSD without problem, I let it be for now}
-  if can_delete_term then
+{  if can_delete_term then
     begin
       del_curterm(cur_term);
       can_delete_term:=false;
-    end;
+    end;}
 {$ifdef logging}
   close(f);
 {$endif logging}
