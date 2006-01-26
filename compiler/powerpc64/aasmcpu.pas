@@ -480,7 +480,7 @@ begin
     begin
       if p.typ = ait_label then
         begin
-          if (tai_label(p).l.labelnr > labelpositions.count) then
+          if (tai_label(p).l.labelnr >= labelpositions.count) then
             labelpositions.count := tai_label(p).l.labelnr * 2;
           labelpositions[tai_label(p).l.labelnr] := pointer(instrpos);
         end;
