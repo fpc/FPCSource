@@ -422,8 +422,10 @@ function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: 
 function SHInitDialog(pshidi: PSHINITDLGINFO): WINBOOL; external UserDLLAyg name 'SHInitDialog';
 function SHInitExtraControls: WINBOOL; external UserDLLAyg name 'SHInitExtraControls';
 function SHGetAppKeyAssoc( ptszApp: LPCTSTR ): Byte; external UserDLLAyg name 'SHGetAppKeyAssoc';
+{not exported on PocketPC 4.21 SE ? oro06 01-26-06
 function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg name 'SHLoadImageResource';
 function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg name 'SHLoadImageFile';
+}
 function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
 function SHSetAppKeyWndAssoc( bVk: BYTE ; hwnd : HWND ): WINBOOL; external UserDLLAyg name 'SHSetAppKeyWndAssoc';
 
