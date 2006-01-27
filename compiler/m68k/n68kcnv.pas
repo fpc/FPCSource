@@ -160,6 +160,7 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
       begin
+         secondpass(left);
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
@@ -186,7 +187,7 @@ implementation
                      cg.a_load_ref_reg(exprasmlist,opsize,opsize,
                         left.location.reference,hreg2);
                      exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                     cg.ungetcpuregister(exprasmlist,hreg2);
+//                     cg.ungetcpuregister(exprasmlist,hreg2);
                   end;
 //                reference_release(exprasmlist,left.location.reference);
                 resflags:=F_NE;
@@ -196,7 +197,7 @@ implementation
               begin
                 hreg2:=left.location.register;
                 exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                cg.ungetcpuregister(exprasmlist,hreg2);
+//                cg.ungetcpuregister(exprasmlist,hreg2);
                 hreg1:=cg.getintregister(exprasmlist,opsize);
                 resflags:=F_NE;
               end;
@@ -206,7 +207,7 @@ implementation
                 resflags:=left.location.resflags;
               end;
             else
-              internalerror(10062);
+             internalerror(200512182);
          end;
          cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
          location.register := hreg1;

@@ -35,7 +35,7 @@ unit ra68k;
 
       Tm68kInstruction=class(TInstruction)
         opsize : topsize;
-        function ConcatInstruction(p : taasmoutput):tai;override;
+//        function ConcatInstruction(p : taasmoutput):tai;override;
         function ConcatLabeledInstr(p : taasmoutput):tai;
       end;
 
@@ -48,10 +48,12 @@ unit ra68k;
                                 TM68kInstruction
 *****************************************************************************}
 
+{
  function TM68kInstruction.ConcatInstruction(p : taasmoutput):tai;
   var
     fits : boolean;
   begin
+     writeln('jaj mami');
      result:=nil;
      fits := FALSE;
     { setup specific opcodetions for first pass }
@@ -317,7 +319,7 @@ unit ra68k;
    if assigned(result) then
      p.concat(result);
  end;
-
+}
 
     function TM68kInstruction.ConcatLabeledInstr(p : taasmoutput):tai;
       begin

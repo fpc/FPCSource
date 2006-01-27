@@ -34,7 +34,7 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
-         ncpuadd,
+         n68kadd,
          n68kcal,
 //       nppccon,
 //       nppcflw,

@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-unit ncpuadd;
+unit n68kadd;
 
 {$i fpcdefs.inc}
 
@@ -31,12 +31,13 @@ interface
 
     type
        t68kaddnode = class(tcgaddnode)
+       private
+          function getresflags(unsigned: boolean) : tresflags;
+       protected
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
-          procedure second_cmpboolean;override;
-       private
-          function getresflags(unsigned: boolean) : tresflags;
+          procedure second_cmpboolean;override;             
        end;
 
 
@@ -146,7 +147,7 @@ implementation
                     exprasmlist.concat(taicpu.op_reg_reg(A_AND,S_L,
                       right.location.register,left.location.register));
                 end;
-              cg.ungetcpuregister(exprasmlist,tmpreg);
+//              cg.ungetcpuregister(exprasmlist,tmpreg);
               location.resflags := getresflags(true);
             end;
           else
@@ -168,7 +169,8 @@ implementation
       tmpreg : tregister;
       op : tasmop;
      begin
-       writeln('second_cmpordinal');
+//       writeln('second_cmpordinal');
+       pass_left_right;
        { set result location }
        location_reset(location,LOC_JUMP,OS_NO);
 
@@ -227,7 +229,7 @@ implementation
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
                 left.location.register,tmpreg));
-              cg.ungetcpuregister(exprasmlist,tmpreg);
+//              cg.ungetcpuregister(exprasmlist,tmpreg);
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
@@ -245,6 +247,7 @@ implementation
         isjump  : boolean;
         otl,ofl : tasmlabel;
       begin
+//        writeln('second_cmpboolean');
         if (torddef(left.resulttype.def).typ=bool8bit) or
            (torddef(right.resulttype.def).typ=bool8bit) then
          cgsize:=OS_8
@@ -270,8 +273,11 @@ implementation
                  objectlibrary.getjumplabel(falselabel);
               end;
             secondpass(left);
-            if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
+            if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
+//             writeln('ajjaj');
              location_force_reg(exprasmlist,left.location,cgsize,false);
+//             writeln('reccs?');
+            end; 
             if isjump then
              begin
                truelabel:=otl;

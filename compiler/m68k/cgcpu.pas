@@ -311,11 +311,15 @@ unit cgcpu;
     procedure tcg68k.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
      var
        href : treference;
+//       p: pointer;
       begin
-        if getregtype(r)=R_ADDRESSREGISTER then
-          begin
-            internalerror(2002072901);
-          end;
+         {$WARNING FIX ME!!! take a look on this mess again...}
+//        if getregtype(r)=R_ADDRESSREGISTER then
+//          begin
+//            writeln('address reg?!?');
+//            p:=nil; dword(p^):=0; {DEBUG CODE... :D )
+//            internalerror(2002072901);
+//          end;
         href:=ref;
         fixref(list, href);
         list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));

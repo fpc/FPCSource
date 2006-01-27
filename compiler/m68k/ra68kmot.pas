@@ -524,10 +524,14 @@ const
   {---------------------------------------------------------------------}
 
     function tm68kmotreader.consume(t : tasmtoken):boolean;
+      var
+        p: pointer;
       begin
         Consume:=true;
         if t<>actasmtoken then
          begin
+           p:=nil;
+           dword(p^):=0;
            Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
            Consume:=false;
          end;
@@ -1274,6 +1278,7 @@ const
   {       AS_COMMA or AS_SEPARATOR token.                               }
   {*********************************************************************}
   var
+    expr: string;
     tempstr: string;
     lab: tasmlabel;
     l : longint;
@@ -1282,6 +1287,7 @@ const
     hl: tasmlabel;
     reg_one, reg_two: tregister;
     regset: tcpuregisterset;
+    p: pointer;
   begin
    regset := [];
    tempstr := '';
@@ -1344,7 +1350,7 @@ const
                   end;
                 Consume(AS_ID);
                 if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
-                 Message(asmr_e_syntax_error);
+                  Message(asmr_e_syntax_error);
               end
               { probably a variable or normal expression }
               { or a procedure (such as in CALL ID)      }
@@ -1358,7 +1364,7 @@ const
                      BuildReference(oper);
                    end
                  else { is it a label variable ? }
-                   begin
+                 
                      { // ID[ , ID.Field.Field or simple ID // }
                      { check if this is a label, if so then }
                      { emit it as a label.                  }
@@ -1371,22 +1377,62 @@ const
                          Consume(AS_ID);
                          if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                           Message(asmr_e_syntax_error);
+                          
                        end
-                      else
-                       Message1(sym_e_unknown_id,actasmpattern);
+                      else begin     
+                       expr:=actasmpattern;
+                       Consume(AS_ID);
+                       { typecasting? }
+                       if SearchType(expr,l) then
+                        begin
+                          oper.hastype:=true;
+                          oper.typesize:=l;
+                          case actasmtoken of
+                            AS_LPAREN :
+                              begin
+                                { Support Type([Reference]) }
+                                Consume(AS_LPAREN);
+                                BuildOperand(oper{,true});
+                                Consume(AS_RPAREN);
+                              end;
+                            AS_LBRACKET :
+                              begin
+                                { Support Var.Type[Index] }
+                                { Convert @label.Byte[1] to reference }
+                                if oper.opr.typ=OPR_SYMBOL then
+                                  oper.initref;
+                              end;
+                          end;
+                        end
+                       else
+                        begin
+                          if not oper.SetupVar(expr,false) then
+                            begin
+                              { not a variable, check special variables.. }
+                              if expr = 'SELF' then
+                                oper.SetupSelf
+                              else begin
+                                writeln('unknown id: ',expr);
+                                Message1(sym_e_unknown_id,expr);
+                              end;    
+                              expr:='';
+                            end;
+                         end;
+//                       Message1(sym_e_unknown_id,actasmpattern);
+                      end;        
 
-                     Consume(AS_ID);
                        case actasmtoken of
                          AS_LPAREN: { indexing }
                            BuildReference(oper);
-                         AS_SEPARATOR,AS_COMMA: ;
-                       else
-                          Message(asmr_e_syntax_error);
+                         AS_SEPARATOR,AS_COMMA: begin
+                         end;
+                       else 
+                         Message(asmr_e_syntax_error);
                        end;
 
                    end;
                end;
-             end;
+            
    { // Pre-decrement mode reference or constant mem offset.   // }
      AS_MINUS:    begin
                    Consume(AS_MINUS);
@@ -1546,6 +1592,7 @@ const
      AS_SEPARATOR, AS_COMMA: ;
     else
      begin
+      writeln('looofasz');
       Message(asmr_e_invalid_opcode_and_operand);
       Consume(actasmtoken);
      end;
@@ -1729,8 +1776,9 @@ const
 {                    instr.CheckOperandSizes;}
                   if instr.labeled then
                      instr.ConcatLabeledInstr(curlist)
-                  else
+                  else begin
                     instr.ConcatInstruction(curlist);
+                  end;    
                   instr.Free;
 {
                   instr.init;

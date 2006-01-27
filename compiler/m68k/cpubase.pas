@@ -400,16 +400,31 @@ implementation
       end;
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+      var p: pointer;
       begin
         case s of
+          OS_NO: begin
+{$WARNING FIX ME!!! results in bad code generation}
+            cgsize2subreg:=R_SUBWHOLE;
+            end;
+            
           OS_8,OS_S8:
             cgsize2subreg:=R_SUBWHOLE;
           OS_16,OS_S16:
             cgsize2subreg:=R_SUBWHOLE;
           OS_32,OS_S32:
             cgsize2subreg:=R_SUBWHOLE;
-          else
-            internalerror(200301231);
+          OS_64,OS_S64:
+            begin
+             writeln('64bit regsize?');
+             cgsize2subreg:=R_SUBWHOLE;
+            end;    
+          else begin
+            writeln('miafasz?');
+    //        p:=nil; dword(p^):=0;
+    //        internalerror(200301231);
+            cgsize2subreg:=R_SUBWHOLE;
+          end;    
         end;
       end;
 
