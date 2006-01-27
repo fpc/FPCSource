@@ -1,5 +1,7 @@
 program grab_vcsa;
 
+{$I-}
+
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2005 by Daniël Mantione
@@ -59,26 +61,55 @@ const   result_success=0;
         result_not_owner_error=5;
 
 var thistty:string;
-    vcs,vcsa:string;
+    tty,vcs,vcsa:string;
     ttystat:stat;
+    s:string[15];
+    c:char;
+    pid,parent,dummy:integer;
+    device:longint;
+    f:text;
+    found_vcsa:boolean;
 
 begin
   exitcode:=result_not_on_console;
   thistty:=ttyname(stdinputhandle);
   if isatty(stdinputhandle)=1 then
     begin
-      { running on a tty, find out whether locally or remotely }
-      if (length(thistty)>=9) and
-         (copy(thistty,1,8)='/dev/tty') and
-         (thistty[9] in ['0'..'9']) then
+      pid:=fpgetpid;
+      repeat
+        str(pid,s);
+        assign(f,'/proc/'+s+'/stat');
+        reset(f);
+        if ioresult<>0 then
+          break;
+        read(f,dummy);
+        read(f,c);
+        repeat
+          read(f,c);
+        until c=' ';
+        repeat
+          read(f,c);
+        until c=' ';
+        read(f,pid);
+        read(f,dummy);
+        read(f,dummy);
+        read(f,device);
+        close(f);
+        if device=0 then
+          break; {Not attached to a terminal, i.e. an xterm.}
+        found_vcsa:=device and $ffffff00=$00000400; {/dev/tty*}
+      until found_vcsa;
+      if found_vcsa then
         begin
           {We are running on the Linux console}
-          if fpstat(thistty,ttystat)<>0 then
+          str(device and $000000ff,s);
+          tty:='/dev/tty'+s;
+          if fpstat(tty,ttystat)<>0 then
             halt(result_stat_error);
           if ttystat.uid<>fpgetuid then
             halt(result_not_owner_error);
-          vcs:='/dev/vcs'+copy(thistty,9,255);
-          vcsa:='/dev/vcsa'+copy(thistty,9,255);
+          vcs:='/dev/vcs'+s;
+          vcsa:='/dev/vcsa'+s;
           
           {Change owner and group to that of /dev/tty??.}
           if fpchown(vcs,ttystat.uid,ttystat.gid)<>0 then
