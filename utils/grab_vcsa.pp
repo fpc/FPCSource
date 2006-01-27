@@ -65,7 +65,7 @@ var thistty:string;
     ttystat:stat;
     s:string[15];
     c:char;
-    pid,parent,dummy:integer;
+    ppid,pid,parent,dummy:integer;
     device:longint;
     f:text;
     found_vcsa:boolean;
@@ -81,7 +81,10 @@ begin
         assign(f,'/proc/'+s+'/stat');
         reset(f);
         if ioresult<>0 then
-          break;
+          begin
+            found_vcsa:=false;
+            break;
+          end;
         read(f,dummy);
         read(f,c);
         repeat
@@ -90,14 +93,15 @@ begin
         repeat
           read(f,c);
         until c=' ';
+        ppid:=pid;
         read(f,pid);
         read(f,dummy);
         read(f,dummy);
         read(f,device);
         close(f);
-        if device=0 then
-          break; {Not attached to a terminal, i.e. an xterm.}
         found_vcsa:=device and $ffffff00=$00000400; {/dev/tty*}
+        if (device=0) or (pid=-1) or (ppid=pid) then
+          break; {Not attached to a terminal, i.e. an xterm.}
       until found_vcsa;
       if found_vcsa then
         begin
