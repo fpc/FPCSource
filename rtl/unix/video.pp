@@ -15,6 +15,8 @@
  **********************************************************************}
 unit Video;
 
+{$I-}
+
 interface
 
 {$i videoh.inc}
@@ -793,7 +795,6 @@ procedure SysInitVideo;
 const
   fontstr : string[3]=#27'(K';
 var
-  ThisTTY: String[30];
   FName: String;
   WS: packed record
     ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
@@ -802,13 +803,23 @@ var
 {  prev_term : TerminalCommon_ptr1;}
   term:string;
   i:word;
+{$ifdef Linux}
+  s:string[15];
+  f:text;
+  c:char;
+  dummy,pid,ppid:integer;
+  device:longint;
+  found_vcsa:boolean;
+{$endif}
+{$ifdef freebsd}
+  ThisTTY: String[30];
+{$endif}
 
 begin
 {$ifndef CPUI386}
   LowAscii:=false;
 {$endif CPUI386}
   { check for tty }
-  ThisTTY:=TTYName(stdinputhandle);
   if (IsATTY(stdinputhandle)=1) then
    begin
      { save current terminal characteristics and remove rawness }
@@ -819,32 +830,64 @@ begin
      TTyfd:=-1;
      Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
      cur_term_strings:=@term_codes_vt100; {Default: vt100}
-     if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
-        not (ThisTTY[9] IN ['p'..'u','P']) then                 // FreeBSD has these
-      begin
-        { running on the console }
-        Case ThisTTY[9] of
-        {$ifdef linux}
-         '0'..'9' : begin { running Linux on native console or native-emulation }
-                     FName:='/dev/vcsa' + ThisTTY[9];
-                     { open console, $1b6=rw-rw-rw- }
-                     TTYFd:=fpOpen(FName, $1b6, O_RdWr);
-                     if TTYFd<>-1 Then
-                       console:=ttyLinux
-                     else
-                       if try_grab_vcsa then
-                         begin
-                           TTYFd:=fpOpen(FName, $1b6, O_RdWr);
-                           if TTYFd<>-1 Then
-                             console:=Ttylinux;
-                         end;
-                    end;
-        {$endif}
-         'v'  :  { check for (Free?)BSD native}
-                If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
-                 Console:=ttyFreeBSD;   {TTYFd ?}
+   {$ifdef linux}
+     {Extremely aggressive VCSA detection. Works even through Midnight
+      Commander. Idea from the C++ Turbo Vision project, credits go
+      to Martynas Kunigelis <algikun@santaka.sc-uni.ktu.lt>.}
+     pid:=fpgetpid;
+     repeat
+       str(pid,s);
+       assign(f,'/proc/'+s+'/stat');
+       reset(f);
+       if ioresult<>0 then
+         begin
+           found_vcsa:=false;
+           break;
          end;
+       read(f,dummy);
+       read(f,c);
+       repeat
+         read(f,c);
+       until c=' ';
+       repeat
+         read(f,c);
+       until c=' ';
+       ppid:=pid;
+       read(f,pid);
+       read(f,dummy);
+       read(f,dummy);
+       read(f,device);
+       close(f);
+       found_vcsa:=device and $ffffffc0=$00000400; {/dev/tty*}
+       if (device=0) or (pid=-1) or (ppid=pid) then
+         break; {Not attached to a terminal, i.e. an xterm.}
+     until found_vcsa;
+     if found_vcsa then
+       begin
+         str(device and $0000003f,s);
+         fname:='/dev/vcsa'+s;
+         { open console, $1b6=rw-rw-rw- }
+         ttyfd:=fpopen(fname,$1b6,O_RDWR);
+         if ttyfd<>-1 then
+           console:=ttylinux
+         else
+           if try_grab_vcsa then
+             begin
+               ttyfd:=fpopen(fname,$1b6,O_RDWR);
+               if ttyfd<>-1 then
+                 console:=ttylinux;
+             end;
        end;
+   {$endif}
+   {$ifdef freebsd}
+     ThisTTY:=TTYName(stdinputhandle);
+     if copy(ThisTTY, 1, 9) = '/dev/ttyv' then  {FreeBSD has these}
+       begin
+         { check for (Free?)BSD native}
+         if (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
+            Console:=ttyFreeBSD;   {TTYFd ?}
+       end;
+   {$endif}
      term:=fpgetenv('TERM');
      for i:=low(terminal_names) to high(terminal_names) do
        if copy(term,1,length(terminal_names[i]))=terminal_names[i] then
@@ -881,9 +924,6 @@ begin
      if Console<>ttylinux then
       begin
    {$endif}
-{        prev_term:=cur_term;
-        setupterm(nil, stdoutputhandle, err);
-        can_delete_term:=assigned(prev_term) and (prev_term<>cur_term);}
         SendEscapeSeqNdx(cursor_home);
         SendEscapeSeqNdx(cursor_normal);
         SendEscapeSeqNdx(cursor_visible);
@@ -892,12 +932,7 @@ begin
         If Console=ttyFreeBSD Then
           SendEscapeSeqNdx(exit_am_mode);
    {$ifdef linux}
-      end
-{     else if not assigned(cur_term) then
-       begin
-         setupterm(nil, stdoutputhandle, err);
-         can_delete_term:=false;
-       end};
+      end;
    {$endif}
      if assigned(cur_term_Strings) then
        begin
@@ -949,15 +984,6 @@ begin
   ACSIn:='';
   ACSOut:='';
   doneVideoDone;
-  { FreeBSD gives an error here.
-   According to Pierre this could be more a NCurses version thing that
-   a FreeBSD one. FreeBSD 4.4 has ncurses 5.
-   MvdV102003: Since I ran 1.1 with newer FreeBSD without problem, I let it be for now}
-{  if can_delete_term then
-    begin
-      del_curterm(cur_term);
-      can_delete_term:=false;
-    end;}
 {$ifdef logging}
   close(f);
 {$endif logging}
