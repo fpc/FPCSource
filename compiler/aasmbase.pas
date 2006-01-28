@@ -255,6 +255,9 @@ interface
          procedure UsedAsmSymbolListCheckUndefined;
        end;
 
+    function LengthUleb128(a: aword) : byte;
+    function LengthSleb128(a: aint) : byte;
+
     const
       { alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile }
       asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t','c');
@@ -272,6 +275,51 @@ implementation
     const
       sectsgrow   = 100;
       symbolsgrow = 100;
+
+
+    function LengthUleb128(a: aword) : byte;
+      var
+        b: byte;
+      begin
+        result:=0;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if (a <> 0) then
+            b := b or $80;
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function LengthSleb128(a: aint) : byte;
+      var
+        b, size: byte;
+        neg, more: boolean;
+      begin
+        more := true;
+        neg := a < 0;
+        size := sizeof(a)*8;
+        result:=0;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if (neg) then
+            a := a or -(1 shl (size - 7));
+          if (((a = 0) and
+               (a and $40 = 0)) or
+              ((a = -1) and
+               (a and $40 <> 0))) then
+            more := false
+          else
+            b := b or $80;
+          inc(result);
+          if not(more) then
+            break;
+        until false;
+      end;
 
 
 {*****************************************************************************

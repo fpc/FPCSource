@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2006 by the Free Pascal team
 
-    This unit implements generic GNU assembler (v2.8 or later)
+    This unit implements the generic part of the GNU assembler
+    (v2.8 or later) writer
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +63,6 @@ interface
         procedure WriteDecodedUleb128(a: aword);
         function NextSetLabel: string;
       end;
-
 
 implementation
 

@@ -221,8 +221,10 @@ implementation
       verbose,
       systems,
       cpubase,
+      cgbase,
       finput,
       fmodule,
+      defutil,
       symconst,symsym
       ;
 
@@ -438,7 +440,7 @@ implementation
         i : longint;
       begin
         inc(currabbrevnumber);
-        
+
         asmlist[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
 
         { abbrev number }
@@ -508,7 +510,7 @@ implementation
                   else
                     internalerror(200601285);
                 end;
-                
+
               DW_FORM_udata:
                 case data[i].VType of
                   vtInteger:
@@ -520,7 +522,7 @@ implementation
                   else
                     internalerror(200601284);
                 end;
-                
+
               { block gets only the size, the rest is appended manually by the caller }
               DW_FORM_block1:
                 asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
@@ -573,7 +575,7 @@ implementation
 
     procedure TDebugInfoDwarf.finish_children;
       begin
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+        asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
       end;
 
 
@@ -587,7 +589,7 @@ implementation
             s32bit :
               begin
                 { we should generate a subrange type here }
-                if assigned(def.typesym) then                
+                if assigned(def.typesym) then
                   append_entry(DW_TAG_base_type,false,[
                     DW_AT_name,DW_FORM_string,def.typesym.name+#0,
                     DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
@@ -889,38 +891,41 @@ implementation
 
 
     procedure TDebugInfoDwarf.append_procdef(list:taasmoutput;pd:tprocdef);
-    {
       var
-        templist : taasmoutput;
-        stabsendlabel : tasmlabel;
+        procendlabel : tasmlabel;
         mangled_length : longint;
         p : pchar;
         hs : string;
-    }
       begin
-        {
         if assigned(pd.procstarttai) then
           begin
-            templist:=taasmoutput.create;
-            { para types }
-            write_def_stabstr(templist,pd);
-            if assigned(pd.parast) then
-              write_symtable_syms(templist,pd.parast);
-            { local type defs and vars should not be written
-              inside the main proc stab }
-            if assigned(pd.localst) and
-               (pd.localst.symtabletype=localsymtable) then
-              write_symtable_syms(templist,pd.localst);
-            asmlist[al_procedures].insertlistbefore(pd.procstarttai,templist);
-            { end of procedure }
-            objectlibrary.getlabel(stabsendlabel,alt_dbgtype);
-            templist.concat(tai_label.create(stabsendlabel));
+            append_entry(DW_TAG_subprogram,true,
+              [DW_AT_name,DW_FORM_string,pd.procsym.name+#0
+              { data continues below }
+              { problem: base reg isn't known here
+                DW_AT_frame_base,DW_FORM_block1,1
+              }
+              ]);
+            { append block data }
+            { asmlist[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(pd.))); }
+
+            if not(is_void(tprocdef(pd).rettype.def)) then
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(pd).rettype.def));
+
+            { mark end of procedure }
+            objectlibrary.getlabel(procendlabel,alt_dbgtype);
+            asmlist[al_procedures].insertbefore(tai_label.create(procendlabel),pd.procendtai);
+
+            append_labelentry(DW_AT_low_pc,objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_DATA));
+            append_labelentry(DW_AT_high_pc,procendlabel);
+
+            {
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
               begin
                 if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
-    {$warning Need to add gdb support for ret in param register calling}
+{$warning Need to add gdb support for ret in param register calling}
                     if paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
                       hs:='X*'
                     else
@@ -934,31 +939,25 @@ implementation
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                   end;
               end;
-            mangled_length:=length(pd.mangledname);
-            getmem(p,2*mangled_length+50);
-            strpcopy(p,'192,0,0,');
-            {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-            strpcopy(strend(p),pd.mangledname);
-            if (tf_use_function_relative_addresses in target_info.flags) then
-              begin
-                strpcopy(strend(p),'-');
-                {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-                strpcopy(strend(p),pd.mangledname);
-              end;
-            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-            strpcopy(p,'224,0,0,'+stabsendlabel.name);
-            if (tf_use_function_relative_addresses in target_info.flags) then
-              begin
-                strpcopy(strend(p),'-');
-                {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
-                strpcopy(strend(p),pd.mangledname);
-              end;
-            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-            freemem(p,2*mangled_length+50);
-            asmlist[al_procedures].insertlistbefore(pd.procendtai,templist);
-            templist.free;
+            }
+
+            finish_entry;
+{
+            { para types }
+            write_def_stabstr(templist,pd);
+}
+
+            if assigned(pd.parast) then
+              write_symtable_syms(list,pd.parast);
+            { local type defs and vars should not be written
+              inside the main proc stab }
+            if assigned(pd.localst) and
+               (pd.localst.symtabletype=localsymtable) then
+              write_symtable_syms(list,pd.localst);
+
+            finish_children;
           end;
-      }
+
       end;
 
 
@@ -976,7 +975,11 @@ implementation
           end;
 
 
-        procedure append_globalvarsym(sym:tglobalvarsym);
+        procedure append_varsym(sym:tabstractnormalvarsym);
+          var
+            templist : taasmoutput;
+            blocksize : longint;
+            regidx : longint;
           begin
             { external symbols can't be resolved at link time, so we
               can't generate stabs for them
@@ -986,6 +989,56 @@ implementation
             if vo_is_external in sym.varoptions then
               exit;
 
+            { There is no space allocated for not referenced locals }
+            if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
+              exit;
+
+            templist:=taasmoutput.create;
+
+            case sym.localloc.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER,
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER,
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER :
+                begin
+                {
+                  regidx:=findreg_by_number(sym.localloc.register);
+                  { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+                  { this is the register order for GDB}
+                  if regidx<>0 then
+                    result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
+                }
+                end;
+              else
+                begin
+                  case sym.typ of
+                    globalvarsym:
+                      begin
+                        if (vo_is_thread_var in sym.varoptions) then
+                          begin
+{$warning !!! FIXME: dwarf for thread vars !!!}
+                          end
+                        else
+                          begin
+                            templist.concat(tai_const.create_8bit(3));
+                            templist.concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+                            blocksize:=1+sizeof(aword);
+                          end;
+                      end;
+                    localvarsym:
+                      begin
+                        regidx:=findreg_by_number(sym.localloc.reference.base);
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+regdwarf_table[regidx]));
+                        templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
+                        blocksize:=Lengthsleb128(sym.localloc.reference.offset)+1;
+                      end
+                    else
+                      internalerror(200601288);
+                  end;
+                end;
+            end;
             append_entry(DW_TAG_variable,false,[
               DW_AT_name,DW_FORM_string,sym.name+#0,
               {
@@ -994,84 +1047,17 @@ implementation
               }
               DW_AT_external,DW_FORM_flag,true,
               { data continues below }
-              DW_AT_location,DW_FORM_block1,1+sizeof(aword)
+              DW_AT_location,DW_FORM_block1,blocksize
               ]);
             { append block data }
-            asmlist[al_dwarf_info].concat(tai_const.create_8bit(3));
-            asmlist[al_dwarf_info].concat(tai_const.createname(sym.mangledname,AT_DATA,0));
-
+            asmlist[al_dwarf_info].concatlist(templist);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
 
-            // ,,
-            {
-            case sym.localloc.loc of
-              LOC_REGISTER,
-              LOC_CREGISTER,
-              LOC_MMREGISTER,
-              LOC_CMMREGISTER,
-              LOC_FPUREGISTER,
-              LOC_CFPUREGISTER :
-                begin
-                  regidx:=findreg_by_number(sym.localloc.register);
-                  { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                  { this is the register order for GDB}
-                  if regidx<>0 then
-                    result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                end;
-              else
-                begin
-                  if (vo_is_thread_var in sym.varoptions) then
-                    threadvaroffset:='+'+tostr(sizeof(aint))
-                  else
-                    threadvaroffset:='';
-                  { Here we used S instead of
-                    because with G GDB doesn't look at the address field
-                    but searches the same name or with a leading underscore
-                    but these names don't exist in pascal !}
-                  st:='S'+st;
-                  result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
-                end;
-            end;
-            }
+            templist.free;
+
             finish_entry;
           end;
 
-
-        function localvarsym_stabstr(sym:tlocalvarsym):Pchar;
-          var
-            st : string;
-            regidx : Tregisterindex;
-          begin
-            {
-            result:=nil;
-            { There is no space allocated for not referenced locals }
-            if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
-              exit;
-
-            st:=def_stab_number(sym.vartype.def);
-            case sym.localloc.loc of
-              LOC_REGISTER,
-              LOC_CREGISTER,
-              LOC_MMREGISTER,
-              LOC_CMMREGISTER,
-              LOC_FPUREGISTER,
-              LOC_CFPUREGISTER :
-                begin
-                  regidx:=findreg_by_number(sym.localloc.register);
-                  { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                  { this is the register order for GDB}
-                  if regidx<>0 then
-                    result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                end;
-              LOC_REFERENCE :
-                { offset to ebp => will not work if the framepointer is esp
-                  so some optimizing will make things harder to debug }
-                result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(sym.localloc.reference.offset)])
-              else
-                internalerror(2003091814);
-            end;
-            }
-          end;
 
         function paravarsym_stabstr(sym:tparavarsym):Pchar;
           var
@@ -1216,7 +1202,7 @@ implementation
       begin
         case sym.typ of
           globalvarsym :
-            append_globalvarsym(tglobalvarsym(sym));
+            append_varsym(tglobalvarsym(sym));
           unitsym:
             { for now, we ignore unit symbols }
             ;
@@ -1227,8 +1213,10 @@ implementation
             stabstr:=sym_stabstr_evaluate(sym,'"${name}",${N_LSYM},0,${line},0',[]);
           fieldvarsym :
             stabstr:=fieldvarsym_stabstr(tfieldvarsym(sym));
+          }
           localvarsym :
-            stabstr:=localvarsym_stabstr(tlocalvarsym(sym));
+            append_varsym(tlocalvarsym(sym));
+          {
           paravarsym :
             stabstr:=paravarsym_stabstr(tparavarsym(sym));
           typedconstsym :
@@ -1303,7 +1291,7 @@ implementation
         templist.concat(tai_symbol.createname('.Ldebug_abbrev0',AT_DATA,0));
         asmlist[al_start].insertlist(templist);
         templist.free;
-        
+
         { insert .Ldebug_line0 label }
         templist:=taasmoutput.create;
         new_section(templist,sec_debug_line,'',0);
