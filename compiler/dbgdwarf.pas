@@ -804,8 +804,22 @@ implementation
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           classrefdef :
             result:=strpnew(def_stab_number(pvmttype.def));
+        }
           setdef :
-            result:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),def_stab_number(tsetdef(def).elementtype.def)]);
+            begin
+              if assigned(def.typesym) then
+                append_entry(DW_TAG_enumeration_type,true,[
+                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  ])
+              else
+                append_entry(DW_TAG_enumeration_type,true,[
+                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  ]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
+              finish_entry
+            end;
+        {
           formaldef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           arraydef :
@@ -1306,9 +1320,14 @@ implementation
                 [def_stab_number(ttypedconstsym(sym).typedconsttype.def)]);
           constsym :
             stabstr:=constsym_stabstr(tconstsym(sym));
-          typesym :
-            stabstr:=typesym_stabstr(ttypesym(sym));
           }
+          typesym :
+            begin
+              append_entry(DW_TAG_pointer_type,false,[
+                DW_AT_name,DW_FORM_string,sym.name+#0
+              ]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypesym(sym).restype.def));
+            end;
           enumsym :
             { ignore enum syms, they are written by the owner }
             ;
