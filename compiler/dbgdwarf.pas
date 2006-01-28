@@ -1331,6 +1331,9 @@ implementation
           enumsym :
             { ignore enum syms, they are written by the owner }
             ;
+          rttisym :
+            { ignore rtti syms, they are only of internal use }
+            ;
           else
             internalerror(200601242);
         end;
