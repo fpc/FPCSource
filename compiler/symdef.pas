@@ -1535,9 +1535,6 @@ implementation
       end;
 
 
-
-
-
     procedure tenumdef.write_child_rtti_data(rt:trttitype);
       begin
          if assigned(basedef) then

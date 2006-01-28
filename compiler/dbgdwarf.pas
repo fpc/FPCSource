@@ -742,15 +742,50 @@ implementation
             finish_entry;
           end;
 
+
+      procedure append_dwarftag_enumdef(list:taasmoutput;def:tenumdef);
+        var
+          hp : tenumsym;
+        begin
+          if assigned(def.typesym) then
+            append_entry(DW_TAG_enumeration_type,true,[
+              DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+              DW_AT_byte_size,DW_FORM_data1,def.size
+              ])
+          else
+            append_entry(DW_TAG_enumeration_type,true,[
+              DW_AT_byte_size,DW_FORM_data1,def.size
+              ]);
+          if assigned(def.basedef) then
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.basedef));
+          finish_entry;
+
+          { write enum symbols }
+          hp:=tenumsym(def.firstenum);
+          while assigned(hp) do
+            begin
+              append_entry(DW_TAG_enumerator,false,[
+                DW_AT_name,DW_FORM_string,hp.name,
+                DW_AT_const_value,DW_FORM_data4,hp.value
+              ]);
+              finish_entry;
+              hp:=tenumsym(hp).nextenum;
+            end;
+
+          finish_children;
+        end;
+
+
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
         {
           stringdef :
             result:=stringdef_stabstr(tstringdef(def));
-          enumdef :
-            result:=enumdef_stabstr(tenumdef(def));
         }
+          enumdef :
+            append_dwarftag_enumdef(list,tenumdef(def));
+
           orddef :
             append_dwarftag_orddef(list,torddef(def));
 
