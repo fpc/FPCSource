@@ -894,6 +894,13 @@ begin
          cur_term_strings:=terminal_data[i];
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
+    if (console<>ttylinux) and (cur_term_strings=@term_codes_linux) then
+      begin
+        {Executed in case ttylinux is false (i.e. no vcsa), but
+         TERM=linux.}
+        {Enable the VGA character set (codepage 437,850,....)}
+        fpwrite(stdoutputhandle,#15#27'%@'#27'(U',3);
+      end;
    {$ifdef linux}
      If Console<>ttylinux Then
       begin
@@ -978,6 +985,13 @@ begin
      SendEscapeSeqNdx(cursor_visible);
      SetCursorType(crUnderLine);
      SendEscapeSeq(#27'[H');
+     if cur_term_strings=@term_codes_linux then
+       begin
+         {Executed in case ttylinux is false (i.e. no vcsa), but
+          TERM=linux.}
+         {Enable the character set set through setfont}
+         fpwrite(stdoutputhandle,#27'(K',3);
+       end;
 {$ifdef linux}
    end;
 {$endif}

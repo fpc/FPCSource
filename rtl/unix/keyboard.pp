@@ -14,7 +14,10 @@
 
  **********************************************************************}
 unit Keyboard;
-interface
+
+{*****************************************************************************}
+                                  interface
+{*****************************************************************************}
 
 {$i keybrdh.inc}
 
@@ -32,14 +35,14 @@ Function FindSequence(Const St : String;var AChar, Ascan : byte) : boolean;
 {$endif NotUseTree}
 procedure RestoreStartMode;
 
-
-implementation
+{*****************************************************************************}
+                               implementation
+{*****************************************************************************}
 
 uses
   Mouse,
 {$ifndef NotUseTree}
   Strings,
-  TermInfo,
 {$endif NotUseTree}
   termio,baseUnix;
 
@@ -572,6 +575,9 @@ end;
 
 Procedure LoadDefaultSequences;
 begin
+  {If you ask me to give a reason why Unix sucks, it is the keyboard handling.
+   Unix keyboard handling is one of the hugest design mistakes in the history
+   of the computer! (DM)}
   AddSpecialSequence(#27'[M',@GenMouseEvent);
   { linux default values, the next setting is
     compatible with xterms from XFree 4.x }
@@ -641,27 +647,54 @@ begin
   DoAddSequence(#27'7',0,kbAlt7);
   DoAddSequence(#27'8',0,kbAlt8);
   DoAddSequence(#27'9',0,kbAlt9);
-  { vt100 default values }
-  DoAddSequence(#27'[[A',0,kbF1);
-  DoAddSequence(#27'[[B',0,kbF2);
-  DoAddSequence(#27'[[C',0,kbF3);
-  DoAddSequence(#27'[[D',0,kbF4);
-  DoAddSequence(#27'[[E',0,kbF5);
-  DoAddSequence(#27'[17~',0,kbF6);
-  DoAddSequence(#27'[18~',0,kbF7);
-  DoAddSequence(#27'[19~',0,kbF8);
-  DoAddSequence(#27'[20~',0,kbF9);
-  DoAddSequence(#27'[21~',0,kbF10);
-  DoAddSequence(#27'[23~',0,kbF11);
-  DoAddSequence(#27'[24~',0,kbF12);
-  DoAddSequence(#27'[25~',0,kbShiftF3);
-  DoAddSequence(#27'[26~',0,kbShiftF4);
-  DoAddSequence(#27'[28~',0,kbShiftF5);
-  DoAddSequence(#27'[29~',0,kbShiftF6);
-  DoAddSequence(#27'[31~',0,kbShiftF7);
-  DoAddSequence(#27'[32~',0,kbShiftF8);
-  DoAddSequence(#27'[33~',0,kbShiftF9);
-  DoAddSequence(#27'[34~',0,kbShiftF10);
+
+  DoAddSequence(#27'[[A',0,kbF1);           {linux,konsole,xterm}
+  DoAddSequence(#27'[[B',0,kbF2);           {linux,konsole,xterm}
+  DoAddSequence(#27'[[C',0,kbF3);           {linux,konsole,xterm}
+  DoAddSequence(#27'[[D',0,kbF4);           {linux,konsole,xterm}
+  DoAddSequence(#27'[[E',0,kbF5);           {linux,konsole}
+  DoAddSequence(#27'[1~',0,kbHome);         {linux}
+  DoAddSequence(#27'[2~',0,kbIns);          {linux,Eterm}
+  DoAddSequence(#27'[3~',0,kbDel);          {linux,Eterm}
+  DoAddSequence(#27'[4~',0,kbEnd);          {linux,Eterm}
+  DoAddSequence(#27'[5~',0,kbPgUp);         {linux,Eterm}
+  DoAddSequence(#27'[6~',0,kbPgDn);         {linux,Eterm}
+  DoAddSequence(#27'[7~',0,kbHome);         {Eterm}
+  DoAddSequence(#27'[11~',0,kbF1);          {Eterm}
+  DoAddSequence(#27'[12~',0,kbF2);          {Eterm}
+  DoAddSequence(#27'[13~',0,kbF3);          {Eterm}
+  DoAddSequence(#27'[14~',0,kbF4);          {Eterm}
+  DoAddSequence(#27'[15~',0,kbF5);          {xterm,Eterm,gnome}
+  DoAddSequence(#27'[17~',0,kbF6);          {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[18~',0,kbF7);          {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[19~',0,kbF8);          {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[20~',0,kbF9);          {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[21~',0,kbF10);         {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[23~',0,kbF11);         {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[24~',0,kbF12);         {linux,xterm,Eterm,konsole,gnome}
+  DoAddSequence(#27'[25~',0,kbShiftF3);     {linux}
+  DoAddSequence(#27'[26~',0,kbShiftF4);     {linux}
+  DoAddSequence(#27'[28~',0,kbShiftF5);     {linux}
+  DoAddSequence(#27'[29~',0,kbShiftF6);     {linux}
+  DoAddSequence(#27'[31~',0,kbShiftF7);     {linux}
+  DoAddSequence(#27'[32~',0,kbShiftF8);     {linux}
+  DoAddSequence(#27'[33~',0,kbShiftF9);     {linux}
+  DoAddSequence(#27'[34~',0,kbShiftF10);    {linux}
+  DoAddSequence(#27'[3;2~',0,kbShiftDel);   {xterm,konsole}
+  DoAddSequence(#27'[11;2~',0,kbShiftF1);   {konsole in vt420pc mode}
+  DoAddSequence(#27'[12;2~',0,kbShiftF2);   {konsole in vt420pc mode}
+  DoAddSequence(#27'[13;2~',0,kbShiftF3);   {konsole in vt420pc mode}
+  DoAddSequence(#27'[14;2~',0,kbShiftF4);   {konsole in vt420pc mode}
+  DoAddSequence(#27'[15;2~',0,kbShiftF5);   {xterm}
+  DoAddSequence(#27'[17;2~',0,kbShiftF6);   {xterm}
+  DoAddSequence(#27'[18;2~',0,kbShiftF7);   {xterm}
+  DoAddSequence(#27'[19;2~',0,kbShiftF8);   {xterm}
+  DoAddSequence(#27'[20;2~',0,kbShiftF9);   {xterm}
+  DoAddSequence(#27'[21;2~',0,kbShiftF10);  {xterm}
+  DoAddSequence(#27'[23;2~',0,kbShiftF11);  {xterm}
+  DoAddSequence(#27'[24;2~',0,kbShiftF12);  {xterm}
+  DoAddSequence(#27'[2;5~',0,kbCtrlIns);    {xterm}
+  DoAddSequence(#27'[3;5~',0,kbCtrlDel);    {xterm}
   DoAddSequence(#27#27'[[A',0,kbAltF1);
   DoAddSequence(#27#27'[[B',0,kbAltF2);
   DoAddSequence(#27#27'[[C',0,kbAltF3);
@@ -674,19 +707,37 @@ begin
   DoAddSequence(#27#27'[21~',0,kbAltF10);
   DoAddSequence(#27#27'[23~',0,kbAltF11);
   DoAddSequence(#27#27'[24~',0,kbAltF12);
-  DoAddSequence(#27'[A',0,kbUp);
-  DoAddSequence(#27'[B',0,kbDown);
-  DoAddSequence(#27'[C',0,kbRight);
-  DoAddSequence(#27'[D',0,kbLeft);
-  DoAddSequence(#27'[F',0,kbEnd);
-  DoAddSequence(#27'[H',0,kbHome);
+  DoAddSequence(#27'[A',0,kbUp);            {linux,FreeBSD}
+  DoAddSequence(#27'[B',0,kbDown);          {linux,FreeBSD}
+  DoAddSequence(#27'[C',0,kbRight);         {linux,FreeBSD}
+  DoAddSequence(#27'[D',0,kbLeft);          {linux,FreeBSD}
+  DoAddSequence(#27'[F',0,kbEnd);           {FreeBSD}
+  DoAddSequence(#27'[G',0,kbPgUp);          {FreeBSD}
+  DoAddSequence(#27'[H',0,kbHome);          {FreeBSD}
+  DoAddSequence(#27'[H',0,kbPgdn);          {FreeBSD}
+  DoAddSequence(#27'[M',0,kbF1);            {FreeBSD}
+  DoAddSequence(#27'[N',0,kbF2);            {FreeBSD}
+  DoAddSequence(#27'[O',0,kbF3);            {FreeBSD}
+  DoAddSequence(#27'[P',0,kbF4);            {FreeBSD}
+  DoAddSequence(#27'[Q',0,kbF5);            {FreeBSD}
+  DoAddSequence(#27'[R',0,kbF6);            {FreeBSD}
+  DoAddSequence(#27'[S',0,kbF7);            {FreeBSD}
+  DoAddSequence(#27'[T',0,kbF8);            {FreeBSD}
+  DoAddSequence(#27'[U',0,kbF9);            {FreeBSD}
+  DoAddSequence(#27'[V',0,kbF10);           {FreeBSD}
+  DoAddSequence(#27'[W',0,kbF11);           {FreeBSD}
+  DoAddSequence(#27'[X',0,kbF12);           {FreeBSD}
   DoAddSequence(#27'[Z',0,kbShiftTab);
-  DoAddSequence(#27'[5~',0,kbPgUp);
-  DoAddSequence(#27'[6~',0,kbPgDn);
-  DoAddSequence(#27'[4~',0,kbEnd);
-  DoAddSequence(#27'[1~',0,kbHome);
-  DoAddSequence(#27'[2~',0,kbIns);
-  DoAddSequence(#27'[3~',0,kbDel);
+(*
+  DoAddSequence(#27'[1;2A',0,kbShiftUp);    {xterm}
+  DoAddSequence(#27'[1;2B',0,kbShiftDown);  {xterm}
+  DoAddSequence(#27'[1;2C',0,kbShiftRight); {xterm}
+  DoAddSequence(#27'[1;2D',0,kbShiftLeft);  {xterm}
+*)
+  DoAddSequence(#27'[1;2A',0,kbCtrlUp);     {xterm}
+  DoAddSequence(#27'[1;2B',0,kbCtrlDown);   {xterm}
+  DoAddSequence(#27'[1;2C',0,kbCtrlRight);  {xterm}
+  DoAddSequence(#27'[1;2D',0,kbCtrlLeft);   {xterm}
   DoAddSequence(#27#27'[A',0,kbAltUp);
   DoAddSequence(#27#27'[B',0,kbAltDown);
   DoAddSequence(#27#27'[D',0,kbAltLeft);
@@ -697,18 +748,28 @@ begin
   DoAddSequence(#27#27'[1~',0,kbAltHome);
   DoAddSequence(#27#27'[2~',0,kbAltIns);
   DoAddSequence(#27#27'[3~',0,kbAltDel);
-  DoAddSequence(#27'OP',0,kbF1);
-  DoAddSequence(#27'OQ',0,kbF2);
-  DoAddSequence(#27'OR',0,kbF3);
-  DoAddSequence(#27'OS',0,kbF4);
-  DoAddSequence(#27'Ot',0,kbF5);
-  DoAddSequence(#27'Ou',0,kbF6);
-  DoAddSequence(#27'Ov',0,kbF7);
-  DoAddSequence(#27'Ol',0,kbF8);
-  DoAddSequence(#27'Ow',0,kbF9);
-  DoAddSequence(#27'Ox',0,kbF10);
-  DoAddSequence(#27'Oy',0,kbF11);
-  DoAddSequence(#27'Oz',0,kbF12);
+  DoAddSequence(#27'OA',0,kbUp);            {xterm}
+  DoAddSequence(#27'OB',0,kbDown);          {xterm}
+  DoAddSequence(#27'OC',0,kbRight);         {xterm}
+  DoAddSequence(#27'OD',0,kbLeft);          {xterm}
+  DoAddSequence(#27'OF',0,kbHome);          {some xterm configurations}
+  DoAddSequence(#27'OH',0,kbEnd);           {some xterm configurations}
+  DoAddSequence(#27'OP',0,kbF1);            {vt100,gnome,konsole}
+  DoAddSequence(#27'OQ',0,kbF2);            {vt100,gnome,konsole}
+  DoAddSequence(#27'OR',0,kbF3);            {vt100,gnome,konsole}
+  DoAddSequence(#27'OS',0,kbF4);            {vt100,gnome,konsole}
+  DoAddSequence(#27'Ot',0,kbF5);            {vt100}
+  DoAddSequence(#27'Ou',0,kbF6);            {vt100}
+  DoAddSequence(#27'Ov',0,kbF7);            {vt100}
+  DoAddSequence(#27'Ol',0,kbF8);            {vt100}
+  DoAddSequence(#27'Ow',0,kbF9);            {vt100}
+  DoAddSequence(#27'Ox',0,kbF10);           {vt100}
+  DoAddSequence(#27'Oy',0,kbF11);           {vt100}
+  DoAddSequence(#27'Oz',0,kbF12);           {vt100}
+  DoAddSequence(#27'O2P',0,kbShiftF1);      {konsole,xterm}
+  DoAddSequence(#27'O2Q',0,kbShiftF2);      {konsole,xterm}
+  DoAddSequence(#27'O2R',0,kbShiftF3);      {konsole,xterm}
+  DoAddSequence(#27'O2S',0,kbShiftF4);      {konsole,xterm}
   DoAddSequence(#27#27'OP',0,kbAltF1);
   DoAddSequence(#27#27'OQ',0,kbAltF2);
   DoAddSequence(#27#27'OR',0,kbAltF3);
@@ -721,10 +782,6 @@ begin
   DoAddSequence(#27#27'Ox',0,kbAltF10);
   DoAddSequence(#27#27'Oy',0,kbAltF11);
   DoAddSequence(#27#27'Oz',0,kbAltF12);
-  DoAddSequence(#27'OA',0,kbUp);
-  DoAddSequence(#27'OB',0,kbDown);
-  DoAddSequence(#27'OC',0,kbRight);
-  DoAddSequence(#27'OD',0,kbLeft);
   DoAddSequence(#27#27'OA',0,kbAltUp);
   DoAddSequence(#27#27'OB',0,kbAltDown);
   DoAddSequence(#27#27'OC',0,kbAltRight);
@@ -739,7 +796,7 @@ begin
   DoAddSequence(#27'[?7l',0,0);
   DoAddSequence(#27'[?7h',0,0);
 end;
-
+(*
 function EnterEscapeSeqNdx(Ndx: Word;Char,Scan : byte) : PTreeElement;
 var
   P,pdelay: PChar;
@@ -794,7 +851,7 @@ begin
   { EnterEscapeSeqNdx(key_,0,kb);
   EnterEscapeSeqNdx(key_,0,kb); }
 end;
-
+*)
 {$endif not NotUseTree}
 
 Function RawReadKey:char;
@@ -1280,7 +1337,7 @@ begin
     end;
 {$ifndef NotUseTree}
   LoadDefaultSequences;
-  LoadTerminfoSequences;
+{  LoadTerminfoSequences;}
 {$endif not NotUseTree}
 end;
 
@@ -1370,41 +1427,47 @@ begin {main}
     if Mychar=#0 then
       begin
         MyScan:=ord(ReadKey(IsAlt));
+        { Handle no shifts.}
+        if sstate=0 then
+          {Linux and other terminals consider Shift+Funtion-Key as
+           F10..F20. We are using PC's and not using 20 year old terminals;
+           therefore we want our programmers bother with F1..F12 and
+           Shift-F1..Shift-F12.}
+          case myscan of
+            kbShiftF1:          
+              myscan:=kbF11;
+            kbShiftF2:
+              myscan:=kbF12;
+          end
         { Handle Ctrl-<x>, but not AltGr-<x> }
-        if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0)  then
-         begin
-           case MyScan of
-             kbHome..kbDel : { cArrow }
-               MyScan:=CtrlArrow[MyScan];
-             kbF1..KbF10 : { cF1-cF10 }
-               MyScan:=MyScan+kbCtrlF1-kbF1;
-             kbF11..KbF12 : { cF11-cF12 }
-               MyScan:=MyScan+kbCtrlF11-kbF11;
-           end;
-         end
+        else if ((SState and kbCtrl)<>0) and ((SState and kbAlt) = 0)  then
+          case MyScan of
+            kbHome..kbDel : { cArrow }
+              MyScan:=CtrlArrow[MyScan];
+            kbF1..KbF10 : { cF1-cF10 }
+              MyScan:=MyScan+kbCtrlF1-kbF1;
+            kbF11..KbF12 : { cF11-cF12 }
+              MyScan:=MyScan+kbCtrlF11-kbF11;
+          end
         { Handle Alt-<x>, but not AltGr }
         else if ((SState and kbAlt)<>0) and ((SState and kbCtrl) = 0) then
-         begin
-           case MyScan of
-             kbHome..kbDel : { AltArrow }
-               MyScan:=AltArrow[MyScan];
-             kbF1..KbF10 : { aF1-aF10 }
-               MyScan:=MyScan+kbAltF1-kbF1;
-             kbF11..KbF12 : { aF11-aF12 }
-               MyScan:=MyScan+kbAltF11-kbF11;
-             end;
-         end
+          case MyScan of
+            kbHome..kbDel : { AltArrow }
+              MyScan:=AltArrow[MyScan];
+            kbF1..KbF10 : { aF1-aF10 }
+              MyScan:=MyScan+kbAltF1-kbF1;
+            kbF11..KbF12 : { aF11-aF12 }
+              MyScan:=MyScan+kbAltF11-kbF11;
+          end
         else if (SState and kbShift)<>0 then
-         begin
-           case MyScan of
-             kbIns: MyScan:=kbShiftIns;
-             kbDel: MyScan:=kbShiftDel;
-             kbF1..KbF10 : { sF1-sF10 }
-               MyScan:=MyScan+kbShiftF1-kbF1;
-             kbF11..KbF12 : { sF11-sF12 }
-               MyScan:=MyScan+kbShiftF11-kbF11;
-             end;
-         end;
+          case MyScan of
+            kbIns: MyScan:=kbShiftIns;
+            kbDel: MyScan:=kbShiftDel;
+            kbF1..KbF10 : { sF1-sF10 }
+              MyScan:=MyScan+kbShiftF1-kbF1;
+            kbF11..KbF12 : { sF11-sF12 }
+              MyScan:=MyScan+kbShiftF11-kbF11;
+          end;
         if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
           SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
         else
