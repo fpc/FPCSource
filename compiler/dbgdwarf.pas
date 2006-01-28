@@ -482,10 +482,7 @@ implementation
                   vtAnsistring:
                     asmlist[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString^)));
                   else
-                    begin
-                      writeln(data[i].VType);
-                      internalerror(200601264);
-                    end;
+                    internalerror(200601264);
                 end;
 
 
@@ -500,6 +497,30 @@ implementation
               DW_FORM_data8:
                 asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
 
+              DW_FORM_sdata:
+                case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VQWord^));
+                  else
+                    internalerror(200601285);
+                end;
+                
+              DW_FORM_udata:
+                case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VQWord^));
+                  else
+                    internalerror(200601284);
+                end;
+                
               { block gets only the size, the rest is appended manually by the caller }
               DW_FORM_block1:
                 asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
@@ -561,13 +582,40 @@ implementation
       procedure append_dwarftag_orddef(list:taasmoutput;def:torddef);
         begin
           case def.typ of
+            s8bit,
+            s16bit,
             s32bit :
               begin
-                append_entry(DW_TAG_base_type,false,[
-                  DW_AT_name,DW_FORM_string,'Longint'#0,
-                  DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
-                  DW_AT_byte_size,DW_FORM_data1,4
-                  ]);
+                { we should generate a subrange type here }
+                if assigned(def.typesym) then                
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ]);
+                finish_entry;
+              end;
+            u8bit,
+            u16bit,
+            u32bit :
+              begin
+                { we should generate a subrange type here }
+                if assigned(def.typesym) then
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ]);
                 finish_entry;
               end;
             uvoid :
@@ -586,20 +634,61 @@ implementation
                 finish_entry;
               end;
             uwidechar :
-              ;
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'WideChar'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned_char,
+                  DW_AT_byte_size,DW_FORM_data1,2
+                  ]);
+                finish_entry;
+              end;
             bool8bit :
-              ;
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'Boolean'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned_char,
+                  DW_AT_byte_size,DW_FORM_data1,1
+                  ]);
+                finish_entry;
+              end;
             bool16bit :
-              ;
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'WordBool'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                  DW_AT_byte_size,DW_FORM_data1,2
+                  ]);
+                finish_entry;
+              end;
             bool32bit :
-              ;
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'LongBool'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                  DW_AT_byte_size,DW_FORM_data1,4
+                  ]);
+                finish_entry;
+              end;
             u64bit :
-              ;
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'QWord'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_byte_size,DW_FORM_data1,8
+                  ]);
+                finish_entry;
+              end;
             s64bit :
-              ;
-            {u32bit : result:=def_stab_number(s32inttype.def)+';0;-1;'); }
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'Int64'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                  DW_AT_byte_size,DW_FORM_data1,8
+                  ]);
+                finish_entry;
+              end;
             else
-              ;
+              internalerror(200601287);
           end;
         end;
 
@@ -614,6 +703,12 @@ implementation
         }
           orddef :
             append_dwarftag_orddef(list,torddef(def));
+
+          pointerdef :
+            begin
+              append_entry(DW_TAG_pointer_type,false,[]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
+            end;
         {
           floatdef :
             result:=floatdef_stabstr(tfloatdef(def));
@@ -623,8 +718,6 @@ implementation
             result:=recorddef_stabstr(trecorddef(def));
           variantdef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
-          pointerdef :
-            result:=strpnew('*'+def_stab_number(tpointerdef(def).pointertype.def));
           classrefdef :
             result:=strpnew(def_stab_number(pvmttype.def));
           setdef :
