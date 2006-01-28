@@ -791,6 +791,7 @@ implementation
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
+              finish_entry;
             end;
 
           floatdef :
@@ -808,16 +809,16 @@ implementation
           setdef :
             begin
               if assigned(def.typesym) then
-                append_entry(DW_TAG_enumeration_type,true,[
+                append_entry(DW_TAG_set_type,false,[
                   DW_AT_name,DW_FORM_string,def.typesym.name+#0,
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ])
               else
-                append_entry(DW_TAG_enumeration_type,true,[
+                append_entry(DW_TAG_set_type,false,[
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
-              finish_entry
+              finish_entry;
             end;
         {
           formaldef :
@@ -1270,22 +1271,6 @@ implementation
             }
           end;
 
-        function typesym_stabstr(sym:ttypesym) : pchar;
-          var
-            stabchar : string[2];
-          begin
-            {
-            result:=nil;
-            if not assigned(sym.restype.def) then
-              internalerror(200509262);
-            if sym.restype.def.deftype in tagtypes then
-              stabchar:='Tt'
-            else
-              stabchar:='t';
-            result:=sym_stabstr_evaluate(sym,'"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,def_stab_number(sym.restype.def)]);
-            }
-          end;
-
 
         procedure append_procsym(sym:tprocsym);
           var
@@ -1327,6 +1312,7 @@ implementation
                 DW_AT_name,DW_FORM_string,sym.name+#0
               ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypesym(sym).restype.def));
+              finish_entry;
             end;
           enumsym :
             { ignore enum syms, they are written by the owner }
