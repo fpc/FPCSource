@@ -64,7 +64,7 @@ interface
          sec_debug_frame,
          sec_debug_info,
          sec_debug_line,
-         sec_debug_abrev,
+         sec_debug_abbrev,
          { ELF resources }
          sec_fpc,
          { Table of contents section }
@@ -587,7 +587,7 @@ implementation
 
     function TAsmObjectData.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
-        secnames : array[tasmsectiontype] of string[12] = ('',
+        secnames : array[tasmsectiontype] of string[13] = ('',
           'code','data','rodata','bss','threadvar',
           'common',
           'note',
@@ -595,7 +595,7 @@ implementation
           'stab','stabstr',
           'idata2','idata4','idata5','idata6','idata7','edata',
           'eh_frame',
-          'debug_frame','debug_info','debug_line','debug_abrev',
+          'debug_frame','debug_info','debug_line','debug_abbrev',
           'fpc',
           'toc'
         );

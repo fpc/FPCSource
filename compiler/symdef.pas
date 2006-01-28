@@ -241,7 +241,7 @@ interface
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
-          writing_class_record_stab : boolean;
+          writing_class_record_dbginfo : boolean;
           objecttype : tobjectdeftype;
           iidguid: pguid;
           iidstr: pstring;
@@ -4251,7 +4251,7 @@ implementation
           implementedinterfaces:=timplementedinterfaces.create
         else
           implementedinterfaces:=nil;
-        writing_class_record_stab:=false;
+        writing_class_record_dbginfo:=false;
      end;
 
 
@@ -4312,7 +4312,7 @@ implementation
             (objecttype=odt_interfacecom) and
             (objname^='IUNKNOWN') then
            interface_iunknown:=self;
-         writing_class_record_stab:=false;
+         writing_class_record_dbginfo:=false;
        end;
 
     destructor tobjectdef.destroy;

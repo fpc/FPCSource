@@ -203,7 +203,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
-        secnames : array[tasmsectiontype] of string[12] = ('',
+        secnames : array[tasmsectiontype] of string[13] = ('',
 {$warning TODO .rodata not yet working}
           '.text','.data','.data','.bss','.threadvar',
           'common',
@@ -212,11 +212,11 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           'fpc.resptrs',
           '.toc'
         );
-        secnames_pic : array[tasmsectiontype] of string[12] = ('',
+        secnames_pic : array[tasmsectiontype] of string[13] = ('',
           '.text','.data.rel','.data.rel','.bss','.threadvar',
           'common',
           '.note',
@@ -224,7 +224,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           'fpc.resptrs',
           '.toc'
         );

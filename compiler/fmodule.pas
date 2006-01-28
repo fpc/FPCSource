@@ -99,7 +99,7 @@ interface
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded }
-        is_stab_written,
+        is_dbginfo_written,
         is_reset,
         is_unit,
         in_interface,             { processing the implementation part? }
@@ -447,7 +447,7 @@ implementation
         in_global:=true;
         is_unit:=_is_unit;
         islibrary:=false;
-        is_stab_written:=false;
+        is_dbginfo_written:=false;
         is_reset:=false;
         mode_switch_allowed:= true;
         uses_imports:=false;
@@ -653,7 +653,7 @@ implementation
         in_interface:=true;
         in_global:=true;
         mode_switch_allowed:=true;
-        is_stab_written:=false;
+        is_dbginfo_written:=false;
         is_reset:=false;
         crc:=0;
         interface_crc:=0;

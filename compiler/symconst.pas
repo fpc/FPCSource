@@ -389,11 +389,11 @@ type
     te_exact
   );
 
-  tdefstabstatus = (
-    stab_state_unused,
-    stab_state_used,
-    stab_state_writing,
-    stab_state_written
+  tdefdbgstatus = (
+    dbg_state_unused,
+    dbg_state_used,
+    dbg_state_writing,
+    dbg_state_written
   );
 
 

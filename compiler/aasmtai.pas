@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2006 by Florian Klaempfl
 
     This unit implements an abstract asmoutput class for all processor types
 
@@ -620,7 +620,7 @@ interface
           information in the .o file. The stabs for the types must be defined
           before they can be referenced and therefor they need to be written
           first (PFV) }
-        Tasmlist=(al_stabsstart,
+        Tasmlist=(al_start,
                   al_stabs,
                   al_procedures,
                   al_globals,
@@ -633,12 +633,15 @@ interface
                   al_resources,
                   al_rtti,
                   al_dwarf,
+                  al_dwarf_info,
+                  al_dwarf_abbrev,
+                  al_dwarf_line,
                   al_picdata,
                   al_resourcestrings,
-                  al_stabsend);
+                  al_end);
     const
        TasmlistStr : array[tasmlist] of string[24] =(
-           'al_stabsstart',
+           'al_begin',
            'al_stabs',
            'al_procedures',
            'al_globals',
@@ -651,9 +654,12 @@ interface
            'al_resources',
            'al_rtti',
            'al_dwarf',
+           'al_dwarf_info',
+           'al_dwarf_abbrev',
+           'al_dwarf_line',
            'al_picdata',
            'al_resourcestrings',
-           'al_stabsend');
+           'al_end');
 
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');

@@ -50,17 +50,15 @@ interface
         procedure method_add_stabstr(p:Tnamedindexitem;arg:pointer);
         function  def_stabstr(def:tdef):pchar;
         procedure write_def_stabstr(list:taasmoutput;def:tdef);
-        procedure field_write_defs(p:Tnamedindexitem;arg:pointer);
-        procedure method_write_defs(p :tnamedindexitem;arg:pointer);
-        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);
         procedure write_procdef(list:taasmoutput;pd:tprocdef);
         procedure insertsym(list:taasmoutput;sym:tsym);
-        procedure insertdef(list:taasmoutput;def:tdef);
       public
         procedure inserttypeinfo;override;
         procedure insertmoduleinfo;override;
         procedure insertlineinfo(list:taasmoutput);override;
         procedure referencesections(list:taasmoutput);override;
+        procedure insertdef(list:taasmoutput;def:tdef);override;
+        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);override;
       end;
 
 
@@ -246,16 +244,16 @@ implementation
         { procdefs only need a number, mark them as already written
           so they won't be written implicitly }
         if (def.deftype=procdef) then
-          def.stab_state:=stab_state_written;
+          def.dbg_state:=dbg_state_written;
         { Stab must already be written, or we must be busy writing it }
         if writing_def_stabs and
-           not(def.stab_state in [stab_state_writing,stab_state_written]) then
+           not(def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           internalerror(200403091);
         { Keep track of used stabs, this info is only usefull for stabs
           referenced by the symbols. Definitions will always include all
           required stabs }
-        if def.stab_state=stab_state_unused then
-          def.stab_state:=stab_state_used;
+        if def.dbg_state=dbg_state_unused then
+          def.dbg_state:=dbg_state_used;
         { Need a new number? }
         if def.stab_number=0 then
           begin
@@ -653,7 +651,7 @@ implementation
           begin
             { Write the invisible pointer for the class? }
             if (def.objecttype=odt_class) and
-               (not def.writing_class_record_stab) then
+               (not def.writing_class_record_dbginfo) then
               begin
                 result:=strpnew('*'+def_stab_classnumber(def));
                 exit;
@@ -759,7 +757,7 @@ implementation
               stabchar := 't';
             { Here we maybe generate a type, so we have to use numberstring }
             if is_class(def) and
-               tobjectdef(def).writing_class_record_stab then
+               tobjectdef(def).writing_class_record_dbginfo then
               st:=def_stabstr_evaluate(def,'"${sym_name}:$1$2=',[stabchar,def_stab_classnumber(tobjectdef(def))])
             else
               st:=def_stabstr_evaluate(def,'"${sym_name}:$1$2=',[stabchar,def_stab_number(def)]);
@@ -778,41 +776,21 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.field_write_defs(p:Tnamedindexitem;arg:pointer);
-      begin
-        if (Tsym(p).typ=fieldvarsym) and
-           not(sp_static in Tsym(p).symoptions) then
-          insertdef(taasmoutput(arg),tfieldvarsym(p).vartype.def);
-      end;
-
-
-    procedure TDebugInfoStabs.method_write_defs(p :tnamedindexitem;arg:pointer);
-      var
-        pd : tprocdef;
-      begin
-        if tsym(p).typ = procsym then
-          begin
-            pd:=tprocsym(p).first_procdef;
-            insertdef(taasmoutput(arg),pd.rettype.def);
-          end;
-      end;
-
-
     procedure TDebugInfoStabs.insertdef(list:taasmoutput;def:tdef);
       var
         anc : tobjectdef;
         oldtypesym : tsym;
       begin
-        if (def.stab_state in [stab_state_writing,stab_state_written]) then
+        if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
         { never write generic template defs }
         if df_generic in def.defoptions then
           begin
-            def.stab_state:=stab_state_written;
+            def.dbg_state:=dbg_state_written;
             exit;
           end;
         { to avoid infinite loops }
-        def.stab_state := stab_state_writing;
+        def.dbg_state := dbg_state_writing;
         { write dependencies first }
         case def.deftype of
           stringdef :
@@ -874,9 +852,9 @@ implementation
               if is_class(def) then
                 begin
                   { Write the record class itself }
-                  tobjectdef(def).writing_class_record_stab:=true;
+                  tobjectdef(def).writing_class_record_dbginfo:=true;
                   write_def_stabstr(list,def);
-                  tobjectdef(def).writing_class_record_stab:=false;
+                  tobjectdef(def).writing_class_record_dbginfo:=false;
                   { Write the invisible pointer class }
                   oldtypesym:=def.typesym;
                   def.typesym:=nil;
@@ -900,7 +878,7 @@ implementation
             write_def_stabstr(list,def);
         end;
 
-        def.stab_state := stab_state_written;
+        def.dbg_state := dbg_state_written;
       end;
 
 
@@ -913,7 +891,7 @@ implementation
            p:=tdef(st.defindex.first);
            while assigned(p) do
              begin
-               if (p.stab_state=stab_state_used) then
+               if (p.dbg_state=dbg_state_used) then
                  insertdef(list,p);
                p:=tdef(p.indexnext);
              end;
@@ -1337,41 +1315,6 @@ implementation
 ****************************************************************************}
 
     procedure tdebuginfostabs.inserttypeinfo;
-
-       procedure reset_unit_type_info;
-       var
-         hp : tmodule;
-       begin
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) do
-           begin
-             hp.is_stab_written:=false;
-             hp:=tmodule(hp.next);
-           end;
-       end;
-
-       procedure write_used_unit_type_info(list:taasmoutput;hp:tmodule);
-       var
-         pu : tused_unit;
-       begin
-         pu:=tused_unit(hp.used_units.first);
-         while assigned(pu) do
-           begin
-             if not pu.u.is_stab_written then
-               begin
-                 { prevent infinte loop for circular dependencies }
-                 pu.u.is_stab_written:=true;
-                 { write type info from used units, use a depth first
-                   strategy to reduce the recursion in writing all
-                   dependent stabs }
-                 write_used_unit_type_info(list,pu.u);
-                 if assigned(pu.u.globalsymtable) then
-                   write_symtable_defs(list,pu.u.globalsymtable);
-               end;
-             pu:=tused_unit(pu.next);
-           end;
-       end;
-
       var
         stabsvarlist,
         stabstypelist : taasmoutput;
@@ -1425,7 +1368,7 @@ implementation
             if assigned(defnumberlist[i]) then
               begin
                 tdef(defnumberlist[i]).stab_number:=0;
-                tdef(defnumberlist[i]).stab_state:=stab_state_unused;
+                tdef(defnumberlist[i]).dbg_state:=dbg_state_unused;
               end;
           end;
 
@@ -1526,7 +1469,7 @@ implementation
         templist.concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
                     ',0,0,'+hlabel.name));
         templist.concat(tai_label.create(hlabel));
-        asmlist[al_stabsstart].insertlist(templist);
+        asmlist[al_start].insertlist(templist);
         templist.free;
         { emit empty n_sourcefile for end of module }
         objectlibrary.getlabel(hlabel,alt_dbgfile);
@@ -1534,7 +1477,7 @@ implementation
         new_section(templist,sec_code,'',0);
         templist.concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         templist.concat(tai_label.create(hlabel));
-        asmlist[al_stabsend].insertlist(templist);
+        asmlist[al_end].insertlist(templist);
         templist.free;
       end;
 

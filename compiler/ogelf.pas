@@ -343,7 +343,7 @@ implementation
 
     function telf32objectdata.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
-        secnames : array[tasmsectiontype] of string[12] = ('',
+        secnames : array[tasmsectiontype] of string[13] = ('',
 {$ifdef userodata}
           '.text','.data','.rodata','.bss','.threadvar',
 {$else userodata}
@@ -355,7 +355,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           'fpc',
 		  ''
         );

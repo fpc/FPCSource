@@ -69,9 +69,12 @@ interface
 
       tdef = class(tdefentry)
          typesym    : tsym;  { which type the definition was generated this def }
+         { maybe it's useful to merge the dwarf and stabs debugging info with some hacking }
+         { dwarf debugging }
+         dwarf_lab : tasmlabel;
          { stabs debugging }
          stab_number : word;
-         stab_state  : tdefstabstatus;
+         dbg_state  : tdefdbgstatus;
          defoptions : tdefoptions;
          constructor create;
          procedure buildderef;virtual;abstract;
@@ -244,7 +247,7 @@ implementation
          owner := nil;
          typesym := nil;
          defoptions:=[];
-         stab_state:=stab_state_unused;
+         dbg_state:=dbg_state_unused;
          stab_number:=0;
       end;
 

@@ -354,7 +354,7 @@ interface
 
     procedure T386NasmAssembler.WriteSection(atype:tasmsectiontype;const aname:string);
       const
-        secnames : array[tasmsectiontype] of string[12] = ('',
+        secnames : array[tasmsectiontype] of string[13] = ('',
           '.text','.data','.rodata','.bss','.tbss',
           'common',
           '.note',
@@ -362,7 +362,7 @@ interface
           '.stab','.stabstr',
           '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           ''
         );

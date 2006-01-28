@@ -1,7 +1,7 @@
 {
-    Copyright (c) 2003-2004 by Peter Vreman and Florian Klaempfl
+    Copyright (c) 2003-2006 by Peter Vreman and Florian Klaempfl
 
-    This units contains support for debug info generation
+    This units contains the base class for debug info generation
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,18 +26,28 @@ unit dbgbase;
 interface
 
     uses
+      cclasses,
       systems,
-      symdef,symtype,
-      symsym,
+      symconst,symbase,symdef,symtype,symsym,symtable,
+      fmodule,
       aasmtai;
 
     type
       TDebugInfo=class
         constructor Create;virtual;
+
+        procedure reset_unit_type_info;
+
         procedure inserttypeinfo;virtual;
         procedure insertmoduleinfo;virtual;
         procedure insertlineinfo(list:taasmoutput);virtual;
         procedure referencesections(list:taasmoutput);virtual;
+        procedure insertdef(list:taasmoutput;def:tdef);virtual;abstract;
+        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);virtual;abstract;
+
+        procedure write_used_unit_type_info(list:taasmoutput;hp:tmodule);
+        procedure field_write_defs(p:Tnamedindexitem;arg:pointer);
+        procedure method_write_defs(p :tnamedindexitem;arg:pointer);
       end;
       TDebugInfoClass=class of TDebugInfo;
 
@@ -78,6 +88,62 @@ implementation
 
     procedure tdebuginfo.referencesections(list:taasmoutput);
       begin
+      end;
+
+
+    procedure tdebuginfo.reset_unit_type_info;
+      var
+        hp : tmodule;
+      begin
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+          begin
+            hp.is_dbginfo_written:=false;
+            hp:=tmodule(hp.next);
+          end;
+      end;
+
+
+    procedure TDebugInfo.field_write_defs(p:Tnamedindexitem;arg:pointer);
+      begin
+        if (Tsym(p).typ=fieldvarsym) and
+           not(sp_static in Tsym(p).symoptions) then
+          insertdef(taasmoutput(arg),tfieldvarsym(p).vartype.def);
+      end;
+
+
+    procedure TDebugInfo.method_write_defs(p :tnamedindexitem;arg:pointer);
+      var
+        pd : tprocdef;
+      begin
+        if tsym(p).typ = procsym then
+          begin
+            pd:=tprocsym(p).first_procdef;
+            insertdef(taasmoutput(arg),pd.rettype.def);
+          end;
+      end;
+
+
+    procedure TDebugInfo.write_used_unit_type_info(list:taasmoutput;hp:tmodule);
+      var
+        pu : tused_unit;
+      begin
+        pu:=tused_unit(hp.used_units.first);
+        while assigned(pu) do
+          begin
+            if not pu.u.is_dbginfo_written then
+              begin
+                { prevent infinte loop for circular dependencies }
+                pu.u.is_dbginfo_written:=true;
+                { write type info from used units, use a depth first
+                  strategy to reduce the recursion in writing all
+                  dependent stabs }
+                write_used_unit_type_info(list,pu.u);
+                if assigned(pu.u.globalsymtable) then
+                  write_symtable_defs(list,pu.u.globalsymtable);
+              end;
+            pu:=tused_unit(pu.next);
+          end;
       end;
 
 
