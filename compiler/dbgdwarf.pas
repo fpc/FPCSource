@@ -581,7 +581,7 @@ implementation
 
     procedure TDebugInfoDwarf.append_dwarftag(list:taasmoutput;def:tdef);
 
-      procedure append_dwarftag_orddef(list:taasmoutput;def:torddef);
+      procedure append_dwarftag_orddef(def:torddef);
         begin
           case def.typ of
             s8bit,
@@ -737,13 +737,13 @@ implementation
                     DW_AT_byte_size,DW_FORM_data1,8
                     ]);
               else
-                internalerror(2006012819);
+                internalerror(200601289);
             end;
             finish_entry;
           end;
 
 
-      procedure append_dwarftag_enumdef(list:taasmoutput;def:tenumdef);
+      procedure append_dwarftag_enumdef(def:tenumdef);
         var
           hp : tenumsym;
         begin
@@ -784,19 +784,20 @@ implementation
             result:=stringdef_stabstr(tstringdef(def));
         }
           enumdef :
-            append_dwarftag_enumdef(list,tenumdef(def));
+            append_dwarftag_enumdef(tenumdef(def));
 
           orddef :
-            append_dwarftag_orddef(list,torddef(def));
+            append_dwarftag_orddef(torddef(def));
 
           pointerdef :
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
             end;
-        {
+
           floatdef :
-            result:=floatdef_stabstr(tfloatdef(def));
+            append_dwarftag_floatdef(tfloatdef(def));
+        {
           filedef :
             result:=filedef_stabstr(tfiledef(def));
           recorddef :
@@ -1310,6 +1311,9 @@ implementation
           typesym :
             stabstr:=typesym_stabstr(ttypesym(sym));
           }
+          enumsym :
+            { ignore enum syms, they are written by the owner }
+            ;
           else
             internalerror(200601242);
         end;
