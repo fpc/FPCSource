@@ -694,6 +694,54 @@ implementation
           end;
         end;
 
+        procedure append_dwarftag_floatdef(def:tfloatdef);
+          begin
+            case def.typ of
+              s32real,
+              s64real,
+              s80real:
+                if assigned(def.typesym) then
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
+                    DW_AT_byte_size,DW_FORM_data1,def.size
+                    ]);
+              s64currency:
+                { we should use DW_ATE_signed_fixed, however it isn't supported yet by GDB (FK) }
+                if assigned(def.typesym) then
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,8
+                    ])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,8
+                    ]);
+              s64comp:
+                if assigned(def.typesym) then
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,8
+                    ])
+                else
+                  append_entry(DW_TAG_base_type,false,[
+                    DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                    DW_AT_byte_size,DW_FORM_data1,8
+                    ]);
+              else
+                internalerror(2006012819);
+            end;
+            finish_entry;
+          end;
+
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
