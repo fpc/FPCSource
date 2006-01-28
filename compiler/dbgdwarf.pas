@@ -401,13 +401,11 @@ implementation
         DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6
         );
 
-
     const
       { Implementation-defined range start.   }
       DW_OP_lo_user = $e0;
       { Implementation-defined range end.   }
       DW_OP_hi_user = $ff;
-
 
     function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
       begin
@@ -765,7 +763,7 @@ implementation
           while assigned(hp) do
             begin
               append_entry(DW_TAG_enumerator,false,[
-                DW_AT_name,DW_FORM_string,hp.name,
+                DW_AT_name,DW_FORM_string,hp.name+#0,
                 DW_AT_const_value,DW_FORM_data4,hp.value
               ]);
               finish_entry;
