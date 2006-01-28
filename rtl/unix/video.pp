@@ -17,14 +17,18 @@ unit Video;
 
 {$I-}
 
-interface
+{*****************************************************************************}
+                                   interface
+{*****************************************************************************}
 
 {$i videoh.inc}
 
-implementation
+{*****************************************************************************}
+                                implementation
+{*****************************************************************************}
 
-uses
-  BaseUnix, Strings, termio;
+uses  baseunix,termio,strings
+     {$ifdef linux},linuxvcs{$endif};
 
 {$i video.inc}
 
@@ -726,74 +730,7 @@ begin
   restoreRawSettings(preInitVideoTio);
 end;
 
-{$ifdef linux}
-function try_grab_vcsa_in_path(path:Pchar;len:cardinal):boolean;
-
-const  grab_vcsa='/grab_vcsa';
-       grab_vcsa_s:array[1..length(grab_vcsa)] of char=grab_vcsa;
-
-var p:Pchar;
-    child:Tpid;
-    status:cint;
-    pstat:stat;
-
-begin
-  getmem(p,len+length(grab_vcsa)+1);
-  move(path^,p^,len);
-  move(grab_vcsa_s,(p+len)^,length(grab_vcsa));
-  (p+len+length(grab_vcsa))^:=#0;
-  {Check if file exists.}
-  if fpstat(p,pstat)<>0 then
-    begin
-      try_grab_vcsa_in_path:=false;
-      exit;
-    end;
-  child:=fpfork;
-  if child=0 then
-    begin
-      fpexecve(p,nil,nil);
-      halt(255); {fpexec must have failed...}
-    end;
-  fpwaitpid(child,status,0);
-  try_grab_vcsa_in_path:=status=0; {Return true if success.}
-  freemem(p);
-end;
-
-function try_grab_vcsa:boolean;
-
-{If we cannot open /dev/vcsa0-31 it usually because we do not have
- permission. At login the owner of the tty you login is set to yourself.
-
- This is not done for vcsa, which is kinda strange as vcsa is revoke from
- you when you log out. We try to call a setuid root helper which chowns
- the vcsa device so we can get access to the screen buffer...}
-
-var path,p:Pchar;
-
-begin
-  try_grab_vcsa:=false;
-  path:=fpgetenv('PATH');
-  if path=nil then
-    exit;
-  p:=strscan(path,':');
-  while p<>nil do
-    begin
-      if try_grab_vcsa_in_path(path,p-path) then
-        begin
-          try_grab_vcsa:=true;
-          exit;
-        end;
-      path:=p+1;
-      p:=strscan(path,':');
-    end;
-  if try_grab_vcsa_in_path(path,strlen(path)) then
-    exit;
-end;
-{$endif}
-
 procedure SysInitVideo;
-const
-  fontstr : string[3]=#27'(K';
 var
   FName: String;
   WS: packed record
@@ -805,11 +742,6 @@ var
   i:word;
 {$ifdef Linux}
   s:string[15];
-  f:text;
-  c:char;
-  dummy,pid,ppid:integer;
-  device:longint;
-  found_vcsa:boolean;
 {$endif}
 {$ifdef freebsd}
   ThisTTY: String[30];
@@ -824,47 +756,14 @@ begin
    begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
-     { write code to set a correct font }
-     fpWrite(stdoutputhandle,fontstr[1],length(fontstr));
      { running on a tty, find out whether locally or remotely }
      TTyfd:=-1;
      Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
      cur_term_strings:=@term_codes_vt100; {Default: vt100}
    {$ifdef linux}
-     {Extremely aggressive VCSA detection. Works even through Midnight
-      Commander. Idea from the C++ Turbo Vision project, credits go
-      to Martynas Kunigelis <algikun@santaka.sc-uni.ktu.lt>.}
-     pid:=fpgetpid;
-     repeat
-       str(pid,s);
-       assign(f,'/proc/'+s+'/stat');
-       reset(f);
-       if ioresult<>0 then
-         begin
-           found_vcsa:=false;
-           break;
-         end;
-       read(f,dummy);
-       read(f,c);
-       repeat
-         read(f,c);
-       until c=' ';
-       repeat
-         read(f,c);
-       until c=' ';
-       ppid:=pid;
-       read(f,pid);
-       read(f,dummy);
-       read(f,dummy);
-       read(f,device);
-       close(f);
-       found_vcsa:=device and $ffffffc0=$00000400; {/dev/tty*}
-       if (device=0) or (pid=-1) or (ppid=pid) then
-         break; {Not attached to a terminal, i.e. an xterm.}
-     until found_vcsa;
-     if found_vcsa then
+     if vcs_device>=0 then
        begin
-         str(device and $0000003f,s);
+         str(vcs_device,s);
          fname:='/dev/vcsa'+s;
          { open console, $1b6=rw-rw-rw- }
          ttyfd:=fpopen(fname,$1b6,O_RDWR);
@@ -894,22 +793,24 @@ begin
          cur_term_strings:=terminal_data[i];
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
-    if (console<>ttylinux) and (cur_term_strings=@term_codes_linux) then
+{$ifdef linux}
+    if (console<>ttylinux) then
       begin
-        {Executed in case ttylinux is false (i.e. no vcsa), but
-         TERM=linux.}
-        {Enable the VGA character set (codepage 437,850,....)}
-        fpwrite(stdoutputhandle,#15#27'%@'#27'(U',3);
-      end;
-   {$ifdef linux}
-     If Console<>ttylinux Then
-      begin
+{$endif}
+        if cur_term_strings=@term_codes_linux then
+          begin
+            {Executed in case ttylinux is false (i.e. no vcsa), but
+             TERM=linux.}
+            {Enable the VGA character set (codepage 437,850,....)}
+            fpwrite(stdoutputhandle,#15#27'%@'#27'(U',7);
+          end
+        else
+          {No VGA font :( }
+          fpwrite(stdoutputhandle,#27'(K',3);
         { running on a remote terminal, no error with /dev/vcsa }
         LowAscii:=false;
-        //TTYFd:=stdoutputhandle;
+   {$ifdef linux}
       end;
-   {$else}
-     lowascii:=false;
    {$endif}
      fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then

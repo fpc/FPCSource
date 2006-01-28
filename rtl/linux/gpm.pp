@@ -29,7 +29,7 @@ unit gpm;
 uses
   baseUnix;
 
-{$ifndef use_external}
+{$ifdef use_external}
 {$linklib gpm}
 {$linklib c}
 {$endif}

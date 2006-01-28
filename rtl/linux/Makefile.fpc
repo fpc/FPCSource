@@ -10,7 +10,7 @@ loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
-      crt  printer \
+      crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
