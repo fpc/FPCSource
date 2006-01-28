@@ -1253,10 +1253,9 @@ implementation
         asmlist[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
         append_entry(DW_TAG_compile_unit,true,[
-          // reference DW_AT_stmt_list,,,
-          DW_AT_name,DW_FORM_string,'test.pp'#0,
+          DW_AT_name,DW_FORM_string,FixFileName(current_module.sourcefiles.get_file(1).name^)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
-          DW_AT_comp_dir,DW_FORM_string,''#0,
+          DW_AT_comp_dir,DW_FORM_string,BsToSlash(FixPath(current_module.sourcefiles.get_file(1).path^,false))+#0,
           DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
