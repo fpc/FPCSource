@@ -192,6 +192,7 @@ interface
         function append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const) : longint;
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+        procedure append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure finish_entry;
         procedure finish_children;
 
@@ -525,6 +526,18 @@ implementation
         asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref8)));
 {$else cpu64bit}
         asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
+{$endif cpu64bit}
+        asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
+      end;
+
+
+    procedure TDebugInfoDwarf.append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
+      begin
+        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+{$ifdef cpu64bit}
+        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+{$else cpu64bit}
+        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
 {$endif cpu64bit}
         asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
@@ -1197,6 +1210,13 @@ implementation
         templist.concat(tai_symbol.createname('.Ldebug_abbrev0',AT_DATA,0));
         asmlist[al_start].insertlist(templist);
         templist.free;
+        
+        { insert .Ldebug_line0 label }
+        templist:=taasmoutput.create;
+        new_section(templist,sec_debug_line,'',0);
+        templist.concat(tai_symbol.createname('.Ldebug_line0',AT_DATA,0));
+        asmlist[al_start].insertlist(templist);
+        templist.free;
       end;
 
 
@@ -1239,11 +1259,15 @@ implementation
           DW_AT_comp_dir,DW_FORM_string,''#0,
           DW_AT_language,DW_FORM_data1,DW_LANG_Pascal83,
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
+
+        { reference to line info section }
+        append_labelentry_data(DW_AT_stmt_list,objectlibrary.newasmsymbol('.Ldebug_line0',AB_LOCAL,AT_DATA));
         append_labelentry(DW_AT_low_pc,objectlibrary.newasmsymbol('.Ltext0',AB_LOCAL,AT_DATA));
         append_labelentry(DW_AT_high_pc,objectlibrary.newasmsymbol('.Letext0',AB_LOCAL,AT_DATA));
+
         finish_entry;
 
-        { first write all global/local symbols. This will flag all required tdefs  }
+        { first write all global/local symbols. This will flag all required tdefs }
         if assigned(current_module.globalsymtable) then
           write_symtable_syms(asmlist[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
