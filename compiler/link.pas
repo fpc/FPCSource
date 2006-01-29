@@ -196,7 +196,11 @@ end;
          Found:=librarysearchpath.FindFile(s,founddll);
         if (not found) then
          begin
+           {$IFDEF USE_SYSUTILS}
+           sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
+           {$ELSE USE_SYSUTILS}
            sysdir:=FixPath(GetEnv('windir'),false);
+           {$ENDIF USE_SYSUTILS}
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
          end;
         if (not found) then
@@ -592,10 +596,22 @@ end;
 
 Function TExternalLinker.MakeStaticLibrary:boolean;
 var
-  smartpath,
-  cmdstr : TCmdStr;
+  smartpath : TCmdStr;
+
+  function GetNextFiles(const maxCmdLength : AInt; var item : TStringListItem) : string;
+  begin
+    result := '';
+    while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
+      result := result + ' ' + item.str;
+      item := TStringListItem(item.next);
+    end;
+  end;
+
+var
   binstr  : string;
   success : boolean;
+  cmdstr, nextcmd : TCmdStr;
+  current : TStringListItem;
 begin
   MakeStaticLibrary:=false;
 { remove the library, to be sure that it is rewritten }
@@ -604,8 +620,16 @@ begin
   smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
-  Replace(cmdstr,'$FILES',FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
-  success:=DoExec(FindUtil(binstr),cmdstr,false,true);
+  { create AR commands }
+  success := true;
+  nextcmd := cmdstr;
+  current := TStringListItem(SmartLinkOFiles.First);
+  repeat
+    Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd), current));
+    success:=DoExec(FindUtil(binstr),nextcmd,false,true);
+    nextcmd := cmdstr;
+  until (not assigned(current)) or (not success);
+
 { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
