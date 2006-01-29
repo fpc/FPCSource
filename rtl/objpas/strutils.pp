@@ -1156,7 +1156,7 @@ begin
     HexStr:='$'+ S
   else
     HexStr:=S;
-  Result:=StrTointDef(HexStr,0);
+  Result:=StrToInt(HexStr);
 end;
 
 function Dec2Numb(N: Longint; Len, Base: Byte): string;
