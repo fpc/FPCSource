@@ -304,6 +304,8 @@ function mean(const data : array of float) : float;
 function sum(const data : array of float) : float;
 function mean(const data : PFloat; Const N : longint) : float;
 function sum(const data : PFloat; Const N : Longint) : float;
+function sumInt(const data : PInt64;Const N : longint) : Int64;
+function sumInt(const data : array of Int64) : Int64;
 function sumofsquares(const data : array of float) : float;
 function sumofsquares(const data : PFloat; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
@@ -750,6 +752,23 @@ function sum(const data : PFloat;Const N : longint) : float;
      sum:=0.0;
      for i:=0 to N-1 do
        sum:=sum+data[i];
+  end;
+
+function sumInt(const data : PInt64;Const N : longint) : Int64;
+
+  var
+     i : longint;
+
+  begin
+     sumInt:=0;
+     for i:=0 to N-1 do
+       sumInt:=sumInt+data[i];
+  end;
+
+function sumInt(const data : array of Int64) : Int64;
+
+  begin
+     Result:=SumInt(@Data[0],High(Data)+1);
   end;
 
  function sumofsquares(const data : array of float) : float;
