@@ -774,6 +774,57 @@ implementation
         end;
 
 
+      procedure append_dwarftag_arraydef(def:tarraydef);
+        begin
+          if assigned(def.typesym) then
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+              DW_AT_byte_size,DW_FORM_udata,def.size,
+              DW_AT_stride_size,DW_FORM_udata,def.elesize*8
+              ])
+          else
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_byte_size,DW_FORM_udata,def.size,
+              DW_AT_stride_size,DW_FORM_udata,def.elesize*8
+              ]);
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementtype.def));
+          if def.IsDynamicArray then
+            begin
+              { !!! FIXME !!! }
+              { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)
+              { insert location attribute manually }
+              asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
+              asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(1));
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_push_object));
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_deref));
+              }
+
+              finish_entry;
+              { to simplify things, we don't write a multidimensional array here }
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,0,
+                DW_AT_upper_bound,DW_FORM_udata,0
+                ]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
+              finish_entry;
+            end
+          else
+            begin
+              finish_entry;
+              { to simplify things, we don't write a multidimensional array here }
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,def.lowrange,
+                DW_AT_upper_bound,DW_FORM_udata,def.highrange
+                ]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
+              finish_entry;
+
+            end;
+          finish_children;
+        end;
+
+
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
@@ -838,9 +889,10 @@ implementation
         {
           formaldef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
+        }
           arraydef :
-            result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangetype.def),
-               tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)]);
+            append_dwarftag_arraydef(tarraydef(def));
+        {
           procdef :
             result:=procdef_stabstr(tprocdef(def));
           procvardef :
@@ -1250,40 +1302,67 @@ implementation
             }
           end;
 
-        function constsym_stabstr(sym:tconstsym):Pchar;
+
+        procedure append_constsym(sym:tconstsym);
           var
             st : string;
           begin
-            {
+            append_entry(DW_TAG_constant,false,[
+              DW_AT_name,DW_FORM_string,sym.name+#0
+              ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
+            asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
             case sym.consttyp of
               conststring:
                 begin
-                  if sym.value.len<200 then
-                    st:='s'''+backspace_quote(octal_quote(strpas(pchar(sym.value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+''''
-                  else
-                    st:='<constant string too long>';
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+                  asmlist[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
+                  asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
                 end;
               constord:
-                st:='i'+tostr(sym.value.valueord);
+                begin
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
+                  asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord));
+                end;
               constpointer:
-                st:='i'+tostr(sym.value.valueordptr);
+                begin
+{$ifdef cpu64bit}
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                  asmlist[al_dwarf_info].concat(tai_const.create_64bit(sym.value.valueordptr));
+{$else cpu64bit}
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                  asmlist[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
+{$endif cpu64bit}
+                end;
               constreal:
                 begin
-                  system.str(pbestreal(sym.value.valueptr)^,st);
-                  st := 'r'+st;
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+                  case tfloatdef(sym.consttype.def).typ of
+                    s32real:
+                      begin
+                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(4));
+                        asmlist[al_dwarf_info].concat(tai_real_32bit.create(psingle(sym.value.valueptr)^));
+                      end;
+                    s64comp,
+                    s64currency,
+                    s64real:
+                      begin
+                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(8));
+                        asmlist[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
+                      end;
+                    s80real:
+                      begin
+                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(10));
+                        asmlist[al_dwarf_info].concat(tai_real_128bit.create(pextended(sym.value.valueptr)^));
+                      end;
+                    else
+                      internalerror(200601291);
+                  end;
                 end;
               else
-                begin
-                  { if we don't know just put zero !! }
-                  st:='i0';
-                end;
+                internalerror(200601291);
             end;
-            { valgrind does not support constants }
-            if cs_gdb_valgrind in aktglobalswitches then
-              result:=nil
-            else
-              result:=sym_stabstr_evaluate(sym,'"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
-            }
+            finish_entry;
           end;
 
 
@@ -1318,9 +1397,9 @@ implementation
           typedconstsym :
             stabstr:=sym_stabstr_evaluate(sym,'"${name}:S$1",${N_STSYM},0,${line},${mangledname}',
                 [def_stab_number(ttypedconstsym(sym).typedconsttype.def)]);
-          constsym :
-            stabstr:=constsym_stabstr(tconstsym(sym));
           }
+          constsym :
+            append_constsym(tconstsym(sym));
           typesym :
             begin
               append_entry(DW_TAG_pointer_type,false,[
