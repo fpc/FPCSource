@@ -80,6 +80,9 @@ main_stub:
     lis     11, ___fpc_ret@ha
     stw     1, ___fpc_ret@l(11)
 
+    lis     11, __stkptr@ha
+    stw     1, __stkptr@l(11)
+
     bl      PASCALMAIN
 
     .globl  _haltproc
@@ -108,6 +111,8 @@ ___fpc_ret:                            /* return address to libc */
     .long   0
 
 .text
+    .comm __stkptr, 4
+
     .comm operatingsystem_parameter_envp, 4
     .comm operatingsystem_parameter_argc, 4
     .comm operatingsystem_parameter_argv, 4
