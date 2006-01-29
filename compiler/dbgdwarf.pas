@@ -1310,7 +1310,9 @@ implementation
             append_entry(DW_TAG_constant,false,[
               DW_AT_name,DW_FORM_string,sym.name+#0
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
+            { for string constants, consttype isn't set because they have no real type }
+            if sym.consttyp<>conststring then
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
             asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
             case sym.consttyp of
               conststring:
@@ -1353,7 +1355,7 @@ implementation
                     s80real:
                       begin
                         asmlist[al_dwarf_info].concat(tai_const.create_8bit(10));
-                        asmlist[al_dwarf_info].concat(tai_real_128bit.create(pextended(sym.value.valueptr)^));
+                        asmlist[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^));
                       end;
                     else
                       internalerror(200601291);
