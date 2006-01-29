@@ -875,6 +875,9 @@ begin
 end;
 
 procedure SysDoneVideo;
+
+var font_custom:array[0..2] of char=#27'(K';
+
 begin
   prepareDoneVideo;
 {$ifdef linux}
@@ -894,7 +897,7 @@ begin
          {Executed in case ttylinux is false (i.e. no vcsa), but
           TERM=linux.}
          {Enable the character set set through setfont}
-         fpwrite(stdoutputhandle,#27'(K',3);
+         fpwrite(stdoutputhandle,font_custom,3);
        end;
 {$ifdef linux}
    end;
