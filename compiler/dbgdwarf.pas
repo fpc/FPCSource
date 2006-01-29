@@ -808,16 +808,31 @@ implementation
         }
           setdef :
             begin
+              { at least gdb up to 6.4 doesn't support sets in dwarf, there is a patch available to fix this:
+                http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK)
               if assigned(def.typesym) then
                 append_entry(DW_TAG_set_type,false,[
                   DW_AT_name,DW_FORM_string,def.typesym.name+#0,
-                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  DW_AT_byte_size,DW_FORM_data2,def.size
                   ])
               else
                 append_entry(DW_TAG_set_type,false,[
-                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  DW_AT_byte_size,DW_FORM_data2,def.size
                   ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
+              finish_entry;
+              }
+              if assigned(def.typesym) then
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_byte_size,DW_FORM_data2,def.size
+                  ])
+              else
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_byte_size,DW_FORM_data2,def.size
+                  ]);
               finish_entry;
             end;
         {
