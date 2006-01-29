@@ -805,11 +805,11 @@ begin
             {Executed in case ttylinux is false (i.e. no vcsa), but
              TERM=linux.}
             {Enable the VGA character set (codepage 437,850,....)}
-            fpwrite(stdoutputhandle,@font_vga,7);
+            fpwrite(stdoutputhandle,font_vga,7);
           end
         else
           {No VGA font :( }
-          fpwrite(stdoutputhandle,@font_custom,3);
+          fpwrite(stdoutputhandle,font_custom,3);
         { running on a remote terminal, no error with /dev/vcsa }
         LowAscii:=false;
    {$ifdef linux}
