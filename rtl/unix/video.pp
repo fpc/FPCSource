@@ -747,6 +747,9 @@ var
   ThisTTY: String[30];
 {$endif}
 
+const font_vga:array[0..6] of char=#15#27'%@'#27'(U';
+      font_custom:array[0..2] of char=#27'(K';
+
 begin
 {$ifndef CPUI386}
   LowAscii:=false;
@@ -802,11 +805,11 @@ begin
             {Executed in case ttylinux is false (i.e. no vcsa), but
              TERM=linux.}
             {Enable the VGA character set (codepage 437,850,....)}
-            fpwrite(stdoutputhandle,#15#27'%@'#27'(U',7);
+            fpwrite(stdoutputhandle,@font_vga,7);
           end
         else
           {No VGA font :( }
-          fpwrite(stdoutputhandle,#27'(K',3);
+          fpwrite(stdoutputhandle,@font_custom,3);
         { running on a remote terminal, no error with /dev/vcsa }
         LowAscii:=false;
    {$ifdef linux}
