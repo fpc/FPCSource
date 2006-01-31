@@ -1439,10 +1439,26 @@ implementation
           {
           paravarsym :
             stabstr:=paravarsym_stabstr(tparavarsym(sym));
-          typedconstsym :
-            stabstr:=sym_stabstr_evaluate(sym,'"${name}:S$1",${N_STSYM},0,${line},${mangledname}',
-                [def_stab_number(ttypedconstsym(sym).typedconsttype.def)]);
           }
+          typedconstsym :
+            begin
+              append_entry(DW_TAG_variable,false,[
+                DW_AT_name,DW_FORM_string,sym.name+#0,
+                {
+                DW_AT_decl_file,DW_FORM_data1,0,
+                DW_AT_decl_line,DW_FORM_data1,
+                }
+                DW_AT_external,DW_FORM_flag,true,
+                { data continues below }
+                DW_AT_location,DW_FORM_block1,1+sizeof(aword)
+              ]);
+              { append block data }
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(3));
+              asmlist[al_dwarf_info].concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypedconstsym(sym).typedconsttype.def));
+
+              finish_entry;
+            end;
           constsym :
             append_constsym(tconstsym(sym));
           typesym :
