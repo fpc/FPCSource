@@ -3894,8 +3894,14 @@ rtl/linux/ipccall.inc svneol=native#text/plain
 rtl/linux/ipcsys.inc svneol=native#text/plain
 rtl/linux/linuxvcs.pp -text
 rtl/linux/m68k/bsyscall.inc svneol=native#text/plain
+rtl/linux/m68k/cprt0.as -text
+rtl/linux/m68k/cprt21.as -text
+rtl/linux/m68k/dllprt0.as -text
+rtl/linux/m68k/gprt0.as -text
+rtl/linux/m68k/gprt21.as -text
 rtl/linux/m68k/prt0.as -text
 rtl/linux/m68k/prt1.as -text
+rtl/linux/m68k/signal.inc svneol=native#text/plain
 rtl/linux/m68k/stat.inc svneol=native#text/plain
 rtl/linux/osdefs.inc svneol=native#text/plain
 rtl/linux/osmacro.inc svneol=native#text/plain
