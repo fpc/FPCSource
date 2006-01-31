@@ -33,6 +33,7 @@ unit dbgdwarf;
 interface
 
     uses
+      cclasses,
       aasmbase,aasmtai,
       symbase,symtype,symdef,
       DbgBase;
@@ -196,6 +197,7 @@ interface
         procedure finish_entry;
         procedure finish_children;
 
+        procedure field_add_dwarftag(p:Tnamedindexitem;arg:pointer);
         procedure append_procdef(list:taasmoutput;pd:tprocdef);
         procedure append_dwarftag(list:taasmoutput;def:tdef);
         procedure insertsym(list:taasmoutput;sym:tsym);
@@ -577,6 +579,25 @@ implementation
       end;
 
 
+    procedure TDebugInfoDwarf.field_add_dwarftag(p:Tnamedindexitem;arg:pointer);
+      begin
+        { static variables from objects are like global objects }
+        if (tsym(p).typ=fieldvarsym) and
+           not(sp_static in Tsym(p).symoptions) then
+          begin
+            append_entry(DW_TAG_member,false,[
+              DW_AT_name,DW_FORM_string,tsym(p).name+#0,
+              DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(tfieldvarsym(p).fieldoffset)
+              ]);
+            asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+            asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(tfieldvarsym(p).fieldoffset));
+
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(tfieldvarsym(p).vartype.def));
+            finish_entry;
+          end;
+      end;
+
+
     procedure TDebugInfoDwarf.append_dwarftag(list:taasmoutput;def:tdef);
 
       procedure append_dwarftag_orddef(def:torddef);
@@ -825,6 +846,22 @@ implementation
         end;
 
 
+      procedure append_dwarftag_recorddef(def:trecorddef);
+        begin
+          if assigned(def.typesym) then
+            append_entry(DW_TAG_structure_type,true,[
+              DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+              DW_AT_byte_size,DW_FORM_udata,def.size
+              ])
+          else
+            append_entry(DW_TAG_structure_type,true,[
+              DW_AT_byte_size,DW_FORM_udata,def.size
+              ]);
+          finish_entry;
+          def.symtable.foreach(@field_add_dwarftag,nil);
+          finish_children;
+        end;
+
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
@@ -850,8 +887,10 @@ implementation
         {
           filedef :
             result:=filedef_stabstr(tfiledef(def));
+        }
           recorddef :
-            result:=recorddef_stabstr(trecorddef(def));
+            append_dwarftag_recorddef(trecorddef(def));
+        {
           variantdef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           classrefdef :
@@ -861,6 +900,7 @@ implementation
             begin
               { at least gdb up to 6.4 doesn't support sets in dwarf, there is a patch available to fix this:
                 http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK)
+
               if assigned(def.typesym) then
                 append_entry(DW_TAG_set_type,false,[
                   DW_AT_name,DW_FORM_string,def.typesym.name+#0,
@@ -1385,9 +1425,12 @@ implementation
             ;
           procsym :
             append_procsym(tprocsym(sym));
-          {
           labelsym :
-            stabstr:=sym_stabstr_evaluate(sym,'"${name}",${N_LSYM},0,${line},0',[]);
+            { ignore label syms for now, the problem is that a label sym
+              can have more than one label associated e.g. in case of
+              an inline procedure expansion }
+            ;
+          {
           fieldvarsym :
             stabstr:=fieldvarsym_stabstr(tfieldvarsym(sym));
           }
