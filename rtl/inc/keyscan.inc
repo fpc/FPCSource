@@ -1,7 +1,8 @@
 { list of all dos scancode for key giving 0 as char }
 Const
    kbNoKey       = $00;
-   kbAltEsc      = $01;
+   kbAltEsc      = $01;  {Alt+Esc = scancode 01, ascii code 0.}
+   kbEsc         = $01;  {Esc     = scancode 01, ascii code 27.}
    kbAltSpace    = $02;
    kbCtrlIns     = $04;
    kbShiftIns    = $05;
