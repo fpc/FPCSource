@@ -34,6 +34,7 @@ interface
        private
           function getresflags(unsigned: boolean) : tresflags;
        protected
+          procedure second_addfloat;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
@@ -100,6 +101,82 @@ implementation
              end;
          end;
       end;
+
+{*****************************************************************************
+                                AddFloat
+*****************************************************************************}
+
+    procedure t68kaddnode.second_addfloat;
+      var
+        op    : TAsmOp;
+        cmpop : boolean;
+      begin
+        pass_left_right;
+
+        cmpop:=false;
+        case nodetype of
+          addn :
+            op:=A_FADD;
+          muln :
+            op:=A_FMUL;
+          subn :
+            op:=A_FSUB;
+          slashn :
+            op:=A_FDIV;
+          ltn,lten,gtn,gten,
+          equaln,unequaln :
+            begin
+//              op:=A_FCMPO;
+              cmpop:=true;
+            end;
+          else
+            internalerror(200403182);
+        end;
+
+        // get the operands in the correct order, there are no special cases
+        // here, everything is register-based
+        if nf_swaped in flags then
+          swapleftright;
+
+        // put both operands in a register
+        location_force_fpureg(exprasmlist,right.location,true);
+        location_force_fpureg(exprasmlist,left.location,true);
+
+        // initialize de result
+        if not cmpop then
+          begin
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            if left.location.loc = LOC_FPUREGISTER then
+              location.register := left.location.register
+            else if right.location.loc = LOC_FPUREGISTER then
+              location.register := right.location.register
+            else
+              location.register := cg.getfpuregister(exprasmlist,location.size);
+          end
+        else
+         begin
+           location_reset(location,LOC_FLAGS,OS_NO);
+           // FIX ME!
+//           location.resflags := getresflags;
+         end;
+
+        // emit the actual operation
+        if not cmpop then
+          begin
+          {
+            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+              location.register,left.location.register,
+              right.location.register))
+             }  
+          end
+        else
+          begin
+{            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+              newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
+          end;
+      end;
+
+
 
 {*****************************************************************************
                                 Smallsets
