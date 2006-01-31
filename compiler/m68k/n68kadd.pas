@@ -35,6 +35,7 @@ interface
           function getresflags(unsigned: boolean) : tresflags;
        protected
           procedure second_addfloat;override;
+          procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
@@ -175,6 +176,38 @@ implementation
               newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
           end;
       end;
+
+
+    procedure t68kaddnode.second_cmpfloat;
+      begin
+        pass_left_right;
+
+{
+        if (nf_swaped in flags) then
+          swapleftright;
+}
+        { force fpureg as location, left right doesn't matter
+          as both will be in a fpureg }
+        location_force_fpureg(exprasmlist,left.location,true);
+        location_force_fpureg(exprasmlist,right.location,true);
+
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(true);
+{
+        if nodetype in [equaln,unequaln] then
+          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
+             left.location.register,right.location.register),
+             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]))
+        else
+          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
+             left.location.register,right.location.register),
+             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(false);
+}
+      end;
+
 
 
 
@@ -405,8 +438,11 @@ implementation
     procedure t68kaddnode.second_cmp64bit;
      begin
       writeln('second_cmp64bit');
-(*        load_left_right(true,false);
-
+      pass_left_right;
+      
+      
+//     load_left_right(true,false);
+(* 
         case nodetype of
           ltn,lten,
           gtn,gten:
@@ -501,6 +537,7 @@ implementation
           location_reset(location,LOC_JUMP,OS_NO);
 *)
        location_reset(location,LOC_JUMP,OS_NO);
+       writeln('second_cmp64_exit');
      end;
 
 

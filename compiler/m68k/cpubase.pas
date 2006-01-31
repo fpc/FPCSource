@@ -420,7 +420,8 @@ implementation
              cgsize2subreg:=R_SUBWHOLE;
             end;    
           else begin
-            writeln('miafasz?');
+            writeln('hmm!?');
+    // this supposed to be debug         
     //        p:=nil; dword(p^):=0;
     //        internalerror(200301231);
             cgsize2subreg:=R_SUBWHOLE;
