@@ -15,10 +15,6 @@
  **********************************************************************}
 unit Keyboard;
 
-{If you ask me to give a reason why Unix sucks, it is the keyboard handling.
- Unix keyboard handling is one of the hugest design mistakes in the history
- of the computer!}
-
 {*****************************************************************************}
                                   interface
 {*****************************************************************************}
