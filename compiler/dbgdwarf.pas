@@ -1184,6 +1184,7 @@ implementation
             templist : taasmoutput;
             blocksize : longint;
             regidx : longint;
+            tag : tdwarf_tag;
           begin
             { external symbols can't be resolved at link time, so we
               can't generate stabs for them
@@ -1243,7 +1244,13 @@ implementation
                   end;
                 end;
             end;
-            append_entry(DW_TAG_variable,false,[
+
+            if sym.typ=paravarsym then
+              tag:=DW_TAG_formal_parameter
+            else
+              tag:=DW_TAG_variable;
+
+            append_entry(tag,false,[
               DW_AT_name,DW_FORM_string,sym.name+#0,
               {
               DW_AT_decl_file,DW_FORM_data1,0,
@@ -1263,11 +1270,7 @@ implementation
           end;
 
 
-        function paravarsym_stabstr(sym:tparavarsym):Pchar;
-          var
-            st : string;
-            regidx : Tregisterindex;
-            c : char;
+        procedure paravarsym_stabstr(sym:tparavarsym);
           begin
             {
             result:=nil;
@@ -1430,16 +1433,10 @@ implementation
               can have more than one label associated e.g. in case of
               an inline procedure expansion }
             ;
-          {
-          fieldvarsym :
-            stabstr:=fieldvarsym_stabstr(tfieldvarsym(sym));
-          }
           localvarsym :
             append_varsym(tlocalvarsym(sym));
-          {
           paravarsym :
-            stabstr:=paravarsym_stabstr(tparavarsym(sym));
-          }
+            append_varsym(tparavarsym(sym));
           typedconstsym :
             begin
               append_entry(DW_TAG_variable,false,[
