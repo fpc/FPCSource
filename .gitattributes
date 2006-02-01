@@ -3584,7 +3584,6 @@ rtl/amiga/m68k/prt0.as -text
 rtl/amiga/os.inc svneol=native#text/plain
 rtl/amiga/powerpc/prt0.as -text
 rtl/amiga/printer.pp svneol=native#text/plain
-rtl/amiga/readme -text
 rtl/amiga/sysdir.inc -text
 rtl/amiga/sysfile.inc -text
 rtl/amiga/sysheap.inc -text
