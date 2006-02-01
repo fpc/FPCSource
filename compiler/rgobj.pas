@@ -1638,7 +1638,7 @@ unit rgobj;
                                setsupreg(reg,reginfo[getsupreg(reg)].colour);
                           Top_ref:
                             begin
-                              if regtype=R_INTREGISTER then
+                              if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
                                 with ref^ do
                                   begin
                                     if base<>NR_NO then

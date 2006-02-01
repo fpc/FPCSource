@@ -520,6 +520,10 @@ implementation
             result:='mreg'+nr;
           R_MMXREGISTER:
             result:='xreg'+nr;
+          R_ADDRESSREGISTER:
+            result:='areg'+nr;
+          R_SPECIALREGISTER:
+            result:='sreg'+nr;
           else
             begin
               result:='INVALID';
