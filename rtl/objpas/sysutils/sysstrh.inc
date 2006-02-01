@@ -119,9 +119,19 @@ Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal;
 Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+{$endif FPC_HAS_TYPE_EXTENDED}
+Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Extended): String;
+{$endif FPC_HAS_TYPE_EXTENDED}
+Function FloatToStr(Value: Double): String;
+Function FloatToStr(Value: Single): String;
+Function FloatToStr(Value: Currency): String;
 Function StrToFloat(Const S : String) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
 Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
