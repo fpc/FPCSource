@@ -115,7 +115,7 @@ interface
         { netware } ( true,  false, false, false, false, false, false),
         { openbsd } ( true,  true,  false, false, false, false, false),
         { wdosx }   ( true,  false, false, false, false, false, false),
-        { palmos }  ( false, true,  false, false, false, false, false),
+        { palmos }  ( false, true,  false, false, false, true, false),
         { macos }   ( false, false, true,  false, false, false, false),
         { darwin }  ( false, false, true,  false, false, false, false),
         { emx }     ( true,  false, false, false, false, false, false),
