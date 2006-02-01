@@ -3585,6 +3585,13 @@ rtl/amiga/os.inc svneol=native#text/plain
 rtl/amiga/powerpc/prt0.as -text
 rtl/amiga/printer.pp svneol=native#text/plain
 rtl/amiga/readme -text
+rtl/amiga/sysdir.inc -text
+rtl/amiga/sysfile.inc -text
+rtl/amiga/sysheap.inc -text
+rtl/amiga/sysos.inc -text
+rtl/amiga/sysosh.inc -text
+rtl/amiga/system.pp -text
+rtl/amiga/systhrd.inc -text
 rtl/arm/arm.inc svneol=native#text/plain
 rtl/arm/int64p.inc svneol=native#text/plain
 rtl/arm/makefile.cpu -text
