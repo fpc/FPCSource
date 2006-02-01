@@ -883,7 +883,7 @@ unit cgcpu;
          { this should never occur }
          if len > 65535 then
            internalerror(0);
-	   
+	
          hregister := getintregister(list,OS_INT);
 //         if delsource then
 //            reference_release(list,source);

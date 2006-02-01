@@ -508,7 +508,7 @@ type
         case opcode of
           A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI:
-            if opnr=0 then begin
+            if opnr=1 then begin
 //              writeln('move/etc write');
               result:=operand_write;
             end else begin
@@ -517,7 +517,7 @@ type
             end;
           A_TST,A_CMP,A_CMPI:
             result:=operand_read;
-          A_CLR,A_NEG:
+          A_CLR,A_NEG,A_SXX:
             result:=operand_write;
         else
           writeln('other opcode: ',gas_op2str[opcode],' (faked value returned)',opnr);
@@ -534,10 +534,10 @@ type
         case getregtype(r) of
           R_INTREGISTER :
             result:=taicpu.op_ref_reg(A_MOVE,S_L,ref,r);
-          R_FPUREGISTER : begin 
-            // is this correct?
-	    result:=taicpu.op_ref_reg(A_FMOVE,S_L,ref,r);          
-            end;
+          R_FPUREGISTER :
+	    result:=taicpu.op_ref_reg(A_FMOVE,S_L,ref,r);
+          R_ADDRESSREGISTER :
+            result:=taicpu.op_ref_reg(A_MOVE,S_L,ref,r);
         end;
 {
         case getregtype(r) of
@@ -563,14 +563,13 @@ type
 
     function spilling_create_store(r:tregister; const ref:treference): tai;
       begin
-//        writeln('spilling_create_store');
 	case getregtype(r) of
 	  R_INTREGISTER :
 	    result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
+	  R_ADDRESSREGISTER :
+	    result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
 	  R_FPUREGISTER :
-	    begin
 	    result:=taicpu.op_reg_ref(A_FMOVE,S_L,r,ref);
-	    end;
 	end;
         {case getregtype(r) of
           R_INTREGISTER :

@@ -144,8 +144,9 @@ unit cpubase;
       );
 
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [];
+      VOLATILE_INTREGISTERS = [RS_D0,RS_D1];
       VOLATILE_FPUREGISTERS = [];
+      VOLATILE_ADDRESSREGISTER = [RS_A0,RS_A1];
 
     type
       totherregisterset = set of tregisterindex;
@@ -407,7 +408,7 @@ implementation
 {$WARNING FIX ME!!! results in bad code generation}
             cgsize2subreg:=R_SUBWHOLE;
             end;
-            
+
           OS_8,OS_S8:
             cgsize2subreg:=R_SUBWHOLE;
           OS_16,OS_S16:
@@ -418,14 +419,14 @@ implementation
             begin
              writeln('64bit regsize?');
              cgsize2subreg:=R_SUBWHOLE;
-            end;    
+            end;
           else begin
             writeln('hmm!?');
-    // this supposed to be debug         
+    // this supposed to be debug
     //        p:=nil; dword(p^):=0;
     //        internalerror(200301231);
             cgsize2subreg:=R_SUBWHOLE;
-          end;    
+          end;
         end;
       end;
 

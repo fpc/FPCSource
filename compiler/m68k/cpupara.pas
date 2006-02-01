@@ -47,7 +47,7 @@ unit cpupara;
          private
            procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
            function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
-                                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;   
+                                               var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
            function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
            function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
        end;
@@ -193,7 +193,7 @@ unit cpupara;
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
 
         { explicit paraloc specified? }
-        if po_explicitparaloc in p.procoptions then 
+        if po_explicitparaloc in p.procoptions then
          begin
            p.funcretloc[side].loc:=LOC_REGISTER;
            p.funcretloc[side].register:=p.exp_funcretloc;
@@ -289,7 +289,7 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
 	    paradef:=hp.vartype.def;
-	    
+	
 	    { syscall for AmigaOS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
               begin
@@ -298,7 +298,7 @@ unit cpupara;
                 continue;
               end;
             hp.paraloc[side].reset;
-	    
+	
             { currently only support C-style array of const }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                is_array_of_const(paradef) then
@@ -353,8 +353,10 @@ unit cpupara;
             while (paralen > 0) do
               begin
                 paraloc:=hp.paraloc[side].add_location;
+                {
+                  by default, the m68k doesn't know any register parameters  (FK)
                 if (loc = LOC_REGISTER) and
-                   (nextintreg <= RS_D7) then
+                   (nextintreg <= RS_D2) then
                   begin
 		    //writeln('loc register');
                     paraloc^.loc := loc;
@@ -370,7 +372,7 @@ unit cpupara;
                     dec(paralen,tcgsize2size[paraloc^.size]);
                   end
                 else if (loc = LOC_FPUREGISTER) and
-                        (nextfloatreg <= RS_FP7) then
+                        (nextfloatreg <= RS_FP2) then
                   begin
 		    writeln('loc fpuregister');
                     paraloc^.loc:=loc;
@@ -380,6 +382,7 @@ unit cpupara;
                     dec(paralen,tcgsize2size[paraloc^.size]);
                   end
                 else { LOC_REFERENCE }
+}
                   begin
 		    writeln('loc reference');
                     paraloc^.loc:=LOC_REFERENCE;
@@ -466,12 +469,12 @@ unit cpupara;
               { 'A7' is the stack pointer on 68k, can't be overwritten by API calls }
               else
                 p.exp_funcretloc:=NR_NO;
-                
+
               if p.exp_funcretloc<>NR_NO then result:=true;
             end;
           else
             internalerror(2005121801);
-        end;    
+        end;
       end;
 
 
