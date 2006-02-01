@@ -56,7 +56,7 @@ implementation
 
     function tm68ktypeconvnode.first_int_to_real: tnode;
       var
-        fname: string[19];
+        fname: string[32];
       begin
         { In case we are in emulation mode, we must
           always call the helpers
