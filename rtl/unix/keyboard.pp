@@ -319,9 +319,6 @@ const switches:longint=0;
 procedure vt_handler(sig:longint);cdecl;
 
 begin
-  inc(switches);
-  if switches>10 then
-    halt;
   if vt_switched_away then
     begin
       {Confirm the switch.}
