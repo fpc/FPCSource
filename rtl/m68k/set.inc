@@ -162,7 +162,7 @@
           { adjust value to correct endian }
           lsl.w  #8,d0
           pea    p
-          jsr    SET_SET_BYTE
+//          jsr    SET_SET_BYTE
           sub.b  #1,d0
           bra    @LSetRLoop
        @Lend:

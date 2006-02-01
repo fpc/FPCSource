@@ -3976,6 +3976,7 @@ rtl/linux/x86_64/stat.inc svneol=native#text/plain
 rtl/linux/x86_64/syscall.inc svneol=native#text/plain
 rtl/linux/x86_64/syscallh.inc svneol=native#text/plain
 rtl/linux/x86_64/sysnr.inc svneol=native#text/plain
+rtl/m68k/int64p.inc -text
 rtl/m68k/lowmath.inc svneol=native#text/plain
 rtl/m68k/m68k.inc svneol=native#text/plain
 rtl/m68k/makefile.cpu -text

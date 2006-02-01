@@ -1,6 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 by the Free Pascal development team.
+    Copyright (c) 2006 by the Free Pascal development team
+
+    This file contains some helper routines for int64 and qword
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -10,15 +12,5 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
-{$WARNING FIX ME!! dummy int64_to_double}
-function fpc_int64_to_double(i: int64): double; compilerproc;
-assembler;
-asm
-end;
 
-{$WARNING FIX ME!! dummy longword_to_double}
-function fpc_longword_to_double(i: longword): double; compilerproc;
-assembler;
-asm
-end;
+// still empty... to be filled
