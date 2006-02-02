@@ -124,7 +124,11 @@ Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: I
 {$endif FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+{$endif FPC_COMP_IS_INT64}
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Extended): String;
@@ -132,6 +136,10 @@ Function FloatToStr(Value: Extended): String;
 Function FloatToStr(Value: Double): String;
 Function FloatToStr(Value: Single): String;
 Function FloatToStr(Value: Currency): String;
+Function FloatToStr(Value: Comp): String;
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStr(Value: Int64): String;
+{$endif FPC_COMP_IS_INT64}
 Function StrToFloat(Const S : String) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
 Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;

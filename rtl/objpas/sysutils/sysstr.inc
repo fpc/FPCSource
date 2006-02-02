@@ -1235,6 +1235,19 @@ Begin
   Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvSingle);
 End;
 
+Function FloatToStr(Value: Comp): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvComp);
+End;
+
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStr(Value: Int64): String;
+Begin
+  Result := FloatToStrFIntl(Comp(Value), ffGeneral, 15, 0, fvComp);
+End;
+{$endif FPC_COMP_IS_INT64}
+
+
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Var
   Tmp: String[40];
@@ -1266,11 +1279,24 @@ begin
   result := FloatToStrFIntl(value,format,precision,digits,fvSingle);
 end;
 
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvComp);
+end;
+
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(Comp(value),format,precision,digits,fvComp);
+end;
+{$endif FPC_COMP_IS_INT64}
+
 
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
   begin
     result:=FloatToStrF(Value,Format,19,Digits);
   end;
+
 
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 begin
