@@ -25,6 +25,10 @@
   Currently a lot of code looks like being mergable with dbgstabs. This might
   change however when improved dwarf info is generated, so the stuff shouldn't be
   merged yet. (FK)
+  
+  The easiest way to debug dwarf debug info generation is the usage of
+  readelf --debug-dump <executable>
+  This works only with elf targets though.
 }
 unit dbgdwarf;
 
@@ -1208,13 +1212,10 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                {
                   regidx:=findreg_by_number(sym.localloc.register);
-                  { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                  { this is the register order for GDB}
-                  if regidx<>0 then
-                    result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(regstabs_table[regidx])]);
-                }
+                  templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
+                  templist.concat(tai_const.create_uleb128bit(regdwarf_table[regidx]));
+                  blocksize:=Lengthuleb128(regdwarf_table[regidx])+1;
                 end;
               else
                 begin
