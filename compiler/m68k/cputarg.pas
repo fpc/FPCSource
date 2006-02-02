@@ -39,6 +39,9 @@ implementation
       ,t_linux
     {$endif}
       ,t_amiga
+    {$ifndef NOTARGETPALMOS}
+      ,t_palmos
+    {$endif}
 
 {**************************************
           Assembler Readers

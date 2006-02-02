@@ -73,7 +73,7 @@ Function TLinkerPalmOS.WriteResponseFile : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : PStringQueueItem;
+  HPath    : TStringListItem;
   s        : string;
   linklibc : boolean;
 begin
@@ -98,7 +98,7 @@ begin
 
   { add objectfiles, start with crt0 always  }
   { using crt0, we should stick C compatible }
-  LinkRes.AddFileName(FindObjectFile('crt0',''));
+  LinkRes.AddFileName(FindObjectFile('crt0','',false));
 
   { main objectfiles }
   while not ObjectFiles.Empty do
@@ -163,7 +163,7 @@ var
   i : longint;
 begin
   if not(cs_link_extern in aktglobalswitches) then
-    Message1(exec_i_linking,current_module^.exefilename^);
+    Message1(exec_i_linking,current_module.exefilename^);
 
   { Create some replacements }
   StripStr:='';
@@ -180,9 +180,9 @@ begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',MaybeQuote(current_module.exefilename^));
+        Replace(cmdstr,'$EXE',MaybeQuoted(current_module.exefilename^));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+        Replace(cmdstr,'$RES',MaybeQuoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$SCRIPT',FindUtil('palm.ld'));
         Replace(cmdstr,'$APPNAME',palmos_applicationname);
@@ -206,7 +206,7 @@ end;
 
 initialization
 {$ifdef m68k}
-  RegisterTarget(target_m68k_palmos_info);
+  RegisterTarget(system_m68k_palmos_info);
   RegisterRes(res_m68k_palmos_info);
 {$endif m68k}
 end.
