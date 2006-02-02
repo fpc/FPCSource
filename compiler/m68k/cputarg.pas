@@ -38,7 +38,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETAMIGA}
       ,t_amiga
+    {$endif}
     {$ifndef NOTARGETPALMOS}
       ,t_palmos
     {$endif}
