@@ -92,7 +92,7 @@ ifdef SNAPSHOT
 ALLTARGET=all
 else
 ifndef ALLTARGET
-SHAREDTARGETS=linux freebsd
+SHAREDTARGETS=
 SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
 ifneq ($(findstring $(OS_TARGET),$(SHAREDTARGETS)),)
 ALLTARGET=shared

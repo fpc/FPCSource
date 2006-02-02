@@ -99,14 +99,14 @@ begin
         read(f,dummy);
         read(f,device);
         close(f);
-        found_vcsa:=device and $ffffff00=$00000400; {/dev/tty*}
+        found_vcsa:=device and $ffffffc0=$00000400; {/dev/tty*}
         if (device=0) or (pid=-1) or (ppid=pid) then
           break; {Not attached to a terminal, i.e. an xterm.}
       until found_vcsa;
       if found_vcsa then
         begin
           {We are running on the Linux console}
-          str(device and $000000ff,s);
+          str(device and $0000003f,s);
           tty:='/dev/tty'+s;
           if fpstat(tty,ttystat)<>0 then
             halt(result_stat_error);
