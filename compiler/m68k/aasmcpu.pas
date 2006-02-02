@@ -485,9 +485,15 @@ type
 
     function taicpu.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-//        writeln('is_same_reg_move');
         result:=(((opcode=A_MOVE) or (opcode=A_EXG)) and
                  (regtype = R_INTREGISTER) and
+                 (ops=2) and
+                 (oper[0]^.typ=top_reg) and
+                 (oper[1]^.typ=top_reg) and
+                 (oper[0]^.reg=oper[1]^.reg)
+                ) or
+                (((opcode=A_MOVE) or (opcode=A_EXG) or (opcode=A_MOVEA)) and
+                 (regtype = R_ADDRESSREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
                  (oper[1]^.typ=top_reg) and
@@ -509,55 +515,36 @@ type
           A_MOVE, A_MOVEQ, A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI:
             if opnr=1 then begin
-//              writeln('move/etc write');
               result:=operand_write;
             end else begin
-//              writeln('move/etc read');
               result:=operand_read;
             end;
           A_TST,A_CMP,A_CMPI:
             result:=operand_read;
           A_CLR,A_NEG,A_SXX:
             result:=operand_write;
-        else
-          writeln('other opcode: ',gas_op2str[opcode],' (faked value returned)',opnr);
-	  result:=operand_write;
+          else begin
+{$WARNING FIX ME!!! remove ugly debug code ... }
+            writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);
+            internalerror(200404091);
+          end;
         end;
-	// fake
-
-//        internalerror(200404091);
       end;
+
 
     function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
-//        writeln('spilling_create_load');
         case getregtype(r) of
           R_INTREGISTER :
             result:=taicpu.op_ref_reg(A_MOVE,S_L,ref,r);
-          R_FPUREGISTER :
-	    result:=taicpu.op_ref_reg(A_FMOVE,S_L,ref,r);
           R_ADDRESSREGISTER :
             result:=taicpu.op_ref_reg(A_MOVE,S_L,ref,r);
-        end;
-{
-        case getregtype(r) of
-          R_INTREGISTER :
-            result:=taicpu.op_ref_reg(A_LD,ref,r);
           R_FPUREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFS :
-                  result:=taicpu.op_ref_reg(A_LDF,ref,r);
-                R_SUBFD :
-                  result:=taicpu.op_ref_reg(A_LDD,ref,r);
-                else
-                  internalerror(200401042);
-              end;
-            end
+            // no need to handle sizes here
+            result:=taicpu.op_ref_reg(A_FMOVE,S_FS,ref,r);
           else
-            internalerror(200401041);
+            internalerror(200602011);            
         end;
-        }
       end;
 
 
@@ -569,26 +556,13 @@ type
 	  R_ADDRESSREGISTER :
 	    result:=taicpu.op_reg_ref(A_MOVE,S_L,r,ref);
 	  R_FPUREGISTER :
-	    result:=taicpu.op_reg_ref(A_FMOVE,S_L,r,ref);
-	end;
-        {case getregtype(r) of
-          R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_ST,r,ref);
-          R_FPUREGISTER :
-            begin
-              case getsubreg(r) of
-                R_SUBFS :
-                  result:=taicpu.op_reg_ref(A_STF,r,ref);
-                R_SUBFD :
-                  result:=taicpu.op_reg_ref(A_STD,r,ref);
-                else
-                  internalerror(200401042);
-              end;
-            end
+            // no need to handle sizes here
+            result:=taicpu.op_reg_ref(A_FMOVE,S_FS,r,ref);
           else
-            internalerror(200401041);
-        end;}
+            internalerror(200602012);
+	end;
       end;
+
 
     procedure InitAsm;
       begin
@@ -598,5 +572,6 @@ type
     procedure DoneAsm;
       begin
       end;
+
 
 end.
