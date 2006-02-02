@@ -194,6 +194,11 @@ interface
 
         writing_def_dwarf : boolean;
 
+        { use this defs to create info for variants and file handles }
+        vardatadef,
+        filerecdef,
+        textrecdef : tdef;
+
         function append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const) : longint;
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -231,7 +236,7 @@ implementation
       finput,
       fmodule,
       defutil,
-      symconst,symsym
+      symconst,symtable,symsym
       ;
 
     const
@@ -645,8 +650,14 @@ implementation
               end;
             uvoid :
               begin
-                append_entry(DW_TAG_unspecified_type,false,[
-                  DW_AT_name,DW_FORM_string,'Void'#0]);
+                { gdb 6.4 doesn't support DW_TAG_unspecified_type so we 
+                  replace it with a unsigned type with size 0 (FK)
+                }
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'Void'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_byte_size,DW_FORM_data1,0
+                ]);
                 finish_entry;
               end;
             uchar :
@@ -882,21 +893,47 @@ implementation
           pointerdef :
             begin
               append_entry(DW_TAG_pointer_type,false,[]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
+              if not(is_voidpointer(def)) then
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
               finish_entry;
             end;
 
           floatdef :
             append_dwarftag_floatdef(tfloatdef(def));
-        {
           filedef :
-            result:=filedef_stabstr(tfiledef(def));
-        }
+            begin
+             { gdb 6.4 doesn't support files so far so we use some fake recorddef
+             { file recs. are less than 1k so using data2 is enough }
+              if assigned(def.typesym) then
+                append_entry(DW_TAG_file_type,false,[
+                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                  DW_AT_byte_size,DW_FORM_data2,def.size
+                  ])
+              else
+                append_entry(DW_TAG_file_type,false,[
+                  DW_AT_byte_size,DW_FORM_data2,def.size
+                  ]);
+              if tfiledef(def).filetyp=ft_typed then
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tfiledef(def).typedfiletype.def));
+              }
+
+              if assigned(def.typesym) then
+                append_entry(DW_TAG_structure_type,true,[
+                 DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                 DW_AT_byte_size,DW_FORM_udata,def.size
+                ])
+              else
+                append_entry(DW_TAG_structure_type,true,[
+                 DW_AT_byte_size,DW_FORM_udata,def.size
+                ]);
+              finish_entry;
+            end;
           recorddef :
             append_dwarftag_recorddef(trecorddef(def));
-        {
           variantdef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
+            { variants aren't known to dwarf but writting tvardata should be enough }
+            append_dwarftag_recorddef(trecorddef(vardatadef)); 
+        {
           classrefdef :
             result:=strpnew(def_stab_number(pvmttype.def));
         }
@@ -1006,6 +1043,8 @@ implementation
             end;
           recorddef :
             trecorddef(def).symtable.foreach(@field_write_defs,list);
+          variantdef :
+            trecorddef(vardatadef).symtable.foreach(@field_write_defs,list);
           objectdef :
             begin
               insertdef(list,vmtarraytype.def);
@@ -1462,7 +1501,7 @@ implementation
             append_constsym(tconstsym(sym));
           typesym :
             begin
-              append_entry(DW_TAG_pointer_type,false,[
+              append_entry(DW_TAG_typedef,false,[
                 DW_AT_name,DW_FORM_string,sym.name+#0
               ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypesym(sym).restype.def));
@@ -1549,6 +1588,17 @@ implementation
 
 
     procedure TDebugInfoDwarf.inserttypeinfo;
+
+      function gettypedef(const s : string) : tdef;
+        var
+          srsym : tsym;
+        begin
+          srsym:=searchsymonlyin(systemunit,'TVARDATA');
+          if not(assigned(srsym)) then
+            internalerror(200602022);
+          result:=ttypesym(srsym).restype.def;
+        end;
+
       var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
@@ -1558,6 +1608,13 @@ implementation
 
         currabbrevnumber:=0;
         writing_def_dwarf:=false;
+
+        vardatadef:=gettypedef('TVARDATA');
+
+        { not exported (FK)
+        filerecdef:=gettypedef('FILEREC');
+        textrecdef:=gettypedef('TEXTREC');
+        }
 
         { write start labels }
         asmlist[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
