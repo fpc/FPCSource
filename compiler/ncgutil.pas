@@ -1299,21 +1299,6 @@ implementation
 {$endif cpu64bit}
              cg.a_reg_sync(list,sym.localloc.register);
           end;
-
-        if cs_asm_source in aktglobalswitches then
-          begin
-            case sym.localloc.loc of
-              LOC_REGISTER,
-              LOC_CREGISTER :
-                begin
-                  if (cs_no_regalloc in aktglobalswitches) then
-                    list.concat(Tai_comment.Create(strpnew('Var '+sym.realname+' located in register '+
-                                std_regname(sym.localloc.register))))
-                  else
-                    list.concat(Tai_comment.Create(strpnew('Var '+sym.realname+' located in register')));
-                end;
-            end
-          end;
       end;
 
 

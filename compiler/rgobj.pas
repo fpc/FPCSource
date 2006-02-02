@@ -150,6 +150,8 @@ unit rgobj;
         { Adds an interference edge.
           don't move this to the protected section, the arm cg requires to access this (FK) }
         procedure add_edge(u,v:Tsuperregister);
+        { translates a single given imaginary register to it's real register }
+        procedure translate_register(var reg : tregister);
       protected
         regtype           : Tregistertype;
         { default subregister used }
@@ -209,6 +211,7 @@ unit rgobj;
         procedure insert_regalloc_info(list:Taasmoutput;u:tsuperregister);
         procedure insert_regalloc_info_all(list:Taasmoutput);
         procedure generate_interference_graph(list:Taasmoutput;headertai:tai);
+        { translates the registers in the given assembler list }
         procedure translate_registers(list:Taasmoutput);
         function  spill_registers(list:Taasmoutput;headertai:tai):boolean;virtual;
         function  getnewreg(subreg:tsubregister):tsuperregister;
@@ -557,7 +560,9 @@ unit rgobj;
         until endspill;
         ibitmap.free;
         translate_registers(list);
-        dispose_reginfo;
+        { we need the translation table for debugging info and verbose assembler output (FK)
+          dispose_reginfo;
+        }
       end;
 
 
@@ -1562,6 +1567,15 @@ unit rgobj;
               end;
           end;
 {$endif}
+      end;
+
+
+    procedure trgobj.translate_register(var reg : tregister);
+      begin
+        if (getregtype(reg)=regtype) then
+          setsupreg(reg,reginfo[getsupreg(reg)].colour)
+        else
+          internalerror(200602021);
       end;
 
 

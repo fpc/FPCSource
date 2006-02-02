@@ -607,6 +607,20 @@ implementation
       end;
 
 
+    procedure translate_registers(p : tnamedindexitem;list:pointer);
+      begin
+         if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) and
+            (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
+              LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+           begin
+             cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+             if cs_asm_source in aktglobalswitches then
+               taasmoutput(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+                 std_regname(tabstractnormalvarsym(p).localloc.register))))
+           end;
+      end;
+
+
     procedure check_for_stack(p : tnamedindexitem;arg:pointer);
       begin
          if tsym(p).typ=paravarsym then
@@ -892,6 +906,13 @@ implementation
             { The procedure body is finished, we can now
               allocate the registers }
             cg.do_register_allocation(aktproccode,headertai);
+
+            { translate imag. register to their real counter parts
+              this is necessary for debuginfo and verbose assembler output
+              when SSA will be implented, this will be more complicated because we've to
+              maintain location lists }
+            current_procinfo.procdef.parast.foreach_static(@translate_registers,templist);
+            current_procinfo.procdef.localst.foreach_static(@translate_registers,templist);
 
             { Add save and restore of used registers }
             aktfilepos:=entrypos;

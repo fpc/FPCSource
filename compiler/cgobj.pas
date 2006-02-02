@@ -100,6 +100,7 @@ unit cgobj;
           procedure allocallcpuregisters(list:Taasmoutput);virtual;
           procedure deallocallcpuregisters(list:Taasmoutput);virtual;
           procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
+          procedure translate_register(var reg : tregister);
 
           function makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
 
@@ -720,6 +721,12 @@ implementation
            rg[R_INTREGISTER].do_register_allocation(list,headertai);
          if assigned(rg[R_ADDRESSREGISTER]) then
            rg[R_ADDRESSREGISTER].do_register_allocation(list,headertai);
+      end;
+
+
+    procedure tcg.translate_register(var reg : tregister);
+      begin
+        rg[getregtype(reg)].translate_register(reg);
       end;
 
 
