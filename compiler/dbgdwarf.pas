@@ -1232,6 +1232,7 @@ implementation
                             blocksize:=1+sizeof(aword);
                           end;
                       end;
+                    paravarsym,
                     localvarsym:
                       begin
                         regidx:=findreg_by_number(sym.localloc.reference.base);
