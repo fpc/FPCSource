@@ -217,7 +217,7 @@ implementation
            Message1(scan_e_illegal_asmmode_specifier,s);
       end;
 
-{$ifdef m68k}
+{$if defined(m68k) or defined(arm)}
     procedure dir_appid;
       begin
         if target_info.system<>system_m68k_palmos then
@@ -237,7 +237,7 @@ implementation
         current_scanner.skipspace;
         palmos_applicationname:=current_scanner.readcomment;
       end;
-{$endif m68k}
+{$endif defined(m68k) or defined(arm)}
 
     procedure dir_apptype;
       var

@@ -274,11 +274,11 @@ interface
        { for error info in pp.pas }
        parser_current_file : string = '';
 
-{$ifdef m68k}
+{$if defined(m68k) or defined(arm)}
        { PalmOS resources }
        palmos_applicationname : string = 'FPC Application';
        palmos_applicationid : string[4] = 'FPCA';
-{$endif m68k}
+{$endif defined(m68k) or defined(arm)}
 
 {$ifdef powerpc}
        { default calling convention used on MorphOS }

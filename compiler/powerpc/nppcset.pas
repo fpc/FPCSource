@@ -208,8 +208,6 @@ implementation
       end;
 
 
-
-
 begin
    ccasenode:=tppccasenode;
 end.

@@ -122,6 +122,12 @@ program pp;
      {$endif CPUDEFINED}
      {$define CPUDEFINED}
    {$endif MIPS}
+   {$ifdef AVR}
+     {$ifdef CPUDEFINED}
+        {$fatal ONLY one of the switches for the CPU type must be defined}
+     {$endif CPUDEFINED}
+     {$define CPUDEFINED}
+   {$endif AVR}
    {$ifndef CPUDEFINED}
      {$fatal A CPU type switch must be defined}
    {$endif CPUDEFINED}
