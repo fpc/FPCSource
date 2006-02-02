@@ -300,11 +300,11 @@ implementation
                             printf ("\n");
                             printf ("; quotient now in EDX\n");
                             }
-                            emit_const_reg(A_ADD,S_L,m,NR_EAX);
+                            emit_const_reg(A_ADD,S_L,aint(m),NR_EAX);
                             emit_const_reg(A_ADC,S_L,0,NR_EDX);
                           end;
                         if s<>0 then
-                          emit_const_reg(A_SHR,S_L,s,NR_EDX);
+                          emit_const_reg(A_SHR,S_L,aint(s),NR_EDX);
                         cg.ungetcpuregister(exprasmlist,NR_EDX);
                         cg.ungetcpuregister(exprasmlist,NR_EAX);
                         location.register:=cg.getintregister(exprasmlist,OS_INT);
