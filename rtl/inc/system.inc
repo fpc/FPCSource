@@ -434,12 +434,20 @@ end;
 
 function random(l:longint): longint;
 begin
+  { otherwise we can return values = l (JM) }
+  if (l < 0) then
+    inc(l);
   random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
 end;
 
 function random(l:int64): int64;
 begin
-  random := int64((qword(cardinal(genrand_MT19937)) or ((qword(cardinal(genrand_MT19937)) shl 32))) and $7fffffffffffffff) mod l;
+  { always call random, so the random generator cycles (TP-compatible) (JM) }
+  random := int64((qword(cardinal(genrand_MT19937)) or ((qword(cardinal(genrand_MT19937)) shl 32))) and $7fffffffffffffff);
+  if (l<>0) then
+    random := random mod l
+  else
+    random := 0;
 end;
 
 function random: extended;
