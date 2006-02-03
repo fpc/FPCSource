@@ -397,7 +397,7 @@ implementation
                  (tt.def.deftype<>objectdef) then
                 begin
                   if assigned(tt.def) then
-                    Message1(type_e_class_type_expected,childof.typename);
+                    Message1(type_e_class_type_expected,tt.def.typename);
                 end
               else
                 begin
