@@ -25,7 +25,7 @@
   Currently a lot of code looks like being mergable with dbgstabs. This might
   change however when improved dwarf info is generated, so the stuff shouldn't be
   merged yet. (FK)
-  
+
   The easiest way to debug dwarf debug info generation is the usage of
   readelf --debug-dump <executable>
   This works only with elf targets though.
@@ -650,7 +650,7 @@ implementation
               end;
             uvoid :
               begin
-                { gdb 6.4 doesn't support DW_TAG_unspecified_type so we 
+                { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
                   replace it with a unsigned type with size 0 (FK)
                 }
                 append_entry(DW_TAG_base_type,false,[
@@ -877,6 +877,16 @@ implementation
           finish_children;
         end;
 
+
+      procedure append_dwarftag_pointerdef(def:tpointerdef);
+        begin
+          append_entry(DW_TAG_pointer_type,false,[]);
+          if not(is_voidpointer(def)) then
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.pointertype.def));
+          finish_entry;
+        end;
+
+
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
@@ -886,18 +896,10 @@ implementation
         }
           enumdef :
             append_dwarftag_enumdef(tenumdef(def));
-
           orddef :
             append_dwarftag_orddef(torddef(def));
-
           pointerdef :
-            begin
-              append_entry(DW_TAG_pointer_type,false,[]);
-              if not(is_voidpointer(def)) then
-                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tpointerdef(def).pointertype.def));
-              finish_entry;
-            end;
-
+            append_dwarftag_pointerdef(tpointerdef(def));
           floatdef :
             append_dwarftag_floatdef(tfloatdef(def));
           filedef :
@@ -932,11 +934,9 @@ implementation
             append_dwarftag_recorddef(trecorddef(def));
           variantdef :
             { variants aren't known to dwarf but writting tvardata should be enough }
-            append_dwarftag_recorddef(trecorddef(vardatadef)); 
-        {
+            append_dwarftag_recorddef(trecorddef(vardatadef));
           classrefdef :
-            result:=strpnew(def_stab_number(pvmttype.def));
-        }
+            append_dwarftag_pointerdef(tpointerdef(pvmttype.def));
           setdef :
             begin
               { at least gdb up to 6.4 doesn't support sets in dwarf, there is a patch available to fix this:
@@ -967,10 +967,18 @@ implementation
                   ]);
               finish_entry;
             end;
-        {
           formaldef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
-        }
+            begin
+              { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
+                replace it with a unsigned type with size 0 (FK)
+              }
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'FormalDef'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                DW_AT_byte_size,DW_FORM_data1,0
+              ]);
+              finish_entry;
+            end;
           arraydef :
             append_dwarftag_arraydef(tarraydef(def));
         {
