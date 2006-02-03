@@ -685,7 +685,7 @@ unit cg64f32;
                    if l.size in [OS_64,OS_S64] then
                      a_load64high_ref_reg(list,l.reference,hreg)
                    else
-                     cg.a_load_ref_reg(list,opsize,OS_32,l.reference,hreg);
+                     cg.a_load_ref_reg(list,l.size,OS_32,l.reference,hreg);
                  end;
                objectlibrary.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
