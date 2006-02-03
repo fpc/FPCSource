@@ -149,6 +149,8 @@ interface
 
     function allowenumop(nt:tnodetype):boolean;
 
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+
 implementation
 
     uses
@@ -2198,6 +2200,19 @@ implementation
             FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
             FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def));
       end;
+
+
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+     begin
+       if not assigned(srsym) then
+         exit;
+       if sp_hint_deprecated in symoptions then
+         Message1(sym_w_deprecated_symbol,srsym.realname);
+       if sp_hint_platform in symoptions then
+         Message1(sym_w_non_portable_symbol,srsym.realname);
+       if sp_hint_unimplemented in symoptions then
+         Message1(sym_w_non_implemented_symbol,srsym.realname);
+     end;
 
 
 end.

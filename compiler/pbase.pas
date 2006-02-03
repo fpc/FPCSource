@@ -87,8 +87,6 @@ interface
 
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
-    procedure check_hints(const srsym: tsym);
-
     { just for an accurate position of the end of a procedure (PM) }
     var
        last_endtoken_filepos: tfileposinfo;
@@ -97,7 +95,7 @@ interface
 implementation
 
     uses
-       globtype,scanner,systems,verbose;
+       globtype,htypechk,scanner,systems,verbose;
 
 {****************************************************************************
                                Token Parsing
@@ -177,20 +175,6 @@ implementation
     { check if a symbol contains the hint directive, and if so gives out a hint
       if required.
     }
-    procedure check_hints(const srsym: tsym);
-     begin
-       if not assigned(srsym) then
-         exit;
-       if sp_hint_deprecated in srsym.symoptions then
-         Message1(sym_w_deprecated_symbol,srsym.realname);
-       if sp_hint_platform in srsym.symoptions then
-         Message1(sym_w_non_portable_symbol,srsym.realname);
-       if sp_hint_unimplemented in srsym.symoptions then
-         Message1(sym_w_non_implemented_symbol,srsym.realname);
-     end;
-
-
-
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
         { first check for identifier }
@@ -203,7 +187,7 @@ implementation
            exit;
          end;
         searchsym(pattern,srsym,srsymtable);
-        check_hints(srsym);
+        check_hints(srsym,srsym.symoptions);
         if assigned(srsym) then
          begin
            if (srsym.typ=unitsym) then
