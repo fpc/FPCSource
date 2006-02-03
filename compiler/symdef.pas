@@ -5241,7 +5241,14 @@ implementation
 
     function tobjectdef.gettypename:string;
       begin
-        gettypename:=typename;
+        if (self <> aktobjectdef) then
+          gettypename:=typename
+        else
+          { in this case we will go in endless recursion, because then  }
+          { there is no tsym associated yet with the def. It can occur  }
+          { (tests/webtbf/tw4757.pp), so for now give a generic name    }
+          { instead of the actual type name                             }
+          gettypename:='<Currently Parsed Class>';
       end;
 
 
