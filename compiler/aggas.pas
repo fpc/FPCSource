@@ -313,9 +313,9 @@ implementation
           if (neg) then
             a := a or -(1 shl (size - 7));
           if (((a = 0) and
-               (a and $40 = 0)) or
+               (b and $40 = 0)) or
               ((a = -1) and
-               (a and $40 <> 0))) then
+               (b and $40 <> 0))) then
             more := false
           else
             b := b or $80;
