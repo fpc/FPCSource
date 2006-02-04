@@ -714,9 +714,18 @@ end;
 procedure LoadDefaultSequences;
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
-  { linux default values, the next setting is
-    compatible with xterms from XFree 4.x }
-  DoAddSequence(#127,8,0);
+  {Unix backspace/delete hell... Is #127 a backspace or delete?}
+  if copy(fpgetenv('TERM'),1,4)='cons' then
+    begin
+      {FreeBSD is until now only terminal that uses it for delete.}
+      DoAddSequence(#127,0,kbDel);        {Delete}
+      DoAddSequence(#27#127,0,kbAltDel);  {Alt+delete}
+    end
+  else
+    begin
+      DoAddSequence(#127,8,0);            {Backspace}
+      DoAddSequence(#27#127,0,kbAltBack); {Alt+backspace}
+    end;
   { all Esc letter }
   DoAddSequence(#27'A',0,kbAltA);
   DoAddSequence(#27'a',0,kbAltA);
@@ -1343,6 +1352,8 @@ begin {main}
             myscan:=ShiftArrow[myscan];
             sstate:=sstate or kbshift;
           end;
+        if myscan=kbAltBack then
+          sstate:=sstate or kbalt;
         if (MyChar<>#0) or (MyScan<>0) or (SState<>0) then
           SysGetKeyEvent:=$3000000 or ord(MyChar) or (MyScan shl 8) or (SState shl 16)
         else
