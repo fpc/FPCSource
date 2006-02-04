@@ -32,6 +32,7 @@ type
       constructor Init;
       procedure   InitDesktop; virtual;
       procedure   InitMenuBar; virtual;
+      procedure   reload_menubar;
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string;FileDir:string);
       function    OpenSearch(FileName: string) : boolean;
@@ -153,6 +154,15 @@ procedure PutCommand(TargetView: PView; What, Command: Word; InfoPtr: Pointer);
 
 var
   IDEApp: TIDEApp;
+
+{Configurable keys.}
+const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
+      menu_key_edit_copy:string[63]=menu_key_edit_copy_borland;
+      menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
+      menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
+      cut_key:word=kbShiftDel;
+      copy_key:word=kbCtrlIns;
+      paste_key:word=kbShiftIns;
 
 implementation
 
@@ -293,8 +303,10 @@ begin
 end;
 
 procedure TIDEApp.InitMenuBar;
+
 var R: TRect;
     WinPMI : PMenuItem;
+
 begin
   GetExtent(R); R.B.Y:=R.A.Y+1;
   WinPMI:=nil;
@@ -331,9 +343,9 @@ begin
       NewItem('R~e~do All','', kbNoKey, cmRedoAll, hcRedo,
 {$endif DebugUndo}
       NewLine(
-      NewItem(menu_edit_cut,menu_key_edit_cut, kbShiftDel, cmCut, hcCut,
-      NewItem(menu_edit_copy,menu_key_edit_copy, kbCtrlIns, cmCopy, hcCut,
-      NewItem(menu_edit_paste,menu_key_edit_paste, kbShiftIns, cmPaste, hcPaste,
+      NewItem(menu_edit_cut,menu_key_edit_cut, cut_key, cmCut, hcCut,
+      NewItem(menu_edit_copy,menu_key_edit_copy, copy_key, cmCopy, hcCut,
+      NewItem(menu_edit_paste,menu_key_edit_paste, paste_key, cmPaste, hcPaste,
       NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
       NewItem(menu_edit_selectall,'', kbNoKey, cmSelectAll, hcSelectAll,
       NewItem(menu_edit_unselect,'', kbNoKey, cmUnselect, hcUnselect,
@@ -477,6 +489,37 @@ begin
     nil)))))))))))));
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
   // Update; Desktop is still nil at that point ...
+end;
+
+procedure Tideapp.reload_menubar;
+
+begin
+   delete(menubar);
+   dispose(menubar,done);
+   case EditKeys of
+     ekm_microsoft:
+       begin
+         menu_key_edit_cut:=menu_key_edit_cut_microsoft;
+         menu_key_edit_copy:=menu_key_edit_copy_microsoft;
+         menu_key_edit_paste:=menu_key_edit_paste_microsoft;
+         menu_key_hlplocal_copy:=menu_key_hlplocal_copy_microsoft;
+         cut_key:=kbCtrlX;
+         copy_key:=kbCtrlC;
+         paste_key:=kbCtrlV;
+       end;
+     ekm_borland:
+       begin
+         menu_key_edit_cut:=menu_key_edit_cut_borland;
+         menu_key_edit_copy:=menu_key_edit_copy_borland;
+         menu_key_edit_paste:=menu_key_edit_paste_borland;
+         menu_key_hlplocal_copy:=menu_key_hlplocal_copy_borland;
+         cut_key:=kbShiftDel;
+         copy_key:=kbCtrlIns;
+         paste_key:=kbShiftIns;
+       end;
+   end;
+   initmenubar;
+   insert(menubar);
 end;
 
 procedure TIDEApp.InitStatusLine;
@@ -1255,4 +1298,6 @@ begin
   DoneHelpSystem;
 end;
 
-END.
+
+
+end.

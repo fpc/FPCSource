@@ -33,6 +33,20 @@ type
     TCompPhase = (cpNothing,cpCompiling,cpLinking,
                   cpAborted,cpFailed,cpDone);
 
+    {Use edit keys according to Borland convention (shift+del,ctrl+ins,shift+ins)
+     or Microsoft convention (ctrl+x,ctrl+c,ctrl+v).}
+    Tedit_key_modes=(ekm_borland,ekm_microsoft);
+
+
+{$ifdef Unix}
+      {Microsoft convention is default on Unix, because the Borland "paste" key, Shift+Ins,
+       is not passed on to the program in most X terminal emulators.}
+const ekm_default = ekm_microsoft;
+{$else}
+      ekm_default = ekm_borland;
+{$endif}
+
+
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
@@ -102,6 +116,8 @@ const ClipboardWindow  : PClipboardWindow = nil;
 {$endif USE_EXTERNAL_COMPILER}
       ShowReadme       : boolean = true;
       AskRecompileIfModifiedFlag : boolean = true;
+
+      EditKeys:Tedit_key_modes = ekm_default;
 
 {$ifdef SUPPORT_REMOTE}
      RemoteMachine : string = '';

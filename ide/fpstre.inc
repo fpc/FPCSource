@@ -27,10 +27,11 @@ const
       menu_common_prevtopic    = '~P~revious topic';
       menu_common_copy = '~C~opy';
 
-      menu_key_common_helpindex = 'Shift+F1';
-      menu_key_common_topicsearch = 'Ctrl+F1';
-      menu_key_common_prevtopic = 'Alt+F1';
-      menu_key_common_copy = 'Ctrl+Ins';
+      menu_key_common_helpindex      = 'Shift+F1';
+      menu_key_common_topicsearch    = 'Ctrl+F1';
+      menu_key_common_prevtopic      = 'Alt+F1';
+      menu_key_common_copy_borland   = 'Ctrl+Ins';
+      menu_key_common_copy_microsoft = 'Ctrl+C';
 
       { Symbol browser tabs }
       label_browsertab_scope = 'S';
@@ -216,9 +217,12 @@ const
       menu_key_file_exit     = 'Alt+X';
 
       menu_key_edit_undo     = 'Alt+BkSp';
-      menu_key_edit_cut      = 'Shift+Del';
-      menu_key_edit_copy     = menu_key_common_copy;
-      menu_key_edit_paste    = 'Shift+Ins';
+      menu_key_edit_cut_borland      = 'Shift+Del';
+      menu_key_edit_copy_borland     = menu_key_common_copy_borland;
+      menu_key_edit_paste_borland    = 'Shift+Ins';
+      menu_key_edit_cut_microsoft    = 'Ctrl+X';
+      menu_key_edit_copy_microsoft   = menu_key_common_copy_microsoft;
+      menu_key_edit_paste_microsoft  = 'Ctrl+V';
       menu_key_edit_clear    = 'Ctrl+Del';
 
       menu_key_run_run       = 'Ctrl+F9';
@@ -256,7 +260,8 @@ const
       menu_key_hlplocal_index = menu_key_common_helpindex;
       menu_key_hlplocal_topicsearch = menu_key_common_topicsearch;
       menu_key_hlplocal_prevtopic = menu_key_common_prevtopic;
-      menu_key_hlplocal_copy = menu_key_common_copy;
+      menu_key_hlplocal_copy_borland = menu_key_common_copy_borland;
+      menu_key_hlplocal_copy_microsoft = menu_key_common_copy_microsoft;
 
       dialog_openafile        = 'Open a file';
       label_filetoopen        = 'File to ope~n~';
