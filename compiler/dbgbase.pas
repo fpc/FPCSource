@@ -116,7 +116,7 @@ implementation
       var
         pd : tprocdef;
       begin
-        if tsym(p).typ = procsym then
+        if tsym(p).typ=procsym then
           begin
             pd:=tprocsym(p).first_procdef;
             insertdef(taasmoutput(arg),pd.rettype.def);

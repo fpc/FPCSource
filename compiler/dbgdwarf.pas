@@ -878,6 +878,65 @@ implementation
         end;
 
 
+      procedure append_dwarftag_objectdef(def:tobjectdef);
+
+        procedure doappend;
+          begin
+            if assigned(def.objname) then
+              append_entry(DW_TAG_structure_type,true,[
+                DW_AT_name,DW_FORM_string,def.objname^+#0,
+                DW_AT_byte_size,DW_FORM_udata,def.size
+                ])
+            else
+              append_entry(DW_TAG_structure_type,true,[
+                DW_AT_byte_size,DW_FORM_udata,def.size
+                ]);
+            finish_entry;
+            if assigned(def.childof) then
+              begin
+                append_entry(DW_TAG_inheritance,false,[
+                  DW_AT_accessibility,DW_FORM_data1,DW_ACCESS_public,
+                  DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
+                ]);
+                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
+                finish_entry;
+              end;
+
+            def.symtable.foreach(@field_add_dwarftag,nil);
+
+            finish_children;
+          end;
+
+        var
+          obj : tasmlabel;
+
+        begin
+          case def.objecttype of
+            odt_cppclass,
+            odt_object:
+              doappend;
+            odt_interfacecom,
+            odt_interfacecorba,
+            odt_dispinterface,
+            odt_class:
+              begin
+                objectlibrary.getdatalabel(obj);
+                { implicit pointer }
+                append_entry(DW_TAG_pointer_type,false,[]);
+                append_labelentry_ref(DW_AT_type,obj);
+                finish_entry;
+
+                asmlist[al_dwarf_info].concat(tai_symbol.create(obj,0));
+                doappend;
+              end;
+            else
+              internalerror(200602041);
+          end;
+        end;
+
+
       procedure append_dwarftag_pointerdef(def:tpointerdef);
         begin
           append_entry(DW_TAG_pointer_type,false,[]);
@@ -1164,43 +1223,9 @@ implementation
             end;
         end;
 
-        case def.deftype of
-          objectdef :
-            begin
-              { classes require special code to write the record and the invisible pointer }
-              if is_class(def) then
-                begin
-                  { Write the record class itself }
-                  tobjectdef(def).writing_class_record_dbginfo:=true;
-                  append_dwarftag(list,def);
-                  tobjectdef(def).writing_class_record_dbginfo:=false;
-                  { Write the invisible pointer class }
-                  oldtypesym:=def.typesym;
-                  def.typesym:=nil;
-                  append_dwarftag(list,def);
-                  def.typesym:=oldtypesym;
-                end
-              else
-                append_dwarftag(list,def);
-              { VMT symbol }
-              if (oo_has_vmt in tobjectdef(def).objectoptions) and
-                 assigned(def.owner) and
-                 assigned(def.owner.name) then
-                {
-                list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+def.owner.name^+tobjectdef(def).name+':S'+
-                       def_stab_number(vmttype.def)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
-                }
-                ;
-            end;
-          procdef :
-            begin
-              { procdefs are handled separatly }
-            end;
-          else
-            append_dwarftag(list,def);
-        end;
+        append_dwarftag(list,def);
 
-        def.dbg_state := dbg_state_written;
+        def.dbg_state:=dbg_state_written;
       end;
 
 
