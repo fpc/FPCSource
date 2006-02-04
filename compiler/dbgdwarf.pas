@@ -207,6 +207,7 @@ interface
         procedure finish_children;
 
         procedure field_add_dwarftag(p:Tnamedindexitem;arg:pointer);
+        procedure method_add_dwarftag(p:Tnamedindexitem;arg:pointer);
         procedure append_procdef(list:taasmoutput;pd:tprocdef);
         procedure append_dwarftag(list:taasmoutput;def:tdef);
         procedure insertsym(list:taasmoutput;sym:tsym);
@@ -607,6 +608,11 @@ implementation
       end;
 
 
+    procedure TDebugInfoDwarf.method_add_dwarftag(p:Tnamedindexitem;arg:pointer);
+      begin
+      end;
+
+
     procedure TDebugInfoDwarf.append_dwarftag(list:taasmoutput;def:tdef);
 
       procedure append_dwarftag_orddef(def:torddef);
@@ -905,6 +911,7 @@ implementation
               end;
 
             def.symtable.foreach(@field_add_dwarftag,nil);
+            def.symtable.foreach(@method_add_dwarftag,nil);
 
             finish_children;
           end;
@@ -1121,10 +1128,8 @@ implementation
         }
           procvardef :
             append_dwarftag_procvardef(tprocvardef(def));
-        {
           objectdef :
-            result:=objectdef_stabstr(tobjectdef(def));
-        }
+            append_dwarftag_objectdef(tobjectdef(def));
           undefineddef :
             begin
               { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
