@@ -886,6 +886,7 @@ implementation
           finish_entry;
         end;
 
+
       procedure append_dwarftag_procvardef(def:tprocvardef);
 
         procedure doappend;
@@ -901,12 +902,14 @@ implementation
               append_entry(DW_TAG_subroutine_type,true,[
                 DW_AT_prototyped,DW_FORM_flag,true
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocvardef(def).rettype.def));
+            if not(is_void(tprocvardef(def).rettype.def)) then
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocvardef(def).rettype.def));
+            finish_entry;
 
             { write parameters }
             for i:=0 to def.paras.count-1 do
               begin
-                append_entry(DW_TAG_subroutine_type,false,[
+                append_entry(DW_TAG_formal_parameter,false,[
                   DW_AT_name,DW_FORM_string,tparavarsym(def.paras[i]).name+#0
                 ]);
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(def.paras[i]).vartype.def));
@@ -931,7 +934,7 @@ implementation
 
               { proc entry }
               append_entry(DW_TAG_member,false,[
-                DW_AT_name,DW_FORM_string,'PROC'#0,
+                DW_AT_name,DW_FORM_string,'Proc'#0,
                 DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
                 ]);
               asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
@@ -941,7 +944,7 @@ implementation
 
               { self entry }
               append_entry(DW_TAG_member,false,[
-                DW_AT_name,DW_FORM_string,'SELF'#0,
+                DW_AT_name,DW_FORM_string,'Self'#0,
                 DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sizeof(aint))
                 ]);
               asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
@@ -953,13 +956,9 @@ implementation
 
               asmlist[al_dwarf_info].concat(tai_symbol.create(proc,0));
               doappend;
-              finish_entry;
             end
           else
-            begin
-              doappend;
-              finish_entry;
-            end;
+            doappend;
         end;
 
 
@@ -1137,7 +1136,7 @@ implementation
                 insertdef(list,class_tobject);
               { parameters }
               for i:=0 to tprocvardef(def).paras.count-1 do
-                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(tprocvardef(def).paras[i]).vartype.def));
+                insertdef(list,tparavarsym(tprocvardef(def).paras[i]).vartype.def);
             end;
           procdef :
             insertdef(list,tprocdef(def).rettype.def);
