@@ -144,7 +144,7 @@ const
       menu_options_env_codecomplete = 'Code~C~omplete...';
       menu_options_env_codetemplates = 'Code~T~emplates...';
       menu_options_env_desktop = '~D~esktop...';
-      menu_options_env_mouse = '~M~ouse...';
+      menu_options_env_keybmouse = 'Keyboard & ~m~ouse...';
       menu_options_env_startup = '~S~tartup...';
       menu_options_env_colors= '~C~olors';
       menu_options_learn_keys= 'Learn ~K~eys';
@@ -450,17 +450,17 @@ const
 
       dialog_mouseoptions = 'Mouse Options';
       label_mouse_speedbar = 'Fast       Medium      Slow';
-      label_mouse_doubleclickspeed = '~M~ouse double click';
+      label_mouse_doubleclickspeed = 'Mouse ~d~ouble click';
       label_mouse_reversebuttons = '~R~everse mouse buttons';
       label_mouse_crtlrightmousebuttonaction = 'Ctrl+Right mouse button';
       label_mouse_altrightmousebuttonaction = 'Alt+Right mouse button';
-      label_mouse_act_nothing = '~N~othing';
-      label_mouse_act_topicsearch = '~T~opic search';
-      label_mouse_act_gotocursor = '~G~o to cursor';
-      label_mouse_act_breakpoint = '~B~reakpoint';
-      label_mouse_act_evaluate = '~E~valuate';
-      label_mouse_act_addwatch = '~A~dd watch';
-      label_mouse_act_browsesymbol = 'Browse ~s~ymbol';
+      label_mouse_act_nothing = 'Nothing';
+      label_mouse_act_topicsearch = 'Topic search';
+      label_mouse_act_gotocursor = 'Go to cursor';
+      label_mouse_act_breakpoint = 'Breakpoint';
+      label_mouse_act_evaluate = 'Evaluate';
+      label_mouse_act_addwatch = 'Add watch';
+      label_mouse_act_browsesymbol = 'Browse symbol';
 
       label_colors_grp_browser = 'Browser';
       label_colors_framepassive = 'Frame passive';

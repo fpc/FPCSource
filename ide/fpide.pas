@@ -441,7 +441,7 @@ begin
         NewItem(menu_options_env_codecomplete,'', kbNoKey, cmCodeCompleteOptions, hcCodeCompleteOptions,
         NewItem(menu_options_env_codetemplates,'', kbNoKey, cmCodeTemplateOptions, hcCodeTemplateOptions,
         NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
-        NewItem(menu_options_env_mouse,'', kbNoKey, cmMouse, hcMouse,
+        NewItem(menu_options_env_keybmouse,'', kbNoKey, cmMouse, hcMouse,
         NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
         NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
 {$ifdef Unix}

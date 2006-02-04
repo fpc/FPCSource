@@ -1178,14 +1178,24 @@ var R,R2: TRect;
     D: PCenterDialog;
     SB: PScrollBar;
     CB: PCheckBoxes;
-    RB1,RB2: PRadioButtons;
+    RB1,RB2,RBKB: PRadioButtons;
 begin
-  R.Assign(0,0,62,15);
+  R.Assign(0,0,62,19);
   New(D, Init(R, dialog_mouseoptions));
   with D^ do
   begin
     HelpCtx:=hcMouse;
-    GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+3;
+    GetExtent(R); R.Grow(-3,-2); inc(R.A.Y); R.B.Y:=R.A.Y+2;
+    New(RBkb, Init(R,
+      NewSItem('~B~orland convention (Shift+Del,Ctrl+Ins,Shift+Ins)',
+      NewSItem('~M~icrosoft convention (Ctrl+X,Ctrl+C,Ctrl+V)',
+      nil))));
+    RBkb^.Press(integer(EditKeys));
+    Insert(RBkb);
+    R.move(0,-1); R.B.Y:=R.A.Y+1;
+    Insert(New(PLabel, Init(R, '~K~eys for cut, copy and paste:', RBkb)));
+
+    R.Move(0,(R.B.Y-R.A.Y)+3); R.B.Y:=R.A.Y+3;
     R2.Copy(R); Inc(R2.A.Y,2); R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2 -1;
     New(SB, Init(R2)); SB^.GrowMode:=0; SB^.Options:=SB^.Options or ofSelectable;
     SB^.SetParams(DoubleDelay,1,20,1,1);
@@ -1232,13 +1242,19 @@ begin
     Insert(New(PLabel, Init(R2,  label_mouse_altrightmousebuttonaction, RB2)));
   end;
   InsertButtons(D);
-  RB1^.Select;
+
+  RBkb^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
     MouseReverse:=CB^.Mark(0);
     DoubleDelay:=SB^.Value;
     CtrlMouseAction:=RB1^.Value;
     AltMouseAction:=RB2^.Value;
+    if Tedit_key_modes(RBkb^.value)<>EditKeys then
+      begin
+        EditKeys:=Tedit_key_modes(RBkb^.value);
+        reload_menubar;
+      end;
   end;
   Dispose(D, Done);
 end;
