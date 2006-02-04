@@ -953,6 +953,84 @@ implementation
         end;
 
 
+      procedure append_dwarftag_stringdef(def:tstringdef);
+        var
+          slen : aint;
+          arr : tasmlabel;
+        begin
+          case def.string_typ of
+            st_shortstring:
+              begin
+                { fix length of openshortstring }
+                slen:=def.len;
+                if slen=0 then
+                  slen:=255;
+
+
+                { create a structure with two elements }
+                objectlibrary.getdatalabel(arr);
+                append_entry(DW_TAG_structure_type,true,[
+                  DW_AT_name,DW_FORM_string,'ShortString'#0,
+                  DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
+                ]);
+                finish_entry;
+
+                { length entry }
+                append_entry(DW_TAG_member,false,[
+                  DW_AT_name,DW_FORM_string,'Length'#0,
+                  DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
+                  ]);
+                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
+                finish_entry;
+
+                { self entry }
+                append_entry(DW_TAG_member,false,[
+                  DW_AT_name,DW_FORM_string,'Data'#0,
+                  DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
+                  ]);
+                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(1));
+                append_labelentry_ref(DW_AT_type,arr);
+                finish_entry;
+
+                finish_children;
+
+                { now the data array }
+                asmlist[al_dwarf_info].concat(tai_symbol.create(arr,0));
+                append_entry(DW_TAG_array_type,true,[
+                  DW_AT_byte_size,DW_FORM_udata,def.size,
+                  DW_AT_stride_size,DW_FORM_udata,1*8
+                  ]);
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype.def));
+                finish_entry;
+                append_entry(DW_TAG_subrange_type,false,[
+                  DW_AT_lower_bound,DW_FORM_udata,0,
+                  DW_AT_upper_bound,DW_FORM_udata,slen
+                  ]);
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
+                finish_entry;
+              end;
+            st_longstring:
+              begin
+              {
+                charst:=def_stab_number(cchartype.def);
+                bytest:=def_stab_number(u8inttype.def);
+                longst:=def_stab_number(u32inttype.def);
+                result:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
+                            [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
+              }
+             end;
+           st_ansistring:
+             { looks like a pchar }
+             append_dwarftag(list,cchartype.def);
+           st_widestring:
+             { looks like a pwidechar }
+             append_dwarftag(list,cwidechartype.def);
+          end;
+        end;
+
       procedure append_dwarftag_procvardef(def:tprocvardef);
 
         procedure doappend;
@@ -1031,10 +1109,8 @@ implementation
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
         case def.deftype of
-        {
           stringdef :
-            result:=stringdef_stabstr(tstringdef(def));
-        }
+            append_dwarftag_stringdef(tstringdef(def));
           enumdef :
             append_dwarftag_enumdef(tenumdef(def));
           orddef :
@@ -1122,10 +1198,6 @@ implementation
             end;
           arraydef :
             append_dwarftag_arraydef(tarraydef(def));
-        {
-          procdef :
-            result:=procdef_stabstr(tprocdef(def));
-        }
           procvardef :
             append_dwarftag_procvardef(tprocvardef(def));
           objectdef :
@@ -1343,18 +1415,6 @@ implementation
 
 
     procedure TDebugInfoDwarf.insertsym(list:taasmoutput;sym:tsym);
-
-        function fieldvarsym_stabstr(sym:tfieldvarsym):Pchar;
-          begin
-            {
-            result:=nil;
-            if (sym.owner.symtabletype=objectsymtable) and
-               (sp_static in sym.symoptions) then
-              result:=sym_stabstr_evaluate(sym,'"${ownername}__${name}:S$1",${N_LCSYM},0,${line},${mangledname}',
-                  [def_stab_number(sym.vartype.def)]);
-            }
-          end;
-
 
         procedure append_varsym(sym:tabstractnormalvarsym);
           var
