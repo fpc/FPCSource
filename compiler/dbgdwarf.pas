@@ -886,6 +886,82 @@ implementation
           finish_entry;
         end;
 
+      procedure append_dwarftag_procvardef(def:tprocvardef);
+
+        procedure doappend;
+          var
+            i : longint;
+          begin
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_subroutine_type,true,[
+                DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                DW_AT_prototyped,DW_FORM_flag,true
+              ])
+            else
+              append_entry(DW_TAG_subroutine_type,true,[
+                DW_AT_prototyped,DW_FORM_flag,true
+              ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocvardef(def).rettype.def));
+
+            { write parameters }
+            for i:=0 to def.paras.count-1 do
+              begin
+                append_entry(DW_TAG_subroutine_type,false,[
+                  DW_AT_name,DW_FORM_string,tparavarsym(def.paras[i]).name+#0
+                ]);
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(def.paras[i]).vartype.def));
+                finish_entry;
+              end;
+
+            finish_children;
+          end;
+
+        var
+          proc : tasmlabel;
+
+        begin
+          if def.is_methodpointer then
+            begin
+              { create a structure with two elements }
+              objectlibrary.getdatalabel(proc);
+              append_entry(DW_TAG_structure_type,true,[
+                DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
+              ]);
+              finish_entry;
+
+              { proc entry }
+              append_entry(DW_TAG_member,false,[
+                DW_AT_name,DW_FORM_string,'PROC'#0,
+                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
+                ]);
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+              asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+              append_labelentry_ref(DW_AT_type,proc);
+              finish_entry;
+
+              { self entry }
+              append_entry(DW_TAG_member,false,[
+                DW_AT_name,DW_FORM_string,'SELF'#0,
+                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sizeof(aint))
+                ]);
+              asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+              asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(aint)));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(class_tobject));
+              finish_entry;
+
+              finish_children;
+
+              asmlist[al_dwarf_info].concat(tai_symbol.create(proc,0));
+              doappend;
+              finish_entry;
+            end
+          else
+            begin
+              doappend;
+              finish_entry;
+            end;
+        end;
+
 
       begin
         list.concat(tai_symbol.create(def_dwarf_lab(def),0));
@@ -984,13 +1060,25 @@ implementation
         {
           procdef :
             result:=procdef_stabstr(tprocdef(def));
+        }
           procvardef :
-            result:=strpnew('*f'+def_stab_number(tprocvardef(def).rettype.def));
+            append_dwarftag_procvardef(tprocvardef(def));
+        {
           objectdef :
             result:=objectdef_stabstr(tobjectdef(def));
-          undefineddef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
         }
+          undefineddef :
+            begin
+              { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
+                replace it with a unsigned type with size 0 (FK)
+              }
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'FormalDef'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                DW_AT_byte_size,DW_FORM_data1,0
+              ]);
+              finish_entry;
+            end;
         else
           internalerror(200601281);
         end;
@@ -1001,6 +1089,7 @@ implementation
       var
         anc : tobjectdef;
         oldtypesym : tsym;
+        i : longint;
       begin
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
@@ -1041,7 +1130,15 @@ implementation
             insertdef(list,tpointerdef(def).pointertype.def);
           setdef :
             insertdef(list,tsetdef(def).elementtype.def);
-          procvardef,
+          procvardef:
+            begin
+              insertdef(list,tprocvardef(def).rettype.def);
+              if tprocvardef(def).is_methodpointer then
+                insertdef(list,class_tobject);
+              { parameters }
+              for i:=0 to tprocvardef(def).paras.count-1 do
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(tprocvardef(def).paras[i]).vartype.def));
+            end;
           procdef :
             insertdef(list,tprocdef(def).rettype.def);
           arraydef :
