@@ -1582,8 +1582,6 @@ implementation
 
 
         procedure append_constsym(sym:tconstsym);
-          var
-            st : string;
           begin
             append_entry(DW_TAG_constant,false,[
               DW_AT_name,DW_FORM_string,sym.name+#0
@@ -1654,6 +1652,63 @@ implementation
               append_procdef(list,sym.procdef[i]);
           end;
 
+
+        procedure append_absolutesym(sym:tabsolutevarsym);
+          var
+            templist : taasmoutput;
+            blocksize : longint;
+            symlist : psymlistitem;
+          begin
+            templist:=taasmoutput.create;
+            case tabsolutevarsym(sym).abstyp of
+              toaddr :
+                begin
+{$ifdef i386}
+                   { in theory, we could write a DW_AT_segment entry here for sym.absseg,
+                     however I doubt that gdb supports this (FK) }
+{$endif i386}
+                   templist.concat(tai_const.create_8bit(3));
+                   templist.concat(tai_const.create_aint(sym.addroffset));
+                   blocksize:=1+sizeof(aword);
+                end;
+              toasm :
+                begin
+                  templist.concat(tai_const.create_8bit(3));
+                  templist.concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+                  blocksize:=1+sizeof(aword);
+                end;
+              tovar:
+                begin
+                  symlist:=tabsolutevarsym(sym).ref.firstsym;
+                  { can we insert the symbol? }
+                  if assigned(symlist) and
+                     (symlist^.sltype=sl_load) then
+                    insertsym(list,symlist^.sym);
+
+                  templist.free;
+                  exit;
+                end;
+            end;
+
+            append_entry(DW_TAG_variable,false,[
+              DW_AT_name,DW_FORM_string,sym.name+#0,
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              DW_AT_external,DW_FORM_flag,true,
+              { data continues below }
+              DW_AT_location,DW_FORM_block1,blocksize
+              ]);
+            { append block data }
+            asmlist[al_dwarf_info].concatlist(templist);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
+
+            templist.free;
+
+            finish_entry;
+          end;
+
       begin
         case sym.typ of
           globalvarsym :
@@ -1707,6 +1762,11 @@ implementation
           rttisym :
             { ignore rtti syms, they are only of internal use }
             ;
+          syssym :
+            { ignore sys syms, they are only of internal use }
+            ;
+          absolutevarsym :
+            append_absolutesym(tabsolutevarsym(sym));
           else
             internalerror(200601242);
         end;
@@ -1785,10 +1845,9 @@ implementation
 
       function gettypedef(const s : string) : tdef;
         var
-          srsym : tsym;
+          srsym : ttypesym;
         begin
-          srsym:=searchsymonlyin(systemunit,'TVARDATA');
-          if not(assigned(srsym)) then
+          if not(searchsystype('TVARDATA',srsym)) then
             internalerror(200602022);
           result:=ttypesym(srsym).restype.def;
         end;
