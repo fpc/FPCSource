@@ -33,6 +33,12 @@ BUGS & WARNINGS
 
 
 ------------------------
+V6.4.8
+
+- remove duplicate names, may cause ambiguity
+
+
+------------------------
 V6.4.7
 
 - fixed: 64bit compatibility

@@ -944,8 +944,8 @@ begin
       PChar(keyData)^ := #0;
 {
   else
-    if Key <> nil then
-      PDouble(keyData)^ := PDouble(Key)^
+    if AKey <> nil then
+      PDouble(keyData)^ := PDouble(AKey)^
     else
       PDouble(keyData)^ := 0.0;
 }

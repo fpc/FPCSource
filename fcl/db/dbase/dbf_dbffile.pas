@@ -722,7 +722,7 @@ begin
 
     // update header
     PDbfHdr(Header)^.RecordSize := lFieldOffset;
-    PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * FieldDefs.Count + 1;
+    PDbfHdr(Header)^.FullHdrSize := HeaderSize + RecordSize * AFieldDefs.Count + 1;
     // add empty "back-link" info, whatever it is: 
     { A 263-byte range that contains the backlink, which is the relative path of 
       an associated database (.dbc) file, information. If the first byte is 0x00, 

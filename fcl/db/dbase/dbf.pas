@@ -1442,7 +1442,7 @@ begin
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
-      FDbfFile.FinishCreate(DbfFieldDefs, 512);
+      FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
       // if creating memory table, copy stream pointer
       if FStorage = stoMemory then
