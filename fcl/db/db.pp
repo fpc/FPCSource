@@ -970,7 +970,6 @@ type
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
-    Procedure SetActive (Value : Boolean);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
@@ -1040,6 +1039,7 @@ type
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
     procedure RestoreState(const Value: TDataSetState);
+    Procedure SetActive (Value : Boolean); virtual;
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
     procedure SetBufListSize(Value: Longint);
     procedure SetChildOrder(Component: TComponent; Order: Longint); override;

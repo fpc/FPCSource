@@ -206,6 +206,7 @@ type
     function  GetCanModify: Boolean; override;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
+    Procedure SetActive (Value : Boolean); override;
     procedure SetFiltered(Value: Boolean); override;
     procedure SetFilterText(const Value: string); override;
   public
@@ -583,6 +584,16 @@ begin
   inherited InternalOpen;
   First;
 end;
+
+Procedure TSQLQuery.SetActive (Value : Boolean);
+
+begin
+  inherited SetActive(Value);
+// The query is UnPrepared, so that if a transaction closes all datasets
+// they also get unprepared
+  if not Value and IsPrepared then UnPrepare;
+end;
+
 
 procedure TSQLQuery.SetFiltered(Value: Boolean);
 
