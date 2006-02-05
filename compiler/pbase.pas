@@ -187,9 +187,9 @@ implementation
            exit;
          end;
         searchsym(pattern,srsym,srsymtable);
-        check_hints(srsym,srsym.symoptions);
         if assigned(srsym) then
          begin
+           check_hints(srsym,srsym.symoptions);
            if (srsym.typ=unitsym) then
             begin
               if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
