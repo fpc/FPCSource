@@ -24,6 +24,7 @@ dirs_macos=macos
 dirs_morphos=morphos
 dirs_netware=netware
 dirs_netwlibc=netwlibc
+dirs_palmos=palmos
 
 [install]
 fpcpackage=y

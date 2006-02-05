@@ -93,6 +93,72 @@ unit i_palmos;
             rescmd : '-I $INC $RES'
           );
 
+       system_arm_palmos_info : tsysteminfo =
+          (
+            system       : system_arm_PalmOS;
+            name         : 'PalmOS';
+            shortname    : 'PalmOS';
+            flags        : [tf_code_small,tf_static_reg_based,tf_smartlink_sections];
+            cpu          : cpu_arm;
+            unit_env     : 'PALMUNITS';
+            extradefines : '';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 8192;
+            abi : abi_default;
+          );
+
+       res_arm_palmos_info : tresinfo =
+          (
+            id     : res_m68k_palmos;
+            resbin : 'pilrc';
+            rescmd : '-I $INC $RES'
+          );
+
 implementation
 
 initialization
@@ -101,4 +167,9 @@ initialization
     set_source_info(system_m68k_palmos_info);
   {$endif palmos}
 {$endif cpu68}
+{$ifdef cpuarm}
+  {$ifdef palmos}
+    set_source_info(system_arm_palmos_info);
+  {$endif palmos}
+{$endif cpuarm}
 end.

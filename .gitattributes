@@ -4334,6 +4334,7 @@ rtl/os2/viocalls.imp -text
 rtl/os2/viocalls.pas svneol=native#text/plain
 rtl/os2/winsock.pas svneol=native#text/plain
 rtl/palmos/Makefile svneol=native#text/plain
+rtl/palmos/Makefile.fpc -text
 rtl/palmos/api/common.inc svneol=native#text/plain
 rtl/palmos/api/common.pp svneol=native#text/plain
 rtl/palmos/api/font.imn -text
@@ -4346,6 +4347,7 @@ rtl/palmos/api/sysall.pp svneol=native#text/plain
 rtl/palmos/api/systraps.inc svneol=native#text/plain
 rtl/palmos/api/systraps.pp svneol=native#text/plain
 rtl/palmos/api/ui.pp svneol=native#text/plain
+rtl/palmos/arm/prt0.as -text
 rtl/palmos/os.inc svneol=native#text/plain
 rtl/palmos/pilot.pp svneol=native#text/plain
 rtl/palmos/readme -text
