@@ -28,11 +28,10 @@ interface
     uses
       symbase;
 
-    procedure insertinternsyms(p : tsymtable);
-    procedure insert_intern_types(p : tsymtable);
+    procedure create_intern_symbols;
+    procedure create_intern_types;
 
-    procedure readconstdefs;
-    procedure createconstdefs;
+    procedure load_intern_types;
 
     procedure registernodes;
     procedure registertais;
@@ -49,52 +48,52 @@ implementation
       ;
 
 
-    procedure insertinternsyms(p : tsymtable);
+    procedure create_intern_symbols;
       {
         all intern procedures for the system unit
       }
       begin
-        p.insert(tsyssym.create('Concat',in_concat_x));
-        p.insert(tsyssym.create('Write',in_write_x));
-        p.insert(tsyssym.create('WriteLn',in_writeln_x));
-        p.insert(tsyssym.create('Assigned',in_assigned_x));
-        p.insert(tsyssym.create('Read',in_read_x));
-        p.insert(tsyssym.create('ReadLn',in_readln_x));
-        p.insert(tsyssym.create('Ofs',in_ofs_x));
-        p.insert(tsyssym.create('SizeOf',in_sizeof_x));
-        p.insert(tsyssym.create('TypeOf',in_typeof_x));
-        p.insert(tsyssym.create('Low',in_low_x));
-        p.insert(tsyssym.create('High',in_high_x));
-        p.insert(tsyssym.create('Slice',in_slice_x));
-        p.insert(tsyssym.create('Seg',in_seg_x));
-        p.insert(tsyssym.create('Ord',in_ord_x));
-        p.insert(tsyssym.create('Pred',in_pred_x));
-        p.insert(tsyssym.create('Succ',in_succ_x));
-        p.insert(tsyssym.create('Exclude',in_exclude_x_y));
-        p.insert(tsyssym.create('Include',in_include_x_y));
-        p.insert(tsyssym.create('Break',in_break));
-        p.insert(tsyssym.create('Exit',in_exit));
-        p.insert(tsyssym.create('Continue',in_continue));
-        p.insert(tsyssym.create('Leave',in_leave)); {macpas only}
-        p.insert(tsyssym.create('Cycle',in_cycle)); {macpas only}
-        p.insert(tsyssym.create('Dec',in_dec_x));
-        p.insert(tsyssym.create('Inc',in_inc_x));
-        p.insert(tsyssym.create('Str',in_str_x_string));
-        p.insert(tsyssym.create('Assert',in_assert_x_y));
-        p.insert(tsyssym.create('Val',in_val_x));
-        p.insert(tsyssym.create('Addr',in_addr_x));
-        p.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
-        p.insert(tsyssym.create('SetLength',in_setlength_x));
-        p.insert(tsyssym.create('Copy',in_copy_x));
-        p.insert(tsyssym.create('Initialize',in_initialize_x));
-        p.insert(tsyssym.create('Finalize',in_finalize_x));
-        p.insert(tsyssym.create('Length',in_length_x));
-        p.insert(tsyssym.create('New',in_new_x));
-        p.insert(tsyssym.create('Dispose',in_dispose_x));
+        systemunit.insert(tsyssym.create('Concat',in_concat_x));
+        systemunit.insert(tsyssym.create('Write',in_write_x));
+        systemunit.insert(tsyssym.create('WriteLn',in_writeln_x));
+        systemunit.insert(tsyssym.create('Assigned',in_assigned_x));
+        systemunit.insert(tsyssym.create('Read',in_read_x));
+        systemunit.insert(tsyssym.create('ReadLn',in_readln_x));
+        systemunit.insert(tsyssym.create('Ofs',in_ofs_x));
+        systemunit.insert(tsyssym.create('SizeOf',in_sizeof_x));
+        systemunit.insert(tsyssym.create('TypeOf',in_typeof_x));
+        systemunit.insert(tsyssym.create('Low',in_low_x));
+        systemunit.insert(tsyssym.create('High',in_high_x));
+        systemunit.insert(tsyssym.create('Slice',in_slice_x));
+        systemunit.insert(tsyssym.create('Seg',in_seg_x));
+        systemunit.insert(tsyssym.create('Ord',in_ord_x));
+        systemunit.insert(tsyssym.create('Pred',in_pred_x));
+        systemunit.insert(tsyssym.create('Succ',in_succ_x));
+        systemunit.insert(tsyssym.create('Exclude',in_exclude_x_y));
+        systemunit.insert(tsyssym.create('Include',in_include_x_y));
+        systemunit.insert(tsyssym.create('Break',in_break));
+        systemunit.insert(tsyssym.create('Exit',in_exit));
+        systemunit.insert(tsyssym.create('Continue',in_continue));
+        systemunit.insert(tsyssym.create('Leave',in_leave)); {macpas only}
+        systemunit.insert(tsyssym.create('Cycle',in_cycle)); {macpas only}
+        systemunit.insert(tsyssym.create('Dec',in_dec_x));
+        systemunit.insert(tsyssym.create('Inc',in_inc_x));
+        systemunit.insert(tsyssym.create('Str',in_str_x_string));
+        systemunit.insert(tsyssym.create('Assert',in_assert_x_y));
+        systemunit.insert(tsyssym.create('Val',in_val_x));
+        systemunit.insert(tsyssym.create('Addr',in_addr_x));
+        systemunit.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
+        systemunit.insert(tsyssym.create('SetLength',in_setlength_x));
+        systemunit.insert(tsyssym.create('Copy',in_copy_x));
+        systemunit.insert(tsyssym.create('Initialize',in_initialize_x));
+        systemunit.insert(tsyssym.create('Finalize',in_finalize_x));
+        systemunit.insert(tsyssym.create('Length',in_length_x));
+        systemunit.insert(tsyssym.create('New',in_new_x));
+        systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
       end;
 
 
-    procedure insert_intern_types(p : tsymtable);
+    procedure create_intern_types;
       {
         all the types inserted into the system unit
       }
@@ -102,7 +101,7 @@ implementation
         function addtype(const s:string;const t:ttype):ttypesym;
         begin
           result:=ttypesym.create(s,t);
-          p.insert(result);
+          systemunit.insert(result);
           { add init/final table if required }
           if t.def.needs_inittable then
            generate_inittable(result);
@@ -113,12 +112,93 @@ implementation
           t : ttype;
         begin
           t.setdef(def);
-          p.insert(ttypesym.create(s,t));
+          systemunit.insert(ttypesym.create(s,t));
         end;
 
       var
         hrecst : trecordsymtable;
       begin
+        symtablestack.push(systemunit);
+        cundefinedtype.setdef(tundefineddef.create);
+        cformaltype.setdef(tformaldef.create);
+        voidtype.setdef(torddef.create(uvoid,0,0));
+        u8inttype.setdef(torddef.create(u8bit,0,255));
+        s8inttype.setdef(torddef.create(s8bit,-128,127));
+        u16inttype.setdef(torddef.create(u16bit,0,65535));
+        s16inttype.setdef(torddef.create(s16bit,-32768,32767));
+        u32inttype.setdef(torddef.create(u32bit,0,high(longword)));
+        s32inttype.setdef(torddef.create(s32bit,low(longint),high(longint)));
+        u64inttype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
+        s64inttype.setdef(torddef.create(s64bit,low(int64),high(int64)));
+        booltype.setdef(torddef.create(bool8bit,0,1));
+        cchartype.setdef(torddef.create(uchar,0,255));
+        cwidechartype.setdef(torddef.create(uwidechar,0,65535));
+        cshortstringtype.setdef(tstringdef.createshort(255));
+        { should we give a length to the default long and ansi string definition ?? }
+        clongstringtype.setdef(tstringdef.createlong(-1));
+        cansistringtype.setdef(tstringdef.createansi(-1));
+        cwidestringtype.setdef(tstringdef.createwide(-1));
+        { length=0 for shortstring is open string (needed for readln(string) }
+        openshortstringtype.setdef(tstringdef.createshort(0));
+        openchararraytype.setdef(tarraydef.create(0,-1,s32inttype));
+        tarraydef(openchararraytype.def).setelementtype(cchartype);
+{$ifdef x86}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        if target_info.system<>system_x86_64_win64 then
+          s64currencytype.setdef(tfloatdef.create(s64currency))
+        else
+          s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif x86}
+{$ifdef powerpc}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif powerpc}
+{$ifdef POWERPC64}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif POWERPC64}
+{$ifdef sparc}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif sparc}
+{$ifdef m68k}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif}
+{$ifdef arm}
+        s32floattype.setdef(tfloatdef.create(s32real));
+        s64floattype.setdef(tfloatdef.create(s64real));
+        s80floattype.setdef(tfloatdef.create(s80real));
+        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+{$endif arm}
+{$ifdef cpu64bit}
+        uinttype:=u64inttype;
+        sinttype:=s64inttype;
+        ptrinttype:=u64inttype;
+{$else cpu64bit}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
+        ptrinttype:=u32inttype;
+{$endif cpu64bit}
+        { some other definitions }
+        voidpointertype.setdef(tpointerdef.create(voidtype));
+        charpointertype.setdef(tpointerdef.create(cchartype));
+        widecharpointertype.setdef(tpointerdef.create(cwidechartype));
+        voidfarpointertype.setdef(tpointerdef.createfar(voidtype));
+        cfiletype.setdef(tfiledef.createuntyped);
+        cvarianttype.setdef(tvariantdef.create(vt_normalvariant));
+        colevarianttype.setdef(tvariantdef.create(vt_olevariant));
+
         if target_info.system=system_x86_64_win64 then
           pbestrealtype:=@s64floattype;
 
@@ -214,12 +294,12 @@ implementation
         hrecst:=trecordsymtable.create(aktpackrecords);
         vmttype.setdef(trecorddef.create(hrecst));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]),true);
-        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype,[]),true);
-        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
+        hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype,[]));
+        hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype,[]));
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32inttype));
@@ -227,30 +307,25 @@ implementation
         addtype('$vtblarray',vmtarraytype);
         { Add a type for methodpointers }
         hrecst:=trecordsymtable.create(1);
-        hrecst.insertfield(tfieldvarsym.create('$proc',vs_value,voidpointertype,[]),true);
-        hrecst.insertfield(tfieldvarsym.create('$self',vs_value,voidpointertype,[]),true);
+        hrecst.insertfield(tfieldvarsym.create('$proc',vs_value,voidpointertype,[]));
+        hrecst.insertfield(tfieldvarsym.create('$self',vs_value,voidpointertype,[]));
         methodpointertype.setdef(trecorddef.create(hrecst));
         addtype('$methodpointer',methodpointertype);
-      { Add functions that require compiler magic }
-        insertinternsyms(p);
+        symtablestack.pop(systemunit);
       end;
 
 
-    procedure readconstdefs;
+    procedure load_intern_types;
       {
         Load all default definitions for consts from the system unit
       }
 
-
         procedure loadtype(const s:string;var t:ttype);
         var
-          srsym : tsym;
+          srsym : ttypesym;
         begin
-          srsym:=searchsymonlyin(systemunit,s);
-          if not(assigned(srsym) and
-                 (srsym.typ=typesym)) then
-            internalerror(200403231);
-          t:=ttypesym(srsym).restype;
+          srsym:=search_system_type(s);
+          t:=srsym.restype;
         end;
 
       var
@@ -303,99 +378,6 @@ implementation
         ptrinttype:=u32inttype;
 {$endif cpu64bit}
         current_module:=oldcurrentmodule;
-      end;
-
-
-    procedure createconstdefs;
-      {
-        Create all default definitions for consts for the system unit
-      }
-      var
-        oldregisterdef : boolean;
-      begin
-        { create definitions for constants }
-        oldregisterdef:=registerdef;
-        registerdef:=false;
-        cundefinedtype.setdef(tundefineddef.create);
-        cformaltype.setdef(tformaldef.create);
-        voidtype.setdef(torddef.create(uvoid,0,0));
-        u8inttype.setdef(torddef.create(u8bit,0,255));
-        s8inttype.setdef(torddef.create(s8bit,-128,127));
-        u16inttype.setdef(torddef.create(u16bit,0,65535));
-        s16inttype.setdef(torddef.create(s16bit,-32768,32767));
-        u32inttype.setdef(torddef.create(u32bit,0,high(longword)));
-        s32inttype.setdef(torddef.create(s32bit,low(longint),high(longint)));
-        u64inttype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
-        s64inttype.setdef(torddef.create(s64bit,low(int64),high(int64)));
-        booltype.setdef(torddef.create(bool8bit,0,1));
-        cchartype.setdef(torddef.create(uchar,0,255));
-        cwidechartype.setdef(torddef.create(uwidechar,0,65535));
-        cshortstringtype.setdef(tstringdef.createshort(255));
-        { should we give a length to the default long and ansi string definition ?? }
-        clongstringtype.setdef(tstringdef.createlong(-1));
-        cansistringtype.setdef(tstringdef.createansi(-1));
-        cwidestringtype.setdef(tstringdef.createwide(-1));
-        { length=0 for shortstring is open string (needed for readln(string) }
-        openshortstringtype.setdef(tstringdef.createshort(0));
-        openchararraytype.setdef(tarraydef.create(0,-1,s32inttype));
-        tarraydef(openchararraytype.def).setelementtype(cchartype);
-{$ifdef x86}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        if target_info.system<>system_x86_64_win64 then
-          s64currencytype.setdef(tfloatdef.create(s64currency))
-        else
-          s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif x86}
-{$ifdef powerpc}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif powerpc}
-{$ifdef POWERPC64}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif POWERPC64}
-{$ifdef sparc}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif sparc}
-{$ifdef m68k}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif}
-{$ifdef arm}
-        s32floattype.setdef(tfloatdef.create(s32real));
-        s64floattype.setdef(tfloatdef.create(s64real));
-        s80floattype.setdef(tfloatdef.create(s80real));
-        s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
-{$endif arm}
-{$ifdef cpu64bit}
-        uinttype:=u64inttype;
-        sinttype:=s64inttype;
-        ptrinttype:=u64inttype;
-{$else cpu64bit}
-        uinttype:=u32inttype;
-        sinttype:=s32inttype;
-        ptrinttype:=u32inttype;
-{$endif cpu64bit}
-        { some other definitions }
-        voidpointertype.setdef(tpointerdef.create(voidtype));
-        charpointertype.setdef(tpointerdef.create(cchartype));
-        widecharpointertype.setdef(tpointerdef.create(cwidechartype));
-        voidfarpointertype.setdef(tpointerdef.createfar(voidtype));
-        cfiletype.setdef(tfiledef.createuntyped);
-        cvarianttype.setdef(tvariantdef.create(vt_normalvariant));
-        colevarianttype.setdef(tvariantdef.create(vt_olevariant));
-        registerdef:=oldregisterdef;
       end;
 
 

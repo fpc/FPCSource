@@ -834,23 +834,15 @@ type
      constructor tcallnode.createintern(const name: string; params: tnode);
        var
          srsym: tsym;
-         symowner: tsymtable;
        begin
-         if not (cs_compilesystem in aktmoduleswitches) then
-           begin
-             srsym := searchsymonlyin(systemunit,name);
-             symowner := systemunit;
-           end
-         else
-           begin
-             searchsym(name,srsym,symowner);
-             if not assigned(srsym) then
-               searchsym(upper(name),srsym,symowner);
-           end;
+         srsym := tsym(systemunit.search(name));
+         if not assigned(srsym) and
+            (cs_compilesystem in aktmoduleswitches) then
+           srsym := tsym(systemunit.search(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         self.create(params,tprocsym(srsym),symowner,nil,[]);
+         self.create(params,tprocsym(srsym),srsym.owner,nil,[]);
        end;
 
 

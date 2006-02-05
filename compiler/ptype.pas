@@ -183,8 +183,7 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         if (token=_ID) and
-            assigned(aktobjectdef) and
+         if assigned(aktobjectdef) and
             (aktobjectdef.objname^=pattern) and
             (
              (testcurobject=2) or
@@ -195,38 +194,18 @@ implementation
              tt.setdef(aktobjectdef);
              exit;
            end;
-         { try to load the symbol to see if it's a unitsym. Use the
-           special searchsym_type that ignores records,objects and
+         { Use the special searchsym_type that ignores records,objects and
            parameters }
-         is_unit_specific:=false;
          searchsym_type(s,srsym,srsymtable);
+         { handle unit specification like System.Writeln }
+         is_unit_specific:=try_consume_unitsym(srsym,srsymtable);
          consume(_ID);
-         if assigned(srsym) and
-            (srsym.typ=unitsym) then
-           begin
-              is_unit_specific:=true;
-              consume(_POINT);
-              if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
-                internalerror(200501155);
-              { only allow unit.symbol access if the name was
-                found in the current module }
-              if srsym.owner.iscurrentunit then
-               begin
-                 srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,pattern);
-                 pos:=akttokenpos;
-                 s:=pattern;
-               end
-              else
-               srsym:=nil;
-              consume(_ID);
-           end;
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error. Only check for typesyms in the current symbol
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (srsym.owner=symtablestack) and
             (ttypesym(srsym).restype.def.deftype=errordef) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
@@ -313,16 +292,15 @@ implementation
     function record_dec : tdef;
 
       var
-         symtable : tsymtable;
+         recst : trecordsymtable;
          storetypecanbeforward : boolean;
          old_object_option : tsymoptions;
       begin
          { create recdef }
-         symtable:=trecordsymtable.create(aktpackrecords);
-         record_dec:=trecorddef.create(symtable);
-         { update symtable stack }
-         symtable.next:=symtablestack;
-         symtablestack:=symtable;
+         recst:=trecordsymtable.create(aktpackrecords);
+         record_dec:=trecorddef.create(recst);
+         { insert in symtablestack }
+         symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
          old_object_option:=current_object_option;
@@ -331,14 +309,14 @@ implementation
          { for tp7 don't allow forward types }
          if m_tp7 in aktmodeswitches then
            typecanbeforward:=false;
-         read_var_decs([vd_record]);
+         read_record_fields([vd_record]);
          consume(_END);
          typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
          { make the record size aligned }
-         trecordsymtable(symtablestack).addalignmentpadding;
+         recst.addalignmentpadding;
          { restore symtable stack }
-         symtablestack:=symtable.next;
+         symtablestack.pop(recst);
       end;
 
 
@@ -579,7 +557,7 @@ implementation
         pd : tabstractprocdef;
         is_func,
         enumdupmsg : boolean;
-        newtype : ttypesym;
+        newtype    : ttypesym;
         oldlocalswitches : tlocalswitches;
       begin
          tt.reset;
@@ -640,7 +618,7 @@ implementation
                     inc(l);
                   storepos:=akttokenpos;
                   akttokenpos:=defpos;
-                  constsymtable.insert(tenumsym.create(s,aktenumdef,l));
+                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l));
                   akttokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 tt.setdef(aktenumdef);

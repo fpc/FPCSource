@@ -178,7 +178,6 @@ implementation
          current_module.localmacrosymtable:= tmacrosymtable.create(false);
          current_module.localmacrosymtable.next:= initialmacrosymtable;
          macrosymtablestack:= current_module.localmacrosymtable;
-         ConsolidateMode;
 
          main_module:=current_module;
        { startup scanner, and save in current_module }
@@ -306,11 +305,8 @@ implementation
           oldorgpattern  : string;
           old_block_type : tblock_type;
         { symtable }
-          oldrefsymtable,
-          olddefaultsymtablestack,
-          oldsymtablestack : tsymtable;
-          olddefaultmacrosymtablestack,
-          oldmacrosymtablestack : tsymtable;
+          oldsymtablestack,
+          oldmacrosymtablestack : tsymtablestack;
           oldaktprocsym    : tprocsym;
         { cg }
           oldparse_only  : boolean;
@@ -355,9 +351,6 @@ implementation
           { save symtable state }
             oldsymtablestack:=symtablestack;
             oldmacrosymtablestack:=macrosymtablestack;
-            olddefaultsymtablestack:=defaultsymtablestack;
-            olddefaultmacrosymtablestack:=defaultmacrosymtablestack;
-            oldrefsymtable:=refsymtable;
             oldcurrent_procinfo:=current_procinfo;
             oldaktdefproccall:=aktdefproccall;
           { save scanner state }
@@ -408,14 +401,10 @@ implementation
          Message1(parser_i_compiling,filename);
 
        { reset symtable }
-         symtablestack:=nil;
-         macrosymtablestack:=nil;
-         defaultsymtablestack:=nil;
-         defaultmacrosymtablestack:=nil;
+         symtablestack:=tsymtablestack.create;
+         macrosymtablestack:=tsymtablestack.create;
          systemunit:=nil;
-         refsymtable:=nil;
          aktdefproccall:=initdefproccall;
-         registerdef:=true;
          aktexceptblock:=0;
          exceptblockcounter:=0;
          aktmaxfpuregisters:=-1;
@@ -461,10 +450,9 @@ implementation
          current_module.scanner:=current_scanner;
 
          { init macros before anything in the file is parsed.}
-         macrosymtablestack:= initialmacrosymtable;
          current_module.localmacrosymtable:= tmacrosymtable.create(false);
-         current_module.localmacrosymtable.next:= initialmacrosymtable;
-         macrosymtablestack:= current_module.localmacrosymtable;
+         macrosymtablestack.push(initialmacrosymtable);
+         macrosymtablestack.push(current_module.localmacrosymtable);
 
          { read the first token }
          current_scanner.readtoken(false);
@@ -499,117 +487,120 @@ implementation
            done_module;
 
            if assigned(current_module) then
-            begin
-              { module is now compiled }
-              tppumodule(current_module).state:=ms_compiled;
-
-              { free ppu }
-              if assigned(tppumodule(current_module).ppufile) then
-               begin
-                 tppumodule(current_module).ppufile.free;
-                 tppumodule(current_module).ppufile:=nil;
-               end;
-
-              { free scanner }
-              if assigned(current_module.scanner) then
-               begin
-                 if current_scanner=tscannerfile(current_module.scanner) then
-                   current_scanner:=nil;
-                 tscannerfile(current_module.scanner).free;
-                 current_module.scanner:=nil;
-               end;
-            end;
-
-           if (compile_level>1) then
              begin
-                with olddata^ do
+               { module is now compiled }
+               tppumodule(current_module).state:=ms_compiled;
+
+               { free ppu }
+               if assigned(tppumodule(current_module).ppufile) then
                  begin
-                   { restore scanner }
-                   c:=oldc;
-                   pattern:=oldpattern;
-                   orgpattern:=oldorgpattern;
-                   token:=oldtoken;
-                   idtoken:=oldidtoken;
-                   akttokenpos:=oldtokenpos;
-                   block_type:=old_block_type;
-                   { restore cg }
-                   parse_only:=oldparse_only;
-                   { restore asmlists }
-                   exprasmlist:=oldexprasmlist;
-                   asmlist:=oldasmlist;
-                   { object data }
-                   resourcestrings:=oldresourcestrings;
-                   objectlibrary:=oldobjectlibrary;
-                   { restore previous scanner }
-                   if assigned(old_compiled_module) then
-                     current_scanner:=tscannerfile(old_compiled_module.scanner)
-                   else
-                     current_scanner:=nil;
-                   if assigned(current_scanner) then
-                     parser_current_file:=current_scanner.inputfile.name^;
-                   { restore symtable state }
-                   refsymtable:=oldrefsymtable;
-                   symtablestack:=oldsymtablestack;
-                   macrosymtablestack:=oldmacrosymtablestack;
-                   defaultsymtablestack:=olddefaultsymtablestack;
-                   defaultmacrosymtablestack:=olddefaultmacrosymtablestack;
-                   aktdefproccall:=oldaktdefproccall;
-                   current_procinfo:=oldcurrent_procinfo;
-                   aktsourcecodepage:=oldsourcecodepage;
-                   aktlocalswitches:=oldaktlocalswitches;
-                   aktmoduleswitches:=oldaktmoduleswitches;
-                   aktalignment:=oldaktalignment;
-                   aktpackenum:=oldaktpackenum;
-                   aktpackrecords:=oldaktpackrecords;
-                   aktmaxfpuregisters:=oldaktmaxfpuregisters;
-                   aktoptprocessor:=oldaktoptprocessor;
-                   aktspecificoptprocessor:=oldaktspecificoptprocessor;
-                   aktfputype:=oldaktfputype;
-                   aktasmmode:=oldaktasmmode;
-                   aktinterfacetype:=oldaktinterfacetype;
-                   aktfilepos:=oldaktfilepos;
-                   aktmodeswitches:=oldaktmodeswitches;
-                   aktexceptblock:=0;
-                   exceptblockcounter:=0;
+                   tppumodule(current_module).ppufile.free;
+                   tppumodule(current_module).ppufile:=nil;
                  end;
-             end
-           else
-             begin
-               { Shut down things when the last file is compiled succesfull }
-               if (compile_level=1) and
-                  (status.errorcount=0) then
-                begin
-                  parser_current_file:='';
-                  { Close script }
-                  if (not AsmRes.Empty) then
-                   begin
-                     Message1(exec_i_closing_script,AsmRes.Fn);
-                     AsmRes.WriteToDisk;
-                   end;
 
-                  { do not create browsers on errors !! }
-                  if status.errorcount=0 then
-                   begin
-{$ifdef BrowserLog}
-                     { Write Browser Log }
-                     if (cs_browser_log in aktglobalswitches) and
-                        (cs_browser in aktmoduleswitches) then
-                      begin
-                        if browserlog.elements_to_list.empty then
-                         begin
-                           Message1(parser_i_writing_browser_log,browserlog.Fname);
-                           WriteBrowserLog;
-                         end
-                        else
-                         browserlog.list_elements;
-                      end;
-{$endif BrowserLog}
-                     { Write Browser Collections, also used by the TextMode IDE to
-                       retrieve a list of sourcefiles }
-                     do_extractsymbolinfo{$ifdef FPC}(){$endif};
-                   end;
-                end;
+               { free scanner }
+               if assigned(current_module.scanner) then
+                 begin
+                   if current_scanner=tscannerfile(current_module.scanner) then
+                     current_scanner:=nil;
+                   tscannerfile(current_module.scanner).free;
+                   current_module.scanner:=nil;
+                 end;
+
+               { free symtable stack }
+               if assigned(symtablestack) then
+                 begin
+                   symtablestack.free;
+                   symtablestack:=nil;
+                 end;
+               if assigned(macrosymtablestack) then
+                 begin
+                   macrosymtablestack.free;
+                   macrosymtablestack:=nil;
+                 end;
              end;
+
+            with olddata^ do
+              begin
+                { restore scanner }
+                c:=oldc;
+                pattern:=oldpattern;
+                orgpattern:=oldorgpattern;
+                token:=oldtoken;
+                idtoken:=oldidtoken;
+                akttokenpos:=oldtokenpos;
+                block_type:=old_block_type;
+                { restore cg }
+                parse_only:=oldparse_only;
+                { restore asmlists }
+                exprasmlist:=oldexprasmlist;
+                asmlist:=oldasmlist;
+                { object data }
+                resourcestrings:=oldresourcestrings;
+                objectlibrary:=oldobjectlibrary;
+                { restore previous scanner }
+                if assigned(old_compiled_module) then
+                  current_scanner:=tscannerfile(old_compiled_module.scanner)
+                else
+                  current_scanner:=nil;
+                if assigned(current_scanner) then
+                  parser_current_file:=current_scanner.inputfile.name^;
+                { restore symtable state }
+                symtablestack:=oldsymtablestack;
+                macrosymtablestack:=oldmacrosymtablestack;
+                aktdefproccall:=oldaktdefproccall;
+                current_procinfo:=oldcurrent_procinfo;
+                aktsourcecodepage:=oldsourcecodepage;
+                aktlocalswitches:=oldaktlocalswitches;
+                aktmoduleswitches:=oldaktmoduleswitches;
+                aktalignment:=oldaktalignment;
+                aktpackenum:=oldaktpackenum;
+                aktpackrecords:=oldaktpackrecords;
+                aktmaxfpuregisters:=oldaktmaxfpuregisters;
+                aktoptprocessor:=oldaktoptprocessor;
+                aktspecificoptprocessor:=oldaktspecificoptprocessor;
+                aktfputype:=oldaktfputype;
+                aktasmmode:=oldaktasmmode;
+                aktinterfacetype:=oldaktinterfacetype;
+                aktfilepos:=oldaktfilepos;
+                aktmodeswitches:=oldaktmodeswitches;
+                aktexceptblock:=0;
+                exceptblockcounter:=0;
+              end;
+            { Shut down things when the last file is compiled succesfull }
+            if (compile_level=1) and
+                (status.errorcount=0) then
+              begin
+                parser_current_file:='';
+                { Close script }
+                if (not AsmRes.Empty) then
+                begin
+                  Message1(exec_i_closing_script,AsmRes.Fn);
+                  AsmRes.WriteToDisk;
+                end;
+
+                { do not create browsers on errors !! }
+                if status.errorcount=0 then
+                begin
+{$ifdef BrowserLog}
+                  { Write Browser Log }
+                  if (cs_browser_log in aktglobalswitches) and
+                      (cs_browser in aktmoduleswitches) then
+                    begin
+                      if browserlog.elements_to_list.empty then
+                      begin
+                        Message1(parser_i_writing_browser_log,browserlog.Fname);
+                        WriteBrowserLog;
+                      end
+                      else
+                      browserlog.list_elements;
+                    end;
+{$endif BrowserLog}
+                  { Write Browser Collections, also used by the TextMode IDE to
+                    retrieve a list of sourcefiles }
+                  do_extractsymbolinfo{$ifdef FPC}(){$endif};
+                end;
+              end;
 
            dec(compile_level);
            compiled_module:=olddata^.old_compiled_module;

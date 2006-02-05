@@ -869,7 +869,6 @@ implementation
       var
         hp : tnode;
         gotstring,
-        gotwith,
         gotsubscript,
         gotrecord,
         gotpointer,
@@ -892,7 +891,6 @@ implementation
         gotrecord:=false;
         gotclass:=false;
         gotpointer:=false;
-        gotwith:=false;
         gotdynarray:=false;
         gotstring:=false;
         hp:=p;
@@ -947,7 +945,7 @@ implementation
                          (gotstring and gotvec) or
                          (
                           (gotclass or gotrecord) and
-                          (gotsubscript or gotwith)
+                          (gotsubscript)
                          ) or
                          (
                            (gotvec and gotdynarray)
@@ -1067,7 +1065,7 @@ implementation
                        CGMessage1(parser_e_illegal_assignment_to_count_var,tsubscriptnode(hp).vs.realname)
                      else
                        exit;
-                   end;                     
+                   end;
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
@@ -1152,7 +1150,7 @@ implementation
                    3. string is returned }
                  if (gotstring and gotvec) or
                     (gotpointer and gotderef) or
-                    (gotclass and (gotsubscript or gotwith)) then
+                    (gotclass and gotsubscript) then
                   result:=true
                  else
                  { Temp strings are stored in memory, for compatibility with
@@ -1206,19 +1204,8 @@ implementation
                             CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
                           exit;
                         end;
-                       { Are we at a with symtable, then we need to process the
-                         withrefnode also to check for maybe a const load }
-                       if (tloadnode(hp).symtable.symtabletype=withsymtable) then
-                        begin
-                          { continue with processing the withref node }
-                          hp:=tnode(twithsymtable(tloadnode(hp).symtable).withrefnode);
-                          gotwith:=true;
-                        end
-                       else
-                        begin
-                          result:=true;
-                          exit;
-                        end;
+                       result:=true;
+                       exit;
                      end;
                    typedconstsym :
                      begin
@@ -1456,7 +1443,7 @@ implementation
         srsymtable : tsymtable;
         srprocsym  : tprocsym;
         pt         : tcallparanode;
-
+        checkstack : psymtablestackitem;
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -1543,9 +1530,18 @@ implementation
         if has_overload_directive and
            (sym.owner.symtabletype<>objectsymtable) then
           begin
-            srsymtable:=sym.owner.next;
-            while assigned(srsymtable) do
+            srsymtable:=sym.owner;
+            checkstack:=symtablestack.stack;
+            while assigned(checkstack) and
+                  (checkstack^.symtable<>srsymtable) do
+              checkstack:=checkstack^.next;
+            { we've already processed the current symtable, start with
+              the next symtable in the stack }
+            if assigned(checkstack) then
+              checkstack:=checkstack^.next;
+            while assigned(checkstack) do
              begin
+               srsymtable:=checkstack^.symtable;
                if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
                 begin
                   srprocsym:=tprocsym(srsymtable.speedsearch(sym.name,sym.speedvalue));
@@ -1589,7 +1585,7 @@ implementation
                       end;
                    end;
                 end;
-               srsymtable:=srsymtable.next;
+               checkstack:=checkstack^.next;
              end;
           end;
       end;
@@ -1605,6 +1601,7 @@ implementation
         srprocsym  : tprocsym;
         pt         : tcallparanode;
         sv         : cardinal;
+        checkstack : psymtablestackitem;
       begin
         FProcSym:=nil;
         FProcs:=nil;
@@ -1628,9 +1625,10 @@ implementation
           entries are only added to the procs list and not the procsym, because
           the list can change in every situation }
         sv:=getspeedvalue(overloaded_names[op]);
-        srsymtable:=symtablestack;
-        while assigned(srsymtable) do
+        checkstack:=symtablestack.stack;
+        while assigned(checkstack) do
           begin
+            srsymtable:=checkstack^.symtable;
             if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
               begin
                 srprocsym:=tprocsym(srsymtable.speedsearch(overloaded_names[op],sv));
@@ -1668,7 +1666,7 @@ implementation
                       end;
                   end;
               end;
-            srsymtable:=srsymtable.next;
+            checkstack:=checkstack^.next;
           end;
       end;
 

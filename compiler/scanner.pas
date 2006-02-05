@@ -192,7 +192,6 @@ interface
     procedure DoneScanner;
 
     {To be called when the language mode is finally determined}
-    procedure ConsolidateMode;
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
 
 
@@ -247,21 +246,7 @@ implementation
       end;
 
 
-    {To be called when the language mode is finally determined}
-    procedure ConsolidateMode;
-
-    begin
-      if m_mac in aktmodeswitches then
-        if current_module.is_unit and not assigned(current_module.globalmacrosymtable) then
-          begin
-            current_module.globalmacrosymtable:= tmacrosymtable.create(true);
-            current_module.globalmacrosymtable.next:= current_module.localmacrosymtable;
-            macrosymtablestack:=current_module.globalmacrosymtable;
-          end;
-    end;
-
-
-      Function SetCompileMode(const s:string; changeInit: boolean):boolean;
+    Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
         oldaktmodeswitches : tmodeswitches;
@@ -1109,7 +1094,7 @@ In case not, the value returned can be arbitrary.
                      CTEError(exprType2, [ctetSet], 'IN');
                    if exprType = [ctetSet] then
                      CTEError(exprType, setElementTypes, 'IN');
-    
+
                   if is_number(hs1) and is_number(hs2) then
                     Message(scan_e_preproc_syntax_error)
                   else if hs2[1] = ',' then
@@ -1121,7 +1106,7 @@ In case not, the value returned can be arbitrary.
                  begin
                    if (exprType * exprType2) = [] then
                      CTEError(exprType2, exprType, tokeninfo^[op].str);
-    
+
                    if is_number(hs1) and is_number(hs2) then
                      begin
                        val(hs1,l1,w);
@@ -1210,12 +1195,12 @@ In case not, the value returned can be arbitrary.
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         mac:=tmacro(search_macro(hs));
-        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
+        if not assigned(mac) or (mac.owner <> current_module.localmacrosymtable) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
             Message1(parser_c_macro_defined,mac.name);
-            macrosymtablestack.insert(mac);
+            current_module.localmacrosymtable.insert(mac);
           end
         else
           begin
@@ -1232,7 +1217,6 @@ In case not, the value returned can be arbitrary.
         mac.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
-             { !!!!!! handle macro params, need we this? }
              current_scanner.skipspace;
 
              if not macstyle then
@@ -1322,13 +1306,14 @@ In case not, the value returned can be arbitrary.
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         mac:=tmacro(search_macro(hs));
-        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
+        if not assigned(mac) or
+           (mac.owner <> current_module.localmacrosymtable) then
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
             mac.is_compiler_var:=true;
             Message1(parser_c_macro_defined,mac.name);
-            macrosymtablestack.insert(mac);
+            current_module.localmacrosymtable.insert(mac);
           end
         else
           begin
@@ -1343,18 +1328,14 @@ In case not, the value returned can be arbitrary.
           end;
         mac.is_used:=true;
 
-
         { key words are never substituted }
-           if is_keyword(hs) then
-            Message(scan_e_keyword_cant_be_a_macro);
-         { !!!!!! handle macro params, need we this? }
-           current_scanner.skipspace;
-         { may be a macro? }
+        if is_keyword(hs) then
+          Message(scan_e_keyword_cant_be_a_macro);
 
-        { assignment can be both := and = }
+        { macro assignment can be both := and = }
+        current_scanner.skipspace;
         if c=':' then
           current_scanner.readchar;
-
         if c='=' then
           begin
              current_scanner.readchar;
@@ -1400,12 +1381,13 @@ In case not, the value returned can be arbitrary.
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         mac:=tmacro(search_macro(hs));
-        if not assigned(mac) or (mac.owner <> macrosymtablestack) then
+        if not assigned(mac) or
+           (mac.owner <> current_module.localmacrosymtable) then
           begin
              mac:=tmacro.create(hs);
              Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
-             macrosymtablestack.insert(mac);
+             current_module.localmacrosymtable.insert(mac);
           end
         else
           begin

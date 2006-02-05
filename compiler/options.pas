@@ -382,7 +382,6 @@ var
   error : integer;
   j,l  : longint;
   d    : DirStr;
-  e    : ExtStr;
   s    : string;
 begin
   if opt='' then

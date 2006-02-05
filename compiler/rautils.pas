@@ -1160,20 +1160,23 @@ begin
   i:=pos('.',s);
   { allow unit.identifier }
   if i>0 then
-   begin
-     searchsym(Copy(s,1,i-1),srsym,srsymtable);
-     if assigned(srsym) then
-      begin
-        if (srsym.typ=unitsym) and
-           (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
-           srsym.owner.iscurrentunit then
-         srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,Copy(s,i+1,255))
-        else
-         srsym:=nil;
-      end;
-   end
+    begin
+      searchsym(Copy(s,1,i-1),srsym,srsymtable);
+      if assigned(srsym) then
+       begin
+         if (srsym.typ=unitsym) and
+            (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
+            srsym.owner.iscurrentunit then
+           searchsym_in_module(tunitsym(srsym).module,Copy(s,i+1,255),srsym,srsymtable)
+         else
+           begin
+             srsym:=nil;
+             srsymtable:=nil;
+           end;
+       end;
+    end
   else
-   searchsym(s,srsym,srsymtable);
+    searchsym(s,srsym,srsymtable);
 end;
 
 

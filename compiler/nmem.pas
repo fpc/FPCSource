@@ -100,10 +100,7 @@ interface
        tvecnodeclass = class of tvecnode;
 
        twithnode = class(tunarynode)
-          withsymtable  : twithsymtable;
-          tablecount    : longint;
-          withrefnode   : tnode;
-          constructor create(l:tnode;symtable:twithsymtable;count:longint;r:tnode);
+          constructor create(l:tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -697,16 +694,18 @@ implementation
            pointerdef :
              begin
                { are we accessing a pointer[], then convert the pointer to
-                 an array first, in FPC this is allowed for all pointers in
-                 delphi/tp7 it's only allowed for pchars }
-               if (m_fpc in aktmodeswitches) or
-                  is_pchar(left.resulttype.def) or
-                  is_pwidechar(left.resulttype.def) then
+                 an array first, in FPC this is allowed for all pointers
+                 (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
+               if not is_voidpointer(left.resulttype.def) and
+                  (
+                   (m_fpc in aktmodeswitches) or
+                   is_pchar(left.resulttype.def) or
+                   is_pwidechar(left.resulttype.def)
+                  ) then
                 begin
                   { convert pointer to array }
                   htype.setdef(tarraydef.create_from_pointer(tpointerdef(left.resulttype.def).pointertype));
                   inserttypeconv(left,htype);
-
                   resulttype:=tarraydef(htype.def).elementtype;
                 end
                else
@@ -843,32 +842,15 @@ implementation
                                TWITHNODE
 *****************************************************************************}
 
-    constructor twithnode.create(l:tnode;symtable:twithsymtable;count:longint;r:tnode);
+    constructor twithnode.create(l:tnode);
       begin
          inherited create(withn,l);
-         withrefnode:=r;
-         withsymtable:=symtable;
-         tablecount:=count;
          fileinfo:=l.fileinfo;
       end;
 
 
     destructor twithnode.destroy;
-      var
-        hsymt,
-        symt : tsymtable;
-        i    : longint;
       begin
-        symt:=withsymtable;
-        for i:=1 to tablecount do
-         begin
-           if assigned(symt) then
-            begin
-              hsymt:=symt.next;
-              symt.free;
-              symt:=hsymt;
-            end;
-         end;
         inherited destroy;
       end;
 
@@ -876,30 +858,20 @@ implementation
     constructor twithnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        internalerror(200208192);
       end;
 
 
     procedure twithnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        internalerror(200208193);
       end;
 
 
     function twithnode._getcopy : tnode;
-
       var
          p : twithnode;
-
       begin
          p:=twithnode(inherited _getcopy);
-         p.withsymtable:=withsymtable;
-         p.tablecount:=tablecount;
-         if assigned(p.withrefnode) then
-           p.withrefnode:=withrefnode._getcopy
-         else
-           p.withrefnode:=nil;
          result:=p;
       end;
 
@@ -908,16 +880,6 @@ implementation
       begin
         result:=nil;
         resulttype:=voidtype;
-
-        resulttypepass(withrefnode);
-        set_varstate(withrefnode,vs_read,[vsf_must_be_valid]);
-        if codegenerror then
-         exit;
-
-        if (withrefnode.nodetype=vecn) and
-           (nf_memseg in withrefnode.flags) then
-          CGMessage(parser_e_no_with_for_variable_in_other_segments);
-
         if assigned(left) then
           resulttypepass(left);
       end;
@@ -927,38 +889,18 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_VOID;
-
-        if assigned(left) then
-         begin
-           firstpass(left);
-           registersint:=left.registersint;
-           registersfpu:=left.registersfpu;
+        registersint:=left.registersint;
+        registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-           registersmmx:=left.registersmmx;
+        registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         end;
-        if assigned(withrefnode) then
-          begin
-            firstpass(withrefnode);
-            if withrefnode.registersint > registersint then
-              registersint:=withrefnode.registersint;
-            if withrefnode.registersfpu > registersfpu then
-              registersint:=withrefnode.registersfpu;
-{$ifdef SUPPORT_MMX}
-            if withrefnode.registersmmx > registersmmx then
-              registersmmx:=withrefnode.registersmmx;
-{$endif SUPPORT_MMX}
-          end;
       end;
 
 
     function twithnode.docompare(p: tnode): boolean;
       begin
         docompare :=
-          inherited docompare(p) and
-          (withsymtable = twithnode(p).withsymtable) and
-          (tablecount = twithnode(p).tablecount) and
-          (withrefnode.isequal(twithnode(p).withrefnode));
+          inherited docompare(p);
       end;
 
 begin

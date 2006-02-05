@@ -32,7 +32,7 @@ interface
        { symtable }
        symconst,symbase,symtype,symdef,defcmp,
        { ppu }
-       ppu,
+       ppu,finput,
        cclasses,symnot,
        { aasm }
        aasmbase,
@@ -43,8 +43,8 @@ interface
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
        public
-          constructor create(const n : string);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(st:tsymtyp;const n : string);
+          constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
        end;
@@ -66,8 +66,8 @@ interface
        end;
 
        tunitsym = class(Tstoredsym)
-          unitsymtable : tsymtable;
-          constructor create(const n : string;ref : tsymtable);
+          module : tobject; { tmodule }
+          constructor create(const n : string;amodule : tobject);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -138,8 +138,8 @@ interface
           varregable    : tvarregable;
           varstate      : tvarstate;
           notifications : Tlinkedlist;
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -168,8 +168,8 @@ interface
           defaultconstsym : tsym;
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
-          constructor ppuload(ppufile:tcompilerppufile);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -333,6 +333,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           destructor  destroy;override;
+          function GetCopy:tmacro;
        end;
 
        { compiler generated symbol to point to rtti and init/finalize tables }
@@ -378,13 +379,13 @@ implementation
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tstoredsym.create(const n : string);
+    constructor tstoredsym.create(st:tsymtyp;const n : string);
       begin
-         inherited create(n);
+         inherited create(st,n);
       end;
 
 
-    constructor tstoredsym.ppuload(ppufile:tcompilerppufile);
+    constructor tstoredsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
       var
         nr : word;
         s  : string;
@@ -396,7 +397,7 @@ implementation
          else
           inherited createname(upper(s));
          _realname:=stringdup(s);
-         typ:=abstractsym;
+         typ:=st;
          { force the correct indexnr. must be after create! }
          indexnr:=nr;
          ppufile.getposinfo(fileinfo);
@@ -442,8 +443,7 @@ implementation
 
     constructor tlabelsym.create(const n : string);
       begin
-         inherited create(n);
-         typ:=labelsym;
+         inherited create(labelsym,n);
          used:=false;
          defined:=false;
          code:=nil;
@@ -452,8 +452,7 @@ implementation
 
     constructor tlabelsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=labelsym;
+         inherited ppuload(labelsym,ppufile);
          code:=nil;
          used:=false;
          defined:=true;
@@ -476,24 +475,22 @@ implementation
                                   TUNITSYM
 ****************************************************************************}
 
-    constructor tunitsym.create(const n : string;ref : tsymtable);
+    constructor tunitsym.create(const n : string;amodule : tobject);
       var
         old_make_ref : boolean;
       begin
          old_make_ref:=make_ref;
          make_ref:=false;
-         inherited create(n);
+         inherited create(unitsym,n);
          make_ref:=old_make_ref;
-         typ:=unitsym;
-         unitsymtable:=ref;
+         module:=amodule;
       end;
 
     constructor tunitsym.ppuload(ppufile:tcompilerppufile);
 
       begin
-         inherited ppuload(ppufile);
-         typ:=unitsym;
-         unitsymtable:=nil;
+         inherited ppuload(unitsym,ppufile);
+         module:=nil;
       end;
 
     destructor tunitsym.destroy;
@@ -514,11 +511,9 @@ implementation
     constructor tprocsym.create(const n : string);
 
       begin
-         inherited create(n);
-         typ:=procsym;
+         inherited create(procsym,n);
          pdlistfirst:=nil;
          pdlistlast:=nil;
-         owner:=nil;
          { the tprocdef have their own symoptions, make the procsym
            always visible }
          symoptions:=[sp_public];
@@ -532,8 +527,7 @@ implementation
          pdderef : tderef;
          i,n : longint;
       begin
-         inherited ppuload(ppufile);
-         typ:=procsym;
+         inherited ppuload(procsym,ppufile);
          pdlistfirst:=nil;
          pdlistlast:=nil;
          procdef_count:=0;
@@ -1055,8 +1049,7 @@ implementation
 
     constructor terrorsym.create;
       begin
-        inherited create('');
-        typ:=errorsym;
+        inherited create(errorsym,'');
       end;
 
 {****************************************************************************
@@ -1065,8 +1058,7 @@ implementation
 
     constructor tpropertysym.create(const n : string);
       begin
-         inherited create(n);
-         typ:=propertysym;
+         inherited create(propertysym,n);
          propoptions:=[];
          index:=0;
          default:=0;
@@ -1080,8 +1072,7 @@ implementation
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=propertysym;
+         inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
          if (ppo_is_override in propoptions) then
           begin
@@ -1201,9 +1192,9 @@ implementation
                             TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabstractvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n);
+         inherited create(st,n);
          vartype:=tt;
          varspez:=vsp;
          varstate:=vs_declared;
@@ -1211,9 +1202,9 @@ implementation
       end;
 
 
-    constructor tabstractvarsym.ppuload(ppufile:tcompilerppufile);
+    constructor tabstractvarsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
+         inherited ppuload(st,ppufile);
          varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
@@ -1378,16 +1369,14 @@ implementation
 
     constructor tfieldvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt,vopts);
-         typ:=fieldvarsym;
-         fieldoffset:=0;
+         inherited create(fieldvarsym,n,vsp,tt,vopts);
+         fieldoffset:=-1;
       end;
 
 
     constructor tfieldvarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=fieldvarsym;
+         inherited ppuload(fieldvarsym,ppufile);
          fieldoffset:=ppufile.getaint;
       end;
 
@@ -1404,17 +1393,17 @@ implementation
                         TABSTRACTNORMALVARSYM
 ****************************************************************************}
 
-    constructor tabstractnormalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt,vopts);
+         inherited create(st,n,vsp,tt,vopts);
          fillchar(localloc,sizeof(localloc),0);
          defaultconstsym:=nil;
       end;
 
 
-    constructor tabstractnormalvarsym.ppuload(ppufile:tcompilerppufile);
+    constructor tabstractnormalvarsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
+         inherited ppuload(st,ppufile);
          fillchar(localloc,sizeof(localloc),0);
          ppufile.getderef(defaultconstsymderef);
       end;
@@ -1447,8 +1436,7 @@ implementation
 
     constructor tglobalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt,vopts);
-         typ:=globalvarsym;
+         inherited create(globalvarsym,n,vsp,tt,vopts);
          _mangledname:=nil;
       end;
 
@@ -1468,8 +1456,7 @@ implementation
 
     constructor tglobalvarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=globalvarsym;
+         inherited ppuload(globalvarsym,ppufile);
          if vo_has_mangledname in varoptions then
            _mangledname:=stringdup(ppufile.getstring)
          else
@@ -1534,15 +1521,13 @@ implementation
 
     constructor tlocalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt,vopts);
-         typ:=localvarsym;
+         inherited create(localvarsym,n,vsp,tt,vopts);
       end;
 
 
     constructor tlocalvarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=localvarsym;
+         inherited ppuload(localvarsym,ppufile);
       end;
 
 
@@ -1559,8 +1544,7 @@ implementation
 
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
       begin
-         inherited create(n,vsp,tt,vopts);
-         typ:=paravarsym;
+         inherited create(paravarsym,n,vsp,tt,vopts);
          paranr:=nr;
          paraloc[calleeside].init;
          paraloc[callerside].init;
@@ -1579,7 +1563,7 @@ implementation
       var
         b : byte;
       begin
-         inherited ppuload(ppufile);
+         inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
          paraloc[calleeside].init;
          paraloc[callerside].init;
@@ -1592,7 +1576,6 @@ implementation
              paraloc[callerside].size:=paraloc[callerside].location^.size;
              paraloc[callerside].intsize:=tcgsize2size[paraloc[callerside].size];
            end;
-         typ:=paravarsym;
       end;
 
 
@@ -1616,16 +1599,14 @@ implementation
 
     constructor tabsolutevarsym.create(const n : string;const tt : ttype);
       begin
-        inherited create(n,vs_value,tt,[]);
-        typ:=absolutevarsym;
+        inherited create(absolutevarsym,n,vs_value,tt,[]);
         ref:=nil;
       end;
 
 
     constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
       begin
-        inherited create(n,vs_value,tt,[]);
-        typ:=absolutevarsym;
+        inherited create(absolutevarsym,n,vs_value,tt,[]);
         ref:=_ref;
       end;
 
@@ -1640,8 +1621,7 @@ implementation
 
     constructor tabsolutevarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=absolutevarsym;
+         inherited ppuload(absolutevarsym,ppufile);
          ref:=nil;
          asmname:=nil;
          abstyp:=absolutetyp(ppufile.getbyte);
@@ -1721,8 +1701,7 @@ implementation
 
     constructor ttypedconstsym.create(const n : string;p : tdef;writable : boolean);
       begin
-         inherited create(n);
-         typ:=typedconstsym;
+         inherited create(typedconstsym,n);
          typedconsttype.setdef(p);
          is_writable:=writable;
       end;
@@ -1730,8 +1709,7 @@ implementation
 
     constructor ttypedconstsym.createtype(const n : string;const tt : ttype;writable : boolean);
       begin
-         inherited create(n);
-         typ:=typedconstsym;
+         inherited create(typedconstsym,n);
          typedconsttype:=tt;
          is_writable:=writable;
       end;
@@ -1739,8 +1717,7 @@ implementation
 
     constructor ttypedconstsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=typedconstsym;
+         inherited ppuload(typedconstsym,ppufile);
          ppufile.gettype(typedconsttype);
          is_writable:=boolean(ppufile.getbyte);
       end;
@@ -1812,9 +1789,8 @@ implementation
 
     constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
       begin
-         inherited create(n);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
-         typ:=constsym;
          consttyp:=t;
          value.valueord:=v;
          ResStrIndex:=0;
@@ -1824,9 +1800,8 @@ implementation
 
     constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
       begin
-         inherited create(n);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
-         typ:=constsym;
          consttyp:=t;
          value.valueordptr:=v;
          ResStrIndex:=0;
@@ -1836,9 +1811,8 @@ implementation
 
     constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
       begin
-         inherited create(n);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
-         typ:=constsym;
          consttyp:=t;
          value.valueptr:=v;
          ResStrIndex:=0;
@@ -1848,9 +1822,8 @@ implementation
 
     constructor tconstsym.create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
       begin
-         inherited create(n);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
-         typ:=constsym;
          consttyp:=t;
          value.valueptr:=str;
          consttype.reset;
@@ -1862,9 +1835,8 @@ implementation
 
     constructor tconstsym.create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
       begin
-         inherited create(n);
+         inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
-         typ:=constsym;
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
          consttype.reset;
@@ -1879,8 +1851,7 @@ implementation
          pc : pchar;
          pw : pcompilerwidestring;
       begin
-         inherited ppuload(ppufile);
-         typ:=constsym;
+         inherited ppuload(constsym,ppufile);
          consttype.reset;
          consttyp:=tconsttyp(ppufile.getbyte);
          fillchar(value, sizeof(value), #0);
@@ -2021,8 +1992,7 @@ implementation
 
     constructor tenumsym.create(const n : string;def : tenumdef;v : longint);
       begin
-         inherited create(n);
-         typ:=enumsym;
+         inherited create(enumsym,n);
          definition:=def;
          value:=v;
          { First entry? Then we need to set the minval }
@@ -2050,8 +2020,7 @@ implementation
 
     constructor tenumsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=enumsym;
+         inherited ppuload(enumsym,ppufile);
          ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
          nextenum := Nil;
@@ -2112,8 +2081,7 @@ implementation
     constructor ttypesym.create(const n : string;const tt : ttype);
 
       begin
-         inherited create(n);
-         typ:=typesym;
+         inherited create(typesym,n);
          restype:=tt;
         { register the typesym for the definition }
         if assigned(restype.def) and
@@ -2125,8 +2093,7 @@ implementation
 
     constructor ttypesym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=typesym;
+         inherited ppuload(typesym,ppufile);
          ppufile.gettype(restype);
       end;
 
@@ -2198,15 +2165,13 @@ implementation
 
     constructor tsyssym.create(const n : string;l : longint);
       begin
-         inherited create(n);
-         typ:=syssym;
+         inherited create(syssym,n);
          number:=l;
       end;
 
     constructor tsyssym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=syssym;
+         inherited ppuload(syssym,ppufile);
          number:=ppufile.getlongint;
       end;
 
@@ -2229,21 +2194,18 @@ implementation
 
     constructor tmacro.create(const n : string);
       begin
-         inherited create(n);
-         typ:= macrosym;
-         owner:= nil;
-
+         inherited create(macrosym,n);
+         owner:=nil;
          defined:=false;
          is_used:=false;
-         is_compiler_var:= false;
+         is_compiler_var:=false;
          buftext:=nil;
          buflen:=0;
       end;
 
     constructor tmacro.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(ppufile);
-         typ:=macrosym;
+         inherited ppuload(macrosym,ppufile);
          name:=ppufile.getstring;
          defined:=boolean(ppufile.getbyte);
          is_compiler_var:=boolean(ppufile.getbyte);
@@ -2261,7 +2223,7 @@ implementation
     destructor tmacro.destroy;
       begin
          if assigned(buftext) then
-           freemem(buftext,buflen);
+           freemem(buftext);
          inherited destroy;
       end;
 
@@ -2278,6 +2240,24 @@ implementation
       end;
 
 
+    function tmacro.GetCopy:tmacro;
+      var
+        p : tmacro;
+      begin
+        p:=tmacro.create(realname);
+        p.defined:=defined;
+        p.is_used:=is_used;
+        p.is_compiler_var:=is_compiler_var;
+        p.buflen:=buflen;
+        if assigned(buftext) then
+          begin
+            getmem(p.buftext,buflen);
+            move(buftext^,p.buftext^,buflen);
+          end;
+        Result:=p;
+      end;
+
+
 {****************************************************************************
                                   TRTTISYM
 ****************************************************************************}
@@ -2286,9 +2266,8 @@ implementation
       const
         prefix : array[trttitype] of string[5]=('$rtti','$init');
       begin
-        inherited create(prefix[rt]+n);
+        inherited create(rttisym,prefix[rt]+n);
         include(symoptions,sp_internal);
-        typ:=rttisym;
         lab:=nil;
         rttityp:=rt;
       end;
@@ -2312,8 +2291,7 @@ implementation
 
     constructor trttisym.ppuload(ppufile:tcompilerppufile);
       begin
-        inherited ppuload(ppufile);
-        typ:=rttisym;
+        inherited ppuload(rttisym,ppufile);
         lab:=nil;
         rttityp:=trttitype(ppufile.getbyte);
       end;

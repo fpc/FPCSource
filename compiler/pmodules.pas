@@ -399,17 +399,14 @@ implementation
         hp.loadppu;
         hp.adddependency(current_module);
         { add to symtable stack }
-        tsymtable(hp.globalsymtable).next:=symtablestack;
-        symtablestack:=hp.globalsymtable;
-        if (m_mac in aktmodeswitches) and assigned(hp.globalmacrosymtable) then
-          begin
-            tsymtable(hp.globalmacrosymtable).next:=macrosymtablestack;
-            macrosymtablestack:=hp.globalmacrosymtable;
-          end;
+        symtablestack.push(hp.globalsymtable);
+        if (m_mac in aktmodeswitches) and
+           assigned(hp.globalmacrosymtable) then
+          macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
-        unitsym:=tunitsym.create(s,hp.globalsymtable);
+        unitsym:=tunitsym.create(s,hp);
         inc(unitsym.refs);
-        refsymtable.insert(unitsym);
+        current_module.localsymtable.insert(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
       end;
@@ -440,32 +437,38 @@ implementation
 
     procedure loaddefaultunits;
       begin
-      { are we compiling the system unit? }
+        { we are going to rebuild the symtablestack, clear it first }
+        symtablestack.clear;
+        macrosymtablestack.clear;
+
+        { macro symtable }
+        macrosymtablestack.push(initialmacrosymtable);
+
+        { are we compiling the system unit? }
         if (cs_compilesystem in aktmoduleswitches) then
          begin
-         { create system defines }
-           createconstdefs;
-         { we don't need to reset anything, it's already done in parser.pas }
+           systemunit:=tglobalsymtable(current_module.localsymtable);
+           { create system defines }
+           create_intern_symbols;
+           create_intern_types;
            exit;
          end;
-        { insert the system unit, it is allways the first }
-        symtablestack:=nil;
-        macrosymtablestack:=initialmacrosymtable;
+
+        { insert the system unit, it is allways the first. Load also the
+          internal types from the system unit }
         AddUnit('System');
-        SystemUnit:=TGlobalSymtable(Symtablestack);
-        { read default constant definitions }
-        make_ref:=false;
-        readconstdefs;
-        make_ref:=true;
+        systemunit:=tglobalsymtable(symtablestack.top);
+        load_intern_types;
+
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
         generrortype.def.owner:=systemunit;
+
         { Units only required for main module }
-        { load heaptrace before any other units especially objpas }
         if not(current_module.is_unit) then
          begin
-           { Heaptrc unit }
+           { Heaptrc unit, load heaptrace before any other units especially objpas }
            if (cs_use_heaptrc in aktglobalswitches) then
              AddUnit('HeapTrc');
            { Lineinfo unit }
@@ -495,9 +498,6 @@ implementation
             AddUnit('FPCylix');
             AddUnit('DynLibs');
           end;
-        { save default symtablestack }
-        defaultsymtablestack:=symtablestack;
-        defaultmacrosymtablestack:=macrosymtablestack;
       end;
 
 
@@ -521,15 +521,9 @@ implementation
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
-         hp3     : tsymtable;
          unitsym : tunitsym;
-         top_of_macrosymtable : tsymtable;
-
       begin
          consume(_USES);
-{$ifdef DEBUG}
-         test_symtablestack;
-{$endif DEBUG}
          repeat
            s:=pattern;
            sorg:=orgpattern;
@@ -568,7 +562,7 @@ implementation
                 can not use the modulename because that can be different
                 when -Un is used }
               unitsym:=tunitsym.create(sorg,nil);
-              refsymtable.insert(unitsym);
+              current_module.localsymtable.insert(unitsym);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true,unitsym);
             end
@@ -584,7 +578,6 @@ implementation
          until false;
 
          { Load the units }
-         top_of_macrosymtable:= macrosymtablestack;
          pu:=tused_unit(current_module.used_units.first);
          while assigned(pu) do
           begin
@@ -602,53 +595,17 @@ implementation
                { save crc values }
                pu.checksum:=pu.u.crc;
                pu.interface_checksum:=pu.u.interface_crc;
-               { connect unitsym to the globalsymtable of the unit }
-               pu.unitsym.unitsymtable:=pu.u.globalsymtable;
+               { connect unitsym to the module }
+               pu.unitsym.module:=pu.u;
+               { add to symtable stack }
+               symtablestack.push(pu.u.globalsymtable);
+               if (m_mac in aktmodeswitches) and
+                  assigned(pu.u.globalmacrosymtable) then
+                 macrosymtablestack.push(pu.u.globalmacrosymtable);
              end;
             pu:=tused_unit(pu.next);
           end;
 
-         { set the symtable to systemunit so it gets reorderd correctly,
-           then insert the units in the symtablestack }
-         pu:=tused_unit(current_module.used_units.first);
-         symtablestack:=defaultsymtablestack;
-         macrosymtablestack:=defaultmacrosymtablestack;
-         while assigned(pu) do
-           begin
-              if pu.in_uses then
-                begin
-                   { Reinsert in symtablestack }
-                   hp3:=symtablestack;
-                   while assigned(hp3) do
-                     begin
-                        { insert units only once ! }
-                        if pu.u.globalsymtable=hp3 then
-                          break;
-                        hp3:=hp3.next;
-                        { unit isn't inserted }
-                        if hp3=nil then
-                          begin
-                             tsymtable(pu.u.globalsymtable).next:=symtablestack;
-                             symtablestack:=tsymtable(pu.u.globalsymtable);
-                             if (m_mac in aktmodeswitches) and assigned(pu.u.globalmacrosymtable) then
-                               begin
-                                 tsymtable(pu.u.globalmacrosymtable).next:=macrosymtablestack;
-                                 macrosymtablestack:=tsymtable(pu.u.globalmacrosymtable);
-                               end;
-{$ifdef DEBUG}
-                             test_symtablestack;
-{$endif DEBUG}
-                          end;
-                     end;
-                end;
-              pu:=tused_unit(pu.next);
-           end;
-
-         if assigned (current_module.globalmacrosymtable) then
-           top_of_macrosymtable.next.next:= macrosymtablestack
-         else
-           top_of_macrosymtable.next:= macrosymtablestack;
-         macrosymtablestack:= top_of_macrosymtable;
          consume(_SEMICOLON);
       end;
 
@@ -718,12 +675,7 @@ implementation
     procedure parse_implementation_uses;
       begin
          if token=_USES then
-           begin
-              loadunits;
-{$ifdef DEBUG}
-              test_symtablestack;
-{$endif DEBUG}
-           end;
+           loadunits;
       end;
 
 
@@ -740,7 +692,6 @@ implementation
 
     function create_main_proc(const name:string;potype:tproctypeoption;st:tsymtable):tprocdef;
       var
-        stt : tsymtable;
         ps  : tprocsym;
         pd  : tprocdef;
       begin
@@ -748,22 +699,14 @@ implementation
         if assigned(current_procinfo) then
          internalerror(200304275);
         {Generate a procsym for main}
-        make_ref:=false;
-        { try to insert in in static symtable ! }
-        stt:=symtablestack;
-        symtablestack:=st;
-        { generate procsym }
         ps:=tprocsym.create('$'+name);
         { main are allways used }
         inc(ps.refs);
-        symtablestack.insert(ps);
+        st.insert(ps);
         pd:=tprocdef.create(main_program_level);
         include(pd.procoptions,po_global);
         pd.procsym:=ps;
         ps.addprocdef(pd);
-        { restore symtable }
-        make_ref:=true;
-        symtablestack:=stt;
         { set procdef options }
         pd.proctypeoption:=potype;
         pd.proccalloption:=pocall_default;
@@ -828,14 +771,12 @@ implementation
         release_main_proc(pd);
       end;
 
-    procedure delete_duplicate_macros(p:TNamedIndexItem; arg:pointer);
-      var
-        hp: tsymentry;
+
+    procedure copy_macro(p:TNamedIndexItem; arg:pointer);
       begin
-        hp:= current_module.localmacrosymtable.search(p.name);
-        if assigned(hp) then
-          current_module.localmacrosymtable.delete(hp);
+        current_module.globalmacrosymtable.insert(tmacro(p).getcopy);
       end;
+
 
     procedure proc_unit;
 
@@ -857,8 +798,6 @@ implementation
 
       var
          main_file: tinputfile;
-         st     : tsymtable;
-         unitst : tglobalsymtable;
 {$ifdef EXTDEBUG}
          store_crc,
 {$endif EXTDEBUG}
@@ -871,10 +810,7 @@ implementation
          globalvarsym : tglobalvarsym;
       begin
          if m_mac in aktmodeswitches then
-           begin
-             ConsolidateMode;
-             current_module.mode_switch_allowed:= false;
-           end;
+           current_module.mode_switch_allowed:= false;
 
          consume(_UNIT);
          if compile_level=1 then
@@ -928,7 +864,6 @@ implementation
          current_module.in_global:=false;
 
          { handle the global switches }
-         ConsolidateMode;
          setupglobalswitches;
 
          message1(unit_u_loading_interface_units,current_module.modulename^);
@@ -946,62 +881,31 @@ implementation
 
          parse_only:=true;
 
-         { generate now the global symboltable }
-         st:=tglobalsymtable.create(current_module.modulename^,current_module.moduleid);
-         refsymtable:=st;
-         unitst:=tglobalsymtable(st);
-         { define first as local to overcome dependency conflicts }
-         current_module.localsymtable:=st;
+         { generate now the global symboltable,
+           define first as local to overcome dependency conflicts }
+         current_module.localsymtable:=tglobalsymtable.create(current_module.modulename^,current_module.moduleid);
 
-         { the unit name must be usable as a unit specifier }
-         { inside the unit itself (PM)                }
-         { this also forbids to have another symbol      }
-         { with the same name as the unit                  }
-         refsymtable.insert(tunitsym.create(current_module.realmodulename^,unitst));
-
-         macrosymtablestack:= initialmacrosymtable;
+         { insert unitsym of this unit to prevent other units having
+           the same name }
+         current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
 
          { load default units, like the system unit }
          loaddefaultunits;
-
-         current_module.localmacrosymtable.next:=macrosymtablestack;
-         if assigned(current_module.globalmacrosymtable) then
-           begin
-             current_module.globalmacrosymtable.next:= current_module.localmacrosymtable;
-             macrosymtablestack:=current_module.globalmacrosymtable;
-           end
-         else
-           macrosymtablestack:=current_module.localmacrosymtable;
 
          { reset }
          make_ref:=true;
 
          { insert qualifier for the system unit (allows system.writeln) }
-         if not(cs_compilesystem in aktmoduleswitches) then
+         if not(cs_compilesystem in aktmoduleswitches) and
+            (token=_USES) then
            begin
-              if token=_USES then
-                begin
-                   loadunits;
-                   { has it been compiled at a higher level ?}
-                   if current_module.state=ms_compiled then
-                     exit;
-                end;
-              { ... but insert the symbol table later }
-              st.next:=symtablestack;
-              symtablestack:=st;
-           end
-         else
-         { while compiling a system unit, some types are directly inserted }
-           begin
-              st.next:=symtablestack;
-              symtablestack:=st;
-              insert_intern_types(st);
+             loadunits;
+             { has it been compiled at a higher level ?}
+             if current_module.state=ms_compiled then
+               exit;
            end;
 
-         { now we know the place to insert the constants }
-         constsymtable:=symtablestack;
-
-         { move the global symtab from the temporary local to global }
+         { move the global symtable from the temporary local to global }
          current_module.globalsymtable:=current_module.localsymtable;
          current_module.localsymtable:=nil;
 
@@ -1013,7 +917,18 @@ implementation
 
          { ... parse the declarations }
          Message1(parser_u_parsing_interface,current_module.realmodulename^);
+         symtablestack.push(current_module.globalsymtable);
          read_interface_declarations;
+         symtablestack.pop(current_module.globalsymtable);
+
+         { Export macros defined in the interface for macpas. The macros
+           are put in the globalmacrosymtable that will only be used by other
+           units. The current unit continues to use the localmacrosymtable }
+         if (m_mac in aktmodeswitches) then
+          begin
+            current_module.globalmacrosymtable:=tmacrosymtable.create(true);
+            current_module.localmacrosymtable.foreach_static(@copy_macro,nil);
+          end;
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1043,8 +958,7 @@ implementation
          parse_only:=false;
 
          { generates static symbol table }
-         st:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
-         current_module.localsymtable:=st;
+         current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
 {$ifdef i386}
          if cs_create_pic in aktmoduleswitches then
@@ -1058,23 +972,6 @@ implementation
              globalvarsym.refs:=1;
            end;
 {$endif i386}
-
-         { Swap the positions of the local and global macro sym table}
-         if assigned(current_module.globalmacrosymtable) then
-           begin
-             macrosymtablestack:=current_module.localmacrosymtable;
-             current_module.globalmacrosymtable.next:= current_module.localmacrosymtable.next;
-             current_module.localmacrosymtable.next:=current_module.globalmacrosymtable;
-
-             current_module.globalmacrosymtable.foreach_static(@delete_duplicate_macros, nil);
-           end;
-
-         { remove the globalsymtable from the symtable stack }
-         { to reinsert it after loading the implementation units }
-         symtablestack:=unitst.next;
-
-         { we don't want implementation units symbols in unitsymtable !! PM }
-         refsymtable:=st;
 
          if has_impl then
            begin
@@ -1093,17 +990,8 @@ implementation
          { All units are read, now give them a number }
          current_module.updatemaps;
 
-         { now we can change refsymtable }
-         refsymtable:=st;
-
-         { but reinsert the global symtable as lasts }
-         unitst.next:=symtablestack;
-         symtablestack:=unitst;
-
-{$ifdef DEBUG}
-         test_symtablestack;
-{$endif DEBUG}
-         constsymtable:=symtablestack;
+         symtablestack.push(current_module.globalsymtable);
+         symtablestack.push(current_module.localsymtable);
 
          if has_impl then
            begin
@@ -1112,7 +1000,7 @@ implementation
                internalerror(200212285);
 
              { Compile the unit }
-             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,st);
+             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,current_module.localsymtable);
              pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
              tcgprocinfo(current_procinfo).parse_body;
              tcgprocinfo(current_procinfo).generate_code;
@@ -1133,7 +1021,7 @@ implementation
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
          if force_init_final and ((current_module.flags and uf_init)=0) then
-           gen_implicit_initfinal(uf_init,st);
+           gen_implicit_initfinal(uf_init,current_module.localsymtable);
          { finalize? }
          if has_impl and (token=_FINALIZATION) then
            begin
@@ -1141,7 +1029,7 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,st);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               tcgprocinfo(current_procinfo).parse_body;
               tcgprocinfo(current_procinfo).generate_code;
@@ -1149,7 +1037,10 @@ implementation
               release_main_proc(pd);
            end
          else if force_init_final then
-           gen_implicit_initfinal(uf_finalize,st);
+           gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+
+         symtablestack.pop(current_module.localsymtable);
+         symtablestack.pop(current_module.globalsymtable);
 
          { the last char should always be a point }
          consume(_POINT);
@@ -1167,18 +1058,18 @@ implementation
          if (Errorcount=0) then
            begin
              { tests, if all (interface) forwards are resolved }
-             tstoredsymtable(symtablestack).check_forwards;
+             tstoredsymtable(current_module.globalsymtable).check_forwards;
              { check if all private fields are used }
-             tstoredsymtable(symtablestack).allprivatesused;
+             tstoredsymtable(current_module.globalsymtable).allprivatesused;
              { remove cross unit overloads }
-             tstoredsymtable(symtablestack).unchain_overloaded;
+             tstoredsymtable(current_module.globalsymtable).unchain_overloaded;
 
              { test static symtable }
-             tstoredsymtable(st).allsymbolsused;
-             tstoredsymtable(st).allprivatesused;
-             tstoredsymtable(st).check_forwards;
-             tstoredsymtable(st).checklabels;
-             tstoredsymtable(st).unchain_overloaded;
+             tstoredsymtable(current_module.localsymtable).allsymbolsused;
+             tstoredsymtable(current_module.localsymtable).allprivatesused;
+             tstoredsymtable(current_module.localsymtable).check_forwards;
+             tstoredsymtable(current_module.localsymtable).checklabels;
+             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
 
              { used units }
              current_module.allunitsused;
@@ -1225,15 +1116,10 @@ implementation
              current_module.flags:=current_module.flags and not uf_has_debuginfo;
            end;
 
-         if cs_local_browser in aktmoduleswitches then
-           current_module.localsymtable:=refsymtable;
-
          if ag then
           begin
             { create dwarf debuginfo }
             create_dwarf;
-            { finish asmlist by adding segment starts }
-//            insertsegment;
             { assemble }
             create_objectfile;
           end;
@@ -1262,14 +1148,6 @@ implementation
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
 
-         { remove static symtable (=refsymtable) here to save some mem, possible references
-           (like procsym overloads) should already have been freed above }
-         if not (cs_local_browser in aktmoduleswitches) then
-           begin
-              st.free;
-              current_module.localsymtable:=nil;
-           end;
-
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
           begin
@@ -1285,7 +1163,6 @@ implementation
     procedure proc_program(islibrary : boolean);
       var
          main_file : tinputfile;
-         st        : tsymtable;
          hp,hp2    : tmodule;
          pd        : tprocdef;
       begin
@@ -1370,7 +1247,6 @@ implementation
          current_module.in_global:=false;
 
          { setup things using the switches }
-         ConsolidateMode;
          setupglobalswitches;
 
          { set implementation flag }
@@ -1379,17 +1255,10 @@ implementation
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                             }
-         st:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
-         current_module.localsymtable:=st;
-         refsymtable:=st;
-
-         macrosymtablestack:= nil;
+         current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
          { load standard units (system,objpas,profile unit) }
          loaddefaultunits;
-
-         current_module.localmacrosymtable.next:=macrosymtablestack;
-         macrosymtablestack:=current_module.localmacrosymtable;
 
          { Load units provided on the command line }
          loadautounits;
@@ -1406,32 +1275,28 @@ implementation
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
-           st.insert(tunitsym.create(current_module.realmodulename^,st));
-
-         { ...is also constsymtable, this is the symtable where }
-         { the elements of enumeration types are inserted       }
-         constsymtable:=st;
+           current_module.localsymtable.insert(tunitsym.create(current_module.realmodulename^,current_module));
 
          Message1(parser_u_parsing_implementation,current_module.mainsource^);
 
+         symtablestack.push(current_module.localsymtable);
+
          { The program intialization needs an alias, so it can be called
            from the bootstrap code.}
-
          if islibrary then
           begin
-            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,st);
+            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
             { Win32 startup code needs a single name }
-//            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             pd.aliasnames.insert('PASCALMAIN');
           end
          else if (target_info.system = system_i386_netware) or
                  (target_info.system = system_i386_netwlibc) then
            begin
-             pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
+             pd:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
          else
            begin
-             pd:=create_main_proc(mainaliasname,potype_proginit,st);
+             pd:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
              pd.aliasnames.insert('PASCALMAIN');
            end;
          tcgprocinfo(current_procinfo).parse_body;
@@ -1448,9 +1313,9 @@ implementation
          if tstaticsymtable(current_module.localsymtable).needs_init_final then
            begin
               { initialize section }
-              gen_implicit_initfinal(uf_init,st);
+              gen_implicit_initfinal(uf_init,current_module.localsymtable);
               { finalize section }
-              gen_implicit_initfinal(uf_finalize,st);
+              gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
            end;
 
          { Add symbol to the exports section for win32 so smartlinking a
@@ -1475,7 +1340,7 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,st);
+              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
               tcgprocinfo(current_procinfo).parse_body;
               tcgprocinfo(current_procinfo).generate_code;
@@ -1483,17 +1348,20 @@ implementation
               release_main_proc(pd);
            end;
 
+         symtablestack.pop(current_module.localsymtable);
+
          { consume the last point }
          consume(_POINT);
 
          if (Errorcount=0) then
            begin
              { test static symtable }
-             tstoredsymtable(st).allsymbolsused;
-             tstoredsymtable(st).allprivatesused;
-             tstoredsymtable(st).check_forwards;
-             tstoredsymtable(st).checklabels;
-             tstoredsymtable(st).unchain_overloaded;
+             tstoredsymtable(current_module.localsymtable).allsymbolsused;
+             tstoredsymtable(current_module.localsymtable).allprivatesused;
+             tstoredsymtable(current_module.localsymtable).check_forwards;
+             tstoredsymtable(current_module.localsymtable).checklabels;
+             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
+
              current_module.allunitsused;
            end;
 
@@ -1554,9 +1422,6 @@ implementation
 
          { create dwarf debuginfo }
          create_dwarf;
-
-         { finish asmlist by adding segment starts }
-//         insertsegment;
 
          { insert own objectfile }
          insertobjectfile;

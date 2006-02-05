@@ -182,7 +182,7 @@ implementation
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
-                       symtablestack.insert(sym);
+                       symtablestack.top.insert(sym);
                      end;
                    consume(_SEMICOLON);
                 end;
@@ -203,7 +203,7 @@ implementation
                    akttokenpos:=filepos;
                    sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
-                   symtablestack.insert(sym);
+                   symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
                    if (tt.def.deftype=procvardef) and
                       (tt.sym=nil) then
@@ -248,8 +248,6 @@ implementation
 
 
     procedure label_dec;
-      var
-         hl : tasmlabel;
       begin
          consume(_LABEL);
          if not(cs_support_goto in aktmoduleswitches) then
@@ -260,9 +258,9 @@ implementation
            else
              begin
                 if token=_ID then
-                 symtablestack.insert(tlabelsym.create(orgpattern))
+                 symtablestack.top.insert(tlabelsym.create(orgpattern))
                 else
-                 symtablestack.insert(tlabelsym.create(pattern));
+                 symtablestack.top.insert(tlabelsym.create(pattern));
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);
@@ -482,7 +480,7 @@ implementation
               tt:=generrortype;
               storetokenpos:=akttokenpos;
               newtype:=ttypesym.create(orgtypename,tt);
-              symtablestack.insert(newtype);
+              symtablestack.top.insert(newtype);
               akttokenpos:=defpos;
               akttokenpos:=storetokenpos;
               { read the type definition }
@@ -602,7 +600,7 @@ implementation
             end;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.foreach_static(@resolve_type_forward,nil);
+         symtablestack.top.foreach_static(@resolve_type_forward,nil);
          block_type:=old_block_type;
       end;
 
@@ -612,7 +610,7 @@ implementation
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
-        read_var_decs([]);
+        read_var_decls([]);
       end;
 
 
@@ -621,7 +619,7 @@ implementation
          old_block_type : tblock_type;
       begin
          consume(_PROPERTY);
-         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
+         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -638,9 +636,9 @@ implementation
     { the top symbol table of symtablestack                }
       begin
         consume(_THREADVAR);
-        if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
+        if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
-        read_var_decs([vd_threadvar]);
+        read_var_decls([vd_threadvar]);
       end;
 
 
@@ -655,7 +653,7 @@ implementation
          sym : tsym;
       begin
          consume(_RESOURCESTRING);
-         if not(symtablestack.symtabletype in [staticsymtable,globalsymtable]) then
+         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -701,7 +699,7 @@ implementation
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
-                       symtablestack.insert(sym);
+                       symtablestack.top.insert(sym);
                      end;
                    consume(_SEMICOLON);
                    p.free;

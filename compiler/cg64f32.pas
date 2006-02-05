@@ -89,7 +89,7 @@ unit cg64f32;
     uses
        globtype,systems,
        verbose,
-       symbase,symconst,symdef,defutil,paramgr;
+       symbase,symconst,symdef,symtable,defutil,paramgr;
 
 {****************************************************************************
                                      Helpers
@@ -566,7 +566,6 @@ unit cg64f32;
         hreg   : tregister;
         hdef   :  torddef;
         opsize   : tcgsize;
-        oldregisterdef: boolean;
         from_signed,to_signed: boolean;
         temploc : tlocation;
 
@@ -576,9 +575,6 @@ unit cg64f32;
 
          if not is_64bit(todef) then
            begin
-             oldregisterdef := registerdef;
-             registerdef := false;
-
              { get the high dword in a register }
              if l.loc in [LOC_REGISTER,LOC_CREGISTER] then
                begin
@@ -650,7 +646,6 @@ unit cg64f32;
                  hdef.free;
                  cg.a_label(list,endlabel);
                end;
-             registerdef := oldregisterdef;
            end
          else
            { todef = 64bit int }

@@ -76,7 +76,7 @@ interface
          stab_number : word;
          dbg_state  : tdefdbgstatus;
          defoptions : tdefoptions;
-         constructor create;
+         constructor create(dt:tdeftype);
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
@@ -112,7 +112,7 @@ interface
          lastwritten : tref;
          refcount    : longint;
          isstabwritten : boolean;
-         constructor create(const n : string);
+         constructor create(st:tsymtyp;const n : string);
          destructor destroy;override;
          function  realname:string;
          function  mangledname:string; virtual;
@@ -240,10 +240,10 @@ implementation
                                 Tdef
 ****************************************************************************}
 
-    constructor tdef.create;
+    constructor tdef.create(dt:tdeftype);
       begin
          inherited create;
-         deftype:=abstractdef;
+         deftype:=dt;
          owner := nil;
          typesym := nil;
          defoptions:=[];
@@ -307,14 +307,14 @@ implementation
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tsym.create(const n : string);
+    constructor tsym.create(st:tsymtyp;const n : string);
       begin
          if n[1]='$' then
           inherited createname(copy(n,2,255))
          else
           inherited createname(upper(n));
          _realname:=stringdup(n);
-         typ:=abstractsym;
+         typ:=st;
          symoptions:=[];
          defref:=nil;
          refs:=0;

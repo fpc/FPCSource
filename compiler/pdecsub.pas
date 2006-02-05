@@ -71,7 +71,7 @@ implementation
        { symtable }
        symbase,symtable,defutil,defcmp,paramgr,cpupara,
        { pass 1 }
-       node,htypechk,
+       fmodule,node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -234,7 +234,7 @@ implementation
            sl.addsym(sl_load,pd.funcretsym);
            aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.rettype,sl);
            include(aliasvs.varoptions,vo_is_funcret);
-           pd.localst.insert(aliasvs);
+           tlocalsymtable(pd.localst).insert(aliasvs);
 
            { insert result also if support is on }
            if (m_result in aktmodeswitches) then
@@ -244,7 +244,7 @@ implementation
               aliasvs:=tabsolutevarsym.create_ref('RESULT',pd.rettype,sl);
               include(aliasvs.varoptions,vo_is_funcret);
               include(aliasvs.varoptions,vo_is_result);
-              pd.localst.insert(aliasvs);
+              tlocalsymtable(pd.localst).insert(aliasvs);
             end;
 
            akttokenpos:=storepos;
@@ -504,9 +504,7 @@ implementation
                 if (token=_CONST) and (m_objpas in aktmodeswitches) then
                  begin
                    consume(_CONST);
-                   srsym:=searchsymonlyin(systemunit,'TVARREC');
-                   if not assigned(srsym) then
-                     InternalError(200404181);
+                   srsym:=search_system_type('TVARREC');
                    tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
                    tarraydef(tt.def).IsArrayOfConst:=true;
                  end
@@ -637,16 +635,16 @@ implementation
       var
         hs       : string;
         orgsp,sp : stringid;
-        sym : tsym;
         srsym : tsym;
-        oldsymtablestack,
         srsymtable : tsymtable;
+        checkstack : psymtablestackitem;
         storepos,
         procstartfilepos : tfileposinfo;
         searchagain : boolean;
         i : longint;
         st : tsymtable;
         aprocsym : tprocsym;
+        popclass : boolean;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=akttokenpos;
@@ -676,17 +674,17 @@ implementation
            storepos:=akttokenpos;
            akttokenpos:=procstartfilepos;
            { get interface syms}
-           searchsym(sp,sym,srsymtable);
-           if not assigned(sym) then
+           searchsym(sp,srsym,srsymtable);
+           if not assigned(srsym) then
             begin
               identifier_not_found(orgsp);
-              sym:=generrorsym;
+              srsym:=generrorsym;
             end;
            akttokenpos:=storepos;
            { qualifier is interface? }
-           if (sym.typ=typesym) and
-              (ttypesym(sym).restype.def.deftype=objectdef) then
-             i:=aclass.implementedinterfaces.searchintf(ttypesym(sym).restype.def)
+           if (srsym.typ=typesym) and
+              (ttypesym(srsym).restype.def.deftype=objectdef) then
+             i:=aclass.implementedinterfaces.searchintf(ttypesym(srsym).restype.def)
            else
              i:=-1;
            if (i=-1) then
@@ -705,17 +703,17 @@ implementation
         { method  ? }
         if not assigned(aclass) and
            (potype<>potype_operator) and
-           (symtablestack.symtablelevel=main_program_level) and
+           (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
            { search for object name }
            storepos:=akttokenpos;
            akttokenpos:=procstartfilepos;
-           searchsym(sp,sym,srsymtable);
-           if not assigned(sym) then
+           searchsym(sp,srsym,srsymtable);
+           if not assigned(srsym) then
             begin
               identifier_not_found(orgsp);
-              sym:=generrorsym;
+              srsym:=generrorsym;
             end;
            akttokenpos:=storepos;
            { consume proc name }
@@ -724,10 +722,10 @@ implementation
            procstartfilepos:=akttokenpos;
            consume(_ID);
            { qualifier is class name ? }
-           if (sym.typ=typesym) and
-              (ttypesym(sym).restype.def.deftype=objectdef) then
+           if (srsym.typ=typesym) and
+              (ttypesym(srsym).restype.def.deftype=objectdef) then
             begin
-              aclass:=tobjectdef(ttypesym(sym).restype.def);
+              aclass:=tobjectdef(ttypesym(srsym).restype.def);
               aprocsym:=tprocsym(aclass.symtable.search(sp));
               { we solve this below }
               if assigned(aprocsym) then
@@ -765,23 +763,17 @@ implementation
            repeat
              searchagain:=false;
              akttokenpos:=procstartfilepos;
-             srsym:=tsym(symtablestack.search(sp));
 
-             if not(parse_only) and
-                not assigned(srsym) and
-                (symtablestack.symtabletype=staticsymtable) and
-                assigned(symtablestack.next) and
-                (symtablestack.next.iscurrentunit) then
-               begin
-                 { The procedure we prepare for is in the implementation
-                   part of the unit we compile. It is also possible that we
-                   are compiling a program, which is also some kind of
-                   implementaion part.
+             srsymtable:=symtablestack.top;
+             srsym:=tsym(srsymtable.search(sp));
 
-                   We need to find out if the procedure is global. If it is
-                   global, it is in the global symtable.}
-                 srsym:=tsym(symtablestack.next.search(sp));
-               end;
+             { Also look in the globalsymtable if we didn't found
+               the symbol in the localsymtable }
+             if not assigned(srsym) and
+                not(parse_only) and
+                (srsymtable=current_module.localsymtable) and
+                assigned(current_module.globalsymtable) then
+               srsym:=tsym(current_module.globalsymtable.search(sp));
 
              { Check if overloaded is a procsym }
              if assigned(srsym) then
@@ -822,19 +814,25 @@ implementation
              operation }
            if (potype=potype_operator) then
              begin
-               Aprocsym:=Tprocsym(symtablestack.search(sp));
+               Aprocsym:=Tprocsym(symtablestack.top.search(sp));
                if Aprocsym=nil then
                  Aprocsym:=tprocsym.create('$'+sp);
              end
             else
              aprocsym:=tprocsym.create(orgsp);
-            symtablestack.insert(aprocsym);
+            symtablestack.top.insert(aprocsym);
          end;
 
         { to get the correct symtablelevel we must ignore objectsymtables }
-        st:=symtablestack;
-        while not(st.symtabletype in [staticsymtable,globalsymtable,localsymtable]) do
-         st:=st.next;
+        st:=nil;
+        checkstack:=symtablestack.stack;
+        while assigned(checkstack) do
+          begin
+            st:=checkstack^.symtable;
+            if st.symtabletype in [staticsymtable,globalsymtable,localsymtable] then
+              break;
+            checkstack:=checkstack^.next;
+          end;
         pd:=tprocdef.create(st.symtablelevel+1);
         pd._class:=aclass;
         pd.procsym:=aprocsym;
@@ -867,8 +865,8 @@ implementation
         { methods need to be exported }
         if assigned(aclass) and
            (
-            (symtablestack.symtabletype=objectsymtable) or
-            (symtablestack.symtablelevel=main_program_level)
+            (symtablestack.top.symtabletype=objectsymtable) or
+            (symtablestack.top.symtablelevel=main_program_level)
            ) then
           include(pd.procoptions,po_global);
 
@@ -880,22 +878,22 @@ implementation
         if token=_LKLAMMER then
           begin
             { Add objectsymtable to be able to find generic type definitions }
-            oldsymtablestack:=symtablestack;
+            popclass:=false;
             if assigned(pd._class) and
                (pd.parast.symtablelevel=normal_function_level) and
-               (symtablestack.symtabletype<>objectsymtable) then
+               (symtablestack.top.symtabletype<>objectsymtable) then
               begin
-                pd._class.symtable.next:=symtablestack;
-                symtablestack:=pd._class.symtable;
+                symtablestack.push(pd._class.symtable);
+                popclass:=true;
               end;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
-              begin
-                 pd.parast.next:=symtablestack;
-                 symtablestack:=pd.parast;
-              end;
+              symtablestack.push(pd.parast);
             parse_parameter_dec(pd);
-            symtablestack:=oldsymtablestack;
+            if pd.parast.symtabletype<>staticsymtable then
+              symtablestack.pop(pd.parast);
+            if popclass then
+              symtablestack.pop(pd._class.symtable);
           end;
 
         result:=true;
@@ -1875,7 +1873,7 @@ const
             if ((not isprocvar) or
                (pd_procvar in proc_direcdata[i].pd_flags)) and
                { don't eat a public directive in classes }
-               not((idtoken=_PUBLIC) and (symtablestack.symtabletype=objectsymtable)) then
+               not((idtoken=_PUBLIC) and (symtablestack.top.symtabletype=objectsymtable)) then
               result:=true;
             exit;
           end;
@@ -1939,7 +1937,7 @@ const
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }
         if (pd_notobject in proc_direcdata[p].pd_flags) and
-           (symtablestack.symtabletype=objectsymtable) then
+           (symtablestack.top.symtabletype=objectsymtable) then
            exit;
 
         { Conflicts between directives ? }
@@ -2335,7 +2333,6 @@ const
       var
         hd    : tprocdef;
         ad,fd : tsym;
-        s1,s2 : stringid;
         i     : cardinal;
         forwardfound : boolean;
         po_comp : tprocoptions;
@@ -2485,17 +2482,15 @@ const
                         { stop when one of the two lists is at the end }
                         if not assigned(ad) or not assigned(fd) then
                          break;
-                        { retrieve names, remove reg for register parameters }
+                        { compare names of parameters, ignore implictly
+                          renamed parameters }
                         if not(sp_implicitrename in ad.symoptions) and
                            not(sp_implicitrename in fd.symoptions) then
                           begin
-                            s1:=ad.name;
-                            s2:=fd.name;
-                            { compare names }
-                            if (s1<>s2) then
+                            if (ad.name<>fd.name) then
                              begin
                                MessagePos3(pd.fileinfo,parser_e_header_different_var_names,
-                                           aprocsym.name,s1,s2);
+                                           aprocsym.realname,ad.realname,fd.realname);
                                break;
                              end;
                           end;

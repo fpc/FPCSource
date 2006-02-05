@@ -49,7 +49,7 @@ implementation
        globtype,tokens,verbose,
        systems,
        { symtable }
-       symconst,symdef,symsym,symtable,defutil,
+       symbase,symconst,symdef,symsym,symtable,defutil,
        { pass 1 }
        pass_1,htypechk,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,nbas,nutils,
@@ -335,7 +335,8 @@ implementation
         para         : tcallparanode;
         p1,p2  : tnode;
         classh : tobjectdef;
-        sym    : tsym;
+        srsym    : tsym;
+        srsymtable : tsymtable;
         again  : boolean; { dummy for do_proc_call }
       begin
         consume(_LKLAMMER);
@@ -420,9 +421,9 @@ implementation
             { search the constructor also in the symbol tables of
               the parents }
             afterassignment:=false;
-            sym:=searchsym_in_class(classh,pattern);
+            searchsym_in_class(classh,pattern,srsym,srsymtable);
             consume(_ID);
-            do_member_read(classh,false,sym,p1,again,[cnf_new_call]);
+            do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
             { we need to know which procedure is called }
             do_resulttypepass(p1);
             if not(

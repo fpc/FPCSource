@@ -286,7 +286,7 @@ implementation
           looking for the symbol !! }
          make_ref:=false;
          s:=sr;
-         symt:=symtablestack;
+         symt:=symtablestack.top;
          next_substring;
          if assigned(symt) then
            begin
@@ -299,7 +299,7 @@ implementation
          if assigned(sym) and (sym.typ=unitsym) and (s<>'') then
            begin
               addlog('Unitsym found !');
-              symt:=tunitsym(sym).unitsymtable;
+              symt:=tmodule(tunitsym(sym).module).globalsymtable;
               if assigned(symt) then
                 begin
                    next_substring;
@@ -432,7 +432,6 @@ implementation
     procedure writesymtable(p:tsymtable);
       var
         hp : tsym;
-        prdef : pprocdeflist;
       begin
         if cs_browser in aktmoduleswitches then
          begin

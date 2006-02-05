@@ -144,7 +144,7 @@ interface
 
     procedure location_free(list: taasmoutput; const location : TLocation);
 
-    function getprocalign : longint;
+    function getprocalign : shortint;
 
     procedure gen_pic_helpers(list : taasmoutput);
     procedure gen_got_load(list : taasmoutput);
@@ -350,12 +350,12 @@ implementation
 
     procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
       var
-        sym : ttypesym;
+        srsym : ttypesym;
       begin
         if jmp_buf_size=-1 then
           begin
-            searchsystype('JMP_BUF',sym);
-            jmp_buf_size:=sym.restype.def.size;
+            srsym:=search_system_type('JMP_BUF');
+            jmp_buf_size:=srsym.restype.def.size;
           end;
         tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
         tg.GetTemp(list,jmp_buf_size,tt_persistent,t.jmpbuf);
@@ -2425,7 +2425,7 @@ implementation
       end;
 
 
-    function getprocalign : longint;
+    function getprocalign : shortint;
       begin
         { gprof uses 16 byte granularity }
         if (cs_profile in aktmoduleswitches) then

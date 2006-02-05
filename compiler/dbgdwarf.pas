@@ -1855,17 +1855,7 @@ implementation
 
 
     procedure TDebugInfoDwarf.inserttypeinfo;
-
-      function gettypedef(const s : string) : tdef;
-        var
-          srsym : ttypesym;
-        begin
-          if not(searchsystype('TVARDATA',srsym)) then
-            internalerror(200602022);
-          result:=ttypesym(srsym).restype.def;
-        end;
-
-      var
+     var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
       begin
@@ -1875,7 +1865,7 @@ implementation
         currabbrevnumber:=0;
         writing_def_dwarf:=false;
 
-        vardatadef:=gettypedef('TVARDATA');
+        vardatadef:=search_system_type('TVARDATA').restype.def;
 
         { not exported (FK)
         filerecdef:=gettypedef('FILEREC');

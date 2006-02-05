@@ -29,12 +29,15 @@ interface
     uses
       symsym,symdef;
 
-    type   Tvar_dec_option=(vd_record,vd_object,vd_threadvar);
-           Tvar_dec_options=set of Tvar_dec_option;
+    type
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar);
+      tvar_dec_options=set of tvar_dec_option;
 
-    function read_property_dec(aclass:tobjectdef):tpropertysym;
+    function  read_property_dec(aclass:tobjectdef):tpropertysym;
 
-    procedure read_var_decs(options:Tvar_dec_options);
+    procedure read_var_decls(options:Tvar_dec_options);
+
+    procedure read_record_fields(options:Tvar_dec_options);
 
 
 implementation
@@ -121,7 +124,7 @@ implementation
                           st:=def.getsymtable(gs_record);
                           if assigned(st) then
                            begin
-                             sym:=searchsymonlyin(st,pattern);
+                             sym:=tsym(st.search(pattern));
                              if assigned(sym) then
                               begin
                                 pl.addsym(sl_subscript,sym);
@@ -211,24 +214,18 @@ implementation
          arraytype : ttype;
          def : tdef;
          pt : tnode;
-         propname : stringid;
          sc : tsinglelist;
          paranr : word;
-         oldregisterdef : boolean;
          hreadparavs,
          hparavs      : tparavarsym;
          readprocdef,
          writeprocdef : tprocvardef;
-         oldsymtablestack : tsymtable;
       begin
          { Generate temp procvardefs to search for matching read/write
            procedures. the readprocdef will store all definitions }
-         oldregisterdef:=registerdef;
-         registerdef:=false;
          paranr:=0;
          readprocdef:=tprocvardef.create(normal_function_level);
          writeprocdef:=tprocvardef.create(normal_function_level);
-         registerdef:=oldregisterdef;
 
          { make it method pointers }
          if assigned(aclass) then
@@ -245,39 +242,24 @@ implementation
            end;
          { Generate propertysym and insert in symtablestack }
          p:=tpropertysym.create(orgpattern);
-         symtablestack.insert(p);
-         propname:=pattern;
+         symtablestack.top.insert(p);
          consume(_ID);
-         { Set the symtablestack to the parast of readprop so
-           temp defs will be destroyed after declaration }
-         readprocdef.parast.next:=symtablestack;
-         symtablestack:=readprocdef.parast;
          { property parameters ? }
-         if token=_LECKKLAMMER then
+         if try_to_consume(_LECKKLAMMER) then
            begin
               if (sp_published in current_object_option) then
                 Message(parser_e_cant_publish_that_property);
-
               { create a list of the parameters }
+              symtablestack.push(readprocdef.parast);
               sc:=tsinglelist.create;
-              consume(_LECKKLAMMER);
               inc(testcurobject);
               repeat
-                if token=_VAR then
-                  begin
-                     consume(_VAR);
-                     varspez:=vs_var;
-                  end
-                else if token=_CONST then
-                  begin
-                     consume(_CONST);
-                     varspez:=vs_const;
-                  end
-                else if (idtoken=_OUT) and (m_out in aktmodeswitches) then
-                  begin
-                     consume(_OUT);
-                     varspez:=vs_out;
-                  end
+                if try_to_consume(_VAR) then
+                  varspez:=vs_var
+                else if try_to_consume(_CONST) then
+                  varspez:=vs_const
+                else if (m_out in aktmodeswitches) and try_to_consume(_OUT) then
+                  varspez:=vs_out
                 else
                   varspez:=vs_value;
                 sc.reset;
@@ -290,10 +272,6 @@ implementation
                 until not try_to_consume(_COMMA);
                 if try_to_consume(_COLON) then
                   begin
-                    { for records, don't search the recordsymtable for
-                     the symbols of the types }
-                    oldsymtablestack:=symtablestack;
-                    symtablestack:=symtablestack.next;
                     if try_to_consume(_ARRAY) then
                       begin
                         consume(_OF);
@@ -305,7 +283,6 @@ implementation
                       end
                     else
                       single_type(tt,false);
-                    symtablestack:=oldsymtablestack;
                   end
                 else
                   tt:=cformaltype;
@@ -321,6 +298,7 @@ implementation
               until not try_to_consume(_SEMICOLON);
               sc.free;
               dec(testcurobject);
+              symtablestack.pop(readprocdef.parast);
               consume(_RECKKLAMMER);
 
               { the parser need to know if a property has parameters, the
@@ -335,12 +313,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (aclass=nil) then
            begin
               consume(_COLON);
-              { insert types in global symtable }
-              oldsymtablestack:=symtablestack;
-              while not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) do
-                symtablestack:=symtablestack.next;
               single_type(p.proptype,false);
-              symtablestack:=oldsymtablestack;
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
@@ -375,7 +348,7 @@ implementation
          else
            begin
               { do an property override }
-              overriden:=search_class_member(aclass.childof,propname);
+              overriden:=search_class_member(aclass.childof,p.name);
               if assigned(overriden) and (overriden.typ=propertysym) then
                 begin
                   p.dooverride(tpropertysym(overriden));
@@ -579,66 +552,36 @@ implementation
               p.default:=0;
            end;
          { remove temporary procvardefs }
-         symtablestack:=symtablestack.next;
          readprocdef.free;
          writeprocdef.free;
          result:=p;
       end;
 
 
+     function maybe_parse_proc_directives(const tt:ttype):boolean;
+       var
+         newtype : ttypesym;
+       begin
+         result:=false;
+         { Process procvar directives before = and ; }
+         if (tt.def.deftype=procvardef) and
+            (tt.def.typesym=nil) and
+            check_proc_directive(true) then
+           begin
+              newtype:=ttypesym.create('unnamed',tt);
+              parse_var_proc_directives(tsym(newtype));
+              newtype.restype.def:=nil;
+              tt.def.typesym:=nil;
+              newtype.free;
+              result:=true;
+           end;
+       end;
+
+
     const
        variantrecordlevel : longint = 0;
 
-    procedure read_var_decs(options:Tvar_dec_options);
-    { reads the filed of a record into a        }
-    { symtablestack, if record=false        }
-    { variants are forbidden, so this procedure }
-    { can be used to read object fields  }
-    { if absolute is true, ABSOLUTE and file    }
-    { types are allowed                  }
-    { => the procedure is also used to read     }
-    { a sequence of variable declaration        }
-
-      procedure insert_syms(sc : tsinglelist;tt : ttype;is_threadvar : boolean; addsymopts : tsymoptions);
-      { inserts the symbols of sc in st with def as definition or sym as ttypesym, sc is disposed }
-        var
-          vs : tabstractvarsym;
-          hstaticvs : tglobalvarsym;
-        begin
-           vs:=tabstractvarsym(sc.first);
-           while assigned(vs) do
-             begin
-                vs.vartype:=tt;
-                { insert any additional hint directives }
-                vs.symoptions := vs.symoptions + addsymopts;
-                if (sp_static in current_object_option) then
-                  include(vs.symoptions,sp_static);
-                if is_threadvar then
-                  include(vs.varoptions,vo_is_thread_var);
-                { static data fields are inserted in the globalsymtable }
-                if (symtablestack.symtabletype=objectsymtable) and
-                   (sp_static in current_object_option) then
-                  begin
-                     hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt,[]);
-                     symtablestack.defowner.owner.insert(hstaticvs);
-                     insertbssdata(hstaticvs);
-                  end
-                else
-                  begin
-                    { external data is not possible here }
-                    case symtablestack.symtabletype of
-                      globalsymtable,
-                      staticsymtable :
-                        insertbssdata(tglobalvarsym(vs));
-                      recordsymtable,
-                      objectsymtable :
-                        tabstractrecordsymtable(symtablestack).insertfield(tfieldvarsym(vs),false);
-                    end;
-                  end;
-                vs:=tabstractvarsym(vs.listnext);
-             end;
-        end;
-
+    procedure read_var_decls(options:Tvar_dec_options);
 
       procedure read_default_value(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
         var
@@ -650,13 +593,13 @@ implementation
              Message(parser_e_initialized_only_one_var);
           if is_threadvar then
              Message(parser_e_initialized_not_for_threadvar);
-          if symtablestack.symtabletype=localsymtable then
+          if symtablestack.top.symtabletype=localsymtable then
             begin
               consume(_EQUAL);
               tcsym:=ttypedconstsym.createtype('$default'+vs.realname,tt,false);
               include(tcsym.symoptions,sp_internal);
               vs.defaultconstsym:=tcsym;
-              symtablestack.insert(tcsym);
+              symtablestack.top.insert(tcsym);
               readtypedconst(tt,tcsym,false);
               { The variable has a value assigned }
               vs.varstate:=vs_initialised;
@@ -665,7 +608,7 @@ implementation
             begin
               tcsym:=ttypedconstsym.createtype(vs.realname,tt,true);
               tcsym.fileinfo:=vs.fileinfo;
-              symtablestack.replace(vs,tcsym);
+              symtablestack.top.replace(vs,tcsym);
               vs.free;
               consume(_EQUAL);
               readtypedconst(tt,tcsym,true);
@@ -679,56 +622,30 @@ implementation
          { to handle absolute }
          abssym : tabsolutevarsym;
          { c var }
-         newtype : ttypesym;
          is_dll,
          hasdefaultvalue,
          is_gpc_name,is_cdecl,
          extern_var,export_var : boolean;
          old_current_object_option : tsymoptions;
          hs,sorg,C_name,dll_name : string;
-         tt,casetype : ttype;
-         { maxsize contains the max. size of a variant }
-         { startvarrec contains the start of the variant part of a record }
-         maxsize, startvarrecsize : longint;
-         usedalign,
-         maxalignment,startvarrecalign,
-         maxpadalign, startpadalign: shortint;
+         tt : ttype;
          hp,pt : tnode;
-         fieldvs   : tfieldvarsym;
-         vs,vs2    : tabstractvarsym;
-         srsym : tsym;
-         oldsymtablestack,
-         srsymtable : tsymtable;
-         unionsymtable : trecordsymtable;
-         offset : longint;
-         uniondef : trecorddef;
-         unionsym : tfieldvarsym;
-         uniontype : ttype;
-         dummysymoptions : tsymoptions;
+         vs    : tabstractvarsym;
+         hintsymoptions : tsymoptions;
          semicolonatend,semicoloneaten: boolean;
-{$ifdef powerpc}
-         tempdef: tdef;
-         is_first_field: boolean;
-{$endif powerpc}
       begin
-{$ifdef powerpc}
-        is_first_field := true;
-{$endif powerpc}
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
-         if not(vd_object in options) then
-          current_object_option:=[sp_public];
+         current_object_option:=[sp_public];
          old_block_type:=block_type;
          block_type:=bt_type;
          is_gpc_name:=false;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
-          consume(_ID);
+           consume(_ID);
          { read vars }
          sc:=tsinglelist.create;
-         while (token=_ID) and
-            not((vd_object in options) and
-                (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
+         while (token=_ID) do
            begin
              sorg:=orgpattern;
              semicoloneaten:=false;
@@ -738,101 +655,40 @@ implementation
              repeat
                if (token = _ID) then
                  begin
-                   case symtablestack.symtabletype of
+                   case symtablestack.top.symtabletype of
                      localsymtable :
                        vs:=tlocalvarsym.create(orgpattern,vs_value,generrortype,[]);
                      staticsymtable,
                      globalsymtable :
                        vs:=tglobalvarsym.create(orgpattern,vs_value,generrortype,[]);
-                     recordsymtable,
-                     objectsymtable :
-                       vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
                      else
                        internalerror(200411064);
                    end;
-                   symtablestack.insert(vs);
-                   if assigned(vs.owner) then
-                     sc.insert(vs)
-                   else
-                     vs.free;
+                   sc.insert(vs);
+                   symtablestack.top.insert(vs);
                  end;
                consume(_ID);
              until not try_to_consume(_COMMA);
              consume(_COLON);
-             if (m_gpc in aktmodeswitches) and (options=[]) and
-                (token=_ID) and (orgpattern='__asmname__') then
+
+             if (m_gpc in aktmodeswitches) and
+                (token=_ID) and
+                (orgpattern='__asmname__') then
                begin
                  consume(_ID);
                  C_name:=get_stringconst;
                  Is_gpc_name:=true;
                end;
+
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             if ((vd_record in options) or
-                 (vd_object in options)) and
-                not(df_generic in tdef(symtablestack.defowner).defoptions) and
-                not(df_specialization in tdef(symtablestack.defowner).defoptions) then
-              begin
-                { for records, don't search the recordsymtable for
-                  the symbols of the types }
-                oldsymtablestack:=symtablestack;
-                symtablestack:=symtablestack.next;
-                read_anon_type(tt,false);
-                symtablestack:=oldsymtablestack;
-              end
-             else
-              read_anon_type(tt,false);
+             read_anon_type(tt,false);
              ignore_equal:=false;
+
              { Process procvar directives }
-             if (tt.def.deftype=procvardef) and
-                (tt.def.typesym=nil) and
-                check_proc_directive(true) then
-               begin
-                  newtype:=ttypesym.create('unnamed',tt);
-                  parse_var_proc_directives(tsym(newtype));
-                  semicoloneaten:=true;
-                  newtype.restype.def:=nil;
-                  tt.def.typesym:=nil;
-                  newtype.free;
-               end;
-
-{$ifdef powerpc}
-               { from gcc/gcc/config/rs6000/rs6000.h:
-                /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
-                /* Return the alignment of a struct based on the Macintosh PowerPC
-                   alignment rules.  In general the alignment of a struct is
-                   determined by the greatest alignment of its elements.  However, the
-                   PowerPC rules cause the alignment of a struct to peg at word
-                   alignment except when the first field has greater than word
-                   (32-bit) alignment, in which case the alignment is determined by
-                   the alignment of the first field.  */
-               }
-               if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
-                  (vd_record in options) and
-                  is_first_field and
-                  (trecordsymtable(symtablestack).usefieldalignment = -1) then
-                 begin
-                   tempdef := tt.def;
-                   while tempdef.deftype = arraydef do
-                     tempdef := tarraydef(tempdef).elementtype.def;
-                   if tempdef.deftype <> recorddef then
-                     maxpadalign := tempdef.alignment
-                   else
-                     maxpadalign := trecorddef(tempdef).padalignment;
-
-                   if (maxpadalign > 4) and
-                      (maxpadalign > trecordsymtable(symtablestack).padalignment) then
-                     trecordsymtable(symtablestack).padalignment := maxpadalign;
-                   is_first_field := false;
-                 end;
-{$endif powerpc}
-
-             { types that use init/final are not allowed in variant parts, but
-               classes are allowed }
-             if (variantrecordlevel>0) and
-                (tt.def.needs_inittable and not is_class(tt.def)) then
-               Message(parser_e_cant_use_inittable_here);
+             if maybe_parse_proc_directives(tt) then
+               semicoloneaten:=true;
 
              if is_gpc_name then
                begin
@@ -852,9 +708,9 @@ implementation
                end;
 
              { check for absolute }
-             if not symdone and (idtoken=_ABSOLUTE) and (options=[]) then
+             if not symdone and
+                try_to_consume(_ABSOLUTE) then
               begin
-                consume(_ABSOLUTE);
                 abssym:=nil;
                 { only allowed for one var }
                 vs:=tabstractvarsym(sc.first);
@@ -876,7 +732,7 @@ implementation
                    abssym.abstyp:=toasm;
                    abssym.asmname:=stringdup(hs);
                    { replace the varsym }
-                   symtablestack.replace(vs,abssym);
+                   symtablestack.top.replace(vs,abssym);
                    vs.free;
                  end
                 { address }
@@ -906,7 +762,7 @@ implementation
                          Message(type_e_ordinal_expr_expected);
                     end;
 {$endif i386}
-                   symtablestack.replace(vs,abssym);
+                   symtablestack.top.replace(vs,abssym);
                    vs.free;
                  end
                 { variable }
@@ -926,7 +782,7 @@ implementation
                        abssym.fileinfo:=vs.fileinfo;
                        abssym.abstyp:=tovar;
                        abssym.ref:=node_to_symlist(pt);
-                       symtablestack.replace(vs,abssym);
+                       symtablestack.top.replace(vs,abssym);
                        vs.free;
                      end
                     else
@@ -935,55 +791,34 @@ implementation
                 if assigned(abssym) then
                  begin
                    { try to consume the hint directives with absolute symbols }
-                   dummysymoptions:=[];
-                   try_consume_hintdirective(dummysymoptions);
-                   abssym.symoptions := abssym.symoptions + dummysymoptions;
+                   hintsymoptions:=[];
+                   try_consume_hintdirective(hintsymoptions);
+                   abssym.symoptions := abssym.symoptions + hintsymoptions;
                  end;
                 pt.free;
                 symdone:=true;
               end;
 
-             { Process procvar directives before = and ; }
-             if (tt.def.deftype=procvardef) and
-                (tt.def.typesym=nil) and
-                check_proc_directive(true) then
-               begin
-                  newtype:=ttypesym.create('unnamed',tt);
-                  parse_var_proc_directives(tsym(newtype));
-                  newtype.restype.def:=nil;
-                  tt.def.typesym:=nil;
-                  newtype.free;
-               end;
-
              { try to parse the hint directives }
-             dummysymoptions:=[];
-             try_consume_hintdirective(dummysymoptions);
+             hintsymoptions:=[];
+             try_consume_hintdirective(hintsymoptions);
 
-             { Records and objects can't have default values }
-             if options*[vd_record,vd_object]<>[] then
-               begin
-                 { for a record there doesn't need to be a ; before the END or )    }
-                 if not(token in [_END,_RKLAMMER]) and
-                    not(semicoloneaten) then
-                   consume(_SEMICOLON);
-               end
-             else
              { Handling of Delphi typed const = initialized vars }
-               if (token=_EQUAL) and
-                  not(m_tp7 in aktmodeswitches) and
-                  (symtablestack.symtabletype<>parasymtable) then
-                 begin
-                   { Add calling convention for procvar }
-                   if (tt.def.deftype=procvardef) and
-                      (tt.def.typesym=nil) then
-                     handle_calling_convention(tprocvardef(tt.def));
-                   read_default_value(sc,tt,vd_threadvar in options);
-                   consume(_SEMICOLON);
-                   { for locals we've created typedconstsym with a different name }
-                   if symtablestack.symtabletype<>localsymtable then
-                     symdone:=true;
-                   hasdefaultvalue:=true;
-                 end
+             if (token=_EQUAL) and
+                not(m_tp7 in aktmodeswitches) and
+                (symtablestack.top.symtabletype<>parasymtable) then
+               begin
+                 { Add calling convention for procvar }
+                 if (tt.def.deftype=procvardef) and
+                    (tt.def.typesym=nil) then
+                   handle_calling_convention(tprocvardef(tt.def));
+                 read_default_value(sc,tt,vd_threadvar in options);
+                 consume(_SEMICOLON);
+                 { for locals we've created typedconstsym with a different name }
+                 if symtablestack.top.symtabletype<>localsymtable then
+                   symdone:=true;
+                 hasdefaultvalue:=true;
+               end
              else
                begin
                  if not(semicoloneaten) then
@@ -996,20 +831,13 @@ implementation
                 (tt.def.typesym=nil) then
                begin
                  { Parse procvar directives after ; }
-                 if check_proc_directive(true) then
-                   begin
-                     newtype:=ttypesym.create('unnamed',tt);
-                     parse_var_proc_directives(tsym(newtype));
-                     newtype.restype.def:=nil;
-                     tt.def.typesym:=nil;
-                     newtype.free;
-                   end;
+                 maybe_parse_proc_directives(tt);
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
                  { Handling of Delphi typed const = initialized vars }
-                 if (token=_EQUAL) and (options*[vd_record,vd_object]=[]) and
+                 if (token=_EQUAL) and
                     not(m_tp7 in aktmodeswitches) and
-                    (symtablestack.symtabletype<>parasymtable) then
+                    (symtablestack.top.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc,tt,vd_threadvar in options);
                      consume(_SEMICOLON);
@@ -1019,7 +847,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
-             if not symdone and (options=[]) then
+             if not symdone then
               begin
                 if (
                      (token=_ID) and
@@ -1037,7 +865,7 @@ implementation
                      Message(parser_e_absolute_only_one_var);
                    { set type of the var }
                    vs.vartype:=tt;
-                   vs.symoptions := vs.symoptions + dummysymoptions;
+                   vs.symoptions := vs.symoptions + hintsymoptions;
                    { defaults }
                    is_dll:=false;
                    is_cdecl:=false;
@@ -1046,17 +874,15 @@ implementation
                    C_name:=sorg;
                    semicolonatend:= false;
                    { cdecl }
-                   if idtoken=_CVAR then
+                   if try_to_consume(_CVAR) then
                     begin
-                      consume(_CVAR);
                       consume(_SEMICOLON);
                       is_cdecl:=true;
                       C_name:=target_info.Cprefix+sorg;
                     end;
                    { external }
-                   if idtoken=_EXTERNAL then
+                   if try_to_consume(_EXTERNAL) then
                     begin
-                      consume(_EXTERNAL);
                       extern_var:=true;
                       semicolonatend:= true;
                     end;
@@ -1156,78 +982,251 @@ implementation
                  end;
               end;
 
-             { Check for STATIC directive }
-             if not symdone and (vd_object in options) and
-               (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
-                  begin
-                    include(current_object_option,sp_static);
-                    consume(_STATIC);
-                    consume(_SEMICOLON);
-                  end;
-
              { insert it in the symtable, if not done yet }
              if not symdone then
                begin
-                  { save object option, because we can turn of the sp_published }
-                  if (sp_published in current_object_option) and
-                    not(is_class(tt.def)) then
-                   begin
-                     Message(parser_e_cant_publish_that);
-                     exclude(current_object_option,sp_published);
-                     { recover by changing access type to public }
-                     vs2:=tabstractvarsym(sc.first);
-                     while assigned (vs2) do
-                       begin
-                         exclude(vs2.symoptions,sp_published);
-                         include(vs2.symoptions,sp_public);
-                         vs2:=tabstractvarsym(vs2.listnext);
-                       end;
-                   end
-                  else
-                   if (sp_published in current_object_option) and
-                      not(oo_can_have_published in tobjectdef(tt.def).objectoptions) then
+                  vs:=tabstractvarsym(sc.first);
+                  while assigned(vs) do
                     begin
-                      Message(parser_e_only_publishable_classes_can__be_published);
-                      exclude(current_object_option,sp_published);
+                       vs.vartype:=tt;
+                       { insert any additional hint directives }
+                       vs.symoptions := vs.symoptions + hintsymoptions;
+                       if vd_threadvar in options then
+                         include(vs.varoptions,vo_is_thread_var);
+                       { static data fields are inserted in the globalsymtable }
+                       if vs.typ=globalvarsym then
+                         insertbssdata(tglobalvarsym(vs));
+                       vs:=tabstractvarsym(vs.listnext);
                     end;
-                  insert_syms(sc,tt,vd_threadvar in options,dummysymoptions);
-                  current_object_option:=old_current_object_option;
+               end;
+           end;
+         block_type:=old_block_type;
+         current_object_option:=old_current_object_option;
+         { free the list }
+         sc.free;
+      end;
+
+
+    procedure read_record_fields(options:Tvar_dec_options);
+      var
+         sc : tsinglelist;
+         old_block_type : tblock_type;
+         old_current_object_option : tsymoptions;
+         hs,sorg : string;
+         tt,casetype : ttype;
+         { maxsize contains the max. size of a variant }
+         { startvarrec contains the start of the variant part of a record }
+         maxsize, startvarrecsize : longint;
+         usedalign,
+         maxalignment,startvarrecalign,
+         maxpadalign, startpadalign: shortint;
+         pt : tnode;
+         fieldvs   : tfieldvarsym;
+         hstaticvs : tglobalvarsym;
+         vs    : tabstractvarsym;
+         srsym : tsym;
+         srsymtable : tsymtable;
+         recst : tabstractrecordsymtable;
+         unionsymtable : trecordsymtable;
+         offset : longint;
+         uniondef : trecorddef;
+         unionsym : tfieldvarsym;
+         uniontype : ttype;
+         hintsymoptions : tsymoptions;
+         semicoloneaten: boolean;
+{$ifdef powerpc}
+         tempdef: tdef;
+         is_first_field: boolean;
+{$endif powerpc}
+      begin
+         recst:=tabstractrecordsymtable(symtablestack.top);
+{$ifdef powerpc}
+         is_first_field := true;
+{$endif powerpc}
+         old_current_object_option:=current_object_option;
+         { all variables are public if not in a object declaration }
+         if not(vd_object in options) then
+          current_object_option:=[sp_public];
+         old_block_type:=block_type;
+         block_type:=bt_type;
+         { Force an expected ID error message }
+         if not (token in [_ID,_CASE,_END]) then
+          consume(_ID);
+         { read vars }
+         sc:=tsinglelist.create;
+         while (token=_ID) and
+            not((vd_object in options) and
+                (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
+           begin
+             sorg:=orgpattern;
+             semicoloneaten:=false;
+             sc.reset;
+             repeat
+               if try_to_consume(_ID) then
+                 begin
+                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
+                   sc.insert(vs)
+                 end;
+             until not try_to_consume(_COMMA);
+             consume(_COLON);
+
+             { Don't search in the recordsymtable for types }
+             if (df_generic in tdef(recst.defowner).defoptions) or
+                (df_specialization in tdef(recst.defowner).defoptions) then
+               symtablestack.pop(recst);
+             ignore_equal:=true;
+             read_anon_type(tt,false);
+             ignore_equal:=false;
+             if (df_generic in tdef(recst.defowner).defoptions) or
+                (df_specialization in tdef(recst.defowner).defoptions) then
+               symtablestack.push(recst);
+
+             fieldvs:=tfieldvarsym(sc.first);
+             while assigned (fieldvs) do
+               begin
+                 symtablestack.top.insert(fieldvs);
+                 fieldvs:=tfieldvarsym(fieldvs.listnext);
                end;
 
+             { Process procvar directives }
+             if maybe_parse_proc_directives(tt) then
+               semicoloneaten:=true;
+
+{$ifdef powerpc}
+             { from gcc/gcc/config/rs6000/rs6000.h:
+              /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
+              /* Return the alignment of a struct based on the Macintosh PowerPC
+                 alignment rules.  In general the alignment of a struct is
+                 determined by the greatest alignment of its elements.  However, the
+                 PowerPC rules cause the alignment of a struct to peg at word
+                 alignment except when the first field has greater than word
+                 (32-bit) alignment, in which case the alignment is determined by
+                 the alignment of the first field.  */
+             }
+             if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
+                is_first_field and
+                (trecordsymtable(symtablestack).usefieldalignment = -1) then
+               begin
+                 tempdef := tt.def;
+                 while tempdef.deftype = arraydef do
+                   tempdef := tarraydef(tempdef).elementtype.def;
+                 if tempdef.deftype <> recorddef then
+                   maxpadalign := tempdef.alignment
+                 else
+                   maxpadalign := trecorddef(tempdef).padalignment;
+
+                 if (maxpadalign > 4) and
+                    (maxpadalign > trecordsymtable(symtablestack).padalignment) then
+                   trecordsymtable(symtablestack).padalignment := maxpadalign;
+                 is_first_field := false;
+               end;
+{$endif powerpc}
+
+             { types that use init/final are not allowed in variant parts, but
+               classes are allowed }
+             if (variantrecordlevel>0) and
+                (tt.def.needs_inittable and not is_class(tt.def)) then
+               Message(parser_e_cant_use_inittable_here);
+
+             { try to parse the hint directives }
+             hintsymoptions:=[];
+             try_consume_hintdirective(hintsymoptions);
+
+             { Records and objects can't have default values }
+             { for a record there doesn't need to be a ; before the END or )    }
+             if not(token in [_END,_RKLAMMER]) and
+                not(semicoloneaten) then
+               consume(_SEMICOLON);
+
+             { Parse procvar directives after ; }
+             maybe_parse_proc_directives(tt);
+
+             { Add calling convention for procvar }
+             if (tt.def.deftype=procvardef) and
+                (tt.def.typesym=nil) then
+               handle_calling_convention(tprocvardef(tt.def));
+
+             { Check for STATIC directive }
+             if (vd_object in options) and
+                (cs_static_keyword in aktmoduleswitches) and
+                (try_to_consume(_STATIC)) then
+               begin
+                 include(current_object_option,sp_static);
+                 consume(_SEMICOLON);
+               end;
+
+             if (sp_published in current_object_option) and
+                not(is_class(tt.def)) then
+               begin
+                 Message(parser_e_cant_publish_that);
+                 exclude(current_object_option,sp_published);
+                 { recover by changing access type to public }
+                 fieldvs:=tfieldvarsym(sc.first);
+                 while assigned (fieldvs) do
+                   begin
+                     exclude(fieldvs.symoptions,sp_published);
+                     include(fieldvs.symoptions,sp_public);
+                     fieldvs:=tfieldvarsym(fieldvs.listnext);
+                   end;
+               end
+             else
+              if (sp_published in current_object_option) and
+                 not(oo_can_have_published in tobjectdef(tt.def).objectoptions) then
+               begin
+                 Message(parser_e_only_publishable_classes_can__be_published);
+                 exclude(current_object_option,sp_published);
+               end;
+
+             { update variable options }
+             fieldvs:=tfieldvarsym(sc.first);
+             while assigned(fieldvs) do
+               begin
+                  fieldvs.vartype:=tt;
+                  { insert any additional hint directives }
+                  fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
+                  if (sp_static in current_object_option) then
+                    include(fieldvs.symoptions,sp_static);
+                  { static data fields are inserted in the globalsymtable }
+                  if (sp_static in current_object_option) then
+                    begin
+                       hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,tt,[]);
+                       recst.defowner.owner.insert(hstaticvs);
+                       insertbssdata(hstaticvs);
+                    end
+                  else
+                    recst.addfield(fieldvs);
+                  fieldvs:=tfieldvarsym(fieldvs.listnext);
+               end;
+
+             { restore current_object_option, it can be changed for
+               publishing or static }
+             current_object_option:=old_current_object_option;
            end;
 
          { Check for Case }
-         if (vd_record in options) and (token=_CASE) then
+         if (vd_record in options) and
+            try_to_consume(_CASE) then
            begin
               maxsize:=0;
               maxalignment:=0;
               maxpadalign:=0;
-              consume(_CASE);
+              { including a field declaration? }
+              fieldvs:=nil;
               sorg:=orgpattern;
               hs:=pattern;
               searchsym(hs,srsym,srsymtable);
-              { may be only a type: }
-              if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
-               begin
-                 { for records, don't search the recordsymtable for
-                   the symbols of the types }
-                 oldsymtablestack:=symtablestack;
-                 symtablestack:=symtablestack.next;
-                 read_anon_type(casetype,true);
-                 symtablestack:=oldsymtablestack;
-               end
-              else
+              if not(assigned(srsym) and (srsym.typ in [typesym,unitsym])) then
                 begin
                   consume(_ID);
                   consume(_COLON);
-                  { for records, don't search the recordsymtable for
-                    the symbols of the types }
-                  oldsymtablestack:=symtablestack;
-                  symtablestack:=symtablestack.next;
-                  read_anon_type(casetype,true);
-                  symtablestack:=oldsymtablestack;
-                  fieldvs:=tfieldvarsym.create(sorg,vs_value,casetype,[]);
-                  tabstractrecordsymtable(symtablestack).insertfield(fieldvs,true);
+                  fieldvs:=tfieldvarsym.create(sorg,vs_value,generrortype,[]);
+                  symtablestack.top.insert(fieldvs);
+                end;
+              read_anon_type(casetype,true);
+              if assigned(fieldvs) then
+                begin
+                  fieldvs.vartype:=casetype;
+                  recst.addfield(fieldvs);
                 end;
               if not(is_ordinal(casetype.def))
 {$ifndef cpu64bit}
@@ -1236,18 +1235,14 @@ implementation
                  then
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
+
               UnionSymtable:=trecordsymtable.create(aktpackrecords);
-              Unionsymtable.next:=symtablestack;
-              registerdef:=false;
               UnionDef:=trecorddef.create(unionsymtable);
               uniondef.isunion:=true;
-              if assigned(symtablestack.defowner) then
-                Uniondef.owner:=symtablestack.defowner.owner;
-              registerdef:=true;
               startvarrecsize:=UnionSymtable.datasize;
               startvarrecalign:=UnionSymtable.fieldalignment;
               startpadalign:=Unionsymtable.padalignment;
-              symtablestack:=UnionSymtable;
+              symtablestack.push(UnionSymtable);
               repeat
                 repeat
                   pt:=comp_expr(true);
@@ -1255,16 +1250,16 @@ implementation
                     Message(parser_e_illegal_expression);
                   pt.free;
                   if token=_COMMA then
-                   consume(_COMMA)
+                    consume(_COMMA)
                   else
-                   break;
+                    break;
                 until false;
                 consume(_COLON);
                 { read the vars }
                 consume(_LKLAMMER);
                 inc(variantrecordlevel);
                 if token<>_RKLAMMER then
-                  read_var_decs([vd_record]);
+                  read_record_fields([vd_record]);
                 dec(variantrecordlevel);
                 consume(_RKLAMMER);
                 { calculates maximal variant size }
@@ -1280,38 +1275,36 @@ implementation
                 else
                   break;
               until (token=_END) or (token=_RKLAMMER);
+              symtablestack.pop(UnionSymtable);
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
               UnionSym:=tfieldvarsym.create('$case',vs_value,uniontype,[]);
-              symtablestack:=symtablestack.next;
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
               if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
                  is_first_field and
-                 (trecordsymtable(symtablestack).usefieldalignment = -1) and
-                 (maxpadalign > trecordsymtable(symtablestack).padalignment) then
-                trecordsymtable(symtablestack).padalignment:=maxpadalign;
+                 (recst.usefieldalignment = -1) and
+                 (maxpadalign > recst.padalignment) then
+                recst.padalignment:=maxpadalign;
 {$endif powerpc}
               { Align the offset where the union symtable is added }
-              if (trecordsymtable(symtablestack).usefieldalignment=-1) then
+              if (recst.usefieldalignment=-1) then
                 usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
               else
                 usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
 
-              offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
-              trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
+              offset:=align(recst.datasize,usedalign);
+              recst.datasize:=offset+unionsymtable.datasize;
 
-              if unionsymtable.recordalignment>trecordsymtable(symtablestack).fieldalignment then
-                trecordsymtable(symtablestack).fieldalignment:=unionsymtable.recordalignment;
+              if unionsymtable.recordalignment>recst.fieldalignment then
+                recst.fieldalignment:=unionsymtable.recordalignment;
 
-              trecordsymtable(symtablestack).insertunionst(Unionsymtable,offset);
-              Unionsym.owner:=nil;
+              trecordsymtable(recst).insertunionst(Unionsymtable,offset);
               unionsym.free;
-              uniondef.owner:=nil;
               uniondef.free;
            end;
          block_type:=old_block_type;

@@ -276,14 +276,12 @@ implementation
     function load_high_value_node(vs:tparavarsym):tnode;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
       begin
         result:=nil;
-        srsymtable:=vs.owner;
-        srsym:=searchsymonlyin(srsymtable,'high'+vs.name);
+        srsym:=tsym(vs.owner.search('high'+vs.name));
         if assigned(srsym) then
           begin
-            result:=cloadnode.create(srsym,srsymtable);
+            result:=cloadnode.create(srsym,vs.owner);
             resulttypepass(result);
           end
         else

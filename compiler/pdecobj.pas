@@ -37,7 +37,7 @@ implementation
     uses
       cutils,
       globals,verbose,systems,tokens,
-      symconst,symbase,symsym,
+      symconst,symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
       scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype
@@ -175,7 +175,8 @@ implementation
           for i:=1 to defs.count do
             begin
               pd:=tdef(defs.search(i));
-              if pd.deftype=procdef then
+              if assigned(pd) and
+                 (pd.deftype=procdef) then
                 begin
                   tprocdef(pd).extnumber:=aktobjectdef.lastvtableindex;
                   inc(aktobjectdef.lastvtableindex);
@@ -503,7 +504,7 @@ implementation
          old_object_option:=current_object_option;
 
          { objects and class types can't be declared local }
-         if not(symtablestack.symtabletype in [globalsymtable,staticsymtable]) then
+         if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) then
            Message(parser_e_no_local_objects);
 
          storetypecanbeforward:=typecanbeforward;
@@ -537,8 +538,7 @@ implementation
          { set class flags and inherits published }
          setclassattributes;
 
-         aktobjectdef.symtable.next:=symtablestack;
-         symtablestack:=aktobjectdef.symtable;
+         symtablestack.push(aktobjectdef.symtable);
          testcurobject:=1;
 
          { add generic type parameters }
@@ -552,7 +552,7 @@ implementation
                    include(aktobjectdef.defoptions,df_generic)
                  else
                    include(aktobjectdef.defoptions,df_specialization);
-                 symtablestack.insert(generictype);
+                 symtablestack.top.insert(generictype);
                  generictype:=ttypesym(generictype.listnext);
                end;
            end;
@@ -635,7 +635,7 @@ implementation
                               not(oo_can_have_published in aktobjectdef.objectoptions) then
                               Message(parser_e_cant_have_published);
 
-                            read_var_decs([vd_object]);
+                            read_record_fields([vd_object]);
                           end;
                     end;
                   end;
@@ -790,6 +790,9 @@ implementation
          if is_interface(aktobjectdef) then
            setinterfacemethodoptions;
 
+         { remove symtable from stack }
+         symtablestack.pop(aktobjectdef.symtable);
+
          { return defined objectdef }
          result:=aktobjectdef;
 
@@ -797,7 +800,6 @@ implementation
          aktobjectdef:=nil;
          testcurobject:=0;
          typecanbeforward:=storetypecanbeforward;
-         symtablestack:=symtablestack.next;
          current_object_option:=old_object_option;
       end;
 

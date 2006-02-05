@@ -399,8 +399,7 @@ implementation
             { create a new fileparameter as follows: file_type(temp^)    }
             { (so that we pass the value and not the address of the temp }
             { to the read/write routine)                                 }
-            if not searchsystype('TEXT',textsym) then
-              internalerror(200108313);
+            textsym:=search_system_type('TEXT');
             filepara := ccallparanode.create(ctypeconvnode.create_internal(
               cderefnode.create(ctemprefnode.create(filetemp)),textsym.restype),nil);
           end
@@ -1692,7 +1691,7 @@ implementation
                 begin
                   resulttype:=voidtype;
                   { now we know the type of buffer }
-                  srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
+                  srsym:=search_system_type('SETTEXTBUF');
                   hp:=ccallparanode.create(cordconstnode.create(
                      tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
                   result:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil,[]);

@@ -50,12 +50,7 @@ interface
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
 
-{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
-{$else int64funcresok}
-    function get_intconst:longint;
-{$endif int64funcresok}
-
     function get_stringconst:string;
 
 implementation
@@ -328,7 +323,7 @@ implementation
        end;
 
 
-     function statement_syssym(l : longint) : tnode;
+     function statement_syssym(l : byte) : tnode;
       var
         p1,p2,paras  : tnode;
         err,
@@ -1159,7 +1154,7 @@ implementation
                         begin
                            static_name:=lower(sym.owner.name^)+'_'+sym.name;
                            searchsym(static_name,sym,srsymtable);
-			   if assigned(sym) then
+                           if assigned(sym) then
                              check_hints(sym,sym.symoptions);
                            p1.free;
                            p1:=cloadnode.create(sym,srsymtable);
@@ -1203,7 +1198,7 @@ implementation
            srsym : tsym;
            possible_error : boolean;
            srsymtable : tsymtable;
-           storesymtablestack : tsymtable;
+           hdef  : tdef;
            htype : ttype;
            static_name : string;
          begin
@@ -1226,6 +1221,17 @@ implementation
                )
               ) then
             begin
+              hdef:=tdef(srsym.owner.defowner);
+              if assigned(hdef) and
+                 (hdef.deftype=procdef) then
+                srsym:=tprocdef(hdef).procsym
+              else
+                begin
+                  Message(parser_e_illegal_expression);
+                  srsym:=generrorsym;
+                end;
+              srsymtable:=srsym.owner;
+{
               storesymtablestack:=symtablestack;
               symtablestack:=srsym.owner.next;
               searchsym(srsym.name,srsym,srsymtable);
@@ -1234,6 +1240,7 @@ implementation
               if (srsym.typ<>procsym) then
                Message(parser_e_illegal_expression);
               symtablestack:=storesymtablestack;
+}
             end;
 
             begin
@@ -1260,7 +1267,7 @@ implementation
                      begin
                        static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
                        searchsym(static_name,srsym,srsymtable);
-		       if assigned(srsym) then
+                       if assigned(srsym) then
                          check_hints(srsym,srsym.symoptions);
                      end
                     else
@@ -1334,8 +1341,8 @@ implementation
                                begin
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
-                                 srsym:=searchsym_in_class(tobjectdef(htype.def),pattern);
-				 if assigned(srsym) then
+                                 searchsym_in_class(tobjectdef(htype.def),pattern,srsym,srsymtable);
+                                 if assigned(srsym) then
                                    check_hints(srsym,srsym.symoptions);
                                  consume(_ID);
                                  do_member_read(tobjectdef(htype.def),false,srsym,p1,again,[]);
@@ -1355,17 +1362,17 @@ implementation
                               { defined in an anchestor class              }
                               srsym:=search_class_member(tobjectdef(htype.def),pattern);
                               if assigned(srsym) then
-			        begin
+                                begin
                                   check_hints(srsym,srsym.symoptions);
-  				  if not(getaddr) and not(sp_static in srsym.symoptions) then
+                                  if not(getaddr) and not(sp_static in srsym.symoptions) then
                                     Message(sym_e_only_static_in_static)
                                   else
                                     begin
                                       consume(_ID);
                                       do_member_read(tobjectdef(htype.def),getaddr,srsym,p1,again,[]);
-				    end;  
+                                    end;
                                 end
-			      else	
+                              else
                                 Message1(sym_e_id_no_member,orgpattern);
                             end;
                          end
@@ -1389,11 +1396,11 @@ implementation
                                    consume(_ID);
                                    do_member_read(tobjectdef(htype.def),getaddr,srsym,p1,again,[]);
                                  end
-				else 
-				 begin
+                                else
+                                 begin
                                    Message1(sym_e_id_no_member,orgpattern);
                                    consume(_ID);
-				 end;
+                                 end;
                               end
                              else
                               begin
@@ -1678,9 +1685,10 @@ implementation
         var
           store_static : boolean;
           protsym  : tpropertysym;
-          p2,p3 : tnode;
-          hsym  : tsym;
-          classh : tobjectdef;
+          p2,p3  : tnode;
+          srsym  : tsym;
+          srsymtable : tsymtable;
+          classh     : tobjectdef;
 
         label
           skipreckklammercheck;
@@ -1835,13 +1843,13 @@ implementation
                         begin
                           if token=_ID then
                             begin
-                              hsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
-                              if assigned(hsym) and
-                                 (hsym.typ=fieldvarsym) then
-				begin 
-                                  check_hints(hsym,hsym.symoptions);
-                                  p1:=csubscriptnode.create(hsym,p1)
-				end  
+                              srsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
+                              if assigned(srsym) and
+                                 (srsym.typ=fieldvarsym) then
+                                begin
+                                  check_hints(srsym,srsym.symoptions);
+                                  p1:=csubscriptnode.create(srsym,p1)
+                                end
                               else
                                 begin
                                   Message1(sym_e_illegal_field,pattern);
@@ -1859,20 +1867,20 @@ implementation
                            if token=_ID then
                              begin
                                classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
-                               hsym:=searchsym_in_class(classh,pattern);
-                               if hsym=nil then
+                               searchsym_in_class(classh,pattern,srsym,srsymtable);
+                               if assigned(srsym) then
+                                 begin
+                                   check_hints(srsym,srsym.symoptions);
+                                   consume(_ID);
+                                   do_member_read(classh,getaddr,srsym,p1,again,[]);
+                                 end
+                               else
                                  begin
                                    Message1(sym_e_id_no_member,orgpattern);
                                    p1.destroy;
                                    p1:=cerrornode.create;
                                    { try to clean up }
                                    consume(_ID);
-                                 end
-                               else
-                                 begin
-                                   check_hints(hsym,hsym.symoptions);
-                                   consume(_ID);
-                                   do_member_read(classh,getaddr,hsym,p1,again,[]);
                                  end;
                              end
                            else { Error }
@@ -1885,21 +1893,21 @@ implementation
                                store_static:=allow_only_static;
                                allow_only_static:=false;
                                classh:=tobjectdef(p1.resulttype.def);
-                               hsym:=searchsym_in_class(classh,pattern);
+                               searchsym_in_class(classh,pattern,srsym,srsymtable);
                                allow_only_static:=store_static;
-                               if hsym=nil then
+                               if assigned(srsym) then
+                                 begin
+                                    check_hints(srsym,srsym.symoptions);
+                                    consume(_ID);
+                                    do_member_read(classh,getaddr,srsym,p1,again,[]);
+                                 end
+                               else
                                  begin
                                     Message1(sym_e_id_no_member,orgpattern);
                                     p1.destroy;
                                     p1:=cerrornode.create;
                                     { try to clean up }
                                     consume(_ID);
-                                 end
-                               else
-                                 begin
-                                    check_hints(hsym,hsym.symoptions);
-                                    consume(_ID);
-                                    do_member_read(classh,getaddr,hsym,p1,again,[]);
                                  end;
                              end
                            else { Error }
@@ -1964,39 +1972,24 @@ implementation
       ---------------------------------------------}
 
       var
-         l        : longint;
-         ic       : int64;
-         qc       : qword;
+         l          : longint;
+         ic         : int64;
+         qc         : qword;
 {$ifndef cpu64}
-         card     : cardinal;
+         card       : cardinal;
 {$endif cpu64}
          oldp1,
-         p1       : tnode;
-         code     : integer;
-         again    : boolean;
-         sym      : tsym;
-         pd       : tprocdef;
-         classh   : tobjectdef;
-         d        : bestreal;
-         hs,hsorg : string;
-         htype    : ttype;
-         filepos  : tfileposinfo;
-
-         {---------------------------------------------
-                           Helpers
-         ---------------------------------------------}
-
-        procedure check_tokenpos;
-        begin
-          if (p1<>oldp1) then
-           begin
-             if assigned(p1) then
-               p1.fileinfo:=filepos;
-             oldp1:=p1;
-             filepos:=akttokenpos;
-           end;
-        end;
-
+         p1         : tnode;
+         code       : integer;
+         again      : boolean;
+         srsym      : tsym;
+         srsymtable : tsymtable;
+         pd         : tprocdef;
+         classh     : tobjectdef;
+         d          : bestreal;
+         hs,hsorg   : string;
+         htype      : ttype;
+         filepos    : tfileposinfo;
       begin
         oldp1:=nil;
         p1:=nil;
@@ -2017,10 +2010,16 @@ implementation
              end
            else
              factor_read_id(p1,again);
+
            if again then
             begin
-              check_tokenpos;
-
+              if (p1<>oldp1) then
+               begin
+                 if assigned(p1) then
+                   p1.fileinfo:=filepos;
+                 oldp1:=p1;
+                 filepos:=akttokenpos;
+               end;
               { handle post fix operators }
               postfixoperators(p1,again);
             end;
@@ -2051,12 +2050,12 @@ implementation
                        number or string }
                      pd:=tprocsym(current_procinfo.procdef.procsym).first_procdef;
                      if (po_msgint in pd.procoptions) then
-                      sym:=searchsym_in_class_by_msgint(classh,pd.messageinf.i)
+                       searchsym_in_class_by_msgint(classh,pd.messageinf.i,srsym,srsymtable)
                      else
                       if (po_msgstr in pd.procoptions) then
-                       sym:=searchsym_in_class_by_msgstr(classh,pd.messageinf.str)
+                        searchsym_in_class_by_msgstr(classh,pd.messageinf.str,srsym,srsymtable)
                      else
-                      sym:=searchsym_in_class(classh,hs);
+                       searchsym_in_class(classh,hs,srsym,srsymtable);
                    end
                   else
                    begin
@@ -2064,16 +2063,16 @@ implementation
                      hsorg:=orgpattern;
                      consume(_ID);
                      anon_inherited:=false;
-                     sym:=searchsym_in_class(classh,hs);
+                     searchsym_in_class(classh,hs,srsym,srsymtable);
                    end;
-                  if assigned(sym) then
+                  if assigned(srsym) then
                    begin
-                     check_hints(sym,sym.symoptions);
+                     check_hints(srsym,srsym.symoptions);
                      { load the procdef from the inherited class and
                        not from self }
-                     if sym.typ in [procsym,propertysym] then
+                     if srsym.typ in [procsym,propertysym] then
                       begin
-                        if (sym.typ = procsym) then
+                        if (srsym.typ = procsym) then
                           begin
                             htype.setdef(classh);
                             if (po_classmethod in current_procinfo.procdef.procoptions) or
@@ -2087,7 +2086,7 @@ implementation
                         Message(parser_e_methode_id_expected);
                         p1:=cerrornode.create;
                       end;
-                     do_member_read(classh,false,sym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                     do_member_read(classh,false,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
                   else
                    begin
@@ -2097,12 +2096,12 @@ implementation
                         if (po_msgint in pd.procoptions) or
                            (po_msgstr in pd.procoptions) then
                           begin
-                            sym:=searchsym_in_class(classh,'DEFAULTHANDLER');
-                            if not assigned(sym) or
-                               (sym.typ<>procsym) then
+                            searchsym_in_class(classh,'DEFAULTHANDLER',srsym,srsymtable);
+                            if not assigned(srsym) or
+                               (srsym.typ<>procsym) then
                               internalerror(200303171);
                             p1:=nil;
-                            do_proc_call(sym,sym.owner,classh,false,again,p1,[]);
+                            do_proc_call(srsym,srsym.owner,classh,false,again,p1,[]);
                           end
                         else
                           begin
@@ -2440,8 +2439,10 @@ implementation
         if (not assigned(p1.resulttype.def)) then
          do_resulttypepass(p1);
 
+        if assigned(p1) and
+           (p1<>oldp1) then
+          p1.fileinfo:=filepos;
         factor:=p1;
-        check_tokenpos;
       end;
 {$ifdef fpc}
   {$maxfpuregisters default}
@@ -2632,11 +2633,7 @@ implementation
          expr:=p1;
       end;
 
-{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
-{$else int64funcresok}
-    function get_intconst:longint;
-{$endif int64funcresok}
     {Reads an expression, tries to evalute it and check if it is an integer
      constant. Then the constant is returned.}
     var

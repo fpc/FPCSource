@@ -52,9 +52,6 @@ interface
        { for operators }
        optoken : ttoken;
 
-       { symtable were unit references are stored }
-       refsymtable : tsymtable;
-
        { true, if only routine headers should be parsed }
        parse_only : boolean;
 
@@ -84,6 +81,8 @@ interface
     { consume a symbol, if not found give an error and
       and return an errorsym }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
@@ -179,43 +178,53 @@ implementation
       begin
         { first check for identifier }
         if token<>_ID then
-         begin
-           consume(_ID);
-           srsym:=generrorsym;
-           srsymtable:=nil;
-           consume_sym:=false;
-           exit;
-         end;
+          begin
+            consume(_ID);
+            srsym:=generrorsym;
+            srsymtable:=nil;
+            result:=false;
+            exit;
+          end;
         searchsym(pattern,srsym,srsymtable);
-        if assigned(srsym) then
-         begin
-           check_hints(srsym,srsym.symoptions);
-           if (srsym.typ=unitsym) then
-            begin
-              if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
-                internalerror(200501154);
-              { only allow unit.symbol access if the name was
-                found in the current module }
-              if srsym.owner.iscurrentunit then
-               begin
-                 consume(_ID);
-                 consume(_POINT);
-                 srsymtable:=tunitsym(srsym).unitsymtable;
-                 srsym:=searchsymonlyin(srsymtable,pattern);
-               end
-              else
-               srsym:=nil;
-            end;
-         end;
+        { handle unit specification like System.Writeln }
+        try_consume_unitsym(srsym,srsymtable);
         { if nothing found give error and return errorsym }
-        if srsym=nil then
-         begin
-           identifier_not_found(orgpattern);
-           srsym:=generrorsym;
-           srsymtable:=nil;
-         end;
+        if assigned(srsym) then
+          check_hints(srsym,srsym.symoptions)
+        else
+          begin
+            identifier_not_found(orgpattern);
+            srsym:=generrorsym;
+            srsymtable:=nil;
+          end;
         consume(_ID);
-        consume_sym:=assigned(srsym);
+        result:=assigned(srsym);
+      end;
+
+
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+      begin
+        result:=false;
+        if assigned(srsym) and
+           (srsym.typ=unitsym) then
+          begin
+            if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
+              internalerror(200501154);
+            { only allow unit.symbol access if the name was
+              found in the current module }
+            if srsym.owner.iscurrentunit then
+              begin
+                consume(_ID);
+                consume(_POINT);
+                searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
+              end
+            else
+              begin
+                srsym:=nil;
+                srsymtable:=nil;
+              end;
+            result:=true;
+          end;
       end;
 
 

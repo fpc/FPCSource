@@ -229,8 +229,8 @@ implementation
          else
             begin
                block:=statement_block(_BEGIN);
-               if symtablestack.symtabletype=localsymtable then
-                 symtablestack.foreach_static(@initializevars,block);
+               if current_procinfo.procdef.localst.symtabletype=localsymtable then
+                 current_procinfo.procdef.localst.foreach_static(@initializevars,block);
             end;
       end;
 
@@ -711,8 +711,8 @@ implementation
           cg.t_times:=100;
 
         { clear register count }
-        symtablestack.foreach_static(@clearrefs,nil);
-        symtablestack.next.foreach_static(@clearrefs,nil);
+        procdef.localst.foreach_static(@clearrefs,nil);
+        procdef.parast.foreach_static(@clearrefs,nil);
 
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
@@ -720,14 +720,14 @@ implementation
           include(flags,pi_do_call);
 
         { set implicit_finally flag when there are locals/paras to be finalized }
-        current_procinfo.procdef.parast.foreach_static(@check_finalize_paras,nil);
-        current_procinfo.procdef.localst.foreach_static(@check_finalize_locals,nil);
+        procdef.parast.foreach_static(@check_finalize_paras,nil);
+        procdef.localst.foreach_static(@check_finalize_locals,nil);
 
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
         if code.registersfpu>0 then
-          include(current_procinfo.flags,pi_uses_fpu);
+          include(flags,pi_uses_fpu);
 
         { add implicit entry and exit code }
         add_entry_exit_code;
@@ -888,7 +888,7 @@ implementation
               generate the call to the helper function }
             if (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
-               (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+               (procdef.proctypeoption<>potype_proginit) then
               begin
                 aktfilepos:=entrypos;
                 gen_stack_check_call(templist);
@@ -924,7 +924,7 @@ implementation
               parameter that is passed to the stack checking code }
             if (cs_check_stack in entryswitches) and
                not(po_assembler in procdef.procoptions) and
-               (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+               (procdef.proctypeoption<>potype_proginit) then
               begin
                 aktfilepos:=entrypos;
                 gen_stack_check_size_para(templist);
@@ -1015,9 +1015,6 @@ implementation
       var
         _class,hp : tobjectdef;
       begin
-        { allocate the symbol for this procedure }
-        alloc_proc_symbol(procdef);
-
         { insert symtables for the class, but only if it is no nested function }
         if assigned(procdef._class) and
            not(assigned(parent) and
@@ -1031,35 +1028,44 @@ implementation
               while _class.childof<>hp do
                 _class:=_class.childof;
               hp:=_class;
-              _class.symtable.next:=symtablestack;
-              symtablestack:=_class.symtable;
+              symtablestack.push(_class.symtable);
             until hp=procdef._class;
           end;
 
         { insert parasymtable in symtablestack when parsing
           a function }
         if procdef.parast.symtablelevel>=normal_function_level then
-          begin
-             procdef.parast.next:=symtablestack;
-             symtablestack:=procdef.parast;
-          end;
+          symtablestack.push(procdef.parast);
 
-        procdef.localst.next:=symtablestack;
-        symtablestack:=procdef.localst;
+        { insert localsymtable }
+        symtablestack.push(procdef.localst);
       end;
 
 
     procedure tcgprocinfo.remove_from_symtablestack;
+      var
+        _class : tobjectdef;
       begin
-        { remove localst/parast }
-        if procdef.parast.symtablelevel>=normal_function_level then
-          symtablestack:=symtablestack.next.next
-        else
-          symtablestack:=symtablestack.next;
+        { remove localsymtable }
+        symtablestack.pop(procdef.localst);
 
-        { remove class member symbol tables }
-        while symtablestack.symtabletype=objectsymtable do
-          symtablestack:=symtablestack.next;
+        { remove parasymtable }
+        if procdef.parast.symtablelevel>=normal_function_level then
+          symtablestack.pop(procdef.parast);
+
+        { remove symtables for the class, but only if it is no nested function }
+        if assigned(procdef._class) and
+           not(assigned(parent) and
+               assigned(parent.procdef) and
+               assigned(parent.procdef._class)) then
+          begin
+            _class:=procdef._class;
+            while assigned(_class) do
+              begin
+                symtablestack.pop(_class.symtable);
+                _class:=_class.childof;
+              end;
+          end;
       end;
 
 
@@ -1103,12 +1109,10 @@ implementation
       var
          oldprocinfo : tprocinfo;
          oldblock_type : tblock_type;
-         oldconstsymtable : tsymtable;
          st : tsymtable;
       begin
          oldprocinfo:=current_procinfo;
          oldblock_type:=block_type;
-         oldconstsymtable:=constsymtable;
 
          { reset break and continue labels }
          block_type:=bt_body;
@@ -1129,15 +1133,15 @@ implementation
 {    aktstate:=Tstate_storage.create;}
     {$endif state_tracking}
 
+         { allocate the symbol for this procedure }
+         alloc_proc_symbol(procdef);
+
          { create a local symbol table for this routine }
          if not assigned(procdef.localst) then
            procdef.insert_localst;
 
          { add parast/localst to symtablestack }
          add_to_symtablestack;
-
-         { constant symbols are inserted in this symboltable }
-         constsymtable:=symtablestack;
 
          { save entry info }
          entrypos:=aktfilepos;
@@ -1236,7 +1240,6 @@ implementation
          current_procinfo:=oldprocinfo;
 
          { Restore old state }
-         constsymtable:=oldconstsymtable;
          block_type:=oldblock_type;
       end;
 
@@ -1591,8 +1594,7 @@ implementation
                 read_proc;
               _EXPORTS:
                 begin
-                   if not(assigned(current_procinfo.procdef.localst)) or
-                      (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
+                   if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
                      begin
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
@@ -1635,7 +1637,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-           symtablestack.foreach_static(@check_forward_class,nil);
+           current_procinfo.procdef.localst.foreach_static(@check_forward_class,nil);
       end;
 
 
@@ -1676,7 +1678,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-          symtablestack.foreach_static(@check_forward_class,nil);
+          symtablestack.top.foreach_static(@check_forward_class,nil);
       end;
 
 
@@ -1721,18 +1723,14 @@ implementation
 
 
     procedure generate_specialization_procs;
-      var
-        oldsymtablestack : tsymtable;
       begin
         if assigned(current_module.globalsymtable) then
           current_module.globalsymtable.foreach_static(@specialize_objectdefs,nil);
         if assigned(current_module.localsymtable) then
           begin
-            oldsymtablestack:=symtablestack;
-            current_module.localsymtable.next:=symtablestack;
-            symtablestack:=current_module.localsymtable;
+            symtablestack.push(current_module.localsymtable);
             current_module.localsymtable.foreach_static(@specialize_objectdefs,nil);
-            symtablestack:=oldsymtablestack;
+            symtablestack.pop(current_module.localsymtable);
           end;
       end;
 

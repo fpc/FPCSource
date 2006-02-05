@@ -660,9 +660,7 @@ implementation
           if not current_module.mode_switch_allowed and
               not ((m_mac in aktmodeswitches) and (pattern='MACPAS')) then
             Message1(scan_e_mode_switch_not_allowed,pattern)
-          else if SetCompileMode(pattern,false) then
-            ConsolidateMode
-          else
+          else if not SetCompileMode(pattern,false) then
             Message1(scan_w_illegal_switch,pattern)
         end;
       current_module.mode_switch_allowed:= false;

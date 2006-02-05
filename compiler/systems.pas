@@ -667,6 +667,7 @@ var
   target  : tsystem;
   ar      : tar;
   res     : tres;
+  dbg     : tdbg;
 begin
   for target:=low(tsystem) to high(tsystem) do
    if assigned(targetinfos[target]) then
@@ -691,6 +692,12 @@ begin
     begin
       freemem(resinfos[res],sizeof(tresinfo));
       resinfos[res]:=nil;
+    end;
+  for dbg:=low(tdbg) to high(tdbg) do
+   if assigned(dbginfos[dbg]) then
+    begin
+      freemem(dbginfos[dbg],sizeof(tdbginfo));
+      dbginfos[dbg]:=nil;
     end;
 end;
 

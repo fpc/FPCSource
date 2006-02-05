@@ -1612,9 +1612,7 @@ implementation
         srsym: ttypesym;
       begin
         { get the sym that represents the fpc_normal_set type }
-        if not searchsystype('FPC_NORMAL_SET',srsym) then
-          internalerror(200108313);
-
+        srsym:=search_system_type('FPC_NORMAL_SET');
         case nodetype of
           equaln,unequaln,lten,gten:
             begin

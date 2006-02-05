@@ -94,7 +94,6 @@ interface
           symindex,
           defindex  : TIndexArray;
           symsearch : Tdictionary;
-          next      : tsymtable;
           defowner  : tdefentry; { for records and objects }
           symtabletype  : tsymtabletype;
           { level of symtable, used for nested procedures }
@@ -109,13 +108,13 @@ interface
           function  rename(const olds,news : stringid):tsymentry;
           procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
           procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
+          function  checkduplicate(sym : tsymentry):boolean;virtual;
           procedure insert(sym : tsymentry);virtual;
-          { deletes a tsymentry and removes it from the tsymtable}
           procedure delete(sym:tsymentry);
           procedure replace(oldsym,newsym:tsymentry);
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
-          procedure registerdef(p : tdefentry);
+          procedure insertdef(def:tdefentry);virtual;
           function  iscurrentunit:boolean;virtual;
 {$ifdef EXTDEBUG}
           procedure dump;
@@ -125,13 +124,6 @@ interface
        end;
 
     var
-       registerdef : boolean;      { true, when defs should be registered }
-
-       defaultsymtablestack : tsymtable;  { symtablestack after default units have been loaded }
-       symtablestack     : tsymtable;     { linked list of symtables }
-       defaultmacrosymtablestack : tsymtable;{ macrosymtablestack after default units have been loaded }
-       macrosymtablestack: tsymtable;     { linked list of macro symtables }
-
        aktrecordsymtable : tsymtable;     { current record symtable }
        aktparasymtable   : tsymtable;     { current proc para symtable }
        aktlocalsymtable  : tsymtable;     { current proc local symtable }
@@ -164,7 +156,6 @@ implementation
          symtabletype:=abstractsymtable;
          symtablelevel:=0;
          defowner:=nil;
-         next:=nil;
          symindex:=tindexarray.create(indexgrowsize);
          defindex:=TIndexArray.create(indexgrowsize);
          symsearch:=tdictionary.create;
@@ -224,14 +215,6 @@ implementation
 {$endif EXTDEBUG}
 
 
-    procedure tsymtable.registerdef(p : tdefentry);
-      begin
-         defindex.insert(p);
-         { set def owner and indexnb }
-         p.owner:=self;
-      end;
-
-
     function tsymtable.iscurrentunit:boolean;
       begin
         result:=false;
@@ -261,13 +244,28 @@ implementation
       end;
 
 
+    function tsymtable.checkduplicate(sym : tsymentry):boolean;
+      begin
+        result:=(speedsearch(sym.name,sym.speedvalue)<>nil);
+      end;
+
+
     procedure tsymtable.insert(sym:tsymentry);
       begin
+         checkduplicate(sym);
          sym.owner:=self;
          { insert in index and search hash }
          symindex.insert(sym);
          symsearch.insert(sym);
       end;
+
+
+    procedure tsymtable.insertdef(def:tdefentry);
+      begin
+         def.owner:=self;
+         defindex.insert(def);
+      end;
+
 
     procedure tsymtable.delete(sym:tsymentry);
       begin
@@ -276,6 +274,7 @@ implementation
          symsearch.delete(sym.name);
          symindex.delete(sym);
       end;
+
 
     procedure tsymtable.replace(oldsym,newsym:tsymentry);
       begin

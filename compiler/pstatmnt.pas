@@ -39,7 +39,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        globtype,globals,verbose,
        systems,
@@ -433,26 +433,46 @@ implementation
     function _with_statement : tnode;
 
       var
-         right,p : tnode;
-         i,levelcount : longint;
-         withsymtable,symtab : tsymtable;
-         obj : tobjectdef;
-         hp : tnode;
+         p   : tnode;
+         i   : longint;
+         st  : tsymtable;
          newblock : tblocknode;
          newstatement : tstatementnode;
-         calltempp,
-         loadp : ttempcreatenode;
-         refp : tnode;
+         calltempnode,
+         tempnode : ttempcreatenode;
+         valuenode,
+         hp,
+         refnode  : tnode;
          htype : ttype;
          hasimplicitderef : boolean;
+         withsymtablelist : tlist;
+
+         procedure pushobjchild(obj:tobjectdef);
+         begin
+           if not assigned(obj) then
+             exit;
+           pushobjchild(obj.childof);
+           { keep the original tobjectdef as owner, because that is used for
+             visibility of the symtable }
+           st:=twithsymtable.create(tobjectdef(p.resulttype.def),obj.symtable.symsearch,refnode.getcopy);
+           symtablestack.push(st);
+           withsymtablelist.add(st);
+         end;
+
       begin
          p:=comp_expr(true);
          do_resulttypepass(p);
-         right:=nil;
-         if (not codegenerror) and
-            (p.resulttype.def.deftype in [objectdef,recorddef]) then
+
+         if (p.nodetype=vecn) and
+            (nf_memseg in p.flags) then
+           CGMessage(parser_e_no_with_for_variable_in_other_segments);
+
+         if (p.resulttype.def.deftype in [objectdef,recorddef]) then
           begin
             newblock:=nil;
+            valuenode:=nil;
+            tempnode:=nil;
+
             { ignore nodes that don't add instructions in the tree }
             hp:=p;
             while { equal type conversions }
@@ -472,113 +492,107 @@ implementation
                 (tloadnode(hp).symtable=current_procinfo.procdef.parast) or
                 (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
                ) then
-             begin
-               { simple load, we can reference direct }
-               loadp:=nil;
-               refp:=p;
-             end
+              begin
+                { simple load, we can reference direct }
+                refnode:=p;
+              end
             else
-             begin
-               calltempp:=nil;
-               { complex load, load in temp first }
-               newblock:=internalstatements(newstatement);
-               { when right is a call then load it first in a temp }
-               if p.nodetype=calln then
-                 begin
-                   calltempp:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,false);
-                   addstatement(newstatement,calltempp);
-                   addstatement(newstatement,cassignmentnode.create(
-                       ctemprefnode.create(calltempp),
-                       p));
-                   p:=ctemprefnode.create(calltempp);
-                   resulttypepass(p);
-                 end;
-               { classes and interfaces have implicit dereferencing }
-               hasimplicitderef:=is_class_or_interface(p.resulttype.def);
-               if hasimplicitderef then
-                 htype:=p.resulttype
-               else
-                 htype.setdef(tpointerdef.create(p.resulttype));
-{$ifdef WITHNODEDEBUG}
-               { we can't generate debuginfo for a withnode stored in a }
-               { register                                               }
-               if (cs_debuginfo in aktmoduleswitches) then
-                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,false)
-               else
-{$endif WITHNODEDEBUG}
-                 loadp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,true);
-               resulttypepass(loadp);
-               if hasimplicitderef then
-                begin
-                  hp:=p;
-                  refp:=ctemprefnode.create(loadp);
-                end
-               else
-                begin
-                  hp:=caddrnode.create_internal(p);
-                  refp:=cderefnode.create(ctemprefnode.create(loadp));
-                end;
-               addstatement(newstatement,loadp);
-               addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create(loadp),
-                   hp));
-               resulttypepass(refp);
-             end;
+              begin
+                calltempnode:=nil;
+                { complex load, load in temp first }
+                newblock:=internalstatements(newstatement);
+                { when right is a call then load it first in a temp }
+                if p.nodetype=calln then
+                  begin
+                    calltempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,false);
+                    addstatement(newstatement,calltempnode);
+                    addstatement(newstatement,cassignmentnode.create(
+                        ctemprefnode.create(calltempnode),
+                        p));
+                    p:=ctemprefnode.create(calltempnode);
+                    resulttypepass(p);
+                  end;
+                { classes and interfaces have implicit dereferencing }
+                hasimplicitderef:=is_class_or_interface(p.resulttype.def);
+                if hasimplicitderef then
+                  htype:=p.resulttype
+                else
+                  htype.setdef(tpointerdef.create(p.resulttype));
+                { load address of the value in a temp }
+                tempnode:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,true);
+                resulttypepass(tempnode);
+                valuenode:=p;
+                refnode:=ctemprefnode.create(tempnode);
+                fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
+                { add address call for valuenode and deref for refnode if this
+                  is not done implicitly }
+                if not hasimplicitderef then
+                  begin
+                    valuenode:=caddrnode.create_internal(valuenode);
+                    refnode:=cderefnode.create(refnode);
+                    fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
+                  end;
+                addstatement(newstatement,tempnode);
+                addstatement(newstatement,cassignmentnode.create(
+                    ctemprefnode.create(tempnode),
+                    valuenode));
+                resulttypepass(refnode);
+              end;
 
+            withsymtablelist:=tlist.create;
             case p.resulttype.def.deftype of
               objectdef :
                 begin
-                   obj:=tobjectdef(p.resulttype.def);
-                   withsymtable:=twithsymtable.Create(obj,obj.symtable.symsearch,refp);
-                   { include also all parent symtables }
-                   levelcount:=1;
-                   obj:=obj.childof;
-                   symtab:=withsymtable;
-                   while assigned(obj) do
-                    begin
-                      { keep the original tobjectdef as owner, because that is used for
-                        visibility of the symtable }
-                      symtab.next:=twithsymtable.create(tobjectdef(p.resulttype.def),obj.symtable.symsearch,refp.getcopy);
-                      symtab:=symtab.next;
-                      obj:=obj.childof;
-                      inc(levelcount);
-                    end;
-                   symtab.next:=symtablestack;
-                   symtablestack:=withsymtable;
+                   { push symtables of all parents in reverse order }
+                   pushobjchild(tobjectdef(p.resulttype.def).childof);
+                   { push object symtable }
+                   st:=twithsymtable.Create(tobjectdef(p.resulttype.def),tobjectdef(p.resulttype.def).symtable.symsearch,refnode);
+                   symtablestack.push(st);
+                   withsymtablelist.add(st);
                  end;
               recorddef :
                 begin
-                   symtab:=trecorddef(p.resulttype.def).symtable;
-                   levelcount:=1;
-                   withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch,refp);
-                   withsymtable.next:=symtablestack;
-                   symtablestack:=withsymtable;
+                   st:=twithsymtable.create(trecorddef(p.resulttype.def),trecorddef(p.resulttype.def).symtable.symsearch,refnode);
+                   symtablestack.push(st);
+                   withsymtablelist.add(st);
                 end;
+              else
+                internalerror(200601271);
             end;
+
             if try_to_consume(_COMMA) then
-              right:=_with_statement()
+              p:=_with_statement()
             else
               begin
                 consume(_DO);
                 if token<>_SEMICOLON then
-                  right:=statement
+                  p:=statement
                 else
-                  right:=cerrornode.create;
+                  p:=cerrornode.create;
               end;
-            { remove symtables from the stack }
-            for i:=1 to levelcount do
-              symtablestack:=symtablestack.next;
-            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refp);
+
+            { remove symtables in reverse order from the stack }
+            for i:=withsymtablelist.count-1 downto 0 do
+              begin
+                st:=tsymtable(withsymtablelist[i]);
+                symtablestack.pop(st);
+                st.free;
+              end;
+            withsymtablelist.free;
+
+//            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);
+
             { Finalize complex withnode with destroy of temp }
             if assigned(newblock) then
              begin
                addstatement(newstatement,p);
-               addstatement(newstatement,ctempdeletenode.create(loadp));
-               if assigned(calltempp) then
-                 addstatement(newstatement,ctempdeletenode.create(calltempp));
+               if assigned(tempnode) then
+                 addstatement(newstatement,ctempdeletenode.create(tempnode));
+               if assigned(calltempnode) then
+                 addstatement(newstatement,ctempdeletenode.create(calltempnode));
                p:=newblock;
              end;
-            _with_statement:=p;
+            result:=p;
           end
          else
           begin
@@ -597,7 +611,7 @@ implementation
                if token<>_SEMICOLON then
                 statement;
              end;
-            _with_statement:=nil;
+            result:=nil;
           end;
       end;
 
@@ -734,9 +748,7 @@ implementation
                                  end;
                                exceptsymtable:=tstt_exceptsymtable.create;
                                exceptsymtable.insert(sym);
-                               { insert the exception symtable stack }
-                               exceptsymtable.next:=symtablestack;
-                               symtablestack:=exceptsymtable;
+                               symtablestack.push(exceptsymtable);
                             end
                           else
                             begin
@@ -751,7 +763,7 @@ implementation
                                if srsym.typ=unitsym then
                                  begin
                                     consume(_POINT);
-                                    srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,pattern);
+                                    searchsym_in_module(tunitsym(srsym).module,pattern,srsym,srsymtable);
                                     if srsym=nil then
                                      begin
                                        identifier_not_found(orgpattern);
@@ -805,7 +817,7 @@ implementation
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
                        begin
-                         symtablestack:=symtablestack.next;
+                         symtablestack.pop(exceptsymtable);
                          if last.nodetype <> onn then
                            exceptsymtable.free;
                        end;
@@ -1123,7 +1135,7 @@ implementation
       begin
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.rettype.def) then
-           symtablestack.rename(current_procinfo.procdef.resultname,'$hiddenresult');
+           current_procinfo.procdef.localst.rename(current_procinfo.procdef.resultname,'$hiddenresult');
 
          { delphi uses register calling for assembler methods }
          if (m_delphi in aktmodeswitches) and

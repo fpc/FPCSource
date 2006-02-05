@@ -2011,8 +2011,7 @@ implementation
         p: tcallparanode;
 
       begin
-        if not searchsystype('FPC_SMALL_SET',srsym) then
-          internalerror(200108313);
+        srsym:=search_system_type('FPC_SMALL_SET');
         p := ccallparanode.create(left,nil);
         { reused }
         left := nil;
