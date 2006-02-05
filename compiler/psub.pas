@@ -957,16 +957,20 @@ implementation
               end;
 {$endif NoOpt}
 
-            { Add end symbol and debug info }
-            aktfilepos:=exitpos;
-            gen_proc_symbol_end(templist);
-            aktproccode.concatlist(templist);
 
 {$ifdef ARM}
             { because of the limited constant size of the arm, all data access is done pc relative }
             insertpcrelativedata(aktproccode,aktlocaldata);
 {$endif ARM}
 
+            { Add end symbol and debug info }
+            { this must be done after the pcrelativedata is appended else the distance calculation of
+              insertpcrelativedata will be wrong, further the pc indirect data is part of the procedure
+              so it should be inserted before the end symbol (FK)
+            }
+            aktfilepos:=exitpos;
+            gen_proc_symbol_end(templist);
+            aktproccode.concatlist(templist);
 {$ifdef POWERPC}
             fixup_jmps(aktproccode);
 {$endif POWERPC}
