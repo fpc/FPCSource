@@ -2205,7 +2205,7 @@ implementation
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
      begin
        if not assigned(srsym) then
-         exit;
+         internalerror(200602051);
        if sp_hint_deprecated in symoptions then
          Message1(sym_w_deprecated_symbol,srsym.realname);
        if sp_hint_platform in symoptions then
