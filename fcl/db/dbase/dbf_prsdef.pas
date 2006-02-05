@@ -38,7 +38,7 @@ type
     FMemoryPos: PPChar;
     FSize: PInteger;
   public
-    constructor Create(DestMem, DestPos: PPChar; Size: PInteger);
+    constructor Create(DestMem, DestPos: PPChar; ASize: PInteger);
 
     procedure AssureSpace(ASize: Integer);
     procedure Resize(NewSize: Integer; Exact: Boolean);
@@ -974,13 +974,13 @@ end;
 
 { TDynamicType }
 
-constructor TDynamicType.Create(DestMem, DestPos: PPChar; Size: PInteger);
+constructor TDynamicType.Create(DestMem, DestPos: PPChar; ASize: PInteger);
 begin
   inherited Create;
 
   FMemory := DestMem;
   FMemoryPos := DestPos;
-  FSize := Size;
+  FSize := ASize;
 end;
 
 procedure TDynamicType.Rewind;

@@ -51,7 +51,7 @@ type
 
     procedure ClearExpressions; override;
 
-    procedure ParseExpression(Expression: string); virtual;
+    procedure ParseExpression(AExpression: string); virtual;
     function ExtractFromBuffer(Buffer: PChar): PChar; virtual;
 
     property DbfFile: Pointer read FDbfFile write FDbfFile;
@@ -1507,7 +1507,7 @@ begin
   FCurrentExpression := EmptyStr;
 end;
 
-procedure TDbfParser.ParseExpression(Expression: string);
+procedure TDbfParser.ParseExpression(AExpression: string);
 var
   TempBuffer: array[0..4000] of Char;
 begin
@@ -1515,11 +1515,11 @@ begin
   ClearExpressions;
 
   // is this a simple field or complex expression?
-  FIsExpression := GetVariableInfo(Expression) = nil;
+  FIsExpression := GetVariableInfo(AExpression) = nil;
   if FIsExpression then
   begin
     // parse requested
-    CompileExpression(Expression);
+    CompileExpression(AExpression);
 
     // determine length of string length expressions
     if ResultType = etString then
@@ -1530,7 +1530,7 @@ begin
     end;
   end else begin
     // simple field, create field variable for it
-    HandleUnknownVariable(Expression);
+    HandleUnknownVariable(AExpression);
     FFieldType := TFieldVar(FFieldVarList.Objects[0]).FieldType;
     // set result len of variable length fields
     if FFieldType = etString then
@@ -1547,10 +1547,10 @@ begin
 
   // check if expression not too long
   if FResultLen > 100 then
-    raise EDbfError.CreateFmt(STRING_INDEX_EXPRESSION_TOO_LONG, [Expression, FResultLen]);
+    raise EDbfError.CreateFmt(STRING_INDEX_EXPRESSION_TOO_LONG, [AExpression, FResultLen]);
 
   // if no errors, assign current expression
-  FCurrentExpression := Expression;
+  FCurrentExpression := AExpression;
 end;
 
 function TDbfParser.ExtractFromBuffer(Buffer: PChar): PChar;

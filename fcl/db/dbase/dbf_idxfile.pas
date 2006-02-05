@@ -117,7 +117,7 @@ type
     procedure RecurFirst;
     procedure RecurLast;
 
-    procedure SetEntry(RecNo: Integer; key: PChar; LowerPageNo: Integer);
+    procedure SetEntry(RecNo: Integer; AKey: PChar; LowerPageNo: Integer);
     procedure SetEntryNo(value: Integer);
     procedure SetPageNo(NewPageNo: Integer);
     procedure SetLowPage(NewPage: Integer);
@@ -271,7 +271,7 @@ type
     procedure ClearRoots;
     function  CalcTagOffset(AIndex: Integer): Pointer;
 
-    function  FindKey(Insert: boolean): Integer;
+    function  FindKey(AInsert: boolean): Integer;
     procedure InsertKey(Buffer: PChar);
     procedure DeleteKey(Buffer: PChar);
     procedure InsertCurrent;
@@ -924,7 +924,7 @@ begin
     FEntry := GetEntry(FEntryNo);
 end;
 
-procedure TIndexPage.SetEntry(RecNo: Integer; Key: PChar; LowerPageNo: Integer);
+procedure TIndexPage.SetEntry(RecNo: Integer; AKey: PChar; LowerPageNo: Integer);
 var
   keyData: PChar;
 {$ifdef TDBF_INDEX_CHECK}
@@ -936,10 +936,10 @@ begin
   // check valid entryno: we should be able to insert entries!
   assert((EntryNo >= 0) and (EntryNo <= FHighIndex));
   if (UpperPage <> nil) and (FEntryNo = FHighIndex) then
-    UpperPage.SetEntry(0, Key, FPageNo);
+    UpperPage.SetEntry(0, AKey, FPageNo);
 {  if PIndexHdr(FIndexFile.IndexHeader).KeyType = 'C' then  }
-    if Key <> nil then
-      Move(Key^, keyData^, PIndexHdr(FIndexFile.IndexHeader)^.KeyLen)
+    if AKey <> nil then
+      Move(AKey^, keyData^, PIndexHdr(FIndexFile.IndexHeader)^.KeyLen)
     else
       PChar(keyData)^ := #0;
 {
@@ -3199,7 +3199,7 @@ begin
   Result := FindKey(false);
 end;
 
-function TIndexFile.FindKey(Insert: boolean): Integer;
+function TIndexFile.FindKey(AInsert: boolean): Integer;
 //
 // if you set Insert = true, you need to re-enable range after insert!!
 //
@@ -3216,7 +3216,7 @@ begin
   if (FUniqueMode = iuNormal) then
   begin
     // if inserting, search last entry matching key
-    if Insert then
+    if AInsert then
       searchRecNo := -3
     else
       searchRecNo := FUserRecNo
@@ -3267,7 +3267,7 @@ begin
 
     // check if we need to split page
     // done = 1 -> not found entry on insert path yet
-    if Insert and (done <> 1) then
+    if AInsert and (done <> 1) then
     begin
       // now we are on our path to destination where entry is to be inserted
       // check if this page is full, then split it

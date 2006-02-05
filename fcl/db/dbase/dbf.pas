@@ -299,7 +299,7 @@ type
 {$endif}
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
-    procedure CheckDbfFieldDefs(DbfFieldDefs: TDbfFieldDefs);
+    procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
 
 {$ifdef VER1_0}
     procedure DataEvent(Event: TDataEvent; Info: Longint); override;
@@ -356,9 +356,9 @@ type
     procedure Undelete;
 
     procedure CreateTable;
-    procedure CreateTableEx(DbfFieldDefs: TDbfFieldDefs);
+    procedure CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
     procedure CopyFrom(DataSet: TDataSet; FileName: string; DateTimeAsString: Boolean; Level: Integer);
-    procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
+    procedure RestructureTable(ADbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure PackTable;
     procedure EmptyTable;
     procedure Zap;
@@ -1366,7 +1366,7 @@ begin
   CreateTableEx(nil);
 end;
 
-procedure TDbf.CheckDbfFieldDefs(DbfFieldDefs: TDbfFieldDefs);
+procedure TDbf.CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
 var
   I: Integer;
   TempDef: TDbfFieldDef;
@@ -1383,12 +1383,12 @@ var
     end;
 
 begin
-  if DbfFieldDefs = nil then exit;
+  if ADbfFieldDefs = nil then exit;
 
-  for I := 0 to DbfFieldDefs.Count - 1 do
+  for I := 0 to ADbfFieldDefs.Count - 1 do
   begin
     // check dbffielddefs for errors
-    TempDef := DbfFieldDefs.Items[I];
+    TempDef := ADbfFieldDefs.Items[I];
     if FTableLevel < 7 then
       if not (TempDef.NativeFieldType in ['C', 'F', 'N', 'D', 'L', 'M']) then
         raise EDbfError.CreateFmt(STRING_INVALID_FIELD_TYPE,
@@ -1396,7 +1396,7 @@ begin
   end;
 end;
 
-procedure TDbf.CreateTableEx(DbfFieldDefs: TDbfFieldDefs);
+procedure TDbf.CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
 var
   I: Integer;
   lIndex: TDbfIndexDef;
@@ -1404,14 +1404,14 @@ var
   tempFieldDefs: Boolean;
 begin
   CheckInactive;
-  tempFieldDefs := DbfFieldDefs = nil;
+  tempFieldDefs := ADbfFieldDefs = nil;
   try
     try
       if tempFieldDefs then
       begin
-        DbfFieldDefs := TDbfFieldDefs.Create(Self);
-        DbfFieldDefs.DbfVersion := TableLevelToDbfVersion(FTableLevel);
-        DbfFieldDefs.UseFloatFields := FUseFloatFields;
+        ADbfFieldDefs := TDbfFieldDefs.Create(Self);
+        ADbfFieldDefs.DbfVersion := TableLevelToDbfVersion(FTableLevel);
+        ADbfFieldDefs.UseFloatFields := FUseFloatFields;
 
         // get fields -> fielddefs if no fielddefs
 {$ifndef FPC_VERSION}
@@ -1422,7 +1422,7 @@ begin
         // fielddefs -> dbffielddefs
         for I := 0 to FieldDefs.Count - 1 do
         begin
-          with DbfFieldDefs.AddFieldDef do
+          with ADbfFieldDefs.AddFieldDef do
           begin
             FieldName := FieldDefs.Items[I].Name;
             FieldType := FieldDefs.Items[I].DataType;
@@ -1466,8 +1466,8 @@ begin
     end;
   finally
     // free temporary fielddefs
-    if tempFieldDefs and Assigned(DbfFieldDefs) then
-      DbfFieldDefs.Free;
+    if tempFieldDefs and Assigned(ADbfFieldDefs) then
+      ADbfFieldDefs.Free;
     FreeAndNil(FDbfFile);
   end;
 end;
@@ -1484,12 +1484,12 @@ begin
   FDbfFile.Zap;
 end;
 
-procedure TDbf.RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
+procedure TDbf.RestructureTable(ADbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
 begin
   CheckInactive;
 
   // check field defs for errors
-  CheckDbfFieldDefs(DbfFieldDefs);
+  CheckDbfFieldDefs(ADbfFieldDefs);
 
   // open dbf file
   InitDbfFile(pfExclusiveOpen);
@@ -1497,7 +1497,7 @@ begin
 
   // do restructure
   try
-    FDbfFile.RestructureTable(DbfFieldDefs, Pack);
+    FDbfFile.RestructureTable(ADbfFieldDefs, Pack);
   finally
     // close file
     FreeAndNil(FDbfFile);

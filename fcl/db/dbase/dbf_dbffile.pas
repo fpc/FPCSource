@@ -91,7 +91,7 @@ type
     procedure Close;
     procedure Zap;
 
-    procedure FinishCreate(FieldDefs: TDbfFieldDefs; MemoSize: Integer);
+    procedure FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
     function GetIndexByName(AIndexName: string): TIndexFile;
     procedure SetRecordSize(NewSize: Integer); override;
 
@@ -576,7 +576,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.FinishCreate(FieldDefs: TDbfFieldDefs; MemoSize: Integer);
+procedure TDbfFile.FinishCreate(AFieldDefs: TDbfFieldDefs; MemoSize: Integer);
 var
   lFieldDescIII: rFieldDescIII;
   lFieldDescVII: rFieldDescVII;
@@ -634,9 +634,9 @@ begin
     FFieldDefs.Clear;
     // deleted mark 1 byte
     lFieldOffset := 1;
-    for I := 1 to FieldDefs.Count do
+    for I := 1 to AFieldDefs.Count do
     begin
-      lFieldDef := FieldDefs.Items[I-1];
+      lFieldDef := AFieldDefs.Items[I-1];
 
       // check if datetime conversion
       if FCopyDateTimeAsString then
