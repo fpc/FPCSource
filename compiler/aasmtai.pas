@@ -521,7 +521,7 @@ interface
        tai_file = class(tai)
           str : pchar;
           idx : longint;
-          constructor Create(_str : string;_idx : longint);
+          constructor Create(_str : string);
           destructor Destroy; override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -530,10 +530,10 @@ interface
 
        { Generates a dwarf line location }
        tai_loc = class(tai)
-          fileidx,
+          fileentry : tai_file;
           line,
           column : longint;
-          constructor Create(_fileidx,_line,_column : longint);
+          constructor Create(_fileidx : tai_file;_line,_column : longint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -1934,12 +1934,11 @@ implementation
                                     tai_file
  ****************************************************************************}
 
-    constructor tai_file.Create(_str : string;_idx : longint);
+    constructor tai_file.Create(_str : string);
       begin
         inherited Create;
         typ:=ait_file;
         str:=strpnew(_str);
-        idx:=_idx;
       end;
 
 
@@ -1990,11 +1989,11 @@ implementation
                                     tai_loc
  ****************************************************************************}
 
-    constructor tai_loc.Create(_fileidx,_line,_column : longint);
+    constructor tai_loc.Create(_fileidx : tai_file;_line,_column : longint);
       begin
         inherited Create;
         typ:=ait_loc;
-        fileidx:=_fileidx;
+        fileentry:=_fileidx;
         line:=_line;
         column:=_column;
       end;
@@ -2003,7 +2002,7 @@ implementation
     constructor tai_loc.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        fileidx:=ppufile.getlongint;
+        {!!!! fileidx:=ppufile.getlongint; }
         line:=ppufile.getlongint;
         column:=ppufile.getlongint;
       end;
@@ -2012,7 +2011,7 @@ implementation
     procedure tai_loc.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putlongint(fileidx);
+        {!!!!! ppufile.putlongint(fileidx); }
         ppufile.putlongint(line);
         ppufile.putlongint(column);
       end;

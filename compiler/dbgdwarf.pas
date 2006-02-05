@@ -189,7 +189,6 @@ interface
 
       TDebugInfoDwarf = class(TDebugInfo)
       private
-        currfileidx : longint;
         currabbrevnumber : longint;
 
         writing_def_dwarf : boolean;
@@ -817,16 +816,22 @@ implementation
 
 
       procedure append_dwarftag_arraydef(def:tarraydef);
+        var
+          size : aint;
         begin
+          if is_open_array(def) then
+            size:=def.elesize
+          else
+            size:=def.size;
           if assigned(def.typesym) then
             append_entry(DW_TAG_array_type,true,[
               DW_AT_name,DW_FORM_string,def.typesym.name+#0,
-              DW_AT_byte_size,DW_FORM_udata,def.size,
+              DW_AT_byte_size,DW_FORM_udata,size,
               DW_AT_stride_size,DW_FORM_udata,def.elesize*8
               ])
           else
             append_entry(DW_TAG_array_type,true,[
-              DW_AT_byte_size,DW_FORM_udata,def.size,
+              DW_AT_byte_size,DW_FORM_udata,size,
               DW_AT_stride_size,DW_FORM_udata,def.elesize*8
               ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementtype.def));
@@ -1023,11 +1028,19 @@ implementation
               }
              end;
            st_ansistring:
-             { looks like a pchar }
-             append_dwarftag(list,cchartype.def);
+             begin
+               { looks like a pchar }
+               append_entry(DW_TAG_pointer_type,false,[]);
+               append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype.def));
+               finish_entry;
+             end;
            st_widestring:
-             { looks like a pwidechar }
-             append_dwarftag(list,cwidechartype.def);
+             begin
+               { looks like a pwidechar }
+               append_entry(DW_TAG_pointer_type,false,[]);
+               append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype.def));
+               finish_entry;
+             end;
           end;
         end;
 
@@ -1947,6 +1960,7 @@ implementation
         hlabel       : tasmlabel;
         hp : tai;
         infile : tinputfile;
+        current_file : tai_file;
       begin
         FillChar(lastfileinfo,sizeof(lastfileinfo),0);
         currfuncname:=nil;
@@ -1974,14 +1988,16 @@ implementation
                     infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
-                        inc(currfileidx);
                         if (infile.path^<>'') then
-                          list.insertbefore(tai_file.create(
-                            BsToSlash(FixPath(infile.path^,false)+FixFileName(infile.name^)),currfileidx
-                          ),hp)
+                          begin
+                            current_file:=tai_file.create(BsToSlash(FixPath(infile.path^,false)+FixFileName(infile.name^)));
+                            list.insertbefore(current_file,hp)
+                          end
                         else
-                          list.insertbefore(tai_file.create(
-                            FixFileName(infile.name^),currfileidx),hp);
+                          begin
+                            current_file:=tai_file.create(FixFileName(infile.name^));
+                            list.insertbefore(current_file,hp);
+                          end;
                         { force new line info }
                         lastfileinfo.line:=-1;
                       end;
@@ -1990,7 +2006,7 @@ implementation
                 { line changed ? }
                 if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
                   list.insertbefore(tai_loc.create(
-                    currfileidx,currfileinfo.line,currfileinfo.column),hp);
+                    current_file,currfileinfo.line,currfileinfo.column),hp);
                 lastfileinfo:=currfileinfo;
               end;
 

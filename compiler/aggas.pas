@@ -360,9 +360,12 @@ implementation
       do_line  : boolean;
 
       sepChar : char;
+      nextdwarffileidx : longint;
     begin
       if not assigned(p) then
        exit;
+
+       nextdwarffileidx:=1;
 
       last_align := 2;
       InlineLevel:=0;
@@ -881,6 +884,8 @@ implementation
 
            ait_file :
              begin
+               tai_file(hp).idx:=nextdwarffileidx;
+               inc(nextdwarffileidx);
                AsmWrite(#9'.file '+tostr(tai_file(hp).idx)+' "');
 
                AsmWritePChar(tai_file(hp).str);
@@ -890,7 +895,7 @@ implementation
 
            ait_loc :
              begin
-               AsmWrite(#9'.loc '+tostr(tai_loc(hp).fileidx)+' '+tostr(tai_loc(hp).line)+' '+tostr(tai_loc(hp).column));
+               AsmWrite(#9'.loc '+tostr(tai_loc(hp).fileentry.idx)+' '+tostr(tai_loc(hp).line)+' '+tostr(tai_loc(hp).column));
                AsmLn;
              end;
 
@@ -920,6 +925,9 @@ implementation
                   if CurrSecType<>sec_none then
                     WriteSection(CurrSecType,'');
                   AsmStartSize:=AsmSize;
+
+                  { reset dwarf file index }
+                  nextdwarffileidx:=1;
                 end;
              end;
 
