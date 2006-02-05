@@ -605,8 +605,10 @@ var SaveBookmark : Integer;
 
 begin
   CheckBrowseMode;
-  if IsEmpty then exit;
-  SaveBookMark := GetRecNo;
+  
+  // There is no bookmark available if the dataset is empty
+  if not IsEmpty then
+    SaveBookMark := GetRecNo;
 
   r := 0;
   while r < Length(FUpdateBuffer) do
@@ -652,12 +654,13 @@ begin
       end;
     inc(r);
     end;
-  if not GetDeleted(pbyte(FBBuffers[savebookmark])) then
+  if not IsEmpty then
     begin
     InternalGotoBookMark(@SaveBookMark);
     Resync([rmExact,rmCenter]);
-    end;
-
+    end
+  else
+    InternalFirst;
 end;
 
 procedure TBufDataset.InternalPost;
