@@ -43,7 +43,7 @@ type
        is not passed on to the program in most X terminal emulators.}
 const ekm_default = ekm_microsoft;
 {$else}
-      ekm_default = ekm_borland;
+const ekm_default = ekm_borland;
 {$endif}
 
 
