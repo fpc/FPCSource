@@ -133,6 +133,8 @@ override;
     FStream: TStream;
   private
     procedure FillSectionList(AStrings: TStrings);
+  protected
+    procedure WriteStringInMemory(const Section, Ident, Value: String);
   public
     constructor Create(const AFileName: string);
     constructor Create(AStream: TStream);
@@ -154,6 +156,7 @@ override;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
     procedure SetStrings(List: TStrings);
+    procedure WriteString(const Section, Ident, Value: String); override;
   end;
 
 implementation
@@ -559,7 +562,7 @@ begin
   end;
 end;
 
-procedure TIniFile.WriteString(const Section, Ident, Value: String);
+procedure TIniFile.WriteStringInMemory(const Section, Ident, Value: String);
 var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
@@ -586,6 +589,13 @@ begin
         oSection.KeyList.Remove(oKey);
       end;
     end;
+  end;
+end;
+
+procedure TIniFile.WriteString(const Section, Ident, Value: String);
+begin
+  if (Section > '') and (Ident > '') then begin
+    WriteStringInMemory(Section, Ident, Value);
     UpdateFile;
   end;
 end;
@@ -786,6 +796,13 @@ end;
 procedure TMemIniFile.SetStrings(List: TStrings);
 begin
   FillSectionList(List);
+end;
+
+procedure TMemIniFile.WriteString(const Section, Ident, Value: String);
+begin
+  if (Section > '') and (Ident > '') then begin
+    WriteStringInMemory(Section, Ident, Value);
+  end;
 end;
 
 end.
