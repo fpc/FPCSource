@@ -1065,28 +1065,20 @@ implementation
                if try_to_consume(_ID) then
                  begin
                    vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
-                   sc.insert(vs)
+                   sc.insert(vs);
+                   recst.insert(vs);
                  end;
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
              { Don't search in the recordsymtable for types }
-             if (df_generic in tdef(recst.defowner).defoptions) or
-                (df_specialization in tdef(recst.defowner).defoptions) then
+             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
                symtablestack.pop(recst);
              ignore_equal:=true;
              read_anon_type(tt,false);
              ignore_equal:=false;
-             if (df_generic in tdef(recst.defowner).defoptions) or
-                (df_specialization in tdef(recst.defowner).defoptions) then
+             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
                symtablestack.push(recst);
-
-             fieldvs:=tfieldvarsym(sc.first);
-             while assigned (fieldvs) do
-               begin
-                 symtablestack.top.insert(fieldvs);
-                 fieldvs:=tfieldvarsym(fieldvs.listnext);
-               end;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(tt) then
