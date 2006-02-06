@@ -102,17 +102,9 @@ interface
     { counts the labels }
     function case_count_labels(root : pcaselabel) : longint;
     { searches the highest label }
-{$ifdef int64funcresok}
     function case_get_max(root : pcaselabel) : tconstexprint;
-{$else int64funcresok}
-    function case_get_max(root : pcaselabel) : longint;
-{$endif int64funcresok}
     { searches the lowest label }
-{$ifdef int64funcresok}
     function case_get_min(root : pcaselabel) : tconstexprint;
-{$else int64funcresok}
-    function case_get_min(root : pcaselabel) : longint;
-{$endif int64funcresok}
 
 
 implementation
@@ -399,11 +391,7 @@ implementation
       end;
 
 
-{$ifdef int64funcresok}
     function case_get_max(root : pcaselabel) : tconstexprint;
-{$else int64funcresok}
-    function case_get_max(root : pcaselabel) : longint;
-{$endif int64funcresok}
       var
          hp : pcaselabel;
       begin
@@ -414,11 +402,7 @@ implementation
       end;
 
 
-{$ifdef int64funcresok}
     function case_get_min(root : pcaselabel) : tconstexprint;
-{$else int64funcresok}
-    function case_get_min(root : pcaselabel) : longint;
-{$endif int64funcresok}
       var
          hp : pcaselabel;
       begin

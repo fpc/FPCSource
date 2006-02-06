@@ -50,11 +50,7 @@ interface
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
 
-{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
-{$else int64funcresok}
-    function get_intconst:longint;
-{$endif int64funcresok}
 
     function get_stringconst:string;
 
@@ -2641,11 +2637,7 @@ implementation
          expr:=p1;
       end;
 
-{$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
-{$else int64funcresok}
-    function get_intconst:longint;
-{$endif int64funcresok}
     {Reads an expression, tries to evalute it and check if it is an integer
      constant. Then the constant is returned.}
     var
