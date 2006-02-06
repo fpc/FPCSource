@@ -303,8 +303,11 @@ begin
 
   LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
+  { solaris port contains _start inside the system unit, it
+    needs only one entry because it is linked always against libc
   if prtobj<>'' then
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
+  }
   { try to add crti and crtbegin if linking to C }
   if linklibc then { Needed in solaris? }
    begin
