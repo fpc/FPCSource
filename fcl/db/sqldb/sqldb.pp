@@ -88,6 +88,7 @@ type
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
+
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual; abstract;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
@@ -195,7 +196,6 @@ type
     function Fetch : boolean; override;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; override;
     // abstract & virtual methods of TDataset
-    procedure DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean); override;
     procedure UpdateIndexDefs; override;
     procedure SetDatabase(Value : TDatabase); override;
     Procedure SetTransaction(Value : TDBTransaction); override;
@@ -206,6 +206,7 @@ type
     function  GetCanModify: Boolean; override;
     function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
     Function IsPrepared : Boolean; virtual;
+    Procedure SetActive (Value : Boolean); override;
     procedure SetFiltered(Value: Boolean); override;
     procedure SetFilterText(const Value: string); override;
   public
@@ -584,6 +585,16 @@ begin
   First;
 end;
 
+Procedure TSQLQuery.SetActive (Value : Boolean);
+
+begin
+  inherited SetActive(Value);
+// The query is UnPrepared, so that if a transaction closes all datasets
+// they also get unprepared
+  if not Value and IsPrepared then UnPrepare;
+end;
+
+
 procedure TSQLQuery.SetFiltered(Value: Boolean);
 
 begin
@@ -677,16 +688,6 @@ function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean;
 
 begin
   result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer)
-end;
-
-procedure TSQLQuery.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean);
-
-begin
-  {
-    all data is in native format for these types, so no conversion is needed.
-  }
-  If not (Field.DataType in [ftDate,ftTime,ftDateTime]) then
-    Inherited DataConvert(Field,Source,Dest,ToNative);
 end;
 
 procedure TSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);

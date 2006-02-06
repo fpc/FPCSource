@@ -299,7 +299,7 @@ type
 {$endif}
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
-    procedure CheckDbfFieldDefs(DbfFieldDefs: TDbfFieldDefs);
+    procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
 
 {$ifdef VER1_0}
     procedure DataEvent(Event: TDataEvent; Info: Longint); override;
@@ -348,9 +348,7 @@ type
     procedure CompactIndexFile(const AIndexFile: string);
 
 {$ifdef SUPPORT_VARIANTS}
-{$ifdef USE_BUGGY_LOOKUP}
     function  Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
-{$endif}
     function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC_VERSION}override;{$endif}
 {$endif}
 
@@ -358,9 +356,9 @@ type
     procedure Undelete;
 
     procedure CreateTable;
-    procedure CreateTableEx(DbfFieldDefs: TDbfFieldDefs);
+    procedure CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
     procedure CopyFrom(DataSet: TDataSet; FileName: string; DateTimeAsString: Boolean; Level: Integer);
-    procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
+    procedure RestructureTable(ADbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure PackTable;
     procedure EmptyTable;
     procedure Zap;
@@ -515,7 +513,7 @@ begin
 //      TDbf(FBlobField.DataSet).SetModified(true);
       // is following better? seems to provide notification for user (from VCL)
       if not (FBlobField.DataSet.State in [dsCalcFields, dsFilter, dsNewValue]) then
-        TDbf(FBlobField.DataSet).DataEvent(deFieldChange, Longint(FBlobField));
+        TDbf(FBlobField.DataSet).DataEvent(deFieldChange, PtrInt(FBlobField));
     end;
   end;
   Dec(FRefCount);
@@ -680,16 +678,18 @@ function TDbf.GetCurrentBuffer: PChar;
 begin
   case State of
     dsFilter:     Result := FFilterBuffer;
-    dsCalcFields: Result := @(pDbfRecord(CalcBuffer)^.DeletedFlag);
+    dsCalcFields: Result := CalcBuffer;
 //    dsSetKey:     Result := FKeyBuffer;     // TO BE Implemented
   else
     if IsEmpty then
     begin
       Result := nil;
     end else begin
-      Result := @(pDbfRecord(ActiveBuffer)^.DeletedFlag);
+      Result := ActiveBuffer;
     end;
   end;
+  if Result <> nil then
+    Result := @PDbfRecord(Result)^.DeletedFlag;
 end;
 
 function TDbf.GetFieldData(Field: TField; Buffer: Pointer): Boolean; {override virtual abstract from TDataset}
@@ -824,7 +824,7 @@ begin
     begin
       if Filtered or FFindRecordFilter then
       begin
-        FFilterBuffer := @pRecord^.DeletedFlag;
+        FFilterBuffer := Buffer;
         SaveState := SetTempState(dsFilter);
         DoFilterRecord(acceptable);
         RestoreState(SaveState);
@@ -901,9 +901,8 @@ begin
   // free blobs
   if FBlobStreams <> nil then
   begin
-    for I := 0 to Pred(FieldCount) do
-      if FBlobStreams^[I] <> nil then
-        FBlobStreams^[I].Free;
+    for I := 0 to Pred(FieldDefs.Count) do
+      FBlobStreams^[I].Free;
     FreeMemAndNil(Pointer(FBlobStreams));
   end;
   FreeRecordBuffer(FTempBuffer);
@@ -915,8 +914,6 @@ begin
 
   if FParser <> nil then
     FreeAndNil(FParser);
-  if (FDbfFile <> nil) and not FReadOnly then
-    FDbfFile.WriteHeader;
   FreeAndNil(FCursor);
   if FDbfFile <> nil then
     FreeAndNil(FDbfFile);
@@ -927,7 +924,7 @@ var
   I: Integer;
 begin
   // cancel blobs
-  for I := 0 to Pred(FieldCount) do
+  for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Cancel;
   // if we have locked a record, unlock it
@@ -1193,9 +1190,7 @@ begin
   BindFields(true);
 
   // create array of blobstreams to store memo's in. each field is a possible blob
-  GetMem(FBlobStreams, FieldCount * SizeOf(TDbfBlobStream));
-  for I := 0 to Pred(FieldCount) do
-    FBlobStreams^[I] := nil;
+  FBlobStreams := AllocMem(FieldDefs.Count * SizeOf(TDbfBlobStream));
 
   // check codepage settings
   DetermineTranslationMode;
@@ -1290,7 +1285,7 @@ begin
   FEditingRecNo := FCursor.PhysicalRecNo;
   // reread blobs, execute cancel -> clears remembered memo pageno,
   // causing it to reread the memo contents
-  for I := 0 to Pred(FieldCount) do
+  for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Cancel;
   // try to lock this record
@@ -1317,7 +1312,7 @@ begin
   // if internalpost is called, we know we are active
   pRecord := pDbfRecord(ActiveBuffer);
   // commit blobs
-  for I := 0 to Pred(FieldCount) do
+  for I := 0 to Pred(FieldDefs.Count) do
     if Assigned(FBlobStreams^[I]) then
       FBlobStreams^[I].Commit;
   if State = dsEdit then
@@ -1371,7 +1366,7 @@ begin
   CreateTableEx(nil);
 end;
 
-procedure TDbf.CheckDbfFieldDefs(DbfFieldDefs: TDbfFieldDefs);
+procedure TDbf.CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
 var
   I: Integer;
   TempDef: TDbfFieldDef;
@@ -1388,12 +1383,12 @@ var
     end;
 
 begin
-  if DbfFieldDefs = nil then exit;
+  if ADbfFieldDefs = nil then exit;
 
-  for I := 0 to DbfFieldDefs.Count - 1 do
+  for I := 0 to ADbfFieldDefs.Count - 1 do
   begin
     // check dbffielddefs for errors
-    TempDef := DbfFieldDefs.Items[I];
+    TempDef := ADbfFieldDefs.Items[I];
     if FTableLevel < 7 then
       if not (TempDef.NativeFieldType in ['C', 'F', 'N', 'D', 'L', 'M']) then
         raise EDbfError.CreateFmt(STRING_INVALID_FIELD_TYPE,
@@ -1401,7 +1396,7 @@ begin
   end;
 end;
 
-procedure TDbf.CreateTableEx(DbfFieldDefs: TDbfFieldDefs);
+procedure TDbf.CreateTableEx(ADbfFieldDefs: TDbfFieldDefs);
 var
   I: Integer;
   lIndex: TDbfIndexDef;
@@ -1409,14 +1404,14 @@ var
   tempFieldDefs: Boolean;
 begin
   CheckInactive;
-  tempFieldDefs := DbfFieldDefs = nil;
+  tempFieldDefs := ADbfFieldDefs = nil;
   try
     try
       if tempFieldDefs then
       begin
-        DbfFieldDefs := TDbfFieldDefs.Create(Self);
-        DbfFieldDefs.DbfVersion := TableLevelToDbfVersion(FTableLevel);
-        DbfFieldDefs.UseFloatFields := FUseFloatFields;
+        ADbfFieldDefs := TDbfFieldDefs.Create(Self);
+        ADbfFieldDefs.DbfVersion := TableLevelToDbfVersion(FTableLevel);
+        ADbfFieldDefs.UseFloatFields := FUseFloatFields;
 
         // get fields -> fielddefs if no fielddefs
 {$ifndef FPC_VERSION}
@@ -1427,7 +1422,7 @@ begin
         // fielddefs -> dbffielddefs
         for I := 0 to FieldDefs.Count - 1 do
         begin
-          with DbfFieldDefs.AddFieldDef do
+          with ADbfFieldDefs.AddFieldDef do
           begin
             FieldName := FieldDefs.Items[I].Name;
             FieldType := FieldDefs.Items[I].DataType;
@@ -1447,7 +1442,7 @@ begin
       FDbfFile.DbfVersion := TableLevelToDbfVersion(FTableLevel);
       FDbfFile.FileLangID := FLanguageID;
       FDbfFile.Open;
-      FDbfFile.FinishCreate(DbfFieldDefs, 512);
+      FDbfFile.FinishCreate(ADbfFieldDefs, 512);
 
       // if creating memory table, copy stream pointer
       if FStorage = stoMemory then
@@ -1471,8 +1466,8 @@ begin
     end;
   finally
     // free temporary fielddefs
-    if tempFieldDefs and Assigned(DbfFieldDefs) then
-      DbfFieldDefs.Free;
+    if tempFieldDefs and Assigned(ADbfFieldDefs) then
+      ADbfFieldDefs.Free;
     FreeAndNil(FDbfFile);
   end;
 end;
@@ -1489,12 +1484,12 @@ begin
   FDbfFile.Zap;
 end;
 
-procedure TDbf.RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
+procedure TDbf.RestructureTable(ADbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
 begin
   CheckInactive;
 
   // check field defs for errors
-  CheckDbfFieldDefs(DbfFieldDefs);
+  CheckDbfFieldDefs(ADbfFieldDefs);
 
   // open dbf file
   InitDbfFile(pfExclusiveOpen);
@@ -1502,7 +1497,7 @@ begin
 
   // do restructure
   try
-    FDbfFile.RestructureTable(DbfFieldDefs, Pack);
+    FDbfFile.RestructureTable(ADbfFieldDefs, Pack);
   finally
     // close file
     FreeAndNil(FDbfFile);
@@ -1525,9 +1520,13 @@ end;
 
 procedure TDbf.CopyFrom(DataSet: TDataSet; FileName: string; DateTimeAsString: Boolean; Level: Integer);
 var
+  lPhysFieldDefs, lFieldDefs: TDbfFieldDefs;
+  lSrcField, lDestField: TField;
   I: integer;
 begin
   FInCopyFrom := true;
+  lFieldDefs := TDbfFieldDefs.Create(nil);
+  lPhysFieldDefs := TDbfFieldDefs.Create(nil);
   try
     if Active then
       Close;
@@ -1538,29 +1537,61 @@ begin
     if not DataSet.Active then
       DataSet.Open;
     DataSet.FieldDefs.Update;
-    FieldDefs.Assign(DataSet.FieldDefs);
-    IndexDefs.Clear;
-    CreateTable;
+    // first get a list of physical field defintions
+    // we need it for numeric precision in case source is tdbf
+    if DataSet is TDbf then
+    begin
+      lPhysFieldDefs.Assign(TDbf(DataSet).DbfFieldDefs);
+      IndexDefs.Assign(TDbf(DataSet).IndexDefs);
+    end else begin
+      lPhysFieldDefs.Assign(DataSet.FieldDefs);
+      IndexDefs.Clear;
+    end;
+    // convert list of tfields into a list of tdbffielddefs
+    // so that our tfields will correspond to the source tfields
+    for I := 0 to Pred(DataSet.FieldCount) do
+    begin
+      lSrcField := DataSet.Fields[I];
+      with lFieldDefs.AddFieldDef do
+      begin
+        FieldName := lSrcField.Name;
+        FieldType := lSrcField.DataType;
+        Required := lSrcField.Required;
+        Size := lSrcField.Size;
+        if (0 <= lSrcField.FieldNo) 
+            and (lSrcField.FieldNo < lPhysFieldDefs.Count) then
+          Precision := lPhysFieldDefs.Items[lSrcField.FieldNo].Precision;
+      end;
+    end;
+
+    CreateTableEx(lFieldDefs);
     Open;
     DataSet.First;
+{$ifdef USE_CACHE}
+    FDbfFile.BufferAhead := true;
+    if DataSet is TDbf then
+      TDbf(DataSet).DbfFile.BufferAhead := true;
+{$endif}      
     while not DataSet.EOF do
     begin
       Append;
       for I := 0 to Pred(FieldCount) do
       begin
-        if not DataSet.Fields[I].IsNull then
+        lSrcField := DataSet.Fields[I];
+        lDestField := Fields[I];
+        if not lSrcField.IsNull then
         begin
-          if DataSet.Fields[I].DataType = ftDateTime then
+          if lSrcField.DataType = ftDateTime then
           begin
             if FCopyDateTimeAsString then
             begin
-              Fields[I].AsString := DataSet.Fields[I].AsString;
+              lDestField.AsString := lSrcField.AsString;
               if Assigned(FOnCopyDateTimeAsString) then
-                FOnCopyDateTimeAsString(Self, Fields[I], DataSet.Fields[I])
+                FOnCopyDateTimeAsString(Self, lDestField, lSrcField)
             end else
-              Fields[I].AsDateTime := DataSet.Fields[I].AsDateTime;
+              lDestField.AsDateTime := lSrcField.AsDateTime;
           end else
-            Fields[I].Assign(DataSet.Fields[I]);
+            lDestField.Assign(lSrcField);
         end;
       end;
       Post;
@@ -1568,7 +1599,13 @@ begin
     end;
     Close;
   finally
+{$ifdef USE_CACHE}
+    if (DataSet is TDbf) and (TDbf(DataSet).DbfFile <> nil) then
+      TDbf(DataSet).DbfFile.BufferAhead := false;
+{$endif}      
     FInCopyFrom := false;
+    lFieldDefs.Free;
+    lPhysFieldDefs.Free;
   end;
 end;
 
@@ -1605,64 +1642,56 @@ begin
 end;
 
 {$ifdef SUPPORT_VARIANTS}
-{$ifdef USE_BUGGY_LOOKUP}
 
 function TDbf.Lookup(const KeyFields: string; const KeyValues: Variant;
   const ResultFields: string): Variant;
 var
 //  OldState:  TDataSetState;
-  retBookmark: TBookmarkStr;
+  saveRecNo: integer;
+  saveState: TDataSetState;
 begin
   Result := Null;
-  if VarIsNull(KeyValues) then exit;
+  if (FCursor = nil) or VarIsNull(KeyValues) then exit;
 
-  retBookmark := Bookmark;
-  DisableControls;
+  saveRecNo := FCursor.SequentialRecNo;
   try
     if LocateRecord(KeyFields, KeyValues, []) then
     begin
-{
-      OldState := SetTempState(dsCalcFields);
-//      OldState := SetTempState(dsInternalCalc);
-        // disable Calculated fields - otherwise were heavy AVs
-        // and buffer troubles below
+      // FFilterBuffer contains record buffer
+      saveState := SetTempState(dsCalcFields);
       try
-//        CalculateFields(PChar(@FDbfCalcBuffer));
-        CalculateFields(TempBuffer);
-//        CalculateFields(GetCurrentBuffer);
-        if KeyValues = FieldValues[KeyFields] then // there was bug in TDbf.SearchKey
-}
-           Result := FieldValues[ResultFields]; // also there may be buffer troubles from above
-{
+        CalculateFields(FFilterBuffer);
+        if KeyValues = FieldValues[KeyFields] then
+           Result := FieldValues[ResultFields];
       finally
-          (* else *) RestoreState(OldState);
+        RestoreState(saveState);
       end;
-}
     end;
   finally
-    Bookmark := retBookmark;
-    EnableControls;
+    FCursor.SequentialRecNo := saveRecNo;
   end;
 end;
 
-{$endif}
-
 function TDbf.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean;
 var
-  retBookmark: TBookmarkStr;
+  saveRecNo: integer;
 begin
-  DoBeforeScroll;
-  try
-    DisableControls;
-    retBookmark := Bookmark;
-    Result := LocateRecord(KeyFields, KeyValues, Options);
-    if Result then
-      DoAfterScroll
-    else
-      Bookmark := retBookmark;
-  finally
-    EnableControls;
+  if FCursor = nil then
+  begin
+    Result := false;
+    exit;
   end;
+
+  DoBeforeScroll;
+  saveRecNo := FCursor.SequentialRecNo;
+  Result := LocateRecord(KeyFields, KeyValues, Options);
+  CursorPosChanged;
+  if Result then
+  begin
+    Resync([]);
+    DoAfterScroll;
+  end else
+    FCursor.SequentialRecNo := saveRecNo;
 end;
 
 function TDbf.LocateRecord(const KeyFields: String; const KeyValues: Variant;
@@ -1675,7 +1704,6 @@ var
   bVarIsArray          : Boolean;
   varCompare           : Variant;
   doLinSearch          : Boolean;
-  pIndexValue          : PChar;
 
   function CompareValues: Boolean;
   var
@@ -1713,13 +1741,12 @@ var
 
 var
   searchFlag: TSearchKeyType;
-  searchString: string;
-  strLength: Integer;
+  lPhysRecNo, matchRes: Integer;
+  SaveState: TDataSetState;
+  lTempBuffer: array [0..100] of Char;
 
 begin
   Result := false;
-  CheckBrowseMode;
-
   doLinSearch := true;
   // index active?
   if FCursor is TIndexCursor then
@@ -1733,18 +1760,24 @@ begin
         searchFlag := stGreaterEqual
       else
         searchFlag := stEqual;
-      Result := SearchKey(KeyValues, searchFlag);
-      if Result and (loPartialKey in Options) then
+      TIndexCursor(FCursor).VariantToBuffer(KeyValues, @lTempBuffer[0]);
+      Result := FIndexFile.SearchKey(@lTempBuffer[0], searchFlag);
+      if Result then
       begin
-        searchString := VarToStr(KeyValues);
-        strLength := Length(searchString);
-        pIndexValue := TIndexCursor(FCursor).IndexFile.ExtractKeyFromBuffer(GetCurrentBuffer);
-        if loCaseInsensitive in Options then
+        Result := GetRecord(TempBuffer, gmCurrent, false) = grOK;
+        if not Result then
         begin
-          Result := AnsiStrLIComp(pIndexValue, PChar(searchString), strLength) = 0;
-        end else begin
-          Result := StrLComp(pIndexValue, PChar(searchString), strLength) = 0;
+          Result := GetRecord(TempBuffer, gmNext, false) = grOK;
+          if Result then
+          begin
+            matchRes := TIndexCursor(FCursor).IndexFile.MatchKey(@lTempBuffer[0]);
+            if loPartialKey in Options then
+              Result := matchRes <= 0
+            else
+              Result := matchRes =  0;
+          end;
         end;
+        FFilterBuffer := TempBuffer;
       end;
     end;
   end;
@@ -1752,8 +1785,9 @@ begin
   if doLinSearch then
   begin
     bVarIsArray := false;
-    CursorPosChanged;
     lstKeys := TList.Create;
+    FFilterBuffer := TempBuffer;
+    SaveState := SetTempState(dsFilter);
     try
       GetFieldList(lstKeys, KeyFields);
       if VarArrayDimCount(KeyValues) = 0 then
@@ -1766,10 +1800,18 @@ begin
         bMatchedData := false;
       if bMatchedData then
       begin
-        First;
-        while not Eof and not Result Do
+        FCursor.First;
+        while not Result and FCursor.Next do
         begin
-          Result := true;
+          lPhysRecNo := FCursor.PhysicalRecNo;
+          if (lPhysRecNo = 0) or not FDbfFile.IsRecordPresent(lPhysRecNo) then
+            break;
+          
+          FDbfFile.ReadRecord(lPhysRecNo, @PDbfRecord(FFilterBuffer)^.DeletedFlag);
+          Result := FShowDeleted or (PDbfRecord(FFilterBuffer)^.DeletedFlag <> '*');
+          if Result and Filtered then
+            DoFilterRecord(Result);
+          
           iIndex := 0;
           while Result and (iIndex < lstKeys.Count) Do
           begin
@@ -1779,14 +1821,13 @@ begin
             else
               varCompare := KeyValues;
             Result := CompareValues;
-            iIndex := iIndex + 1;
+            Inc(iIndex);
           end;
-          if not Result then
-            Next;
         end;
       end;
     finally
       lstKeys.Free;
+      RestoreState(SaveState);
     end;
   end;
 end;
@@ -1834,11 +1875,11 @@ begin
   // check if in editing mode if user wants to write
   if (Mode = bmWrite) or (Mode = bmReadWrite) then
     if not (State in [dsEdit, dsInsert]) then
-{$ifdef DELPHI_3}    
+{$ifdef DELPHI_3}
       DatabaseError(SNotEditing);
-{$else}    
+{$else}
       DatabaseError(SNotEditing, Self);
-{$endif}      
+{$endif}
   // already created a `placeholder' blob for this field?
   MemoFieldNo := Field.FieldNo - 1;
   if FBlobStreams^[MemoFieldNo] = nil then
@@ -1861,7 +1902,7 @@ begin
       lBlob.ReadSize := 0;
     end;
     lBlob.MemoRecNo := MemoPageNo;
-  end else 
+  end else
   if not lBlob.Dirty or (Mode = bmWrite) then
   begin
     // reading and memo is empty and not written yet, or rewriting
@@ -2011,7 +2052,7 @@ begin
 //    end;
   end;     { end of ***** fkCalculated, fkLookup ***** }
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then begin
-    DataEvent(deFieldChange, Longint(Field));
+    DataEvent(deFieldChange, PtrInt(Field));
   end;
 end;
 
@@ -2331,7 +2372,7 @@ begin
     Result := lIndexDef.SortField;
 end;
 
-procedure tdbf.SetIndexFieldNames(const Value: string);
+procedure TDbf.SetIndexFieldNames(const Value: string);
 var
   lIndexDef: TDbfIndexDef;
 begin

@@ -132,6 +132,12 @@ begin
   Changed(False);
 end;
 
+procedure TFieldDef.SetRequired(const AValue: Boolean);
+begin
+  FRequired := AValue;
+  Changed(False);
+end;
+
 function TFieldDef.GetDisplayName: string;
 begin
   Result := FDisplayName;

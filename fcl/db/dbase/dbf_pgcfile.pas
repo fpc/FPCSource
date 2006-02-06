@@ -42,7 +42,7 @@ type
     procedure SetRecordSize(NewValue: Integer); override;
     procedure SetCacheSize(NewSize: Integer);
   public
-    constructor Create(AFileName: string);
+    constructor Create;
     destructor Destroy; override;
 
     procedure CloseFile; override;
@@ -60,7 +60,7 @@ implementation
 
 {$ifdef USE_CACHE}
 
-constructor TCachedFile.Create(AFileName: string);
+constructor TCachedFile.Create;
 begin
   inherited;
 

@@ -298,6 +298,13 @@ begin
    FAfterScroll(Self);
 end;
 
+Procedure TDataset.DoAfterRefresh;
+
+begin
+ If assigned(FAfterRefresh) then
+   FAfterRefresh(Self);
+end;
+
 Procedure TDataset.DoBeforeCancel;
 
 begin
@@ -352,6 +359,13 @@ Procedure TDataset.DoBeforeScroll;
 begin
  If assigned(FBeforeScroll) then
    FBeforeScroll(Self);
+end;
+
+Procedure TDataset.DoBeforeRefresh;
+
+begin
+ If assigned(FBeforeRefresh) then
+   FBeforeRefresh(Self);
 end;
 
 Procedure TDataset.DoInternalOpen;
@@ -501,26 +515,23 @@ end;
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 
-Const
-  TempBufSize = 1024; { Let's not exaggerate.}
-
 Var
-  Buf : Array[1..TempBufSize] of Char;
-  P : PChar;
+  DT : TFieldType;
+  DTRBuffer : TDateTimeRec;
 begin
   If NativeFormat then
     Result:=GetFieldData(Field, Buffer)
   else
     begin
-    If (Field.DataSize<=TempBufSize) then
-      P:=@Buf
+    DT := Field.DataType;
+    case DT of
+      ftDate, ftTime, ftDateTime: begin
+                                  Result := GetfieldData(Field, @DTRBuffer);
+                                  TDateTime(buffer^) := DateTimeRecToDateTime(DT, DTRBuffer);
+                                  end
     else
-      P:=GetMem(Field.DataSize);
-    Result:=GetFieldData(Field,P);
-    If Result then
-      DataConvert(Field,P,Buffer,False);
-    If (P<>@Buf) then
-      FreeMem(P);
+      Result:=GetFieldData(Field, Buffer)
+    end;
     end;
 end;
 
@@ -566,26 +577,6 @@ begin
     end;
 end;
 
-procedure TDataSet.DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean);
-
-Type
-  PDateTime = ^TDateTime;
-  PDateTimeRec = ^TDateTimeRec;
-
-Var
-  DT : TFieldType;
-
-begin
-  DT:=Field.DataType;
-  case DT of
-    ftDate, ftTime, ftDateTime:
-      if ToNative then
-         PDateTimeRec(Dest)^:=DateTimeToDateTimeRec(DT,PDateTime(Source)^)
-       else
-         PDateTime(Dest)^:=DateTimeRecToDateTime(DT,PDateTimeRec(Source)^);
-  end;
-end;
-
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer);
 
 begin
@@ -595,26 +586,25 @@ end;
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 
-Const
-  TempBufSize = 1024; { Let's not exaggerate.}
 
 Var
-  Buf : Array[1..TempBufSize] of Char;
-  P : PChar;
+  DT : TFieldType;
+  DTRBuffer : TDateTimeRec;
 
 begin
   if NativeFormat then
     SetFieldData(Field, Buffer)
   else
     begin
-    if Field.DataSize<=dsMaxStringSize then
-      P:=GetMem(Field.DataSize)
+    DT := Field.DataType;
+    case DT of
+      ftDate, ftTime, ftDateTime: begin
+                                  DTRBuffer := DateTimeToDateTimeRec(DT,TDateTime(buffer^));
+                                  SetFieldData(Field,@DTRBuffer);
+                                  end
     else
-      P:=@Buf;
-    DataConvert(Field,Buffer,P,True);
-    SetFieldData(Field,P);
-    If (P<>@Buf) then
-      FreeMem(P);
+      SetFieldData(Field, Buffer);
+    end; {case};
     end;
 end;
 
@@ -1771,12 +1761,14 @@ Procedure TDataset.Refresh;
 
 begin
   CheckbrowseMode;
+  DoBeforeRefresh;
   UpdateCursorPos;
   InternalRefresh;
 { SetCurrentRecord is called by UpdateCursorPos already, so as long as
   InternalRefresh doesn't do strange things this should be ok. }
 //  SetCurrentRecord(FActiverecord);
   Resync([]);
+  DoAfterRefresh;
 end;
 
 Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);

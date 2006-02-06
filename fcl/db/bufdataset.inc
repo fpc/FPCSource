@@ -365,6 +365,12 @@ begin
   Result := grOK;
 end;
 
+function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean): Boolean;
+begin
+  Result := GetFieldData(Field, Buffer);
+end;
+
 function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 var
@@ -411,6 +417,12 @@ begin
       else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
       end;
     end;
+end;
+
+procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer;
+  NativeFormat: Boolean);
+begin
+  SetFieldData(Field,Buffer);
 end;
 
 procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer);
@@ -593,8 +605,10 @@ var SaveBookmark : Integer;
 
 begin
   CheckBrowseMode;
-  if IsEmpty then exit;
-  SaveBookMark := GetRecNo;
+  
+  // There is no bookmark available if the dataset is empty
+  if not IsEmpty then
+    SaveBookMark := GetRecNo;
 
   r := 0;
   while r < Length(FUpdateBuffer) do
@@ -640,12 +654,13 @@ begin
       end;
     inc(r);
     end;
-  if not GetDeleted(pbyte(FBBuffers[savebookmark])) then
+  if not IsEmpty then
     begin
     InternalGotoBookMark(@SaveBookMark);
     Resync([rmExact,rmCenter]);
-    end;
-
+    end
+  else
+    InternalFirst;
 end;
 
 procedure TBufDataset.InternalPost;

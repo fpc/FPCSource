@@ -104,7 +104,7 @@ type
 
   PDbtHdr = ^rDbtHdr;
   rDbtHdr = record
-    NextBlock : Longint;
+    NextBlock : dword;
     Dummy     : array [4..7] of Byte;
     DbfFile   : array [0..7] of Byte;   // 8..15
     bVer      : Byte;                   // 16
@@ -115,7 +115,7 @@ type
 
   PFptHdr = ^rFptHdr;
   rFptHdr = record
-    NextBlock : Longint;
+    NextBlock : dword;
     Dummy     : array [4..5] of Byte;
     BlockLen  : Word;                   // 20..21
     Dummy3    : array [8..511] of Byte;
@@ -183,15 +183,12 @@ begin
 
     RecordSize := GetBlockLen;
     // checking for right blocksize not needed for foxpro?
-    if FDbfVersion <> xFoxPro then
+    // mod 128 <> 0 <-> and 0x7F <> 0
+    if (RecordSize = 0) and ((FDbfVersion = xFoxPro) or ((RecordSize and $7F) <> 0)) then
     begin
-      // mod 128 <> 0 <-> and 0x7F <> 0
-      if (RecordSize = 0) or ((RecordSize and $7F) <> 0) then
-      begin
-        SetBlockLen(512);
-        RecordSize := 512;
-        WriteHeader;
-      end;
+      SetBlockLen(512);
+      RecordSize := 512;
+      WriteHeader;
     end;
 
     // get memory for temporary buffer
@@ -234,11 +231,15 @@ begin
   if (BlockNo<=0) or (RecordSize=0) then
     exit;
   // read first block
-  if ReadRecord(BlockNo, @FBuffer[0]) = 0 then
+  numBytes := ReadRecord(BlockNo, @FBuffer[0]);
+  if numBytes = 0 then
   begin
     // EOF reached?
     exit;
-  end;
+  end else
+  if numBytes < RecordSize then
+    FillChar(FBuffer[RecordSize-numBytes], numBytes, #0);
+
   bytesLeft := GetMemoSize;
   // bytesLeft <> -1 -> memo size is known (FoxPro, dBase4)
   // bytesLeft =  -1 -> memo size unknown (dBase3)
@@ -455,7 +456,7 @@ end;
 
 function  TFoxProMemoFile.GetBlockLen: Integer;
 begin
-  Result := Swap(PFptHdr(Header)^.BlockLen);
+  Result := SwapWord(PFptHdr(Header)^.BlockLen);
 end;
 
 function  TFoxProMemoFile.GetMemoSize: Integer;
@@ -470,12 +471,12 @@ end;
 
 procedure TFoxProMemoFile.SetNextFreeBlock(BlockNo: Integer);
 begin
-  PFptHdr(Header)^.NextBlock := SwapInt(BlockNo);
+  PFptHdr(Header)^.NextBlock := SwapInt(dword(BlockNo));
 end;
 
 procedure TFoxProMemoFile.SetBlockLen(BlockLen: Integer);
 begin
-  PFptHdr(Header)^.BlockLen := Swap(BlockLen);
+  PFptHdr(Header)^.BlockLen := SwapWord(dword(BlockLen));
 end;
 
 // ------------------------------------------------------------------

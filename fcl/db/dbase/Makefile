@@ -286,6 +286,15 @@ endif
 ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_UNITS+=dbf
 endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override TARGET_UNITS+=dbf
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override TARGET_UNITS+=dbf
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override TARGET_UNITS+=dbf
+endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_EXAMPLES+=testdbf
 endif
@@ -332,6 +341,15 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_EXAMPLES+=testdbf
 endif
 ifeq ($(FULL_TARGET),i386-wince)
+override TARGET_EXAMPLES+=testdbf
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override TARGET_EXAMPLES+=testdbf
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override TARGET_EXAMPLES+=testdbf
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_EXAMPLES+=testdbf
 endif
 ifeq ($(FULL_TARGET),i386-linux)
@@ -494,6 +512,15 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 endif
 ifeq ($(FULL_TARGET),i386-wince)
+override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
 override INSTALL_UNITS+=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 endif
 override INSTALL_FPCPACKAGE=y

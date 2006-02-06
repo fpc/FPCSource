@@ -127,6 +127,7 @@ type
     procedure SetDataType(AValue: TFieldType);
     procedure SetPrecision(const AValue: Longint);
     procedure SetSize(const AValue: Word);
+    procedure SetRequired(const AValue: Boolean);
   protected
     function GetDisplayName: string; override;
     procedure SetDisplayName(const AValue: string); override;
@@ -139,7 +140,7 @@ type
     property FieldClass: TFieldClass read GetFieldClass;
     property FieldNo: Longint read FFieldNo;
     property InternalCalcField: Boolean read FInternalCalcField write FInternalCalcField;
-    property Required: Boolean read FRequired;
+    property Required: Boolean read FRequired write SetRequired;
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property Name: string read FName write FName; // Must move to TNamedItem
@@ -884,6 +885,8 @@ type
 
   TDataAction = (daFail, daAbort, daRetry);
 
+  TUpdateAction = (uaFail, uaAbort, uaSkip, uaRetry, uaApplied);
+
   TUpdateKind = (ukModify, ukInsert, ukDelete);
 
 
@@ -916,6 +919,7 @@ type
     FAfterInsert: TDataSetNotifyEvent;
     FAfterOpen: TDataSetNotifyEvent;
     FAfterPost: TDataSetNotifyEvent;
+    FAfterRefresh: TDataSetNotifyEvent;
     FAfterScroll: TDataSetNotifyEvent;
     FAutoCalcFields: Boolean;
     FBOF: Boolean;
@@ -926,6 +930,7 @@ type
     FBeforeInsert: TDataSetNotifyEvent;
     FBeforeOpen: TDataSetNotifyEvent;
     FBeforePost: TDataSetNotifyEvent;
+    FBeforeRefresh: TDataSetNotifyEvent;
     FBeforeScroll: TDataSetNotifyEvent;
     FBlobFieldCount: Longint;
     FBookmarkSize: Longint;
@@ -965,7 +970,6 @@ type
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
-    Procedure SetActive (Value : Boolean);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffersForward;
     Procedure ShiftBuffersBackward;
@@ -997,6 +1001,7 @@ type
     procedure DoAfterOpen; virtual;
     procedure DoAfterPost; virtual;
     procedure DoAfterScroll; virtual;
+    procedure DoAfterRefresh; virtual;
     procedure DoBeforeCancel; virtual;
     procedure DoBeforeClose; virtual;
     procedure DoBeforeDelete; virtual;
@@ -1005,6 +1010,7 @@ type
     procedure DoBeforeOpen; virtual;
     procedure DoBeforePost; virtual;
     procedure DoBeforeScroll; virtual;
+    procedure DoBeforeRefresh; virtual;
     procedure DoOnCalcFields; virtual;
     procedure DoOnNewRecord; virtual;
     function  FieldByNumber(FieldNo: Longint): TField;
@@ -1033,6 +1039,7 @@ type
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
     procedure RestoreState(const Value: TDataSetState);
+    Procedure SetActive (Value : Boolean); virtual;
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
     procedure SetBufListSize(Value: Longint);
     procedure SetChildOrder(Component: TComponent; Order: Longint); override;
@@ -1068,10 +1075,9 @@ type
     function GetDataSource: TDataSource; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
-    procedure DataConvert(Field: TField; Source, Dest: Pointer; ToNative: Boolean);virtual;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
-    procedure InternalAddRecord(Buffer: Pointer; Append: Boolean); virtual; abstract;
+    procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual; abstract;
     procedure InternalClose; virtual; abstract;
     procedure InternalDelete; virtual; abstract;
     procedure InternalFirst; virtual; abstract;
@@ -1179,6 +1185,8 @@ type
     property AfterDelete: TDataSetNotifyEvent read FAfterDelete write FAfterDelete;
     property BeforeScroll: TDataSetNotifyEvent read FBeforeScroll write FBeforeScroll;
     property AfterScroll: TDataSetNotifyEvent read FAfterScroll write FAfterScroll;
+    property BeforeRefresh: TDataSetNotifyEvent read FBeforeRefresh write FBeforeRefresh;
+    property AfterRefresh: TDataSetNotifyEvent read FAfterRefresh write FAfterRefresh;
     property OnCalcFields: TDataSetNotifyEvent read FOnCalcFields write FOnCalcFields;
     property OnDeleteError: TDataSetErrorEvent read FOnDeleteError write FOnDeleteError;
     property OnEditError: TDataSetErrorEvent read FOnEditError write FOnEditError;
@@ -1532,7 +1540,11 @@ type
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    function GetFieldData(Field: TField; Buffer: Pointer;
+      NativeFormat: Boolean): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer;
+      NativeFormat: Boolean); override;
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;

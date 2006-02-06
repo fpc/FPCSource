@@ -9,6 +9,9 @@ main=fcl
 units_i386=dbf
 examples_i386=testdbf
 
+units_x86_64=dbf
+examples_x86_64=testdbf
+
 [compiler]
 options=-S2 -Sh
 
@@ -18,6 +21,11 @@ fpcdir=../../..
 [install]
 fpcpackage=y
 units_i386=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
+      dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
+      dbf_prscore dbf_prsdef dbf_prssupp dbf_str
+
+
+units_x86_64=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
       dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
