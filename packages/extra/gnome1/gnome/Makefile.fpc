@@ -16,9 +16,8 @@ units=libart libgnome libgnomeui
 [compiler]
 sourcedir=libart_lgpl libgnome libgnomeui
 
-[libs]
-libname=libfpgnome1.so
-libversion=2.0.3
+[shared]
+build=n
 
 [install]
 fpcpackage=y

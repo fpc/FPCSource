@@ -4,8 +4,10 @@
 
 [target]
 dirs=hash paszlib pasjpeg regexpr netdb
+dirs_i386_linux=libc
+dirs_x86_64_linux=libc
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
-            pthreads sqlite libc graph
+            pthreads sqlite graph
 dirs_win32=gdbint mysql ibase odbc sqlite postgres graph
 dirs_wince=ibase sqlite postgres
 dirs_go32v2=gdbint graph

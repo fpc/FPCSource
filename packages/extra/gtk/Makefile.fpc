@@ -17,17 +17,14 @@ exampledirs=examples
 [compiler]
 sourcedir=glib gdk gtk
 
-
-[libs]
-libname=libfpgtk.so
-libversion=2.0.3
-
 [install]
 fpcpackage=y
 
 [default]
 fpcdir=../../..
 
+[shared]
+build=n
 
 [rules]
 glib$(PPUEXT): $(wildcard glib/glib*.pp)

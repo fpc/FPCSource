@@ -12,3 +12,5 @@ fpcsubdir=packages
 [default]
 fpcdir=../../..
 
+[shared]
+build=n

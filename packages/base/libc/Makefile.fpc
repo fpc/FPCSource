@@ -17,3 +17,6 @@ fpcpackage=y
 
 [default]
 fpcdir=../../..
+
+[shared]
+build=n

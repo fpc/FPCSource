@@ -4105,6 +4105,7 @@ rtl/palmos/api/sysall.pp svneol=native#text/plain
 rtl/palmos/api/systraps.inc svneol=native#text/plain
 rtl/palmos/api/systraps.pp svneol=native#text/plain
 rtl/palmos/api/ui.pp svneol=native#text/plain
+rtl/palmos/arm/prt0.as -text
 rtl/palmos/os.inc svneol=native#text/plain
 rtl/palmos/pilot.pp svneol=native#text/plain
 rtl/palmos/readme -text

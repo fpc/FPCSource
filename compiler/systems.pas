@@ -121,7 +121,8 @@ interface
              system_x86_6432_linux,     { 41 }
              system_arm_gba,            { 42 }
              system_powerpc64_linux,    { 43 }
-             system_i386_darwin         { 44 }
+             system_i386_darwin,        { 44 }
+             system_arm_palmos          { 45 }
        );
 
        tasm = (as_none

@@ -23,3 +23,6 @@ fpcdir=../../..
 # libclntsh.*,libnlsrtl3.*
 #[compiler]
 #libdir=/usr/local/oracle8cli/lib
+
+[shared]
+build=n

@@ -209,4 +209,8 @@ initialization
   RegisterTarget(target_m68k_palmos_info);
   RegisterRes(res_m68k_palmos_info);
 {$endif m68k}
+{$ifdef arm}
+  RegisterTarget(system_arm_palmos_info);
+  RegisterRes(res_arm_palmos_info);
+{$endif arm}
 end.

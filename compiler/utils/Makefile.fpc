@@ -22,6 +22,8 @@ tools=data2inc
 [default]
 fpcdir=../..
 
+[shared]
+build=n
 
 [rules]
 #

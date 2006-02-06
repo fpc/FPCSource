@@ -20,6 +20,9 @@ fpcpackage=y
 [default]
 fpcdir=../../..
 
+[shared]
+build=n
+
 [rules]
 testgdbm$(EXEEXT): testgdbm.pp gdbm$(PPUEXT)
 

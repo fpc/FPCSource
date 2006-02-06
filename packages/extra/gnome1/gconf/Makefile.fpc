@@ -17,16 +17,14 @@ exampledirs=examples
 [compiler]
 sourcedir=gconf gconfclient
 
-[libs]
-libname=libfpgconf.so
-libversion=2.0.3
-
 [install]
 fpcpackage=y
 
 [default]
 fpcdir=../../../..
 
+[shared]
+build=n
 
 [rules]
 gconf$(PPUEXT): $(wildcard gconf/gconf*.pp) 
