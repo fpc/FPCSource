@@ -393,6 +393,7 @@ implementation
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
          ch       : tclassheader;
+         isgeneric,
          isunique,
          istyperenaming : boolean;
          generictypelist : tsinglelist;
@@ -408,31 +409,25 @@ implementation
            generictypelist:=nil;
            generictokenbuf:=nil;
 
+           { generic declaration? }
+           isgeneric:=try_to_consume(_GENERIC);
+
            typename:=pattern;
            orgtypename:=orgpattern;
            consume(_ID);
 
-{$ifdef GENERICSHARPBRACKET}
            { Generic type declaration? }
-           if try_to_consume(_LSHARPBRACKET) then
+           if isgeneric then
              begin
+               consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters;
                consume(_RSHARPBRACKET);
              end;
-{$endif GENERICSHARPBRACKET}
 
            consume(_EQUAL);
 
            { support 'ttype=type word' syntax }
            isunique:=try_to_consume(_TYPE);
-
-           { Generic type declaration? }
-           if try_to_consume(_GENERIC) then
-             begin
-               consume(_LKLAMMER);
-               generictypelist:=parse_generic_parameters;
-               consume(_RKLAMMER);
-             end;
 
            { MacPas object model is more like Delphi's than like TP's, but }
            { uses the object keyword instead of class                      }

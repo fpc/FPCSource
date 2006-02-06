@@ -1,7 +1,7 @@
 uses ugeneric3;
 
 type
-  TMyStringList = specialize TList(string);
+  TMyStringList = specialize TList<string>;
 
 var
   slist : TMyStringList;

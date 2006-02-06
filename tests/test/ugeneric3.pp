@@ -5,7 +5,7 @@ interface
 {$mode objfpc}
 
 type
-   TList=generic(_T) class(TObject)
+   generic TList<_T>=class(TObject)
      data : _T;
      procedure Add(item: _T);
    end;

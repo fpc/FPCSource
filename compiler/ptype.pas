@@ -90,24 +90,16 @@ implementation
             Comment(V_Error,'Specialization is only supported for generic types');
             pt1.resulttype:=generrortype;
             { recover }
-{$ifdef GENERICSHARPBRACKET}
             consume(_LSHARPBRACKET);
-{$endif GENERICSHARPBRACKET}
-            consume(_LKLAMMER);
             repeat
               pt2:=factor(false);
               pt2.free;
             until not try_to_consume(_COMMA);
-{$ifdef GENERICSHARPBRACKET}
             consume(_RSHARPBRACKET);
-{$endif GENERICSHARPBRACKET}
-            consume(_RKLAMMER);
             exit;
           end;
-{$ifdef GENERICSHARPBRACKET}
         consume(_LSHARPBRACKET);
-{$endif GENERICSHARPBRACKET}
-        consume(_LKLAMMER);
+        block_type:=bt_specialize;
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
@@ -159,10 +151,7 @@ implementation
             try_to_consume(_SEMICOLON);
           end;
         generictypelist.free;
-{$ifdef GENERICSHARPBRACKET}
         consume(_RSHARPBRACKET);
-{$endif GENERICSHARPBRACKET}
-        consume(_RKLAMMER);
       end;
 
 

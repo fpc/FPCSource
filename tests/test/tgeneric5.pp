@@ -4,7 +4,7 @@ uses
   typinfo;
 
 type
-   TList=generic(_T) class(TObject)
+   generic TList<_T>=class(TObject)
      data : _T;
      procedure Add(item: _T);
    end;
@@ -33,7 +33,7 @@ begin
 end;
 
 type
-  TMyIntList = specialize TList(integer);
+  TMyIntList = specialize TList<integer>;
 
 var
   ilist : TMyIntList;

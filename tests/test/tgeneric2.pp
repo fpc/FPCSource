@@ -3,7 +3,7 @@
 {$mode objfpc}
 
 type
-   TList=generic(_T) class(TObject)
+   generic TList<_T>=class(TObject)
      data : _T;
      procedure Add(item: _T);
    end;
@@ -18,7 +18,7 @@ begin
 end;
 
 type
-  TMyStringList = specialize TList(string);
+  TMyStringList = specialize TList<string>;
 
 var
   slist : TMyStringList;
