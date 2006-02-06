@@ -33,6 +33,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpDup2    (oldd:cint;newd:cint):cint; cdecl; external clib name 'dup2';
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
     function  FpFork  : TPid; cdecl; external clib name 'fork';
+    function  FpvFork  : TPid; cdecl; external clib name 'vfork';
     function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate';
     function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek';
     function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';

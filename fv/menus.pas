@@ -430,10 +430,10 @@ END;
 CONSTRUCTOR TMenuView.Load (Var S: TStream);
 
    FUNCTION DoLoadMenu: PMenu;
-   VAR Tok: Byte; Item: PMenuItem; Last: ^PMenuItem; Menu: PMenu;
+   VAR Tok: Byte; Item: PMenuItem; Last: ^PMenuItem; HMenu: PMenu;
    BEGIN
-     New(Menu);                                       { Create new menu }
-     Last := @Menu^.Items;                            { Start on first item }
+     New(HMenu);                                       { Create new menu }
+     Last := @HMenu^.Items;                            { Start on first item }
      Item := Nil;                                     { Clear pointer }
      S.Read(Tok, SizeOf(Tok));                        { Read token }
      While (Tok <> 0) Do Begin
@@ -460,8 +460,8 @@ CONSTRUCTOR TMenuView.Load (Var S: TStream);
        S.Read(Tok, SizeOf(Tok));                      { Read token }
      End;
      Last^ := Nil;                                    { List complete }
-     Menu^.Default := Menu^.Items;                    { Set menu default }
-     DoLoadMenu := Menu;                              { Return menu }
+     HMenu^.Default := HMenu^.Items;                    { Set menu default }
+     DoLoadMenu := HMenu;                              { Return menu }
    End;
 
 BEGIN
@@ -772,11 +772,11 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuView.Store (Var S: TStream);
 
-   PROCEDURE DoStoreMenu (Menu: PMenu);
+   PROCEDURE DoStoreMenu (AMenu: PMenu);
    VAR Item: PMenuItem; Tok: Byte;
    BEGIN
      Tok := $FF;                                      { Preset max count }
-     Item := Menu^.Items;                             { Start first item }
+     Item := AMenu^.Items;                             { Start first item }
      While (Item <> Nil) Do Begin
        With Item^ Do Begin
          S.Write(Tok, SizeOf(Tok));                      { Write tok value }
@@ -806,10 +806,10 @@ END;
 PROCEDURE TMenuView.HandleEvent (Var Event: TEvent);
 VAR CallDraw: Boolean; P: PMenuItem;
 
-   PROCEDURE UpdateMenu (Menu: PMenu);
+   PROCEDURE UpdateMenu (AMenu: PMenu);
    VAR P: PMenuItem; CommandState: Boolean;
    BEGIN
-     P := Menu^.Items;                                { Start on first item }
+     P := AMenu^.Items;                                { Start on first item }
      While (P <> Nil) Do Begin
        If (P^.Name <> Nil) Then                       { Valid name }
        If (P^.Command = 0) Then UpdateMenu(P^.SubMenu){ Update menu }

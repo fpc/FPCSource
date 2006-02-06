@@ -1335,11 +1335,11 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TInputLine.Valid (Command: Word): Boolean;
 
-   FUNCTION AppendError (Validator: PValidator): Boolean;
+   FUNCTION AppendError (AValidator: PValidator): Boolean;
    BEGIN
      AppendError := False;                            { Preset false }
      If (Data <> Nil) Then
-       With Validator^ Do
+       With AValidator^ Do
          If (Options AND voOnAppend <> 0) AND         { Check options }
          (CurPos <> Length(Data^)) AND                { Exceeds max length }
          NOT IsValidInput(Data^, True) Then Begin     { Check data valid }

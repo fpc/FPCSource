@@ -4559,6 +4559,7 @@ tests/tbf/tb0174c.pp svneol=native#text/plain
 tests/tbf/tb0174d.pp svneol=native#text/plain
 tests/tbf/tb0175.pp svneol=native#text/plain
 tests/tbf/tb0176.pp svneol=native#text/plain
+tests/tbf/tb0177.pp svneol=native#text/plain
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain
@@ -5053,6 +5054,8 @@ tests/tbs/tb0496.pp svneol=native#text/plain
 tests/tbs/tb0497a.pp -text
 tests/tbs/tb0497b.pp -text
 tests/tbs/tb0497c.pp -text
+tests/tbs/tb0498.pp svneol=native#text/plain
+tests/tbs/tb0499.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain
@@ -5403,6 +5406,7 @@ tests/test/tstring7.pp svneol=native#text/plain
 tests/test/tstring8.pp svneol=native#text/plain
 tests/test/tstrreal1.pp svneol=native#text/plain
 tests/test/tstrreal2.pp svneol=native#text/plain
+tests/test/tstrreal3.pp -text
 tests/test/tsubdecl.pp svneol=native#text/plain
 tests/test/tunit1.pp svneol=native#text/plain
 tests/test/tunit2.pp svneol=native#text/plain
@@ -6389,6 +6393,7 @@ tests/webtbs/tw4533.pp svneol=native#text/plain
 tests/webtbs/tw4534.pp svneol=native#text/plain
 tests/webtbs/tw4537.pp svneol=native#text/plain
 tests/webtbs/tw4540.pp -text svneol=unset#text/plain
+tests/webtbs/tw4541.pp svneol=native#text/plain
 tests/webtbs/tw4557.pp svneol=native#text/plain
 tests/webtbs/tw4566.pp -text svneol=unset#text/plain
 tests/webtbs/tw4574.pp svneol=native#text/plain
@@ -6402,6 +6407,7 @@ tests/webtbs/tw4635.pp svneol=native#text/plain
 tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/tw4675.pp svneol=native#text/plain
+tests/webtbs/tw4700.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain
@@ -6446,6 +6452,7 @@ tests/webtbs/uw4352b.pp svneol=native#text/plain
 tests/webtbs/uw4352c.pp svneol=native#text/plain
 tests/webtbs/uw4352d.pp svneol=native#text/plain
 tests/webtbs/uw4352e.pp svneol=native#text/plain
+tests/webtbs/uw4541.pp svneol=native#text/plain
 utils/Makefile svneol=native#text/plain
 utils/Makefile.fpc svneol=native#text/plain
 utils/README -text

@@ -371,7 +371,7 @@ begin
                   '*', '/': R := R / 100;
                 end;
               case _Operator of
-                '^': SetDisplay(Power(Operand,R),false);
+                '^': if (Operand = 0)and(R <= 0) then Error else SetDisplay(Power(Operand,R),false);
                 '+': SetDisplay(Operand + R,false);
                 '-': SetDisplay(Operand - R,false);
                 '*': SetDisplay(Operand * R,false);

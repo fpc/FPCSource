@@ -1,3 +1,4 @@
+
 {
     This file is part of the Free Pascal run time library.
     Copyright (c) 2001 by Free Pascal development team
@@ -207,7 +208,7 @@ type
    TTms      = tms;
    PTms      = ^tms;
 
- TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cLong;
+ TFDSet    = ARRAY[0..(FD_MAXFDSET div BITSINWORD)-1] of cuLong;
  pFDSet    = ^TFDSet;
 
   timezone = packed record

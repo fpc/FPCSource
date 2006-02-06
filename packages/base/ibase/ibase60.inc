@@ -8,6 +8,10 @@ interface
 
 {$IFDEF LinkDynamically}
 uses Dynlibs, sysutils;
+
+Var
+  UseEmbeddedFirebird : Boolean = False;
+
 {$ENDIF}
 
 {$IFDEF Unix}
@@ -15,18 +19,21 @@ uses Dynlibs, sysutils;
   const
     gdslib = 'libgds.so';
     fbclib = 'libfbclient.so';
+    fbembedlib = 'libfbembed.so';
 {$ENDIF}
 {$IFDEF Win32}
   {$DEFINE extdecl:=stdcall}
   const
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
+    fbembedlib = 'fbembed.dll';
 {$ENDIF}
 {$IFDEF Wince}
   {$DEFINE extdecl:=stdcall}
   const
     gdslib = 'gds32.dll';
     fbclib = 'fbclient.dll';
+    fbembedlib = 'fbembed.dll';
 {$ENDIF}
 
 type
@@ -2456,17 +2463,25 @@ begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    IBaseLibraryHandle := loadlibrary(fbclib);
-    if IBaseLibraryHandle = nilhandle then
+    If UseEmbeddedFirebird then
       begin
-      IBaseLibraryHandle := loadlibrary(gdslib);
-      if loadlibrary(gdslib) = nilhandle then
+      IBaseLibraryHandle:=loadlibrary(fbembedlib);
+      if (IBaseLibraryHandle=nilhandle) then
+        Raise EInOutError.Create('Can not load Firebird Embedded client. Is it installed? ('+fbembedlib+')');
+      end
+    else 
+      begin
+      IBaseLibraryHandle:=loadlibrary(fbclib);
+      if (IBaseLibraryHandle=nilhandle) then
         begin
-        RefCount := 0;
-        Raise EInOutError.Create('Can not load Firebird or Interbase client. Is it installed? ('+gdslib+' or '+fbclib+')');
+        IBaseLibraryHandle:=loadlibrary(gdslib);
+        if (IBaseLibraryHandle=nilhandle) then
+          begin
+          RefCount := 0;
+          Raise EInOutError.Create('Can not load Firebird or Interbase client. Is it installed? ('+gdslib+' or '+fbclib+')');
+          end;
         end;
-      end;
-
+      end;  
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
     pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');

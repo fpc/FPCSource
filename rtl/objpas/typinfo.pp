@@ -195,8 +195,10 @@ Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
 Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-Function  GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
+function GetPropList(AObject: TObject; out PropList: PPropList): Integer;
+
 
 
 // Property information routines.
@@ -690,15 +692,20 @@ end;
 
 
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
-  begin
-    result:=GetTypeData(TypeInfo)^.Propcount;
-    if result>0 then
-      begin
-        getmem(PropList,result*sizeof(pointer));
-        GetPropInfos(TypeInfo,PropList);
-      end;
-  end;
+begin
+  result:=GetTypeData(TypeInfo)^.Propcount;
+  if result>0 then
+    begin
+      getmem(PropList,result*sizeof(pointer));
+      GetPropInfos(TypeInfo,PropList);
+    end;
+end;
 
+
+function GetPropList(AObject: TObject; out PropList: PPropList): Integer;
+begin
+  Result := GetPropList(PTypeInfo(AObject.ClassInfo), PropList);
+end;
 
 { ---------------------------------------------------------------------
   Property access functions

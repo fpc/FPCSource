@@ -1012,32 +1012,18 @@ Begin
 End;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-Function FloatToStr(Value: Extended): String;
-Begin
-  Result := FloatToStrF(Value, ffGeneral, 15, 0);
-End;
-
-Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
-Var
-  Tmp: String[40];
-Begin
-  Tmp := FloatToStrF(Value, format, Precision, Digits);
-  Result := Length(Tmp);
-  Move(Tmp[1], Buffer[0], Result);
-End;
 
 const
-{$if sizeof(extended) > sizeof(double)}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
   maxdigits = 15;
 {$else}
   maxdigits = 14;
 {$endif}
 
-Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrFIntl(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue): String;
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
-
 
 Begin
   Case format Of
@@ -1049,7 +1035,14 @@ Begin
         TooSmall := (Abs(Value) < 0.00001) and (Value>0.0);
         If Not TooSmall Then
         Begin
-          Str(Value:digits:precision, Result);
+          case ValueType of
+            fvDouble:
+              Str(Double(Value):digits:precision, Result);
+            fvSingle:
+              Str(Single(Value):digits:precision, Result);
+            else
+              Str(Extended(Value):digits:precision, Result);
+          end;
           P := Pos('.', Result);
           if P<>0 then
             Result[P] := DecimalSeparator;
@@ -1093,7 +1086,14 @@ Begin
 
       Begin
         If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
-        Str(Value:Precision + 8, Result);
+        case ValueType of
+          fvDouble:
+            Str(Double(Value):Precision+8, Result);
+          fvSingle:
+            Str(Single(Value):Precision+8, Result);
+          else
+            Str(Extended(Value):Precision+8, Result);
+        end;
         Result[3] := DecimalSeparator;
         P:=4;
         While (P>0) and (Digits < P) And (Result[Precision + 5] = '0') do
@@ -1113,7 +1113,14 @@ Begin
       Begin
         If Digits = -1 Then Digits := 2
         Else If Digits > 18 Then Digits := 18;
-        Str(Value:0:Digits, Result);
+        case ValueType of
+          fvDouble:
+            Str(Double(Value):0:Digits, Result);
+          fvSingle:
+            Str(Single(Value):0:Digits, Result);
+          else
+            Str(Extended(Value):0:Digits, Result);
+        end;
         If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
@@ -1125,7 +1132,14 @@ Begin
       Begin
         If Digits = -1 Then Digits := 2
         Else If Digits > maxdigits Then Digits := maxdigits;
-        Str(Value:0:Digits, Result);
+        case ValueType of
+          fvDouble:
+            Str(Double(Value):0:Digits, Result);
+          fvSingle:
+            Str(Single(Value):0:Digits, Result);
+          else
+            Str(Extended(Value):0:Digits, Result);
+        end;
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then
@@ -1152,7 +1166,14 @@ Begin
 
         If Digits = -1 Then Digits := CurrencyDecimals
         Else If Digits > 18 Then Digits := 18;
-        Str(Value:0:Digits, Result);
+        case ValueType of
+          fvDouble:
+            Str(Double(Value):0:Digits, Result);
+          fvSingle:
+            Str(Single(Value):0:Digits, Result);
+          else
+            Str(Extended(Value):0:Digits, Result);
+        end;
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
@@ -1192,10 +1213,90 @@ Begin
   End;
 End;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function FloatToStr(Value: Extended): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvExtended);
+End;
+{$endif FPC_HAS_TYPE_EXTENDED}
+
+Function FloatToStr(Value: Currency): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvCurrency);
+End;
+
+Function FloatToStr(Value: Double): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvDouble);
+End;
+
+Function FloatToStr(Value: Single): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvSingle);
+End;
+
+Function FloatToStr(Value: Comp): String;
+Begin
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvComp);
+End;
+
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStr(Value: Int64): String;
+Begin
+  Result := FloatToStrFIntl(Comp(Value), ffGeneral, 15, 0, fvComp);
+End;
+{$endif FPC_COMP_IS_INT64}
+
+
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+Var
+  Tmp: String[40];
+Begin
+  Tmp := FloatToStrF(Value, format, Precision, Digits);
+  Result := Length(Tmp);
+  Move(Tmp[1], Buffer[0], Result);
+End;
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvExtended);
+end;
+{$endif}
+
+Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvCurrency);
+end;
+
+Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvDouble);
+end;
+
+Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvSingle);
+end;
+
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(value,format,precision,digits,fvComp);
+end;
+
+{$ifndef FPC_COMP_IS_INT64}
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+begin
+  result := FloatToStrFIntl(Comp(value),format,precision,digits,fvComp);
+end;
+{$endif FPC_COMP_IS_INT64}
+
+
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
   begin
     result:=FloatToStrF(Value,Format,19,Digits);
   end;
+
 
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 begin

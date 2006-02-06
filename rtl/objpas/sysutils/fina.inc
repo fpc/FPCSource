@@ -55,7 +55,7 @@ end;
 function ExtractFileDrive(const FileName: string): string;
 var i: longint;
 begin
-if (Length(FileName) >= 3) and (FileName[2] = ':') then
+if (Length(FileName) >= 2) and (FileName[2] = ':') then
    result := Copy(FileName, 1, 2)
 else if (Length(FileName) >= 2) and (FileName[1] in ['/', '\']) and
    (FileName[2] in ['/', '\']) then begin

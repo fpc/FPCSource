@@ -595,24 +595,24 @@ var
     var
       DotPos, DotPos2, i: Integer;
       s: String;
-      Package: TPasPackage;
+      HPackage: TPasPackage;
       Module: TPasModule;
     begin
       // Find or create package
       DotPos := Pos('.', AName);
       s := Copy(AName, 1, DotPos - 1);
-      Package := nil;
+      HPackage := nil;
       for i := 0 to FPackages.Count - 1 do
         if CompareText(TPasPackage(FPackages[i]).Name, s) = 0 then
         begin
-          Package := TPasPackage(FPackages[i]);
+          HPackage := TPasPackage(FPackages[i]);
           break;
         end;
-      if not Assigned(Package) then
+      if not Assigned(HPackage) then
       begin
-        Package := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
+        HPackage := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
           '', 0));
-        FPackages.Add(Package);
+        FPackages.Add(HPackage);
       end;
 
       // Find or create module
@@ -622,17 +622,17 @@ var
       until AName[DotPos2] = '.';
       s := Copy(AName, DotPos + 1, DotPos2 - DotPos - 1);
       Module := nil;
-      for i := 0 to Package.Modules.Count - 1 do
-        if CompareText(TPasModule(Package.Modules[i]).Name, s) = 0 then
+      for i := 0 to HPackage.Modules.Count - 1 do
+        if CompareText(TPasModule(HPackage.Modules[i]).Name, s) = 0 then
         begin
-          Module := TPasModule(Package.Modules[i]);
+          Module := TPasModule(HPackage.Modules[i]);
           break;
         end;
       if not Assigned(Module) then
       begin
-        Module := TPasModule.Create(s, Package);
+        Module := TPasModule.Create(s, HPackage);
         Module.InterfaceSection := TPasSection.Create('', Module);
-        Package.Modules.Add(Module);
+        HPackage.Modules.Add(Module);
       end;
 
       // Create node for class
