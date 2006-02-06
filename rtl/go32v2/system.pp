@@ -227,8 +227,8 @@ begin
 {$EndIf }
   { create argv[0] }
   argv0len:=strlen(dos_argv0);
-  allocarg(count,argv0len);
-  move(dos_argv0^,argv[count]^,argv0len);
+  allocarg(count,argv0len+1);
+  move(dos_argv0^,argv[count]^,argv0len+1);
   inc(count);
   { setup cmdline variable }
   cmdline:=Getmem(argv0len+length(doscmd)+2);
