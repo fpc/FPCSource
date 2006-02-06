@@ -23,6 +23,7 @@
 {$endif}
 Program ppumove;
 uses
+  sysutils,
 {$ifdef unix}
   Baseunix,Unix, UnixUtil,
 {$else unix}
@@ -32,9 +33,9 @@ uses
   getopts;
 
 const
-  Version   = 'Version 1.0.2';
+  Version   = 'Version 2.0.2';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2006 by the Free Pascal Development Team';
 
   ShortOpts = 'o:e:d:i:qhsvbw';
   BufSize = 4096;
@@ -65,6 +66,7 @@ Type
 
 Var
   ArBin,LDBin,StripBin,
+  OutputFileForPPU,
   OutputFile,
   OutputFileForLink,  { the name of the output file needed when linking }
   InputPath,
@@ -237,6 +239,7 @@ Var
   untilb : byte;
   l,m    : longint;
   f      : file;
+  ext,
   s      : string;
 begin
   DoPPU:=false;
@@ -355,13 +358,13 @@ begin
 { just add a new entry with the new lib }
   if MakeStatic then
    begin
-     outppu.putstring(outputfileforlink);
+     outppu.putstring(OutputfileForPPU);
      outppu.putlongint(link_static);
      outppu.writeentry(iblinkunitstaticlibs)
    end
   else
    begin
-     outppu.putstring(outputfileforlink);
+     outppu.putstring(OutputfileForPPU);
      outppu.putlongint(link_shared);
      outppu.writeentry(iblinkunitsharedlibs);
    end;
@@ -377,8 +380,22 @@ begin
              begin
                s:=inppu.getstring;
                m:=inppu.getlongint;
-               libs:=libs+' -l'+s;
+
                outppu.putstring(s);
+
+               { strip lib prefix }
+               if copy(s,1,3)='lib' then
+                 delete(s,1,3);
+
+               { strip lib prefix }
+               if copy(s,1,3)='lib' then
+                 delete(s,1,3);
+               ext:=ExtractFileExt(s);
+               if ext<>'' then
+                 delete(s,length(s)-length(ext)+1,length(ext));
+
+               libs:=libs+' -l'+s;
+
                outppu.putlongint(m);
              end;
          end
@@ -488,7 +505,7 @@ begin
   if DestPath<>'' then
    begin
      Assign(F, OutputFile);
-     Rename(F,DestPath+'/'+OutputFile);
+     Rename(F,DestPath+DirectorySeparator+OutputFile);
    end;
 end;
 
@@ -585,7 +602,8 @@ begin
   else
    LibExt:=SharedLibExt;
   if OutputFile='' then
-   OutPutFile:=Paramstr(OptInd);
+   OutputFile:=Paramstr(OptInd);
+  OutputFileForPPU:=OutputFile;
 { fix filename }
 {$ifdef unix}
   if Copy(OutputFile,1,3)<>'lib' then
