@@ -168,7 +168,7 @@ implementation
     uses
        strings,
        cutils,verbose,
-       globals,fmodule;
+       globals,fmodule,aasmtai;
 
     const
        COFF_FLAG_NORELOCS = $0001;
@@ -563,9 +563,15 @@ const go32v2stub : array[0..2047] of byte=(
           '.debug_frame',
           '.fpc'
         );
+      var
+        secname : string;
       begin
-        { No support for named sections, because section names are limited to 8 chars }
-        result:=secnames[atype];
+        secname:=secnames[atype];
+        if use_smartlink_section and
+           (aname<>'') then
+          result:=secname+'$'+aname
+        else
+          result:=secname;
       end;
 
 
@@ -936,9 +942,9 @@ const go32v2stub : array[0..2047] of byte=(
     procedure tcoffobjectoutput.write_symbols(data:TAsmObjectData);
       var
         filename  : string[18];
-        value     : longint;
         sectionval,
-        globalval : byte;
+        globalval,
+        value     : longint;
         p         : tasmsymbol;
       begin
         with tcoffobjectdata(data) do
@@ -1004,12 +1010,17 @@ const go32v2stub : array[0..2047] of byte=(
       var
         sechdr   : coffsechdr;
         s        : string;
+        strpos   : longint;
       begin
         fillchar(sechdr,sizeof(sechdr),0);
         s:=tasmsection(p).name;
-        { section names are limited to 8 chars }
         if length(s)>8 then
-          internalerror(200403312);
+         begin
+           strpos:=FCoffStrs.size+4;
+           FCoffStrs.writestr(s);
+           FCoffStrs.writestr(#0);
+           s:='/'+ToStr(strpos);
+         end;
         move(s[1],sechdr.name,length(s));
         if not win32 then
           begin
@@ -1764,7 +1775,7 @@ const go32v2stub : array[0..2047] of byte=(
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_win32;
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
           );

@@ -32,7 +32,11 @@ type
     TGid     = gid_t;
     pGid     = ^gid_t;
 
-    ino_t    = clong;           { used for file serial numbers }
+    {$ifdef CPU64}
+     ino_t    = cuint32;           { used for file serial numbers }
+    {$else}	
+     ino_t    = clong;           { used for file serial numbers }
+    {$endif}
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -148,9 +152,12 @@ type
 
 
 Const
-     MNAMLEN = 80;      // slightly machine specific.
-
+     MNAMLEN   = 80;      // slightly machine specific.
+     MFSNamLen = 16;	
 type
+  fsid_t  = array[0..1] of cint;
+
+// Kernel statfs
 
   TStatfs = packed record
     spare2,            { place holder}
@@ -161,13 +168,13 @@ type
     bavail,            { block available for mortal users}
     files,             { Total file nodes}
     ffree          : clong ;    { file nodes free}
-    fsid           : array[0..1] of longint;  // fsid_t
+    fsid           : fsid_t;
     fowner         : tuid; {mounter uid}
     ftype          : cint;
     fflags         : cint; {copy of mount flags}
     fsyncwrites,
-    fasyncwrites   : cint;
-    fstypename     : array[0..15] of char;
+    fasyncwrites   : clong;
+    fstypename     : array[0..MFSNamLen-1] of char;
     mountpoint     : array[0..MNAMLEN-1] of char;
     fsyncreads,            { count of sync reads since mount }
     fasyncreads    : clong;
@@ -183,7 +190,6 @@ type
               It_Value      : TimeVal;
              end;
 
-
 const
   _PTHREAD_MUTEX_DEFAULT     = _PTHREAD_MUTEX_ERRORCHECK;
   _MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
@@ -193,14 +199,18 @@ const
   _PTHREAD_STACK_MIN             = 1024;
 
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
+{$ifdef CPU64}
+    ARG_MAX  = 262144;   {4096}  { Maximum number of argument size     }
+{$else}
     ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
+{$endif}
+
     NAME_MAX = 255;     {14}    { Maximum number of bytes in filename }
     PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }
-
     SYS_NMLN = 32;              {BSD utsname struct limit, kernel mode}
 
     SIG_MAXSIG      = 128;      // highest signal version
-//   wordsinsigset   = 4;               // words in sigset_t
+//  wordsinsigset   = 4;               // words in sigset_t
 
 
   { For getting/setting priority }
