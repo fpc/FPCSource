@@ -89,8 +89,9 @@ asm
         sll     %o2, 2, %o2
         add     %o2, %o1, %o2
 
-        call    __fpstart
-        nop
+
+        // call    __fpstart
+        // nop
 
         call    PASCALMAIN
         nop

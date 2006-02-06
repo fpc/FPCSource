@@ -18,6 +18,8 @@ interface
 
 {$define FPC_IS_SYSTEM}
 
+{$linklib m}
+
 { include system-independent routine headers }
 
 {$I sysunixh.inc}

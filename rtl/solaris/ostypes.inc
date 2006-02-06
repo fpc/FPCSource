@@ -180,12 +180,18 @@ Const
   S_IFWHT = 57344;
   S_ISVTX = 512;
 
-CONST
+Const
  { Constansts for MMAP }
   MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
+  MAP_ANONYMOUS =$100;
 
-
+type
+  rlim_t = cULong;
+  PRLimit = ^TRLimit;
+  TRLimit = record
+    rlim_cur : rlim_t;
+    rlim_max : rlim_t;
+  end;
 
 {$i signal.inc}
 
