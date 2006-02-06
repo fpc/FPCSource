@@ -208,7 +208,8 @@ function HexToDecS:longbool;
   DecError:longbool;
  procedure Decim(const pattern:string);
   var
-   p,b,x:longint;
+   p,b:longint;
+   x: Longword;
    ss,st:string;
   begin
    repeat

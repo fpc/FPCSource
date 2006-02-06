@@ -768,7 +768,7 @@ begin
   if Length(Result) > 0 then
     if Copy(Result, 1, Length(CurDirectory) + 1) = CurDirectory + '/' then
       Result := Copy(Result, Length(CurDirectory) + 2, Length(Result))
-    else
+    else if not IsLinkAbsolute(Result) then
       Result := BaseDirectory + Result;
 end;
 
