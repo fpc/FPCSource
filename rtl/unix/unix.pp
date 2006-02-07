@@ -598,7 +598,7 @@ begin
      fpseterrno(ESysEBADF);
      exit;
    end;
- {$ifndef bsd}
+ {$if not(defined(bsd)) and not(defined(solaris)) }
   p^.dd_nextoff:=fplseek(p^.dd_fd,loc,seek_set);
  {$endif}
   p^.dd_size:=0;
@@ -1148,6 +1148,16 @@ begin
    getdomainname:=strpas(@Sysn.domain[0]);
 end;
 {$endif}
+
+{$ifdef sunos}
+{ sunos doesn't support GetDomainName, see also
+  http://www.sun.com/software/solaris/programs/abi/appcert_faq.xml#q18
+}
+Function GetDomainName:String;
+  begin
+    GetDomainName:='';
+  end;
+{$endif sunos}
 
 {$ifdef BSD}
 

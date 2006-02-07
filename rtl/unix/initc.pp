@@ -54,18 +54,23 @@ end;
 
 {$ifdef Linux}
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno_location';
-{$else}
+{$endif}
+
 {$ifdef FreeBSD} // tested on x86
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
-{$else}
+{$endif}
+
 {$ifdef NetBSD} // from a sparc dump.
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
-{$else}
+{$endif}
+
 {$ifdef Darwin}
 function geterrnolocation: Plibcint; cdecl;external clib name '__error';
 {$endif}
-{$endif}
-{$endif}
+
+
+{$ifdef SunOS}
+function geterrnolocation: Plibcint; cdecl;external clib name '___errno';
 {$endif}
 
 function fpgetCerrno:libcint;

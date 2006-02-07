@@ -13,20 +13,23 @@
 
  ***********************************************************************}
 
+{ SunOS provides these functions directly }
+{$ifndef SunOS}
 Function  TCGetAttr   (fd:cint;var tios:TermIOS):cint; inline;
 Function  TCSetAttr   (fd:cint;OptAct:cint;const tios:TermIOS):cint;
 Procedure CFSetISpeed (var tios:TermIOS;speed:Cardinal); inline;
 Procedure CFSetOSpeed (var tios:TermIOS;speed:Cardinal); inline;
-Procedure CFMakeRaw   (var tios:TermIOS); 
-Function  TCSendBreak (fd,duration:cint):cint; inline; 
+{$endif SunOS}
+Procedure CFMakeRaw   (var tios:TermIOS);
+Function  TCSendBreak (fd,duration:cint):cint; inline;
 Function  TCSetPGrp   (fd,id:cint)  :cint;  inline;
 
 Function  TCGetPGrp   (fd:cint;var id:cint):cint; inline;
 Function  TCFlush     (fd,qsel:cint):cint; inline;
 Function  TCDrain     (fd:cint)     :cint;inline;
 Function  TCFlow      (fd,act:cint) :cint;inline;
-Function  IsATTY      (Handle:cint) :cint; 
+Function  IsATTY      (Handle:cint) :cint;
 Function  IsATTY      (var f:text)  :cint; inline;
 function  TTYname     (Handle:cint):string;
-function  TTYname     (var F:Text) :string; 
+function  TTYname     (var F:Text) :string;
 

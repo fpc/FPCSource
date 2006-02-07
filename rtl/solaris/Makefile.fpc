@@ -5,19 +5,26 @@
 [package]
 main=rtl
 
-# disabled units: serial ipc
 [target]
 loaders=
-units=$(SYSTEMUNIT) objpas
+units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
+      heaptrc lineinfo \
+      baseunix unixutil \
+      termio unix initc cmem \
+      crt printer \
+      sysutils typinfo math matrix varutils \
+      charset ucomplex getopts \
+      errors \
+      # sockets
+      # ipc serial
+      terminfo dl dynlibs \
+      video \
+      # mouse
+      keyboard variants types dateutils sysconst \
+      # cthreads classes strutils rtlconsts
+      dos objects
+      # cwstring fpcylix fpmkunit
 
-# macpas strings sysctl baseunix unixtype unixutil \
-#       unix initc cmem matrix \
-#       dos dl objects printer sockets \
-#       sysutils typinfo systhrds classes math varutils \
-#       charset ucomplex getopts heaptrc lineinfo \
-#       errors terminfo termio video crt mouse keyboard console \
-#       variants types sysctl dateutils \
-#       sysconst cthreads strutils rtlconst fpmkunit
 
 rsts=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst fpmkunit
 
@@ -51,6 +58,8 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
+BSDINC=$(RTL)/bsd
+BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
 POSIXINC=$(RTL)/posix
 UNIXINC=$(RTL)/unix
@@ -65,8 +74,8 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
-# Darwin requires libc, no syscalls
-override FPCOPT+=-dFPC_USE_LIBC
+# Solaris requires libc, no syscalls, no mouse
+override FPCOPT+=-dFPC_USE_LIBC -dNOMOUSE
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
@@ -124,9 +133,9 @@ strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-baseunix$(PPUEXT) : unixtype$(PPUEXT) sysctl$(PPUEXT) errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
-  signal.inc bunxh.inc bunxmain.inc \
-  bunxfunc.inc ostypes.inc osmacro.inc $(UNIXINC)/gensigset.inc \
+baseunix$(PPUEXT) : unixtype$(PPUEXT) errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
+  signal.inc $(UNIXINC)/bunxh.inc \
+  $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
 
 unixtype$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(UNIXINC)/unixtype.pp ptypes.inc $(UNIXINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -209,7 +218,7 @@ macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
 
 video$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/video.inc $(INC)/videoh.inc $(UNIXINC)/video.pp baseunix$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT)
 
-keyboard$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/keyboard.inc $(INC)/keybrdh.inc $(UNIXINC)/keyboard.pp mouse$(PPUEXT) strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT) baseunix$(PPUEXT)
+keyboard$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/keyboard.inc $(INC)/keybrdh.inc $(UNIXINC)/keyboard.pp strings$(PPUEXT) terminfo$(PPUEXT) termio$(PPUEXT) baseunix$(PPUEXT)
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 
@@ -234,10 +243,6 @@ fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 # Other system-dependent RTL Units
 #
 
-termio$(PPUEXT) : baseunix$(PPUEXT)
-
-mouse$(PPUEXT) : baseunix$(PPUEXT) video$(PPUEXT)
-
 dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
@@ -245,7 +250,7 @@ sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) syscall$(PPUEXT)
+ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 
 terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)
 

@@ -32,7 +32,6 @@ introduction)
 {$packrecords c}
 
 Type
-
 {$ifndef VER_1_0}               // maybe wrong (kernel vs libc)
     dev_t    = cuint64;         { used for device numbers      }
 {$else}
@@ -201,6 +200,52 @@ Type
      __sem_value: cint;
      __sem_waiting: pointer;
   end;
+
+  uint32_t = cuint32;
+  int32_t = cint32;
+  caddr32_t = uint32_t;
+  daddr32_t = int32_t;
+  off32_t = int32_t;
+  ino32_t = uint32_t;
+  blkcnt32_t = int32_t;
+  fsblkcnt32_t = uint32_t;
+  fsfilcnt32_t = uint32_t;
+  id32_t = int32_t;
+  major32_t = uint32_t;
+  minor32_t = uint32_t;
+  key32_t = int32_t;
+  mode32_t = uint32_t;
+  uid32_t = int32_t;
+  gid32_t = int32_t;
+  nlink32_t = uint32_t;
+  dev32_t = uint32_t;
+  pid32_t = int32_t;
+  size32_t = uint32_t;
+  ssize32_t = int32_t;
+  time32_t = int32_t;
+
+  clock32_t = int32_t;
+  timeval32 = record
+{ seconds  }
+       tv_sec : time32_t;
+{ and microseconds  }
+       tv_usec : int32_t;
+    end;
+
+
+  timespec32 = record
+{ seconds  }
+       tv_sec : time32_t;
+{ and nanoseconds  }
+       tv_nsec : int32_t;
+    end;
+  timespec32_t = timespec32;
+
+  itimerspec32 = record
+       it_interval : timespec32;
+       it_value : timespec32;
+    end;
+  itimerspec32_t = itimerspec32;
 
 
 

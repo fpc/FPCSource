@@ -20,13 +20,7 @@ const clib = 'c';
 type libcint=longint;
      plibcint=^libcint;
 
-var errno : libcint; cvar;
-
-function geterrnolocation: Plibcint; cdecl;
-begin
- geterrnolocation:=@errno;
-end;
-
+function geterrnolocation: Plibcint; cdecl;external clib name '___errno';
 
 function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
 begin

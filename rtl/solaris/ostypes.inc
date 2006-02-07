@@ -108,19 +108,36 @@ TYPE
    { directory services }
    pdirent = ^dirent;
    dirent = packed record    { directory entry record - verify alignment }
-     d_ino : ino_t;                  {* "inode number" of entry *}
-     d_off : off_t;                  {* offset of disk directory entry *}
-     d_reclen : word;                {* length of this record *}
-     d_name : array[0..255] of char; { name of file            }
+     case integer of
+       1 : (
+             d_ino : ino_t;                  {* "inode number" of entry *}
+             d_off : off_t;                  {* offset of disk directory entry *}
+             d_reclen : word;                {* length of this record *}
+             d_name : array[0..255] of char; { name of file            }
+            );
+       { overlay with alias }
+       2 : (
+            d_fileno : ino_t;
+           ); 
    end;
 
 
    pdir = ^dir;
    dir = packed record
-    d_fd : cint;               {* file descriptor *}
-    d_loc : cint;              {* offset in block *}
-    d_size : cint;             {* amount of valid data *}
-    d_buf : pchar;             { directory block   }
+    case integer of
+      1 : (
+           d_fd : cint;               {* file descriptor *}
+           d_loc : cint;              {* offset in block *}
+           d_size : cint;             {* amount of valid data *}
+           d_buf : pchar;             { directory block   }
+          );
+      { overlay for posix compatibility }
+      2 : (
+           dd_fd : cint;               {* file descriptor *}
+           dd_loc : cint;              {* offset in block *}
+           dd_size : cint;             {* amount of valid data *}
+           dd_buf : pchar;             { directory block   }
+          );
    end;
 
 
