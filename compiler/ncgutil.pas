@@ -1787,6 +1787,21 @@ implementation
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
         current_procinfo.procdef.procendtai:=tai(list.last);
+
+        { finalisation marker for Mac OS X }
+        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+           (current_module.islibrary) and
+           (((current_module.flags and uf_finalize)<>0) or
+            (current_procinfo.procdef.proctypeoption = potype_proginit)) then
+          begin
+            if (current_procinfo.procdef.proctypeoption = potype_proginit) then
+              list.concat(tai_directive.create(asd_mod_init_func,''))
+            else
+              list.concat(tai_directive.create(asd_mod_term_func,''));
+            list.concat(tai_align.create(4));
+            list.concat(Tai_const.Createname(current_procinfo.procdef.mangledname,AT_FUNCTION,0));
+          end;
+
       end;
 
 

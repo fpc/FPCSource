@@ -306,7 +306,7 @@ interface
        end;
 
        tasmdirective=(asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
-                      asd_extern,asd_nasm_import, asd_toc_entry);
+                      asd_extern,asd_nasm_import, asd_toc_entry, asd_mod_init_func, asd_mod_term_func);
 
        tai_directive = class(tailineinfo)
           name : pstring;
@@ -664,9 +664,9 @@ interface
       regallocstr : array[tregalloctype] of string[10]=('allocated','released','sync','resized');
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[tstabtype] of string[5]=('stabs','stabn','stabd');
-      directivestr : array[tasmdirective] of string[24]=(
+      directivestr : array[tasmdirective] of string[23]=(
         'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
-        'extern','nasm_import', 'tc'
+        'extern','nasm_import', 'tc', 'mod_init_func', 'mod_term_func'
       );
 
     var
