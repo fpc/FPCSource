@@ -16,6 +16,8 @@
 { for 80x86, we can easily write the optimal inline code }
 {$ifndef cpui386}
 
+{$ifndef SOLARIS}
+
 {$ifndef FPC_SYSTEM_HAS_INT}
 {$define FPC_SYSTEM_HAS_INT}
 
@@ -40,8 +42,8 @@
       end;
 {$endif SUPPORT_DOUBLE}
 
-{$endif}
-
+{$endif FPC_SYSTEM_HAS_INT}
+{$endif SOLARIS}
 
 {$ifndef SYSTEM_HAS_FREXP}
 {$define SYSTEM_HAS_FREXP}
