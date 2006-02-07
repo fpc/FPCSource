@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt,
+    Copyright (c) 1999-2006 by Michael Van Canneyt,
     member of the Free Pascal development team.
 
     Signal handler is arch dependant due to processor to language
@@ -58,12 +58,16 @@ begin
           end;
         end;
     SIGILL,
-    SIGBUS,
     SIGSEGV :
         begin
           addr := siginfo^._sifields._sigfault._addr;
           res:=216;
         end;
+    SIGBUS :
+      begin
+        addr := siginfo^._sifields._sigfault._addr;
+        res:=214;
+      end;
   end;
   { give runtime error at the position where the signal was raised }
   if res<>0 then
