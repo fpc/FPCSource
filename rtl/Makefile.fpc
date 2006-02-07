@@ -25,6 +25,7 @@ dirs_morphos=morphos
 dirs_netware=netware
 dirs_netwlibc=netwlibc
 dirs_palmos=palmos
+dirs_solaris=solaris
 
 [install]
 fpcpackage=y
