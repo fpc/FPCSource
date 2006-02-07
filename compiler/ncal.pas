@@ -1759,6 +1759,10 @@ type
                end; { end of procedure to call determination }
            end;
 
+          { check for hints (deprecated etc) }
+          if (procdefinition.deftype = procdef) then
+            check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions);
+
           { add needed default parameters }
           if assigned(procdefinition) and
              (paralength<procdefinition.maxparacount) then
