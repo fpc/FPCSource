@@ -1069,14 +1069,17 @@ implementation
       var
          hsym : tsym;
       begin
-         result:=inherited checkduplicate(sym);
-         if result then
+         result:=false;
+         if not assigned(defowner) then
+           internalerror(200602061);
+
+         if (m_duplicate_names in aktmodeswitches) and
+            (sym.typ in [paravarsym,localvarsym]) then
            exit;
 
          { check for duplicate field, parameter or local names
            also in inherited classes }
          if (sym.typ in [fieldvarsym,paravarsym,localvarsym]) and
-            assigned(defowner) and
             (
              not(m_delphi in aktmodeswitches) or
              is_object(tdef(defowner))
@@ -1090,6 +1093,12 @@ implementation
                   DuplicateSym(sym,hsym);
                   result:=true;
                 end;
+           end
+         else
+           begin
+             result:=inherited checkduplicate(sym);
+             if result then
+               exit;
            end;
       end;
 
@@ -1173,7 +1182,8 @@ implementation
         { check objectsymtable, skip this for funcret sym because
           that will always be positive because it has the same name
           as the procsym }
-        if not is_funcret_sym(sym) and
+        if not(m_duplicate_names in aktmodeswitches) and
+           not is_funcret_sym(sym) and
            (defowner.deftype=procdef) and
            assigned(tprocdef(defowner)._class) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
@@ -1198,9 +1208,10 @@ implementation
         result:=inherited checkduplicate(sym);
         if result then
           exit;
-        if (defowner.deftype=procdef) and
-            assigned(tprocdef(defowner)._class) and
-            (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
+        if not(m_duplicate_names in aktmodeswitches) and
+           (defowner.deftype=procdef) and
+           assigned(tprocdef(defowner)._class) and
+           (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
           result:=tprocdef(defowner)._class.symtable.checkduplicate(sym);
       end;
 

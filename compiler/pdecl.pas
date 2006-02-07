@@ -301,7 +301,7 @@ implementation
              classrefdef :
                begin
                  { classrefdef inherits from pointerdef }
-                 hpd:=tpointerdef(pd).pointertype.def;
+                 hpd:=tabstractpointerdef(pd).pointertype.def;
                  { still a forward def ? }
                  if hpd.deftype=forwarddef then
                   begin

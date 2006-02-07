@@ -248,33 +248,44 @@ implementation
     procedure single_type(var tt:ttype;isforwarddef:boolean);
        var
          t2 : ttype;
+         again : boolean;
        begin
-          case token of
-            _STRING:
-              string_dec(tt);
+         repeat
+           again:=false;
+             case token of
+               _STRING:
+                 string_dec(tt);
 
-            _FILE:
-              begin
-                 consume(_FILE);
-                 if token=_OF then
-                   begin
-                      consume(_OF);
-                      single_type(t2,false);
-                      tt.setdef(tfiledef.createtyped(t2));
-                   end
-                 else
-                   tt:=cfiletype;
-              end;
+               _FILE:
+                 begin
+                    consume(_FILE);
+                    if try_to_consume(_OF) then
+                      begin
+                         single_type(t2,false);
+                         tt.setdef(tfiledef.createtyped(t2));
+                      end
+                    else
+                      tt:=cfiletype;
+                 end;
 
-            _ID:
-              id_type(tt,isforwarddef);
+               _ID:
+                 begin
+                   if try_to_consume(_SPECIALIZE) then
+                     begin
+                       block_type:=bt_specialize;
+                       again:=true;
+                     end
+                   else
+                     id_type(tt,isforwarddef);
+                 end;
 
-            else
-              begin
-                message(type_e_type_id_expected);
-                tt:=generrortype;
-              end;
-         end;
+               else
+                 begin
+                   message(type_e_type_id_expected);
+                   tt:=generrortype;
+                 end;
+            end;
+        until not again;
       end;
 
     { reads a record declaration }

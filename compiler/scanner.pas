@@ -3365,7 +3365,7 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     c:=upcase(c);
-                    if (block_type=bt_type) or
+                    if (block_type in [bt_type,bt_specialize]) or
                        (lasttoken=_ID) or (lasttoken=_NIL) or
                        (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
