@@ -1132,6 +1132,7 @@ var
   i       : longint;
   AsBinStr     : string[80];
   StripStr,
+  GCSectionsStr,
   RelocStr,
   AppTypeStr,
   ImageBaseStr : string[40];
@@ -1145,9 +1146,12 @@ begin
   AppTypeStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  GCSectionsStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
    RelocStr:='--base-file base.$$$';
+  if use_smartlink_section then
+   GCSectionsStr:='--gc-sections';
   if apptype=app_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1177,6 +1181,7 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
         if not DefFile.Empty then
           begin
             DefFile.WriteFile;
@@ -1619,7 +1624,7 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
 
 function tDLLScannerWin32.scan(const binname:string):longbool;
  var
-  OldFileMode:longint;
+  OldFileMode:byte;
   hs,
   foundimp : string;
  begin

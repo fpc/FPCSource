@@ -32,12 +32,12 @@ uses
 
 type
    timported_item = class(TLinkedListItem)
-      ordnr  : word;
+      ordnr  : longint;
       name,
       func   : pstring;
       lab    : tasmlabel;
       is_var : boolean;
-      constructor Create(const n,s : string;o : word);
+      constructor Create(const n,s : string;o : longint);
       constructor Create_var(const n,s : string);
       destructor Destroy;override;
    end;
@@ -98,7 +98,7 @@ uses
                            Timported_item
 ****************************************************************************}
 
-constructor timported_item.Create(const n,s : string;o : word);
+constructor timported_item.Create(const n,s : string;o : longint);
 begin
   inherited Create;
   func:=stringdup(n);
