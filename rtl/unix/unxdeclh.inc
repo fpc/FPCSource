@@ -15,8 +15,15 @@
 
 type filedesarray=array[0..1] of cint;
 
-Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
+{$ifdef solaris}
+{ libucb needs libelf }
+{$linklib elf}
+Function fpFlock (fd,mode : longint) : cint; cdecl; external 'ucb' name 'flock';
+{$else solaris}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
+{$endif solaris}
+
+Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
 Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';

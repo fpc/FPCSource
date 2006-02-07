@@ -79,7 +79,13 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
+{$ifdef solaris}   
+{$linklib md5} 
+{$linklib aio}
+    Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external 'rt' name 'nanosleep';
+{$else solaris}
     Function  FPnanosleep  (const rqtp: ptimespec; rmtp: ptimespec): cint; cdecl; external clib name 'nanosleep';
+{$endif solaris}    
     function  fpNice       (N:cint):cint; cdecl; external clib name 'nice';
     Function  fpGetPriority (Which,Who:cint):cint;      cdecl; external clib name 'getpriority';
     Function  fpSetPriority (Which,Who,What:cint):cint; cdecl; external clib name 'setpriority';
