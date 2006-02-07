@@ -744,17 +744,19 @@ implementation
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
           { vs_none -> ... }
-          (vs_none,vs_declared,vs_initialised,vs_read,vs_written,vs_readwritten),
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten),
           { vs_declared -> ... }
-          (vs_none,vs_declared,vs_initialised,vs_read,vs_written,vs_readwritten),
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten),
           { vs_initialised -> ... }
-          (vs_none,vs_initialised,vs_initialised,vs_read,vs_written,vs_readwritten),
+          (vs_none,vs_initialised,vs_initialised,vs_read,vs_read,vs_written,vs_readwritten),
           { vs_read -> ... }
-          (vs_none,vs_read,vs_read,vs_read,vs_readwritten,vs_readwritten),
+          (vs_none,vs_read,vs_read,vs_read,vs_read_not_warned,vs_readwritten,vs_readwritten),
+          { vs_read_not_warned -> ... }
+          (vs_none,vs_read_not_warned,vs_read,vs_read,vs_read_not_warned,vs_readwritten,vs_readwritten),
           { vs_written -> ... }
-          (vs_none,vs_written,vs_written,vs_readwritten,vs_written,vs_readwritten),
+          (vs_none,vs_written,vs_written,vs_readwritten,vs_readwritten,vs_written,vs_readwritten),
           { vs_readwritten -> ... }
-          (vs_none,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten));
+          (vs_none,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten));
       var
         hsym : tabstractvarsym;
       begin
@@ -794,7 +796,8 @@ implementation
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
                   begin
                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
-                    if (vsf_must_be_valid in varstateflags) and (hsym.varstate=vs_declared) then
+                    if (vsf_must_be_valid in varstateflags) and
+                       (hsym.varstate in [vs_declared,vs_read_not_warned]) then
                       begin
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and
@@ -828,9 +831,10 @@ implementation
                                       CGMessage1(sym_w_uninitialized_variable,hsym.realname);
                                   end;
                               end;
-                          end;
+                          end
+                        else if (newstate = vs_read) then
+                          newstate := vs_read_not_warned;
                       end;
-                    { don't override vs_readwritten with vs_initialised }
                     hsym.varstate := vstrans[hsym.varstate,newstate];
                   end;
                  break;

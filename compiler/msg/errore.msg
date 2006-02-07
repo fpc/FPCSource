@@ -1415,6 +1415,9 @@ sym_h_function_result_uninitialized=05060_H_Function result variable does not se
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
+sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
+% You have read the value of a variable, but nowhere assigned a value to
+% it.
 
 % \end{description}
 #

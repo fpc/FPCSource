@@ -664,7 +664,10 @@ implementation
                 else if not(vo_is_exported in tabstractvarsym(p).varoptions) and
                         not(vo_is_funcret in tabstractvarsym(p).varoptions) then
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
-             end;
+             end
+           else if (tabstractvarsym(p).varstate = vs_read_not_warned) and
+                   not(vo_is_exported in tabstractvarsym(p).varoptions) then
+             MessagePos1(tsym(p).fileinfo,sym_w_identifier_only_read,tsym(p).realname)
          end
       else if ((tsym(p).owner.symtabletype in
               [objectsymtable,parasymtable,localsymtable,staticsymtable])) then
