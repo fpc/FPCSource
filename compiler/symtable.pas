@@ -666,7 +666,7 @@ implementation
                   MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
              end
            else if (tabstractvarsym(p).varstate = vs_read_not_warned) and
-                   not(vo_is_exported in tabstractvarsym(p).varoptions) then
+                   ([vo_is_exported,vo_is_external] * tabstractvarsym(p).varoptions = []) then
              MessagePos1(tsym(p).fileinfo,sym_w_identifier_only_read,tsym(p).realname)
          end
       else if ((tsym(p).owner.symtabletype in
