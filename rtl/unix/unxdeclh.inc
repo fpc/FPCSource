@@ -16,9 +16,7 @@
 type filedesarray=array[0..1] of cint;
 
 {$ifdef solaris}
-{ libucb needs libelf }
-{$linklib elf}
-Function fpFlock (fd,mode : longint) : cint; cdecl; external 'ucb' name 'flock';
+Function fpFlock (fd,mode : longint) : cint;{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$else solaris}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif solaris}
