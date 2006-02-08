@@ -861,6 +861,7 @@ var
    mh:MachoHeader;
    i: longint;
 begin
+  processaddress := 0;
   StabsFunctionRelative:=false;
   LoadMachO32PPC := false;
   blockread (f, mh, sizeof(mh));
