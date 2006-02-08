@@ -1,5 +1,5 @@
 { %fail }
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw}
 program tw4781b;
 var U : integer;
 
