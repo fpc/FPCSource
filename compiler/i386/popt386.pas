@@ -1986,11 +1986,20 @@ See test/tgadint64 in the test suite.
                  begin
                    if OpsEqual(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
                     if GetLastInstruction(p, hp1) and
-                      (tai(hp1).typ = ait_instruction) then
+                      (tai(hp1).typ = ait_instruction) and
+                      GetNextInstruction(hp1,hp2) and
+                      (hp2.typ = ait_instruction) and
+                      ((taicpu(hp2).opcode = A_SETcc) or
+                       (taicpu(hp2).opcode = A_Jcc)) then
                      case taicpu(hp1).opcode Of
                        A_ADD, A_SUB, A_OR, A_XOR, A_AND{, A_SHL, A_SHR}:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) then
+                           if OpsEqual(taicpu(hp1).oper[1]^,taicpu(p).oper[0]^) and
+                             { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
+                             { and in case of carry for A(E)/B(E)/C/NC                  }
+                              ((taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) or
+                               ((taicpu(hp1).opcode <> A_ADD) and
+                                (taicpu(hp1).opcode <> A_SUB))) then
                              begin
                                hp1 := tai(p.next);
                                asml.remove(p);
@@ -2001,7 +2010,10 @@ See test/tgadint64 in the test suite.
                          end;
                        A_DEC, A_INC, A_NEG:
                          begin
-                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) then
+                           if OpsEqual(taicpu(hp1).oper[0]^,taicpu(p).oper[0]^) and
+                             { does not work in case of overflow for G(E)/L(E)/C_O/C_NO }
+                             { and in case of carry for A(E)/B(E)/C/NC                  }
+                             (taicpu(hp2).condition in [C_Z,C_NZ,C_E,C_NE]) then
                              begin
                                case taicpu(hp1).opcode Of
                                  A_DEC, A_INC:
