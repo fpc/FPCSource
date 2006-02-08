@@ -72,12 +72,16 @@ const
 {$ifdef darwin}
   CODESET = 0;
 {$else darwin}
+{$ifdef solaris}
+  CODESET = 0;
+{$else solaris}
 {$ifdef FreeBSD} // actually FreeBSD5. internationalisation is afaik not default on 4.
   CODESET = 0;
 {$else freebsd}
 {$error lookup the value of CODESET in /usr/include/langinfo.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
 {$endif FreeBSD}
+{$endif solaris}
 {$endif darwin}
 {$endif linux}
 

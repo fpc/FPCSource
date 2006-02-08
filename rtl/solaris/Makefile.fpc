@@ -21,12 +21,12 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       video \
       # mouse
       keyboard variants types dateutils sysconst \
-      # cthreads classes strutils rtlconsts
-      dos objects
-      # cwstring fpcylix fpmkunit
+      cthreads classes strutils rtlconsts \
+      dos objects \
+      cwstring fpmkunit
 
 
-rsts=math varutils typinfo classes variants dateutils systhrds sysconst rtlconst fpmkunit
+rsts=math varutils typinfo classes variants dateutils  sysconst rtlconst fpmkunit
 
 [require]
 nortl=y
@@ -115,8 +115,6 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
-systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
-
 objpas$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
@@ -168,26 +166,29 @@ printer$(PPUEXT) : unix$(PPUEXT) strings$(PPUEXT) baseunix$(PPUEXT) $(UNIXINC)/p
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
-classes$(PPUEXT) : sysutils$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT) typinfo$(PPUEXT) unix$(PPUEXT) systhrds$(PPUEXT) classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT) types$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
-typinfo$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
 
-math$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
-gettext$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/gettext.pp
 
-varutils$(PPUEXT) : sysutils$(PPUEXT) $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
+
+variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
@@ -195,15 +196,12 @@ types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/rtlconst.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
-
-variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
-        $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
 #
 # Mac Pascal Model
@@ -243,20 +241,30 @@ fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 # Other system-dependent RTL Units
 #
 
-dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+                   unixsock.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) baseunix$(PPUEXT) initc$(PPUEXT)
+errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
+ipc$(PPUEXT) : ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
+terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
-terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)
+callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT) unix$(PPUEXT) sysutils$(PPUEXT)
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
+
+cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+
+gpm$(PPUEXT): gpm.pp unix$(PPUEXT) baseunix$(PPUEXT) sockets$(PPUEXT)
+
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+fpcylix$(PPUEXT) :  fpcylix.pp $(SYSTEMUNIT)$(PPUEXT) dynlibs$(PPUEXT) objpas$(PPUEXT)
+
+dl$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
