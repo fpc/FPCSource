@@ -1770,7 +1770,7 @@ implementation
                            if is_open_array(left.resulttype.def) or
                               is_array_of_const(left.resulttype.def) then
                             begin
-                              set_varstate(left,vs_read,[vsf_must_be_valid]);
+                              set_varstate(left,vs_read,[]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
@@ -1802,7 +1802,7 @@ implementation
                          begin
                            if is_open_string(left.resulttype.def) then
 			     begin
-                               set_varstate(left,vs_read,[vsf_must_be_valid]);
+                               set_varstate(left,vs_read,[]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
 			     end
                            else
