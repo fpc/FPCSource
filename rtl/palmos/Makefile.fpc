@@ -1,0 +1,162 @@
+#
+#   Makefile.fpc for Free Pascal WinCE RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders= prt0
+units=$(SYSTEMUNIT) ctypes objpas macpas strings \
+      lineinfo heaptrc \
+      windows messages dynlibs \
+      dos objects \
+      rtlconsts sysconst sysutils \
+      typinfo types classes \
+      strutils convutils math dateutils \
+      varutils variants \
+      matrix ucomplex \
+      charset getopts winsock sockets
+# initc cmem signals \
+#    crt graph \
+#    wincrt winmouse winevent  printer \
+#    video mouse keyboard \
+#    winsysut fpmkunit
+
+# rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=palmos
+
+[compiler]
+includedir=$(INC) $(PROCINC) $(RTL)/palmos
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+
+
+[prerules]
+# Where are the include files
+RTL=..
+INC=$(RTL)/inc
+COMMON=$(RTL)/common
+PROCINC=$(RTL)/$(CPU_TARGET)
+
+UNITPREFIX=rtl
+
+SYSTEMUNIT=system
+PRT0=prt0
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+override FPCOPT+=-Ur
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
+
+
+
+[rules]
+SYSTEMPPU=syspalm.ppu
+
+# Get the system independent include file names.
+# This will set the following variables : 
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables : 
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+$(PRT0)$(OEXT) : $(CPU_TARGET)/$(PRT0).as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)$(PRT0)$(OEXT) $(CPU_TARGET)/$(PRT0).as
+
+
+#
+# System Units (System, Objpas, Strings)
+#
+
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   $(SYSTEMUNIT)$(PPUEXT)
+
+#
+# System Dependent Units
+#
+
+#
+# TP7 Compatible RTL Units
+#
+
+#dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
+#	$(PP) $(OPT) dos $(REDIR)
+
+#crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc $(SYSTEMPPU)
+#	$(PP) $(OPT) crt $(REDIR)
+
+#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+#	$(COPY) $(INC)/objects.pp .
+#	$(PP) $(OPT) objects $(REDIR)
+#	$(DEL) objects.pp
+
+#
+# Other system-independent RTL Units
+#
+
+#####################################################################
+# Libs
+#####################################################################
+
+staticlib:
+	make clean
+	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
+
+sharedlib:
+	make clean
+	make all
+	$(PPUMOVE) -o fpc $(SHAREDLIBFILES)
+
+staticlibinstall: staticlib
+	$(MKDIR) $(STATIC_LIBINSTALLDIR)
+	$(MKDIR) $(STATIC_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
+
+sharedlibinstall: sharedlib
+	$(MKDIR) $(SHARED_LIBINSTALLDIR)
+	$(MKDIR) $(SHARED_UNITINSTALLDIR)
+	$(INSTALLEXE) libfpc$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(SHARED_UNITINSTALLDIR)
+	ldconfig
+
+libinstall: staticlibinstall sharedlibinstall
+
+libsclean : clean
+	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
+

@@ -4093,6 +4093,7 @@ rtl/os2/viocalls.imp -text
 rtl/os2/viocalls.pas svneol=native#text/plain
 rtl/os2/winsock.pas svneol=native#text/plain
 rtl/palmos/Makefile svneol=native#text/plain
+rtl/palmos/Makefile.fpc svneol=native#text/plain
 rtl/palmos/api/common.inc svneol=native#text/plain
 rtl/palmos/api/common.pp svneol=native#text/plain
 rtl/palmos/api/font.imn -text
