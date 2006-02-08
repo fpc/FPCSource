@@ -68,3 +68,7 @@ begin
  AssignPipe:=ret;
 end;
 
+
+Function fpFlock (fd,mode : longint) : cint;
+  begin
+  end;

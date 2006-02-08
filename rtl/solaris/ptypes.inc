@@ -33,11 +33,7 @@ introduction)
 
 Type
 
-{$ifndef VER_1_0}               // maybe wrong (kernel vs libc)
-    dev_t    = cuint64;         { used for device numbers      }
-{$else}
-    dev_t    = int64;
-{$endif}
+    dev_t    = cuint;          { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
