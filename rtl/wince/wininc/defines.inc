@@ -44,8 +44,8 @@
 
   Changes :
 
-  08/15/2005 update for wince4.2 port,ORO06
-  12/27/2005 update
+  08/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
+  02-09-2006 : updated
 }
 
 
@@ -248,11 +248,20 @@
      HCBT_SETFOCUS = 9;
      HCBT_SYSCOMMAND = 8;
   { ChangeDisplaySettings  }
-     DM_BITSPERPEL = $40000;
-     DM_PELSWIDTH = $80000;
-     DM_PELSHEIGHT = $100000;
-     DM_DISPLAYFLAGS = $200000;
-     DM_DISPLAYFREQUENCY = $400000;
+     DM_BITSPERPEL              = $40000;
+     DM_PELSWIDTH               = $80000;
+     DM_PELSHEIGHT              = $100000;
+     DM_DISPLAYFLAGS            = $200000;
+     DM_DISPLAYFREQUENCY        = $400000;
+     DM_DISPLAYORIENTATION      = $00800000;
+     DM_DISPLAYQUERYORIENTATION = $01000000;
+  { rotation angle for screen rotation }
+     DMDO_0       = 0;
+     DMDO_90      = 1;
+     DMDO_180     = 2;
+     DMDO_270     = 4;
+     DMDO_DEFAULT = DMDO_0;
+
      CDS_UPDATEREGISTRY = 1;
      CDS_TEST = 2;
      CDS_FULLSCREEN = 4;
@@ -2179,6 +2188,8 @@ Const
      IME_REGWORD_STYLE_USER_FIRST = $80000000;
      IME_REGWORD_STYLE_USER_LAST = -(1);
   { InitCommonControlEx }  //+commctrl
+     I_IMAGENONE             = -2; // Desktop listview uses this same value for I_IMAGENONE when (_WIN32_IE >= 0x0501)
+
      ICC_LISTVIEW_CLASSES  = $00000001; // listview, header
      ICC_TREEVIEW_CLASSES  = $00000002; // treeview, tooltips
      ICC_BAR_CLASSES       = $00000004; // toolbar, statusbar, trackbar, tooltips
@@ -3393,8 +3404,10 @@ Const
      DM_ICMINTENT = $1000000;
      DM_MEDIATYPE = $2000000;
      DM_DITHERTYPE = $4000000;
+   { orientation selections }
      DMORIENT_LANDSCAPE = 2;
      DMORIENT_PORTRAIT = 1;
+   { paper selections }
      DMPAPER_LETTER = 1;
      DMPAPER_LEGAL = 5;
      DMPAPER_A4 = 9;
@@ -3436,10 +3449,12 @@ Const
      DMPAPER_FANFOLD_US = 39;
      DMPAPER_FANFOLD_STD_GERMAN = 40;
      DMPAPER_FANFOLD_LGL_GERMAN = 41;
+  { print qualities }
      DMRES_HIGH = -(4);
      DMRES_MEDIUM = -(3);
      DMRES_LOW = -(2);
      DMRES_DRAFT = -(1);
+  { color enable/disable for color printers }
      DMCOLOR_COLOR = 2;
      DMCOLOR_MONOCHROME = 1;
      DMDUP_SIMPLEX = 1;
@@ -3782,6 +3797,12 @@ Const
      TBSTYLE_CHECKGROUP = 6;
      TBSTYLE_GROUP = 4;
      TBSTYLE_SEP = 1;
+     TBSTYLE_DROPDOWN        = $0008;
+     TBSTYLE_AUTOSIZE        = $0010; // automatically calculate the cx of the button
+     TBSTYLE_FLAT            = $0800;
+     TBSTYLE_LIST            = $1000;
+     TBSTYLE_CUSTOMERASE     = $2000;
+     TBSTYLE_TRANSPARENT     = $8000;
   { Toolbar states  }
      TBSTATE_CHECKED = 1;
      TBSTATE_ENABLED = 4;
@@ -3789,6 +3810,8 @@ Const
      TBSTATE_INDETERMINATE = 16;
      TBSTATE_PRESSED = 2;
      TBSTATE_WRAP = 32;
+     TBSTATE_ELLIPSES        = $40;
+     TBSTATE_HIGHLIGHTED     = $80;
   { Tooltip styles  }
      TTS_ALWAYSTIP = 1;
      TTS_NOPREFIX = 2;
@@ -3877,6 +3900,17 @@ Const
      LVS_SORTASCENDING = 16;
      LVS_SORTDESCENDING = 32;
      LVS_TYPESTYLEMASK = 64512;
+     //extended styles
+     LVS_EX_GRIDLINES        = $00000001;
+     LVS_EX_SUBITEMIMAGES    = $00000002;
+     LVS_EX_CHECKBOXES       = $00000004;
+     LVS_EX_TRACKSELECT      = $00000008;
+     LVS_EX_HEADERDRAGDROP   = $00000010;
+     LVS_EX_FULLROWSELECT    = $00000020; // applies to report mode only
+     LVS_EX_ONECLICKACTIVATE = $00000040;
+     LVS_EX_NOHSCROLL        = $10000000;
+     LVS_EX_GRADIENT         = $20000000; // draw a background gradient
+
      LVSIL_NORMAL = 0;
      LVSIL_SMALL = 1;
      LVSIL_STATE = 2;

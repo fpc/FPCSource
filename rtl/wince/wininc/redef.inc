@@ -15,14 +15,14 @@
 
   Changes :
 
-  22/15/2005 update for wince4.2 port, orinaudo@gmail.com
+  22/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
+  02-09-2006 : updated
 
 }
 
 {$ifdef read_interface}
 
 //begin common win32 & wince
-
 
 type
   PIID = PGUID;

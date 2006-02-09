@@ -4595,6 +4595,7 @@ rtl/wince/windows.pp -text
 rtl/wince/wininc/aygshell.inc -text
 rtl/wince/wininc/base.inc -text
 rtl/wince/wininc/commctrl.inc -text
+rtl/wince/wininc/coredll.inc svneol=native#text/plain
 rtl/wince/wininc/defines.inc -text
 rtl/wince/wininc/errors.inc -text
 rtl/wince/wininc/func.inc -text

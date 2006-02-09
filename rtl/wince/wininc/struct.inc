@@ -4605,9 +4605,15 @@
           mask : UINT;
           fmt : longint;
           cx : longint;
+{$IFDEF UNICODE}
+          pszText : LPWSTR;
+{$ELSE UNICODE}
           pszText : LPTSTR;
+{$ENDIF UNICODE}
           cchTextMax : longint;
           iSubItem : longint;
+          iImage : Longint;    //#if (_WIN32_IE >= 0x0300)
+          iOrder : longint;    //#if (_WIN32_IE >= 0x0300)
        end;
      _LV_COLUMN = LV_COLUMN;
      TLVCOLUMN = LV_COLUMN;
@@ -4619,10 +4625,15 @@
           iSubItem : longint;
           state : UINT;
           stateMask : UINT;
+{$IFDEF UNICODE}
+          pszText : LPWSTR;
+{$ELSE UNICODE}
           pszText : LPTSTR;
+{$ENDIF UNICODE}
           cchTextMax : longint;
           iImage : longint;
           lParam : LPARAM;
+          iIndent: Longint;    //#if (_WIN32_IE >= 0x0300)
        end;
      _LV_ITEM = LV_ITEM;
      TLVITEM = LV_ITEM;

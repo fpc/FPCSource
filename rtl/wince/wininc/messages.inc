@@ -45,7 +45,8 @@
 
   Changes :
 
-  08/15/2005 update for wince4.2 port,ORO06
+  08-15-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
+  02-09-2006 : updated
 }
 
 {$ifdef read_interface}
@@ -464,42 +465,55 @@
      LVM_SETTEXTCOLOR = 4132;
      LVM_SORTITEMS = 4144;
      LVM_UPDATE = 4138;
-  { List view control notifications  }
-     LVN_BEGINDRAG = -(109);
-     LVN_BEGINRDRAG = -(111);
-     LVN_COLUMNCLICK = -(108);
-     LVN_DELETEALLITEMS = -(104);
-     LVN_DELETEITEM = -(103);
-     LVN_BEGINLABELEDITW = -(175);
-     LVN_ENDLABELEDITW = -(176);
-     LVN_GETDISPINFOW = -(177);
-     LVN_SETDISPINFOW = -(178);
-     LVN_BEGINLABELEDITA = -(105);
-     LVN_ENDLABELEDITA = -(106);
-     LVN_GETDISPINFOA = -(150);
-     LVN_SETDISPINFOA = -(151);
-{$ifdef UNICODE}
+     LVM_GETSUBITEMRECT      = 4152;   //LVM_FIRST + 56
+     LVM_SUBITEMHITTEST      = 4153;   //LVM_FIRST + 57
+     LVM_SETCOLUMNORDERARRAY = 4154;   //LVM_FIRST + 58
+     LVM_GETCOLUMNORDERARRAY = 4155;   //LVM_FIRST + 59
+     LVM_APPROXIMATEVIEWRECT = 4160;   //LVM_FIRST + 64
+     LVM_GETSELECTIONMARK    = 4162;   //LVM_FIRST + 66
+     LVM_SETSELECTIONMARK    = 4163;   //LVM_FIRST + 67
 
-  const
+  { List view control notifications  }
+     LVN_ITEMCHANGING     = -(100);
+     LVN_ITEMCHANGED      = -(101);
+     LVN_INSERTITEM       = -(102);
+     LVN_DELETEITEM       = -(103);
+     LVN_DELETEALLITEMS   = -(104);
+     LVN_BEGINLABELEDITA  = -(105);
+     LVN_ENDLABELEDITA    = -(106);
+     LVN_COLUMNCLICK      = -(108);
+     LVN_BEGINDRAG        = -(109);
+     LVN_BEGINRDRAG       = -(111);
+     LVN_ODCACHEHINT      = -(113); //#if (_WIN32_IE >= 0x0300)
+     LVN_ITEMACTIVATE     = -(114);
+     LVN_ODSTATECHANGED   = -(115);
+     LVN_GETDISPINFOA     = -(150);
+     LVN_SETDISPINFOA     = -(151);
+     LVN_ODFINDITEMA      = -(152); //#if (_WIN32_IE >= 0x0300)
+     LVN_KEYDOWN          = -(155);
+     LVN_MARQUEEBEGIN     = -(156); //#if (_WIN32_IE >= 0x0300)
+     LVN_BEGINLABELEDITW  = -(175);
+     LVN_ENDLABELEDITW    = -(176);
+     LVN_GETDISPINFOW     = -(177);
+     LVN_SETDISPINFOW     = -(178);
+     LVN_ODFINDITEMW      = -(179); //#if (_WIN32_IE >= 0x0300)
+
+{$ifdef UNICODE}
      LVN_BEGINLABELEDIT = LVN_BEGINLABELEDITW;
      LVN_ENDLABELEDIT = LVN_ENDLABELEDITW;
      LVN_GETDISPINFO = LVN_GETDISPINFOW;
      LVN_SETDISPINFO = LVN_SETDISPINFOW;
+     LVN_ODFINDITEM  = LVN_ODFINDITEMW;
 {$else}
-
-  const
      LVN_BEGINLABELEDIT = LVN_BEGINLABELEDITA;
      LVN_ENDLABELEDIT = LVN_ENDLABELEDITA;
      LVN_GETDISPINFO = LVN_GETDISPINFOA;
      LVN_SETDISPINFO = LVN_SETDISPINFOA;
+     LVN_ODFINDITEM  = LVN_ODFINDITEMA;
 {$endif}
+
   { UNICODE  }
 
-  const
-     LVN_INSERTITEM = -(102);
-     LVN_ITEMCHANGED = -(101);
-     LVN_ITEMCHANGING = -(100);
-     LVN_KEYDOWN = -(155);
   { Control notification  }
      NM_CLICK = -(2);
      NM_DBLCLK = -(3);

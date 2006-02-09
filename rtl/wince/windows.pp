@@ -15,8 +15,8 @@
 
   Changes :
 
-  08-15-2005 : ORO06
-    update for wince4.2 port
+  08-15-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
+  02-09-2006 : updated
 }
 
 unit windows;
@@ -36,35 +36,20 @@ interface
 {$undef read_implementation}
 
 
-{$ifdef UNDER_CE}
 {$define UNICODE}  //ce is unicode only
-{$calling cedcl}
-{$endif UNDER_CE}
-
+{$calling cdecl}   //convention is cdecl except for x86 emulator stdcall
+                   //change nothing on arm
 {$i base.inc}
 {$i errors.inc}
 {$i defines.inc}
 {$i struct.inc}
 {$i messages.inc}
-
-{$ifndef UNDER_CE}
-{$i ascfun.inc}
-{$i unifun.inc}
-{$endif UNDER_CE}
-
-{$ifdef UNICODE}
 {$i unidef.inc}
-{$else not UNICODE}
-{$i ascdef.inc}
-{$endif UNICODE}
-
 {$i func.inc}
-{$i redef.inc}
-
-{$ifdef UNDER_CE}
+{$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
-{$endif UNDER_CE}
+{$i redef.inc}
 
 {$undef read_interface}
 
@@ -77,25 +62,12 @@ implementation
 {$i defines.inc}
 {$i struct.inc}
 {$i messages.inc}
-
-{$ifndef UNDER_CE}
-{$i ascfun.inc}
-{$i unifun.inc}
-{$endif UNDER_CE}
-
-{$ifdef UNICODE}
 {$i unidef.inc}
-{$else not UNICODE}
-{$i ascdef.inc}
-{$endif UNICODE}
-
 {$i func.inc}
-{$i redef.inc}
-
-{$ifdef UNDER_CE}
+{$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
-{$endif UNDER_CE}
+{$i redef.inc}
 
 {$undef read_implementation}
 
