@@ -632,20 +632,7 @@ type
                        end
                       else
                        begin
-                         { for ordinals, floats and enums, verify if we might cause
-                           some range-check errors. }
-                         if (parasym.vartype.def.deftype in [enumdef,orddef,floatdef]) and
-                            (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-                            (left.nodetype in [vecn,loadn,calln]) then
-                           begin
-                              if (left.resulttype.def.size>parasym.vartype.def.size) then
-                                begin
-                                  if (cs_check_range in aktlocalswitches) then
-                                     Message(type_w_smaller_possible_range_check)
-                                  else
-                                     Message(type_h_smaller_possible_range_check);
-                                end;
-                           end;
+                         check_ranges(left.fileinfo,left,parasym.vartype.def);
                          inserttypeconv(left,parasym.vartype);
                        end;
                       if codegenerror then

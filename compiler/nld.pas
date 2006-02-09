@@ -481,11 +481,9 @@ implementation
       var
         hp : tnode;
         useshelper : boolean;
-        original_size : longint;
       begin
         result:=nil;
         resulttype:=voidtype;
-        original_size := 0;
 
         { must be made unique }
         set_unique(left);
@@ -630,34 +628,10 @@ implementation
          end
         else
           begin
-           { get the size before the type conversion - check for all nodes }
-           if assigned(right.resulttype.def) and
-              (right.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-              (right.nodetype in [loadn,vecn,calln]) then
-             original_size := right.resulttype.def.size;
+           { check if the assignment may cause a range check error }
+           check_ranges(fileinfo,right,left.resulttype.def);
            inserttypeconv(right,left.resulttype);
           end;
-
-        { check if the assignment may cause a range check error }
-        { if its not explicit, and only if the values are       }
-        { ordinals, enumdef and floatdef                        }
-        if (right.nodetype = typeconvn) and
-           not (nf_explicit in ttypeconvnode(right).flags) then
-         begin
-            if assigned(left.resulttype.def) and
-              (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-              not is_boolean(left.resulttype.def) then
-              begin
-                if (original_size <> 0) and
-                   (left.resulttype.def.size < original_size) then
-                  begin
-                    if (cs_check_range in aktlocalswitches) then
-                      Message(type_w_smaller_possible_range_check)
-                    else
-                      Message(type_h_smaller_possible_range_check);
-                  end;
-              end;
-         end;
 
         { call helpers for interface }
         if is_interfacecom(left.resulttype.def) then
