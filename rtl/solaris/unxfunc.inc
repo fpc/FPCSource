@@ -70,5 +70,44 @@ end;
 
 
 Function fpFlock (fd,mode : longint) : cint;
+{
+  var
+    fl : flock;
+    cmd : cint;
+}
   begin
+{
+	  { initialize the flock struct to set lock on entire file }
+    fillchar(fl,sizeof(fl),0);
+
+		{ In non-blocking lock, use F_SETLK for cmd, F_SETLKW otherwise }
+		if (operation and LOCK_NB)<>0 then
+		  begin
+			  cmd:=F_SETLK;
+			  { turn off this bit }
+			  operation:=operation and not(LOCK_NB);	
+			end
+		else
+			cmd:=F_SETLKW;
+	
+		case operation of
+		  LOCK_UN:
+			  fl.l_type:=fl.l_type or F_UNLCK;
+  		LOCK_SH:
+			  fl.l_type:=fl.l_type or F_RDLCK;
+		  LOCK_EX:
+			  fl.l_type:=fl.l_type or F_WRLCK;
+		  else
+		    begin
+			    errno:=EINVAL;
+			    result:=-1
+			    exit;
+			  end;
+		end;
+	
+		result:=fpFcntl(fd,cmd,@fl);
+	
+		if (result=-1) and (errno=EACCES)
+			errno:=EWOULDBLOCK;
+}
   end;
