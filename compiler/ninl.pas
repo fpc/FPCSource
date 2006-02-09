@@ -1666,17 +1666,23 @@ implementation
                           { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
-                             set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                             inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
-                             if assigned(tcallparanode(tcallparanode(left).right).right) then
-                               CGMessage(parser_e_illegal_expression);
+                             if is_integer(tcallparanode(left).right.resulttype.def) then
+                               begin
+                                 set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                                 inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
+                                 if assigned(tcallparanode(tcallparanode(left).right).right) then
+                                   { should be handled in the parser (JM) }
+                                   internalerror(2006020901);
+                               end
+                             else
+                               CGMessagePos(tcallparanode(left).right.fileinfo,type_e_ordinal_expr_expected);
                            end;
                         end
                        else
-                        CGMessage(type_e_ordinal_expr_expected);
+                        CGMessagePos(left.fileinfo,type_e_ordinal_expr_expected);
                     end
                   else
-                    CGMessage(type_e_mismatch);
+                    CGMessagePos(fileinfo,type_e_mismatch);
                 end;
 
               in_read_x,
