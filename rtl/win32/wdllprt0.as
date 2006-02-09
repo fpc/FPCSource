@@ -20,6 +20,7 @@ _WinMainCRTStartup:
      movl     %edi,U_SYSTEM_DLLREASON
      movl     16(%ebp),%edi
      movl     %edi,U_SYSTEM_DLLPARAM
+     movl     %esp,__stkptr
      call     _FPC_DLL_Entry
      popl     %edi
      popl     %esi
@@ -31,13 +32,13 @@ _WinMainCRTStartup:
 asm_exit:
     pushl  %eax
 	call   exitprocess
-	
+
 .text
 .globl	exitprocess
 exitprocess:
 	jmp	*.L10
 	.balign 4,144
-	
+
 .text
 	.balign 4,144
 
@@ -54,7 +55,7 @@ exitprocess:
 
 .section .idata$5
 .L8:
-	
+
 
 .section .idata$5
 .L10:
@@ -71,14 +72,5 @@ exitprocess:
 .L6:
 	.ascii	"kernel32.dll\000"
 
-
-//
-
-// Revision 1.4  2002/12/04 21:36:44  carl
-//   * libraries would no longer compile because of my profiling fix
-//
-// Revision 1.3  2002/07/28 20:43:51  florian
-//   * several fixes for linux/powerpc
-//   * several fixes to MT
-//
-//
+.bss
+    .comm   __stkptr,4
