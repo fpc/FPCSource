@@ -65,6 +65,10 @@ else
   echo Found libgcc.a in $GCCDIR
   GCCDIR=-Fl$GCCDIR
 fi
+
+# set right path to FPC with $fpcversion
+FPCPATH=`dirname "$1"`/\$fpcversion
+
 # Write the file
 echo Writing sample configuration file to $thefile
 cat <<EOFCFG > $thefile
@@ -195,16 +199,16 @@ cat <<EOFCFG > $thefile
 
 # path to the messagefile, not necessary anymore but can be used to override
 # the default language
-#-Fr$1/msg/errore.msg
-#-Fr$1/msg/errorn.msg
+#-Fr$FPCPATH/msg/errore.msg
+#-Fr$FPCPATH/msg/errorn.msg
 
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
 
 # searchpath for units and other system dependent things
--Fu$1/units/\$fpctarget
--Fu$1/units/\$fpctarget/*
--Fu$1/units/\$fpctarget/rtl
+-Fu$FPCPATH/units/\$fpctarget
+-Fu$FPCPATH/units/\$fpctarget/*
+-Fu$FPCPATH/units/\$fpctarget/rtl
 #-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcl/units/$fpctarget;~/fpc/rtl/units/$fpctarget
 
 # searchpath for libraries
