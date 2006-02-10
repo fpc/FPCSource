@@ -478,9 +478,12 @@ implementation
                case def_from.deftype of
                  orddef :
                    begin { ordinal to real }
-                     if is_integer(def_from) or
-                        (is_currency(def_from) and
-                         (s64currencytype.def.deftype = floatdef)) then
+                     { only for implicit and internal typecasts in tp/delphi }
+                     if (([cdo_explicit,cdo_internal] * cdoptions <> [cdo_explicit]) or
+                         ([m_tp7,m_delphi] * aktmodeswitches = [])) and
+                        (is_integer(def_from) or
+                         (is_currency(def_from) and
+                          (s64currencytype.def.deftype = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
                          eq:=te_convert_l1;
