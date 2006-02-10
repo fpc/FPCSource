@@ -78,12 +78,18 @@ const
 
 type
   poschunk = ^toschunk;
+  { keep size of this record dividable by 16 }
   toschunk = record
     size,
     used,
     chunkindex : ptrint;
     next,
     prev  : poschunk;
+{$ifdef CPU64}
+    pad1 : array[0..0] of pointer;
+{$else CPU64}
+    pad1 : array[0..2] of pointer;
+{$endif CPU64}
   end;
 
   pmemchunk_fixed  = ^tmemchunk_fixed;
