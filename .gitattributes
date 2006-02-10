@@ -5401,6 +5401,8 @@ tests/test/cg/obj/darwin/powerpc/ctest.o -text
 tests/test/cg/obj/darwin/powerpc/tcext3.o -text
 tests/test/cg/obj/darwin/powerpc/tcext4.o -text
 tests/test/cg/obj/freebsd/i386/ctest.o -text
+tests/test/cg/obj/freebsd/i386/tcext3.o -text
+tests/test/cg/obj/freebsd/i386/tcext4.o -text
 tests/test/cg/obj/go32v2/i386/ctest.o -text
 tests/test/cg/obj/linux/arm/ctest.o -text
 tests/test/cg/obj/linux/i386/ctest.o -text
