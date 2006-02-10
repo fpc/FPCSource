@@ -1060,7 +1060,8 @@ implementation
         if assigned(orgcode) then
           addstatement(newstatement,cassignmentnode.create(
               orgcode,
-              ctemprefnode.create(tempcode)));
+              ctypeconvnode.create_internal(
+                ctemprefnode.create(tempcode),orgcode.resulttype)));
 
         { release the temp if we allocated one }
         if assigned(tempcode) then
