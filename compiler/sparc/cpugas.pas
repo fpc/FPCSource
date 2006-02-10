@@ -192,7 +192,7 @@ implementation
          (
            id     : as_gas;
            idtxt  : 'AS';
-           asmbin : 'as';
+           asmbin : 'gas';
            asmcmd : '-o $OBJ $ASM';
            supported_target : system_any;
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
