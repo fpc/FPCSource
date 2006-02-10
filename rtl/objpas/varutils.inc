@@ -363,6 +363,7 @@ Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArra
     Result^.DimCount:=Dim;
     Result^.Flags:=psaElementFlags[VarType];
     Result^.ElementSize:=psaElementSizes[VarType];
+    Result^.LockCount := 0;
     for i:=0 to Dim-1 do
       begin
         Result^.Bounds[i].LowBound:=Bounds[Dim-I-1].LowBound;
@@ -522,6 +523,7 @@ begin
         begin
         Flags:=psa^.Flags;
         ElementSize:=psa^.ElementSize;
+        LockCount := 0;
         DimCount:=psa^.DimCount;
         for i:=0 to DimCount-1 do
           begin
