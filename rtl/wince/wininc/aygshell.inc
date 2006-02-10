@@ -18,10 +18,9 @@
 
   Changes :
 
-  09-28-2005 : orinaudo@gmail.com
-   First release
-  01-26-2006 : orinaudo@gmail.com
-   updated
+  08-15-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
+  09-02-2006 : updated
+
 }
 
 {exported functions list = to do,
@@ -198,7 +197,6 @@
            138    SHMakeCall
            235    SHMakeValidFilename
             32    SHMessageBox
-           183    SHNavigateBack
             80    SHNewProfileObj
            155    SHNotificationAdd
            173    SHNotificationGetData
@@ -220,7 +218,6 @@
            175    SHPreProcessLogFont
            229    SHQueryMenuExtensions
            297    SHRCMLDialogProc
-            40    SHRecognizeGesture
            293    SHRectangle
           2022    SHRefreshStartMenu
            215    SHRegGetHLMDWValue
@@ -255,7 +252,6 @@
           1004    SHShowSoftKeys
             79    SHSignalDone
            314    SHSipMightBlockUI
-            21    SHSipPreference
            308    SHSkipDialogInitialFocus
            207    SHSoundManGetDisplayName
            205    SHSoundManGetDisplayNameList
@@ -314,8 +310,11 @@ const
   CEM_UPCASEALLWORDS     = (WM_USER + 1);
   CEM_ENABLEUPCASE       = (WM_USER + 2);
 
+  {Gesture notifications}
+  GN_CONTEXTMENU = 1000;
+
   IDC_COMMANDBANDS       = 100;
-  // Shell Menubar support
+  {Shell Menubar support}
   // These defines MUST be < 100.  This is so apps can use these defines
   // to get strings from the shell.
   IDS_SHNEW       =  1;
@@ -327,7 +326,7 @@ const
   IDS_SHFAVORITES =  7;
   IDS_SHOPEN      =  8;
 
-  // Shared New menu support
+  {Shared New menu support}
   IDM_SHAREDNEW        = 10;
   IDM_SHAREDNEWDEFAULT = 11;
 
@@ -338,7 +337,7 @@ const
   SHACTI_FSIPONDEACTIVATE = $0002;
   SHACTI_FSIPRESERVED     = $FFFF xor SHACTI_FSIPUP xor SHACTI_FSIPUP;
 
-  // Valid dwFlags
+  {Valid dwFlags}
   SHCMBF_EMPTYBAR      = $0001;
   SHCMBF_HIDDEN        = $0002; // create it hidden
   SHCMBF_HIDESIPBUTTON = $0004;
@@ -348,10 +347,12 @@ const
   SHCMBM_SETSUBMENU    = (WM_USER + 400); // wparam == id of button, lParam == hmenu, return is old hmenu
   SHCMBM_GETSUBMENU    = (WM_USER + 401); // lParam == ID
   SHCMBM_GETMENU       = (WM_USER + 402); // get the owning hmenu (as specified in the load resource)
+  SHCMBM_OVERRIDEKEY   = (WM_USER + 403);
+  SHCMBM_SETBKCOLOR    = (WM_USER + 406); // lParam == COLORREF
 
-  // Valid mask values
+  {Valid mask values}
   SHIDIM_FLAGS         = $0001;
-  // Valid flags
+  {Valid flags}
   SHIDIF_DONEBUTTON          = $0001;
   SHIDIF_SIZEDLG             = $0002;
   SHIDIF_SIZEDLGFULLSCREEN   = $0004;
@@ -360,7 +361,16 @@ const
   SHIDIF_EMPTYMENU           = $0020;
   SHIDIF_WANTSCROLLBAR       = $0040;
 
-  // Supported system parameters.
+  SHMBOF_NODEFAULT  = $00000001; // do not do default handling of this key
+  SHMBOF_NOTIFY     = $00000002; // send us the WM_* messages for this key
+
+  {Gesture flags}
+  SHRG_RETURNCMD      = $00000001;
+  SHRG_NOTIFYPARENT   = $00000002;
+  SHRG_LONGDELAY      = $00000008;
+  SHRG_NOANIMATION    = $00000010;
+
+  {Supported system parameters}
   SPI_SETSIPINFO         = 224;
   SPI_GETSIPINFO         = 225;
   SPI_SETCURRENTIM       = 226;
@@ -370,7 +380,7 @@ const
   SPI_RESERVED           = 229;
   SPI_SYNCSETTINGSCHANGE = 230;
 
-  //Pocket PC  special controls
+  {Pocket PC  special controls}
   WC_SIPPREF             = 'SIPPREF';
 
 //*****************************************************************************
@@ -378,6 +388,13 @@ const
 //*****************************************************************************
 
 type
+  //Struct sent through WM_NOTIFY when SHRG_NOTIFYPARENT is used
+  NMRGINFO = record
+    hdr : NMHDR;
+    ptAction : POINT;
+    dwItemSpec : DWORD;
+  end;
+  PNMRGINFO=^NMRGINFO;
 
   SHACTIVATEINFO = record
     cbSize : DWORD;
@@ -406,6 +423,17 @@ type
   end;
   PSHMENUBARINFO=^SHMENUBARINFO;
 
+  {SHRecognizeGesture}
+  SHRGI = record
+    cbSize     : DWORD;
+    hwndClient : HWND ;
+    ptDown     : POINT;
+    dwFlags    : DWORD;
+  end;
+  SHRGINFO=SHRGI;
+  PSHRGINFO=^SHRGI;
+
+  SIPSTATE= (SIP_UP= 0,SIP_DOWN,SIP_FORCEDOWN,SIP_UNCHANGED,SIP_INPUTDIALOG);
 
 //*****************************************************************************
 // functions
@@ -422,12 +450,15 @@ function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: 
 function SHInitDialog(pshidi: PSHINITDLGINFO): WINBOOL; external UserDLLAyg name 'SHInitDialog';
 function SHInitExtraControls: WINBOOL; external UserDLLAyg name 'SHInitExtraControls';
 function SHGetAppKeyAssoc( ptszApp: LPCTSTR ): Byte; external UserDLLAyg name 'SHGetAppKeyAssoc';
-{not exported on PocketPC 4.21 SE ? oro06 01-26-06
+{not exported on PocketPC 4.21 SE , may be smartphone only ? oro06 09-02-06
 function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg name 'SHLoadImageResource';
 function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg name 'SHLoadImageFile';
+procedure SHNavigateBack; external UserDLLAyg name 'SHNavigateBack';
 }
-function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
 function SHSetAppKeyWndAssoc( bVk: BYTE ; hwnd : HWND ): WINBOOL; external UserDLLAyg name 'SHSetAppKeyWndAssoc';
+function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
+function SHSipPreference(hwnd: HWND ; st : SIPSTATE ) : WINBOOL; external UserDLLAyg name 'SHSipPreference';
+function SHRecognizeGesture(var shrg : SHRGINFO): DWORD; external UserDLLAyg name 'SHRecognizeGesture';
 
 {$endif read_interface}
 

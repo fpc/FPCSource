@@ -59,7 +59,7 @@ var
 { WinCE Info }
   hprevinst,
   MainInstance,
-  DLLreason,DLLparam:longint;
+  DLLreason,DLLparam:DWord;
   Win32StackTop : Dword; // Used by heaptrc unit
 
 type
