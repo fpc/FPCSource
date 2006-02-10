@@ -900,6 +900,7 @@ implementation
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
         { GUID }
+        asmlist[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
         if curintf.objecttype in [odt_interfacecom] then
           begin
             { label for GUID }
@@ -1051,7 +1052,7 @@ implementation
                 { allocate a pointer in the object memory }
                 with tobjectsymtable(_class.symtable) do
                   begin
-                    datasize:=align(datasize,min(sizeof(aint),fieldalignment));
+                    datasize:=align(datasize,sizeof(aint));
                     _class.implementedinterfaces.setioffsets(i,datasize);
                     inc(datasize,sizeof(aint));
                   end;
