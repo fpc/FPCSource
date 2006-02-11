@@ -927,43 +927,46 @@ implementation
               { Insert typeconvs for array of const }
               if dovariant then
                begin
-                 case hp.left.resulttype.def.deftype of
-                   enumdef :
-                     hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
-                   arraydef :
-                     begin
-                       if is_chararray(hp.left.resulttype.def) then
-                         hp.left:=ctypeconvnode.create_internal(hp.left,charpointertype)
-                       else
-                         if is_widechararray(hp.left.resulttype.def) then
-                           hp.left:=ctypeconvnode.create_internal(hp.left,widecharpointertype)
-                       else
+                 if hp.left.nodetype=stringconstn then
+                   hp.left:=ctypeconvnode.create_internal(hp.left,cansistringtype)
+                 else
+                   case hp.left.resulttype.def.deftype of
+                     enumdef :
+                       hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
+                     arraydef :
+                       begin
+                         if is_chararray(hp.left.resulttype.def) then
+                           hp.left:=ctypeconvnode.create_internal(hp.left,charpointertype)
+                         else
+                           if is_widechararray(hp.left.resulttype.def) then
+                             hp.left:=ctypeconvnode.create_internal(hp.left,widecharpointertype)
+                         else
+                           CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
+                       end;
+                     orddef :
+                       begin
+                         if is_integer(hp.left.resulttype.def) and
+                            not(is_64bitint(hp.left.resulttype.def)) then
+                           hp.left:=ctypeconvnode.create(hp.left,s32inttype)
+                         else if is_void(hp.left.resulttype.def) then
+                           CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
+                       end;
+                     floatdef :
+                       if not(is_currency(hp.left.resulttype.def)) then
+                         hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
+                     procvardef :
+                       hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
+                     stringdef,
+                     variantdef,
+                     pointerdef,
+                     classrefdef:
+                       ;
+                     objectdef :
+                       if is_object(hp.left.resulttype.def) then
                          CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
-                     end;
-                   orddef :
-                     begin
-                       if is_integer(hp.left.resulttype.def) and
-                          not(is_64bitint(hp.left.resulttype.def)) then
-                         hp.left:=ctypeconvnode.create(hp.left,s32inttype)
-                       else if is_void(hp.left.resulttype.def) then
-                         CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
-                     end;
-                   floatdef :
-                     if not(is_currency(hp.left.resulttype.def)) then
-                       hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
-                   procvardef :
-                     hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
-                   stringdef,
-                   variantdef,
-                   pointerdef,
-                   classrefdef:
-                     ;
-                   objectdef :
-                     if is_object(hp.left.resulttype.def) then
+                     else
                        CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
-                   else
-                     CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
-                 end;
+                   end;
                end;
               resulttypepass(hp.left);
               hp:=tarrayconstructornode(hp.right);
