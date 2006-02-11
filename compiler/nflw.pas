@@ -228,6 +228,9 @@ implementation
       cutils,verbose,globals,
       symconst,paramgr,defcmp,defutil,htypechk,pass_1,
       ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,
+    {$ifdef prefetchnext}
+      ninl,
+    {$endif prefetchnext}
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -355,7 +358,6 @@ implementation
               include(loopflags,lnf_checknegate);
       end;
 
-
     function twhilerepeatnode.det_resulttype:tnode;
       var
          t:Tunarynode;
@@ -403,8 +405,91 @@ implementation
       end;
 
 
+{$ifdef prefetchnext}
+    type
+      passignmentquery = ^tassignmentquery;
+      tassignmentquery = record
+        towhat: tnode;
+        source: tassignmentnode;
+        statementcount: cardinal;
+      end;
+
+    function checkassignment(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        query: passignmentquery absolute arg;
+        temp, prederef: tnode;
+      begin
+        result := fen_norecurse_false;
+        if (n.nodetype in [assignn,inlinen,forn,calln,whilerepeatn,casen,ifn]) then
+          inc(query^.statementcount);
+        { make sure there's something else in the loop besides going to the }
+        { next item                                                         }
+        if (query^.statementcount > 1) and
+           (n.nodetype = assignn) then
+          begin
+            { skip type conversions of assignment target }
+            temp := tassignmentnode(n).left;
+            while (temp.nodetype = typeconvn) do
+              temp := ttypeconvnode(temp).left;
+
+            { assignment to x of the while assigned(x) check? }
+            if not(temp.isequal(query^.towhat)) then
+              exit;
+
+            { right hand side of assignment dereferenced field of }
+            { x? (no derefn in case of class)                     }
+            temp := tassignmentnode(n).right;
+            while (temp.nodetype = typeconvn) do
+              temp := ttypeconvnode(temp).left;
+            if (temp.nodetype <> subscriptn) then
+              exit;
+
+            prederef := tsubscriptnode(temp).left;
+            temp := prederef;
+            while (temp.nodetype = typeconvn) do
+              temp := ttypeconvnode(temp).left;
+
+            { see tests/test/prefetch1.pp }
+            if (temp.nodetype = derefn) then
+              temp := tderefnode(temp).left
+            else
+              temp := prederef;
+
+            if temp.isequal(query^.towhat) then
+              begin
+                query^.source := tassignmentnode(n);
+                result := fen_norecurse_true;
+               end
+          end
+        { don't check nodes which can't contain an assignment or whose }
+        { final assignment can vary a lot                              }
+        else if not(n.nodetype in [calln,inlinen,casen,whilerepeatn,forn]) then
+          result := fen_false;
+      end;
+
+
+    function findassignment(where: tnode; towhat: tnode): tassignmentnode;
+      var
+        query: tassignmentquery;
+      begin
+        query.towhat := towhat;
+        query.source := nil;
+        query.statementcount := 0;
+        if foreachnodestatic(where,@checkassignment,@query) then
+          result := query.source
+        else
+           result := nil;
+      end;
+{$endif prefetchnext}
+
+
     function twhilerepeatnode.pass_1 : tnode;
       var
+{$ifdef prefetchnext}
+         runnernode, prefetchcode: tnode;
+         assignmentnode: tassignmentnode;
+         prefetchstatements: tstatementnode;
+{$endif prefetchnext}
          old_t_times : longint;
       begin
          result:=nil;
@@ -442,6 +527,42 @@ implementation
            end;
 
          cg.t_times:=old_t_times;
+{$ifdef prefetchnext}
+         { do at the end so all complex typeconversions are already }
+         { converted to calln's                                     }
+         if (cs_optimize in aktglobalswitches) and
+            (lnf_testatbegin in loopflags) then
+           begin
+             { get first component of the while check }
+             runnernode := left;
+             while (runnernode.nodetype in [andn,orn,notn,xorn,typeconvn]) do
+               runnernode := tunarynode(runnernode).left;
+             { is it an assigned(x) check? }
+             if ((runnernode.nodetype = inlinen) and
+                 (tinlinenode(runnernode).inlinenumber = in_assigned_x)) or
+                ((runnernode.nodetype = unequaln) and
+                 (taddnode(runnernode).right.nodetype = niln)) then
+               begin
+                 runnernode := tunarynode(runnernode).left;
+                 { in case of in_assigned_x, there's a callparan in between }
+                 if (runnernode.nodetype = callparan) then
+                   runnernode := tcallparanode(runnernode).left;
+                 while (runnernode.nodetype = typeconvn) do
+                   runnernode := ttypeconvnode(runnernode).left;
+                 { is there an "x := x(^).somefield"? }
+                 assignmentnode := findassignment(right,runnernode);
+                 if assigned(assignmentnode) then
+                   begin
+                     prefetchcode := internalstatements(prefetchstatements);
+                     addstatement(prefetchstatements,geninlinenode(in_prefetch_var,false,
+                       cderefnode.create(ctypeconvnode.create(assignmentnode.right.getcopy,voidpointertype))));
+                     addstatement(prefetchstatements,right);
+                     right := prefetchcode;
+                     resulttypepass(right);
+                   end;
+               end;
+           end;
+{$endif prefetchnext}
       end;
 
 {$ifdef state_tracking}
