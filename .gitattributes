@@ -5684,6 +5684,7 @@ tests/test/tover2.pp svneol=native#text/plain
 tests/test/tpackrec.pp svneol=native#text/plain
 tests/test/tpara1.pp svneol=native#text/plain
 tests/test/tpara2.pp svneol=native#text/plain
+tests/test/tpftch1.pp svneol=native#text/plain
 tests/test/tprocext.pp svneol=native#text/plain
 tests/test/tprocvar1.pp svneol=native#text/plain
 tests/test/tprocvar2.pp svneol=native#text/plain
