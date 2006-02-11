@@ -65,14 +65,14 @@
 
        { to access the message table from outside }
        TMsgStrTable = record
-          name : pshortstring;
+          name   : pshortstring;
           method : pointer;
        end;
 
        PMsgStrTable = ^TMsgStrTable;
 
        TStringMessageTable = record
-          count : dword;
+          count : PtrInt;
           msgstrtable : array[0..0] of tmsgstrtable;
        end;
 
@@ -96,17 +96,17 @@
        end;
 
        pinterfaceentry = ^tinterfaceentry;
-       tinterfaceentry = packed record
-         IID: pguid; { if assigned(IID) then Com else Corba}
-         VTable: Pointer;
-         IOffset: DWord;
-         IIDStr: pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+       tinterfaceentry = record
+         IID     : pguid; { if assigned(IID) then Com else Corba}
+         VTable  : Pointer;
+         IOffset : PtrInt;
+         IIDStr  : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
        end;
 
        pinterfacetable = ^tinterfacetable;
-       tinterfacetable = packed record
-         EntryCount: Word;
-         Entries: array[0..0] of tinterfaceentry;
+       tinterfacetable = record
+         EntryCount : PtrInt;
+         Entries    : array[0..0] of tinterfaceentry;
        end;
 
        TMethod = record

@@ -290,7 +290,7 @@ implementation
     function tclassheader.genstrmsgtab : tasmlabel;
       var
          r : tasmlabel;
-         count : longint;
+         count : aint;
       begin
          root:=nil;
          count:=0;
@@ -306,7 +306,7 @@ implementation
          asmlist[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
          asmlist[al_globals].concat(Tai_label.Create(r));
          genstrmsgtab:=r;
-         asmlist[al_globals].concat(Tai_const.Create_32bit(count));
+         asmlist[al_globals].concat(Tai_const.Create_aint(count));
          if assigned(root) then
            begin
               writestrentry(root);
@@ -900,7 +900,6 @@ implementation
         implintf:=_class.implementedinterfaces;
         curintf:=implintf.interfaces(intfindex);
         { GUID }
-        asmlist[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
         if curintf.objecttype in [odt_interfacecom] then
           begin
             { label for GUID }
@@ -922,7 +921,7 @@ implementation
         { VTable }
         asmlist[al_globals].concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
         { IOffset field }
-        asmlist[al_globals].concat(Tai_const.Create_32bit(implintf.ioffsets(contintfindex)));
+        asmlist[al_globals].concat(Tai_const.Create_aint(implintf.ioffsets(contintfindex)));
         { IIDStr }
         objectlibrary.getdatalabel(tmplabel);
         rawdata.concat(cai_align.create(const_align(sizeof(aint))));
@@ -1043,7 +1042,6 @@ implementation
         max:=_class.implementedinterfaces.count;
 
         rawdata:=TAAsmOutput.Create;
-        asmlist[al_globals].concat(Tai_const.Create_16bit(max));
         { Two pass, one for allocation and vtbl creation }
         for i:=1 to max do
           begin
@@ -1061,6 +1059,7 @@ implementation
               end;
           end;
         { second pass: for fill interfacetable and remained ioffsets }
+        asmlist[al_globals].concat(Tai_const.Create_aint(max));
         for i:=1 to max do
           begin
             j:=_class.implementedinterfaces.implindex(i);
@@ -1165,14 +1164,12 @@ implementation
             curintf:=_class.implementedinterfaces.interfaces(intfindex);
             gintfwalkdowninterface(curintf,intfindex);
           end;
-        { 2. step calc required fieldcount and their offsets in the object memory map
-             and write data }
+        { 2. Optimize interface tables to reuse wrappers }
+        gintfoptimizevtbls;
+        { 3. Calculate offsets in object map and Write interface tables }
         objectlibrary.getdatalabel(intftable);
         asmlist[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
         asmlist[al_globals].concat(Tai_label.Create(intftable));
-        { Optimize interface tables to reuse wrappers }
-        gintfoptimizevtbls;
-        { Write interface tables }
         gintfwritedata;
         genintftable:=intftable;
       end;
