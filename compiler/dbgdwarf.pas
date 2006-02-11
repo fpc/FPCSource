@@ -491,7 +491,7 @@ implementation
                   vtString:
                     asmlist[al_dwarf_info].concat(tai_string.create(data[i].VString^));
                   vtAnsistring:
-                    asmlist[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString^)));
+                    asmlist[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString)));
                   else
                     internalerror(200601264);
                 end;
