@@ -892,6 +892,15 @@ implementation
              p2:=cloadnode.create_procvar(sym,aprocdef,st);
              if assigned(p1) then
               begin
+                { for loading methodpointer of an inherited function
+                  we use self as instance and load the address of
+                  the function directly and not through the vmt (PFV) }
+                if (cnf_inherited in callflags) then
+                  begin
+                    include(p2.flags,nf_inherited);
+                    p1.free;
+                    p1:=load_self_node;
+                  end;
                 if (p1.nodetype<>typen) then
                   tloadnode(p2).set_mp(p1)
                 else
@@ -2086,7 +2095,7 @@ implementation
                         Message(parser_e_methode_id_expected);
                         p1:=cerrornode.create;
                       end;
-                     do_member_read(classh,false,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                     do_member_read(classh,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
                   else
                    begin
