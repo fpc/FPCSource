@@ -3629,6 +3629,7 @@ rtl/beos/sysfiles.inc svneol=native#text/plain
 rtl/beos/system.pp svneol=native#text/plain
 rtl/beos/sysutils.pp svneol=native#text/plain
 rtl/beos/timezone.inc svneol=native#text/plain
+rtl/bsd/bsd.pas -text
 rtl/bsd/bunxfunch.inc svneol=native#text/plain
 rtl/bsd/bunxsysc.inc svneol=native#text/plain
 rtl/bsd/i386/syscall.inc svneol=native#text/plain
