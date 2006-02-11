@@ -1780,8 +1780,14 @@ implementation
             ;
           absolutevarsym :
             append_absolutesym(tabsolutevarsym(sym));
+          propertysym :
+            { ignored for now }
+            ;
           else
-            internalerror(200601242);
+            begin
+              writeln(ord(sym.typ));
+              internalerror(200601242);
+            end;
         end;
         {
         if stabstr<>nil then
