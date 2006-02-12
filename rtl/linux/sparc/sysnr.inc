@@ -275,4 +275,32 @@ Const
       syscall_nr_fdatasync        = 253;
       syscall_nr_nfsservctl       = 254;
       syscall_nr_aplib            = 255;
+      syscall_nr_clock_settime     = 256;
+      syscall_nr_clock_gettime     = 257;
+      syscall_nr_clock_getres      = 258;
+      syscall_nr_clock_nanosleep   = 259;
+      syscall_nr_sched_getaffinity = 260;
+      syscall_nr_sched_setaffinity = 261;
+      syscall_nr_timer_settime     = 262;
+      syscall_nr_timer_gettime     = 263;
+      syscall_nr_timer_getoverrun  = 264;
+      syscall_nr_timer_delete      = 265;
+      syscall_nr_timer_create      = 266;
+      { syscall_nr_vserver           267 Reserved for VSERVER }
+      syscall_nr_io_setup          = 268;
+      syscall_nr_io_destroy        = 269;
+      syscall_nr_io_submit         = 270;
+      syscall_nr_io_cancel         = 271;
+      syscall_nr_io_getevents      = 272;
+      syscall_nr_mq_open           = 273;
+      syscall_nr_mq_unlink         = 274;
+      syscall_nr_mq_timedsend      = 275;
+      syscall_nr_mq_timedreceive   = 276;
+      syscall_nr_mq_notify         = 277;
+      syscall_nr_mq_getsetattr     = 278;
+      syscall_nr_waitid            = 279;
+      syscall_nr_sys_setaltroot    = 280;
+      syscall_nr_add_key           = 281;
+      syscall_nr_request_key       = 282;
+      syscall_nr_keyctl            = 283;
 

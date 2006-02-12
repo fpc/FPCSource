@@ -281,10 +281,10 @@ const
   syscall_nr_restart_syscall    = 219;
   syscall_nr_semtimedop         = 220;
   syscall_nr_fadvise64          = 221;
-  syscall_nr_timer_create               = 222;
-  syscall_nr_timer_settime              = 223;
-  syscall_nr_timer_gettime              = 224;
-  syscall_nr_timer_getoverrun           = 225;
+  syscall_nr_timer_create       = 222;
+  syscall_nr_timer_settime      = 223;
+  syscall_nr_timer_gettime      = 224;
+  syscall_nr_timer_getoverrun   = 225;
   syscall_nr_timer_delete       = 226;
   syscall_nr_clock_settime      = 227;
   syscall_nr_clock_gettime      = 228;
@@ -296,6 +296,23 @@ const
   syscall_nr_tgkill             = 234;
   syscall_nr_utimes             = 235;
   syscall_nr_vserver            = 236;
-
-{ 237,238,239 reserved for NUMA API }
+  syscall_nr_mbind              = 237;
+  syscall_nr_set_mempolicy      = 238;
+  syscall_nr_get_mempolicy      = 239;
+  syscall_nr_mq_open            = 240;
+  syscall_nr_mq_unlink          = 241;
+  syscall_nr_mq_timedsend       = 242;
+  syscall_nr_mq_timedreceive    = 243;
+  syscall_nr_mq_notify          = 244;
+  syscall_nr_mq_getsetattr      = 245;
+  syscall_nr_kexec_load         = 246;
+  syscall_nr_waitid             = 247;
+  syscall_nr_add_key            = 248;
+  syscall_nr_request_key        = 249;
+  syscall_nr_keyctl             = 250;
+  syscall_nr_ioprio_set         = 251;
+  syscall_nr_ioprio_get         = 252;
+  syscall_nr_inotify_init       = 253;
+  syscall_nr_inotify_add_watch  = 254;
+  syscall_nr_inotify_rm_watch   = 255;
 
