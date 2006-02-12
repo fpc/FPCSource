@@ -827,7 +827,7 @@ implementation
         var
           size : aint;
         begin
-          if is_open_array(def) then
+          if is_special_array(def) then
             size:=def.elesize
           else
             size:=def.size;
@@ -874,7 +874,6 @@ implementation
                 ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
               finish_entry;
-
             end;
           finish_children;
         end;
@@ -979,7 +978,6 @@ implementation
                 if slen=0 then
                   slen:=255;
 
-
                 { create a structure with two elements }
                 objectlibrary.getdatalabel(arr);
                 append_entry(DW_TAG_structure_type,true,[
@@ -998,7 +996,7 @@ implementation
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
                 finish_entry;
 
-                { self entry }
+                { string data entry }
                 append_entry(DW_TAG_member,false,[
                   DW_AT_name,DW_FORM_string,'Data'#0,
                   DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
@@ -1024,6 +1022,7 @@ implementation
                   ]);
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
                 finish_entry;
+                finish_children;
               end;
             st_longstring:
               begin
@@ -1158,12 +1157,12 @@ implementation
               }
 
               if assigned(def.typesym) then
-                append_entry(DW_TAG_structure_type,true,[
+                append_entry(DW_TAG_structure_type,false,[
                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
                  DW_AT_byte_size,DW_FORM_udata,def.size
                 ])
               else
-                append_entry(DW_TAG_structure_type,true,[
+                append_entry(DW_TAG_structure_type,false,[
                  DW_AT_byte_size,DW_FORM_udata,def.size
                 ]);
               finish_entry;
@@ -1429,6 +1428,13 @@ implementation
                (pd.localst.symtabletype=localsymtable) then
               write_symtable_syms(list,pd.localst);
 
+            { last write the types from this procdef }
+            if assigned(pd.parast) then
+              write_symtable_defs(asmlist[al_dwarf_info],pd.parast);
+            if assigned(pd.localst) and
+               (pd.localst.symtabletype=localsymtable) then
+              write_symtable_defs(asmlist[al_dwarf_info],pd.localst);
+
             finish_children;
           end;
 
@@ -1469,7 +1475,7 @@ implementation
                   regidx:=findreg_by_number(sym.localloc.register);
                   templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
                   templist.concat(tai_const.create_uleb128bit(regdwarf_table[regidx]));
-                  blocksize:=Lengthuleb128(regdwarf_table[regidx])+1;
+                  blocksize:=1+Lengthuleb128(regdwarf_table[regidx]);
                 end;
               else
                 begin
@@ -1479,6 +1485,7 @@ implementation
                         if (vo_is_thread_var in sym.varoptions) then
                           begin
 {$warning !!! FIXME: dwarf for thread vars !!!}
+                            blocksize:=0;
                           end
                         else
                           begin
@@ -1493,7 +1500,7 @@ implementation
                         regidx:=findreg_by_number(sym.localloc.reference.base);
                         templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+regdwarf_table[regidx]));
                         templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
-                        blocksize:=Lengthsleb128(sym.localloc.reference.offset)+1;
+                        blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
                       end
                     else
                       internalerror(200601288);
@@ -1526,82 +1533,6 @@ implementation
           end;
 
 
-        procedure paravarsym_stabstr(sym:tparavarsym);
-          begin
-            {
-            result:=nil;
-            { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
-            { while stabs aren't adapted for regvars yet                             }
-            if (vo_is_self in sym.varoptions) then
-              begin
-                case sym.localloc.loc of
-                  LOC_REGISTER,
-                  LOC_CREGISTER:
-                    regidx:=findreg_by_number(sym.localloc.register);
-                  LOC_REFERENCE: ;
-                  else
-                    internalerror(2003091815);
-                end;
-                if (po_classmethod in tabstractprocdef(sym.owner.defowner).procoptions) or
-                   (po_staticmethod in tabstractprocdef(sym.owner.defowner).procoptions) then
-                  begin
-                    if (sym.localloc.loc=LOC_REFERENCE) then
-                      result:=sym_stabstr_evaluate(sym,'"pvmt:p$1",${N_TSYM},0,0,$2',
-                        [def_stab_number(pvmttype.def),tostr(sym.localloc.reference.offset)]);
-      (*            else
-                      result:=sym_stabstr_evaluate(sym,'"pvmt:r$1",${N_RSYM},0,0,$2',
-                        [def_stab_number(pvmttype.def),tostr(regstabs_table[regidx])]) *)
-                    end
-                else
-                  begin
-                    if not(is_class(tprocdef(sym.owner.defowner)._class)) then
-                      c:='v'
-                    else
-                      c:='p';
-                    if (sym.localloc.loc=LOC_REFERENCE) then
-                      result:=sym_stabstr_evaluate(sym,'"$$t:$1",${N_TSYM},0,0,$2',
-                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(sym.localloc.reference.offset)]);
-      (*            else
-                      result:=sym_stabstr_evaluate(sym,'"$$t:r$1",${N_RSYM},0,0,$2',
-                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(regstabs_table[regidx])]); *)
-                  end;
-              end
-            else
-              begin
-                st:=def_stab_number(sym.vartype.def);
-
-                if paramanager.push_addr_param(sym.varspez,sym.vartype.def,tprocdef(sym.owner.defowner).proccalloption) and
-                   not(vo_has_local_copy in sym.varoptions) and
-                   not is_open_string(sym.vartype.def) then
-                  st := 'v'+st { should be 'i' but 'i' doesn't work }
-                else
-                  st := 'p'+st;
-                case sym.localloc.loc of
-                  LOC_REGISTER,
-                  LOC_CREGISTER,
-                  LOC_MMREGISTER,
-                  LOC_CMMREGISTER,
-                  LOC_FPUREGISTER,
-                  LOC_CFPUREGISTER :
-                    begin
-                      regidx:=findreg_by_number(sym.localloc.register);
-                      { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                      { this is the register order for GDB}
-                      if regidx<>0 then
-                        result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(longint(regstabs_table[regidx]))]);
-                    end;
-                  LOC_REFERENCE :
-                    { offset to ebp => will not work if the framepointer is esp
-                      so some optimizing will make things harder to debug }
-                    result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(sym.localloc.reference.offset)])
-                  else
-                    internalerror(2003091814);
-                end;
-              end;
-            }
-          end;
-
-
         procedure append_constsym(sym:tconstsym);
           begin
             append_entry(DW_TAG_constant,false,[
@@ -1622,8 +1553,12 @@ implementation
               constwstring,
               constguid,
               constresourcestring:
-                { ignore for now }
-                ;
+                begin
+                  { write dummy for now }
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+                  asmlist[al_dwarf_info].concat(tai_string.create(''));
+                  asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
+                end;
               constord:
                 begin
                   asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
