@@ -685,8 +685,8 @@ begin
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be 
    required to load the value is greater than 2, store (and later load) the value from there }
-  if (((cs_fastoptimize in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and 
-    (getInstructionLength(a) > 2)) then
+  if (false) {(((cs_fastoptimize in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and 
+    (getInstructionLength(a) > 2))} then
     loadConstantPIC(list, size, a, reg)
   else
     loadConstantNormal(list, size, a, reg);
@@ -1889,12 +1889,15 @@ function tcgppc.load_got_symbol(list: taasmoutput; symbol : string) : tregister;
 var
   l: tasmsymbol;
   ref: treference;
+  symname : string;
 begin
-  l:=objectlibrary.getasmsymbol(symbol+'$got');
+  maybe_new_object_file(asmlist[al_picdata]);
+  symname := '_$' + objectlibrary.name + '$got$' + symbol;
+  l:=objectlibrary.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=objectlibrary.newasmsymbol(symbol+'$got',AB_LOCAL, AT_LABEL);
+    l:=objectlibrary.newasmsymbol(symname, AB_COMMON, AT_DATA);
     asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    asmlist[al_picdata].concat(tai_symbol.create(l,0));
+    asmlist[al_picdata].concat(tai_symbol.create_global(l,0));
     asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
   end;
   reference_reset_symbol(ref,l,0);
@@ -2128,18 +2131,19 @@ procedure tcgppc.loadConstantPIC(list : taasmoutput; size : TCGSize; a : aint; r
 var
   l: tasmsymbol;
   ref: treference;
-  symbol : string;
+  symname : string;
 begin
-  symbol := 'toc$' + hexstr(a, sizeof(a)*2);
-  l:=objectlibrary.getasmsymbol(symbol);
+  maybe_new_object_file(asmlist[al_picdata]);
+  symname := '_$' + objectlibrary.name + '$toc$' + hexstr(a, sizeof(a)*2);
+  l:=objectlibrary.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=objectlibrary.newasmsymbol(symbol,AB_LOCAL, AT_LABEL);
+    l:=objectlibrary.newasmsymbol(symname,AB_GLOBAL, AT_DATA);
     asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    asmlist[al_picdata].concat(tai_symbol.create(l,0));
-    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + inttostr(a)));
+    asmlist[al_picdata].concat(tai_symbol.create_global(l,0));
+    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;
   reference_reset_symbol(ref,l,0);
-  ref.base := NR_R2;
+  ref.base := NR_R2;	
   ref.refaddr := addr_pic;
 
   {$IFDEF EXTDEBUG}
