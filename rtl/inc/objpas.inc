@@ -127,24 +127,14 @@
         var
            intftable : pinterfacetable;
            i : longint;
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-           IOffset : longint;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
         begin
           while assigned(objclass) do
             begin
                intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
                if assigned(intftable) then
                  for i:=0 to intftable^.EntryCount-1 do
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-                   begin
-                     move(intftable^.Entries[i].IOffset,IOffset,sizeof(longint));
-                     move(pointer(intftable^.Entries[i].VTable),ppointer(@(PChar(instance)[IOffset]))^,sizeof(pointer));
-                   end;
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
                    ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
                      pointer(intftable^.Entries[i].VTable);
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
                objclass:=pclass(pointer(objclass)+vmtParent)^;
             end;
         end;
@@ -453,10 +443,10 @@
            while assigned(vmt) do
              begin
                 p:=(pointer(vmt)+vmtMsgStrPtr);
-                If (P<>Nil) and (PDWord(P)^<>0) then
+                If (P<>Nil) and (PPtrInt(P)^<>0) then
                   begin
-                  count:=pdword(PSizeUInt(p)^)^;
-                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+4);
+                  count:=PPtrInt(PSizeUInt(p)^)^;
+                  msgstrtable:=pmsgstrtable(PSizeUInt(P)^+sizeof(ptrint));
                   end
                 else
                   Count:=0;

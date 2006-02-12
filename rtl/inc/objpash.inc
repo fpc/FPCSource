@@ -1,8 +1,20 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2005 by the Free Pascal development team
 
-    This unit makes Free Pascal as much as possible Delphi compatible
+    This unit makes Free Pascal as much as possible Delphi compatible,
+    defining several internal structures for classes, interfaces, and
+    resource strings.
+
+    Additionally this file defines the interface of TObject, providing
+    their basic implementation in the corresponding objpas.inc file.
+
+    WARNING: IF YOU CHANGE SOME OF THESE INTERNAL RECORDS, MAKE SURE
+    TO MODIFY THE COMPILER AND OBJPAS.INC ACCORDINGLY, OTHERWISE
+    THIS WILL LEAD TO CRASHES IN THE RESULTING COMPILER AND/OR RTL.
+
+    IN PARTICULAR, THE IMPLEMENTATION PART OF THIS INCLUDE FILE, 
+    OBJPAS.INC, USES SOME HARDCODED RECORD MEMBER OFFSETS.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
