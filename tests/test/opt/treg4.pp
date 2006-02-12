@@ -27,9 +27,15 @@ begin
   r.b2 := 31;
 end;
 
-procedure t3(out r: tr);
+procedure t3(out r: tr); inline;
 begin
-  t2(r);
+  r.l := 88;
+  r.b2 := 9;
+end;
+
+procedure t4(out r: tr);
+begin
+  t3(r);
 end;
 
 
@@ -41,8 +47,8 @@ begin
   if ((r.l and 255) <> 7) or
      (r.b2 <> 31) then
     halt(1);
-  t3(r);
-  if (r.b3 <> 6) or
-     ((r.l and 255) <> 5) then
+  t4(r);
+  if ((r.l and 255) <> 88) or
+     (r.b2 <> 9) then
     halt(1);
 end.
