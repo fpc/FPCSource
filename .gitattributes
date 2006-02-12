@@ -4499,7 +4499,6 @@ rtl/unix/initc.pp svneol=native#text/plain
 rtl/unix/ipc.pp svneol=native#text/plain
 rtl/unix/ipccdecl.inc svneol=native#text/plain
 rtl/unix/keyboard.pp svneol=native#text/plain
-rtl/unix/linux.pp svneol=native#text/plain
 rtl/unix/mouse.pp svneol=native#text/plain
 rtl/unix/oscdeclh.inc svneol=native#text/plain
 rtl/unix/ports.pp svneol=native#text/plain
