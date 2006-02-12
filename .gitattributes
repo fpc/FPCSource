@@ -5581,6 +5581,7 @@ tests/test/opt/treg1.pp svneol=native#text/plain
 tests/test/opt/treg2.dat -text
 tests/test/opt/treg2.pp svneol=native#text/plain
 tests/test/opt/treg3.pp svneol=native#text/plain
+tests/test/opt/treg4.pp svneol=native#text/plain
 tests/test/tabstrcl.pp svneol=native#text/plain
 tests/test/talign.pp svneol=native#text/plain
 tests/test/talign1.pp svneol=native#text/plain
