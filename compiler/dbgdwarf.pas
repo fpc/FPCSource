@@ -562,11 +562,7 @@ implementation
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-{$ifdef cpu64bit}
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref8)));
-{$else cpu64bit}
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
-{$endif cpu64bit}
+        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
         asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
