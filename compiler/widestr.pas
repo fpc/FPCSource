@@ -44,7 +44,7 @@ unit widestr;
        end;
 
     procedure initwidestring(out r : pcompilerwidestring);
-    procedure donewidestring(out r : pcompilerwidestring);
+    procedure donewidestring(var r : pcompilerwidestring);
     procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
     function getlengthwidestring(r : pcompilerwidestring) : SizeInt;
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
@@ -74,7 +74,7 @@ unit widestr;
          r^.maxlen:=0;
       end;
 
-    procedure donewidestring(out r : pcompilerwidestring);
+    procedure donewidestring(var r : pcompilerwidestring);
 
       begin
          if assigned(r^.data) then
