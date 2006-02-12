@@ -3699,6 +3699,7 @@ rtl/freebsd/bsdport.txt svneol=native#text/plain
 rtl/freebsd/console.pp svneol=native#text/plain
 rtl/freebsd/errno.inc svneol=native#text/plain
 rtl/freebsd/errnostr.inc -text
+rtl/freebsd/freebsd.pas -text
 rtl/freebsd/i386/bsyscall.inc svneol=native#text/plain
 rtl/freebsd/i386/cprt0.as -text
 rtl/freebsd/i386/gprt0.as -text
