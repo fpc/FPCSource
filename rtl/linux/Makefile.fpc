@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil \
       heaptrc lineinfo \
-      $(LINUXUNIT1) termio unix $(LINUXUNIT2) initc cmem $(CPU_UNITS) \
+      termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
@@ -56,28 +56,14 @@ UNITPREFIX=rtl
 
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
-CPU_UNITS=x86 ports cpu mmx
+CPU_UNITS=x86 ports cpu mmx oldlinux
 else
 CPU_UNITS=
 endif
 
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-LINUXUNIT1=
-ifeq ($(CPU_TARGET),i386)
-CPU_UNITS+=oldlinux
-endif
-LINUXUNIT2=linux
-else
-SYSTEMUNIT=syslinux
-LINUXUNIT1=linux
-LINUXUNIT2=
-override FPCOPT+=-dUNIX
-endif
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
+# Causes release PPU files not to be recompiled
 ifdef RELEASE
 override FPCOPT+=-Ur
 endif
