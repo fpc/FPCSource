@@ -284,6 +284,7 @@ implementation
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
+             location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
              tg.GetTempTyped(exprasmlist,left.resulttype.def,tt_normal,location.reference);
              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
