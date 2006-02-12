@@ -21,11 +21,17 @@ begin
     halt(1);
 end;
 
-procedure t2(out r: tr);
+procedure t2(out r: tr); inline;
 begin
   r.l := 7;
   r.b2 := 31;
 end;
+
+procedure t3(out r: tr);
+begin
+  t2(r);
+end;
+
 
 var
   r: tr;
@@ -34,5 +40,9 @@ begin
   t2(r);
   if ((r.l and 255) <> 7) or
      (r.b2 <> 31) then
+    halt(1);
+  t3(r);
+  if (r.b3 <> 6) or
+     ((r.l and 255) <> 5) then
     halt(1);
 end.
