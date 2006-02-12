@@ -191,6 +191,10 @@ interface
       private
         currabbrevnumber : longint;
 
+        { collect all defs in one list so we can reset them easily }
+        nextdefnumber    : longint;
+        defnumberlist    : tlist;
+
         writing_def_dwarf : boolean;
 
         { use this defs to create info for variants and file handles }
@@ -437,6 +441,10 @@ implementation
         if def.dwarf_lab=nil then
           begin
             objectlibrary.getdatalabel(def.dwarf_lab);
+            if nextdefnumber>=defnumberlist.count then
+              defnumberlist.count:=nextdefnumber+250;
+            defnumberlist[nextdefnumber]:=def;
+            inc(nextdefnumber);
           end;
         result:=def.dwarf_lab;
       end;
@@ -1600,7 +1608,7 @@ implementation
               DW_AT_name,DW_FORM_string,sym.name+#0
               ]);
             { for string constants, consttype isn't set because they have no real type }
-            if sym.consttyp<>conststring then
+            if not(sym.consttyp in [conststring,constresourcestring]) then
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
             asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
             case sym.consttyp of
@@ -1610,10 +1618,26 @@ implementation
                   asmlist[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
                   asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
                 end;
+              constset,
+              constwstring,
+              constguid,
+              constresourcestring:
+                { ignore for now }
+                ;
               constord:
                 begin
                   asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
                   asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord));
+                end;
+              constnil:
+                begin
+{$ifdef cpu64bit}
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                  asmlist[al_dwarf_info].concat(tai_const.create_64bit(0));
+{$else cpu64bit}
+                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                  asmlist[al_dwarf_info].concat(tai_const.create_32bit(0));
+{$endif cpu64bit}
                 end;
               constpointer:
                 begin
@@ -1651,7 +1675,7 @@ implementation
                   end;
                 end;
               else
-                internalerror(200601291);
+                internalerror(200601292);
             end;
             finish_entry;
           end;
@@ -1790,8 +1814,6 @@ implementation
             end;
         end;
         {
-        if stabstr<>nil then
-          list.concat(Tai_stab.create(stab_stabs,stabstr));
         { For object types write also the symtable entries }
         if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
           write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
@@ -1864,12 +1886,16 @@ implementation
      var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
+        i : longint;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=current_module.mainfilepos;
 
         currabbrevnumber:=0;
         writing_def_dwarf:=false;
+
+        nextdefnumber:=0;
+        defnumberlist:=tlist.create;
 
         vardatadef:=search_system_type('TVARDATA').restype.def;
 
@@ -1937,6 +1963,18 @@ implementation
         { end of debug info table }
         asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
         asmlist[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
+       { reset all def labels }
+        for i:=0 to defnumberlist.count-1 do
+          begin
+            if assigned(defnumberlist[i]) then
+              begin
+                tdef(defnumberlist[i]).dwarf_lab:=nil;
+                tdef(defnumberlist[i]).dbg_state:=dbg_state_unused;
+              end;
+          end;
+
+        defnumberlist.free;
+        defnumberlist:=nil;
 
         aktfilepos:=storefilepos;
       end;
