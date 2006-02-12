@@ -317,4 +317,5 @@ syscall_nr_getdirentries                =196;
  syscall_nr_uuidgen			= 392; { 5.x+}
  syscall_nr_kqueue 			= 362;
  syscall_nr_kevent 			= 363;
+ syscall_nr_sendfile 			= 393;
 
