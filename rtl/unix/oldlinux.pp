@@ -1,1 +1,0 @@
-{$i linuxold.inc}
