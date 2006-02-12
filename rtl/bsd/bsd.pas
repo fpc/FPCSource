@@ -18,6 +18,7 @@ Unit BSD;
 
 {$IFDEF FPC}
   {$PACKRECORDS C}
+  {$Inline On}
   {$Macro On}
   {$ifdef FPC_USE_LIBC}
   {$define directives:=cdecl; external 'c';}
