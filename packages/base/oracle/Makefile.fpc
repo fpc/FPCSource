@@ -7,7 +7,7 @@ name=oracle
 version=2.0.0
 
 [target]
-units=oraoci
+units=oci ocidyn oratypes oraoci
 exampledirs=example
 
 [require]
