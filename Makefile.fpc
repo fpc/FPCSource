@@ -98,7 +98,11 @@ ifneq ($(findstring $(OS_TARGET),$(SHAREDTARGETS)),)
 ALLTARGET=shared
 else
 ifneq ($(findstring $(OS_TARGET),$(SMARTTARGETS)),)
+ifneq ($(CPU_TARGET),powerpc64)
 ALLTARGET=smart
+else
+ALLTARGET=all
+endif
 else
 ALLTARGET=all
 endif
