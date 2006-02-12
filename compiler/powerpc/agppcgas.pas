@@ -107,8 +107,11 @@ unit agppcgas;
         if (target_info.system = system_powerpc_darwin) then
           case atype of
             sec_bss:
-              atype := sec_code;
-            sec_debug_frame:
+              { all bss (lcomm) symbols are automatically put in the right }
+              { place by using the lcomm assembler directive               }
+              atype := sec_none;
+            sec_debug_frame,
+            sec_eh_frame:
               begin
                 result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
                 inc(debugframecount);
