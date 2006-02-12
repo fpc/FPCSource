@@ -332,6 +332,13 @@ type
     rlim_max : rlim_t;
   end;
 
+  iovec = record
+            iov_base : pointer;
+	    iov_len  : size_t;
+	   end;
+  tiovec=iovec;
+  piovec=^tiovec;		
+
     {*************************************************************************}
     {                               SIGNALS                                   }
     {*************************************************************************}
