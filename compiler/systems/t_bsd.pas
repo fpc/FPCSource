@@ -564,7 +564,7 @@ begin
      DynLinKStr:=DynLinkStr+' --shared'
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
-   end;  
+   end;
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -666,6 +666,10 @@ initialization
   RegisterImport(system_i386_openbsd,timportlibbsd);
   RegisterExport(system_i386_openbsd,texportlibbsd);
   RegisterTarget(system_i386_openbsd_info);
+  RegisterExternalLinker(system_i386_darwin_info,TLinkerBSD);
+  RegisterImport(system_i386_darwin,timportlibdarwin);
+  RegisterExport(system_i386_darwin,texportlibbsd);
+  RegisterTarget(system_i386_darwin_info);
 {$endif i386}
 {$ifdef m68k}
 //  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);
