@@ -285,7 +285,7 @@ implementation
         repeat
           b := a and $7f;
           a := a shr 7;
-          if (a <> 0) then
+          if a<>0 then
             b := b or $80;
           inc(result);
           if a=0 then
@@ -306,12 +306,12 @@ implementation
         repeat
           b := a and $7f;
           a := a shr 7;
-          if (neg) then
+          if neg then
             a := a or -(1 shl (size - 7));
           if (((a = 0) and
-               (a and $40 = 0)) or
+               (b and $40 = 0)) or
               ((a = -1) and
-               (a and $40 <> 0))) then
+               (b and $40 <> 0))) then
             more := false
           else
             b := b or $80;
