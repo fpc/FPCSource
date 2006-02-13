@@ -1318,7 +1318,8 @@ implementation
         case deftype of
           orddef,
           pointerdef,
-          enumdef:
+          enumdef,
+          classrefdef:
             is_intregable:=true;
           procvardef :
             is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);

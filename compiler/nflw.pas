@@ -715,7 +715,10 @@ implementation
 
          { Make sure that the loop var and the
            from and to values are compatible types }
+         check_ranges(right.fileinfo,right,left.resulttype.def);
          inserttypeconv(right,left.resulttype);
+
+         check_ranges(t1.fileinfo,t1,left.resulttype.def);
          inserttypeconv(t1,left.resulttype);
 
          if assigned(t2) then

@@ -27,7 +27,7 @@ interface
 
     uses
       tokens,cpuinfo,
-      node,
+      node,globals,
       symconst,symtype,symdef,symsym,symbase;
 
     type
@@ -150,11 +150,13 @@ interface
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
 
+    procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
+
 implementation
 
     uses
        globtype,systems,
-       cutils,verbose,globals,
+       cutils,verbose,
        symtable,
        defutil,defcmp,
        nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,
@@ -2195,16 +2197,39 @@ implementation
 
 
     procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
-     begin
-       if not assigned(srsym) then
-         exit;
-       if sp_hint_deprecated in symoptions then
-         Message1(sym_w_deprecated_symbol,srsym.realname);
-       if sp_hint_platform in symoptions then
-         Message1(sym_w_non_portable_symbol,srsym.realname);
-       if sp_hint_unimplemented in symoptions then
-         Message1(sym_w_non_implemented_symbol,srsym.realname);
-     end;
+      begin
+        if not assigned(srsym) then
+          internalerror(200602051);
+        if sp_hint_deprecated in symoptions then
+          Message1(sym_w_deprecated_symbol,srsym.realname);
+        if sp_hint_platform in symoptions then
+          Message1(sym_w_non_portable_symbol,srsym.realname);
+        if sp_hint_unimplemented in symoptions then
+          Message1(sym_w_non_implemented_symbol,srsym.realname);
+      end;
+
+
+    procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
+      begin
+        { check if the assignment may cause a range check error }
+        { if its not explicit, and only if the values are       }
+        { ordinals, enumdef and floatdef                        }
+        if assigned(destdef) and
+          (destdef.deftype in [enumdef,orddef,floatdef]) and
+          not is_boolean(destdef) and
+          assigned(source.resulttype.def) and
+          (source.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
+          not is_boolean(source.resulttype.def) then
+         begin
+           if (destdef.size < source.resulttype.def.size) then
+             begin
+               if (cs_check_range in aktlocalswitches) then
+                 MessagePos(location,type_w_smaller_possible_range_check)
+               else
+                 MessagePos(location,type_h_smaller_possible_range_check);
+             end;
+         end;
+      end;
 
 
 end.

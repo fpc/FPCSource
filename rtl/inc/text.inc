@@ -947,7 +947,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text;out s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; compilerproc;
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; compilerproc;
 Begin
   pchar(s+ReadPCharLen(f,s,$7fffffff))^:=#0;
 End;

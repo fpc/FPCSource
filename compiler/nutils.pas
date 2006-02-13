@@ -129,8 +129,9 @@ implementation
       end;
       if n.inheritsfrom(tbinarynode) then
         begin
-          result := foreachnode(tbinarynode(n).right,f,arg) or result;
+          { first process the "payload" of statementnodes }
           result := foreachnode(tbinarynode(n).left,f,arg) or result;
+          result := foreachnode(tbinarynode(n).right,f,arg) or result;
         end
       else if n.inheritsfrom(tunarynode) then
         result := foreachnode(tunarynode(n).left,f,arg) or result;

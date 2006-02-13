@@ -68,7 +68,7 @@ var
   filestab   : tstab;   { stab with current file info }
   { value to subtract to addr parameter to get correct address on file }
   { this should be equal to the process start address in memory        }
-  processaddress : cardinal;
+  processaddress : ptruint;
 
 
 
@@ -861,6 +861,7 @@ var
    mh:MachoHeader;
    i: longint;
 begin
+  processaddress := 0;
   StabsFunctionRelative:=false;
   LoadMachO32PPC := false;
   blockread (f, mh, sizeof(mh));
@@ -1096,7 +1097,7 @@ var
 begin
   { reset to prevent infinite recursion if problems inside the code PM }
   {$ifdef netware}
-  dec(addr,system.NWGetCodeStart);  {we need addr relative to code start on netware}
+  dec(addr,ptruint(system.NWGetCodeStart));  {we need addr relative to code start on netware}
   {$endif}
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
