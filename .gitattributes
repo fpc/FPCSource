@@ -927,6 +927,7 @@ fcl/shedit/sh_pas.pp svneol=native#text/plain
 fcl/shedit/sh_xml.pp svneol=native#text/plain
 fcl/shedit/shedit.pp svneol=native#text/plain
 fcl/shedit/undo.inc svneol=native#text/plain
+fcl/solaris/syncobjs.pp svneol=native#text/plain
 fcl/template/classes.pp svneol=native#text/plain
 fcl/template/footer -text
 fcl/template/header -text
