@@ -317,7 +317,7 @@ install: $(BUILDSTAMP)
 
 singlezipinstall: zipinstall
 zipinstall: $(BUILDSTAMP)
-        $(MAKE) fpc_zipinstall ZIPTARGET=install ZIPNAME=fpc-$(PACKAGE_VERSION) $(INSTALLOPTS)
+        $(MAKE) fpc_zipinstall ZIPTARGET=install FULLZIPNAME=fpc-$(PACKAGE_VERSION).$(TARGETSUFFIX) $(INSTALLOPTS)
 
 
 ##########################################################################
