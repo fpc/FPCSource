@@ -483,6 +483,36 @@
    * Speeds
     }
 
+  { parameter length, at most 255 bytes }
+  IOCPARM_MASK = $ff;
+
+  {  max size of ioctl args  }
+  IOCPARM_MAX = IOCPARM_MASK + 1;
+
+  { no parameters }
+  IOC_VOID = culong($20000000);
+
+  { copy parameters out }
+  IOC_OUT = culong($40000000);
+
+  { copy parameters in }
+  IOC_IN = culong($80000000);
+
+  { copy paramters in and out }
+  IOC_INOUT = (IOC_IN or IOC_OUT);
+
+  { mask for IN/OUT/VOID }
+  IOC_DIRMASK = culong($e0000000);
+
+  FIOCLEX = (IOC_VOID or (0 and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 1);
+  FIONCLEX = (IOC_VOID or (0 and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 2);
+  FIONREAD = (IOC_OUT or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 127);
+  FIONBIO = (IOC_IN or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 126);
+  FIOASYNC = (IOC_IN or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 125);
+  FIOSETOWN = (IOC_IN or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 124);
+  FIOGETOWN = (IOC_OUT or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 123);
+  FIODTYPE = (IOC_OUT or (sizeof(cint) and IOCPARM_MASK) << 16) or ((ord('f') << 8) or 122);
+  
   const
      B0 = 0;
      B50 = 1;
