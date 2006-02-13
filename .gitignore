@@ -366,13 +366,6 @@ fcl/passrc/*.ppu
 fcl/passrc/*.s
 fcl/passrc/fpcmade.*
 fcl/passrc/units
-fcl/posix/*.bak
-fcl/posix/*.exe
-fcl/posix/*.o
-fcl/posix/*.ppu
-fcl/posix/*.s
-fcl/posix/fpcmade.*
-fcl/posix/units
 fcl/qnx/*.bak
 fcl/qnx/*.exe
 fcl/qnx/*.o
@@ -394,13 +387,6 @@ fcl/shedit/gtk/*.s
 fcl/shedit/gtk/fpcmade.*
 fcl/shedit/gtk/units
 fcl/shedit/units
-fcl/sunos/*.bak
-fcl/sunos/*.exe
-fcl/sunos/*.o
-fcl/sunos/*.ppu
-fcl/sunos/*.s
-fcl/sunos/fpcmade.*
-fcl/sunos/units
 fcl/template/*.bak
 fcl/template/*.exe
 fcl/template/*.o

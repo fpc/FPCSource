@@ -16,4 +16,6 @@
       T.Directory:='unix';
     if (Defaults.OS=openbsd) then
       T.Directory:='unix';
+    if (Defaults.OS=solaris) then
+      T.Directory:='unix';
     EndPackage;

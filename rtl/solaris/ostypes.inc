@@ -197,6 +197,17 @@ Const
   S_IFWHT = 57344;
   S_ISVTX = 512;
 
+  { For File control mechanism }
+  F_GetFd  = 1;
+  F_SetFd  = 2;
+  F_GetFl  = 3;
+  F_SetFl  = 4;
+  F_GetLk  = 14;
+  F_SetLk  = 6;
+  F_SetLkW = 7;
+  F_SetOwn = 23;
+  F_GetOwn = 24;
+
 Const
  { Constansts for MMAP }
   MAP_PRIVATE   =2;

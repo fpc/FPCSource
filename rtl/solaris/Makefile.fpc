@@ -14,8 +14,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       crt printer \
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
-      errors \
-      # sockets
+      errors sockets \
       # ipc serial
       terminfo dl dynlibs \
       video \
@@ -242,7 +241,7 @@ fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 #
 
 sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
-                   unixsock.inc unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

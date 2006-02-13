@@ -19,6 +19,8 @@ dirs_freebsd=gdbint libasync graph \
              mysql ibase postgres oracle odbc sqlite pthreads
 dirs_darwin=libasync \
              mysql ibase postgres oracle odbc sqlite pthreads
+dirs_solaris=libasync \
+             mysql ibase postgres oracle odbc sqlite pthreads
 
 [install]
 fpcpackage=y

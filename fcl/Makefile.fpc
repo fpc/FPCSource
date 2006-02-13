@@ -11,6 +11,7 @@ packages=paszlib hash
 packages_linux=netdb libasync pthreads
 packages_freebsd=netdb libasync pthreads
 packages_darwin=netdb libasync pthreads
+packages_solaris=netdb libasync pthreads
 packages_netbsd=netdb libasync
 packages_openbsd=netdb libasync
 packages_win32=netdb
@@ -24,11 +25,12 @@ units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszl
 
 [target]
 dirs=xml image db shedit passrc net fpcunit
-units=$(CLASSES10) contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
+units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex rttiutils bufstream streamex
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
+units_solaris=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
 units_netbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
 units_openbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
 units_linux=process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
@@ -38,7 +40,7 @@ units_os2=resolve ssockets
 units_emx=resolve ssockets
 units_netware=resolve ssockets
 units_netwlibc=resolve ssockets syncobjs
-rsts=$(CLASSES10) ssockets cachecls resolve custapp cgiapp eventlog registry simpleipc
+rsts=ssockets cachecls resolve custapp cgiapp eventlog registry simpleipc
 exampledirs=tests
 
 [compiler]
@@ -49,9 +51,9 @@ includedir_freebsd=unix
 includedir_darwin=unix
 includedir_netbsd=unix
 includedir_openbsd=unix
-includedir_sunos=posix
-includedir_qnx=posix
-includedir_beos=posix
+includedir_solaris=unix
+includedir_qnx=unix
+includedir_beos=unix
 includedir_emx=os2
 sourcedir=$(OS_TARGET) inc
 
@@ -61,20 +63,8 @@ fpcpackage=y
 [default]
 fpcdir=..
 
-[prerules]
-# Also build classes for 1.0.x
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-CLASSES10=classes
-endif
-
 [rules]
-ifdef CLASSES10
-classes$(PPUEXT): $(COMPILER_UNITTARGETDIR)
-	$(COMPILER) -Ficlasses -Ficlasses/$(OS_TARGET) classes/$(OS_TARGET)/classes.pp
-endif
-
 # xmlreg needs the XML units, XML units depend on avl_tree
 xmlreg.pp: avl_tree$(PPUEXT) xml
 
-[rules]
 dbugintf$(PPUEXT): msgintf.pp simpleipc.pp
