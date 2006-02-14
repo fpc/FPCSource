@@ -1,9 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
-    member of the Free Pascal development team.
+    Copyright (c) 2006 by Free Pascal development team
 
-    FPC Pascal system unit for the Win32 API.
+    Low level directory functions
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
