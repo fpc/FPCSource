@@ -379,7 +379,7 @@ begin
   dispose(cd);
 end;
 
-[rocedure SetDate(Year, Month, Day: Word);
+procedure SetDate(Year, Month, Day: Word);
 var
   cd : pClockData;
   oldtime : ttimeval;
@@ -443,25 +443,24 @@ procedure Exec(const Path: PathStr; const ComLine: ComStr);
 var
   tmpPath: array[0..255] of char;
   result : longint;
-  MyLock : longint;
+  tmpLock: longint;
 begin
-  DosError := 0;
-  LastDosExitCode := 0;
-  tmpPath:=PathConv(Path+' '+ComLine);
-  Move(p[1],buf,length(p));
-  buf[Length(p)]:=#0;
+  DosError:= 0;
+  LastDosExitCode:=0;
+  tmpPath:=PathConv(Path)+#0+ComLine+#0; // hacky... :)
     
   { Here we must first check if the command we wish to execute }
   { actually exists, because this is NOT handled by the        }
   { _SystemTagList call (program will abort!!)                 }
 
   { Try to open with shared lock                               }
-  MyLock:=dosLock(Path,SHARED_LOCK);
-  if MyLock <> 0 then
+  tmpLock:=Lock(tmpPath,SHARED_LOCK);
+  if tmpLock<>0 then
     begin
       { File exists - therefore unlock it }
-      Unlock(MyLock);
-      result:=SystemTagList(buf,nil);
+      Unlock(tmpLock);
+      tmpPath[length(Path)]:=' '; // hacky... replaces first #0 from above, to get the whole string. :)
+      result:=SystemTagList(tmpPath,nil);
       { on return of -1 the shell could not be executed }
       { probably because there was not enough memory    }
       if result = -1 then
@@ -834,17 +833,16 @@ begin
   DosError:=0;
   flags:=FIBF_WRITE;
 
+  { By default files are read-write }
+  if attr and ReadOnly <> 0 then flags:=FIBF_READ; { Clear the Fibf_write flags }
+
   { no need for path conversion here, because file opening already }
   { converts the path (KB) }
 
   { create a shared lock on the file }
   tmpLock:=Lock(filerec(f).name,SHARED_LOCK);
-
-  { By default files are read-write }
-  if attr and ReadOnly <> 0 then flags:=FIBF_READ; { Clear the Fibf_write flags }
-
-  if MyLock <> 0 then begin
-    Unlock(MyLock);
+  if tmpLock <> 0 then begin
+    Unlock(tmpLock);
     if not SetProtection(filerec(f).name,flags) then DosError:=5;
   end else
     DosError:=3;
@@ -857,7 +855,7 @@ end;
 ******************************************************************************}
 
 var 
-  strofpaths : string[255];
+  strofpaths : string;
 
 function getpathstring: string;
 var
@@ -895,20 +893,20 @@ begin
 end;
 
 
- Function EnvCount: Longint;
- { HOW TO GET THIS VALUE:                                }
- {   Each time this function is called, we look at the   }
- {   local variables in the Process structure (2.0+)     }
- {   And we also read all files in the ENV: directory    }
-  Begin
-   EnvCount := 0;
-  End;
+function EnvCount: Longint;
+{ HOW TO GET THIS VALUE:                                }
+{   Each time this function is called, we look at the   }
+{   local variables in the Process structure (2.0+)     }
+{   And we also read all files in the ENV: directory    }
+begin
+  EnvCount := 0;
+end;
 
 
- Function EnvStr(Index: LongInt): String;
-  Begin
-    EnvStr:='';
-  End;
+function EnvStr(Index: LongInt): String;
+begin
+  EnvStr:='';
+end;
 
 
 
