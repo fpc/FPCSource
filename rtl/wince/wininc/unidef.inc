@@ -229,6 +229,8 @@ function wvsprintf(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):longint; exte
 
 //'ChooseColorW' not exported but 'ChooseColor' yes
 function ChooseColor(_para1:LPCHOOSECOLOR):WINBOOL; external ComdlgDLL name 'ChooseColor';
+function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+function CreateDialogParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
 function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
 //'EnumDisplaySettingsW' not exported but 'EnumDisplaySettings' with widechar header is
 function EnumDisplaySettings(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODEW):WINBOOL; external UserDLLCore name 'EnumDisplaySettings';
@@ -578,6 +580,18 @@ begin
                                          hWndParent,
                                          lpDialogFunc,
                                          dwInitParam);
+end;
+
+function CreateDialogParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
+begin
+  CreateDialogIndirectParam(hInstance,
+        LPCDLGTEMPLATEW(LoadResource(hInstance, FindResource(hInstance, lpTemplateName, RT_DIALOG))),
+        hWndParent, lpDialogFunc, dwInitParam);
+end;
+
+function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
+begin
+  CreateDialogParam(hInstance, lpName, hWndParent, lpDialogFunc, 0);
 end;
 
 //end wince only
