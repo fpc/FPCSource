@@ -1769,21 +1769,6 @@ implementation
 
     procedure gen_proc_symbol_end(list:Taasmoutput);
       begin
-        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          begin
-            { Insert Ident of the compiler in the main .text section }
-            if (not (cs_create_smart in aktmoduleswitches)) then
-             begin
-               list.insert(Tai_align.Create(const_align(32)));
-               list.insert(Tai_string.Create('FPC '+full_version_string+
-                 ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
-             end;
-
-            { Reference all DEBUGINFO sections from the main .text section }
-            if (cs_debuginfo in aktmoduleswitches) then
-              debuginfo.referencesections(list);
-          end;
-
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
         current_procinfo.procdef.procendtai:=tai(list.last);
@@ -1802,6 +1787,21 @@ implementation
             list.concat(Tai_const.Createname(current_procinfo.procdef.mangledname,AT_FUNCTION,0));
           end;
 
+        if (current_procinfo.procdef.proctypeoption=potype_proginit) then
+          begin
+            { Reference all DEBUGINFO sections from the main .text section }
+            if (cs_debuginfo in aktmoduleswitches) then
+              debuginfo.referencesections(list);
+
+            { Insert Ident of the compiler in the main .text section }
+            if (not (cs_create_smart in aktmoduleswitches)) then
+             begin
+               list.concat(Tai_section.create(sec_data,'',0));
+               list.concat(Tai_align.Create(const_align(32)));
+               list.concat(Tai_string.Create('FPC '+full_version_string+
+                 ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
+             end;
+          end;
       end;
 
 
