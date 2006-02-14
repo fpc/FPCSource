@@ -54,13 +54,16 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_duplicate_names,m_hintdirective,m_add_pointer];
+          m_out,m_default_para,m_duplicate_names,m_hintdirective,m_add_pointer,
+          m_property];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
-          m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective];
+          m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective,
+          m_property];
        objfpcmodeswitches : tmodeswitches=
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para,m_hintdirective];
+          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para,m_hintdirective,
+          m_property];
        tpmodeswitches     : tmodeswitches=
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
