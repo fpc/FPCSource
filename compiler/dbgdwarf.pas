@@ -195,6 +195,7 @@ interface
         nextdefnumber    : longint;
         defnumberlist    : tlist;
 
+        isdwarf64,
         writing_def_dwarf : boolean;
 
         { use this defs to create info for variants and file handles }
@@ -507,14 +508,54 @@ implementation
 
               DW_FORM_flag:
                 asmlist[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
+                
               DW_FORM_data1:
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                 case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
+                  else
+                    internalerror(200602143);
+                end;              
+                
               DW_FORM_data2:
-                asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
+                 case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
+                  else
+                    internalerror(200602144);
+                end;              
+                
               DW_FORM_data4:
-                asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
+                 case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
+                  else
+                    internalerror(200602145);
+                end;              
+                
               DW_FORM_data8:
-                asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
+                 case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
+                  else
+                    internalerror(200602146);
+                end;              
 
               DW_FORM_sdata:
                 case data[i].VType of
@@ -542,7 +583,16 @@ implementation
 
               { block gets only the size, the rest is appended manually by the caller }
               DW_FORM_block1:
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                 case data[i].VType of
+                  vtInteger:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                  vtInt64:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
+                  vtQWord:
+                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
+                  else
+                    internalerror(200602141);
+                end;              
               else
                 internalerror(200601263);
             end;
@@ -1845,14 +1895,20 @@ implementation
         { debug info header }
         objectlibrary.getlabel(lenstartlabel,alt_dbgfile);
         { size }
-        asmlist[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_ptr,
+        { currently we create only 32 bit dwarf }
+        asmlist[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
           lenstartlabel,tasmsymbol.create('.Ledebug_info0',AB_COMMON,AT_DATA)));
 
         asmlist[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
         asmlist[al_dwarf_info].concat(tai_const.create_16bit(2));
         { abbrev table }
-        asmlist[al_dwarf_info].concat(tai_const.createname('.Ldebug_abbrev0',AT_DATA,0));
+        if isdwarf64 then        
+          asmlist[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
+            objectlibrary.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)))
+        else
+          asmlist[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
+            objectlibrary.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)));
         { address size }
         asmlist[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
