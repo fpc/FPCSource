@@ -1489,6 +1489,7 @@ implementation
         { Reference all DEBUGINFO sections from the main .text section }
         if (target_info.system <> system_powerpc_macos) then
           begin
+            list.concat(Tai_section.create(sec_data,'',0));
             { include reference to all debuginfo sections of used units }
             hp:=tused_unit(usedunits.first);
             while assigned(hp) do
