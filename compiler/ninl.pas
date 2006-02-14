@@ -1232,7 +1232,6 @@ implementation
          vr        : bestreal;
          hightree,
          hp        : tnode;
-         srsym     : tsym;
          checkrange : boolean;
       label
          myexit;
@@ -1698,10 +1697,9 @@ implementation
                 begin
                   resulttype:=voidtype;
                   { now we know the type of buffer }
-                  srsym:=search_system_type('SETTEXTBUF');
                   hp:=ccallparanode.create(cordconstnode.create(
                      tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
-                  result:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil,[]);
+                  result:=ccallnode.createintern('SETTEXTBUF',hp);
                   left:=nil;
                 end;
 
