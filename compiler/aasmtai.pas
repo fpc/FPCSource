@@ -382,6 +382,7 @@ interface
           constructor Create_uleb128bit(_value : qword);
           constructor Create_aint(_value : aint);
           constructor Create_sym(_sym:tasmsymbol);
+          constructor Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
@@ -1216,6 +1217,20 @@ implementation
          value:=_value;
          sym:=nil;
          endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_type_sym(_typ:taiconst_type;_sym:tasmsymbol);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         consttype:=_typ;
+         sym:=_sym;
+         endsym:=nil;
+         value:=0;
+         { update sym info }
+         if assigned(sym) then
+           sym.increfs;
       end;
 
 
