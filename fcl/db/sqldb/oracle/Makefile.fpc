@@ -1,0 +1,21 @@
+#
+# Makefile.fpc for SQLDB OracleConnection
+#
+
+[package]
+main=fcl
+
+[target]
+units=oracleconnection
+
+[require]
+packages=oracle
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

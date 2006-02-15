@@ -723,6 +723,9 @@ fcl/db/sqldb/mysql/mysqlconn.inc svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile svneol=native#text/plain
 fcl/db/sqldb/odbc/Makefile.fpc svneol=native#text/plain
 fcl/db/sqldb/odbc/odbcconn.pas svneol=native#text/plain
+fcl/db/sqldb/oracle/Makefile -text
+fcl/db/sqldb/oracle/Makefile.fpc -text
+fcl/db/sqldb/oracle/oracleconnection.pp -text
 fcl/db/sqldb/postgres/Makefile svneol=native#text/plain
 fcl/db/sqldb/postgres/Makefile.fpc svneol=native#text/plain
 fcl/db/sqldb/postgres/fpmake.inc svneol=native#text/plain
