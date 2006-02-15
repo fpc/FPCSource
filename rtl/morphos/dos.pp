@@ -118,58 +118,59 @@ begin
     IsLeapYear:=False;
 end;
 
-Procedure Amiga2DateStamp(Date : LongInt; Var TotalDays,Minutes,Ticks: longint);
+procedure Amiga2DateStamp(Date : LongInt; var TotalDays,Minutes,Ticks: longint);
 { Converts a value in seconds past 1978 to a value in AMIGA DateStamp format }
 { Taken from SWAG and modified to work with the Amiga format - CEC           }
-Var
-  LocalDate : LongInt; Done : Boolean; TotDays : Integer;
+var
+  LocalDate : LongInt; 
+  Done : Boolean; 
+  TotDays : Integer;
   Y: Word;
   H: Word;
   Min: Word;
   S : Word;
-Begin
+begin
   Y   := 1978; H := 0; Min := 0; S := 0;
   TotalDays := 0;
   Minutes := 0;
   Ticks := 0;
   LocalDate := Date;
-  Done := False;
-  While Not Done Do
-  Begin
-    If LocalDate >= SecsPerYear Then
-    Begin
+  Done := false;
+  while not Done do
+  begin
+    if LocalDate >= SecsPerYear then
+    begin
       Inc(Y,1);
       Dec(LocalDate,SecsPerYear);
       Inc(TotalDays,DaysPerYear[12]);
-    End
-    Else
-      Done := True;
-    If (IsLeapYear(Y+1)) And (LocalDate >= SecsPerLeapYear) And
-       (Not Done) Then
-    Begin
+    end else
+      Done := true;
+    if (IsLeapYear(Y+1)) and (LocalDate >= SecsPerLeapYear) and
+       (Not Done) then
+    begin
       Inc(Y,1);
       Dec(LocalDate,SecsPerLeapYear);
       Inc(TotalDays,DaysPerLeapYear[12]);
-    End;
-  End; { END WHILE }
-  Done := False;
+    end;
+  end; { END WHILE }
+
   TotDays := LocalDate Div SecsPerDay;
   { Total number of days }
   TotalDays := TotalDays + TotDays;
-    Dec(LocalDate,TotDays*SecsPerDay);
+  Dec(LocalDate,TotDays*SecsPerDay);
   { Absolute hours since start of day }
   H := LocalDate Div SecsPerHour;
   { Convert to minutes }
   Minutes := H*60;
-    Dec(LocalDate,(H * SecsPerHour));
+  Dec(LocalDate,(H * SecsPerHour));
   { Find the remaining minutes to add }
   Min := LocalDate Div SecsPerMinute;
-    Dec(LocalDate,(Min * SecsPerMinute));
+  Dec(LocalDate,(Min * SecsPerMinute));
   Minutes:=Minutes+Min;
   { Find the number of seconds and convert to ticks }
   S := LocalDate;
   Ticks:=TICKSPERSECOND*S;
-End;
+end;
 
 
 function dosSetProtection(const name: string; mask:longint): Boolean;
@@ -182,7 +183,8 @@ begin
 end;
 
 function dosSetFileDate(name: string; p : PDateStamp): Boolean;
-var buffer : array[0..255] of Char;
+var 
+  buffer : array[0..255] of Char;
 begin
   move(name[1],buffer,length(name));
   buffer[length(name)]:=#0;
@@ -204,17 +206,16 @@ end;
 { Here are a lot of stuff just for setdate and settime }
 
 var
-    TimerBase   : Pointer;
+  TimerBase : Pointer;
 
 
 procedure NewList (list: pList);
 begin
-    with list^ do
-    begin
-        lh_Head     := pNode(@lh_Tail);
-        lh_Tail     := NIL;
-        lh_TailPred := pNode(@lh_Head)
-    end
+  with list^ do begin
+    lh_Head     := pNode(@lh_Tail);
+    lh_Tail     := NIL;
+    lh_TailPred := pNode(@lh_Head)
+  end;
 end;
 
 function CreateExtIO (port: pMsgPort; size: Longint): pIORequest;
@@ -288,7 +289,7 @@ begin
 end;
 
 
-Function Create_Timer(theUnit : longint) : pTimeRequest;
+function Create_Timer(theUnit : longint) : pTimeRequest;
 var
     Error : longint;
     TimerPort : pMsgPort;
@@ -363,26 +364,26 @@ begin
    get_sys_time := 0;
 end;
 
-Procedure GetDate(Var Year, Month, MDay, WDay: Word);
-Var
+procedure GetDate(Var Year, Month, MDay, WDay: Word);
+var
   cd    : pClockData;
   oldtime : ttimeval;
 begin
-  New(cd);
+  new(cd);
   get_sys_time(@oldtime);
   Amiga2Date(oldtime.tv_secs,cd);
   Year  := cd^.year;
   Month := cd^.month;
   MDay  := cd^.mday;
   WDay  := cd^.wday;
-  Dispose(cd);
+  dispose(cd);
 end;
 
-Procedure SetDate(Year, Month, Day: Word);
+procedure SetDate(Year, Month, Day: Word);
 var
   cd : pClockData;
   oldtime : ttimeval;
-Begin
+begin
   new(cd);
   get_sys_time(@oldtime);
   Amiga2Date(oldtime.tv_secs,cd);
@@ -391,29 +392,29 @@ Begin
   cd^.mday := Day;
   set_new_time(Date2Amiga(cd),0);
   dispose(cd);
-  End;
+end;
 
-Procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
-Var
+procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
+var
   cd      : pClockData;
   oldtime : ttimeval;
 begin
-  New(cd);
+  new(cd);
   get_sys_time(@oldtime);
   Amiga2Date(oldtime.tv_secs,cd);
   Hour   := cd^.hour;
   Minute := cd^.min;
   Second := cd^.sec;
   Sec100 := oldtime.tv_micro div 10000;
-  Dispose(cd);
-END;
+  dispose(cd);
+end;
 
 
 Procedure SetTime(Hour, Minute, Second, Sec100: Word);
 var
   cd : pClockData;
   oldtime : ttimeval;
-Begin
+begin
   new(cd);
   get_sys_time(@oldtime);
   Amiga2Date(oldtime.tv_secs,cd);
@@ -422,7 +423,7 @@ Begin
   cd^.sec := Second;
   set_new_time(Date2Amiga(cd), Sec100 * 10000);
   dispose(cd);
-  End;
+end;
 
 
 function GetMsCount: int64;
@@ -438,55 +439,49 @@ end;
 ******************************************************************************}
 
 
-Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
-  var
-   p : string;
-   buf: array[0..255] of char;
-   result : longint;
-   MyLock : longint;
-   i : Integer;
-  Begin
-   DosError := 0;
-   LastdosExitCode := 0;
-   p:=Path+' '+ComLine;
-   { allow backslash as slash }
-   for i:=1 to length(p) do
-       if p[i]='\' then p[i]:='/';
-   Move(p[1],buf,length(p));
-   buf[Length(p)]:=#0;
-   { Here we must first check if the command we wish to execute }
-   { actually exists, because this is NOT handled by the        }
-   { _SystemTagList call (program will abort!!)                 }
+procedure Exec(const Path: PathStr; const ComLine: ComStr);
+var
+  tmpPath: array[0..255] of char;
+  result : longint;
+  tmpLock: longint;
+begin
+  DosError:= 0;
+  LastDosExitCode:=0;
+  tmpPath:=PathConv(Path)+#0+ComLine+#0; // hacky... :)
+    
+  { Here we must first check if the command we wish to execute }
+  { actually exists, because this is NOT handled by the        }
+  { _SystemTagList call (program will abort!!)                 }
 
-   { Try to open with shared lock                               }
-   MyLock:=dosLock(Path,SHARED_LOCK);
-   if MyLock <> 0 then
-     Begin
-        { File exists - therefore unlock it }
-        Unlock(MyLock);
-        result:=SystemTagList(buf,nil);
-        { on return of -1 the shell could not be executed }
-        { probably because there was not enough memory    }
-        if result = -1 then
-          DosError:=8
-        else
-          LastDosExitCode:=word(result);
-     end
-   else
+  { Try to open with shared lock                               }
+  tmpLock:=Lock(tmpPath,SHARED_LOCK);
+  if tmpLock<>0 then
+    begin
+      { File exists - therefore unlock it }
+      Unlock(tmpLock);
+      tmpPath[length(Path)]:=' '; // hacky... replaces first #0 from above, to get the whole string. :)
+      result:=SystemTagList(tmpPath,nil);
+      { on return of -1 the shell could not be executed }
+      { probably because there was not enough memory    }
+      if result = -1 then
+        DosError:=8
+      else
+        LastDosExitCode:=word(result);
+    end
+  else
     DosError:=3;
-  End;
+end;
 
 
-  Procedure GetCBreak(Var BreakValue: Boolean);
-  Begin
-   breakvalue := system.BreakOn;
-  End;
+procedure GetCBreak(Var BreakValue: Boolean);
+begin
+  breakvalue := system.BreakOn;
+end;
 
-
- Procedure SetCBreak(BreakValue: Boolean);
-  Begin
-   system.Breakon := BreakValue;
-  End;
+procedure SetCBreak(BreakValue: Boolean);
+begin
+  system.Breakon := BreakValue;
+end;
 
 
 {******************************************************************************
@@ -785,14 +780,14 @@ end;
     if assigned(DateStamp) then Dispose(DateStamp);
   End;
 
-  Procedure getfattr(var f; var attr : word);
-  var
+procedure getfattr(var f; var attr : word);
+var
     info : pFileInfoBlock;
     MyLock : Longint;
     flags: word;
     Str: String;
     i: integer;
-  Begin
+begin
     DosError:=0;
     flags:=0;
     New(info);
@@ -830,37 +825,28 @@ end;
   End;
 
 
-Procedure setfattr (var f;attr : word);
-  var
-   flags: longint;
-   MyLock : longint;
-   str: string;
-   i: integer;
-  Begin
-    DosError:=0;
-    flags:=FIBF_WRITE;
-    { open with shared lock }
-    Str := StrPas(filerec(f).name);
-    for i:=1 to length(Str) do
-     if str[i]='\' then str[i]:='/';
+procedure setfattr(var f; attr : word);
+var
+  flags: longint;
+  tmpLock : longint;
+begin
+  DosError:=0;
+  flags:=FIBF_WRITE;
 
-    MyLock:=dosLock(Str,SHARED_LOCK);
+  { By default files are read-write }
+  if attr and ReadOnly <> 0 then flags:=FIBF_READ; { Clear the Fibf_write flags }
 
-    { By default files are read-write }
-    if attr AND ReadOnly <> 0 then
-      { Clear the Fibf_write flags }
-      flags:=FIBF_READ;
+  { no need for path conversion here, because file opening already }
+  { converts the path (KB) }
 
-
-    if MyLock <> 0 then
-     Begin
-       Unlock(MyLock);
-       if Not dosSetProtection(Str,flags) then
-         DosError:=5;
-     end
-    else
-      DosError:=3;
-  End;
+  { create a shared lock on the file }
+  tmpLock:=Lock(filerec(f).name,SHARED_LOCK);
+  if tmpLock <> 0 then begin
+    Unlock(tmpLock);
+    if not SetProtection(filerec(f).name,flags) then DosError:=5;
+  end else
+    DosError:=3;
+end;
 
 
 
@@ -868,8 +854,8 @@ Procedure setfattr (var f;attr : word);
                              --- Environment ---
 ******************************************************************************}
 
-var
-StrofPaths : string[255];
+var 
+  strofpaths : string;
 
 function getpathstring: string;
 var
@@ -907,20 +893,20 @@ begin
 end;
 
 
- Function EnvCount: Longint;
- { HOW TO GET THIS VALUE:                                }
- {   Each time this function is called, we look at the   }
- {   local variables in the Process structure (2.0+)     }
- {   And we also read all files in the ENV: directory    }
-  Begin
-   EnvCount := 0;
-  End;
+function EnvCount: Longint;
+{ HOW TO GET THIS VALUE:                                }
+{   Each time this function is called, we look at the   }
+{   local variables in the Process structure (2.0+)     }
+{   And we also read all files in the ENV: directory    }
+begin
+  EnvCount := 0;
+end;
 
 
- Function EnvStr(Index: LongInt): String;
-  Begin
-    EnvStr:='';
-  End;
+function EnvStr(Index: LongInt): String;
+begin
+  EnvStr:='';
+end;
 
 
 
@@ -995,9 +981,9 @@ begin
    UnLockDosList(LDF_DEVICES or LDF_READ );
 end;
 
-Begin
- DosError:=0;
- numberofdevices := 0;
- StrOfPaths := '';
- ReadInDevices;
-End.
+begin
+  DosError:=0;
+  numberofdevices := 0;
+  StrOfPaths := '';
+  ReadInDevices;
+end.
