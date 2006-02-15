@@ -155,7 +155,8 @@ than 255 characters. That's why using Ansi Strings}
          m_out,                 { support the calling convention OUT }
          m_default_para,        { support default parameters }
          m_hintdirective,       { support hint directives }
-         m_duplicate_names      { allow locals/paras to have duplicate names of globals }
+         m_duplicate_names,     { allow locals/paras to have duplicate names of globals }
+         m_property             { allow properties }
        );
        tmodeswitches = set of tmodeswitch;
 
