@@ -65,8 +65,8 @@ Var InHandle,OutHandle : Longint;
 begin
   if CreatePipeHandles (InHandle, OutHandle) then
     begin
-    Inpipe:=TinputPipeStream.Create (InHandle);
-    OutPipe:=ToutputPipeStream.Create (OutHandle);
+    InPipe:=TInputPipeStream.Create (InHandle);
+    OutPipe:=TOutputPipeStream.Create (OutHandle);
     end
   Else
     Raise EPipeCreation.Create (EPipeMsg)

@@ -36,8 +36,8 @@ Type
 
   TProcessPriority = (ppHigh,ppIdle,ppNormal,ppRealTime);
 
-  TProcessOptions = Set of TPRocessOption;
-  TstartUpoptions = set of TStartupOption;
+  TProcessOptions = set of TProcessOption;
+  TStartupOptions = set of TStartupOption;
 
 
 Type
@@ -54,16 +54,13 @@ Type
     FConsoleTitle : String;
     FCommandLine : String;
     FCurrentDirectory : String;
-    FDeskTop : String;
+    FDesktop : String;
     FEnvironment : Tstrings;
     FExitCode : Cardinal;
     FShowWindow : TShowWindowOptions;
     FInherithandles : Boolean;
-    FInputSTream  : TOutputPipeStream;
-    FOutputStream : TInPutPipeStream;
-    FStdErrStream : TInputPipeStream;
     FRunning : Boolean;
-    FPRocessPriority : TProcessPriority;
+    FProcessPriority : TProcessPriority;
     dwXCountchars,
     dwXSize,
     dwYsize,
@@ -82,14 +79,17 @@ Type
     Procedure SetWindowRows (Value : Cardinal);
     Procedure SetWindowTop (Value : Cardinal);
     Procedure SetWindowWidth (Value : Cardinal);
-    Procedure CreateStreams(InHandle,OutHandle,Errhandle : Longint);
-    procedure SetApplicationname(const Value: String);
+    procedure SetApplicationName(const Value: String);
     procedure SetProcessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
   Protected  
+    FInputStream  : TOutputPipeStream;
+    FOutputStream : TInputPipeStream;
+    FStderrStream : TInputPipeStream;
     procedure CloseProcessHandles; virtual;
+    Procedure CreateStreams(InHandle,OutHandle,ErrHandle : Longint);virtual;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -104,30 +104,30 @@ Type
     Property ThreadHandle : THandle Read FThreadHandle;
     Property ProcessID : Integer Read FProcessID;
     Property ThreadID : Integer Read FThreadID;
-    Property Input  : TOutPutPipeStream Read FInPutStream;
-    Property OutPut : TInputPipeStream  Read FOutPutStream;
-    Property StdErr : TinputPipeStream  Read FStdErrStream;
+    Property Input  : TOutputPipeStream Read FInputStream;
+    Property Output : TInputPipeStream  Read FOutputStream;
+    Property Stderr : TinputPipeStream  Read FStderrStream;
     Property ExitStatus : Integer Read GetExitStatus;
     Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
   Published
-    Property Active : Boolean Read Getrunning Write SetActive;
-    Property ApplicationName : String Read FApplicationname Write SetApplicationname;
+    Property Active : Boolean Read GetRunning Write SetActive;
+    Property ApplicationName : String Read FApplicationName Write SetApplicationName;
     Property CommandLine : String Read FCommandLine Write FCommandLine;
     Property ConsoleTitle : String Read FConsoleTitle Write FConsoleTitle;
     Property CurrentDirectory : String Read FCurrentDirectory Write FCurrentDirectory;
-    Property DeskTop : String Read FDeskTop Write FDeskTop;
+    Property Desktop : String Read FDesktop Write FDesktop;
     Property Environment : TStrings Read FEnvironment Write SetEnvironment;
-    Property Options : TProcessOptions Read FProcessOptions Write SetPRocessOptions;
+    Property Options : TProcessOptions Read FProcessOptions Write SetProcessOptions;
     Property Priority : TProcessPriority Read FProcessPriority Write FProcessPriority;
-    Property StartUpOptions : TStartUpOptions Read FStartUpOptions Write FStartupOptions;
+    Property StartupOptions : TStartupOptions Read FStartupOptions Write FStartupOptions;
     Property Running : Boolean Read GetRunning;
     Property ShowWindow : TShowWindowOptions Read FShowWindow Write SetShowWindow;
-    Property WindowColumns : Cardinal Read dwXCountchars Write SetWindowColumns;
-    Property WindowHeight : Cardinal Read dwYsize Write SetWindowHeight;
-    Property WindowLeft : Cardinal Read dwx Write SetWindowLeft;
-    Property WindowRows : Cardinal Read dwYcountChars Write SetWindowRows;
-    Property WindowTop : Cardinal Read dwy Write SetWindowTop ;
-    Property WindowWidth : Cardinal Read dwXsize Write SetWindowWidth;
+    Property WindowColumns : Cardinal Read dwXCountChars Write SetWindowColumns;
+    Property WindowHeight : Cardinal Read dwYSize Write SetWindowHeight;
+    Property WindowLeft : Cardinal Read dwX Write SetWindowLeft;
+    Property WindowRows : Cardinal Read dwYCountChars Write SetWindowRows;
+    Property WindowTop : Cardinal Read dwY Write SetWindowTop ;
+    Property WindowWidth : Cardinal Read dwXSize Write SetWindowWidth;
     Property FillAttribute : Cardinal read FFillAttribute Write FFillAttribute;
   end;
 
@@ -166,8 +166,8 @@ Procedure TProcess.FreeStreams;
   end;
 
 begin
-  If FStdErrStream<>FOutputStream then
-    FreeStream(FStdErrStream);
+  If FStderrStream<>FOutputStream then
+    FreeStream(FStderrStream);
   FreeStream(FOutputStream);
   FreeStream(FInputStream);
 end;
@@ -191,14 +191,14 @@ begin
 end;
 
 
-Procedure TProcess.CreateStreams(InHandle,OutHandle,Errhandle : Longint);
+Procedure TProcess.CreateStreams(InHandle,OutHandle,ErrHandle : Longint);
 
 begin
   FreeStreams;
   FInputStream:=TOutputPipeStream.Create (InHandle);
   FOutputStream:=TInputPipeStream.Create (OutHandle);
-  if Not (poStdErrToOutPut in FProcessOptions) then
-    FStdErrStream:=TInputPipeStream.Create(ErrHandle);
+  if Not (poStderrToOutput in FProcessOptions) then
+    FStderrStream:=TInputPipeStream.Create(ErrHandle);
 end;
 
 
@@ -206,7 +206,7 @@ Procedure TProcess.SetWindowColumns (Value : Cardinal);
 
 begin
   if Value<>0 then
-    Include(FStartUpOptions,suoUseCountChars);
+    Include(FStartupOptions,suoUseCountChars);
   dwXCountChars:=Value;
 end;
 
@@ -215,7 +215,7 @@ Procedure TProcess.SetWindowHeight (Value : Cardinal);
 
 begin
   if Value<>0 then
-    include(FStartUpOptions,suoUsePosition);
+    include(FStartupOptions,suoUsePosition);
   dwYSize:=Value;
 end;
 
@@ -223,7 +223,7 @@ Procedure TProcess.SetWindowLeft (Value : Cardinal);
 
 begin
   if Value<>0 then
-    Include(FStartUpOptions,suoUseSize);
+    Include(FStartupOptions,suoUseSize);
   dwx:=Value;
 end;
 
@@ -231,14 +231,14 @@ Procedure TProcess.SetWindowTop (Value : Cardinal);
 
 begin
   if Value<>0 then
-    Include(FStartUpOptions,suoUsePosition);
+    Include(FStartupOptions,suoUsePosition);
   dwy:=Value;
 end;
 
 Procedure TProcess.SetWindowWidth (Value : Cardinal);
 begin
   If (Value<>0) then
-    Include(FStartUpOptions,suoUseSize);
+    Include(FStartupOptions,suoUseSize);
   dwXSize:=Value;
 end;
 
@@ -255,7 +255,7 @@ end;
 
 Procedure TProcess.SetWindowRect (Value : Trect);
 begin
-  Include(FStartupOptions,suouseSize);
+  Include(FStartupOptions,suoUseSize);
   Include(FStartupOptions,suoUsePosition);
   With Value do
     begin
@@ -271,14 +271,14 @@ Procedure TProcess.SetWindowRows (Value : Cardinal);
 
 begin
   if Value<>0 then
-    Include(FStartUpOptions,suoUseCountChars);
+    Include(FStartupOptions,suoUseCountChars);
   dwYCountChars:=Value;
 end;
 
-procedure TProcess.SetApplicationname(const Value: String);
+procedure TProcess.SetApplicationName(const Value: String);
 begin
-  FApplicationname := Value;
-  If (csdesigning in ComponentState) and
+  FApplicationName := Value;
+  If (csDesigning in ComponentState) and
      (FCommandLine='') then
     FCommandLine:=Value;
 end;
@@ -286,10 +286,10 @@ end;
 procedure TProcess.SetProcessOptions(const Value: TProcessOptions);
 begin
   FProcessOptions := Value;
-  If poNewConsole in FPRocessOptions then
-    Exclude(FProcessoptions,poNoConsole);
+  If poNewConsole in FProcessOptions then
+    Exclude(FProcessOptions,poNoConsole);
   if poRunSuspended in FProcessOptions then
-    Exclude(FPRocessoptions,poWaitOnExit);
+    Exclude(FProcessOptions,poWaitOnExit);
 end;
 
 procedure TProcess.SetActive(const Value: Boolean);
