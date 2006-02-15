@@ -1012,120 +1012,104 @@ function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
-procedure int_str(l : longint;out s : string);
-var
-  value: longint;
-  negative: boolean;
+procedure int_str(l:longint;var s:string);
 
-  begin
-     negative := false;
-     s:='';
-     { Workaround: }
-     if l=longint($80000000) then
-       begin
-         s:='-2147483648';
-         exit;
-       end;
-     { handle case where l = 0 }
-     if l = 0 then
-       begin
-         s:='0';
-         exit;
-       end;
-     If l < 0 then
-       begin
-         negative := true;
-         value:=abs(l);
-       end
-     else
-         value:=l;
-     { handle non-zero case }
-     while value>0 do
-       begin
-         s:=char((value mod 10)+ord('0'))+s;
-         value := value div 10;
-       end;
-     if negative then
-       s := '-' + s;
-  end;
+var m:longint;
+    p:byte;
 
+begin
+  s[1]:='-';     {Will be overwritten if positive.}
+  p:=byte(l<0);  {Number of characters to start with.}
+  {Count number of characters.}
+  m:=l;
+  repeat
+    inc(p);
+    m:=m div 10;
+  until m=0;
+  {Generate string.}
+  s[0]:=char(p);
+  repeat
+    s[p]:=char(abs(l mod 10)+byte('0'));
+    l:=l div 10;
+    dec(p);
+  until l=0;
+end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
-procedure int_str(l : longword;out s : string);
+procedure int_str(l:longword;var s:string);
+
+var m:longword;
+    p:byte;
+
 begin
-  s:='';
-  if l = 0 then
-  begin
-    s := '0';
-    exit;
-  end;
-  while l>0 do
-    begin
-       s:=char(ord('0')+(l mod 10))+s;
-       l:=l div 10;
-    end;
+  p:=0;
+  {Count number of characters.}
+  m:=l;
+  repeat
+    inc(p);
+    m:=m div 10;
+  until m=0;
+  {Generate string.}
+  s[0]:=char(p);
+  repeat
+    s[p]:=char((l mod 10)+byte('0'));
+    l:=l div 10;
+    dec(p);
+  until l=0;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
-procedure int_str(l : int64;out s : string);
-var
-  value: int64;
-  negative: boolean;
+procedure int_str(l:int64;var s:string);
 
-  begin
-     negative := false;
-     s:='';
-     { Workaround: }
-     if l=int64($8000000000000000) then
-       begin
-         s:='-9223372036854775808';
-         exit;
-       end;
-     { handle case where l = 0 }
-     if l = 0 then
-       begin
-         s:='0';
-         exit;
-       end;
-     If l < 0 then
-       begin
-         negative := true;
-         value:=abs(l);
-       end
-     else
-         value:=l;
-     { handle non-zero case }
-     while value>0 do
-       begin
-         s:=char((value mod 10)+ord('0'))+s;
-         value := value div 10;
-       end;
-     if negative then
-       s := '-' + s;
-  end;
+var m:int64;
+    p:byte;
 
+begin
+  s[1]:='-';     {Will be overwritten if positive.}
+  p:=byte(l<0);  {Number of characters to start with.}
+  {Count number of characters.}
+  m:=l;
+  repeat
+    inc(p);
+    m:=m div 10;
+  until m=0;
+  {Generate string.}
+  s[0]:=char(p);
+  repeat
+    s[p]:=char(abs(l mod 10)+byte('0'));
+    l:=l div 10;
+    dec(p);
+  until l=0;
+end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
-procedure int_str(l : qword;out s : string);
+procedure int_str(l:qword;var s:string);
+
+var m:qword;
+    p:byte;
+
 begin
-  s:='';
-  if l = 0 then
-  begin
-    s := '0';
-    exit;
-  end;
-  while l>0 do
-    begin
-       s:=char(ord('0')+(l mod 10))+s;
-       l:=l div 10;
-    end;
+  p:=0;
+  {Count number of characters.}
+  m:=l;
+  repeat
+    inc(p);
+    m:=m div 10;
+  until m=0;
+  {Generate string.}
+  s[0]:=char(p);
+  repeat
+    s[p]:=char((l mod 10)+byte('0'));
+    l:=l div 10;
+    dec(p);
+  until l=0;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
