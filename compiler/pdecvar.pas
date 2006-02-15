@@ -347,7 +347,10 @@ implementation
                      procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resulttype.def)
-                      and (not is_64bitint(pt.resulttype.def)) then
+{$ifndef cpu64}
+                      and (not is_64bitint(pt.resulttype.def))
+{$endif cpu64}
+                      then
                      begin
                        if is_integer(pt.resulttype.def) then
                          inserttypeconv_internal(pt,s32inttype);
