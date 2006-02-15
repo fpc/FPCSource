@@ -257,7 +257,8 @@ implementation
         case target_info.system of
          system_i386_OS2,
          system_i386_EMX : ;
-         system_powerpc_darwin :
+         system_powerpc_darwin,
+         system_i386_darwin:
            begin
              if atype=sec_stub then
                AsmWrite('.section ');
@@ -272,7 +273,7 @@ implementation
             AsmWrite(', "a", @progbits');
           sec_stub :
             begin
-              if target_info.system=system_powerpc_darwin then
+              if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
                 AsmWrite(',__symbol_stub1,symbol_stubs,pure_instructions,16');
             end;
         end;
@@ -473,7 +474,7 @@ implementation
              begin
                if tai_align(hp).aligntype>1 then
                  begin
-                   if target_info.system <> system_powerpc_darwin then
+                   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
                      begin
                        AsmWrite(#9'.balign '+tostr(tai_align(hp).aligntype));
                        if tai_align(hp).use_op then
@@ -506,7 +507,7 @@ implementation
 
            ait_datablock :
              begin
-               if target_info.system=system_powerpc_darwin then
+               if target_info.system in [system_powerpc_darwin,system_i386_darwin] then
                  begin
                    {On Mac OS X you can't have common symbols in a shared
                     library, since those are in the TEXT section and the text section is

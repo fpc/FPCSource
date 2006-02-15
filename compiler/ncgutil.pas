@@ -1690,8 +1690,7 @@ implementation
         { call startup helpers from main program }
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
          begin
-           if ((target_info.system = system_powerpc_darwin) or
-               (target_info.system = system_powerpc_macos)) and
+           if (target_info.system in [system_powerpc_darwin,system_i386_darwin,system_powerpc_macos]) and
               not(current_module.islibrary) then
              begin
               { the parameters are already in the right registers }

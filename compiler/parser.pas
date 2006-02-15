@@ -253,10 +253,8 @@ implementation
            asmlist[i]:=Taasmoutput.create;
 
          { PIC data }
-{$ifdef powerpc}
-         if target_info.system=system_powerpc_darwin then
+         if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
            asmlist[al_picdata].concat(tai_directive.create(asd_non_lazy_symbol_pointer,''));
-{$endif powerpc}
 
          { Resource strings }
          cresstr.resourcestrings:=Tresourcestrings.Create;

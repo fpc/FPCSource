@@ -942,7 +942,7 @@ implementation
                     include(vs.varoptions,vo_is_C_var);
 
                    if (is_dll) and
-                      (target_info.system = system_powerpc_darwin) then
+                      (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
                      C_Name := target_info.Cprefix+C_Name;
 
                    if export_var then
