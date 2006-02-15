@@ -292,3 +292,8 @@ const
   syscall_nr_request_key = 270;
   syscall_nr_keyctl = 271;
   syscall_nr_waitid = 272;
+  syscall_nr_ioprio_set = 273;
+  syscall_nr_ioprio_get = 274;
+  syscall_nr_inotify_init = 275;
+  syscall_nr_inotify_add_watch = 276;
+  syscall_nr_inotify_rm_watch = 277;
