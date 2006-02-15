@@ -4957,6 +4957,32 @@ Const
      VK_RMENU = 165;
   { ImmGetVirtualKey  }
      VK_PROCESSKEY = 229;
+     
+     // these constants are xda-specific:
+     VK_TOUCHPAD   = $01; // VK_LBUTTON
+     VK_ANSWER     = $72; // VK_F5
+     VK_HANGUP     = $73; // VK_F4
+     VK_VOLUME     = $75; // VK_F6
+
+     VK_TOPBUTTONS = $5b; // VK_LWIN
+     // VK_TOPBUTTONS is sent together with one of these:
+     VK_CALENDER   = $C1;
+     VK_CONTACTS   = $C2;
+
+     // note that when holding the navigator button down continuously,
+     // occasionally the OS will report no keys pressed down.
+
+     VK_NAVIGATOR_MOVE = $84; // VK_F21
+     // VK_NAVIGATOR_MOVE is sent together with one of these:
+     VK_NAVIGATE_LEFT  = $25; // VK_LEFT
+     VK_NAVIGATE_UP    = $26; // VK_UP
+     VK_NAVIGATE_RIGHT = $27; // VK_RIGHT
+     VK_NAVIGATE_DOWN  = $28; // VK_DOWN
+
+     VK_NAVIGATOR_SELECT = $86; // VK_F23
+
+     VK_ONOFF            = $DF; // VK_OFF
+
   { Keystroke Message Flags  }
      KF_ALTDOWN = 8192;
      KF_DLGMODE = 2048;
