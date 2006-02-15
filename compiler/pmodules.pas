@@ -564,13 +564,10 @@ implementation
            sorg:=orgpattern;
            consume(_ID);
            { support "<unit> in '<file>'" construct, but not for tp7 }
-           if not(m_tp7 in aktmodeswitches) then
-            begin
-              if try_to_consume(_OP_IN) then
-               fn:=FixFileName(get_stringconst)
-              else
-               fn:='';
-            end;
+           fn:='';
+           if not(m_tp7 in aktmodeswitches) and
+              try_to_consume(_OP_IN) then
+             fn:=FixFileName(get_stringconst);
            { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
