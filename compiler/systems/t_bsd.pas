@@ -260,7 +260,7 @@ Constructor TLinkerBSD.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
-   if (target_info.system <> system_powerpc_darwin) then
+   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
      LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true)
    else
      { Mac OS X doesn't have a /lib }
@@ -274,12 +274,12 @@ procedure TLinkerBSD.SetDefaultInfo;
 }
 begin
   LibrarySuffix:=' ';
-  LdSupportsNoResponseFile := (target_info.system in [system_m68k_netbsd,system_powerpc_darwin]);
+  LdSupportsNoResponseFile := (target_info.system in [system_m68k_netbsd,system_powerpc_darwin,system_i386_darwin]);
   with Info do
    begin
      if LdSupportsNoResponseFile then
        begin
-         if (target_info.system <> system_powerpc_darwin) then
+         if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE `cat $RES`';
              DllCmd[1]:='ld $OPT -shared -L. -o $EXE `cat $RES`'
@@ -295,7 +295,7 @@ begin
          ExeCmd[1]:='ld $OPT $DYNLINK $STATIC  $GCSECTIONS $STRIP -L. -o $EXE $RES';
          DllCmd[1]:='ld $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
        end;
-     if (target_info.system <> system_powerpc_darwin) then
+     if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
        DllCmd[2]:='strip --strip-unneeded $EXE'
      else
        DllCmd[2]:='strip -x $EXE';
@@ -338,7 +338,7 @@ Var
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
-  if target_info.system <> system_powerpc_darwin then
+  if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
     begin
       linkdynamic:=not(SharedLibFiles.empty);
       linklibc:=(SharedLibFiles.Find('c')<>nil);
@@ -417,7 +417,7 @@ begin
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc and
-     (target_info.system <> system_powerpc_darwin) then
+     not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
    begin
      if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);
@@ -490,7 +490,7 @@ begin
    end;
   { objects which must be at the end }
   if linklibc and
-     (target_info.system <> system_powerpc_darwin) then
+     not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
    begin
      Fl1:=librarysearchpath.FindFile('crtend.o',s1);
      Fl2:=librarysearchpath.FindFile('crtn.o',s2);
@@ -507,7 +507,7 @@ begin
   { ignore the fact that our relocations are in non-writable sections, }
   { will be fixed once we have pic support                             }
   if isdll and
-     (target_info.system = system_powerpc_darwin) then
+     (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
     LinkRes.Add('-read_only_relocs suppress');
 { Write and Close response }
   linkres.writetodisk;
@@ -545,7 +545,7 @@ begin
         StaticStr:='-static';
     end;
   if (cs_link_strip in aktglobalswitches) then
-   if (target_info.system <> system_powerpc_darwin) then
+   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
      StripStr:='-s'
    else
      StripStr:='-x';
@@ -560,7 +560,7 @@ begin
 
   if CShared Then
    begin
-   if  (target_info.system <> system_powerpc_darwin) then
+   if  not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
      DynLinKStr:=DynLinkStr+' --shared'
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
