@@ -395,6 +395,7 @@ const
   sym_h_uninitialized_variable=05058;
   sym_w_function_result_uninitialized=05059;
   sym_h_function_result_uninitialized=05060;
+  sym_w_identifier_only_read=05061;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -668,9 +669,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39580;
+  MsgTxtSize = 39628;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,74,219,59,61,47,100,20,135,60,
+    19,74,219,59,62,47,100,20,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

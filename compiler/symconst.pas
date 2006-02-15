@@ -369,7 +369,7 @@ type
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
-    vs_declared,vs_initialised,vs_read,vs_written,vs_readwritten
+    vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten
   );
 
   tvarspez = (vs_value,vs_const,vs_var,vs_out);

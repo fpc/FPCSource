@@ -1755,6 +1755,8 @@ implementation
       begin
          inherited create(n,vsp,tt,vopts);
          typ:=paravarsym;
+         if (vsp in [vs_var,vs_value,vs_const]) then
+           varstate := vs_initialised;
          paranr:=nr;
          paraloc[calleeside].init;
          paraloc[callerside].init;
