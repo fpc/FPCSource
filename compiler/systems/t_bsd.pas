@@ -98,14 +98,14 @@ implementation
     procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
         { insert sharedlibrary }
-{        current_module.linkothersharedlibs.add(SplitName(module),link_allways); }
+        current_module.linkothersharedlibs.add(SplitName(module),link_always);
       end;
 
 
     procedure timportlibdarwin.importvariable(vs:tglobalvarsym;const name,module:string);
       begin
         { insert sharedlibrary }
-{        current_module.linkothersharedlibs.add(SplitName(module),link_allways); }
+        current_module.linkothersharedlibs.add(SplitName(module),link_always);
         { the rest is handled in the nppcld.pas tppcloadnode }
         vs.set_mangledname(name);
       end;
@@ -134,14 +134,14 @@ end;
 procedure timportlibbsd.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_always);
 end;
 
 
 procedure timportlibbsd.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_always);
   { reset the mangledname and turn off the dll_var option }
   vs.set_mangledname(name);
   exclude(vs.varoptions,vo_is_dll_var);

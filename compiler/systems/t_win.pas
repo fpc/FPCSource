@@ -136,7 +136,7 @@ implementation
          if not GenerateImportSection then
            begin
              hs:=AddExtension(module,target_info.sharedlibext);
-             current_module.linkdlls.add(hs,link_allways);
+             current_module.linkdlls.add(hs,link_always);
              exit;
            end;
 
@@ -218,7 +218,7 @@ implementation
          if not GenerateImportSection then
            begin
              hs:=AddExtension(module,target_info.sharedlibext);
-             current_module.linkdlls.add(hs,link_allways);
+             current_module.linkdlls.add(hs,link_always);
              exit;
            end;
 

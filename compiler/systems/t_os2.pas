@@ -273,7 +273,7 @@ var
 begin
     libname:=FixFileName(S + Target_Info.StaticCLibExt);
     seq_no:=1;
-    current_module.linkotherstaticlibs.add(libname,link_allways);
+    current_module.linkotherstaticlibs.add(libname,link_always);
     assign(out_file,current_module.outputpath^+libname);
     rewrite(out_file,1);
     blockwrite(out_file,ar_magic,sizeof(ar_magic));

@@ -470,7 +470,7 @@ implementation
         else
           s:= trimspace(current_scanner.readcomment);
         s:=AddExtension(FixFileName(s),target_info.objext);
-        current_module.linkotherofiles.add(s,link_allways);
+        current_module.linkotherofiles.add(s,link_always);
       end;
 
     procedure dir_linklib;
@@ -538,9 +538,9 @@ implementation
 
         { add to the list of other libraries }
         if linkMode=lm_static then
-         current_module.linkOtherStaticLibs.add(libname,link_allways)
+         current_module.linkOtherStaticLibs.add(libname,link_always)
         else
-         current_module.linkOtherSharedLibs.add(libname,link_allways);
+         current_module.linkOtherSharedLibs.add(libname,link_always);
       end;
 
     procedure dir_localsymbols;

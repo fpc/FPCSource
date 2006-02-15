@@ -64,7 +64,7 @@ implementation
            { Walk all shared libs }
            While not current_module.linkOtherSharedLibs.Empty do
             begin
-              S:=current_module.linkOtherSharedLibs.Getusemask(link_allways);
+              S:=current_module.linkOtherSharedLibs.Getusemask(link_always);
               if not DLLScanner.scan(s) then
                KeepShared.Concat(s);
             end;
@@ -82,7 +82,7 @@ implementation
            while not KeepShared.Empty do
             begin
               s:=KeepShared.GetFirst;
-              current_module.linkOtherSharedLibs.add(s,link_allways);
+              current_module.linkOtherSharedLibs.add(s,link_always);
             end;
            KeepShared.Free;
          end;
@@ -247,7 +247,7 @@ implementation
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
           ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',AT_DATA,0));
 {$ifdef EXTERNALRESPTRS}
-          current_module.linkotherofiles.add('resptrs.o',link_allways);
+          current_module.linkotherofiles.add('resptrs.o',link_always);
 {$else EXTERNALRESPTRS}
           new_section(ResourceInfo,sec_fpc,'resptrs',4);
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESSYMBOL',AT_DATA,0));

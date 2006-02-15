@@ -357,7 +357,7 @@ Procedure ReadLinkContainer(const prefix:string);
   const
     { link options }
     link_none    = $0;
-    link_allways = $1;
+    link_always  = $1;
     link_static  = $2;
     link_smart   = $4;
     link_shared  = $8;
@@ -365,7 +365,7 @@ Procedure ReadLinkContainer(const prefix:string);
     s : string;
   begin
     s:='';
-    if (m and link_allways)<>0 then
+    if (m and link_always)<>0 then
      s:=s+'always ';
     if (m and link_static)<>0 then
      s:=s+'static ';

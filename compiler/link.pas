@@ -291,7 +291,7 @@ begin
      if (flags and uf_no_link)=0 then
       begin
         { create mask which unit files need linking }
-        mask:=link_allways;
+        mask:=link_always;
         { static linking ? }
         if (cs_link_static in aktglobalswitches) then
          begin
@@ -352,7 +352,7 @@ begin
           AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
       end;
      { Other needed .o and libs, specified using $L,$LINKLIB,external }
-     mask:=link_allways;
+     mask:=link_always;
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask),path^,false);
      while not linkotherstaticlibs.empty do

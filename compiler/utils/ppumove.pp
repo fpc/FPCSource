@@ -52,7 +52,7 @@ const
 
   { link options }
   link_none    = $0;
-  link_allways = $1;
+  link_always  = $1;
   link_static  = $2;
   link_smart   = $4;
   link_shared  = $8;

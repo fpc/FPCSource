@@ -87,14 +87,14 @@ begin
 {$ifDef LinkTest}
   WriteLN('Import: f:',func,' m:',module,' n:',name);
 {$EndIf}
-  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_always);
 end;
 
 
 procedure timportlibsolaris.importvariable(vs:tglobalvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  current_module.linkothersharedlibs.add(SplitName(module),link_always);
   { reset the mangledname and turn off the dll_var option }
   vs.set_mangledname(name);
   exclude(vs.varoptions,vo_is_dll_var);
