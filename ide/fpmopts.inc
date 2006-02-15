@@ -1187,7 +1187,7 @@ begin
     HelpCtx:=hcMouse;
     GetExtent(R); R.Grow(-3,-2); inc(R.A.Y); R.B.Y:=R.A.Y+2;
     New(RBkb, Init(R,
-      NewSItem('~B~orland convention (Shift+Del,Ctrl+Ins,Shift+Ins)',
+      NewSItem('~C~UA-91 convention (Shift+Del,Ctrl+Ins,Shift+Ins)',
       NewSItem('~M~icrosoft convention (Ctrl+X,Ctrl+C,Ctrl+V)',
       nil))));
     RBkb^.Press(integer(EditKeys));
