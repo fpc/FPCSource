@@ -1104,9 +1104,14 @@ endif
 endif
 export ZIPPROG
 ifndef TARPROG
+TARPROG:=$(strip $(wildcard $(addsuffix /gtar$(SRCEXEEXT),$(SEARCHPATH))))
+ifeq ($(TARPROG),)
 TARPROG:=$(strip $(wildcard $(addsuffix /tar$(SRCEXEEXT),$(SEARCHPATH))))
 ifeq ($(TARPROG),)
 TARPROG= __missing_command_TARPROG
+else
+TARPROG:=$(firstword $(TARPROG))
+endif
 else
 TARPROG:=$(firstword $(TARPROG))
 endif

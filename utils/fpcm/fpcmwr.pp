@@ -612,7 +612,7 @@ implementation
         AddTool('PPUMOVE','ppumove','');
         AddTool('FPCMAKE','fpcmake','');
         AddTool('ZIPPROG','zip','');
-        AddTool('TARPROG','tar','');
+        AddTool('TARPROG','gtar','tar');
         AddIniSection('defaulttools');
       end;
 
