@@ -98,14 +98,14 @@ implementation
     procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
         { insert sharedlibrary }
-        current_module.linkothersharedlibs.add(SplitName(module),link_always);
+{        current_module.linkothersharedlibs.add(SplitName(module),link_always); }
       end;
 
 
     procedure timportlibdarwin.importvariable(vs:tglobalvarsym;const name,module:string);
       begin
         { insert sharedlibrary }
-        current_module.linkothersharedlibs.add(SplitName(module),link_always);
+{        current_module.linkothersharedlibs.add(SplitName(module),link_always); }
         { the rest is handled in the nppcld.pas tppcloadnode }
         vs.set_mangledname(name);
       end;
