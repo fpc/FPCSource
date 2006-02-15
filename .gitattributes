@@ -5342,7 +5342,6 @@ tests/test/tfpu3.pp svneol=native#text/plain
 tests/test/tfpu4.pp svneol=native#text/plain
 tests/test/tfpu5.pp svneol=native#text/plain
 tests/test/tfpuover.pp svneol=native#text/plain
-tests/test/tgeneric6.pp svneol=native#text/plain
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain
