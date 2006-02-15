@@ -409,6 +409,7 @@ var
   l : longint;
   p,hp1,hp2 : tai;
   hp3,hp4: tai;
+  v:aint;
 
   TmpRef: TReference;
 
@@ -695,6 +696,43 @@ begin
                     end;
                   A_CMP:
                     begin
+                      { cmp register,$8000                neg register
+                        je target                 -->     jo target
+
+                        .... only if register is deallocated before jump.}
+                      case Taicpu(p).opsize of
+                        S_B: v:=$80;
+                        S_W: v:=$8000;
+                        S_L: v:=$80000000;
+                      end;
+                      if (taicpu(p).oper[0]^.typ=Top_const) and 
+                         (taicpu(p).oper[0]^.val=v) and
+                         (Taicpu(p).oper[1]^.typ=top_reg) and
+                         GetNextInstruction(p, hp1) and
+                         (hp1.typ=ait_instruction) and
+                         (taicpu(hp1).opcode=A_Jcc) and
+                         (Taicpu(hp1).condition in [C_E,C_NE]) and
+                         not(getsupreg(Taicpu(p).oper[1]^.reg) in usedregs) then
+                        begin
+                          Taicpu(p).opcode:=A_NEG;
+                          Taicpu(p).loadoper(0,Taicpu(p).oper[1]^);
+                          Taicpu(p).clearop(1);
+                          Taicpu(p).ops:=1;
+                          if Taicpu(hp1).condition=C_E then
+                            Taicpu(hp1).condition:=C_O
+                          else
+                            Taicpu(hp1).condition:=C_NO;
+                          continue;
+                        end;
+                      { 
+                      @@2:                              @@2:
+                        ....                              ....
+                        cmp operand1,0
+                        jle/jbe @@1
+                        dec operand1             -->      sub operand1,1
+                        jmp @@2                           jge/jae @@2
+                      @@1:                              @@1:
+                        ...                               ....}
                       if (taicpu(p).oper[0]^.typ = top_const) and
                          (taicpu(p).oper[1]^.typ in [top_reg,top_ref]) and
                          (taicpu(p).oper[0]^.val = 0) and
