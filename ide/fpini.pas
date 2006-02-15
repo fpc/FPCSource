@@ -40,7 +40,7 @@ uses
 {$endif USE_EXTERNAL_COMPILER}
   WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
-  FPIntf,FPTools,FPSwitch,FPString;
+  FPIntf,FPTools,FPSwitch,FPString,fpccrc;
 
 const
   PrinterDevice : string = 'prn';
@@ -69,6 +69,7 @@ const
   secBreakpoint  = 'Breakpoints';
   secWatches     = 'Watches';
   secHighlight   = 'Highlight';
+  secKeyboard    = 'Keyboard';
   secMouse       = 'Mouse';
   secSearch      = 'Search';
   secTools       = 'Tools';
@@ -127,6 +128,7 @@ const
   ieDesktopFlags     = 'DesktopFileFlags';
   ieCenterDebuggerRow= 'CenterCurrentLineWhileDebugging';
   ieShowReadme       = 'ShowReadme';
+  ieEditKeys         = 'EditKeys';
 
 
 Procedure InitDirs;
@@ -413,6 +415,15 @@ begin
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+  {Keyboard}
+  case crc32(upcase(INIFile^.GetEntry(secKeyboard,ieEditKeys,''))) of
+    $86a4c898: {crc32 for 'MICROSOFT'} 
+      EditKeys:=ekm_microsoft;
+    $b20b87b3: {crc32 for 'BORLAND'}
+      EditKeys:=ekm_borland;
+    else
+      EditKeys:=ekm_default;
+  end;
   { Search }
   FindFlags:=INIFile^.GetIntEntry(secSearch,ieFindFlags,FindFlags);
   { Breakpoints }
@@ -601,6 +612,11 @@ begin
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
+  { Keyboard }
+  if EditKeys=ekm_microsoft then
+    INIFile^.SetEntry(secKeyboard,ieEditKeys,'microsoft')
+  else
+    INIFile^.SetEntry(secKeyboard,ieEditKeys,'borland');
   { Search }
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
   { Breakpoints }

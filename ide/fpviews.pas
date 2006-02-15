@@ -1668,9 +1668,9 @@ var M: PMenu;
     MI: PMenuItem;
 begin
   MI:=
-    NewItem(menu_edit_cut,menu_key_edit_cut,kbShiftDel,cmCut,hcCut,
-    NewItem(menu_edit_copy,menu_key_edit_copy,kbCtrlIns,cmCopy,hcCopy,
-    NewItem(menu_edit_paste,menu_key_edit_paste,kbShiftIns,cmPaste,hcPaste,
+    NewItem(menu_edit_cut,menu_key_edit_cut,cut_key,cmCut,hcCut,
+    NewItem(menu_edit_copy,menu_key_edit_copy,copy_key,cmCopy,hcCopy,
+    NewItem(menu_edit_paste,menu_key_edit_paste,paste_key,cmPaste,hcPaste,
     NewItem(menu_edit_clear,menu_key_edit_clear,kbCtrlDel,cmClear,hcClear,
     NewLine(
     NewItem(menu_srclocal_openfileatcursor,'',kbNoKey,cmOpenAtCursor,hcOpenAtCursor,
@@ -1958,7 +1958,7 @@ begin
     NewItem(menu_hlplocal_topicsearch,menu_key_hlplocal_topicsearch,kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
     NewItem(menu_hlplocal_prevtopic,menu_key_hlplocal_prevtopic,kbAltF1,cmHelpPrevTopic,hcHelpPrevTopic,
     NewLine(
-    NewItem(menu_hlplocal_copy,menu_key_hlplocal_copy,kbCtrlIns,cmCopy,hcCopy,
+    NewItem(menu_hlplocal_copy,menu_key_hlplocal_copy,copy_key,cmCopy,hcCopy,
     nil)))))));
   GetLocalMenu:=M;
 end;

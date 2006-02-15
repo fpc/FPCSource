@@ -17,7 +17,6 @@ unit WConsole;
 interface
 {$ifdef UNIX}
    uses
-     TermInfo,
 {$Ifdef ver1_0}
      linux;
 {$else}
@@ -43,7 +42,6 @@ interface
       longint
 {$endif netware}
     ;
-
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
 

@@ -29,7 +29,7 @@ unit gpm;
 uses
   baseUnix;
 
-{$ifndef use_external}
+{$ifdef use_external}
 {$linklib gpm}
 {$linklib c}
 {$endif}
@@ -76,17 +76,17 @@ const
 type
 {$PACKRECORDS c}
      Pgpm_event=^Tgpm_event;
-     Tgpm_event=record
+     Tgpm_event=packed record
           buttons : byte;
           modifiers : byte;
           vc : word;
           dx : word;
           dy : word;
           x,y : word;
-          wdx,wdy : word;
           EventType : TGpmEType;
           clicks : longint;
           margin : TGpmMargin;
+          wdx,wdy : word;
      end;
 
      Pgpmevent=Pgpm_event;
@@ -99,7 +99,7 @@ type
 
   type
      Pgpm_connect = ^TGpm_connect;
-     Tgpm_connect = record
+     Tgpm_connect = packed record
           eventMask : word;
           defaultMask : word;
           minMod : word;
@@ -112,7 +112,7 @@ type
      Tgpmconnect=Tgpm_connect;
 
      Pgpm_roi=^Tgpm_roi;
-     Tgpm_roi=record
+     Tgpm_roi=packed record
        xmin,xmax:integer;
        ymin,ymax:integer;
        minmod,maxmod:word;
@@ -915,7 +915,6 @@ begin
       conn.vc:=GPM_REQ_BUTTONS;
       eptr:=@event;
     end;
-
   if gpm_fd=-1 then
     begin
       gpm_getsnapshot:=-1;
@@ -935,6 +934,8 @@ begin
       else
         begin
           gpm_getsnapshot:=eptr^.eventtype; { number of buttons }
+          if eptr^.eventtype=0 then
+            gpm_getsnapshot:=15;
           eptr^.eventtype:=0;
         end;
     end;

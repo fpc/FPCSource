@@ -346,6 +346,9 @@ BEGIN
   InitDesktopFile;
   LoadDesktop;
 
+  {Menubar might be changed because of loading INI file.}
+  IDEapp.reload_menubar;
+
   { Handle Standard Units }
   if UseAllUnitsInCodeComplete then
     AddAvailableUnitsToCodeComplete(false);

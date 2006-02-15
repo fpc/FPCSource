@@ -142,12 +142,12 @@ begin
     if (PendingMouseEvents>0) then
       GetPendingEvent(MouseEvent)
     else
-      FillChar(MouseEvent,sizeof(MouseEvent),0);
+      CurrentMouseDriver.GetMouseEvent(MouseEvent);
+{      FillChar(MouseEvent,sizeof(MouseEvent),0);}
     end
   else
     If Assigned(CurrentMouseDriver.GetMouseEvent) Then
       begin
-      CurrentMouseDriver.GetMouseEvent(MouseEvent);
       LastMouseEvent:=MouseEvent;
       end
     else

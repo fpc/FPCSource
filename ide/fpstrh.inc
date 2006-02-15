@@ -131,7 +131,7 @@ const
       menu_options_env_codecomplete = 'Code~C~omplete...';
       menu_options_env_codetemplates = 'Code~T~emplates...';
       menu_options_env_desktop = '~A~sztal...';
-      menu_options_env_mouse = 'E~g~‚r...';
+      menu_options_env_keybmouse = 'Keyboard E~g~‚r...';
       menu_options_env_startup = '~I~ndul s...';
       menu_options_env_colors= 'Sz¡~n~ek';
       menu_options_learn_keys= 'Learn ~K~eys';{ NOT TRANSLATED }

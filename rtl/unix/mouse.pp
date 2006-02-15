@@ -48,7 +48,7 @@ const
   gpm_fs : longint = -1;
 
 {$ifndef NOGPM}
-procedure GPMEvent2MouseEvent(const e:TGPMEvent;var mouseevent:tmouseevent);
+procedure GPMEvent2MouseEvent(const e:Tgpm_event;var mouseevent:tmouseevent);
 var
   PrevButtons : byte;
 
@@ -98,7 +98,7 @@ begin
         WaitMouseMove:=false;
       end;
   else
-   MouseEvent.Action:=0;
+   MouseEvent.Action:=MouseActionMove;
   end;
 end;
 {$ENDIF}
@@ -131,7 +131,7 @@ procedure SysInitMouse;
 {$ifndef NOGPM}
 var
   connect : TGPMConnect;
-  E : TGPMEvent;
+  E : Tgpm_event;
 {$endif ndef NOGPM}
 begin
 {$ifndef NOGPM}
@@ -189,6 +189,8 @@ function SysDetectMouse:byte;
 {$ifndef NOGPM}
 var
   connect : TGPMConnect;
+  fds : tFDSet;
+  e : Tgpm_event;
 {$endif ndef NOGPM}
 begin
 {$ifndef NOGPM}
@@ -205,12 +207,22 @@ begin
           gpm_fs:=-1;
         end;
     end;
-{ always a mouse deamon present }
+  if gpm_fs>=0 then
+    begin
+      fpFD_ZERO(fds);
+      fpFD_SET(gpm_fs,fds);
+      while fpSelect(gpm_fs+1,@fds,nil,nil,1)>0 do
+        begin
+          fillchar(e,sizeof(e),#0);
+          Gpm_GetEvent(e);
+        end;
+    end;
   if gpm_fs<>-1 then
     SysDetectMouse:=Gpm_GetSnapshot(nil)
   else
     SysDetectMouse:=0;
 {$else ifdef NOGPM}
+{ always a mouse deamon present }
   if (fpgetenv('TERM')='xterm') then
     SysDetectMouse:=2;
 {$endif NOGPM}
@@ -220,7 +232,7 @@ end;
 procedure SysGetMouseEvent(var MouseEvent: TMouseEvent);
 {$ifndef NOGPM}
 var
-  e : TGPMEvent;
+  e : Tgpm_event;
 {$endif ndef NOGPM}
 begin
   fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
@@ -241,7 +253,7 @@ end;
 function SysPollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 {$ifndef NOGPM}
 var
-  e : TGPMEvent;
+  e : Tgpm_event;
   fds : tFDSet;
 {$endif ndef NOGPM}
 begin

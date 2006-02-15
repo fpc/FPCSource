@@ -53,8 +53,7 @@ begin
     begin
       str(handle,s);
       t:='/proc/self/fd/'+s+#0;
-      fpreadlink(@t[1],@ttyname[1],255);
-      ttyname[0]:=char(strlen(@ttyname[1]));
+      ttyname[0]:=char(fpreadlink(@t[1],@ttyname[1],255));
     end;
 end;
 
