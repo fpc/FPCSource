@@ -5138,6 +5138,9 @@ tests/test/cg/obj/macos/powerpc/ctest.o -text
 tests/test/cg/obj/netbsd/m68k/ctest.o -text
 tests/test/cg/obj/os2/i386/ctest.o -text
 tests/test/cg/obj/readme.txt svneol=native#text/plain
+tests/test/cg/obj/solaris/sparc/ctest.o -text
+tests/test/cg/obj/solaris/sparc/tcext3.o -text
+tests/test/cg/obj/solaris/sparc/tcext4.o -text
 tests/test/cg/obj/tcext3.c -text
 tests/test/cg/obj/tcext4.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
@@ -5339,6 +5342,7 @@ tests/test/tfpu3.pp svneol=native#text/plain
 tests/test/tfpu4.pp svneol=native#text/plain
 tests/test/tfpu5.pp svneol=native#text/plain
 tests/test/tfpuover.pp svneol=native#text/plain
+tests/test/tgeneric6.pp svneol=native#text/plain
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain

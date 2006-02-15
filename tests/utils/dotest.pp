@@ -56,10 +56,13 @@ var
   RTLUnitsDir,
   TestOutputDir,
   OutputDir : string;
-  CompilerBin : string;
-  CompilerCPU : string;
-  CompilerTarget : string;
-  CompilerVersion : string;
+  CompilerBin,
+  CompilerCPU,
+  CompilerTarget,
+  CompilerVersion,
+  DefaultCompilerCPU,
+  DefaultCompilerTarget,
+  DefaultCompilerVersion : string;
   PPFile : string;
   PPFileInfo : string;
   TestName : string;
@@ -353,11 +356,32 @@ begin
     return the first info }
   case c of
     compver :
-      hs:='-iVTPTO';
+      begin
+        if DefaultCompilerVersion<>'' then
+          begin
+            GetCompilerInfo:=true;
+            exit;
+          end;
+        hs:='-iVTPTO';
+      end;
     compcpu :
-      hs:='-iTPTOV';
+      begin
+        if DefaultCompilerCPU<>'' then
+          begin
+            GetCompilerInfo:=true;
+            exit;
+          end;
+        hs:='-iTPTOV';
+      end;
     comptarget :
-      hs:='-iTOTPV';
+      begin
+        if DefaultCompilerTarget<>'' then
+          begin
+            GetCompilerInfo:=true;
+            exit;
+          end;
+        hs:='-iTOTPV';
+      end;
   end;
   ExecuteRedir(CompilerBin,hs,'','out','');
   assign(t,'out');
@@ -375,21 +399,21 @@ begin
      case c of
        compver :
          begin
-           CompilerVersion:=GetToken(hs);
-           CompilerCPU:=GetToken(hs);
-           CompilerTarget:=GetToken(hs);
+           DefaultCompilerVersion:=GetToken(hs);
+           DefaultCompilerCPU:=GetToken(hs);
+           DefaultCompilerTarget:=GetToken(hs);
          end;
        compcpu :
          begin
-           CompilerCPU:=GetToken(hs);
-           CompilerTarget:=GetToken(hs);
-           CompilerVersion:=GetToken(hs);
+           DefaultCompilerCPU:=GetToken(hs);
+           DefaultCompilerTarget:=GetToken(hs);
+           DefaultCompilerVersion:=GetToken(hs);
          end;
        comptarget :
          begin
-           CompilerTarget:=GetToken(hs);
-           CompilerCPU:=GetToken(hs);
-           CompilerVersion:=GetToken(hs);
+           DefaultCompilerTarget:=GetToken(hs);
+           DefaultCompilerCPU:=GetToken(hs);
+           DefaultCompilerVersion:=GetToken(hs);
          end;
      end;
      GetCompilerInfo:=true;
@@ -400,7 +424,10 @@ end;
 function GetCompilerVersion:boolean;
 begin
   if CompilerVersion='' then
-    GetCompilerVersion:=GetCompilerInfo(compver)
+    begin
+      GetCompilerVersion:=GetCompilerInfo(compver);
+      CompilerVersion:=DefaultCompilerVersion;
+    end
   else
     GetCompilerVersion:=true;
   if GetCompilerVersion then
@@ -411,7 +438,10 @@ end;
 function GetCompilerCPU:boolean;
 begin
   if CompilerCPU='' then
-    GetCompilerCPU:=GetCompilerInfo(compcpu)
+    begin
+      GetCompilerCPU:=GetCompilerInfo(compcpu);
+      CompilerCPU:=DefaultCompilerCPU;
+    end
   else
     GetCompilerCPU:=true;
   if GetCompilerCPU then
@@ -422,7 +452,10 @@ end;
 function GetCompilerTarget:boolean;
 begin
   if CompilerTarget='' then
-    GetCompilerTarget:=GetCompilerInfo(comptarget)
+    begin
+      GetCompilerTarget:=GetCompilerInfo(comptarget);
+      CompilerTarget:=DefaultCompilerTarget;
+    end
   else
     GetCompilerTarget:=true;
   if GetCompilerTarget then
@@ -488,7 +521,7 @@ var
   execres : boolean;
 begin
   RunCompiler:=false;
-  args:='-n -Fu'+RTLUnitsDir;
+  args:='-n -T'+CompilerTarget+' -Fu'+RTLUnitsDir;
   args:=args+' -FE'+TestOutputDir;
 {$ifdef macos}
   args:=args+' -WT ';  {tests should be compiled as MPWTool}
@@ -789,7 +822,7 @@ procedure getargs;
 var
   ch   : char;
   para : string;
-  i    : longint;
+  i,j  : longint;
 
   procedure helpscreen;
   begin
@@ -807,13 +840,14 @@ var
     writeln('  -M<emulator>  run the tests using the given emulator');
     writeln('  -R<remote>    run the tests remotely with the given rsh/ssh address');
     writeln('  -S            use ssh instead of rsh');
-    writeln('  -T            remove temporary files (executable,ppu,o)');
+    writeln('  -T[cpu-]<os>  run tests for target cpu and os');
     writeln('  -P<path>      path to the tests tree on the remote machine');
     writeln('  -U<remotepara>');
     writeln('                pass additional parameter to remote program. Multiple -U can be used');
     writeln('  -V            be verbose');
     writeln('  -W            use putty compatible file names when testing (plink and pscp)');
     writeln('  -Y<opts>      extra options passed to the compiler. Several -Y<opt> can be given.');
+    writeln('  -Z            remove temporary files (executable,ppu,o)');
     halt(1);
   end;
 
@@ -874,7 +908,16 @@ begin
            end;
 
          'T' :
-           DelExecutable:=true;
+           begin
+             j:=Pos('-',Para);
+             if j>0 then
+               begin
+                 CompilerCPU:=Copy(Para,1,j-1);
+                 CompilerTarget:=Copy(Para,j+1,255);
+               end
+             else
+               CompilerTarget:=Para
+           end;
 
          'U' :
            RemotePara:=RemotePara+' '+Para;
@@ -891,6 +934,9 @@ begin
          'X' : UseComSpec:=false;
 
          'Y' : ExtraCompilerOpts:= ExtraCompilerOpts +' '+ Para;
+
+         'Z' :
+           DelExecutable:=true;
         end;
      end
     else

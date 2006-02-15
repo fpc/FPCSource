@@ -179,8 +179,8 @@ override DOTESTOPT+=-c$(TEST_FPC)
 endif
 endif
 
-ifneq ($(OS_TARGET),$(TEST_OS_TARGET))
-override DOTESTOPT+=-Y-T$(TEST_OS_TARGET)
+ifneq ($(FULL_TARGET),$(TEST_FULL_TARGET))
+override DOTESTOPT+=-T$(TEST_FULL_TARGET)
 endif
 ifneq ($(TEST_BINUTILSPREFIX),)
 override DOTESTOPT+=-Y-XP$(TEST_BINUTILSPREFIX) -Y-Xd
@@ -195,7 +195,7 @@ ifdef TEST_REMOTEPATH
 override DOTESTOPT+=-P$(TEST_REMOTEPATH)
 endif
 ifdef TEST_DELTEMP
-override DOTESTOPT+=-T
+override DOTESTOPT+=-Z
 endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
