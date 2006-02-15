@@ -156,7 +156,7 @@ begin
   if cs_link_extern in aktglobalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
   if ObjUsed then
-    current_module.linkotherofiles.add(resobj,link_allways);
+    current_module.linkotherofiles.add(resobj,link_always);
 end;
 
 
