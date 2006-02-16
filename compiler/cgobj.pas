@@ -1693,13 +1693,6 @@ implementation
           exit;
 {$endif cpu64bit}
 
-        { if the from-range falls completely in the to-range, no check }
-        { is necessary. Don't do this conversion for the largest unsigned type }
-        if (todef<>fromdef) and
-           (from_signed or (hfrom>=0)) and
-           (lto<=lfrom) and (hto>=hfrom) then
-          exit;
-
         { generate the rangecheck code for the def where we are going to }
         { store the result                                               }
 
