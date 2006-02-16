@@ -1745,9 +1745,13 @@ implementation
               in_slice_x:
                 begin
                   result:=nil;
-                  resulttype:=tcallparanode(tcallparanode(left).left).resulttype;
-                  if not(resulttype.def.deftype=arraydef) then
-                    CGMessage(type_e_mismatch);
+                  resulttype:=tcallparanode(left).left.resulttype;
+                  if (resulttype.def.deftype <> arraydef) then
+                    CGMessagePos(left.fileinfo,type_e_mismatch);
+                  if not(is_integer(tcallparanode(tcallparanode(left).right).left.resulttype.def)) then
+                    CGMessagePos1(tcallparanode(left).right.fileinfo,
+                      type_e_integer_expr_expected,
+                      tcallparanode(tcallparanode(left).right).left.resulttype.def.typename);
                 end;
 
               in_low_x,
