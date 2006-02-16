@@ -6002,6 +6002,7 @@ tests/webtbf/tw4777.pp svneol=native#text/plain
 tests/webtbf/tw4778a.pp svneol=native#text/plain
 tests/webtbf/tw4781a.pp svneol=native#text/plain
 tests/webtbf/tw4781b.pp svneol=native#text/plain
+tests/webtbf/tw4809.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
 tests/webtbf/uw0840a.pp svneol=native#text/plain
 tests/webtbf/uw0840b.pp svneol=native#text/plain
