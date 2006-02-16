@@ -778,10 +778,11 @@ implementation
              sl_load,
              sl_subscript :
                hp^.sym:=tsym(hp^.symderef.resolve);
-             sl_vec,
              sl_absolutetype,
              sl_typeconv :
                hp^.tt.resolve;
+             sl_vec:
+               hp^.valuett.resolve;
              else
               internalerror(200110205);
            end;
@@ -803,10 +804,11 @@ implementation
              sl_load,
              sl_subscript :
                hp^.symderef.build(hp^.sym);
-             sl_vec,
              sl_absolutetype,
              sl_typeconv :
                hp^.tt.buildderef;
+             sl_vec:
+               hp^.valuett.buildderef;
              else
               internalerror(200110205);
            end;
