@@ -1014,26 +1014,27 @@ function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE
 
 procedure int_str(l:longint;var s:string);
 
-var m:longint;
+var m:cardinal;
     p:byte;
 
 begin
   s[1]:='-';     {Will be overwritten if positive.}
   p:=byte(l<0);  {Number of characters to start with.}
   {Count number of characters.}
-  m:=l;
+  m:=abs(l);
   repeat
     inc(p);
-    m:=m div 10;
-  until m=0;
+    l:=l div 10;
+  until l=0;
   {Generate string.}
   s[0]:=char(p);
   repeat
-    s[p]:=char(abs(l mod 10)+byte('0'));
-    l:=l div 10;
+    s[p]:=char(m mod 10+byte('0'));
+    m:=m div 10;
     dec(p);
-  until l=0;
+  until m=0;
 end;
+
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
@@ -1066,25 +1067,25 @@ end;
 
 procedure int_str(l:int64;var s:string);
 
-var m:int64;
+var m:qword;
     p:byte;
 
 begin
   s[1]:='-';     {Will be overwritten if positive.}
   p:=byte(l<0);  {Number of characters to start with.}
   {Count number of characters.}
-  m:=l;
+  m:=abs(l);
   repeat
     inc(p);
-    m:=m div 10;
-  until m=0;
+    l:=l div 10;
+  until l=0;
   {Generate string.}
   s[0]:=char(p);
   repeat
-    s[p]:=char(abs(l mod 10)+byte('0'));
-    l:=l div 10;
+    s[p]:=char(m mod 10+byte('0'));
+    m:=m div 10;
     dec(p);
-  until l=0;
+  until m=0;
 end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
