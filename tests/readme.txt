@@ -156,7 +156,6 @@ make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm
 make TEST_FPC=~/fpc/compiler/ppcrossarm TEST_OPT=-XParm-linux- EMULATOR=qemu-arm \
      digest DBDIGESTOPT="-C qemu-arm" USESQL=YES
 
-
 Example cross testing of target MacOS with driver Darwin
 --------------------------------------------------------
 NOTE Today it is possible to run the test suite MacOS native.
@@ -172,3 +171,7 @@ files will be removed.
 
   make clean TEST_OS_TARGET=macos USEUNITDIR=/Projekt/Freepascal/fpc/rtl/macos
 
+Example cross testing of target arm-wince
+-----------------------------------------
+//arm-wince example : see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additional required tools
+make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince TEST_OPT="-XParm-wince-pe- -WC" EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
