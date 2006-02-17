@@ -663,10 +663,11 @@ implementation
                   consume(_LKLAMMER);
                   in_args:=true;
                   p1:=comp_expr(true);
-                  if try_to_consume(_COMMA) then
+                  Consume(_COMMA);
+                  if not(codegenerror) then
                     p2:=ccallparanode.create(comp_expr(true),nil)
                   else
-                    p2:=nil;
+                    p2:=cerrornode.create;
                   p2:=ccallparanode.create(p1,p2);
                   statement_syssym:=geninlinenode(l,false,p2);
                   consume(_RKLAMMER);

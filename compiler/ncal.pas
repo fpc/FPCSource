@@ -703,7 +703,7 @@ type
                          (tloadnode(left).is_addr_param_load)
                         )
                     ) then
-                   make_not_regable(left,false);
+                   make_not_regable(left);
 
                  if do_count then
                   begin
@@ -2218,12 +2218,9 @@ type
                    )
                   ) then
                   begin
-                    { make sure records which could be written to are not }
-                    { kept in a register                                  }
-                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,
-                      (tparavarsym(para.parasym).varregable <> vr_none) and
-                      ((para.parasym.vartype.def.deftype <> recorddef) or
-                       not(para.parasym.varspez in [vs_var,vs_out])));
+                    { in theory, this is always regable, but ncgcall can't }
+                    { handle it yet in all situations (JM)                 }
+                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).varregable <> vr_none);
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2257,16 +2254,7 @@ type
                       caddrnode.create_internal(para.left)));
                     para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
-                  end
-                { the regvar status of vs_var/vs_out paras is never changed, }
-                { so in case the are records turn of regvarability of the    }
-                { para (because we can't write to regvar records yet)        }
-                else if (para.parasym.vartype.def.deftype = recorddef) and
-                        (para.parasym.varspez in [vs_var,vs_out]) then
-                  if (para.left.nodetype = blockn) then
-                    make_not_regable(laststatement(tblocknode(para.left)),true)
-                  else
-                    make_not_regable(para.left,true);
+                  end;
               end;
             para := tcallparanode(para.right);
           end;
