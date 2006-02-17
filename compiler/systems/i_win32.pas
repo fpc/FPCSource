@@ -43,7 +43,7 @@ unit i_win32;
             flags        : [];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
-            extradefines : 'MSWINDOWS';
+            extradefines : 'MSWINDOWS;WINDOWS';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';
