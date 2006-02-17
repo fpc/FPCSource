@@ -1,4 +1,4 @@
-{ %target=win32 }
+{ %target=win32, wince }
 
 { Source provided for Free Pascal Bug Report 2676 }
 { Submitted by "Coenraad Loubser" on  2003-09-12 }

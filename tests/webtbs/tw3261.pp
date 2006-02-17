@@ -1,5 +1,5 @@
 { %norun }
-{ %target=win32 }
+{ %target=win32,wince }
 
 { Source provided for Free Pascal Bug Report 3261 }
 { Submitted by "Andreas Hausladen" on  2004-08-18 }

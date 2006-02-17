@@ -1,5 +1,5 @@
 { %INTERACTIVE }
-{ %TARGET=win32,linux }
+{ %TARGET=win32,linux,wince }
 
 { Source provided for Free Pascal Bug Report 966 }
 {$i-}

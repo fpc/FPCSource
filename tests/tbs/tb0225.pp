@@ -1,4 +1,4 @@
-{ %TARGET=win32,linux }
+{ %TARGET=win32,linux,wince }
 { %NORUN }
 
 { Old file: tbs0263.pp }

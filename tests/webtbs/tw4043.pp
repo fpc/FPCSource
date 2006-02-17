@@ -1,4 +1,4 @@
-{ %target=win32 }
+{ %target=win32,wince }
 { %OPT=-Sew }
 
 uses
