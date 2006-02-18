@@ -1647,7 +1647,8 @@ implementation
         hreg : tregister;
         lto,hto,
         lfrom,hfrom : TConstExprInt;
-        from_signed: boolean;
+        fromsize, tosize: cardinal;
+        from_signed, to_signed: boolean;
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
@@ -1666,6 +1667,7 @@ implementation
         getrange(fromdef,lfrom,hfrom);
         getrange(todef,lto,hto);
         from_signed := is_signed(fromdef);
+        to_signed := is_signed(todef);
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }
@@ -1693,6 +1695,47 @@ implementation
           exit;
 {$endif cpu64bit}
 
+        { optimize some range checks away in safe cases }
+        fromsize := fromdef.size;
+        tosize := todef.size;
+        if ((from_signed = to_signed) or
+            (not from_signed)) and
+           (lto<=lfrom) and (hto>=hfrom) and
+           (fromsize <= tosize) then
+          begin
+            { if fromsize < tosize, and both have the same signed-ness or }
+            { fromdef is unsigned, then all bit patterns from fromdef are }
+            { valid for todef as well                                     }
+            if (fromsize < tosize) then
+              exit;
+            if (fromsize = tosize) and
+               (from_signed = to_signed) then
+              { only optimize away if all bit patterns which fit in fromsize }
+              { are valid for the todef                                      }
+              begin
+{$ifopt Q+}
+{$defined overflowon}
+{$Q-}
+{$endif}
+                if to_signed then
+                  begin
+                    if (lto = (-(int64(1) << (tosize * 4)))) and
+                       (hto = (int64(1) << (tosize * 4) - 1)) then
+                      exit
+                  end
+                else
+                  begin
+                    if (lto = 0) and
+                       (qword(hto) = qword((int64(1) << (tosize * 8)) - 1)) then
+                      exit
+                  end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+              end
+          end;
+
         { generate the rangecheck code for the def where we are going to }
         { store the result                                               }
 
@@ -1704,7 +1747,7 @@ implementation
         { the parts < 0 and > maxlongint out                                 }
 
         { is_signed now also works for arrays (it checks the rangetype) (JM) }
-        if from_signed xor is_signed(todef) then
+        if from_signed xor to_signed then
           begin
              if from_signed then
                { from is signed, to is unsigned }
