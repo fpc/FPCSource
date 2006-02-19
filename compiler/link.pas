@@ -608,7 +608,7 @@ var
   end;
 
 var
-  binstr  : string;
+  binstr : string;
   success : boolean;
   cmdstr, nextcmd : TCmdStr;
   current : TStringListItem;
@@ -619,14 +619,15 @@ begin
 { Call AR }
   smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
+  binstr := FindUtil(utilsprefix + binstr);
   Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
   { create AR commands }
   success := true;
   nextcmd := cmdstr;
   current := TStringListItem(SmartLinkOFiles.First);
   repeat
-    Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd), current));
-    success:=DoExec(FindUtil(binstr),nextcmd,false,true);
+    Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd) + 6 - length(binstr) - 1, current));
+    success:=DoExec(binstr,nextcmd,false,true);
     nextcmd := cmdstr;
   until (not assigned(current)) or (not success);
 
