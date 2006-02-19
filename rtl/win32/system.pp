@@ -957,6 +957,11 @@ procedure fpc_cpucodeinit;
     sse_check:=false;
     has_sse_support:=sse_support;
     has_mmx_support:=mmx_support;
+    { reset FPU }
+    asm
+      fninit
+      fldcw   fpucw
+    end;
     setup_fastmove;
   end;
 
