@@ -80,10 +80,18 @@ var
     if assigned(t^.less) then
       genitem(list,t^.less);
     { fill possible hole }
-    for i:=last+1 to t^._low-1 do
-      list.concat(Tai_const.Create_sym(elselabel));
-    for i:=t^._low to t^._high do
-      list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+    i:=last+1;
+    while i<=t^._low-1 do
+      begin
+        list.concat(Tai_const.Create_sym(elselabel));
+        inc(i);
+      end;
+    i:=t^._low;
+    while i<=t^._high do
+      begin
+        list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+        inc(i);
+      end;
     last:=t^._high;
     if assigned(t^.greater) then
       genitem(list,t^.greater);
