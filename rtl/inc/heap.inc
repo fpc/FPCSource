@@ -851,14 +851,14 @@ end;
 
 function SysGetMem_Fixed(size: ptrint): pointer;
 var
-  pmc : pmemchunk_fixed;
+  pmc,hp : pmemchunk_fixed;
   poc : poschunk;
   chunkindex : ptrint;
 begin
-  result:=nil;
   { try to find a block in one of the freelists per size }
   chunkindex := size shr blockshift;
   pmc := freelists_fixed[chunkindex];
+  result:=nil;
   { no free blocks ? }
   if not assigned(pmc) then
     begin
@@ -869,10 +869,11 @@ begin
   { get a pointer to the block we should return }
   result := pointer(pmc)+sizeof(tmemchunk_fixed_hdr);
   { update freelist }
-  freelists_fixed[chunkindex] := pmc^.next_fixed;
-  if assigned(freelists_fixed[chunkindex]) then
-    freelists_fixed[chunkindex]^.prev_fixed := nil;
+  hp:=pmc^.next_fixed;
   poc := pmc^.poc;
+  freelists_fixed[chunkindex] := hp;
+  if assigned(hp) then
+    hp^.prev_fixed := nil;
   if (poc^.used = 0) then
     freelists_free_chunk[chunkindex] := false;
   inc(poc^.used);
@@ -959,12 +960,12 @@ begin
 { calc to multiple of 16 after adding the needed bytes for memchunk header }
   if size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr)) then
     begin
-      size := (size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and fixedsizemask;
+      size := (size+(sizeof(tmemchunk_fixed_hdr)+(blocksize-1))) and fixedsizemask;
       result := sysgetmem_fixed(size);
     end
   else
     begin
-      size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
+      size := (size+(sizeof(tmemchunk_var_hdr)+(blocksize-1))) and sizemask;
       result := sysgetmem_var(size);
     end;
 end;
@@ -976,27 +977,29 @@ end;
 
 function SysFreeMem_Fixed(pmc: pmemchunk_fixed): ptrint;
 var
+  hp : pmemchunk_fixed;
   chunksize,
   chunkindex : ptrint;
   poc : poschunk;
 begin
   poc := pmc^.poc;
-  chunkindex:=poc^.chunkindex;
   chunksize:=chunkindex shl blockshift;
+  chunkindex:=poc^.chunkindex;
   { statistics }
   dec(internal_status.currheapused,chunksize);
+  hp:=freelists_fixed[chunkindex];
   { insert the block in it's freelist }
   pmc^.prev_fixed := nil;
-  pmc^.next_fixed := freelists_fixed[chunkindex];
-  if freelists_fixed[chunkindex]<>nil then
-    freelists_fixed[chunkindex]^.prev_fixed := pmc;
+  pmc^.next_fixed := hp;
+  if assigned(hp) then
+    hp^.prev_fixed := pmc;
   freelists_fixed[chunkindex] := pmc;
-  { decrease used blocks count }
-  if poc^.used = 0 then
-    HandleError(204);
   dec(poc^.used);
-  if poc^.used = 0 then
+  if poc^.used <= 0 then
     begin
+      { decrease used blocks count }
+      if poc^.used=-1 then
+        HandleError(204);
       { osblock can be freed? }
       if freelists_free_chunk[chunkindex] then
         append_to_oslist_fixed(poc)
@@ -1025,19 +1028,21 @@ end;
 
 function SysFreeMem(p: pointer): ptrint;
 var
-  size : ptrint;
+  hp : pmemchunk_fixed;
 begin
   if p=nil then
     begin
       result:=0;
       exit;
     end;
-  size := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
+
+  hp:=pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
+
   { check if this is a fixed- or var-sized chunk }
-  if (size and fixedsizeflag) = 0 then
+  if (hp^.size and fixedsizeflag) = 0 then
     result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
   else
-    result := sysfreemem_fixed(pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr)));
+    result := sysfreemem_fixed(hp);
 end;
 
 {*****************************************************************************
@@ -1046,7 +1051,7 @@ end;
 
 Function SysFreeMemSize(p: pointer; size: ptrint):ptrint;
 var
-  chunksize: ptrint;
+  hp : pmemchunk_fixed;
 begin
   SysFreeMemSize := 0;
   if p=nil then
@@ -1058,14 +1063,14 @@ begin
       exit;
     end;
 
-  chunksize := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr))^.size;
+  hp:=pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
   { check if this is a fixed- or var-sized chunk. We can't check the passed
     size parameter since the block can be resized (by reallocmem) to an
     optimized value that the user doesn't know }
-  if (chunksize and fixedsizeflag) = 0 then
+  if (hp^.size and fixedsizeflag) = 0 then
     result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
   else
-    result := sysfreemem_fixed(pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr)));
+    result := sysfreemem_fixed(hp);
 end;
 
 
