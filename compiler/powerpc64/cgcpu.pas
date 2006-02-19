@@ -637,6 +637,26 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
     end;
   end;
 
+  { loads a 32 bit constant into R0, using an optimal instruction sequence.
+    This is either LIS, LI or LI+ORIS.
+    Returns true if during these operations the upper 32 bits were filled with 1 bits (e.g.
+    sign extension was performed) }
+  function load32bitconstantR0(list : taasmoutput; size : TCGSize; a : longint) : boolean;
+  begin
+    { if it's a value we can load with a single LI, do it }
+    if (a >= low(smallint)) and (a <= high(smallint)) then begin
+      list.concat(taicpu.op_reg_const(A_LI, NR_R0, smallint(a)));
+    end else begin
+      { if the lower 16 bits are zero, do a single LIS }
+      list.concat(taicpu.op_reg_const(A_LIS, NR_R0, smallint(a shr 16)));
+      if (smallint(a) <> 0) then begin
+        list.concat(taicpu.op_reg_reg_const(A_ORI, NR_R0, NR_R0, word(a)));
+      end;
+    end;
+    load32bitconstantR0 := a < 0;
+  end;
+
+
   { emits the code to load a constant by emitting various instructions into the output
    code}
   procedure loadConstantNormal(list: taasmoutput; size : TCgSize; a: aint; reg: TRegister);
@@ -664,9 +684,9 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
            32 bits should contain -1
           - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
            32 bits should contain 0 }
-        load32bitconstant(list, size, hi(a), NR_R12);
+        load32bitconstantR0(list, size, hi(a));
         { combine both registers }
-        list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R12, 32, 0));
+        list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
       end;
     end;
   end;
