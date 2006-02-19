@@ -4625,6 +4625,7 @@ rtl/x86_64/x86_64.inc svneol=native#text/plain
 tests/MPWMake -text
 tests/Makefile svneol=native#text/plain
 tests/Makefile.fpc svneol=native#text/plain
+tests/bench/ansibench.pp -text
 tests/bench/dmisc.pas svneol=native#text/plain
 tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
