@@ -28,12 +28,12 @@ uses ctypes,
 {$IFDEF Win32}
   {$DEFINE extdecl:=stdcall}
   const
-    ocilib = 'libociei.dll';
+    ocilib = 'oci.dll';
 {$ENDIF}
 {$IFDEF Wince}
   {$DEFINE extdecl:=stdcall}
   const
-    ocilib = 'libociei.dll';
+    ocilib = 'oci.dll';
 {$ENDIF}
 
 {$PACKRECORDS C}
