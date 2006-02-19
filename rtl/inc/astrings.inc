@@ -351,10 +351,11 @@ begin
     begin
       if Pointer(S)=nil then
        begin
-         { Need a complete new string...}
-         Pointer(s):=NewAnsiString(l);
+         GetMem(Pointer(S),AnsiRecLen+L);
+         PAnsiRec(S)^.Ref:=1;
+         inc(Pointer(S),firstoff);
        end
-      else if (PAnsiRec(Pointer(S)-FirstOff)^.Ref = 1) then
+      else if PAnsiRec(Pointer(S)-FirstOff)^.Ref=1 then
         begin
           Dec(Pointer(S),FirstOff);
           if AnsiRecLen+L>MemSize(Pointer(s)) then
@@ -485,7 +486,7 @@ begin
    { needed in case s and str are the same string }
    strlength := length(str);
    ofs:=Length(S);
-   SetLength(S,ofs+length(Str));
+   SetLength(S,ofs+strlength);
    { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
    move(Str[1],(pointer(S)+ofs)^,strlength+1);
 end;
