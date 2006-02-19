@@ -508,7 +508,7 @@ implementation
 
               DW_FORM_flag:
                 asmlist[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
-                
+
               DW_FORM_data1:
                  case data[i].VType of
                   vtInteger:
@@ -519,8 +519,8 @@ implementation
                     asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
                   else
                     internalerror(200602143);
-                end;              
-                
+                end;
+
               DW_FORM_data2:
                  case data[i].VType of
                   vtInteger:
@@ -531,8 +531,8 @@ implementation
                     asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
                   else
                     internalerror(200602144);
-                end;              
-                
+                end;
+
               DW_FORM_data4:
                  case data[i].VType of
                   vtInteger:
@@ -543,8 +543,8 @@ implementation
                     asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
                   else
                     internalerror(200602145);
-                end;              
-                
+                end;
+
               DW_FORM_data8:
                  case data[i].VType of
                   vtInteger:
@@ -555,7 +555,7 @@ implementation
                     asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
                   else
                     internalerror(200602146);
-                end;              
+                end;
 
               DW_FORM_sdata:
                 case data[i].VType of
@@ -592,7 +592,7 @@ implementation
                     asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
                   else
                     internalerror(200602141);
-                end;              
+                end;
               else
                 internalerror(200601263);
             end;
@@ -769,6 +769,16 @@ implementation
                 append_entry(DW_TAG_base_type,false,[
                   DW_AT_name,DW_FORM_string,'QWord'#0,
                   DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                  DW_AT_byte_size,DW_FORM_data1,8
+                  ]);
+                finish_entry;
+              end;
+            scurrency :
+              begin
+                { we should use DW_ATE_signed_fixed, however it isn't supported yet by GDB (FK) }
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'Currency'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
                   DW_AT_byte_size,DW_FORM_data1,8
                   ]);
                 finish_entry;
@@ -1903,7 +1913,7 @@ implementation
         { version }
         asmlist[al_dwarf_info].concat(tai_const.create_16bit(2));
         { abbrev table }
-        if isdwarf64 then        
+        if isdwarf64 then
           asmlist[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
             objectlibrary.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)))
         else
