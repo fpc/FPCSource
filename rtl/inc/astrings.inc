@@ -344,6 +344,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias 
 }
 Var
   Temp : Pointer;
+  lens,
   movelen : SizeInt;
 begin
   if (l>0) then
@@ -364,15 +365,17 @@ begin
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewAnsiString(L));
-          if Length(S)>0 then
-            begin
-              if l < succ(length(s)) then
-                movelen := l
-              { also move terminating null }
-              else movelen := succ(length(s));
-              Move(Pointer(S)^,Temp^,movelen);
-            end;
-          fpc_ansistr_decr_ref(Pointer(S));
+
+          { also move terminating null }
+          lens:=succ(length(s));
+          if l < lens then
+            movelen := l
+          else
+            movelen := lens;
+          Move(Pointer(S)^,Temp^,movelen);
+          { ref count dropped to zero in the mean time? }
+          If declocked(PAnsiRec(Pointer(S)-FirstOff)^.Ref) then
+            freemem(PAnsiRec(Pointer(s)-FirstOff));
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
@@ -419,7 +422,7 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
-function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; 
+function fpc_truely_ansistr_unique(Var S : Pointer): Pointer;
 Var
   SNew : Pointer;
   L    : SizeInt;
