@@ -980,94 +980,6 @@ end;
 
 
 {****************************************************************************
-                                 Str()
-****************************************************************************}
-
-{$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
-procedure int_str(l : longint;var s : string);
-var
-  buffer : array[0..15] of byte;
-  isneg  : byte;
-begin
-  { Workaround: }
-  if l=longint($80000000) then
-   begin
-     s:='-2147483648';
-     exit;
-   end;
-  asm
-        movl    l,%eax          // load Integer
-        xorl    %ecx,%ecx       // String length=0
-        leal    buffer,%ebx
-        movl    $0x0a,%esi      // load 10 as dividing constant.
-        movb    $0,isneg
-        orl     %eax,%eax       // Sign ?
-        jns     .LM2
-        movb    $1,isneg
-        negl    %eax
-.LM2:
-        cltd
-        idivl   %esi
-        addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,(%ebx)
-        incl    %ecx
-        incl    %ebx
-        cmpl    $0,%eax
-        jnz     .LM2
-        { now copy the string }
-        movl    s,%edi          // Load String address
-        cmpb    $0,isneg
-        je      .LM3
-        movb    $0x2d,(%ebx)
-        incl    %ecx
-        incl    %ebx
-.LM3:
-        movb    %cl,(%edi)      // Copy String length
-        incl    %edi
-.LM4:
-        decl    %ebx
-        movb    (%ebx),%al
-        stosb
-        decl    %ecx
-        jnz     .LM4
-  end ['eax','ecx','edx','ebx','esi','edi'];
-end;
-
-
-{$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
-procedure int_str(c : longword;var s : string);
-var
-  buffer : array[0..15] of byte;
-begin
-  asm
-        movl    c,%eax          // load CARDINAL
-        xorl    %ecx,%ecx       // String length=0
-        leal    buffer,%ebx
-        movl    $0x0a,%esi      // load 10 as dividing constant.
-.LM4:
-        xorl    %edx,%edx
-        divl    %esi
-        addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,(%ebx)
-        incl    %ecx
-        incl    %ebx
-        cmpl    $0,%eax
-        jnz     .LM4
-        { now copy the string }
-        movl    s,%edi          // Load String address
-        movb    %cl,(%edi)      // Copy String length
-        incl    %edi
-.LM5:
-        decl    %ebx
-        movb    (%ebx),%al
-        stosb
-        decl    %ecx
-        jnz     .LM5
-  end ['eax','ecx','edx','ebx','esi','edi'];
-end;
-
-
-{****************************************************************************
                                Bounds Check
 ****************************************************************************}
 
@@ -1207,7 +1119,7 @@ asm
 	testl	%eax,%eax
 	je	.Lj4031
 .Lj4036:
-// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then	
+// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
 	movl	-8(%eax),%ecx
 	cmpl	$1,%ecx
 	je	.Lj4038

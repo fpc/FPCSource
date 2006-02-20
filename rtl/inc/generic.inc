@@ -1013,26 +1013,34 @@ function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 procedure int_str(l:longint;out s:string);
-
-var m:cardinal;
-    p:byte;
-
+var
+  m,m1 : longword;
+  pc,pc2 : pchar;
+  hs : string[32];
 begin
-  s[1]:='-';     {Will be overwritten if positive.}
-  p:=byte(l<0);  {Number of characters to start with.}
-  {Count number of characters.}
-  m:=abs(l);
+  pc2:=@s[1];
+  if (l<0) then
+    begin
+      pc2^:='-';
+      inc(pc2);
+      m:=longword(-l);
+    end
+  else
+    m:=longword(l);
+  pc:=@hs[0];
   repeat
-    inc(p);
-    l:=l div 10;
-  until l=0;
-  {Generate string.}
-  s[0]:=char(p);
-  repeat
-    s[p]:=char(m mod 10+byte('0'));
-    m:=m div 10;
-    dec(p);
+    inc(pc);
+    m1:=m div 10;
+    pc^:=char(m-(m1*10)+byte('0'));
+    m:=m1;
   until m=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
@@ -1040,25 +1048,26 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
 procedure int_str(l:longword;out s:string);
-
-var m:longword;
-    p:byte;
-
+var
+  m1 : longword;
+  pc,pc2 : pchar;
+  hs : string[32];
 begin
-  p:=0;
-  {Count number of characters.}
-  m:=l;
+  pc2:=@s[1];
+  pc:=@hs[0];
   repeat
-    inc(p);
-    m:=m div 10;
-  until m=0;
-  {Generate string.}
-  s[0]:=char(p);
-  repeat
-    s[p]:=char((l mod 10)+byte('0'));
-    l:=l div 10;
-    dec(p);
+    inc(pc);
+    m1:=l div 10;
+    pc^:=char(l-(m1*10)+byte('0'));
+    l:=m1;
   until l=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
@@ -1066,51 +1075,61 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 procedure int_str(l:int64;out s:string);
-
-var m:qword;
-    p:byte;
-
+var
+  m,m1 : qword;
+  pc,pc2 : pchar;
+  hs : string[64];
 begin
-  s[1]:='-';     {Will be overwritten if positive.}
-  p:=byte(l<0);  {Number of characters to start with.}
-  {Count number of characters.}
-  m:=abs(l);
+  pc2:=@s[1];
+  if (l<0) then
+    begin
+      pc2^:='-';
+      inc(pc2);
+      m:=qword(-l);
+    end
+  else
+    m:=qword(l);
+  pc:=@hs[0];
   repeat
-    inc(p);
-    l:=l div 10;
-  until l=0;
-  {Generate string.}
-  s[0]:=char(p);
-  repeat
-    s[p]:=char(m mod 10+byte('0'));
-    m:=m div 10;
-    dec(p);
+    inc(pc);
+    m1:=m div 10;
+    pc^:=char(m-(m1*10)+byte('0'));
+    m:=m1;
   until m=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
+
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
 procedure int_str(l:qword;out s:string);
-
-var m:qword;
-    p:byte;
-
+var
+  m1 : qword;
+  pc,pc2 : pchar;
+  hs : string[64];
 begin
-  p:=0;
-  {Count number of characters.}
-  m:=l;
+  pc2:=@s[1];
+  pc:=@hs[0];
   repeat
-    inc(p);
-    m:=m div 10;
-  until m=0;
-  {Generate string.}
-  s[0]:=char(p);
-  repeat
-    s[p]:=char((l mod 10)+byte('0'));
-    l:=l div 10;
-    dec(p);
+    inc(pc);
+    m1:=l div 10;
+    pc^:=char(l-(m1*10)+byte('0'));
+    l:=m1;
   until l=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
