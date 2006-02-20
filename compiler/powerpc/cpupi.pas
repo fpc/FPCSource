@@ -67,8 +67,8 @@ unit cpupi;
       begin
          inherited create(aparent);
          maxpushedparasize:=0;
-         first_save_int_reg:=-1;
-         first_save_fpu_reg:=-1;
+         first_save_int_reg:=32;
+         first_save_fpu_reg:=32;
          needs_frame_pointer:=false;
       end;
 
