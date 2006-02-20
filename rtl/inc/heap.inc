@@ -983,8 +983,8 @@ var
   poc : poschunk;
 begin
   poc := pmc^.poc;
-  chunksize:=chunkindex shl blockshift;
   chunkindex:=poc^.chunkindex;
+  chunksize:=chunkindex shl blockshift;
   { statistics }
   dec(internal_status.currheapused,chunksize);
   hp:=freelists_fixed[chunkindex];
