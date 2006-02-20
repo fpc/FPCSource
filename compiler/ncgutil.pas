@@ -2366,7 +2366,9 @@ implementation
                       tostr(j)+'_$_'+_class.implementedinterfaces.implprocs(i,j).mangledname);
                     { create wrapper code }
                     new_section(list,sec_code,lower(tmps),0);
+                    cg.init_register_allocators;
                     cg.g_intf_wrapper(list,_class.implementedinterfaces.implprocs(i,j),tmps,_class.implementedinterfaces.ioffsets(i));
+                    cg.done_register_allocators;
                   end;
               end;
           end;
