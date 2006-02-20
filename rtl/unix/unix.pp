@@ -121,7 +121,7 @@ Function  SelectText (var T:Text;TimeOut :cint):cint;
 ***************************}
 
 procedure SeekDir(p:pdir;loc:clong);
-function  TellDir(p:pdir):clong;
+function  TellDir(p:pdir):TOff;
 
 {**************************
     Pipe/Fifo/Stream
@@ -605,7 +605,7 @@ begin
   p^.dd_loc:=0;
 end;
 
-function TellDir(p:pdir):clong;
+function TellDir(p:pdir):TOff;
 begin
   if p=nil then
    begin

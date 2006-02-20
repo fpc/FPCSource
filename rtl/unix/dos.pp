@@ -14,6 +14,8 @@
 Unit Dos;
 Interface
 
+uses baseunix;
+
 Const
   FileNameLen = 255;
 
@@ -24,12 +26,12 @@ Type
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
     Record
   {Fill : array[1..21] of byte;  Fill replaced with below}
+    SearchPos  : TOff;        {directory position}
     SearchNum  : LongInt;     {to track which search this is}
-    SearchPos  : LongInt;     {directory position}
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;        {attribute we are searching for}
-    Fill       : Array[1..07] of Byte; {future use}
+    Fill       : Array[1..03] of Byte; {future use}
   {End of fill}
     Attr       : Byte;        {attribute of found file}
     Time       : LongInt;     {last modify date of found file}
@@ -57,7 +59,7 @@ Uses
   UnixUtil, // tzSeconds
   Strings,
   Unix,
-  BaseUnix,{$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
+  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF};
 
 {$DEFINE HAS_GETMSCOUNT}
 
