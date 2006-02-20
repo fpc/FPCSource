@@ -185,9 +185,12 @@ begin
   for i:=low(sarr) to high(sarr) do
     begin
       p:=pointer(sarr[i]);
-      Size:=length(ansistring(p));
-      Move(pchar(p)^,pc^,Size+1);
-      inc(pc,size);
+      if assigned(p) then
+        begin
+          Size:=length(ansistring(p));
+          Move(pchar(p)^,pc^,Size+1);
+          inc(pc,size);
+        end;
     end;
 end;
 

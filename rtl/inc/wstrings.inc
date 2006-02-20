@@ -425,9 +425,12 @@ begin
   for i:=low(sarr) to high(sarr) do
     begin
       p:=pointer(sarr[i]);
-      Size:=length(widestring(p));
-      Move(pwidechar(p)^,pc^,(Size+1)*sizeof(WideChar));
-      inc(pc,size);
+      if assigned(p) then
+        begin
+          Size:=length(widestring(p));
+          Move(pwidechar(p)^,pc^,(Size+1)*sizeof(WideChar));
+          inc(pc,size);
+        end;
     end;
 end;
 
