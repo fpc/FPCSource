@@ -21,7 +21,7 @@
 }
 
 Const
-  syscall_nr_base = syscall_nr_base;
+  syscall_nr_base = $900000;
 
   syscall_nr_exit                       =  syscall_nr_base+ 1;
   syscall_nr_fork                       =  syscall_nr_base+ 2;
