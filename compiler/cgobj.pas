@@ -1652,8 +1652,11 @@ implementation
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in aktlocalswitches) or
-           not(fromdef.deftype in [orddef,enumdef,arraydef]) then
+           not(fromdef.deftype in [orddef,enumdef]) then
           exit;
+        { check the rangetype of the array, not the array itself }
+        if (todef.deftype = arraydef) then
+          todef := tarraydef(todef).rangetype.def;
 {$ifndef cpu64bit}
         { handle 64bit rangechecks separate for 32bit processors }
         if is_64bit(fromdef) or is_64bit(todef) then
@@ -1746,7 +1749,6 @@ implementation
         { fromdef and todef are both signed or unsigned, or that we leave    }
         { the parts < 0 and > maxlongint out                                 }
 
-        { is_signed now also works for arrays (it checks the rangetype) (JM) }
         if from_signed xor to_signed then
           begin
              if from_signed then
