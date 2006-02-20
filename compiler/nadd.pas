@@ -1920,6 +1920,16 @@ implementation
          rd,ld   : tdef;
       begin
          result:=nil;
+
+         { Can we optimize multiple string additions into a single call?
+           This need to be done on a complete tree to detect the multiple
+           add nodes and is therefor done before the subtrees are processed }
+         if canbemultistringadd(self) then
+           begin
+             result := genmultistringadd(self);
+             exit;
+           end;
+
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);

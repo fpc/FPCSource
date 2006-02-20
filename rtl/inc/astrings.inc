@@ -143,30 +143,51 @@ end;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
 
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
-var
-  S3: ansistring absolute result;
-{
-  Concatenates 2 AnsiStrings : S1+S2.
-  Result Goes to S3;
-}
 Var
   Size,Location : SizeInt;
+  pc : pchar;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
-    s3 := s2
-  else if (S2='') then
-    s3 := s1
-  else
     begin
-       Size:=length(S2);
-       Location:=Length(S1);
-       SetLength (S3,Size+Location);
-       { the cast to a pointer avoids the unique call }
-       { and we don't need an unique call             }
-       { because of the SetLength S3 is unique        }
-       Move (S1[1],pointer(S3)^,Location);
-       Move (S2[1],pointer(pointer(S3)+location)^,Size+1);
+      result:=s2;
+      exit;
+    end;
+  if (S2='') then
+    begin
+      result:=s1;
+      exit;
+    end;
+  Location:=Length(S1);
+  Size:=length(S2);
+  SetLength(result,Size+Location);
+  pc:=pchar(result);
+  Move(S1[1],pc^,Location);
+  inc(pc,location);
+  Move(S2[1],pc^,Size+1);
+end;
+
+
+function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
+Var
+  i  : Longint;
+  p  : pointer;
+  pc : pchar;
+  Size,NewSize : SizeInt;
+begin
+  { First calculate size of the result so we can do
+    a single call to SetLength() }
+  NewSize:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(Newsize,length(sarr[i]));
+  SetLength(result,NewSize);
+  pc:=pchar(result);
+  for i:=low(sarr) to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      Size:=length(ansistring(p));
+      Move(pchar(p)^,pc^,Size+1);
+      inc(pc,size);
     end;
 end;
 

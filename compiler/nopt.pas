@@ -74,6 +74,8 @@ function canbeaddsstringcharoptnode(p: taddnode): boolean;
 function genaddsstringcharoptnode(p: taddnode): tnode;
 function canbeaddsstringcsstringoptnode(p: taddnode): boolean;
 function genaddsstringcsstringoptnode(p: taddnode): tnode;
+function canbemultistringadd(p: taddnode): boolean;
+function genmultistringadd(p: taddnode): tnode;
 
 
 function is_addsstringoptnode(p: tnode): boolean;
@@ -84,7 +86,7 @@ var
 
 implementation
 
-uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,
+uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,nld,
      verbose, symconst,symdef, cgbase, procinfo;
 
 
@@ -279,6 +281,45 @@ begin
   hp := caddsstringcsstringoptnode.create(p.left.getcopy,p.right.getcopy);
   hp.flags := p.flags;
   genaddsstringcsstringoptnode := hp;
+end;
+
+
+function canbemultistringadd(p: taddnode): boolean;
+var
+  hp : tnode;
+  i  : longint;
+begin
+  i:=0;
+  if is_ansistring(p.resulttype.def) or
+     is_widestring(p.resulttype.def) then
+    begin
+      hp:=p;
+      while assigned(hp) and (hp.nodetype=addn) do
+        begin
+          inc(i);
+          hp:=taddnode(hp).left;
+        end;
+    end;
+  result:=(i>1);
+end;
+
+
+function genmultistringadd(p: taddnode): tnode;
+var
+  hp : tnode;
+  arrp  : tarrayconstructornode;
+begin
+  arrp:=nil;
+  hp:=p;
+  while assigned(hp) and (hp.nodetype=addn) do
+    begin
+      arrp:=carrayconstructornode.create(taddnode(hp).right.getcopy,arrp);
+      hp:=taddnode(hp).left;
+    end;
+  arrp:=carrayconstructornode.create(hp.getcopy,arrp);
+  result := ccallnode.createintern('fpc_'+
+    tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
+    ccallparanode.create(arrp,nil));
 end;
 
 

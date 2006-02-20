@@ -382,31 +382,52 @@ end;
 { alias for internal use }
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_WIDESTR_ASSIGN'];
 
-{ checked against the ansistring routine, 2001-05-27 (FK) }
 function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
-var
-  S3: WideString absolute result;
-{
-  Concatenates 2 WideStrings : S1+S2.
-  Result Goes to S3;
-}
 Var
   Size,Location : SizeInt;
+  pc : pwidechar;
 begin
-{ only assign if s1 or s2 is empty }
+  { only assign if s1 or s2 is empty }
   if (S1='') then
-    S3 := S2
-  else
-    if (S2='') then
-      S3 := S1
-  else
     begin
-       { create new result }
-       Size:=Length(S2);
-       Location:=Length(S1);
-       SetLength (S3,Size+Location);
-       Move (S1[1],S3[1],Location*sizeof(WideChar));
-       Move (S2[1],S3[location+1],(Size+1)*sizeof(WideChar));
+      result:=s2;
+      exit;
+    end;
+  if (S2='') then
+    begin
+      result:=s1;
+      exit;
+    end;
+  Location:=Length(S1);
+  Size:=length(S2);
+  SetLength(result,Size+Location);
+  pc:=pwidechar(result);
+  Move(S1[1],pc^,Location*sizeof(WideChar));
+  inc(pc,location);
+  Move(S2[1],pc^,(Size+1)*sizeof(WideChar));
+end;
+
+
+function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; compilerproc;
+Var
+  i  : Longint;
+  p  : pointer;
+  pc : pwidechar;
+  Size,NewSize : SizeInt;
+begin
+  { First calculate size of the result so we can do
+    a single call to SetLength() }
+  NewSize:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(Newsize,length(sarr[i]));
+  SetLength(result,NewSize);
+  pc:=pwidechar(result);
+  for i:=low(sarr) to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      Size:=length(widestring(p));
+      Move(pwidechar(p)^,pc^,(Size+1)*sizeof(WideChar));
+      inc(pc,size);
     end;
 end;
 
@@ -450,7 +471,7 @@ begin
       i:=IndexChar(arr,high(arr)+1,#0);
       if i = -1 then
         i := high(arr)+1;
-    end 
+    end
   else
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_WideStr,i);
@@ -493,7 +514,7 @@ begin
       i:=IndexWord(arr,high(arr)+1,0);
       if i = -1 then
         i := high(arr)+1;
-    end 
+    end
   else
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_AnsiStr,i);
@@ -509,7 +530,7 @@ begin
       i:=IndexWord(arr,high(arr)+1,0);
       if i = -1 then
         i := high(arr)+1;
-    end 
+    end
   else
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_WideStr,i);
