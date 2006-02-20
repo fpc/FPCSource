@@ -292,7 +292,7 @@ begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
-  { always surroound the name of the application by quotes
+  { always surround the name of the application by quotes
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes, since Win32 does not
     like double quotes which are duplicated!
