@@ -703,7 +703,7 @@ begin
                       case Taicpu(p).opsize of
                         S_B: v:=$80;
                         S_W: v:=$8000;
-                        S_L: v:=$80000000;
+                        S_L: v:=aint($80000000);
                       end;
                       if (taicpu(p).oper[0]^.typ=Top_const) and 
                          (taicpu(p).oper[0]^.val=v) and
