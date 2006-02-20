@@ -483,7 +483,6 @@ end;
 function fpugetrlimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
   FpUGetRLimit := do_syscall(syscall_nr_ugetrlimit,
-    syscall_nr_getrlimit, 
     TSysParam(resource), TSysParam(rlim));
 end;
 {$endif}
