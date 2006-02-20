@@ -61,6 +61,15 @@ implementation
       cpubase,
       ncgutil,cgcpu;
 
+{$ifopt r+}
+{$r-}
+{$define rangeon}
+{$endif}
+
+{$ifopt q+}
+{$r-}
+{$define overflowon}
+{$endif}
 { helper functions }
 procedure getmagic_unsigned32(d : dword; out magic_m : dword; out magic_add : boolean; out magic_shift : dword);
 var
@@ -144,6 +153,16 @@ begin
     magic_s := p - 32; { resulting shift }
 end;
 
+{$ifdef rangeon}
+{$r+}
+{$undef rangeon}
+{$endif}
+
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
+
 {*****************************************************************************
                              TPPCMODDIVNODE
 *****************************************************************************}
@@ -226,7 +245,7 @@ end;
                  end else begin
                      getmagic_unsigned32(tordconstnode(right).value, u_magic, u_add, u_shift);
                      // load magic in divreg
-                     cg.a_load_const_reg(exprasmlist, OS_INT, u_magic, divreg);
+                     cg.a_load_const_reg(exprasmlist, OS_INT, aint(u_magic), divreg);
                      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHWU, resultreg, numerator, divreg));
                      if (u_add) then begin
                          cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, resultreg, numerator, divreg);
