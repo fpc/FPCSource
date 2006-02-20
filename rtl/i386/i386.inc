@@ -895,14 +895,14 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -915,7 +915,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -932,7 +932,7 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function abs(l:longint):longint; assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    l,%eax
@@ -944,7 +944,7 @@ end ['EAX','EDX'];
 
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function odd(l:longint):boolean;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -959,7 +959,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function sqr(l:longint):longint;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -973,7 +973,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %esp,%eax
 end;
@@ -986,7 +986,7 @@ end;
 
 { do a thread save inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function cpudeclocked(var l : longint) : boolean;assembler;
+function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
   asm
 {$ifndef REGCALL}
@@ -1000,7 +1000,7 @@ function cpudeclocked(var l : longint) : boolean;assembler;
   end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure cpuinclocked(var l : longint);assembler;
+procedure cpuinclocked(var l : longint);assembler;nostackframe;
 
   asm
 {$ifndef REGCALL}
@@ -1058,6 +1058,7 @@ asm
     fwait
 end;
 
+
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -1068,36 +1069,36 @@ asm
         ret
 .Ldecr_ref_continue:
 // Temps allocated between ebp-24 and ebp+0
-	subl	$4,%esp
+        subl    $4,%esp
 // Var S located in register
 // Var l located in register
-	movl	%eax,(%esp)
+        movl    %eax,(%esp)
 // [101] l:=@PAnsiRec(S-FirstOff)^.Ref;
-	movl	(%eax),%edx
-	subl	$8,%edx
+        movl    (%eax),%edx
+        subl    $8,%edx
 // [102] If l^<0 then exit;
-	cmpl	$0,(%edx)
-	jl	.Lj3596
+        cmpl    $0,(%edx)
+        jl      .Lj3596
 .Lj3603:
 // [104] If declocked(l^) then
-	cmpb	$0,ismultithread
+        cmpb    $0,ismultithread
         jne     .Lj3610
-	decl	(%edx)
-	je      .Lj3620
-	addl    $4,%esp
-	ret
+        decl    (%edx)
+        je      .Lj3620
+        addl    $4,%esp
+        ret
 .Lj3610:
-	movl	%edx,%eax
-	call	cpudeclocked
-	movb	%al,%al
+        movl    %edx,%eax
+        call    cpudeclocked
+        movb    %al,%al
         je      .Lj3605
 .Lj3620:
-	movl	(%esp),%eax
-	movl	(%eax),%eax
-	subl    $8,%eax
-	call	FPC_FREEMEM_X
-	movl	(%esp),%eax
-	movl	$0,(%eax)
+        movl    (%esp),%eax
+        movl    (%eax),%eax
+        subl    $8,%eax
+        call    FPC_FREEMEM_X
+        movl    (%esp),%eax
+        movl    $0,(%eax)
 .Lj3618:
 .Lj3605:
 .Lj3596:
@@ -1112,20 +1113,20 @@ Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSI
 asm
 // Var S located in register
 // Var $result located in register
-	movl	%eax,%edx
+        movl    %eax,%edx
 // [437] pointer(result) := pointer(s);
-	movl	(%eax),%eax
+        movl    (%eax),%eax
 // [438] If Pointer(S)=Nil then
-	testl	%eax,%eax
-	je	.Lj4031
+        testl   %eax,%eax
+        je      .Lj4031
 .Lj4036:
 // [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
-	movl	-8(%eax),%ecx
-	cmpl	$1,%ecx
-	je	.Lj4038
+        movl    -8(%eax),%ecx
+        cmpl    $1,%ecx
+        je      .Lj4038
 // [441] result:=fpc_truely_ansistr_unique(s);
-	movl	%edx,%eax
-	call	fpc_truely_ansistr_unique
+        movl    %edx,%eax
+        call    fpc_truely_ansistr_unique
 .Lj4038:
 .Lj4031:
 // [442] end;
