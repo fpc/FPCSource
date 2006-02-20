@@ -1,10 +1,10 @@
 program Bench2;
 {$APPTYPE CONSOLE}
+{$Mode Objfpc}
 {$H+}
 
 uses
-   sysutils,
-   Windows;
+   sysutils;
 
 const
  cTimes = 999999;
@@ -20,6 +20,16 @@ const
    Number10: array [0..9] of string = (
    'zero', 'ten', 'twenty', 'thirty', 'fourty', 'fifty',
    'sixty', 'seventy', 'eighty', 'ninety');
+
+
+    function GetTickCount : Cardinal;
+      var
+         h,m,s,s1000 : word;
+      begin
+         decodetime(time,h,m,s,s1000);
+         result:=h*3600000+m*60000+s*1000+s1000;
+      end;
+
 
 var
    StartTick: Cardinal;
