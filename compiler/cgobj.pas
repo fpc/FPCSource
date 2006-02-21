@@ -1654,9 +1654,6 @@ implementation
         if not(cs_check_range in aktlocalswitches) or
            not(fromdef.deftype in [orddef,enumdef]) then
           exit;
-        { check the rangetype of the array, not the array itself }
-        if (todef.deftype = arraydef) then
-          todef := tarraydef(todef).rangetype.def;
 {$ifndef cpu64bit}
         { handle 64bit rangechecks separate for 32bit processors }
         if is_64bit(fromdef) or is_64bit(todef) then
@@ -1671,6 +1668,10 @@ implementation
         getrange(todef,lto,hto);
         from_signed := is_signed(fromdef);
         to_signed := is_signed(todef);
+        { check the rangetype of the array, not the array itself }
+        { (only change now, since getrange needs the arraydef)   }
+        if (todef.deftype = arraydef) then
+          todef := tarraydef(todef).rangetype.def;
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }
