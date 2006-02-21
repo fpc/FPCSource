@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for unmaintained db-structures
+#
+
+[package]
+main=fcl
+
+[target]
+dirs=tests
+dirs_linux=mysql interbase 
+dirs_freebsd=mysql interbase
+dirs_darwin=mysql interbase 
+dirs_netbsd=mysql interbase 
+dirs_openbsd=mysql interbase 
+dirs_win32=mysql interbase 
+dirs_wince=interbase 
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+

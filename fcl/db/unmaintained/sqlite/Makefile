@@ -92,7 +92,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../../..
+override DEFAULT_FPCDIR=../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -233,123 +233,240 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=fcl
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=sqlitedataset
 endif
 override INSTALL_FPCPACKAGE=y
+ifeq ($(FULL_TARGET),i386-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+override COMPILER_OPTIONS+=-S2
+endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif

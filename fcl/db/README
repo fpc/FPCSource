@@ -1,57 +1,32 @@
 This is the Database directory of the Free Component Library.
 
-At the moment, there is a read/write implementation of TDataset.
-The blob support is not tested yet.
+All base classes are in the db unit, the dbconst unit contains the 
+used resourcestrings.
 
-Compiling the units:
+memds
+  contains a dataset-class in memory which can be read from, and
+  written to a stream
 
-Just run 'make all' and all should go fine, provided
-1) The mysql unit is in the compiler path (the makefile will try to compile
-   it in the packages mysql subdirectory)
-2) the mysqlclient library is in /usr/lib (if you want to compile the mtest 
-   program)
-if these conditions are not satisfied, you should edit the makefile
-and add -Fl/path/to/libmysqlclient to NEEDOPTS as well as
-the -Fu/path/to/mysql/unit option.
+sqldb
+  contains a framework to work with several SQL-based databases
+  as Interbase, Firebird, MySQL, ODBC and Oracle
 
-Compiling the examples:
+dbase
+  contains the tDbf components, to work with DBASE and FoxPro
+  file-based databases
 
-If the units compile fine, then the examples can be compiled by doing
-'make examples'. see also the above remarks.
+sdf
+  contains a dataset class to use text files directly as a
+  database. That could be fixed-size, or limited (SDF)
 
-there are 2 descendents of TDataset to demonstrate/test the 
-TDataset implementation.
+sqlite
+  contains datases classes to use sqlite and sqlite3
 
-TddgDataset : 
-
-  Implemented in ddg_ds and ddg_rec. The dataset as
-  implemented in the Delphi 4 Developers Guide.
-  To test it, do a 
-   createds filename
-   testds filename
-   tested filename
-  the first creates a flat file, filled with 100 records;
-  the second tests the navigation methods of TDataset on this file.
-  the third tests the editing methods of TDataset (Append,Insert 
-  and edit)
-
-TMySQLdataset :
-  Implemented in mysqldb. You need the mysql units for this.
-  This is a temporary implementation based on the code from
-     Rangel Gustavo Reale (hitnrun@geocities.com) 
-  it will be used as a base for the DBdataset scalable dataset
-  implementation.
-  To test it, do a 
-     mtest db user pwd SQL
-  this will run the query SQL on the database db with user
-  'user' and password 'pwd', and dump the result. Take care
-  that you don't specify blob fields.
-  To test it on the table created by the mkdb shell script
-  that comes with the Free Pascal mysql unit, I did a
-      mtest test michael pwd 'select * from FPdev'
-
-I haven't implemented/tested blob fields yet.
+unmaintained
+  contains some obsolete units which were replaced by better
+  alternatives, or which are old tests which are not needed
+  anymore
 
 Enjoy !
 
-Michael.              
+Joost van der Sluis.              

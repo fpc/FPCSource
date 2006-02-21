@@ -6,17 +6,16 @@
 main=fcl
 
 [target]
-dirs=sdf memds sqldb
+dirs=sdf memds sqldb sqlite unmaintained
 # dirs_i386=dbase
-dirs_linux=mysql interbase sqlite dbase
-dirs_freebsd=mysql interbase sqlite dbase
-dirs_darwin=mysql interbase sqlite
-dirs_netbsd=mysql interbase sqlite
-dirs_openbsd=mysql interbase sqlite
-dirs_win32=mysql interbase sqlite dbase
-dirs_wince=interbase sqlite dbase
-units=dbconst db ddg_ds ddg_rec dbwhtml
-exampledirs=tests
+dirs_linux=dbase
+dirs_freebsd=dbase
+# dirs_darwin=
+# dirs_netbsd=
+# dirs_openbsd=
+dirs_win32=dbase
+dirs_wince=dbase
+units=dbconst db dbwhtml
 rsts=dbwhtml dbconst
 
 [compiler]
@@ -28,14 +27,3 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
-
-[rules]
-db$(PPUEXT): dbconst$(PPUEXT) db.pp bufdataset.inc  database.inc dataset.inc  datasource.inc  fields.inc
-
-ddg_ds$(PPUEXT): db$(PPUEXT) ddg_rec$(PPUEXT) ddg_ds.pp
-
-testds$(EXEEXT): ddg_ds$(PPUEXT) testds.pp
-
-tested$(EXEEXT): ddg_ds$(PPUEXT) tested.pp
-
-createds$(EXEEXT): createds.pp ddg_rec$(PPUEXT)

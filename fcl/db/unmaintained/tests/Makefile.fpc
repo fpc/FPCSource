@@ -2,11 +2,12 @@
 #   Makefile.fpc for TDataSet Tests
 #
 
-[target]
-programs=testds createds tested
 
-[require]
-packages=fcl
+[package]
+main=fcl
+
+[target]
+units=ddg_rec ddg_ds
 
 [compiler]
 options=-S2
@@ -15,4 +16,4 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..

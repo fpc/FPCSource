@@ -92,7 +92,7 @@ endif
 endif
 export ECHO
 endif
-override DEFAULT_FPCDIR=../../..
+override DEFAULT_FPCDIR=../../../..
 ifndef FPC
 ifdef PP
 FPC=$(PP)
@@ -233,123 +233,240 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=fcl
 PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl/Makefile.fpc,$(PACKAGESDIR))))))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=customsqliteds sqliteds sqlite3ds
+override TARGET_UNITS+=ddg_rec ddg_ds
 endif
 override INSTALL_FPCPACKAGE=y
+ifeq ($(FULL_TARGET),i386-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+override COMPILER_OPTIONS+=-S2
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+override COMPILER_OPTIONS+=-S2
+endif
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)
 endif
@@ -1087,162 +1204,123 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl sqlite
+override REQUIRE_PACKAGES=rtl 
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1268,32 +1346,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_SQLITE
-PACKAGEDIR_SQLITE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_SQLITE),)
-ifneq ($(wildcard $(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)),)
-UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_SQLITE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_SQLITE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_SQLITE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_SQLITE=
-UNITDIR_SQLITE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_SQLITE),)
-UNITDIR_SQLITE:=$(firstword $(UNITDIR_SQLITE))
-else
-UNITDIR_SQLITE=
-endif
-endif
-ifdef UNITDIR_SQLITE
-override COMPILER_UNITDIR+=$(UNITDIR_SQLITE)
 endif
 endif
 ifndef NOCPUDEF
