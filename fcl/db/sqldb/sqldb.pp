@@ -725,7 +725,8 @@ end;
 procedure TSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
-  if not IsPrepared then (database as TSQLconnection).UnPrepareStatement(FCursor);
+// Database and FCursor could be nil, for example if the database is not assigned, and .open is called
+  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then (database as TSQLconnection).UnPrepareStatement(FCursor);
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
