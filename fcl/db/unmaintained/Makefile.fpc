@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-dirs=tests
+dirs=ddg
 dirs_linux=mysql interbase 
 dirs_freebsd=mysql interbase
 dirs_darwin=mysql interbase 

@@ -219,6 +219,13 @@ fcl/db/sqlite/*.s
 fcl/db/sqlite/fpcmade.*
 fcl/db/sqlite/units
 fcl/db/units
+fcl/db/unmaintained/ddg/*.bak
+fcl/db/unmaintained/ddg/*.exe
+fcl/db/unmaintained/ddg/*.o
+fcl/db/unmaintained/ddg/*.ppu
+fcl/db/unmaintained/ddg/*.s
+fcl/db/unmaintained/ddg/fpcmade.*
+fcl/db/unmaintained/ddg/units
 fcl/db/unmaintained/interbase/*.bak
 fcl/db/unmaintained/interbase/*.exe
 fcl/db/unmaintained/interbase/*.o
@@ -240,13 +247,6 @@ fcl/db/unmaintained/odbc/*.ppu
 fcl/db/unmaintained/odbc/*.s
 fcl/db/unmaintained/odbc/fpcmade.*
 fcl/db/unmaintained/odbc/units
-fcl/db/unmaintained/tests/*.bak
-fcl/db/unmaintained/tests/*.exe
-fcl/db/unmaintained/tests/*.o
-fcl/db/unmaintained/tests/*.ppu
-fcl/db/unmaintained/tests/*.s
-fcl/db/unmaintained/tests/fpcmade.*
-fcl/db/unmaintained/tests/units
 fcl/emx/*.bak
 fcl/emx/*.exe
 fcl/emx/*.o
