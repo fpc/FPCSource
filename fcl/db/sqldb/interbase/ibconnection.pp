@@ -320,11 +320,16 @@ procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer; va
 begin
   LensSet := False;
 
-  if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
+  if SQLScale < 0 then
     begin
-    LensSet := True;
-    TrLen := SQLLen;
-    TrType := ftBCD
+    if (SQLScale >= -4) and (SQLScale <= -1) then //in [-4..-1] then
+      begin
+      LensSet := True;
+      TrLen := SQLLen;
+      TrType := ftBCD
+      end
+    else
+      TrType := ftFMTBcd;
     end
   else case (SQLType and not 1) of
     SQL_VARYING :
@@ -585,6 +590,7 @@ procedure TIBConnection.SetParameters(cursor : TSQLCursor;AParams : TParams);
 var ParNr,SQLVarNr : integer;
     s               : string;
     i               : integer;
+    li              : LargeInt;
     currbuff        : pchar;
     w               : word;
 
@@ -630,6 +636,13 @@ begin
           {$R-}
           SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
           {$R+}
+        ftLargeInt:
+          begin
+          li := AParams[ParNr].AsLargeInt;
+          {$R-}
+          Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          {$R+}
+          end;
       else
         begin
         DatabaseError('This kind of parameter in not (yet) supported.',self);
@@ -647,7 +660,6 @@ var
   VarcharLen : word;
   CurrBuff     : pchar;
   b            : longint;
-  li           : largeint;
   c            : currency;
 
 begin
@@ -693,13 +705,8 @@ begin
           end;
         ftLargeint :
           begin
-            li := 0;
-            Move(CurrBuff^, li, SQLDA^.SQLVar[x].SQLLen);
-            if SQLDA^.SQLVar[x].SQLScale > 0 then
-              li := li * trunc(intpower(10, SQLDA^.SQLVar[x].SQLScale))
-            else if SQLDA^.SQLVar[x].SQLScale < 0 then
-              li := li div trunc(intpower(10, -SQLDA^.SQLVar[x].SQLScale));
-            Move(li, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+            FillByte(buffer^,sizeof(LargeInt),0);
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftDate, ftTime, ftDateTime:
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
@@ -711,8 +718,7 @@ begin
         ftFloat   :
           GetFloat(CurrBuff, Buffer, FieldDef);
         ftBlob : begin  // load the BlobIb in field's buffer
-            li := 0;
-            Move(li, Buffer^, sizeof(largeint));
+            FillByte(buffer^,sizeof(LargeInt),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
          end
 
