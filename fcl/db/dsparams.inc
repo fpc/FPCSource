@@ -459,6 +459,15 @@ begin
     Result:=FValue;
 end;
 
+Function TParam.GetAsLargeInt: LargeInt;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=FValue;
+end;
+
+
 Function TParam.GetAsMemo: string;
 begin
   If IsNull then
@@ -547,6 +556,12 @@ Procedure TParam.SetAsInteger(AValue: Longint);
 begin
   FValue:=AValue;
   FDataType:=ftInteger;
+end;
+
+Procedure TParam.SetAsLargeInt(AValue: LargeInt);
+begin
+  FValue:=AValue;
+  FDataType:=ftLargeint;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);

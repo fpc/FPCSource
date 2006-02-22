@@ -990,7 +990,7 @@ type
     procedure ClearCalcFields(Buffer: PChar); virtual;
     procedure CloseBlob(Field: TField); virtual;
     procedure CloseCursor; virtual;
-    procedure CreateFields;
+    procedure CreateFields; virtual;
     procedure DataEvent(Event: TDataEvent; Info: Ptrint); virtual;
     procedure DestroyFields; virtual;
     procedure DoAfterCancel; virtual;
@@ -1593,6 +1593,7 @@ type
     Function GetAsDateTime: TDateTime;
     Function GetAsFloat: Double;
     Function GetAsInteger: Longint;
+    Function GetAsLargeInt: LargeInt;
     Function GetAsMemo: string;
     Function GetAsString: string;
     Function GetAsVariant: Variant;
@@ -1606,6 +1607,7 @@ type
     Procedure SetAsDateTime(const AValue: TDateTime);
     Procedure SetAsFloat(const AValue: Double);
     Procedure SetAsInteger(AValue: Longint);
+    Procedure SetAsLargeInt(AValue: LargeInt);
     Procedure SetAsMemo(const AValue: string);
     Procedure SetAsSmallInt(AValue: LongInt);
     Procedure SetAsString(const AValue: string);
@@ -1635,6 +1637,7 @@ type
     Property AsDateTime : TDateTime read GetAsDateTime write SetAsDateTime;
     Property AsFloat : Double read GetAsFloat write SetAsFloat;
     Property AsInteger : LongInt read GetAsInteger write SetAsInteger;
+    Property AsLargeInt : LargeInt read GetAsLargeInt write SetAsLargeInt;
     Property AsMemo : string read GetAsMemo write SetAsMemo;
     Property AsSmallInt : LongInt read GetAsInteger write SetAsSmallInt;
     Property AsString : string read GetAsString write SetAsString;
