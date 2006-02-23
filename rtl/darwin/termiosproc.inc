@@ -25,7 +25,7 @@ end;
 
 Function TCSetAttr(fd:cint;OptAct:cint;const tios:TermIOS):cint;
 var
-  nr:cint;
+  nr:culong;
 begin
   case OptAct of
    TCSANOW   : nr:=TIOCSETA;

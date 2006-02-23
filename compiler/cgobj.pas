@@ -1663,6 +1663,10 @@ implementation
         getrange(todef,lto,hto);
         from_signed := is_signed(fromdef);
         to_signed := is_signed(todef);
+        { check the rangetype of the array, not the array itself }
+        { (only change now, since getrange needs the arraydef)   }
+        if (todef.deftype = arraydef) then
+          todef := tarraydef(todef).rangetype.def;
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }

@@ -1,4 +1,4 @@
-{ %fail }
+{ %result=201 }
 
 {$r+}
 Type
