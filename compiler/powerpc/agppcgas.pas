@@ -80,13 +80,13 @@ unit agppcgas;
           );
 
 
-       as_ppc_gas_darwin_info : tasminfo =
+       as_ppc_gas_darwin_powerpc_info : tasminfo =
           (
             id     : as_darwin;
 
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
+            asmcmd : '-o $OBJ $ASM -arch ppc';
             supported_target : system_any;
             flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : 'L';
@@ -367,5 +367,5 @@ unit agppcgas;
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
-  RegisterAssembler(as_ppc_gas_darwin_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCGNUAssembler);
 end.

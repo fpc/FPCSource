@@ -122,6 +122,9 @@ interface
            to actually write all the different abstract assembler streams
            by calling for each stream type, the @var(WriteTree) method.}
         procedure WriteAsmList;virtual;
+
+        {# Constructs the command line for calling the assembler }
+        function MakeCmdLine: TCmdStr;
       public
         Constructor Create(smart:boolean);override;
         procedure MakeObject;override;
@@ -262,8 +265,8 @@ Implementation
     Function DoPipe:boolean;
       begin
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
-                not(cs_asm_leave in aktglobalswitches)
-                and ((aktoutputformat in [as_gas,as_darwin]));
+                (([cs_asm_leave,cs_link_on_target] * aktglobalswitches) = []) and
+                ((target_asm.id in [as_gas,as_darwin]));
       end;
 
 
@@ -456,24 +459,8 @@ Implementation
            else
            Message1(exec_i_assembling,name);
          end;
-        s:=target_asm.asmcmd;
-{$ifdef m68k}
-        if aktoptprocessor = MC68020 then
-          s:='-m68020 '+s
-        else
-          s:='-m68000 '+s;
-{$endif}
-        if (cs_link_on_target in aktglobalswitches) then
-         begin
-           Replace(s,'$ASM',maybequoted(ScriptFixFileName(AsmFile)));
-           Replace(s,'$OBJ',maybequoted(ScriptFixFileName(ObjFile)));
-         end
-        else
-         begin
-           Replace(s,'$ASM',maybequoted(AsmFile));
-           Replace(s,'$OBJ',maybequoted(ObjFile));
-         end;
-        if CallAssembler(FindAssembler,s) then
+        
+        if CallAssembler(FindAssembler,MakeCmdLine) then
          RemoveAsm
         else
          begin
@@ -570,13 +557,33 @@ Implementation
           end;
       end;
 
-{$ifdef i386}
-    const format_option='--32';
-{$else}{$ifdef x86_64}
-    const format_option='--64';
-{$else}
-    const format_option='';
-{$endif}{$endif}
+
+    function TExternalAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result:=target_asm.asmcmd;
+{$ifdef m68k}
+        if aktoptprocessor = MC68020 then
+          result:='-m68020 '+result
+        else
+          result:='-m68000 '+result;
+{$endif}
+        if (cs_link_on_target in aktglobalswitches) then
+         begin
+           Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFile)));
+           Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFile)));
+         end
+        else
+         begin
+{$ifdef hasunix}
+          if DoPipe then
+            Replace(result,'$ASM','')
+          else
+{$endif}
+             Replace(result,'$ASM',maybequoted(AsmFile));
+           Replace(result,'$OBJ',maybequoted(ObjFile));
+         end;
+      end;
+
 
     procedure TExternalAssembler.AsmCreate(Aplace:tcutplace);
       begin
@@ -586,7 +593,7 @@ Implementation
         if DoPipe then
          begin
            Message1(exec_i_assembling_pipe,asmfile);
-           POpen(outfile,'as '+format_option+' -o '+objfile,'W');
+           POpen(outfile,FindAssembler+' '+MakeCmdLine,'W');
          end
         else
 {$endif}
