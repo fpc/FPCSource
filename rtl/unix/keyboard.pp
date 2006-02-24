@@ -13,7 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit Keyboard;
+unit keyboard;
+
+{$inline on}
 
 {*****************************************************************************}
                                   interface
@@ -29,7 +31,7 @@ const
 function RawReadKey:char;
 function RawReadString : String;
 function KeyPressed : Boolean;
-procedure AddSequence(const St : String; AChar,AScan :byte);
+procedure AddSequence(const St : String; AChar,AScan :byte);inline;
 function FindSequence(const St : String;var AChar, Ascan : byte) : boolean;
 procedure RestoreStartMode;
 
@@ -473,10 +475,11 @@ const
   begin
     fpFD_ZERO(fdsin);
     fpFD_SET(StdInputHandle,fdsin);
-    Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-     if inhead=intail then
-       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
-     ch:=ttyRecvChar;
+{    Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);}
+    MouseEvent.action:=0;
+    if inhead=intail then
+      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+    ch:=ttyRecvChar;
     { Other bits are used for Shift, Meta and Ctrl modifiers PM }
     case (ord(ch)-ord(' ')) and 3  of
       0 : {left button press}
@@ -536,8 +539,7 @@ type
     SpecialHandler : Tprocedure;
   end;
 
-var
-  RootTree : Array[0..255] of PTreeElement;
+var roottree:array[char] of PTreeElement;
 
 procedure FreeElement (PT:PTreeElement);
 var next : PTreeElement;
@@ -552,25 +554,24 @@ begin
 end;
 
 procedure FreeTree;
-var i : integer;
+
+var i:char;
+
 begin
-  for i := low(RootTree) to high(RootTree) do
-  begin
-    FreeElement(RootTree[i]);
-    RootTree[i] := nil;
-  end;
+  for i:=low(roottree) to high(roottree) do
+    begin
+      FreeElement(RootTree[i]);
+      roottree[i]:=nil;
+    end;
 end;
 
 function NewPTree(ch : byte;Pa : PTreeElement) : PTreeElement;
-var PT : PTreeElement;
 begin
-  New(PT);
-  FillChar(PT^,SizeOf(TTreeElement),#0);
-  PT^.char:=ch;
-  PT^.Parent:=Pa;
+  newPtree:=allocmem(sizeof(Ttreeelement));
+  newPtree^.char:=ch;
+  newPtree^.Parent:=Pa;
   if Assigned(Pa) and (Pa^.Child=nil) then
-    Pa^.Child:=PT;
-  NewPTree:=PT;
+    Pa^.Child:=newPtree;
 end;
 
 function DoAddSequence(const St : String; AChar,AScan :byte) : PTreeElement;
@@ -584,11 +585,11 @@ begin
       DoAddSequence:=nil;
       exit;
     end;
-  CurPTree:=RootTree[ord(st[1])];
+  CurPTree:=RootTree[st[1]];
   if CurPTree=nil then
     begin
       CurPTree:=NewPTree(ord(st[1]),nil);
-      RootTree[ord(st[1])]:=CurPTree;
+      RootTree[st[1]]:=CurPTree;
     end;
   for i:=2 to Length(St) do
     begin
@@ -649,7 +650,7 @@ begin
 end;
 
 
-procedure AddSequence(const St : String; AChar,AScan :byte);
+procedure AddSequence(const St : String; AChar,AScan :byte);inline;
 begin
   DoAddSequence(St,AChar,AScan);
 end;
@@ -659,11 +660,6 @@ function FindChild(c : byte;Root : PTreeElement) : PTreeElement;
 var
   NPT : PTreeElement;
 begin
-  if not assigned(Root) then
-    begin
-      FindChild:=nil;
-      exit;
-    end;
   NPT:=Root^.Child;
   while assigned(NPT) and (NPT^.char<c) do
     NPT:=NPT^.Next;
@@ -685,33 +681,264 @@ end;
 function FindSequence(const St : String;var AChar,AScan :byte) : boolean;
 var
   NPT : PTreeElement;
-  I : longint;
+  i : byte;
 begin
   FindSequence:=false;
   AChar:=0;
   AScan:=0;
   if St='' then
     exit;
-  NPT:=RootTree[ord(St[1])];
-  if not assigned(NPT) then
-    exit;
-  for i:=2 to Length(St) do
+  NPT:=RootTree[St[1]];
+  if npt<>nil then
     begin
-      NPT:=FindChild(ord(St[i]),NPT);
-      if not assigned(NPT) then
-        exit;
-    end;
-  if not NPT^.CanBeTerminal then
-    exit
-  else
-    begin
-      FindSequence:=true;
-      AScan:=NPT^.ScanValue;
-      AChar:=NPT^.CharValue;
+      for i:=2 to Length(St) do
+        begin
+          NPT:=FindChild(ord(St[i]),NPT);
+          if NPT=nil then
+            exit;
+        end;
+      if NPT^.CanBeTerminal then
+        begin
+          FindSequence:=true;
+          AScan:=NPT^.ScanValue;
+          AChar:=NPT^.CharValue;
+        end;
     end;
 end;
 
+type  key_sequence=packed record
+        char,scan:byte;
+        st:string[7];
+      end;
+
+const key_sequences:array[0..211] of key_sequence=(
+       (char:0;scan:kbAltA;st:#27'A'),
+       (char:0;scan:kbAltA;st:#27'a'),
+       (char:0;scan:kbAltB;st:#27'B'),
+       (char:0;scan:kbAltB;st:#27'b'),
+       (char:0;scan:kbAltC;st:#27'C'),
+       (char:0;scan:kbAltC;st:#27'c'),
+       (char:0;scan:kbAltD;st:#27'D'),
+       (char:0;scan:kbAltD;st:#27'd'),
+       (char:0;scan:kbAltE;st:#27'E'),
+       (char:0;scan:kbAltE;st:#27'e'),
+       (char:0;scan:kbAltF;st:#27'F'),
+       (char:0;scan:kbAltF;st:#27'f'),
+       (char:0;scan:kbAltG;st:#27'G'),
+       (char:0;scan:kbAltG;st:#27'g'),
+       (char:0;scan:kbAltH;st:#27'H'),
+       (char:0;scan:kbAltH;st:#27'h'),
+       (char:0;scan:kbAltI;st:#27'I'),
+       (char:0;scan:kbAltI;st:#27'i'),
+       (char:0;scan:kbAltJ;st:#27'J'),
+       (char:0;scan:kbAltJ;st:#27'j'),
+       (char:0;scan:kbAltK;st:#27'K'),
+       (char:0;scan:kbAltK;st:#27'k'),
+       (char:0;scan:kbAltL;st:#27'L'),
+       (char:0;scan:kbAltL;st:#27'l'),
+       (char:0;scan:kbAltM;st:#27'M'),
+       (char:0;scan:kbAltM;st:#27'm'),
+       (char:0;scan:kbAltN;st:#27'N'),
+       (char:0;scan:kbAltN;st:#27'n'),
+       (char:0;scan:kbAltO;st:#27'O'),
+       (char:0;scan:kbAltO;st:#27'o'),
+       (char:0;scan:kbAltP;st:#27'P'),
+       (char:0;scan:kbAltP;st:#27'p'),
+       (char:0;scan:kbAltQ;st:#27'Q'),
+       (char:0;scan:kbAltQ;st:#27'q'),
+       (char:0;scan:kbAltR;st:#27'R'),
+       (char:0;scan:kbAltR;st:#27'r'),
+       (char:0;scan:kbAltS;st:#27'S'),
+       (char:0;scan:kbAltS;st:#27's'),
+       (char:0;scan:kbAltT;st:#27'T'),
+       (char:0;scan:kbAltT;st:#27't'),
+       (char:0;scan:kbAltU;st:#27'U'),
+       (char:0;scan:kbAltU;st:#27'u'),
+       (char:0;scan:kbAltV;st:#27'V'),
+       (char:0;scan:kbAltV;st:#27'v'),
+       (char:0;scan:kbAltW;st:#27'W'),
+       (char:0;scan:kbAltW;st:#27'w'),
+       (char:0;scan:kbAltX;st:#27'X'),
+       (char:0;scan:kbAltX;st:#27'x'),
+       (char:0;scan:kbAltY;st:#27'Y'),
+       (char:0;scan:kbAltY;st:#27'y'),
+       (char:0;scan:kbAltZ;st:#27'Z'),
+       (char:0;scan:kbAltZ;st:#27'z'),
+       (char:0;scan:kbAltMinus;st:#27'-'),
+       (char:0;scan:kbAltEqual;st:#27'='),
+       (char:0;scan:kbAlt0;st:#27'0'),
+       (char:0;scan:kbAlt1;st:#27'1'),
+       (char:0;scan:kbAlt2;st:#27'2'),
+       (char:0;scan:kbAlt3;st:#27'3'),
+       (char:0;scan:kbAlt4;st:#27'4'),
+       (char:0;scan:kbAlt5;st:#27'5'),
+       (char:0;scan:kbAlt6;st:#27'6'),
+       (char:0;scan:kbAlt7;st:#27'7'),
+       (char:0;scan:kbAlt8;st:#27'8'),
+       (char:0;scan:kbAlt9;st:#27'9'),
+
+       (char:0;scan:kbF1;st:#27'[[A'),           {linux,konsole,xterm}
+       (char:0;scan:kbF2;st:#27'[[B'),           {linux,konsole,xterm}
+       (char:0;scan:kbF3;st:#27'[[C'),           {linux,konsole,xterm}
+       (char:0;scan:kbF4;st:#27'[[D'),           {linux,konsole,xterm}
+       (char:0;scan:kbF5;st:#27'[[E'),           {linux,konsole}
+       (char:0;scan:kbEsc;st:#27'[0~'),          {if linux keyboard patched, escape
+                                                  returns this}
+       (char:0;scan:kbHome;st:#27'[1~'),         {linux}
+       (char:0;scan:kbIns;st:#27'[2~'),          {linux,Eterm}
+       (char:0;scan:kbDel;st:#27'[3~'),          {linux,Eterm}
+       (char:0;scan:kbEnd;st:#27'[4~'),          {linux,Eterm}
+       (char:0;scan:kbPgUp;st:#27'[5~'),         {linux,Eterm}
+       (char:0;scan:kbPgDn;st:#27'[6~'),         {linux,Eterm}
+       (char:0;scan:kbHome;st:#27'[7~'),         {Eterm}
+       (char:0;scan:kbF1;st:#27'[11~'),          {Eterm}
+       (char:0;scan:kbF2;st:#27'[12~'),          {Eterm}
+       (char:0;scan:kbF3;st:#27'[13~'),          {Eterm}
+       (char:0;scan:kbF4;st:#27'[14~'),          {Eterm}
+       (char:0;scan:kbF5;st:#27'[15~'),          {xterm,Eterm,gnome}
+       (char:0;scan:kbF6;st:#27'[17~'),          {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF7;st:#27'[18~'),          {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF8;st:#27'[19~'),          {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF9;st:#27'[20~'),          {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF10;st:#27'[21~'),         {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF11;st:#27'[23~'),         {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbF12;st:#27'[24~'),         {linux,xterm,Eterm,konsole,gnome}
+       (char:0;scan:kbShiftF3;st:#27'[25~'),     {linux}
+       (char:0;scan:kbShiftF4;st:#27'[26~'),     {linux}
+       (char:0;scan:kbShiftF5;st:#27'[28~'),     {linux}
+       (char:0;scan:kbShiftF6;st:#27'[29~'),     {linux}
+       (char:0;scan:kbShiftF7;st:#27'[31~'),     {linux}
+       (char:0;scan:kbShiftF8;st:#27'[32~'),     {linux}
+       (char:0;scan:kbShiftF9;st:#27'[33~'),     {linux}
+       (char:0;scan:kbShiftF10;st:#27'[34~'),    {linux}
+       (char:0;scan:kbShiftIns;st:#27'[2;2~'),   {should be the code, but shift+ins
+                                                  is paste X clipboard in many
+                                                  terminal emulators :(}
+       (char:0;scan:kbShiftDel;st:#27'[3;2~'),   {xterm,konsole}
+       (char:0;scan:kbShiftF1;st:#27'[11;2~'),   {konsole in vt420pc mode}
+       (char:0;scan:kbShiftF2;st:#27'[12;2~'),   {konsole in vt420pc mode}
+       (char:0;scan:kbShiftF3;st:#27'[13;2~'),   {konsole in vt420pc mode}
+       (char:0;scan:kbShiftF4;st:#27'[14;2~'),   {konsole in vt420pc mode}
+       (char:0;scan:kbShiftF5;st:#27'[15;2~'),   {xterm}
+       (char:0;scan:kbShiftF6;st:#27'[17;2~'),   {xterm}
+       (char:0;scan:kbShiftF7;st:#27'[18;2~'),   {xterm}
+       (char:0;scan:kbShiftF8;st:#27'[19;2~'),   {xterm}
+       (char:0;scan:kbShiftF9;st:#27'[20;2~'),   {xterm}
+       (char:0;scan:kbShiftF10;st:#27'[21;2~'),  {xterm}
+       (char:0;scan:kbShiftF11;st:#27'[23;2~'),  {xterm}
+       (char:0;scan:kbShiftF12;st:#27'[24;2~'),  {xterm}
+       (char:0;scan:kbCtrlIns;st:#27'[2;5~'),    {xterm}
+       (char:0;scan:kbCtrlDel;st:#27'[3;5~'),    {xterm}
+       (char:0;scan:kbAltF1;st:#27#27'[[A'),
+       (char:0;scan:kbAltF2;st:#27#27'[[B'),
+       (char:0;scan:kbAltF3;st:#27#27'[[C'),
+       (char:0;scan:kbAltF4;st:#27#27'[[D'),
+       (char:0;scan:kbAltF5;st:#27#27'[[E'),
+       (char:0;scan:kbAltF6;st:#27#27'[17~'),
+       (char:0;scan:kbAltF7;st:#27#27'[18~'),
+       (char:0;scan:kbAltF8;st:#27#27'[19~'),
+       (char:0;scan:kbAltF9;st:#27#27'[20~'),
+       (char:0;scan:kbAltF10;st:#27#27'[21~'),
+       (char:0;scan:kbAltF11;st:#27#27'[23~'),
+       (char:0;scan:kbAltF12;st:#27#27'[24~'),
+       (char:0;scan:kbUp;st:#27'[A'),            {linux,FreeBSD}
+       (char:0;scan:kbDown;st:#27'[B'),          {linux,FreeBSD}
+       (char:0;scan:kbRight;st:#27'[C'),         {linux,FreeBSD}
+       (char:0;scan:kbLeft;st:#27'[D'),          {linux,FreeBSD}
+       (char:0;scan:kbEnd;st:#27'[F'),           {FreeBSD}
+       (char:0;scan:kbPgdn;st:#27'[G'),          {FreeBSD}
+       (char:0;scan:kbHome;st:#27'[H'),          {FreeBSD}
+       (char:0;scan:kbPgup;st:#27'[I'),          {FreeBSD}
+       (char:0;scan:kbF1;st:#27'[M'),            {FreeBSD}
+       (char:0;scan:kbF2;st:#27'[N'),            {FreeBSD}
+       (char:0;scan:kbF3;st:#27'[O'),            {FreeBSD}
+       (char:0;scan:kbF4;st:#27'[P'),            {FreeBSD}
+       (char:0;scan:kbF5;st:#27'[Q'),            {FreeBSD}
+       (char:0;scan:kbF6;st:#27'[R'),            {FreeBSD}
+       (char:0;scan:kbF7;st:#27'[S'),            {FreeBSD}
+       (char:0;scan:kbF8;st:#27'[T'),            {FreeBSD}
+       (char:0;scan:kbF9;st:#27'[U'),            {FreeBSD}
+       (char:0;scan:kbF10;st:#27'[V'),           {FreeBSD}
+       (char:0;scan:kbF11;st:#27'[W'),           {FreeBSD}
+       (char:0;scan:kbF12;st:#27'[X'),           {FreeBSD}
+       (char:0;scan:kbShiftTab;st:#27'[Z'),
+
+       (char:0;scan:kbShiftUp;st:#27'[1;2A'),    {xterm}
+       (char:0;scan:kbShiftDown;st:#27'[1;2B'),  {xterm}
+       (char:0;scan:kbShiftRight;st:#27'[1;2C'), {xterm}
+       (char:0;scan:kbShiftLeft;st:#27'[1;2D'),  {xterm}
+       (char:0;scan:kbShiftEnd;st:#27'[1;2F'),   {xterm}
+       (char:0;scan:kbShiftHome;st:#27'[1;2H'),  {xterm}
+
+       (char:0;scan:kbCtrlUp;st:#27'[1;5A'),     {xterm}
+       (char:0;scan:kbCtrlDown;st:#27'[1;5B'),   {xterm}
+       (char:0;scan:kbCtrlRight;st:#27'[1;5C'),  {xterm}
+       (char:0;scan:kbCtrlLeft;st:#27'[1;5D'),   {xterm}
+       (char:0;scan:kbCtrlEnd;st:#27'[1;5F'),    {xterm}
+       (char:0;scan:kbCtrlHome;st:#27'[1;5H'),   {xterm}
+       (char:0;scan:kbAltUp;st:#27#27'[A'),
+       (char:0;scan:kbAltDown;st:#27#27'[B'),
+       (char:0;scan:kbAltLeft;st:#27#27'[D'),
+       (char:0;scan:kbAltRight;st:#27#27'[C'),
+       (char:0;scan:kbAltPgUp;st:#27#27'[5~'),
+       (char:0;scan:kbAltPgDn;st:#27#27'[6~'),
+       (char:0;scan:kbAltEnd;st:#27#27'[4~'),
+       (char:0;scan:kbAltHome;st:#27#27'[1~'),
+       (char:0;scan:kbAltIns;st:#27#27'[2~'),
+       (char:0;scan:kbAltDel;st:#27#27'[3~'),
+       (char:0;scan:kbUp;st:#27'OA'),            {xterm}
+       (char:0;scan:kbDown;st:#27'OB'),          {xterm}
+       (char:0;scan:kbRight;st:#27'OC'),         {xterm}
+       (char:0;scan:kbLeft;st:#27'OD'),          {xterm}
+       (char:0;scan:kbHome;st:#27'OF'),          {some xterm configurations}
+       (char:0;scan:kbEnd;st:#27'OH'),           {some xterm configurations}
+       (char:0;scan:kbF1;st:#27'OP'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF2;st:#27'OQ'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF3;st:#27'OR'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF4;st:#27'OS'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF5;st:#27'Ot'),            {vt100}
+       (char:0;scan:kbF6;st:#27'Ou'),            {vt100}
+       (char:0;scan:kbF7;st:#27'Ov'),            {vt100}
+       (char:0;scan:kbF8;st:#27'Ol'),            {vt100}
+       (char:0;scan:kbF9;st:#27'Ow'),            {vt100}
+       (char:0;scan:kbF10;st:#27'Ox'),           {vt100}
+       (char:0;scan:kbF11;st:#27'Oy'),           {vt100}
+       (char:0;scan:kbF12;st:#27'Oz'),           {vt100}
+       (char:0;scan:kbShiftF1;st:#27'O2P'),      {konsole,xterm}
+       (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
+       (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
+       (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
+       (char:0;scan:kbAltF1;st:#27#27'OP'),
+       (char:0;scan:kbAltF2;st:#27#27'OQ'),
+       (char:0;scan:kbAltF3;st:#27#27'OR'),
+       (char:0;scan:kbAltF4;st:#27#27'OS'),
+       (char:0;scan:kbAltF5;st:#27#27'Ot'),
+       (char:0;scan:kbAltF6;st:#27#27'Ou'),
+       (char:0;scan:kbAltF7;st:#27#27'Ov'),
+       (char:0;scan:kbAltF8;st:#27#27'Ol'),
+       (char:0;scan:kbAltF9;st:#27#27'Ow'),
+       (char:0;scan:kbAltF10;st:#27#27'Ox'),
+       (char:0;scan:kbAltF11;st:#27#27'Oy'),
+       (char:0;scan:kbAltF12;st:#27#27'Oz'),
+       (char:0;scan:kbAltUp;st:#27#27'OA'),
+       (char:0;scan:kbAltDown;st:#27#27'OB'),
+       (char:0;scan:kbAltRight;st:#27#27'OC'),
+       (char:0;scan:kbAltLeft;st:#27#27'OD'),
+  { xterm default values }
+  { xterm alternate default values }
+  { ignored sequences }
+       (char:0;scan:0;st:#27'[?1;0c'),
+       (char:0;scan:0;st:#27'[?1l'),
+       (char:0;scan:0;st:#27'[?1h'),
+       (char:0;scan:0;st:#27'[?1;2c'),
+       (char:0;scan:0;st:#27'[?7l'),
+       (char:0;scan:0;st:#27'[?7h')
+      );
+
 procedure LoadDefaultSequences;
+
+var i:cardinal;
+
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
   {Unix backspace/delete hell... Is #127 a backspace or delete?}
@@ -727,227 +954,9 @@ begin
       DoAddSequence(#27#127,0,kbAltBack); {Alt+backspace}
     end;
   { all Esc letter }
-  DoAddSequence(#27'A',0,kbAltA);
-  DoAddSequence(#27'a',0,kbAltA);
-  DoAddSequence(#27'B',0,kbAltB);
-  DoAddSequence(#27'b',0,kbAltB);
-  DoAddSequence(#27'C',0,kbAltC);
-  DoAddSequence(#27'c',0,kbAltC);
-  DoAddSequence(#27'D',0,kbAltD);
-  DoAddSequence(#27'd',0,kbAltD);
-  DoAddSequence(#27'E',0,kbAltE);
-  DoAddSequence(#27'e',0,kbAltE);
-  DoAddSequence(#27'F',0,kbAltF);
-  DoAddSequence(#27'f',0,kbAltF);
-  DoAddSequence(#27'G',0,kbAltG);
-  DoAddSequence(#27'g',0,kbAltG);
-  DoAddSequence(#27'H',0,kbAltH);
-  DoAddSequence(#27'h',0,kbAltH);
-  DoAddSequence(#27'I',0,kbAltI);
-  DoAddSequence(#27'i',0,kbAltI);
-  DoAddSequence(#27'J',0,kbAltJ);
-  DoAddSequence(#27'j',0,kbAltJ);
-  DoAddSequence(#27'K',0,kbAltK);
-  DoAddSequence(#27'k',0,kbAltK);
-  DoAddSequence(#27'L',0,kbAltL);
-  DoAddSequence(#27'l',0,kbAltL);
-  DoAddSequence(#27'M',0,kbAltM);
-  DoAddSequence(#27'm',0,kbAltM);
-  DoAddSequence(#27'N',0,kbAltN);
-  DoAddSequence(#27'n',0,kbAltN);
-  DoAddSequence(#27'O',0,kbAltO);
-  DoAddSequence(#27'o',0,kbAltO);
-  DoAddSequence(#27'P',0,kbAltP);
-  DoAddSequence(#27'p',0,kbAltP);
-  DoAddSequence(#27'Q',0,kbAltQ);
-  DoAddSequence(#27'q',0,kbAltQ);
-  DoAddSequence(#27'R',0,kbAltR);
-  DoAddSequence(#27'r',0,kbAltR);
-  DoAddSequence(#27'S',0,kbAltS);
-  DoAddSequence(#27's',0,kbAltS);
-  DoAddSequence(#27'T',0,kbAltT);
-  DoAddSequence(#27't',0,kbAltT);
-  DoAddSequence(#27'U',0,kbAltU);
-  DoAddSequence(#27'u',0,kbAltU);
-  DoAddSequence(#27'V',0,kbAltV);
-  DoAddSequence(#27'v',0,kbAltV);
-  DoAddSequence(#27'W',0,kbAltW);
-  DoAddSequence(#27'w',0,kbAltW);
-  DoAddSequence(#27'X',0,kbAltX);
-  DoAddSequence(#27'x',0,kbAltX);
-  DoAddSequence(#27'Y',0,kbAltY);
-  DoAddSequence(#27'y',0,kbAltY);
-  DoAddSequence(#27'Z',0,kbAltZ);
-  DoAddSequence(#27'z',0,kbAltZ);
-  DoAddSequence(#27'-',0,kbAltMinus);
-  DoAddSequence(#27'=',0,kbAltEqual);
-  DoAddSequence(#27'0',0,kbAlt0);
-  DoAddSequence(#27'1',0,kbAlt1);
-  DoAddSequence(#27'2',0,kbAlt2);
-  DoAddSequence(#27'3',0,kbAlt3);
-  DoAddSequence(#27'4',0,kbAlt4);
-  DoAddSequence(#27'5',0,kbAlt5);
-  DoAddSequence(#27'6',0,kbAlt6);
-  DoAddSequence(#27'7',0,kbAlt7);
-  DoAddSequence(#27'8',0,kbAlt8);
-  DoAddSequence(#27'9',0,kbAlt9);
-
-  DoAddSequence(#27'[[A',0,kbF1);           {linux,konsole,xterm}
-  DoAddSequence(#27'[[B',0,kbF2);           {linux,konsole,xterm}
-  DoAddSequence(#27'[[C',0,kbF3);           {linux,konsole,xterm}
-  DoAddSequence(#27'[[D',0,kbF4);           {linux,konsole,xterm}
-  DoAddSequence(#27'[[E',0,kbF5);           {linux,konsole}
-  DoAddSequence(#27'[0~',0,kbEsc);          {if linux keyboard patched, escape
-                                             returns this}
-  DoAddSequence(#27'[1~',0,kbHome);         {linux}
-  DoAddSequence(#27'[2~',0,kbIns);          {linux,Eterm}
-  DoAddSequence(#27'[3~',0,kbDel);          {linux,Eterm}
-  DoAddSequence(#27'[4~',0,kbEnd);          {linux,Eterm}
-  DoAddSequence(#27'[5~',0,kbPgUp);         {linux,Eterm}
-  DoAddSequence(#27'[6~',0,kbPgDn);         {linux,Eterm}
-  DoAddSequence(#27'[7~',0,kbHome);         {Eterm}
-  DoAddSequence(#27'[11~',0,kbF1);          {Eterm}
-  DoAddSequence(#27'[12~',0,kbF2);          {Eterm}
-  DoAddSequence(#27'[13~',0,kbF3);          {Eterm}
-  DoAddSequence(#27'[14~',0,kbF4);          {Eterm}
-  DoAddSequence(#27'[15~',0,kbF5);          {xterm,Eterm,gnome}
-  DoAddSequence(#27'[17~',0,kbF6);          {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[18~',0,kbF7);          {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[19~',0,kbF8);          {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[20~',0,kbF9);          {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[21~',0,kbF10);         {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[23~',0,kbF11);         {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[24~',0,kbF12);         {linux,xterm,Eterm,konsole,gnome}
-  DoAddSequence(#27'[25~',0,kbShiftF3);     {linux}
-  DoAddSequence(#27'[26~',0,kbShiftF4);     {linux}
-  DoAddSequence(#27'[28~',0,kbShiftF5);     {linux}
-  DoAddSequence(#27'[29~',0,kbShiftF6);     {linux}
-  DoAddSequence(#27'[31~',0,kbShiftF7);     {linux}
-  DoAddSequence(#27'[32~',0,kbShiftF8);     {linux}
-  DoAddSequence(#27'[33~',0,kbShiftF9);     {linux}
-  DoAddSequence(#27'[34~',0,kbShiftF10);    {linux}
-  DoAddSequence(#27'[2;2~',0,kbShiftIns);   {should be the code, but shift+ins
-                                             is paste X clipboard in many
-                                             terminal emulators :(}
-  DoAddSequence(#27'[3;2~',0,kbShiftDel);   {xterm,konsole}
-  DoAddSequence(#27'[11;2~',0,kbShiftF1);   {konsole in vt420pc mode}
-  DoAddSequence(#27'[12;2~',0,kbShiftF2);   {konsole in vt420pc mode}
-  DoAddSequence(#27'[13;2~',0,kbShiftF3);   {konsole in vt420pc mode}
-  DoAddSequence(#27'[14;2~',0,kbShiftF4);   {konsole in vt420pc mode}
-  DoAddSequence(#27'[15;2~',0,kbShiftF5);   {xterm}
-  DoAddSequence(#27'[17;2~',0,kbShiftF6);   {xterm}
-  DoAddSequence(#27'[18;2~',0,kbShiftF7);   {xterm}
-  DoAddSequence(#27'[19;2~',0,kbShiftF8);   {xterm}
-  DoAddSequence(#27'[20;2~',0,kbShiftF9);   {xterm}
-  DoAddSequence(#27'[21;2~',0,kbShiftF10);  {xterm}
-  DoAddSequence(#27'[23;2~',0,kbShiftF11);  {xterm}
-  DoAddSequence(#27'[24;2~',0,kbShiftF12);  {xterm}
-  DoAddSequence(#27'[2;5~',0,kbCtrlIns);    {xterm}
-  DoAddSequence(#27'[3;5~',0,kbCtrlDel);    {xterm}
-  DoAddSequence(#27#27'[[A',0,kbAltF1);
-  DoAddSequence(#27#27'[[B',0,kbAltF2);
-  DoAddSequence(#27#27'[[C',0,kbAltF3);
-  DoAddSequence(#27#27'[[D',0,kbAltF4);
-  DoAddSequence(#27#27'[[E',0,kbAltF5);
-  DoAddSequence(#27#27'[17~',0,kbAltF6);
-  DoAddSequence(#27#27'[18~',0,kbAltF7);
-  DoAddSequence(#27#27'[19~',0,kbAltF8);
-  DoAddSequence(#27#27'[20~',0,kbAltF9);
-  DoAddSequence(#27#27'[21~',0,kbAltF10);
-  DoAddSequence(#27#27'[23~',0,kbAltF11);
-  DoAddSequence(#27#27'[24~',0,kbAltF12);
-  DoAddSequence(#27'[A',0,kbUp);            {linux,FreeBSD}
-  DoAddSequence(#27'[B',0,kbDown);          {linux,FreeBSD}
-  DoAddSequence(#27'[C',0,kbRight);         {linux,FreeBSD}
-  DoAddSequence(#27'[D',0,kbLeft);          {linux,FreeBSD}
-  DoAddSequence(#27'[F',0,kbEnd);           {FreeBSD}
-  DoAddSequence(#27'[G',0,kbPgUp);          {FreeBSD}
-  DoAddSequence(#27'[H',0,kbHome);          {FreeBSD}
-  DoAddSequence(#27'[H',0,kbPgdn);          {FreeBSD}
-  DoAddSequence(#27'[M',0,kbF1);            {FreeBSD}
-  DoAddSequence(#27'[N',0,kbF2);            {FreeBSD}
-  DoAddSequence(#27'[O',0,kbF3);            {FreeBSD}
-  DoAddSequence(#27'[P',0,kbF4);            {FreeBSD}
-  DoAddSequence(#27'[Q',0,kbF5);            {FreeBSD}
-  DoAddSequence(#27'[R',0,kbF6);            {FreeBSD}
-  DoAddSequence(#27'[S',0,kbF7);            {FreeBSD}
-  DoAddSequence(#27'[T',0,kbF8);            {FreeBSD}
-  DoAddSequence(#27'[U',0,kbF9);            {FreeBSD}
-  DoAddSequence(#27'[V',0,kbF10);           {FreeBSD}
-  DoAddSequence(#27'[W',0,kbF11);           {FreeBSD}
-  DoAddSequence(#27'[X',0,kbF12);           {FreeBSD}
-  DoAddSequence(#27'[Z',0,kbShiftTab);
-
-  DoAddSequence(#27'[1;2A',0,kbShiftUp);    {xterm}
-  DoAddSequence(#27'[1;2B',0,kbShiftDown);  {xterm}
-  DoAddSequence(#27'[1;2C',0,kbShiftRight); {xterm}
-  DoAddSequence(#27'[1;2D',0,kbShiftLeft);  {xterm}
-  DoAddSequence(#27'[1;2F',0,kbShiftEnd);   {xterm}
-  DoAddSequence(#27'[1;2H',0,kbShiftHome);  {xterm}
-
-  DoAddSequence(#27'[1;5A',0,kbCtrlUp);     {xterm}
-  DoAddSequence(#27'[1;5B',0,kbCtrlDown);   {xterm}
-  DoAddSequence(#27'[1;5C',0,kbCtrlRight);  {xterm}
-  DoAddSequence(#27'[1;5D',0,kbCtrlLeft);   {xterm}
-  DoAddSequence(#27'[1;5F',0,kbCtrlEnd);    {xterm}
-  DoAddSequence(#27'[1;5H',0,kbCtrlHome);   {xterm}
-  DoAddSequence(#27#27'[A',0,kbAltUp);
-  DoAddSequence(#27#27'[B',0,kbAltDown);
-  DoAddSequence(#27#27'[D',0,kbAltLeft);
-  DoAddSequence(#27#27'[C',0,kbAltRight);
-  DoAddSequence(#27#27'[5~',0,kbAltPgUp);
-  DoAddSequence(#27#27'[6~',0,kbAltPgDn);
-  DoAddSequence(#27#27'[4~',0,kbAltEnd);
-  DoAddSequence(#27#27'[1~',0,kbAltHome);
-  DoAddSequence(#27#27'[2~',0,kbAltIns);
-  DoAddSequence(#27#27'[3~',0,kbAltDel);
-  DoAddSequence(#27'OA',0,kbUp);            {xterm}
-  DoAddSequence(#27'OB',0,kbDown);          {xterm}
-  DoAddSequence(#27'OC',0,kbRight);         {xterm}
-  DoAddSequence(#27'OD',0,kbLeft);          {xterm}
-  DoAddSequence(#27'OF',0,kbHome);          {some xterm configurations}
-  DoAddSequence(#27'OH',0,kbEnd);           {some xterm configurations}
-  DoAddSequence(#27'OP',0,kbF1);            {vt100,gnome,konsole}
-  DoAddSequence(#27'OQ',0,kbF2);            {vt100,gnome,konsole}
-  DoAddSequence(#27'OR',0,kbF3);            {vt100,gnome,konsole}
-  DoAddSequence(#27'OS',0,kbF4);            {vt100,gnome,konsole}
-  DoAddSequence(#27'Ot',0,kbF5);            {vt100}
-  DoAddSequence(#27'Ou',0,kbF6);            {vt100}
-  DoAddSequence(#27'Ov',0,kbF7);            {vt100}
-  DoAddSequence(#27'Ol',0,kbF8);            {vt100}
-  DoAddSequence(#27'Ow',0,kbF9);            {vt100}
-  DoAddSequence(#27'Ox',0,kbF10);           {vt100}
-  DoAddSequence(#27'Oy',0,kbF11);           {vt100}
-  DoAddSequence(#27'Oz',0,kbF12);           {vt100}
-  DoAddSequence(#27'O2P',0,kbShiftF1);      {konsole,xterm}
-  DoAddSequence(#27'O2Q',0,kbShiftF2);      {konsole,xterm}
-  DoAddSequence(#27'O2R',0,kbShiftF3);      {konsole,xterm}
-  DoAddSequence(#27'O2S',0,kbShiftF4);      {konsole,xterm}
-  DoAddSequence(#27#27'OP',0,kbAltF1);
-  DoAddSequence(#27#27'OQ',0,kbAltF2);
-  DoAddSequence(#27#27'OR',0,kbAltF3);
-  DoAddSequence(#27#27'OS',0,kbAltF4);
-  DoAddSequence(#27#27'Ot',0,kbAltF5);
-  DoAddSequence(#27#27'Ou',0,kbAltF6);
-  DoAddSequence(#27#27'Ov',0,kbAltF7);
-  DoAddSequence(#27#27'Ol',0,kbAltF8);
-  DoAddSequence(#27#27'Ow',0,kbAltF9);
-  DoAddSequence(#27#27'Ox',0,kbAltF10);
-  DoAddSequence(#27#27'Oy',0,kbAltF11);
-  DoAddSequence(#27#27'Oz',0,kbAltF12);
-  DoAddSequence(#27#27'OA',0,kbAltUp);
-  DoAddSequence(#27#27'OB',0,kbAltDown);
-  DoAddSequence(#27#27'OC',0,kbAltRight);
-  DoAddSequence(#27#27'OD',0,kbAltLeft);
-  { xterm default values }
-  { xterm alternate default values }
-  { ignored sequences }
-  DoAddSequence(#27'[?1;0c',0,0);
-  DoAddSequence(#27'[?1l',0,0);
-  DoAddSequence(#27'[?1h',0,0);
-  DoAddSequence(#27'[?1;2c',0,0);
-  DoAddSequence(#27'[?7l',0,0);
-  DoAddSequence(#27'[?7h',0,0);
+  for i:=low(key_sequences) to high(key_sequences) do
+    with key_sequences[i] do
+      DoAddSequence(st,char,scan);
 end;
 
 function RawReadKey:char;
@@ -1065,7 +1074,7 @@ begin
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   ch:=ttyRecvChar;
-  NPT:=RootTree[ord(ch)];
+  NPT:=RootTree[ch];
   if not assigned(NPT) then
     PushKey(ch)
   else
@@ -1130,31 +1139,29 @@ End;
 
 {$ifdef linux}
 function ShiftState:byte;
-var
-  arg,
-  shift : longint;
+
+var arg:longint;
+
 begin
-  shift:=0;
+  shiftstate:=0;
   arg:=6;
   if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
    begin
      if (arg and 8)<>0 then
-      shift:=kbAlt;
+      shiftstate:=kbAlt;
      if (arg and 4)<>0 then
-      inc(shift,kbCtrl);
+      inc(shiftstate,kbCtrl);
      { 2 corresponds to AltGr so set both kbAlt and kbCtrl PM }
      if (arg and 2)<>0 then
-      shift:=shift or (kbAlt or kbCtrl);
+      shiftstate:=shiftstate or (kbAlt or kbCtrl);
      if (arg and 1)<>0 then
-      inc(shift,kbShift);
+      inc(shiftstate,kbShift);
    end;
-  ShiftState:=shift;
 end;
 
 procedure force_linuxtty;
 
 var s:string[15];
-{    st:stat;}
     handle:sizeint;
     thistty:string;
 
