@@ -155,7 +155,7 @@ end;
 
 function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
-  fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags);
+  fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,0,0);
 end;
 
 function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
@@ -165,7 +165,7 @@ end;
 
 function  fprecv (s:cint; buf: pointer; len: size_t; flags:cint):ssize_t;
 begin
-  fpRecv:=do_syscall(syscall_nr_Recvfrom,S,tsysparam(buf),len,flags);
+  fpRecv:=do_syscall(syscall_nr_Recvfrom,S,tsysparam(buf),len,flags,0,0);
 end;
 
 function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
