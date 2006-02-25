@@ -3973,6 +3973,7 @@
           dwItemData : DWORD;
           dwTypeData : LPTSTR;
           cch : UINT;
+          hbmpItem : HBITMAP;
        end;
      LPMENUITEMINFO = ^MENUITEMINFO;
      LPCMENUITEMINFO = ^MENUITEMINFO;
