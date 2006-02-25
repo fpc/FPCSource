@@ -2427,6 +2427,21 @@ mem,imm32             \321\300\1\x81\206\41           386,SM
 (Ch_All, Ch_None, Ch_None)
 void                  \3\x0F\xA7\xC0                  P6,CYRIX
 
+[XCRYPTECB]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA7\xC8              P6,CYRIX
+
+[XCRYPTCBC]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA7\xD0              P6,CYRIX
+
+[XCRYPTCFB]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA7\xE0              P6,CYRIX
+
+[XCRYPTOFB]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA7\xE8              P6,CYRIX
 
 [CMOVcc,cmovCCX]
 (Ch_ROp1, Ch_WOp2, Ch_RFLAGS)
@@ -3405,11 +3420,119 @@ xmmreg,mem		\301\3\xF3\x0F\x12\110		PRESCOTT,SSE3
 xmmreg,xmmreg           \3\xF3\x0F\x12\110              PRESCOTT,SSE3
 
 ;
+; Intel VT
+;
+[VMREAD]
+(Ch_All, Ch_None, Ch_None)
+reg32,reg32           \300\2\x0F\x78\101              386,PRIV,PROT
+mem,reg32             \300\2\x0F\x78\101              386,PRIV,PROT,SM
+
+[VMWRITE]
+(Ch_All, Ch_None, Ch_None)
+reg32,reg32           \301\2\x0F\x79\110              386,PRIV,PROT
+reg32,mem             \301\2\x0F\x79\110              386,PRIV,PROT,SM
+
+[VMCALL]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xC1                  386,PRIV,PROT
+
+[VMLAUNCH]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xC2                  386,PRIV,PROT
+
+[VMRESUME]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xC3                  386,PRIV,PROT
+
+[VMXOFF]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xC4                  386,PRIV,PROT
+
+; note: ideally the following should be tagged with SQ
+
+[VMXON]
+(Ch_All, Ch_None, Ch_None)
+mem                   \300\333\2\x0F\xC7\206          PRIV,PROT
+
+[VMCLEAR]
+(Ch_All, Ch_None, Ch_None)
+mem                   \300\3\x66\x0F\xC7\206          PRIV,PROT
+
+[VMPTRLD]
+(Ch_All, Ch_None, Ch_None)
+mem                   \300\2\x0F\xC7\206              PRIV,PROT
+
+[VMPTRST]
+(Ch_All, Ch_None, Ch_None)
+mem                   \300\2\x0F\xC7\207              PRIV,PROT
+
+;
+; AMD SVM
+;
+[VMRUN]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xD8                  386,SVM,PRIV,PROT
+
+[VMMCALL]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xD9                  386,SVM
+
+[VMLOAD]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDA                  386,SVM,PRIV,PROT
+
+[VMSAVE]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDB                  386,SVM,PRIV,PROT
+
+[STGI]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDC                  386,SVM,PRIV,PROT
+
+[CLGI]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDD                  386,SVM,PRIV,PROT
+
+[SKINIT]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDE                  386,SVM,PRIV,PROT
+
+[INVLPGA]
+(Ch_All, Ch_None, Ch_None)
+void                  \3\x0F\x01\xDF                  386,SVM,PRIV,PROT
+
+;
+; Centaur
+;
+[MONTMUL]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA6\xC0              CENTAUR
+
+[XSHA1]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA6\xC8              CENTAUR
+
+[XSHA256]
+(Ch_All, Ch_None, Ch_None)
+void                  \333\3\x0F\xA6\xD0              CENTAUR
+
+;
+; Geode
+;
+[DMINT]
+(Ch_All, Ch_None, Ch_None)
+void \2\x0F\x39                                       P6,CYRIX
+
+[RDM]
+(Ch_All, Ch_None, Ch_None)
+void                  \2\x0F\x3A                      P6,CYRIX
+
+;
 ; GAS specific x86-64 instructions
 ;
 [MOVABS]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg32,imm               \321\10\xB8\41                  X86_64
+reg32,imm             \321\10\xB8\41                  X86_64
 
 [MOVSXD,movslq]
 (Ch_Wop2, Ch_Rop1, Ch_None)

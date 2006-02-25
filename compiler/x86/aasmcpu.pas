@@ -317,6 +317,9 @@ implementation
        {IF_PMASK  = longint($FF000000);}
        { the mask for disassembly "prefer"  }
        {IF_PFMASK = longint($F001FF00);}
+       { SVM instructions  }
+       IF_SVM    = $00100000;
+
        IF_8086   = $00000000;  { 8086 instruction  }
        IF_186    = $01000000;  { 186+ instruction  }
        IF_286    = $02000000;  { 286+ instruction  }
@@ -330,8 +333,9 @@ implementation
        { Prescott instructions }
        IF_PRESCOTT = $09000000;
        IF_X86_64 = $0a000000;
-       IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
-       IF_AMD    = $20000000;  { AMD-specific instruction  }
+       IF_CYRIX  = $0b000000;  { Cyrix-specific instruction  }
+       IF_AMD    = $0c000000;  { AMD-specific instruction  }
+       IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = longint($80000000);  { if the instruction can change in a second pass }
