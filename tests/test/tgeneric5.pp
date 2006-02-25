@@ -18,7 +18,7 @@ var
   p : pointer;
 begin
   i:=item;
-  if item=i then;
+  data := item;
   p:=typeinfo(_T);
   if p<>typeinfo(integer) then
     begin
