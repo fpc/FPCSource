@@ -319,12 +319,12 @@ implementation
                     akttokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
                     hpd.free;
-                    tpointerdef(pd).pointertype.def:=nil; { if error occurs }
+                    tabstractpointerdef(pd).pointertype.def:=nil; { if error occurs }
                     { was a type sym found ? }
                     if assigned(srsym) and
                        (srsym.typ=typesym) then
                      begin
-                       tpointerdef(pd).pointertype.setsym(srsym);
+                       tabstractpointerdef(pd).pointertype.setsym(srsym);
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
                        { we need a class type for classrefdef }
@@ -336,7 +336,7 @@ implementation
                      begin
                        MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
                        { try to recover }
-                       tpointerdef(pd).pointertype:=generrortype;
+                       tabstractpointerdef(pd).pointertype:=generrortype;
                      end;
                   end;
                end;

@@ -822,7 +822,7 @@ implementation
             insertdef(list,tsetdef(def).elementtype.def);
           procvardef,
           procdef :
-            insertdef(list,tprocdef(def).rettype.def);
+            insertdef(list,tabstractprocdef(def).rettype.def);
           arraydef :
             begin
               insertdef(list,tarraydef(def).rangetype.def);
