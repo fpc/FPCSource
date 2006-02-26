@@ -56,7 +56,7 @@ Unit AoptObj;
     { ************************************************************************* }
     { ************************* Some general type definitions ***************** }
     { ************************************************************************* }
-      TRefCompare = Function(r1, r2: TReference): Boolean;
+      TRefCompare = Function(const r1, r2: TReference): Boolean;
       //!!! FIXME
       TRegArray = Array[byte] of tsuperregister;
       TRegSet = Set of byte;
