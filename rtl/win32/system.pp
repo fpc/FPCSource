@@ -93,8 +93,6 @@ var
   MainInstance,
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
-  Win32StackTop : Dword;
-
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
@@ -365,7 +363,6 @@ procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
-procedure asm_exit(Exitcode : longint);external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -383,7 +380,7 @@ begin
   remove_exception_handlers;
 
   { call exitprocess, with cleanup as required }
-  asm_exit(exitcode);
+  ExitProcess(exitcode);
 end;
 
 var
@@ -391,7 +388,7 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
+procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -412,7 +409,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         pushl %ebp
         xorl %ebp,%ebp
         movl %esp,%eax
-        movl %eax,Win32StackTop
+        movl %eax,StackTop
         movw %ss,%bp
         movl %ebp,_SS
         call SysResetFPU
@@ -423,6 +420,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      { if we pass here there was no error ! }
      system_exit;
   end;
+
 
 Const
   { DllEntryPoint  }
@@ -435,7 +433,7 @@ Var
 Const
      DLLExitOK : boolean = true;
 
-function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
+function Dll_entry : longbool;
 var
   res : longbool;
 
@@ -493,6 +491,44 @@ begin
     DLLExitOK:=ExitCode=0;
     LongJmp(DLLBuf,1);
 end;
+
+{$ifndef VER2_0}
+
+procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+begin
+  IsConsole:=true;
+  Exe_entry;
+end;
+
+
+procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+begin
+  IsConsole:=false;
+  Exe_entry;
+end;
+
+
+procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup@12';
+begin
+  IsConsole:=true;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
+end;
+
+
+procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup@12';
+begin
+  IsConsole:=false;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
+end;
+
+{$endif VER2_0}
+
 
 function GetCurrentProcess : dword;
  stdcall;external 'kernel32' name 'GetCurrentProcess';
@@ -1160,13 +1196,15 @@ begin
   result := stklen;
 end;
 
+{
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
+}
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := initialstkptr - StackLength;
+  StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }

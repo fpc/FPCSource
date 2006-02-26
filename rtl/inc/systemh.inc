@@ -1,6 +1,6 @@
 {
     This file contains the OS independent declarations of the system unit
-    
+
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1999-2005 by the Free Pascal development team
 
@@ -349,6 +349,7 @@ ThreadVar
   StdErr      : Text;
   InOutRes    : Word;
   { Stack checking }
+  StackTop,
   StackBottom : Pointer;
   StackLength : SizeUInt;
 

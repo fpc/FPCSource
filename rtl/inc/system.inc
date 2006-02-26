@@ -44,7 +44,6 @@ const
 var
   emptychar : char;public name 'FPC_EMPTYCHAR';
   initialstklen : SizeUint;external name '__stklen';
-  initialstkptr : Pointer;external name '__stkptr';
 
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.

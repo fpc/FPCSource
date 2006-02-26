@@ -802,7 +802,7 @@ begin
 {$ifdef windows}
   { inside stack ? }
   if (ptruint(p)>ptruint(get_frame)) and
-     (ptruint(p)<Win32StackTop) then
+     (p<StackTop) then
     goto _exit;
   { inside data ? }
   if (ptruint(p)>=ptruint(@sdata)) and (ptruint(p)<ptruint(@edata)) then

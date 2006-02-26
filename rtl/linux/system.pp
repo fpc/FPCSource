@@ -249,6 +249,9 @@ begin
     result := stklen;
 end;
 
+
+var
+  initialstkptr : Pointer;external name '__stkptr';
 Begin
   SysResetFPU;
   IsConsole := TRUE;

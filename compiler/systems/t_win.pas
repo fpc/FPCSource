@@ -898,15 +898,15 @@ begin
      {$else ARM}
        targetopts:='-b pe-i386 -m i386pe';
      {$endif ARM}
-     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
+     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
      { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
        use short forms to avoid 128 char limitation problem }
      ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $ENTRY $IMAGEBASE -o $EXE $RES exp.$$$';
      { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
      DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
+     DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE -o $EXE $RES exp.$$$';
    end;
 end;
 
@@ -951,6 +951,7 @@ begin
   { add objectfiles, start with prt0 always                  }
   { profiling of shared libraries is currently not supported }
   LinkRes.Add('INPUT(');
+(*
   if isdll then
    LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wdllprt0','',false)))
   else
@@ -963,6 +964,7 @@ begin
      else
       LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
    end;
+*)
 
   while not ObjectFiles.Empty do
    begin
@@ -1040,6 +1042,7 @@ var
   StripStr,
   RelocStr,
   AppTypeStr,
+  EntryStr,
   ImageBaseStr : string[40];
 begin
   if not(cs_link_extern in aktglobalswitches) then
@@ -1048,27 +1051,30 @@ begin
 { Create some replacements }
   RelocStr:='';
   AppTypeStr:='';
+  EntryStr:='';
   ImageBaseStr:='';
   StripStr:='';
   GCSectionsStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
-   RelocStr:='--base-file base.$$$';
+    RelocStr:='--base-file base.$$$';
   if use_smartlink_section then
-   GCSectionsStr:='--gc-sections';
+    GCSectionsStr:='--gc-sections';
   if target_info.system in [system_arm_wince,system_i386_wince] then
-    begin
-      AppTypeStr:='--subsystem wince';
-      if apptype <> app_gui then
-        AppTypeStr:=AppTypeStr + ' --entry=mainCRTStartup';
-    end
+    AppTypeStr:='--subsystem wince'
   else
-    if apptype=app_gui then
-     AppTypeStr:='--subsystem windows';
+    begin
+      if apptype=app_gui then
+        AppTypeStr:='--subsystem windows';
+    end;
+  if apptype=app_gui then
+    EntryStr:='--entry=_WinMainCRTStartup'
+  else
+    EntryStr:='--entry=_mainCRTStartup';
   if assigned(DLLImageBase) then
-   ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';
+    StripStr:='-s';
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -1088,6 +1094,7 @@ begin
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$ENTRY',EntryStr);
         Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
@@ -1135,6 +1142,7 @@ var
   GCSectionsStr,
   RelocStr,
   AppTypeStr,
+  EntryStr,
   ImageBaseStr : string[40];
 begin
   MakeSharedLibrary:=false;
@@ -1144,6 +1152,7 @@ begin
 { Create some replacements }
   RelocStr:='';
   AppTypeStr:='';
+  EntryStr:='';
   ImageBaseStr:='';
   StripStr:='';
   GCSectionsStr:='';
@@ -1153,11 +1162,16 @@ begin
   if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
   if apptype=app_gui then
-   AppTypeStr:='--subsystem windows';
+    begin
+      AppTypeStr:='--subsystem windows';
+      EntryStr:='--entry _DLLWinMainCRTStartup@12'
+    end
+  else
+    EntryStr:='--entry _DLLMainCRTStartup@12';
   if assigned(DLLImageBase) then
-   ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';
+    StripStr:='-s';
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -1177,6 +1191,7 @@ begin
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
+        Replace(cmdstr,'$ENTRY',EntryStr);
         Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);

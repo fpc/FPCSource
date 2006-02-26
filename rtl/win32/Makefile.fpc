@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=wprt0 wdllprt0 gprt0 wcygprt0
+loaders=$(LOADERS)
 units=system ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
       windows winsock initc cmem dynlibs signals \
@@ -44,11 +44,8 @@ WININC=wininc
 
 UNITPREFIX=rtl
 
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
+ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
+LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
 endif
 
 # Paths
