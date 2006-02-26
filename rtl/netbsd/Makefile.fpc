@@ -16,8 +16,7 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       sysutils classes typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard  serial variants types systhrds sysctl sysconst
-units_netbsd_i386=mmx cpu
+      video mouse keyboard  serial variants types systhrds sysctl sysconst $(CPU_UNITS)
 rsts=math varutils typinfo variants classes sysconst
 
 [require]
@@ -84,6 +83,12 @@ GRAPHDIR=$(INC)/graph
 #
 ifndef USELIBGGI
 USELIBGGI=NO
+endif
+
+ifeq ($(CPU_TARGET),i386)
+CPU_UNITS=x86 ports cpu mmx
+else
+CPU_UNITS=
 endif
 
 
