@@ -47,6 +47,7 @@ type
       tvarargsparalist): longint; override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
 
+    procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
   private
     procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister;
       var cur_stack_offset: aword);
@@ -485,6 +486,20 @@ begin
   { not supported/required for PowerPC64-linux target }
   internalerror(200404182);
   result := true;
+end;
+
+procedure tppcparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+var
+  paraloc : pcgparalocation;
+begin
+  paraloc:=parasym.paraloc[callerside].location;
+  { Do not create a temporary if the value is pushed }
+  if assigned(paraloc) and
+    (paraloc^.loc=LOC_REFERENCE) and
+    (paraloc^.reference.index=NR_STACK_POINTER_REG) then
+    duplicateparaloc(list,calloption,parasym,cgpara)
+  else
+    inherited createtempparaloc(list,calloption,parasym,cgpara);
 end;
 
 begin

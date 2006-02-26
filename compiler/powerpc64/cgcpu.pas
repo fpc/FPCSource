@@ -154,7 +154,14 @@ type
     immediate as required by some PowerPC instructions }
     function hasLargeOffset(const ref : TReference) : Boolean; inline;
 
-    procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean);
+    { generates code to call a method with the given string name. The boolean options
+     control code generation. If prependDot is true, a single dot character is prepended to
+     the string, if addNOP is true a single NOP instruction is added after the call, and
+     if includeCall is true, the method is marked as having a call, not if false. This
+     option is particularly useful to prevent generation of a larger stack frame for the 
+     register save and restore helper functions. }
+    procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; 
+      addNOP : boolean; includeCall : boolean = true);
 
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
      as well }
@@ -552,7 +559,7 @@ begin
     a_call_name_direct(list, s, true, true);
 end;
 
-procedure tcgppc.a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean);
+procedure tcgppc.a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
   if (prependDot) then
     s := '.' + s;
@@ -560,9 +567,9 @@ begin
     AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
-  { the compiler does not properly set this flag anymore in pass 1, and
-   for now we only need it after pass 2 (I hope) (JM) }
-  include(current_procinfo.flags, pi_do_call);
+
+  if (includeCall) then
+    include(current_procinfo.flags, pi_do_call);
 end;
 
 
@@ -1326,12 +1333,12 @@ var
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false);
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false);
+        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false);
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false);
       end else if (gprcount > 0) then
-        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false)
+        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false)
       else if (fprcount > 0) then
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false)
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false)
       else
         mayNeedLRStore := true;
     end else begin
@@ -1461,7 +1468,7 @@ var
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false);
+        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false);
         a_jmp_name(list, '_restfpr_' + intToStr(32-fprcount));
       end else if (gprcount > 0) then
         a_jmp_name(list, '_restgpr0_' + intToStr(32-gprcount))
@@ -1520,7 +1527,6 @@ begin
   { calculate stack frame }
   localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
     gprcount, fprcount);
-
   { CR register not supported }
 
   { restore stack pointer }
@@ -1656,15 +1662,21 @@ begin
     internalerror(2002072704);
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
+  { if the references are equal, exit, there is no need to copy anything } 
+  if (references_equal(source, dest)) then
+    exit;
+
   { make sure short loads are handled as optimally as possible;
    note that the data here never overlaps, so we can do a forward
    copy at all times.
    NOTE: maybe use some scratch registers to pair load/store instructions
   }
-
+  
   if (len <= maxmoveunit) then begin
     src := source; dst := dest;
+    {$IFDEF extdebug}
     list.concat(tai_comment.create(strpnew('g_concatcopy3 ' + inttostr(src.offset) + ' ' + inttostr(dst.offset))));
+    {$ENDIF extdebug}
     while (len <> 0) do begin
       if (len = 8) then begin
         a_load_ref_ref(list, OS_64, OS_64, src, dst);    
@@ -2167,7 +2179,7 @@ begin
   ref.refaddr := addr_pic;
 
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symbol)));
+  list.concat(tai_comment.create(strpnew('loading value from TOC reference for ' + symname)));
   {$ENDIF EXTDEBUG}
   cg.a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
 end;
