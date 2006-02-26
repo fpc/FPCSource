@@ -389,6 +389,8 @@ var
   _SS : Cardinal;
 
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
+  var
+    ST : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -407,11 +409,14 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movl %esp,%eax
         movl %eax,System_exception_frame
         pushl %ebp
-        xorl %ebp,%ebp
         movl %esp,%eax
-        movl %eax,StackTop
-        movw %ss,%bp
-        movl %ebp,_SS
+        movl %eax,st
+     end;
+     StackTop:=st;
+     asm
+        xorl %eax,%eax
+        movw %ss,%ax
+        movl %eax,_SS
         call SysResetFPU
         xorl %ebp,%ebp
         call PASCALMAIN
