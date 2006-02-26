@@ -1751,6 +1751,9 @@ const
           internalerror(2002072704);
 {$endif extdebug}
 
+        if (references_equal(source,dest)) then
+          exit;
+
         { make sure short loads are handled as optimally as possible }
         if (len <= maxmoveunit) and
            (byte(len) in [1,2,4,8]) then
