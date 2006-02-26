@@ -234,10 +234,10 @@ interface
     procedure undef_system_macro(const name : string);
 
 {*** symtable stack ***}
-{$ifdef DEBUG}
+{ $ifdef DEBUG
     procedure test_symtablestack;
     procedure list_symtablestack;
-{$endif DEBUG}
+ $endif DEBUG}
 
 {$ifdef UNITALIASES}
     type
