@@ -549,7 +549,8 @@ var
   RC: longint;
 begin
   FileExists:=False;
-  if FindFirst (FileName, faAnyFile, SR)=0 then FileExists:=True;
+  if FindFirst (FileName, faAnyFile and not (faDirectory), SR) = 0
+    then FileExists := True;
   FindClose(SR);
 end;
 
@@ -768,7 +769,8 @@ function DirectoryExists (const Directory: string): boolean;
 var
   SR: TSearchRec;
 begin
-  DirectoryExists:=FindFirst(Directory, faDirectory, SR)=0;
+  DirectoryExists := (FindFirst (Directory, faAnyFile, SR) = 0) and
+                                                (SR.Attr and faDirectory <> 0);
   FindClose(SR);
 end;
 
