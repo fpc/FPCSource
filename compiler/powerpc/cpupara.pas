@@ -41,7 +41,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-
+          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -642,6 +642,21 @@ unit cpupara;
             internalerror(200404182);
         end;
         result:=true;
+      end;
+
+
+    procedure tppcparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+      var
+        paraloc : pcgparalocation;
+      begin
+        paraloc:=parasym.paraloc[callerside].location;
+        { No need for temps when value is pushed }
+        if assigned(paraloc) and
+           (paraloc^.loc=LOC_REFERENCE) and
+           (paraloc^.reference.index=NR_STACK_POINTER_REG) then
+          duplicateparaloc(list,calloption,parasym,cgpara)
+        else
+          inherited createtempparaloc(list,calloption,parasym,cgpara);
       end;
 
 
