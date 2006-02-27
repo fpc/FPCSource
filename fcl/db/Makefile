@@ -236,49 +236,49 @@ ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
@@ -293,16 +293,16 @@ ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
@@ -311,13 +311,13 @@ ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
@@ -326,7 +326,7 @@ ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
@@ -335,13 +335,13 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained
+override TARGET_DIRS+=sdf memds sqldb unmaintained
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=sdf memds sqldb sqlite unmaintained  dbase
@@ -1481,7 +1481,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1494,7 +1493,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1507,7 +1505,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1520,15 +1517,12 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1541,7 +1535,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1554,15 +1547,12 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -1599,11 +1589,9 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
@@ -1616,7 +1604,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1638,7 +1625,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
@@ -1651,7 +1637,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1695,7 +1680,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
@@ -1708,7 +1692,6 @@ REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
@@ -2399,7 +2382,6 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
@@ -2414,7 +2396,6 @@ ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
@@ -2429,7 +2410,6 @@ ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
@@ -2443,21 +2423,18 @@ ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
@@ -2471,7 +2448,6 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
@@ -2485,21 +2461,18 @@ ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
@@ -2537,14 +2510,12 @@ ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
@@ -2558,7 +2529,6 @@ ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
@@ -2580,7 +2550,6 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
@@ -2594,7 +2563,6 @@ ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
@@ -2616,7 +2584,6 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
@@ -2639,7 +2606,6 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
@@ -2654,7 +2620,6 @@ ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_SDF=1
 TARGET_DIRS_MEMDS=1
 TARGET_DIRS_SQLDB=1
-TARGET_DIRS_SQLITE=1
 TARGET_DIRS_UNMAINTAINED=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)

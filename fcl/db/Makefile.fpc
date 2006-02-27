@@ -6,15 +6,15 @@
 main=fcl
 
 [target]
-dirs=sdf memds sqldb sqlite unmaintained
+dirs=sdf memds sqldb unmaintained
 # dirs_i386=dbase
-dirs_linux=dbase
-dirs_freebsd=dbase
-# dirs_darwin=
-# dirs_netbsd=
-# dirs_openbsd=
-dirs_win32=dbase
-dirs_wince=dbase
+dirs_linux=dbase sqlite
+dirs_freebsd=dbase sqlite
+dirs_darwin=sqlite
+dirs_netbsd=sqlite
+dirs_openbsd=sqlite
+dirs_win32=dbase sqlite
+dirs_wince=dbase sqlite
 units=dbconst db dbwhtml
 rsts=dbwhtml dbconst
 
