@@ -527,7 +527,18 @@ Function fpSymlink(oldname,newname:pchar):cint;
 }
 
 begin
- fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
+  fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
 end;
 
+function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
+
+begin
+  Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,offset,0);
+end;
+
+function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
+
+begin
+  Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,offset,0);
+end;
 

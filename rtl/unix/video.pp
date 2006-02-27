@@ -973,8 +973,7 @@ begin
 {$ifdef linux}
   if Console=ttylinux then
    begin
-     fplSeek(TTYFd, 4, Seek_Set);
-     fpWrite(TTYFd, VideoBuf^,VideoBufSize);
+     fppwrite(TTYFd, VideoBuf^,VideoBufSize,4);
    end
   else
    begin
@@ -1003,19 +1002,14 @@ begin
 {$ifdef linux}
   if Console=ttylinux then
    begin
-     fplSeek(TTYFd, 2, Seek_Set);
      Pos[1]:=NewCursorX;
      Pos[2]:=NewCursorY;
-     fpWrite(TTYFd, Pos, 2);
+     fppwrite(ttyfd,pos,2,2);
    end
   else
-   begin
 {$endif}
-     { newcursorx,y and CursorX,Y are 0 based ! }
-     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
-{$ifdef linux}
-   end;
-{$endif}
+    { newcursorx,y and CursorX,Y are 0 based ! }
+    SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
   CursorX:=NewCursorX;
   CursorY:=NewCursorY;
 end;

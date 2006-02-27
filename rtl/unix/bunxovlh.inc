@@ -48,6 +48,10 @@ Function  FPFStat   (var F:File;Var Info:stat):Boolean; inline;
 Function  FpSignal  (signum:longint;Handler:signalhandler):signalhandler;
 Function  FpRead    (fd : cInt; var buf; nbytes : TSize): TSsize; inline;
 Function  FpWrite   (fd : cInt; const buf; nbytes : TSize): TSsize; inline;
+{$ifdef linux}
+function  FppRead   (fd : cInt; var buf; nbytes : TSize; offset:Toff): TSsize; inline;
+function  FppWrite  (fd : cInt; const buf; nbytes : TSize; offset:Toff): TSsize; inline;
+{$endif}
 Function  FpDup     (var oldfile,newfile:text):cint;
 Function  FpDup     (var oldfile,newfile:file):cint;
 Function  FpDup2    (var oldfile,newfile:text):cint;
