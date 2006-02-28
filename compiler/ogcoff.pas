@@ -186,6 +186,35 @@ implementation
        COFF_SYM_FILE     = 103;
        COFF_SYM_SECTION  = 104;
 
+       PE_SCN_CNT_CODE               = $00000020; { Section contains code. }
+       PE_SCN_CNT_INITIALIZED_DATA   = $00000040; { Section contains initialized data. }
+       PE_SCN_CNT_UNINITIALIZED_DATA = $00000080; { Section contains uninitialized data. }
+       PE_SCN_LNK_OTHER              = $00000100; { Reserved. }
+       PE_SCN_LNK_INFO               = $00000200; { Section contains comments or some other type of information. }
+       PE_SCN_LNK_REMOVE             = $00000800; { Section contents will not become part of image. }
+       PE_SCN_LNK_COMDAT             = $00001000; { Section contents comdat. }
+       PE_SCN_MEM_FARDATA            = $00008000;
+       PE_SCN_MEM_PURGEABLE          = $00020000;
+       PE_SCN_MEM_16BIT              = $00020000;
+       PE_SCN_MEM_LOCKED             = $00040000;
+       PE_SCN_MEM_PRELOAD            = $00080000;
+       PE_SCN_ALIGN_MASK             = $00f00000;
+       PE_SCN_ALIGN_1BYTES           = $00100000;
+       PE_SCN_ALIGN_2BYTES           = $00200000;
+       PE_SCN_ALIGN_4BYTES           = $00300000;
+       PE_SCN_ALIGN_8BYTES           = $00400000;
+       PE_SCN_ALIGN_16BYTES          = $00500000; { Default alignment if no others are specified. }
+       PE_SCN_ALIGN_32BYTES          = $00600000;
+       PE_SCN_ALIGN_64BYTES          = $00700000;
+       PE_SCN_LNK_NRELOC_OVFL        = $01000000; { Section contains extended relocations. }
+       PE_SCN_MEM_NOT_CACHED         = $04000000; { Section is not cachable.               }
+       PE_SCN_MEM_NOT_PAGED          = $08000000; { Section is not pageable.               }
+       PE_SCN_MEM_SHARED             = $10000000; { Section is shareable.                  }
+       PE_SCN_MEM_DISCARDABLE        = $02000000;
+       PE_SCN_MEM_EXECUTE            = $20000000;
+       PE_SCN_MEM_READ               = $40000000;
+       PE_SCN_MEM_WRITE              = $80000000;
+
     type
        { Structures which are written directly to the output file }
        coffheader=packed record
@@ -493,18 +522,28 @@ const go32v2stub : array[0..2047] of byte=(
         case atype of
           sec_code :
             begin
-              Flags:=$60000020;
+              Flags:=PE_SCN_MEM_EXECUTE or PE_SCN_MEM_READ or PE_SCN_ALIGN_16BYTES or PE_SCN_CNT_CODE;
               addralign:=16;
             end;
           sec_data :
             begin
-              Flags:=$c0300040;
+              Flags:=PE_SCN_CNT_INITIALIZED_DATA or PE_SCN_MEM_READ or PE_SCN_MEM_WRITE or PE_SCN_ALIGN_16BYTES;
               addralign:=16;
             end;
           sec_bss :
             begin
-              Flags:=$c0300080;
+              Flags:=PE_SCN_CNT_UNINITIALIZED_DATA or PE_SCN_MEM_READ or PE_SCN_MEM_WRITE or PE_SCN_ALIGN_16BYTES;
               addralign:=16;
+            end;
+          sec_stab :
+            begin
+              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_LNK_REMOVE or PE_SCN_ALIGN_4BYTES;
+              addralign:=4;
+            end;
+          sec_stabstr :
+            begin
+              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_LNK_REMOVE or PE_SCN_ALIGN_1BYTES;
+              addralign:=1;
             end;
           sec_idata2,
           sec_idata4,
@@ -512,11 +551,11 @@ const go32v2stub : array[0..2047] of byte=(
           sec_idata6,
           sec_idata7 :
             begin
-              Flags:=$40000000;
+              Flags:=PE_SCN_MEM_READ;
             end;
           sec_edata :
             begin
-              Flags:=$c0300040;
+              Flags:=PE_SCN_MEM_READ;
             end;
         end;
       end;
