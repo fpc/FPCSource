@@ -82,9 +82,11 @@ _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is e
         jmp     _haltproc2
 
 .data
+        .type   __fpucw,@object
+        .size   __fpucw,4
+        .global __fpucw
 ___fpucw:
         .long   0x1332
-
 
 .bss
         .type   __stkptr,@object

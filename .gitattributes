@@ -3689,11 +3689,13 @@ rtl/linux/i386/syscallh.inc svneol=native#text/plain
 rtl/linux/i386/sysnr.inc svneol=native#text/plain
 rtl/linux/ipccall.inc svneol=native#text/plain
 rtl/linux/ipcsys.inc svneol=native#text/plain
+rtl/linux/linux.pp svneol=native#text/plain
 rtl/linux/linuxvcs.pp -text
 rtl/linux/m68k/bsyscall.inc svneol=native#text/plain
 rtl/linux/m68k/prt0.as -text
 rtl/linux/m68k/prt1.as -text
 rtl/linux/m68k/stat.inc svneol=native#text/plain
+rtl/linux/oldlinux.pp svneol=native#text/plain
 rtl/linux/osdefs.inc svneol=native#text/plain
 rtl/linux/osmacro.inc svneol=native#text/plain
 rtl/linux/ossysc.inc svneol=native#text/plain
