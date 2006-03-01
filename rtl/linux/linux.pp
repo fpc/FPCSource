@@ -19,6 +19,9 @@ unit Linux;
 
 interface
 
+uses
+  ctypes;
+
 Type
   TSysinfo = packed record
     uptime    : longint;
@@ -44,10 +47,43 @@ Const
   CLONE_SIGHAND = $00000800; // set if signal handlers shared
   CLONE_PID     = $00001000; // set if pid shared
 
+  EPOLLIN  = $01; { The associated file is available for read(2) operations. }
+  EPOLLOUT = $02; { The associated file is available for write(2) operations. }
+  EPOLLPRI = $04; { There is urgent data available for read(2) operations. }
+  EPOLLERR = $08; { Error condition happened on the associated file descriptor. }
+  EPOLLHUP = $10; { Hang up happened on the associated file descriptor. }
+  EPOLLET  = $80000000; { Sets  the  Edge  Triggered  behaviour  for  the  associated file descriptor. }
+
+  { Valid opcodes ( "op" parameter ) to issue to epoll_ctl }
+  EPOLL_CTL_ADD = 1;
+  EPOLL_CTL_MOD = 2;
+  EPOLL_CTL_DEL = 3;
+
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
+  epoll_data = record
+    case integer of
+      0: (ptr: pointer);
+      1: (fd: cint);
+      2: (u32: cuint);
+      3: (u64: cuint64);
+  end;
+
+  pepoll_event = ^epoll_event;
+  epoll_event = record
+    events: cuint32;
+    data: epoll_data;
+  end;
+
 function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
+
+{ open an epoll file descriptor }
+function epoll_create(size: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create'; {$endif}
+{ control interface for an epoll descriptor }
+function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_ctl'; {$endif}
+{ wait for an I/O event on an epoll file descriptor }
+function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_wait'; {$endif}
 
 implementation
 
@@ -139,6 +175,23 @@ begin
   end;
   *)
 {$endif cpum68k}
+end;
+
+function epoll_create(size: cint): cint;
+begin
+  epoll_create := do_syscall(syscall_nr_epoll_create);
+end;
+
+function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
+begin
+  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd), 
+    tsysparam(op), tsysparam(fd), tsysparam(event));
+end;
+
+function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint): cint;
+begin
+  epoll_wait := do_syscall(syscall_nr_epoll_wait, tsysparam(epfd),
+    tsysparam(events), tsysparam(maxevents), tsysparam(timeout));
 end;
 {$endif}
 
