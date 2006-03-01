@@ -538,12 +538,12 @@ const go32v2stub : array[0..2047] of byte=(
             end;
           sec_stab :
             begin
-              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_LNK_REMOVE or PE_SCN_ALIGN_4BYTES;
+              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_ALIGN_4BYTES;
               addralign:=4;
             end;
           sec_stabstr :
             begin
-              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_LNK_REMOVE or PE_SCN_ALIGN_1BYTES;
+              Flags:=PE_SCN_MEM_DISCARDABLE or PE_SCN_ALIGN_1BYTES;
               addralign:=1;
             end;
           sec_idata2,
