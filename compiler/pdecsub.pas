@@ -584,9 +584,9 @@ implementation
           else
            tt:=cformaltype;
 
-          { File types are only allowed for var parameters }
+          { File types are only allowed for var and out parameters }
           if (tt.def.deftype=filedef) and
-             (varspez<>vs_var) then
+             not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
           vs:=tparavarsym(sc.first);
@@ -1178,7 +1178,7 @@ begin
   if pd.deftype<>procdef then
     internalerror(200304268);
   consume(_COLON);
-  tprocdef(pd).extnumber:=get_intconst;
+  tprocdef(pd).extnumber:=longint(get_intconst);
 end;
 
 procedure pd_internproc(pd:tabstractprocdef);
@@ -1186,7 +1186,7 @@ begin
   if pd.deftype<>procdef then
     internalerror(200304268);
   consume(_COLON);
-  tprocdef(pd).extnumber:=get_intconst;
+  tprocdef(pd).extnumber:=longint(get_intconst);
   { the proc is defined }
   tprocdef(pd).forwarddef:=false;
 end;
@@ -1481,7 +1481,7 @@ begin
            begin
              {After the word index follows the index number in the DLL.}
              consume(_INDEX);
-             import_nr:=get_intconst;
+             import_nr:=longint(get_intconst);
            end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then

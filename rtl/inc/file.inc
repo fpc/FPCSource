@@ -18,7 +18,7 @@
 type
   UnTypedFile=File;
 
-Procedure Assign(var f:File;const Name:string);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -30,7 +30,7 @@ Begin
 End;
 
 
-Procedure assign(var f:File;p:pchar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -39,7 +39,7 @@ begin
 end;
 
 
-Procedure assign(var f:File;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
 {
   Assign Name to file f so it can be used with the file routines
 }
