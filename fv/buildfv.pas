@@ -8,7 +8,7 @@ uses
   fvcommon,
   objects,
   drivers,
-  memory,
+{  memory,}
   fvconsts,
   resource,
   views,

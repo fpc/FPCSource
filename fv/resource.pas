@@ -279,7 +279,7 @@ implementation
 {****************************************************************************}
 
 uses
-  Memory, Drivers;
+  {Memory, }Drivers;
 
 {****************************************************************************}
 { TConstant object                                                           }
@@ -479,6 +479,7 @@ begin
     begin
       MakeEditableString(S);
       Constant := NewConstant(i,S);
+(*
       if LowMemory then
       begin
         if (Constant <> nil) then
@@ -486,6 +487,7 @@ begin
         LoadStrings := 8;  { out of memory }
         Exit;
       end;
+*)
       Insert(Constant);
     end;
   end;
