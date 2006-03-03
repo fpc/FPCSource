@@ -880,7 +880,7 @@ implementation
         if suffix<>'' then
           result:=result+'_'+suffix;
         { the Darwin assembler assumes that all symbols starting with 'L' are local }
-        if (target_info.system = system_powerpc_darwin) and
+        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
            (result[1] = 'L') then
           result := '_' + result;
       end;
