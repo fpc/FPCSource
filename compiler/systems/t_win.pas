@@ -950,29 +950,17 @@ begin
 
   { add objectfiles, start with prt0 always                  }
   { profiling of shared libraries is currently not supported }
-  LinkRes.Add('INPUT(');
-(*
-  if isdll then
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wdllprt0','',false)))
-  else
-  if (cs_profile in aktmoduleswitches) then
-   LinkRes.AddFileName(MaybeQuoted(FindObjectFile('gprt0','',false)))
-  else
-   begin
-     if linklibcygwin then
-      LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wcygprt0','',false)))
-     else
-      LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
-   end;
-*)
-
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      LinkRes.AddFileName(MaybeQuoted(s));
-   end;
-  LinkRes.Add(')');
+  if not ObjectFiles.Empty then
+    begin
+      LinkRes.Add('INPUT(');
+      while not ObjectFiles.Empty do
+        begin
+          s:=ObjectFiles.GetFirst;
+          if s<>'' then
+            LinkRes.AddFileName(MaybeQuoted(s));
+        end;
+      LinkRes.Add(')');
+    end;
 
   { Write staticlibraries }
   if (not StaticLibFiles.Empty) then
