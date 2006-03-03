@@ -110,7 +110,7 @@ implementation
         exprasmlist.concat(taicpu.op_none(A_BCTR));
 
         { generate jump table }
-        new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
+        new_section(current_procinfo.aktlocaldata,sec_rodata,current_procinfo.procdef.mangledname,sizeof(aint));
         current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
         last:=min_;
         genitem(current_procinfo.aktlocaldata,hp);
