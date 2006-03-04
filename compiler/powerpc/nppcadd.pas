@@ -127,9 +127,11 @@ interface
                   begin
                     location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
                     if not cmpop then
-                      location.register := n.location.register;
-                      if is_64bit(n.resulttype.def) then
-                        location.register64.reghi := n.location.register64.reghi;
+                      begin
+                        location.register := n.location.register;
+                        if is_64bit(n.resulttype.def) then
+                          location.register64.reghi := n.location.register64.reghi;
+                      end;
                   end;
               end;
           end;
