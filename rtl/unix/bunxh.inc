@@ -80,11 +80,13 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
     Function  FpRead       (fd : cInt; buf: pChar; nbytes : TSize): TSsize; external name 'FPC_SYSC_READ';
 {$ifdef linux}
-    Function  FppRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;
+    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;
+    function  FpReadV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;
 {$endif}
-    Function  FpWrite      (fd : cInt; buf:pChar; nbytes : TSize): TSsize; external name 'FPC_SYSC_WRITE';
+    Function  FpWrite      (fd : cInt; buf:pChar; nbytes : TSize): TSsize;  external name 'FPC_SYSC_WRITE';
 {$ifdef linux}
-    Function  FppWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSsize;
+    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;
+    function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize; 
 {$endif}
     Function  FpLseek      (fd : cInt; offset : TOff; whence : cInt): TOff; external name 'FPC_SYSC_LSEEK';
     Function  FpTime       (var tloc : TTime): TTime; external name 'FPC_SYSC_TIME';
