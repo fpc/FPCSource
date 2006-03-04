@@ -533,3 +533,53 @@ begin
  fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
 end;
 
+function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
+
+begin
+  
+ 	{$ifdef CPU64}
+	    Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,TSysParam(OffSet});
+	{$else}
+           Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,
+           {$ifdef 64bitfs}
+	     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+           {$else}
+	     {$ifdef FPC_BIG_ENDIAN}    0,lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),0{$endif}
+	   {$endif}
+            );
+        {$endif}
+end;
+
+function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
+
+begin
+ 	{$ifdef CPU64}
+           Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,TSysParam(OffSet});
+	{$else}
+           Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,
+	  // ,0  = possible alignment here.
+           {$ifdef 64bitfs}
+	     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+           {$else}
+	     {$ifdef FPC_BIG_ENDIAN}    0,lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),0{$endif}
+	   {$endif}
+            );
+        {$endif}
+end;
+
+function Fpreadv(fd: cint; const iov : piovec; iovcnt : cint):ssize_t; [public, alias : 'FPC_SYSC_READV'];
+
+begin
+  Fpreadv:=do_syscall(syscall_nr_readv,Fd,TSysParam(iov),iovcnt);
+end;
+
+function Fpwritev(fd: cint; const iov : piovec; iovcnt : cint):ssize_t;  [public, alias : 'FPC_SYSC_WRITEV'];
+
+begin
+  Fpwritev:=do_syscall(syscall_nr_writev,Fd,TSysParam(iov),iovcnt);
+end;
+

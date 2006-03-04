@@ -88,8 +88,6 @@ const
  syscall_nr_getpriority                 =100;
  syscall_nr_setsockopt                  =105;
  syscall_nr_gettimeofday                =116;
- syscall_nr_readv                       =120;
- syscall_nr_writev                      =121;
 
  syscall_nr_fchown                      =123;
  syscall_nr_fchmod                      =124;
@@ -112,8 +110,7 @@ const
  syscall_nr_uname                       =164;
 
  syscall_nr_rtprio                      =166;
- syscall_nr_pread                       =173;
- syscall_nr_pwrite                      =174;
+
  syscall_nr_ntp_adjtime                 =176;
  syscall_nr_setegid                     =182;
  syscall_nr_seteuid                     =183;
@@ -228,7 +225,11 @@ syscall_nr_getdirentries                =196;
 
 }
 
-{More or less checked BSD syscalls}
+{More or less checked/in use FreeBSD syscalls}
+ syscall_nr_readv                       =120;
+ syscall_nr_writev                      =121;
+ syscall_nr_pread                       =173;
+ syscall_nr_pwrite                      =174;
  syscall_nr_semsys                      =169;
  syscall_nr_msgsys                      =170;
  syscall_nr_shmsys                      =171;

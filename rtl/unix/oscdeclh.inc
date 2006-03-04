@@ -112,3 +112,8 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
     function  FpStat      (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
 {$endif linux}
+
+    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;   cdecl; external clib name 'pread';
+    function  FpReadV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'readv';
+    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite';
+    function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'writev';
