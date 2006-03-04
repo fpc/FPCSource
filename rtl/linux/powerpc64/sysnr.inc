@@ -4,7 +4,6 @@
     member of the Free Pascal development team.
 
     This file contains the system call numbers.
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,6 +17,10 @@
   /usr/include/asm-ppc64/unistd.h
   The following command line parameters were used:
     unistd.h
+
+  Manual additions for post-2.6.11-1 kernels, in particular:
+  - aliases for syscall_nr_pread/write64 for 2.6.11-3 kernel
+  - syscalls 273-275 for 2.6.13 kernels
 }
 
 const
@@ -291,3 +294,7 @@ const
   syscall_nr_inotify_init = 275;
   syscall_nr_inotify_add_watch = 276;
   syscall_nr_inotify_rm_watch = 277;
+
+  syscall_nr_pwrite64 = syscall_nr_pwrite;
+  syscall_nr_pread64 = syscall_nr_pread;
+
