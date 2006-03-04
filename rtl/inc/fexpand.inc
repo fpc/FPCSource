@@ -133,7 +133,7 @@ begin
             Pa [I] := DirectorySeparator
       end
     else
-      if DirectorySeparator = '\' then
+      if DirectorySeparator = '/' then
     {Allow backslash as slash}
         begin
           for I := 1 to Length (Pa) do
