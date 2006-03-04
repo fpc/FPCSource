@@ -745,16 +745,7 @@ implementation
                  objectlibrary.getlabel(falselabel);
                end;
               secondpass(right);
-
-              if cs_check_range in aktlocalswitches then
-               begin
-                 if left.resulttype.def.deftype=arraydef then
-                   rangecheck_array;
-               end;
-
-              { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(exprasmlist,right.location,OS_ADDR,(mulsize = 1));
-
+              
               if isjump then
                begin
                  truelabel:=otl;
@@ -762,6 +753,16 @@ implementation
                end
               else if (right.location.loc = LOC_JUMP) then
                 internalerror(2006010801);
+
+              { if mulsize = 1, we won't have to modify the index }
+              location_force_reg(exprasmlist,right.location,OS_ADDR,(mulsize = 1));
+
+              { only range check now, we can't range check loc_flags/loc_jump }
+              if cs_check_range in aktlocalswitches then
+               begin
+                 if left.resulttype.def.deftype=arraydef then
+                   rangecheck_array;
+               end;
 
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
