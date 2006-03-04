@@ -634,6 +634,7 @@ implementation
           begin
             treechanged:=true;
             n:=hn;
+            resulttypepass(n);
           end;
       end;
 
