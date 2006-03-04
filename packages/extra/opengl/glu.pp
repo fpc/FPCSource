@@ -394,7 +394,7 @@ implementation
 {$ELSE MORPHOS}
 
 var
-  hDLL: THandle;
+  hDLL: TLibHandle;
 
 {$ENDIF MORPHOS}
 
@@ -456,7 +456,8 @@ begin
   @gluNextContour := nil;
   @gluEndPolygon := nil;
 
-  FreeLibrary(hDLL);
+  if (hDLL <> 0) then
+    FreeLibrary(hDLL);
 {$ENDIF MORPHOS}
 end;
 
