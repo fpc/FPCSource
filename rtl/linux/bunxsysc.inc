@@ -535,7 +535,7 @@ function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [
 begin
   
  	{$ifdef CPU64}
-	    Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet});
+	    Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 	{$else}
            Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,
            {$ifdef 64bitfs}
@@ -553,7 +553,7 @@ function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [p
 
 begin
  	{$ifdef CPU64}
-           Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet});
+           Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
 	{$else}
            Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,
 	  // ,0  = possible alignment here.
