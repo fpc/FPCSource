@@ -32,6 +32,8 @@ interface
        tppcaddnode = class(tcgaddnode)
           function pass_1: tnode; override;
           procedure pass_2;override;
+         protected
+          function use_generic_mul32to64: boolean; override;
          private
           procedure pass_left_and_right;
           procedure load_left_right(cmpop, load_constants: boolean);
@@ -81,6 +83,11 @@ interface
       end;
 
 
+   function tppcaddnode.use_generic_mul32to64: boolean;
+     begin
+       result := false;
+     end;
+
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -105,7 +112,9 @@ interface
         begin
           case n.location.loc of
             LOC_REGISTER:
-              if not cmpop then
+              if (not cmpop) and
+                 ((nodetype <> muln) or
+                  not is_64bit(resulttype.def)) then
                 begin
                   location.register := n.location.register;
                   if is_64bit(n.resulttype.def) then
@@ -114,7 +123,9 @@ interface
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                 location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
-                if not cmpop then
+                if (not cmpop) and
+                   ((nodetype <> muln) or
+                    not is_64bit(resulttype.def)) then
                   begin
                     location.register := n.location.register;
                     if is_64bit(n.resulttype.def) then
@@ -126,7 +137,9 @@ interface
                 if load_constants then
                   begin
                     location_force_reg(exprasmlist,n.location,def_cgsize(n.resulttype.def),false);
-                    if not cmpop then
+                    if (not cmpop) and
+                       ((nodetype <> muln) or
+                        not is_64bit(resulttype.def)) then
                       begin
                         location.register := n.location.register;
                         if is_64bit(n.resulttype.def) then
@@ -140,12 +153,13 @@ interface
       begin
         load_node(left);
         load_node(right);
-        if not(cmpop) and
-           (location.register = NR_NO) then
-         begin
-           location.register := cg.getintregister(exprasmlist,OS_INT);
-           if is_64bit(resulttype.def) then
-             location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
+        if not(cmpop) then
+          begin
+            if (location.register = NR_NO) then
+              location.register := cg.getintregister(exprasmlist,OS_INT);
+            if is_64bit(resulttype.def) and
+               (location.register64.reghi = NR_NO) then
+              location.register64.reghi := cg.getintregister(exprasmlist,OS_INT);
          end;
       end;
 
@@ -799,7 +813,11 @@ interface
           muln:
             begin
               { should be handled in pass_1 (JM) }
-              internalerror(200109051);
+              if not(torddef(left.resulttype.def).typ in [U32bit,s32bit]) or
+                 (torddef(left.resulttype.def).typ <> torddef(right.resulttype.def).typ) then
+                internalerror(200109051);
+              { handled separately }
+              op := OP_NONE;
             end;
           else
             internalerror(2002072705);
@@ -808,11 +826,12 @@ interface
         if not cmpop then
           location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
 
-        load_left_right(cmpop,(cs_check_overflow in aktlocalswitches) and
-            (nodetype in [addn,subn]));
+        load_left_right(cmpop,((cs_check_overflow in aktlocalswitches) and
+            (nodetype in [addn,subn])) or (nodetype = muln));
 
-        if not(cs_check_overflow in aktlocalswitches) or
-           not(nodetype in [addn,subn]) then
+        if (nodetype <> muln) and
+           (not(cs_check_overflow in aktlocalswitches) or
+            not(nodetype in [addn,subn])) then
           begin
             case nodetype of
               ltn,lten,
@@ -1007,6 +1026,11 @@ interface
                       op1 := A_SUBC;
                       op2 := A_SUBFEO;
                     end;
+                  muln:
+                    begin
+                      op1 := A_MULLW;
+                      op2 := A_MULHW
+                    end;
                   else
                     internalerror(2002072806);
                 end
@@ -1024,18 +1048,33 @@ interface
                       op1 := A_SUBC;
                       op2 := A_SUBFE;
                     end;
+                  muln:
+                    begin
+                      op1 := A_MULLW;
+                      op2 := A_MULHWU
+                    end;
                 end;
               end;
             exprasmlist.concat(taicpu.op_reg_reg_reg(op1,location.register64.reglo,
               left.location.register64.reglo,right.location.register64.reglo));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.register64.reghi,
-              right.location.register64.reghi,left.location.register64.reghi));
-            if not(is_signed(resulttype.def)) then
-              if nodetype = addn then
-                exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,location.register64.reghi,left.location.register64.reghi))
-              else
-                exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register64.reghi,location.register64.reghi));
-            cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+
+            if (nodetype <> muln) then
+              begin
+                exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.register64.reghi,
+                   right.location.register64.reghi,left.location.register64.reghi));
+                if not(is_signed(resulttype.def)) then
+                  if nodetype = addn then
+                    exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,location.register64.reghi,left.location.register64.reghi))
+                  else
+                    exprasmlist.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register64.reghi,location.register64.reghi));
+                cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+              end
+            else
+              begin
+               { 32 * 32 -> 64 cannot overflow }
+                exprasmlist.concat(taicpu.op_reg_reg_reg(op2,location.register64.reghi,
+                   left.location.register64.reglo,right.location.register64.reglo));
+              end
           end;
 
         { set result location }
@@ -1264,7 +1303,8 @@ interface
                    exit;
                  end
                { 64bit operations }
-               else if is_64bit(left.resulttype.def) then
+               else if is_64bit(resulttype.def) or
+                       is_64bit(left.resulttype.def) then
                  begin
                    second_add64bit;
                    exit;

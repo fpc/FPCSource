@@ -49,6 +49,13 @@ interface
           { the code generator for performance reasons (JM)                 }
           function first_add64bitint: tnode; virtual;
 
+          { override and return false if you can handle 32x32->64 }
+          { bit multiplies directly in your code generator. If    }
+          { this function is overridden to return false, you can  }
+          { get multiplies with left/right both s32bit or u32bit, }
+          { and resulttype of the muln s64bit or u64bit           }
+          function use_generic_mul32to64: boolean; virtual;
+
           { This routine calls internal runtime library helpers
             for all floating point arithmetic in the case
             where the emulation switches is on. Otherwise
@@ -56,6 +63,10 @@ interface
             the code generation phase.
           }
           function first_addfloat : tnode; virtual;
+         private
+           { checks whether a muln can be calculated as a 32bit }
+           { * 32bit -> 64 bit                                  }
+           function try_make_mul32to64: boolean;
        end;
        taddnodeclass = class of taddnode;
 
@@ -1742,6 +1753,71 @@ implementation
       end;
 
 
+    function taddnode.use_generic_mul32to64: boolean;
+      begin
+        result := true;
+      end;
+
+
+    function taddnode.try_make_mul32to64: boolean;
+
+      function canbe32bitint(v: tconstexprint; fromdef: torddef; todefsigned: boolean): boolean;
+        begin
+          if (fromdef.typ <> u64bit) then
+            result :=
+             ((v >= 0) or
+              todefsigned) and
+             (v >= low(longint)) and
+             (v <= high(longint))
+          else            
+            result :=
+             (qword(v) >= low(cardinal)) and
+             (qword(v) <= high(cardinal))
+        end;
+
+      var
+        temp: tnode;
+      begin
+        result := false;
+        if ((left.nodetype = typeconvn) and
+            is_integer(ttypeconvnode(left).left.resulttype.def) and
+            (not(torddef(ttypeconvnode(left).left.resulttype.def).typ in [u64bit,s64bit]))  and
+           (((right.nodetype = ordconstn) and
+             canbe32bitint(tordconstnode(right).value,torddef(right.resulttype.def),is_signed(left.resulttype.def))) or
+            ((right.nodetype = typeconvn) and
+             is_integer(ttypeconvnode(right).left.resulttype.def) and
+             not(torddef(ttypeconvnode(right).left.resulttype.def).typ in [u64bit,s64bit])) and
+             (is_signed(ttypeconvnode(left).left.resulttype.def) =
+              is_signed(ttypeconvnode(right).left.resulttype.def)))) then
+          begin
+            temp := ttypeconvnode(left).left;
+            ttypeconvnode(left).left := nil;
+            left.free;
+            left := temp;
+            if (right.nodetype = typeconvn) then
+              begin
+                temp := ttypeconvnode(right).left;
+                ttypeconvnode(right).left := nil;
+                right.free;
+                right := temp;
+              end;
+            if (is_signed(left.resulttype.def)) then
+              begin
+                inserttypeconv(left,s32inttype);
+                inserttypeconv(right,s32inttype);
+              end
+            else
+              begin
+                inserttypeconv(left,u32inttype);
+                inserttypeconv(right,u32inttype);
+              end;
+            firstpass(left);
+            firstpass(right);
+            result := true;
+          end;
+      end;
+
+
     function taddnode.first_add64bitint: tnode;
       var
         procname: string[31];
@@ -1774,6 +1850,10 @@ implementation
             { return firstpassed new node }
             exit;
           end;
+
+        if not(use_generic_mul32to64) and
+           try_make_mul32to64 then
+          exit;
 
         { when currency is used set the result of the
           parameters to s64bit, so they are not converted }
