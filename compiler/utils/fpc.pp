@@ -71,28 +71,35 @@ program fpc;
       findclose(Info);
     end;
 
-  procedure findexe(var ppcbin:string);
+  function findexe(var ppcbin:string): boolean;
     var
       path : string;
     begin
       { add .exe extension }
+      findexe:=false;
       ppcbin:=ppcbin+exeext;
 
       { get path of fpc.exe }
       path:=splitpath(paramstr(0));
       if FileExists(path+ppcbin) then
-       ppcbin:=path+ppcbin
+       begin
+         ppcbin:=path+ppcbin;
+	 findexe:=true;
+       end
       else
        begin
          path:=FileSearch(ppcbin,getenvironmentvariable('PATH'));
          if path<>'' then
-          ppcbin:=path;
-
+	  begin
+            ppcbin:=path;
+	    findexe:=true;	
+ 	  end
        end;
     end;
 
   var
      s              : ansistring;
+     cpusuffix,
      processorname,
      ppcbin,
      versionStr,
@@ -102,6 +109,8 @@ program fpc;
      errorvalue     : Longint;
   begin
      ppccommandline:='';
+     cpusuffix	   :='';	// if not empty, signals attempt at cross
+				// compiler.		
 {$ifdef i386}
      ppcbin:='ppc386';
      processorname:='i386';
@@ -169,24 +178,27 @@ program fpc;
                         halt(0);
                       end
                      else if processorstr='i386' then
-                       ppcbin:='ppc386'
+                       cpusuffix:='386'
                      else if processorstr='m68k' then
-                       ppcbin:='ppc68k'
+                       cpusuffix:='68k'
                      else if processorstr='alpha' then
-                       ppcbin:='ppcapx'
+                       cpusuffix:='apx'
                      else if processorstr='powerpc' then
-                       ppcbin:='ppcppc'
+                       cpusuffix:='ppc'
                      else if processorstr='powerpc64' then
-                       ppcbin:='ppcppc64'
+                       cpusuffix:='ppc64'
                      else if processorstr='arm' then
-                       ppcbin:='ppcarm'
+                       cpusuffix:='arm'
                      else if processorstr='sparc' then
-                       ppcbin:='ppcsparc'
+                       cpusuffix:='sparc'
                      else if processorstr='ia64' then
-                       ppcbin:='ppcia64'
+                       cpusuffix:='ia64'
                      else if processorstr='x86_64' then
-                       ppcbin:='ppcx64'
-                     else error('Illegal processor type "'+processorstr+'"');
+                       cpusuffix:='x64'
+                     else 
+                       error('Illegal processor type "'+processorstr+'"');
+
+		     ppcbin:='ppcross'+cpusuffix;
                      end
                    else
                     ppccommandline:=ppccommandline+s+' ';
@@ -196,8 +208,17 @@ program fpc;
      if versionstr<>'' then
        ppcbin:=ppcbin+'-'+versionstr;
      { find the full path to the specified exe }
-     findexe(ppcbin);
-
+     if not findexe(ppcbin) then
+	begin
+          if cpusuffix<>'' Then
+            begin
+  	      ppcbin:='ppc'+cpusuffix;
+	      if versionstr<>'' then
+       	        ppcbin:=ppcbin+'-'+versionstr;
+              findexe(ppcbin);
+            end;  
+	end;
+     	
      { call ppcXXX }
      try
        errorvalue:=ExecuteProcess(ppcbin,ppccommandline);
