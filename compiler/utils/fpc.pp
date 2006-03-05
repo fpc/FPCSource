@@ -84,16 +84,16 @@ program fpc;
       if FileExists(path+ppcbin) then
        begin
          ppcbin:=path+ppcbin;
-	 findexe:=true;
+         findexe:=true;
        end
       else
        begin
          path:=FileSearch(ppcbin,getenvironmentvariable('PATH'));
          if path<>'' then
-	  begin
+          begin
             ppcbin:=path;
-	    findexe:=true;	
- 	  end
+            findexe:=true;
+          end
        end;
     end;
 
@@ -109,8 +109,8 @@ program fpc;
      errorvalue     : Longint;
   begin
      ppccommandline:='';
-     cpusuffix	   :='';	// if not empty, signals attempt at cross
-				// compiler.		
+     cpusuffix     :='';        // if not empty, signals attempt at cross
+                                // compiler.
 {$ifdef i386}
      ppcbin:='ppc386';
      processorname:='i386';
@@ -177,31 +177,35 @@ program fpc;
                         writeln(processorname);
                         halt(0);
                       end
-                     else if processorstr='i386' then
-                       cpusuffix:='386'
-                     else if processorstr='m68k' then
-                       cpusuffix:='68k'
-                     else if processorstr='alpha' then
-                       cpusuffix:='apx'
-                     else if processorstr='powerpc' then
-                       cpusuffix:='ppc'
-                     else if processorstr='powerpc64' then
-                       cpusuffix:='ppc64'
-                     else if processorstr='arm' then
-                       cpusuffix:='arm'
-                     else if processorstr='sparc' then
-                       cpusuffix:='sparc'
-                     else if processorstr='ia64' then
-                       cpusuffix:='ia64'
-                     else if processorstr='x86_64' then
-                       cpusuffix:='x64'
-                     else 
-                       error('Illegal processor type "'+processorstr+'"');
+                     else
+                       if processorstr <> processorname then
+                         begin
+                           if processorstr='i386' then
+                             cpusuffix:='386'
+                           else if processorstr='m68k' then
+                             cpusuffix:='68k'
+                           else if processorstr='alpha' then
+                             cpusuffix:='apx'
+                           else if processorstr='powerpc' then
+                             cpusuffix:='ppc'
+                           else if processorstr='powerpc64' then
+                             cpusuffix:='ppc64'
+                           else if processorstr='arm' then
+                             cpusuffix:='arm'
+                           else if processorstr='sparc' then
+                             cpusuffix:='sparc'
+                           else if processorstr='ia64' then
+                             cpusuffix:='ia64'
+                           else if processorstr='x86_64' then
+                             cpusuffix:='x64'
+                           else
+                             error('Illegal processor type "'+processorstr+'"');
 
-		     ppcbin:='ppcross'+cpusuffix;
-                     end
+                           ppcbin:='ppcross'+cpusuffix;
+                         end;
+                 end
                    else
-                    ppccommandline:=ppccommandline+s+' ';
+                     ppccommandline:=ppccommandline+s+' ';
             end;
        end;
 
@@ -209,16 +213,16 @@ program fpc;
        ppcbin:=ppcbin+'-'+versionstr;
      { find the full path to the specified exe }
      if not findexe(ppcbin) then
-	begin
+        begin
           if cpusuffix<>'' Then
             begin
-  	      ppcbin:='ppc'+cpusuffix;
-	      if versionstr<>'' then
-       	        ppcbin:=ppcbin+'-'+versionstr;
+              ppcbin:='ppc'+cpusuffix;
+              if versionstr<>'' then
+                ppcbin:=ppcbin+'-'+versionstr;
               findexe(ppcbin);
-            end;  
-	end;
-     	
+            end;
+        end;
+
      { call ppcXXX }
      try
        errorvalue:=ExecuteProcess(ppcbin,ppccommandline);
