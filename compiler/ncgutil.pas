@@ -2436,13 +2436,12 @@ implementation
           end;
         vmtreg:=cg.getaddressregister(list);
         cg.g_maybe_testself(list,href.base);
+        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
+
         { test validity of VMT }
         if not(is_interface(objdef)) and
            not(is_cppclass(objdef)) then
-           begin
-             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,vmtreg);
-             cg.g_maybe_testvmt(list,vmtreg,objdef);
-           end;
+           cg.g_maybe_testvmt(list,vmtreg,objdef);
       end;
 
 
