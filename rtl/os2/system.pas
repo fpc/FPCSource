@@ -704,7 +704,7 @@ begin
     FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
     StackBottom := TIB^.Stack;
-    StackTop := PtrUInt (TIB^.StackLimit);
+    StackTop := TIB^.StackLimit;
     StackLength := CheckInitialStkLen (InitialStkLen);
 
     {Set type of application}
