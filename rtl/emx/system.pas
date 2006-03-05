@@ -104,7 +104,6 @@ var
 (* 3 .. Presentation Manager OS/2 session  *)
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
-  StackTop : PtrUInt;
 
 
 procedure SetDefaultOS2FileType (FType: ShortString);
@@ -543,7 +542,7 @@ begin
             begin
                 DosGetInfoBlocks (@TIB, @PIB);
                 StackBottom := pointer (TIB^.Stack);
-                StackTop := PtrUInt (TIB^.StackLimit);
+                StackTop := TIB^.StackLimit;
                 Environment := pointer (PIB^.Env);
                 ApplicationType := PIB^.ProcType;
                 ProcessID := PIB^.PID;
