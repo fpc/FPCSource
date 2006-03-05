@@ -223,4 +223,18 @@ type
 
 {$i signal.inc}
 
+  iovec = record
+            iov_base : pointer;
+	    iov_len  : size_t;
+	   end;
+  tiovec=iovec;
+  piovec=^tiovec;		
 
+ tms = packed record
+         tms_utime  : clock_t;  { User CPU time }
+         tms_stime  : clock_t;  { System CPU time }
+         tms_cutime : clock_t;  { User CPU time of terminated child procs }
+         tms_cstime : clock_t;  { System CPU time of terminated child procs }
+         end;
+ TTms= tms;
+ pTms= ^tms;
