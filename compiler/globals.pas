@@ -23,9 +23,6 @@ unit globals;
 
 {$i fpcdefs.inc}
 
-{ Use the internal linker by default }
-{ define INTERNALLINKER}
-
 interface
 
     uses
@@ -182,6 +179,7 @@ interface
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
+       GenerateImportSectionSetExplicitly,
        RelocSection : boolean;
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;

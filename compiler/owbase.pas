@@ -35,8 +35,10 @@ type
     opened : boolean;
     buf    : pchar;
     bufidx : longint;
-    size   : longint;
     procedure writebuf;
+  protected
+    fsize,
+    fobjsize  : longint;
   public
     constructor create;
     destructor  destroy;override;
@@ -45,6 +47,9 @@ type
     procedure writesym(const sym:string);virtual;
     procedure write(const b;len:longint);virtual;
     procedure WriteZeros(l:longint);
+    procedure writearray(a:TDynamicArray);
+    property Size:longint read FSize;
+    property ObjSize:longint read FObjSize;
   end;
 
   tobjectreader=class
@@ -61,7 +66,7 @@ type
     function  openfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
     procedure seek(len:longint);
-    function  read(var b;len:longint):boolean;virtual;
+    function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
   end;
 
@@ -83,7 +88,7 @@ begin
   getmem(buf,bufsize);
   bufidx:=0;
   opened:=false;
-  size:=0;
+  fsize:=0;
 end;
 
 
@@ -105,7 +110,8 @@ begin
        exit;
     end;
   bufidx:=0;
-  size:=0;
+  fsize:=0;
+  fobjsize:=0;
   opened:=true;
   createfile:=true;
 end;
@@ -123,7 +129,8 @@ begin
   if size=0 then
    RemoveFile(fn);
   opened:=false;
-  size:=0;
+  fsize:=0;
+  fobjsize:=0;
 end;
 
 
@@ -145,7 +152,8 @@ var
   left,
   idx : longint;
 begin
-  inc(size,len);
+  inc(fsize,len);
+  inc(fobjsize,len);
   p:=pchar(@b);
   idx:=0;
   while len>0 do
@@ -171,7 +179,7 @@ end;
 
 procedure tobjectwriter.WriteZeros(l:longint);
 var
-  empty : array[0..255] of byte;
+  empty : array[0..1023] of byte;
 begin
   if l>sizeof(empty) then
     internalerror(200404081);
@@ -179,6 +187,19 @@ begin
     begin
       fillchar(empty,l,0);
       Write(empty,l);
+    end;
+end;
+
+
+procedure tobjectwriter.writearray(a:TDynamicArray);
+var
+  hp : pdynamicblock;
+begin
+  hp:=a.firstblock;
+  while assigned(hp) do
+    begin
+      write(hp^.data,hp^.used);
+      hp:=hp^.next;
     end;
 end;
 
@@ -210,7 +231,7 @@ begin
   f:=TCFileStream.Create(fn,fmOpenRead);
   if CStreamError<>0 then
     begin
-       Message1(exec_e_cant_create_objectfile,fn);
+       Comment(V_Error,'Can''t open object file: '+fn);
        exit;
     end;
   bufidx:=0;
@@ -245,7 +266,7 @@ begin
 end;
 
 
-function tobjectreader.read(var b;len:longint):boolean;
+function tobjectreader.read(out b;len:longint):boolean;
 var
   p   : pchar;
   left,

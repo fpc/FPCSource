@@ -30,7 +30,7 @@ interface
       globtype,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tsinglelist;fd : tobjectdef) : tdef;
+    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tlist;fd : tobjectdef) : tdef;
 
 implementation
 
@@ -50,7 +50,7 @@ implementation
       current_procinfo = 'error';
 
 
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tsinglelist;fd : tobjectdef) : tdef;
+    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tlist;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
          there_is_a_destructor : boolean;
@@ -499,6 +499,7 @@ implementation
       var
         pd : tprocdef;
         dummysymoptions : tsymoptions;
+        i : longint;
         generictype : ttypesym;
       begin
          old_object_option:=current_object_option;
@@ -545,15 +546,14 @@ implementation
          aktobjectdef.genericdef:=genericdef;
          if assigned(genericlist) then
            begin
-             generictype:=ttypesym(genericlist.first);
-             while assigned(generictype) do
+             for i:=0 to genericlist.count-1 do
                begin
+                 generictype:=ttypesym(genericlist[i]);
                  if generictype.restype.def.deftype=undefineddef then
                    include(aktobjectdef.defoptions,df_generic)
                  else
                    include(aktobjectdef.defoptions,df_specialization);
                  symtablestack.top.insert(generictype);
-                 generictype:=ttypesym(generictype.listnext);
                end;
            end;
 

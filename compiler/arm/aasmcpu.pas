@@ -199,7 +199,7 @@ uses
          function  CheckIfValid:boolean;
          function GetString:string;
          function Pass1(offset:longint):longint;override;
-         procedure Pass2(objdata:TAsmObjectdata);override;
+         procedure Pass2(objdata:TObjData);override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -215,7 +215,7 @@ uses
          procedure create_ot;
          function  Matches(p:PInsEntry):longint;
          function  calcsize(p:PInsEntry):shortint;
-         procedure gencode(objdata:TAsmObjectData);
+         procedure gencode(objdata:TObjData);
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
          function  FindInsentry:boolean;
@@ -989,7 +989,7 @@ implementation
       end;
 
 
-    procedure taicpu.Pass2(objdata:TAsmObjectdata);
+    procedure taicpu.Pass2(objdata:TObjData);
       begin
         { error in pass1 ? }
         if insentry=nil then
@@ -1392,7 +1392,7 @@ implementation
       end;
 
 
-    procedure taicpu.gencode(objdata:TAsmObjectData);
+    procedure taicpu.gencode(objdata:TObjData);
       var
         bytes : dword;
         i_field : byte;

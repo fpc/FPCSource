@@ -140,8 +140,16 @@ implementation
          SetCompileModule(nil);
 
          { unload units }
-         loaded_units.free;
-         usedunits.free;
+         if assigned(loaded_units) then
+           begin
+             loaded_units.free;
+             loaded_units:=nil;
+           end;
+         if assigned(usedunits) then
+           begin
+             usedunits.free;
+             usedunits:=nil;
+           end;
 
          { if there was an error in the scanner, the scanner is
            still assinged }
@@ -311,7 +319,7 @@ implementation
         { asmlists }
           oldexprasmlist:Taasmoutput;
           oldasmlist:array[Tasmlist] of Taasmoutput;
-          oldobjectlibrary : tasmlibrarydata;
+          oldobjectlibrary : TObjLibraryData;
         { al_resourcestrings }
           Oldresourcestrings : tresourcestrings;
         { akt.. things }

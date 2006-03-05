@@ -342,13 +342,13 @@ begin
                     shl     const2, %reg
                     with const1 > const2 }
                       begin
-                        taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
+                        taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
                         taicpu(hp1).opcode := A_AND;
                         l := (1 shl (taicpu(hp1).oper[0]^.val)) - 1;
                         case taicpu(p).opsize Of
-                          S_L: taicpu(hp1).LoadConst(0,l Xor aint($ffffffff));
-                          S_B: taicpu(hp1).LoadConst(0,l Xor $ff);
-                          S_W: taicpu(hp1).LoadConst(0,l Xor $ffff);
+                          S_L: taicpu(hp1).loadConst(0,l Xor aint($ffffffff));
+                          S_B: taicpu(hp1).loadConst(0,l Xor $ff);
+                          S_W: taicpu(hp1).loadConst(0,l Xor $ffff);
                         end;
                       end
                     else if (taicpu(p).oper[0]^.val<taicpu(hp1).oper[0]^.val) and
@@ -357,13 +357,13 @@ begin
                     shl     const2, %reg
                     with const1 < const2 }
                       begin
-                        taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val-taicpu(p).oper[0]^.val);
+                        taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val-taicpu(p).oper[0]^.val);
                         taicpu(p).opcode := A_AND;
                         l := (1 shl (taicpu(p).oper[0]^.val))-1;
                         case taicpu(p).opsize Of
-                          S_L: taicpu(p).LoadConst(0,l Xor aint($ffffffff));
-                          S_B: taicpu(p).LoadConst(0,l Xor $ff);
-                          S_W: taicpu(p).LoadConst(0,l Xor $ffff);
+                          S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
+                          S_B: taicpu(p).loadConst(0,l Xor $ff);
+                          S_W: taicpu(p).loadConst(0,l Xor $ffff);
                         end;
                       end
                     else
@@ -375,9 +375,9 @@ begin
                           taicpu(p).opcode := A_AND;
                           l := (1 shl (taicpu(p).oper[0]^.val))-1;
                           case taicpu(p).opsize Of
-                            S_B: taicpu(p).LoadConst(0,l Xor $ff);
-                            S_W: taicpu(p).LoadConst(0,l Xor $ffff);
-                            S_L: taicpu(p).LoadConst(0,l Xor aint($ffffffff));
+                            S_B: taicpu(p).loadConst(0,l Xor $ff);
+                            S_W: taicpu(p).loadConst(0,l Xor $ffff);
+                            S_L: taicpu(p).loadConst(0,l Xor aint($ffffffff));
                           end;
                           asml.remove(hp1);
                           hp1.free;
@@ -391,7 +391,7 @@ begin
                  { for the CSE. Will be changed back in pass 2              }
                   begin
                     taicpu(p).opcode := A_MOV;
-                    taicpu(p).loadconst(0,0);
+                    taicpu(p).loadConst(0,0);
                   end;
             end;
           end;
@@ -461,7 +461,7 @@ var
          (tai(hp.next).typ = ait_label) then
         begin
           FindAnyLabel := true;
-          l := tai_label(hp.next).l;
+          l := tai_label(hp.next).labsym;
         end
     end;
 
@@ -544,7 +544,7 @@ var
           if (taicpu(hp1).oper[0]^.typ = top_reg) and
              (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
             begin
-              taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val+1);
+              taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+1);
               asml.remove(hp1);
               hp1.free;
             end;
@@ -553,7 +553,7 @@ var
               (taicpu(hp1).oper[1]^.typ = top_reg) and
               (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
              begin
-               taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
+               taicpu(p).loadConst(0,taicpu(p).oper[0]^.val+taicpu(hp1).oper[0]^.val);
                asml.remove(hp1);
                hp1.free;
              end;
@@ -562,7 +562,7 @@ var
               (taicpu(hp1).oper[1]^.typ = top_reg) and
               (taicpu(hp1).oper[1]^.reg = taicpu(p).oper[1]^.reg) then
              begin
-               taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
+               taicpu(p).loadConst(0,taicpu(p).oper[0]^.val-taicpu(hp1).oper[0]^.val);
                asml.remove(hp1);
                hp1.free;
                if (taicpu(p).oper[0]^.val = 0) then
@@ -628,7 +628,7 @@ begin
                             if taicpu(p).opcode=A_Jcc then
                               begin
                                 taicpu(p).condition:=inverse_cond(taicpu(p).condition);
-                                tai_label(hp2).l.decrefs;
+                                tai_label(hp2).labsym.decrefs;
                                 taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
                                 { when free'ing hp1, the ref. isn't decresed, so we don't
                                   increase it (FK)
@@ -679,7 +679,7 @@ begin
                          (taicpu(p).oper[1]^.reg = taicpu(hp1).oper[1]^.reg) then
     {change "and const1, reg; and const2, reg" to "and (const1 and const2), reg"}
                         begin
-                          taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
+                          taicpu(p).loadConst(0,taicpu(p).oper[0]^.val and taicpu(hp1).oper[0]^.val);
                           asml.remove(hp1);
                           hp1.free;
                         end
@@ -705,7 +705,7 @@ begin
                         S_W: v:=$8000;
                         S_L: v:=aint($80000000);
                       end;
-                      if (taicpu(p).oper[0]^.typ=Top_const) and 
+                      if (taicpu(p).oper[0]^.typ=Top_const) and
                          (taicpu(p).oper[0]^.val=v) and
                          (Taicpu(p).oper[1]^.typ=top_reg) and
                          GetNextInstruction(p, hp1) and
@@ -724,7 +724,7 @@ begin
                             Taicpu(hp1).condition:=C_NO;
                           continue;
                         end;
-                      { 
+                      {
                       @@2:                              @@2:
                         ....                              ....
                         cmp operand1,0
@@ -753,8 +753,8 @@ begin
                          FindLabel(tasmlabel(taicpu(hp1).oper[0]^.ref^.symbol),hp4) then
                         begin
                           taicpu(hp2).Opcode := A_SUB;
-                          taicpu(hp2).Loadoper(1,taicpu(hp2).oper[0]^);
-                          taicpu(hp2).LoadConst(0,1);
+                          taicpu(hp2).loadoper(1,taicpu(hp2).oper[0]^);
+                          taicpu(hp2).loadConst(0,1);
                           taicpu(hp2).ops:=2;
                           taicpu(hp3).Opcode := A_Jcc;
                           case taicpu(hp1).condition of
@@ -922,7 +922,7 @@ begin
                                 else
                                   begin
                                     taicpu(p).opcode := A_ADD;
-                                    taicpu(p).loadconst(0,l);
+                                    taicpu(p).loadConst(0,l);
                                   end;
                               end;
                     end;
@@ -945,7 +945,7 @@ begin
                                 begin
                                   { change "mov %reg, %treg; mov %treg, y"
                                     to "mov %reg, y" }
-                                  taicpu(p).LoadOper(1,taicpu(hp1).oper[1]^);
+                                  taicpu(p).loadOper(1,taicpu(hp1).oper[1]^);
                                   asml.remove(hp1);
                                   hp1.free;
                                   continue;
@@ -955,7 +955,7 @@ begin
                                 begin
                                   { change "mov mem, %treg; mov %treg, %reg"
                                     to "mov mem, %reg" }
-                                  taicpu(p).Loadoper(1,taicpu(hp1).oper[1]^);
+                                  taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
                                   asml.remove(hp1);
                                   hp1.free;
                                   continue;
@@ -992,8 +992,8 @@ begin
                 { change "mov %reg1, %reg2; test/or %reg2, %reg2; jxx" to
                   "test %reg1, %reg1; jxx" }
                                     begin
-                                      taicpu(hp1).Loadoper(0,taicpu(p).oper[0]^);
-                                      taicpu(hp1).Loadoper(1,taicpu(p).oper[0]^);
+                                      taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
+                                      taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
                                       asml.remove(p);
                                       p.free;
                                       p := hp1;
@@ -1003,8 +1003,8 @@ begin
                 {change "mov %reg1, %reg2; test/or %reg2, %reg2" to
                   "mov %reg1, %reg2; test/or %reg1, %reg1"}
                                     begin
-                                      taicpu(hp1).Loadoper(0,taicpu(p).oper[0]^);
-                                      taicpu(hp1).Loadoper(1,taicpu(p).oper[0]^);
+                                      taicpu(hp1).loadoper(0,taicpu(p).oper[0]^);
+                                      taicpu(hp1).loadoper(1,taicpu(p).oper[0]^);
                                     end;
                               end
 {                              else
@@ -1126,7 +1126,7 @@ begin
                                 mov reg2, mem2}
                                       begin
                                         AllocRegBetween(asmL,taicpu(hp2).oper[1]^.reg,p,hp2,usedregs);
-                                        taicpu(p).Loadoper(1,taicpu(hp2).oper[1]^);
+                                        taicpu(p).loadoper(1,taicpu(hp2).oper[1]^);
                                         taicpu(hp1).loadoper(0,taicpu(hp2).oper[1]^);
                                         asml.remove(hp2);
                                         hp2.free;
@@ -1151,10 +1151,10 @@ begin
                               mov reg1, reg2
                         }
                                         begin
-                                          taicpu(hp1).LoadRef(0,taicpu(p).oper[0]^.ref^);
-                                          taicpu(hp1).LoadReg(1,taicpu(hp2).oper[1]^.reg);
-                                          taicpu(hp2).LoadRef(1,taicpu(hp2).oper[0]^.ref^);
-                                          taicpu(hp2).LoadReg(0,taicpu(p).oper[1]^.reg);
+                                          taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^);
+                                          taicpu(hp1).loadReg(1,taicpu(hp2).oper[1]^.reg);
+                                          taicpu(hp2).loadRef(1,taicpu(hp2).oper[0]^.ref^);
+                                          taicpu(hp2).loadReg(0,taicpu(p).oper[1]^.reg);
                                           allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2,usedregs);
                                           if (taicpu(p).oper[0]^.ref^.base <> NR_NO) and
                                              (getsupreg(taicpu(p).oper[0]^.ref^.base) in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI]) then
@@ -1166,7 +1166,7 @@ begin
                                       else
                                         if (taicpu(hp1).Oper[0]^.reg <> taicpu(hp2).Oper[1]^.reg) then
                                           begin
-                                            taicpu(hp2).LoadReg(0,taicpu(hp1).Oper[0]^.reg);
+                                            taicpu(hp2).loadReg(0,taicpu(hp1).Oper[0]^.reg);
                                             allocRegBetween(asmL,taicpu(p).oper[1]^.reg,p,hp2,usedregs);
                                           end
                                         else
@@ -1190,7 +1190,7 @@ begin
                               RefsEqual(TReference(taicpu(p).oper[0]^^),taicpu(hp1).oper[0]^^.ref^) and
                               (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^^.ref^.base) and
                               (taicpu(p).oper[1]^.reg<>taicpu(hp1).oper[0]^^.ref^.index) then
-                              taicpu(hp1).LoadReg(0,taicpu(p).oper[1]^.reg)
+                              taicpu(hp1).loadReg(0,taicpu(p).oper[1]^.reg)
                             else*)
                             {   movl const1,[mem1]
                                 movl [mem1],reg1
@@ -1205,9 +1205,9 @@ begin
                                  RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) then
                                 begin
                                   allocregbetween(asml,taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
-                                  taicpu(hp1).LoadReg(0,taicpu(hp1).oper[1]^.reg);
-                                  taicpu(hp1).LoadRef(1,taicpu(p).oper[1]^.ref^);
-                                  taicpu(p).LoadReg(1,taicpu(hp1).oper[0]^.reg);
+                                  taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
+                                  taicpu(hp1).loadRef(1,taicpu(p).oper[1]^.ref^);
+                                  taicpu(p).loadReg(1,taicpu(hp1).oper[0]^.reg);
                                 end
                         end;
                     end;
@@ -1248,7 +1248,7 @@ begin
                                   begin
                                     taicpu(p).opcode := A_AND;
                                     taicpu(p).changeopsize(S_W);
-                                    taicpu(p).LoadConst(0,$ff);
+                                    taicpu(p).loadConst(0,$ff);
                                   end
                                 else if GetNextInstruction(p, hp1) and
                                      (tai(hp1).typ = ait_instruction) and
@@ -1262,7 +1262,7 @@ begin
                                     taicpu(p).opcode := A_MOV;
                                     taicpu(p).changeopsize(S_W);
                                     setsubreg(taicpu(p).oper[0]^.reg,R_SUBW);
-                                    taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ff);
+                                    taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                                   end;
                               end;
                             S_BL:
@@ -1273,7 +1273,7 @@ begin
                                   begin
                                     taicpu(p).opcode := A_AND;
                                     taicpu(p).changeopsize(S_L);
-                                    taicpu(p).loadconst(0,$ff)
+                                    taicpu(p).loadConst(0,$ff)
                                   end
                                 else if GetNextInstruction(p, hp1) and
                                     (tai(hp1).typ = ait_instruction) and
@@ -1287,7 +1287,7 @@ begin
                                     taicpu(p).opcode := A_MOV;
                                     taicpu(p).changeopsize(S_L);
                                     setsubreg(taicpu(p).oper[0]^.reg,R_SUBWHOLE);
-                                    taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ff);
+                                    taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                                   end
                               end;
                             S_WL:
@@ -1298,7 +1298,7 @@ begin
                                   begin
                                     taicpu(p).opcode := A_AND;
                                     taicpu(p).changeopsize(S_L);
-                                    taicpu(p).LoadConst(0,$ffff);
+                                    taicpu(p).loadConst(0,$ffff);
                                   end
                                 else if GetNextInstruction(p, hp1) and
                                     (tai(hp1).typ = ait_instruction) and
@@ -1312,7 +1312,7 @@ begin
                                     taicpu(p).opcode := A_MOV;
                                     taicpu(p).changeopsize(S_L);
                                     setsubreg(taicpu(p).oper[0]^.reg,R_SUBWHOLE);
-                                    taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
+                                    taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
                                   end;
                               end;
                             end
@@ -1330,17 +1330,17 @@ begin
                                     S_BL:
                                       begin
                                         taicpu(p).changeopsize(S_L);
-                                        taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ff);
+                                        taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                                       end;
                                     S_WL:
                                       begin
                                         taicpu(p).changeopsize(S_L);
-                                        taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
+                                        taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ffff);
                                       end;
                                     S_BW:
                                       begin
                                         taicpu(p).changeopsize(S_W);
-                                        taicpu(hp1).LoadConst(0,taicpu(hp1).oper[0]^.val and $ff);
+                                        taicpu(hp1).loadConst(0,taicpu(hp1).oper[0]^.val and $ff);
                                       end;
                                   end;
                                 end;
@@ -1382,7 +1382,7 @@ begin
                                 taicpu(hp2).oper[1]^.typ:=top_none;
                                 taicpu(hp2).ops:=2;
                                 taicpu(hp2).opcode := A_MOV;
-                                taicpu(hp2).Loadoper(1,taicpu(hp1).oper[0]^);
+                                taicpu(hp2).loadoper(1,taicpu(hp1).oper[0]^);
                                 reference_reset(tmpref);
                                 tmpRef.base.enum:=R_INTREGISTER;
                                 tmpRef.base.number:=NR_STACK_POINTER_REG;
@@ -1421,10 +1421,10 @@ begin
                               taicpu(p).oper[1]^.typ:=top_none;
                               taicpu(p).ops:=2;
                               taicpu(p).opcode := A_MOV;
-                              taicpu(p).Loadoper(1,taicpu(p).oper[0]^);
+                              taicpu(p).loadoper(1,taicpu(p).oper[0]^);
                               reference_reset(tmpref);
                               TmpRef.base.enum := R_ESP;
-                              taicpu(p).LoadRef(0,TmpRef);
+                              taicpu(p).loadRef(0,TmpRef);
                               asml.remove(hp1);
                               hp1.free;
                             end;
@@ -1442,7 +1442,7 @@ begin
                          (taicpu(hp1).opsize = S_W) then
                         begin
                           taicpu(p).changeopsize(S_L);
-                          taicpu(p).LoadConst(0,taicpu(p).oper[0]^.val shl 16 + word(taicpu(hp1).oper[0]^.val));
+                          taicpu(p).loadConst(0,taicpu(p).oper[0]^.val shl 16 + word(taicpu(hp1).oper[0]^.val));
                           asml.remove(hp1);
                           hp1.free;
                         end;
@@ -1578,7 +1578,7 @@ begin
                          (taicpu(hp1).oper[0]^.typ = top_ref) and
                          RefsEqual(taicpu(hp1).oper[0]^.ref^, taicpu(p).oper[0]^.ref^) then
                         begin
-                          taicpu(p).LoadReg(0,taicpu(hp1).oper[1]^.reg);
+                          taicpu(p).loadReg(0,taicpu(hp1).oper[1]^.reg);
                           asml.remove(hp1);
                           hp1.free;
                         end
@@ -1898,9 +1898,9 @@ begin
                         begin
                           case taicpu(hp1).opcode of
                             A_INC,A_DEC:
-                              taicpu(hp1).LoadRef(0,taicpu(p).oper[0]^.ref^)
+                              taicpu(hp1).loadRef(0,taicpu(p).oper[0]^.ref^)
                             else
-                              taicpu(hp1).LoadRef(1,taicpu(p).oper[0]^.ref^);
+                              taicpu(hp1).loadRef(1,taicpu(p).oper[0]^.ref^);
                           end;
                           asml.remove(p);
                           asml.remove(hp2);
@@ -1965,7 +1965,7 @@ See test/tgadint64 in the test suite.
                   { change "mov $0, %reg" into "xor %reg, %reg" }
                   begin
                     taicpu(p).opcode := A_XOR;
-                    taicpu(p).LoadReg(0,taicpu(p).oper[1]^.reg);
+                    taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
                   end;
 *)
               A_MOVZX:
@@ -2061,8 +2061,8 @@ See test/tgadint64 in the test suite.
                                        A_DEC: taicpu(hp1).opcode := A_SUB;
                                        A_INC: taicpu(hp1).opcode := A_ADD;
                                      end;
-                                     taicpu(hp1).Loadoper(1,taicpu(hp1).oper[0]^);
-                                     taicpu(hp1).LoadConst(0,1);
+                                     taicpu(hp1).loadoper(1,taicpu(hp1).oper[0]^);
+                                     taicpu(hp1).loadConst(0,1);
                                      taicpu(hp1).ops:=2;
                                    end
                                  end;

@@ -1961,7 +1961,7 @@ implementation
         l,varalign : longint;
         storefilepos : tfileposinfo;
         list : Taasmoutput;
-        sectype : Tasmsectiontype;
+        sectype : TAsmSectiontype;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=sym.fileinfo;

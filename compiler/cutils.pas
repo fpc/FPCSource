@@ -53,8 +53,8 @@ interface
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
 
-    function used_align(varalign,minalign,maxalign:longint):longint;
-    function size_2_align(len : longint) : longint;
+    function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function size_2_align(len : longint) : shortint;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
@@ -240,7 +240,7 @@ uses
       end;
 
 
-    function size_2_align(len : longint) : longint;
+    function size_2_align(len : longint) : shortint;
       begin
          if len>16 then
            size_2_align:=32
@@ -257,7 +257,7 @@ uses
       end;
 
 
-    function used_align(varalign,minalign,maxalign:longint):longint;
+    function used_align(varalign,minalign,maxalign:shortint):shortint;
       begin
         { varalign  : minimum alignment required for the variable
           minalign  : Minimum alignment of this structure, 0 = undefined

@@ -669,18 +669,6 @@ implementation
       end;
 
 
-    procedure ReLabel(var p:tasmsymbol);
-      begin
-        if p.defbind = AB_LOCAL then
-         begin
-           if not assigned(p.altsymbol) then
-             objectlibrary.GenerateAltSymbol(p);
-           p:=p.altsymbol;
-           p.increfs;
-         end;
-      end;
-
-
     procedure tcgcasenode.pass_2;
       var
          i : longint;

@@ -463,7 +463,7 @@ begin
   linkres.add('ENTRY(_start)');
 
   {Sections.}
-{
+{$ifdef OwnLDScript}
   commented out because it cause problems on several machines with different ld versions (FK)
   linkres.add('SECTIONS');
   linkres.add('{');
@@ -561,7 +561,7 @@ begin
   linkres.add('  .stab          0 : { *(.stab) }');
   linkres.add('  .stabstr       0 : { *(.stabstr) }');
   linkres.add('}');
-}
+{$endif OwnLDScript}
 
 { Write and Close response }
   LinkRes.writetodisk;
@@ -569,23 +569,6 @@ begin
 
   WriteResponseFile:=True;
 end;
-
-
-function contains_exports : boolean;
-  var
-    hp : tused_unit;
-  begin
-    result:=((current_module.flags and uf_has_exports)=uf_has_exports);
-    if not result then
-      begin
-      hp:=tused_unit(usedunits.first);
-      While Assigned(hp) and not result do
-        begin
-          result:=((hp.u.flags and uf_has_exports)=uf_has_exports);
-          hp:=tused_unit(hp.next);
-        end;
-      end;
-  end;
 
 
 function TLinkerLinux.MakeExecutable:boolean;
@@ -636,7 +619,7 @@ begin
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
   { create dynamic symbol table? }
-  if contains_exports then
+  if HasExports then
     cmdstr:=cmdstr+' -E';
 
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
@@ -701,32 +684,17 @@ begin
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
 
+
 function tlinkerLinux.postprocessexecutable(const fn : string;isdll:boolean):boolean;
-
-Var
+var
   cmdstr: string;
-  found : boolean;
-  hp    : tused_unit;
-
 begin
-  postprocessexecutable:=True;
-  if target_res.id=res_elf then
+  result:=True;
+  if HasResources and
+     (target_res.id=res_elf) then
     begin
-    found:=((current_module.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-    if not found then
-      begin
-      hp:=tused_unit(usedunits.first);
-      While Assigned(hp) and not Found do
-        begin
-        Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
-        hp:=tused_unit(hp.next);
-        end;
-      end;
-    if found then
-      begin
       cmdstr:=' -f -i '+maybequoted(fn);
-      postprocessexecutable:=DoExec(FindUtil(utilsprefix+'fpcres'),cmdstr,false,false);
-      end;
+      result:=DoExec(FindUtil(utilsprefix+'fpcres'),cmdstr,false,false);
     end;
 end;
 

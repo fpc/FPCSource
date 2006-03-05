@@ -154,7 +154,7 @@ interface
         locallibrarysearchpath : TSearchPathList;
 
         asmprefix     : pstring;  { prefix for the smartlink asmfiles }
-        librarydata   : tasmlibrarydata;   { librarydata for this module }
+        librarydata   : TObjLibraryData;   { librarydata for this module }
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -454,7 +454,7 @@ implementation
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
         externals:=TLinkedList.Create;
-        librarydata:=tasmlibrarydata.create(realmodulename^);
+        librarydata:=TObjLibraryData.create(realmodulename^);
       end;
 
 
@@ -540,13 +540,16 @@ implementation
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
+        if assigned(librarydata) then
+          begin
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(modulename^+' - librarydata');
+            d:=tmemdebug.create(modulename^+' - librarydata');
 {$endif}
-        librarydata.free;
+            librarydata.free;
 {$ifdef MEMDEBUG}
-        d.free;
+            d.free;
 {$endif}
+          end;
         stringdispose(modulename);
         inherited Destroy;
       end;
@@ -619,7 +622,7 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         librarydata.free;
-        librarydata:=tasmlibrarydata.create(realmodulename^);
+        librarydata:=TObjLibraryData.create(realmodulename^);
         imports.free;
         imports:=tlinkedlist.create;
         _exports.free;

@@ -62,6 +62,9 @@ type
    TPointerList = array[0..MaxListSize - 1] of Pointer;
    TListSortCompare = function (Item1, Item2: Pointer): Integer;
 
+   TListCallback = procedure(data,arg:pointer) of object;
+   TListStaticCallback = procedure(data,arg:pointer);
+
    TList = class(TObject)
    private
      FList: PPointerList;
@@ -91,6 +94,8 @@ type
      function Remove(Item: Pointer): Integer;
      procedure Pack;
      procedure Sort(Compare: TListSortCompare);
+     procedure foreach(proc2call:TListCallback;arg:pointer);
+     procedure foreach_static(proc2call:TListStaticCallback;arg:pointer);
      property Capacity: Integer read FCapacity write SetCapacity;
      property Count: Integer read FCount write SetCount;
      property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -200,6 +205,8 @@ type
           { concats an item }
           procedure ConcatItem(item:TStringListItem);
           property Doubles:boolean read FDoubles write FDoubles;
+          procedure readstream(f:TCStream);
+          procedure writestream(f:TCStream);
        end;
 
 
@@ -222,8 +229,6 @@ type
          FLeft,
          FRight      : TNamedIndexItem;
          FSpeedValue : cardinal;
-       { singleList }
-         FListNext   : TNamedIndexItem;
          FName       : Pstring;
        protected
          function  GetName:string;virtual;
@@ -236,7 +241,6 @@ type
          property IndexNext:TNamedIndexItem read FIndexNext write FIndexNext;
          property Name:string read GetName write SetName;
          property SpeedValue:cardinal read FSpeedValue;
-         property ListNext:TNamedIndexItem read FListNext;
          property Left:TNamedIndexItem read FLeft write FLeft;
          property Right:TNamedIndexItem read FRight write FRight;
        end;
@@ -275,15 +279,6 @@ type
          property  Count:longint read FCount;
        end;
 
-       tsingleList=class
-         First,
-         last    : TNamedIndexItem;
-         constructor Create;
-         procedure reset;
-         procedure clear;
-         procedure insert(p:TNamedIndexItem);
-       end;
-
       tindexobjectarray=array[1..16000] of TNamedIndexItem;
       pnamedindexobjectarray=^tindexobjectarray;
 
@@ -301,6 +296,7 @@ type
         procedure insert(p:TNamedIndexItem);
         procedure replace(oldp,newp:TNamedIndexItem);
         function  search(nr:integer):TNamedIndexItem;
+        property  Items[Index: Integer]: TNamedIndexItem read Search; default;
       private
         growsize,
         size  : integer;
@@ -746,6 +742,33 @@ begin
      Add(Obj[i]);
 end;
 
+
+    procedure TList.foreach(proc2call:TListCallback;arg:pointer);
+      var
+        i : longint;
+        p : pointer;
+      begin
+        For I:=0 To Count-1 Do
+          begin
+            p:=FList^[i];
+            if assigned(p) then
+              proc2call(p,arg);
+          end;
+      end;
+
+
+    procedure TList.foreach_static(proc2call:TListStaticCallback;arg:pointer);
+      var
+        i : longint;
+        p : pointer;
+      begin
+        For I:=0 To Count-1 Do
+          begin
+            p:=FList^[i];
+            if assigned(p) then
+              proc2call(p,arg);
+          end;
+      end;
 
 {****************************************************************************
                              TLinkedListItem
@@ -1239,6 +1262,104 @@ end;
       end;
 
 
+    procedure TStringList.readstream(f:TCStream);
+      const
+        BufSize = 16384;
+      var
+        Hsp,
+        p,maxp,
+        Buf    : PChar;
+        Prev   : Char;
+        HsPos,
+        ReadLen,
+        BufPos,
+        BufEnd : Longint;
+        hs     : string;
+
+        procedure ReadBuf;
+        begin
+          if BufPos<BufEnd then
+            begin
+              Move(Buf[BufPos],Buf[0],BufEnd-BufPos);
+              Dec(BufEnd,BufPos);
+              BufPos:=0;
+            end;
+          ReadLen:=f.Read(buf[BufEnd],BufSize-BufEnd);
+          inc(BufEnd,ReadLen);
+        end;
+
+      begin
+        Getmem(Buf,Bufsize);
+        BufPos:=0;
+        BufEnd:=0;
+        HsPos:=1;
+        ReadBuf;
+        repeat
+          hsp:=@hs[hsPos];
+          p:=@Buf[BufPos];
+          maxp:=@Buf[BufEnd];
+          while (p<maxp) and not(P^ in [#10,#13]) do
+            begin
+              hsp^:=p^;
+              inc(p);
+              if hsp-@hs[1]<255 then
+                inc(hsp);
+            end;
+          inc(BufPos,maxp-p);
+          inc(HsPos,maxp-p);
+          prev:=p^;
+          inc(BufPos);
+          { no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+          { #13#10 = Dos), so if we've got #10, we can safely exit          }
+          if (prev<>#10) then
+            begin
+              if (BufPos>=BufEnd) then
+                begin
+                  ReadBuf;
+                  if BufPos>=BufEnd then
+                    break;
+                end;
+              { is there also a #10 after it? }
+              if prev=#13 then
+                begin
+                  if (Buf[BufPos]=#10) then
+                    inc(BufPos);
+                  prev:=#10;
+                end;
+            end;
+          if prev=#10 then
+            begin
+              hs[0]:=char(hsp-@hs[1]);
+              Concat(hs);
+              HsPos:=1;
+            end;
+        until BufPos>=BufEnd;
+        hs[0]:=char(hsp-@hs[1]);
+        Concat(hs);
+        freemem(buf);
+      end;
+
+
+    procedure TStringList.writestream(f:TCStream);
+      var
+        Node : TStringListItem;
+        LineEnd : string[2];
+      begin
+        Case DefaultTextLineBreakStyle Of
+          tlbsLF: LineEnd := #10;
+          tlbsCRLF: LineEnd := #13#10;
+          tlbsCR: LineEnd := #13;
+        End;
+        Node:=tstringListItem(FFirst);
+        while assigned(Node) do
+          begin
+            f.Write(Node.FPStr^[1],Length(Node.FPStr^));
+            f.Write(LineEnd[1],length(LineEnd));
+            Node:=tstringListItem(Node.Next);
+          end;
+      end;
+
+
 {****************************************************************************
                                TNamedIndexItem
  ****************************************************************************}
@@ -1253,8 +1374,6 @@ end;
         Fright:=nil;
         FName:=nil;
         Fspeedvalue:=cardinal($ffffffff);
-        { List }
-        FListNext:=nil;
       end;
 
     constructor TNamedIndexItem.Createname(const n:string);
@@ -1271,8 +1390,6 @@ end;
       {$else}
         FName:=stringdup(n);
       {$endif}
-        { List }
-        FListNext:=nil;
       end;
 
 
@@ -1868,51 +1985,6 @@ end;
          end;
         speedsearch:=nil;
       end;
-
-{****************************************************************************
-                               tsingleList
- ****************************************************************************}
-
-    constructor tsingleList.create;
-      begin
-        First:=nil;
-        last:=nil;
-      end;
-
-
-    procedure tsingleList.reset;
-      begin
-        First:=nil;
-        last:=nil;
-      end;
-
-
-    procedure tsingleList.clear;
-      var
-        hp,hp2 : TNamedIndexItem;
-      begin
-        hp:=First;
-        while assigned(hp) do
-         begin
-           hp2:=hp;
-           hp:=hp.FListNext;
-           hp2.free;
-         end;
-        First:=nil;
-        last:=nil;
-      end;
-
-
-    procedure tsingleList.insert(p:TNamedIndexItem);
-      begin
-        if not assigned(First) then
-         First:=p
-        else
-         last.FListNext:=p;
-        last:=p;
-        p.FListNext:=nil;
-      end;
-
 
 {****************************************************************************
                                tindexarray

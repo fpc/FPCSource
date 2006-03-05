@@ -31,7 +31,7 @@ interface
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
-       import,export,link,cgobj,i_win;
+       import,export,link,cgobj,i_win,ogcoff;
 
 
   const
@@ -1662,6 +1662,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
 initialization
 {$ifdef i386}
   RegisterExternalLinker(system_i386_win32_info,TLinkerWin32);
+  RegisterInternalLinker(system_i386_win32_info,TPECoffLinker);
   RegisterImport(system_i386_win32,TImportLibWin32);
   RegisterExport(system_i386_win32,TExportLibWin32);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);

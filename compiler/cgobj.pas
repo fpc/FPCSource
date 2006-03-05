@@ -1718,7 +1718,7 @@ implementation
               { are valid for the todef                                      }
               begin
 {$ifopt Q+}
-{$defined overflowon}
+{$define overflowon}
 {$Q-}
 {$endif}
                 if to_signed then

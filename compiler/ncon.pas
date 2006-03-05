@@ -302,7 +302,6 @@ implementation
       begin
         inherited derefimpl;
         restype.resolve;
-        objectlibrary.derefasmsymbol(tasmsymbol(lab_real));
       end;
 
 
@@ -612,7 +611,6 @@ implementation
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
-        objectlibrary.derefasmsymbol(tasmsymbol(lab_str));
       end;
 
 

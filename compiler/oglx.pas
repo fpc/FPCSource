@@ -205,14 +205,14 @@ uses
         i         : longint;
         globalval : byte;
         secrec    : coffsectionrec;
-        objdata   : TAsmObjectData;
+        objdata   : TObjData;
         p         : tasmsymbol;
         s         : string;}
       begin
-(*        objdata:=TAsmObjectData(objdatalist.first);
+(*        objdata:=TObjData(objdatalist.first);
         while assigned(objdata) do
          begin
-           with tcoffobjectdata(objdata) do
+           with tcoffObjData(objdata) do
             begin
               { The symbols used }
               p:=Tasmsymbol(symbols.First);
@@ -249,20 +249,20 @@ uses
                  p:=tasmsymbol(p.indexnext);
                end;
             end;
-           objdata:=TAsmObjectData(objdata.next);
+           objdata:=TObjData(objdata.next);
          end;*)
       end;
 
 
     procedure Tlxexeoutput.CalculateMemoryMap;
 {      var
-        objdata : TAsmObjectData;
+        objdata : TObjData;
         secsymidx,
         mempos,
         datapos : longint;
         sec     : TSection;
         sym     : tasmsymbol;
-        s       : TAsmSection;}
+        s       : TObjSection;}
       begin
 (*        { retrieve amount of sections }
         nsects:=0;
@@ -282,7 +282,7 @@ uses
         if not win32 then
          inc(mempos,sizeof(go32v2stub)+$1000);
         { add sections }
-        MapObjectdata(datapos,mempos);
+        MapObjData(datapos,mempos);
         { end symbol }
         AddGlobalSym('_etext',sections[sec_code].mempos+sections[sec_code].memsize);
         AddGlobalSym('_edata',sections[sec_data].mempos+sections[sec_data].memsize);
@@ -293,11 +293,11 @@ uses
         if not(cs_link_strip in aktglobalswitches) then
          begin
            sympos:=datapos;
-           objdata:=TAsmObjectData(objdatalist.first);
+           objdata:=TObjData(objdatalist.first);
            while assigned(objdata) do
             begin
               inc(nsyms,objdata.symbols.count);
-              objdata:=TAsmObjectData(objdata.next);
+              objdata:=TObjData(objdata.next);
             end;
          end;*)
       end;

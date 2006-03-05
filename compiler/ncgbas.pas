@@ -121,7 +121,7 @@ interface
       procedure ReLabel(var p:tasmsymbol);
         begin
           { Only relabel local tasmlabels }
-          if (p.defbind = AB_LOCAL) and
+          if (p.bind = AB_LOCAL) and
              (p is tasmlabel) then
            begin
              if not assigned(p.altsymbol) then
@@ -227,7 +227,6 @@ interface
 
          if (po_inline in current_procinfo.procdef.procoptions) then
            begin
-             objectlibrary.CreateUsedAsmSymbolList;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -235,7 +234,7 @@ interface
                 skipnode:=false;
                 case hp2.typ of
                   ait_label :
-                     ReLabel(tasmsymbol(tai_label(hp2).l));
+                     ReLabel(tasmsymbol(tai_label(hp2).labsym));
                   ait_const :
                      begin
                        if assigned(tai_const(hp2).sym) then
@@ -284,8 +283,7 @@ interface
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             objectlibrary.UsedAsmSymbolListResetAltSym;
-             objectlibrary.DestroyUsedAsmSymbolList;
+             objectlibrary.ResetAltSymbols;
            end
          else
            begin

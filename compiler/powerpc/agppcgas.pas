@@ -38,7 +38,7 @@ unit agppcgas;
     type
       PPPCGNUAssembler=^TPPCGNUAssembler;
       TPPCGNUAssembler=class(TGNUassembler)
-        function sectionname(atype:tasmsectiontype;const aname:string):string;override;
+        function sectionname(atype:TAsmSectiontype;const aname:string):string;override;
         procedure WriteExtraHeader;override;
         procedure WriteInstruction(hp : tai);override;
        private
@@ -102,7 +102,7 @@ unit agppcgas;
 
 
 
-    function TPPCGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
+    function TPPCGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
       begin
         if (target_info.system = system_powerpc_darwin) then
           case atype of

@@ -121,7 +121,7 @@ const
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
   ibundefineddef   = 58;
-  {implementation/objectdata}
+  {implementation/ObjData}
   ibnodetree       = 80;
   ibasmsymbols     = 81;
 

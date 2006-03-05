@@ -1257,7 +1257,8 @@ implementation
 
     function  tcompilerppufile.getasmsymbol:tasmsymbol;
       begin
-        getasmsymbol:=tasmsymbol(pointer(ptrint(getlongint)));
+        getlongint;
+        getasmsymbol:=nil;
       end;
 
 
@@ -1418,17 +1419,7 @@ implementation
 
     procedure tcompilerppufile.putasmsymbol(s:tasmsymbol);
       begin
-        if assigned(s) then
-         begin
-           if s.ppuidx=-1 then
-            begin
-              inc(objectlibrary.asmsymbolppuidx);
-              s.ppuidx:=objectlibrary.asmsymbolppuidx;
-            end;
-           putlongint(s.ppuidx);
-         end
-        else
-         putlongint(0);
+        putlongint(0);
       end;
 
 {$ifdef MEMDEBUG}

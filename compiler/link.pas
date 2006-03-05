@@ -29,7 +29,8 @@ uses
   cclasses,
   systems,
   fmodule,
-  globtype;
+  globtype,
+  ogbase;
 
 Type
     TLinkerInfo=record
@@ -43,6 +44,8 @@ Type
 
     TLinker = class(TAbstractLinker)
     public
+       HasResources,
+       HasExports      : boolean;
        ObjectFiles,
        DLLFiles,
        SharedLibFiles,
@@ -74,7 +77,19 @@ Type
 
     TInternalLinker = class(TLinker)
     private
-       procedure readobj(const fn:string);
+       FCExeOutput : TExeOutputClass;
+       FCObjInput  : TObjInputClass;
+       procedure Load_ReadObject(const para:string);
+       procedure Load_ReadUnitObjects;
+       procedure ParseScript_Load;
+       procedure ParseScript_Order;
+       procedure ParseScript_CalcPos;
+       procedure PrintLinkerScript;
+    protected
+       property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
+       property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
+       procedure DefaultLinkScript;virtual;abstract;
+       linkscript : TStringList;
     public
        Constructor Create;override;
        Destructor Destroy;override;
@@ -102,9 +117,9 @@ uses
   dos,
 {$ENDIF USE_SYSUTILS}
   cutils,
-  script,globals,verbose,ppu,
+  script,globals,verbose,comphook,ppu,
   aasmbase,aasmtai,aasmcpu,
-  ogbase,ogmap;
+  ogmap;
 
 type
  TLinkerClass = class of Tlinker;
@@ -287,6 +302,10 @@ var
 begin
   with hp do
    begin
+     if (flags and uf_has_resourcefiles)<>0 then
+       HasResources:=true;
+     if (flags and uf_has_exports)<>0 then
+       HasExports:=true;
    { link unit files }
      if (flags and uf_no_link)=0 then
       begin
@@ -652,72 +671,226 @@ end;
                               TINTERNALLINKER
 *****************************************************************************}
 
-Constructor TInternalLinker.Create;
-begin
-  inherited Create;
-  exemap:=nil;
-  exeoutput:=nil;
-end;
+    Constructor TInternalLinker.Create;
+      begin
+        inherited Create;
+        linkscript:=TStringList.Create;
+        exemap:=nil;
+        exeoutput:=nil;
+        CObjInput:=TObjInput;
+      end;
 
 
-Destructor TInternalLinker.Destroy;
-begin
-  exeoutput.free;
-  exeoutput:=nil;
-  inherited destroy;
-end;
+    Destructor TInternalLinker.Destroy;
+      begin
+        linkscript.free;
+        exeoutput.free;
+        exeoutput:=nil;
+        inherited destroy;
+      end;
 
 
-procedure TInternalLinker.readobj(const fn:string);
-var
-  objdata  : TAsmObjectData;
-  objinput : tobjectinput;
-begin
-  Comment(V_Info,'Reading object '+fn);
-  objinput:=exeoutput.newobjectinput;
-  objdata:=objinput.newobjectdata(fn);
-  if objinput.readobjectfile(fn,objdata) then
-    exeoutput.addobjdata(objdata);
-  { release input object }
-  objinput.free;
-end;
+    procedure TInternalLinker.Load_ReadObject(const para:string);
+      var
+        objdata  : TObjData;
+        objinput : TObjinput;
+        fn       : string;
+      begin
+        fn:=FindObjectFile(para,'',false);
+        Comment(V_Tried,'Reading object '+fn);
+        objinput:=CObjInput.Create;
+        objdata:=objinput.newObjData(para);
+        if objinput.readobjectfile(fn,objdata) then
+          exeoutput.addobjdata(objdata);
+        { release input object }
+        objinput.free;
+      end;
 
 
-function TInternalLinker.MakeExecutable:boolean;
-var
-  s : string;
-begin
-  MakeExecutable:=false;
+    procedure TInternalLinker.Load_ReadUnitObjects;
+      var
+        s : string;
+      begin
+        while not ObjectFiles.Empty do
+          begin
+            s:=ObjectFiles.GetFirst;
+            if s<>'' then
+              Load_ReadObject(s);
+          end;
+      end;
 
-  { no support yet for libraries }
-  if (not StaticLibFiles.Empty) or
-     (not SharedLibFiles.Empty) then
-   internalerror(123456789);
 
-  if (cs_link_map in aktglobalswitches) then
-   exemap:=texemap.create(current_module.mapfilename^);
+    procedure TInternalLinker.ParseScript_Load;
+      var
+        s,
+        para,
+        keyword : string;
+        hp : TStringListItem;
+      begin
+        exeoutput.Load_Start;
+        hp:=tstringlistitem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if keyword='SYMBOL' then
+              ExeOutput.Load_Symbol(para)
+            else if keyword='ENTRYNAME' then
+              ExeOutput.Load_EntryName(para)
+            else if keyword='READOBJECT' then
+              Load_ReadObject(para)
+            else if keyword='READUNITOBJECTS' then
+              Load_ReadUnitObjects;
+            hp:=tstringlistitem(hp.next);
+          end;
+      end;
 
-  { read objects }
-  readobj(FindObjectFile('prt0','',false));
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      readobj(s);
-   end;
 
-  { generate executable }
-  exeoutput.GenerateExecutable(current_module.exefilename^);
+    procedure TInternalLinker.ParseScript_Order;
+      var
+        s,
+        para,
+        keyword : string;
+        hp : TStringListItem;
+      begin
+        exeoutput.Order_Start;
+        hp:=tstringlistitem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if keyword='EXESECTION' then
+              ExeOutput.Order_ExeSection(para)
+            else if keyword='ENDEXESECTION' then
+              ExeOutput.Order_EndExeSection
+            else if keyword='OBJSECTION' then
+              ExeOutput.Order_ObjSection(para)
+            else if keyword='ZEROS' then
+              ExeOutput.Order_Zeros(para)
+            else if keyword='SYMBOL' then
+              ExeOutput.Order_Symbol(para)
+            else if keyword='STABS' then
+              ExeOutput.Order_Stabs;
+            hp:=tstringlistitem(hp.next);
+          end;
+      end;
 
-  { close map }
-  if assigned(exemap) then
-   begin
-     exemap.free;
-     exemap:=nil;
-   end;
 
-  MakeExecutable:=true;
-end;
+    procedure TInternalLinker.ParseScript_CalcPos;
+      var
+        s,
+        para,
+        keyword : string;
+        hp : TStringListItem;
+      begin
+        exeoutput.CalcPos_Start;
+        hp:=tstringlistitem(linkscript.first);
+        while assigned(hp) do
+          begin
+            s:=hp.str;
+            if (s='') or (s[1]='#') then
+              continue;
+            keyword:=Upper(GetToken(s,' '));
+            para:=GetToken(s,' ');
+            if keyword='EXESECTION' then
+              ExeOutput.CalcPos_ExeSection(para)
+            else if keyword='ENDEXESECTION' then
+              ExeOutput.CalcPos_EndExeSection
+            else if keyword='HEADER' then
+              ExeOutput.CalcPos_Header
+            else if keyword='SYMBOLS' then
+              ExeOutput.CalcPos_Symbols;
+            hp:=tstringlistitem(hp.next);
+          end;
+      end;
+
+
+    procedure TInternalLinker.PrintLinkerScript;
+      var
+        hp : TStringListItem;
+      begin
+        if not assigned(exemap) then
+          exit;
+        exemap.Add('Used linker script');
+        exemap.Add('');
+        hp:=tstringlistitem(linkscript.first);
+        while assigned(hp) do
+          begin
+            exemap.Add(hp.str);
+            hp:=tstringlistitem(hp.next);
+          end;
+      end;
+
+
+    function TInternalLinker.MakeExecutable:boolean;
+      label
+        myexit;
+      var
+        s,s2 : string;
+      begin
+        MakeExecutable:=false;
+
+        Message1(exec_i_linking,current_module.exefilename^);
+
+{$warning TODO Load custom linker script}
+        DefaultLinkScript;
+
+        exeoutput:=CExeOutput.Create;
+
+        if (cs_link_map in aktglobalswitches) then
+          exemap:=texemap.create(current_module.mapfilename^);
+
+        PrintLinkerScript;
+
+        { Load .o files and resolve symbols }
+        ParseScript_Load;
+        if ErrorCount>0 then
+          goto myexit;
+        exeoutput.ResolveSymbols;
+        { DLL Linking }
+        While not DLLFiles.Empty do
+          begin
+            s:=DLLFiles.GetFirst;
+            if FindDLL(s,s2) then
+              exeoutput.ResolveExternals(s2)
+            else
+              Comment(V_Error,'DLL not found: '+s);
+          end;
+
+        { Create .exe sections and add .o sections }
+        ParseScript_Order;
+        exeoutput.RemoveEmptySections;
+        if ErrorCount>0 then
+          goto myexit;
+
+        { Calc positions in mem and file }
+        ParseScript_CalcPos;
+        exeoutput.FixupSymbols;
+        exeoutput.FixupRelocations;
+        exeoutput.PrintMemoryMap;
+
+        exeoutput.WriteExeFile(current_module.exefilename^);
+
+{$warning TODO fixed section names}
+        status.codesize:=exeoutput.findexesection('.text').size;
+        status.datasize:=exeoutput.findexesection('.data').size;
+
+      myexit:
+        { close map }
+        if assigned(exemap) then
+          begin
+            exemap.free;
+            exemap:=nil;
+          end;
+
+        MakeExecutable:=true;
+      end;
 
 
 {*****************************************************************************

@@ -507,7 +507,7 @@ begin
   while assigned(p) and
        (p.typ in SkipInstr + [ait_label,ait_align]) Do
     if (p.typ <> ait_Label) or
-       (tai_label(p).l <> l) then
+       (tai_label(p).labsym <> l) then
       GetNextInstruction(p, p)
     else
        begin
@@ -1090,7 +1090,7 @@ end;
 
 function labelCanBeSkipped(p: tai_label): boolean;
 begin
-  labelCanBeSkipped := not(p.l.is_used) or (p.l.labeltype<>alt_jump);
+  labelCanBeSkipped := not(p.labsym.is_used) or (p.labsym.labeltype<>alt_jump);
 end;
 
 {******************* The Data Flow Analyzer functions ********************}
@@ -1232,7 +1232,7 @@ begin
       if firstRemovedWasAlloc then
         begin
           hp := tai_regalloc.Alloc(reg,nil);
-          insertLLItem(asmL,start.previous,start,hp);        
+          insertLLItem(asmL,start.previous,start,hp);
         end;
       if lastRemovedWasDealloc then
         begin
@@ -2057,10 +2057,10 @@ begin
         if not labelcanbeskipped(tai_label(p)) then
           begin
             labelfound := true;
-             if (tai_Label(p).l.labelnr < lolab) then
-               lolab := tai_label(p).l.labelnr;
-             if (tai_Label(p).l.labelnr > hilab) then
-               hilab := tai_label(p).l.labelnr;
+             if (tai_Label(p).labsym.labelnr < lolab) then
+               lolab := tai_label(p).labsym.labelnr;
+             if (tai_Label(p).labsym.labelnr > hilab) then
+               hilab := tai_label(p).labsym.labelnr;
           end;
       prev := p;
       getnextinstruction(p, p);
@@ -2086,7 +2086,7 @@ begin
       case p.typ of
         ait_label:
           if not labelcanbeskipped(tai_label(p)) then
-            labeltable^[tai_label(p).l.labelnr-lolab].taiobj := p;
+            labeltable^[tai_label(p).labsym.labelnr-lolab].taiobj := p;
 {$ifdef i386}
         ait_regalloc:
           begin
@@ -2182,15 +2182,15 @@ begin
         ait_label:
           begin
             if not labelcanbeskipped(tai_label(p)) then
-              labeltable^[tai_label(p).l.labelnr-lolab].instrnr := nroftaiobjs
+              labeltable^[tai_label(p).labsym.labelnr-lolab].instrnr := nroftaiobjs
           end;
         ait_instruction:
           begin
             if taicpu(p).is_jmp then
              begin
-               if (tasmlabel(taicpu(p).oper[0]^.sym).labelnr >= lolab) and
-                  (tasmlabel(taicpu(p).oper[0]^.sym).labelnr <= hilab) then
-                 inc(labeltable^[tasmlabel(taicpu(p).oper[0]^.sym).labelnr-lolab].refsfound);
+               if (tasmlabel(taicpu(p).oper[0]^.sym).labsymabelnr >= lolab) and
+                  (tasmlabel(taicpu(p).oper[0]^.sym).labsymabelnr <= hilab) then
+                 inc(labeltable^[tasmlabel(taicpu(p).oper[0]^.sym).labsymabelnr-lolab].refsfound);
              end;
           end;
 {        ait_instruction:
@@ -2294,11 +2294,11 @@ begin
 {$else JumpAnal}
           begin
            if not labelCanBeSkipped(tai_label(p)) then
-             With LTable^[tai_Label(p).l^.labelnr-LoLab] Do
+             With LTable^[tai_Label(p).labsym^.labelnr-LoLab] Do
 {$ifDef AnalyzeLoops}
-              if (RefsFound = tai_Label(p).l^.RefCount)
+              if (RefsFound = tai_Label(p).labsym^.RefCount)
 {$else AnalyzeLoops}
-              if (JmpsProcessed = tai_Label(p).l^.RefCount)
+              if (JmpsProcessed = tai_Label(p).labsym^.RefCount)
 {$endif AnalyzeLoops}
                 then
 {all jumps to this label have been found}
@@ -2345,11 +2345,11 @@ begin
                             while GetNextInstruction(hp, hp) and
                                   not((hp.typ = ait_instruction) and
                                       (taicpu(hp).is_jmp) and
-                                      (tasmlabel(taicpu(hp).oper[0]^.sym).labelnr = tai_Label(p).l^.labelnr)) and
+                                      (tasmlabel(taicpu(hp).oper[0]^.sym).labsymabelnr = tai_Label(p).labsym^.labelnr)) and
                                   not((hp.typ = ait_label) and
-                                      (LTable^[tai_Label(hp).l^.labelnr-LoLab].RefsFound
-                                       = tai_Label(hp).l^.RefCount) and
-                                      (LTable^[tai_Label(hp).l^.labelnr-LoLab].JmpsProcessed > 0)) Do
+                                      (LTable^[tai_Label(hp).labsym^.labelnr-LoLab].RefsFound
+                                       = tai_Label(hp).labsym^.RefCount) and
+                                      (LTable^[tai_Label(hp).labsym^.labelnr-LoLab].JmpsProcessed > 0)) Do
                               inc(Cnt);
                             if (hp.typ = ait_label)
                               then
@@ -2396,7 +2396,7 @@ begin
                       con_invalid: typ := con_unknown;
                     end;
 {$else JumpAnal}
-          With LTable^[tasmlabel(taicpu(p).oper[0]^.sym).labelnr-LoLab] Do
+          With LTable^[tasmlabel(taicpu(p).oper[0]^.sym).labsymabelnr-LoLab] Do
             if (RefsFound = tasmlabel(taicpu(p).oper[0]^.sym).RefCount) then
               begin
                 if (InstrCnt < InstrNr)

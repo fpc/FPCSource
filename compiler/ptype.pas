@@ -41,7 +41,7 @@ interface
     { tdef }
     procedure single_type(var tt:ttype;isforwarddef:boolean);
 
-    procedure read_named_type(var tt:ttype;const name : stringid;genericdef:tstoreddef;genericlist:tsinglelist;parseprocvardir:boolean);
+    procedure read_named_type(var tt:ttype;const name : stringid;genericdef:tstoreddef;genericlist:tlist;parseprocvardir:boolean);
     procedure read_anon_type(var tt : ttype;parseprocvardir:boolean);
 
     { reads a type definition }
@@ -80,7 +80,7 @@ implementation
         sym : tsym;
         genericdef : tstoreddef;
         generictype : ttypesym;
-        generictypelist : tsinglelist;
+        generictypelist : tlist;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(pt1.resulttype.def);
@@ -104,7 +104,7 @@ implementation
           the genericdef we need to have a new def }
         err:=false;
         first:=true;
-        generictypelist:=tsinglelist.create;
+        generictypelist:=tlist.create;
         case genericdef.deftype of
           procdef :
             st:=genericdef.getsymtable(gs_para);
@@ -129,7 +129,7 @@ implementation
                 if pt2.nodetype=typen then
                   begin
                     generictype:=ttypesym.create(sym.realname,pt2.resulttype);
-                    generictypelist.insert(generictype);
+                    generictypelist.add(generictype);
                   end
                 else
                   begin
@@ -321,7 +321,7 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var tt : ttype;const name : stringid;genericdef:tstoreddef;genericlist:tsinglelist;parseprocvardir:boolean);
+    procedure read_named_type(var tt : ttype;const name : stringid;genericdef:tstoreddef;genericlist:tlist;parseprocvardir:boolean);
       var
         pt : tnode;
         tt2 : ttype;

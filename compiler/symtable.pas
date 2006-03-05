@@ -904,7 +904,7 @@ implementation
         l      : aint;
         varalignrecord,
         varalignfield,
-        varalign : longint;
+        varalign : shortint;
         vardef : tdef;
       begin
         if (sym.owner<>self) then

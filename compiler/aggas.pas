@@ -50,8 +50,8 @@ interface
       }
       TGNUAssembler=class(texternalassembler)
       protected
-        function sectionname(atype:tasmsectiontype;const aname:string):string;virtual;
-        procedure WriteSection(atype:tasmsectiontype;const aname:string);
+        function sectionname(atype:TAsmSectiontype;const aname:string):string;virtual;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string);
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);  virtual; abstract;
       public
@@ -76,7 +76,7 @@ implementation
       line_length = 70;
 
     var
-      CurrSecType  : TAsmSectionType; { last section type written }
+      CurrSecType  : TAsmSectiontype; { last section type written }
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
@@ -201,27 +201,33 @@ implementation
         result := target_asm.labelprefix+'$set$'+tostr(setcount);
       end;
 
-    function TGNUAssembler.sectionname(atype:tasmsectiontype;const aname:string):string;
+    function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
       const
-        secnames : array[tasmsectiontype] of string[13] = ('',
+        secnames : array[TAsmSectiontype] of string[13] = ('',
+          '.text',
+          '.data',
 {$warning TODO .rodata not yet working}
-          '.text','.data','.data','.bss','.threadvar',
-          'common',
-          '.note',
+          '.data',
+          '.bss',
+          '.threadvar',
           '__TEXT', { stubs }
-          '.stab','.stabstr',
+          '.stab',
+          '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           'fpc.resptrs',
           '.toc'
         );
-        secnames_pic : array[tasmsectiontype] of string[13] = ('',
-          '.text','.data.rel','.data.rel','.bss','.threadvar',
-          'common',
-          '.note',
+        secnames_pic : array[TAsmSectiontype] of string[13] = ('',
+          '.text',
+          '.data.rel',
+          '.data.rel',
+          '.bss',
+          '.threadvar',
           '__TEXT', { stubs }
-          '.stab','.stabstr',
+          '.stab',
+          '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
@@ -249,7 +255,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:tasmsectiontype;const aname:string);
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
       var
         s : string;
       begin
@@ -787,14 +793,14 @@ implementation
 
            ait_label :
              begin
-               if (tai_label(hp).l.is_used) then
+               if (tai_label(hp).labsym.is_used) then
                 begin
-                  if tai_label(hp).l.defbind=AB_GLOBAL then
+                  if tai_label(hp).labsym.bind=AB_GLOBAL then
                    begin
                      AsmWrite('.globl'#9);
-                     AsmWriteLn(tai_label(hp).l.name);
+                     AsmWriteLn(tai_label(hp).labsym.name);
                    end;
-                  AsmWrite(tai_label(hp).l.name);
+                  AsmWrite(tai_label(hp).labsym.name);
                   AsmWriteLn(':');
                 end;
              end;
@@ -843,9 +849,6 @@ implementation
                            AsmWriteLn(',' + sepChar + 'function');
                          end;
                      end;
-                   if (tf_needs_symbol_size in target_info.flags) and (tai_symbol(hp).sym.size > 0) then begin
-                     AsmWriteLn(#9'.size'#9 + tai_symbol(hp).sym.name + ', ' + tostr(tai_symbol(hp).sym.size));
-                   end;
                  end;
                AsmWriteLn(tai_symbol(hp).sym.name + ':');
              end;

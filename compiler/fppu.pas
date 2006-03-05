@@ -68,14 +68,11 @@ interface
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
           procedure writederefmap;
           procedure writederefdata;
-          procedure putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
-          procedure writeasmsymbols;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
           procedure readderefmap;
           procedure readderefdata;
-          procedure readasmsymbols;
 {$IFDEF MACRO_DIFF_HINT}
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
           procedure writeusedmacros;
@@ -571,52 +568,6 @@ uses
         ppufile.writeentry(ibderefdata);
       end;
 
-
-    procedure tppumodule.putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
-      begin
-        if tasmsymbol(s).ppuidx<>-1 then
-         librarydata.asmsymbolidx^[tasmsymbol(s).ppuidx-1]:=tasmsymbol(s);
-      end;
-
-
-    procedure tppumodule.writeasmsymbols;
-      var
-        s : tasmsymbol;
-        i : longint;
-        asmsymtype : byte;
-      begin
-        { get an ordered list of all symbols to put in the ppu }
-        getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
-        fillchar(librarydata.asmsymbolidx^,librarydata.asmsymbolppuidx*sizeof(pointer),0);
-        librarydata.symbolsearch.foreach(@putasmsymbol_in_idx,nil);
-        { write the number of symbols }
-        ppufile.putlongint(librarydata.asmsymbolppuidx);
-        { write the symbols from the indexed list to the ppu }
-        for i:=1 to librarydata.asmsymbolppuidx do
-         begin
-           s:=librarydata.asmsymbolidx^[i-1];
-           if not assigned(s) then
-            internalerror(200208071);
-           if s.Classtype=tasmlabel then
-             asmsymtype:=2
-           else
-             asmsymtype:=1;
-           ppufile.putbyte(asmsymtype);
-           case asmsymtype of
-             1 :
-               ppufile.putstring(s.name);
-             2 :
-               begin
-                 ppufile.putbyte(byte(tasmlabel(s).labeltype));
-                 ppufile.putlongint(tasmlabel(s).labelnr);
-               end;
-           end;
-           ppufile.putbyte(byte(s.defbind));
-           ppufile.putbyte(byte(s.typ));
-         end;
-        ppufile.writeentry(ibasmsymbols);
-      end;
-
 {$IFDEF MACRO_DIFF_HINT}
 
 {
@@ -848,48 +799,6 @@ uses
       end;
 
 
-    procedure tppumodule.readasmsymbols;
-      var
-        labelnr,
-        i     : longint;
-        name  : string;
-        labeltype : tasmlabeltype;
-        bind  : TAsmSymBind;
-        typ   : TAsmSymType;
-        asmsymtype : byte;
-      begin
-        librarydata.asmsymbolppuidx:=ppufile.getlongint;
-        if librarydata.asmsymbolppuidx>0 then
-         begin
-           getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
-           fillchar(librarydata.asmsymbolidx^,librarydata.asmsymbolppuidx*sizeof(pointer),0);
-           for i:=1 to librarydata.asmsymbolppuidx do
-            begin
-              asmsymtype:=ppufile.getbyte;
-              case asmsymtype of
-                1 :
-                  name:=ppufile.getstring;
-                2 :
-                  begin
-                    labeltype:=tasmlabeltype(ppufile.getbyte);
-                    labelnr:=ppufile.getlongint;
-                  end;
-                else
-                  internalerror(200208192);
-              end;
-              bind:=tasmsymbind(ppufile.getbyte);
-              typ:=tasmsymtype(ppufile.getbyte);
-              case asmsymtype of
-                1 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymbol(name,bind,typ);
-                2 :
-                 librarydata.asmsymbolidx^[i-1]:=librarydata.newasmlabel(labelnr,labeltype,(typ=AT_DATA));
-              end;
-            end;
-         end;
-      end;
-
-
     procedure tppumodule.load_interface;
       var
         b : byte;
@@ -959,7 +868,8 @@ uses
              ibloadunit :
                readloadunit;
              ibasmsymbols :
-               readasmsymbols;
+{$warning TODO Remove ibasmsymbols}
+               ;
              ibendimplementation :
                break;
            else
@@ -1081,9 +991,6 @@ uses
 
          { write implementation uses }
          writeusedunit(false);
-
-         { write asmsymbols }
-         writeasmsymbols;
 
          { end of implementation }
          ppufile.writeentry(ibendimplementation);
@@ -1226,7 +1133,6 @@ uses
       var
         pu           : tused_unit;
         load_refs    : boolean;
-        oldobjectlibrary : tasmlibrarydata;
       begin
         if current_module<>self then
          internalerror(200212284);
@@ -1280,7 +1186,7 @@ uses
         interface_compiled:=true;
 
         { read the implementation part, containing
-          the implementation uses and objectdata }
+          the implementation uses and ObjData }
         in_interface:=false;
         load_implementation;
 
@@ -1316,12 +1222,9 @@ uses
           end;
 
         { we can now derefence all pointers to the implementation parts }
-        oldobjectlibrary:=objectlibrary;
-        objectlibrary:=librarydata;
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
           tstoredsymtable(localsymtable).derefimpl;
-        objectlibrary:=oldobjectlibrary;
 
         { load browser info if stored }
         if ((flags and uf_has_browser)<>0) and load_refs then

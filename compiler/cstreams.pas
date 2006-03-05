@@ -349,6 +349,8 @@ implementation
 {****************************************************************************}
 
 constructor TCFileStream.Create(const AFileName: string; Mode: Word);
+var
+  oldfilemode : byte;
 begin
   FFileName:=AFileName;
   If Mode=fmcreate then
@@ -361,11 +363,14 @@ begin
     end
   else
     begin
+      oldfilemode:=filemode;
+      filemode:=$40 or Mode;
       system.assign(FHandle,AFileName);
       {$I-}
        system.reset(FHandle,1);
       {$I+}
       CStreamError:=IOResult;
+      filemode:=oldfilemode;
     end;
 end;
 

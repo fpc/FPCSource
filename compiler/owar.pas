@@ -57,7 +57,7 @@ type
     objpos      : longint;
     objfn       : string;
     timestamp   : string[12];
-    procedure createarhdr(fn:string;size:longint;const gid,uid,mode:string);
+    procedure createarhdr(fn:string;asize:longint;const gid,uid,mode:string);
     procedure writear;
   end;
 
@@ -140,7 +140,7 @@ begin
 end;
 
 
-procedure tarobjectwriter.createarhdr(fn:string;size:longint;const gid,uid,mode:string);
+procedure tarobjectwriter.createarhdr(fn:string;asize:longint;const gid,uid,mode:string);
 var
   tmp : string[9];
   hfn : string;
@@ -167,7 +167,7 @@ begin
   { don't write a date if also no gid/uid/mode is specified }
   if gid<>'' then
     move(timestamp[1],arhdr.date,sizeof(timestamp));
-  str(size,tmp);
+  str(asize,tmp);
   move(tmp[1],arhdr.size,length(tmp));
   move(gid[1],arhdr.gid,length(gid));
   move(uid[1],arhdr.uid,length(uid));
@@ -182,6 +182,7 @@ begin
   objpos:=ardata.size;
   ardata.seek(objpos + sizeof(tarhdr));
   createfile:=true;
+  fobjsize:=0;
 end;
 
 
@@ -193,6 +194,7 @@ begin
 { write the header }
   ardata.seek(objpos);
   ardata.write(arhdr,sizeof(tarhdr));
+  fobjsize:=0;
 end;
 
 
@@ -209,6 +211,8 @@ end;
 
 procedure tarobjectwriter.write(const b;len:longint);
 begin
+  inc(fobjsize,len);
+  inc(fsize,len);
   ardata.write(b,len);
 end;
 

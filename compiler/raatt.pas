@@ -948,7 +948,7 @@ unit raatt;
      Var
        hl         : tasmlabel;
        commname   : string;
-       lasTSec    : TAsmSectionType;
+       lasTSec    : TAsmSectiontype;
        l1,l2      : longint;
      Begin
        Message1(asmr_d_start_reading,'GNU AS');

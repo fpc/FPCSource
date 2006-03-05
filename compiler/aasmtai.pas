@@ -37,7 +37,7 @@ interface
        cpuinfo,cpubase,
        cgbase,cgutils,
        symtype,
-       aasmbase;
+       aasmbase,ogbase;
 
     type
        { keep the number of elements in this enumeration less or equal than 32 as long
@@ -320,8 +320,8 @@ interface
        { Generates an assembler label }
        tai_label = class(tai)
           is_global : boolean;
-          l         : tasmlabel;
-          constructor Create(_l : tasmlabel);
+          labsym    : tasmlabel;
+          constructor Create(_labsym : tasmlabel);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -340,11 +340,11 @@ interface
 
        { Generates a section / segment directive }
        tai_section = class(tai)
-          sectype : TAsmSectionType;
+          sectype : TAsmSectiontype;
           secalign : byte;
           name    : pstring;
-          sec     : TAsmSection; { used in binary writer }
-          constructor Create(Asectype:TAsmSectionType;Aname:string;Aalign:byte);
+          sec     : TObjSection; { used in binary writer }
+          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -590,8 +590,8 @@ interface
            function spilling_get_operation_type(opnr: longint): topertype;virtual;
            function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
 
-           function  Pass1(offset:longint):longint;virtual;abstract;
-           procedure Pass2(objdata:TAsmObjectdata);virtual;abstract;
+           function  Pass1(objdata:TObjData):longint;virtual;abstract;
+           procedure Pass2(objdata:TObjData);virtual;abstract;
         end;
         tai_cpu_class = class of tai_cpu_abstract;
 
@@ -695,9 +695,9 @@ interface
     function  maybe_smartlink_symbol:boolean;
 
     procedure maybe_new_object_file(list:taasmoutput);
-    procedure new_section(list:taasmoutput;Asectype:TAsmSectionType;Aname:string;Aalign:byte);
+    procedure new_section(list:taasmoutput;Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
     procedure section_symbol_start(list:taasmoutput;const Aname:string;Asymtyp:Tasmsymtype;
-                                   Aglobal:boolean;Asectype:TAsmSectionType;Aalign:byte);
+                                   Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
     procedure section_symbol_end(list:taasmoutput;const Aname:string);
 
     function ppuloadai(ppufile:tcompilerppufile):tai;
@@ -782,7 +782,7 @@ implementation
       end;
 
 
-    procedure new_section(list:taasmoutput;Asectype:TAsmSectionType;Aname:string;Aalign:byte);
+    procedure new_section(list:taasmoutput;Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
       begin
         list.concat(tai_section.create(Asectype,Aname,Aalign));
         list.concat(cai_align.create(Aalign));
@@ -790,7 +790,7 @@ implementation
 
 
     procedure section_symbol_start(list:taasmoutput;const Aname:string;Asymtyp:Tasmsymtype;
-                                   Aglobal:boolean;Asectype:TAsmSectionType;Aalign:byte);
+                                   Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
       begin
         maybe_new_object_file(list);
         list.concat(tai_section.create(Asectype,Aname,Aalign));
@@ -887,7 +887,7 @@ implementation
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.Create(Asectype:TAsmSectionType;Aname:string;Aalign:byte);
+    constructor tai_section.Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
       begin
         inherited Create;
         typ:=ait_section;
@@ -901,7 +901,7 @@ implementation
     constructor tai_section.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        sectype:=tasmsectiontype(ppufile.getbyte);
+        sectype:=TAsmSectiontype(ppufile.getbyte);
         secalign:=ppufile.getbyte;
         name:=stringdup(ppufile.getstring);
         sec:=nil;
@@ -974,7 +974,6 @@ implementation
 
     procedure tai_datablock.derefimpl;
       begin
-        objectlibrary.DerefAsmsymbol(sym);
       end;
 
 
@@ -988,9 +987,10 @@ implementation
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
-         sym.defbind:=AB_LOCAL;
+         sym.bind:=AB_LOCAL;
          is_global:=false;
       end;
+
 
     constructor tai_symbol.Create_global(_sym:tasmsymbol;siz:longint);
       begin
@@ -998,9 +998,10 @@ implementation
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
-         sym.defbind:=AB_GLOBAL;
+         sym.bind:=AB_GLOBAL;
          is_global:=true;
       end;
+
 
     constructor tai_symbol.Createname(const _name : string;_symtyp:Tasmsymtype;siz:longint);
       begin
@@ -1011,6 +1012,7 @@ implementation
          is_global:=false;
       end;
 
+
     constructor tai_symbol.Createname_global(const _name : string;_symtyp:Tasmsymtype;siz:longint);
       begin
          inherited Create;
@@ -1019,6 +1021,7 @@ implementation
          size:=siz;
          is_global:=true;
       end;
+
 
     constructor tai_symbol.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
@@ -1040,7 +1043,6 @@ implementation
 
     procedure tai_symbol.derefimpl;
       begin
-        objectlibrary.DerefAsmsymbol(sym);
       end;
 
 
@@ -1055,12 +1057,14 @@ implementation
          sym:=_sym;
       end;
 
+
     constructor tai_symbol_end.Createname(const _name : string);
       begin
          inherited Create;
          typ:=ait_symbol_end;
          sym:=objectlibrary.newasmsymbol(_name,AB_GLOBAL,AT_NONE);
       end;
+
 
     constructor tai_symbol_end.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
@@ -1078,7 +1082,6 @@ implementation
 
     procedure tai_symbol_end.derefimpl;
       begin
-        objectlibrary.DerefAsmsymbol(sym);
       end;
 
 
@@ -1352,8 +1355,6 @@ implementation
 
     procedure tai_const.derefimpl;
       begin
-        objectlibrary.DerefAsmsymbol(sym);
-        objectlibrary.DerefAsmsymbol(endsym);
       end;
 
 
@@ -1599,20 +1600,20 @@ implementation
                                TAI_LABEL
  ****************************************************************************}
 
-    constructor tai_label.create(_l : tasmlabel);
+    constructor tai_label.create(_labsym : tasmlabel);
       begin
         inherited Create;
         typ:=ait_label;
-        l:=_l;
-        l.is_set:=true;
-        is_global:=(l.defbind=AB_GLOBAL);
+        labsym:=_labsym;
+        labsym.is_set:=true;
+        is_global:=(labsym.bind=AB_GLOBAL);
       end;
 
 
     constructor tai_label.ppuload(t:taitype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        l:=tasmlabel(ppufile.getasmsymbol);
+        labsym:=tasmlabel(ppufile.getasmsymbol);
         is_global:=boolean(ppufile.getbyte);
       end;
 
@@ -1620,15 +1621,14 @@ implementation
     procedure tai_label.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.putasmsymbol(l);
+        ppufile.putasmsymbol(labsym);
         ppufile.putbyte(byte(is_global));
       end;
 
 
     procedure tai_label.derefimpl;
       begin
-        objectlibrary.DerefAsmsymbol(tasmsymbol(l));
-        l.is_set:=true;
+        labsym.is_set:=true;
       end;
 
 

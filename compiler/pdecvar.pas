@@ -214,8 +214,9 @@ implementation
          arraytype : ttype;
          def : tdef;
          pt : tnode;
-         sc : tsinglelist;
+         sc : tlist;
          paranr : word;
+         i      : longint;
          hreadparavs,
          hparavs      : tparavarsym;
          readprocdef,
@@ -251,7 +252,7 @@ implementation
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
-              sc:=tsinglelist.create;
+              sc:=tlist.create;
               inc(testcurobject);
               repeat
                 if try_to_consume(_VAR) then
@@ -262,12 +263,12 @@ implementation
                   varspez:=vs_out
                 else
                   varspez:=vs_value;
-                sc.reset;
+                sc.clear;
                 repeat
                   inc(paranr);
                   hreadparavs:=tparavarsym.create(orgpattern,10*paranr,varspez,generrortype,[]);
                   readprocdef.parast.insert(hreadparavs);
-                  sc.insert(hreadparavs);
+                  sc.add(hreadparavs);
                   consume(_ID);
                 until not try_to_consume(_COMMA);
                 if try_to_consume(_COLON) then
@@ -286,14 +287,13 @@ implementation
                   end
                 else
                   tt:=cformaltype;
-                hreadparavs:=tparavarsym(sc.first);
-                while assigned(hreadparavs) do
+                for i:=0 to sc.count-1 do
                   begin
+                    hreadparavs:=tparavarsym(sc[i]);
                     hreadparavs.vartype:=tt;
                     { also update the writeprocdef }
                     hparavs:=tparavarsym.create(hreadparavs.realname,hreadparavs.paranr,vs_value,tt,[]);
                     writeprocdef.parast.insert(hparavs);
-                    hreadparavs:=tparavarsym(hreadparavs.listnext);
                   end;
               until not try_to_consume(_SEMICOLON);
               sc.free;
@@ -586,13 +586,13 @@ implementation
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-      procedure read_default_value(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
+      procedure read_default_value(sc : tlist;tt : ttype;is_threadvar : boolean);
         var
           vs : tabstractnormalvarsym;
           tcsym : ttypedconstsym;
         begin
-          vs:=tabstractnormalvarsym(sc.first);
-          if assigned(vs.listnext) then
+          vs:=tabstractnormalvarsym(sc[0]);
+          if sc.count>1 then
              Message(parser_e_initialized_only_one_var);
           if is_threadvar then
              Message(parser_e_initialized_not_for_threadvar);
@@ -619,7 +619,8 @@ implementation
         end;
 
       var
-         sc : tsinglelist;
+         sc : tlist;
+         i  : longint;
          old_block_type : tblock_type;
          symdone : boolean;
          { to handle absolute }
@@ -647,14 +648,14 @@ implementation
          if not (token in [_ID,_CASE,_END]) then
            consume(_ID);
          { read vars }
-         sc:=tsinglelist.create;
+         sc:=tlist.create;
          while (token=_ID) do
            begin
              sorg:=orgpattern;
              semicoloneaten:=false;
              hasdefaultvalue:=false;
              symdone:=false;
-             sc.reset;
+             sc.clear;
              repeat
                if (token = _ID) then
                  begin
@@ -667,7 +668,7 @@ implementation
                      else
                        internalerror(200411064);
                    end;
-                   sc.insert(vs);
+                   sc.add(vs);
                    symtablestack.top.insert(vs);
                  end;
                consume(_ID);
@@ -695,8 +696,8 @@ implementation
 
              if is_gpc_name then
                begin
-                  vs:=tabstractvarsym(sc.first);
-                  if assigned(vs.listnext) then
+                  vs:=tabstractvarsym(sc[0]);
+                  if sc.count>1 then
                     Message(parser_e_absolute_only_one_var);
                   vs.vartype:=tt;
                   if vs.typ=globalvarsym then
@@ -716,8 +717,8 @@ implementation
               begin
                 abssym:=nil;
                 { only allowed for one var }
-                vs:=tabstractvarsym(sc.first);
-                if assigned(vs.listnext) then
+                vs:=tabstractvarsym(sc[0]);
+                if sc.count>1 then
                   Message(parser_e_absolute_only_one_var);
                 { parse the rest }
                 pt:=expr;
@@ -863,8 +864,8 @@ implementation
                    ) then
                  begin
                    { only allowed for one var }
-                   vs:=tabstractvarsym(sc.first);
-                   if assigned(vs.listnext) then
+                   vs:=tabstractvarsym(sc[0]);
+                   if sc.count>1 then
                      Message(parser_e_absolute_only_one_var);
                    { set type of the var }
                    vs.vartype:=tt;
@@ -988,19 +989,18 @@ implementation
              { insert it in the symtable, if not done yet }
              if not symdone then
                begin
-                  vs:=tabstractvarsym(sc.first);
-                  while assigned(vs) do
-                    begin
-                       vs.vartype:=tt;
-                       { insert any additional hint directives }
-                       vs.symoptions := vs.symoptions + hintsymoptions;
-                       if vd_threadvar in options then
-                         include(vs.varoptions,vo_is_thread_var);
-                       { static data fields are inserted in the globalsymtable }
-                       if vs.typ=globalvarsym then
-                         insertbssdata(tglobalvarsym(vs));
-                       vs:=tabstractvarsym(vs.listnext);
-                    end;
+                 for i:=0 to sc.count-1 do
+                   begin
+                     vs:=tabstractvarsym(sc[i]);
+                     vs.vartype:=tt;
+                     { insert any additional hint directives }
+                     vs.symoptions := vs.symoptions + hintsymoptions;
+                     if vd_threadvar in options then
+                       include(vs.varoptions,vo_is_thread_var);
+                     { static data fields are inserted in the globalsymtable }
+                     if vs.typ=globalvarsym then
+                       insertbssdata(tglobalvarsym(vs));
+                   end;
                end;
            end;
          block_type:=old_block_type;
@@ -1012,7 +1012,8 @@ implementation
 
     procedure read_record_fields(options:Tvar_dec_options);
       var
-         sc : tsinglelist;
+         sc : tlist;
+         i  : longint;
          old_block_type : tblock_type;
          old_current_object_option : tsymoptions;
          hs,sorg : string;
@@ -1056,19 +1057,19 @@ implementation
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
          { read vars }
-         sc:=tsinglelist.create;
+         sc:=tlist.create;
          while (token=_ID) and
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
              sorg:=orgpattern;
              semicoloneaten:=false;
-             sc.reset;
+             sc.clear;
              repeat
                if try_to_consume(_ID) then
                  begin
                    vs:=tfieldvarsym.create(orgpattern,vs_value,generrortype,[]);
-                   sc.insert(vs);
+                   sc.add(vs);
                    recst.insert(vs);
                  end;
              until not try_to_consume(_COMMA);
@@ -1156,12 +1157,11 @@ implementation
                  Message(parser_e_cant_publish_that);
                  exclude(current_object_option,sp_published);
                  { recover by changing access type to public }
-                 fieldvs:=tfieldvarsym(sc.first);
-                 while assigned (fieldvs) do
+                 for i:=0 to sc.count-1 do
                    begin
+                     fieldvs:=tfieldvarsym(sc[i]);
                      exclude(fieldvs.symoptions,sp_published);
                      include(fieldvs.symoptions,sp_public);
-                     fieldvs:=tfieldvarsym(fieldvs.listnext);
                    end;
                end
              else
@@ -1173,24 +1173,23 @@ implementation
                end;
 
              { update variable options }
-             fieldvs:=tfieldvarsym(sc.first);
-             while assigned(fieldvs) do
+             for i:=0 to sc.count-1 do
                begin
-                  fieldvs.vartype:=tt;
-                  { insert any additional hint directives }
-                  fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
-                  if (sp_static in current_object_option) then
-                    include(fieldvs.symoptions,sp_static);
-                  { static data fields are inserted in the globalsymtable }
-                  if (sp_static in current_object_option) then
-                    begin
-                       hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,tt,[]);
-                       recst.defowner.owner.insert(hstaticvs);
-                       insertbssdata(hstaticvs);
-                    end
-                  else
-                    recst.addfield(fieldvs);
-                  fieldvs:=tfieldvarsym(fieldvs.listnext);
+                 fieldvs:=tfieldvarsym(sc[i]);
+                 fieldvs.vartype:=tt;
+                 { insert any additional hint directives }
+                 fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
+                 if (sp_static in current_object_option) then
+                   include(fieldvs.symoptions,sp_static);
+                 { static data fields are inserted in the globalsymtable }
+                 if (sp_static in current_object_option) then
+                   begin
+                      hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,tt,[]);
+                      recst.defowner.owner.insert(hstaticvs);
+                      insertbssdata(hstaticvs);
+                   end
+                 else
+                   recst.addfield(fieldvs);
                end;
 
              { restore current_object_option, it can be changed for

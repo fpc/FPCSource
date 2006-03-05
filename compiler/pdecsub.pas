@@ -381,10 +381,11 @@ implementation
       type
         tppv = (pv_none,pv_proc,pv_func);
       var
-        sc      : tsinglelist;
+        sc      : tlist;
         tt      : ttype;
         arrayelementtype : ttype;
         vs      : tparavarsym;
+        i       : longint;
         srsym   : tsym;
         pv      : tprocvardef;
         varspez : Tvarspez;
@@ -408,7 +409,7 @@ implementation
         { parsing a proc or procvar ? }
         currparast:=tparasymtable(pd.parast);
         { reset }
-        sc:=tsinglelist.create;
+        sc:=tlist.create;
         defaultrequired:=false;
         paranr:=0;
         { the variables are always public }
@@ -452,13 +453,13 @@ implementation
           defaultvalue:=nil;
           tt.reset;
           { read identifiers and insert with error type }
-          sc.reset;
+          sc.clear;
           repeat
             inc(paranr);
             vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrortype,[]);
             currparast.insert(vs);
             if assigned(vs.owner) then
-             sc.insert(vs)
+             sc.add(vs)
             else
              vs.free;
             consume(_ID);
@@ -561,8 +562,8 @@ implementation
                  begin
                    if try_to_consume(_EQUAL) then
                     begin
-                      vs:=tparavarsym(sc.first);
-                      if assigned(vs.listnext) then
+                      vs:=tparavarsym(sc[0]);
+                      if sc.count>1 then
                         Message(parser_e_default_value_only_one_para);
                       { prefix 'def' to the parameter name }
                       defaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
@@ -589,32 +590,31 @@ implementation
              not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
-          vs:=tparavarsym(sc.first);
-          while assigned(vs) do
-           begin
-             { update varsym }
-             vs.vartype:=tt;
-             vs.defaultconstsym:=defaultvalue;
+          for i:=0 to sc.count-1 do
+            begin
+              vs:=tparavarsym(sc[i]);
+              { update varsym }
+              vs.vartype:=tt;
+              vs.defaultconstsym:=defaultvalue;
 
-             if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
-               begin
-                 if locationstr<>'' then
-                   begin
-                     if assigned(sc.first.listnext) then
-                       Message(parser_e_paraloc_only_one_para);
-                     if (paranr>1) and not(explicit_paraloc) then
-                       Message(parser_e_paraloc_all_paras);
-                     explicit_paraloc:=true;
-                     include(vs.varoptions,vo_has_explicit_paraloc);
-                     if not(paramanager.parseparaloc(vs,upper(locationstr))) then
-                       message(parser_e_illegal_explicit_paraloc);
-                   end
-                 else
-                   if explicit_paraloc then
-                     Message(parser_e_paraloc_all_paras);
-               end;
-             vs:=tparavarsym(vs.listnext);
-           end;
+              if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
+                begin
+                  if locationstr<>'' then
+                    begin
+                      if sc.count>1 then
+                        Message(parser_e_paraloc_only_one_para);
+                      if (paranr>1) and not(explicit_paraloc) then
+                        Message(parser_e_paraloc_all_paras);
+                      explicit_paraloc:=true;
+                      include(vs.varoptions,vo_has_explicit_paraloc);
+                      if not(paramanager.parseparaloc(vs,upper(locationstr))) then
+                        message(parser_e_illegal_explicit_paraloc);
+                    end
+                  else
+                    if explicit_paraloc then
+                      Message(parser_e_paraloc_all_paras);
+                end;
+            end;
         until not try_to_consume(_SEMICOLON);
 
         if explicit_paraloc then

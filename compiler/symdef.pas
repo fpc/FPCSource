@@ -925,7 +925,7 @@ implementation
       begin
         { remove also index from symtable }
         if assigned(owner) then
-          owner.defindex.deleteindex(self);
+          owner.deletedef(self);
         if assigned(generictokenbuf) then
           generictokenbuf.free;
         inherited destroy;
@@ -2519,7 +2519,7 @@ implementation
              is_object(elementtype.def)) then
            alignment:=elementtype.def.alignment
          else
-           alignment:=elesize;
+           alignment:=size_2_align(elesize);
       end;
 
 
@@ -5029,6 +5029,7 @@ implementation
 ****************************************************************************}
     type
       tnamemap = class(TNamedIndexItem)
+        listnext : TNamedIndexItem;
         newname: pstring;
         constructor create(const aname, anewname: string);
         destructor  destroy; override;

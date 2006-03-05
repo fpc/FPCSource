@@ -368,16 +368,16 @@ implementation
     { reads a type declaration to the symbol table }
     procedure type_dec;
 
-        function parse_generic_parameters:tsinglelist;
+        function parse_generic_parameters:tlist;
         var
           generictype : ttypesym;
         begin
-          result:=tsinglelist.create;
+          result:=tlist.create;
           repeat
             if token=_ID then
               begin
                 generictype:=ttypesym.create(orgpattern,cundefinedtype);
-                result.insert(generictype);
+                result.add(generictype);
               end;
             consume(_ID);
           until not try_to_consume(_COMMA) ;
@@ -396,7 +396,7 @@ implementation
          isgeneric,
          isunique,
          istyperenaming : boolean;
-         generictypelist : tsinglelist;
+         generictypelist : tlist;
          generictokenbuf : tdynamicarray;
       begin
          old_block_type:=block_type;

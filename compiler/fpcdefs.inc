@@ -71,7 +71,7 @@
   {$define cpu64bit}
   {$define cpuflags}
   {$define cputargethasfixedstack}
-  {$define cpumm}  
+  {$define cpumm}
   {$define cpurequiresproperalignment}
 {$endif powerpc64}
 
@@ -91,3 +91,6 @@
 {$IFDEF MACOS}
 {$DEFINE MACOS_USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
+
+{ Use the internal linker by default }
+{ define INTERNALLINKER}

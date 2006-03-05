@@ -84,8 +84,9 @@ interface
        psearchhasharray = ^tsearchhasharray;
 
        tsymtable = class
-{$ifdef EXTDEBUG}
        private
+          clearing   : boolean;
+{$ifdef EXTDEBUG}
           procedure dumpsym(p : TNamedIndexItem;arg:pointer);
 {$endif EXTDEBUG}
        public
@@ -115,6 +116,7 @@ interface
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
           procedure insertdef(def:tdefentry);virtual;
+          procedure deletedef(def:tdefentry);virtual;
           function  iscurrentunit:boolean;virtual;
 {$ifdef EXTDEBUG}
           procedure dump;
@@ -169,16 +171,15 @@ implementation
         { freeinstance decreases refcount }
         if refcount>1 then
           exit;
-        stringdispose(name);
-        stringdispose(realname);
-        symindex.destroy;
-        defindex.destroy;
         { symsearch can already be disposed or set to nil for withsymtable }
         if assigned(symsearch) then
          begin
            symsearch.destroy;
            symsearch:=nil;
          end;
+        clear;
+        stringdispose(name);
+        stringdispose(realname);
       end;
 
 
@@ -239,8 +240,10 @@ implementation
 
     procedure tsymtable.clear;
       begin
+         clearing:=true;
          symindex.clear;
          defindex.clear;
+         clearing:=false;
       end;
 
 
@@ -264,6 +267,17 @@ implementation
       begin
          def.owner:=self;
          defindex.insert(def);
+      end;
+
+
+    procedure tsymtable.deletedef(def:tdefentry);
+      begin
+        { if we are already clearing everything it will already
+          be deleted }
+        if clearing then
+          exit;
+        defindex.deleteindex(def);
+        def.owner:=nil;
       end;
 
 

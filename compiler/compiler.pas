@@ -64,14 +64,14 @@ unit compiler;
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
-   
+
    {$ifdef POWERPC64}
    {$ifndef CPUOK}
    {$DEFINE CPUOK}
    {$else}
      {$fatal cannot define two CPU switches}
    {$endif}
-   {$endif}   
+   {$endif}
 
    {$ifdef ia64}
    {$ifndef CPUOK}
@@ -345,6 +345,8 @@ function Compile(const cmd:string):longint;
 
 var
   starttime  : real;
+  timestr    : string[20];
+  linkstr    : string[64];
 {$ifdef SHOWUSEDMEM}
   hstatus : TFPCHeapStatus;
 {$endif SHOWUSEDMEM}
@@ -380,8 +382,12 @@ begin
           starttime:=getrealtime-starttime;
           if starttime<0 then
             starttime:=starttime+3600.0*24.0;
-          Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(starttime))+
-            '.'+tostr(trunc(frac(starttime)*10)));
+          timestr:=tostr(trunc(starttime))+'.'+tostr(trunc(frac(starttime)*10));
+          if status.codesize<>-1 then
+            linkstr:=', '+tostr(status.codesize)+' bytes code, '+tostr(status.datasize)+' bytes data'
+          else
+            linkstr:='';
+          Message3(general_i_abslines_compiled,tostr(status.compiledlines),timestr,linkstr);
         end;
      finally
        { no message possible after this !!    }

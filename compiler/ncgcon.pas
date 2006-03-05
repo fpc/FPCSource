@@ -104,7 +104,7 @@ implementation
              while assigned(hp1) do
                begin
                   if hp1.typ=ait_label then
-                    lastlabel:=tai_label(hp1).l
+                    lastlabel:=tai_label(hp1).labsym
                   else
                     begin
                        if (hp1.typ=realait) and (lastlabel<>nil) then
@@ -274,7 +274,7 @@ implementation
                     begin
                        if hp1.typ=ait_label then
                          begin
-                           lastlabel:=tai_label(hp1).l;
+                           lastlabel:=tai_label(hp1).labsym;
                            lastlabelhp:=hp1;
                          end
                        else
@@ -349,7 +349,7 @@ implementation
                                           assigned(hp2.previous.previous.previous) and
                                           (tai(hp2.previous.previous.previous).typ=ait_label) then
                                          begin
-                                           lastlabel:=tai_label(hp2.previous.previous.previous).l;
+                                           lastlabel:=tai_label(hp2.previous.previous.previous).labsym;
                                            same_string:=true;
                                            j:=0;
                                            if len>0 then
@@ -507,7 +507,7 @@ implementation
              while assigned(hp1) do
                begin
                   if hp1.typ=ait_label then
-                    lastlabel:=tai_label(hp1).l
+                    lastlabel:=tai_label(hp1).labsym
                   else
                     begin
                       if (lastlabel<>nil) and

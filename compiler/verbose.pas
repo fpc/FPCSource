@@ -799,6 +799,8 @@ var
         FillChar(Status,sizeof(TCompilerStatus),0);
         status.verbosity:=V_Default;
         Status.MaxErrorCount:=50;
+        Status.codesize:=-1;
+        Status.datasize:=-1;
         Loadprefixes;
         lastfileidx:=-1;
         lastmoduleidx:=-1;

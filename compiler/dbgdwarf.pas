@@ -1987,7 +1987,7 @@ implementation
         currfileinfo,
         lastfileinfo : tfileposinfo;
         currfuncname : pstring;
-        currsectype  : tasmsectiontype;
+        currsectype  : TAsmSectiontype;
         hlabel       : tasmlabel;
         hp : tai;
         infile : tinputfile;

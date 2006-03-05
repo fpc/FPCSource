@@ -58,9 +58,9 @@ implementation
     const
       line_length = 70;
 
-      secnames : array[TAsmSectionType] of string[4] = ('',
+      secnames : array[TAsmSectiontype] of string[4] = ('',
         'CODE','DATA','DATA','BSS','',
-        '','','','','','','',
+        '','','','','',
         '','','','',
         '',
         '','','','',
@@ -68,9 +68,9 @@ implementation
 	''
       );
 
-      secnamesml64 : array[TAsmSectionType] of string[7] = ('',
+      secnamesml64 : array[TAsmSectiontype] of string[7] = ('',
         '_TEXT','_DATE','_DATA','_BSS','',
-        '','','','','',
+        '','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',
         '','','','',
@@ -343,7 +343,7 @@ implementation
 
 
     var
-      LasTSectype : TAsmSectionType;
+      LasTSectype : TAsmSectiontype;
       lastfileinfo : tfileposinfo;
       infile,
       lastinfile   : tinputfile;
@@ -644,9 +644,9 @@ implementation
              end;
            ait_label :
              begin
-               if tai_label(hp).l.is_used then
+               if tai_label(hp).labsym.is_used then
                 begin
-                  AsmWrite(tai_label(hp).l.name);
+                  AsmWrite(tai_label(hp).labsym.name);
                   if assigned(hp.next) and not(tai(hp.next).typ in
                      [ait_const,
                       ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
@@ -826,7 +826,7 @@ implementation
 
     procedure writeexternal(p:tnamedindexitem;arg:pointer);
       begin
-        if tasmsymbol(p).defbind=AB_EXTERNAL then
+        if tasmsymbol(p).bind=AB_EXTERNAL then
           begin
             case target_asm.id of
               as_i386_masm,as_i386_wasm:

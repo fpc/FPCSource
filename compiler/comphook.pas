@@ -31,6 +31,7 @@ uses
 {$ELSE}
   globals,
 {$ENDIF}
+  globtype,
   finput;
 
 Const
@@ -77,6 +78,8 @@ type
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
     errorcount    : longint;  { number of generated errors }
+    codesize,
+    datasize      : aint;
   { program info }
     isexe,
     islibrary     : boolean;

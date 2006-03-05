@@ -104,7 +104,8 @@ procedure set_default_link_type;
 begin
   { win32 and wdosx need smartlinking by default to prevent including too much
     dll dependencies }
-  if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
+  if not(cs_link_internal in initglobalswitches) and
+     (target_info.system in [system_i386_win32,system_i386_wdosx]) then
     begin
       def_system_macro('FPC_LINK_SMART');
       undef_system_macro('FPC_LINK_STATIC');
@@ -1131,6 +1132,7 @@ begin
                     'I':
                       begin
                         GenerateImportSection:=not UnsetBool(More,j);
+                        GenerateImportSectionSetExplicitly:=true;
                       end;
                     'N':
                       begin
@@ -2116,6 +2118,11 @@ begin
   { force fpu emulation on arm/wince }
   if target_info.system=system_arm_wince then
     include(initmoduleswitches,cs_fp_emulation);
+
+  { By default don't create import section if we use the internal linker }
+  if not GenerateImportSectionSetExplicitly and
+     (cs_link_internal in aktglobalswitches) then
+    GenerateImportSection:=false;
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and

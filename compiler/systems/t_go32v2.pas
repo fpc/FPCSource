@@ -357,6 +357,6 @@ end;
 
 initialization
   RegisterExternalLinker(system_i386_go32v2_info,TLinkerGo32v2);
-  RegisterInternalLinker(system_i386_go32v2_info,TCoffLinker);
+  RegisterInternalLinker(system_i386_go32v2_info,TDJCoffLinker);
   RegisterTarget(system_i386_go32v2_info);
 end.
