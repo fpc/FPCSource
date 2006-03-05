@@ -245,6 +245,7 @@ interface
           function  gettypedef:tdef;override;
           procedure buildderef;override;
           procedure deref;override;
+          procedure derefimpl;override;
           procedure dooverride(overriden:tpropertysym);
        end;
 
@@ -1129,12 +1130,7 @@ implementation
 
     procedure tpropertysym.deref;
       begin
-        if (ppo_is_override in propoptions) then
-         begin
-           propoverriden:=tpropertysym(propoverridenderef.resolve);
-           dooverride(propoverriden);
-         end
-        else
+        if not(ppo_is_override in propoptions) then
          begin
            proptype.resolve;
            indextype.resolve;
@@ -1142,6 +1138,16 @@ implementation
            writeaccess.resolve;
            storedaccess.resolve;
          end;
+      end;
+
+
+    procedure tpropertysym.derefimpl;
+      begin
+        if (ppo_is_override in propoptions) then
+         begin
+           propoverriden:=tpropertysym(propoverridenderef.resolve);
+           dooverride(propoverriden);
+         end
       end;
 
 

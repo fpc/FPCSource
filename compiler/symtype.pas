@@ -118,6 +118,7 @@ interface
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
+         procedure derefimpl; virtual;
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
@@ -351,6 +352,11 @@ implementation
 
 
     procedure Tsym.deref;
+      begin
+      end;
+
+
+    procedure Tsym.derefimpl;
       begin
       end;
 

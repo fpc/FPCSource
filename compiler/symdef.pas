@@ -185,6 +185,8 @@ interface
           symtable : tsymtable;
           procedure reset;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -2636,6 +2638,22 @@ implementation
             asmlist[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
           end;
       end;
+
+
+    procedure tabstractrecorddef.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
+   procedure tabstractrecorddef.derefimpl;
+     var
+       storesymtable : tsymtable;
+     begin
+       inherited derefimpl;
+       tstoredsymtable(symtable).derefimpl;
+     end;
 
 
 
