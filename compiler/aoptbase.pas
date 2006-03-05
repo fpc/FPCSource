@@ -153,7 +153,7 @@ unit aoptbase;
              ) or
 {$endif SPARC}
              ((Current.typ = ait_label) And
-              Not(Tai_Label(Current).l.is_used))) Do
+              Not(Tai_Label(Current).labsym.is_used))) Do
         Current := tai(Current.Next);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
@@ -171,7 +171,7 @@ unit aoptbase;
     If Assigned(Current) And
        Not((Current.typ In SkipInstr) or
            ((Current.typ = ait_label) And
-            Not(Tai_Label(Current).l.is_used)))
+            Not(Tai_Label(Current).labsym.is_used)))
       Then GetNextInstruction := True
       Else
         Begin
@@ -189,7 +189,7 @@ unit aoptbase;
               Not(Tai_Marker(Current).Kind in [AsmBlockEnd,NoPropInfoEnd])) or
              (Current.typ In SkipInstr) or
              ((Current.typ = ait_label) And
-               Not(Tai_Label(Current).l.is_used))) Do
+               Not(Tai_Label(Current).labsym.is_used))) Do
         Current := Tai(Current.previous);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
@@ -206,7 +206,7 @@ unit aoptbase;
     If Not(Assigned(Current)) or
        (Current.typ In SkipInstr) or
        ((Current.typ = ait_label) And
-        Not(Tai_Label(Current).l.is_used)) or
+        Not(Tai_Label(Current).labsym.is_used)) or
        ((Current.typ = ait_Marker) And
         (Tai_Marker(Current).Kind = AsmBlockEnd))
       Then

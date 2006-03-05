@@ -73,7 +73,8 @@ interface
         'csect', {data}
         'csect', {read only data}
         'csect', {bss} 'csect',
-        'csect','csect','csect','csect','','','','','','','','','','','','','',''
+        'csect','csect','csect','csect',
+         '','','','','','','','','','','',''
       );
 
     type
@@ -1050,9 +1051,9 @@ interface
               end;
             ait_label:
               begin
-                 if tai_label(hp).l.is_used then
+                 if tai_label(hp).labsym.is_used then
                   begin
-                    s:= tai_label(hp).l.name;
+                    s:= tai_label(hp).labsym.name;
                     if s[1] = '@' then
                       begin
                         ReplaceForbiddenChars(s);
@@ -1129,7 +1130,7 @@ interface
         replaced: boolean;
 
       begin
-        if tasmsymbol(p).defbind=AB_EXTERNAL then
+        if tasmsymbol(p).bind=AB_EXTERNAL then
           begin
             //Writeln('ZZZ ',p.name,' ',p.classname,' ',Ord(tasmsymbol(p).typ));
             s:= p.name;

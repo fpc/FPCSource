@@ -86,13 +86,13 @@ Unit aopt;
                    (tai_Marker(P).Kind <> AsmBlockStart)) Do
               Begin
                 If (p.typ = ait_label) Then
-                  If (tai_Label(p).l.is_used) Then
+                  If (tai_Label(p).labsym.is_used) Then
                     Begin
                       LabelFound := True;
-                      If (tai_Label(p).l.labelnr < LowLabel) Then
-                        LowLabel := tai_Label(p).l.labelnr;
-                      If (tai_Label(p).l.labelnr > HighLabel) Then
-                        HighLabel := tai_Label(p).l.labelnr
+                      If (tai_Label(p).labsym.labelnr < LowLabel) Then
+                        LowLabel := tai_Label(p).labsym.labelnr;
+                      If (tai_Label(p).labsym.labelnr > HighLabel) Then
+                        HighLabel := tai_Label(p).labsym.labelnr
                     End;
                 prev := p;
                 GetNextInstruction(p, p)
@@ -124,8 +124,8 @@ Unit aopt;
               Begin
                 Case p.typ Of
                   ait_Label:
-                    If tai_label(p).l.is_used Then
-                      LabelTable^[tai_label(p).l.labelnr-LowLabel].PaiObj := p;
+                    If tai_label(p).labsym.is_used Then
+                      LabelTable^[tai_label(p).labsym.labelnr-LowLabel].PaiObj := p;
                   ait_regAlloc:
                     begin
                     {!!!!!!!!!

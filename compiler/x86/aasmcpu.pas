@@ -236,8 +236,8 @@ interface
     {$ifndef NOAG386BIN}
       public
          { the next will reset all instructions that can change in pass 2 }
-         procedure ResetPass1;
-         procedure ResetPass2;
+         procedure ResetPass1;override;
+         procedure ResetPass2;override;
          function  CheckIfValid:boolean;
          function  Pass1(objdata:TObjData):longint;override;
          procedure Pass2(objdata:TObjData);override;

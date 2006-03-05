@@ -333,7 +333,7 @@ Unit AoptObj;
           While Assigned(p) And
                 ((p.typ in (SkipInstr - [ait_RegAlloc])) or
                  ((p.typ = ait_label) And
-                  Not(Tai_Label(p).l.is_used))) Do
+                  Not(Tai_Label(p).labsym.is_used))) Do
                p := Tai(p.next);
           While Assigned(p) And
                 (p.typ=ait_RegAlloc) Do
@@ -349,7 +349,7 @@ Unit AoptObj;
         Until Not(Assigned(p)) Or
               (Not(p.typ in SkipInstr) And
                Not((p.typ = ait_label) And
-                  Not(Tai_Label(p).l.is_used)));
+                  Not(Tai_Label(p).labsym.is_used)));
       End;
 
       Function TUsedRegs.IsUsed(Reg: TRegister): Boolean;
@@ -742,7 +742,7 @@ Unit AoptObj;
         While Assigned(TempP) and
              (TempP.typ In SkipInstr + [ait_label]) Do
           If (TempP.typ <> ait_Label) Or
-             (Tai_label(TempP).l <> L)
+             (Tai_label(TempP).labsym <> L)
             Then GetNextInstruction(TempP, TempP)
             Else
               Begin
@@ -824,7 +824,7 @@ Unit AoptObj;
           While Assigned(StartPai) And
                 ((StartPai.typ in (SkipInstr - [ait_regAlloc])) Or
                  ((StartPai.typ = ait_label) and
-                  Not(Tai_Label(StartPai).l.Is_Used))) Do
+                  Not(Tai_Label(StartPai).labsym.Is_Used))) Do
             StartPai := Tai(StartPai.Next);
           If Assigned(StartPai) And
              (StartPai.typ = ait_regAlloc) and (tai_regalloc(StartPai).ratype=ra_alloc) Then
@@ -871,7 +871,7 @@ Unit AoptObj;
            (tai(hp.next).typ = ait_label) then
           begin
             FindAnyLabel := true;
-            l := tai_label(hp.next).l;
+            l := tai_label(hp.next).labsym;
           end
       end;
 
@@ -1053,7 +1053,7 @@ Unit AoptObj;
                                   if taicpu(p).opcode=aopt_condjmp then
                                     begin
                                       taicpu(p).condition:=inverse_cond(taicpu(p).condition);
-                                      tai_label(hp2).l.decrefs;
+                                      tai_label(hp2).labsym.decrefs;
                                       taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
                                       { when freeing hp1, the reference count 
                                         isn't decreased, so don't increase

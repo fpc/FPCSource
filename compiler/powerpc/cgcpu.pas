@@ -2058,7 +2058,7 @@ const
 
          if (target_info.system = system_powerpc_darwin) and
             assigned(ref.symbol) and
-            (ref.symbol.defbind = AB_EXTERNAL) then
+            (ref.symbol.bind = AB_EXTERNAL) then
            begin
              tmpreg := g_darwin_indirect_sym_load(list,ref.symbol.name);
              if (ref.base = NR_NO) then

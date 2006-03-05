@@ -592,6 +592,9 @@ interface
 
            function  Pass1(objdata:TObjData):longint;virtual;abstract;
            procedure Pass2(objdata:TObjData);virtual;abstract;
+
+           procedure resetpass1; virtual;
+           procedure resetpass2; virtual;
         end;
         tai_cpu_class = class of tai_cpu_abstract;
 
@@ -2362,6 +2365,16 @@ implementation
       begin
         for i:=0 to ops-1 do
           ppuderefoper(oper[i]^);
+      end;
+
+
+    procedure tai_cpu_abstract.resetpass1;
+      begin
+      end;
+
+
+    procedure tai_cpu_abstract.resetpass2;
+      begin
       end;
 
 
