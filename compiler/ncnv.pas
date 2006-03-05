@@ -48,6 +48,7 @@ interface
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          function simplify:tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
           function assign_allowed:boolean;
@@ -1634,6 +1635,20 @@ implementation
               CGMessage(type_w_pointer_to_longint_conv_not_portable);
           end;
 
+        result := simplify;
+        if assigned(result) then
+          exit;
+
+        { now call the resulttype helper to do constant folding }
+        result:=resulttype_call_helper(convtype);
+      end;
+
+
+    function ttypeconvnode.simplify: tnode;
+      var
+        hp: tnode;
+      begin
+        result := nil;
         { Constant folding and other node transitions to
           remove the typeconv node }
         case left.nodetype of
@@ -1714,10 +1729,8 @@ implementation
                 end;
             end;
         end;
-
-        { now call the resulttype helper to do constant folding }
-        result:=resulttype_call_helper(convtype);
       end;
+
 
       procedure Ttypeconvnode.mark_write;
 
