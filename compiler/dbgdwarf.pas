@@ -203,7 +203,7 @@ interface
         filerecdef,
         textrecdef : tdef;
 
-        function append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const) : longint;
+        procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -453,7 +453,7 @@ implementation
 
     { writing the data through a few simply procedures allows to create easily extra information
       for debugging of debug info }
-    function TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const) : longint;
+    procedure TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
       var
         i : longint;
       begin
