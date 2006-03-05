@@ -23,6 +23,9 @@ interface
 
 {$define WINCE_EXCEPTION_HANDLING}
 
+{ Startup code }
+{$L wprt0.o}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -60,7 +63,6 @@ var
   hprevinst,
   MainInstance,
   DLLreason,DLLparam:DWord;
-  Win32StackTop : Dword; // Used by heaptrc unit
 
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
@@ -756,8 +758,7 @@ end;
 
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
-Procedure ExitDLL(Exitcode : longint); forward;
-procedure asm_exit(Exitcode : longint);external name 'asm_exit';
+procedure ExitThread(Exitcode : longint); external 'coredll';
 
 Procedure system_exit;
 begin
@@ -766,14 +767,14 @@ begin
     the DLL exit code !!
     This crashes Win95 at least PM }
   if IsLibrary then
-    ExitDLL(ExitCode);
+    exit;
+//    ExitDLL(ExitCode);
   if not IsConsole then begin
     Close(stderr);
     Close(stdout);
     { what about Input and Output ?? PM }
   end;
-  { call exitprocess, with cleanup as required }
-  asm_exit(exitcode);
+  ExitThread(exitcode);
 end;
 
 var
@@ -796,59 +797,50 @@ function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
 var
   res : longbool;
 
-  begin
-     IsLibrary:=true;
-     Dll_entry:=false;
-     case DLLreason of
-       DLL_PROCESS_ATTACH :
-         begin
-           If SetJmp(DLLBuf) = 0 then
-             begin
-               if assigned(Dll_Process_Attach_Hook) then
-                 begin
-                   res:=Dll_Process_Attach_Hook(DllParam);
-                   if not res then
-                     exit(false);
-                 end;
-               PASCALMAIN;
-               Dll_entry:=true;
-             end
-           else
-             Dll_entry:=DLLExitOK;
-         end;
-       DLL_THREAD_ATTACH :
-         begin
-           inc(Thread_count);
-{$warning Allocate Threadvars !}
-           if assigned(Dll_Thread_Attach_Hook) then
-             Dll_Thread_Attach_Hook(DllParam);
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_THREAD_DETACH :
-         begin
-           dec(Thread_count);
-           if assigned(Dll_Thread_Detach_Hook) then
-             Dll_Thread_Detach_Hook(DllParam);
-{$warning Release Threadvars !}
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_PROCESS_DETACH :
-         begin
-           Dll_entry:=true; { return value is ignored }
-           If SetJmp(DLLBuf) = 0 then
-             begin
-               FPC_DO_EXIT;
-             end;
-           if assigned(Dll_Process_Detach_Hook) then
-             Dll_Process_Detach_Hook(DllParam);
-         end;
-     end;
-  end;
-
-Procedure ExitDLL(Exitcode : longint);
 begin
-    DLLExitOK:=ExitCode=0;
-    LongJmp(DLLBuf,1);
+   IsLibrary:=true;
+   Dll_entry:=false;
+   case DLLreason of
+     DLL_PROCESS_ATTACH :
+       begin
+         if assigned(Dll_Process_Attach_Hook) then
+           begin
+             res:=Dll_Process_Attach_Hook(DllParam);
+             if not res then
+               exit(false);
+           end;
+         PASCALMAIN;
+         Dll_entry:=true;
+       end;
+     DLL_THREAD_ATTACH :
+       begin
+         inc(Thread_count);
+{$warning Allocate Threadvars !}
+         if assigned(Dll_Thread_Attach_Hook) then
+           Dll_Thread_Attach_Hook(DllParam);
+       end;
+     DLL_THREAD_DETACH :
+       begin
+         dec(Thread_count);
+         if assigned(Dll_Thread_Detach_Hook) then
+           Dll_Thread_Detach_Hook(DllParam);
+{$warning Release Threadvars !}
+       end;
+     DLL_PROCESS_DETACH :
+       begin
+         FPC_DO_EXIT;
+         if assigned(Dll_Process_Detach_Hook) then
+           Dll_Process_Detach_Hook(DllParam);
+       end;
+   end;
+end;
+
+procedure DLLMainStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_FPC_DLLMainStartup';
+begin
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
 end;
 
 {$ifdef WINCE_EXCEPTION_HANDLING}
@@ -1403,12 +1395,12 @@ begin
 {$ifdef CPUARM}
   asm
     mov fp,#0
-    ldr r12,.LPWin32StackTop
+    ldr r12,.LPStackTop
     str sp,[r12]
     bl PASCALMAIN;
     b .Lend
-.LPWin32StackTop:
-    .long Win32StackTop
+.LPStackTop:
+    .long StackTop
 .Lend:
   end;
 {$endif CPUARM}
@@ -1423,7 +1415,7 @@ begin
     pushl %ebp
     xorl %ebp,%ebp
     movl %esp,%eax
-    movl %eax,Win32StackTop
+    movl %eax,StackTop
     movw %ss,%bp
     movl %ebp,_SS
     call SysResetFPU
@@ -1640,13 +1632,9 @@ begin
   result := stklen;
 end;
 
-const
-   Exe_entry_code : pointer = @Exe_entry;
-   Dll_entry_code : pointer = @Dll_entry;
-
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
   { Enable FPU exceptions }
   _controlfp(1, $0008001F);
   { some misc stuff }
@@ -1657,9 +1645,12 @@ begin
   { Setup heap }
   InitHeap;
   SysInitExceptions;
-  SysInitStdIO;
-  { Arguments }
-  setup_arguments;
+  if not IsLibrary then
+    begin
+      SysInitStdIO;
+      { Arguments }
+      setup_arguments;
+    end;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
