@@ -28,7 +28,14 @@ exampledirs_netbsd=tests
 exampledirs_openbsd=tests
 
 [require]
-packages=netdb libasync
+packages=netdb 
+
+packages_linux=libasync 
+packages_freebsd=libasync 
+packages_darwin=libasync 
+packages_solaris=libasync 
+packages_netbsd=libasync
+packages_openbsd=libasync
 
 [compiler]
 options=-S2h
