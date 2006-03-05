@@ -37,7 +37,7 @@ interface
 uses
   SysUtils,
   {$IFDEF Win32}
-  Windows,
+  Windows, dynlibs,
   {$ELSE}
   {$IFDEF MORPHOS}
   TinyGL,

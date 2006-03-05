@@ -76,8 +76,6 @@ uses
   {$ELSE}
   {$IFDEF MORPHOS}
   TinyGL,
-  {$ELSE}
-  dynlibs,
   {$ENDIF}
   {$ENDIF}
   GL;
@@ -392,6 +390,8 @@ implementation
 {$INCLUDE tinygl.inc}
 
 {$ELSE MORPHOS}
+uses
+  dynlibs;
 
 var
   hDLL: TLibHandle;
