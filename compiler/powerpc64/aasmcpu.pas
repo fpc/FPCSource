@@ -480,9 +480,9 @@ begin
     begin
       if p.typ = ait_label then
         begin
-          if (tai_label(p).l.labelnr >= labelpositions.count) then
-            labelpositions.count := tai_label(p).l.labelnr * 2;
-          labelpositions[tai_label(p).l.labelnr] := pointer(instrpos);
+          if (tai_label(p).labsym.labelnr >= labelpositions.count) then
+            labelpositions.count := tai_label(p).labsym.labelnr * 2;
+          labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
         end;
       if p.typ = ait_instruction then
         inc(instrpos);
@@ -502,9 +502,9 @@ begin
             // of jumps
             begin
               // can happen because of newly inserted labels
-              if (tai_label(p).l.labelnr > labelpositions.count) then
-                labelpositions.count := tai_label(p).l.labelnr * 2;
-              labelpositions[tai_label(p).l.labelnr] := pointer(instrpos);
+              if (tai_label(p).labsym.labelnr > labelpositions.count) then
+                labelpositions.count := tai_label(p).labsym.labelnr * 2;
+              labelpositions[tai_label(p).labsym.labelnr] := pointer(instrpos);
             end;
           ait_instruction:
             begin
