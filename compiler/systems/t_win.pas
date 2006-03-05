@@ -1152,10 +1152,10 @@ begin
   if apptype=app_gui then
     begin
       AppTypeStr:='--subsystem windows';
-      EntryStr:='--entry _DLLWinMainCRTStartup@12'
+      EntryStr:='--entry _DLLWinMainCRTStartup'
     end
   else
-    EntryStr:='--entry _DLLMainCRTStartup@12';
+    EntryStr:='--entry _DLLMainCRTStartup';
   if assigned(DLLImageBase) then
     ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then

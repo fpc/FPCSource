@@ -513,7 +513,7 @@ begin
 end;
 
 
-procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup@12';
+procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
 begin
   IsConsole:=true;
   sysinstance:=_hinstance;
@@ -523,7 +523,7 @@ begin
 end;
 
 
-procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup@12';
+procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
 begin
   IsConsole:=false;
   sysinstance:=_hinstance;
