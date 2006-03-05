@@ -133,7 +133,6 @@ var
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
   UseHighMem: boolean;
-  StackTop : PtrUInt;
 
 
 
