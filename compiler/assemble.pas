@@ -915,8 +915,8 @@ Implementation
                begin
                  { always use the maximum fillsize in this pass to avoid possible
                    short jumps to become out of range }
-                 Tai_align(hp).fillsize:=Tai_align(hp).aligntype;
-                 ObjData.alloc(Tai_align(hp).fillsize);
+                 Tai_align_abstract(hp).fillsize:=Tai_align_abstract(hp).aligntype;
+                 ObjData.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_datablock :
                begin
@@ -974,9 +974,9 @@ Implementation
              ait_align :
                begin
                  { here we must determine the fillsize which is used in pass2 }
-                 Tai_align(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align(hp).aligntype)-
+                 Tai_align_abstract(hp).fillsize:=align(ObjData.CurrObjSec.Size,Tai_align_abstract(hp).aligntype)-
                    ObjData.CurrObjSec.Size;
-                 ObjData.alloc(Tai_align(hp).fillsize);
+                 ObjData.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_datablock :
                begin
@@ -1062,9 +1062,9 @@ Implementation
              ait_align :
                begin
                  if (oso_data in ObjData.CurrObjSec.secoptions) then
-                   ObjData.writebytes(Tai_align(hp).calculatefillbuf(fillbuffer)^,Tai_align(hp).fillsize)
+                   ObjData.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer)^,Tai_align_abstract(hp).fillsize)
                  else
-                   ObjData.alloc(Tai_align(hp).fillsize);
+                   ObjData.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_section :
                begin
