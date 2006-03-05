@@ -709,7 +709,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..211] of key_sequence=(
+const key_sequences:array[0..239] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -825,6 +825,22 @@ const key_sequences:array[0..211] of key_sequence=(
        (char:0;scan:kbShiftF10;st:#27'[21;2~'),  {xterm}
        (char:0;scan:kbShiftF11;st:#27'[23;2~'),  {xterm}
        (char:0;scan:kbShiftF12;st:#27'[24;2~'),  {xterm}
+       (char:0;scan:kbShiftF1;st:#27'O5P'),      {xterm}
+       (char:0;scan:kbShiftF2;st:#27'O5Q'),      {xterm}
+       (char:0;scan:kbShiftF3;st:#27'O5R'),      {xterm}
+       (char:0;scan:kbShiftF4;st:#27'O5S'),      {xterm}
+       (char:0;scan:kbCtrlF1;st:#27'[11;5~'),    {none, but expected}
+       (char:0;scan:kbCtrlF2;st:#27'[12;5~'),    {none, but expected}
+       (char:0;scan:kbCtrlF3;st:#27'[13;5~'),    {none, but expected}
+       (char:0;scan:kbCtrlF4;st:#27'[14;5~'),    {none, but expected}
+       (char:0;scan:kbCtrlF5;st:#27'[15;5~'),    {xterm}
+       (char:0;scan:kbCtrlF6;st:#27'[17;5~'),    {xterm}
+       (char:0;scan:kbCtrlF7;st:#27'[18;5~'),    {xterm}
+       (char:0;scan:kbCtrlF8;st:#27'[19;5~'),    {xterm}
+       (char:0;scan:kbCtrlF9;st:#27'[20;5~'),    {xterm}
+       (char:0;scan:kbCtrlF10;st:#27'[21;5~'),   {xterm}
+       (char:0;scan:kbCtrlF11;st:#27'[23;5~'),   {xterm}
+       (char:0;scan:kbCtrlF12;st:#27'[24;5~'),   {xterm}
        (char:0;scan:kbCtrlIns;st:#27'[2;5~'),    {xterm}
        (char:0;scan:kbCtrlDel;st:#27'[3;5~'),    {xterm}
        (char:0;scan:kbAltF1;st:#27#27'[[A'),
@@ -906,21 +922,33 @@ const key_sequences:array[0..211] of key_sequence=(
        (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
        (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
        (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
-       (char:0;scan:kbAltF1;st:#27#27'OP'),
-       (char:0;scan:kbAltF2;st:#27#27'OQ'),
-       (char:0;scan:kbAltF3;st:#27#27'OR'),
-       (char:0;scan:kbAltF4;st:#27#27'OS'),
-       (char:0;scan:kbAltF5;st:#27#27'Ot'),
-       (char:0;scan:kbAltF6;st:#27#27'Ou'),
-       (char:0;scan:kbAltF7;st:#27#27'Ov'),
-       (char:0;scan:kbAltF8;st:#27#27'Ol'),
-       (char:0;scan:kbAltF9;st:#27#27'Ow'),
-       (char:0;scan:kbAltF10;st:#27#27'Ox'),
-       (char:0;scan:kbAltF11;st:#27#27'Oy'),
-       (char:0;scan:kbAltF12;st:#27#27'Oz'),
-       (char:0;scan:kbAltUp;st:#27#27'OA'),
-       (char:0;scan:kbAltDown;st:#27#27'OB'),
-       (char:0;scan:kbAltRight;st:#27#27'OC'),
+       (char:0;scan:kbAltF1;st:#27#27'OP'),      {xterm}
+       (char:0;scan:kbAltF2;st:#27#27'OQ'),      {xterm}
+       (char:0;scan:kbAltF3;st:#27#27'OR'),      {xterm}
+       (char:0;scan:kbAltF4;st:#27#27'OS'),      {xterm}
+       (char:0;scan:kbAltF5;st:#27#27'Ot'),      {xterm}
+       (char:0;scan:kbAltF6;st:#27#27'Ou'),      {xterm}
+       (char:0;scan:kbAltF7;st:#27#27'Ov'),      {xterm}
+       (char:0;scan:kbAltF8;st:#27#27'Ol'),      {xterm}
+       (char:0;scan:kbAltF9;st:#27#27'Ow'),      {xterm}
+       (char:0;scan:kbAltF10;st:#27#27'Ox'),     {xterm}
+       (char:0;scan:kbAltF11;st:#27#27'Oy'),     {xterm}
+       (char:0;scan:kbAltF12;st:#27#27'Oz'),     {xterm}
+       (char:0;scan:kbAltF1;st:#27'O3P'),        {xterm on FreeBSD}
+       (char:0;scan:kbAltF2;st:#27'O3Q'),        {xterm on FreeBSD}
+       (char:0;scan:kbAltF3;st:#27'O3R'),        {xterm on FreeBSD}
+       (char:0;scan:kbAltF4;st:#27'O3S'),        {xterm on FreeBSD}
+       (char:0;scan:kbAltF5;st:#27'[15;3~'),     {xterm on FreeBSD}
+       (char:0;scan:kbAltF6;st:#27'[17;3~'),     {xterm on FreeBSD}
+       (char:0;scan:kbAltF7;st:#27'[18;3~'),     {xterm on FreeBSD}
+       (char:0;scan:kbAltF8;st:#27'[19;3~'),     {xterm on FreeBSD}
+       (char:0;scan:kbAltF9;st:#27'[20;3~'),     {xterm on FreeBSD}
+       (char:0;scan:kbAltF10;st:#27'[21;3~'),    {xterm on FreeBSD}
+       (char:0;scan:kbAltF11;st:#27'[23;3~'),    {xterm on FreeBSD}
+       (char:0;scan:kbAltF12;st:#27'[24;3~'),    {xterm on FreeBSD}
+       (char:0;scan:kbAltUp;st:#27'OA'),
+       (char:0;scan:kbAltDown;st:#27'OB'),
+       (char:0;scan:kbAltRight;st:#27'OC'),
        (char:0;scan:kbAltLeft;st:#27#27'OD'),
   { xterm default values }
   { xterm alternate default values }
