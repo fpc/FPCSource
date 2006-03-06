@@ -36,7 +36,7 @@ interface
       private
         writing_def_stabs  : boolean;
         global_stab_number : word;
-        defnumberlist      : tlist;
+        defnumberlist      : TFPObjectList;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):Pchar;
@@ -1326,7 +1326,7 @@ implementation
         aktfilepos:=current_module.mainfilepos;
 
         global_stab_number:=0;
-        defnumberlist:=tlist.create;
+        defnumberlist:=TFPObjectlist.create(false);
         stabsvarlist:=taasmoutput.create;
         stabstypelist:=taasmoutput.create;
 

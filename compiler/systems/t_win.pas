@@ -61,8 +61,8 @@ interface
 
     texportlibwin32=class(texportlib)
       st : string;
-      EList_indexed:tList;
-      EList_nonindexed:tList;
+      EList_indexed:TFPList;
+      EList_nonindexed:TFPList;
       procedure preparelib(const s:string);override;
       procedure exportprocedure(hp : texported_item);override;
       procedure exportvar(hp : texported_item);override;
@@ -127,7 +127,7 @@ implementation
 
     procedure timportlibwin32.win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
       var
-         hp1 : timportlist;
+         hp1 : timportList;
          hp2 : twin32imported_item;
          hs  : string;
       begin
@@ -209,7 +209,7 @@ implementation
 
     procedure timportlibwin32.importvariable_str(const s:string;const name,module:string);
       var
-         hp1 : timportlist;
+         hp1 : timportList;
          hp2 : twin32imported_item;
          hs  : string;
       begin
@@ -245,7 +245,7 @@ implementation
 
     procedure timportlibwin32.generatenasmlib;
       var
-         hp1 : timportlist;
+         hp1 : timportList;
          hp2 : twin32imported_item;
       begin
          new_section(asmlist[al_imports],sec_code,'',0);
@@ -266,7 +266,7 @@ implementation
 
     procedure timportlibwin32.generatesmartlib;
       var
-         hp1 : timportlist;
+         hp1 : timportList;
          mangledstring : string;
          importname : string;
          suffix : integer;
@@ -417,7 +417,7 @@ implementation
 
     procedure timportlibwin32.generatelib;
       var
-         hp1 : timportlist;
+         hp1 : timportList;
          hp2 : twin32imported_item;
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
          mangledstring : string;
@@ -573,8 +573,8 @@ implementation
       begin
          if asmlist[al_exports]=nil then
            asmlist[al_exports]:=TAAsmoutput.create;
-         EList_indexed:=tList.Create;
-         EList_nonindexed:=tList.Create;
+         EList_indexed:=tFPList.Create;
+         EList_nonindexed:=tFPList.Create;
          objectlibrary.getdatalabel(edatalabel);
       end;
 

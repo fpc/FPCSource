@@ -572,6 +572,8 @@ uses
          l : longint;
       begin
          val(s,l,w);
+         // remove warning
+         l:=l;
          is_number:=(w=0);
       end;
 

@@ -166,7 +166,7 @@ begin
    move(fn[1],arhdr.name,length(fn));
   { don't write a date if also no gid/uid/mode is specified }
   if gid<>'' then
-    move(timestamp[1],arhdr.date,sizeof(timestamp));
+    move(timestamp[1],arhdr.date,length(timestamp));
   str(asize,tmp);
   move(tmp[1],arhdr.size,length(tmp));
   move(gid[1],arhdr.gid,length(gid));

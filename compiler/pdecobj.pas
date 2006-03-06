@@ -30,7 +30,7 @@ interface
       globtype,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tlist;fd : tobjectdef) : tdef;
+    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
 
 implementation
 
@@ -50,7 +50,7 @@ implementation
       current_procinfo = 'error';
 
 
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:tlist;fd : tobjectdef) : tdef;
+    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
          there_is_a_destructor : boolean;

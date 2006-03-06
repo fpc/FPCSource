@@ -109,7 +109,7 @@ interface
           function last_procdef:Tprocdef;
           function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-          function search_procdef_bypara(para:tlist;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function search_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
@@ -833,7 +833,7 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_bypara(para:tlist;retdef:tdef;
+    function Tprocsym.search_procdef_bypara(para:TFPObjectList;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
         pd : pprocdeflist;

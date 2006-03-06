@@ -124,8 +124,8 @@ interface
        { relocation }
        relocations : TLinkedList;
        { Symbols this section references and defines }
-       ObjSymbolRefs     : Tlist;
-       ObjSymbolDefines  : Tlist;
+       ObjSymbolRefs     : TFPObjectList;
+       ObjSymbolDefines  : TFPObjectList;
        { executable linking }
        ExeSection  : TExeSection;
        constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
@@ -153,12 +153,12 @@ interface
        { ObjSections will be stored in order in SectsIndex, this is at least
          required for stabs debuginfo. The SectsDict is only used for lookups (PFV) }
        FObjSectionDict  : TDictionary;
-       FObjSectionList  : TList;
+       FObjSectionList  : TFPObjectList;
        FCObjSection     : TObjSectionClass;
        { Symbols that will be defined in this object file }
-       FObjSymbolList    : TList;
+       FObjSymbolList    : TFPObjectList;
        FObjSymbolDict    : TDictionary;
-       FCachedAsmSymbolList : tlist;
+       FCachedAsmSymbolList : TFPObjectList;
        { Special info sections that are written to during object generation }
        FStabsObjSec,
        FStabStrObjSec : TObjSection;
@@ -206,8 +206,8 @@ interface
        procedure fixuprelocs;
        property Name:string[80] read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
-       property ObjSymbolList:TList read FObjSymbolList;
-       property ObjSectionList:TList read FObjSectionList;
+       property ObjSymbolList:TFPObjectList read FObjSymbolList;
+       property ObjSectionList:TFPObjectList read FObjSectionList;
      end;
      TObjDataClass = class of TObjData;
 
@@ -256,7 +256,7 @@ interface
       TExeSection = class(tnamedindexitem)
       private
         FSecSymIdx : longint;
-        FObjSectionList : TList;
+        FObjSectionList : TFPObjectList;
       public
         Size,
         DataPos,
@@ -266,7 +266,7 @@ interface
         constructor create(const n:string);virtual;
         destructor  destroy;override;
         procedure AddObjSection(objsec:TObjSection);
-        property ObjSectionList:TList read FObjSectionList;
+        property ObjSectionList:TFPObjectList read FObjSectionList;
         property SecSymIdx:longint read FSecSymIdx write FSecSymIdx;
       end;
       TExeSectionClass=class of TExeSection;
@@ -277,18 +277,18 @@ interface
         FCObjData         : TObjDataClass;
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
-        FExeSectionList   : TList;
+        FExeSectionList   : TFPObjectList;
         FExeSectionDict   : TDictionary;
         Fzeronr           : longint;
         { Symbols }
         FExeSymbolDict    : TDictionary;
         FExeSymbolList,
-        FUnresolvedExeSymbols : TList;
+        FUnresolvedExeSymbols : TFPObjectList;
         FExternalObjSymbols,
-        FCommonObjSymbols   : TList;
+        FCommonObjSymbols   : TFPObjectList;
         FEntryName          : string;
         { Objects }
-        FObjDataList  : TList;
+        FObjDataList  : TFPObjectList;
         { Position calculation }
         FImageBase    : aint;
         FCurrDataPos,
@@ -333,13 +333,13 @@ interface
         procedure ResolveExternals(const libname:string);virtual;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
-        property ExeSections:TList read FExeSectionList;
-        property ObjDataList:TList read FObjDataList;
+        property ExeSections:TFPObjectList read FExeSectionList;
+        property ObjDataList:TFPObjectList read FObjDataList;
         property ExeSymbolDict:TDictionary read FExeSymbolDict;
-        property ExeSymbolList:TList read FExeSymbolList;
-        property UnresolvedExeSymbols:TList read FUnresolvedExeSymbols;
-        property ExternalObjSymbols:TList read FExternalObjSymbols;
-        property CommonObjSymbols:TList read FCommonObjSymbols;
+        property ExeSymbolList:TFPObjectList read FExeSymbolList;
+        property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
+        property ExternalObjSymbols:TFPObjectList read FExternalObjSymbols;
+        property CommonObjSymbols:TFPObjectList read FCommonObjSymbols;
         property EntryName:string read FEntryName write FEntryName;
         property ImageBase:aint read FImageBase write FImageBase;
         property CurrExeSec:TExeSection read FCurrExeSec;
@@ -357,6 +357,8 @@ implementation
     uses
       cutils,globals,verbose,fmodule,ogmap;
 
+    const
+      sectiondatagrowsize = 1024;
 
 
 {*****************************************************************************
@@ -468,8 +470,8 @@ implementation
         secsymidx:=0;
         { relocation }
         relocations:=TLinkedList.Create;
-        ObjSymbolRefs:=TList.Create;
-        ObjSymbolDefines:=TList.Create;
+        ObjSymbolRefs:=TFPObjectList.Create(false);
+        ObjSymbolDefines:=TFPObjectList.Create(false);
       end;
 
 
@@ -488,7 +490,7 @@ implementation
         FSecOptions:=FSecOptions+AOptions;
         if (oso_data in secoptions) and
            not assigned(FData) then
-          FData:=TDynamicArray.Create(8192);
+          FData:=TDynamicArray.Create(sectiondatagrowsize);
       end;
 
 
@@ -603,14 +605,14 @@ implementation
           is only used for lookups }
         FObjSectionDict:=tdictionary.create;
         FObjSectionDict.noclear:=true;
-        FObjSectionList:=TList.Create;
+        FObjSectionList:=TFPObjectList.Create(true);
         FStabsObjSec:=nil;
         FStabStrObjSec:=nil;
         { symbols }
         FObjSymbolDict:=tdictionary.create;
         FObjSymbolDict.noclear:=true;
-        FObjSymbolList:=TList.create;
-        FCachedAsmSymbolList:=TList.create;
+        FObjSymbolList:=TFPObjectList.Create(true);
+        FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
       end;
@@ -1058,7 +1060,7 @@ implementation
         MemPos:=0;
         DataPos:=0;
         FSecSymIdx:=0;
-        FObjSectionList:=TList.Create;
+        FObjSectionList:=TFPObjectList.Create(false);
       end;
 
 
@@ -1096,18 +1098,20 @@ implementation
         { init writer }
         FWriter:=TObjectwriter.create;
         { object files }
-        FObjDataList:=tlist.create;
+        FObjDataList:=TFPObjectList.Create(true);
         { symbols }
         FExeSymbolDict:=tdictionary.create;
+        FExeSymbolDict.noclear:=true;
         FExeSymbolDict.usehash;
-        FExeSymbolList:=TList.Create;
-        FUnresolvedExeSymbols:=TList.create;
-        FExternalObjSymbols:=TList.create;
-        FCommonObjSymbols:=TList.create;
+        FExeSymbolList:=TFPObjectList.Create(true);
+        FUnresolvedExeSymbols:=TFPObjectList.Create(false);
+        FExternalObjSymbols:=TFPObjectList.Create(false);
+        FCommonObjSymbols:=TFPObjectList.Create(false);
         FEntryName:='start';
         { sections }
         FExeSectionDict:=TDictionary.create;
-        FExeSectionList:=TList.create;
+        FExeSectionDict.noclear:=true;
+        FExeSectionList:=TFPObjectList.Create(true);
         FImageBase:=0;
         SectionMemAlign:=$1000;
         SectionDataAlign:=$200;

@@ -368,11 +368,11 @@ implementation
     { reads a type declaration to the symbol table }
     procedure type_dec;
 
-        function parse_generic_parameters:tlist;
+        function parse_generic_parameters:TFPObjectList;
         var
           generictype : ttypesym;
         begin
-          result:=tlist.create;
+          result:=TFPObjectList.Create(false);
           repeat
             if token=_ID then
               begin
@@ -396,7 +396,7 @@ implementation
          isgeneric,
          isunique,
          istyperenaming : boolean;
-         generictypelist : tlist;
+         generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
       begin
          old_block_type:=block_type;

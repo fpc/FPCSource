@@ -214,7 +214,7 @@ implementation
          arraytype : ttype;
          def : tdef;
          pt : tnode;
-         sc : tlist;
+         sc : TFPObjectList;
          paranr : word;
          i      : longint;
          hreadparavs,
@@ -252,7 +252,7 @@ implementation
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
-              sc:=tlist.create;
+              sc:=TFPObjectList.create(false);
               inc(testcurobject);
               repeat
                 if try_to_consume(_VAR) then
@@ -586,7 +586,7 @@ implementation
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-      procedure read_default_value(sc : tlist;tt : ttype;is_threadvar : boolean);
+      procedure read_default_value(sc : TFPObjectList;tt : ttype;is_threadvar : boolean);
         var
           vs : tabstractnormalvarsym;
           tcsym : ttypedconstsym;
@@ -619,7 +619,7 @@ implementation
         end;
 
       var
-         sc : tlist;
+         sc : TFPObjectList;
          i  : longint;
          old_block_type : tblock_type;
          symdone : boolean;
@@ -648,7 +648,7 @@ implementation
          if not (token in [_ID,_CASE,_END]) then
            consume(_ID);
          { read vars }
-         sc:=tlist.create;
+         sc:=TFPObjectList.create(false);
          while (token=_ID) do
            begin
              sorg:=orgpattern;
@@ -1012,7 +1012,7 @@ implementation
 
     procedure read_record_fields(options:Tvar_dec_options);
       var
-         sc : tlist;
+         sc : TFPObjectList;
          i  : longint;
          old_block_type : tblock_type;
          old_current_object_option : tsymoptions;
@@ -1057,7 +1057,7 @@ implementation
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
          { read vars }
-         sc:=tlist.create;
+         sc:=TFPObjectList.create(false);
          while (token=_ID) and
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do

@@ -51,7 +51,7 @@ interface
        tcallnode = class(tbinarynode)
        private
           { info for inlining }
-          inlinelocals: TList;
+          inlinelocals: TFPObjectList;
           { number of parameters passed from the source, this does not include the hidden parameters }
           paralength   : smallint;
           function  gen_self_tree_methodpointer:tnode;
@@ -829,13 +829,13 @@ type
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
            Message1(cg_f_unknown_compilerproc,name);
-         self.create(params,tprocsym(srsym),srsym.owner,nil,[]);
+         create(params,tprocsym(srsym),srsym.owner,nil,[]);
        end;
 
 
     constructor tcallnode.createinternres(const name: string; params: tnode; const res: ttype);
       begin
-        self.createintern(name,params);
+        createintern(name,params);
         restype := res;
         include(callnodeflags,cnf_restypeset);
         { both the normal and specified resulttype either have to be returned via a }
@@ -848,7 +848,7 @@ type
 
     constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
       begin
-        self.createintern(name,params);
+        createintern(name,params);
         _funcretnode:=returnnode;
         if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200204247);
@@ -891,19 +891,13 @@ type
 
 
     destructor tcallnode.destroy;
-      var
-        i : longint;
       begin
          methodpointer.free;
          methodpointerinit.free;
          methodpointerdone.free;
          _funcretnode.free;
          if assigned(varargsparas) then
-           begin
-             for i:=0 to varargsparas.count-1 do
-               tparavarsym(varargsparas[i]).free;
-             varargsparas.free;
-           end;
+           varargsparas.free;
          inherited destroy;
       end;
 
@@ -1033,7 +1027,7 @@ type
 
         if assigned(varargsparas) then
          begin
-           n.varargsparas:=tvarargsparalist.create;
+           n.varargsparas:=tvarargsparalist.create(true);
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
@@ -2277,7 +2271,6 @@ type
         createstatement,deletestatement: tstatementnode;
         createblock,deleteblock: tblocknode;
         body : tnode;
-        i: longint;
       begin
         if not(assigned(tprocdef(procdefinition).inlininginfo) and
                assigned(tprocdef(procdefinition).inlininginfo^.code)) then
@@ -2293,7 +2286,7 @@ type
         if assigned(methodpointerinit) then
           addstatement(createstatement,methodpointerinit.getcopy);
 
-        inlinelocals:=tlist.create;
+        inlinelocals:=TFPObjectList.create(true);
         { get copy of the procedure body }
         body:=tprocdef(procdefinition).inlininginfo^.code.getcopy;
         { replace complex parameters with temps }
@@ -2306,9 +2299,6 @@ type
           addstatement(deletestatement,methodpointerdone.getcopy);
 
         { free the temps for the locals }
-        for i := 0 to inlinelocals.count-1 do
-          if assigned(inlinelocals[i]) then
-            tnode(inlinelocals[i]).free;
         inlinelocals.free;
         inlinelocals:=nil;
         addstatement(createstatement,body);

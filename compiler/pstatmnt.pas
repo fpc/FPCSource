@@ -445,7 +445,7 @@ implementation
          refnode  : tnode;
          htype : ttype;
          hasimplicitderef : boolean;
-         withsymtablelist : tlist;
+         withsymtablelist : TFPObjectList;
 
          procedure pushobjchild(obj:tobjectdef);
          begin
@@ -539,7 +539,7 @@ implementation
                 resulttypepass(refnode);
               end;
 
-            withsymtablelist:=tlist.create;
+            withsymtablelist:=TFPObjectList.create(true);
             case p.resulttype.def.deftype of
               objectdef :
                 begin
@@ -573,11 +573,7 @@ implementation
 
             { remove symtables in reverse order from the stack }
             for i:=withsymtablelist.count-1 downto 0 do
-              begin
-                st:=tsymtable(withsymtablelist[i]);
-                symtablestack.pop(st);
-                st.free;
-              end;
+              symtablestack.pop(tsymtable(withsymtablelist[i]));
             withsymtablelist.free;
 
 //            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);

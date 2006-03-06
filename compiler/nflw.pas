@@ -149,7 +149,7 @@ interface
           { when copying trees, this points to the newly created copy of a label }
           copiedto : tlabelnode;
           { contains all goto nodesrefering to this label }
-          referinggotonodes : tlist;
+          referinggotonodes : TFPObjectList;
           constructor create(l:tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;

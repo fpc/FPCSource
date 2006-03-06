@@ -74,7 +74,7 @@ interface
 
        tcasenode = class(tunarynode)
           labels    : pcaselabel;
-          blocks    : tlist;
+          blocks    : TFPList;
           elseblock : tnode;
           constructor create(l:tnode);virtual;
           destructor destroy;override;
@@ -488,7 +488,7 @@ implementation
       begin
          inherited create(casen,l);
          labels:=nil;
-         blocks:=tlist.create;
+         blocks:=TFPList.create;
          elseblock:=nil;
       end;
 
@@ -517,7 +517,7 @@ implementation
         inherited ppuload(t,ppufile);
         elseblock:=ppuloadnode(ppufile);
         cnt:=ppufile.getlongint();
-        blocks:=tlist.create;
+        blocks:=TFPList.create;
         for i:=0 to cnt-1 do
           addblock(i,ppuloadnode(ppufile));
         labels:=ppuloadcaselabel(ppufile);
@@ -656,7 +656,7 @@ implementation
            n.labels:=nil;
          if assigned(blocks) then
            begin
-             n.blocks:=tlist.create;
+             n.blocks:=TFPList.create;
              for i:=0 to blocks.count-1 do
                begin
                  if not assigned(blocks[i]) then
@@ -687,7 +687,7 @@ implementation
       end;
 
 
-    function caseblocksequal(b1,b2:tlist): boolean;
+    function caseblocksequal(b1,b2:TFPList): boolean;
       var
         i : longint;
       begin

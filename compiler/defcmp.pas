@@ -109,7 +109,7 @@ interface
       search for a routine with default parameters, before
       searching for the same definition with no parameters)
     }
-    function compare_paras(para1,para2 : tlist; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+    function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
 
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
@@ -1346,7 +1346,7 @@ implementation
       end;
 
 
-    function compare_paras(para1,para2 : tlist; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
+    function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
       var
         currpara1,
         currpara2 : tparavarsym;

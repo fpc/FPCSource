@@ -381,7 +381,7 @@ implementation
       type
         tppv = (pv_none,pv_proc,pv_func);
       var
-        sc      : tlist;
+        sc      : TFPObjectList;
         tt      : ttype;
         arrayelementtype : ttype;
         vs      : tparavarsym;
@@ -409,7 +409,7 @@ implementation
         { parsing a proc or procvar ? }
         currparast:=tparasymtable(pd.parast);
         { reset }
-        sc:=tlist.create;
+        sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
         { the variables are always public }

@@ -464,7 +464,7 @@ procedure fixup_jmps(list: taasmoutput);
 var
   p: tai;
   newjmp: taicpu;
-  labelpositions: tlist;
+  labelpositions: TFPObjectList;
   instrpos: ptrint;
   l: tasmlabel;
   inserted_something: boolean;

@@ -193,7 +193,7 @@ interface
 
         { collect all defs in one list so we can reset them easily }
         nextdefnumber    : longint;
-        defnumberlist    : tlist;
+        defnumberlist    : TFPObjectList;
 
         isdwarf64,
         writing_def_dwarf : boolean;
@@ -1886,7 +1886,7 @@ implementation
         writing_def_dwarf:=false;
 
         nextdefnumber:=0;
-        defnumberlist:=tlist.create;
+        defnumberlist:=TFPObjectList.create(false);
 
         vardatadef:=search_system_type('TVARDATA').restype.def;
 

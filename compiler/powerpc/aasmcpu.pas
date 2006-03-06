@@ -435,7 +435,7 @@ uses cutils, cclasses;
       var
         p: tai;
         newjmp: taicpu;
-        labelpositions: tlist;
+        labelpositions: TFPList;
         instrpos: ptrint;
         l: tasmlabel;
         inserted_something: boolean;
@@ -443,7 +443,7 @@ uses cutils, cclasses;
         // if certainly not enough instructions to cause an overflow, don't bother
         if (list.count <= (high(smallint) div 4)) then
           exit;
-        labelpositions := tlist.create;
+        labelpositions := TFPList.create;
         p := tai(list.first);
         instrpos := 1;
         // record label positions

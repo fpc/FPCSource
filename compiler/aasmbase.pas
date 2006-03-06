@@ -111,7 +111,7 @@ interface
          name,
          realname     : string[80];
          symbolsearch : tdictionary; { contains ALL assembler symbols }
-         AltSymbollist : tlist;
+         AltSymbollist : TFPObjectList;
          constructor create(const n:string);
          destructor  destroy;override;
          { asmsymbol }
@@ -284,7 +284,7 @@ implementation
         { symbols }
         symbolsearch:=tdictionary.create;
         symbolsearch.usehash;
-        AltSymbollist:=TList.Create;
+        AltSymbollist:=TFPObjectList.Create(false);
         { labels }
         nextaltnr:=1;
         for alt:=low(TAsmLabelType) to high(TAsmLabelType) do

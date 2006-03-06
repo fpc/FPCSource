@@ -26,7 +26,8 @@ unit cclasses;
 interface
 
     uses
-      cutils,cstreams;
+      SysUtils,
+      CUtils,CStreams;
 
 {********************************************
                 TMemDebug
@@ -47,7 +48,7 @@ interface
        end;
 
 {*******************************************************
-   TList (Copied from FCL, exception handling stripped)
+     TFPObjectList (From rtl/objpas/classes/classesh.inc)
 ********************************************************}
 
 const
@@ -56,51 +57,98 @@ const
    SListCapacityError = 'The maximum list capacity is reached (%d)';
    SListCountError = 'List count too large (%d)';
 type
-{ TList class }
+   EListError = class(Exception);
 
-   PPointerList = ^TPointerList;
-   TPointerList = array[0..MaxListSize - 1] of Pointer;
-   TListSortCompare = function (Item1, Item2: Pointer): Integer;
+type
+  PPointerList = ^TPointerList;
+  TPointerList = array[0..MaxListSize - 1] of Pointer;
+  TListSortCompare = function (Item1, Item2: Pointer): Integer;
+  TListCallback = procedure(data,arg:pointer) of object;
+  TListStaticCallback = procedure(data,arg:pointer);
 
-   TListCallback = procedure(data,arg:pointer) of object;
-   TListStaticCallback = procedure(data,arg:pointer);
+  TFPList = class(TObject)
+  private
+    FList: PPointerList;
+    FCount: Integer;
+    FCapacity: Integer;
+  protected
+    function Get(Index: Integer): Pointer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    procedure Put(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    Procedure RaiseIndexError(Index : Integer);
+  public
+    destructor Destroy; override;
+    function Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    procedure Clear;
+    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    class procedure Error(const Msg: string; Data: PtrInt);
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function Extract(item: Pointer): Pointer;
+    function First: Pointer;
+    function IndexOf(Item: Pointer): Integer;
+    procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function Last: Pointer;
+    procedure Move(CurIndex, NewIndex: Integer);
+    procedure Assign(Obj:TFPList);
+    function Remove(Item: Pointer): Integer;
+    procedure Pack;
+    procedure Sort(Compare: TListSortCompare);
+    procedure ForEachCall(proc2call:TListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Items[Index: Integer]: Pointer read Get write Put; default;
+    property List: PPointerList read FList;
+  end;
 
-   TList = class(TObject)
-   private
-     FList: PPointerList;
-     FCount: Integer;
-     FCapacity: Integer;
-   protected
-     function Get(Index: Integer): Pointer;
-     procedure Grow; virtual;
-     procedure Put(Index: Integer; Item: Pointer);
-     procedure SetCapacity(NewCapacity: Integer);
-     procedure SetCount(NewCount: Integer);
-   public
-     destructor Destroy; override;
-     function Add(Item: Pointer): Integer;
-     procedure Clear; dynamic;
-     procedure Delete(Index: Integer);
-     class procedure Error(const Msg: string; Data: Integer); virtual;
-     procedure Exchange(Index1, Index2: Integer);
-     function Expand: TList;
-     function Extract(item: Pointer): Pointer;
-     function First: Pointer;
-     procedure Assign(Obj:TList);
-     function IndexOf(Item: Pointer): Integer;
-     procedure Insert(Index: Integer; Item: Pointer);
-     function Last: Pointer;
-     procedure Move(CurIndex, NewIndex: Integer);
-     function Remove(Item: Pointer): Integer;
-     procedure Pack;
-     procedure Sort(Compare: TListSortCompare);
-     procedure foreach(proc2call:TListCallback;arg:pointer);
-     procedure foreach_static(proc2call:TListStaticCallback;arg:pointer);
-     property Capacity: Integer read FCapacity write SetCapacity;
-     property Count: Integer read FCount write SetCount;
-     property Items[Index: Integer]: Pointer read Get write Put; default;
-     property List: PPointerList read FList;
-   end;
+{*******************************************************
+        TFPObjectList (From fcl/inc/contnrs.pp)
+********************************************************}
+
+  TObjectListCallback = procedure(data:TObject;arg:pointer) of object;
+  TObjectListStaticCallback = procedure(data:TObject;arg:pointer);
+
+  TFPObjectList = class(TObject)
+  private
+    FFreeObjects : Boolean;
+    FList: TFPList;
+    function GetCount: integer;
+    procedure SetCount(const AValue: integer);
+  protected
+    function GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure SetCapacity(NewCapacity: Integer);
+    function GetCapacity: integer;
+  public
+    constructor Create;
+    constructor Create(FreeObjects : Boolean);
+    destructor Destroy; override;
+    procedure Clear;
+    function Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure Exchange(Index1, Index2: Integer);
+    function Expand: TFPObjectList;
+    function Extract(Item: TObject): TObject;
+    function Remove(AObject: TObject): Integer;
+    function IndexOf(AObject: TObject): Integer;
+    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+    function First: TObject;
+    function Last: TObject;
+    procedure Move(CurIndex, NewIndex: Integer);
+    procedure Assign(Obj:TFPObjectList);
+    procedure Pack;
+    procedure Sort(Compare: TListSortCompare);
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Count: Integer read GetCount write SetCount;
+    property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
+    property Items[Index: Integer]: TObject read GetItem write SetItem; default;
+    property List: TFPList read FList;
+  end;
 
 {********************************************
                 TLinkedList
@@ -404,371 +452,500 @@ implementation
 
 
 {*****************************************************************************
-                                 TList
+               TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
 Const
-   // Ratio of Pointer and Word Size.
-   WordRatio = SizeOf(Pointer) Div SizeOf(Word);
+  // Ratio of Pointer and Word Size.
+  WordRatio = SizeOf(Pointer) Div SizeOf(Word);
 
-function TList.Get(Index: Integer): Pointer;
-
+procedure TFPList.RaiseIndexError(Index : Integer);
 begin
-   If (Index<0) or (Index>=FCount) then
-     Error(SListIndexError,Index);
-   Result:=FList^[Index];
+  Error(SListIndexError, Index);
 end;
 
-
-
-procedure TList.Grow;
-
+function TFPList.Get(Index: Integer): Pointer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
-   // Only for compatibility with Delphi. Not needed.
+  If (Index < 0) or (Index >= FCount) then
+    RaiseIndexError(Index);
+  Result:=FList^[Index];
 end;
 
-
-
-procedure TList.Put(Index: Integer; Item: Pointer);
-
+procedure TFPList.Put(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
-   if (Index<0) or (Index>=FCount) then
-     Error(SListIndexError,Index);
-   Flist^[Index]:=Item;
+  if (Index < 0) or (Index >= FCount) then
+    RaiseIndexError(Index);
+  Flist^[Index] := Item;
 end;
 
-
-function TList.Extract(item: Pointer): Pointer;
+function TFPList.Extract(item: Pointer): Pointer;
 var
-   i : Integer;
+  i : Integer;
 begin
-   result:=nil;
-   i:=IndexOf(item);
-   if i>=0 then
-    begin
-      Result:=item;
-      FList^[i]:=nil;
-      Delete(i);
-    end;
-end;
-
-
-procedure TList.SetCapacity(NewCapacity: Integer);
-begin
-   If (NewCapacity<0) or (NewCapacity>MaxListSize) then
-      Error (SListCapacityError,NewCapacity);
-   if NewCapacity=FCapacity then
-     exit;
-   ReallocMem(FList,SizeOf(Pointer)*NewCapacity);
-   if NewCapacity > FCapacity then
-     FillChar (FList^ [FCapacity],
-                              (NewCapacity - FCapacity) * SizeOf (pointer), 0);
-   FCapacity:=NewCapacity;
-end;
-
-
-
-procedure TList.SetCount(NewCount: Integer);
-
-begin
-   If (NewCount<0) or (NewCount>MaxListSize)then
-     Error(SListCountError,NewCount);
-   If NewCount<FCount then
-     FCount:=NewCount
-   else If NewCount>FCount then
-     begin
-     If NewCount>FCapacity then
-       SetCapacity (NewCount);
-     If FCount<NewCount then
-       FillWord (Flist^[FCount],(NewCount-FCount)* WordRatio ,0);
-     FCount:=Newcount;
-     end;
-end;
-
-
-
-destructor TList.Destroy;
-
-begin
-   Self.Clear;
-   inherited Destroy;
-end;
-
-
-Function TList.Add(Item: Pointer): Integer;
-
-begin
-   Self.Insert (Count,Item);
-   Result:=Count-1;
-end;
-
-
-
-Procedure TList.Clear;
-
-begin
-   If Assigned(FList) then
-     begin
-     FreeMem (Flist,FCapacity*SizeOf(Pointer));
-     FList:=Nil;
-     FCapacity:=0;
-     FCount:=0;
-     end;
-end;
-
-
-Procedure TList.Delete(Index: Integer);
-begin
-   If (Index<0) or (Index>=FCount) then
-     Error (SListIndexError,Index);
-   FCount:=FCount-1;
-   System.Move (FList^[Index+1],FList^[Index],(FCount-Index)*SizeOf(Pointer));
-   // Shrink the list if appropiate
-   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
+  result := nil;
+  i := IndexOf(item);
+  if i >= 0 then
    begin
-     FCapacity := FCapacity shr 1;
-     ReallocMem(FList, SizeOf(Pointer) * FCapacity);
+     Result := item;
+     FList^[i] := nil;
+     Delete(i);
    end;
 end;
 
+procedure TFPList.SetCapacity(NewCapacity: Integer);
+begin
+  If (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+     Error (SListCapacityError, NewCapacity);
+  if NewCapacity = FCapacity then
+    exit;
+  ReallocMem(FList, SizeOf(Pointer)*NewCapacity);
+  FCapacity := NewCapacity;
+end;
 
-class procedure TList.Error(const Msg: string; Data: Integer);
-{$ifdef EXTDEBUG}
+procedure TFPList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxListSize)then
+    Error(SListCountError, NewCount);
+  If NewCount > FCount then
+    begin
+    If NewCount > FCapacity then
+      SetCapacity(NewCount);
+    If FCount < NewCount then
+      FillWord(Flist^[FCount], (NewCount-FCount) *  WordRatio, 0);
+    end;
+  FCount := Newcount;
+end;
+
+destructor TFPList.Destroy;
+begin
+  Self.Clear;
+  inherited Destroy;
+end;
+
+function TFPList.Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+begin
+  if FCount = FCapacity then
+    Self.Expand;
+  FList^[FCount] := Item;
+  Result := FCount;
+  FCount := FCount + 1;
+end;
+
+procedure TFPList.Clear;
+begin
+  if Assigned(FList) then
+  begin
+    SetCount(0);
+    SetCapacity(0);
+    FList := nil;
+  end;
+end;
+
+procedure TFPList.Delete(Index: Integer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+begin
+  If (Index<0) or (Index>=FCount) then
+    Error (SListIndexError, Index);
+  FCount := FCount-1;
+  System.Move (FList^[Index+1], FList^[Index], (FCount - Index) * SizeOf(Pointer));
+  // Shrink the list if appropriate
+  if (FCapacity > 256) and (FCount < FCapacity shr 2) then
+  begin
+    FCapacity := FCapacity shr 1;
+    ReallocMem(FList, SizeOf(Pointer) * FCapacity);
+  end;
+end;
+
+class procedure TFPList.Error(const Msg: string; Data: PtrInt);
+begin
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+end;
+
+procedure TFPList.Exchange(Index1, Index2: Integer);
 var
-  s : string;
-{$endif EXTDEBUG}
+  Temp : Pointer;
 begin
-{$ifdef EXTDEBUG}
-  s:=Msg;
-  Replace(s,'%d',ToStr(Data));
-  writeln(s);
-{$endif EXTDEBUG}
-  internalerrorproc(200411151);
+  If ((Index1 >= FCount) or (Index1 < 0)) then
+    Error(SListIndexError, Index1);
+  If ((Index2 >= FCount) or (Index2 < 0)) then
+    Error(SListIndexError, Index2);
+  Temp := FList^[Index1];
+  FList^[Index1] := FList^[Index2];
+  FList^[Index2] := Temp;
 end;
 
-procedure TList.Exchange(Index1, Index2: Integer);
-
-var Temp : Pointer;
-
+function TFPList.Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+var
+  IncSize : Longint;
 begin
-   If ((Index1>=FCount) or (Index1<0)) then
-     Error(SListIndexError,Index1);
-   If ((Index2>=FCount) or (Index2<0)) then
-     Error(SListIndexError,Index2);
-   Temp:=FList^[Index1];
-   FList^[Index1]:=FList^[Index2];
-   FList^[Index2]:=Temp;
+  if FCount < FCapacity then exit;
+  IncSize := 4;
+  if FCapacity > 3 then IncSize := IncSize + 4;
+  if FCapacity > 8 then IncSize := IncSize+8;
+  if FCapacity > 127 then Inc(IncSize, FCapacity shr 2);
+  SetCapacity(FCapacity + IncSize);
+  Result := Self;
 end;
 
-
-
-function TList.Expand: TList;
-
-Var IncSize : Longint;
-
+function TFPList.First: Pointer;
 begin
-   if FCount<FCapacity then exit;
-   IncSize:=4;
-   if FCapacity>3 then IncSize:=IncSize+4;
-   if FCapacity>8 then IncSize:=IncSize+8;
-   if FCapacity>127 then Inc(IncSize, FCapacity shr 2);
-   SetCapacity(FCapacity+IncSize);
-   Result:=Self;
+  If FCount = 0 then
+    Result := Nil
+  else
+    Result := Items[0];
 end;
 
-
-function TList.First: Pointer;
-
+function TFPList.IndexOf(Item: Pointer): Integer;
 begin
-   If FCount=0 then
-     Result:=Nil
-   else
-     Result:=Items[0];
+  Result := 0;
+  while(Result < FCount) and (Flist^[Result] <> Item) do Result := Result + 1;
+  If Result = FCount  then Result := -1;
 end;
 
-
-
-function TList.IndexOf(Item: Pointer): Integer;
-
+procedure TFPList.Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 begin
-   Result:=0;
-   While (Result<FCount) and (Flist^[Result]<>Item) do Result:=Result+1;
-   If Result=FCount  then Result:=-1;
+  if (Index < 0) or (Index > FCount )then
+    Error(SlistIndexError, Index);
+  iF FCount = FCapacity then Self.Expand;
+  if Index<FCount then
+    System.Move(Flist^[Index], Flist^[Index+1], (FCount - Index) * SizeOf(Pointer));
+  FList^[Index] := Item;
+  FCount := FCount + 1;
 end;
 
-
-
-procedure TList.Insert(Index: Integer; Item: Pointer);
-
+function TFPList.Last: Pointer;
 begin
-   If (Index<0) or (Index>FCount )then
-     Error(SlistIndexError,Index);
-   IF FCount=FCapacity Then Self.Expand;
-   If Index<FCount then
-     System.Move(Flist^[Index],Flist^[Index+1],(FCount-Index)*SizeOf(Pointer));
-   FList^[Index]:=Item;
-   FCount:=FCount+1;
+{ Wouldn't it be better to return nil if the count is zero ?}
+  If FCount = 0 then
+    Result := nil
+  else
+    Result := Items[FCount - 1];
 end;
 
-
-
-function TList.Last: Pointer;
-
+procedure TFPList.Move(CurIndex, NewIndex: Integer);
+var
+  Temp : Pointer;
 begin
-   // Wouldn't it be better to return nil if the count is zero ?
-   If FCount=0 then
-     Result:=Nil
-   else
-     Result:=Items[FCount-1];
+  if ((CurIndex < 0) or (CurIndex > Count - 1)) then
+    Error(SListIndexError, CurIndex);
+  if (NewINdex < 0) then
+    Error(SlistIndexError, NewIndex);
+  Temp := FList^[CurIndex];
+  FList^[CurIndex] := nil;
+  Self.Delete(CurIndex);
+  Self.Insert(NewIndex, nil);
+  FList^[NewIndex] := Temp;
 end;
 
-
-procedure TList.Move(CurIndex, NewIndex: Integer);
-
-Var Temp : Pointer;
-
+function TFPList.Remove(Item: Pointer): Integer;
 begin
-   If ((CurIndex<0) or (CurIndex>Count-1)) then
-     Error(SListIndexError,CurIndex);
-   If (NewINdex<0) then
-     Error(SlistIndexError,NewIndex);
-   Temp:=FList^[CurIndex];
-   FList^[CurIndex]:=Nil;
-   Self.Delete(CurIndex);
-   // ?? If NewIndex>CurIndex then NewIndex:=NewIndex-1;
-   // Newindex changes when deleting ??
-   Self.Insert (NewIndex,Nil);
-   FList^[NewIndex]:=Temp;
+  Result := IndexOf(Item);
+  If Result <> -1 then
+    Self.Delete(Result);
 end;
 
-
-function TList.Remove(Item: Pointer): Integer;
-
+procedure TFPList.Pack;
+Var
+  {Last,I,J,}
+  Runner : Longint;
 begin
-   Result:=IndexOf(Item);
-   If Result<>-1 then
-     Self.Delete (Result);
-end;
-
-
-
-Procedure TList.Pack;
-
-Var  {Last,I,J,}Runner : Longint;
-
-begin
-   // Not the fastest; but surely correct
-   For Runner:=Fcount-1 downto 0 do
-     if Items[Runner]=Nil then Self.Delete(Runner);
+  // Not the fastest; but surely correct
+  for Runner := Fcount - 1 downto 0 do
+    if Items[Runner] = Nil then
+      Self.Delete(Runner);
 { The following may be faster in case of large and defragmented lists
-   If count=0 then exit;
-   Runner:=0;I:=0;
-   TheLast:=Count;
-   while runner<count do
-     begin
-     // Find first Nil
-     While (FList^[Runner]<>Nil) and (Runner<Count) do Runner:=Runner+1;
-     if Runner<Count do
-       begin
-       // Start searching for non-nil from last known nil+1
-       if i<Runner then I:=Runner+1;
-       While (Flist[I]^=Nil) and (I<Count) do I:=I+1;
-       // Start looking for last non-nil of block.
-       J:=I+1;
-       While (Flist^[J]<>Nil) and (J<Count) do J:=J+1;
-       // Move block and zero out
-       Move (Flist^[I],Flist^[Runner],J*SizeOf(Pointer));
-       FillWord (Flist^[I],(J-I)*WordRatio,0);
-       // Update Runner and Last to point behind last block
-       TheLast:=Runner+(J-I);
-       If J=Count then
-          begin
-          // Shortcut, when J=Count we checked all pointers
-          Runner:=Count
-       else
-          begin
-          Runner:=TheLast;
-          I:=j;
-       end;
-     end;
-   Count:=TheLast;
+  If count=0 then exit;
+  Runner:=0;I:=0;
+  TheLast:=Count;
+  while runner<count do
+    begin
+    // Find first Nil
+    While (FList^[Runner]<>Nil) and (Runner<Count) do Runner:=Runner+1;
+    if Runner<Count do
+      begin
+      // Start searching for non-nil from last known nil+1
+      if i<Runner then I:=Runner+1;
+      While (Flist[I]^=Nil) and (I<Count) do I:=I+1;
+      // Start looking for last non-nil of block.
+      J:=I+1;
+      While (Flist^[J]<>Nil) and (J<Count) do J:=J+1;
+      // Move block and zero out
+      Move (Flist^[I],Flist^[Runner],J*SizeOf(Pointer));
+      FillWord (Flist^[I],(J-I)*WordRatio,0);
+      // Update Runner and Last to point behind last block
+      TheLast:=Runner+(J-I);
+      If J=Count then
+         begin
+         // Shortcut, when J=Count we checked all pointers
+         Runner:=Count
+      else
+         begin
+         Runner:=TheLast;
+         I:=j;
+      end;
+    end;
+  Count:=TheLast;
 }
 end;
 
 // Needed by Sort method.
 
-Procedure QuickSort (Flist : PPointerList; L,R : Longint;
-                      Compare : TListSortCompare);
-
-Var I,J : Longint;
-     P,Q : Pointer;
-
+Procedure QuickSort(FList: PPointerList; L, R : Longint;
+                     Compare: TListSortCompare);
+var
+  I, J : Longint;
+  P, Q : Pointer;
 begin
-  Repeat
-    I:=L;
-    J:=R;
-    P:=FList^[ (L+R) div 2 ];
-    repeat
-      While Compare(P,FList^[i])>0 Do I:=I+1;
-      While Compare(P,FList^[J])<0 Do J:=J-1;
-      If I<=J then
-        begin
-        Q:=Flist^[I];
-        Flist^[I]:=FList^[J];
-        FList^[J]:=Q;
-        I:=I+1;
-        J:=j-1;
-        end;
-    Until I>J;
-    If L<J then QuickSort (FList,L,J,Compare);
-    L:=I;
-  Until I>=R;
+ repeat
+   I := L;
+   J := R;
+   P := FList^[ (L + R) div 2 ];
+   repeat
+     while Compare(P, FList^[i]) > 0 do
+       I := I + 1;
+     while Compare(P, FList^[J]) < 0 do
+       J := J - 1;
+     If I <= J then
+     begin
+       Q := FList^[I];
+       Flist^[I] := FList^[J];
+       FList^[J] := Q;
+       I := I + 1;
+       J := J - 1;
+     end;
+   until I > J;
+   if L < J then
+     QuickSort(FList, L, J, Compare);
+   L := I;
+ until I >= R;
 end;
 
-procedure TList.Sort(Compare: TListSortCompare);
-
+procedure TFPList.Sort(Compare: TListSortCompare);
 begin
-   If Not Assigned(FList) or (FCount<2) then exit;
-   QuickSort (Flist, 0, FCount-1,Compare);
+  if Not Assigned(FList) or (FCount < 2) then exit;
+  QuickSort(Flist, 0, FCount-1, Compare);
 end;
 
-procedure TList.Assign(Obj:TList);
-// Principle copied from TCollection
-
-var i : Integer;
+procedure TFPList.Assign(Obj: TFPList);
+var
+  i: Integer;
 begin
-   Clear;
-   For I:=0 To Obj.Count-1 Do
-     Add(Obj[i]);
+  Clear;
+  for I := 0 to Obj.Count - 1 do
+    Add(Obj[i]);
 end;
 
 
-    procedure TList.foreach(proc2call:TListCallback;arg:pointer);
-      var
-        i : longint;
-        p : pointer;
-      begin
-        For I:=0 To Count-1 Do
-          begin
-            p:=FList^[i];
-            if assigned(p) then
-              proc2call(p,arg);
-          end;
-      end;
+procedure TFPList.ForEachCall(proc2call:TListCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  For I:=0 To Count-1 Do
+    begin
+      p:=FList^[i];
+      if assigned(p) then
+        proc2call(p,arg);
+    end;
+end;
 
 
-    procedure TList.foreach_static(proc2call:TListStaticCallback;arg:pointer);
-      var
-        i : longint;
-        p : pointer;
-      begin
-        For I:=0 To Count-1 Do
-          begin
-            p:=FList^[i];
-            if assigned(p) then
-              proc2call(p,arg);
-          end;
-      end;
+procedure TFPList.ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  For I:=0 To Count-1 Do
+    begin
+      p:=FList^[i];
+      if assigned(p) then
+        proc2call(p,arg);
+    end;
+end;
+
+
+{*****************************************************************************
+            TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
+*****************************************************************************}
+
+constructor TFPObjectList.Create(FreeObjects : boolean);
+begin
+  Create;
+  FFreeObjects := Freeobjects;
+end;
+
+destructor TFPObjectList.Destroy;
+begin
+  if (FList <> nil) then
+  begin
+    Clear;
+    FList.Destroy;
+  end;
+  inherited Destroy;
+end;
+
+procedure TFPObjectList.Clear;
+var
+  i: integer;
+begin
+  if FFreeObjects then
+    for i := 0 to FList.Count - 1 do
+      TObject(FList[i]).Free;
+  FList.Clear;
+end;
+
+constructor TFPObjectList.Create;
+begin
+  inherited Create;
+  FList := TFPList.Create;
+  FFreeObjects := True;
+end;
+
+function TFPObjectList.GetCount: integer;
+begin
+  Result := FList.Count;
+end;
+
+procedure TFPObjectList.SetCount(const AValue: integer);
+begin
+  if FList.Count <> AValue then
+    FList.Count := AValue;
+end;
+
+function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+begin
+  Result := TObject(FList[Index]);
+end;
+
+procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+begin
+  if OwnsObjects then
+    TObject(FList[Index]).Free;
+  FList[index] := AObject;
+end;
+
+procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
+begin
+  FList.Capacity := NewCapacity;
+end;
+
+function TFPObjectList.GetCapacity: integer;
+begin
+  Result := FList.Capacity;
+end;
+
+function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+begin
+  Result := FList.Add(AObject);
+end;
+
+procedure TFPObjectList.Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
+begin
+  if OwnsObjects then
+    TObject(FList[Index]).Free;
+  FList.Delete(Index);
+end;
+
+procedure TFPObjectList.Exchange(Index1, Index2: Integer);
+begin
+  FList.Exchange(Index1, Index2);
+end;
+
+function TFPObjectList.Expand: TFPObjectList;
+begin
+  FList.Expand;
+  Result := Self;
+end;
+
+function TFPObjectList.Extract(Item: TObject): TObject;
+begin
+  Result := TObject(FList.Extract(Item));
+end;
+
+function TFPObjectList.Remove(AObject: TObject): Integer;
+begin
+  Result := IndexOf(AObject);
+  if (Result <> -1) then
+  begin
+    if OwnsObjects then
+      TObject(FList[Result]).Free;
+    FList.Delete(Result);
+  end;
+end;
+
+function TFPObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FList.IndexOf(Pointer(AObject));
+end;
+
+function TFPObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
+var
+  I : Integer;
+begin
+  I:=AStartAt;
+  Result:=-1;
+  If AExact then
+    while (I<Count) and (Result=-1) do
+      If Items[i].ClassType=AClass then
+        Result:=I
+      else
+        Inc(I)
+  else
+    while (I<Count) and (Result=-1) do
+      If Items[i].InheritsFrom(AClass) then
+        Result:=I
+      else
+        Inc(I);
+end;
+
+procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+begin
+  FList.Insert(Index, Pointer(AObject));
+end;
+
+procedure TFPObjectList.Move(CurIndex, NewIndex: Integer);
+begin
+  FList.Move(CurIndex, NewIndex);
+end;
+
+procedure TFPObjectList.Assign(Obj: TFPObjectList);
+var
+  i: Integer;
+begin
+  Clear;
+  for I := 0 to Obj.Count - 1 do
+    Add(Obj[i]);
+end;
+
+procedure TFPObjectList.Pack;
+begin
+  FList.Pack;
+end;
+
+procedure TFPObjectList.Sort(Compare: TListSortCompare);
+begin
+  FList.Sort(Compare);
+end;
+
+function TFPObjectList.First: TObject;
+begin
+  Result := TObject(FList.First);
+end;
+
+function TFPObjectList.Last: TObject;
+begin
+  Result := TObject(FList.Last);
+end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListCallBack(proc2call),arg);
+end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
 
 {****************************************************************************
                              TLinkedListItem

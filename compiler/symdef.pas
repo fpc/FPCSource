@@ -2893,7 +2893,7 @@ implementation
           we need to reresolve this unit (PFV) }
         if assigned(paras) then
           paras.free;
-        paras:=tparalist.create;
+        paras:=tparalist.create(false);
         paracount:=0;
         minparacount:=0;
         maxparacount:=0;

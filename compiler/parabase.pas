@@ -81,7 +81,7 @@ unit parabase;
          va_uses_float_reg
        );
 
-       tparalist = class(tlist)
+       tparalist = class(TFPObjectList)
           procedure SortParas;
        end;
 

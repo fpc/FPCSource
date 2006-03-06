@@ -85,13 +85,13 @@ interface
          FCoffSyms,
          FCoffStrs : tdynamicarray;
          procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
-         procedure section_write_symbol(p,arg:pointer);
-         procedure section_write_relocs(p,arg:pointer);
+         procedure section_write_symbol(p:TObject;arg:pointer);
+         procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
-         procedure section_set_datapos(p,arg:pointer);
-         procedure section_set_reloc_datapos(p,arg:pointer);
-         procedure section_write_header(p,arg:pointer);
-         procedure section_write_data(p,arg:pointer);
+         procedure section_set_datapos(p:TObject;arg:pointer);
+         procedure section_set_reloc_datapos(p:TObject;arg:pointer);
+         procedure section_write_header(p:TObject;arg:pointer);
+         procedure section_write_data(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
        public
@@ -129,11 +129,11 @@ interface
          nsects    : word;
          nsyms,
          sympos    : aint;
-         procedure ExeSections_pass2_header(p,arg:pointer);
+         procedure ExeSections_pass2_header(p:TObject;arg:pointer);
          procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
-         procedure globalsyms_write_symbol(p,arg:pointer);
-         procedure ExeSections_write_header(p,arg:pointer);
-         procedure ExeSections_write_data(p,arg:pointer);
+         procedure globalsyms_write_symbol(p:TObject;arg:pointer);
+         procedure ExeSections_write_header(p:TObject;arg:pointer);
+         procedure ExeSections_write_data(p:TObject;arg:pointer);
        protected
          procedure CalcPos_Header;override;
          procedure CalcPos_Symbols;override;
@@ -170,8 +170,8 @@ interface
          win32     : boolean;
          procedure read_relocs(s:TCoffObjSection);
          procedure read_symbols(objdata:TObjData);
-         procedure ObjSections_read_data(p,arg:pointer);
-         procedure ObjSections_read_relocs(p,arg:pointer);
+         procedure ObjSections_read_data(p:TObject;arg:pointer);
+         procedure ObjSections_read_relocs(p:TObject;arg:pointer);
        protected
          function  readObjData(objdata:TObjData):boolean;override;
        public
@@ -1029,7 +1029,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjOutput.section_write_symbol(p,arg:pointer);
+    procedure TCoffObjOutput.section_write_symbol(p:TObject;arg:pointer);
       var
         secrec : coffsectionrec;
       begin
@@ -1048,7 +1048,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjOutput.section_write_relocs(p,arg:pointer);
+    procedure TCoffObjOutput.section_write_relocs(p:TObject;arg:pointer);
       var
         rel  : coffreloc;
         r    : TObjRelocation;
@@ -1108,7 +1108,7 @@ const win32stub : array[0..131] of byte=(
            inc(symidx);
            FCoffSyms.write(filename[1],sizeof(filename)-1);
            { Sections }
-           ObjSectionList.foreach(@section_write_symbol,nil);
+           ObjSectionList.ForEachCall(@section_write_symbol,nil);
            { ObjSymbols }
            for i:=0 to ObjSymbolList.Count-1 do
              begin
@@ -1141,20 +1141,20 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjOutput.section_set_datapos(p,arg:pointer);
+    procedure TCoffObjOutput.section_set_datapos(p:TObject;arg:pointer);
       begin
         TObjSection(p).setdatapos(paint(arg)^);
       end;
 
 
-    procedure TCoffObjOutput.section_set_reloc_datapos(p,arg:pointer);
+    procedure TCoffObjOutput.section_set_reloc_datapos(p:TObject;arg:pointer);
       begin
         TCoffObjSection(p).coffrelocpos:=paint(arg)^;
         inc(paint(arg)^,sizeof(coffreloc)*TObjSection(p).relocations.count);
       end;
 
 
-    procedure TCoffObjOutput.section_write_header(p,arg:pointer);
+    procedure TCoffObjOutput.section_write_header(p:TObject;arg:pointer);
       var
         sechdr   : coffsechdr;
         s        : string;
@@ -1197,7 +1197,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjOutput.section_write_data(p,arg:pointer);
+    procedure TCoffObjOutput.section_write_data(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
           begin
@@ -1232,10 +1232,10 @@ const win32stub : array[0..131] of byte=(
            { Calculate the filepositions }
            datapos:=sizeof(coffheader)+sizeof(coffsechdr)*ObjSectionList.Count;
            { Sections first }
-           ObjSectionList.foreach(@section_set_datapos,@datapos);
+           ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
            { relocs }
            orgdatapos:=datapos;
-           ObjSectionList.foreach(@section_set_reloc_datapos,@datapos);
+           ObjSectionList.ForEachCall(@section_set_reloc_datapos,@datapos);
            gotreloc:=(orgdatapos<>datapos);
            { Symbols }
            sympos:=datapos;
@@ -1261,11 +1261,11 @@ const win32stub : array[0..131] of byte=(
              end;
            FWriter.write(header,sizeof(header));
            { Section headers }
-           ObjSectionList.foreach(@section_write_header,nil);
+           ObjSectionList.ForEachCall(@section_write_header,nil);
            { ObjSections }
-           ObjSectionList.foreach(@section_write_data,nil);
+           ObjSectionList.ForEachCall(@section_write_data,nil);
            { Relocs }
-           ObjSectionList.foreach(@section_write_relocs,nil);
+           ObjSectionList.ForEachCall(@section_write_relocs,nil);
            { ObjSymbols }
            if Sympos<>FWriter.ObjSize then
              internalerror(200603051);
@@ -1465,7 +1465,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjInput.ObjSections_read_data(p,arg:pointer);
+    procedure TCoffObjInput.ObjSections_read_data(p:TObject;arg:pointer);
       begin
         with TCoffObjSection(p) do
           begin
@@ -1487,7 +1487,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffObjInput.ObjSections_read_relocs(p,arg:pointer);
+    procedure TCoffObjInput.ObjSections_read_relocs(p:TObject;arg:pointer);
       begin
         with TCoffObjSection(p) do
           begin
@@ -1597,9 +1597,9 @@ const win32stub : array[0..131] of byte=(
            { Insert all ObjSymbols }
            read_symbols(objdata);
            { Section Data }
-           ObjSectionList.foreach(@objsections_read_data,nil);
+           ObjSectionList.ForEachCall(@objsections_read_data,nil);
            { Relocs }
-           ObjSectionList.foreach(@objsections_read_relocs,nil);
+           ObjSectionList.ForEachCall(@objsections_read_relocs,nil);
          end;
         FCoffStrs.Free;
         FCoffSyms.Free;
@@ -1679,7 +1679,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffexeoutput.globalsyms_write_symbol(p,arg:pointer);
+    procedure TCoffexeoutput.globalsyms_write_symbol(p:TObject;arg:pointer);
       var
         value  : aint;
         globalval : byte;
@@ -1703,7 +1703,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffexeoutput.ExeSections_write_header(p,arg:pointer);
+    procedure TCoffexeoutput.ExeSections_write_header(p:TObject;arg:pointer);
       var
         sechdr    : coffsechdr;
       begin
@@ -1741,7 +1741,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure TCoffexeoutput.ExeSections_pass2_header(p,arg:pointer);
+    procedure TCoffexeoutput.ExeSections_pass2_header(p:TObject;arg:pointer);
       begin
         with TExeSection(p) do
           begin
@@ -1751,7 +1751,7 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
-    procedure Tcoffexeoutput.ExeSections_write_Data(p,arg:pointer);
+    procedure Tcoffexeoutput.ExeSections_write_Data(p:TObject;arg:pointer);
       var
         objsec : TObjSection;
         i      : longint;
@@ -1793,7 +1793,7 @@ const win32stub : array[0..131] of byte=(
           end;
         { retrieve amount of ObjSections }
         nsects:=0;
-        ExeSections.foreach(@ExeSections_pass2_header,@nsects);
+        ExeSections.ForEachCall(@ExeSections_pass2_header,@nsects);
         { calculate start positions after the headers }
         currdatapos:=stubsize+optheadersize+sizeof(coffsechdr)*nsects;
         currmempos:=stubsize+optheadersize+sizeof(coffsechdr)*nsects;
@@ -1923,16 +1923,16 @@ const win32stub : array[0..131] of byte=(
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
         { Section headers }
-        ExeSections.foreach(@ExeSections_write_header,nil);
+        ExeSections.ForEachCall(@ExeSections_write_header,nil);
         { Section data }
-        ExeSections.foreach(@ExeSections_write_data,nil);
+        ExeSections.ForEachCall(@ExeSections_write_data,nil);
         { Optional ObjSymbols }
         if not(cs_link_strip in aktglobalswitches) then
          begin
            if SymPos<>FWriter.Size then
              internalerror(200602252);
            { ObjSymbols }
-           ExeSymbolList.foreach(@globalsyms_write_symbol,nil);
+           ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
            { Strings }
            i:=FCoffStrs.size+4;
            FWriter.write(i,4);
