@@ -692,17 +692,18 @@ end;
 
 procedure TIniFile.DeleteKey(const Section, Ident: String);
 var
-  oSection: TIniFileSection;
-  oKey: TIniFileKey;
+ oSection: TIniFileSection;
+ oKey: TIniFileKey;
 begin
-  oSection := FSectionList.SectionByName(Section);
-  if oSection <> nil then begin
-    oKey := oSection.KeyList.KeyByName(Ident);
-    if oKey <> nil then begin
-      oKey.Free;
-      UpdateFile;
-    end;
-  end;
+ oSection := FSectionList.SectionByName(Section);
+ if oSection <> nil then begin
+   oKey := oSection.KeyList.KeyByName(Ident);
+   if oKey <> nil then begin
+     oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
+     oKey.Free;
+     UpdateFile;
+   end;
+ end;
 end;
 
 procedure TIniFile.UpdateFile;
