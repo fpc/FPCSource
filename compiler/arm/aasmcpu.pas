@@ -28,6 +28,7 @@ interface
 uses
   cclasses,globtype,globals,verbose,
   aasmbase,aasmtai,
+  ogbase,
   symtype,
   cpubase,cpuinfo,cgbase,cgutils;
 
@@ -198,7 +199,7 @@ uses
          procedure ResetPass2;
          function  CheckIfValid:boolean;
          function GetString:string;
-         function Pass1(offset:longint):longint;override;
+         function  Pass1(objdata:TObjData):longint;override;
          procedure Pass2(objdata:TObjData);override;
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
@@ -212,13 +213,13 @@ uses
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
          function  InsEnd:longint;
-         procedure create_ot;
+         procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):longint;
          function  calcsize(p:PInsEntry):shortint;
          procedure gencode(objdata:TObjData);
          function  NeedAddrPrefix(opidx:byte):boolean;
          procedure Swapoperands;
-         function  FindInsentry:boolean;
+         function  FindInsentry(objdata:TObjData):boolean;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -937,7 +938,7 @@ implementation
       end;
 
 
-    function taicpu.Pass1(offset:longint):longint;
+    function taicpu.Pass1(objdata:TObjData):longint;
       var
         ldr2op : array[PF_B..PF_T] of tasmop = (
           A_LDRB,A_LDRSB,A_LDRBT,A_LDRH,A_LDRSH,A_LDRT);
@@ -946,7 +947,7 @@ implementation
       begin
         Pass1:=0;
         { Save the old offset and set the new offset }
-        InsOffset:=Offset;
+        InsOffset:=ObjData.CurrObjSec.Size;
         { Error? }
         if (Insentry=nil) and (InsSize=-1) then
           exit;
@@ -978,7 +979,7 @@ implementation
           end;
 
         { Get InsEntry }
-        if FindInsEntry then
+        if FindInsEntry(objdata) then
          begin
            InsSize:=4;
            LastInsOffset:=InsOffset;
@@ -1025,10 +1026,11 @@ implementation
       end;
 
 
-    procedure taicpu.create_ot;
+    procedure taicpu.create_ot(objdata:TObjData);
       var
         i,l,relsize : longint;
         dummy : byte;
+        currsym : TObjSymbol;
       begin
         if ops=0 then
          exit;
@@ -1112,8 +1114,9 @@ implementation
                   else
                     begin
                       l:=ref^.offset;
-                      if assigned(ref^.symbol) then
-                        inc(l,ref^.symbol.address);
+                      currsym:=ObjData.symbolref(ref^.symbol);
+                      if assigned(currsym) then
+                        inc(l,currsym.address);
                       relsize:=(InsOffset+2)-l;
                       if (relsize<-33554428) or (relsize>33554428) then
                        ot:=OT_IMM32
@@ -1346,7 +1349,7 @@ implementation
       end;
 
 
-    function taicpu.FindInsentry:boolean;
+    function taicpu.FindInsentry(objdata:TObjData):boolean;
       var
         i : longint;
       begin
@@ -1356,7 +1359,7 @@ implementation
         if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
          begin
            { create the .ot fields }
-           create_ot;
+           create_ot(objdata);
            { set the file postion }
            aktfilepos:=fileinfo;
          end
@@ -1462,20 +1465,20 @@ end.
 {$ifdef dummy}
       (*
 static void gencode (long segment, long offset, int bits,
-		     insn *ins, char *codes, long insn_end)
+                     insn *ins, char *codes, long insn_end)
 {
-    int has_S_code;		/* S - setflag */
-    int has_B_code;		/* B - setflag */
-    int has_T_code;		/* T - setflag */
-    int has_W_code;		/* ! => W flag */
-    int has_F_code;		/* ^ => S flag */
+    int has_S_code;             /* S - setflag */
+    int has_B_code;             /* B - setflag */
+    int has_T_code;             /* T - setflag */
+    int has_W_code;             /* ! => W flag */
+    int has_F_code;             /* ^ => S flag */
     int keep;
     unsigned char c;
     unsigned char bytes[4];
     long          data, size;
-    static int cc_code[] =	/* bit pattern of cc */
-  {				/* order as enum in  */
-    0x0E, 0x03, 0x02, 0x00,	/* nasm.h	     */
+    static int cc_code[] =      /* bit pattern of cc */
+  {                             /* order as enum in  */
+    0x0E, 0x03, 0x02, 0x00,     /* nasm.h            */
     0x0A, 0x0C, 0x08, 0x0D,
     0x09, 0x0B, 0x04, 0x01,
     0x05, 0x07, 0x06,
@@ -1484,7 +1487,7 @@ static void gencode (long segment, long offset, int bits,
 (*
 #ifdef DEBUG
 static char *CC[] =
-  {				       /* condition code names */
+  {                                    /* condition code names */
     "AL", "CC", "CS", "EQ",
     "GE", "GT", "HI", "LE",
     "LS", "LT", "MI", "NE",
@@ -1504,7 +1507,7 @@ static char *CC[] =
     if (rt_debug)
       {
     printf ("gencode: instruction: %s%s", insn_names[ins->opcode],
-	    CC[ins->condition & 0x0F]);
+            CC[ins->condition & 0x0F]);
     if (has_S_code)
       printf ("S");
     if (has_B_code)
@@ -1532,863 +1535,863 @@ static char *CC[] =
     // First condition code in upper nibble
     if (ins->condition < C_NONE)
       {
-	c = cc_code[ins->condition] << 4;
+        c = cc_code[ins->condition] << 4;
       }
     else
       {
-	c = cc_code[C_AL] << 4;	// is often ALWAYS but not always
+        c = cc_code[C_AL] << 4; // is often ALWAYS but not always
       }
 
 
     switch (keep = *codes)
       {
-	case 1:
-	  // B, BL
-	  ++codes;
-	  c |= *codes++;
-	  bytes[0] = c;
+        case 1:
+          // B, BL
+          ++codes;
+          c |= *codes++;
+          bytes[0] = c;
 
-	  if (ins->oprs[0].segment != segment)
-	    {
-	      // fais une relocation
-	      c = 1;
-	      data = 0;	// Let the linker locate ??
-	    }
-	  else
-	    {
-	      c = 0;
-	      data = ins->oprs[0].offset - (offset + 8);
-	
-	      if (data % 4)
-		{
-		  errfunc (ERR_NONFATAL, "offset not aligned on 4 bytes");
-		}
-	    }
-	
-	  if (data >= 0x1000)
-	    {
-	      errfunc (ERR_NONFATAL, "too long offset");
-	    }
+          if (ins->oprs[0].segment != segment)
+            {
+              // fais une relocation
+              c = 1;
+              data = 0; // Let the linker locate ??
+            }
+          else
+            {
+              c = 0;
+              data = ins->oprs[0].offset - (offset + 8);
 
-	  data = data >> 2;
-	  bytes[1] = (data >> 16) & 0xFF;
-	  bytes[2] = (data >> 8)  & 0xFF;
-	  bytes[3] = (data )      & 0xFF;
+              if (data % 4)
+                {
+                  errfunc (ERR_NONFATAL, "offset not aligned on 4 bytes");
+                }
+            }
 
-	  if (c == 1)
-	    {
-//	      out (offset, segment, &bytes[0], OUT_RAWDATA+1, NO_SEG, NO_SEG);
-	      out (offset, segment, &bytes[0], OUT_REL3ADR+4, ins->oprs[0].segment, NO_SEG);
-	    }
-	  else
-	    {
-	      out (offset, segment, &bytes[0], OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	    }
-	  return;
+          if (data >= 0x1000)
+            {
+              errfunc (ERR_NONFATAL, "too long offset");
+            }
 
-	case 2:
-	  // SWI
-	  ++codes;
-	  c |= *codes++;
-	  bytes[0] = c;
-	  data = ins->oprs[0].offset;
-	  bytes[1] = (data >> 16) & 0xFF;
-	  bytes[2] = (data >> 8) & 0xFF;
-	  bytes[3] = (data) & 0xFF;
-	  out (offset, segment, &bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	  return;
+          data = data >> 2;
+          bytes[1] = (data >> 16) & 0xFF;
+          bytes[2] = (data >> 8)  & 0xFF;
+          bytes[3] = (data )      & 0xFF;
+
+          if (c == 1)
+            {
+//            out (offset, segment, &bytes[0], OUT_RAWDATA+1, NO_SEG, NO_SEG);
+              out (offset, segment, &bytes[0], OUT_REL3ADR+4, ins->oprs[0].segment, NO_SEG);
+            }
+          else
+            {
+              out (offset, segment, &bytes[0], OUT_RAWDATA+4, NO_SEG, NO_SEG);
+            }
+          return;
+
+        case 2:
+          // SWI
+          ++codes;
+          c |= *codes++;
+          bytes[0] = c;
+          data = ins->oprs[0].offset;
+          bytes[1] = (data >> 16) & 0xFF;
+          bytes[2] = (data >> 8) & 0xFF;
+          bytes[3] = (data) & 0xFF;
+          out (offset, segment, &bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+          return;
         case 3:
-	  // BX
-	  ++codes;
-	  c |= *codes++;
-	  bytes[0] = c;
-	  bytes[1] = *codes++;
-	  bytes[2] = *codes++;
-	  bytes[3] = *codes++;
-	  c = regval (&ins->oprs[0],1);
-	  if (c == 15)	// PC
-	    {
-	      errfunc (ERR_WARNING, "'BX' with R15 has undefined behaviour");
-	    }
-	  else if (c > 15)
-	    {
-	      errfunc (ERR_NONFATAL, "Illegal register specified for 'BX'");
-	    }
+          // BX
+          ++codes;
+          c |= *codes++;
+          bytes[0] = c;
+          bytes[1] = *codes++;
+          bytes[2] = *codes++;
+          bytes[3] = *codes++;
+          c = regval (&ins->oprs[0],1);
+          if (c == 15)  // PC
+            {
+              errfunc (ERR_WARNING, "'BX' with R15 has undefined behaviour");
+            }
+          else if (c > 15)
+            {
+              errfunc (ERR_NONFATAL, "Illegal register specified for 'BX'");
+            }
 
-	  bytes[3] |= (c & 0x0F);
-	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	  return;
+          bytes[3] |= (c & 0x0F);
+          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+          return;
 
-        case 4:		// AND Rd,Rn,Rm
-        case 5:		// AND Rd,Rn,Rm,<shift>Rs
-        case 6:		// AND Rd,Rn,Rm,<shift>imm
-        case 7:		// AND Rd,Rn,<shift>imm
-	  ++codes;
+        case 4:         // AND Rd,Rn,Rm
+        case 5:         // AND Rd,Rn,Rm,<shift>Rs
+        case 6:         // AND Rd,Rn,Rm,<shift>imm
+        case 7:         // AND Rd,Rn,<shift>imm
+          ++codes;
 #ifdef DEBUG
-	  if (rt_debug)
-	    {
-	      printf ("         decode - '0x%02X'\n", keep);
-	      printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
-	    }
+          if (rt_debug)
+            {
+              printf ("         decode - '0x%02X'\n", keep);
+              printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
+            }
 #endif
-	  bytes[0] = c | *codes;
-	  ++codes;
-	
-	  bytes[1] = *codes;
-	  if (has_S_code)
-	    bytes[1] |= 0x10;
-	  c = regval (&ins->oprs[1],1);
-	  // Rn in low nibble
-	  bytes[1] |= c;
+          bytes[0] = c | *codes;
+          ++codes;
 
-	  // Rd in high nibble
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
+          bytes[1] = *codes;
+          if (has_S_code)
+            bytes[1] |= 0x10;
+          c = regval (&ins->oprs[1],1);
+          // Rn in low nibble
+          bytes[1] |= c;
 
-	  if (keep != 7)
-	    {
-	      // Rm in low nibble
-	      bytes[3] = regval (&ins->oprs[2],1);
-	    }
+          // Rd in high nibble
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
 
-	  // Shifts if any
-	  if (keep == 5 || keep == 6)
-	    {
-	      // Shift in bytes 2 and 3
-	      if (keep == 5)
-		{
-		  // Rs
-		  c = regval (&ins->oprs[3],1);
-		  bytes[2] |= c;
+          if (keep != 7)
+            {
+              // Rm in low nibble
+              bytes[3] = regval (&ins->oprs[2],1);
+            }
 
-		  c = 0x10;		// Set bit 4 in byte[3]
-		}
-	      if (keep == 6)
-		{
-		  c = (ins->oprs[3].offset) & 0x1F;
+          // Shifts if any
+          if (keep == 5 || keep == 6)
+            {
+              // Shift in bytes 2 and 3
+              if (keep == 5)
+                {
+                  // Rs
+                  c = regval (&ins->oprs[3],1);
+                  bytes[2] |= c;
 
-		  // #imm
-		  bytes[2] |= c >> 1;
-		  if (c & 0x01)
-		    {
-		      bytes[3] |= 0x80;
-		    }
-		  c = 0;		// Clr bit 4 in byte[3]
-		}
-	      // <shift>
-	      c |= shiftval (&ins->oprs[3]) << 5;
+                  c = 0x10;             // Set bit 4 in byte[3]
+                }
+              if (keep == 6)
+                {
+                  c = (ins->oprs[3].offset) & 0x1F;
 
-	      bytes[3] |= c;
-	    }
-	
-	  // reg,reg,imm
-	  if (keep == 7)
-	    {
-	      int shimm;
-	
-	      shimm = imm_shift (ins->oprs[2].offset);
+                  // #imm
+                  bytes[2] |= c >> 1;
+                  if (c & 0x01)
+                    {
+                      bytes[3] |= 0x80;
+                    }
+                  c = 0;                // Clr bit 4 in byte[3]
+                }
+              // <shift>
+              c |= shiftval (&ins->oprs[3]) << 5;
 
-	      if (shimm == -1)
-		{
-		  errfunc (ERR_NONFATAL, "cannot create that constant");
-		}
-	      bytes[3] = shimm & 0xFF;
-	      bytes[2] |= (shimm & 0xF00) >> 8;
-	    }
-	
-	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	  return;
+              bytes[3] |= c;
+            }
 
-        case 8:		// MOV Rd,Rm
-        case 9:		// MOV Rd,Rm,<shift>Rs
-        case 0xA:	// MOV Rd,Rm,<shift>imm
-        case 0xB:	// MOV Rd,<shift>imm
-	  ++codes;
+          // reg,reg,imm
+          if (keep == 7)
+            {
+              int shimm;
+
+              shimm = imm_shift (ins->oprs[2].offset);
+
+              if (shimm == -1)
+                {
+                  errfunc (ERR_NONFATAL, "cannot create that constant");
+                }
+              bytes[3] = shimm & 0xFF;
+              bytes[2] |= (shimm & 0xF00) >> 8;
+            }
+
+          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+          return;
+
+        case 8:         // MOV Rd,Rm
+        case 9:         // MOV Rd,Rm,<shift>Rs
+        case 0xA:       // MOV Rd,Rm,<shift>imm
+        case 0xB:       // MOV Rd,<shift>imm
+          ++codes;
 #ifdef DEBUG
-	  if (rt_debug)
-	    {
-	      printf ("         decode - '0x%02X'\n", keep);
-	      printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
-	    }
+          if (rt_debug)
+            {
+              printf ("         decode - '0x%02X'\n", keep);
+              printf ("           code - '0x%02X'\n", (unsigned char) ( *codes));
+            }
 #endif
-	  bytes[0] = c | *codes;
-	  ++codes;
-	
-	  bytes[1] = *codes;
-	  if (has_S_code)
-	    bytes[1] |= 0x10;
-
-	  // Rd in high nibble
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-	  if (keep != 0x0B)
-	    {
-	      // Rm in low nibble
-	      bytes[3] = regval (&ins->oprs[1],1);
-	    }
-
-	  // Shifts if any
-	  if (keep == 0x09 || keep == 0x0A)
-	    {
-	      // Shift in bytes 2 and 3
-	      if (keep == 0x09)
-		{
-		  // Rs
-		  c = regval (&ins->oprs[2],1);
-		  bytes[2] |= c;
-
-		  c = 0x10;		// Set bit 4 in byte[3]
-		}
-	      if (keep == 0x0A)
-		{
-		  c = (ins->oprs[2].offset) & 0x1F;
-		
-		  // #imm
-		  bytes[2] |= c >> 1;
-		  if (c & 0x01)
-		    {
-		      bytes[3] |= 0x80;
-		    }
-		  c = 0;		// Clr bit 4 in byte[3]
-		}
-	      // <shift>
-	      c |= shiftval (&ins->oprs[2]) << 5;
-
-	      bytes[3] |= c;
-	    }
-	
-	  // reg,imm
-	  if (keep == 0x0B)
-	    {
-	      int shimm;
-	
-	      shimm = imm_shift (ins->oprs[1].offset);
-
-	      if (shimm == -1)
-		{
-		  errfunc (ERR_NONFATAL, "cannot create that constant");
-		}
-	      bytes[3] = shimm & 0xFF;
-	      bytes[2] |= (shimm & 0xF00) >> 8;
-	    }
-	
-	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	  return;
-
-
-        case 0xC:	// CMP Rn,Rm
-        case 0xD:	// CMP Rn,Rm,<shift>Rs
-        case 0xE:	// CMP Rn,Rm,<shift>imm
-        case 0xF:	// CMP Rn,<shift>imm
-	  ++codes;
-
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes;
-
-	  // Implicit S code
-	  bytes[1] |= 0x10;
-
-	  c = regval (&ins->oprs[0],1);
-	  // Rn in low nibble
-	  bytes[1] |= c;
-
-	  // No destination
-	  bytes[2] = 0;
-
-	  if (keep != 0x0B)
-	    {
-	      // Rm in low nibble
-	      bytes[3] = regval (&ins->oprs[1],1);
-	    }
-
-	  // Shifts if any
-	  if (keep == 0x0D || keep == 0x0E)
-	    {
-	      // Shift in bytes 2 and 3
-	      if (keep == 0x0D)
-		{
-		  // Rs
-		  c = regval (&ins->oprs[2],1);
-		  bytes[2] |= c;
-
-		  c = 0x10;		// Set bit 4 in byte[3]
-		}
-	      if (keep == 0x0E)
-		{
-		  c = (ins->oprs[2].offset) & 0x1F;
-		
-		  // #imm
-		  bytes[2] |= c >> 1;
-		  if (c & 0x01)
-		    {
-		      bytes[3] |= 0x80;
-		    }
-		  c = 0;		// Clr bit 4 in byte[3]
-		}
-	      // <shift>
-	      c |= shiftval (&ins->oprs[2]) << 5;
-
-	      bytes[3] |= c;
-	    }
-	
-	  // reg,imm
-	  if (keep == 0x0F)
-	    {
-	      int shimm;
-	
-	      shimm = imm_shift (ins->oprs[1].offset);
-
-	      if (shimm == -1)
-		{
-		  errfunc (ERR_NONFATAL, "cannot create that constant");
-		}
-	      bytes[3] = shimm & 0xFF;
-	      bytes[2] |= (shimm & 0xF00) >> 8;
-	    }
-	
-	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-	  return;
-	
-        case 0x10:	// MRS Rd,<psr>
-	  ++codes;
-
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  c = regval (&ins->oprs[0],1);
-
-	  bytes[2] = c << 4;
-
-	  bytes[3] = 0;
-
-	  c = ins->oprs[1].basereg;
-
-	  if (c == R_CPSR || c == R_SPSR)
-	    {
-	      if (c == R_SPSR)
-		{
-		  bytes[1] |= 0x40;
-		}
-	    }
-	  else
-	    {
-	      errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
-	    }
-
-	  out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
-
-	  return;
-	
-        case 0x11:	// MSR <psr>,Rm
-	case 0x12:	// MSR <psrf>,Rm
-        case 0x13:	// MSR <psrf>,#expression
-	  ++codes;
-
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes++;
-
-	  bytes[2] = *codes;
-
-
-	  if (keep == 0x11 || keep == 0x12)
-	    {
-	      // Rm
-	      c = regval (&ins->oprs[1],1);
-
-	      bytes[3] = c;
-	    }
-	  else
-	    {
-	      int shimm;
-	
-	      shimm = imm_shift (ins->oprs[1].offset);
-
-	      if (shimm == -1)
-		{
-		  errfunc (ERR_NONFATAL, "cannot create that constant");
-		}
-	      bytes[3] = shimm & 0xFF;
-	      bytes[2] |= (shimm & 0xF00) >> 8;
-	    }
-	
-	  c = ins->oprs[0].basereg;
-
-	  if ( keep == 0x11)
-	    {
-	      if ( c == R_CPSR || c == R_SPSR)
-		{
-		if ( c== R_SPSR)
-		  {
-		    bytes[1] |= 0x40;
-		  }
-		}
-	    else
-	      {
-		errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
-	      }
-	    }
-	  else
-	    {
-	      if ( c == R_CPSR_FLG || c == R_SPSR_FLG)
-		{
-		  if ( c== R_SPSR_FLG)
-		    {
-		      bytes[1] |= 0x40;
-		    }
-		}
-	      else
-		{
-		  errfunc (ERR_NONFATAL, "CPSR_flg or SPSR_flg expected");
-		}
-	    }
-	  break;
-
-        case 0x14:	// MUL  Rd,Rm,Rs
-        case 0x15:	// MULA Rd,Rm,Rs,Rn
-	  ++codes;
-
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes++;
-
-	  bytes[3] = *codes;
-
-	  // Rd
-	  bytes[1] |= regval (&ins->oprs[0],1);
-	  if (has_S_code)
-	    bytes[1] |= 0x10;
-
-	  // Rm
-	  bytes[3] |= regval (&ins->oprs[1],1);
-
-	  // Rs
-	  bytes[2] = regval (&ins->oprs[2],1);
-
-	  if (keep == 0x15)
-	    {
-	      bytes[2] |= regval (&ins->oprs[3],1) << 4;
-	    }
-	  break;
-
-        case 0x16:	// SMLAL RdHi,RdLo,Rm,Rs
-	  ++codes;
-	
-	  bytes[0] = c | *codes++;
-
-	  bytes[1] = *codes++;
-
-	  bytes[3] = *codes;
-
-	  // RdHi
-	  bytes[1] |= regval (&ins->oprs[1],1);
-	  if (has_S_code)
-	    bytes[1] |= 0x10;
-
-	  // RdLo
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	  // Rm
-	  bytes[3] |= regval (&ins->oprs[2],1);
-
-	  // Rs
-	  bytes[2] |= regval (&ins->oprs[3],1);
-
-	  break;
-	
-        case 0x17:	// LDR Rd, expression
-	  ++codes;
-
-	  bytes[0] = c | *codes++;
-
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	  if (has_B_code)
-	    bytes[1] |= 0x40;
-	  if (has_T_code)
-	    {
-	      errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
-	    }
-	  if (has_W_code)
-	    {
-	      errfunc (ERR_NONFATAL, "'!' not allowed");
-	    }
-
-	  // Rn - implicit R15
-	  bytes[1] |= 0xF;
-
-	  if (ins->oprs[1].segment != segment)
-	    {
-	      errfunc (ERR_NONFATAL, "label not in same segment");
-	    }
-	
-	  data = ins->oprs[1].offset - (offset + 8);
-
-	  if (data < 0)
-	    {
-	      data = -data;
-	    }
-	  else
-	    {
-	      bytes[1] |= 0x80;
-	    }
-
-	  if (data >= 0x1000)
-	    {
-	      errfunc (ERR_NONFATAL, "too long offset");
-	    }
-
-	  bytes[2] |= ((data & 0xF00) >> 8);
-	  bytes[3] = data & 0xFF;
-	  break;
-	
-        case 0x18:	// LDR Rd, [Rn]
-	  ++codes;
-	
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	  if (has_B_code)
-	    bytes[1] |= 0x40;
-	  if (has_T_code)
-	    {
-	      bytes[1] |= 0x20;		// write-back
-	    }
-	  else
-	    {
-	      bytes[0] |= 0x01;		// implicit pre-index mode
-	    }
-
-	  if (has_W_code)
-	    {
-	      bytes[1] |= 0x20;		// write-back
-	    }
-
-	  // Rn
-	  c = regval (&ins->oprs[1],1);
-	  bytes[1] |= c;
-
-	  if (c == 0x15)		// R15
-	    data = -8;
-	  else
-	    data = 0;
-
-	  if (data < 0)
-	    {
-	      data = -data;
-	    }
-	  else
-	    {
-	      bytes[1] |= 0x80;
-	    }
-
-	  bytes[2] |= ((data & 0xF00) >> 8);
-	  bytes[3] = data & 0xFF;
-	  break;
-	
-        case 0x19:	// LDR Rd, [Rn,#expression]
-	case 0x20:	// LDR Rd, [Rn,Rm]
-	case 0x21:	// LDR Rd, [Rn,Rm,shift]
-	  ++codes;
-	
-	  bytes[0] = c | *codes++;
-	
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	  if (has_B_code)
-	    bytes[1] |= 0x40;
-
-	  // Rn
-	  c = regval (&ins->oprs[1],1);
-	  bytes[1] |= c;
-
-	  if (ins->oprs[ins->operands-1].bracket)	// FIXME: Bracket on last operand -> pre-index  <--
-	    {
-	      bytes[0] |= 0x01;		// pre-index mode
-	      if (has_W_code)
-		{
-		  bytes[1] |= 0x20;
-		}
-	      if (has_T_code)
-		{
-		  errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
-		}
-	    }
-	  else
-	    {
-	      if (has_T_code)		// Forced write-back in post-index mode
-		{
-		  bytes[1] |= 0x20;
-		}
-	      if (has_W_code)
-		{
-		  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
-		}
-	    }
-
-	  if (keep == 0x19)
-	    {
-	      data = ins->oprs[2].offset;
-
-	      if (data < 0)
-		{
-		  data = -data;
-		}
-	      else
-		{
-		  bytes[1] |= 0x80;
-		}
-
-	      if (data >= 0x1000)
-		{
-		  errfunc (ERR_NONFATAL, "too long offset");
-		}
-	
-	      bytes[2] |= ((data & 0xF00) >> 8);
-	      bytes[3] = data & 0xFF;
-	    }
-	  else
-	    {
-	      if (ins->oprs[2].minus == 0)
-		{
-		  bytes[1] |= 0x80;
-		}
-	      c = regval (&ins->oprs[2],1);
-	      bytes[3] = c;
-
-	      if (keep == 0x21)
-		{
-		  c = ins->oprs[3].offset;
-		  if (c > 0x1F)
-		    {
-		      errfunc (ERR_NONFATAL, "too large shiftvalue");
-		      c = c & 0x1F;
-		    }
-		
-		  bytes[2] |= c >> 1;
-		  if (c & 0x01)
-		    {
-		      bytes[3] |= 0x80;
-		    }
-		  bytes[3] |= shiftval (&ins->oprs[3]) << 5;
-		}
-	    }
-	
-	  break;
-	
-        case 0x22:	// LDRH Rd, expression
-	  ++codes;
-	
-	  bytes[0] = c | 0x01;		// Implicit pre-index
-
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	
-	  // Rn - implicit R15
-	  bytes[1] |= 0xF;
-
-	  if (ins->oprs[1].segment != segment)
-	    {
-	      errfunc (ERR_NONFATAL, "label not in same segment");
-	    }
-	
-	  data = ins->oprs[1].offset - (offset + 8);
-
-	  if (data < 0)
-	    {
-	      data = -data;
-	    }
-	  else
-	    {
-	      bytes[1] |= 0x80;
-	    }
-
-	  if (data >= 0x100)
-	    {
-	      errfunc (ERR_NONFATAL, "too long offset");
-	    }
-	  bytes[3] = *codes++;
-
-	  bytes[2] |= ((data & 0xF0) >> 4);
-	  bytes[3] |= data & 0xF;
-	  break;
-	
-        case 0x23:	// LDRH Rd, Rn
-	  ++codes;
-	
-	  bytes[0] = c | 0x01;		// Implicit pre-index
-	
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	
-	  // Rn
-	  c = regval (&ins->oprs[1],1);
-	  bytes[1] |= c;
-
-	  if (c == 0x15)		// R15
-	    data = -8;
-	  else
-	    data = 0;
-
-	  if (data < 0)
-	    {
-	      data = -data;
-	    }
-	  else
-	    {
-	      bytes[1] |= 0x80;
-	    }
-
-	  if (data >= 0x100)
-	    {
-	      errfunc (ERR_NONFATAL, "too long offset");
-	    }
-	  bytes[3] = *codes++;
-
-	  bytes[2] |= ((data & 0xF0) >> 4);
-	  bytes[3] |= data & 0xF;
-	  break;
-	
-        case 0x24:	// LDRH Rd, Rn, expression
-        case 0x25:	// LDRH Rd, Rn, Rm
-	  ++codes;
-
-	  bytes[0] = c;
-	
-	  bytes[1] = *codes++;
-
-	  // Rd
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-
-	  // Rn
-	  c = regval (&ins->oprs[1],1);
-	  bytes[1] |= c;
-
-	  if (ins->oprs[ins->operands-1].bracket)	// FIXME: Bracket on last operand -> pre-index  <--
-	    {
-	      bytes[0] |= 0x01;		// pre-index mode
-	      if (has_W_code)
-		{
-		  bytes[1] |= 0x20;
-		}
-	    }
-	  else
-	    {
-	      if (has_W_code)
-		{
-		  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
-		}
-	    }
-
-	  bytes[3] = *codes++;
-
-	  if (keep == 0x24)
-	    {
-	      data = ins->oprs[2].offset;
-
-	      if (data < 0)
-		{
-		  data = -data;
-		}
-	      else
-		{
-		  bytes[1] |= 0x80;
-		}
-	
-	      if (data >= 0x100)
-		{
-		  errfunc (ERR_NONFATAL, "too long offset");
-		}
-
-	      bytes[2] |= ((data & 0xF0) >> 4);
-	      bytes[3] |= data & 0xF;
-	    }
-	  else
-	    {
-	      if (ins->oprs[2].minus == 0)
-		{
-		  bytes[1] |= 0x80;
-		}
-	      c = regval (&ins->oprs[2],1);
-	      bytes[3] |= c;
-
-	    }
-	  break;
-	
-        case 0x26:	// LDM/STM Rn, {reg-list}
-	  ++codes;
-
-	  bytes[0] = c;
-
-	  bytes[0] |= ( *codes >> 4) & 0xF;
-	  bytes[1] = ( *codes << 4) & 0xF0;
-	  ++codes;
-
-	  if (has_W_code)
-	    {
-	      bytes[1] |= 0x20;
-	    }
-	  if (has_F_code)
-	    {
-	      bytes[1] |= 0x40;
-	    }
-	
-	  // Rn
-	  bytes[1] |= regval (&ins->oprs[0],1);
-
-	  data = ins->oprs[1].basereg;
-
-	  bytes[2] = ((data >> 8) & 0xFF);
-	  bytes[3] = (data & 0xFF);
-	
-	  break;
-	
-        case 0x27:	// SWP Rd, Rm, [Rn]
-	  ++codes;
-	
-	  bytes[0] = c;
-
-	  bytes[0] |= *codes++;
-	
-	  bytes[1] = regval (&ins->oprs[2],1);
-	  if (has_B_code)
-	    {
-	      bytes[1] |= 0x40;
-	    }
-	  bytes[2] = regval (&ins->oprs[0],1) << 4;
-	  bytes[3] = *codes++;
-	  bytes[3] |= regval (&ins->oprs[1],1);
-	  break;
-	
+          bytes[0] = c | *codes;
+          ++codes;
+
+          bytes[1] = *codes;
+          if (has_S_code)
+            bytes[1] |= 0x10;
+
+          // Rd in high nibble
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+
+          if (keep != 0x0B)
+            {
+              // Rm in low nibble
+              bytes[3] = regval (&ins->oprs[1],1);
+            }
+
+          // Shifts if any
+          if (keep == 0x09 || keep == 0x0A)
+            {
+              // Shift in bytes 2 and 3
+              if (keep == 0x09)
+                {
+                  // Rs
+                  c = regval (&ins->oprs[2],1);
+                  bytes[2] |= c;
+
+                  c = 0x10;             // Set bit 4 in byte[3]
+                }
+              if (keep == 0x0A)
+                {
+                  c = (ins->oprs[2].offset) & 0x1F;
+
+                  // #imm
+                  bytes[2] |= c >> 1;
+                  if (c & 0x01)
+                    {
+                      bytes[3] |= 0x80;
+                    }
+                  c = 0;                // Clr bit 4 in byte[3]
+                }
+              // <shift>
+              c |= shiftval (&ins->oprs[2]) << 5;
+
+              bytes[3] |= c;
+            }
+
+          // reg,imm
+          if (keep == 0x0B)
+            {
+              int shimm;
+
+              shimm = imm_shift (ins->oprs[1].offset);
+
+              if (shimm == -1)
+                {
+                  errfunc (ERR_NONFATAL, "cannot create that constant");
+                }
+              bytes[3] = shimm & 0xFF;
+              bytes[2] |= (shimm & 0xF00) >> 8;
+            }
+
+          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+          return;
+
+
+        case 0xC:       // CMP Rn,Rm
+        case 0xD:       // CMP Rn,Rm,<shift>Rs
+        case 0xE:       // CMP Rn,Rm,<shift>imm
+        case 0xF:       // CMP Rn,<shift>imm
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes;
+
+          // Implicit S code
+          bytes[1] |= 0x10;
+
+          c = regval (&ins->oprs[0],1);
+          // Rn in low nibble
+          bytes[1] |= c;
+
+          // No destination
+          bytes[2] = 0;
+
+          if (keep != 0x0B)
+            {
+              // Rm in low nibble
+              bytes[3] = regval (&ins->oprs[1],1);
+            }
+
+          // Shifts if any
+          if (keep == 0x0D || keep == 0x0E)
+            {
+              // Shift in bytes 2 and 3
+              if (keep == 0x0D)
+                {
+                  // Rs
+                  c = regval (&ins->oprs[2],1);
+                  bytes[2] |= c;
+
+                  c = 0x10;             // Set bit 4 in byte[3]
+                }
+              if (keep == 0x0E)
+                {
+                  c = (ins->oprs[2].offset) & 0x1F;
+
+                  // #imm
+                  bytes[2] |= c >> 1;
+                  if (c & 0x01)
+                    {
+                      bytes[3] |= 0x80;
+                    }
+                  c = 0;                // Clr bit 4 in byte[3]
+                }
+              // <shift>
+              c |= shiftval (&ins->oprs[2]) << 5;
+
+              bytes[3] |= c;
+            }
+
+          // reg,imm
+          if (keep == 0x0F)
+            {
+              int shimm;
+
+              shimm = imm_shift (ins->oprs[1].offset);
+
+              if (shimm == -1)
+                {
+                  errfunc (ERR_NONFATAL, "cannot create that constant");
+                }
+              bytes[3] = shimm & 0xFF;
+              bytes[2] |= (shimm & 0xF00) >> 8;
+            }
+
+          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+          return;
+
+        case 0x10:      // MRS Rd,<psr>
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          // Rd
+          c = regval (&ins->oprs[0],1);
+
+          bytes[2] = c << 4;
+
+          bytes[3] = 0;
+
+          c = ins->oprs[1].basereg;
+
+          if (c == R_CPSR || c == R_SPSR)
+            {
+              if (c == R_SPSR)
+                {
+                  bytes[1] |= 0x40;
+                }
+            }
+          else
+            {
+              errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
+            }
+
+          out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
+
+          return;
+
+        case 0x11:      // MSR <psr>,Rm
+        case 0x12:      // MSR <psrf>,Rm
+        case 0x13:      // MSR <psrf>,#expression
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          bytes[2] = *codes;
+
+
+          if (keep == 0x11 || keep == 0x12)
+            {
+              // Rm
+              c = regval (&ins->oprs[1],1);
+
+              bytes[3] = c;
+            }
+          else
+            {
+              int shimm;
+
+              shimm = imm_shift (ins->oprs[1].offset);
+
+              if (shimm == -1)
+                {
+                  errfunc (ERR_NONFATAL, "cannot create that constant");
+                }
+              bytes[3] = shimm & 0xFF;
+              bytes[2] |= (shimm & 0xF00) >> 8;
+            }
+
+          c = ins->oprs[0].basereg;
+
+          if ( keep == 0x11)
+            {
+              if ( c == R_CPSR || c == R_SPSR)
+                {
+                if ( c== R_SPSR)
+                  {
+                    bytes[1] |= 0x40;
+                  }
+                }
+            else
+              {
+                errfunc (ERR_NONFATAL, "CPSR or SPSR expected");
+              }
+            }
+          else
+            {
+              if ( c == R_CPSR_FLG || c == R_SPSR_FLG)
+                {
+                  if ( c== R_SPSR_FLG)
+                    {
+                      bytes[1] |= 0x40;
+                    }
+                }
+              else
+                {
+                  errfunc (ERR_NONFATAL, "CPSR_flg or SPSR_flg expected");
+                }
+            }
+          break;
+
+        case 0x14:      // MUL  Rd,Rm,Rs
+        case 0x15:      // MULA Rd,Rm,Rs,Rn
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          bytes[3] = *codes;
+
+          // Rd
+          bytes[1] |= regval (&ins->oprs[0],1);
+          if (has_S_code)
+            bytes[1] |= 0x10;
+
+          // Rm
+          bytes[3] |= regval (&ins->oprs[1],1);
+
+          // Rs
+          bytes[2] = regval (&ins->oprs[2],1);
+
+          if (keep == 0x15)
+            {
+              bytes[2] |= regval (&ins->oprs[3],1) << 4;
+            }
+          break;
+
+        case 0x16:      // SMLAL RdHi,RdLo,Rm,Rs
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          bytes[3] = *codes;
+
+          // RdHi
+          bytes[1] |= regval (&ins->oprs[1],1);
+          if (has_S_code)
+            bytes[1] |= 0x10;
+
+          // RdLo
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+          // Rm
+          bytes[3] |= regval (&ins->oprs[2],1);
+
+          // Rs
+          bytes[2] |= regval (&ins->oprs[3],1);
+
+          break;
+
+        case 0x17:      // LDR Rd, expression
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+          if (has_B_code)
+            bytes[1] |= 0x40;
+          if (has_T_code)
+            {
+              errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
+            }
+          if (has_W_code)
+            {
+              errfunc (ERR_NONFATAL, "'!' not allowed");
+            }
+
+          // Rn - implicit R15
+          bytes[1] |= 0xF;
+
+          if (ins->oprs[1].segment != segment)
+            {
+              errfunc (ERR_NONFATAL, "label not in same segment");
+            }
+
+          data = ins->oprs[1].offset - (offset + 8);
+
+          if (data < 0)
+            {
+              data = -data;
+            }
+          else
+            {
+              bytes[1] |= 0x80;
+            }
+
+          if (data >= 0x1000)
+            {
+              errfunc (ERR_NONFATAL, "too long offset");
+            }
+
+          bytes[2] |= ((data & 0xF00) >> 8);
+          bytes[3] = data & 0xFF;
+          break;
+
+        case 0x18:      // LDR Rd, [Rn]
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+          if (has_B_code)
+            bytes[1] |= 0x40;
+          if (has_T_code)
+            {
+              bytes[1] |= 0x20;         // write-back
+            }
+          else
+            {
+              bytes[0] |= 0x01;         // implicit pre-index mode
+            }
+
+          if (has_W_code)
+            {
+              bytes[1] |= 0x20;         // write-back
+            }
+
+          // Rn
+          c = regval (&ins->oprs[1],1);
+          bytes[1] |= c;
+
+          if (c == 0x15)                // R15
+            data = -8;
+          else
+            data = 0;
+
+          if (data < 0)
+            {
+              data = -data;
+            }
+          else
+            {
+              bytes[1] |= 0x80;
+            }
+
+          bytes[2] |= ((data & 0xF00) >> 8);
+          bytes[3] = data & 0xFF;
+          break;
+
+        case 0x19:      // LDR Rd, [Rn,#expression]
+        case 0x20:      // LDR Rd, [Rn,Rm]
+        case 0x21:      // LDR Rd, [Rn,Rm,shift]
+          ++codes;
+
+          bytes[0] = c | *codes++;
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+          if (has_B_code)
+            bytes[1] |= 0x40;
+
+          // Rn
+          c = regval (&ins->oprs[1],1);
+          bytes[1] |= c;
+
+          if (ins->oprs[ins->operands-1].bracket)       // FIXME: Bracket on last operand -> pre-index  <--
+            {
+              bytes[0] |= 0x01;         // pre-index mode
+              if (has_W_code)
+                {
+                  bytes[1] |= 0x20;
+                }
+              if (has_T_code)
+                {
+                  errfunc (ERR_NONFATAL, "'T' not allowed in pre-index mode");
+                }
+            }
+          else
+            {
+              if (has_T_code)           // Forced write-back in post-index mode
+                {
+                  bytes[1] |= 0x20;
+                }
+              if (has_W_code)
+                {
+                  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
+                }
+            }
+
+          if (keep == 0x19)
+            {
+              data = ins->oprs[2].offset;
+
+              if (data < 0)
+                {
+                  data = -data;
+                }
+              else
+                {
+                  bytes[1] |= 0x80;
+                }
+
+              if (data >= 0x1000)
+                {
+                  errfunc (ERR_NONFATAL, "too long offset");
+                }
+
+              bytes[2] |= ((data & 0xF00) >> 8);
+              bytes[3] = data & 0xFF;
+            }
+          else
+            {
+              if (ins->oprs[2].minus == 0)
+                {
+                  bytes[1] |= 0x80;
+                }
+              c = regval (&ins->oprs[2],1);
+              bytes[3] = c;
+
+              if (keep == 0x21)
+                {
+                  c = ins->oprs[3].offset;
+                  if (c > 0x1F)
+                    {
+                      errfunc (ERR_NONFATAL, "too large shiftvalue");
+                      c = c & 0x1F;
+                    }
+
+                  bytes[2] |= c >> 1;
+                  if (c & 0x01)
+                    {
+                      bytes[3] |= 0x80;
+                    }
+                  bytes[3] |= shiftval (&ins->oprs[3]) << 5;
+                }
+            }
+
+          break;
+
+        case 0x22:      // LDRH Rd, expression
+          ++codes;
+
+          bytes[0] = c | 0x01;          // Implicit pre-index
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+
+          // Rn - implicit R15
+          bytes[1] |= 0xF;
+
+          if (ins->oprs[1].segment != segment)
+            {
+              errfunc (ERR_NONFATAL, "label not in same segment");
+            }
+
+          data = ins->oprs[1].offset - (offset + 8);
+
+          if (data < 0)
+            {
+              data = -data;
+            }
+          else
+            {
+              bytes[1] |= 0x80;
+            }
+
+          if (data >= 0x100)
+            {
+              errfunc (ERR_NONFATAL, "too long offset");
+            }
+          bytes[3] = *codes++;
+
+          bytes[2] |= ((data & 0xF0) >> 4);
+          bytes[3] |= data & 0xF;
+          break;
+
+        case 0x23:      // LDRH Rd, Rn
+          ++codes;
+
+          bytes[0] = c | 0x01;          // Implicit pre-index
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+
+          // Rn
+          c = regval (&ins->oprs[1],1);
+          bytes[1] |= c;
+
+          if (c == 0x15)                // R15
+            data = -8;
+          else
+            data = 0;
+
+          if (data < 0)
+            {
+              data = -data;
+            }
+          else
+            {
+              bytes[1] |= 0x80;
+            }
+
+          if (data >= 0x100)
+            {
+              errfunc (ERR_NONFATAL, "too long offset");
+            }
+          bytes[3] = *codes++;
+
+          bytes[2] |= ((data & 0xF0) >> 4);
+          bytes[3] |= data & 0xF;
+          break;
+
+        case 0x24:      // LDRH Rd, Rn, expression
+        case 0x25:      // LDRH Rd, Rn, Rm
+          ++codes;
+
+          bytes[0] = c;
+
+          bytes[1] = *codes++;
+
+          // Rd
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+
+          // Rn
+          c = regval (&ins->oprs[1],1);
+          bytes[1] |= c;
+
+          if (ins->oprs[ins->operands-1].bracket)       // FIXME: Bracket on last operand -> pre-index  <--
+            {
+              bytes[0] |= 0x01;         // pre-index mode
+              if (has_W_code)
+                {
+                  bytes[1] |= 0x20;
+                }
+            }
+          else
+            {
+              if (has_W_code)
+                {
+                  errfunc (ERR_NONFATAL, "'!' not allowed in post-index mode");
+                }
+            }
+
+          bytes[3] = *codes++;
+
+          if (keep == 0x24)
+            {
+              data = ins->oprs[2].offset;
+
+              if (data < 0)
+                {
+                  data = -data;
+                }
+              else
+                {
+                  bytes[1] |= 0x80;
+                }
+
+              if (data >= 0x100)
+                {
+                  errfunc (ERR_NONFATAL, "too long offset");
+                }
+
+              bytes[2] |= ((data & 0xF0) >> 4);
+              bytes[3] |= data & 0xF;
+            }
+          else
+            {
+              if (ins->oprs[2].minus == 0)
+                {
+                  bytes[1] |= 0x80;
+                }
+              c = regval (&ins->oprs[2],1);
+              bytes[3] |= c;
+
+            }
+          break;
+
+        case 0x26:      // LDM/STM Rn, {reg-list}
+          ++codes;
+
+          bytes[0] = c;
+
+          bytes[0] |= ( *codes >> 4) & 0xF;
+          bytes[1] = ( *codes << 4) & 0xF0;
+          ++codes;
+
+          if (has_W_code)
+            {
+              bytes[1] |= 0x20;
+            }
+          if (has_F_code)
+            {
+              bytes[1] |= 0x40;
+            }
+
+          // Rn
+          bytes[1] |= regval (&ins->oprs[0],1);
+
+          data = ins->oprs[1].basereg;
+
+          bytes[2] = ((data >> 8) & 0xFF);
+          bytes[3] = (data & 0xFF);
+
+          break;
+
+        case 0x27:      // SWP Rd, Rm, [Rn]
+          ++codes;
+
+          bytes[0] = c;
+
+          bytes[0] |= *codes++;
+
+          bytes[1] = regval (&ins->oprs[2],1);
+          if (has_B_code)
+            {
+              bytes[1] |= 0x40;
+            }
+          bytes[2] = regval (&ins->oprs[0],1) << 4;
+          bytes[3] = *codes++;
+          bytes[3] |= regval (&ins->oprs[1],1);
+          break;
+
         default:
-	  errfunc (ERR_FATAL, "unknown decoding of instruction");
+          errfunc (ERR_FATAL, "unknown decoding of instruction");
 
-	  bytes[0] = c;
-	  // And a fix nibble
-	  ++codes;
-	  bytes[0] |= *codes++;
+          bytes[0] = c;
+          // And a fix nibble
+          ++codes;
+          bytes[0] |= *codes++;
 
-	 if ( *codes == 0x01)		// An I bit
-	   {
+         if ( *codes == 0x01)           // An I bit
+           {
 
-	   }
-	 if ( *codes == 0x02)		// An I bit
-	   {
+           }
+         if ( *codes == 0x02)           // An I bit
+           {
 
-	   }
-	 ++codes;
+           }
+         ++codes;
       }
     out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
 }

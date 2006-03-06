@@ -103,7 +103,7 @@ Const
 
   aopt_uncondjmp = A_B;
   aopt_condjmp = A_B;
-    
+
 Implementation
 
 { ************************************************************************* }
