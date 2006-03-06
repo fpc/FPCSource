@@ -25,6 +25,9 @@ uses
 
 
 Type
+  TObjectListCallback = procedure(data:TObject;arg:pointer) of object;
+  TObjectListStaticCallback = procedure(data:TObject;arg:pointer);
+
   TFPObjectList = class(TObject)
   private
     FFreeObjects : Boolean;
@@ -56,6 +59,8 @@ Type
     procedure Assign(Obj:TFPObjectList);
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -435,6 +440,17 @@ function TFPObjectList.Last: TObject;
 begin
   Result := TObject(FList.Last);
 end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListCallBack(proc2call),arg);
+end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
 
 { TObjectList }
 
