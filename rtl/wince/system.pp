@@ -23,9 +23,6 @@ interface
 
 {$define WINCE_EXCEPTION_HANDLING}
 
-{ Startup code }
-{$L wprt0.o}
-
 { include system-independent routine headers }
 {$I systemh.inc}
 

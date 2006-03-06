@@ -953,6 +953,12 @@ begin
   if not ObjectFiles.Empty then
     begin
       LinkRes.Add('INPUT(');
+      { For wince external startup file is used and placed first,     }
+      { because ARM prolog structure must be located at the very      }
+      { beginning of code. Otherwise exceptions do not work properly. }
+      if target_info.system in [system_arm_wince,system_i386_wince] then
+        LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
+
       while not ObjectFiles.Empty do
         begin
           s:=ObjectFiles.GetFirst;
