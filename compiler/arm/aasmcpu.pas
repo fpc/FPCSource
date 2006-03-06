@@ -196,7 +196,7 @@ uses
       public
          { the next will reset all instructions that can change in pass 2 }
          procedure ResetPass1;override;
-         procedure ResetPass2;overide;
+         procedure ResetPass2;override;
          function  CheckIfValid:boolean;
          function GetString:string;
          function  Pass1(objdata:TObjData):longint;override;
