@@ -4578,6 +4578,7 @@ rtl/win32/wininc/unidef.inc svneol=native#text/plain
 rtl/win32/wininc/unidef.sed -text
 rtl/win32/wininc/unifun.inc svneol=native#text/plain
 rtl/win32/winsock.pp svneol=native#text/plain
+rtl/win32/winsock2.pp svneol=native#text/plain
 rtl/win32/winsysut.pp svneol=native#text/plain
 rtl/win32/wprt0.as -text
 rtl/win32/wprt0_10.as -text
