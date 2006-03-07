@@ -895,14 +895,14 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -915,7 +915,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;nostackframe;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    framebp,%eax
@@ -932,7 +932,7 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function abs(l:longint):longint; assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifndef REGCALL}
         movl    l,%eax
@@ -944,7 +944,7 @@ end ['EAX','EDX'];
 
 
 {$define FPC_SYSTEM_HAS_ODD_LONGINT}
-function odd(l:longint):boolean;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function odd(l:longint):boolean;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -959,7 +959,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
-function sqr(l:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function sqr(l:longint):longint;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
 {$ifdef SYSTEMINLINE}
        movl     l,%eax
@@ -973,97 +973,9 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Sptr : Pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %esp,%eax
-end;
-
-
-{****************************************************************************
-                                 Str()
-****************************************************************************}
-
-{$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
-procedure int_str(l : longint;var s : string);
-var
-  buffer : array[0..15] of byte;
-  isneg  : byte;
-begin
-  { Workaround: }
-  if l=longint($80000000) then
-   begin
-     s:='-2147483648';
-     exit;
-   end;
-  asm
-        movl    l,%eax          // load Integer
-        xorl    %ecx,%ecx       // String length=0
-        leal    buffer,%ebx
-        movl    $0x0a,%esi      // load 10 as dividing constant.
-        movb    $0,isneg
-        orl     %eax,%eax       // Sign ?
-        jns     .LM2
-        movb    $1,isneg
-        negl    %eax
-.LM2:
-        cltd
-        idivl   %esi
-        addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,(%ebx)
-        incl    %ecx
-        incl    %ebx
-        cmpl    $0,%eax
-        jnz     .LM2
-        { now copy the string }
-        movl    s,%edi          // Load String address
-        cmpb    $0,isneg
-        je      .LM3
-        movb    $0x2d,(%ebx)
-        incl    %ecx
-        incl    %ebx
-.LM3:
-        movb    %cl,(%edi)      // Copy String length
-        incl    %edi
-.LM4:
-        decl    %ebx
-        movb    (%ebx),%al
-        stosb
-        decl    %ecx
-        jnz     .LM4
-  end ['eax','ecx','edx','ebx','esi','edi'];
-end;
-
-
-{$define FPC_SYSTEM_HAS_INT_STR_LONGWORD}
-procedure int_str(c : longword;var s : string);
-var
-  buffer : array[0..15] of byte;
-begin
-  asm
-        movl    c,%eax          // load CARDINAL
-        xorl    %ecx,%ecx       // String length=0
-        leal    buffer,%ebx
-        movl    $0x0a,%esi      // load 10 as dividing constant.
-.LM4:
-        xorl    %edx,%edx
-        divl    %esi
-        addb    $0x30,%dl       // convert Rest to ASCII.
-        movb    %dl,(%ebx)
-        incl    %ecx
-        incl    %ebx
-        cmpl    $0,%eax
-        jnz     .LM4
-        { now copy the string }
-        movl    s,%edi          // Load String address
-        movb    %cl,(%edi)      // Copy String length
-        incl    %edi
-.LM5:
-        decl    %ebx
-        movb    (%ebx),%al
-        stosb
-        decl    %ecx
-        jnz     .LM5
-  end ['eax','ecx','edx','ebx','esi','edi'];
 end;
 
 
@@ -1074,7 +986,7 @@ end;
 
 { do a thread save inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
-function cpudeclocked(var l : longint) : boolean;assembler;
+function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
   asm
 {$ifndef REGCALL}
@@ -1088,7 +1000,7 @@ function cpudeclocked(var l : longint) : boolean;assembler;
   end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
-procedure cpuinclocked(var l : longint);assembler;
+procedure cpuinclocked(var l : longint);assembler;nostackframe;
 
   asm
 {$ifndef REGCALL}
@@ -1146,57 +1058,52 @@ asm
     fwait
 end;
 
+
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
 Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); [Public,Alias:'FPC_ANSISTR_DECR_REF']; compilerproc; nostackframe; assembler;
 asm
-  cmpl $0,(%eax)
-  jne .Ldecr_ref_continue
-  ret
+        cmpl $0,(%eax)
+        jne .Ldecr_ref_continue
+        ret
 .Ldecr_ref_continue:
 // Temps allocated between ebp-24 and ebp+0
-	subl	$4,%esp
+        subl    $4,%esp
 // Var S located in register
 // Var l located in register
-	movl	%eax,(%esp)
-.Lj3599:
+        movl    %eax,(%esp)
 // [101] l:=@PAnsiRec(S-FirstOff)^.Ref;
-	movl	(%esp),%edx
-	movl	(%edx),%edx
-	subl	$8,%edx
+        movl    (%eax),%edx
+        subl    $8,%edx
 // [102] If l^<0 then exit;
-	movl	(%edx),%eax
-	testl	%eax,%eax
-	jl	.Lj3596
+        cmpl    $0,(%edx)
+        jl      .Lj3596
 .Lj3603:
-// [104] If declocked(l^) then	
-	movb	ismultithread,%al
-	testb	%al,%al
-	jne	.Lj3610
-	decl	(%edx)
-	je .Lj3620
-	addl $4,%esp
-	ret
+// [104] If declocked(l^) then
+        cmpb    $0,ismultithread
+        jne     .Lj3610
+        decl    (%edx)
+        je      .Lj3620
+        addl    $4,%esp
+        ret
 .Lj3610:
-	movl	%edx,%eax
-	call	cpudeclocked
-	movb	%al,%cl
-.Lj3613:
-	testb	%cl,%cl
-	je	.Lj3605
+        movl    %edx,%eax
+        call    cpudeclocked
+        movb    %al,%al
+        je      .Lj3605
 .Lj3620:
-	movl	(%esp),%eax
-	movl	(%eax),%eax
-	subl  $8,%eax
-	call	FPC_FREEMEM_X
-	movl	(%esp),%eax
-	movl	$0,(%eax)
+        movl    (%esp),%eax
+        movl    (%eax),%eax
+        subl    $8,%eax
+        call    FPC_FREEMEM_X
+        movl    (%esp),%eax
+        movl    $0,(%eax)
 .Lj3618:
 .Lj3605:
 .Lj3596:
 // [107] end;
-  addl $4,%esp
+        addl $4,%esp
 end;
 
 function fpc_truely_ansistr_unique(Var S : Pointer): Pointer; forward;
@@ -1206,20 +1113,20 @@ Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSI
 asm
 // Var S located in register
 // Var $result located in register
-	movl	%eax,%edx
+        movl    %eax,%edx
 // [437] pointer(result) := pointer(s);
-	movl	(%eax),%eax
+        movl    (%eax),%eax
 // [438] If Pointer(S)=Nil then
-	testl	%eax,%eax
-	je	.Lj4031
+        testl   %eax,%eax
+        je      .Lj4031
 .Lj4036:
-// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then	
-	movl	-8(%eax),%ecx
-	cmpl	$1,%ecx
-	je	.Lj4038
+// [440] if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
+        movl    -8(%eax),%ecx
+        cmpl    $1,%ecx
+        je      .Lj4038
 // [441] result:=fpc_truely_ansistr_unique(s);
-	movl	%edx,%eax
-	call	fpc_truely_ansistr_unique
+        movl    %edx,%eax
+        call    fpc_truely_ansistr_unique
 .Lj4038:
 .Lj4031:
 // [442] end;

@@ -1012,120 +1012,124 @@ function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
-procedure int_str(l : longint;out s : string);
+procedure int_str(l:longint;out s:string);
 var
-  value: longint;
-  negative: boolean;
-
-  begin
-     negative := false;
-     s:='';
-     { Workaround: }
-     if l=longint($80000000) then
-       begin
-         s:='-2147483648';
-         exit;
-       end;
-     { handle case where l = 0 }
-     if l = 0 then
-       begin
-         s:='0';
-         exit;
-       end;
-     If l < 0 then
-       begin
-         negative := true;
-         value:=abs(l);
-       end
-     else
-         value:=l;
-     { handle non-zero case }
-     while value>0 do
-       begin
-         s:=char((value mod 10)+ord('0'))+s;
-         value := value div 10;
-       end;
-     if negative then
-       s := '-' + s;
-  end;
+  m,m1 : longword;
+  pc,pc2 : pchar;
+  hs : string[32];
+begin
+  pc2:=@s[1];
+  if (l<0) then
+    begin
+      pc2^:='-';
+      inc(pc2);
+      m:=longword(-l);
+    end
+  else
+    m:=longword(l);
+  pc:=@hs[0];
+  repeat
+    inc(pc);
+    m1:=m div 10;
+    pc^:=char(m-(m1*10)+byte('0'));
+    m:=m1;
+  until m=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
+end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
-procedure int_str(l : longword;out s : string);
+procedure int_str(l:longword;out s:string);
+var
+  m1 : longword;
+  pc,pc2 : pchar;
+  hs : string[32];
 begin
-  s:='';
-  if l = 0 then
-  begin
-    s := '0';
-    exit;
-  end;
-  while l>0 do
+  pc2:=@s[1];
+  pc:=@hs[0];
+  repeat
+    inc(pc);
+    m1:=l div 10;
+    pc^:=char(l-(m1*10)+byte('0'));
+    l:=m1;
+  until l=0;
+  while (pc>pchar(@hs[0])) do
     begin
-       s:=char(ord('0')+(l mod 10))+s;
-       l:=l div 10;
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
     end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
-procedure int_str(l : int64;out s : string);
+procedure int_str(l:int64;out s:string);
 var
-  value: int64;
-  negative: boolean;
-
-  begin
-     negative := false;
-     s:='';
-     { Workaround: }
-     if l=int64($8000000000000000) then
-       begin
-         s:='-9223372036854775808';
-         exit;
-       end;
-     { handle case where l = 0 }
-     if l = 0 then
-       begin
-         s:='0';
-         exit;
-       end;
-     If l < 0 then
-       begin
-         negative := true;
-         value:=abs(l);
-       end
-     else
-         value:=l;
-     { handle non-zero case }
-     while value>0 do
-       begin
-         s:=char((value mod 10)+ord('0'))+s;
-         value := value div 10;
-       end;
-     if negative then
-       s := '-' + s;
-  end;
+  m,m1 : qword;
+  pc,pc2 : pchar;
+  hs : string[64];
+begin
+  pc2:=@s[1];
+  if (l<0) then
+    begin
+      pc2^:='-';
+      inc(pc2);
+      m:=qword(-l);
+    end
+  else
+    m:=qword(l);
+  pc:=@hs[0];
+  repeat
+    inc(pc);
+    m1:=m div 10;
+    pc^:=char(m-(m1*10)+byte('0'));
+    m:=m1;
+  until m=0;
+  while (pc>pchar(@hs[0])) do
+    begin
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
+    end;
+  s[0]:=char(pc2-pchar(@s[1]));
+end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
-procedure int_str(l : qword;out s : string);
+procedure int_str(l:qword;out s:string);
+var
+  m1 : qword;
+  pc,pc2 : pchar;
+  hs : string[64];
 begin
-  s:='';
-  if l = 0 then
-  begin
-    s := '0';
-    exit;
-  end;
-  while l>0 do
+  pc2:=@s[1];
+  pc:=@hs[0];
+  repeat
+    inc(pc);
+    m1:=l div 10;
+    pc^:=char(l-(m1*10)+byte('0'));
+    l:=m1;
+  until l=0;
+  while (pc>pchar(@hs[0])) do
     begin
-       s:=char(ord('0')+(l mod 10))+s;
-       l:=l div 10;
+      pc2^:=pc^;
+      dec(pc);
+      inc(pc2);
     end;
+  s[0]:=char(pc2-pchar(@s[1]));
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}

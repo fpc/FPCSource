@@ -95,10 +95,10 @@ begin
 end;
 
 
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 begin
   asm
     mtfsfi 6,1
   end;
-{$endif powerpc}
+{$endif cpupowerpc}
 end.

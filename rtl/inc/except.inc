@@ -74,29 +74,15 @@ end;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
-
-var
-  Buf : PJmp_buf;
-  NewAddr : PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptAddr');
 {$endif}
-  If ExceptAddrstack=Nil then
-    begin
-      ExceptAddrStack:=PExceptAddr(_newaddr);
-      ExceptAddrStack^.Next:=Nil;
-    end
-  else
-    begin
-      NewAddr:=PExceptAddr(_newaddr);
-      NewAddr^.Next:=ExceptAddrStack;
-      ExceptAddrStack:=NewAddr;
-    end;
-  buf:=PJmp_Buf(_buf);
-  ExceptAddrStack^.Buf:=Buf;
-  ExceptAddrStack^.FrameType:=ft;
-  fpc_PushExceptAddr:=Buf;
+  PExceptAddr(_newaddr)^.Next:=ExceptAddrstack;
+  ExceptAddrStack:=PExceptAddr(_newaddr);
+  PExceptAddr(_newaddr)^.Buf:=PJmp_Buf(_buf);
+  PExceptAddr(_newaddr)^.FrameType:=ft;
+  result:=PJmp_Buf(_buf);
 end;
 
 
@@ -193,19 +179,21 @@ end;
 
 
 Procedure fpc_PopAddrStack;[Public, Alias : 'FPC_POPADDRSTACK']; compilerproc;
-
+var
+  hp : ^PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In Popaddrstack');
 {$endif}
-  If ExceptAddrStack=nil then
+  hp:=@ExceptAddrStack;
+  If hp^=nil then
     begin
       writeln ('At end of ExceptionAddresStack');
       halt (255);
     end
   else
     begin
-      ExceptAddrStack:=ExceptAddrStack^.Next;
+      hp^:=hp^^.Next;
     end;
 end;
 

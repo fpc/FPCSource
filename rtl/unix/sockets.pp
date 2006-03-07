@@ -21,6 +21,10 @@ Uses UnixType;
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
 {$endif}
 
+{$ifdef Darwin}
+{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
+{$endif}
+
 {$i unxsockh.inc}
 {$i socketsh.inc}
 

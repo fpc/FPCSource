@@ -281,7 +281,14 @@ Type
           	     rlim_max : TRLim;     { maximum value for rlim_cur }
 		    end;	
         PRLimit  = ^TRLimit;
-       
+      
+  iovec = record
+            iov_base : pointer;
+	    iov_len  : size_t;
+	   end;
+  tiovec=iovec;
+  piovec=^tiovec;		
+ 
 CONST
  { Constansts for MMAP }
   MAP_PRIVATE   =2;

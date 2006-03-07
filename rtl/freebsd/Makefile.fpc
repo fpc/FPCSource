@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
        dl termio  printer \
       sysutils varutils math variants typinfo types classes   dynlibs \
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
-      errors sockets ipc terminfo \
+      errors sockets ipc terminfo bsd freebsd \
       video mouse keyboard console serial dateutils \
       sysconst cthreads strutils convutils dos objects cwstring fpmkunit
 

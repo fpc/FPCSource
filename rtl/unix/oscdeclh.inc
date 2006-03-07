@@ -53,6 +53,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
     function  FpTime       (tloc:ptime_t): time_t; cdecl; external clib name 'time';
     Function  FpTime       (var tloc : TTime): TTime; cdecl; external clib name 'time';
+    function  FpTimes	(var buffer : tms): TClock; cdecl; external clib name 'times';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
     function  FpUnlink  (path: pchar): cint; cdecl; external clib name 'unlink';
     function  FpWaitpid (pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';

@@ -352,7 +352,7 @@ const
   {$IFDEF UNICODE}
   AWSuffix = 'W';
   {$ELSE}
-  AWSuffix = 'A';
+  AWSuffix = '';
   {$ENDIF UNICODE}
 
 {$IFDEF DYNAMIC_LINK}
