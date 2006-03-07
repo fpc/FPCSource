@@ -313,7 +313,8 @@ implementation
                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,href);
 
                       { virtual method ? }
-                      if (po_virtualmethod in procdef.procoptions) then
+                      if (po_virtualmethod in procdef.procoptions) and
+                         not(nf_inherited in flags) then
                         begin
                           { load vmt pointer }
                           reference_reset_base(href,hregister,0);

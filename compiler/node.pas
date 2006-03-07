@@ -215,6 +215,7 @@ interface
          nf_absolute,
          nf_is_self,
          nf_load_self_pointer,
+         nf_inherited,
 
          { taddnode }
          nf_is_currency,
