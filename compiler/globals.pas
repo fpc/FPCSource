@@ -711,7 +711,8 @@ implementation
           then
             Delete (F, Length (F), 1);
 {$IFDEF USE_SYSUTILS}
-        PathExists := FileGetAttr(F) and faDirectory = faDirectory;
+        I := FileGetAttr(F);
+        PathExists := (I <> -1) and (I and faDirectory = faDirectory);
 {$ELSE USE_SYSUTILS}
         Assign (FF, FExpand (F));
         GetFAttr (FF, A);

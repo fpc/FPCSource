@@ -1687,7 +1687,7 @@ unit cgx86;
                     for i:=1 to localsize div winstackpagesize do
                       begin
                          reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize);
-                         list.concat(Taicpu.op_const_ref(A_MOV,S_L,0,href));
+                         list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                       end;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                  end
@@ -1695,14 +1695,17 @@ unit cgx86;
                  begin
                     objectlibrary.getlabel(again);
                     getcpuregister(list,NR_EDI);
+                    list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EDI));
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                     list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize - 4,NR_ESP));
+                    reference_reset_base(href,NR_ESP,localsize-4);
+                    list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     ungetcpuregister(list,NR_EDI);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize,NR_ESP));
                  end
              end
            else
