@@ -105,7 +105,7 @@ Implementation
        { pass 1 }
        nbas,
        { parser }
-       scanner,agcpugas,
+       scanner,ag68kgas,
        itcpugas
        ;
 

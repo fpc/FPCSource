@@ -374,7 +374,7 @@ unit cpupara;
                 else if (loc = LOC_FPUREGISTER) and
                         (nextfloatreg <= RS_FP2) then
                   begin
-		    writeln('loc fpuregister');
+//		    writeln('loc fpuregister');
                     paraloc^.loc:=loc;
                     paraloc^.size := paracgsize;
                     paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
@@ -384,7 +384,7 @@ unit cpupara;
                 else { LOC_REFERENCE }
 }
                   begin
-		    writeln('loc reference');
+//		    writeln('loc reference');
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
                     if (side = callerside) then

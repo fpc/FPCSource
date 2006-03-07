@@ -55,7 +55,7 @@ implementation
              Assemblers
 **************************************}
 
-      ,agcpugas
+      ,ag68kgas
       ;
 
 end.

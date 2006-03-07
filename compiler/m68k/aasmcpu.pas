@@ -107,7 +107,7 @@ type
       globtype;
 
 
-{$WARNING FIX ME!! useful for debug, remove it, same table as in agcpugas }
+{$WARNING FIX ME!! useful for debug, remove it, same table as in ag68kgas }
     const
       gas_op2str:op2strtable=
     {  warning: CPU32 opcodes are not fully compatible with the MC68020. }

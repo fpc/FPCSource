@@ -21,7 +21,7 @@
 }
 { This unit implements an asmoutput class for i386 AT&T syntax
 }
-unit agcpugas;
+unit ag68kgas;
 
 {$i fpcdefs.inc}
 
