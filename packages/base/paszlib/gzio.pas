@@ -46,7 +46,7 @@ function gzflush (f:gzFile; flush:integer)           : integer;
 function gzseek  (f:gzfile; offset:z_off_t; whence:integer) : z_off_t;
 function gztell  (f:gzfile) : z_off_t;
 function gzclose (f:gzFile)                      : integer;
-function gzerror (f:gzFile; var errnum:integer)      : string;
+function gzerror (f:gzFile; var errnum:smallint)      : string;
 function gzsetparams (f:gzfile; level:integer; strategy:integer) : integer;
 function gzrewind (f:gzFile) : integer;
 function gzeof (f:gzfile) : boolean;
@@ -1163,7 +1163,7 @@ end;
 
 ============================================================================}
 
-function gzerror (f:gzfile; var errnum:integer) : string;
+function gzerror (f:gzfile; var errnum:smallint) : string;
 var
  m : string;
  s : gz_streamp;

@@ -37,7 +37,7 @@ interface
 uses
   SysUtils,
   {$IFDEF Win32}
-  Windows,
+  Windows, dynlibs,
   {$ELSE}
   {$IFDEF MORPHOS}
   TinyGL,
@@ -470,7 +470,7 @@ implementation
 
 {$ELSE MORPHOS}
 var
-  hDLL: THandle;
+  hDLL: TLibHandle;
 {$ENDIF MORPHOS}
 
 procedure FreeGlut;
@@ -479,7 +479,8 @@ begin
   // MorphOS's GL will closed down by TinyGL unit, nothing is needed here.
 {$ELSE MORPHOS}
 
-  FreeLibrary(hDLL);
+  if (hDLL <> 0) then
+    FreeLibrary(hDLL);
 
   @glutInit := nil;
   @glutInitDisplayMode := nil;

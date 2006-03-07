@@ -10,7 +10,7 @@ units=interbase
 examples=testib
 
 [clean]
-units=ibas40 ibase60
+units=ibase40 ibase60
 
 [require]
 packages=ibase
@@ -22,4 +22,4 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..

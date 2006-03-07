@@ -59,7 +59,7 @@ USES
    {$ENDIF}
    Dos,
    Video,
-   FVCommon, Memory,                                    { GFV standard units }
+   FVCommon, {Memory,}                                { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs,
    msgbox, fvconsts;
 
@@ -716,11 +716,13 @@ FUNCTION TProgram.ValidView (P: PView): PView;
 BEGIN
    ValidView := Nil;                                  { Preset failure }
    If (P <> Nil) Then Begin
+(*
      If LowMemory Then Begin                          { Check memroy }
        Dispose(P, Done);                              { Dispose view }
        OutOfMemory;                                   { Call out of memory }
        Exit;                                          { Now exit }
      End;
+*)
      If NOT P^.Valid(cmValid) Then Begin              { Check view valid }
        Dispose(P, Done);                              { Dipose view }
        Exit;                                          { Now exit }
@@ -866,8 +868,8 @@ var
   R: TRect;
 begin
   HideMouse;
-  DoneMemory;
-  InitMemory;
+{  DoneMemory;}
+{  InitMemory;}
   InitScreen;
   Buffer := Views.PVideoBuf(VideoBuf);
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
@@ -880,10 +882,10 @@ var
   R: TRect;
 begin
   DoneMouse;
-  DoneMemory;
+{  DoneMemory;}
   ScreenMode:=Mode;
   InitMouse;
-  InitMemory;
+{  InitMemory;}
   InitScreen;
   Video.SetVideoMode(Mode);
   Buffer := Views.PVideoBuf(VideoBuf);
@@ -963,7 +965,7 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TApplication.Init;
 BEGIN
-   InitMemory;                                        { Start memory up }
+{   InitMemory;}                                        { Start memory up }
    Drivers.InitVideo;                                         { Start video up }
    Drivers.InitEvents;                                        { Start event drive }
    Drivers.InitSysError;                                      { Start system error }
@@ -987,7 +989,7 @@ BEGIN
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
    DoneScreen;
-   DoneMemory;                                        { Close memory }
+{   DoneMemory;}                                       { Close memory }
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1018,12 +1020,12 @@ BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
   DoneScreen;
-  DoneDosMem;
+{  DoneDosMem;}
   WriteShellMsg;
   SwapVectors;
   Exec(GetEnv('COMSPEC'), '');
   SwapVectors;
-  InitDosMem;
+{  InitDosMem;}
   InitScreen;
   InitEvents;
   InitSysError;

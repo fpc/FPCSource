@@ -1007,8 +1007,8 @@ Implementation
                begin
                  { always use the maximum fillsize in this pass to avoid possible
                    short jumps to become out of range }
-                 Tai_align(hp).fillsize:=Tai_align(hp).aligntype;
-                 objectdata.alloc(Tai_align(hp).fillsize);
+                 Tai_align_abstract(hp).fillsize:=Tai_align_abstract(hp).aligntype;
+                 objectdata.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_datablock :
                begin
@@ -1093,9 +1093,9 @@ Implementation
              ait_align :
                begin
                  { here we must determine the fillsize which is used in pass2 }
-                 Tai_align(hp).fillsize:=align(objectdata.currsec.datasize,Tai_align(hp).aligntype)-
+                 Tai_align_abstract(hp).fillsize:=align(objectdata.currsec.datasize,Tai_align_abstract(hp).aligntype)-
                    objectdata.currsec.datasize;
-                 objectdata.alloc(Tai_align(hp).fillsize);
+                 objectdata.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_datablock :
                begin
@@ -1271,9 +1271,9 @@ Implementation
              ait_align :
                begin
                  if objectdata.currsec.sectype=sec_bss then
-                   objectdata.alloc(Tai_align(hp).fillsize)
+                   objectdata.alloc(Tai_align_abstract(hp).fillsize)
                  else
-                   objectdata.writebytes(Tai_align(hp).calculatefillbuf(fillbuffer)^,Tai_align(hp).fillsize);
+                   objectdata.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer)^,Tai_align_abstract(hp).fillsize);
                end;
              ait_section :
                begin

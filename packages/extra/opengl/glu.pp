@@ -76,8 +76,6 @@ uses
   {$ELSE}
   {$IFDEF MORPHOS}
   TinyGL,
-  {$ELSE}
-  dynlibs,
   {$ENDIF}
   {$ENDIF}
   GL;
@@ -392,9 +390,11 @@ implementation
 {$INCLUDE tinygl.inc}
 
 {$ELSE MORPHOS}
+uses
+  dynlibs;
 
 var
-  hDLL: THandle;
+  hDLL: TLibHandle;
 
 {$ENDIF MORPHOS}
 
@@ -456,7 +456,8 @@ begin
   @gluNextContour := nil;
   @gluEndPolygon := nil;
 
-  FreeLibrary(hDLL);
+  if (hDLL <> 0) then
+    FreeLibrary(hDLL);
 {$ENDIF MORPHOS}
 end;
 

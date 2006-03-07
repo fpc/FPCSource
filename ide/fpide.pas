@@ -180,7 +180,7 @@ uses
   Video,Mouse,Keyboard,
   Compiler,Version,
   FVConsts,
-  Dos,Memory,Menus,Dialogs,StdDlg,timeddlg,
+  Dos{,Memory},Menus,Dialogs,StdDlg,timeddlg,
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
@@ -887,7 +887,7 @@ begin
     DoneMouse
   else
     ButtonCount:=0;
-  DoneDosMem;
+{  DoneDosMem;}
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchToConsoleScreen;
@@ -898,7 +898,7 @@ procedure TIDEApp.ShowIDEScreen;
 begin
   if Assigned(UserScreen) then
     UserScreen^.SaveConsoleScreen;
-  InitDosMem;
+{  InitDosMem;}
   InitKeyboard;
   If UseMouse then
     InitMouse

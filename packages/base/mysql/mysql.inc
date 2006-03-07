@@ -1517,6 +1517,7 @@ begin
     pointer(mysql_dump_debug_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_dump_debug_info');
     pointer(mysql_eof) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_eof');
     pointer(mysql_errno) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_errno');
+    pointer(mysql_error) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_error');
     pointer(mysql_escape_string) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_escape_string');
     pointer(mysql_fetch_field) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_field');
     pointer(mysql_fetch_field_direct) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_field_direct');

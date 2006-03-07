@@ -32,7 +32,7 @@ begin
                             '  Email CHAR(50),            ' +
                             '  Birthdate Date,            ' +
                             '  PRIMARY KEY (id)           ' +
-                            ');                           ');
+                            ')                            ');
 
   FTransaction.Commit;
   Ftransaction.Free;

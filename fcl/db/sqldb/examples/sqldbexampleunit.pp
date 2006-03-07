@@ -15,9 +15,9 @@ unit SqldbExampleUnit;
 interface
 
 uses
-  Classes,
+  Classes, sysutils,
   sqldb, pqconnection, IBConnection, ODBCConn,
-  mysql40conn, mysql41conn, mysql50conn;
+  mysql40conn, mysql41conn, mysql50conn, oracleconnection;
 
 var dbtype,
     dbname,
@@ -37,11 +37,9 @@ const
                   'd.s.p.mantione@twi.tudelft.nl', 'jonas@SPAM.freepascal.ME.org.NOT', 'michael@freepascal.org',
                   'peter@freepascal.org', 'muller@cerbere.u-strasbg.fr', 'marcov@stack.nl'
                  );
-// I know, this results in bogus-values...
- FPdevBirthDates : Array[1..8] of TDateTime = (1-1-1991,2-2-1992,
-                   3-3-1993, 4-4-1994, 5-5-1995,
-                   6-6-1996, 7-7-1997, 8-8-1998
-                  );
+
+var
+ FPdevBirthDates : Array[1..8] of TDateTime;
 
 
 procedure ExitWithError(s : string);
@@ -75,6 +73,15 @@ begin
   dbuser := IniFile.ReadString('Database','User','');
   dbpassword := IniFile.ReadString('Database','Password','');
   IniFile.Free;
+  
+  FPdevBirthDates[1] := StrToDate('1-1-1991');
+  FPdevBirthDates[2] := StrToDate('2-2-1992');
+  FPdevBirthDates[3] := StrToDate('3-3-1993');
+  FPdevBirthDates[4] := StrToDate('4-4-1994');
+  FPdevBirthDates[5] := StrToDate('5-5-1995');
+  FPdevBirthDates[6] := StrToDate('6-6-1996');
+  FPdevBirthDates[7] := StrToDate('7-7-1997');
+  FPdevBirthDates[8] := StrToDate('8-8-1998');
 end;
 
 procedure CreateFConnection;
@@ -86,6 +93,7 @@ begin
   if dbtype = 'postgresql' then Fconnection := tpqConnection.Create(nil);
   if dbtype = 'interbase' then Fconnection := tIBConnection.Create(nil);
   if dbtype = 'odbc' then Fconnection := tODBCConnection.Create(nil);
+  if dbtype = 'oracle' then Fconnection := TOracleConnection.Create(nil);
 
   if not assigned(Fconnection) then ExitWithError('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 

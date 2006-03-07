@@ -74,6 +74,7 @@ Const
   SDuplicateName           = 'Duplicate name ''%s'' in %s';
   SNoParseSQL              = '%s is only possible if ParseSQL is True';
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
+  SUnsupportedFieldType    = 'Fieldtype %s is not supported';
 
 Implementation
 

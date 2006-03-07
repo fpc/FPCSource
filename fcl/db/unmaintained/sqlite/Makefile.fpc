@@ -1,0 +1,21 @@
+#
+# Makefile.fpc for sqlite FCL db units
+#
+
+[package]
+main=fcl
+
+[target]
+units=sqlitedataset
+
+[require]
+packages=sqlite
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

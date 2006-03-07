@@ -560,7 +560,7 @@ implementation
 {****************************************************************************}
 
 uses
-  App, Memory, HistList, MsgBox, Resource;
+  App, {Memory,} HistList, MsgBox, Resource;
 
 type
 
@@ -1019,15 +1019,16 @@ begin
      if (S.Attr and Directory = 0) and
         MatchesMaskList(S.Name,WildName) then
      begin
-       P := MemAlloc(SizeOf(P^));
+{       P := MemAlloc(SizeOf(P^));
        if assigned(P) then
-       begin
+       begin} 
+         new(P);
          P^.Attr:=S.Attr;
          P^.Time:=S.Time;
          P^.Size:=S.Size;
          P^.Name:=S.Name;
          FileList^.Insert(P);
-       end;
+{       end;}
      end;
      FindNext(S);
    end;
@@ -1041,15 +1042,16 @@ begin
   begin
     if (S.Attr and Directory <> 0) and (S.Name <> '.') and (S.Name <> '..') then
     begin
-      P := MemAlloc(SizeOf(P^));
+{      P := MemAlloc(SizeOf(P^));
       if P <> nil then
-      begin
+      begin}
+        new(p);
         P^.Attr:=S.Attr;
         P^.Time:=S.Time;
         P^.Size:=S.Size;
         P^.Name:=S.Name;
         FileList^.Insert(P);
-      end;
+{      end;}
     end;
     FindNext(S);
   end;
@@ -1060,9 +1062,11 @@ begin
   if Length(Dir) > 4 then
  {$endif not Unix}
   begin
+{
     P := MemAlloc(SizeOf(P^));
     if P <> nil then
-    begin
+    begin}
+      new(p);
       FindFirst(Tmp, Directory, S);
       FindNext(S);
       if (DosError = 0) and (S.Name = PrevDir) then
@@ -1083,7 +1087,7 @@ begin
      {$ifdef fpc}
       FindClose(S);
      {$endif}
-    end;
+{    end;}
   end;
   if P = nil then
     MessageBox(strings^.get(sTooManyFiles), nil, mfOkButton + mfWarning);

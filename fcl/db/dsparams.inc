@@ -179,6 +179,7 @@ const
   ParamAllocStepSize = 8;
 
 var
+  IgnorePart:boolean;
   p,ParamNameStart,BufStart:PChar;
   ParamName:string;
   QuestionMarkParamCount,ParameterIndex,NewLength:integer;
@@ -251,21 +252,22 @@ begin
         end;
       ':','?': // parameter
         begin
-          Inc(ParamCount);
-          if ParamCount>Length(ParamPart) then
-          begin
-            NewLength:=Length(ParamPart)+ParamAllocStepSize;
-            SetLength(ParamPart,NewLength);
-            SetLength(ParamBinding,NewLength);
-          end;
-
+          IgnorePart := False;
           if p^=':' then
           begin // find parameter name
             Inc(p);
-            ParamNameStart:=p;
-            while not (p^ in (SQLDelimiterCharacters+[#0])) do
+            if p^=':' then  // ignore ::, since some databases uses this as a cast (wb 4813)
+            begin
+              IgnorePart := True;
               Inc(p);
-            ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
+            end
+            else
+            begin
+              ParamNameStart:=p;
+              while not (p^ in (SQLDelimiterCharacters+[#0])) do
+                Inc(p);
+              ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
+            end;
           end
           else
           begin
@@ -274,28 +276,39 @@ begin
             ParamName:='';
           end;
 
-          // create Parameter and assign ParameterIndex
-          if DoCreate then
-            ParameterIndex := CreateParam(ftUnknown, ParamName, ptInput).Index
-          // else find ParameterIndex
-          else
+          if not IgnorePart then
+          begin
+            Inc(ParamCount);
+            if ParamCount>Length(ParamPart) then
             begin
-              if ParamName<>'' then
-                ParameterIndex:=ParamByName(ParamName).Index
-              else
-              begin
-                ParameterIndex:=QuestionMarkParamCount;
-                Inc(QuestionMarkParamCount);
-              end;
+              NewLength:=Length(ParamPart)+ParamAllocStepSize;
+              SetLength(ParamPart,NewLength);
+              SetLength(ParamBinding,NewLength);
             end;
 
-          // store ParameterIndex in FParamIndex, ParamPart data
-          ParamBinding[ParamCount-1]:=ParameterIndex;
-          ParamPart[ParamCount-1].Start:=ParamNameStart-BufStart;
-          ParamPart[ParamCount-1].Stop:=p-BufStart+1;
+            // create Parameter and assign ParameterIndex
+            if DoCreate then
+              ParameterIndex := CreateParam(ftUnknown, ParamName, ptInput).Index
+            // else find ParameterIndex
+            else
+              begin
+                if ParamName<>'' then
+                  ParameterIndex:=ParamByName(ParamName).Index
+                else
+                begin
+                  ParameterIndex:=QuestionMarkParamCount;
+                  Inc(QuestionMarkParamCount);
+                end;
+              end;
 
-          // update NewQueryLength
-          Dec(NewQueryLength,p-ParamNameStart);
+            // store ParameterIndex in FParamIndex, ParamPart data
+            ParamBinding[ParamCount-1]:=ParameterIndex;
+            ParamPart[ParamCount-1].Start:=ParamNameStart-BufStart;
+            ParamPart[ParamCount-1].Stop:=p-BufStart+1;
+
+            // update NewQueryLength
+            Dec(NewQueryLength,p-ParamNameStart);
+          end;
         end;
       #0:Break;
     else
@@ -446,6 +459,15 @@ begin
     Result:=FValue;
 end;
 
+Function TParam.GetAsLargeInt: LargeInt;
+begin
+  If IsNull then
+    Result:=0
+  else
+    Result:=FValue;
+end;
+
+
 Function TParam.GetAsMemo: string;
 begin
   If IsNull then
@@ -534,6 +556,12 @@ Procedure TParam.SetAsInteger(AValue: Longint);
 begin
   FValue:=AValue;
   FDataType:=ftInteger;
+end;
+
+Procedure TParam.SetAsLargeInt(AValue: LargeInt);
+begin
+  FValue:=AValue;
+  FDataType:=ftLargeint;
 end;
 
 Procedure TParam.SetAsMemo(const AValue: string);

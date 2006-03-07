@@ -77,7 +77,7 @@ type
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetAsSQLText(Field : TField) : string; virtual;
-    function GetHandle : pointer; virtual; abstract;
+    function GetHandle : pointer; virtual; virtual;
 
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
@@ -99,10 +99,12 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;abstract;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
+    procedure StartTransaction; override;
+    procedure EndTransaction; override;
     property ConnOptions: TConnOptions read FConnOptions;
     procedure ExecuteDirect(SQL : String); overload; virtual;
     procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
@@ -311,6 +313,22 @@ begin
   inherited Destroy;
 end;
 
+procedure TSQLConnection.StartTransaction;
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet)
+  else
+    Transaction.StartTransaction;
+end;
+
+procedure TSQLConnection.EndTransaction;
+begin
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet)
+  else
+    Transaction.EndTransaction;
+end;
+
 Procedure TSQLConnection.ExecuteDirect(SQL: String);
 
 begin
@@ -402,6 +420,10 @@ begin
   end; {case}
 end;
 
+function TSQLConnection.GetHandle: pointer;
+begin
+  Result := nil;
+end;
 
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
@@ -409,6 +431,11 @@ begin
   DatabaseError(SMetadataUnavailable);
 end;
 
+function TSQLConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+
+begin
+  DatabaseErrorFmt(SUnsupportedFieldType,['Blob']);
+end;
 
 { TSQLTransaction }
 procedure TSQLTransaction.EndTransaction;
@@ -698,7 +725,8 @@ end;
 procedure TSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
-  if not IsPrepared then (database as TSQLconnection).UnPrepareStatement(FCursor);
+// Database and FCursor could be nil, for example if the database is not assigned, and .open is called
+  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then (database as TSQLconnection).UnPrepareStatement(FCursor);
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;

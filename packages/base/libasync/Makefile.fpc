@@ -16,6 +16,7 @@ fpcpackage=y
 sourcedir_linux=unix
 sourcedir_freebsd=unix
 sourcedir_darwin=unix
+sourcedir_solaris=unix
 sourcedir_netbsd=unix
 sourcedir_openbsd=unix
 

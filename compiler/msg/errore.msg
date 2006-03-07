@@ -998,7 +998,10 @@ parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of th
 % Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
-% Loop variables cannot be reals or strings.
+% Loop variables cannot be reals or strings. You can also not assign values to
+% loop variables inside the loop (except in Delphi and TP modes). Use a while or
+% repeat loop instead if you need to do something like that, since those
+% constructs were built for that.
 parser_e_no_local_var_external=03209_E_Can't declare local variable as EXTERNAL
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.

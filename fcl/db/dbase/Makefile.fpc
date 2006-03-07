@@ -36,10 +36,16 @@ units=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
 
 [prerules]
 # dbf_Wtil is needed on all targets except win32
-ifeq ($(CPU_TARGET),i386)
 ifneq ($(OS_TARGET),win32)
+
+ifeq ($(CPU_TARGET),i386)
 INSTALL_UNITS+=dbf_wtil
 CLEAN_UNITS+=dbf_wtil
 endif
+
+ifeq ($(CPU_TARGET),x86_64)
+INSTALL_UNITS+=dbf_wtil
+CLEAN_UNITS+=dbf_wtil
 endif
 
+endif

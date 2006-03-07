@@ -45,8 +45,8 @@ begin
     SQL.Add('  1,                         ');
     SQL.Add('  ''Florian Klaempfl'',      ');
     SQL.Add('  ''florian@freepascal.org'',');
-    SQL.Add('  ''1-1-1975''               ');
-    SQL.Add(');                           ');
+    SQL.Add('  ''1-jan-1975''               ');
+    SQL.Add(')                            ');
 
     ExecSql;
 

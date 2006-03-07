@@ -130,15 +130,15 @@ begin
       begin
         for I := 1 to Length (Pa) do
           if Pa [I] = '/' then
-            Pa [I] := DirectorySeparator
+            Pa [I] := '\'
       end
     else
-      if DirectorySeparator = '\' then
+      if DirectorySeparator = '/' then
     {Allow backslash as slash}
         begin
           for I := 1 to Length (Pa) do
             if Pa [I] = '\' then
-              Pa [I] := DirectorySeparator;
+              Pa [I] := '/';
         end;
 
 (* PathStart is amount of characters to strip to get beginning *)

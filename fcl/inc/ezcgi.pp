@@ -79,10 +79,6 @@ type
 
 implementation
 
-{ *********** Include OS-dependent Getenv Call ************ }
-
-{$I ezcgi.inc}
-
 { *********** Public Methods *************** }
 
 constructor TEZcgi.Create;
@@ -144,7 +140,7 @@ procedure TEZcgi.LoadEnvVariables;
       tempStr : String;
    begin
       // This is a system dependent call !!
-      tempStr := GetEnv(variable);
+      tempStr := GetEnvironmentVariable(variable);
       if tempStr <> '' then
          FVariables.Add(variable + '=' + tempStr);
    end;

@@ -1,194 +1,215 @@
+type standard_string=record
+       nr:word;
+       text:Pchar;
+     end;
+
+const standard_string_count=106;
+      standard_strings:array[0..standard_string_count-1] of standard_string=(
+          (nr:sButtonDefault;text:'Button default'),
+          (nr:sButtonDisabled;text:'Button disabled'),
+          (nr:sButtonNormal;text:'Button normal'),
+          (nr:sButtonSelected;text:'Button selected'),
+          (nr:sButtonShadow;text:'Button shadow'),
+          (nr:sButtonShortcut;text:'Button shortcut'),
+          (nr:sChangeDirectory;text:'Change Directory'),
+          (nr:sClipboard;text:'Clipboard'),
+          (nr:sClusterNormal;text:'Cluster normal'),
+          (nr:sClusterSelected;text:'Cluster selected'),
+          (nr:sClusterShortcut;text:'Cluster shortcut'),
+          (nr:sColor;text:'Color'),
+          (nr:sColors;text:'Colors'),
+          (nr:sConfirm;text:'Confirm'),
+          (nr:sDeleteFile;text:'Delete file?'#13#10#13#3'%s'),
+          (nr:sDirectory;text:'Directory'),
+          (nr:sDisabled;text:'Disabled'),
+          (nr:sDrives;text:'Drives'),
+          (nr:sError;text:'Error'),
+          (nr:sFileAlreadyOpen;text:''#3'%s'#13#10#13#3'is already open in window %d.'),
+          (nr:sFileCreateError;text:'Error creating file %s'),
+          (nr:sFileReadError;text:'Error reading file %s'),
+          (nr:sFileUntitled;text:'Save untitled file?'),
+          (nr:sFileWriteError;text:'Error writing to file %s'),
+          (nr:sFind;text:'Find'),
+          (nr:sFrameActive;text:'Frame active'),
+          (nr:sFrameBackground;text:'Frame/background'),
+          (nr:sFrameIcons;text:'Frame icons'),
+          (nr:sFramePassive;text:'Frame passive'),
+          (nr:sHighlight;text:'Highlight'),
+          (nr:sHistoryBarIcons;text:'History bar icons'),
+          (nr:sHistoryBarPage;text:'History bar page'),
+          (nr:sHistoryButton;text:'History button'),
+          (nr:sHistorySides;text:'History sides'),
+          (nr:sInformation;text:'Information'),
+          (nr:sInformationPane;text:'Information pane'),
+          (nr:sInputArrow;text:'Input arrow'),
+          (nr:sInputNormal;text:'Input normal'),
+          (nr:sInputSelected;text:'Input selected'),
+          (nr:sInvalidCharacter;text:'Invalid character in input'),
+          (nr:sInvalidDirectory;text:'Invalid directory.'),
+          (nr:sInvalidDriveOrDir;text:'Invalid drive or directory.'),
+          (nr:sInvalidFileName;text:'Invalid file name.'),
+          (nr:sInvalidPicture;text:'Input does not conform to picture: %s'),
+          (nr:sInvalidValue;text:'Value not in the range %d to %d'),
+          (nr:sInverse;text:'Inverse'),
+          (nr:sJumpTo;text:'Jump To'),
+          (nr:sLabelNormal;text:'Label normal'),
+          (nr:sLabelSelected;text:'Label selected'),
+          (nr:sLabelShortcut;text:'Label shortcut'),
+          (nr:sListDivider;text:'List divider'),
+          (nr:sListFocused;text:'List focused'),
+          (nr:sListNormal;text:'List normal'),
+          (nr:sListSelected;text:'List selected'),
+          (nr:sModified;text:''#3'%s'#13#10#13#3'has been modified.  Save?'),
+          (nr:sNoName;text:'NONAME'),
+          (nr:sNormal;text:'Normal'),
+          (nr:sNormalText;text:'Normal text'),
+          (nr:sNotInList;text:'Input not in valid-list'),
+          (nr:sOpen;text:'Open'),
+          (nr:sOutOfMemory;text:'Not enough memory for this operation.'),
+          (nr:sOutOfUnNamedWindows;text:'Out of unnamed window numbers.  Save or discard some unnamed files and try again.'),
+          (nr:sPasteNotPossible;text:'Wordwrap on:  Paste not possible in current margins when at end of line.'),
+          (nr:sReformatDocument;text:'Reformat Document'),
+          (nr:sReformatNotPossible;text:'Paragraph reformat not possible while trying to wrap current line with current margins.'),
+          (nr:sReformattingTheDocument;text:'Reformatting the document:'),
+          (nr:sReplace;text:'Replace'),
+          (nr:sReplaceFile;text:'Replace file?'#13#10#13#3'%s'),
+          (nr:sReplaceNotPossible;text:'Wordwrap on:  Replace not possible in current margins when at end of line.'),
+          (nr:sReplaceThisOccurence;text:'Replace this occurence?'),
+          (nr:sRightMargin;text:'Right Margin'),
+          (nr:sSaveAs;text:'Save As'),
+          (nr:sScrollbarIcons;text:'Scroll bar icons'),
+          (nr:sScrollbarPage;text:'Scroll bar page'),
+          (nr:sSearchStringNotFound;text:'Search string not found.'),
+          (nr:sSelectFormatStart;text:'Select Format Start'),
+          (nr:sSelectWhereToBegin;text:'Please select where to begin.'),
+          (nr:sSelected;text:'Selected'),
+          (nr:sSelectedDisabled;text:'Selected disabled'),
+          (nr:sSetting;text:'Setting:'),
+          (nr:sShortcut;text:'Shortcut'),
+          (nr:sShortcutSelected;text:'ShortcutSelected'),
+          (nr:sStaticText;text:'Static text'),
+          (nr:sTabSettings;text:'Tab Settings'),
+          (nr:sText;text:'Text'),
+          (nr:sTooManyFiles;text:'Too many files.'),
+          (nr:sTypeExitOnReturn;text:'Type EXIT to return...'),
+          (nr:sUnderline;text:'Underline'),
+          (nr:sUnknownDialog;text:'Unknown dialog requested!'),
+          (nr:sUntitled;text:'Untitled'),
+          (nr:sWarning;text:'Warning'),
+          (nr:sWindowList;text:'Window List'),
+          (nr:sWordWrapNotPossible;text:'Wordwrap on:  Wordwrap not possible in current margins with continuous line.'),
+          (nr:sWordWrapOff;text:'You must turn on wordwrap before you can reformat.'),
+          (nr:smApr;text:'Apr'),
+          (nr:smAug;text:'Aug'),
+          (nr:smDec;text:'Dec'),
+          (nr:smFeb;text:'Feb'),
+          (nr:smJan;text:'Jan'),
+          (nr:smJul;text:'Jul'),
+          (nr:smJun;text:'Jun'),
+          (nr:smMar;text:'Mar'),
+          (nr:smMay;text:'May'),
+          (nr:smNov;text:'Nov'),
+          (nr:smOct;text:'Oct'),
+          (nr:smSep;text:'Sep'));
+
 procedure InitResStrings;
+
+var i:word;
+
 begin
-  Strings^.Put(sButtonDefault,'Button default');
-  Strings^.Put(sButtonDisabled,'Button disabled');
-  Strings^.Put(sButtonNormal,'Button normal');
-  Strings^.Put(sButtonSelected,'Button selected');
-  Strings^.Put(sButtonShadow,'Button shadow');
-  Strings^.Put(sButtonShortcut,'Button shortcut');
-  Strings^.Put(sChangeDirectory,'Change Directory');
-  Strings^.Put(sClipboard,'Clipboard');
-  Strings^.Put(sClusterNormal,'Cluster normal');
-  Strings^.Put(sClusterSelected,'Cluster selected');
-  Strings^.Put(sClusterShortcut,'Cluster shortcut');
-  Strings^.Put(sColor,'Color');
-  Strings^.Put(sColors,'Colors');
-  Strings^.Put(sConfirm,'Confirm');
-  Strings^.Put(sDeleteFile,'Delete file?'#13#10#13#3'%s');
-  Strings^.Put(sDirectory,'Directory');
-  Strings^.Put(sDisabled,'Disabled');
-  Strings^.Put(sDrives,'Drives');
-  Strings^.Put(sError,'Error');
-  Strings^.Put(sFileAlreadyOpen,''#3'%s'#13#10#13#3'is already open in window %d.');
-  Strings^.Put(sFileCreateError,'Error creating file %s');
-  Strings^.Put(sFileReadError,'Error reading file %s');
-  Strings^.Put(sFileUntitled,'Save untitled file?');
-  Strings^.Put(sFileWriteError,'Error writing to file %s');
-  Strings^.Put(sFind,'Find');
-  Strings^.Put(sFrameActive,'Frame active');
-  Strings^.Put(sFrameBackground,'Frame/background');
-  Strings^.Put(sFrameIcons,'Frame icons');
-  Strings^.Put(sFramePassive,'Frame passive');
-  Strings^.Put(sHighlight,'Highlight');
-  Strings^.Put(sHistoryBarIcons,'History bar icons');
-  Strings^.Put(sHistoryBarPage,'History bar page');
-  Strings^.Put(sHistoryButton,'History button');
-  Strings^.Put(sHistorySides,'History sides');
-  Strings^.Put(sInformation,'Information');
-  Strings^.Put(sInformationPane,'Information pane');
-  Strings^.Put(sInputArrow,'Input arrow');
-  Strings^.Put(sInputNormal,'Input normal');
-  Strings^.Put(sInputSelected,'Input selected');
-  Strings^.Put(sInvalidCharacter,'Invalid character in input');
-  Strings^.Put(sInvalidDirectory,'Invalid directory.');
-  Strings^.Put(sInvalidDriveOrDir,'Invalid drive or directory.');
-  Strings^.Put(sInvalidFileName,'Invalid file name.');
-  Strings^.Put(sInvalidPicture,'Input does not conform to picture: %s');
-  Strings^.Put(sInvalidValue,'Value not in the range %d to %d');
-  Strings^.Put(sInverse,'Inverse');
-  Strings^.Put(sJumpTo,'Jump To');
-  Strings^.Put(sLabelNormal,'Label normal');
-  Strings^.Put(sLabelSelected,'Label selected');
-  Strings^.Put(sLabelShortcut,'Label shortcut');
-  Strings^.Put(sListDivider,'List divider');
-  Strings^.Put(sListFocused,'List focused');
-  Strings^.Put(sListNormal,'List normal');
-  Strings^.Put(sListSelected,'List selected');
-  Strings^.Put(sModified,''#3'%s'#13#10#13#3'has been modified.  Save?');
-  Strings^.Put(sNoName,'NONAME');
-  Strings^.Put(sNormal,'Normal');
-  Strings^.Put(sNormalText,'Normal text');
-  Strings^.Put(sNotInList,'Input not in valid-list');
-  Strings^.Put(sOpen,'Open');
-  Strings^.Put(sOutOfMemory,'Not enough memory for this operation.');
-  Strings^.Put(sOutOfUnNamedWindows,'Out of unnamed window numbers.  Save or discard some unnamed files and try again.');
-  Strings^.Put(sPasteNotPossible,'Wordwrap on:  Paste not possible in current margins when at end of line.');
-  Strings^.Put(sReformatDocument,'Reformat Document');
-  Strings^.Put(sReformatNotPossible,'Paragraph reformat not possible while trying to wrap current line with current margins.');
-  Strings^.Put(sReformattingTheDocument,'Reformatting the document:');
-  Strings^.Put(sReplace,'Replace');
-  Strings^.Put(sReplaceFile,'Replace file?'#13#10#13#3'%s');
-  Strings^.Put(sReplaceNotPossible,'Wordwrap on:  Replace not possible in current margins when at end of line.');
-  Strings^.Put(sReplaceThisOccurence,'Replace this occurence?');
-  Strings^.Put(sRightMargin,'Right Margin');
-  Strings^.Put(sSaveAs,'Save As');
-  Strings^.Put(sScrollbarIcons,'Scroll bar icons');
-  Strings^.Put(sScrollbarPage,'Scroll bar page');
-  Strings^.Put(sSearchStringNotFound,'Search string not found.');
-  Strings^.Put(sSelectFormatStart,'Select Format Start');
-  Strings^.Put(sSelectWhereToBegin,'Please select where to begin.');
-  Strings^.Put(sSelected,'Selected');
-  Strings^.Put(sSelectedDisabled,'Selected disabled');
-  Strings^.Put(sSetting,'Setting:');
-  Strings^.Put(sShortcut,'Shortcut');
-  Strings^.Put(sShortcutSelected,'ShortcutSelected');
-  Strings^.Put(sStaticText,'Static text');
-  Strings^.Put(sTabSettings,'Tab Settings');
-  Strings^.Put(sText,'Text');
-  Strings^.Put(sTooManyFiles,'Too many files.');
-  Strings^.Put(sTypeExitOnReturn,'Type EXIT to return...');
-  Strings^.Put(sUnderline,'Underline');
-  Strings^.Put(sUnknownDialog,'Unknown dialog requested!');
-  Strings^.Put(sUntitled,'Untitled');
-  Strings^.Put(sWarning,'Warning');
-  Strings^.Put(sWindowList,'Window List');
-  Strings^.Put(sWordWrapNotPossible,'Wordwrap on:  Wordwrap not possible in current margins with continuous line.');
-  Strings^.Put(sWordWrapOff,'You must turn on wordwrap before you can reformat.');
-  Strings^.Put(smApr,'Apr');
-  Strings^.Put(smAug,'Aug');
-  Strings^.Put(smDec,'Dec');
-  Strings^.Put(smFeb,'Feb');
-  Strings^.Put(smJan,'Jan');
-  Strings^.Put(smJul,'Jul');
-  Strings^.Put(smJun,'Jun');
-  Strings^.Put(smMar,'Mar');
-  Strings^.Put(smMay,'May');
-  Strings^.Put(smNov,'Nov');
-  Strings^.Put(smOct,'Oct');
-  Strings^.Put(smSep,'Sep');
+  for i:=0 to standard_string_count-1 do
+    strings^.put(standard_strings[i].nr,strpas(standard_strings[i].text));
 end;
 
+const standard_label_count=81;
+      standard_labels:array[0..standard_label_count-1] of standard_string=(
+          (nr:slAbout;text:'~A~bout'),
+          (nr:slAltF1;text:'Alt+F1'),
+          (nr:slAltF3Close;text:'~Alt+F3~ Close'),
+          (nr:slAltXExit;text:'~Alt-X~ Exit'),
+          (nr:slBackground;text:'~B~ackground'),
+          (nr:slCancel;text:'Cancel'),
+          (nr:slCascade;text:'C~a~scade'),
+          (nr:slCaseSensitive;text:'~C~ase sensitive'),
+          (nr:slChDir;text:'~C~hdir'),
+          (nr:slChangeDir;text:'~C~hange dir...'),
+          (nr:slClear;text:'C~l~ear'),
+          (nr:slClose;text:'~C~lose'),
+          (nr:slCloseAll;text:'Cl~o~se all'),
+          (nr:slColor;text:'~C~olor'),
+          (nr:slContents;text:'~C~ontents'),
+          (nr:slCopy;text:'~C~opy'),
+          (nr:slCtrlF1;text:'Ctrl+F1'),
+          (nr:slCurrentLine;text:'~C~urrent line'),
+          (nr:slCut;text:'Cu~t~'),
+          (nr:slDOSShell;text:'~D~OS shell'),
+          (nr:slDelete;text:'~D~elete'),
+          (nr:slDirectoryName;text:'Directory ~n~ame'),
+          (nr:slDirectoryTree;text:'Directory ~t~ree'),
+          (nr:slEdit;text:'~E~dit'),
+          (nr:slEntireDocument;text:'~E~ntire document'),
+          (nr:slExit;text:'E~x~it'),
+          (nr:slF10Menu;text:'~F10~ Menu'),
+          (nr:slF1Help;text:'~F1~ Help'),
+          (nr:slF3Open;text:'~F3~ Open'),
+          (nr:slFile;text:'~F~ile'),
+          (nr:slFiles;text:'~F~iles'),
+          (nr:slForeground;text:'~F~oreground'),
+          (nr:slGroup;text:'~G~roup'),
+          (nr:slHelp;text:'~H~elp'),
+          (nr:slIndex;text:'~I~ndex'),
+          (nr:slItem;text:'~I~tem'),
+          (nr:slLineNumber;text:'~L~ine number'),
+          (nr:slName;text:'~N~ame'),
+          (nr:slNew;text:'~N~ew'),
+          (nr:slNewText;text:'~N~ew text'),
+          (nr:slNext;text:'~N~ext'),
+          (nr:slNo;text:'~N~o'),
+          (nr:slOk;text:'O~k~'),
+          (nr:slOpen;text:'~O~pen'),
+          (nr:slOpenDots;text:'~O~pen...'),
+          (nr:slPaste;text:'~P~aste'),
+          (nr:slPrevious;text:'~P~revious'),
+          (nr:slPreviousTopic;text:'~P~revious topic'),
+          (nr:slPromptOnReplace;text:'~P~rompt on replace'),
+          (nr:slReformatDocument;text:'~R~eformat document'),
+          (nr:slReplace;text:'~R~eplace'),
+          (nr:slReplaceAll;text:'~R~eplace all'),
+          (nr:slRevert;text:'~R~evert'),
+          (nr:slSave;text:'~S~ave'),
+          (nr:slSaveAll;text:'Save a~l~l'),
+          (nr:slSaveAs;text:'S~a~ve as...'),
+          (nr:slSaveFileAs;text:'~S~ave file as'),
+          (nr:slShiftF1;text:'Shift+F1'),
+          (nr:slSizeMove;text:'~S~ize/Move'),
+          (nr:slTextToFind;text:'~T~ext to find'),
+          (nr:slTile;text:'~T~ile'),
+          (nr:slTopicSearch;text:'~T~opic search'),
+          (nr:slUndo;text:'~U~ndo'),
+          (nr:slUsingHelp;text:'~U~sing help'),
+          (nr:slWholeWordsOnly;text:'~W~hole words only'),
+          (nr:slWindow;text:'~W~indow'),
+          (nr:slWindows;text:'~W~indows'),
+          (nr:slYes;text:'~Y~es'),
+          (nr:slZoom;text:'~Z~oom'),
+          (nr:slAltF3;text:'Alt+F3'),
+          (nr:slAltX;text:'Alt+X'),
+          (nr:slF2;text:'F2'),
+          (nr:slF3;text:'F3'),
+          (nr:slF5;text:'F5'),
+          (nr:slF6;text:'F6'),
+          (nr:slCtrlDel;text:'Ctrl+Del'),
+          (nr:slCtrlF5;text:'Ctrl+F5'),
+          (nr:slCtrlIns;text:'Ctrl+Ins'),
+          (nr:slShiftDel;text:'Shift+Del'),
+          (nr:slShiftF6;text:'Shift+F6'),
+          (nr:slShiftIns;text:'Shift+Ins'));
+
 procedure InitResLabels;
+
+var i:word;
+
 begin
-  Labels^.Put(slAbout,'~A~bout');
-  Labels^.Put(slAltF1,'Alt+F1');
-  Labels^.Put(slAltF3Close,'~Alt+F3~ Close');
-  Labels^.Put(slAltXExit,'~Alt-X~ Exit');
-  Labels^.Put(slBackground,'~B~ackground');
-  Labels^.Put(slCancel,'Cancel');
-  Labels^.Put(slCascade,'C~a~scade');
-  Labels^.Put(slCaseSensitive,'~C~ase sensitive');
-  Labels^.Put(slChDir,'~C~hdir');
-  Labels^.Put(slChangeDir,'~C~hange dir...');
-  Labels^.Put(slClear,'C~l~ear');
-  Labels^.Put(slClose,'~C~lose');
-  Labels^.Put(slCloseAll,'Cl~o~se all');
-  Labels^.Put(slColor,'~C~olor');
-  Labels^.Put(slContents,'~C~ontents');
-  Labels^.Put(slCopy,'~C~opy');
-  Labels^.Put(slCtrlF1,'Ctrl+F1');
-  Labels^.Put(slCurrentLine,'~C~urrent line');
-  Labels^.Put(slCut,'Cu~t~');
-  Labels^.Put(slDOSShell,'~D~OS shell');
-  Labels^.Put(slDelete,'~D~elete');
-  Labels^.Put(slDirectoryName,'Directory ~n~ame');
-  Labels^.Put(slDirectoryTree,'Directory ~t~ree');
-  Labels^.Put(slEdit,'~E~dit');
-  Labels^.Put(slEntireDocument,'~E~ntire document');
-  Labels^.Put(slExit,'E~x~it');
-  Labels^.Put(slF10Menu,'~F10~ Menu');
-  Labels^.Put(slF1Help,'~F1~ Help');
-  Labels^.Put(slF3Open,'~F3~ Open');
-  Labels^.Put(slFile,'~F~ile');
-  Labels^.Put(slFiles,'~F~iles');
-  Labels^.Put(slForeground,'~F~oreground');
-  Labels^.Put(slGroup,'~G~roup');
-  Labels^.Put(slHelp,'~H~elp');
-  Labels^.Put(slIndex,'~I~ndex');
-  Labels^.Put(slItem,'~I~tem');
-  Labels^.Put(slLineNumber,'~L~ine number');
-  Labels^.Put(slName,'~N~ame');
-  Labels^.Put(slNew,'~N~ew');
-  Labels^.Put(slNewText,'~N~ew text');
-  Labels^.Put(slNext,'~N~ext');
-  Labels^.Put(slNo,'~N~o');
-  Labels^.Put(slOk,'O~k~');
-  Labels^.Put(slOpen,'~O~pen');
-  Labels^.Put(slOpenDots,'~O~pen...');
-  Labels^.Put(slPaste,'~P~aste');
-  Labels^.Put(slPrevious,'~P~revious');
-  Labels^.Put(slPreviousTopic,'~P~revious topic');
-  Labels^.Put(slPromptOnReplace,'~P~rompt on replace');
-  Labels^.Put(slReformatDocument,'~R~eformat document');
-  Labels^.Put(slReplace,'~R~eplace');
-  Labels^.Put(slReplaceAll,'~R~eplace all');
-  Labels^.Put(slRevert,'~R~evert');
-  Labels^.Put(slSave,'~S~ave');
-  Labels^.Put(slSaveAll,'Save a~l~l');
-  Labels^.Put(slSaveAs,'S~a~ve as...');
-  Labels^.Put(slSaveFileAs,'~S~ave file as');
-  Labels^.Put(slShiftF1,'Shift+F1');
-  Labels^.Put(slSizeMove,'~S~ize/Move');
-  Labels^.Put(slTextToFind,'~T~ext to find');
-  Labels^.Put(slTile,'~T~ile');
-  Labels^.Put(slTopicSearch,'~T~opic search');
-  Labels^.Put(slUndo,'~U~ndo');
-  Labels^.Put(slUsingHelp,'~U~sing help');
-  Labels^.Put(slWholeWordsOnly,'~W~hole words only');
-  Labels^.Put(slWindow,'~W~indow');
-  Labels^.Put(slWindows,'~W~indows');
-  Labels^.Put(slYes,'~Y~es');
-  Labels^.Put(slZoom,'~Z~oom');
-  Labels^.Put(slAltF3,'Alt+F3');
-  Labels^.Put(slAltX,'Alt+X');
-  Labels^.Put(slF2,'F2');
-  Labels^.Put(slF3,'F3');
-  Labels^.Put(slF5,'F5');
-  Labels^.Put(slF6,'F6');
-  Labels^.Put(slCtrlDel,'Ctrl+Del');
-  Labels^.Put(slCtrlF5,'Ctrl+F5');
-  Labels^.Put(slCtrlIns,'Ctrl+Ins');
-  Labels^.Put(slShiftDel,'Shift+Del');
-  Labels^.Put(slShiftF6,'Shift+F6');
-  Labels^.Put(slShiftIns,'Shift+Ins');
+  for i:=0 to standard_label_count-1 do
+    strings^.put(standard_labels[i].nr,strpas(standard_labels[i].text));
 end;

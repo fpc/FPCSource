@@ -1,0 +1,19 @@
+Here you can find some unmaintained database-units. They will be 
+removed from fpc in the near future, so please do not use this
+units in new projects.
+
+The interbase, odbc and mysql components in here are replaced
+by the sqldb package. 
+
+The sqlitedataset unit is replaced by the sqliteds units.
+
+The ddg units were only made to test the DB main classes, since
+there was no good TDataset descendents to test with. At this 
+moment there are enough descendents to test with, which makes
+these units obsolete.
+
+Note that odbc and sqlite aren't even in the makefile, since
+they won't compile.
+
+
+Joost van der Sluis, joost@cnoc.nl, feb 2006

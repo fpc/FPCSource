@@ -46,10 +46,16 @@ begin
 
     for i := 5 to 7 do
       begin
-      sql[1] := 'values ('+inttostr(i)+ ', ' +
-                      '''' +FPdevNames[i]+ ''', ' +
-                      '''' +FPdevEmails[i]+ ''', ' +
-                      '''' +FormatDateTime('MM-DD-YYYY',FPdevBirthDates[i])+ ''')';
+      if dbtype <> 'oracle' then
+        sql[1] := 'values ('+inttostr(i)+ ', ' +
+                        '''' +FPdevNames[i]+ ''', ' +
+                        '''' +FPdevEmails[i]+ ''', ' +
+                        '''' +FormatDateTime('MM-DD-YYYY',FPdevBirthDates[i])+ ''')'
+      else
+        sql[1] := 'values ('+inttostr(i)+ ', ' +
+                        '''' +FPdevNames[i]+ ''', ' +
+                        '''' +FPdevEmails[i]+ ''', ' +
+                        '''' +FormatDateTime('DD-MMM-YYYY',FPdevBirthDates[i])+ ''')';
       ExecSql;
       end;
 

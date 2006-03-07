@@ -24,4 +24,4 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..

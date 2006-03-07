@@ -63,7 +63,7 @@ interface
 uses
   SysUtils,
   {$IFDEF Win32}
-  Windows
+  Windows, dynlibs
   {$ELSE Win32}
   {$IFDEF MorphOS}
   TinyGL
@@ -74,7 +74,7 @@ uses
 
 {$IFNDEF MORPHOS}
 var
-  LibGL: THandle;
+  LibGL: TLibHandle;
 {$ENDIF MORPHOS}
 
 type
@@ -1917,7 +1917,8 @@ begin
   @ChoosePixelFormat := nil;
   {$ENDIF}
 
-  FreeLibrary(LibGL);
+  if (LibGL <> 0) then
+    FreeLibrary(LibGL);
 {$ENDIF MORPHOS}
 end;
 
