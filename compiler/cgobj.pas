@@ -1673,6 +1673,7 @@ implementation
         if (todef.deftype = arraydef) then
           todef := tarraydef(todef).rangetype.def;
         { no range check if from and to are equal and are both longint/dword }
+        { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }
         { operations can at most cause overflows (JM)                        }
         { Note that these checks are mostly processor independent, they only }
@@ -1685,7 +1686,10 @@ implementation
                (hfrom = high(int64))) or
               ((torddef(fromdef).typ = u64bit) and
                (lfrom = low(qword)) and
-               (hfrom = high(qword)))))) then
+               (hfrom = high(qword))) or
+              ((torddef(fromdef).typ = scurrency) and
+               (lfrom = low(int64)) and
+               (hfrom = high(int64)))))) then
           exit;
 {$else cpu64bit}
         if (fromdef = todef) and
@@ -1723,14 +1727,20 @@ implementation
 {$endif}
                 if to_signed then
                   begin
-                    if (lto = (-(int64(1) << (tosize * 4)))) and
-                       (hto = (int64(1) << (tosize * 4) - 1)) then
+                    { calculation of the low/high ranges must not overflow 64 bit 
+                     otherwise we end up comparing with zero for 64 bit data types on
+                     64 bit processors }
+                    if (lto = (int64(-1) << (tosize * 8 - 1))) and
+                       (hto = (-((int64(-1) << (tosize * 8 - 1))+1))) then
                       exit
                   end
                 else
                   begin
+                    { calculation of the low/high ranges must not overflow 64 bit 
+                     otherwise we end up having all zeros for 64 bit data types on
+                     64 bit processors }
                     if (lto = 0) and
-                       (qword(hto) = qword((int64(1) << (tosize * 8)) - 1)) then
+                       (qword(hto) = (qword(-1) >> (64-(tosize * 8))) ) then
                       exit
                   end;
 {$ifdef overflowon}
