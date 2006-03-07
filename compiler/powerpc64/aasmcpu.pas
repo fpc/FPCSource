@@ -464,7 +464,7 @@ procedure fixup_jmps(list: taasmoutput);
 var
   p: tai;
   newjmp: taicpu;
-  labelpositions: TFPObjectList;
+  labelpositions: TFPList;
   instrpos: ptrint;
   l: tasmlabel;
   inserted_something: boolean;
@@ -472,7 +472,7 @@ begin
   // if certainly not enough instructions to cause an overflow, don't bother
   if (list.count <= (high(smallint) div 4)) then
     exit;
-  labelpositions := tlist.create;
+  labelpositions := TFPList.create;
   p := tai(list.first);
   instrpos := 1;
   // record label positions
