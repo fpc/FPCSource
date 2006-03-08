@@ -3665,6 +3665,8 @@ rtl/darwin/Makefile.fpc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain
 rtl/darwin/errno.inc svneol=native#text/plain
 rtl/darwin/errnostr.inc -text
+rtl/darwin/i386/sig_cpu.inc -text
+rtl/darwin/i386/sighnd.inc -text
 rtl/darwin/pmutext.inc svneol=native#text/plain
 rtl/darwin/powerpc/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/powerpc/sighnd.inc svneol=native#text/plain
