@@ -215,10 +215,16 @@ implementation
     const
 {$ifdef i386}
        COFF_MAGIC = $14c;
+       COFF_OPT_MAGIC   = $10b;
 {$endif i386}
 {$ifdef arm}
        COFF_MAGIC = $1c0;
+       COFF_OPT_MAGIC   = $10b;
 {$endif arm}
+{$ifdef x86_64}
+       COFF_MAGIC = $14c;
+       COFF_OPT_MAGIC   = $20b;
+{$endif x86_64}
 
        COFF_FLAG_NORELOCS = $0001;
        COFF_FLAG_EXE      = $0002;
@@ -247,7 +253,7 @@ implementation
        COFF_STYP_BSS    = $0080;
 
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
-       PE_SUBSYSTEM_WINDOWS_CUI	   = 3;
+       PE_SUBSYSTEM_WINDOWS_CUI    = 3;
        PE_SUBSYSTEM_WINDOWS_CE_GUI = 9;
 
        PE_FILE_RELOCS_STRIPPED         = $0001;
@@ -346,8 +352,10 @@ implementation
          bsize : longint;
          entry : longint;
          text_start : longint;
+{$ifndef x86_64}
          data_start : longint;
-         ImageBase : longint;
+{$endif x86_64}
+         ImageBase : aint;
          SectionAlignment : longint;
          FileAlignment : longint;
          MajorOperatingSystemVersion : word;
@@ -362,10 +370,10 @@ implementation
          CheckSum : longint;
          Subsystem : word;
          DllCharacteristics : word;
-         SizeOfStackReserve : longint;
-         SizeOfStackCommit : longint;
-         SizeOfHeapReserve : longint;
-         SizeOfHeapCommit : longint;
+         SizeOfStackReserve : aint;
+         SizeOfStackCommit : aint;
+         SizeOfHeapReserve : aint;
+         SizeOfHeapCommit : aint;
          LoaderFlags : longint;
          NumberOfRvaAndSizes : longint;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of coffpedatadir;
@@ -1867,12 +1875,14 @@ const win32stub : array[0..131] of byte=(
         if win32 then
           begin
             fillchar(peoptheader,sizeof(peoptheader),0);
-            peoptheader.magic:=$10b;
+            peoptheader.magic:=COFF_OPT_MAGIC;
             peoptheader.tsize:=TextExeSec.Size;
             peoptheader.dsize:=DataExeSec.Size;
             peoptheader.bsize:=BSSExeSec.Size;
             peoptheader.text_start:=TextExeSec.mempos;
+{$ifndef x86_64}
             peoptheader.data_start:=DataExeSec.mempos;
+{$endif x86_64}
             peoptheader.entry:=EntrySym.Address;
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
@@ -1913,7 +1923,7 @@ const win32stub : array[0..131] of byte=(
         else
           begin
             fillchar(djoptheader,sizeof(djoptheader),0);
-            djoptheader.magic:=$10b;
+            djoptheader.magic:=COFF_OPT_MAGIC;
             djoptheader.tsize:=TextExeSec.Size;
             djoptheader.dsize:=DataExeSec.Size;
             djoptheader.bsize:=BSSExeSec.Size;
@@ -2073,10 +2083,10 @@ const win32stub : array[0..131] of byte=(
           internalobjdata.writebytes(afuncname[1],length(afuncname));
           internalobjdata.writebytes(emptyint,1);
           internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
-          { idata4, ref to import data }
+          { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
           internalobjdata.writereloc(0,sizeof(aint),idata6label,RELOC_RVA);
-          { idata5, import address }
+          { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
           idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
           internalobjdata.writereloc(0,sizeof(aint),idata6label,RELOC_RVA);
