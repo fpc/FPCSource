@@ -127,6 +127,8 @@ unit cgx86;
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
+
+        function get_darwin_call_stub(const s: string): tasmsymbol;
       end;
 
    const
@@ -539,22 +541,57 @@ unit cgx86;
       end;
 
 
+    function tcgx86.get_darwin_call_stub(const s: string): tasmsymbol;
+      var
+        stubname: string;
+        href: treference;
+        l1: tasmsymbol;
+      begin
+        stubname := 'L'+s+'$stub';
+        result := objectlibrary.getasmsymbol(stubname);
+        if assigned(result) then
+          exit;
+
+        if asmlist[al_imports]=nil then
+          asmlist[al_imports]:=TAAsmoutput.create;
+
+        asmlist[al_imports].concat(Tai_section.create(sec_stub,'',0));
+        result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
+        asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        asmlist[al_imports].concat(Tai_symbol.Create(result,0));
+        asmlist[al_imports].concat(taicpu.op_none(A_HLT));
+        asmlist[al_imports].concat(taicpu.op_none(A_HLT));
+        asmlist[al_imports].concat(taicpu.op_none(A_HLT));
+        asmlist[al_imports].concat(taicpu.op_none(A_HLT));
+        asmlist[al_imports].concat(taicpu.op_none(A_HLT));
+      end;
+
+
     procedure tcgx86.a_call_name(list : taasmoutput;const s : string);
       var
         sym : tasmsymbol;
         r : treference;
       begin
-        sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
-        reference_reset_symbol(r,sym,0);
-        if cs_create_pic in aktmoduleswitches then
+ 
+        if (target_info.system <> system_i386_darwin) then
           begin
+            sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+            reference_reset_symbol(r,sym,0);
+            if cs_create_pic in aktmoduleswitches then
+              begin
 {$ifdef i386}
-            include(current_procinfo.flags,pi_needs_got);
+                include(current_procinfo.flags,pi_needs_got);
 {$endif i386}
-            r.refaddr:=addr_pic
+                r.refaddr:=addr_pic
+              end
+            else
+              r.refaddr:=addr_full;
           end
         else
-          r.refaddr:=addr_full;
+          begin
+            reference_reset_symbol(r,get_darwin_call_stub(s),0);
+            r.refaddr:=addr_full;
+          end;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
 
