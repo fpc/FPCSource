@@ -17,6 +17,8 @@
 **********************************************************************}
 unit Linux;
 
+{$packrecords c}
+
 interface
 
 uses
@@ -62,7 +64,7 @@ Const
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
-  EPoll_Data = Record
+  EPoll_Data = record
     case integer of
       0: (ptr: pointer);
       1: (fd: cint);
@@ -72,7 +74,7 @@ type
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
-  EPoll_Event = Record
+  EPoll_Event = record
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
