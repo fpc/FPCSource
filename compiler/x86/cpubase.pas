@@ -136,11 +136,15 @@ uses
       first_mm_imreg     = $08;
 {$endif x86_64}
 
-      { The subregister that specifies the entire register }
+      { The subregister that specifies the entire register and an address }
 {$ifdef x86_64}
-      R_SUBWHOLE    = R_SUBQ; {Hammer}
+      { Hammer }
+      R_SUBWHOLE    = R_SUBQ;
+      R_SUBADDR     = R_SUBQ;
 {$else x86_64}
-      R_SUBWHOLE    = R_SUBD;  {i386}
+      { i386 }
+      R_SUBWHOLE    = R_SUBD;
+      R_SUBADDR     = R_SUBD;
 {$endif x86_64}
 
       { Available Registers }

@@ -148,6 +148,8 @@ interface
              ,as_x86_64_pecoff
              ,as_i386_pecoffwince
              ,as_arm_pecoffwince
+             ,as_x86_64_elf64
+             ,as_sparc_elf32
        );
 
        tar = (ar_none

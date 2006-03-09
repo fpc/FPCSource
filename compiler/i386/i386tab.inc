@@ -8849,6 +8849,34 @@
     flags   : if_p6 or if_cyrix
   ),
   (
+    opcode  : A_XCRYPTECB;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#167#200;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
+    opcode  : A_XCRYPTCBC;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#167#208;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
+    opcode  : A_XCRYPTCFB;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#167#224;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
+    opcode  : A_XCRYPTOFB;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#167#232;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
     opcode  : A_CMOVcc;
     ops     : 2;
     optypes : (ot_reg16,ot_memory,ot_none);
@@ -11549,5 +11577,180 @@
     optypes : (ot_xmmreg,ot_xmmreg,ot_none);
     code    : #3#243#15#18#72;
     flags   : if_prescott or if_sse3
+  ),
+  (
+    opcode  : A_VMREAD;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reg32,ot_none);
+    code    : #192#2#15#120#65;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMREAD;
+    ops     : 2;
+    optypes : (ot_memory,ot_reg32,ot_none);
+    code    : #192#2#15#120#65;
+    flags   : if_386 or if_priv or if_prot or if_sm
+  ),
+  (
+    opcode  : A_VMWRITE;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reg32,ot_none);
+    code    : #193#2#15#121#72;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMWRITE;
+    ops     : 2;
+    optypes : (ot_reg32,ot_memory,ot_none);
+    code    : #193#2#15#121#72;
+    flags   : if_386 or if_priv or if_prot or if_sm
+  ),
+  (
+    opcode  : A_VMCALL;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#193;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMLAUNCH;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#194;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMRESUME;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#195;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMXOFF;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#196;
+    flags   : if_386 or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMXON;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #192#219#2#15#199#134;
+    flags   : if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMCLEAR;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #192#3#102#15#199#134;
+    flags   : if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMPTRLD;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #192#2#15#199#134;
+    flags   : if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMPTRST;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none);
+    code    : #192#2#15#199#135;
+    flags   : if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMRUN;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#216;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMMCALL;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#217;
+    flags   : if_386 or if_svm
+  ),
+  (
+    opcode  : A_VMLOAD;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#218;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_VMSAVE;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#219;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_STGI;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#220;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_CLGI;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#221;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_SKINIT;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#222;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_INVLPGA;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #3#15#1#223;
+    flags   : if_386 or if_svm or if_priv or if_prot
+  ),
+  (
+    opcode  : A_MONTMUL;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#166#192;
+    flags   : if_centaur
+  ),
+  (
+    opcode  : A_XSHA1;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#166#200;
+    flags   : if_centaur
+  ),
+  (
+    opcode  : A_XSHA256;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #219#3#15#166#208;
+    flags   : if_centaur
+  ),
+  (
+    opcode  : A_DMINT;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #2#15#57;
+    flags   : if_p6 or if_cyrix
+  ),
+  (
+    opcode  : A_RDM;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none);
+    code    : #2#15#58;
+    flags   : if_p6 or if_cyrix
   )
 );

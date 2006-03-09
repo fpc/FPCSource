@@ -50,6 +50,8 @@ interface
     function SwapLong(x : longint): longint;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @va(x) swapped to different endian }
     function SwapWord(x : word): word;{$ifdef USEINLINE}inline;{$endif}
+    {# Returns the value in @va(x) swapped to different endian }
+    Function SwapQWord(x : qword) : qword{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
 
@@ -205,6 +207,13 @@ uses
 
 
     Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
+      Begin
+        result:=swaplong(longint(hi(x)));
+        result:=result or (swaplong(longint(lo(x))) shl 32);
+      End;
+
+
+    Function SwapQWord(x : qword) : qword{$ifdef USEINLINE}inline;{$endif}
       Begin
         result:=swaplong(longint(hi(x)));
         result:=result or (swaplong(longint(lo(x))) shl 32);
