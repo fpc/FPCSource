@@ -458,7 +458,7 @@ unit i_bsd;
             system       : system_i386_darwin;
             name         : 'Darwin for i386';
             shortname    : 'Darwin';
-            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_p_ext_support,tf_files_case_sensitive];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
