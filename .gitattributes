@@ -308,7 +308,6 @@ compiler/powerpc/nppcadd.pas svneol=native#text/plain
 compiler/powerpc/nppccal.pas svneol=native#text/plain
 compiler/powerpc/nppccnv.pas svneol=native#text/plain
 compiler/powerpc/nppcinl.pas svneol=native#text/plain
-compiler/powerpc/nppcld.pas svneol=native#text/plain
 compiler/powerpc/nppcmat.pas svneol=native#text/plain
 compiler/powerpc/nppcset.pas svneol=native#text/plain
 compiler/powerpc/rappc.pas svneol=native#text/plain

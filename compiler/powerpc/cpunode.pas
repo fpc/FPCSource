@@ -43,8 +43,8 @@ unit cpunode;
        nppcinl,
 //       nppcopt,
        nppcmat,
-       nppccnv,
-       nppcld
+       nppccnv
+//       nppcld
        ;
 
 end.

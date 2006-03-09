@@ -425,6 +425,8 @@ unit cgobj;
           procedure g_restore_standard_registers(list:Taasmoutput);virtual;
           procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:taasmoutput;procdef: tprocdef;ioffset: aint);virtual;
+
+          function g_indirect_sym_load(list:taasmoutput;const symname: string): tregister;virtual;
        end;
 
 {$ifndef cpu64bit}
@@ -2092,6 +2094,35 @@ implementation
       begin
         a_call_name(list,s);
       end;
+
+
+   function tcg.g_indirect_sym_load(list:taasmoutput;const symname: string): tregister;
+      var
+        l: tasmsymbol;
+        ref: treference;
+      begin
+        result := NR_NO;
+        case target_info.system of
+          system_powerpc_darwin,
+          system_i386_darwin:
+            begin
+              l:=objectlibrary.getasmsymbol('L'+symname+'$non_lazy_ptr');
+              if not(assigned(l)) then
+                begin
+                  l:=objectlibrary.newasmsymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                  asmlist[al_picdata].concat(tai_symbol.create(l,0));
+                  asmlist[al_picdata].concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(symname,AB_EXTERNAL,AT_DATA)));
+                  asmlist[al_picdata].concat(tai_const.create_32bit(0));
+                end;
+              result := cg.getaddressregister(list);
+              reference_reset_symbol(ref,l,0);
+{              ref.base:=current_procinfo.got;
+              ref.relsymbol:=current_procinfo.gotlabel;}
+              cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
+            end;
+          end;
+        end;
+
 
 {*****************************************************************************
                                     TCG64

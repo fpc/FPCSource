@@ -87,6 +87,7 @@ implementation
         norelocatelab : tasmlabel;
         paraloc1 : tcgpara;
       begin
+         
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
@@ -124,6 +125,14 @@ implementation
             localvarsym,
             paravarsym :
                begin
+                  if (symtableentry.typ = globalvarsym) and
+                     ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) then
+                    begin
+                      location.reference.base := cg.g_indirect_sym_load(exprasmlist,tglobalvarsym(symtableentry).mangledname);
+                      if (location.reference.base <> NR_NO) then
+                        exit;
+                    end;
+
                   symtabletype:=symtable.symtabletype;
                   hregister:=NR_NO;
                   if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
@@ -351,8 +360,11 @@ implementation
                     end
                   else
                     begin
+                       if (po_external in tprocsym(symtableentry).procdef[1].procoptions) then
+                         location.reference.base := cg.g_indirect_sym_load(exprasmlist,tprocsym(symtableentry).procdef[1].mangledname);
                        {!!!!! Be aware, work on virtual methods too }
-                       location.reference.symbol:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+                       if (location.reference.base = NR_NO) then
+                         location.reference.symbol:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
                     end;
                end;
             typedconstsym :
