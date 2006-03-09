@@ -371,9 +371,8 @@ const
         if asmlist[al_imports]=nil then
           asmlist[al_imports]:=TAAsmoutput.create;
 
-        asmlist[al_imports].concat(Tai_section.Create(sec_data,'',0));
         asmlist[al_imports].concat(Tai_section.create(sec_stub,'',0));
-        asmlist[al_imports].concat(Tai_align.Create(4));
+        asmlist[al_imports].concat(Tai_align.Create(16));
         result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
         asmlist[al_imports].concat(Tai_symbol.Create(result,0));
         asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
@@ -386,7 +385,6 @@ const
         asmlist[al_imports].concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
         asmlist[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
         asmlist[al_imports].concat(taicpu.op_none(A_BCTR));
-        asmlist[al_imports].concat(Tai_section.Create(sec_data,'',0));
         asmlist[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
         asmlist[al_imports].concat(Tai_symbol.Create(l1,0));
         asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
