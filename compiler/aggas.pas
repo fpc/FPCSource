@@ -41,28 +41,50 @@ interface
 
 
     type
+      TCPUInstrWriter = class;
       {# This is a derived class which is used to write
          GAS styled assembler.
-
-         The WriteInstruction() method must be overriden
-         to write a single instruction to the assembler
-         file.
       }
       TGNUAssembler=class(texternalassembler)
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string);
         procedure WriteExtraHeader;virtual;
-        procedure WriteInstruction(hp: tai);  virtual; abstract;
-      public
+        procedure WriteInstruction(hp: tai);{$ifdef USEINLINE}inline;{$endif}
+       public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
-      private
+        destructor destroy; override;
+       private
         setcount: longint;
         procedure WriteDecodedSleb128(a: aint);
         procedure WriteDecodedUleb128(a: aword);
         function NextSetLabel: string;
+       protected
+        InstrWriter: TCPUInstrWriter;
       end;
+
+
+      {# This is the base class for writing instructions.
+
+         The WriteInstruction() method must be overriden
+         to write a single instruction to the assembler
+         file.
+      }
+      TCPUInstrWriter = class
+        constructor create(_owner: TGNUAssembler);
+        procedure WriteInstruction(hp : tai); virtual; abstract;
+       protected
+        owner: TGNUAssembler;
+      end;
+
+
+      TAppleGNUAssembler=class(TGNUAssembler)
+        function sectionname(atype:TAsmSectiontype;const aname:string):string;override;
+       private
+        debugframecount: aint;
+       end;
+
 
 implementation
 
@@ -195,6 +217,13 @@ implementation
 {                          GNU Assembler writer                              }
 {****************************************************************************}
 
+    destructor TGNUAssembler.Destroy;
+      begin
+        InstrWriter.free;
+        inherited destroy;
+      end;
+
+
     function TGNUAssembler.NextSetLabel: string;
       begin
         inc(setcount);
@@ -210,7 +239,7 @@ implementation
           '.data',
           '.bss',
           '.threadvar',
-          '__TEXT', { stubs }
+          '', { stubs }
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -225,7 +254,7 @@ implementation
           '.data.rel',
           '.bss',
           '.threadvar',
-          '__TEXT', { stubs }
+          '', { stubs }
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -262,13 +291,13 @@ implementation
         AsmLn;
         case target_info.system of
          system_i386_OS2,
-         system_i386_EMX : ;
+         system_i386_EMX: ;
          system_powerpc_darwin,
          system_i386_darwin:
            begin
-             if atype=sec_stub then
+             if (atype = sec_stub) then
                AsmWrite('.section ');
-           end;
+           end
          else
           AsmWrite('.section ');
         end;
@@ -279,8 +308,17 @@ implementation
             AsmWrite(', "a", @progbits');
           sec_stub :
             begin
-              if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-                AsmWrite(',__symbol_stub1,symbol_stubs,pure_instructions,16');
+              case target_info.system of
+                { there are processor-independent shortcuts available    }
+                { for this, namely .symbol_stub and .picsymbol_stub, but }
+                { they don't work and gcc doesn't use them either...     }
+                system_powerpc_darwin:
+                  AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
+                system_i386_darwin:
+                  AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
+                else
+                  internalerror(2006031101);
+              end;
             end;
         end;
         AsmLn;
@@ -958,9 +996,15 @@ implementation
 
 
     procedure TGNUAssembler.WriteExtraHeader;
-
       begin
       end;
+
+
+    procedure TGNUAssembler.WriteInstruction(hp: tai);{$ifdef USEINLINE}inline;{$endif}
+      begin
+        InstrWriter.WriteInstruction(hp);
+      end;
+
 
     procedure TGNUAssembler.WriteAsmList;
     var
@@ -1013,5 +1057,40 @@ implementation
        Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
     end;
+
+
+{****************************************************************************}
+{                        Apple/GNU Assembler writer                          }
+{****************************************************************************}
+
+    function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
+      begin
+        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+          case atype of
+            sec_bss:
+              { all bss (lcomm) symbols are automatically put in the right }
+              { place by using the lcomm assembler directive               }
+              atype := sec_none;
+            sec_debug_frame,
+            sec_eh_frame:
+              begin
+                result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
+                inc(debugframecount);
+                exit;
+              end;
+          end;
+        result := inherited sectionname(atype,aname);
+      end;
+
+
+{****************************************************************************}
+{                        Abstract Instruction Writer                         }
+{****************************************************************************}
+
+     constructor TCPUInstrWriter.create(_owner: TGNUAssembler);
+       begin
+         inherited create;
+         owner := _owner;
+       end;
 
 end.

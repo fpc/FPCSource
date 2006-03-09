@@ -31,14 +31,29 @@ interface
 
     type
       TGasSPARC=class(TGnuAssembler)
-        procedure WriteInstruction(hp:Tai);override;
+        constructor create(smart: boolean); override;
       end;
+
+     TSPARCInstrWriter=class(TCPUInstrWriter)
+       procedure WriteInstruction(hp:Tai);override;
+     end;
 
 implementation
 
     uses
       cutils,systems,
       verbose,itcpugas,cgbase,cgutils;
+
+
+{****************************************************************************}
+{                         GNU PPC Assembler writer                           }
+{****************************************************************************}
+
+    constructor TGasSPARC.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TSPARCInstrWriter.create(self);
+      end;
 
 
     function GetReferenceString(var ref:TReference):string;
@@ -123,7 +138,7 @@ implementation
         end;
 
 
-    procedure TGasSPARC.WriteInstruction(hp:Tai);
+    procedure TSPARCInstrWriter.WriteInstruction(hp:Tai);
       var
         Op:TAsmOp;
         s:String;
@@ -143,14 +158,14 @@ implementation
                 internalerror(200401045);
               { FABSs %f<even>,%f<even> }
               s:=#9+std_op2str[A_FABSs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              AsmWriteLn(s);
+              owner.AsmWriteLn(s);
               { FMOVs %f<odd>,%f<odd> }
               inc(taicpu(hp).oper[0]^.reg);
               inc(taicpu(hp).oper[1]^.reg);
               s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
               dec(taicpu(hp).oper[0]^.reg);
               dec(taicpu(hp).oper[1]^.reg);
-              AsmWriteLn(s);
+              owner.AsmWriteLn(s);
             end;
           A_FMOVd:
             begin
@@ -160,14 +175,14 @@ implementation
                 internalerror(200401045);
               { FMOVs %f<even>,%f<even> }
               s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
-              AsmWriteLn(s);
+              owner.AsmWriteLn(s);
               { FMOVs %f<odd>,%f<odd> }
               inc(taicpu(hp).oper[0]^.reg);
               inc(taicpu(hp).oper[1]^.reg);
               s:=#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^);
               dec(taicpu(hp).oper[0]^.reg);
               dec(taicpu(hp).oper[1]^.reg);
-              AsmWriteLn(s);
+              owner.AsmWriteLn(s);
             end
           else
             begin
@@ -181,7 +196,7 @@ implementation
                   for i:=1 to taicpu(hp).ops-1 do
                     s:=s+','+getopstr(taicpu(hp).oper[i]^);
                 end;
-              AsmWriteLn(s);
+              owner.AsmWriteLn(s);
             end;
         end;
       end;

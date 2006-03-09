@@ -36,14 +36,19 @@ unit agppcgas;
        globtype;
 
     type
-      PPPCGNUAssembler=^TPPCGNUAssembler;
       TPPCGNUAssembler=class(TGNUassembler)
-        function sectionname(atype:TAsmSectiontype;const aname:string):string;override;
+        constructor create(smart: boolean); override;
         procedure WriteExtraHeader;override;
-        procedure WriteInstruction(hp : tai);override;
-       private
-        debugframecount: aint;
       end;
+
+      TPPCAppleGNUAssembler=class(TAppleGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
+
+
+     TPPCInstrWriter=class(TCPUInstrWriter)
+        procedure WriteInstruction(hp : tai);override;
+     end;
 
 
   implementation
@@ -55,71 +60,46 @@ unit agppcgas;
        itcpugas,
        aasmcpu;
 
+{****************************************************************************}
+{                         GNU PPC Assembler writer                           }
+{****************************************************************************}
+
+    constructor TPPCGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
     procedure TPPCGNUAssembler.WriteExtraHeader;
       var
          i : longint;
       begin
-         if (target_info.system <> system_powerpc_darwin) then
-           begin
-             for i:=0 to 31 do
-               AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
-             for i:=0 to 31 do
-               AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
-           end;
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
       end;
 
-    const
-       as_ppc_gas_info : tasminfo =
-          (
-            id     : as_gas;
 
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
-            labelprefix : '.L';
-            comment : '# ';
-          );
+{****************************************************************************}
+{                      GNU/Apple PPC Assembler writer                        }
+{****************************************************************************}
 
-
-       as_ppc_gas_darwin_powerpc_info : tasminfo =
-          (
-            id     : as_darwin;
-
-            idtxt  : 'AS-Darwin';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch ppc';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
-            labelprefix : 'L';
-            comment : '# ';
-          );
-
-
-       refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
-       refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
-
-
-
-    function TPPCGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    constructor TPPCAppleGNUAssembler.create(smart: boolean);
       begin
-        if (target_info.system = system_powerpc_darwin) then
-          case atype of
-            sec_bss:
-              { all bss (lcomm) symbols are automatically put in the right }
-              { place by using the lcomm assembler directive               }
-              atype := sec_none;
-            sec_debug_frame,
-            sec_eh_frame:
-              begin
-                result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
-                inc(debugframecount);
-                exit;
-              end;
-          end;
-        result := inherited sectionname(atype,aname);
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
       end;
+
+
+{****************************************************************************}
+{                  Helper routines for Instruction Writer                    }
+{****************************************************************************}
+
+  const
+    refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
+    refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
 
 
     function getreferencestring(var ref : treference) : string;
@@ -322,7 +302,12 @@ unit agppcgas;
       end;
     end;
 
-    Procedure TPPCGNUAssembler.WriteInstruction(hp : tai);
+
+{****************************************************************************}
+{                        PowerPC Instruction Writer                          }
+{****************************************************************************}
+
+    Procedure TPPCInstrWriter.WriteInstruction(hp : tai);
     var op: TAsmOp;
         s: string;
         i: byte;
@@ -350,7 +335,7 @@ unit agppcgas;
             begin
               { first write the current contents of s, because the symbol }
               { may be 255 characters                                     }
-              asmwrite(s);
+              owner.asmwrite(s);
               s:=getopstr_jmp(taicpu(hp).oper[0]^);
             end;
         end
@@ -376,10 +361,42 @@ unit agppcgas;
                 end;
             end;
         end;
-      AsmWriteLn(s);
+      owner.AsmWriteLn(s);
     end;
+
+{*****************************************************************************
+                                  Initialize
+*****************************************************************************}
+
+    const
+       as_ppc_gas_info : tasminfo =
+          (
+            id     : as_gas;
+
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            labelprefix : '.L';
+            comment : '# ';
+          );
+
+
+       as_ppc_gas_darwin_powerpc_info : tasminfo =
+          (
+            id     : as_darwin;
+
+            idtxt  : 'AS-Darwin';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM -arch ppc';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+          );
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);
-  RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCGNUAssembler);
+  RegisterAssembler(as_ppc_gas_darwin_powerpc_info,TPPCAppleGNUAssembler);
 end.

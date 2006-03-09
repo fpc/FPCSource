@@ -34,10 +34,14 @@ unit agarmgas;
        cpubase;
 
     type
-      PARMGNUAssembler=^TARMGNUAssembler;
       TARMGNUAssembler=class(TGNUassembler)
-        procedure WriteInstruction(hp : tai);override;
+        constructor create(smart: boolean); override;
       end;
+
+     TArmInstrWriter=class(TCPUInstrWriter)
+        procedure WriteInstruction(hp : tai);override;
+     end;
+
 
     const
       gas_shiftmode2str : array[tshiftmode] of string[3] = (
@@ -53,19 +57,20 @@ unit agarmgas;
        itcpugas,
        cgbase,cgutils;
 
-    const
-       as_arm_gas_info : tasminfo =
-          (
-            id     : as_gas;
+{****************************************************************************}
+{                         GNU Arm Assembler writer                           }
+{****************************************************************************}
 
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
-            labelprefix : '.L';
-            comment : '# ';
-          );
+    constructor TArmGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TArmInstrWriter.create(self);
+      end;
+
+
+{****************************************************************************}
+{                  Helper routines for Instruction Writer                    }
+{****************************************************************************}
 
     function getreferencestring(var ref : treference) : string;
       var
@@ -179,7 +184,7 @@ unit agarmgas;
       end;
 
 
-    Procedure TARMGNUAssembler.WriteInstruction(hp : tai);
+    Procedure TArmInstrWriter.WriteInstruction(hp : tai);
     var op: TAsmOp;
         s: string;
         i: byte;
@@ -228,8 +233,23 @@ unit agarmgas;
                sep:=',';
             end;
         end;
-      AsmWriteLn(s);
+      owner.AsmWriteLn(s);
     end;
+
+
+    const
+       as_arm_gas_info : tasminfo =
+          (
+            id     : as_gas;
+
+            idtxt  : 'AS';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections];
+            labelprefix : '.L';
+            comment : '# ';
+          );
 
 
 begin

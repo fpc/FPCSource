@@ -34,14 +34,24 @@ interface
 
     type
       Tx86ATTAssembler=class(TGNUassembler)
-      private
+        constructor create(smart: boolean); override;
+      end;
+
+      Tx86AppleGNUAssembler=class(TAppleGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
+
+
+     Tx86InstrWriter=class(TCPUInstrWriter)
+       private
         procedure WriteReference(var ref : treference);
         procedure WriteOper(const o:toper);
         procedure WriteOper_jmp(const o:toper);
-      public
+       public
         procedure WriteInstruction(hp: tai);override;
-      end;
+     end;
 
+      
 
   implementation
 
@@ -54,125 +64,145 @@ interface
 
 
 {****************************************************************************
-                            TX86ATTASMOUTPUT
+                            Tx86ATTAssembler
  ****************************************************************************}
 
-    procedure Tx86AttAssembler.WriteReference(var ref : treference);
+    constructor Tx86ATTAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := Tx86InstrWriter.create(self);
+      end;
+
+{****************************************************************************
+                          Tx86AppleGNUAssembler
+ ****************************************************************************}
+
+    constructor Tx86AppleGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := Tx86InstrWriter.create(self);
+      end;
+
+{****************************************************************************
+                            Tx86InstrWriter
+ ****************************************************************************}
+
+    procedure Tx86InstrWriter.WriteReference(var ref : treference);
       begin
         with ref do
          begin
-           { have we a segment prefix ? }
+           { do we have a segment prefix ? }
            { These are probably not correctly handled under GAS }
            { should be replaced by coding the segment override  }
            { directly! - DJGPP FAQ                              }
            if segment<>NR_NO then
-             AsmWrite(gas_regname(segment)+':');
+             owner.AsmWrite(gas_regname(segment)+':');
            if assigned(symbol) then
-             AsmWrite(symbol.name);
+             owner.AsmWrite(symbol.name);
            if ref.refaddr=addr_pic then
 {$ifdef x86_64}
-             AsmWrite('@GOTPCREL');
+             owner.AsmWrite('@GOTPCREL');
 {$else x86_64}
-             AsmWrite('@GOT');
+             owner.AsmWrite('@GOT');
 {$endif x86_64}
            if offset<0 then
-             AsmWrite(tostr(offset))
+             owner.AsmWrite(tostr(offset))
            else
             if (offset>0) then
              begin
                if assigned(symbol) then
-                AsmWrite('+'+tostr(offset))
+                owner.AsmWrite('+'+tostr(offset))
                else
-                AsmWrite(tostr(offset));
+                owner.AsmWrite(tostr(offset));
              end
            else if (index=NR_NO) and (base=NR_NO) and (not assigned(symbol)) then
-             AsmWrite('0');
+             owner.AsmWrite('0');
            if (index<>NR_NO) and (base=NR_NO) then
             begin
-              AsmWrite('(,'+gas_regname(index));
+              owner.AsmWrite('(,'+gas_regname(index));
               if scalefactor<>0 then
-               AsmWrite(','+tostr(scalefactor)+')')
+               owner.AsmWrite(','+tostr(scalefactor)+')')
               else
-               AsmWrite(')');
+               owner.AsmWrite(')');
             end
            else
             if (index=NR_NO) and (base<>NR_NO) then
-              AsmWrite('('+gas_regname(base)+')')
+              owner.AsmWrite('('+gas_regname(base)+')')
             else
              if (index<>NR_NO) and (base<>NR_NO) then
               begin
-                AsmWrite('('+gas_regname(base)+','+gas_regname(index));
+                owner.AsmWrite('('+gas_regname(base)+','+gas_regname(index));
                 if scalefactor<>0 then
-                 AsmWrite(','+tostr(scalefactor));
-                AsmWrite(')');
+                 owner.AsmWrite(','+tostr(scalefactor));
+                owner.AsmWrite(')');
               end;
          end;
       end;
 
 
-    procedure Tx86AttAssembler.WriteOper(const o:toper);
+    procedure Tx86InstrWriter.WriteOper(const o:toper);
       begin
         case o.typ of
           top_reg :
-            AsmWrite(gas_regname(o.reg));
+            owner.AsmWrite(gas_regname(o.reg));
           top_ref :
             if o.ref^.refaddr in [addr_no,addr_pic] then
               WriteReference(o.ref^)
             else
               begin
-                AsmWrite('$');
+                owner.AsmWrite('$');
                 if assigned(o.ref^.symbol) then
-                 AsmWrite(o.ref^.symbol.name);
+                 owner.AsmWrite(o.ref^.symbol.name);
                 if o.ref^.offset>0 then
-                 AsmWrite('+'+tostr(o.ref^.offset))
+                 owner.AsmWrite('+'+tostr(o.ref^.offset))
                 else
                  if o.ref^.offset<0 then
-                  AsmWrite(tostr(o.ref^.offset))
+                  owner.AsmWrite(tostr(o.ref^.offset))
                 else
                  if not(assigned(o.ref^.symbol)) then
-                   AsmWrite('0');
+                   owner.AsmWrite('0');
               end;
           top_const :
-              AsmWrite('$'+tostr(o.val));
+              owner.AsmWrite('$'+tostr(o.val));
           else
             internalerror(10001);
         end;
       end;
 
 
-    procedure Tx86AttAssembler.WriteOper_jmp(const o:toper);
+    procedure Tx86InstrWriter.WriteOper_jmp(const o:toper);
       begin
         case o.typ of
           top_reg :
-            AsmWrite('*'+gas_regname(o.reg));
+            owner.AsmWrite('*'+gas_regname(o.reg));
           top_ref :
             begin
               if o.ref^.refaddr=addr_no then
                 begin
-                  AsmWrite('*');
+                  owner.AsmWrite('*');
                   WriteReference(o.ref^);
                 end
               else
                 begin
-                  AsmWrite(o.ref^.symbol.name);
+                  owner.AsmWrite(o.ref^.symbol.name);
                   if o.ref^.refaddr=addr_pic then
-                    AsmWrite('@PLT');
+                    owner.AsmWrite('@PLT');
                   if o.ref^.offset>0 then
-                   AsmWrite('+'+tostr(o.ref^.offset))
+                   owner.AsmWrite('+'+tostr(o.ref^.offset))
                   else
                    if o.ref^.offset<0 then
-                    AsmWrite(tostr(o.ref^.offset));
+                    owner.AsmWrite(tostr(o.ref^.offset));
                 end;
             end;
           top_const :
-            AsmWrite(tostr(o.val));
+            owner.AsmWrite(tostr(o.val));
           else
             internalerror(10001);
         end;
       end;
 
 
-    procedure Tx86AttAssembler.WriteInstruction(hp: tai);
+    procedure Tx86InstrWriter.WriteInstruction(hp: tai);
       var
        op       : tasmop;
        calljmp  : boolean;
@@ -183,14 +213,14 @@ interface
         taicpu(hp).SetOperandOrder(op_att);
         op:=taicpu(hp).opcode;
         calljmp:=is_calljmp(op);
-        AsmWrite(#9);
+        owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
         if (op=A_MOVSD) and (taicpu(hp).ops>0) then
-          AsmWrite('movsd')
+          owner.AsmWrite('movsd')
         else
-          AsmWrite(gas_op2str[op]);
-        AsmWrite(cond2str[taicpu(hp).condition]);
+          owner.AsmWrite(gas_op2str[op]);
+        owner.AsmWrite(cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
 {        if (Taicpu(hp).oper[0]^.typ=top_reg) and
@@ -209,13 +239,13 @@ interface
                (taicpu(hp).oper[0]^.typ=top_reg) and
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
-          AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
+          owner.AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         { process operands }
         if taicpu(hp).ops<>0 then
           begin
             if calljmp then
              begin
-               AsmWrite(#9);
+               owner.AsmWrite(#9);
                WriteOper_jmp(taicpu(hp).oper[0]^);
              end
             else
@@ -223,14 +253,14 @@ interface
                for i:=0 to taicpu(hp).ops-1 do
                  begin
                    if i=0 then
-                     AsmWrite(#9)
+                     owner.AsmWrite(#9)
                    else
-                     AsmWrite(',');
+                     owner.AsmWrite(',');
                    WriteOper(taicpu(hp).oper[i]^);
                  end;
              end;
           end;
-        AsmLn;
+        owner.AsmLn;
       end;
 
 {*****************************************************************************
@@ -263,6 +293,7 @@ interface
             comment : '# ';
           );
 
+
        as_i386_as_aout_info : tasminfo =
           (
             id           : as_i386_as_aout;
@@ -274,6 +305,20 @@ interface
             labelprefix : 'L';
             comment : '# ';
           );
+
+
+       as_i386_gas_darwin_info : tasminfo =
+          (
+            id     : as_darwin;
+            idtxt  : 'AS-Darwin';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM -arch i386';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+          );
+
 {$endif x86_64}
 
 initialization
@@ -281,6 +326,7 @@ initialization
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86ATTAssembler);
 {$endif x86_64}
 end.

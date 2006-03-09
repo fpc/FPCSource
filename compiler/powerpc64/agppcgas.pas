@@ -35,12 +35,16 @@ uses
   cpubase;
 
 type
-  PPPCGNUAssembler = ^TPPCGNUAssembler;
   TPPCGNUAssembler = class(TGNUassembler)
   public
+    constructor create(smart: boolean); override;
     procedure WriteExtraHeader; override;
+  end;
+
+  TPPCInstrWriter = class(TCPUInstrWriter)
     procedure WriteInstruction(hp: tai); override;
   end;
+
 
 implementation
 
@@ -50,6 +54,17 @@ uses
   assemble, globtype, fmodule,
   itcpugas, finput,
   aasmcpu;
+
+
+{****************************************************************************}
+{                         GNU PPC Assembler writer                           }
+{****************************************************************************}
+
+constructor TPPCGNUAssembler.create(smart: boolean);
+  begin
+    inherited create(smart);
+    InstrWriter := TPPCInstrWriter.create(self);
+  end;
 
 
 procedure TPPCGNUAssembler.WriteExtraHeader;
@@ -62,20 +77,11 @@ begin
     AsmWriteln(#9'.set'#9'f' + tostr(i) + ',' + tostr(i));
 end;
 
+{****************************************************************************}
+{                  Helper routines for Instruction Writer                    }
+{****************************************************************************}
+
 const
-  as_ppc_gas_info: tasminfo =
-  (
-    id: as_gas;
-
-    idtxt: 'AS';
-    asmbin: 'as';
-    asmcmd: '-a64 -o $OBJ $ASM';
-    supported_target: system_any;
-    flags: [af_allowdirect, af_needar, af_smartlink_sections];
-    labelprefix: '.L';
-    comment: '# ';
-    );
-
   refaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
 
 function getreferencestring(var ref: treference): string;
@@ -273,7 +279,12 @@ begin
   end;
 end;
 
-procedure TPPCGNUAssembler.WriteInstruction(hp: tai);
+
+{****************************************************************************}
+{                        PowerPC Instruction Writer                          }
+{****************************************************************************}
+
+procedure TPPCInstrWriter.WriteInstruction(hp: tai);
 var
   op: TAsmOp;
   s: string;
@@ -304,7 +315,7 @@ begin
     begin
       { first write the current contents of s, because the symbol }
       { may be 255 characters                                     }
-      asmwrite(s);
+      owner.AsmWrite(s);
       s := getopstr_jmp(taicpu(hp).oper[0]^);
     end;
   end
@@ -330,8 +341,23 @@ begin
       end;
     end;
   end;
-  AsmWriteLn(s);
+  owner.AsmWriteLn(s);
 end;
+
+
+const
+  as_ppc_gas_info: tasminfo =
+  (
+    id: as_gas;
+
+    idtxt: 'AS';
+    asmbin: 'as';
+    asmcmd: '-a64 -o $OBJ $ASM';
+    supported_target: system_any;
+    flags: [af_allowdirect, af_needar, af_smartlink_sections];
+    labelprefix: '.L';
+    comment: '# ';
+    );
 
 
 begin
