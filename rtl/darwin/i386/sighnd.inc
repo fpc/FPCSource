@@ -50,7 +50,7 @@ begin
   {$endif }
 
   if (res <> 0) then
-    HandleErrorAddrFrame(res,pointer(sigcontext^.ts.eip),pointer(sigcontext^.ts.ebp);
+    HandleErrorAddrFrame(res,pointer(sigcontext.ts.eip),pointer(sigcontext.ts.ebp));
 (*
   { return to trampoline }
   if res <> 0 then

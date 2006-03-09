@@ -76,11 +76,13 @@
     }
   {     THREAD_STATE_FLAVOR_LIST 0  }
 
+{
   const
      i386_THREAD_STATE = 1;     
      i386_FLOAT_STATE = 2;     
      i386_EXCEPTION_STATE = 3;     
      THREAD_STATE_NONE = 4;     
+}
   {
    * Main thread state consists of
    * general registers, segment registers,
@@ -106,7 +108,7 @@
           fs : cuint;
           gs : cuint;
        end;
-
+     i386_thread_state_t = i386_thread_state;
   {
    * Default segment register values.
     }
