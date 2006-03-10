@@ -200,9 +200,8 @@ implementation
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-{$ifdef cputargethasfixedstack}
-              location_freetemp(list,location);
-{$endif cputargethasfixedstack}
+              if use_fixed_stack then
+                location_freetemp(list,location);
             end;
           else
             internalerror(2004110211);

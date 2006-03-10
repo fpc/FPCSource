@@ -618,7 +618,8 @@ unit cpupara;
       begin
         paraloc:=parasym.paraloc[callerside].location;
         { No need for temps when value is pushed }
-        if assigned(paraloc) and
+        if not(use_fixed_stack) and
+           assigned(paraloc) and
            (paraloc^.loc=LOC_REFERENCE) and
            (paraloc^.reference.index=NR_STACK_POINTER_REG) then
           duplicateparaloc(list,calloption,parasym,cgpara)

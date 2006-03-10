@@ -251,9 +251,7 @@ implementation
     procedure tparamanager.freeparaloc(list: taasmoutput; const cgpara: TCGPara);
       var
         paraloc : Pcgparalocation;
-{$ifdef cputargethasfixedstack}
         href : treference;
-{$endif cputargethasfixedstack}
       begin
         paraloc:=cgpara.location;
         while assigned(paraloc) do
@@ -282,13 +280,14 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-{$ifdef cputargethasfixedstack}
-                  { don't use reference_reset_base, because that will depend on cgobj }
-                  fillchar(href,sizeof(href),0);
-                  href.base:=paraloc^.reference.index;
-                  href.offset:=paraloc^.reference.offset;
-                  tg.ungettemp(list,href);
-{$endif cputargethasfixedstack}
+                  if use_fixed_stack then
+                    begin
+                      { don't use reference_reset_base, because that will depend on cgobj }
+                      fillchar(href,sizeof(href),0);
+                      href.base:=paraloc^.reference.index;
+                      href.offset:=paraloc^.reference.offset;
+                      tg.ungettemp(list,href);
+                    end;
                 end;
               else
                 internalerror(2004110212);

@@ -194,8 +194,13 @@ uses
 {$ifdef i386}
         result := (target_info.system = system_i386_darwin);
 {$else i386}
+{$ifdef cputargethasfixedstack}
+        result := true;
+{$else cputargethasfixedstack}
         result := false;
+{$endif cputargethasfixedstack}
 {$endif i386}
       end;
 
 end.
+

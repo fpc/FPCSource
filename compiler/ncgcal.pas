@@ -166,7 +166,8 @@ implementation
              LOC_CREFERENCE :
                begin
                  size:=align(left.resulttype.def.size,tempcgpara.alignment);
-                 if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
+                 if (not use_fixed_stack) and
+                    (tempcgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                    cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempcgpara)
                  else
                    begin
@@ -696,10 +697,8 @@ implementation
          callerparaloc,
          tmpparaloc : pcgparalocation;
          sizeleft: aint;
-{$ifdef cputargethasfixedstack}
          htempref,
          href : treference;
-{$endif cputargethasfixedstack}
        begin
          { copy all resources to the allocated registers }
          ppn:=tcgcallparanode(left);
@@ -750,37 +749,38 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
-{$ifdef cputargethasfixedstack}
-                            { Can't have a data copied to the stack, every location
-                              must contain a valid size field }
+                           if use_fixed_stack then
+                             begin
+                               { Can't have a data copied to the stack, every location
+                                 must contain a valid size field }
 
-                            if (ppn.tempcgpara.size=OS_NO) and
-                              ((tmpparaloc^.loc<>LOC_REFERENCE) or
-                                assigned(tmpparaloc^.next)) then
-                              internalerror(200501281);
-                            reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
-                            { copy parameters in case they were moved to a temp. location because we've a fixed stack }
-                            case tmpparaloc^.loc of
+                              if (ppn.tempcgpara.size=OS_NO) and
+                                 ((tmpparaloc^.loc<>LOC_REFERENCE) or
+                                  assigned(tmpparaloc^.next)) then
+                                internalerror(200501281);
+                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
+                              { copy parameters in case they were moved to a temp. location because we've a fixed stack }
+                              case tmpparaloc^.loc of
                               LOC_REFERENCE:
-                                begin
-                                  reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
-                                  { use concatcopy, because it can also be a float which fails when
-                                    load_ref_ref is used }
-                                  if (ppn.tempcgpara.size <> OS_NO) then
-                                    cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size])
-                                  else
-                                    cg.g_concatcopy(exprasmlist,htempref,href,sizeleft)
-                                end;
-                              LOC_REGISTER:
-                                cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
-                              LOC_FPUREGISTER:
-                                cg.a_loadfpu_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.register,href);
-                              LOC_MMREGISTER:
-                                cg.a_loadmm_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
-                              else
-                                internalerror(200402081);
+                                  begin
+                                    reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
+                                    { use concatcopy, because it can also be a float which fails when
+                                      load_ref_ref is used }
+                                    if (ppn.tempcgpara.size <> OS_NO) then
+                                      cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size])
+                                    else
+                                      cg.g_concatcopy(exprasmlist,htempref,href,sizeleft)
+                                  end;
+                                LOC_REGISTER:
+                                  cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
+                                LOC_FPUREGISTER:
+                                  cg.a_loadfpu_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.register,href);
+                                LOC_MMREGISTER:
+                                  cg.a_loadmm_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
+                                else
+                                  internalerror(200402081);
+                             end;
                            end;
-{$endif cputargethasfixedstack}
                          end;
                      end;
                      dec(sizeleft,tcgsize2size[tmpparaloc^.size]);
