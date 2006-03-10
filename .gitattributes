@@ -5538,6 +5538,7 @@ tests/test/cg/tdivz1.pp svneol=native#text/plain
 tests/test/cg/tdivz2.pp svneol=native#text/plain
 tests/test/cg/texit.pp svneol=native#text/plain
 tests/test/cg/tfor.pp svneol=native#text/plain
+tests/test/cg/tformfnc.pp -text
 tests/test/cg/tfuncret.pp svneol=native#text/plain
 tests/test/cg/tin.pp svneol=native#text/plain
 tests/test/cg/tincexc.pp svneol=native#text/plain
