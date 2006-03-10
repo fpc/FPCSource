@@ -71,11 +71,12 @@ unit objpas;
 ****************************************************************************}
 
    type
-     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
+     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
 
-   Function Hash(S : AnsiString) : longint;
+   Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
-   Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+   Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
+{$ifndef RESSTRSECTIONS}
    Function ResourceStringTableCount : Longint;
    Function ResourceStringCount(TableIndex : longint) : longint;
    Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
@@ -83,6 +84,7 @@ unit objpas;
    Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
    Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
    Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
+{$endif RESSTRSECTIONS}
 
    { Delphi compatibility }
    type
@@ -208,14 +210,88 @@ end;
 { ---------------------------------------------------------------------
     ResourceString support
   ---------------------------------------------------------------------}
-Type
+Function Hash(S : AnsiString) : LongWord;
+Var
+  thehash,g,I : LongWord;
+begin
+   thehash:=0;
+   For I:=1 to Length(S) do { 0 terminated }
+     begin
+     thehash:=thehash shl 4;
+     inc(theHash,Ord(S[i]));
+     g:=thehash and LongWord($f shl 28);
+     if g<>0 then
+       begin
+       thehash:=thehash xor (g shr 24);
+       thehash:=thehash xor g;
+       end;
+     end;
+   If theHash=0 then
+     Hash:=$ffffffff
+   else
+     Hash:=TheHash;
+end;
 
+{$ifdef RESSTRSECTIONS}
+Type
+  PResourceStringRecord = ^TResourceStringRecord;
+  TResourceStringRecord = Packed Record
+     Name,
+     CurrentValue,
+     DefaultValue : AnsiString;
+     HashValue    : LongWord;
+   end;
+
+Var
+  ResourceStrings : TResourceStringRecord; External Name 'FPC_RESOURCESTRINGS';
+
+Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
+Var
+  ResStr : PResourceStringRecord;
+begin
+  ResStr:=@ResourceStrings;
+  while ResStr^.Name<>'' do
+    begin
+      ResStr^.CurrentValue:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+      inc(ResStr);
+    end;
+end;
+
+
+Procedure ResetResourceTables;
+Var
+  ResStr : PResourceStringRecord;
+begin
+  ResStr:=@ResourceStrings;
+  while ResStr^.Name<>'' do
+    begin
+      ResStr^.CurrentValue:=ResStr^.DefaultValue;
+      inc(ResStr);
+    end;
+end;
+
+
+Procedure FinalizeResourceTables;
+Var
+  ResStr : PResourceStringRecord;
+begin
+  ResStr:=@ResourceStrings;
+  while ResStr^.Name<>'' do
+    begin
+      ResStr^.CurrentValue:='';
+      inc(ResStr);
+    end;
+end;
+
+{$else RESSTRSECTIONS}
+
+Type
   PResourceStringRecord = ^TResourceStringRecord;
   TResourceStringRecord = Packed Record
      DefaultValue,
      CurrentValue : AnsiString;
-     HashValue : longint;
-     Name : AnsiString;
+     HashValue    : LongWord;
+     Name         : AnsiString;
    end;
 
    TResourceStringTable = Packed Record
@@ -229,33 +305,8 @@ Type
      Tables : Array[Word] of PResourceStringTable;
      end;
 
-
-
 Var
   ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
-
-Function Hash(S : AnsiString) : longint;
-
-Var thehash,g,I : longint;
-
-begin
-   thehash:=0;
-   For I:=1 to Length(S) do { 0 terminated }
-     begin
-     thehash:=thehash shl 4;
-     inc(theHash,Ord(S[i]));
-     g:=thehash and longint($f shl 28);
-     if g<>0 then
-       begin
-       thehash:=thehash xor (g shr 24);
-       thehash:=thehash xor g;
-       end;
-     end;
-   If theHash=0 then
-     Hash:=Not(0)
-   else
-     Hash:=TheHash;
-end;
 
 Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
 begin
@@ -265,18 +316,8 @@ begin
      Result:='';
 end;
 
-(*
-Function SetResourceString(Hash : Longint;Const Name : ShortString; Const Value : AnsiString) : Boolean;
 
-begin
-  Hash:=FindIndex(Hash,Name);
-  Result:=Hash<>-1;
-  If Result then
-    ResourceStringTable.ResRec[Hash].CurrentValue:=Value;
-end;
-*)
-
-Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 
 Var I,J : longint;
 
@@ -286,7 +327,7 @@ begin
       With Tables[I]^ do
          For J:=0 to Count-1 do
            With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,HashValue);
+             CurrentValue:=SetFunction(Name,DefaultValue,HashValue,arg);
 end;
 
 
@@ -315,6 +356,7 @@ begin
           With ResRec[J] do
             CurrentValue:='';
 end;
+
 Function ResourceStringTableCount : Longint;
 
 begin
@@ -385,8 +427,9 @@ begin
    ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
 end;
 
-Function LoadResString(p:PResStringRec):AnsiString;
+{$endif RESSTRSECTIONS}
 
+Function LoadResString(p:PResStringRec):AnsiString;
 begin
   Result:=p^;
 end;
