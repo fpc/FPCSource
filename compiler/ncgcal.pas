@@ -406,7 +406,7 @@ implementation
                begin
                   { allow passing of a constant to a const formaldef }
                   if (parasym.varspez=vs_const) and
-                     (left.location.loc=LOC_CONSTANT) then
+                     (left.location.loc in [LOC_CONSTANT,LOC_REGISTER]) then
                     location_force_mem(exprasmlist,left.location);
                   push_addr_para;
                end
