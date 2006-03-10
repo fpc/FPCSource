@@ -1515,6 +1515,7 @@ type
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
     function GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
+    procedure SetPacketRecords(aValue : integer);
   protected
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
@@ -1557,6 +1558,8 @@ type
     procedure ApplyUpdates; virtual;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
+  published
+    property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
   end;
 
   { TParam }

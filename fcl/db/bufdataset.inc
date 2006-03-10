@@ -23,8 +23,14 @@ begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
   BookmarkSize := sizeof(TBufBookmark);
-// temporary set it here
   FPacketRecords := 10;
+end;
+
+procedure TBufDataset.SetPacketRecords(aValue : integer);
+
+begin
+  if aValue > 0 then FPacketRecords := aValue
+    else DatabaseError(SInvPacketRecordsValue);
 end;
 
 destructor TBufDataset.Destroy;
@@ -295,26 +301,23 @@ var i : integer;
 
 begin
   i := 0;
-  if FPacketRecords > 0 then
+  if FBBufferCount < FBRecordCount+FPacketRecords then
     begin
-    if FBBufferCount < FBRecordCount+FPacketRecords then
-      begin
-      FBBufferCount := FBBuffercount + FPacketRecords;
-      ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
-      end;
-
-    repeat
-    FBBuffers[FBRecordCount+i] := AllocRecordBuffer;
-    b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
-    inc(i);
-    until (i = FPacketRecords) or b;
-    if b then
-      begin
-      dec(i);
-      FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
-      end;
-    FBRecordCount := FBRecordCount + i;
+    FBBufferCount := FBBuffercount + FPacketRecords;
+    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
     end;
+
+  repeat
+  FBBuffers[FBRecordCount+i] := AllocRecordBuffer;
+  b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
+  inc(i);
+  until (i = FPacketRecords) or b;
+  if b then
+    begin
+    dec(i);
+    FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
+    end;
+  FBRecordCount := FBRecordCount + i;
   result := i;
 end;
 
