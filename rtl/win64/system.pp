@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl and Pavel Ozerski
+    Copyright (c) 1999-2005 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
     FPC Pascal system unit for the Win32 API.
@@ -90,12 +90,9 @@ var
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
-  HInstance,
   MainInstance,
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
-  Win32StackTop : Dword;
-
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
@@ -106,10 +103,28 @@ const
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
-type
-  HMODULE = THandle;
-
 implementation
+
+var
+  SysInstance : Longint;public;
+
+{$ifdef i386}
+{$define HAS_RESOURCES}
+{$i win32res.inc}
+{$endif}
+
+{ used by wstrings.inc because wstrings.inc is included before sysos.inc
+  this is put here (FK) }
+
+function SysAllocStringLen(psz:pointer;len:dword):pointer;stdcall;
+ external 'oleaut32.dll' name 'SysAllocStringLen';
+
+procedure SysFreeString(bstr:pointer);stdcall;
+ external 'oleaut32.dll' name 'SysFreeString';
+
+function SysReAllocStringLen(var bstr:pointer;psz: pointer;
+  len:dword): Integer; stdcall;external 'oleaut32.dll' name 'SysReAllocStringLen';
+
 
 { include system independent routines }
 {$I system.inc}
@@ -155,6 +170,7 @@ var
     end;
 
 begin
+  SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
@@ -166,7 +182,7 @@ begin
     Inc(Arglen);
   until (pc[Arglen]=#0);
   allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen);
+  move(pc^,argv[count]^,arglen+1);
   { Setup cmdline variable }
   cmdline:=GetCommandLine;
   { process arguments }
@@ -347,7 +363,6 @@ procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
-procedure asm_exit(Exitcode : longint);external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -365,7 +380,7 @@ begin
   remove_exception_handlers;
 
   { call exitprocess, with cleanup as required }
-  asm_exit(exitcode);
+  ExitProcess(exitcode);
 end;
 
 var
@@ -373,7 +388,9 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
-procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
+procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
+  var
+    ST : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -382,7 +399,6 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
-{!!!!!!!
          { allocate space for an exception frame }
         pushl $0
         pushl %fs:(0)
@@ -393,20 +409,23 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
         movl %esp,%eax
         movl %eax,System_exception_frame
         pushl %ebp
-        xorl %ebp,%ebp
         movl %esp,%eax
-        movl %eax,Win32StackTop
-        movw %ss,%bp
-        movl %ebp,_SS
+        movl %eax,st
+     end;
+     StackTop:=st;
+     asm
+        xorl %eax,%eax
+        movw %ss,%ax
+        movl %eax,_SS
         call SysResetFPU
         xorl %ebp,%ebp
         call PASCALMAIN
         popl %ebp
-}
      end;
      { if we pass here there was no error ! }
      system_exit;
   end;
+
 
 Const
   { DllEntryPoint  }
@@ -419,7 +438,7 @@ Var
 Const
      DLLExitOK : boolean = true;
 
-function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
+function Dll_entry : longbool;
 var
   res : longbool;
 
@@ -477,6 +496,44 @@ begin
     DLLExitOK:=ExitCode=0;
     LongJmp(DLLBuf,1);
 end;
+
+{$ifndef VER2_0}
+
+procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+begin
+  IsConsole:=true;
+  Exe_entry;
+end;
+
+
+procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+begin
+  IsConsole:=false;
+  Exe_entry;
+end;
+
+
+procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+begin
+  IsConsole:=true;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
+end;
+
+
+procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+begin
+  IsConsole:=false;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
+end;
+
+{$endif VER2_0}
+
 
 function GetCurrentProcess : dword;
  stdcall;external 'kernel32' name 'GetCurrentProcess';
@@ -776,96 +833,113 @@ begin
         end;
 end;
 
+var
+  { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
+  sse_check : boolean;
+
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
 var
-        frame,
-        res  : longint;
-
-function SysHandleErrorFrame(error, frame : Longint; must_reset_fpu : Boolean) : Longint;
+  res: longint;
+  err: byte;
+  must_reset_fpu: boolean;
 begin
-        if (frame = 0) then
-                SysHandleErrorFrame:=EXCEPTION_CONTINUE_SEARCH
-        else begin
-                if (exceptLevel >= MaxExceptionLevel) then exit;
-
-                exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
-                exceptError[exceptLevel] := error;
-                resetFPU[exceptLevel] := must_reset_fpu;
-                inc(exceptLevel);
-
-                excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
-                excep^.ExceptionRecord^.ExceptionCode := 0;
-
-                SysHandleErrorFrame := EXCEPTION_CONTINUE_EXECUTION;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-                if IsConsole then begin
-                        writeln(stderr,'Exception Continue Exception set at ',
-                                hexstr(exceptEip[exceptLevel],8));
-                        writeln(stderr,'Eip changed to ',
-                                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
-                end;
-{$endif SYSTEMEXCEPTIONDEBUG}
+  res := EXCEPTION_CONTINUE_SEARCH;
+  if excep^.ContextRecord^.SegSs=_SS then begin
+    err := 0;
+    must_reset_fpu := true;
+  {$ifdef SYSTEMEXCEPTIONDEBUG}
+    if IsConsole then Writeln(stderr,'Exception  ',
+            hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
+  {$endif SYSTEMEXCEPTIONDEBUG}
+    case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
+      STATUS_INTEGER_DIVIDE_BY_ZERO,
+      STATUS_FLOAT_DIVIDE_BY_ZERO :
+        err := 200;
+      STATUS_ARRAY_BOUNDS_EXCEEDED :
+        begin
+          err := 201;
+          must_reset_fpu := false;
         end;
-end;
-
-begin
-        if excep^.ContextRecord^.SegSs=_SS then
-                frame := excep^.ContextRecord^.Ebp
+      STATUS_STACK_OVERFLOW :
+        begin
+          err := 202;
+          must_reset_fpu := false;
+        end;
+      STATUS_FLOAT_OVERFLOW :
+        err := 205;
+      STATUS_FLOAT_DENORMAL_OPERAND,
+      STATUS_FLOAT_UNDERFLOW :
+        err := 206;
+  {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+      STATUS_FLOAT_INEXACT_RESULT,
+      STATUS_FLOAT_INVALID_OPERATION,
+      STATUS_FLOAT_STACK_CHECK :
+        err := 207;
+      STATUS_INTEGER_OVERFLOW :
+        begin
+          err := 215;
+          must_reset_fpu := false;
+        end;
+      STATUS_ILLEGAL_INSTRUCTION:
+        { if we're testing sse support, simply set the flag and continue }
+        if sse_check then
+          begin
+            os_supports_sse:=false;
+            { if yes, then retry }
+            excep^.ExceptionRecord^.ExceptionCode := 0;
+            res:=EXCEPTION_CONTINUE_EXECUTION;
+          end
         else
-                frame := 0;
-        res := EXCEPTION_CONTINUE_SEARCH;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then Writeln(stderr,'Exception  ',
-                hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
-{$endif SYSTEMEXCEPTIONDEBUG}
-        case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
-                STATUS_INTEGER_DIVIDE_BY_ZERO,
-                STATUS_FLOAT_DIVIDE_BY_ZERO :
-                        res := SysHandleErrorFrame(200, frame, true);
-                STATUS_ARRAY_BOUNDS_EXCEEDED :
-                        res := SysHandleErrorFrame(201, frame, false);
-                STATUS_STACK_OVERFLOW :
-                        res := SysHandleErrorFrame(202, frame, false);
-                STATUS_FLOAT_OVERFLOW :
-                        res := SysHandleErrorFrame(205, frame, true);
-                STATUS_FLOAT_DENORMAL_OPERAND,
-                STATUS_FLOAT_UNDERFLOW :
-                        res := SysHandleErrorFrame(206, frame, true);
-{excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
-                STATUS_FLOAT_INEXACT_RESULT,
-                STATUS_FLOAT_INVALID_OPERATION,
-                STATUS_FLOAT_STACK_CHECK :
-                        res := SysHandleErrorFrame(207, frame, true);
-                STATUS_INTEGER_OVERFLOW :
-                        res := SysHandleErrorFrame(215, frame, false);
-                STATUS_ILLEGAL_INSTRUCTION:
-                  res := SysHandleErrorFrame(216, frame, true);
-                STATUS_ACCESS_VIOLATION:
-                  { Athlon prefetch bug? }
-                  if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
-                    begin
-                      { if yes, then retry }
-                      excep^.ExceptionRecord^.ExceptionCode := 0;
-                      res:=EXCEPTION_CONTINUE_EXECUTION;
-                    end
-                  else
-                    res := SysHandleErrorFrame(216, frame, true);
+          err := 216;
+      STATUS_ACCESS_VIOLATION:
+        { Athlon prefetch bug? }
+        if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
+          begin
+            { if yes, then retry }
+            excep^.ExceptionRecord^.ExceptionCode := 0;
+            res:=EXCEPTION_CONTINUE_EXECUTION;
+          end
+        else
+          err := 216;
 
-                STATUS_CONTROL_C_EXIT:
-                        res := SysHandleErrorFrame(217, frame, true);
-                STATUS_PRIVILEGED_INSTRUCTION:
-                  res := SysHandleErrorFrame(218, frame, false);
-                else
-                  begin
-                    if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
-                      res  :=  SysHandleErrorFrame(217, frame, true)
-                    else
-                      res := SysHandleErrorFrame(255, frame, true);
-                  end;
+      STATUS_CONTROL_C_EXIT:
+        err := 217;
+      STATUS_PRIVILEGED_INSTRUCTION:
+        begin
+          err := 218;
+          must_reset_fpu := false;
         end;
-        syswin32_i386_exception_handler := res;
-end;
+      else
+        begin
+          if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+            err := 217
+          else
+            err := 255;
+        end;
+    end;
 
+    if (err <> 0) and (exceptLevel < MaxExceptionLevel) then begin
+      exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
+      exceptError[exceptLevel] := err;
+      resetFPU[exceptLevel] := must_reset_fpu;
+      inc(exceptLevel);
+
+      excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
+      excep^.ExceptionRecord^.ExceptionCode := 0;
+
+      res := EXCEPTION_CONTINUE_EXECUTION;
+    {$ifdef SYSTEMEXCEPTIONDEBUG}
+      if IsConsole then begin
+        writeln(stderr,'Exception Continue Exception set at ',
+                hexstr(exceptEip[exceptLevel],8));
+        writeln(stderr,'Eip changed to ',
+                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+      end;
+    {$endif SYSTEMEXCEPTIONDEBUG}
+    end;
+  end;
+  syswin32_i386_exception_handler := res;
+end;
 
 procedure install_exception_handlers;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
@@ -911,14 +985,52 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
+{ because of the brain dead sse detection on x86, this test is post poned }
+procedure fpc_cpucodeinit;
+  begin
+  end;
 
-{$ifdef HASWIDESTRING}
+
+
+
 {****************************************************************************
                       OS dependend widestrings
 ****************************************************************************}
 
-function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharUpperBuffW';
-function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharLowerBuffW';
+const
+  { MultiByteToWideChar  }
+     MB_PRECOMPOSED = 1;
+     CP_ACP = 0;
+
+function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
+    stdcall; external 'kernel32' name 'MultiByteToWideChar';
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
+    stdcall; external 'kernel32' name 'WideCharToMultiByte';
+function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
+    stdcall; external 'user32' name 'CharUpperBuffW';
+function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
+    stdcall; external 'user32' name 'CharLowerBuffW';
+
+
+procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    destlen:=WideCharToMultiByte(CP_ACP, 0, source, len+1, nil, 0, nil, nil);
+    setlength(dest, destlen-1);
+    WideCharToMultiByte(CP_ACP, 0, source, len+1, @dest[1], destlen, nil, nil);
+  end;
+
+procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len+1, nil, 0);
+    setlength(dest, destlen-1);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len+1, @dest[1], destlen);
+  end;
 
 
 function Win32WideUpper(const s : WideString) : WideString;
@@ -943,11 +1055,12 @@ function Win32WideLower(const s : WideString) : WideString;
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
   begin
+    widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
   end;
 
-{$endif HASWIDESTRING}
 
 
 {****************************************************************************
@@ -1035,7 +1148,7 @@ end;
 procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
-    displayed in and messagebox }
+    displayed in a messagebox }
   StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
   StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
@@ -1072,24 +1185,28 @@ begin
   result := stklen;
 end;
 
+{
 const
    Exe_entry_code : pointer = @Exe_entry;
    Dll_entry_code : pointer = @Dll_entry;
+}
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    HInstance:=getmodulehandle(GetCommandFile);
+    SysInstance:=getmodulehandle(GetCommandFile);
   MainInstance:=HInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
   InitHeap;
   SysInitExceptions;
+  { setup fastmove stuff }
+  fpc_cpucodeinit;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
@@ -1100,11 +1217,7 @@ begin
   InitSystemThreads;
   { Reset internal error variable }
   errno:=0;
-{$ifdef HASVARIANT}
   initvariantmanager;
-{$endif HASVARIANT}
-{$ifdef HASWIDESTRING}
   initwidestringmanager;
   InitWin32Widestrings
-{$endif HASWIDESTRING}
 end.

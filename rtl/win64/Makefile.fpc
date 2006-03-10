@@ -6,17 +6,17 @@
 main=rtl
 
 [target]
-loaders= #wprt0 wdllprt0 gprt0 wcygprt0
-units=$(SYSTEMUNIT) # ctypes objpas macpas strings \
-#     lineinfo heaptrc matrix \
-#     windows winsock initc cmem dynlibs signals \
-#     dos crt objects graph messages \
-#     rtlconsts sysconst sysutils math types \
-#     strutils convutils dateutils varutils variants typinfo classes \
-#     cpu mmx charset ucomplex getopts \
-#     wincrt winmouse winevent sockets printer \
-#     video mouse keyboard \
-#     winsysut fpmkunit
+loaders=$(LOADERS)
+units=system ctypes objpas macpas strings \
+      lineinfo heaptrc matrix \
+      windows winsock initc cmem dynlibs signals \
+      dos crt objects messages \
+      rtlconsts sysconst sysutils math types \
+      strutils convutils dateutils varutils variants typinfo classes \
+      cpu mmx charset ucomplex getopts \
+      winevent sockets printer \
+      video mouse keyboard \
+      winsysut fpmkunit
 
 rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
@@ -31,40 +31,34 @@ fpcdir=../..
 target=win64
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(RTL)/win
-sourcedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
 
 
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 WININC=wininc
 
 UNITPREFIX=rtl
 
-SYSTEMUNIT=system
-PRT0=wprt0
-
-# Use new feature from 1.0.5 version
-# that generates release PPU files
-# which will not be recompiled
-ifdef RELEASE
-override FPCOPT+=-Ur
+ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
+LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
 endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
-GRAPHDIR=$(INC)/graph
 
 # Files used by windows.pp
-# include $(WININC)/makefile.inc
+#include $(WININC)/makefile.inc
 
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
 
 [rules]
-SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
+SYSTEMPPU=$(addsuffix $(PPUEXT),system)
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -86,8 +80,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-wprt0$(OEXT) : $(PRT0).as
-        $(AS) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(PRT0).as
+wprt0$(OEXT) : wprt0.as
 
 gprt0$(OEXT) : gprt0.as
 
@@ -99,38 +92,34 @@ wcygprt0$(OEXT) : wcygprt0.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
-        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp -Fi..\win
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp -Fi../win
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMUNIT)$(PPUEXT)
+                   system$(PPUEXT)
 
 #
 # System Dependent Units
 #
 
-windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
+windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) system$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp
 
-messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
+messages$(PPUEXT): messages.pp $(WININC)/messages.inc system$(PPUEXT)
         $(COMPILER) -I$(WININC) messages.pp
 
-opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) system$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) system$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) system$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
-initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
-
-wincrt$(PPUEXT) : wincrt.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
-
-winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
+initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 
@@ -138,22 +127,11 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) system$(PPUEXT)
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
-
-#
-# Graph
-#
-
-include $(GRAPHDIR)/makefile.inc
-GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
-
-graph$(PPUEXT) : graph.pp strings$(PPUEXT) windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
-                 $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) graph.pp
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 
 #
@@ -184,13 +162,13 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
-sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
@@ -206,36 +184,38 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
 # Other system-independent RTL Units
 #
 
-cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 
-mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 
-getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
-heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
-charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 
-cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
+cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 
-ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
+
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 
 #
 # Other system-dependent RTL Units
 #
 
-callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
+callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 
-ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
 
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)
