@@ -383,6 +383,12 @@ begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
+  case target_info.system of
+    system_powerpc_darwin:
+      LinkRes.Add('-arch ppc');
+    system_i386_darwin:
+      LinkRes.Add('-arch i386');
+  end;
   { Write path to search libraries }
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
