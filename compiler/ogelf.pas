@@ -82,6 +82,7 @@ interface
          procedure createsymtab;
          procedure writesectionheader(s:TElf32ObjSection);
          procedure writesectiondata(s:TElf32ObjSection);
+         procedure write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_sh_string(p:TObject;arg:pointer);
          procedure section_count_sections(p:TObject;arg:pointer);
@@ -701,6 +702,9 @@ implementation
 
     procedure TElf32ObjectOutput.createrelocsection(s:TElf32ObjSection);
       var
+{$ifdef ver2_0_0}
+        relnative,
+{$endif ver2_0_0}
         rel  : telfreloc;
         r    : TObjRelocation;
         relsym,reltyp : longint;
@@ -790,33 +794,54 @@ implementation
               rel.info:=(relsym shl 8) or reltyp;
 {$endif cpu64bit}
               { write reloc }
+{$ifdef ver2_0_0}
+              relnative:=MaybeSwapElfReloc(rel);
+              s.relocsect.write(relnative,sizeof(rel));
+{$else}
               s.relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
+{$endif ver2_0_0}
               r:=TObjRelocation(r.next);
             end;
          end;
       end;
 
 
-    procedure TElf32ObjectOutput.section_write_symbol(p:TObject;arg:pointer);
+    procedure TElf32ObjectOutput.write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
       var
+{$ifdef ver2_0_0}
+        elfsymnative,
+{$endif ver2_0_0}
         elfsym : telfsymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
-        elfsym.st_name:=TElf32ObjSection(p).shstridx;
-        elfsym.st_info:=STT_SECTION;
-        elfsym.st_shndx:=TElf32ObjSection(p).secshidx;
-        TObjSection(p).secsymidx:=symidx;
+        elfsym.st_name:=astridx;
+        elfsym.st_info:=ainfo;
+        elfsym.st_shndx:=ashndx;
         inc(symidx);
         inc(localsyms);
+{$ifdef ver2_0_0}
+        elfsymnative:=MaybeSwapElfSymbol(elfsym);
+        elf32data.symtabsect.write(elfsymnative,sizeof(elfsym));
+{$else}
         elf32data.symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
+{$endif ver2_0_0}
+      end;
+
+
+    procedure TElf32ObjectOutput.section_write_symbol(p:TObject;arg:pointer);
+      begin
+        TObjSection(p).secsymidx:=symidx;
+        write_internal_symbol(TElf32ObjSection(p).shstridx,STT_SECTION,TElf32ObjSection(p).secshidx);
       end;
 
 
     procedure TElf32ObjectOutput.createsymtab;
       var
+{$ifdef ver2_0_0}
+        elfsymnative,
+{$endif}
         elfsym : telfsymbol;
-        i,
-        locals : longint;
+        i      : longint;
         objsym : TObjSymbol;
       begin
         with elf32data do
@@ -824,17 +849,9 @@ implementation
            symidx:=0;
            localsyms:=0;
            { empty entry }
-           fillchar(elfsym,sizeof(elfsym),0);
-           symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
-           inc(symidx);
-           inc(localsyms);
+           write_internal_symbol(0,0,0);
            { filename entry }
-           elfsym.st_name:=1;
-           elfsym.st_info:=STT_FILE;
-           elfsym.st_shndx:=SHN_ABS;
-           symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
-           inc(symidx);
-           inc(localsyms);
+           write_internal_symbol(1,STT_FILE,SHN_ABS);
            { section }
            ObjSectionList.ForEachCall(@section_write_symbol,nil);
            { ObjSymbols }
@@ -891,7 +908,12 @@ implementation
                      end;
                    objsym.symidx:=symidx;
                    inc(symidx);
+{$ifdef ver2_0_0}
+                   elfsymnative:=MaybeSwapElfSymbol(elfsym);
+                   symtabsect.write(elfsymnative,sizeof(elfsym));
+{$else}
                    symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
+{$endif ver2_0_0}
                  end;
              end;
            { update the .symtab section header }
@@ -927,6 +949,9 @@ implementation
 
     procedure TElf32ObjectOutput.writesectionheader(s:TElf32ObjSection);
       var
+{$ifdef ver2_0_0}
+        sechdrnative,
+{$endif ver2_0_0}
         sechdr : telfsechdr;
       begin
         fillchar(sechdr,sizeof(sechdr),0);
@@ -939,7 +964,12 @@ implementation
         sechdr.sh_info:=s.shinfo;
         sechdr.sh_addralign:=s.secalign;
         sechdr.sh_entsize:=s.shentsize;
+{$ifdef ver2_0_0}
+        sechdrnative:=MaybeSwapSecHeader(sechdr);
+        writer.write(sechdrnative,sizeof(sechdr));
+{$else}
         writer.write(MaybeSwapSecHeader(sechdr),sizeof(sechdr));
+{$endif ver2_0_0}
       end;
 
 
@@ -1008,6 +1038,9 @@ implementation
 
     function TElf32ObjectOutput.writedata(data:TObjData):boolean;
       var
+{$ifdef ver2_0_0}
+        headernative,
+{$endif ver2_0_0}
         header : telfheader;
         shoffset,
         datapos   : aint;
@@ -1091,8 +1124,12 @@ implementation
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);
            header.e_shentsize:=sizeof(telfsechdr);
+{$ifdef ver2_0_0}
+           headernative:=MaybeSwapHeader(header);
+           writer.write(headernative,sizeof(header));
+{$else}
            writer.write(MaybeSwapHeader(header),sizeof(header));
-
+{$endif ver2_0_0}
            writer.writezeros($40-sizeof(header)); { align }
          { Sections }
            ObjSectionList.ForEachCall(@section_write_data,nil);
