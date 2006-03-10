@@ -113,7 +113,14 @@ unit cgutils;
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
 
+
+    { allocate room for parameters on the stack in the entry code? }
+    function use_fixed_stack: boolean;
+
 implementation
+
+uses
+  systems;
 
 {****************************************************************************
                                   TReference
@@ -182,5 +189,13 @@ implementation
       end;
 
 
+    function use_fixed_stack: boolean;
+      begin
+{$ifdef i386}
+        result := (target_info.system = system_i386_darwin);
+{$else i386}
+        result := false;
+{$endif i386}
+      end;
 
 end.

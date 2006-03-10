@@ -43,7 +43,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      cgbase,
+      cgbase,cgutils,
       cpubase,paramgr,
       aasmtai,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
@@ -66,6 +66,8 @@ implementation
       var
         hreg : tregister;
       begin
+        if (use_fixed_stack) then
+          exit;
         { better than an add on all processors }
         if pop_size=4 then
           begin

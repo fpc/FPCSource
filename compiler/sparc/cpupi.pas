@@ -34,7 +34,6 @@ interface
     TSparcProcInfo=class(tcgprocinfo)
     public
       constructor create(aparent:tprocinfo);override;
-      procedure allocate_push_parasize(size:longint);override;
       function calc_stackframe_size:longint;override;
     end;
 
@@ -48,13 +47,6 @@ implementation
       begin
         inherited create(aparent);
         maxpushedparasize:=0;
-      end;
-
-
-    procedure tsparcprocinfo.allocate_push_parasize(size:longint);
-      begin
-        if size>maxpushedparasize then
-          maxpushedparasize:=size;
       end;
 
 

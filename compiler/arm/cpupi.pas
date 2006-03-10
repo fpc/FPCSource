@@ -37,7 +37,6 @@ unit cpupi;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
-          procedure allocate_push_parasize(size: longint);override;
           function calc_stackframe_size:longint;override;
        end;
 
@@ -64,13 +63,6 @@ unit cpupi;
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
         tg.setfirsttemp(-12-28);
-      end;
-
-
-    procedure tarmprocinfo.allocate_push_parasize(size:longint);
-      begin
-        if size>maxpushedparasize then
-          maxpushedparasize:=size;
       end;
 
 

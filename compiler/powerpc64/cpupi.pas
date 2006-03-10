@@ -37,7 +37,6 @@ type
     parent_framepointer_offset: longint;
     constructor create(aparent: tprocinfo); override;
     procedure set_first_temp_offset; override;
-    procedure allocate_push_parasize(size: longint); override;
     function calc_stackframe_size: longint; override;
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
 
@@ -85,12 +84,6 @@ begin
       { at 0(r1), the previous value of r1 will be stored }
       tg.setfirsttemp(8);
   end;
-end;
-
-procedure tppcprocinfo.allocate_push_parasize(size: longint);
-begin
-  if size > maxpushedparasize then
-    maxpushedparasize := size;
 end;
 
 function tppcprocinfo.calc_stackframe_size: longint;

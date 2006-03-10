@@ -71,7 +71,8 @@ unit cgcpu;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
-        result:=assigned(cgpara.location) and
+        result:=(not use_fixed_stack) and
+                assigned(cgpara.location) and
                 (cgpara.location^.loc=LOC_REFERENCE) and
                 (cgpara.location^.reference.index=NR_STACK_POINTER_REG);
       end;
@@ -295,7 +296,8 @@ unit cgcpu;
             list.concat(Taicpu.Op_none(A_IRET,S_NO));
           end
         { Routines with the poclearstack flag set use only a ret }
-        else if current_procinfo.procdef.proccalloption in clearstack_pocalls then
+        else if (current_procinfo.procdef.proccalloption in clearstack_pocalls) and
+                (not use_fixed_stack)  then
          begin
            { complex return values are removed from stack in C code PM }
            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,

@@ -34,6 +34,7 @@ unit cpupi;
        ti386procinfo = class(tcgprocinfo)
          constructor create(aparent:tprocinfo);override;
          function calc_stackframe_size:longint;override;
+         procedure generate_parameter_info;override;
        end;
 
 
@@ -43,7 +44,8 @@ unit cpupi;
       cutils,
       systems,globals,
       tgobj,
-      cpubase;
+      cpubase,
+      cgutils;
 
     constructor ti386procinfo.create(aparent:tprocinfo);
       begin
@@ -59,9 +61,19 @@ unit cpupi;
         if (target_info.system <> system_i386_darwin) then
           result:=Align(tg.direction*tg.lasttemp,min(aktalignment.localalignmin,4))
         else
-          result:=Align(tg.direction*tg.lasttemp,min(aktalignment.localalignmin,16));
+          result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;
 
+
+    procedure ti386procinfo.generate_parameter_info;
+      begin
+        inherited generate_parameter_info;
+        { Para_stack_size is only used to determine how many bytes to remove }
+        { from the stack at the end of the procedure (in the "ret $xx").     }
+        { If the stack is fixed, nothing has to be removed by the callee     }
+        if use_fixed_stack then
+          para_stack_size := 0;
+      end;
 
 
 begin

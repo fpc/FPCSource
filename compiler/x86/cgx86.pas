@@ -557,8 +557,8 @@ unit cgx86;
 
         asmlist[al_imports].concat(Tai_section.create(sec_stub,'',0));
         result := objectlibrary.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
-        asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         asmlist[al_imports].concat(Tai_symbol.Create(result,0));
+        asmlist[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         asmlist[al_imports].concat(taicpu.op_none(A_HLT));
         asmlist[al_imports].concat(taicpu.op_none(A_HLT));
         asmlist[al_imports].concat(taicpu.op_none(A_HLT));
@@ -1857,6 +1857,8 @@ unit cgx86;
 
 
     procedure tcgx86.g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);
+      var
+        stackmisalignment: longint;
       begin
 {$ifdef i386}
         { interrupt support for i386 }
@@ -1880,11 +1882,15 @@ unit cgx86;
         { save old framepointer }
         if not nostackframe then
           begin
+            { return address }
+            stackmisalignment := sizeof(aint);
             list.concat(tai_regalloc.alloc(current_procinfo.framepointer,nil));
             if current_procinfo.framepointer=NR_STACK_POINTER_REG then
               CGmessage(cg_d_stackframe_omited)
             else
               begin
+                { push <frame_pointer> }
+                inc(stackmisalignment,sizeof(aint));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
@@ -1895,8 +1901,13 @@ unit cgx86;
               end;
 
             { allocate stackframe space }
-            if localsize<>0 then
+            if (localsize<>0) or
+               ((target_info.system = system_i386_darwin) and
+                (stackmisalignment <> 0) and
+                (pi_do_call in current_procinfo.flags)) then
               begin
+                if (target_info.system = system_i386_darwin) then
+                  localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   dwarfcfi.cfa_def_cfa_offset(list,localsize+sizeof(aint));

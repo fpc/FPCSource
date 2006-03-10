@@ -396,7 +396,8 @@ unit cpupara;
             hp.paraloc[side].intsize:=paralen;
             hp.paraloc[side].Alignment:=paraalign;
             { Copy to stack? }
-            if paracgsize=OS_NO then
+            if (paracgsize=OS_NO) or
+               (use_fixed_stack) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 paraloc^.loc:=LOC_REFERENCE;
@@ -406,6 +407,13 @@ unit cpupara;
                 else
                   paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                 varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+
+                { don't let push_size return 16, because then we can    }
+                { read past the end of the heap since the value is only }
+                { 10 bytes long (JM)                                    }
+                if (paracgsize = OS_F80) and
+                   (target_info.system = system_i386_darwin) then
+                  paralen:=16;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then
                   inc(paraloc^.reference.offset,target_info.first_parm_offset);
@@ -509,7 +517,8 @@ unit cpupara;
             else
               begin
                 { Copy to stack? }
-                if paracgsize=OS_NO then
+                if (use_fixed_stack) or
+                   (paracgsize=OS_NO) then
                   begin
                     paraloc:=hp.paraloc[side].add_location;
                     paraloc^.loc:=LOC_REFERENCE;

@@ -99,7 +99,7 @@ unit procinfo;
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
-          procedure allocate_push_parasize(size:longint);virtual;
+          procedure allocate_push_parasize(size:longint);
 
           function calc_stackframe_size:longint;virtual;
 
@@ -146,6 +146,7 @@ implementation
         { labels }
         objectlibrary.getjumplabel(aktexitlabel);
         objectlibrary.getjumplabel(gotlabel);
+        maxpushedparasize:=0;
       end;
 
 
@@ -158,6 +159,8 @@ implementation
 
     procedure tprocinfo.allocate_push_parasize(size:longint);
       begin
+        if size>maxpushedparasize then
+          maxpushedparasize:=size;
       end;
 
 
