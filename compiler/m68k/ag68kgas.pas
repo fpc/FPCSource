@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2006 by the Free Pascal development team
 
     This unit implements an asmoutput class for m68k GAS syntax
 
@@ -19,8 +19,6 @@
 
  ****************************************************************************
 }
-{ This unit implements an asmoutput class for i386 AT&T syntax
-}
 unit ag68kgas;
 
 {$i fpcdefs.inc}
@@ -33,8 +31,12 @@ interface
       aasmbase,aasmtai,aasmcpu,assemble,aggas;
 
     type
-      TM68kAssembler=class(TGNUassembler)
-      public
+      Tm68kGNUAssembler=class(TGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
+
+    type
+      Tm68kInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp: tai);override;
       end;
 
@@ -111,6 +113,17 @@ interface
       cutils,systems,
       cgbase,cgutils,
       verbose,itcpugas;
+
+     
+ {****************************************************************************}
+ {                         GNU m68k Assembler writer                          }
+ {****************************************************************************}
+
+ constructor Tm68kGNUAssembler.create(smart: boolean);
+   begin
+     inherited create(smart);
+     InstrWriter := Tm68kInstrWriter.create(self);
+   end;
 
 
     function getreferencestring(var ref : treference) : string;
@@ -286,7 +299,7 @@ interface
       end;
 
 
-    procedure TM68kAssembler.WriteInstruction(hp: tai);
+    procedure Tm68kInstrWriter.WriteInstruction(hp: tai);
       var
         op       : tasmop;
         s        : string;
@@ -307,7 +320,7 @@ interface
              { quick hack to overcome a problem with manglednames=255 chars }
              if calljmp then
                 begin
-                  AsmWrite(s+#9);
+                  owner.AsmWrite(s+#9);
                   s:=getopstr_jmp(taicpu(hp).oper[0]^);
                 end
               else
@@ -331,7 +344,7 @@ interface
                     end;
                 end;
            end;
-           AsmWriteLn(s);
+           owner.AsmWriteLn(s);
        end;
 
 
@@ -353,5 +366,5 @@ interface
           );
 
 initialization
-  RegisterAssembler(as_m68k_as_info,TM68kAssembler);
+  RegisterAssembler(as_m68k_as_info,Tm68kGNUAssembler);
 end.
