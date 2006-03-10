@@ -260,6 +260,8 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
+                if (target_info.system = system_i386_darwin) then
+                  stacksize := align(stacksize+sizeof(aint),16) - sizeof(aint);
                 if (stacksize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
@@ -431,19 +433,28 @@ unit cgcpu;
 
     procedure tcg386.g_exception_reason_save(list : taasmoutput; const href : treference);
       begin
-        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+        if not use_fixed_stack then
+          list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+        else
+         inherited g_exception_reason_save(list,href);
       end;
 
 
     procedure tcg386.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aint);
       begin
-        list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a));
+        if not use_fixed_stack then
+          list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
+        else
+          inherited g_exception_reason_save_const(list,href,a);
       end;
 
 
     procedure tcg386.g_exception_reason_load(list : taasmoutput; const href : treference);
       begin
-        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG));
+        if not use_fixed_stack then
+          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+        else
+          inherited g_exception_reason_load(list,href);
       end;
 
 
