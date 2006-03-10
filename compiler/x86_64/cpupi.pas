@@ -33,7 +33,6 @@ interface
     type
        tx86_64procinfo = class(tcgprocinfo)
          function calc_stackframe_size:longint;override;
-         procedure allocate_push_parasize(size:longint);override;
        end;
 
 
@@ -43,13 +42,6 @@ implementation
       globals,
       cutils,
       tgobj;
-
-
-    procedure tx86_64procinfo.allocate_push_parasize(size:longint);
-      begin
-        if size>maxpushedparasize then
-          maxpushedparasize:=size;
-      end;
 
 
     function tx86_64procinfo.calc_stackframe_size:longint;
