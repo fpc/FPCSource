@@ -17,6 +17,8 @@
 **********************************************************************}
 unit Linux;
 
+{$packrecords c}
+
 interface
 
 uses
@@ -62,19 +64,22 @@ Const
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
-  epoll_data = record
+  EPoll_Data = record
     case integer of
       0: (ptr: pointer);
       1: (fd: cint);
       2: (u32: cuint);
       3: (u64: cuint64);
   end;
+  TEPoll_Data =  Epoll_Data;
+  PEPoll_Data = ^Epoll_Data;
 
-  pepoll_event = ^epoll_event;
-  epoll_event = record
-    events: cuint32;
-    data: epoll_data;
+  EPoll_Event = record
+    Events: cuint32;
+    Data  : TEpoll_Data;
   end;
+  TEPoll_Event =  Epoll_Event;
+  PEpoll_Event = ^Epoll_Event;
 
 function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 
