@@ -1689,13 +1689,6 @@ implementation
         { call startup helpers from main program }
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
          begin
-           if (target_info.system in [system_powerpc_darwin,system_i386_darwin,system_powerpc_macos]) and
-              not(current_module.islibrary) then
-             begin
-              { the parameters are already in the right registers }
-              cg.a_call_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
-             end;
-
            { initialize units }
            cg.allocallcpuregisters(list);
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
@@ -1787,6 +1780,16 @@ implementation
 
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
+           if (target_info.system in [system_powerpc_darwin,system_i386_darwin,system_powerpc_macos]) and
+              not(current_module.islibrary) then
+             begin
+              list.concat(tai_section.create(sec_code,'',4));
+              list.concat(tai_symbol.createname_global(
+                target_info.cprefix+mainaliasname,AT_FUNCTION,0));
+              { keep argc, argv and envp properly on the stack }
+              cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
+             end;
+
             { Reference all DEBUGINFO sections from the main .text section }
             if (cs_debuginfo in aktmoduleswitches) then
               debuginfo.referencesections(list);

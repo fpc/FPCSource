@@ -1293,8 +1293,7 @@ implementation
             if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
               pd.aliasnames.insert('PASCALMAIN');
           end
-         else if (target_info.system = system_i386_netware) or
-                 (target_info.system = system_i386_netwlibc) then
+         else if (target_info.system in [system_i386_netware,system_i386_netwlibc,system_powerpc_macos,system_powerpc_darwin,system_i386_darwin]) then
            begin
              pd:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
