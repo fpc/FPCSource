@@ -49,11 +49,22 @@ Var
   Win32BuildNumber   : dword;
   Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
 
+{ Compatibility with Delphi }
+function Win32Check(res:boolean):boolean;
+
 
 implementation
 
   uses
     sysconst;
+
+function Win32Check(res:boolean):boolean;
+begin
+  if not res then
+    RaiseLastOSError;
+  result:=res;
+end;
+
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
@@ -357,7 +368,7 @@ begin
   if SetFileAttributes(PChar(FileName), Attr) then
     Result:=0
   else
-    Result := GetLastError;    
+    Result := GetLastError;
 end;
 
 
