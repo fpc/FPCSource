@@ -516,18 +516,18 @@ implementation
 
            ait_align :
              begin
-               if tai_align(hp).aligntype>1 then
+               if tai_align_abstract(hp).aligntype>1 then
                  begin
                    if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
                      begin
-                       AsmWrite(#9'.balign '+tostr(tai_align(hp).aligntype));
-                       if tai_align(hp).use_op then
-                        AsmWrite(','+tostr(tai_align(hp).fillop))
+                       AsmWrite(#9'.balign '+tostr(tai_align_abstract(hp).aligntype));
+                       if tai_align_abstract(hp).use_op then
+                        AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
                      end
                    else
                      begin
                        { darwin as only supports .align }
-                       if not ispowerof2(tai_align(hp).aligntype,i) then
+                       if not ispowerof2(tai_align_abstract(hp).aligntype,i) then
                          internalerror(2003010305);
                        AsmWrite(#9'.align '+tostr(i));
                        last_align := i;

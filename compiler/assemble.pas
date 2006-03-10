@@ -905,8 +905,6 @@ Implementation
 
 
     function TInternalAssembler.TreePass0(hp:Tai):Tai;
-      var
-        objsym : TObjSymbol;
       begin
         while assigned(hp) do
          begin
@@ -963,8 +961,7 @@ Implementation
 
     function TInternalAssembler.TreePass1(hp:Tai):Tai;
       var
-        InlineLevel,
-        i : longint;
+        InlineLevel : longint;
         objsym : TObjSymbol;
       begin
         inlinelevel:=0;
@@ -1259,7 +1256,7 @@ Implementation
            ObjData.afteralloc;
            { leave if errors have occured }
            if errorcount>0 then
-             exit;
+             break;
 
            { Pass 1 }
            ObjData.currpass:=1;
@@ -1321,6 +1318,8 @@ Implementation
            { start next objectfile }
            NextSmartName(place);
          end;
+        ObjData.free;
+        ObjData:=nil;
       end;
 
 

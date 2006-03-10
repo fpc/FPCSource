@@ -629,8 +629,6 @@ const win32stub : array[0..131] of byte=(
               result:=result or PE_SCN_MEM_READ;
           end
         else
-          result:=result or PE_SCN_LNK_REMOVE;
-        if oso_debug in aoptions then
           result:=result or PE_SCN_MEM_DISCARDABLE;
         case aalign of
            1 : result:=result or PE_SCN_ALIGN_1BYTES;
