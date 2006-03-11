@@ -45,6 +45,9 @@ Interface
 {$ifdef macos}
 {$define shell_implemented}
 {$endif}
+{$ifdef sunos}
+{$define implemented}
+{$endif}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
