@@ -1059,6 +1059,9 @@ asm
 end;
 
 
+{$ifndef darwin}
+{ darwin requires that the stack is aligned to 16 bytes when calling another function }
+
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -1132,3 +1135,4 @@ asm
 // [442] end;
 end;
 
+{$endif darwin}
