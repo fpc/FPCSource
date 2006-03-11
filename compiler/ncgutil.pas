@@ -1845,7 +1845,8 @@ implementation
         if current_procinfo.procdef.proccalloption in clearstack_pocalls then
           begin
             parasize:=0;
-            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+            if not(use_fixed_stack) and
+               paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
               inc(parasize,sizeof(aint));
           end
         else
