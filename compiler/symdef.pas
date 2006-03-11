@@ -365,6 +365,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
+          function alignment:longint;override;
           procedure setsize;
           function getvartype : longint;override;
           { rtti }
@@ -379,6 +380,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
+          function alignment:longint;override;
           procedure setsize;
           function  getvartype:longint;override;
           { rtti }
@@ -1620,6 +1622,16 @@ implementation
       end;
 
 
+    function torddef.alignment:longint;
+      begin
+        if (target_info.system = system_i386_darwin) and
+           (typ in [s64bit,u64bit]) then
+          result := 4
+        else
+          result := inherited alignment;
+      end;
+
+
     procedure torddef.setsize;
       const
         sizetbl : array[tbasetype] of longint = (
@@ -1783,6 +1795,22 @@ implementation
          result:=tfloatdef.create(typ);
          result.deftype:=floatdef;
          tfloatdef(result).savesize:=savesize;
+      end;
+
+
+    function tfloatdef.alignment:longint;
+      begin
+        if (target_info.system = system_i386_darwin) then
+          case typ of
+            s80real : result:=16;
+            s64real,
+            s64currency,
+            s64comp : result:=4;
+            else
+              result := inherited alignment;
+          end
+        else
+          result := inherited alignment;
       end;
 
 

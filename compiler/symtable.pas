@@ -941,10 +941,6 @@ implementation
                 fieldalignment:=4
               else if (varalign>1) and (fieldalignment<2) then
                 fieldalignment:=2;
-              { darwin/x86 aligns long doubles on 16 bytes }
-              if (target_info.system = system_i386_darwin) and
-                  (fieldalignment = 12) then
-                fieldalignment := 16;
             end;
             fieldalignment:=min(fieldalignment,aktalignment.maxCrecordalign);
           end;
