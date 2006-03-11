@@ -638,20 +638,56 @@ begin
   end; { while }
 end;
 
+
+procedure WriteStr(const s: string);
+var
+  WritePos: Coord; { Upper-left cell to write from }
+  numWritten : DWord;
+  WinAttr : word;
+  i: integer;
+begin
+  WritePos.X := currX - 1;
+  WritePos.Y := currY - 1;
+
+  WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[1], Length(s), writePos, numWritten);
+
+  WinAttr:=TextAttr;
+  dec(WritePos.X);
+  for i:=0 to Length(s)-1 do
+    begin
+      inc(WritePos.X);
+      WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, 1, writePos, numWritten);
+    end;
+  Inc(CurrX,Length(s));
+end;
+
+
 Function CrtWrite(var f : textrec) : integer;
 var
   i : longint;
+  s : string;
 begin
   GetScreenCursor(CurrX, CurrY);
-
+  s:='';
   for i:=0 to f.bufpos-1 do
-    WriteChar(f.buffer[i]);
+    if f.buffer[i] in [#7,#8,#10,#13] then // special chars directly.
+      begin
+        if s<>'' then
+          begin
+            WriteStr(s);
+ 	    s:='';
+          end;
+        WriteChar(f.buffer[i]);
+      end
+    else
+      s:=s+f.buffer[i];
+  if s<>'' then
+    WriteStr(s);
   SetScreenCursor(CurrX, CurrY);
 
   f.bufpos:=0;
   CrtWrite:=0;
 end;
-
 
 Function CrtRead(Var F: TextRec): Integer;
 
