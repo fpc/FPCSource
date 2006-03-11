@@ -33,6 +33,7 @@ unit cpupi;
     type
        ti386procinfo = class(tcgprocinfo)
          constructor create(aparent:tprocinfo);override;
+         procedure set_first_temp_offset;override;
          function calc_stackframe_size:longint;override;
          procedure generate_parameter_info;override;
        end;
@@ -45,12 +46,23 @@ unit cpupi;
       systems,globals,
       tgobj,
       cpubase,
-      cgutils;
+      cgutils,
+      symconst;
 
     constructor ti386procinfo.create(aparent:tprocinfo);
       begin
         inherited create(aparent);
         got:=NR_EBX;
+      end;
+
+
+    procedure ti386procinfo.set_first_temp_offset;
+      begin
+        if use_fixed_stack then
+          begin
+            if not(po_assembler in procdef.procoptions) then
+              tg.setfirsttemp(tg.direction*maxpushedparasize);
+          end;
       end;
 
 
