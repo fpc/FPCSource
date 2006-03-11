@@ -153,7 +153,9 @@ interface
        );
 
        tar = (ar_none
-            ,ar_gnu_ar,ar_mpw_ar
+            ,ar_gnu_ar
+            ,ar_mpw_ar
+            ,ar_gnu_ar_scripted
        );
 
        tres = (res_none

@@ -614,23 +614,23 @@ end;
 
 
 Function TExternalLinker.MakeStaticLibrary:boolean;
-var
-  smartpath : TCmdStr;
 
   function GetNextFiles(const maxCmdLength : AInt; var item : TStringListItem) : string;
-  begin
-    result := '';
-    while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
-      result := result + ' ' + item.str;
-      item := TStringListItem(item.next);
+    begin
+      result := '';
+      while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
+        result := result + ' ' + item.str;
+        item := TStringListItem(item.next);
+      end;
     end;
-  end;
 
 var
-  binstr : string;
+  binstr, scriptfile : string;
   success : boolean;
-  cmdstr, nextcmd : TCmdStr;
+  cmdstr, nextcmd, smartpath : TCmdStr;
   current : TStringListItem;
+  script: Text;
+  scripted_ar : boolean;
 begin
   MakeStaticLibrary:=false;
 { remove the library, to be sure that it is rewritten }
@@ -639,28 +639,60 @@ begin
   smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   binstr := FindUtil(utilsprefix + binstr);
-  Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
-  { create AR commands }
-  success := true;
-  nextcmd := cmdstr;
-  current := TStringListItem(SmartLinkOFiles.First);
-  repeat
-    Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd) + 6 - length(binstr) - 1, current));
-    success:=DoExec(binstr,nextcmd,false,true);
-    nextcmd := cmdstr;
-  until (not assigned(current)) or (not success);
 
-{ Clean up }
+
+  scripted_ar:=target_ar.id=ar_gnu_ar_scripted;
+
+  if scripted_ar then
+    begin
+      scriptfile := FixFileName(smartpath+'arscript.txt');
+      Replace(cmdstr,'$SCRIPT',maybequoted(scriptfile));
+      Assign(script, scriptfile);
+      Rewrite(script);
+      try
+        writeln(script, 'CREATE ' + current_module.staticlibfilename^);
+        current := TStringListItem(SmartLinkOFiles.First);
+        while current <> nil do
+          begin
+            writeln(script, 'ADDMOD ' + current.str);
+            current := TStringListItem(current.next);
+          end;
+        writeln(script, 'SAVE');
+        writeln(script, 'END');
+      finally
+        Close(script);
+      end;
+      success:=DoExec(binstr,cmdstr,false,true);
+    end
+  else
+    begin
+      Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+      { create AR commands }
+      success := true;
+      nextcmd := cmdstr;
+      current := TStringListItem(SmartLinkOFiles.First);
+      repeat
+        Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd) + 6 - length(binstr) - 1, current));
+        success:=DoExec(binstr,nextcmd,false,true);
+        nextcmd := cmdstr;
+      until (not assigned(current)) or (not success);
+    end;
+
+  { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
     begin
       while not SmartLinkOFiles.Empty do
-       RemoveFile(SmartLinkOFiles.GetFirst);
+        RemoveFile(SmartLinkOFiles.GetFirst);
+      if scripted_ar then
+        RemoveFile(scriptfile);
       RemoveDir(smartpath);
     end
    else
     begin
       AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
+      if scripted_ar then
+        AsmRes.AddDeleteCommand(scriptfile);
       AsmRes.Add('rmdir '+smartpath);
     end;
   MakeStaticLibrary:=success;
@@ -937,7 +969,13 @@ end;
             arcmd : 'ar rs $LIB $FILES'
           );
 
+      ar_gnu_ar_scripted_info : tarinfo =
+          (
+            id    : ar_gnu_ar_scripted;
+            arcmd : 'ar -M < $SCRIPT'
+          );
+
 initialization
   RegisterAr(ar_gnu_ar_info);
-
+  RegisterAr(ar_gnu_ar_scripted_info);
 end.

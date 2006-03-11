@@ -180,7 +180,7 @@ unit i_win;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_gnu_ar;
+            ar           : ar_gnu_ar_scripted;
             res          : res_gnu_wince_windres;
             dbg          : dbg_stabs;
             script       : script_dos;
