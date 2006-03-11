@@ -260,7 +260,8 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system = system_i386_darwin) then
+                if (target_info.system = system_i386_darwin) and
+                   (pi_do_call in current_procinfo.flags) then
                   stacksize := align(stacksize+sizeof(aint),16) - sizeof(aint);
                 if (stacksize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
