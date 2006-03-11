@@ -1862,7 +1862,9 @@ unit cgx86;
       begin
 {$ifdef i386}
         { interrupt support for i386 }
-        if (po_interrupt in current_procinfo.procdef.procoptions) then
+        if (po_interrupt in current_procinfo.procdef.procoptions) and
+           { this messes up stack alignment }
+           (target_info.system <> system_i386_darwin) then
           begin
             { .... also the segment registers }
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_GS));

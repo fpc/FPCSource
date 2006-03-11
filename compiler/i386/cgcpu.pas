@@ -271,7 +271,9 @@ unit cgcpu;
           end;
 
         { return from proc }
-        if (po_interrupt in current_procinfo.procdef.procoptions) then
+        if (po_interrupt in current_procinfo.procdef.procoptions) and
+           { this messes up stack alignment }
+           (target_info.system <> system_i386_darwin) then
           begin
             if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
                (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) then
