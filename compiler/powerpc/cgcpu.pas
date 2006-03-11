@@ -1740,6 +1740,7 @@ const
         lab: tasmlabel;
         count, count2: aint;
         size: tcgsize;
+        copyreg: tregister;
 
       begin
 {$ifdef extdebug}
@@ -1761,10 +1762,9 @@ const
               end
             else
               begin
-                a_reg_alloc(list,NR_F0);
-                a_loadfpu_ref_reg(list,OS_F64,source,NR_F0);
-                a_loadfpu_reg_ref(list,OS_F64,NR_F0,dest);
-                a_reg_dealloc(list,NR_F0);
+                copyreg := getfpuregister(list,OS_F64);
+                a_loadfpu_ref_reg(list,OS_F64,source,copyreg);
+                a_loadfpu_reg_ref(list,OS_F64,copyreg,dest);
               end;
             exit;
           end;
@@ -1814,16 +1814,15 @@ const
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
             countreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
             a_load_const_reg(list,OS_32,count,countreg);
-            { explicitely allocate R_0 since it can be used safely here }
-            { (for holding date that's being copied)                    }
-            a_reg_alloc(list,NR_F0);
+            copyreg := getfpuregister(list,OS_F64);
+            a_reg_sync(list,copyreg);
             objectlibrary.getjumplabel(lab);
             a_label(list, lab);
             list.concat(taicpu.op_reg_reg_const(A_SUBIC_,countreg,countreg,1));
-            list.concat(taicpu.op_reg_ref(A_LFDU,NR_F0,src));
-            list.concat(taicpu.op_reg_ref(A_STFDU,NR_F0,dst));
+            list.concat(taicpu.op_reg_ref(A_LFDU,copyreg,src));
+            list.concat(taicpu.op_reg_ref(A_STFDU,copyreg,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-            a_reg_dealloc(list,NR_F0);
+            a_reg_sync(list,copyreg);
             len := len mod 8;
           end;
 
@@ -1831,15 +1830,14 @@ const
         if count > 0 then
           { unrolled loop }
           begin
-            a_reg_alloc(list,NR_F0);
+            copyreg := getfpuregister(list,OS_F64);
             for count2 := 1 to count do
               begin
-                a_loadfpu_ref_reg(list,OS_F64,src,NR_F0);
-                a_loadfpu_reg_ref(list,OS_F64,NR_F0,dst);
+                a_loadfpu_ref_reg(list,OS_F64,src,copyreg);
+                a_loadfpu_reg_ref(list,OS_F64,copyreg,dst);
                 inc(src.offset,8);
                 inc(dst.offset,8);
               end;
-            a_reg_dealloc(list,NR_F0);
             len := len mod 8;
           end;
 
