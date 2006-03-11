@@ -57,8 +57,11 @@ implementation
 
     procedure ti386callnode.extra_interrupt_code;
       begin
-        emit_none(A_PUSHF,S_L);
-        emit_reg(A_PUSH,S_L,NR_CS);
+        if (target_info.system <> system_i386_darwin) then
+          begin
+            emit_none(A_PUSHF,S_L);
+            emit_reg(A_PUSH,S_L,NR_CS);
+          end;
       end;
 
 
