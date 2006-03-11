@@ -1291,7 +1291,9 @@ implementation
             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
             { Win32 startup code needs a single name }
             if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-              pd.aliasnames.insert('PASCALMAIN');
+              pd.aliasnames.insert('PASCALMAIN')
+            else
+              pd.aliasnames.insert(target_info.Cprefix+'PASCALMAIN')
           end
          else if (target_info.system in [system_i386_netware,system_i386_netwlibc,system_powerpc_macos,system_powerpc_darwin,system_i386_darwin]) then
            begin
