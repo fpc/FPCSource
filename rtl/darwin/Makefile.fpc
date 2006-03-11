@@ -46,7 +46,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 
 [prerules]
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=mmx
+CPU_UNITS=mmx cpu
 else
 CPU_UNITS=
 endif
