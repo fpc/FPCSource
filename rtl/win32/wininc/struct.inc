@@ -463,9 +463,9 @@
      TBYHANDLEFILEINFORMATION = BY_HANDLE_FILE_INFORMATION;
      PBYHANDLEFILEINFORMATION = ^BY_HANDLE_FILE_INFORMATION;
 
-     FIXED = record
+     FIXED = packed record
           fract : WORD;
-          value : integer;
+          value : SHORT;
        end;
      _FIXED = FIXED;
      TFIXED = FIXED;
@@ -489,7 +489,7 @@
 
      TSmallPoint = record
        X,
-       Y : SmallInt;
+       Y : SHORT;
        end;
 
 
@@ -1413,7 +1413,7 @@
 
      DDEADVISE = record
           flag0 : word;
-          cfFormat : integer;
+          cfFormat : SHORT;
        end;
      TDDEADVISE = DDEADVISE;
      PDDEADVISE = ^DDEADVISE;
@@ -1435,7 +1435,7 @@
 
      DDEDATA = record
           flag0 : word;
-          cfFormat : integer;
+          cfFormat : SHORT;
           Value : array[0..0] of BYTE;
        end;
      PDDEDATA = ^DDEDATA;
@@ -1465,7 +1465,7 @@
 
      DDELN = record
           flag0 : word;
-          cfFormat : integer;
+          cfFormat : SHORT;
        end;
      TDDELN = DDELN;
      PDDELN = ^DDELN;
@@ -1501,7 +1501,7 @@
 
      DDEPOKE = record
           flag0 : word;
-          cfFormat : integer;
+          cfFormat : SHORT;
           Value : array[0..0] of BYTE;
        end;
      TDDEPOKE = DDEPOKE;
@@ -1524,7 +1524,7 @@
 
      DDEUP = record
           flag0 : word;
-          cfFormat : integer;
+          cfFormat : SHORT;
           rgb : array[0..0] of BYTE;
        end;
      TDDEUP = DDEUP;
@@ -1818,7 +1818,7 @@
      TDeviceModeW = DEVMODEW;
      PDeviceModeW = LPDEVMODEW;
      TDEVMODEW    = DEVMODEW;
-     
+
      PDEVMODEW    = LPDEVMODEW;
 
      DEVNAMES = record
@@ -3385,8 +3385,8 @@
           gmBlackBoxX : UINT;
           gmBlackBoxY : UINT;
           gmptGlyphOrigin : POINT;
-          gmCellIncX : integer;
-          gmCellIncY : integer;
+          gmCellIncX : SHORT;
+          gmCellIncY : SHORT;
        end;
      LPGLYPHMETRICS = ^GLYPHMETRICS;
      _GLYPHMETRICS = GLYPHMETRICS;
@@ -3874,7 +3874,7 @@
      TLVKEYDOWN = LV_KEYDOWN;
      PLVKEYDOWN = ^LV_KEYDOWN;
 
-     MAT2 = record
+     MAT2 = packed record
           eM11 : FIXED;
           eM12 : FIXED;
           eM21 : FIXED;
@@ -5332,9 +5332,9 @@
      PRASPPPNBF = ^RASPPPNBF;
 
      RASTERIZER_STATUS = record
-          nSize : integer;
-          wFlags : integer;
-          nLanguageID : integer;
+          nSize : short;
+          wFlags : short;
+          nLanguageID : short;
        end;
      LPRASTERIZER_STATUS = ^RASTERIZER_STATUS;
      _RASTERIZER_STATUS = RASTERIZER_STATUS;

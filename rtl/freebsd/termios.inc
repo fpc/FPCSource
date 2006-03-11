@@ -60,7 +60,7 @@ type
     c_oflag,
     c_cflag,
     c_lflag  : longint;
-    c_line   : char;
+//    c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
    {$IFDEF BSD}
     c_ispeed,
