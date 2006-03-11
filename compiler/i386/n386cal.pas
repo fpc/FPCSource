@@ -70,7 +70,17 @@ implementation
         hreg : tregister;
       begin
         if (use_fixed_stack) then
-          exit;
+          begin
+            { very weird: in this case the callee does a "ret $4" and the }
+            { caller immediately a "subl $4,%esp". Possibly this is for   }
+            { use_fixed_stack code to be able to transparently call       }
+            { old-style code (JM)                                         }
+            dec(pop_size,pushedparasize);
+            if (pop_size < 0) then
+              exprasmlist.concat(taicpu.op_const_reg(A_SUB,S_L,-pop_size,NR_ESP));
+            exit;
+          end;
+
         { better than an add on all processors }
         if pop_size=4 then
           begin
