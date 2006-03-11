@@ -9,7 +9,7 @@ main=rtl
 [target]
 loaders=
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixutil \
-      unix initc cmem matrix dynlibs \
+      unix initc cmem matrix dynlibs $(CPU_UNITS) \
       dos dl objects printer sockets \
       sysutils typinfo classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
@@ -45,6 +45,12 @@ libunits=$(SYSTEMUNIT) objpas strings \
       errors sockets ipc
 
 [prerules]
+ifeq ($(CPU_TARGET),i386)
+CPU_UNITS=mmx
+else
+CPU_UNITS=
+endif
+
 RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
