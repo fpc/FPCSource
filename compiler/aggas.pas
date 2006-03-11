@@ -50,7 +50,7 @@ interface
         function sectionname(atype:TAsmSectiontype;const aname:string):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string);
         procedure WriteExtraHeader;virtual;
-        procedure WriteInstruction(hp: tai);{$ifdef USEINLINE}inline;{$endif}
+        procedure WriteInstruction(hp: tai);
        public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
@@ -1000,7 +1000,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteInstruction(hp: tai);{$ifdef USEINLINE}inline;{$endif}
+    procedure TGNUAssembler.WriteInstruction(hp: tai);
       begin
         InstrWriter.WriteInstruction(hp);
       end;
