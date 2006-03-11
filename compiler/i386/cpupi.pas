@@ -60,7 +60,8 @@ unit cpupi;
       begin
         if use_fixed_stack then
           begin
-            if not(po_assembler in procdef.procoptions) then
+            if not(po_assembler in procdef.procoptions) and
+               (tg.direction > 0) then
               tg.setfirsttemp(tg.direction*maxpushedparasize);
           end;
       end;
