@@ -670,10 +670,13 @@ begin
   GetScreenCursor(CurrX, CurrY);
   s:='';
   for i:=0 to f.bufpos-1 do
-    if f.buffer[i]<#32 then
+    if f.buffer[i] in [#7,#8,#10,#13] then // special chars directly.
       begin
         if s<>'' then
-          WriteStr(s);
+          begin
+            WriteStr(s);
+ 	    s:='';
+          end;
         WriteChar(f.buffer[i]);
       end
     else
