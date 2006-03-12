@@ -63,9 +63,9 @@ const
   SIGCANCEL  = 36;      { thread cancellation signal used by libthread }
   SIGLOST    = 37;      { resource lost (eg, record-lock lost) }
 
-  SIG_BLOCK   = 0;
-  SIG_UNBLOCK = 1;
-  SIG_SETMASK = 2;
+  SIG_BLOCK   = 1;
+  SIG_UNBLOCK = 2;
+  SIG_SETMASK = 3;
 
   SIG_DFL = 0 ;
   SIG_IGN = 1 ;

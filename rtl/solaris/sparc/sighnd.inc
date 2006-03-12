@@ -69,6 +69,7 @@ begin
         res:=214;
       end;
   end;
+  reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
     HandleErrorAddrFrame(res,addr,nil);
