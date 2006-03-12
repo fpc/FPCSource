@@ -393,37 +393,14 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
   have changed.
 }
 
-{$ifdef cpui386}
-Var
-  SelectArray : Array[1..5] of TSysParam;
-{$endif}
-
 begin
-{$ifdef cpui386}
-  {$define bunxfunc_fpselect_implemented}
-  SelectArray[1]:=n;
-  SelectArray[2]:=TSysParam(Readfds);
-  Selectarray[3]:=TSysParam(Writefds);
-  selectarray[4]:=TSysParam(exceptfds);
-  Selectarray[5]:=TSysParam(TimeOut);
-  fpSelect:=do_syscall(syscall_nr_select,TSysParam(@selectarray));
-{$endif cpui386}
 {$ifdef cpux86_64}
   {$define bunxfunc_fpselect_implemented}
-  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpux86_64}
-{$ifdef cpuarm}
+  fpSelect:=do_syscall(syscall_nr_select,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
+{$else}
   {$define bunxfunc_fpselect_implemented}
   fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpuarm}
-{$ifdef cpupowerpc}
-  {$define bunxfunc_fpselect_implemented}
-  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpupowerpc}
-{$ifdef cpusparc}
-  {$define bunxfunc_fpselect_implemented}
-  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpusparc}
+{$endif}
 {$ifndef bunxfunc_fpselect_implemented}
   {$error Implement fpselect}
 {$endif bunxfunc_fpselect_implemented}
