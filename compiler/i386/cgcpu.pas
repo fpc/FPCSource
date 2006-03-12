@@ -333,6 +333,12 @@ unit cgcpu;
         again,ok : tasmlabel;
 {$endif}
       begin
+        if use_fixed_stack then
+          begin
+            inherited g_copyvaluepara_openarray(list,ref,lenloc,elesize,destreg);
+            exit;
+          end;
+
         { get stack space }
         getcpuregister(list,NR_EDI);
         a_load_loc_reg(list,OS_INT,lenloc,NR_EDI);

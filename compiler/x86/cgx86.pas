@@ -1749,6 +1749,11 @@ unit cgx86;
 
     procedure tcgx86.g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);
       begin
+        if (use_fixed_stack) then
+          begin
+            inherited g_releasevaluepara_openarray(list,l);
+            exit;
+          end;
         { Nothing to release }
       end;
 
