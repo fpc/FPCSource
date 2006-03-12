@@ -27,8 +27,10 @@ implementation
 
 {$ifndef linux}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
 {$ifndef FreeBSD5}
+{$ifndef SunOS}
  {$linklib iconv}
  {$define useiconv}
+{$endif}
 {$endif}
 {$endif linux}
 
@@ -42,7 +44,7 @@ Uses
 
 Const
 {$ifndef useiconv}
-    libiconvname='c';  // is in libc under Linux.
+    libiconvname='c';  // is in libc for several OSes
 {$else}
     libiconvname='iconv';
 {$endif}
