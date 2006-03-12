@@ -21,8 +21,25 @@ type
   
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
-  {$warning TODO TRTLCriticalSection}
-   Locked: boolean
+    __pthread_mutex_flags : record
+         __pthread_mutex_flag1 : word;
+         __pthread_mutex_flag2 : byte;
+         __pthread_mutex_ceiling : byte;
+         __pthread_mutex_type : word;
+         __pthread_mutex_magic : word;
+      end;
+    __pthread_mutex_lock : record
+        case longint of
+           0 : ( __pthread_mutex_lock64 : record
+                __pthread_mutex_pad : array[0..7] of byte;
+             end );
+           1 : ( __pthread_mutex_lock32 : record
+                __pthread_ownerpid : dword;
+                __pthread_lockword : dword;
+             end );
+           2 : ( __pthread_mutex_owner64 : qword );
+        end;
+    __pthread_mutex_data : qword;
   end;
 
 
