@@ -95,6 +95,37 @@ Type
     TTime     = time_t;
     pTime     = ^time_t;
     ptime_t   = ^time_t;
+    clockid_t = cint;
+    caddr_t   = ^char;
+
+    uint32_t = cuint32;
+    int32_t = cint32;
+    caddr32_t = uint32_t;
+    daddr32_t = int32_t;
+    off32_t = int32_t;
+    ino32_t = uint32_t;
+    blkcnt32_t = int32_t;
+    fsblkcnt32_t = uint32_t;
+    fsfilcnt32_t = uint32_t;
+    id32_t = int32_t;
+    major32_t = uint32_t;
+    minor32_t = uint32_t;
+    key32_t = int32_t;
+    mode32_t = uint32_t;
+    uid32_t = int32_t;
+    gid32_t = int32_t;
+    nlink32_t = uint32_t;
+    dev32_t = uint32_t;
+    pid32_t = int32_t;
+    size32_t = uint32_t;
+    ssize32_t = int32_t;
+    time32_t = int32_t;
+
+
+    upad64_t  = qword;
+    uintptr_t = ^cuint;
+    uint_t    = cuint;
+
 
     wchar_t   = widechar;
     pwchar_t  = ^wchar_t;
@@ -159,12 +190,28 @@ Type
   end;
 
   pthread_mutex_t = record
-    __m_reserved: cint;
-    __m_count: cint;
-    __m_owner: pointer;
-    __m_kind:  cint;
-    __m_lock: _pthread_fastlock;
+    __pthread_mutex_flags : record
+         __pthread_mutex_flag1 : word;
+         __pthread_mutex_flag2 : byte;
+         __pthread_mutex_ceiling : byte;
+         __pthread_mutex_type : word;
+         __pthread_mutex_magic : word;
+      end;
+    __pthread_mutex_lock : record
+        case longint of
+           0 : ( __pthread_mutex_lock64 : record
+                __pthread_mutex_pad : array[0..7] of byte;
+             end );
+           1 : ( __pthread_mutex_lock32 : record
+                __pthread_ownerpid : dword;
+                __pthread_lockword : dword;
+             end );
+           2 : ( __pthread_mutex_owner64 : qword );
+        end;
+    __pthread_mutex_data : qword;
   end;
+
+  pthread_spinlock_t = pthread_mutex_t;
 
   pthread_mutexattr_t = record
     __mutexkind: cint;
@@ -197,34 +244,30 @@ Type
     __pshared: cint;
   end;
 
+  _once = record
+     __pthread_once_pad : array[0..3] of upad64_t;
+  end;
+  pthread_once_t = _once;
+
+  pthread_barrier_t = record
+       __pthread_barrier_count : uint32_t;
+       __pthread_barrier_current : uint32_t;
+       __pthread_barrier_cycle : upad64_t;
+       __pthread_barrier_reserved : upad64_t;
+       __pthread_barrier_lock : pthread_mutex_t;
+       __pthread_barrier_cond : pthread_cond_t;
+    end;
+
+  pthread_barrierattr_t = record
+       __pthread_barrierattrp : pointer;
+    end;
+
   sem_t = record
      __sem_lock: _pthread_fastlock;
      __sem_value: cint;
      __sem_waiting: pointer;
   end;
 
-  uint32_t = cuint32;
-  int32_t = cint32;
-  caddr32_t = uint32_t;
-  daddr32_t = int32_t;
-  off32_t = int32_t;
-  ino32_t = uint32_t;
-  blkcnt32_t = int32_t;
-  fsblkcnt32_t = uint32_t;
-  fsfilcnt32_t = uint32_t;
-  id32_t = int32_t;
-  major32_t = uint32_t;
-  minor32_t = uint32_t;
-  key32_t = int32_t;
-  mode32_t = uint32_t;
-  uid32_t = int32_t;
-  gid32_t = int32_t;
-  nlink32_t = uint32_t;
-  dev32_t = uint32_t;
-  pid32_t = int32_t;
-  size32_t = uint32_t;
-  ssize32_t = int32_t;
-  time32_t = int32_t;
 
   clock32_t = int32_t;
   timeval32 = record

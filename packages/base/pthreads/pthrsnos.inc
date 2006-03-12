@@ -8,7 +8,7 @@
 }
 
 const
-  External_library=''; {Setup as you need}
+  External_library='c'; {Setup as you need}
 
 
 Type
@@ -21,7 +21,10 @@ Ppthread_barrierattr_t  = ^pthread_barrierattr_t;
 Ppthread_cond_t  = ^pthread_cond_t;
 Ppthread_condattr_t  = ^pthread_condattr_t;
 Ppthread_key_t  = ^pthread_key_t;
+
 Ppthread_mutex_t  = ^pthread_mutex_t;
+TPthreadMutex = pthread_mutex_t;
+
 Ppthread_mutexattr_t  = ^pthread_mutexattr_t;
 Ppthread_once_t  = ^pthread_once_t;
 Ppthread_rwlock_t  = ^pthread_rwlock_t;

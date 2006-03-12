@@ -21,15 +21,23 @@ interface
 {$PACKRECORDS C}
 
 {$ifdef BSD}
-
 Uses BaseUnix, unixtype;
-
 {$i pthrbsd.inc}
-
 {$else}
-uses unixtype;
 
+{$ifdef linux}
+uses unixtype;
 {$i pthrlinux.inc}
+{$else}
+
+{$ifdef sunos}
+uses
+  unixtype;
+{$i pthrsnos.inc}
+{$else}
+
+{$endif}
+{$endif}
 {$endif}
 
 implementation
