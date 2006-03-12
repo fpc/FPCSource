@@ -1911,7 +1911,8 @@ unit cgx86;
             if (localsize<>0) or
                ((target_info.system = system_i386_darwin) and
                 (stackmisalignment <> 0) and
-                (pi_do_call in current_procinfo.flags)) then
+                ((pi_do_call in current_procinfo.flags) or
+                 (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
                 if (target_info.system = system_i386_darwin) then
                   localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
