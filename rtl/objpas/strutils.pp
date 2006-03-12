@@ -951,9 +951,21 @@ end;
 
 function Copy2SymbDel(var S: string; Symb: Char): string;
 
+var
+  p: Integer;
+
 begin
-  Result:=Copy2Symb(S,Symb);
-  S:=TrimRight(Copy(S,Length(Result)+1,Length(S)));
+  p:=Pos(Symb,S);
+  if p=0 then
+    begin
+      result:=s;
+      s:='';
+    end
+  else
+    begin	
+      Result:=Copy(S,1,p-1);
+      delete(s,1,p);		
+    end;
 end;
 
 function Copy2Space(const S: string): string;inline;
