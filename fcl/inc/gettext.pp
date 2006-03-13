@@ -211,54 +211,18 @@ end;
 //   Resourcestring translation procedures
 // -------------------------------------------------------
 
-{
-  Define USEITERATOR if you want to translate the strings using
-  the SetResourceStrings call. This is not recommended for this
-  particular iplementation, since we must pass through a global
-  variable TheFile : TMOFile. However that works too.
-}
 
-{$ifdef USEITERATOR}
-var
-  Thefile : TMOFile;
-
-function Translate (Name,Value : AnsiString; Hash : Longint) : AnsiString;
-
+function Translate (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
 begin
-  Result:=TheFile.Translate(Value,Hash);
+  Result:=TMOFile(arg).Translate(Value,Hash);
 end;
+
 
 procedure TranslateResourceStrings(AFile: TMOFile);
-var
-  i,j : Integer;
-  s : String;
 begin
-  TheFile:=AFile;
-  SetResourceStrings(@Translate);
+  SetResourceStrings(@Translate,AFile);
 end;
-{$else}
 
-procedure TranslateResourceStrings(AFile: TMOFile);
-var
-  i, j, count: Integer;
-  s: String;
-begin
-  for i:=0 to ResourceStringTableCount - 1 do
-  begin
-    count := ResourceStringCount(I);
-    for j := 0 to count - 1 do
-    begin
-      s := AFile.Translate(GetResourceStringDefaultValue(i, j),
-        GetResourceStringHash(i, j));
-      if Length(s) > 0 then
-      begin
-        SetResourceStringValue(i, j, s);
-        GettextUsed := True;
-      end;
-    end;
-  end;
-end;
-{$endif}
 
 {$ifdef win32}
 procedure GetLanguageIDs(var Lang, FallbackLang: string);
