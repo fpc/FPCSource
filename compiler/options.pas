@@ -160,6 +160,7 @@ var
   target : tsystem;
   cpu : tcputype;
   fpu : tfputype;
+  opt : toptimizerswitch;
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -202,6 +203,22 @@ begin
               begin
                 Replace(hs,'$FPUINSTRUCTIONSETS',hs1);
                 Comment(V_Normal,hs);
+              end;
+          end;
+      end
+     else if pos('$OPTIMIZATIONS',s)>0 then
+      begin
+        for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
+          begin
+            if opt in supported_optimizerswitches then
+              begin
+                hs:=s;
+                hs1:=OptimizerSwitchStr[opt];
+                if hs1<>'' then
+                  begin
+                    Replace(hs,'$OPTIMIZATIONS',hs1);
+                    Comment(V_Normal,hs);
+                  end;
               end;
           end;
       end

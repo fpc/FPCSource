@@ -31,7 +31,7 @@ function CheckSwitch(switch,state:char):boolean;
 
 implementation
 uses
-  globtype,systems,
+  globtype,systems,cpuinfo,
   globals,verbose,fmodule;
 
 {****************************************************************************
@@ -39,7 +39,7 @@ uses
 ****************************************************************************}
 
 type
-  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -62,7 +62,7 @@ const
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {O} (typesw:optimizersw; setsw:ord(cs_opt_none)),
    {P} (typesw:modulesw; setsw:ord(cs_openstring)),
    {Q} (typesw:localsw; setsw:ord(cs_check_overflow)),
    {R} (typesw:localsw; setsw:ord(cs_check_range)),
@@ -92,7 +92,7 @@ const
    {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {O} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+   {O} (typesw:optimizersw; setsw:ord(cs_opt_none)),
    {P} (typesw:modulesw; setsw:ord(cs_openstring)),
    {Q} (typesw:localsw; setsw:ord(cs_check_overflow)),
    {R} (typesw:localsw; setsw:ord(cs_check_range)),
@@ -135,6 +135,13 @@ begin
            aktpackrecords:=4
          else
            aktpackrecords:=1;
+       optimizersw :
+         begin
+           if state='+' then
+             aktoptimizerswitches:=level2optimizerswitches
+           else
+             aktoptimizerswitches:=[];
+         end;
        ignoredsw :
          Message1(scan_n_ignored_switch,'$'+switch);
        illegalsw :

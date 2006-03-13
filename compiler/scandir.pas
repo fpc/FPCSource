@@ -32,7 +32,7 @@ implementation
 
     uses
       cutils,
-      globtype,globals,systems,widestr,
+      globtype,globals,systems,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
@@ -697,6 +697,26 @@ implementation
         do_delphiswitch('P');
       end;
 
+    procedure dir_optimization;
+      var
+        hs : string;
+      begin
+        current_scanner.skipspace;
+        { Support also the ON and OFF as switch }
+        hs:=current_scanner.readid;
+        if (hs='ON') then
+          aktoptimizerswitches:=level2optimizerswitches
+        else if (hs='OFF') then
+          aktoptimizerswitches:=[]
+        else if (hs='DEFAULT') then
+          aktoptimizerswitches:=initoptimizerswitches
+        else
+          begin
+            if not UpdateOptimizerStr(hs,aktoptimizerswitches) then
+              Message1(scan_e_illegal_optimization_specifier,hs);
+          end;
+      end;
+
     procedure dir_overflowchecks;
       begin
         do_delphiswitch('Q');
@@ -1197,6 +1217,7 @@ implementation
         AddDirective('OBJECTCHECKS',directive_all, @dir_objectchecks);
         AddDirective('OBJECTPATH',directive_all, @dir_objectpath);
         AddDirective('OPENSTRINGS',directive_all, @dir_openstrings);
+        AddDirective('OPTIMIZATION',directive_all, @dir_optimization);
         AddDirective('OVERFLOWCHECKS',directive_all, @dir_overflowchecks);
         AddDirective('PACKENUM',directive_all, @dir_packenum);
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);

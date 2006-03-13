@@ -79,6 +79,9 @@ Const
    sse_singlescalar : set of tfputype = [fpu_sse64];
    sse_doublescalar : set of tfputype = [fpu_sse64];
 
+   { Supported optimizations, only used for information }
+   supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_stackframe];
+
    level1optimizerswitches = [cs_opt_level1];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];

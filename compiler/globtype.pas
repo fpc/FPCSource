@@ -129,6 +129,7 @@ than 255 characters. That's why using Ansi Strings}
        );
        tglobalswitches = set of tglobalswitch;
 
+     type
        { optimizer }
        toptimizerswitch = (cs_opt_none,
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
@@ -137,6 +138,14 @@ than 255 characters. That's why using Ansi Strings}
        );
        toptimizerswitches = set of toptimizerswitch;
 
+    const
+       OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
+         'LEVEL1','LEVEL2','LEVEL3',
+         'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
+         'PEEPHOLE','ASMCSE','LOOPUNROLL'
+       );
+
+    type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
@@ -227,6 +236,30 @@ than 255 characters. That's why using Ansi Strings}
        );
        tproccalloptions = set of tproccalloption;
 
+     const
+       proccalloptionStr : array[tproccalloption] of string[14]=('',
+           'CDecl',
+           'CPPDecl',
+           'Far16',
+           'OldFPCCall',
+           'InternProc',
+           'SysCall',
+           'Pascal',
+           'Register',
+           'SafeCall',
+           'StdCall',
+           'SoftFloat',
+           'MWPascal'
+         );
+
+       { Default calling convention }
+{$ifdef x86}
+       pocall_default = pocall_register;
+{$else}
+       pocall_default = pocall_stdcall;
+{$endif}
+
+     type
        tprocinfoflag=(
          { procedure has at least one assembler block }
          pi_has_assembler_block,
@@ -253,29 +286,6 @@ than 255 characters. That's why using Ansi Strings}
          pi_has_goto
        );
        tprocinfoflags=set of tprocinfoflag;
-
-     const
-       proccalloptionStr : array[tproccalloption] of string[14]=('',
-           'CDecl',
-           'CPPDecl',
-           'Far16',
-           'OldFPCCall',
-           'InternProc',
-           'SysCall',
-           'Pascal',
-           'Register',
-           'SafeCall',
-           'StdCall',
-           'SoftFloat',
-           'MWPascal'
-         );
-
-       { Default calling convention }
-{$ifdef x86}
-       pocall_default = pocall_register;
-{$else}
-       pocall_default = pocall_stdcall;
-{$endif}
 
     type
        stringid = string[maxidlen];

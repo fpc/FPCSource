@@ -322,6 +322,9 @@ scan_e_compile_time_typeerror=02072_E_Compile time expression: Wanted $1 but got
 % Type check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE is not supported by the target OS
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
+scan_e_illegal_optimization_specifier=02074_E_Illegal optimization specified "$1"
+% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
+% the compiler didn't recognize the optimization you specified.
 % \end{description}
 #
 # Parser
@@ -2180,6 +2183,9 @@ Supported CPU instruction sets:
 Supported FPU instruction sets:
   $FPUINSTRUCTIONSETS
 
+Supported Optimizations:
+  $OPTIMIZATIONS
+
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
@@ -2306,23 +2312,14 @@ S*2Aas_assemble using GNU AS
 **2Nu_unroll loops
 **1o<x>_change the name of the executable produced to <x>
 **1O<x>_optimizations:
-3*2Oa_<type>=<values> set alignment
-3*2Og_generate smaller code
-3*2OG_generate faster code (default)
-**2Or_keep certain variables in registers
-3*2Ou_enable uncertain optimizations (see docs)
-3*2O1_level 1 optimizations (quick optimizations)
-3*2O2_level 2 optimizations (-O1 + slower optimizations)
-3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)
-3*2Op<x>_target processor:
-3*3Op1_set target processor to 386/486
-3*3Op2_set target processor to Pentium/PentiumMMX (tm)
-3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
-6*2Og_generate smaller code
-6*2OG_generate faster code (default)
-6*2Ox_optimize maximum (still BUGGY!!!)
-6*2O0_set target processor to a MC68000
-6*2O2_set target processor to a MC68020+ (default)
+**2O-_disable optimizations
+**2O1_level 1 optimizations (quick and debugger friendly)
+**2O2_level 2 optimizations (-O1 + quick optimizations)
+**2O3_level 3 optimizations (-O2 + slow optimizations)
+**2Oa<x>=<y>_set alignment
+**2Oo[NO]<x>_enable or disable optimizations, see fpc -i for possible values
+**2Op<x>_set target cpu for optimizing, see fpc -i for possible values
+**2Os_generate smaller code
 **1pg_generate profile code for gprof (defines FPC_PROFILE)
 **1R<x>_assembler reading style:
 **2Rdefault_use default assembler

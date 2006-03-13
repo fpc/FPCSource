@@ -66,6 +66,9 @@ Const
      'FPU'
    );
 
+   { Supported optimizations, only used for information }
+   supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll];
+
    level1optimizerswitches = [];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];

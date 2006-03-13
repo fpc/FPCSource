@@ -2067,9 +2067,10 @@ end;
 
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
       var
-        tok  : string;
-        doset : boolean;
-        doswitch : toptimizerswitch;
+        tok   : string;
+        doset,
+        found : boolean;
+        opt   : toptimizerswitch;
       begin
         result:=true;
         uppervar(s);
@@ -2084,27 +2085,24 @@ end;
             end
           else
             doset:=true;
-          if tok='LOOPUNROLL' then
-           doswitch:=cs_opt_loopunroll
-          else if tok='UNCERTAIN' then
-           doswitch:=cs_opt_uncertain
-          else if tok='REGVAR' then
-           doswitch:=cs_opt_regvar
-          else if tok='PEEPHOLE' then
-           doswitch:=cs_opt_peephole
-          else if tok='STACKFRAME' then
-           doswitch:=cs_opt_stackframe
-          else if tok='ASMCSE' then
-           doswitch:=cs_opt_asmcse
-          else { Error }
-           result:=false;
-          if doswitch<>cs_opt_none then
+          found:=false;
+          for opt:=low(toptimizerswitch) to high(toptimizerswitch) do
+            begin
+              if OptimizerSwitchStr[opt]=tok then
+                begin
+                  found:=true;
+                  break;
+                end;
+            end;
+          if found then
             begin
               if doset then
-                include(a,doswitch)
+                include(a,opt)
               else
-                exclude(a,doswitch);
-            end;
+                exclude(a,opt);
+            end
+          else
+            result:=false;
         until false;
       end;
 
