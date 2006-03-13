@@ -882,8 +882,6 @@ end;
 
         { Load .o files and resolve symbols }
         ParseScript_Load;
-        if ErrorCount>0 then
-          goto myexit;
         exeoutput.ResolveSymbols;
         { DLL Linking }
         While not DLLFiles.Empty do
@@ -894,6 +892,8 @@ end;
             else
               Comment(V_Error,'DLL not found: '+s);
           end;
+        if ErrorCount>0 then
+          goto myexit;
 
         { Create .exe sections and add .o sections }
         ParseScript_Order;
@@ -907,6 +907,8 @@ end;
         exeoutput.FixupSymbols;
         exeoutput.FixupRelocations;
         exeoutput.PrintMemoryMap;
+        if ErrorCount>0 then
+          goto myexit;
 
         exeoutput.WriteExeFile(current_module.exefilename^);
 
