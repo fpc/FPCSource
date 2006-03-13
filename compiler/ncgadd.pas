@@ -459,8 +459,7 @@ interface
         ovloc.loc:=LOC_VOID;
 
         pass_left_right;
-        force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
-                                   (nodetype in [addn,subn]));
+        force_reg_left_right(false,true);
         set_result_location_reg;
 
         { assume no overflow checking is required }
@@ -634,8 +633,7 @@ interface
         ovloc.loc:=LOC_VOID;
 
         pass_left_right;
-        force_reg_left_right(false,(cs_check_overflow in aktlocalswitches) and
-                                   (nodetype in [addn,subn,muln]));
+        force_reg_left_right(false,true);
         set_result_location_reg;
 
         { determine if the comparison will be unsigned }
@@ -680,7 +678,7 @@ interface
 
        if nodetype<>subn then
         begin
-          if (right.location.loc >LOC_CONSTANT) then
+          if (right.location.loc<>LOC_CONSTANT) then
             cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,cgop,location.size,
                left.location.register,right.location.register,
                location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc)
@@ -708,7 +706,7 @@ interface
             begin
               tmpreg:=cg.getintregister(exprasmlist,location.size);
               cg.a_load_const_reg(exprasmlist,location.size,
-                aword(left.location.value),tmpreg);
+                left.location.value,tmpreg);
               cg.a_op_reg_reg_reg_checkoverflow(exprasmlist,OP_SUB,location.size,
                 right.location.register,tmpreg,location.register,checkoverflow and (cs_check_overflow in aktlocalswitches),ovloc);
             end;

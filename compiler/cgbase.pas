@@ -81,6 +81,7 @@ interface
        topcg =
        (
           OP_NONE,
+          OP_MOVE,      { replaced operation with direct load }
           OP_ADD,       { simple addition          }
           OP_AND,       { simple logical and       }
           OP_DIV,       { simple unsigned division }
@@ -593,7 +594,7 @@ implementation
     function commutativeop(op: topcg): boolean;{$ifdef USEINLINE}inline;{$endif}
       const
         list: array[topcg] of boolean =
-          (true,true,true,false,false,true,true,false,false,
+          (true,false,true,true,false,false,true,true,false,false,
            true,false,false,false,false,true);
       begin
         commutativeop := list[op];

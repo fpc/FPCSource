@@ -63,11 +63,6 @@ unit cgx86;
         procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
         procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
 
-        procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-          size: tcgsize; a: aint; src, dst: tregister); override;
-        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-          size: tcgsize; src1, src2, dst: tregister); override;
-
         { move instructions }
         procedure a_load_const_reg(list : taasmoutput; tosize: tcgsize; a : aint;reg : tregister);override;
         procedure a_load_const_ref(list : taasmoutput; tosize: tcgsize; a : aint;const ref : treference);override;
@@ -160,8 +155,8 @@ unit cgx86;
        fmodule;
 
     const
-      TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
-                            A_IDIV,A_MUL, A_IMUL, A_NEG,A_NOT,A_OR,
+      TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
+                            A_IDIV,A_IMUL,A_MUL,A_NEG,A_NOT,A_OR,
                             A_SAR,A_SHL,A_SHR,A_SUB,A_XOR);
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
@@ -572,7 +567,7 @@ unit cgx86;
         sym : tasmsymbol;
         r : treference;
       begin
- 
+
         if (target_info.system <> system_i386_darwin) then
           begin
             sym:=objectlibrary.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
@@ -984,10 +979,10 @@ unit cgx86;
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
           ( { scalar }
             ( { OS_F32 }
-              A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
+              A_NOP,A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
             ),
             ( { OS_F64 }
-              A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP
+              A_NOP,A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP
             )
           ),
           ( { vectorized/packed }
@@ -995,10 +990,10 @@ unit cgx86;
               these
             }
             ( { OS_F32 }
-              A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
+              A_NOP,A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
             ),
             ( { OS_F64 }
-              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPD
+              A_NOP,A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPD
             )
           )
         );
@@ -1062,9 +1057,11 @@ unit cgx86;
         tmpreg : tregister;
 {$endif x86_64}
       begin
+        optimize_op_const(op, a);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
-        if (size in [OS_S64,OS_64]) and
+        if not(op in [OP_NONE,OP_MOVE) and
+           (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
           begin
             tmpreg:=getintregister(list,size);
@@ -1075,6 +1072,15 @@ unit cgx86;
 {$endif x86_64}
         check_register_size(size,reg);
         case op of
+          OP_NONE :
+            begin
+              { Opcode is optimized away }
+            end;
+          OP_MOVE :
+            begin
+              { Optimized, replaced with a simple load }
+              a_load_const_reg(list,size,a,reg);
+            end;
           OP_DIV, OP_IDIV:
             begin
               if ispowerof2(int64(a),power) then
@@ -1155,11 +1161,13 @@ unit cgx86;
 {$endif x86_64}
         tmpref  : treference;
       begin
+        optimize_op_const(op, a);
         tmpref:=ref;
         make_simple_ref(list,tmpref);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
-        if (size in [OS_S64,OS_64]) and
+        if not(op in [OP_NONE,OP_MOVE) and
+           (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
           begin
             tmpreg:=getintregister(list,size);
@@ -1169,6 +1177,15 @@ unit cgx86;
           end;
 {$endif x86_64}
         Case Op of
+          OP_NONE :
+            begin
+              { Opcode is optimized away }
+            end;
+          OP_MOVE :
+            begin
+              { Optimized, replaced with a simple load }
+              a_load_const_ref(list,size,a,ref);
+            end;
           OP_DIV, OP_IDIV:
             Begin
               if ispowerof2(int64(a),power) then
@@ -1266,10 +1283,11 @@ unit cgx86;
             internalerror(200109233);
           OP_SHR,OP_SHL,OP_SAR:
             begin
-              getcpuregister(list,NR_CL);
-              a_load_reg_reg(list,OS_8,OS_8,makeregsize(list,src,OS_8),NR_CL);
-              list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,src));
-              ungetcpuregister(list,NR_CL);
+              { Use ecx to load the value, that allows beter coalescing }
+              getcpuregister(list,NR_ECX);
+              a_load_reg_reg(list,size,OS_32,src,NR_ECX);
+              list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
+              ungetcpuregister(list,NR_ECX);
             end;
           else
             begin
@@ -1337,98 +1355,6 @@ unit cgx86;
         end;
       end;
 
-
-    procedure tcgx86.a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister);
-      var
-        tmpref: treference;
-        power: longint;
-{$ifdef x86_64}
-        tmpreg : tregister;
-{$endif x86_64}
-      begin
-{$ifdef x86_64}
-        { x86_64 only supports signed 32 bits constants directly }
-        if (size in [OS_S64,OS_64]) and
-            ((a<low(longint)) or (a>high(longint))) then
-          begin
-            tmpreg:=getintregister(list,size);
-            a_load_const_reg(list,size,a,tmpreg);
-            a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
-            exit;
-          end;
-{$endif x86_64}
-        check_register_size(size,src);
-        check_register_size(size,dst);
-        if tcgsize2size[size]<>tcgsize2size[OS_INT] then
-          begin
-            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-            exit;
-          end;
-        { if we get here, we have to do a 32 bit calculation, guaranteed }
-        case op of
-          OP_DIV, OP_IDIV, OP_MUL, OP_AND, OP_OR, OP_XOR, OP_SHL, OP_SHR,
-          OP_SAR:
-            { can't do anything special for these }
-            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-          OP_IMUL:
-            begin
-              if not(cs_check_overflow in aktlocalswitches) and
-                 ispowerof2(int64(a),power) then
-                { can be done with a shift }
-                begin
-                  inherited a_op_const_reg_reg(list,op,size,a,src,dst);
-                  exit;
-                end;
-              list.concat(taicpu.op_const_reg_reg(A_IMUL,tcgsize2opsize[size],a,src,dst));
-            end;
-          OP_ADD, OP_SUB:
-            if (a = 0) then
-              a_load_reg_reg(list,size,size,src,dst)
-            else
-              begin
-                reference_reset(tmpref);
-                tmpref.base := src;
-                tmpref.offset := longint(a);
-                if op = OP_SUB then
-                  tmpref.offset := -tmpref.offset;
-                list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[size],tmpref,dst));
-              end
-          else internalerror(200112302);
-        end;
-      end;
-
-
-    procedure tcgx86.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;size: tcgsize; src1, src2, dst: tregister);
-      var
-        tmpref: treference;
-      begin
-        check_register_size(size,src1);
-        check_register_size(size,src2);
-        check_register_size(size,dst);
-        if tcgsize2size[size]<>tcgsize2size[OS_INT] then
-          begin
-            inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
-            exit;
-          end;
-        { if we get here, we have to do a 32 bit calculation, guaranteed }
-        Case Op of
-          OP_DIV, OP_IDIV, OP_MUL, OP_AND, OP_OR, OP_XOR, OP_SHL, OP_SHR,
-          OP_SAR,OP_SUB,OP_NOT,OP_NEG:
-            { can't do anything special for these }
-            inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
-          OP_IMUL:
-            list.concat(taicpu.op_reg_reg_reg(A_IMUL,tcgsize2opsize[size],src1,src2,dst));
-          OP_ADD:
-            begin
-              reference_reset(tmpref);
-              tmpref.base := src1;
-              tmpref.index := src2;
-              tmpref.scalefactor := 1;
-              list.concat(taicpu.op_ref_reg(A_LEA,tcgsize2opsize[size],tmpref,dst));
-            end
-          else internalerror(200112303);
-        end;
-      end;
 
 {*************** compare instructructions ****************}
 

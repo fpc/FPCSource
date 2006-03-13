@@ -978,65 +978,17 @@ unit nx86add;
 *****************************************************************************}
 
     procedure tx86addnode.second_addordinal;
-      var
-         mboverflow : boolean;
-         op : tasmop;
-         opsize : tcgsize;
-         { true, if unsigned types are compared }
-         unsigned : boolean;
-         { true, if for sets subtractions the extra not should generated }
-         extra_not : boolean;
       begin
-         { defaults }
-         extra_not:=false;
-         mboverflow:=false;
-         unsigned:=not(is_signed(left.resulttype.def)) or
-                   not(is_signed(right.resulttype.def));
-         opsize:=def_cgsize(left.resulttype.def);
-
-         pass_left_right;
-
-         case nodetype of
-           addn :
-             begin
-               op:=A_ADD;
-               mboverflow:=true;
-             end;
-           muln :
-             begin
-               if unsigned then
-                 op:=A_MUL
-               else
-                 op:=A_IMUL;
-               mboverflow:=true;
-             end;
-           subn :
-             begin
-               op:=A_SUB;
-               mboverflow:=true;
-             end;
-           xorn :
-             op:=A_XOR;
-           orn :
-             op:=A_OR;
-           andn :
-             op:=A_AND;
-           else
-             internalerror(200304229);
-         end;
-
-         { filter MUL, which requires special handling }
-         if op=A_MUL then
+         { filter unsigned MUL opcode, which requires special handling }
+         if (nodetype=muln) and
+            (not(is_signed(left.resulttype.def)) or
+             not(is_signed(right.resulttype.def))) then
            begin
              second_mul;
              exit;
            end;
 
-         left_must_be_reg(opsize,false);
-         emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
-         location_freetemp(exprasmlist,right.location);
-
-         set_result_location_reg;
+         inherited second_addordinal;
       end;
 
 

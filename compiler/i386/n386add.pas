@@ -349,6 +349,8 @@ interface
         hl4 : tasmlabel;
 
     begin
+      pass_left_right;
+
       {The location.register will be filled in later (JM)}
       location_reset(location,LOC_REGISTER,OS_INT);
       {Get a temp register and load the left value into it

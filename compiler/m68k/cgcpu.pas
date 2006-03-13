@@ -404,11 +404,13 @@ unit cgcpu;
        opcode : tasmop;
        r,r2 : Tregister;
       begin
-        { need to emit opcode? }
-        if optimize_op_const_reg(list, op, a, reg) then
-           exit;
+        optimize_op_const_reg(list, op, a, reg);
         opcode := topcg2tasmop[op];
         case op of
+          OP_NONE :
+              begin
+                { Opcode is optimized away }
+              end;
           OP_ADD :
               begin
                 if (a >= 1) and (a <= 8) then

@@ -285,18 +285,16 @@ unit cgobj;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
           {
-             This routine tries to optimize the const_reg opcode, and should be
-             called at the start of a_op_const_reg. It returns the actual opcode
-             to emit, and the constant value to emit. If this routine returns
-             TRUE, @var(no) instruction should be emitted (.eg : imul reg by 1 )
+             This routine tries to optimize the op_const_reg/ref opcode, and should be
+             called at the start of a_op_const_reg/ref. It returns the actual opcode
+             to emit, and the constant value to emit. This function can opcode OP_NONE to
+             remove the opcode and OP_MOVE to replace it with a simple load
 
              @param(op The opcode to emit, returns the opcode which must be emitted)
              @param(a  The constant which should be emitted, returns the constant which must
                     be emitted)
-             @param(reg The register to emit the opcode with, returns the register with
-                   which the opcode will be emitted)
           }
-          function optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aint; var reg: tregister): boolean;virtual;
+          procedure optimize_op_const(var op: topcg; var a : aint);virtual;
 
          {#
              This routine is used in exception management nodes. It should
@@ -936,55 +934,69 @@ implementation
       end;
 
 
-    function tcg.optimize_op_const_reg(list: taasmoutput; var op: topcg; var a : aint; var reg:tregister): boolean;
+    procedure tcg.optimize_op_const(var op: topcg; var a : aint);
       var
         powerval : longint;
       begin
-        optimize_op_const_reg := false;
         case op of
-          { or with zero returns same result }
-          OP_OR : if a = 0 then optimize_op_const_reg := true;
-          { and with max returns same result }
-          OP_AND : if (a = high(a)) then optimize_op_const_reg := true;
-          { division by 1 returns result }
+          OP_OR :
+            begin
+              { or with zero returns same result }
+              if a = 0 then
+                op:=OP_NONE
+              else
+              { or with max returns max }
+                if a = -1 then
+                  op:=OP_MOVE;
+            end;
+          OP_AND :
+            begin
+              { and with max returns same result }
+              if (a = -1) then
+                op:=OP_NONE
+              else
+              { and with 0 returns 0 }
+                if a=0 then
+                  op:=OP_MOVE;
+            end;
           OP_DIV :
             begin
+              { division by 1 returns result }
               if a = 1 then
-                optimize_op_const_reg := true
+                op:=OP_NONE
               else if ispowerof2(int64(a), powerval) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
                 end;
-              exit;
             end;
           OP_IDIV:
             begin
               if a = 1 then
-                optimize_op_const_reg := true
-              else if ispowerof2(int64(a), powerval) then
-                begin
-                  a := powerval;
-                  op:= OP_SAR;
-                end;
-               exit;
+                op:=OP_NONE;
             end;
-        OP_MUL,OP_IMUL:
+         OP_MUL,OP_IMUL:
             begin
                if a = 1 then
-                  optimize_op_const_reg := true
+                 op:=OP_NONE
+               else
+                 if a=0 then
+                   op:=OP_MOVE
                else if ispowerof2(int64(a), powerval) then
                  begin
                    a := powerval;
                    op:= OP_SHL;
                  end;
-               exit;
+            end;
+        OP_ADD,OP_SUB:
+            begin
+               if a = 0 then
+                 op:=OP_NONE;
             end;
         OP_SAR,OP_SHL,OP_SHR:
            begin
               if a = 0 then
-                 optimize_op_const_reg := true;
-              exit;
+                op:=OP_NONE;
            end;
         end;
       end;
@@ -1729,7 +1741,7 @@ implementation
 {$endif}
                 if to_signed then
                   begin
-                    { calculation of the low/high ranges must not overflow 64 bit 
+                    { calculation of the low/high ranges must not overflow 64 bit
                      otherwise we end up comparing with zero for 64 bit data types on
                      64 bit processors }
                     if (lto = (int64(-1) << (tosize * 8 - 1))) and
@@ -1738,7 +1750,7 @@ implementation
                   end
                 else
                   begin
-                    { calculation of the low/high ranges must not overflow 64 bit 
+                    { calculation of the low/high ranges must not overflow 64 bit
                      otherwise we end up having all zeros for 64 bit data types on
                      64 bit processors }
                     if (lto = 0) and
