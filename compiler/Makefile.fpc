@@ -254,7 +254,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=alpha i386 m68k powerpc sparc arm x86_64
+PPC_TARGETS=alpha i386 m68k powerpc sparc arm x86_64 powerpc64 vis ia64
 
 .PHONY: $(PPC_TARGETS)
 
