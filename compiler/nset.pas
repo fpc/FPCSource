@@ -592,7 +592,7 @@ implementation
 
          { estimates the repeat of each instruction }
          old_t_times:=cg.t_times;
-         if not(cs_littlesize in aktglobalswitches) then
+         if not(cs_opt_size in aktoptimizerswitches) then
            begin
               cg.t_times:=cg.t_times div case_count_labels(labels);
               if cg.t_times<1 then

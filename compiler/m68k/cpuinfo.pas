@@ -30,15 +30,15 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
-       MC68000,
-       MC68020,
-       Coldfire
+   tcputype =
+      (cpu_none,
+       cpu_MC68000,
+       cpu_MC68020,
+       cpu_Coldfire
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_soft,
       fpu_libgcc,
       fpu_68881
@@ -57,7 +57,7 @@ Const
      pocall_syscall
    ];
 
-   processorsstr : array[tprocessors] of string[5] = ('',
+   cputypestr : array[tcputype] of string[8] = ('',
      '68000',
      '68020',
      'COLDFIRE'
@@ -68,6 +68,10 @@ Const
      'LIBGCC',
      '68881'
    );
+
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 Implementation
 

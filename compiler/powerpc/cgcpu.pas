@@ -1141,7 +1141,7 @@ const
                a_call_name(objectlibrary.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14),AB_EXTERNAL,AT_FUNCTION))
              }
             if (firstregint <= RS_R22) or
-               ((cs_littlesize in aktglobalswitches) and
+               ((cs_opt_size in aktoptimizerswitches) and
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
@@ -1274,7 +1274,7 @@ const
         if (usesgpr) then
           begin
             if (firstregint <= RS_R22) or
-               ((cs_littlesize in aktglobalswitches) and
+               ((cs_opt_size in aktoptimizerswitches) and
                 { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin

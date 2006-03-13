@@ -333,7 +333,7 @@ implementation
       var
         r: Tregister;
       begin
-        if not(cs_regvars in aktglobalswitches) then
+        if not(cs_opt_regvar in aktoptimizerswitches) then
           exit;
         if firstsavefpureg <> NR_NO then
           for r.enum := firstsavefpureg to lastsavefpureg do

@@ -39,18 +39,18 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
-       Class386,
-       ClassPentium,
-       ClassPentium2,
-       ClassPentium3,
-       ClassPentium4,
-       ClassPentiumM
+   tcputype =
+      (cpu_none,
+       cpu_386,
+       cpu_Pentium,
+       cpu_Pentium2,
+       cpu_Pentium3,
+       cpu_Pentium4,
+       cpu_PentiumM
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_soft,
       fpu_x87,
       fpu_sse,
@@ -73,7 +73,7 @@ Const
      pocall_oldfpccall
    ];
 
-   processorsstr : array[tprocessors] of string[10] = ('',
+   cputypestr : array[tcputype] of string[10] = ('',
      '386',
      'PENTIUM',
      'PENTIUM2',
@@ -92,6 +92,10 @@ Const
 
    sse_singlescalar : set of tfputype = [fpu_sse,fpu_sse2,fpu_sse3];
    sse_doublescalar : set of tfputype = [fpu_sse2,fpu_sse3];
+
+   level1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe,cs_opt_asmcse];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 Implementation
 

@@ -151,7 +151,7 @@ begin
     resultreg := cg.getintregister(exprasmlist,size);
   end;
   done := false;
-  if (cs_optimize in aktglobalswitches) and (right.nodetype = ordconstn) then begin
+  if (cs_opt_level1 in aktoptimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
       cg.a_op_const_reg_reg(exprasmlist, divCgOps[is_signed(right.resulttype.def)], 
         size, tordconstnode(right).value, numerator, resultreg)

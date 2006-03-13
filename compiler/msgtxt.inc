@@ -702,8 +702,8 @@ const msgtxt : array[0..000165,1..240] of char=(
   '11016_W_Debug information generation is not supported by this executab'+
   'le'#000+
   '11017_H_Try recompiling with -dG','DB'#000+
-  '11018_E_You are using the obsolete switch $1'#000+
-  '11019_E_You are using the obsolete switch $1, please use $2'#000+
+  '11018_W_You are using the obsolete switch $1'#000+
+  '11019_W_You are using the obsolete switch $1, please use $2'#000+
   '11020_N_Switching assembler to default source writing assembler'#000+
   '11021_W_Assembler output selected "$1" is not compatible with "$2"'#000+
   '1','1022_W_"$1" assembler use forced'#000+

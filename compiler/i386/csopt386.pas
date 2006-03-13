@@ -241,7 +241,7 @@ var
         hp: tai;
       begin
         { only regvars are still used at jump instructions }
-        if (cs_regvars in aktglobalswitches) and
+        if (cs_opt_regvar in aktoptimizerswitches) and
            (p.typ = ait_instruction) and
            taicpu(p).is_jmp then
          regsstillvalid := regsstillvalid - ptaiprop(p.optinfo)^.usedregs;
@@ -312,7 +312,7 @@ var
     getPrevSequence := RS_INVALID;
     passedFlagsModifyingInstr := passedFlagsModifyingInstr or
       instrWritesFlags(currentPrev);
-    if (cs_regvars in aktglobalswitches) and
+    if (cs_opt_regvar in aktoptimizerswitches) and
        (currentprev.typ = ait_instruction) and
        taicpu(currentprev).is_jmp then
       regsstillvalid := regsstillvalid - ptaiprop(currentprev.optinfo)^.usedregs;
@@ -2017,7 +2017,7 @@ begin
                                 end;
                             end;
                         Ch_MOp1:
-                          if not(CS_LittleSize in aktglobalswitches) and
+                          if not(cs_opt_size in aktoptimizerswitches) and
                              (taicpu(p).oper[0]^.typ = top_ref) then
                             begin
                               memreg :=
@@ -2064,7 +2064,7 @@ begin
                                 end;
                             end;
                         Ch_MOp2:
-                          if not(cs_littlesize in aktglobalswitches) and
+                          if not(cs_opt_size in aktoptimizerswitches) and
                              (taicpu(p).oper[1]^.typ = top_ref) and
                              ((taicpu(p).opcode < A_BT) or
                               ((taicpu(p).opcode > A_IN) and
@@ -2188,10 +2188,10 @@ end;
 
 function CSE(asml: TAAsmOutput; First, Last: tai; pass: longint): boolean;
 begin
-  doCSE(asml, First, Last, not(cs_slowoptimize in aktglobalswitches) or (pass >= 2),
-        not(cs_slowoptimize in aktglobalswitches) or (pass >= 1));
+  doCSE(asml, First, Last, not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 2),
+        not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 1));
  { register renaming }
-  if not(cs_slowoptimize in aktglobalswitches) or (pass > 0) then
+  if not(cs_opt_asmcse in aktoptimizerswitches) or (pass > 0) then
     doRenaming(asml, first, last);
   cse := removeInstructs(asml, first, last);
 end;

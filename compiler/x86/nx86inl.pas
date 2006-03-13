@@ -309,7 +309,7 @@ implementation
          r : tregister;
        begin
 {$ifdef i386}
-         if aktspecificoptprocessor>=ClassPentium3 then
+         if aktspecificoptcputype>=cpu_Pentium3 then
 {$endif i386}
            begin
              secondpass(left);

@@ -30,13 +30,13 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
+   tcputype =
+      (cpu_none,
        mips32
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_fpu
      );
 
@@ -58,7 +58,7 @@ Const
      pocall_cppdecl
    ];
 
-   processorsstr : array[tprocessors] of string[5] = ('',
+   cputypestr : array[tcputype] of string[5] = ('',
      'MIPS32'
    );
 
@@ -66,6 +66,9 @@ Const
      'FPU'
    );
 
+   level1optimizerswitches = [];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
 
 Implementation
 

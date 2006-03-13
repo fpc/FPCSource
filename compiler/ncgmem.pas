@@ -612,7 +612,7 @@ implementation
          else
          { not nodetype=ordconstn }
            begin
-              if (cs_regvars in aktglobalswitches) and
+              if (cs_opt_regvar in aktoptimizerswitches) and
                  { if we do range checking, we don't }
                  { need that fancy code (it would be }
                  { buggy)                            }

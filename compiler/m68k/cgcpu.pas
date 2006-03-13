@@ -211,7 +211,7 @@ unit cgcpu;
            addressing capabilities with a 32-bit
            displacement.
          }
-         if (aktoptprocessor<>MC68000) then
+         if (aktoptcputype<>cpu_MC68000) then
            exit;
          if (ref.base<>NR_NO) then
            begin
@@ -434,7 +434,7 @@ unit cgcpu;
               end;
           OP_IMUL :
               begin
-                if aktoptprocessor = MC68000 then
+                if aktoptcputype = cpu_MC68000 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -463,7 +463,7 @@ unit cgcpu;
               end;
           OP_MUL :
               begin
-                 if aktoptprocessor = MC68000 then
+                 if aktoptcputype = cpu_MC68000 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -550,7 +550,7 @@ unit cgcpu;
         case op of
           OP_ADD :
               begin
-                 if aktoptprocessor = ColdFire then
+                 if aktoptcputype = cpu_ColdFire then
                   begin
                     { operation only allowed only a longword }
                     sign_extend(list, size, reg1);
@@ -583,7 +583,7 @@ unit cgcpu;
                  else
                    hreg2 := reg2;
 
-                 if aktoptprocessor = ColdFire then
+                 if aktoptcputype = cpu_ColdFire then
                   begin
                     { operation only allowed only a longword }
                     {!***************************************
@@ -620,7 +620,7 @@ unit cgcpu;
               begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
-                 if aktoptprocessor = MC68000 then
+                 if aktoptcputype = cpu_MC68000 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -663,7 +663,7 @@ unit cgcpu;
               begin
                  sign_extend(list, size,reg1);
                  sign_extend(list, size,reg2);
-                 if aktoptprocessor = MC68000 then
+                 if aktoptcputype = cpu_MC68000 then
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
@@ -722,7 +722,7 @@ unit cgcpu;
                     hreg2 := reg2;
 
                 { coldfire only supports long version }
-                if aktoptprocessor = ColdFire then
+                if aktoptcputype = cpu_ColdFire then
                   begin
                     sign_extend(list, size,hreg2);
                     list.concat(taicpu.op_reg(topcg2tasmop[op],S_L,hreg2));
@@ -756,7 +756,7 @@ unit cgcpu;
          end
        else
          begin
-           if (aktoptprocessor = ColdFire) then
+           if (aktoptcputype = cpu_ColdFire) then
              begin
                {
                  only longword comparison is supported,
@@ -818,7 +818,7 @@ unit cgcpu;
               ai.SetCondition(flags_to_cond(f));
               list.concat(ai);
 
-              if (aktoptprocessor = ColdFire) then
+              if (aktoptcputype = cpu_ColdFire) then
                 begin
                  { neg.b does not exist on the Coldfire
                    so we need to sign extend the value
@@ -840,7 +840,7 @@ unit cgcpu;
             ai.SetCondition(flags_to_cond(f));
             list.concat(ai);
 
-            if (aktoptprocessor = ColdFire) then
+            if (aktoptcputype = cpu_ColdFire) then
               begin
                  { neg.b does not exist on the Coldfire
                    so we need to sign extend the value
@@ -883,13 +883,13 @@ unit cgcpu;
          { this should never occur }
          if len > 65535 then
            internalerror(0);
-	
+
          hregister := getintregister(list,OS_INT);
 //         if delsource then
 //            reference_release(list,source);
 
          { from 12 bytes movs is being used }
-         if {(not loadref) and} ((len<=8) or (not(cs_littlesize in aktglobalswitches) and (len<=12))) then
+         if {(not loadref) and} ((len<=8) or (not(cs_opt_size in aktoptimizerswitches) and (len<=12))) then
            begin
               srcref := source;
               dstref := dest;
@@ -943,7 +943,7 @@ unit cgcpu;
               { double word move only on 68020+ machines }
               { because of possible alignment problems   }
               { use fast loop mode }
-              if (aktoptprocessor=MC68020) then
+              if (aktoptcputype=cpu_MC68020) then
                 begin
                    helpsize := len - len mod 4;
                    len := len mod 4;
@@ -1059,7 +1059,7 @@ unit cgcpu;
             { return with immediate size possible here
               signed!
               RTD is not supported on the coldfire     }
-            if (aktoptprocessor=MC68020) and (parasize<$7FFF) then
+            if (aktoptcputype=cpu_MC68020) and (parasize<$7FFF) then
                 list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
             { manually restore the stack }
             else
@@ -1143,7 +1143,7 @@ unit cgcpu;
               begin
                 if (isaddressregister(reg)) then
                    internalerror(20020729);
-                if (aktoptprocessor = MC68000) then
+                if (aktoptcputype = cpu_MC68000) then
                   begin
                     list.concat(taicpu.op_reg(A_EXT,S_W,reg));
                     list.concat(taicpu.op_reg(A_EXT,S_L,reg));

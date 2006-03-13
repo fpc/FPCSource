@@ -475,7 +475,7 @@ interface
           LOC_CREGISTER,
           LOC_REGISTER:
             begin
-              if not(cs_regvars in aktglobalswitches) or
+              if not(cs_opt_regvar in aktoptimizerswitches) or
                  (pi_has_goto in current_procinfo.flags) then
                 begin
                   { make sure the register allocator doesn't reuse the }
@@ -498,7 +498,7 @@ interface
           LOC_CFPUREGISTER,
           LOC_FPUREGISTER:
             begin
-              if not(cs_regvars in aktglobalswitches) or
+              if not(cs_opt_regvar in aktoptimizerswitches) or
                  (pi_has_goto in current_procinfo.flags) then
                 begin
                   { make sure the register allocator doesn't reuse the }

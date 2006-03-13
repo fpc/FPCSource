@@ -1604,7 +1604,7 @@ unit cgx86;
     begin
       cm:=copy_move;
       helpsize:=12;
-      if cs_littlesize in aktglobalswitches then
+      if cs_opt_size in aktoptimizerswitches then
         helpsize:=8;
       if (cs_mmx in aktlocalswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
@@ -1612,7 +1612,7 @@ unit cgx86;
         cm:=copy_mmx;
       if (len>helpsize) then
         cm:=copy_string;
-      if (cs_littlesize in aktglobalswitches) and
+      if (cs_opt_size in aktoptimizerswitches) and
          not((len<=16) and (cm=copy_mmx)) then
         cm:=copy_string;
       case cm of
@@ -1698,7 +1698,7 @@ unit cgx86;
             getcpuregister(list,REGCX);
 
             list.concat(Taicpu.op_none(A_CLD,S_NO));
-            if cs_littlesize in aktglobalswitches  then
+            if cs_opt_size in aktoptimizerswitches  then
               begin
                 a_load_const_reg(list,OS_INT,len,REGCX);
                 list.concat(Taicpu.op_none(A_REP,S_NO));

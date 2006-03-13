@@ -2391,7 +2391,7 @@ type
            begin
              tcallparanode(left).det_registers;
 
-             if cs_optimize in aktglobalswitches then
+             if cs_opt_level1 in aktoptimizerswitches then
                begin
                  { check for stacked parameters }
                  check_stack_parameters;

@@ -38,13 +38,13 @@ Type
 
    pbestreal=^bestreal;
 
-   tprocessors =
-      (no_processor,
-       ClassAthlon64
+   tcputype =
+      (cpu_none,
+       cpu_athlon64
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_sse64
      );
 
@@ -68,7 +68,7 @@ Const
      pocall_cppdecl
    ];
 
-   processorsstr : array[tprocessors] of string[10] = ('',
+   cputypestr : array[tcputype] of string[10] = ('',
      'ATHLON64'
    );
 
@@ -78,6 +78,10 @@ Const
 
    sse_singlescalar : set of tfputype = [fpu_sse64];
    sse_doublescalar : set of tfputype = [fpu_sse64];
+
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 Implementation
 

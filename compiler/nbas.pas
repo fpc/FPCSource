@@ -425,54 +425,6 @@ implementation
          hp:=tstatementnode(left);
          while assigned(hp) do
            begin
-(*
-              if cs_regvars in aktglobalswitches then
-                begin
-                   { node transformations }
-
-                   { concat function result to exit }
-                   { this is wrong for string or other complex
-                     result types !!! }
-                   if {ret_in_acc(current_procinfo.procdef.rettype.def) and }
-                      (is_ordinal(current_procinfo.procdef.rettype.def) or
-                       is_smallset(current_procinfo.procdef.rettype.def)) and
-                      assigned(hp.right) and
-                      assigned(tstatementnode(hp.right).left) and
-                      (tstatementnode(hp.right).left.nodetype=exitn) and
-                      (hp.left.nodetype=assignn) and
-                      { !!!! this tbinarynode should be tassignmentnode }
-                      (tbinarynode(hp.left).left.nodetype=loadn) and
-                      (is_funcret_sym(tloadnode(tbinarynode(hp.left).left).symtableentry)) then
-                      begin
-                         if assigned(texitnode(tstatementnode(hp.right).left).left) then
-                           CGMessage(cg_n_inefficient_code)
-                         else
-                           begin
-                              texitnode(tstatementnode(hp.right).left).left:=tassignmentnode(hp.left).right;
-                              tassignmentnode(hp.left).right:=nil;
-                              hp.left.free;
-                              hp.left:=nil;
-                           end;
-                      end
-                   { warning if unreachable code occurs and elimate this }
-                   else if (hp.left.nodetype in
-                     [exitn,breakn,continuen,goton]) and
-                     { statement node (JM) }
-                     assigned(hp.right) and
-                     { kind of statement! (JM) }
-                     assigned(tstatementnode(hp.right).left) and
-                     (tstatementnode(hp.right).left.nodetype<>labeln) then
-                     begin
-                        { use correct line number }
-                        aktfilepos:=hp.right.fileinfo;
-                        hp.right.free;
-                        hp.right:=nil;
-                        CGMessage(cg_w_unreachable_code);
-                        { old lines }
-                        aktfilepos:=hp.left.fileinfo;
-                     end;
-                end;
-*)
               if assigned(hp.left) then
                 begin
                    codegenerror:=false;

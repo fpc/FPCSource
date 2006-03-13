@@ -30,14 +30,14 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
-       ppc601,
-       ppc604
+   tcputype =
+      (cpu_none,
+       cpu_ppc601,
+       cpu_ppc604
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_soft,
       fpu_standard
      );
@@ -56,7 +56,7 @@ Const
      pocall_mwpascal
    ];
 
-   processorsstr : array[tprocessors] of string[10] = ('',
+   cputypestr : array[tcputype] of string[10] = ('',
      '603',
      '604'
    );
@@ -65,6 +65,10 @@ Const
      'SOFT',
      'STANDARD'
    );
+
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 Implementation
 

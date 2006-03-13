@@ -283,7 +283,7 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        if not SetAktProcCall(hs,false) then
+        if not SetAktProcCall(hs,aktdefproccall) then
           Message1(parser_w_unknown_proc_directive_ignored,hs);
       end;
 
@@ -373,7 +373,7 @@ implementation
       begin
         current_scanner.skipspace;
         { current_scanner.undef_macro('FPU'+fputypestr[aktfputype]); }
-        if not(SetFPUType(upper(current_scanner.readcomment),false)) then
+        if not(SetFPUType(upper(current_scanner.readcomment),aktfputype)) then
           comment(V_Error,'Illegal FPU type');
         { current_scanner.def_macro('FPU'+fputypestr[aktfputype]); }
      end;

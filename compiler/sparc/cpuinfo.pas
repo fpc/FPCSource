@@ -38,9 +38,16 @@ type
   pbestreal=^bestreal;
 
   { possible supported processors for this target }
-  tprocessors=(no_processor,SPARC_V7,SPARC_V8,SPARC_V9);
+  tcputype=(cpu_none,
+    cpu_SPARC_V7,
+    cpu_SPARC_V8,
+    cpu_SPARC_V9
+  );
 
-  tfputype =(no_fpu,fpu_soft,fpu_hard);
+  tfputype =(fpu_none,
+    fpu_soft,
+    fpu_hard
+  );
 
 
 const
@@ -52,7 +59,7 @@ const
     pocall_cppdecl
   ];
 
-   processorsstr : array[tprocessors] of string[10] = ('',
+   cputypestr : array[tcputype] of string[10] = ('',
      'SPARC V7',
      'SPARC V8',
      'SPARC V9'
@@ -62,6 +69,10 @@ const
      'SOFT',
      'HARD'
    );
+
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 implementation
 

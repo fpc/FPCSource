@@ -704,7 +704,7 @@ implementation
         add_to_symtablestack;
 
         { when size optimization only count occurrence }
-        if cs_littlesize in aktglobalswitches then
+        if cs_opt_size in aktoptimizerswitches then
           cg.t_times:=1
         else
           { reference for repetition is 100 }
@@ -750,7 +750,7 @@ implementation
                 * open arrays
               - no inline assembler
             }
-            if (cs_optimize in aktglobalswitches) and
+            if (cs_opt_level1 in aktoptimizerswitches) and
                not(po_assembler in procdef.procoptions) and
                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter])=[]) then
@@ -950,7 +950,7 @@ implementation
 {$ifndef NoOpt}
             if not(cs_no_regalloc in aktglobalswitches) then
               begin
-                if (cs_optimize in aktglobalswitches) and
+                if (cs_opt_level1 in aktoptimizerswitches) and
                    { do not optimize pure assembler procedures }
                    not(pi_is_assembler in flags)  then
                   optimize(aktproccode);

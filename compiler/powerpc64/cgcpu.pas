@@ -129,7 +129,7 @@ type
     function fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 
     function load_got_symbol(list : taasmoutput; symbol : string) : tregister;
-    
+
     { returns whether a reference can be used immediately in a powerpc }
     { instruction                                                      }
     function issimpleref(const ref: treference): boolean;
@@ -143,7 +143,7 @@ type
     procedure a_jmp(list: taasmoutput; op: tasmop;
       c: tasmcondflag; crval: longint; l: tasmlabel);
 
-    { returns the lowest numbered FP register in use, and the number of used FP registers 
+    { returns the lowest numbered FP register in use, and the number of used FP registers
       for the current procedure }
     procedure calcFirstUsedFPR(out firstfpr : TSuperRegister; out fprcount : aint);
     { returns the lowest numbered GP register in use, and the number of used GP registers
@@ -158,9 +158,9 @@ type
      control code generation. If prependDot is true, a single dot character is prepended to
      the string, if addNOP is true a single NOP instruction is added after the call, and
      if includeCall is true, the method is marked as having a call, not if false. This
-     option is particularly useful to prevent generation of a larger stack frame for the 
+     option is particularly useful to prevent generation of a larger stack frame for the
      register save and restore helper functions. }
-    procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; 
+    procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
@@ -192,10 +192,10 @@ begin
 end;
 
 
-{ helper function which calculate "magic" values for replacement of unsigned 
+{ helper function which calculate "magic" values for replacement of unsigned
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
-procedure getmagic_unsignedN(const N : byte; const d : aWord; 
+procedure getmagic_unsignedN(const N : byte; const d : aWord;
   out magic_m : aWord; out magic_add : boolean; out magic_shift : byte);
 var
     p : aInt;
@@ -204,7 +204,7 @@ begin
   assert(d > 0);
 
   two_N_minus_1 := aWord(1) shl (N-1);
-    
+
   magic_add := false;
   nc := - 1 - (-d) mod d;
   p := N-1; { initialize p }
@@ -227,7 +227,7 @@ begin
       q2 := 2*q2 + 1; { update q2 }
       r2 := 2*r2 + 1 - d; { update r2 }
     end else begin
-      if (q2 >= two_N_minus_1) then 
+      if (q2 >= two_N_minus_1) then
         magic_add := true;
       q2 := 2*q2; { update q2 }
       r2 := 2*r2 + 1; { update r2 }
@@ -238,16 +238,16 @@ begin
   magic_shift := p - N; { resulting shift }
 end;
 
-{ helper function which calculate "magic" values for replacement of signed 
+{ helper function which calculate "magic" values for replacement of signed
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
-procedure getmagic_signedN(const N : byte; const d : aInt; 
+procedure getmagic_signedN(const N : byte; const d : aInt;
   out magic_m : aInt; out magic_s : aInt);
 var
   p : aInt;
   ad, anc, delta, q1, r1, q2, r2, t : aWord;
   two_N_minus_1 : aWord;
-    
+
 begin
   assert((d < -1) or (d > 1));
 
@@ -261,7 +261,7 @@ begin
   r1 := two_N_minus_1 - q1*anc; { initialize r1 = rem(2p,abs(nc)) }
   q2 := two_N_minus_1 div ad; { initialize q2 = 2p/abs(d) }
   r2 := two_N_minus_1 - q2*ad; { initialize r2 = rem(2p,abs(d)) }
-  repeat 
+  repeat
     inc(p);
     q1 := 2*q1; { update q1 = 2p/abs(nc) }
     r1 := 2*r1; { update r1 = rem(2p/abs(nc)) }
@@ -293,7 +293,7 @@ var
   hl : aInt;
 begin
   neg := false;
-  { also try to find negative power of two's by negating if the 
+  { also try to find negative power of two's by negating if the
    value is negative. low(aInt) is special because it can not be
    negated. Simply return the appropriate values for it }
   if (value < 0) then begin
@@ -327,7 +327,7 @@ end;
 function getInstructionLength(a : aint) : longint;
 
   function get32bitlength(a : longint; var length : longint) : boolean; inline;
-  var 
+  var
     is_half_signed : byte;
   begin
     { if the lower 16 bits are zero, do a single LIS }
@@ -355,8 +355,8 @@ begin
     extendssign := get32bitlength(lo(a), result);
     if (extendssign) and (hi(a) = 0) then
       inc(result)
-    else if (not 
-      ((extendssign and (longint(hi(a)) = -1)) or 
+    else if (not
+      ((extendssign and (longint(hi(a)) = -1)) or
        ((not extendssign) and (hi(a)=0)))
       ) then begin
       get32bitlength(hi(a), result);
@@ -439,17 +439,17 @@ begin
           list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO, sizeleft ' + inttostr(sizeleft))));
           {$ENDIF extdebug}
 
-            { load non-integral sized memory location into register. This 
+            { load non-integral sized memory location into register. This
              memory location be 1-sizeleft byte sized.
              Always assume that this memory area is properly aligned, eg. start
              loading the larger quantities for "odd" quantities first }
             case sizeleft of
               1,2,4,8 :
                 a_load_ref_reg(list, int_cgsize(sizeleft), location^.size, tmpref,
-                  location^.register); 
+                  location^.register);
               3 : begin
-                a_reg_alloc(list, NR_R12); 
-                a_load_ref_reg(list, OS_16, location^.size, tmpref, 
+                a_reg_alloc(list, NR_R12);
+                a_load_ref_reg(list, OS_16, location^.size, tmpref,
                   NR_R12);
                 inc(tmpref.offset, tcgsize2size[OS_16]);
                 a_load_ref_reg(list, OS_8, location^.size, tmpref,
@@ -470,7 +470,7 @@ begin
                 a_load_ref_reg(list, OS_32, location^.size, tmpref, NR_R12);
                 inc(tmpref.offset, tcgsize2size[OS_32]);
                 a_load_ref_reg(list, OS_16, location^.size, tmpref, location^.register);
-                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 16, 16));                
+                list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, location^.register, NR_R12, 16, 16));
                 a_reg_dealloc(list, NR_R12);
               end;
               7 : begin
@@ -493,10 +493,10 @@ begin
                 { the block is > 8 bytes, so we have to store any bytes not
                  a multiple of the register size beginning with the MSB }
                 adjusttail := true;
-            end;           
+            end;
             if (adjusttail) and (sizeleft < tcgsize2size[OS_INT]) then
-              a_op_const_reg(list, OP_SHL, OS_INT, 
-                (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT], 
+              a_op_const_reg(list, OP_SHL, OS_INT,
+                (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT],
                 location^.register);
 
         end;
@@ -515,7 +515,7 @@ begin
         else
           internalerror(2002072801);
         end;
-      LOC_VOID: 
+      LOC_VOID:
         { nothing to do }
         ;
     else
@@ -579,7 +579,7 @@ procedure tcgppc.a_call_reg(list: taasmoutput; reg: tregister);
 var
   tmpref: treference;
 begin
-  if (not (cs_littlesize in aktglobalswitches)) then begin
+  if (not (cs_opt_size in aktoptimizerswitches)) then begin
     { load actual function entry (reg contains the reference to the function descriptor)
     into R0 }
     reference_reset_base(tmpref, reg, 0);
@@ -627,7 +627,7 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
     sign extension was performed) }
   function load32bitconstant(list : taasmoutput; size : TCGSize; a : longint;
     reg : TRegister) : boolean;
-  var 
+  var
     is_half_signed : byte;
   begin
     { if the lower 16 bits are zero, do a single LIS }
@@ -673,21 +673,21 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
     if (lo(a) = 0) and (hi(a) <> 0) then begin
       { load only upper 32 bits, and shift }
       load32bitconstant(list, size, hi(a), reg);
-      list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));    
+      list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));
     end else begin
       { load lower 32 bits }
       extendssign := load32bitconstant(list, size, lo(a), reg);
       if (extendssign) and (hi(a) = 0) then
-        { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic 
+        { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic
           sign extension, clear those bits }
         a_load_reg_reg(list, OS_32, OS_64, reg, reg)
-      else if (not 
-        ((extendssign and (longint(hi(a)) = -1)) or 
+      else if (not
+        ((extendssign and (longint(hi(a)) = -1)) or
          ((not extendssign) and (hi(a)=0)))
         ) then begin
         { only load the upper 32 bits, if the automatic sign extension is not okay,
-          that is, _not_ if 
-          - loading the lower 32 bits resulted in -1 in the upper 32 bits, and the upper 
+          that is, _not_ if
+          - loading the lower 32 bits resulted in -1 in the upper 32 bits, and the upper
            32 bits should contain -1
           - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
            32 bits should contain 0 }
@@ -710,9 +710,9 @@ begin
   {$ENDIF EXTDEBUG}
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
-  { if PIC or basic optimizations are enabled, and the number of instructions which would be 
+  { if PIC or basic optimizations are enabled, and the number of instructions which would be
    required to load the value is greater than 2, store (and later load) the value from there }
-  if (false) {(((cs_fastoptimize in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and 
+  if (false) {(((cs_opt_peephole in aktoptimizerswitches in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and
     (getInstructionLength(a) > 2))} then
     loadConstantPIC(list, size, a, reg)
   else
@@ -827,7 +827,7 @@ begin
   rg[R_INTREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; 
+procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize;
   reg1, reg2: tregister);
 var
   instr: taicpu;
@@ -837,7 +837,7 @@ begin
   rg[R_FPUREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; 
+procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize;
   const ref: treference; reg: tregister);
 const
   FpuLoadInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
@@ -924,7 +924,7 @@ var
   begin
     { optimization logical and with immediate: only use "andi." for 16 bit
      ands, otherwise use register method. Doing this for 32 bit constants
-     would not give any advantage to the register method (via useReg := true), 
+     would not give any advantage to the register method (via useReg := true),
      requiring a scratch register and three instructions. }
     usereg := false;
     if (aword(a) > high(word)) then
@@ -944,7 +944,7 @@ var
     u_add : boolean;
     power : byte;
     isNegPower : boolean;
-             
+
     divreg : tregister;
   begin
     if (a = 0) then begin
@@ -982,13 +982,13 @@ var
           cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, src, dst, dst);
         end;
         { shift shift places to the right (arithmetic) }
-        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, shift, dst, dst);                     
+        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, shift, dst, dst);
         { extract and add sign bit }
         if (a >= 0) then begin
           cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, src, divreg);
         end else begin
           cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, dst, divreg);
-        end;                     
+        end;
         cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, dst, divreg, dst);
       end else begin
         getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
@@ -1020,17 +1020,17 @@ begin
     exit;
   end;
   { This case includes some peephole optimizations for the various operations,
-   (e.g. AND, OR, XOR, ..) - can't this be done at some higher level, 
+   (e.g. AND, OR, XOR, ..) - can't this be done at some higher level,
    independent of architecture? }
 
   { assume that we do not need a scratch register for the operation }
   useReg := false;
   case (op) of
     OP_DIV, OP_IDIV:
-      if (cs_optimize in aktglobalswitches) then
+      if (cs_opt_level1 in aktoptimizerswitches) then
         do_constant_div(list, size, a, src, dst, op = OP_IDIV)
       else
-        usereg := true; 
+        usereg := true;
     OP_IMUL, OP_MUL:
       { idea: factorize constant multiplicands and use adds/shifts with few factors;
        however, even a 64 bit multiply is already quite fast on PPC64 }
@@ -1079,11 +1079,11 @@ begin
         do_lo_hi(A_XORI, A_XORIS);
     OP_SHL, OP_SHR, OP_SAR:
       begin
-        if (size in [OS_64, OS_S64]) then 
+        if (size in [OS_64, OS_S64]) then
           shift := 6
         else
           shift := 5;
-        
+
         shiftmask := (1 shl shift)-1;
         if (a and shiftmask) <> 0 then
           list.concat(taicpu.op_reg_reg_const(
@@ -1136,7 +1136,7 @@ end;
 
 {*************** compare instructructions ****************}
 
-procedure tcgppc.a_cmp_const_reg_label(list: taasmoutput; size: tcgsize; 
+procedure tcgppc.a_cmp_const_reg_label(list: taasmoutput; size: tcgsize;
   cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
 var
   scratch_register: TRegister;
@@ -1167,7 +1167,7 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize; 
+procedure tcgppc.a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize;
   cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   op: tasmop;
@@ -1261,7 +1261,7 @@ end;
 
 procedure tcgppc.g_save_standard_registers(list: Taasmoutput);
 begin
-  { this work is done in g_proc_entry; additionally it is not safe 
+  { this work is done in g_proc_entry; additionally it is not safe
   to use it because it is called at some weird time }
 end;
 
@@ -1301,15 +1301,15 @@ begin
       end;
 end;
 
-{ Generates the entry code of a procedure/function. 
-                                                                     
+{ Generates the entry code of a procedure/function.
+
  This procedure may be called before, as well as after g_return_from_proc
- is called. localsize is the sum of the size necessary for local variables 
- and the maximum possible combined size of ALL the parameters of a procedure 
- called by the current one 
+ is called. localsize is the sum of the size necessary for local variables
+ and the maximum possible combined size of ALL the parameters of a procedure
+ called by the current one
 
  IMPORTANT: registers are not to be allocated through the register
- allocator here, because the register colouring has already occured !! 
+ allocator here, because the register colouring has already occured !!
 }
 procedure tcgppc.g_proc_entry(list: taasmoutput; localsize: longint;
   nostackframe: boolean);
@@ -1329,7 +1329,7 @@ var
     { there are two ways to do this: manually, by generating a few "std" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_littlesize in aktglobalswitches) then begin
+    if (cs_opt_size in aktoptimizerswitches) then begin
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
@@ -1381,9 +1381,9 @@ begin
     gprcount, fprcount);
 
   { determine whether we need to save the link register }
-  needslinkreg := 
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or 
-    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0))) or
+  needslinkreg :=
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
+    ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 
   a_reg_alloc(list, NR_STACK_POINTER_REG);
@@ -1412,7 +1412,7 @@ begin
       { Use R0 for loading the constant (which is definitely > 32k when entering
        this branch).
 
-       Inlined at this position because it must not use temp registers because 
+       Inlined at this position because it must not use temp registers because
        register allocations have already been done  }
       { Code template:
       lis   r0,ofs@highest
@@ -1437,10 +1437,10 @@ begin
   a_reg_dealloc(list, NR_R0);
 end;
 
-{ Generates the exit code for a method. 
+{ Generates the exit code for a method.
 
  This procedure may be called before, as well as after g_stackframe_entry
- is called. 
+ is called.
 
  IMPORTANT: registers are not to be allocated through the register
  allocator here, because the register colouring has already occured !!
@@ -1464,7 +1464,7 @@ var
     { there are two ways to do this: manually, by generating a few "ld" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_littlesize in aktglobalswitches) then begin
+    if (cs_opt_size in aktoptimizerswitches) then begin
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
@@ -1519,9 +1519,9 @@ begin
   calcFirstUsedGPR(firstreggpr, gprcount);
 
   { determine whether we need to restore the link register }
-  needslinkreg := 
+  needslinkreg :=
     ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
-    ((cs_littlesize in aktglobalswitches) and ((fprcount > 0) or (gprcount > 0))) or
+    ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 
   { calculate stack frame }
@@ -1662,7 +1662,7 @@ begin
     internalerror(2002072704);
   list.concat(tai_comment.create(strpnew('g_concatcopy1 ' + inttostr(len) + ' bytes left ')));
 {$ENDIF extdebug}
-  { if the references are equal, exit, there is no need to copy anything } 
+  { if the references are equal, exit, there is no need to copy anything }
   if (references_equal(source, dest)) then
     exit;
 
@@ -1671,7 +1671,7 @@ begin
    copy at all times.
    NOTE: maybe use some scratch registers to pair load/store instructions
   }
-  
+
   if (len <= maxmoveunit) then begin
     src := source; dst := dest;
     {$IFDEF extdebug}
@@ -1679,18 +1679,18 @@ begin
     {$ENDIF extdebug}
     while (len <> 0) do begin
       if (len = 8) then begin
-        a_load_ref_ref(list, OS_64, OS_64, src, dst);    
+        a_load_ref_ref(list, OS_64, OS_64, src, dst);
         dec(len, 8);
       end else if (len >= 4) then begin
-        a_load_ref_ref(list, OS_32, OS_32, src, dst);    
+        a_load_ref_ref(list, OS_32, OS_32, src, dst);
         inc(src.offset, 4); inc(dst.offset, 4);
         dec(len, 4);
       end else if (len >= 2) then begin
-        a_load_ref_ref(list, OS_16, OS_16, src, dst);    
+        a_load_ref_ref(list, OS_16, OS_16, src, dst);
         inc(src.offset, 2); inc(dst.offset, 2);
         dec(len, 2);
       end else begin
-        a_load_ref_ref(list, OS_8, OS_8, src, dst);    
+        a_load_ref_ref(list, OS_8, OS_8, src, dst);
         inc(src.offset, 1); inc(dst.offset, 1);
         dec(len, 1);
       end;
@@ -1729,9 +1729,9 @@ begin
 
   { generate a loop }
   if count > 4 then begin
-    { the offsets are zero after the a_loadaddress_ref_reg and just 
-     have to be set to 8. I put an Inc there so debugging may be   
-     easier (should offset be different from zero here, it will be 
+    { the offsets are zero after the a_loadaddress_ref_reg and just
+     have to be set to 8. I put an Inc there so debugging may be
+     easier (should offset be different from zero here, it will be
      easy to notice in the generated assembler }
     inc(dst.offset, 8);
     inc(src.offset, 8);
@@ -1947,7 +1947,7 @@ end;
 
 function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
 var
-  tmpreg: tregister; 
+  tmpreg: tregister;
   name : string;
 begin
   result := false;
@@ -1968,7 +1968,7 @@ begin
       a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, tmpreg, tmpreg);
       ref.base := tmpreg;
     end;
-    ref.symbol := nil;    
+    ref.symbol := nil;
     {$IFDEF EXTDEBUG}
     list.concat(tai_comment.create(strpnew('fixref-pic ' + ref2string(ref))));
     {$ENDIF EXTDEBUG}
@@ -2016,7 +2016,7 @@ begin
     list.concat(taicpu.op_reg_ref(op, reg, ref));
     exit;
   end;
- 
+
   { for some instructions we need to check that the offset is divisible by at
    least four. If not, add the bytes which are "off" to the base register and
    adjust the offset accordingly }
@@ -2089,7 +2089,7 @@ begin
       tmpref.base := ref.base;
       tmpref.index := tmpreg2;
       case op of
-        { the code generator doesn't generate update instructions anyway, so 
+        { the code generator doesn't generate update instructions anyway, so
         error out on those instructions }
         A_LBZ : op := A_LBZX;
         A_LHZ : op := A_LHZX;
@@ -2153,7 +2153,7 @@ begin
   list.concat(p)
 end;
 
-function tcgppc.hasLargeOffset(const ref : TReference) : Boolean;
+function tcgppc.hasLargeOffset(const ref : TReference) : Boolean; {$ifdef ver2_0}inline;{$endif}
 begin
   { this rather strange calculation is required because offsets of TReferences are unsigned }
   result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
@@ -2175,7 +2175,7 @@ begin
     asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;
   reference_reset_symbol(ref,l,0);
-  ref.base := NR_R2;	
+  ref.base := NR_R2;
   ref.refaddr := addr_pic;
 
   {$IFDEF EXTDEBUG}

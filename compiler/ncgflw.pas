@@ -107,7 +107,7 @@ implementation
 
     procedure tcgwhilerepeatnode.sync_regvars(checkusedregvars: boolean);
       begin
-         if (cs_regvars in aktglobalswitches) and
+         if (cs_opt_regvar in aktoptimizerswitches) and
             not(pi_has_goto in current_procinfo.flags) then
            begin
              if checkusedregvars then
@@ -158,7 +158,7 @@ implementation
          if lnf_testatbegin in loopflags then
            cg.a_jmp_always(exprasmlist,lcont);
 
-         if not(cs_littlesize in aktglobalswitches) then
+         if not(cs_opt_size in aktoptimizerswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
 
@@ -235,7 +235,7 @@ implementation
 (*
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
-         if cs_regvars in aktglobalswitches then
+         if cs_opt_regvar in aktoptimizerswitches then
            begin
              org_list := exprasmlist;
              exprasmlist := taasmoutput.create;
@@ -244,7 +244,7 @@ implementation
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
 (*
-         if cs_regvars in aktglobalswitches then
+         if cs_opt_regvar in aktoptimizerswitches then
            begin
              org_regvar_loaded_int := rg.regvar_loaded_int;
              org_regvar_loaded_other := rg.regvar_loaded_other;
@@ -260,7 +260,7 @@ implementation
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
 {
-         if cs_regvars in aktglobalswitches then
+         if cs_opt_regvar in aktoptimizerswitches then
            begin
              then_regvar_loaded_int := rg.regvar_loaded_int;
              then_regvar_loaded_other := rg.regvar_loaded_other;
@@ -278,7 +278,7 @@ implementation
                    objectlibrary.getjumplabel(hl);
                    { do go back to if line !! }
 (*
-                   if not(cs_regvars in aktglobalswitches) then
+                   if not(cs_opt_regvar in aktoptimizerswitches) then
 *)
                      aktfilepos:=exprasmList.getlasttaifilepos^
 (*
@@ -293,7 +293,7 @@ implementation
 (*
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
-              if cs_regvars in aktglobalswitches then
+              if cs_opt_regvar in aktoptimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -307,7 +307,7 @@ implementation
          else
            begin
 (*
-              if cs_regvars in aktglobalswitches then
+              if cs_opt_regvar in aktoptimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -323,7 +323,7 @@ implementation
            end;
 
 (*
-         if cs_regvars in aktglobalswitches then
+         if cs_opt_regvar in aktoptimizerswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
              { so that at the end of both blocks the same regvars are loaded }
@@ -368,7 +368,7 @@ implementation
 
     procedure tcgfornode.sync_regvars(checkusedregvars: boolean);
       begin
-         if (cs_regvars in aktglobalswitches) and
+         if (cs_opt_regvar in aktoptimizerswitches) and
             not(pi_has_goto in current_procinfo.flags) then
            begin
              if checkusedregvars then
@@ -508,7 +508,7 @@ implementation
            cg.a_jmp_always(exprasmlist,tcglabelnode(entrylabel).getasmlabel);
 
          { align loop target }
-         if not(cs_littlesize in aktglobalswitches) then
+         if not(cs_opt_size in aktoptimizerswitches) then
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
 

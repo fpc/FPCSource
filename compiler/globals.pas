@@ -209,13 +209,14 @@ interface
        initmoduleswitches : tmoduleswitches;
        initlocalswitches  : tlocalswitches;
        initmodeswitches   : tmodeswitches;
+       initoptimizerswitches : toptimizerswitches;
        {$IFDEF testvarsets}
         Initsetalloc,                            {0=fixed, 1 =var}
        {$ENDIF}
        initpackenum       : shortint;
        initalignment      : talignmentinfo;
-       initoptprocessor,
-       initspecificoptprocessor : tprocessors;
+       initcputype,
+       initoptimizecputype : tcputype;
        initfputype        : tfputype;
        initasmmode        : tasmmode;
        initinterfacetype  : tinterfacetypes;
@@ -226,6 +227,7 @@ interface
        aktglobalswitches  : tglobalswitches;
        aktmoduleswitches  : tmoduleswitches;
        aktlocalswitches   : tlocalswitches;
+       aktoptimizerswitches : toptimizerswitches;
        nextaktlocalswitches : tlocalswitches;
        localswitcheschanged : boolean;
        aktmodeswitches    : tmodeswitches;
@@ -236,8 +238,8 @@ interface
        aktpackenum        : shortint;
        aktmaxfpuregisters : longint;
        aktalignment       : talignmentinfo;
-       aktoptprocessor,
-       aktspecificoptprocessor : tprocessors;
+       aktoptcputype,
+       aktspecificoptcputype : tcputype;
        aktfputype        : tfputype;
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
@@ -340,17 +342,17 @@ interface
     { discern +0.0 and -0.0 }
     function get_real_sign(r: bestreal): longint;
 
-    function SetAktProcCall(const s:string; changeInit: boolean):boolean;
-    function SetProcessor(const s:string; changeInit: boolean):boolean;
-    function SetFpuType(const s:string; changeInit: boolean):boolean;
-
     procedure InitGlobals;
     procedure DoneGlobals;
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
 
+    function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
+    function Setcputype(const s:string;var a:tcputype):boolean;
+    function SetFpuType(const s:string;var a:tfputype):boolean;
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
+    function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
@@ -1873,72 +1875,6 @@ end;
       end;
 
 
-    function SetAktProcCall(const s:string; changeInit:boolean):boolean;
-      const
-        DefProcCallName : array[tproccalloption] of string[12] = ('',
-         'CDECL',
-         'CPPDECL',
-         'FAR16',
-         'OLDFPCCALL',
-         '', { internproc }
-         '', { syscall }
-         'PASCAL',
-         'REGISTER',
-         'SAFECALL',
-         'STDCALL',
-         'SOFTFLOAT',
-         'MWPASCAL'
-        );
-      var
-        t : tproccalloption;
-      begin
-        result:=false;
-        for t:=low(tproccalloption) to high(tproccalloption) do
-         if DefProcCallName[t]=s then
-          begin
-            AktDefProcCall:=t;
-            result:=true;
-            break;
-          end;
-        if changeinit then
-         InitDefProcCall:=AktDefProcCall;
-      end;
-
-
-    function SetProcessor(const s:string; changeInit: boolean):boolean;
-      var
-        t : tprocessors;
-      begin
-        SetProcessor:=false;
-        for t:=low(tprocessors) to high(tprocessors) do
-          if processorsstr[t]=s then
-            begin
-              aktspecificoptprocessor:=t;
-              SetProcessor:=true;
-              break;
-            end;
-        if changeinit then
-          initspecificoptprocessor:=aktspecificoptprocessor;
-      end;
-
-
-    function SetFpuType(const s:string; changeInit: boolean):boolean;
-      var
-        t : tfputype;
-      begin
-        SetFpuType:=false;
-        for t:=low(tfputype) to high(tfputype) do
-          if fputypestr[t]=s then
-            begin
-              aktfputype:=t;
-              SetFpuType:=true;
-              break;
-            end;
-        if changeinit then
-          initfputype:=aktfputype;
-      end;
-
-
     { '('D1:'00000000-'D2:'0000-'D3:'0000-'D4:'0000-000000000000)' }
     function string2guid(const s: string; var GUID: TGUID): boolean;
         function ishexstr(const hs: string): boolean;
@@ -1990,6 +1926,7 @@ end;
           string2guid:=false;
       end;
 
+
     function guid2string(const GUID: TGUID): string;
         function long2hex(l, len: longint): string;
           const
@@ -2015,6 +1952,70 @@ end;
               long2hex(GUID.D4[4],2)+long2hex(GUID.D4[5],2)+
               long2hex(GUID.D4[6],2)+long2hex(GUID.D4[7],2)+
           '}';
+      end;
+
+
+    function SetAktProcCall(const s:string; var a:tproccalloption):boolean;
+      const
+        DefProcCallName : array[tproccalloption] of string[12] = ('',
+         'CDECL',
+         'CPPDECL',
+         'FAR16',
+         'OLDFPCCALL',
+         '', { internproc }
+         '', { syscall }
+         'PASCAL',
+         'REGISTER',
+         'SAFECALL',
+         'STDCALL',
+         'SOFTFLOAT',
+         'MWPASCAL'
+        );
+      var
+        t  : tproccalloption;
+        hs : string;
+      begin
+        result:=false;
+        hs:=upper(s);
+        for t:=low(tproccalloption) to high(tproccalloption) do
+         if DefProcCallName[t]=hs then
+          begin
+            a:=t;
+            result:=true;
+            break;
+          end;
+      end;
+
+
+    function Setcputype(const s:string;var a:tcputype):boolean;
+      var
+        t  : tcputype;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(tcputype) to high(tcputype) do
+          if cputypestr[t]=hs then
+            begin
+              a:=t;
+              result:=true;
+              break;
+            end;
+      end;
+
+
+    function SetFpuType(const s:string;var a:tfputype):boolean;
+      var
+        t : tfputype;
+      begin
+        result:=false;
+        for t:=low(tfputype) to high(tfputype) do
+          if fputypestr[t]=s then
+            begin
+              aktfputype:=t;
+              result:=true;
+              break;
+            end;
       end;
 
 
@@ -2061,6 +2062,50 @@ end;
            UpdateAlignmentStr:=false;
         until false;
         UpdateAlignment(a,b);
+      end;
+
+
+    function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
+      var
+        tok  : string;
+        doset : boolean;
+        doswitch : toptimizerswitch;
+      begin
+        result:=true;
+        uppervar(s);
+        repeat
+          tok:=GetToken(s,',');
+          if tok='' then
+           break;
+          if Copy(tok,1,2)='NO' then
+            begin
+              delete(tok,1,2);
+              doset:=false;
+            end
+          else
+            doset:=true;
+          if tok='LOOPUNROLL' then
+           doswitch:=cs_opt_loopunroll
+          else if tok='UNCERTAIN' then
+           doswitch:=cs_opt_uncertain
+          else if tok='REGVAR' then
+           doswitch:=cs_opt_regvar
+          else if tok='PEEPHOLE' then
+           doswitch:=cs_opt_peephole
+          else if tok='STACKFRAME' then
+           doswitch:=cs_opt_stackframe
+          else if tok='ASMCSE' then
+           doswitch:=cs_opt_asmcse
+          else { Error }
+           result:=false;
+          if doswitch<>cs_opt_none then
+            begin
+              if doset then
+                include(a,doswitch)
+              else
+                exclude(a,doswitch);
+            end;
+        until false;
       end;
 
 
@@ -2152,7 +2197,7 @@ end;
      begin
         get_exepath;
 
-      { reset globals }
+        { reset globals }
         do_build:=false;
         do_release:=false;
         do_make:=true;
@@ -2166,7 +2211,7 @@ end;
         paratargetasm:=as_none;
         paratargetdbg:=dbg_none;
 
-      { Output }
+        { Output }
         OutputFile:='';
         OutputPrefix:=Nil;
         OutputSuffix:=Nil;
@@ -2175,19 +2220,19 @@ end;
         OutputExeDir:='';
         OutputUnitDir:='';
 
-      { Utils directory }
+        { Utils directory }
         utilsdirectory:='';
         utilsprefix:='';
         cshared:=false;
         rlinkpath:='';
 
-      { Search Paths }
+        { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
         unitsearchpath:=TSearchPathList.Create;
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
 
-      { Def file }
+        { Def file }
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         DescriptionSetExplicity:=false;
@@ -2204,87 +2249,65 @@ end;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;
-
-      { Init values }
-        initmodeswitches:=fpcmodeswitches;
-        initlocalswitches:=[cs_check_io,cs_typed_const_writable];
-        initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
-        initsourcecodepage:='8859-1';
-        initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
-        fillchar(initalignment,sizeof(talignmentinfo),0);
-        { might be overridden later }
-        initasmmode:=asmmode_standard;
-{$ifdef i386}
-        initoptprocessor:=ClassPentium3;
-        initspecificoptprocessor:=Class386;
-
-        initfputype:=fpu_x87;
-
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-        initsetalloc:=0;
-        {$ENDIF}
-        initasmmode:=asmmode_i386_att;
-{$endif i386}
-{$ifdef m68k}
-        initoptprocessor:=MC68020;
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-         initsetalloc:=0;
-        {$ENDIF}
-{$endif m68k}
-{$ifdef powerpc}
-        initoptprocessor:=PPC604;
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-         initsetalloc:=0;
-        {$ENDIF}
-        initfputype:=fpu_standard;
-{$endif powerpc}
-{$ifdef POWERPC64}
-        initoptprocessor:=PPC970;
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-         initsetalloc:=0;
-        {$ENDIF}
-        initfputype:=fpu_standard;
-{$endif POWERPC64}
-{$ifdef sparc}
-        initoptprocessor:=SPARC_V8;
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-         initsetalloc:=0;
-        {$ENDIF}
-{$endif sparc}
-{$ifdef arm}
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-        initsetalloc:=0;
-        {$ENDIF}
-        initfputype:=fpu_fpa;
-{$endif arm}
-{$ifdef x86_64}
-        initoptprocessor:=ClassAthlon64;
-        initspecificoptprocessor:=ClassAthlon64;
-
-        initfputype:=fpu_sse64;
-
-        initpackenum:=4;
-        {$IFDEF testvarsets}
-        initsetalloc:=0;
-        {$ENDIF}
-        initasmmode:=asmmode_x86_64_gas;
-{$endif x86_64}
-        initinterfacetype:=it_interfacecom;
-        initdefproccall:=pocall_default;
-
-      { memory sizes, will be overriden by parameter or default for target
-        in options or init_parser }
+        { memory sizes, will be overriden by parameter or default for target
+          in options or init_parser }
         stacksize:=0;
         { not initialized yet }
         jmp_buf_size:=-1;
-
         apptype:=app_cui;
+
+        { Init values }
+        initmodeswitches:=fpcmodeswitches;
+        initlocalswitches:=[cs_check_io,cs_typed_const_writable];
+        initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
+        initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal,cs_link_map{$endif}];
+        initoptimizerswitches:=[];
+        initsourcecodepage:='8859-1';
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+        initsetalloc:=0;
+        {$ENDIF}
+        fillchar(initalignment,sizeof(talignmentinfo),0);
+        { might be overridden later }
+        initasmmode:=asmmode_standard;
+        initcputype:=cpu_none;
+        initoptimizecputype:=cpu_none;
+        initfputype:=fpu_none;
+        initinterfacetype:=it_interfacecom;
+        initdefproccall:=pocall_default;
+
+        { Target specific defaults, these can override previous default options }
+{$ifdef i386}
+        initcputype:=cpu_386;
+        initoptimizecputype:=cpu_Pentium3;
+        initfputype:=fpu_x87;
+{$endif i386}
+{$ifdef m68k}
+        initcputype:=cpu_MC68020;
+        initfputype:=fpu_soft;
+{$endif m68k}
+{$ifdef powerpc}
+        initcputype:=cpu_PPC604;
+        initfputype:=fpu_standard;
+{$endif powerpc}
+{$ifdef POWERPC64}
+        initcputype:=cpu_PPC970;
+        initfputype:=fpu_standard;
+{$endif POWERPC64}
+{$ifdef sparc}
+        initcputype:=cpu_SPARC_V8;
+        initfputype:=fpu_hard;
+{$endif sparc}
+{$ifdef arm}
+        initcputype:=cpu_armv3;
+        initfputype:=fpu_fpa;
+{$endif arm}
+{$ifdef x86_64}
+        initcputype:=cpu_athlon64;
+        initfputype:=fpu_sse64;
+{$endif x86_64}
+        if initoptimizecputype=cpu_none then
+          initoptimizecputype:=initcputype;
      end;
 
 end.

@@ -145,7 +145,7 @@ implementation
      paraloc1 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
-     if aktoptprocessor <> MC68000 then
+     if aktoptcputype <> cpu_MC68000 then
        begin
          { verify if denominator is zero }
          objectlibrary.getjumplabel(continuelabel);
@@ -193,7 +193,7 @@ implementation
     begin
 //     writeln('emit mod reg reg');
      { no RTL call, so inline a zero denominator verification }
-     if aktoptprocessor <> MC68000 then
+     if aktoptcputype <> cpu_MC68000 then
        begin
          { verify if denominator is zero }
          objectlibrary.getjumplabel(continuelabel);
@@ -245,7 +245,7 @@ implementation
         cg.ungetcpuregister(exprasmlist,Reg_D0);
         cg.ungetcpuregister(exprasmlist,Reg_D1);
        end;
-//      writeln('exits'); 
+//      writeln('exits');
     end;
 
 

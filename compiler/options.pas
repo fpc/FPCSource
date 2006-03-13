@@ -49,7 +49,6 @@ type
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
     function  Unsetbool(var Opts:string; Pos: Longint):boolean;
-    procedure interpret_proc_specific_options(const opt:string);virtual;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
     procedure Interpret_file(const filename : string);
@@ -78,7 +77,7 @@ uses
   version,
   cutils,cmsgs,
   comphook,
-  symtable,scanner
+  symtable,scanner,rabase
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -159,7 +158,7 @@ var
   p : pchar;
   hs,hs1,s : TCmdStr;
   target : tsystem;
-  cpu : tprocessors;
+  cpu : tcputype;
   fpu : tfputype;
 begin
   p:=MessagePchar(option_info);
@@ -182,10 +181,10 @@ begin
       end
      else if pos('$INSTRUCTIONSETS',s)>0 then
       begin
-        for cpu:=low(tprocessors) to high(tprocessors) do
+        for cpu:=low(tcputype) to high(tcputype) do
           begin
             hs:=s;
-            hs1:=processorsstr[cpu];
+            hs1:=cputypestr[cpu];
             if hs1<>'' then
               begin
                 Replace(hs,'$INSTRUCTIONSETS',hs1);
@@ -369,11 +368,6 @@ begin
 end;
 
 
-procedure TOption.interpret_proc_specific_options(const opt:string);
-begin
-end;
-
-
 procedure TOption.interpret_option(const opt:string;ispara:boolean);
 var
   code : integer;
@@ -495,11 +489,9 @@ begin
                while j<=length(more) do
                 begin
                   case more[j] of
-                    'a' :
-                      Message2(option_obsolete_switch_use_new,'-Ca','-Or');
                     'c' :
                        begin
-                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),true) then
+                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),initdefproccall) then
                           IllegalPara(opt);
                          break;
                        end;
@@ -515,7 +507,7 @@ begin
                    'f' :
                      begin
                        s:=upper(copy(more,j+1,length(more)-j));
-                       if not(SetFpuType(s,true)) then
+                       if not(SetFpuType(s,initfputype)) then
                          IllegalPara(opt);
                        break;
                      end;
@@ -546,7 +538,7 @@ begin
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
-                        if not(SetProcessor(s,true)) then
+                        if not(Setcputype(s,initcputype)) then
                           IllegalPara(opt);
                         break;
                       end;
@@ -856,21 +848,6 @@ begin
                  IllegalPara(opt);
              end;
 
-           'N' :
-             begin
-               j:=1;
-               while j<=length(more) do
-                begin
-                  case more[j] of
-                    'u' :
-                      initglobalswitches:=initglobalswitches+[cs_loopunroll];
-                     else
-                       IllegalPara(opt);
-                  end;
-                  inc(j);
-                end;
-             end;
-
            'o' :
              begin
                if More<>'' then
@@ -887,6 +864,66 @@ begin
                  end
                else
                  IllegalPara(opt);
+             end;
+
+           'O' :
+             begin
+               j:=1;
+               while j<=length(more) do
+                begin
+                  case more[j] of
+                    '1' :
+                      initoptimizerswitches:=initoptimizerswitches+level1optimizerswitches;
+                    '2' :
+                      initoptimizerswitches:=initoptimizerswitches+level2optimizerswitches;
+                    '3' :
+                      initoptimizerswitches:=initoptimizerswitches+level3optimizerswitches;
+                    'a' :
+                      begin
+                        if not(UpdateAlignmentStr(Copy(Opt,j+1,255),ParaAlignment)) then
+                          IllegalPara(opt);
+                        break;
+                      end;
+                    's' :
+                      include(initoptimizerswitches,cs_opt_size);
+                    'p' :
+                      begin
+                        if not Setcputype(copy(more,j+1,length(more)),initoptimizecputype) then
+                          begin
+                            { Give warning for old i386 switches }
+                            if (Length(More)-j=1) and
+                               (More[j+1]>='1') and (More[j+1]<='5')then
+                              Message2(option_obsolete_switch_use_new,'-Op<nr>','-Op<name>')
+                            else
+                              IllegalPara(opt);
+                          end;
+                        break;
+                      end;
+                    'o' :
+                      begin
+                        if not UpdateOptimizerStr(copy(more,j+1,length(more)),initoptimizerswitches) then
+                         IllegalPara(opt);
+                        break;
+                      end;
+                    '-' :
+                      begin
+                        initoptimizerswitches:=[];
+                        FillChar(ParaAlignment,sizeof(ParaAlignment),0);
+                      end;
+                    { Obsolete switches }
+                    'g' :
+                      Message2(option_obsolete_switch_use_new,'-Og','-Os');
+                    'G' :
+                      Message1(option_obsolete_switch,'-OG');
+                    'r' :
+                      Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
+                    'u' :
+                      Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
+                    else
+                      IllegalPara(opt);
+                  end;
+                  inc(j);
+                end;
              end;
 
            'p' :
@@ -917,6 +954,12 @@ begin
              end;
 
            'P' : ; { Ignore used by fpc.pp }
+
+           'R' :
+             begin
+               if not SetAsmReadMode(More,initasmmode) then
+                 IllegalPara(opt);
+             end;
 
            's' :
              begin
@@ -1235,10 +1278,6 @@ begin
                   inc(j);
                 end;
              end;
-
-           { give processor specific options a chance }
-           else
-             interpret_proc_specific_options(opt);
          end;
        end;
 
@@ -1977,10 +2016,8 @@ begin
       def_system_macro('FPC_ABI_AIX');
   end;
 
-{$ifdef m68k}
-  if initoptprocessor=MC68020 then
-    def_system_macro('CPUM68020');
-{$endif m68k}
+  { CPU Define }
+  def_system_macro('CPU'+Cputypestr[initcputype]);
 
 { Check file to compile }
   if param_file='' then
@@ -2143,7 +2180,7 @@ begin
     2. override with generic optimizer setting (little size)
     3. override with the user specified -Oa }
   UpdateAlignment(initalignment,target_info.alignment);
-  if (cs_littlesize in aktglobalswitches) then
+  if (cs_opt_size in aktoptimizerswitches) then
    begin
      initalignment.procalign:=1;
      initalignment.jumpalign:=1;

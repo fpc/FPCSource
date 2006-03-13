@@ -46,8 +46,8 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
+   tcputype =
+      (cpu_none,
        ClassEV7,
        ClassEV8
       );

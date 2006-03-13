@@ -30,15 +30,15 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors =
-      (no_processor,
-       armv3,
-       armv4,
-       armv5
+   tcputype =
+      (cpu_none,
+       cpu_armv3,
+       cpu_armv4,
+       cpu_armv5
       );
 
    tfputype =
-     (no_fpuprocessor,
+     (fpu_none,
       fpu_soft,
       fpu_libgcc,
       fpu_fpa,
@@ -67,7 +67,7 @@ Const
      pocall_softfloat
    ];
 
-   processorsstr : array[tprocessors] of string[5] = ('',
+   cputypestr : array[tcputype] of string[5] = ('',
      'ARMV3',
      'ARMV4',
      'ARMV5'
@@ -82,6 +82,9 @@ Const
      'VFP'
    );
 
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 Implementation
 

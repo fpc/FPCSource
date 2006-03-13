@@ -2113,11 +2113,11 @@ option_no_debug_support_recompile_fpc=11017_H_Try recompiling with -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_E_You are using the obsolete switch $1
+option_obsolete_switch=11018_W_You are using the obsolete switch $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_E_You are using the obsolete switch $1, please use $2
+option_obsolete_switch_use_new=11019_W_You are using the obsolete switch $1, please use $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the

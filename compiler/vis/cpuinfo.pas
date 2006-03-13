@@ -39,7 +39,7 @@ Type
    pbestreal=^bestreal;
 
    { possible supported processors for this target }
-   tprocessors = (no_processor);
+   tcputype = (cpu_none);
 
 Const
    {# Size of native extended floating point type }

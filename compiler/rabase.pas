@@ -75,8 +75,10 @@ unit rabase;
         ht : tasmmode;
       begin
         result:=false;
-        { this should be case insensitive !! PM }
         hs:=upper(s);
+        { Support Default as an alias for Standard }
+        if hs='DEFAULT' then
+          hs:='STANDARD';
         for ht:=low(tasmmode) to high(tasmmode) do
          if assigned(asmmodeinfos[ht]) and
             (asmmodeinfos[ht]^.idtxt=hs) then

@@ -545,7 +545,7 @@ Implementation
       begin
         result:=target_asm.asmcmd;
 {$ifdef m68k}
-        if aktoptprocessor = MC68020 then
+        if aktoptcputype = cpu_MC68020 then
           result:='-m68020 '+result
         else
           result:='-m68000 '+result;

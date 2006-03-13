@@ -150,8 +150,6 @@ uses
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,dbgbase,import,export,tokens,pass_1
-  { cpu specific commandline options }
-  ,cpuswtch
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }

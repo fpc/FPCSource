@@ -145,7 +145,7 @@ implementation
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
-      if (cs_regvars in aktglobalswitches) and
+      if (cs_opt_regvar in aktoptimizerswitches) and
         { we have to store regvars back to memory in this case (the nested }
         { procedures can access the variables of the parent)               }
         (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
@@ -455,7 +455,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      if (cs_regvars in aktglobalswitches) and
+      if (cs_opt_regvar in aktoptimizerswitches) and
          not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -554,7 +554,7 @@ implementation
       { can happen when inlining assembler procedures (JM) }
       if not assigned(current_procinfo.procdef.regvarinfo) then
         exit;
-      if (cs_regvars in aktglobalswitches) and
+      if (cs_opt_regvar in aktoptimizerswitches) and
          not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do

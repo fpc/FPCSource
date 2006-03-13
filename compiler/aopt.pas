@@ -209,7 +209,7 @@ Unit aopt;
             { Only perform them twice in the first pass }
              if pass = 0 then
                PeepHoleOptPass1;
-            If (cs_slowoptimize in aktglobalswitches) Then
+            If (cs_opt_asmcse in aktoptimizerswitches) Then
               Begin
 //                DFA:=TAOptDFACpu.Create(AsmL,BlockStart,BlockEnd,LabelInfo);
                 { data flow analyzer }

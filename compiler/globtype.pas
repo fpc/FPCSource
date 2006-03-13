@@ -114,14 +114,11 @@ than 255 characters. That's why using Ansi Strings}
          cs_load_objpas_unit,
          cs_load_gpc_unit,
          cs_load_fpcylix_unit,
-         { optimizer }
-         cs_regvars,cs_no_regalloc,cs_uncertainopts,cs_littlesize,
-         cs_optimize,cs_fastoptimize,cs_slowoptimize,cs_align,cs_loopunroll,
          { browser }
          cs_browser_log,
          { debuginfo }
          cs_use_heaptrc,cs_use_lineinfo,
-         cs_gdb_valgrind,
+         cs_gdb_valgrind,cs_no_regalloc,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
@@ -131,6 +128,14 @@ than 255 characters. That's why using Ansi Strings}
          cs_link_map,cs_link_pthread
        );
        tglobalswitches = set of tglobalswitch;
+
+       { optimizer }
+       toptimizerswitch = (cs_opt_none,
+         cs_opt_level1,cs_opt_level2,cs_opt_level3,
+         cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
+         cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll
+       );
+       toptimizerswitches = set of toptimizerswitch;
 
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }

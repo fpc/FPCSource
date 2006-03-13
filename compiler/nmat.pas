@@ -352,7 +352,7 @@ implementation
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
-        if (cs_optimize in aktglobalswitches) and
+        if (cs_opt_peephole in aktoptimizerswitches) and
            (right.nodetype = ordconstn) and
 {           ((nodetype = divn) or
             not is_signed(resulttype.def)) and}
@@ -365,7 +365,7 @@ implementation
                 if is_signed(resulttype.def) then
                   begin
                     if is_64bitint(left.resulttype.def) then
-                      if not (cs_littlesize in aktglobalswitches) then
+                      if not (cs_opt_size in aktoptimizerswitches) then
                         shiftval := 63
                       else
                         { the shift code is a lot bigger than the call to }

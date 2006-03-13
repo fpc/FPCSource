@@ -1271,7 +1271,7 @@ unit cgcpu;
         helpsize:=12;
         dstref:=dest;
         srcref:=source;
-        if cs_littlesize in aktglobalswitches then
+        if cs_opt_size in aktoptimizerswitches then
           helpsize:=8;
         if (len<=helpsize) and aligned then
           begin
@@ -1309,7 +1309,7 @@ unit cgcpu;
 
             countreg:=getintregister(list,OS_32);
 
-//            if cs_littlesize in aktglobalswitches  then
+//            if cs_opt_size in aktoptimizerswitches  then
               genloop(len,1);
 {
             else

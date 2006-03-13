@@ -1364,7 +1364,7 @@ const
                      BuildReference(oper);
                    end
                  else { is it a label variable ? }
-                 
+
                      { // ID[ , ID.Field.Field or simple ID // }
                      { check if this is a label, if so then }
                      { emit it as a label.                  }
@@ -1377,9 +1377,9 @@ const
                          Consume(AS_ID);
                          if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                           Message(asmr_e_syntax_error);
-                          
+
                        end
-                      else begin     
+                      else begin
                        expr:=actasmpattern;
                        Consume(AS_ID);
                        { typecasting? }
@@ -1414,25 +1414,25 @@ const
                               else begin
                                 writeln('unknown id: ',expr);
                                 Message1(sym_e_unknown_id,expr);
-                              end;    
+                              end;
                               expr:='';
                             end;
                          end;
 //                       Message1(sym_e_unknown_id,actasmpattern);
-                      end;        
+                      end;
 
                        case actasmtoken of
                          AS_LPAREN: { indexing }
                            BuildReference(oper);
                          AS_SEPARATOR,AS_COMMA: begin
                          end;
-                       else 
+                       else
                          Message(asmr_e_syntax_error);
                        end;
 
                    end;
                end;
-            
+
    { // Pre-decrement mode reference or constant mem offset.   // }
      AS_MINUS:    begin
                    Consume(AS_MINUS);
@@ -1555,7 +1555,7 @@ const
                    { DIVSL/DIVS/MULS/MULU with long for MC68020 only }
                    if (actasmtoken = AS_COLON) then
                    begin
-                     if (aktoptprocessor = MC68020) or (cs_compilesystem in aktmoduleswitches) then
+                     if (aktoptcputype = cpu_MC68020) or (cs_compilesystem in aktmoduleswitches) then
                      begin
                        Consume(AS_COLON);
                        if (actasmtoken = AS_REGISTER) then
@@ -1778,7 +1778,7 @@ const
                      instr.ConcatLabeledInstr(curlist)
                   else begin
                     instr.ConcatInstruction(curlist);
-                  end;    
+                  end;
                   instr.Free;
 {
                   instr.init;

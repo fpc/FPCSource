@@ -30,13 +30,12 @@ type
   pbestreal = ^bestreal;
 
   { possible supported processors for this target }
-  tprocessors =
-    (no_processor,
-    ppc970
+  tcputype = (cpu_none,
+    cpu_ppc970
     );
 
   tfputype =
-    (no_fpuprocessor,
+    (fpu_none,
     fpu_soft,
     fpu_standard
     );
@@ -52,7 +51,7 @@ const
     pocall_cppdecl
     ];
 
-  processorsstr: array[tprocessors] of string[10] = ('',
+  cputypestr: array[tcputype] of string[10] = ('',
     '970'
     );
 
@@ -60,6 +59,10 @@ const
     'SOFT',
     'STANDARD'
     );
+
+   level1optimizerswitches = [cs_opt_level1];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
 
 implementation
 

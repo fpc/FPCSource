@@ -59,13 +59,13 @@ implementation
     procedure ti386casenode.optimizevalues(var max_linear_list:aint;var max_dist:aword);
       begin
         { a jump table crashes the pipeline! }
-        if aktoptprocessor=Class386 then
+        if aktoptcputype=cpu_386 then
           inc(max_linear_list,3)
-        else if aktoptprocessor=ClassPentium then
+        else if aktoptcputype=cpu_Pentium then
           inc(max_linear_list,6)
-        else if aktoptprocessor in [ClassPentium2,ClassPentium3] then
+        else if aktoptcputype in [cpu_Pentium2,cpu_Pentium3] then
           inc(max_linear_list,9)
-        else if aktoptprocessor=ClassPentium4 then
+        else if aktoptcputype=cpu_Pentium4 then
           inc(max_linear_list,14);
       end;
 

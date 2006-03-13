@@ -691,7 +691,7 @@ implementation
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
                begin
-                 if (cs_optimize in aktglobalswitches) and
+                 if (cs_opt_level1 in aktoptimizerswitches) and
                     (right.nodetype in [calln,blockn]) and
                     (left.nodetype = temprefn) and
                     is_shortstring(right.resulttype.def) and
@@ -724,7 +724,7 @@ implementation
             end;
            end;
 
-         if (cs_optimize in aktglobalswitches) and
+         if (cs_opt_level1 in aktoptimizerswitches) and
             (right.nodetype = calln) and
             { left must be a temp, since otherwise as soon as you modify the }
             { result, the current left node is modified and that one may     }

@@ -190,7 +190,7 @@ implementation
              { Lots of comparisions take a lot of time, so do not allow
                too much comparisions. 8 comparisions are, however, still
                smalller than emitting the set }
-             if cs_littlesize in aktglobalswitches then
+             if cs_opt_size in aktoptimizerswitches then
               maxcompares:=8
              else
               maxcompares:=5;
@@ -747,7 +747,7 @@ implementation
          else
 {$endif cpu64bit}
            begin
-              if cs_optimize in aktglobalswitches then
+              if cs_opt_level1 in aktoptimizerswitches then
                 begin
                    { procedures are empirically passed on }
                    { consumption can also be calculated   }
@@ -775,7 +775,7 @@ implementation
                      dist:=max_label-min_label;
 
                    { optimize for size ? }
-                   if cs_littlesize in aktglobalswitches  then
+                   if cs_opt_size in aktoptimizerswitches  then
                      begin
                        if has_jumptable and
                           not((labelcnt<=2) or
