@@ -149,7 +149,7 @@ end;
 procedure tobjectwriter.write(const b;len:longint);
 var
   p   : pchar;
-  left,
+  bufleft,
   idx : longint;
 begin
   inc(fsize,len);
@@ -158,13 +158,13 @@ begin
   idx:=0;
   while len>0 do
    begin
-     left:=bufsize-bufidx;
-     if len>left then
+     bufleft:=bufsize-bufidx;
+     if len>bufleft then
       begin
-        move(p[idx],buf[bufidx],left);
-        dec(len,left);
-        inc(idx,left);
-        inc(bufidx,left);
+        move(p[idx],buf[bufidx],bufleft);
+        dec(len,bufleft);
+        inc(idx,bufleft);
+        inc(bufidx,bufleft);
         writebuf;
       end
      else
@@ -269,43 +269,45 @@ end;
 function tobjectreader.read(out b;len:longint):boolean;
 var
   p   : pchar;
-  left,
+  lenleft,
+  bufleft,
   idx : longint;
 begin
-  read:=false;
+  result:=false;
   if bufmax=0 then
    if not readbuf then
     exit;
   p:=pchar(@b);
   idx:=0;
-  while len>0 do
+  lenleft:=len;
+  while lenleft>0 do
    begin
-     left:=bufmax-bufidx;
-     if len>left then
+     bufleft:=bufmax-bufidx;
+     if lenleft>bufleft then
       begin
-        move(buf[bufidx],p[idx],left);
-        dec(len,left);
-        inc(idx,left);
-        inc(bufidx,left);
+        move(buf[bufidx],p[idx],bufleft);
+        dec(lenleft,bufleft);
+        inc(idx,bufleft);
+        inc(bufidx,bufleft);
         if not readbuf then
          exit;
       end
      else
       begin
-        move(buf[bufidx],p[idx],len);
-        inc(bufidx,len);
-        inc(idx,len);
+        move(buf[bufidx],p[idx],lenleft);
+        inc(bufidx,lenleft);
+        inc(idx,lenleft);
         break;
       end;
    end;
-  read:=(idx=len);
+  result:=(idx=len);
 end;
 
 
 function tobjectreader.readarray(a:TDynamicArray;len:longint):boolean;
 var
   orglen,
-  left,
+  bufleft,
   idx : longint;
 begin
   readarray:=false;
@@ -316,13 +318,13 @@ begin
   idx:=0;
   while len>0 do
    begin
-     left:=bufmax-bufidx;
-     if len>left then
+     bufleft:=bufmax-bufidx;
+     if len>bufleft then
       begin
-        a.Write(buf[bufidx],left);
-        dec(len,left);
-        inc(idx,left);
-        inc(bufidx,left);
+        a.Write(buf[bufidx],bufleft);
+        dec(len,bufleft);
+        inc(idx,bufleft);
+        inc(bufidx,bufleft);
         if not readbuf then
          exit;
       end

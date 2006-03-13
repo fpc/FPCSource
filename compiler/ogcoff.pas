@@ -126,7 +126,7 @@ interface
          FCoffsyms,
          FCoffStrs : tdynamicarray;
          win32     : boolean;
-         nsects    : word;
+         nsects    : smallint;
          nsyms,
          sympos    : aint;
          procedure ExeSections_pass2_header(p:TObject;arg:pointer);
@@ -155,19 +155,25 @@ interface
          procedure ResolveExternals(const libname:string);override;
        end;
 
-       tTObjSymbolrec = record
+       TObjSymbolrec = record
          sym : TObjSymbol;
          orgsize : aint;
        end;
-       tTObjSymbolarray = array[0..high(word)] of tTObjSymbolrec;
+       TObjSymbolArray = array[0..high(word)] of TObjSymbolrec;
+       TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TCoffObjInput = class(tObjInput)
        private
-         Fidx2objsec  : array[0..255] of TObjSection;
          FCoffsyms,
          FCoffStrs : tdynamicarray;
-         FSymTbl   : ^tTObjSymbolarray;
+         { Convert symidx -> TObjSymbol }
+         FSymTbl   : ^TObjSymbolArray;
+         { Convert secidx -> TObjSection }
+         FSecCount : smallint;
+         FSecTbl   : ^TObjSectionArray;
          win32     : boolean;
+         function  GetSection(secidx:longint):TObjSection;
+         function  Read_str(strpos:longint):string;
          procedure read_relocs(s:TCoffObjSection);
          procedure read_symbols(objdata:TObjData);
          procedure ObjSections_read_data(p:TObject;arg:pointer);
@@ -322,7 +328,7 @@ implementation
        { Structures which are written directly to the output file }
        coffheader=packed record
          mach   : word;
-         nsects : word;
+         nsects : smallint;
          time   : longint;
          sympos : longint;
          syms   : longint;
@@ -405,7 +411,7 @@ implementation
          strpos  : longint;
          value   : longint;
          section : smallint;
-         empty   : smallint;
+         empty   : word;
          typ     : byte;
          aux     : byte;
        end;
@@ -727,6 +733,10 @@ const win32stub : array[0..131] of byte=(
                 end
             else
               internalerror(200205183);
+            { Only debug section are allowed to have }
+            if not relocsec.used and
+               not(oso_debug in secoptions) then
+              internalerror(200603061);
             case r.typ of
               RELOC_RELATIVE  :
                 begin
@@ -1097,12 +1107,12 @@ const win32stub : array[0..131] of byte=(
 
     procedure TCoffObjOutput.create_symbols(data:TObjData);
       var
-        filename  : string[18];
-        sectionval,
-        globalval : byte;
-        i         : longint;
-        value     : aint;
-        objsym    : TObjSymbol;
+        filename   : string[18];
+        sectionval : word;
+        globalval  : byte;
+        i          : longint;
+        value      : aint;
+        objsym     : TObjSymbol;
       begin
         with TCoffObjData(data) do
          begin
@@ -1313,6 +1323,29 @@ const win32stub : array[0..131] of byte=(
       end;
 
 
+    function TCoffObjInput.GetSection(secidx:longint):TObjSection;
+      begin
+        result:=nil;
+        if (secidx<1) or (secidx>FSecCount) then
+          begin
+            Comment(V_Error,'Error reading coff file, invalid section index');
+            exit;
+          end;
+        result:=FSecTbl^[secidx];
+      end;
+
+
+    function TCoffObjInput.Read_str(strpos:longint):string;
+      begin
+        FCoffStrs.Seek(strpos-4);
+        FCoffStrs.Read(result[1],255);
+        result[255]:=#0;
+        result[0]:=chr(strlen(@result[1]));
+        if result='' then
+          Internalerror(200205172);
+      end;
+
+
     procedure TCoffObjInput.read_relocs(s:TCoffObjSection);
       var
         rel      : coffreloc;
@@ -1338,6 +1371,8 @@ const win32stub : array[0..131] of byte=(
            if assigned(p) then
             begin
               s.addsymsizereloc(rel.address-s.mempos,p,FSymTbl^[rel.sym].orgsize,rel_type);
+              { Register symbol reference in TObjSection }
+              s.AddSymbolRef(p);
             end
            else
             begin
@@ -1356,9 +1391,9 @@ const win32stub : array[0..131] of byte=(
         symidx    : aint;
         i         : longint;
         sym       : coffsymbol;
-        strname   : string;
         objsym    : TObjSymbol;
         bind      : Tasmsymbind;
+        strname   : string;
         auxrec    : array[0..17] of byte;
         objsec    : TObjSection;
       begin
@@ -1366,8 +1401,8 @@ const win32stub : array[0..131] of byte=(
          begin
            nsyms:=FCoffSyms.Size div sizeof(CoffSymbol);
            { Allocate memory for symidx -> TObjSymbol table }
-           GetMem(FSymTbl,nsyms*sizeof(tTObjSymbolrec));
-           FillChar(FSymTbl^,nsyms*sizeof(tTObjSymbolrec),0);
+           GetMem(FSymTbl,nsyms*sizeof(TObjSymbolrec));
+           FillChar(FSymTbl^,nsyms*sizeof(TObjSymbolrec),0);
            { Load the Symbols }
            FCoffSyms.Seek(0);
            symidx:=0;
@@ -1375,23 +1410,20 @@ const win32stub : array[0..131] of byte=(
             begin
               FCoffSyms.Read(sym,sizeof(sym));
               if plongint(@sym.name)^<>0 then
-               begin
-                 move(sym.name,strname[1],8);
-                 strname[9]:=#0;
-               end
+                begin
+                  move(sym.name,strname[1],8);
+                  strname[9]:=#0;
+                  strname[0]:=chr(strlen(@strname[1]));
+                  if strname='' then
+                    Internalerror(200205171);
+                end
               else
-               begin
-                 FCoffStrs.Seek(sym.strpos-4);
-                 FCoffStrs.Read(strname[1],255);
-                 strname[255]:=#0;
-               end;
-              strname[0]:=chr(strlen(@strname[1]));
-              if strname='' then
-               Internalerror(200205172);
+                strname:=Read_str(sym.strpos);
               bind:=AB_EXTERNAL;
               size:=0;
               address:=0;
               objsym:=nil;
+              objsec:=nil;
               case sym.typ of
                 COFF_SYM_GLOBAL :
                   begin
@@ -1408,16 +1440,19 @@ const win32stub : array[0..131] of byte=(
                     else
                      begin
                        bind:=AB_GLOBAL;
-                       objsec:=Fidx2objsec[sym.section];
+                       objsec:=GetSection(sym.section);
                        if sym.value>=objsec.mempos then
                          address:=sym.value-objsec.mempos;
                      end;
-                    objsym:=symbolref(strname);
+                    objsym:=CreateSymbol(strname);
                     objsym.bind:=bind;
                     objsym.typ:=AT_FUNCTION;
                     objsym.objsection:=objsec;
                     objsym.offset:=address;
                     objsym.size:=size;
+                    { Register in ObjSection }
+                    if assigned(objsec) then
+                      objsec.AddSymbolDefine(objsym);
                   end;
                 COFF_SYM_LABEL,
                 COFF_SYM_LOCAL :
@@ -1426,10 +1461,10 @@ const win32stub : array[0..131] of byte=(
                     if sym.section<>-1 then
                      begin
                        bind:=AB_LOCAL;
-                       objsec:=Fidx2objsec[sym.section];
+                       objsec:=GetSection(sym.section);
                        if sym.value>=objsec.mempos then
                          address:=sym.value-objsec.mempos;
-                       objsym:=symbolref(strname);
+                       objsym:=CreateSymbol(strname);
                        objsym.bind:=bind;
                        objsym.typ:=AT_FUNCTION;
                        objsym.objsection:=objsec;
@@ -1441,10 +1476,10 @@ const win32stub : array[0..131] of byte=(
                   begin
                     if sym.section=0 then
                       Comment(V_Error,'Error reading coff file');
-                    objsec:=Fidx2objsec[sym.section];
+                    objsec:=GetSection(sym.section);
                     if sym.value>=objsec.mempos then
                       address:=sym.value-objsec.mempos;
-                    objsym:=symbolref(strname);
+                    objsym:=CreateSymbol(strname);
                     objsym.bind:=AB_LOCAL;
                     objsym.typ:=AT_FUNCTION;
                     objsym.objsection:=objsec;
@@ -1515,7 +1550,9 @@ const win32stub : array[0..131] of byte=(
       var
         secalign : shortint;
         strsize,
+        strpos,
         i        : longint;
+        code     : longint;
         objsec   : TCoffObjSection;
         secoptions : TObjSectionOptions;
         header   : coffheader;
@@ -1528,7 +1565,6 @@ const win32stub : array[0..131] of byte=(
         FCoffStrs:=TDynamicArray.Create(strsresize);
         with TCoffObjData(objdata) do
          begin
-           FillChar(Fidx2objsec,sizeof(Fidx2objsec),0);
            { Read COFF header }
            if not reader.read(header,sizeof(coffheader)) then
              begin
@@ -1540,51 +1576,8 @@ const win32stub : array[0..131] of byte=(
                Comment(V_Error,'Not a coff file');
                exit;
              end;
-           if header.nsects>255 then
-             begin
-               Comment(V_Error,'Too many Sections');
-               exit;
-             end;
-           { Skip optheader }
-           reader.Seek(sizeof(coffheader)+header.opthdr);
-{$warning TODO Read strings first}
-           { Section headers }
-           for i:=1 to header.nsects do
-             begin
-               if not reader.read(sechdr,sizeof(sechdr)) then
-                begin
-                  Comment(V_Error,'Error reading coff file');
-                  exit;
-                end;
-{$warning TODO Support long secnames}
-               move(sechdr.name,secnamebuf,8);
-               secnamebuf[8]:=#0;
-               secname:=strpas(secnamebuf);
-               if win32 then
-                 pedecodesechdrflags(secname,sechdr.flags,secoptions,secalign)
-               else
-                 begin
-                   djdecodesechdrflags(secname,sechdr.flags);
-                   secalign:=sizeof(aint);
-                 end;
-               objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
-               Fidx2objsec[i]:=objsec;
-               if not win32 then
-                 objsec.mempos:=sechdr.rvaofs;
-               objsec.orgmempos:=sechdr.rvaofs;
-               objsec.coffrelocs:=sechdr.nrelocs;
-               objsec.coffrelocpos:=sechdr.relocpos;
-               objsec.datapos:=sechdr.datapos;
-               objsec.Size:=sechdr.dataSize;
-             end;
-           { ObjSymbols }
-           Reader.Seek(header.sympos);
-           if not Reader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
-             begin
-               Comment(V_Error,'Error reading coff file');
-               exit;
-             end;
            { Strings }
+           Reader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
            if not Reader.Read(strsize,4) then
              begin
                Comment(V_Error,'Error reading coff file');
@@ -1596,6 +1589,60 @@ const win32stub : array[0..131] of byte=(
                exit;
              end;
            if not Reader.ReadArray(FCoffStrs,Strsize-4) then
+             begin
+               Comment(V_Error,'Error reading coff file');
+               exit;
+             end;
+           { Section headers }
+           { Allocate SecIdx -> TObjSection table, secidx is 1-based }
+           FSecCount:=header.nsects;
+           GetMem(FSecTbl,(header.nsects+1)*sizeof(TObjSection));
+           FillChar(FSecTbl^,(header.nsects+1)*sizeof(TObjSection),0);
+           reader.Seek(sizeof(coffheader)+header.opthdr);
+           for i:=1 to header.nsects do
+             begin
+               if not reader.read(sechdr,sizeof(sechdr)) then
+                begin
+                  Comment(V_Error,'Error reading coff file');
+                  exit;
+                end;
+               move(sechdr.name,secnamebuf,8);
+               secnamebuf[8]:=#0;
+               secname:=strpas(secnamebuf);
+               if secname[1]='/' then
+                 begin
+                   Val(Copy(secname,2,8),strpos,code);
+                   if code=0 then
+                     secname:=Read_str(strpos)
+                   else
+                     begin
+                       Comment(V_Error,'Error reading section headers coff file');
+                       secname:='error';
+                     end;
+                 end;
+               if win32 then
+                 pedecodesechdrflags(secname,sechdr.flags,secoptions,secalign)
+               else
+                 begin
+                   djdecodesechdrflags(secname,sechdr.flags);
+                   secalign:=sizeof(aint);
+                 end;
+               objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
+               FSecTbl^[i]:=objsec;
+               if not win32 then
+                 objsec.mempos:=sechdr.rvaofs;
+               objsec.orgmempos:=sechdr.rvaofs;
+               objsec.coffrelocs:=sechdr.nrelocs;
+               objsec.coffrelocpos:=sechdr.relocpos;
+               objsec.datapos:=sechdr.datapos;
+               objsec.Size:=sechdr.dataSize;
+{$warning TODO idata keep can maybe replaced with grouping of text and idata}
+               if Copy(objsec.name,1,6)='.idata' then
+                 include(objsec.secoptions,oso_keep);
+             end;
+           { ObjSymbols }
+           Reader.Seek(header.sympos);
+           if not Reader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
              begin
                Comment(V_Error,'Error reading coff file');
                exit;
@@ -1887,8 +1934,8 @@ const win32stub : array[0..131] of byte=(
             peoptheader.FileAlignment:=SectionDataAlign;
             peoptheader.MajorOperatingSystemVersion:=4;
             peoptheader.MinorOperatingSystemVersion:=0;
-            peoptheader.MajorImageVersion:=1;
-            peoptheader.MinorImageVersion:=0;
+            peoptheader.MajorImageVersion:=dllmajor;
+            peoptheader.MinorImageVersion:=dllminor;
             peoptheader.MajorSubsystemVersion:=4;
             peoptheader.MinorSubsystemVersion:=0;
             peoptheader.Win32Version:=0;
@@ -1898,7 +1945,7 @@ const win32stub : array[0..131] of byte=(
 {$warning TODO GUI/CUI Subsystem}
             peoptheader.Subsystem:=3;
             peoptheader.DllCharacteristics:=0;
-            peoptheader.SizeOfStackReserve:=$40000;
+            peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
@@ -2254,11 +2301,11 @@ const win32stub : array[0..131] of byte=(
             Concat('ENTRYNAME _mainCRTStartup');
             Concat('HEADER');
             Concat('EXESECTION .text');
-            Concat('  OBJSECTION .text');
+            Concat('  OBJSECTION .text*');
             Concat('  SYMBOL etext');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .data');
-            Concat('  OBJSECTION .data');
+            Concat('  OBJSECTION .data*');
             Concat('  SYMBOL edata');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
@@ -2271,10 +2318,10 @@ const win32stub : array[0..131] of byte=(
             Concat('  OBJSECTION .idata$7');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .bss');
-            Concat('  OBJSECTION .bss');
+            Concat('  OBJSECTION .bss*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .rsrc');
-            Concat('  OBJSECTION .rsrc');
+            Concat('  OBJSECTION .rsrc*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .stab');
             Concat('  OBJSECTION .stab');
@@ -2292,6 +2339,7 @@ const win32stub : array[0..131] of byte=(
                                   Initialize
 *****************************************************************************}
 
+{$ifdef i386}
     const
        as_i386_coff_info : tasminfo =
           (
@@ -2340,8 +2388,23 @@ const win32stub : array[0..131] of byte=(
             labelprefix : '.L';
             comment : '';
           );
-
-
+{$endif i386}
+{$ifdef x86_64}
+    const
+       as_x86_64_pecoff_info : tasminfo =
+          (
+            id     : as_x86_64_pecoff;
+            idtxt  : 'PECOFF';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : system_x86_64_win64;
+            flags : [af_outputbinary,af_smartlink_sections];
+            labelprefix : '.L';
+            comment : '';
+          );
+{$endif x86_64}
+{$ifdef arm}
+    const
        as_arm_pecoffwince_info : tasminfo =
           (
             id     : as_arm_pecoffwince;
@@ -2353,6 +2416,8 @@ const win32stub : array[0..131] of byte=(
             labelprefix : '.L';
             comment : '';
           );
+{$endif arm}
+
 
 initialization
 {$ifdef i386}
@@ -2361,6 +2426,9 @@ initialization
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwince_info,TPECoffAssembler);
 {$endif i386}
+{$ifdef x86_64}
+  RegisterAssembler(as_x86_64_pecoff_info,TPECoffAssembler);
+{$endif x86_64}
 {$ifdef arm}
   RegisterAssembler(as_arm_pecoffwince_info,TPECoffAssembler);
 {$endif arm}

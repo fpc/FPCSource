@@ -401,7 +401,7 @@ unit cg64f32;
           LOC_CREGISTER :
             cg.a_load_reg_reg(list,OS_32,OS_32,l.register64.reghi,reg);
           LOC_CONSTANT :
-            cg.a_load_const_reg(list,OS_32,hi(l.value64),reg);
+            cg.a_load_const_reg(list,OS_32,aint(hi(l.value64)),reg);
           else
             internalerror(200203244);
         end;

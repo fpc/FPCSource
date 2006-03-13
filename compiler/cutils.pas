@@ -60,6 +60,7 @@ interface
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
+    Function MatchPattern(const pattern,what:string):boolean;
     function upper(const s : string) : string;
     function lower(const s : string) : string;
     function trimbspace(const s:string):string;
@@ -344,6 +345,61 @@ uses
              last:=i;
            end;
         until (i=0);
+      end;
+
+
+    Function MatchPattern(const pattern,what:string):boolean;
+      var
+        found : boolean;
+        i1,i2 : longint;
+      begin
+        i1:=0;
+        i2:=0;
+        if pattern='' then
+          begin
+            result:=(what='');
+            exit;
+          end;
+        found:=true;
+        repeat
+          inc(i1);
+          if (i1>length(pattern)) then
+            break;
+          inc(i2);
+          if (i2>length(what)) then
+            break;
+          case pattern[i1] of
+            '?' :
+              found:=true;
+            '*' :
+              begin
+                found:=true;
+                if (i1=length(pattern)) then
+                 i2:=length(what)
+                else
+                 if (i1<length(pattern)) and (pattern[i1+1]<>what[i2]) then
+                  begin
+                    if i2<length(what) then
+                     dec(i1)
+                  end
+                else
+                 if i2>1 then
+                  dec(i2);
+              end;
+            else
+              found:=(pattern[i1]=what[i2]) or (what[i2]='?');
+          end;
+        until not found;
+        if found then
+          begin
+            found:=(i2>=length(what)) and
+                   (
+                    (i1>length(pattern)) or
+                    ((i1=length(pattern)) and
+                     (pattern[i1]='*'))
+                   );
+          end;
+        result:=found;
       end;
 
 

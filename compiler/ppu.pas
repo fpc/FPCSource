@@ -469,31 +469,37 @@ end;
 
 procedure tppufile.readdata(var b;len:integer);
 var
-  p   : pchar;
-  left,
-  idx : integer;
+  p,pmax,pbuf : pchar;
+  left : integer;
 begin
   p:=pchar(@b);
-  idx:=0;
-  while len>0 do
-   begin
-     left:=bufsize-bufidx;
-     if len>left then
-      begin
-        move(buf[bufidx],p[idx],left);
-        dec(len,left);
-        inc(idx,left);
-        reloadbuf;
-        if bufsize=0 then
-         exit;
-      end
-     else
-      begin
-        move(buf[bufidx],p[idx],len);
-        inc(bufidx,len);
-        exit;
-      end;
-   end;
+  pbuf:=@buf[bufidx];
+  repeat
+    left:=bufsize-bufidx;
+    if len<left then
+      break;
+    move(pbuf^,p^,left);
+    dec(len,left);
+    inc(p,left);
+    reloadbuf;
+    pbuf:=@buf[bufidx];
+    if bufsize=0 then
+      exit;
+  until false;
+  { For small values copy directly }
+  if len<=sizeof(ptrint) then
+    begin
+      pmax:=p+len;
+      while (p<pmax) do
+        begin
+          p^:=pbuf^;
+          inc(pbuf);
+          inc(p);
+        end;
+    end
+  else
+    move(pbuf^,p^,len);
+  inc(bufidx,len);
 end;
 
 

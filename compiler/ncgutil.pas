@@ -892,6 +892,7 @@ implementation
       begin
         if (tsym(p).typ in [globalvarsym,localvarsym]) and
            (tabstractvarsym(p).refs>0) and
+           not(vo_is_external in tabstractvarsym(p).varoptions) and
            not(is_class(tabstractvarsym(p).vartype.def)) and
            tabstractvarsym(p).vartype.def.needs_inittable then
          begin
@@ -927,6 +928,7 @@ implementation
       begin
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
+           not(vo_is_external in tlocalvarsym(p).varoptions) and
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
            not(is_class(tlocalvarsym(p).vartype.def)) and
            tlocalvarsym(p).vartype.def.needs_inittable then
@@ -974,6 +976,7 @@ implementation
             begin
               if (tglobalvarsym(p).refs>0) and
                  not(vo_is_funcret in tglobalvarsym(p).varoptions) and
+                 not(vo_is_external in tglobalvarsym(p).varoptions) and
                  not(is_class(tglobalvarsym(p).vartype.def)) and
                  tglobalvarsym(p).vartype.def.needs_inittable then
                 finalize_sym(taasmoutput(arg),tsym(p));
@@ -1960,7 +1963,8 @@ implementation
 
     procedure insertbssdata(sym : tglobalvarsym);
       var
-        l,varalign : longint;
+        l : aint;
+        varalign : shortint;
         storefilepos : tfileposinfo;
         list : Taasmoutput;
         sectype : TAsmSectiontype;
@@ -1988,7 +1992,7 @@ implementation
             list:=asmlist[al_globals];
             sectype:=sec_bss;
           end;
-        varalign:=var_align(l);
+        varalign:=var_align(size_2_align(l));
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
@@ -2176,7 +2180,7 @@ implementation
         foreachnodestatic(n,@do_get_used_regvars,@rv);
       end;
 
-{
+(*
     See comments at declaration of pusedregvarscommon
 
     function do_get_used_regvars_common(var n: tnode; arg: pointer): foreachnoderesult;
@@ -2214,7 +2218,7 @@ implementation
         rv.myregvars.mmregvars.clear;
         foreachnodestatic(n,@do_get_used_regvars_common,@rv);
       end;
-}
+*)
 
     procedure gen_sync_regvars(list:TAAsmoutput; var rv: tusedregvars);
       var

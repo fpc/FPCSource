@@ -528,6 +528,20 @@ Unit Ra386int;
                  exit;
                end;
 
+             '&' : { identifier }
+               begin
+                 actasmpattern:='';
+                 c:=current_scanner.asmgetchar;
+                 while c in  ['A'..'Z','a'..'z','0'..'9','_'] do
+                  begin
+                    actasmpattern:=actasmpattern + c;
+                    c:=current_scanner.asmgetchar;
+                  end;
+                 uppervar(actasmpattern);
+                 actasmtoken:=AS_ID;
+                 exit;
+               end;
+
              ',' :
                begin
                  actasmtoken:=AS_COMMA;

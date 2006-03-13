@@ -1209,13 +1209,28 @@ begin
                 begin
                   case More[j] of
                     'i' :
-                      include(initglobalswitches,cs_link_internal);
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(initglobalswitches,cs_link_internal)
+                        else
+                          include(initglobalswitches,cs_link_internal);
+                      end;
                     'm' :
-                      include(initglobalswitches,cs_link_map);
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(initglobalswitches,cs_link_map)
+                        else
+                          include(initglobalswitches,cs_link_map);
+                      end;
                     'f' :
                       include(initglobalswitches,cs_link_pthread);
                     's' :
-                      include(initglobalswitches,cs_link_strip);
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(initglobalswitches,cs_link_strip)
+                        else
+                          include(initglobalswitches,cs_link_strip);
+                      end;
                     'c' : Cshared:=TRUE;
                     't' :
                       include(initglobalswitches,cs_link_staticflag);
@@ -2157,15 +2172,22 @@ begin
   if target_info.system=system_arm_wince then
     include(initmoduleswitches,cs_fp_emulation);
 
-  { By default don't create import section if we use the internal linker }
-  if not GenerateImportSectionSetExplicitly and
-     (cs_link_internal in aktglobalswitches) then
-    GenerateImportSection:=false;
-
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
      (target_info.system in [system_i386_win32]) then
     exclude(target_info.flags,tf_smartlink_sections);
+
+  if (cs_link_extern in initglobalswitches) then
+    exclude(initglobalswitches,cs_link_internal);
+
+  if (cs_link_internal in initglobalswitches) then
+    begin
+      { By default don't create import section if we use the internal linker }
+      if not GenerateImportSectionSetExplicitly then
+        GenerateImportSection:=false;
+      { Enable section smartlinking }
+      include(target_info.flags,tf_smartlink_sections);
+    end;
 
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}

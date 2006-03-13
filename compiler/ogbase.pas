@@ -128,6 +128,7 @@ interface
        ObjSymbolDefines  : TFPObjectList;
        { executable linking }
        ExeSection  : TExeSection;
+       Used       : boolean;
        constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:aint):aint;
@@ -141,6 +142,7 @@ interface
        procedure AddSymbolDefine(p:TObjSymbol);
        procedure AddSymbolRef(p:TObjSymbol);
        procedure fixuprelocs;virtual;
+       function  FullName:string;
        property  Data:TDynamicArray read FData;
        property  SecOptions:TObjSectionOptions read FSecOptions write SetSecOptions;
      end;
@@ -162,10 +164,10 @@ interface
        { Special info sections that are written to during object generation }
        FStabsObjSec,
        FStabStrObjSec : TObjSection;
-       procedure section_reset(p:tnamedindexitem;arg:pointer);
-       procedure section_afteralloc(p:tnamedindexitem;arg:pointer);
-       procedure section_afterwrite(p:tnamedindexitem;arg:pointer);
-       procedure section_fixuprelocs(p:tnamedindexitem;arg:pointer);
+       procedure section_reset(p:TObject;arg:pointer);
+       procedure section_afteralloc(p:TObject;arg:pointer);
+       procedure section_afterwrite(p:TObject;arg:pointer);
+       procedure section_fixuprelocs(p:TObject;arg:pointer);
      protected
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
@@ -186,6 +188,7 @@ interface
        procedure removesection(asec:TObjSection);
        procedure setsection(asec:TObjSection);
        { Symbols }
+       function  createsymbol(const aname:string):TObjSymbol;
        function  symboldefine(asmsym:TAsmSymbol):TObjSymbol;
        function  symboldefine(const aname:string;abind:TAsmsymbind;atyp:Tasmsymtype):TObjSymbol;
        function  symbolref(asmsym:TAsmSymbol):TObjSymbol;
@@ -329,6 +332,7 @@ interface
         procedure PrintMemoryMap;
         procedure FixUpSymbols;
         procedure FixUpRelocations;
+        procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
         procedure ResolveExternals(const libname:string);virtual;
         function  writeexefile(const fn:string):boolean;
@@ -582,14 +586,23 @@ implementation
 
     procedure TObjSection.AddSymbolRef(p:TObjSymbol);
       begin
-        if p.bind=AB_LOCAL then
-          exit;
+        { Register all references, also the local references between the
+          ObjSections in an ObjData }
         ObjSymbolRefs.Add(p);
       end;
 
 
     procedure TObjSection.fixuprelocs;
       begin
+      end;
+
+
+    function  TObjSection.FullName:string;
+      begin
+        if assigned(objdata) then
+          result:=objdata.Name+'('+Name+')'
+        else
+          result:=Name;
       end;
 
 
@@ -600,7 +613,7 @@ implementation
     constructor TObjData.create(const n:string);
       begin
         inherited create;
-        FName:=n;
+        FName:=SplitFileName(n);
         { sections, the SectsIndex owns the items, the FObjSectionDict
           is only used for lookups }
         FObjSectionDict:=tdictionary.create;
@@ -681,11 +694,12 @@ implementation
           {stub} [oso_data,oso_load,oso_readonly,oso_executable],
           {stab} [oso_data,oso_noload,oso_debug],
           {stabstr} [oso_data,oso_noload,oso_strings,oso_debug],
-          {idata2} [oso_data,oso_load,oso_write],
-          {idata4} [oso_data,oso_load,oso_write],
-          {idata5} [oso_data,oso_load,oso_write],
-          {idata6} [oso_data,oso_load,oso_write],
-          {idata7} [oso_data,oso_load,oso_write],
+{$warning TODO idata keep can maybe replaced with grouping of text and idata}
+          {idata2} [oso_data,oso_load,oso_write,oso_keep],
+          {idata4} [oso_data,oso_load,oso_write,oso_keep],
+          {idata5} [oso_data,oso_load,oso_write,oso_keep],
+          {idata6} [oso_data,oso_load,oso_write,oso_keep],
+          {idata7} [oso_data,oso_load,oso_write,oso_keep],
           {edata} [oso_data,oso_load,oso_readonly],
           {eh_frame} [oso_data,oso_load,oso_readonly],
           {debug_frame} [oso_data,oso_noload,oso_debug],
@@ -741,7 +755,6 @@ implementation
       begin
         FObjSectionDict.Delete(asec.name);
         FObjSectionList.Remove(asec);
-        asec.free;
       end;
 
 
@@ -750,6 +763,18 @@ implementation
         if asec.ObjData<>self then
           internalerror(200403041);
         FCurrObjSec:=asec;
+      end;
+
+
+    function TObjData.createsymbol(const aname:string):TObjSymbol;
+      begin
+        result:=TObjSymbol(FObjSymbolDict.search(aname));
+        if not assigned(result) then
+          begin
+            result:=TObjSymbol.Create(aname);
+            FObjSymbolDict.Insert(result);
+            FObjSymbolList.Add(result);
+          end;
       end;
 
 
@@ -780,13 +805,7 @@ implementation
       begin
         if not assigned(CurrObjSec) then
           internalerror(200603051);
-        result:=TObjSymbol(FObjSymbolDict.search(aname));
-        if not assigned(result) then
-          begin
-            result:=TObjSymbol.Create(aname);
-            FObjSymbolDict.Insert(result);
-            FObjSymbolList.Add(result);
-          end;
+        result:=CreateSymbol(aname);
         { Register also in TObjSection }
         CurrObjSec.AddSymbolDefine(result);
         result.SetAddress(CurrPass,CurrObjSec,abind,atyp);
@@ -819,13 +838,7 @@ implementation
       begin
         if not assigned(CurrObjSec) then
           internalerror(200603052);
-        result:=TObjSymbol(FObjSymbolDict.search(aname));
-        if not assigned(result) then
-          begin
-            result:=TObjSymbol.Create(aname);
-            FObjSymbolDict.Insert(result);
-            FObjSymbolList.Add(result);
-          end;
+        result:=CreateSymbol(aname);
         { Register also in TObjSection }
         CurrObjSec.AddSymbolRef(result);
       end;
@@ -875,14 +888,14 @@ implementation
       end;
 
 
-    procedure TObjData.section_afteralloc(p:tnamedindexitem;arg:pointer);
+    procedure TObjData.section_afteralloc(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
           alloc(align(size,secalign)-size);
       end;
 
 
-    procedure TObjData.section_afterwrite(p:tnamedindexitem;arg:pointer);
+    procedure TObjData.section_afterwrite(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
           begin
@@ -892,7 +905,7 @@ implementation
       end;
 
 
-    procedure TObjData.section_reset(p:tnamedindexitem;arg:pointer);
+    procedure TObjData.section_reset(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
           begin
@@ -903,9 +916,10 @@ implementation
       end;
 
 
-    procedure TObjData.section_fixuprelocs(p:tnamedindexitem;arg:pointer);
+    procedure TObjData.section_fixuprelocs(p:TObject;arg:pointer);
       begin
-        TObjSection(p).fixuprelocs;
+        if TObjSection(p).Used then
+          TObjSection(p).fixuprelocs;
       end;
 
 
@@ -936,7 +950,7 @@ implementation
 
     procedure TObjData.afteralloc;
       begin
-        FObjSectionDict.foreach(@section_afteralloc,nil);
+        FObjSectionList.ForEachCall(@section_afteralloc,nil);
       end;
 
 
@@ -945,7 +959,7 @@ implementation
         s : string[1];
         hstab : TObjStabEntry;
       begin
-        FObjSectionDict.foreach(@section_afterwrite,nil);
+        FObjSectionList.ForEachCall(@section_afterwrite,nil);
         { For the stab section we need an HdrSym which can now be
           calculated more easily }
         if assigned(StabsSec) then
@@ -966,13 +980,13 @@ implementation
 
     procedure TObjData.resetsections;
       begin
-        FObjSectionDict.foreach(@section_reset,nil);
+        FObjSectionList.ForEachCall(@section_reset,nil);
       end;
 
 
     procedure TObjData.fixuprelocs;
       begin
-        FObjSectionDict.foreach(@section_fixuprelocs,nil);
+        FObjSectionList.ForEachCall(@section_fixuprelocs,nil);
       end;
 
 
@@ -1130,8 +1144,6 @@ implementation
         FExeSectionDict.free;
         FExeSectionList.free;
         objdatalist.free;
-        internalobjdata.free;
-        commonobjdata.free;
         FWriter.free;
       end;
 
@@ -1229,19 +1241,21 @@ implementation
 
     procedure TExeOutput.Order_ObjSection(const aname:string);
       var
-        i       : longint;
+        i,j     : longint;
         objdata : TObjData;
         objsec  : TObjSection;
       begin
         if not assigned(CurrExeSec) then
           internalerror(200602181);
-{$warning TODO Add wildcard support like *(.text*)}
         for i:=0 to ObjDataList.Count-1 do
           begin
             objdata:=TObjData(ObjDataList[i]);
-            objsec:=objdata.findsection(aname);
-            if assigned(objsec) then
-              CurrExeSec.AddObjSection(objsec);
+            for j:=0 to objdata.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(objdata.ObjSectionList[j]);
+                if MatchPattern(aname,objsec.name) then
+                  CurrExeSec.AddObjSection(objsec);
+              end;
           end;
       end;
 
@@ -1272,7 +1286,7 @@ implementation
           internalerror(200602254);
         fillchar(zeros,len,0);
         inc(Fzeronr);
-        objsec:=internalobjdata.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_data]);
+        objsec:=internalobjdata.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_data,oso_keep]);
         internalobjdata.writebytes(zeros,len);
         internalobjdata.afterwrite;
         CurrExeSec.AddObjSection(objsec);
@@ -1492,8 +1506,6 @@ implementation
             for j:=0 to objdata.ObjSymbolList.Count-1 do
               begin
                 objsym:=TObjSymbol(objdata.ObjSymbolList[j]);
-                if not assigned(objsym.ObjSection) then
-                  internalerror(200206302);
                 { Skip local symbols }
                 if objsym.bind=AB_LOCAL then
                   continue;
@@ -1688,6 +1700,99 @@ implementation
               end;
           end;
         ExeSections.Pack;
+      end;
+
+
+    procedure TExeOutput.RemoveUnreferencedSections;
+      var
+        ObjSectionWorkList : TFPObjectList;
+
+        procedure AddToObjSectionWorkList(aobjsec:TObjSection);
+        begin
+          if not aobjsec.Used then
+            begin
+              aobjsec.Used:=true;
+              ObjSectionWorkList.Add(aobjsec);
+            end;
+        end;
+
+      var
+        i,j     : longint;
+        exesec  : TExeSection;
+        objdata : TObjData;
+        refobjsec,
+        objsec  : TObjSection;
+        objsym  : TObjSymbol;
+      begin
+        ObjSectionWorkList:=TFPObjectList.Create(false);
+
+        if assigned(exemap) then
+          exemap.AddHeader('Removing unreferenced sections');
+
+        { Initialize by marking all sections unused and
+          adding the sections with oso_keep flags to the ObjSectionWorkList }
+        for i:=0 to ObjDataList.Count-1 do
+          begin
+            objdata:=TObjData(ObjDataList[i]);
+            for j:=0 to objdata.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(objdata.ObjSectionList[j]);
+                objsec.Used:=false;
+{$warning TODO remove debug section always keep}
+                if oso_debug in objsec.secoptions then
+                  objsec.Used:=true;
+                if (oso_keep in objsec.secoptions) then
+                  AddToObjSectionWorkList(objsec);
+              end;
+          end;
+        AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);
+
+        { Process all sections, add new sections to process based
+          on the symbol references  }
+        while ObjSectionWorkList.Count>0 do
+          begin
+            objsec:=TObjSection(ObjSectionWorkList.Last);
+            if assigned(exemap) then
+              exemap.Add('Keeping '+objsec.FullName+' '+ToStr(objsec.ObjSymbolRefs.Count)+' references');
+            ObjSectionWorkList.Delete(ObjSectionWorkList.Count-1);
+            for i:=0 to objsec.ObjSymbolRefs.count-1 do
+              begin
+                objsym:=TObjSymbol(objsec.ObjSymbolRefs[i]);
+                if objsym.bind=AB_LOCAL then
+                  begin
+                    if not assigned(objsym.objsection) then
+                      internalerror(200603062);
+                    refobjsec:=objsym.objsection
+                  end
+                else
+                  begin
+                    if not(assigned(objsym.exesymbol) and
+                           assigned(objsym.exesymbol.objsymbol)) then
+                      internalerror(200603063);
+                    refobjsec:=objsym.exesymbol.objsymbol.objsection;
+                  end;
+                if assigned(exemap) then
+                  exemap.Add('  References '+refobjsec.fullname);
+                AddToObjSectionWorkList(refobjsec);
+              end;
+          end;
+
+        { Remove unused objsections from exesections }
+        for i:=0 to ExeSections.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSections[i]);
+            for j:=0 to exesec.ObjSectionlist.count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionlist[j]);
+                if not objsec.used then
+                  begin
+                    if assigned(exemap) then
+                      exemap.Add('Removing '+objsec.FullName);
+                    exesec.ObjSectionlist[j]:=nil;
+                  end;
+              end;
+            exesec.ObjSectionlist.Pack;
+          end;
       end;
 
 

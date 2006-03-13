@@ -34,105 +34,105 @@ void                  \1\x3F                          8086
 
 [ADC,adcX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-mem,reg8              \300\1\x10\101                  8086,SM
-reg8,reg8             \300\1\x10\101                  8086
-mem,reg16             \320\300\1\x11\101              8086,SM
-reg16,reg16           \320\300\1\x11\101              8086
-mem,reg32             \321\300\1\x11\101              386,SM
 reg32,reg32           \321\300\1\x11\101              386
-reg8,mem              \301\1\x12\110                  8086,SM
-reg8,reg8             \301\1\x12\110                  8086
-reg16,mem             \320\301\1\x13\110              8086,SM
-reg16,reg16           \320\301\1\x13\110              8086
+reg16,reg16           \320\300\1\x11\101              8086
+reg8,reg8             \300\1\x10\101                  8086
+mem,reg32             \321\300\1\x11\101              386,SM
+mem,reg16             \320\300\1\x11\101              8086,SM
+mem,reg8              \300\1\x10\101                  8086,SM
 reg32,mem             \321\301\1\x13\110              386,SM
-reg32,reg32           \321\301\1\x13\110              386
-rm16,imm8             \320\300\1\x83\202\15           8086
+reg16,mem             \320\301\1\x13\110              8086,SM
+reg8,mem              \301\1\x12\110                  8086,SM
 rm32,imm8             \321\300\1\x83\202\15           386
-reg_al,imm            \1\x14\21                       8086,SM
-reg_ax,imm            \320\1\x15\31                   8086,SM
+rm16,imm8             \320\300\1\x83\202\15           8086
 reg_eax,imm           \321\1\x15\41                   386,SM
-rm8,imm               \300\1\x80\202\21               8086,SM
-rm16,imm              \320\300\1\x81\202\31           8086,SM
+reg_ax,imm            \320\1\x15\31                   8086,SM
+reg_al,imm            \1\x14\21                       8086,SM
 rm32,imm              \321\300\1\x81\202\41           386,SM
-mem,imm8              \300\1\x80\202\21               8086,SM
-mem,imm16             \320\300\1\x81\202\31           8086,SM
+rm16,imm              \320\300\1\x81\202\31           8086,SM
+rm8,imm               \300\1\x80\202\21               8086,SM
 mem,imm32             \321\300\1\x81\202\41           386,SM
+mem,imm16             \320\300\1\x81\202\31           8086,SM
+mem,imm8              \300\1\x80\202\21               8086,SM
+reg32,reg32           \321\301\1\x13\110              386
+reg16,reg16           \320\301\1\x13\110              8086
+reg8,reg8             \301\1\x12\110                  8086
 
 [ADD,addX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg8              \300\17\101                     8086,SM
-reg8,reg8             \300\17\101                     8086
-mem,reg16             \320\300\1\x01\101              8086,SM
-reg16,reg16           \320\300\1\x01\101              8086
-mem,reg32             \321\300\1\x01\101              386,SM
 reg32,reg32           \321\300\1\x01\101              386
-reg8,mem              \301\1\x02\110                  8086,SM
-reg8,reg8             \301\1\x02\110                  8086
-reg16,mem             \320\301\1\x03\110              8086,SM
-reg16,reg16           \320\301\1\x03\110              8086
+reg16,reg16           \320\300\1\x01\101              8086
+reg8,reg8             \300\17\101                     8086
+mem,reg32             \321\300\1\x01\101              386,SM
+mem,reg16             \320\300\1\x01\101              8086,SM
+mem,reg8              \300\17\101                     8086,SM
 reg32,mem             \321\301\1\x03\110              386,SM
-reg32,reg32           \321\301\1\x03\110              386
-rm16,imm8             \320\300\1\x83\200\15           8086
+reg16,mem             \320\301\1\x03\110              8086,SM
+reg8,mem              \301\1\x02\110                  8086,SM
 rm32,imm8             \321\300\1\x83\200\15           386
-reg_al,imm            \1\x04\21                       8086,SM
-reg_ax,imm            \320\1\x05\31                   8086,SM
+rm16,imm8             \320\300\1\x83\200\15           8086
 reg_eax,imm           \321\1\x05\41                   386,SM
-rm8,imm               \300\1\x80\200\21               8086,SM
-rm16,imm              \320\300\1\x81\200\31           8086,SM
+reg_ax,imm            \320\1\x05\31                   8086,SM
+reg_al,imm            \1\x04\21                       8086,SM
 rm32,imm              \321\300\1\x81\200\41           386,SM
-mem,imm8              \300\1\x80\200\21               8086,SM
-mem,imm16             \320\300\1\x81\200\31           8086,SM
+rm16,imm              \320\300\1\x81\200\31           8086,SM
+rm8,imm               \300\1\x80\200\21               8086,SM
 mem,imm32             \321\300\1\x81\200\41           386,SM
+mem,imm16             \320\300\1\x81\200\31           8086,SM
+mem,imm8              \300\1\x80\200\21               8086,SM
+reg32,reg32           \321\301\1\x03\110              386
+reg16,reg16           \320\301\1\x03\110              8086
+reg8,reg8             \301\1\x02\110                  8086
 
 [AND,andX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg8              \300\1\x20\101                  8086,SM
-reg8,reg8             \300\1\x20\101                  8086
-mem,reg16             \320\300\1\x21\101              8086,SM
-reg16,reg16           \320\300\1\x21\101              8086
-mem,reg32             \321\300\1\x21\101              386,SM
 reg32,reg32           \321\300\1\x21\101              386
-reg8,mem              \301\1\x22\110                  8086,SM
-reg8,reg8             \301\1\x22\110                  8086
-reg16,mem             \320\301\1\x23\110              8086,SM
-reg16,reg16           \320\301\1\x23\110              8086
+reg16,reg16           \320\300\1\x21\101              8086
+reg8,reg8             \300\1\x20\101                  8086
+mem,reg32             \321\300\1\x21\101              386,SM
+mem,reg16             \320\300\1\x21\101              8086,SM
+mem,reg8              \300\1\x20\101                  8086,SM
 reg32,mem             \321\301\1\x23\110              386,SM
-reg32,reg32           \321\301\1\x23\110              386
-rm16,imm8             \320\300\1\x83\204\15           8086
+reg16,mem             \320\301\1\x23\110              8086,SM
+reg8,mem              \301\1\x22\110                  8086,SM
 rm32,imm8             \321\300\1\x83\204\15           386
-reg_al,imm            \1\x24\21                       8086,SM
-reg_ax,imm            \320\1\x25\31                   8086,SM
+rm16,imm8             \320\300\1\x83\204\15           8086
 reg_eax,imm           \321\1\x25\41                   386,SM
-rm8,imm               \300\1\x80\204\21               8086,SM
-rm16,imm              \320\300\1\x81\204\31           8086,SM
+reg_ax,imm            \320\1\x25\31                   8086,SM
+reg_al,imm            \1\x24\21                       8086,SM
 rm32,imm              \321\300\1\x81\204\41           386,SM
-mem,imm8              \300\1\x80\204\21               8086,SM
-mem,imm16             \320\300\1\x81\204\31           8086,SM
+rm16,imm              \320\300\1\x81\204\31           8086,SM
+rm8,imm               \300\1\x80\204\21               8086,SM
 mem,imm32             \321\300\1\x81\204\41           386,SM
+mem,imm16             \320\300\1\x81\204\31           8086,SM
+mem,imm8              \300\1\x80\204\21               8086,SM
+reg32,reg32           \321\301\1\x23\110              386
+reg16,reg16           \320\301\1\x23\110              8086
+reg8,reg8             \301\1\x22\110                  8086
 
 [ARPL,arplX]
 (Ch_WFlags, Ch_None, Ch_None)
-mem,reg16             \300\1\x63\101                  286,PROT,SM
 reg16,reg16           \300\1\x63\101                  286,PROT
+mem,reg16             \300\1\x63\101                  286,PROT,SM
 
 [BOUND,boundX]
 (Ch_Rop1, Ch_None, Ch_None)
-reg16,mem             \320\301\1\x62\110              186
 reg32,mem             \321\301\1\x62\110              386
+reg16,mem             \320\301\1\x62\110              186
 
 [BSF,bsfX]
 (Ch_Wop2, Ch_WFlags, Ch_Rop1)
-reg16,mem             \320\301\2\x0F\xBC\110          386,SM
+reg32,reg32           \321\301\2\x0F\xBC\110          386
 reg16,reg16           \320\301\2\x0F\xBC\110          386
 reg32,mem             \321\301\2\x0F\xBC\110          386,SM
-reg32,reg32           \321\301\2\x0F\xBC\110          386
+reg16,mem             \320\301\2\x0F\xBC\110          386,SM
 
 [BSR,bsrX]
 (Ch_Wop2, Ch_WFlags, Ch_Rop1)
-reg16,mem             \320\301\2\x0F\xBD\110          386,SM
+reg32,reg32           \321\301\2\x0F\xBD\110          386
 reg16,reg16           \320\301\2\x0F\xBD\110          386
 reg32,mem             \321\301\2\x0F\xBD\110          386,SM
-reg32,reg32           \321\301\2\x0F\xBD\110          386
+reg16,mem             \320\301\2\x0F\xBD\110          386,SM
 
 [BSWAP,bswapX]
 (Ch_MOp1, Ch_None, Ch_None)
@@ -140,44 +140,49 @@ reg32                 \321\1\x0F\10\xC8               486
 
 [BT,btX]
 (Ch_WFlags, Ch_Rop1, Ch_Rop2)
-mem,reg16             \320\300\2\x0F\xA3\101          386,SM
+reg32,reg32           \321\300\2\x0F\xA3\101          386
 reg16,reg16           \320\300\2\x0F\xA3\101          386
 mem,reg32             \321\300\2\x0F\xA3\101          386,SM
-reg32,reg32           \321\300\2\x0F\xA3\101          386
-rm16,imm              \320\300\2\x0F\xBA\204\25       386,SB
+mem,reg16             \320\300\2\x0F\xA3\101          386,SM
 rm32,imm              \321\300\2\x0F\xBA\204\25       386,SB
+rm16,imm              \320\300\2\x0F\xBA\204\25       386,SB
 
 [BTC,btcX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg16             \320\300\2\x0F\xBB\101          386,SM
+reg32,reg32           \321\300\2\x0F\xBB\101          386
 reg16,reg16           \320\300\2\x0F\xBB\101          386
 mem,reg32             \321\300\2\x0F\xBB\101          386,SM
-reg32,reg32           \321\300\2\x0F\xBB\101          386
-rm16,imm              \320\300\2\x0F\xBA\207\25       386,SB
+mem,reg16             \320\300\2\x0F\xBB\101          386,SM
 rm32,imm              \321\300\2\x0F\xBA\207\25       386,SB
+rm16,imm              \320\300\2\x0F\xBA\207\25       386,SB
 
 [BTR,btrX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg16             \320\300\2\x0F\xB3\101          386,SM
+reg32,reg32           \321\300\2\x0F\xB3\101          386
 reg16,reg16           \320\300\2\x0F\xB3\101          386
 mem,reg32             \321\300\2\x0F\xB3\101          386,SM
-reg32,reg32           \321\300\2\x0F\xB3\101          386
-rm16,imm              \320\300\2\x0F\xBA\206\25       386,SB
+mem,reg16             \320\300\2\x0F\xB3\101          386,SM
 rm32,imm              \321\300\2\x0F\xBA\206\25       386,SB
+rm16,imm              \320\300\2\x0F\xBA\206\25       386,SB
 
 [BTS,btsX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg16             \320\300\2\x0F\xAB\101          386,SM
+reg32,reg32           \321\300\2\x0F\xAB\101          386
 reg16,reg16           \320\300\2\x0F\xAB\101          386
 mem,reg32             \321\300\2\x0F\xAB\101          386,SM
-reg32,reg32           \321\300\2\x0F\xAB\101          386
-rm16,imm              \320\300\2\x0F\xBA\205\25       386,SB
+mem,reg16             \320\300\2\x0F\xAB\101          386,SM
 rm32,imm              \321\300\2\x0F\xBA\205\25       386,SB
+rm16,imm              \320\300\2\x0F\xBA\205\25       386,SB
 
 [CALL,call]
 ; don't know value of any register
 (Ch_ROp1, Ch_All, Ch_None)
 imm                   \323\1\xE8\64                   8086
+reg32                 \321\300\1\xFF\202              386
+reg16                 \320\300\1\xFF\202              8086
+mem32                 \321\300\1\xFF\202              386
+mem16                 \320\300\1\xFF\202              8086
+mem                   \323\300\1\xFF\202              8086
 imm|near              \323\1\xE8\64                   8086
 imm|far               \323\1\x9A\34\37                8086,ND
 imm16                 \320\1\xE8\64                   8086
@@ -197,11 +202,6 @@ mem32|far             \321\300\1\xFF\203              386
 mem|near              \323\300\1\xFF\202              8086
 mem16|near            \320\300\1\xFF\202              8086
 mem32|near            \321\300\1\xFF\202              386
-reg16                 \320\300\1\xFF\202              8086
-reg32                 \321\300\1\xFF\202              386
-mem                   \323\300\1\xFF\202              8086
-mem16                 \320\300\1\xFF\202              8086
-mem32                 \321\300\1\xFF\202              386
 
 [CBW,cbtw]
 (Ch_MEAX, Ch_None, Ch_None)
@@ -233,29 +233,29 @@ void                  \1\xF5                          8086
 
 [CMP,cmpX]
 (Ch_ROp1, Ch_ROp2, Ch_WFlags)
-mem,reg8              \300\1\x38\101                  8086,SM
-reg8,reg8             \300\1\x38\101                  8086
-mem,reg16             \320\300\1\x39\101              8086,SM
-reg16,reg16           \320\300\1\x39\101              8086
-mem,reg32             \321\300\1\x39\101              386,SM
-reg32,reg32           \321\300\1\x39\101              386
-reg8,mem              \301\1\x3A\110                  8086,SM
-reg8,reg8             \301\1\x3A\110                  8086
-reg16,mem             \320\301\1\x3B\110              8086,SM
-reg16,reg16           \320\301\1\x3B\110              8086
-reg32,mem             \321\301\1\x3B\110              386,SM
 reg32,reg32           \321\301\1\x3B\110              386
-rm16,imm8             \320\300\1\x83\207\15           8086
+reg16,reg16           \320\301\1\x3B\110              8086
+reg8,reg8             \301\1\x3A\110                  8086
+mem,reg32             \321\300\1\x39\101              386,SM
+mem,reg16             \320\300\1\x39\101              8086,SM
+mem,reg8              \300\1\x38\101                  8086,SM
+reg32,mem             \321\301\1\x3B\110              386,SM
+reg16,mem             \320\301\1\x3B\110              8086,SM
+reg8,mem              \301\1\x3A\110                  8086,SM
 rm32,imm8             \321\300\1\x83\207\15           386
-reg_al,imm            \1\x3C\21                       8086,SM
-reg_ax,imm            \320\1\x3D\31                   8086,SM
+rm16,imm8             \320\300\1\x83\207\15           8086
 reg_eax,imm           \321\1\x3D\41                   386,SM
-rm8,imm               \300\1\x80\207\21               8086,SM
-rm16,imm              \320\300\1\x81\207\31           8086,SM
+reg_ax,imm            \320\1\x3D\31                   8086,SM
+reg_al,imm            \1\x3C\21                       8086,SM
 rm32,imm              \321\300\1\x81\207\41           386,SM
-mem,imm8              \300\1\x80\207\21               8086,SM
-mem,imm16             \320\300\1\x81\207\31           8086,SM
+rm16,imm              \320\300\1\x81\207\31           8086,SM
+rm8,imm               \300\1\x80\207\21               8086,SM
 mem,imm32             \321\300\1\x81\207\41           386,SM
+mem,imm16             \320\300\1\x81\207\31           8086,SM
+mem,imm8              \300\1\x80\207\21               8086,SM
+reg32,reg32           \321\300\1\x39\101              386
+reg16,reg16           \320\300\1\x39\101              8086
+reg8,reg8             \300\1\x38\101                  8086
 
 [CMPSB]
 (Ch_All, Ch_None, Ch_None)
@@ -273,21 +273,21 @@ void                  \332\320\1\xA7                  8086
 
 [CMPXCHG,cmpxchgX]
 (Ch_All, Ch_None, Ch_None)
-mem,reg8              \300\2\x0F\xB0\101              PENT,SM
-reg8,reg8             \300\2\x0F\xB0\101              PENT
-mem,reg16             \320\300\2\x0F\xB1\101          PENT,SM
-reg16,reg16           \320\300\2\x0F\xB1\101          PENT
-mem,reg32             \321\300\2\x0F\xB1\101          PENT,SM
 reg32,reg32           \321\300\2\x0F\xB1\101          PENT
+reg16,reg16           \320\300\2\x0F\xB1\101          PENT
+reg8,reg8             \300\2\x0F\xB0\101              PENT
+mem,reg32             \321\300\2\x0F\xB1\101          PENT,SM
+mem,reg16             \320\300\2\x0F\xB1\101          PENT,SM
+mem,reg8              \300\2\x0F\xB0\101              PENT,SM
 
 [CMPXCHG486,cmpxchg486X]
 (Ch_All, Ch_None, Ch_None)
-mem,reg8              \300\2\x0F\xA6\101              486,SM,UNDOC
-reg8,reg8             \300\2\x0F\xA6\101              486,UNDOC
-mem,reg16             \320\300\2\x0F\xA7\101          486,SM,UNDOC
-reg16,reg16           \320\300\2\x0F\xA7\101          486,UNDOC
-mem,reg32             \321\300\2\x0F\xA7\101          486,SM,UNDOC
 reg32,reg32           \321\300\2\x0F\xA7\101          486,UNDOC
+reg16,reg16           \320\300\2\x0F\xA7\101          486,UNDOC
+reg8,reg8             \300\2\x0F\xA6\101              486,UNDOC
+mem,reg32             \321\300\2\x0F\xA7\101          486,SM,UNDOC
+mem,reg16             \320\300\2\x0F\xA7\101          486,SM,UNDOC
+mem,reg8              \300\2\x0F\xA6\101              486,SM,UNDOC
 
 [CMPXCHG8B,cmpxchg8bX]
 (Ch_All, Ch_None, Ch_None)
@@ -315,17 +315,17 @@ void                  \1\x2F                          8086
 
 [DEC,decX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
-reg16                 \320\10\x48                     8086
 reg32                 \321\10\x48                     386
-rm8                   \300\1\xFE\201                  8086
-rm16                  \320\300\1\xFF\201              8086
+reg16                 \320\10\x48                     8086
 rm32                  \321\300\1\xFF\201              386
+rm16                  \320\300\1\xFF\201              8086
+rm8                   \300\1\xFE\201                  8086
 
 [DIV,divX]
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
-rm8                   \300\1\xF6\206                  8086
-rm16                  \320\300\1\xF7\206              8086
 rm32                  \321\300\1\xF7\206              386
+rm16                  \320\300\1\xF7\206              8086
+rm8                   \300\1\xF6\206                  8086
 
 [EMMS]
 (Ch_FPU, Ch_None, Ch_None)
@@ -852,10 +852,10 @@ void                  \1\xF4                          8086,PRIV
 
 [IBTS,ibtsX]
 (Ch_All, Ch_None, Ch_None)
-mem,reg16             \320\300\2\x0F\xA7\101          386,SW,UNDOC,ND
+reg32,reg32           \321\300\2\x0F\xA7\101          386,UNDOC,ND
 reg16,reg16           \320\300\2\x0F\xA7\101          386,UNDOC,ND
 mem,reg32             \321\300\2\x0F\xA7\101          386,SD,UNDOC,ND
-reg32,reg32           \321\300\2\x0F\xA7\101          386,UNDOC,ND
+mem,reg16             \320\300\2\x0F\xA7\101          386,SW,UNDOC,ND
 
 [ICEBP]
 (Ch_All, Ch_None, Ch_None)
@@ -863,31 +863,31 @@ void                  \1\xF1                          386,ND
 
 [IDIV,idivX]
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
-rm8                   \300\1\xF6\207                  8086
-rm16                  \320\300\1\xF7\207              8086
 rm32                  \321\300\1\xF7\207              386
+rm16                  \320\300\1\xF7\207              8086
+rm8                   \300\1\xF6\207                  8086
 
 [IMUL,imulX]
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
+reg32,reg32           \321\301\2\x0F\xAF\110          386
+reg16,reg16           \320\301\2\x0F\xAF\110          386
 rm8                   \300\1\xF6\205                  8086
 rm16                  \320\300\1\xF7\205              8086
 rm32                  \321\300\1\xF7\205              386
-reg16,mem             \320\301\2\x0F\xAF\110          386,SM
-reg16,reg16           \320\301\2\x0F\xAF\110          386
 reg32,mem             \321\301\2\x0F\xAF\110          386,SM
-reg32,reg32           \321\301\2\x0F\xAF\110          386
-reg16,mem,imm8        \320\301\1\x6B\110\16           286,SM
-reg16,reg16,imm8      \320\301\1\x6B\110\16           286
-reg16,mem,imm         \320\301\1\x69\110\32           286,SM
-reg16,reg16,imm       \320\301\1\x69\110\32           286,SM
 reg32,mem,imm8        \321\301\1\x6B\110\16           386,SM
 reg32,reg32,imm8      \321\301\1\x6B\110\16           386
 reg32,mem,imm         \321\301\1\x69\110\42           386,SM
 reg32,reg32,imm       \321\301\1\x69\110\42           386,SM
-reg16,imm8            \320\1\x6B\100\15               286
-reg16,imm             \320\1\x69\100\31               286,SM
 reg32,imm8            \321\1\x6B\100\15               386
 reg32,imm             \321\1\x69\100\41               386,SM
+reg16,mem             \320\301\2\x0F\xAF\110          386,SM
+reg16,mem,imm8        \320\301\1\x6B\110\16           286,SM
+reg16,reg16,imm8      \320\301\1\x6B\110\16           286
+reg16,mem,imm         \320\301\1\x69\110\32           286,SM
+reg16,reg16,imm       \320\301\1\x69\110\32           286,SM
+reg16,imm8            \320\1\x6B\100\15               286
+reg16,imm             \320\1\x69\100\31               286,SM
 
 [IN,inX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
@@ -900,11 +900,11 @@ reg_eax,reg_dx        \321\1\xED                      386
 
 [INC,incX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
-reg16                 \320\10\x40                     8086
 reg32                 \321\10\x40                     386
-rm8                   \300\1\xFE\200                  8086
-rm16                  \320\300\1\xFF\200              8086
+reg16                 \320\10\x40                     8086
 rm32                  \321\300\1\xFF\200              386
+rm16                  \320\300\1\xFF\200              8086
+rm8                   \300\1\xFE\200                  8086
 
 [INSB]
 (Ch_WMemEDI, Ch_RWEDI, Ch_REDX)
@@ -993,11 +993,11 @@ mem32|far             \321\300\1\xFF\205              386
 mem|near              \323\300\1\xFF\204              8086
 mem16|near            \320\300\1\xFF\204              8086
 mem32|near            \321\300\1\xFF\204              386
-reg16                 \320\300\1\xFF\204              8086
 reg32                 \321\300\1\xFF\204              386
-mem                   \323\300\1\xFF\204              8086
-mem16                 \320\300\1\xFF\204              8086
+reg16                 \320\300\1\xFF\204              8086
 mem32                 \321\300\1\xFF\204              386
+mem16                 \320\300\1\xFF\204              8086
+mem                   \323\300\1\xFF\204              8086
 
 [LAHF]
 (Ch_WEAX, Ch_RFlags, Ch_None)
@@ -1005,10 +1005,10 @@ void                  \1\x9F                          8086
 
 [LAR,larX]
 (Ch_Wop2, Ch_None, Ch_None)
-reg16,mem             \320\301\2\x0F\x02\110          286,PROT,SM
+reg32,reg32           \321\301\2\x0F\x02\110          286,PROT
 reg16,reg16           \320\301\2\x0F\x02\110          286,PROT
 reg32,mem             \321\301\2\x0F\x02\110          286,PROT,SM
-reg32,reg32           \321\301\2\x0F\x02\110          286,PROT
+reg16,mem             \320\301\2\x0F\x02\110          286,PROT,SM
 
 [LCALL,lcall]
 ; don't know value of any register
@@ -1027,14 +1027,14 @@ mem32                 \321\300\1\xFF\202              386
 
 [LDS,ldsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\1\xC5\110              8086
 reg32,mem             \321\301\1\xC5\110              8086
+reg16,mem             \320\301\1\xC5\110              8086
 
 [LEA,leaX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\1\x8D\110              8086
 reg32,mem             \321\301\1\x8D\110              8086
 reg32,imm32           \321\301\1\x8D\110              8086
+reg16,mem             \320\301\1\x8D\110              8086
 
 [LEAVE]
 (Ch_RWESP, Ch_WEBP, Ch_None)
@@ -1042,13 +1042,13 @@ void                  \1\xC9                          186
 
 [LES,lesX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\1\xC4\110              8086
 reg32,mem             \321\301\1\xC4\110              8086
+reg16,mem             \320\301\1\xC4\110              8086
 
 [LFS,lfsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\2\x0F\xB4\110          386
 reg32,mem             \321\301\2\x0F\xB4\110          386
+reg16,mem             \320\301\2\x0F\xB4\110          386
 
 [LGDT,lgdtX]
 (Ch_None, Ch_None, Ch_None)
@@ -1056,8 +1056,8 @@ mem                   \300\2\x0F\x01\202              286,PRIV
 
 [LGS,lgsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\2\x0F\xB5\110          386
 reg32,mem             \321\301\2\x0F\xB5\110          386
+reg16,mem             \320\301\2\x0F\xB5\110          386
 
 [LIDT,lidtX]
 (Ch_None, Ch_None, Ch_None)
@@ -1071,11 +1071,11 @@ mem32|far             \321\300\1\xFF\205              386
 mem|near              \323\300\1\xFF\204              8086
 mem16|near            \320\300\1\xFF\204              8086
 mem32|near            \321\300\1\xFF\204              386
-reg16                 \320\300\1\xFF\204              8086
 reg32                 \321\300\1\xFF\204              386
-mem                   \323\300\1\xFF\204              8086
-mem16                 \320\300\1\xFF\204              8086
+reg16                 \320\300\1\xFF\204              8086
 mem32                 \321\300\1\xFF\204              386
+mem16                 \320\300\1\xFF\204              8086
+mem                   \323\300\1\xFF\204              8086
 
 [LLDT,lldtX]
 (Ch_None, Ch_None, Ch_None)
@@ -1145,15 +1145,15 @@ imm,reg_ecx           \311\1\xE1\50                   386
 
 [LSL,lslX]
 (Ch_Wop2, Ch_WFlags, Ch_None)
-reg16,mem             \320\301\2\x0F\x03\110          286,PROT,SM
+reg32,reg32           \321\301\2\x0F\x03\110          286,PROT
 reg16,reg16           \320\301\2\x0F\x03\110          286,PROT
 reg32,mem             \321\301\2\x0F\x03\110          286,PROT,SM
-reg32,reg32           \321\301\2\x0F\x03\110          286,PROT
+reg16,mem             \320\301\2\x0F\x03\110          286,PROT,SM
 
 [LSS,lssX]
 (Ch_Wop2, Ch_ROP1, Ch_None)
-reg16,mem             \320\301\2\x0F\xB2\110          386
 reg32,mem             \321\301\2\x0F\xB2\110          386
+reg16,mem             \320\301\2\x0F\xB2\110          386
 
 [LTR,ltrX]
 (Ch_None, Ch_None, Ch_None)
@@ -1168,6 +1168,29 @@ reg_eax,reg_ecx,reg_edx      \3\x0F\x01\xC8           PRESCOTT,ND
 
 [MOV,movX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
+reg64,reg64           \322\300\1\x89\101              X86_64
+reg32,reg32           \321\300\1\x89\101              386
+reg16,reg16           \320\300\1\x89\101              8086
+reg8,reg8             \300\1\x88\101                  8086
+mem,reg64             \322\300\1\x89\101              X86_64
+mem,reg32             \321\300\1\x89\101              386,SM
+mem,reg16             \320\300\1\x89\101              8086,SM
+mem,reg8              \300\1\x88\101                  8086,SM
+reg64,mem             \322\301\1\x8B\110              X86_64
+reg32,mem             \321\301\1\x8B\110              386,SM
+reg16,mem             \320\301\1\x8B\110              8086,SM
+reg8,mem              \301\1\x8A\110                  8086,SM
+reg64,imm             \322\10\xB8\41                  X86_64
+reg32,imm             \321\10\xB8\41                  386,SM
+reg16,imm             \320\10\xB8\31                  8086,SM
+reg8,imm              \10\xB0\21                      8086,SM
+rm64,imm              \322\300\1\xC7\200\41           X86_64
+rm32,imm              \321\300\1\xC7\200\41           386,SM
+rm16,imm              \320\300\1\xC7\200\31           8086,SM
+rm8,imm               \300\1\xC6\200\21               8086,SM
+mem,imm32             \321\300\1\xC7\200\41           386,SM
+mem,imm16             \320\300\1\xC7\200\31           8086,SM
+mem,imm8              \300\1\xC6\200\21               8086,SM
 mem,reg_cs            \320\300\1\x8C\201              8086,SM
 mem,reg_dess          \320\300\1\x8C\101              8086,SM
 mem,reg_fsgs          \320\300\1\x8C\101              386,SM
@@ -1201,33 +1224,10 @@ reg_cr4,reg32         \2\x0F\x22\214                  PENT,PRIV
 reg_creg,reg32        \2\x0F\x22\110                  386,PRIV
 reg_dreg,reg32        \2\x0F\x23\110                  386,PRIV
 reg_treg,reg32        \2\x0F\x26\110                  386,PRIV
-mem,reg8              \300\1\x88\101                  8086,SM
-reg8,reg8             \300\1\x88\101                  8086
-mem,reg16             \320\300\1\x89\101              8086,SM
-reg16,reg16           \320\300\1\x89\101              8086
-mem,reg32             \321\300\1\x89\101              386,SM
-reg32,reg32           \321\300\1\x89\101              386
-mem,reg64             \322\300\1\x89\101              X86_64
-reg64,reg64           \322\300\1\x89\101              X86_64
-reg8,mem              \301\1\x8A\110                  8086,SM
 reg8,reg8             \301\1\x8A\110                  8086
-reg16,mem             \320\301\1\x8B\110              8086,SM
 reg16,reg16           \320\301\1\x8B\110              8086
-reg32,mem             \321\301\1\x8B\110              386,SM
 reg32,reg32           \321\301\1\x8B\110              386
-reg64,mem             \322\301\1\x8B\110              X86_64
 reg64,reg64           \322\301\1\x8B\110              X86_64
-reg8,imm              \10\xB0\21                      8086,SM
-reg16,imm             \320\10\xB8\31                  8086,SM
-reg32,imm             \321\10\xB8\41                  386,SM
-reg64,imm             \322\10\xB8\41                  X86_64
-rm8,imm               \300\1\xC6\200\21               8086,SM
-rm16,imm              \320\300\1\xC7\200\31           8086,SM
-rm32,imm              \321\300\1\xC7\200\41           386,SM
-rm64,imm              \322\300\1\xC7\200\41           X86_64
-mem,imm8              \300\1\xC6\200\21               8086,SM
-mem,imm16             \320\300\1\xC7\200\31           8086,SM
-mem,imm32             \321\300\1\xC7\200\41           386,SM
 
 [MOVD,movd]
 (Ch_Rop1, Ch_Wop2, Ch_None)
@@ -1250,7 +1250,6 @@ xmmreg,xmmreg         \333\2\x0F\x7E\110              WILLAMETTE,SSE2
 xmmreg,xmmreg         \3\x66\x0F\xD6\110              WILLAMETTE,SSE2
 mem,xmmreg            \300\3\x66\x0F\xD6\101          WILLAMETTE,SSE2
 xmmreg,mem            \301\333\2\x0F\x7E\110          WILLAMETTE,SSE2
-
 
 [MOVSB]
 (Ch_All, Ch_None, Ch_None)
@@ -1275,24 +1274,24 @@ void                  \320\1\xA5                      8086
 
 [MOVSX,movsX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\2\x0F\xBE\110          386,SB
-reg16,reg8            \320\301\2\x0F\xBE\110          386
-reg32,rm8             \321\301\2\x0F\xBE\110          386
-reg32,rm16            \321\301\2\x0F\xBF\110          386
 reg64,rm16            \321\301\2\x0F\xBF\110          X86_64
+reg32,rm16            \321\301\2\x0F\xBF\110          386
+reg32,rm8             \321\301\2\x0F\xBE\110          386
+reg16,reg8            \320\301\2\x0F\xBE\110          386
+reg16,mem             \320\301\2\x0F\xBE\110          386,SB
 
 [MOVZX,movzX]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg16,mem             \320\301\2\x0F\xB6\110          386,SB
-reg16,reg8            \320\301\2\x0F\xB6\110          386
-reg32,rm8             \321\301\2\x0F\xB6\110          386
 reg32,rm16            \321\301\2\x0F\xB7\110          386
+reg32,rm8             \321\301\2\x0F\xB6\110          386
+reg16,reg8            \320\301\2\x0F\xB6\110          386
+reg16,mem             \320\301\2\x0F\xB6\110          386,SB
 
 [MUL,mulX]
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
-rm8                   \300\1\xF6\204                  8086
-rm16                  \320\300\1\xF7\204              8086
 rm32                  \321\300\1\xF7\204              386
+rm16                  \320\300\1\xF7\204              8086
+rm8                   \300\1\xF6\204                  8086
 
 [MWAIT]
 (Ch_None, Ch_None, Ch_None)
@@ -1302,9 +1301,9 @@ reg_eax,reg_ecx       \3\x0F\x01\xC9		      PRESCOTT,ND
 
 [NEG,negX]
 (Ch_Mop1, Ch_None, Ch_None)
-rm8                   \300\1\xF6\203                  8086
-rm16                  \320\300\1\xF7\203              8086
 rm32                  \321\300\1\xF7\203              386
+rm16                  \320\300\1\xF7\203              8086
+rm8                   \300\1\xF6\203                  8086
 
 [NOP]
 (Ch_None, Ch_None, Ch_None)
@@ -1312,35 +1311,35 @@ void                  \1\x90                          8086
 
 [NOT,notX]
 (Ch_Mop1, Ch_WFlags, Ch_None)
-rm8                   \300\1\xF6\202                  8086
-rm16                  \320\300\1\xF7\202              8086
 rm32                  \321\300\1\xF7\202              386
+rm16                  \320\300\1\xF7\202              8086
+rm8                   \300\1\xF6\202                  8086
 
 [OR,orX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg8              \300\1\x08\101                  8086,SM
-reg8,reg8             \300\1\x08\101                  8086
-mem,reg16             \320\300\1\x09\101              8086,SM
-reg16,reg16           \320\300\1\x09\101              8086
-mem,reg32             \321\300\1\x09\101              386,SM
 reg32,reg32           \321\300\1\x09\101              386
-reg8,mem              \301\1\x0A\110                  8086,SM
-reg8,reg8             \301\1\x0A\110                  8086
-reg16,mem             \320\301\1\x0B\110              8086,SM
-reg16,reg16           \320\301\1\x0B\110              8086
+reg16,reg16           \320\300\1\x09\101              8086
+reg8,reg8             \300\1\x08\101                  8086
+mem,reg32             \321\300\1\x09\101              386,SM
+mem,reg16             \320\300\1\x09\101              8086,SM
+mem,reg8              \300\1\x08\101                  8086,SM
 reg32,mem             \321\301\1\x0B\110              386,SM
-reg32,reg32           \321\301\1\x0B\110              386
-rm16,imm8             \320\300\1\x83\201\15           8086
+reg16,mem             \320\301\1\x0B\110              8086,SM
+reg8,mem              \301\1\x0A\110                  8086,SM
 rm32,imm8             \321\300\1\x83\201\15           386
-reg_al,imm            \1\x0C\21                       8086,SM
-reg_ax,imm            \320\1\x0D\31                   8086,SM
+rm16,imm8             \320\300\1\x83\201\15           8086
 reg_eax,imm           \321\1\x0D\41                   386,SM
-rm8,imm               \300\1\x80\201\21               8086,SM
-rm16,imm              \320\300\1\x81\201\31           8086,SM
+reg_ax,imm            \320\1\x0D\31                   8086,SM
+reg_al,imm            \1\x0C\21                       8086,SM
 rm32,imm              \321\300\1\x81\201\41           386,SM
-mem,imm8              \300\1\x80\201\21               8086,SM
-mem,imm16             \320\300\1\x81\201\31           8086,SM
+rm16,imm              \320\300\1\x81\201\31           8086,SM
+rm8,imm               \300\1\x80\201\21               8086,SM
 mem,imm32             \321\300\1\x81\201\41           386,SM
+mem,imm16             \320\300\1\x81\201\31           8086,SM
+mem,imm8              \300\1\x80\201\21               8086,SM
+reg32,reg32           \321\301\1\x0B\110              386
+reg16,reg16           \320\301\1\x0B\110              8086
+reg8,reg8             \301\1\x0A\110                  8086
 
 [OUT,outX]
 (Ch_Rop1, Ch_Rop2, Ch_None)
@@ -1921,27 +1920,27 @@ xmmreg,xmmreg         \3\x66\x0F\xEF\110              WILLAMETTE,SSE2
 
 [RCL,rclX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-rm8,unity             \300\1\xD0\202                  8086
-rm8,reg_cl            \300\1\xD2\202                  8086
-rm8,imm               \300\1\xC0\202\25               186,SB
-rm16,unity            \320\300\1\xD1\202              8086
-rm16,reg_cl           \320\300\1\xD3\202              8086
-rm16,imm              \320\300\1\xC1\202\25           186,SB
 rm32,unity            \321\300\1\xD1\202              386
 rm32,reg_cl           \321\300\1\xD3\202              386
 rm32,imm              \321\300\1\xC1\202\25           386,SB
+rm16,unity            \320\300\1\xD1\202              8086
+rm16,reg_cl           \320\300\1\xD3\202              8086
+rm16,imm              \320\300\1\xC1\202\25           186,SB
+rm8,unity             \300\1\xD0\202                  8086
+rm8,reg_cl            \300\1\xD2\202                  8086
+rm8,imm               \300\1\xC0\202\25               186,SB
 
 [RCR,rcrX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-rm8,unity             \300\1\xD0\203                  8086
-rm8,reg_cl            \300\1\xD2\203                  8086
-rm8,imm               \300\1\xC0\203\25               186,SB
-rm16,unity            \320\300\1\xD1\203              8086
-rm16,reg_cl           \320\300\1\xD3\203              8086
-rm16,imm              \320\300\1\xC1\203\25           186,SB
 rm32,unity            \321\300\1\xD1\203              386
 rm32,reg_cl           \321\300\1\xD3\203              386
 rm32,imm              \321\300\1\xC1\203\25           386,SB
+rm16,unity            \320\300\1\xD1\203              8086
+rm16,reg_cl           \320\300\1\xD3\203              8086
+rm16,imm              \320\300\1\xC1\203\25           186,SB
+rm8,unity             \300\1\xD0\203                  8086
+rm8,reg_cl            \300\1\xD2\203                  8086
+rm8,imm               \300\1\xC0\203\25               186,SB
 
 [RDSHR]
 (Ch_All, Ch_None, Ch_None)
@@ -1996,27 +1995,27 @@ imm                   \1\xC2\30                       8086,SW
 
 [ROL,rolX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-rm8,unity             \300\1\xD0\200                  8086
-rm8,reg_cl            \300\1\xD2\200                  8086
-rm8,imm               \300\1\xC0\200\25               186,SB
-rm16,unity            \320\300\1\xD1\200              8086
-rm16,reg_cl           \320\300\1\xD3\200              8086
-rm16,imm              \320\300\1\xC1\200\25           186,SB
 rm32,unity            \321\300\1\xD1\200              386
 rm32,reg_cl           \321\300\1\xD3\200              386
 rm32,imm              \321\300\1\xC1\200\25           386,SB
+rm16,unity            \320\300\1\xD1\200              8086
+rm16,reg_cl           \320\300\1\xD3\200              8086
+rm16,imm              \320\300\1\xC1\200\25           186,SB
+rm8,unity             \300\1\xD0\200                  8086
+rm8,reg_cl            \300\1\xD2\200                  8086
+rm8,imm               \300\1\xC0\200\25               186,SB
 
 [ROR,rorX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-rm8,unity             \300\1\xD0\201                  8086
-rm8,reg_cl            \300\1\xD2\201                  8086
-rm8,imm               \300\1\xC0\201\25               186,SB
-rm16,unity            \320\300\1\xD1\201              8086
-rm16,reg_cl           \320\300\1\xD3\201              8086
-rm16,imm              \320\300\1\xC1\201\25           186,SB
 rm32,unity            \321\300\1\xD1\201              386
 rm32,reg_cl           \321\300\1\xD3\201              386
 rm32,imm              \321\300\1\xC1\201\25           386,SB
+rm16,unity            \320\300\1\xD1\201              8086
+rm16,reg_cl           \320\300\1\xD3\201              8086
+rm16,imm              \320\300\1\xC1\201\25           186,SB
+rm8,unity             \300\1\xD0\201                  8086
+rm8,reg_cl            \300\1\xD2\201                  8086
+rm8,imm               \300\1\xC0\201\25               186,SB
 
 [RSDC]
 (Ch_All, Ch_None, Ch_None)
@@ -2036,15 +2035,15 @@ void                  \1\x9E                          8086,NOX86_64
 
 [SAL,salX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
-rm8,unity             \300\1\xD0\204                  8086,ND
-rm8,reg_cl            \300\1\xD2\204                  8086,ND
-rm8,imm               \300\1\xC0\204\25               186,ND,SB
-rm16,unity            \320\300\1\xD1\204              8086,ND
-rm16,reg_cl           \320\300\1\xD3\204              8086,ND
-rm16,imm              \320\300\1\xC1\204\25           186,ND,SB
 rm32,unity            \321\300\1\xD1\204              386,ND
 rm32,reg_cl           \321\300\1\xD3\204              386,ND
 rm32,imm              \321\300\1\xC1\204\25           386,ND,SB
+rm16,unity            \320\300\1\xD1\204              8086,ND
+rm16,reg_cl           \320\300\1\xD3\204              8086,ND
+rm16,imm              \320\300\1\xC1\204\25           186,ND,SB
+rm8,unity             \300\1\xD0\204                  8086,ND
+rm8,reg_cl            \300\1\xD2\204                  8086,ND
+rm8,imm               \300\1\xC0\204\25               186,ND,SB
 
 [SALC]
 (Ch_WEAX, Ch_RFLAGS, Ch_None)
@@ -2052,15 +2051,15 @@ void                  \1\xD6                          8086,UNDOC
 
 [SAR,sarX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-rm8,unity             \300\1\xD0\207                  8086
-rm8,reg_cl            \300\1\xD2\207                  8086
-rm8,imm               \300\1\xC0\207\25               186,SB
-rm16,unity            \320\300\1\xD1\207              8086
-rm16,reg_cl           \320\300\1\xD3\207              8086
-rm16,imm              \320\300\1\xC1\207\25           186,SB
 rm32,unity            \321\300\1\xD1\207              386
 rm32,reg_cl           \321\300\1\xD3\207              386
 rm32,imm              \321\300\1\xC1\207\25           386,SB
+rm16,unity            \320\300\1\xD1\207              8086
+rm16,reg_cl           \320\300\1\xD3\207              8086
+rm16,imm              \320\300\1\xC1\207\25           186,SB
+rm8,unity             \300\1\xD0\207                  8086
+rm8,reg_cl            \300\1\xD2\207                  8086
+rm8,imm               \300\1\xC0\207\25               186,SB
 
 [SBB,sbbX]
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
@@ -2237,37 +2236,35 @@ reg32                 \321\1\x0F\17\201               386,PROT
 
 [SUB,subX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg8              \300\1\x28\101                  8086,SM
-reg8,reg8             \300\1\x28\101                  8086
-mem,reg16             \320\300\1\x29\101              8086,SM
-reg16,reg16           \320\300\1\x29\101              8086
-mem,reg32             \321\300\1\x29\101              386,SM
-reg32,reg32           \321\300\1\x29\101              386
-mem,reg32             \321\300\1\x29\101              386,SM
-reg32,reg32           \321\300\1\x29\101              386
-mem,reg64             \322\300\1\x29\101              X86_64
 reg64,reg64           \322\300\1\x29\101              X86_64
-reg8,mem              \301\1\x2A\110                  8086,SM
-reg8,reg8             \301\1\x2A\110                  8086
-reg16,mem             \320\301\1\x2B\110              8086,SM
-reg16,reg16           \320\301\1\x2B\110              8086
+reg32,reg32           \321\300\1\x29\101              386
+reg16,reg16           \320\300\1\x29\101              8086
+reg8,reg8             \300\1\x28\101                  8086
+mem,reg64             \322\300\1\x29\101              X86_64
+mem,reg32             \321\300\1\x29\101              386,SM
+mem,reg16             \320\300\1\x29\101              8086,SM
+mem,reg8              \300\1\x28\101                  8086,SM
 reg32,mem             \321\301\1\x2B\110              386,SM
-reg32,reg32           \321\301\1\x2B\110              386
-reg64,reg64           \322\301\1\x2B\110              X86_64
-rm16,imm8             \320\300\1\x83\205\15           8086
-rm32,imm8             \321\300\1\x83\205\15           386
+reg16,mem             \320\301\1\x2B\110              8086,SM
+reg8,mem              \301\1\x2A\110                  8086,SM
 rm64,imm8             \322\300\1\x83\205\15           X86_64
-reg_al,imm            \1\x2C\21                       8086,SM
-reg_ax,imm            \320\1\x2D\31                   8086,SM
-reg_eax,imm           \321\1\x2D\41                   386,SM
+rm32,imm8             \321\300\1\x83\205\15           386
+rm16,imm8             \320\300\1\x83\205\15           8086
 reg_rax,imm           \322\1\x2D\41                   X86_64
-rm8,imm               \300\1\x80\205\21               8086,SM
-rm16,imm              \320\300\1\x81\205\31           8086,SM
-rm32,imm              \321\300\1\x81\205\41           386,SM
+reg_eax,imm           \321\1\x2D\41                   386,SM
+reg_ax,imm            \320\1\x2D\31                   8086,SM
+reg_al,imm            \1\x2C\21                       8086,SM
 rm64,imm              \322\300\1\x81\205\41           X86_64
-mem,imm8              \300\1\x80\205\21               8086,SM
-mem,imm16             \320\300\1\x81\205\31           8086,SM
+rm32,imm              \321\300\1\x81\205\41           386,SM
+rm16,imm              \320\300\1\x81\205\31           8086,SM
+rm8,imm               \300\1\x80\205\21               8086,SM
 mem,imm32             \321\300\1\x81\205\41           386,SM
+mem,imm16             \320\300\1\x81\205\31           8086,SM
+mem,imm8              \300\1\x80\205\21               8086,SM
+reg64,reg64           \322\301\1\x2B\110              X86_64
+reg32,reg32           \321\301\1\x2B\110              386
+reg16,reg16           \320\301\1\x2B\110              8086
+reg8,reg8             \301\1\x2A\110                  8086
 
 [SVDC,svdcX]
 (Ch_All, Ch_None, Ch_None)
@@ -2299,24 +2296,24 @@ void                  \2\x0F\x07                      P6,PRIV,AMD
 
 [TEST,testX]
 (Ch_WFlags, Ch_Rop1, Ch_Rop2)
-mem,reg8              \300\1\x84\101                  8086,SM
-reg8,reg8             \300\1\x84\101                  8086
-mem,reg16             \320\300\1\x85\101              8086,SM
-reg16,reg16           \320\300\1\x85\101              8086
-mem,reg32             \321\300\1\x85\101              386,SM
 reg32,reg32           \321\300\1\x85\101              386
-reg8,mem              \301\1\x84\110                  8086,SM
-reg16,mem             \320\301\1\x85\110              8086,SM
+reg16,reg16           \320\300\1\x85\101              8086
+reg8,reg8             \300\1\x84\101                  8086
+mem,reg32             \321\300\1\x85\101              386,SM
+mem,reg16             \320\300\1\x85\101              8086,SM
+mem,reg8              \300\1\x84\101                  8086,SM
 reg32,mem             \321\301\1\x85\110              386,SM
-reg_al,imm            \1\xA8\21                       8086,SM
-reg_ax,imm            \320\1\xA9\31                   8086,SM
+reg16,mem             \320\301\1\x85\110              8086,SM
+reg8,mem              \301\1\x84\110                  8086,SM
 reg_eax,imm           \321\1\xA9\41                   386,SM
-rm8,imm               \300\1\xF6\200\21               8086,SM
-rm16,imm              \320\300\1\xF7\200\31           8086,SM
+reg_ax,imm            \320\1\xA9\31                   8086,SM
+reg_al,imm            \1\xA8\21                       8086,SM
 rm32,imm              \321\300\1\xF7\200\41           386,SM
-mem,imm8              \300\1\xF6\200\21               8086,SM
-mem,imm16             \320\300\1\xF7\200\31           8086,SM
+rm16,imm              \320\300\1\xF7\200\31           8086,SM
+rm8,imm               \300\1\xF6\200\21               8086,SM
 mem,imm32             \321\300\1\xF7\200\41           386,SM
+mem,imm16             \320\300\1\xF7\200\31           8086,SM
+mem,imm8              \300\1\xF6\200\21               8086,SM
 
 [UD1]
 (Ch_All, Ch_None, Ch_None)
@@ -2414,29 +2411,29 @@ void                  \1\xD7                          8086
 
 [XOR,xorX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
-mem,reg8              \300\1\x30\101                  8086,SM
-reg8,reg8             \300\1\x30\101                  8086
-mem,reg16             \320\300\1\x31\101              8086,SM
-reg16,reg16           \320\300\1\x31\101              8086
-mem,reg32             \321\300\1\x31\101              386,SM
 reg32,reg32           \321\300\1\x31\101              386
-reg8,mem              \301\1\x32\110                  8086,SM
-reg8,reg8             \301\1\x32\110                  8086
-reg16,mem             \320\301\1\x33\110              8086,SM
-reg16,reg16           \320\301\1\x33\110              8086
+reg16,reg16           \320\300\1\x31\101              8086
+reg8,reg8             \300\1\x30\101                  8086
+mem,reg32             \321\300\1\x31\101              386,SM
+mem,reg16             \320\300\1\x31\101              8086,SM
+mem,reg8              \300\1\x30\101                  8086,SM
 reg32,mem             \321\301\1\x33\110              386,SM
-reg32,reg32           \321\301\1\x33\110              386
-rm16,imm8             \320\300\1\x83\206\15           8086
+reg16,mem             \320\301\1\x33\110              8086,SM
+reg8,mem              \301\1\x32\110                  8086,SM
 rm32,imm8             \321\300\1\x83\206\15           386
-reg_al,imm            \1\x34\21                       8086,SM
-reg_ax,imm            \320\1\x35\31                   8086,SM
+rm16,imm8             \320\300\1\x83\206\15           8086
 reg_eax,imm           \321\1\x35\41                   386,SM
-rm8,imm               \300\1\x80\206\21               8086,SM
-rm16,imm              \320\300\1\x81\206\31           8086,SM
+reg_ax,imm            \320\1\x35\31                   8086,SM
+reg_al,imm            \1\x34\21                       8086,SM
 rm32,imm              \321\300\1\x81\206\41           386,SM
-mem,imm8              \300\1\x80\206\21               8086,SM
-mem,imm16             \320\300\1\x81\206\31           8086,SM
+rm16,imm              \320\300\1\x81\206\31           8086,SM
+rm8,imm               \300\1\x80\206\21               8086,SM
 mem,imm32             \321\300\1\x81\206\41           386,SM
+mem,imm16             \320\300\1\x81\206\31           8086,SM
+mem,imm8              \300\1\x80\206\21               8086,SM
+reg32,reg32           \321\301\1\x33\110              386
+reg16,reg16           \320\301\1\x33\110              8086
+reg8,reg8             \301\1\x32\110                  8086
 
 [XSTORE]
 (Ch_All, Ch_None, Ch_None)
@@ -2460,10 +2457,10 @@ void                  \333\3\x0F\xA7\xE8              P6,CYRIX
 
 [CMOVcc,cmovCCX]
 (Ch_ROp1, Ch_WOp2, Ch_RFLAGS)
-reg16,mem             \320\301\1\x0F\330\x40\110      P6,SM
+reg32,reg32           \321\301\1\x0F\330\x40\110      P6
 reg16,reg16           \320\301\1\x0F\330\x40\110      P6
 reg32,mem             \321\301\1\x0F\330\x40\110      P6,SM
-reg32,reg32           \321\301\1\x0F\330\x40\110      P6
+reg16,mem             \320\301\1\x0F\330\x40\110      P6,SM
 
 [Jcc]
 (Ch_None, Ch_None, Ch_None)

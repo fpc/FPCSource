@@ -258,7 +258,7 @@ interface
          insentry  : PInsEntry;
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
-         function  Matches(p:PInsEntry):longint;
+         function  Matches(p:PInsEntry):boolean;
          function  calcsize(p:PInsEntry):shortint;
          procedure gencode(objdata:TObjData);
          function  NeedAddrPrefix(opidx:byte):boolean;
@@ -288,11 +288,12 @@ implementation
     const
      {Instruction flags }
        IF_NONE   = $00000000;
-       IF_SM     = $00000001;        { size match first two operands  }
+       IF_SM     = $00000001;  { size match first two operands  }
        IF_SM2    = $00000002;
        IF_SB     = $00000004;  { unsized operands can't be non-byte  }
        IF_SW     = $00000008;  { unsized operands can't be non-word  }
        IF_SD     = $00000010;  { unsized operands can't be nondword  }
+       IF_SMASK  = $0000001f;
        IF_AR0    = $00000020;  { SB, SW, SD applies to argument 0  }
        IF_AR1    = $00000040;  { SB, SW, SD applies to argument 1  }
        IF_AR2    = $00000060;  { SB, SW, SD applies to argument 2  }
@@ -1091,7 +1092,7 @@ implementation
       end;
 
 
-      function taicpu.Matches(p:PInsEntry):longint;
+      function taicpu.Matches(p:PInsEntry):boolean;
       { * IF_SM stands for Size Match: any operand whose size is not
        * explicitly specified by the template is `really' intended to be
        * the same size as the first size-specified operand.
@@ -1113,106 +1114,97 @@ implementation
        * required to have unspecified size in the instruction too...)
       }
       var
+        insot,
+        insflags,
+        currot,
         i,j,asize,oprs : longint;
         siz : array[0..2] of longint;
       begin
-        Matches:=100;
+        result:=false;
 
         { Check the opcode and operands }
         if (p^.opcode<>opcode) or (p^.ops<>ops) then
-         begin
-           Matches:=0;
-           exit;
-         end;
+          exit;
 
-        { Check that no spurious colons or TOs are present }
-        for i:=0 to p^.ops-1 do
-         if (oper[i]^.ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
-          begin
-            Matches:=0;
-            exit;
-          end;
-
-        { Check that the operand flags all match up }
         for i:=0 to p^.ops-1 do
          begin
-           if ((p^.optypes[i] and (not oper[i]^.ot)) or
-               ((p^.optypes[i] and OT_SIZE_MASK) and
-                ((p^.optypes[i] xor oper[i]^.ot) and OT_SIZE_MASK)))<>0 then
-            begin
-              if ((p^.optypes[i] and (not oper[i]^.ot) and OT_NON_SIZE) or
-                  (oper[i]^.ot and OT_SIZE_MASK))<>0 then
-               begin
-                 Matches:=0;
-                 exit;
-               end
-              else
-               Matches:=1;
-            end;
-         end;
-
-      { Check operand sizes }
-        { as default an untyped size can get all the sizes, this is different
-          from nasm, but else we need to do a lot checking which opcodes want
-          size or not with the automatic size generation }
-        asize:=longint($ffffffff);
-        if (p^.flags and IF_SB)<>0 then
-          asize:=OT_BITS8
-        else if (p^.flags and IF_SW)<>0 then
-          asize:=OT_BITS16
-        else if (p^.flags and IF_SD)<>0 then
-          asize:=OT_BITS32;
-        if (p^.flags and IF_ARMASK)<>0 then
-         begin
-           siz[0]:=0;
-           siz[1]:=0;
-           siz[2]:=0;
-           if (p^.flags and IF_AR0)<>0 then
-            siz[0]:=asize
-           else if (p^.flags and IF_AR1)<>0 then
-            siz[1]:=asize
-           else if (p^.flags and IF_AR2)<>0 then
-            siz[2]:=asize;
-         end
-        else
-         begin
-         { we can leave because the size for all operands is forced to be
-           the same
-           but not if IF_SB IF_SW or IF_SD is set PM }
-           if asize=-1 then
+           insot:=p^.optypes[i];
+           currot:=oper[i]^.ot;
+           { Check that the operand flags }
+           if (insot and (not currot))<>0 then
              exit;
-           siz[0]:=asize;
-           siz[1]:=asize;
-           siz[2]:=asize;
+           { Check if the passed operand size matches with the required
+             instruction operand size. The second 'and' with insot is used
+             to allow matching with undefined size }
+           if ((currot xor insot) and insot and OT_SIZE_MASK)<>0 then
+             exit;
          end;
-
-        if (p^.flags and (IF_SM or IF_SM2))<>0 then
-         begin
-           if (p^.flags and IF_SM2)<>0 then
-            oprs:=2
-           else
-            oprs:=p^.ops;
-           for i:=0 to oprs-1 do
-            if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
-             begin
-               for j:=0 to oprs-1 do
-                siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
-               break;
-             end;
-          end
-         else
-          oprs:=2;
 
         { Check operand sizes }
-        for i:=0 to p^.ops-1 do
-         begin
-           if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
-              ((oper[i]^.ot and OT_SIZE_MASK and (not siz[i]))<>0) and
-              { Immediates can always include smaller size }
-              ((oper[i]^.ot and OT_IMMEDIATE)=0) and
-               (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i]^.ot and OT_SIZE_MASK)) then
-            Matches:=2;
-         end;
+        insflags:=p^.flags;
+        if insflags and IF_SMASK<>0 then
+          begin
+            { as default an untyped size can get all the sizes, this is different
+              from nasm, but else we need to do a lot checking which opcodes want
+              size or not with the automatic size generation }
+            asize:=-1;
+            if (insflags and IF_SB)<>0 then
+              asize:=OT_BITS8
+            else if (insflags and IF_SW)<>0 then
+              asize:=OT_BITS16
+            else if (insflags and IF_SD)<>0 then
+              asize:=OT_BITS32;
+            if (insflags and IF_ARMASK)<>0 then
+             begin
+               siz[0]:=0;
+               siz[1]:=0;
+               siz[2]:=0;
+               if (insflags and IF_AR0)<>0 then
+                siz[0]:=asize
+               else if (insflags and IF_AR1)<>0 then
+                siz[1]:=asize
+               else if (insflags and IF_AR2)<>0 then
+                siz[2]:=asize;
+             end
+            else
+             begin
+               siz[0]:=asize;
+               siz[1]:=asize;
+               siz[2]:=asize;
+             end;
+
+            if (insflags and (IF_SM or IF_SM2))<>0 then
+             begin
+               if (insflags and IF_SM2)<>0 then
+                oprs:=2
+               else
+                oprs:=p^.ops;
+               for i:=0 to oprs-1 do
+                if ((p^.optypes[i] and OT_SIZE_MASK) <> 0) then
+                 begin
+                   for j:=0 to oprs-1 do
+                    siz[j]:=p^.optypes[i] and OT_SIZE_MASK;
+                   break;
+                 end;
+              end
+             else
+              oprs:=2;
+
+            { Check operand sizes }
+            for i:=0 to p^.ops-1 do
+              begin
+                insot:=p^.optypes[i];
+                currot:=oper[i]^.ot;
+                if ((insot and OT_SIZE_MASK)=0) and
+                   ((currot and OT_SIZE_MASK and (not siz[i]))<>0) and
+                   { Immediates can always include smaller size }
+                   ((currot and OT_IMMEDIATE)=0) and
+                    (((insot and OT_SIZE_MASK) or siz[i])<(currot and OT_SIZE_MASK)) then
+                  exit;
+              end;
+          end;
+
+        result:=true;
       end;
 
 
@@ -1279,13 +1271,12 @@ implementation
         insentry:=@instab[i];
         while (insentry^.opcode=opcode) do
          begin
-           if matches(insentry)=100 then
+           if matches(insentry) then
              begin
                result:=true;
                exit;
              end;
-           inc(i);
-           insentry:=@instab[i];
+           inc(insentry);
          end;
         Message1(asmw_e_invalid_opcode_and_operands,GetString);
         { No instruction found, set insentry to nil and inssize to -1 }
