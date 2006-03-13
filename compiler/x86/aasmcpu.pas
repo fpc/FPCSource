@@ -1046,9 +1046,11 @@ implementation
                             inc(l,InsOffset-LastInsOffset);
                           { instruction size will then always become 2 (PFV) }
                           relsize:=(InsOffset+2)-l;
-                          if (not assigned(currsym) or
-                              ((currsym.bind<>AB_EXTERNAL) and (currsym.address<>0))) and
-                             (relsize>=-128) and (relsize<=127) then
+                          if (relsize>=-128) and (relsize<=127) and
+                             (
+                              not assigned(currsym) or
+                              (currsym.objsection=objdata.currobjsec)
+                             ) then
                             ot:=OT_IMM32 or OT_SHORT
                           else
                             ot:=OT_IMM32 or OT_NEAR;
