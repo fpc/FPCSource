@@ -107,7 +107,7 @@ implementation
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
                 if is_signed(left.resulttype.def) Then
                   begin
-                    if (aktOptcputype <> cpu_386) and
+                    if (aktoptimizecputype <> cpu_386) and
                        not(cs_opt_size in aktoptimizerswitches) then
                       { use a sequence without jumps, saw this in
                         comp.compilers (JM) }

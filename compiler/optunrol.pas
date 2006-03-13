@@ -61,7 +61,7 @@ unit optunrol;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
-        if aktoptcputype in [cpu_Pentium4] then
+        if aktcputype in [cpu_Pentium4] then
           number_unrolls:=60 div countnodes(node)
         else
 {$endif i386}

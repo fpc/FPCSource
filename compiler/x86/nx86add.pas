@@ -874,7 +874,7 @@ unit nx86add;
         left_and_right_must_be_fpureg;
 
 {$ifndef x86_64}
-        if aktspecificoptcputype<cpu_Pentium2 then
+        if aktoptimizecputype<cpu_Pentium2 then
           begin
             emit_none(A_FCOMPP,S_NO);
             tcgx86(cg).dec_fpu_stack;

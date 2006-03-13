@@ -1555,7 +1555,7 @@ const
                    { DIVSL/DIVS/MULS/MULU with long for MC68020 only }
                    if (actasmtoken = AS_COLON) then
                    begin
-                     if (aktoptcputype = cpu_MC68020) or (cs_compilesystem in aktmoduleswitches) then
+                     if (aktcputype = cpu_MC68020) or (cs_compilesystem in aktmoduleswitches) then
                      begin
                        Consume(AS_COLON);
                        if (actasmtoken = AS_REGISTER) then

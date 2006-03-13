@@ -148,7 +148,7 @@ begin
                     else if
                      ((taicpu(p).ops <= 2) or
                       (taicpu(p).oper[2]^.typ = Top_Reg)) and
-                     (aktoptcputype < cpu_Pentium2) and
+                     (aktoptimizecputype < cpu_Pentium2) and
                      (taicpu(p).oper[0]^.val <= 12) and
                      not(cs_opt_size in aktoptimizerswitches) and
                      (not(GetNextInstruction(p, hp1)) or
@@ -198,7 +198,7 @@ begin
                              imul 6, reg1 to
                                lea (reg1,reg1,2), reg1
                                add reg1, reg1}
-                              if (aktoptcputype <= cpu_386) then
+                              if (aktoptimizecputype <= cpu_386) then
                                 begin
                                   TmpRef.index := taicpu(p).oper[1]^.reg;
                                   if (taicpu(p).ops = 3) then
@@ -255,7 +255,7 @@ begin
                              imul 10, reg1 to
                                lea (reg1,reg1,4), reg1
                                add reg1, reg1}
-                               if (aktoptcputype <= cpu_386) then
+                               if (aktoptimizecputype <= cpu_386) then
                                  begin
                                    if (taicpu(p).ops = 3) then
                                      hp1 :=  taicpu.op_reg_reg(A_ADD, S_L,
@@ -283,7 +283,7 @@ begin
                              imul 12, reg1 to
                                lea (reg1,reg1,2), reg1
                                lea (,reg1,4), reg1}
-                               if (aktoptcputype <= cpu_386)
+                               if (aktoptimizecputype <= cpu_386)
                                  then
                                    begin
                                      TmpRef.index := taicpu(p).oper[1]^.reg;
@@ -1509,7 +1509,7 @@ begin
                                   end;
                             end;
                           if TmpBool2 or
-                             ((aktoptcputype < cpu_Pentium2) and
+                             ((aktoptimizecputype < cpu_Pentium2) and
                              (taicpu(p).oper[0]^.val <= 3) and
                              not(cs_opt_size in aktoptimizerswitches)) then
                             begin
@@ -1528,7 +1528,7 @@ begin
                             end;
                         end
                       else
-                        if (aktoptcputype < cpu_Pentium2) and
+                        if (aktoptimizecputype < cpu_Pentium2) and
                            (taicpu(p).oper[0]^.typ = top_const) and
                            (taicpu(p).oper[1]^.typ = top_reg) then
                           if (taicpu(p).oper[0]^.val = 1) then
@@ -1698,7 +1698,7 @@ begin
             case taicpu(p).opcode Of
 {$ifdef USECMOV}
               A_Jcc:
-                if (aktspecificoptcputype>=cpu_Pentium2) then
+                if (aktcputype>=cpu_Pentium2) then
                   begin
                      { check for
                             jCC   xxx
@@ -1930,7 +1930,7 @@ begin
           begin
             case taicpu(p).opcode Of
               A_CALL:
-                if (AktOptcputype < cpu_Pentium2) and
+                if (aktoptimizecputype < cpu_Pentium2) and
                    GetNextInstruction(p, hp1) and
                    (hp1.typ = ait_instruction) and
                    (taicpu(hp1).opcode = A_JMP) and
@@ -1983,7 +1983,7 @@ See test/tgadint64 in the test suite.
                             begin
                               if IsGP32Reg(getsupreg(taicpu(p).oper[1]^.reg)) and
                                  not(cs_opt_size in aktoptimizerswitches) and
-                                 (aktoptcputype = cpu_Pentium) then
+                                 (aktoptimizecputype = cpu_Pentium) then
                                   {Change "movzbl %reg1, %reg2" to
                                    "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
                                    PentiumMMX}
@@ -2002,7 +2002,7 @@ See test/tgadint64 in the test suite.
                           (taicpu(p).oper[0]^.ref^.index <> taicpu(p).oper[1]^.reg) and
                           not(cs_opt_size in aktoptimizerswitches) and
                           IsGP32Reg(getsupreg(taicpu(p).oper[1]^.reg)) and
-                          (aktoptcputype = cpu_Pentium) and
+                          (aktoptimizecputype = cpu_Pentium) and
                           (taicpu(p).opsize = S_BL) then
                         {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
                           Pentium and PentiumMMX}

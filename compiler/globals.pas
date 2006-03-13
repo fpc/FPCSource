@@ -238,13 +238,13 @@ interface
        aktpackenum        : shortint;
        aktmaxfpuregisters : longint;
        aktalignment       : talignmentinfo;
-       aktoptcputype,
-       aktspecificoptcputype : tcputype;
-       aktfputype        : tfputype;
+       aktcputype,
+       aktoptimizecputype      : tcputype;
+       aktfputype         : tfputype;
        aktasmmode         : tasmmode;
        aktinterfacetype   : tinterfacetypes;
        aktdefproccall     : tproccalloption;
-       aktsourcecodepage : tcodepagestring;
+       aktsourcecodepage  : tcodepagestring;
 
      { Memory sizes }
        heapsize,
