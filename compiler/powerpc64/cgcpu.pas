@@ -1109,10 +1109,10 @@ procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
   size: tcgsize; src1, src2, dst: tregister);
 const
   op_reg_reg_opcg2asmop32: array[TOpCG] of tasmop =
-  (A_NONE, A_ADD, A_AND, A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NEG, A_NOT, A_OR,
+  (A_NONE, A_MR, A_ADD, A_AND, A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NEG, A_NOT, A_OR,
    A_SRAW, A_SLW, A_SRW, A_SUB, A_XOR);
   op_reg_reg_opcg2asmop64: array[TOpCG] of tasmop =
-  (A_NONE, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
+  (A_NONE, A_MR, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
    A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR);
 begin
   case op of
