@@ -2305,8 +2305,10 @@ const win32stub : array[0..131] of byte=(
             Concat('  SYMBOL etext');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .data');
+            Concat('  SYMBOL __data_start__');
             Concat('  OBJSECTION .data*');
             Concat('  SYMBOL edata');
+            Concat('  SYMBOL __data_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
             Concat('  OBJSECTION .idata$2');
@@ -2318,7 +2320,9 @@ const win32stub : array[0..131] of byte=(
             Concat('  OBJSECTION .idata$7');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .bss');
+            Concat('  SYMBOL __bss_start__');
             Concat('  OBJSECTION .bss*');
+            Concat('  SYMBOL __bss_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .rsrc');
             Concat('  OBJSECTION .rsrc*');
