@@ -82,6 +82,7 @@ begin
   If FBBufferCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
   FBBuffercount := 0;
+  SetLength(FFieldBufPositions,0);
   FBCurrentrecord := -1;
   FIsEOF := true;
   FIsbOF := true;
@@ -406,19 +407,10 @@ begin
       result := false;
       exit;
       end;
-    inc(Currbuff,FNullmaskSize);
 
-    for x := 0 to FieldDefs.count-1 do
-      begin
-      if (Field.FieldName = FieldDefs[x].Name) then
-        begin
-        // a nil-buffer is allowed for the fields.isNull function
-        if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
-        Result := True;
-        Break;
-        end
-      else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
-      end;
+    inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
+    if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
+    Result := True;
     end;
 end;
 
@@ -708,8 +700,12 @@ var x : longint;
 begin
   FNullmaskSize := 1+((FieldDefs.count) div 8);
   FRecordSize := FNullmaskSize;
+  SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
+    begin
+    FFieldBufPositions[x] := FRecordSize;
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
+    end;
 end;
 
 function TBufDataset.GetRecordSize : Word;
@@ -746,6 +742,7 @@ Function TBufDataset.GetRecordCount: Longint;
 begin
   Result := FBRecordCount-FBDeletedRecords;
 end;
+
 
 
 

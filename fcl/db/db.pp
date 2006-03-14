@@ -1510,6 +1510,7 @@ type
     FEditBuf        : PRecUpdateBuffer;
     FApplyingUpdates: boolean;
     FBDeletedRecords: integer;
+    FFieldBufPositions : array of longint;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
