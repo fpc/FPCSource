@@ -1166,7 +1166,7 @@ unit cgx86;
         make_simple_ref(list,tmpref);
 {$ifdef x86_64}
         { x86_64 only supports signed 32 bits constants directly }
-        if not(op in [OP_NONE,OP_MOVE) and
+        if not(op in [OP_NONE,OP_MOVE]) and
            (size in [OS_S64,OS_64]) and
             ((a<low(longint)) or (a>high(longint))) then
           begin
