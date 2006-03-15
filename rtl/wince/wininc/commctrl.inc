@@ -54,7 +54,6 @@
              4    CommandBar_Show
             63    CreateMRUListA
             64    CreateMRUListW
-            19    CreatePropertySheetPageW
             17    CreateStatusWindowW
             15    CreateToolbar
             16    CreateToolbarEx
@@ -101,7 +100,6 @@
                   ListView_SetItemSpacing
             75    PopulateComboWithMRU
             76    PopulateMenuWithMRU
-            18    PropertySheetW
             80    SHCreateDefaultGradient
             79    SHDrawGradient
             81    SHDrawText
@@ -118,6 +116,8 @@
 //*****************************************************************************
 // consts
 //*****************************************************************************
+const
+  COMCTL32_VERSION=$020c;
 
 //*****************************************************************************
 // types
@@ -131,8 +131,10 @@
 {$endif read_interface}
 
 { already defined in func.inc
-procedure InitCommonControls; external ComctlDLL name 'InitCommonControls';
-function InitCommonControlsEx(LPINITCOMMONCONTROLSEX):WINBOOL; external ComctlDLL name 'InitCommonControlsEx';
+CreatePropertySheetPageW
+InitCommonControls
+InitCommonControlsEx
+PropertySheetW
 }
 
 {$ifdef read_implementation}

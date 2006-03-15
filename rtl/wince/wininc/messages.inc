@@ -64,6 +64,9 @@
     { UNICODE  }
 
     const
+    
+       WM_USER = 1024;  //keep it first
+
        ACM_PLAY = 1125;
        ACM_STOP = 1126;
        ACN_START = 1;
@@ -254,18 +257,15 @@
      HDM_INSERTITEMA = 4609;
      HDM_SETITEMA = 4612;
 {$ifdef UNICODE}
-
-  const
      HDM_GETITEM = HDM_GETITEMW;
      HDM_INSERTITEM = HDM_INSERTITEMW;
      HDM_SETITEM = HDM_SETITEMW;
 {$else}
-
-  const
      HDM_GETITEM = HDM_GETITEMA;
      HDM_INSERTITEM = HDM_INSERTITEMA;
      HDM_SETITEM = HDM_SETITEMA;
 {$endif}
+
   { UNICODE  }
 
   const
@@ -530,51 +530,47 @@
      PBM_SETRANGE = 1025;
      PBM_SETSTEP = 1028;
      PBM_STEPIT = 1029;
-  { Property sheets  }
-     PSM_ADDPAGE = 1127;
-     PSM_APPLY = 1134;
-     PSM_CANCELTOCLOSE = 1131;
-     PSM_CHANGED = 1128;
-     PSM_GETTABCONTROL = 1140;
-     PSM_GETCURRENTPAGEHWND = 1142;
-     PSM_ISDIALOGMESSAGE = 1141;
+  { Property sheets  } //prsht
+     PSM_SETCURSEL          = (WM_USER + 101);
+     PSM_REMOVEPAGE         = (WM_USER + 102);
+     PSM_ADDPAGE            = (WM_USER + 103);
+     PSM_CHANGED            = (WM_USER + 104);
+     PSM_RESTARTWINDOWS     = (WM_USER + 105);
+     PSM_REBOOTSYSTEM       = (WM_USER + 106);
+     PSM_CANCELTOCLOSE      = (WM_USER + 107);
+     PSM_QUERYSIBLINGS      = (WM_USER + 108);
+     PSM_UNCHANGED          = (WM_USER + 109);
+     PSM_APPLY              = (WM_USER + 110);
+     PSM_SETTITLEA          = (WM_USER + 111);
+     PSM_SETWIZBUTTONS      = (WM_USER + 112);
+     PSM_SETCURSELID        = (WM_USER + 114);
+     PSM_SETFINISHTEXTA     = (WM_USER + 115);
+     PSM_GETTABCONTROL      = (WM_USER + 116);
+     PSM_ISDIALOGMESSAGE    = (WM_USER + 117);
+     PSM_GETCURRENTPAGEHWND = (WM_USER + 118);
+     PSM_SETTITLEW          = (WM_USER + 120);
+     PSM_SETFINISHTEXTW     = (WM_USER + 121);
      PSM_PRESSBUTTON = 1137;
-     PSM_QUERYSIBLINGS = 1132;
-     PSM_REBOOTSYSTEM = 1130;
-     PSM_REMOVEPAGE = 1126;
-     PSM_RESTARTWINDOWS = 1129;
-     PSM_SETCURSEL = 1125;
-     PSM_SETCURSELID = 1138;
-     PSM_SETFINISHTEXTW = 1145;
-     PSM_SETTITLEW = 1144;
-     PSM_SETFINISHTEXTA = 1139;
-     PSM_SETTITLEA = 1135;
 {$ifdef UNICODE}
-
-  const
      PSM_SETFINISHTEXT = PSM_SETFINISHTEXTW;
      PSM_SETTITLE = PSM_SETTITLEW;
-{$else}
-
-  const
+{$else UNICODE}
      PSM_SETFINISHTEXT = PSM_SETFINISHTEXTA;
      PSM_SETTITLE = PSM_SETTITLEA;
-{$endif}
-  { UNICODE  }
+{$endif UNICODE}
 
-  const
-     PSM_SETWIZBUTTONS = 1136;
-     PSM_UNCHANGED = 1133;
-  { Property sheet notifications  }
-     PSN_APPLY = -(202);
-     PSN_HELP = -(205);
-     PSN_KILLACTIVE = -(201);
-     PSN_QUERYCANCEL = -(209);
-     PSN_RESET = -(203);
-     PSN_SETACTIVE = -(200);
-     PSN_WIZBACK = -(206);
-     PSN_WIZFINISH = -(208);
-     PSN_WIZNEXT = -(207);
+  { Property sheet notifications  } //prsht
+     PSN_FIRST       = -(200);
+     PSN_SETACTIVE   = (PSN_FIRST-0);
+     PSN_KILLACTIVE  = (PSN_FIRST-1);
+     PSN_APPLY       = (PSN_FIRST-2);
+     PSN_RESET       = (PSN_FIRST-3);
+     PSN_HELP        = (PSN_FIRST-5);
+     PSN_WIZBACK     = (PSN_FIRST-6);
+     PSN_WIZNEXT     = (PSN_FIRST-7);
+     PSN_WIZFINISH   = (PSN_FIRST-8);
+     PSN_QUERYCANCEL = (PSN_FIRST-9);
+
   { Status window  }
      SB_GETBORDERS = 1031;
      SB_GETPARTS = 1030;
@@ -1160,7 +1156,7 @@
      WM_TIMECHANGE = 30;
      WM_TIMER = 275;
      WM_UNDO = 772;
-     WM_USER = 1024;
+     //WM_USER = 1024; moved at start
      WM_USERCHANGED = 84;
      WM_VKEYTOITEM = 46;
      WM_VSCROLL = 277;

@@ -176,7 +176,7 @@ function PageSetupDlg(_para1:LPPAGESETUPDLGW):WINBOOL; external ComdlgDLL name '
 function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external UserDLLCore name 'PeekMessageW';
 function PostThreadMessage(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external UserDLLCore name 'PostThreadMessageW';
 function PostMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external UserDLLCore name 'PostMessageW';
-function PropertySheet(lppsph:LPCPROPSHEETHEADERW):longint; external ComctlDll name 'PropertySheetW';
+function PropertySheet(lppsph:LPCPROPSHEETHEADER):longint; external ComctlDll name 'PropertySheetW';
 function RegCreateKeyEx(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD;samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG;
   external AdvapiDLLCore name 'RegCreateKeyExW';
 function RegDeleteKey(hKey:HKEY; lpSubKey:LPCWSTR):LONG; external AdvapiDLLCore name 'RegDeleteKeyW';

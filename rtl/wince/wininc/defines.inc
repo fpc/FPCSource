@@ -3188,36 +3188,59 @@ Const
      PSP_USEREFPARENT = 64;
      PSP_USETITLE = 8;
      PSP_RTLREADING = 16;
-  { PROPSHEETHEADER structure  }
+     PSP_PREMATURE = $0400; //prsht
+
+  { PROPSHEETHEADER structure  }  //prsht
      PSH_DEFAULT = 0;
-     PSH_HASHELP = 512;
-     PSH_MODELESS = 1024;
-     PSH_NOAPPLYNOW = 128;
-     PSH_PROPSHEETPAGE = 8;
      PSH_PROPTITLE = 1;
-     PSH_USECALLBACK = 256;
      PSH_USEHICON = 2;
      PSH_USEICONID = 4;
-     PSH_USEPSTARTPAGE = 64;
+     PSH_PROPSHEETPAGE = 8;
+     PSH_WIZARDHASFINISH = $0010;
      PSH_WIZARD = 32;
+     PSH_USEPSTARTPAGE = 64;
+     PSH_NOAPPLYNOW = 128;
+     PSH_USECALLBACK = 256;
+     PSH_HASHELP = 512;
+     PSH_MODELESS = 1024;
      PSH_RTLREADING = 2048;
+     PSH_WIZARDCONTEXTHELP = $1000;
+     PSH_MAXIMIZE          = $2000;
+     PSH_NOCANCELBUTTON    = $80000000; //specific ppc
+
      PSCB_INITIALIZED = 1;
      PSCB_PRECREATE = 2;
-  { PSN_APPLY message  }
+     PSCB_GETVERSION = 3;
+     PSCB_GETTITLE   = 4;
+     PSCB_GETLINKTEXT = 5;
+
+  { PSN_APPLY message  } //prsht
      PSNRET_NOERROR = 0;
+     PSNRET_INVALID  = 1;
      PSNRET_INVALID_NOCHANGEPAGE = 2;
+
   { Property Sheet  }
+     PROP_SM_CXDLG = 212;
+     PROP_SM_CYDLG = 188;
+     PROP_MED_CXDLG = 227;
+     PROP_MED_CYDLG = 215;
+     PROP_LG_CXDLG = 252;
+     PROP_LG_CYDLG = 218;
+
      PSBTN_APPLYNOW = 4;
      PSBTN_BACK = 0;
      PSBTN_CANCEL = 5;
      PSBTN_FINISH = 2;
      PSBTN_HELP = 6;
+     PSBTN_MAX  = 6; //prsht
      PSBTN_NEXT = 1;
      PSBTN_OK = 3;
+
      PSWIZB_BACK = 1;
      PSWIZB_NEXT = 2;
      PSWIZB_FINISH = 4;
      PSWIZB_DISABLEDFINISH = 8;
+
      ID_PSREBOOTSYSTEM = 3;
      ID_PSRESTARTWINDOWS = 2;
      WIZ_BODYCX = 184;
@@ -3225,6 +3248,7 @@ Const
      WIZ_CXBMP = 80;
      WIZ_CXDLG = 276;
      WIZ_CYDLG = 140;
+
   { VX_FIXEDFILEINFO structure  }
     { was #define dname def_expr }
     function VS_FILE_INFO : LPTSTR;
