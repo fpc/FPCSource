@@ -4482,6 +4482,7 @@ rtl/unix/dynlibs.inc svneol=native#text/plain
 rtl/unix/errors.pp svneol=native#text/plain
 rtl/unix/fpmake.inc svneol=native#text/plain
 rtl/unix/genfdset.inc svneol=native#text/plain
+rtl/unix/genfunch.inc svneol=native#text/plain
 rtl/unix/genfuncs.inc svneol=native#text/plain
 rtl/unix/gensigset.inc svneol=native#text/plain
 rtl/unix/initc.pp svneol=native#text/plain

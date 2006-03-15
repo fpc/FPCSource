@@ -45,6 +45,7 @@ Uses UnixType;
 
 {$i bunxovlh.inc}
 
+{$i genfunch.inc}
 
 implementation
 
