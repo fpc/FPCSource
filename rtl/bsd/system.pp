@@ -234,6 +234,9 @@ begin
   argc:= argcparam;
   argv:= argvparam;
   envp:= envpparam;
+{$ifdef cpui386}
+  Set8087CW(Default8087CW);  
+{$endif cpui386}
 {$if not defined(FPC_DARWIN_PASCALMAIN) or defined(FPC_DARWIN_JMP_MAIN)}
   pascalmain;  {run the pascal main program}
 {$endif}
