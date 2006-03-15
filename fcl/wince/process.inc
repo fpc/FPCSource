@@ -202,7 +202,7 @@ begin
       If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
                    FInheritHandles,FCreationFlags,FEnv,PDir,@FStartupInfo,
                    fProcessInformation) then
-        Raise Exception.CreateFmt('Failed to execute %s : %d',[FCommandLine,GetLastError]);
+        Raise EProcess.CreateFmt('Failed to execute %s : %d',[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
       FProcessID:=FProcessINformation.dwProcessID;
