@@ -64,6 +64,14 @@ const
             casmreader : tx8664attreader;
           );
 
+  asmmode_x86_64_standard_info : tasmmodeinfo =
+          (
+            id    : asmmode_standard;
+            idtxt : 'STANDARD';
+            casmreader : tx8664attreader;
+          );
+
 initialization
   RegisterAsmMode(asmmode_x86_64_gas_info);
+  RegisterAsmMode(asmmode_x86_64_standard_info);
 end.
