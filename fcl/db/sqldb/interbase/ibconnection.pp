@@ -16,6 +16,11 @@ uses
 
 type
 
+  EIBDatabaseError = class(EDatabaseError)
+    public
+      GDSErrorCode : Longint;
+  end;
+
   TIBCursor = Class(TSQLCursor)
     protected
     Status               : array [0..19] of ISC_STATUS;
@@ -110,6 +115,8 @@ var
   buf : array [0..1024] of char;
   p   : pointer;
   Msg : string;
+  E   : EIBDatabaseError;
+  
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
@@ -117,7 +124,9 @@ begin
     msg := '';
     while isc_interprete(Buf, @p) > 0 do
       Msg := Msg + LineEnding +' -' + StrPas(Buf);
-    DatabaseError(ProcName + ': ' + Msg,self);
+    E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
+    E.GDSErrorCode := Status[1];
+    Raise E;
   end;
 end;
 
