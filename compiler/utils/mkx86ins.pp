@@ -15,35 +15,12 @@
 program mkx86ins;
 
 const
-  Version = '1.5.0';
+  Version = '1.5.1';
 
 var
    s : string;
    i : longint;
    x86_64 : boolean;
-
-{$ifndef FPC}
-  procedure readln(var t:text;var s:string);
-  var
-    c : char;
-    i : longint;
-  begin
-    c:=#0;
-    i:=0;
-    while (not eof(t)) and (c<>#10) do
-     begin
-       read(t,c);
-       if c<>#10 then
-        begin
-          inc(i);
-          s[i]:=c;
-        end;
-     end;
-    if (i>0) and (s[i]=#13) then
-     dec(i);
-    s[0]:=chr(i);
-  end;
-{$endif}
 
     function lower(const s : string) : string;
     {
@@ -76,35 +53,48 @@ var
       end;
 
 
-function formatop(s:string):string;
+function formatop(s:string;allowsizeonly:boolean):string;
    const
-     replaces=19;
+     replaces=26;
      replacetab : array[1..replaces,1..2] of string[32]=(
        (':',' or ot_colon'),
-       ('mem8','mem or ot_bits8'),
-       ('mem16','mem or ot_bits16'),
-       ('mem32','mem or ot_bits32'),
-       ('mem64','mem or ot_bits64'),
-       ('mem80','mem or ot_bits80'),
-       ('mem','memory'),
-       ('memory_offs','mem_offs'),
-       ('imm8','imm or ot_bits8'),
-       ('imm16','imm or ot_bits16'),
-       ('imm32','imm or ot_bits32'),
-       ('imm64','imm or ot_bits64'),
-       ('imm80','imm or ot_bits80'),
-       ('imm','immediate'),
+       ('reg','regnorm'),
+       ('regmem','regmem'),
        ('rm8','regmem or ot_bits8'),
        ('rm16','regmem or ot_bits16'),
        ('rm32','regmem or ot_bits32'),
        ('rm64','regmem or ot_bits64'),
-       ('rm80','regmem or ot_bits80')
+       ('rm80','regmem or ot_bits80'),
+       ('mem8','memory or ot_bits8'),
+       ('mem16','memory or ot_bits16'),
+       ('mem32','memory or ot_bits32'),
+       ('mem64','memory or ot_bits64'),
+       ('mem80','memory or ot_bits80'),
+       ('mem','memory'),
+       ('memory_offs','mem_offs'),
+       ('imm8','immediate or ot_bits8'),
+       ('imm16','immediate or ot_bits16'),
+       ('imm32','immediate or ot_bits32'),
+       ('imm64','immediate or ot_bits64'),
+       ('imm80','immediate or ot_bits80'),
+       ('imm','immediate'),
+       ('8','bits8'),
+       ('16','bits16'),
+       ('32','bits32'),
+       ('64','bits64'),
+       ('80','bits80')
      );
   var
     i : longint;
   begin
     for i:=1to replaces do
-     replace(s,replacetab[i,1],replacetab[i,2]);
+      begin
+        if s=replacetab[i,1] then
+          begin
+            s:=replacetab[i,2];
+            break;
+          end;
+      end;
     formatop:=s;
   end;
 
@@ -349,16 +339,11 @@ begin
           if (hs='void') or (hs='ignore') then
             break;
           inc(ops);
-          optypes[ops]:=optypes[ops]+'ot_'+formatop(hs);
-{          if s[i]=':' then
-            begin
-               inc(i);
-               optypes[ops]:=optypes[ops]+' or ot_'+formatop(readstr);
-            end;}
+          optypes[ops]:=optypes[ops]+'ot_'+formatop(hs,false);
           while s[i]='|' do
             begin
                inc(i);
-               optypes[ops]:=optypes[ops]+' or ot_'+formatop(readstr);
+               optypes[ops]:=optypes[ops]+' or ot_'+formatop(readstr,true);
             end;
           if s[i] in [',',':'] then
             inc(i)

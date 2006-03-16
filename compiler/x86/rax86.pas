@@ -554,6 +554,16 @@ begin
           siz:=S_FAR;
     end;
 
+{$ifdef x86_64}
+  { Convert movq with at least one general registers to mov instruction }
+  if (opcode=A_MOVQ) and
+     (ops=2) and
+     (
+      (operands[1].opr.typ=OPR_REGISTER) or
+      (operands[2].opr.typ=OPR_REGISTER)
+     ) then
+    opcode:=A_MOV;
+{$endif x86_64}
 
    { GNU AS interprets FDIV without operand differently
      for version 2.9.1 and 2.10
@@ -683,15 +693,6 @@ begin
          end;
     end;
 
- {This is dead code since opcode and opsize aren't used from here!
-  Commented out...
-  if (opcode=A_CALL) and (opsize=S_FAR) then
-    opcode:=A_LCALL;
-  if (opcode=A_JMP) and (opsize=S_FAR) then
-    opcode:=A_LJMP;
-  if (opcode=A_LCALL) or (opcode=A_LJMP) then
-    opsize:=S_FAR;}
-
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
@@ -700,11 +701,7 @@ begin
   if assigned(ai) then
    begin
      { Check the instruction if it's valid }
-{$ifndef NOAG386BIN}
-{$ifndef x86_64}
      ai.CheckIfValid;
-{$endif x86_64}
-{$endif NOAG386BIN}
      p.concat(ai);
    end
   else

@@ -1795,6 +1795,7 @@ asmw_e_redefined_label=08017_E_Asm: Redefined label $1
 asmw_e_first_defined_label=08018_E_Asm: First defined here
 asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 Bit references not supported
+asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 
 #
 # Executing linker/assembler
