@@ -299,7 +299,7 @@ begin
   case Type_Oid of
     Oid_varchar,Oid_bpchar,
     Oid_name               : Result := ftstring;
-    Oid_text               : REsult := ftmemo;
+    Oid_text               : Result := ftstring;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
