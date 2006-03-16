@@ -36,7 +36,7 @@ unit tgobj;
       globals,globtype,
       symtype,
       cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai;
+      aasmbase,aasmtai,aasmdata;
 
     type
       ptemprecord = ^ttemprecord;
@@ -59,8 +59,8 @@ unit tgobj;
        private
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function alloctemp(list: taasmoutput; size,alignment : longint; temptype : ttemptype; def:tdef) : longint;
-          procedure freetemp(list: taasmoutput; pos:longint;temptypes:ttemptypeset);
+          function alloctemp(list: TAsmList; size,alignment : longint; temptype : ttemptype; def:tdef) : longint;
+          procedure freetemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
        public
           { contains all temps }
           templist      : ptemprecord;
@@ -80,12 +80,12 @@ unit tgobj;
           }
           procedure setfirsttemp(l : longint);
 
-          procedure gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
-          procedure gettemptyped(list: taasmoutput; def:tdef;temptype:ttemptype;var ref : treference);
-          procedure ungettemp(list: taasmoutput; const ref : treference);
+          procedure gettemp(list: TAsmList; size : longint;temptype:ttemptype;var ref : treference);
+          procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;var ref : treference);
+          procedure ungettemp(list: TAsmList; const ref : treference);
 
-          function sizeoftemp(list: taasmoutput; const ref: treference): longint;
-          function changetemptype(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
+          function sizeoftemp(list: TAsmList; const ref: treference): longint;
+          function changetemptype(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
 
           {# Returns TRUE if the reference ref is allocated in temporary volatile memory space,
              otherwise returns FALSE.
@@ -97,17 +97,17 @@ unit tgobj;
              The freed space can later be reallocated and reused. If this reference
              is not in the temporary memory, it is simply not freed.
           }
-          procedure ungetiftemp(list: taasmoutput; const ref : treference);
+          procedure ungetiftemp(list: TAsmList; const ref : treference);
 
           { Allocate space for a local }
-          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
-          procedure UnGetLocal(list: taasmoutput; const ref : treference);
+          procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
+          procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
 
      var
        tg: ttgobj;
 
-    procedure location_freetemp(list:taasmoutput; const l : tlocation);
+    procedure location_freetemp(list:TAsmList; const l : tlocation);
 
 
 implementation
@@ -141,7 +141,7 @@ implementation
                                     Helpers
 *****************************************************************************}
 
-    procedure location_freetemp(list:taasmoutput; const l : tlocation);
+    procedure location_freetemp(list:TAsmList; const l : tlocation);
       begin
         if (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
          tg.ungetiftemp(list,l.reference);
@@ -234,7 +234,7 @@ implementation
       end;
 
 
-    function ttgobj.AllocTemp(list: taasmoutput; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
+    function ttgobj.AllocTemp(list: TAsmList; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
       var
          tl,htl,
          bestslot,bestprev,
@@ -393,7 +393,7 @@ implementation
       end;
 
 
-    procedure ttgobj.FreeTemp(list: taasmoutput; pos:longint;temptypes:ttemptypeset);
+    procedure ttgobj.FreeTemp(list: TAsmList; pos:longint;temptypes:ttemptypeset);
       var
          hp,hnext,hprev,hprevfree : ptemprecord;
       begin
@@ -478,7 +478,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
+    procedure ttgobj.gettemp(list: TAsmList; size : longint;temptype:ttemptype;var ref : treference);
       var
         varalign : longint;
       begin
@@ -492,7 +492,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemptyped(list: taasmoutput; def:tdef;temptype:ttemptype;var ref : treference);
+    procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;var ref : treference);
       var
         varalign : longint;
       begin
@@ -526,7 +526,7 @@ implementation
       end;
 
 
-    function ttgobj.sizeoftemp(list: taasmoutput; const ref: treference): longint;
+    function ttgobj.sizeoftemp(list: TAsmList; const ref: treference): longint;
       var
          hp : ptemprecord;
       begin
@@ -548,7 +548,7 @@ implementation
       end;
 
 
-    function ttgobj.ChangeTempType(list: taasmoutput; const ref:treference;temptype:ttemptype):boolean;
+    function ttgobj.ChangeTempType(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
       var
         hp : ptemprecord;
       begin
@@ -589,20 +589,20 @@ implementation
       end;
 
 
-    procedure ttgobj.UnGetTemp(list: taasmoutput; const ref : treference);
+    procedure ttgobj.UnGetTemp(list: TAsmList; const ref : treference);
       begin
         FreeTemp(list,ref.offset,[tt_normal,tt_noreuse,tt_persistent]);
       end;
 
 
-    procedure ttgobj.UnGetIfTemp(list: taasmoutput; const ref : treference);
+    procedure ttgobj.UnGetIfTemp(list: TAsmList; const ref : treference);
       begin
         if istemp(ref) then
           FreeTemp(list,ref.offset,[tt_normal]);
       end;
 
 
-    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : treference);
+    procedure ttgobj.getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
       var
         varalign : longint;
       begin
@@ -616,7 +616,7 @@ implementation
       end;
 
 
-    procedure ttgobj.UnGetLocal(list: taasmoutput; const ref : treference);
+    procedure ttgobj.UnGetLocal(list: TAsmList; const ref : treference);
       begin
         FreeTemp(list,ref.offset,[tt_persistent]);
       end;

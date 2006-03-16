@@ -42,7 +42,7 @@ implementation
       globtype,systems,
       verbose,globals,
       symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,tgobj,
       ncon,
       cpubase,
@@ -203,26 +203,26 @@ implementation
                { use the register as base in a reference (JM)                }
                if ranges then
                  begin
-                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_INT);
-                   cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
+                   pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize<>OS_INT then
-                     cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,255,pleftreg);
+                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,255,pleftreg);
                    opsize:=OS_INT;
                  end
                else
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_8);
+                   pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_8);
                    opsize := OS_8;
                  end;
              end
             else
              begin
                { load the value in a register }
-               pleftreg:=cg.getintregister(exprasmlist,OS_32);
+               pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                opsize:=OS_32;
-               cg.a_load_ref_reg(exprasmlist,OS_8,OS_32,left.location.reference,pleftreg);
+               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_32,left.location.reference,pleftreg);
              end;
 
             { Get a label to jump to the end }
@@ -235,7 +235,7 @@ implementation
             else
               location.resflags:=F_E;
 
-            objectlibrary.getjumplabel(l);
+            current_asmdata.getjumplabel(l);
 
             { how much have we already substracted from the x in the }
             { "x in [y..z]" expression                               }
@@ -253,12 +253,12 @@ implementation
                       begin
                         if (left.location.loc = LOC_CREGISTER) then
                           begin
-                            hreg:=cg.getintregister(exprasmlist,OS_INT);
-                            cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,pleftreg,hreg);
+                            hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,pleftreg,hreg);
                             pleftreg:=hreg;
                             opsize:=OS_INT;
                           end;
-                        cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
                       end;
 
                     { new total value substracted from x:           }
@@ -269,36 +269,36 @@ implementation
                     { we need a carry in case the element is in the range }
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
-                    cg.a_cmp_const_reg_label(exprasmlist,opsize,OC_B,setparts[i].stop-setparts[i].start+1,pleftreg,l);
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_B,setparts[i].stop-setparts[i].start+1,pleftreg,l);
                   end
                 else
                   { if setparts[i].start = 0 and setparts[i].stop = 255,  }
                   { it's always true since "in" is only allowed for bytes }
                   begin
-                    exprasmlist.concat(taicpu.op_none(A_STC,S_NO));
-                    cg.a_jmp_always(exprasmlist,l);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_STC,S_NO));
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,l);
                   end;
               end
              else
               begin
                 { Emit code to check if left is an element }
-                exprasmlist.concat(taicpu.op_const_reg(A_CMP,TCGSize2OpSize[opsize],setparts[i].stop-adjustment,
+                current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,TCGSize2OpSize[opsize],setparts[i].stop-adjustment,
                   pleftreg));
                 { Result should be in carry flag when ranges are used }
                 if ranges then
-                  exprasmlist.concat(taicpu.op_none(A_STC,S_NO));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_STC,S_NO));
                 { If found, jump to end }
-                cg.a_jmp_flags(exprasmlist,F_E,l);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l);
               end;
              if ranges and
                 { if the last one was a range, the carry flag is already }
                 { set appropriately                                      }
                 not(setparts[numparts].range) then
-               exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
+               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
              { Now place the end label }
-             cg.a_label(exprasmlist,l);
+             cg.a_label(current_asmdata.CurrAsmList,l);
           end
          else
           begin
@@ -334,16 +334,16 @@ implementation
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hreg:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hreg);
+                          hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32);
+                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.register,hreg);
                        end;
                   else
                     begin
                       { the set element isn't never samller than a byte
                         and because it's a small set we need only 5 bits
                         but 8 bits are easier to load                    }
-                      hreg:=cg.getintregister(exprasmlist,OS_32);
-                      cg.a_load_ref_reg(exprasmlist,OS_8,OS_32,left.location.reference,hreg);
+                      hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_32,left.location.reference,hreg);
                     end;
                   end;
 
@@ -357,8 +357,8 @@ implementation
                        begin
                          { We have to load the value into a register because
                             btl does not accept values only refs or regs (PFV) }
-                         hreg2:=cg.getintregister(exprasmlist,OS_32);
-                         cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hreg2);
+                         hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                         cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
                          emit_reg_reg(A_BT,S_L,hreg,hreg2);
                        end;
                      LOC_CREFERENCE,
@@ -377,28 +377,28 @@ implementation
                if right.location.loc=LOC_CONSTANT then
                 begin
                   location.resflags:=F_C;
-                  objectlibrary.getjumplabel(l);
-                  objectlibrary.getjumplabel(l2);
+                  current_asmdata.getjumplabel(l);
+                  current_asmdata.getjumplabel(l2);
 
                   { load constants to a register }
                   if left.nodetype=ordconstn then
-                    location_force_reg(exprasmlist,left.location,OS_INT,true);
+                    location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
 
                   case left.location.loc of
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hreg:=cg.makeregsize(exprasmlist,left.location.register,OS_32);
-                          cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hreg);
-                          cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_BE,31,hreg,l);
+                          hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32);
+                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.register,hreg);
+                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_32,OC_BE,31,hreg,l);
                           { reset carry flag }
-                          exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
-                          cg.a_jmp_always(exprasmlist,l2);
-                          cg.a_label(exprasmlist,l);
+                          current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                          cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                          cg.a_label(current_asmdata.CurrAsmList,l);
                           { We have to load the value into a register because
                             btl does not accept values only refs or regs (PFV) }
-                          hreg2:=cg.getintregister(exprasmlist,OS_32);
-                          cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hreg2);
+                          hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
                           emit_reg_reg(A_BT,S_L,hreg,hreg2);
                        end;
                   else
@@ -415,21 +415,21 @@ implementation
                             begin
                                emit_const_ref(A_CMP,S_B,31,left.location.reference);
                             end;
-                       cg.a_jmp_flags(exprasmlist,F_BE,l);
+                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_BE,l);
                        { reset carry flag }
-                       exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
-                       cg.a_jmp_always(exprasmlist,l2);
-                       cg.a_label(exprasmlist,l);
-                       hreg:=cg.getintregister(exprasmlist,OS_32);
-                       cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hreg);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                       cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                       cg.a_label(current_asmdata.CurrAsmList,l);
+                       hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                       hreg2:=cg.getintregister(exprasmlist,OS_32);
-                       cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hreg2);
+                       hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
                        emit_reg_reg(A_BT,S_L,hreg,hreg2);
                     end;
                   end;
-                  cg.a_label(exprasmlist,l2);
+                  cg.a_label(current_asmdata.CurrAsmList,l2);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
@@ -442,19 +442,19 @@ implementation
                else
                 begin
                   if (left.location.loc=LOC_REGISTER) then
-                    pleftreg:=cg.makeregsize(exprasmlist,left.location.register,OS_32)
+                    pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32)
                   else
-                    pleftreg:=cg.getintregister(exprasmlist,OS_32);
-                  cg.a_load_loc_reg(exprasmlist,OS_32,left.location,pleftreg);
-                  location_freetemp(exprasmlist,left.location);
+                    pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,pleftreg);
+                  location_freetemp(current_asmdata.CurrAsmList,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                  { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
+                  { tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference) happens below }
                   location.resflags:=F_C;
                 end;
              end;
           end;
           if not genjumps then
-            location_freetemp(exprasmlist,right.location);
+            location_freetemp(current_asmdata.CurrAsmList,right.location);
        end;
 
 begin

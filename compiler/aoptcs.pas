@@ -678,7 +678,7 @@ Begin
 { insert a marker noting that for the following instructions no PPaiProp's }
 { (containing optimizer info) have been generated, so GetNext/             }
 { LastInstruction will ignore them (it will use the original instructions) }
-                        hp3 := New(Pai_Marker,Init(NoPropInfoStart));
+                        hp3 := New(Pai_Marker,Init(mark_NoPropInfoStart));
                         InsertLLItem(Pai(Current^.Previous), Current, hp3);
 { Prev is used to get the contents of the registers before the sequence }
                         GetLastInstruction(Current, Prev);
@@ -743,7 +743,7 @@ Begin
 
                           End;
 { the end of the area where instructions without optimizer info can occur }
-                        hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
+                        hp3 := New(Pai_Marker,Init(mark_NoPropInfoEnd));
                         InsertLLItem(AsmL, Pai(Current^.Previous), Current, hp3);
 { if we found an instruction sequence that needs complete re-evaluation, }
 { process it                                                             }

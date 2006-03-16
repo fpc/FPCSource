@@ -42,7 +42,7 @@ interface
        globals,verbose,
        systems,
        { aasm }
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,defbase,
        { pass 1 }
@@ -64,7 +64,7 @@ interface
          ende : boolean;
          srsym,sym : tsym;
          srsymtable : tsymtable;
-         code : TAAsmoutput;
+         code : TAsmList;
          i,l : longint;
 
        procedure writeasmline;
@@ -98,7 +98,7 @@ interface
          retstr:='';
 
        c:=current_scanner.asmgetchar;
-       code:=TAAsmoutput.Create;
+       code:=TAsmList.Create;
        while not(ende) do
          begin
             { wrong placement

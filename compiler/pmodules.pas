@@ -36,12 +36,12 @@ implementation
        cutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
-       aasmtai,aasmcpu,aasmbase,
+       aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,
        nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
-       dwarf,pexports,
+       pexports,
        scanner,pbase,pexpr,psystem,psub,pdecsub;
 
 
@@ -72,10 +72,10 @@ implementation
            { Recreate import section }
            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
             begin
-              if assigned(asmlist[al_imports]) then
-               asmlist[al_imports].clear
+              if assigned(current_asmdata.asmlists[al_imports]) then
+               current_asmdata.asmlists[al_imports].clear
               else
-               asmlist[al_imports]:=taasmoutput.Create;
+               current_asmdata.asmlists[al_imports]:=TAsmList.Create;
               importlib.generatelib;
             end;
            { Readd the not processed files }
@@ -101,10 +101,10 @@ implementation
            (not use_smartlink_section) then
          begin
            { regenerate the importssection for win32 }
-           if assigned(asmlist[al_imports]) and
+           if assigned(current_asmdata.asmlists[al_imports]) and
               (target_info.system in [system_i386_win32,system_i386_wdosx, system_arm_wince,system_i386_wince]) then
             begin
-              asmlist[al_imports].clear;
+              current_asmdata.asmlists[al_imports].clear;
               importlib.generatesmartlib;
             end;
 
@@ -143,8 +143,8 @@ implementation
         if (tf_needs_dwarf_cfi in target_info.flags) and
            (af_supports_dwarf in target_asm.flags) then
           begin
-            asmlist[al_dwarf]:=taasmoutput.create;
-            dwarfcfi.generate_code(asmlist[al_dwarf]);
+            current_asmdata.asmlists[al_dwarf]:=TAsmList.create;
+            current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf]);
           end;
       end;
 
@@ -152,10 +152,10 @@ implementation
     procedure InsertThreadvarTablesTable;
       var
         hp : tused_unit;
-        ltvTables : taasmoutput;
+        ltvTables : TAsmList;
         count : longint;
       begin
-        ltvTables:=TAAsmOutput.Create;
+        ltvTables:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
@@ -176,19 +176,19 @@ implementation
         { Insert TableCount at start }
         ltvTables.insert(Tai_const.Create_32bit(count));
         { insert in data segment }
-        maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(aint));
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
-        asmlist[al_globals].concatlist(ltvTables);
-        asmlist[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
+        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'FPC_THREADVARTABLES',sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_THREADVARTABLES',AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concatlist(ltvTables);
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('FPC_THREADVARTABLES'));
         ltvTables.free;
       end;
 
     procedure AddToThreadvarList(p:tnamedindexitem;arg:pointer);
       var
-        ltvTable : taasmoutput;
+        ltvTable : TAsmList;
       begin
-        ltvTable:=taasmoutput(arg);
+        ltvTable:=TAsmList(arg);
         if (tsym(p).typ=globalvarsym) and
            (vo_is_thread_var in tglobalvarsym(p).varoptions) then
          begin
@@ -203,9 +203,9 @@ implementation
     procedure InsertThreadvars;
       var
         s : string;
-        ltvTable : TAAsmoutput;
+        ltvTable : TAsmList;
       begin
-         ltvTable:=TAAsmoutput.create;
+         ltvTable:=TAsmList.create;
          if assigned(current_module.globalsymtable) then
            current_module.globalsymtable.foreach_static(@AddToThreadvarList,ltvTable);
          current_module.localsymtable.foreach_static(@AddToThreadvarList,ltvTable);
@@ -215,11 +215,11 @@ implementation
             { end of the list marker }
             ltvTable.concat(tai_const.create_sym(nil));
             { add to datasegment }
-            maybe_new_object_file(asmlist[al_globals]);
-            new_section(asmlist[al_globals],sec_data,s,sizeof(aint));
-            asmlist[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
-            asmlist[al_globals].concatlist(ltvTable);
-            asmlist[al_globals].concat(Tai_symbol_end.Createname(s));
+            maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+            new_section(current_asmdata.asmlists[al_globals],sec_data,s,sizeof(aint));
+            current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global(s,AT_DATA,0));
+            current_asmdata.asmlists[al_globals].concatlist(ltvTable);
+            current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(s));
             current_module.flags:=current_module.flags or uf_threadvars;
           end;
          ltvTable.Free;
@@ -232,7 +232,7 @@ implementation
       hp           : tused_unit;
       found        : Boolean;
       I            : Integer;
-      ResourceInfo : taasmoutput;
+      ResourceInfo : TAsmList;
 
     begin
       if target_res.id=res_elf then
@@ -246,7 +246,7 @@ implementation
             Found:=((hp.u.flags and uf_has_resourcefiles)=uf_has_resourcefiles);
             hp:=tused_unit(hp.next);
             end;
-        ResourceInfo:=TAAsmOutput.Create;
+        ResourceInfo:=TAsmList.Create;
         if found then
           begin
           { Valid pointer to resource information }
@@ -267,8 +267,8 @@ implementation
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
           ResourceInfo.Concat(Tai_const.Create_32bit(0));
           end;
-        maybe_new_object_file(asmlist[al_globals]);
-        asmlist[al_globals].concatlist(ResourceInfo);
+        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        current_asmdata.asmlists[al_globals].concatlist(ResourceInfo);
         ResourceInfo.free;
         end;
     end;
@@ -276,10 +276,10 @@ implementation
     Procedure InsertResourceTablesTable;
       var
         hp : tused_unit;
-        ResourceStringTables : taasmoutput;
+        ResourceStringTables : tasmlist;
         count : longint;
       begin
-        ResourceStringTables:=TAAsmOutput.Create;
+        ResourceStringTables:=tasmlist.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
@@ -300,11 +300,11 @@ implementation
         { Insert TableCount at start }
         ResourceStringTables.insert(Tai_const.Create_32bit(count));
         { Add to data segment }
-        maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(aint));
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
-        asmlist[al_globals].concatlist(ResourceStringTables);
-        asmlist[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
+        maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
+        new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(aint));
+        current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
+        current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
+        current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         ResourceStringTables.free;
       end;
 
@@ -312,10 +312,10 @@ implementation
     procedure InsertInitFinalTable;
       var
         hp : tused_unit;
-        unitinits : taasmoutput;
+        unitinits : TAsmList;
         count : longint;
       begin
-        unitinits:=TAAsmOutput.Create;
+        unitinits:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
@@ -352,11 +352,11 @@ implementation
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
         { Add to data segment }
-        maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'INITFINAL',sizeof(aint));
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
-        asmlist[al_globals].concatlist(unitinits);
-        asmlist[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
+        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'INITFINAL',sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('INITFINAL',AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concatlist(unitinits);
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname('INITFINAL'));
         unitinits.free;
       end;
 
@@ -368,10 +368,10 @@ implementation
 {$ENDIF POWERPC}
       begin
         { stacksize can be specified and is now simulated }
-        maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'__stklen', sizeof(aint));
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
-        asmlist[al_globals].concat(Tai_const.Create_aint(stacksize));
+        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(stacksize));
 {$IFDEF POWERPC}
         { AmigaOS4 "stack cookie" support }
         if ( target_info.system = system_powerpc_amiga ) then
@@ -381,17 +381,17 @@ implementation
            { note: won't work for m68k amigaos or morphos. (KB) }
            str(stacksize,stkcookie);
            stkcookie:='$STACK: '+stkcookie+#0;
-           maybe_new_object_file(asmlist[al_globals]);
-           new_section(asmlist[al_globals],sec_data,'__stack_cookie',length(stkcookie));
-           asmlist[al_globals].concat(Tai_symbol.Createname_global('__stack_cookie',AT_DATA,length(stkcookie)));
-           asmlist[al_globals].concat(Tai_string.Create(stkcookie));
+           maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+           new_section(current_asmdata.asmlists[al_globals],sec_data,'__stack_cookie',length(stkcookie));
+           current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stack_cookie',AT_DATA,length(stkcookie)));
+           current_asmdata.asmlists[al_globals].concat(Tai_string.Create(stkcookie));
          end;
 {$ENDIF POWERPC}
         { Initial heapsize }
-        maybe_new_object_file(asmlist[al_globals]);
-        new_section(asmlist[al_globals],sec_data,'__heapsize',sizeof(aint));
-        asmlist[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(aint)));
-        asmlist[al_globals].concat(Tai_const.Create_aint(heapsize));
+        maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        new_section(current_asmdata.asmlists[al_globals],sec_data,'__heapsize',sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__heapsize',AT_DATA,sizeof(aint)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(heapsize));
       end;
 
 
@@ -785,13 +785,13 @@ implementation
 
       function is_assembler_generated:boolean;
       var
-        hal : tasmlist;
+        hal : tasmlisttype;
       begin
         result:=false;
         if Errorcount=0 then
           begin
-            for hal:=low(Tasmlist) to high(Tasmlist) do
-              if not asmlist[hal].empty then
+            for hal:=low(TasmlistType) to high(TasmlistType) do
+              if not current_asmdata.asmlists[hal].empty then
                 begin
                   result:=true;
                   exit;
@@ -1094,11 +1094,11 @@ implementation
            debuginfo.inserttypeinfo;
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[al_procedures],current_module.globalsymtable);
-         gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
 
          { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(asmlist[al_procedures]);
+         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
          { generate a list of threadvars }
          if not(tf_section_threadvars in target_info.flags) then
@@ -1328,7 +1328,7 @@ implementation
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             ((current_module.flags and uf_has_exports)<>0) then
-           asmlist[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
+           current_asmdata.asmlists[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
 
          If resourcestrings.ResStrCount>0 then
           begin
@@ -1398,10 +1398,10 @@ implementation
            debuginfo.inserttypeinfo;
 
          { generate wrappers for interfaces }
-         gen_intf_wrappers(asmlist[al_procedures],current_module.localsymtable);
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
 
          { generate pic helpers to load eip if necessary }
-         gen_pic_helpers(asmlist[al_procedures]);
+         gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
          { generate a list of threadvars }
          if not(tf_section_threadvars in target_info.flags) then

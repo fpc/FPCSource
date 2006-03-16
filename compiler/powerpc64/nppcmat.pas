@@ -53,7 +53,7 @@ uses
   globtype, systems,
   cutils, verbose, globals,
   symconst, symdef,
-  aasmbase, aasmcpu, aasmtai,
+  aasmbase, aasmcpu, aasmtai,aasmdata,
   defutil,
   cgbase, cgutils, cgobj, pass_1, pass_2,
   ncon, procinfo,
@@ -99,32 +99,32 @@ var
       internalerror(2005061702);
     end else if (abs(tordconstnode(right).value) = 1) then begin
       { x mod +/-1 is always zero }
-      cg.a_load_const_reg(exprasmlist, OS_INT, 0, resultreg);
+      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
     end else if (ispowerof2(tordconstnode(right).value, power)) then begin
       if (is_signed(right.resulttype.def)) then begin
-        tempreg := cg.getintregister(exprasmlist, OS_INT);
-        maskreg := cg.getintregister(exprasmlist, OS_INT);
-        modreg := cg.getintregister(exprasmlist, OS_INT);
+        tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+        maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+        modreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
-        cg.a_load_const_reg(exprasmlist, OS_INT, abs(tordconstnode(right).value)-1, modreg);
-        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, 63, numerator, maskreg);
-        cg.a_op_reg_reg_reg(exprasmlist, OP_AND, OS_INT, numerator, modreg, tempreg);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, abs(tordconstnode(right).value)-1, modreg);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, 63, numerator, maskreg);
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, numerator, modreg, tempreg);
 
-        exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC, maskreg, maskreg, modreg));
-        exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC, modreg, tempreg, 0));
-        exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE, modreg, modreg, modreg));
-        cg.a_op_reg_reg_reg(exprasmlist, OP_AND, OS_INT, modreg, maskreg, maskreg);
-        cg.a_op_reg_reg_reg(exprasmlist, OP_OR, OS_INT, maskreg, tempreg, resultreg);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ANDC, maskreg, maskreg, modreg));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC, modreg, tempreg, 0));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBFE, modreg, modreg, modreg));
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, modreg, maskreg, maskreg);
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_INT, maskreg, tempreg, resultreg);
       end else begin
-        cg.a_op_const_reg_reg(exprasmlist, OP_AND, OS_INT, tordconstnode(right).value-1, numerator, 
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_INT, tordconstnode(right).value-1, numerator, 
           resultreg);
       end;
     end else begin
-      cg.a_op_const_reg_reg(exprasmlist, divCgOps[is_signed(right.resulttype.def)], OS_INT, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resulttype.def)], OS_INT, 
         tordconstnode(right).value, numerator, resultreg);
-      cg.a_op_const_reg_reg(exprasmlist, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, 
         resultreg);
-      cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, resultreg, numerator, resultreg);
+      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
     end;
   end;
 
@@ -136,24 +136,24 @@ begin
 
   { put numerator in register }
   size:=def_cgsize(left.resulttype.def);
-  location_force_reg(exprasmlist,left.location,
+  location_force_reg(current_asmdata.CurrAsmList,left.location,
     size,true);
   location_copy(location,left.location);
   numerator := location.register;
   resultreg := location.register;
   if (location.loc = LOC_CREGISTER) then begin
     location.loc := LOC_REGISTER;
-    location.register := cg.getintregister(exprasmlist,size);
+    location.register := cg.getintregister(current_asmdata.CurrAsmList,size);
     resultreg := location.register;
   end else if (nodetype = modn) or (right.nodetype = ordconstn) then begin
     { for a modulus op, and for const nodes we need the result register
      to be an extra register }
-    resultreg := cg.getintregister(exprasmlist,size);
+    resultreg := cg.getintregister(current_asmdata.CurrAsmList,size);
   end;
   done := false;
   if (cs_opt_level1 in aktoptimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
-      cg.a_op_const_reg_reg(exprasmlist, divCgOps[is_signed(right.resulttype.def)], 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resulttype.def)], 
         size, tordconstnode(right).value, numerator, resultreg)
     else 
       genOrdConstNodeMod;
@@ -162,9 +162,9 @@ begin
 
   if (not done) then begin
     { load divider in a register if necessary }
-    location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
+    location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
     if (right.nodetype <> ordconstn) then
-      exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR7,
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR7,
         right.location.register, 0))
     else begin
       if (tordconstnode(right).value = 0) then 
@@ -175,14 +175,14 @@ begin
     { select the correct opcode according to the sign of the result, whether we need
      overflow checking }
     op := divops[is_signed(right.resulttype.def), cs_check_overflow in aktlocalswitches];
-    exprasmlist.concat(taicpu.op_reg_reg_reg(op, resultreg, numerator,
+    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, resultreg, numerator,
       divider));
 
     if (nodetype = modn) then begin
       { multiply with the divisor again, taking care of the correct size }
-      exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLD,resultreg,
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULLD,resultreg,
           divider,resultreg));
-      exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
         numerator,resultreg));
       resultreg := location.register;
     end;
@@ -191,16 +191,16 @@ begin
   location.loc:=LOC_REGISTER;
   location.register:=resultreg;
   if right.nodetype <> ordconstn then begin
-    objectlibrary.getjumplabel(hl);
-    exprasmlist.concat(taicpu.op_cond_sym(A_BC,zerocond,hl));
-    cg.a_call_name(exprasmlist,'FPC_DIVBYZERO');
-    cg.a_label(exprasmlist,hl);
+    current_asmdata.getjumplabel(hl);
+    current_asmdata.CurrAsmList.concat(taicpu.op_cond_sym(A_BC,zerocond,hl));
+    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIVBYZERO');
+    cg.a_label(current_asmdata.CurrAsmList,hl);
   end;
   { unsigned division/module can only overflow in case of division by zero
    (but checking this overflow flag is more convoluted than performing a  
    simple comparison with 0)                                             }
   if is_signed(right.resulttype.def) then
-    cg.g_overflowcheck(exprasmlist,location,resulttype.def);
+    cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
 end;
 
 {*****************************************************************************
@@ -221,14 +221,14 @@ begin
   secondpass(right);
 
   { load left operators in a register }
-  location_force_reg(exprasmlist, left.location,
+  location_force_reg(current_asmdata.CurrAsmList, left.location,
     def_cgsize(left.resulttype.def), true);
   location_copy(location, left.location);
   resultreg := location.register;
   hregister1 := location.register;
   if (location.loc = LOC_CREGISTER) then begin
     location.loc := LOC_REGISTER;
-    resultreg := cg.getintregister(exprasmlist, OS_INT);
+    resultreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     location.register := resultreg;
   end;
 
@@ -243,14 +243,14 @@ begin
     // result types with size < 32 bits have their shift values masked
     // differently... :/
     shiftval := tordconstnode(right).value and (tcgsize2size[def_cgsize(resulttype.def)] * 8 -1);
-    cg.a_op_const_reg_reg(exprasmlist, op, def_cgsize(resulttype.def),
+    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resulttype.def),
       shiftval, hregister1, resultreg)
   end else begin
     { load shift count in a register if necessary }
-    location_force_reg(exprasmlist, right.location,
+    location_force_reg(current_asmdata.CurrAsmList, right.location,
       def_cgsize(right.resulttype.def), true);
     hregister2 := right.location.register;
-    cg.a_op_reg_reg_reg(exprasmlist, op, def_cgsize(resulttype.def), hregister2,
+    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resulttype.def), hregister2,
       hregister1, resultreg);
   end;
 end;
@@ -280,23 +280,23 @@ begin
         begin
           src1 := left.location.register;
           if left.location.loc = LOC_CREGISTER then
-            location.register := cg.getintregister(exprasmlist, OS_INT)
+            location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT)
           else
-            location.register := cg.getfpuregister(exprasmlist, location.size);
+            location.register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
         end;
       LOC_REFERENCE, LOC_CREFERENCE:
         begin
           if (left.resulttype.def.deftype = floatdef) then begin
-            src1 := cg.getfpuregister(exprasmlist,
+            src1 := cg.getfpuregister(current_asmdata.CurrAsmList,
               def_cgsize(left.resulttype.def));
             location.register := src1;
-            cg.a_loadfpu_ref_reg(exprasmlist,
+            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
               def_cgsize(left.resulttype.def),
               left.location.reference, src1);
           end else begin
-            src1 := cg.getintregister(exprasmlist, OS_64);
+            src1 := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
             location.register := src1;
-            cg.a_load_ref_reg(exprasmlist, OS_64, OS_64,
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_64, OS_64,
               left.location.reference, src1);
           end;
         end;
@@ -313,9 +313,9 @@ begin
       location.loc := LOC_FPUREGISTER;
     end;
     { emit operation }
-    exprasmlist.concat(taicpu.op_reg_reg(op, location.register, src1));
+    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, location.register, src1));
   end;
-  cg.g_overflowcheck(exprasmlist, location, resulttype.def);
+  cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resulttype.def);
 end;
 
 {*****************************************************************************
@@ -335,14 +335,14 @@ begin
     }
     if left.expectloc = LOC_JUMP then
     begin
-      hl := truelabel;
-      truelabel := falselabel;
-      falselabel := hl;
+      hl := current_procinfo.CurrTrueLabel;
+      current_procinfo.CurrTrueLabel := current_procinfo.CurrFalseLabel;
+      current_procinfo.CurrFalseLabel := hl;
       secondpass(left);
-      maketojumpbool(exprasmlist, left, lr_load_regvars);
-      hl := truelabel;
-      truelabel := falselabel;
-      falselabel := hl;
+      maketojumpbool(current_asmdata.CurrAsmList, left, lr_load_regvars);
+      hl := current_procinfo.CurrTrueLabel;
+      current_procinfo.CurrTrueLabel := current_procinfo.CurrFalseLabel;
+      current_procinfo.CurrFalseLabel := hl;
       location.loc := LOC_JUMP;
     end
     else
@@ -356,9 +356,9 @@ begin
           end;
         LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
           begin
-            location_force_reg(exprasmlist, left.location,
+            location_force_reg(current_asmdata.CurrAsmList, left.location,
               def_cgsize(left.resulttype.def), true);
-            exprasmlist.concat(taicpu.op_reg_const(A_CMPDI,
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPDI,
               left.location.register, 0));
             location_reset(location, LOC_FLAGS, OS_NO);
             location.resflags.cr := RS_CR0;
@@ -372,13 +372,13 @@ begin
   else
   begin
     secondpass(left);
-    location_force_reg(exprasmlist, left.location,
+    location_force_reg(current_asmdata.CurrAsmList, left.location,
       def_cgsize(left.resulttype.def), true);
     location_copy(location, left.location);
     location.loc := LOC_REGISTER;
-    location.register := cg.getintregister(exprasmlist, OS_INT);
+    location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     { perform the NOT operation }
-    cg.a_op_reg_reg(exprasmlist, OP_NOT, def_cgsize(resulttype.def),
+    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_NOT, def_cgsize(resulttype.def),
       left.location.register,
       location.register);
   end;

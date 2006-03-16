@@ -39,7 +39,7 @@ implementation
     uses
       globtype,
       cpubase,
-      aasmtai,aasmcpu;
+      aasmtai,aasmdata,aasmcpu;
 
     procedure tx8664callnode.extra_call_code;
       var
@@ -52,7 +52,7 @@ implementation
               mmregs:=varargsparas.mmregsused
             else
               mmregs:=0;
-            exprasmlist.concat(taicpu.op_const_reg(A_MOV,S_Q,mmregs,NR_RAX))
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_MOV,S_Q,mmregs,NR_RAX))
           end;
       end;
 

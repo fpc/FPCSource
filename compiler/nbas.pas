@@ -28,7 +28,7 @@ interface
     uses
        globtype,
        cpuinfo,cpubase,cgbase,cgutils,
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        node,
        symtype;
 
@@ -49,12 +49,12 @@ interface
        terrornodeclass = class of terrornode;
 
        tasmnode = class(tnode)
-          p_asm : taasmoutput;
+          p_asm : TAsmList;
           currenttai : tai;
           { Used registers in assembler block }
           used_regs_int,
           used_regs_fpu : tcpuregisterset;
-          constructor create(p : taasmoutput);virtual;
+          constructor create(p : TAsmList);virtual;
           constructor create_get_position;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -475,7 +475,7 @@ implementation
                              TASMNODE
 *****************************************************************************}
 
-    constructor tasmnode.create(p : taasmoutput);
+    constructor tasmnode.create(p : TAsmList);
       begin
         inherited create(asmn);
         p_asm:=p;
@@ -509,7 +509,7 @@ implementation
         inherited ppuload(t,ppufile);
         if not(nf_get_asm_position in flags) then
           begin
-            p_asm:=taasmoutput.create;
+            p_asm:=TAsmList.create;
             repeat
               hp:=ppuloadai(ppufile);
               if hp=nil then
@@ -584,7 +584,7 @@ implementation
         n := tasmnode(inherited _getcopy);
         if assigned(p_asm) then
           begin
-            n.p_asm:=taasmoutput.create;
+            n.p_asm:=TAsmList.create;
             n.p_asm.concatlistcopy(p_asm);
           end
         else n.p_asm := nil;

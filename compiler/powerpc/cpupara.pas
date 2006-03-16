@@ -26,7 +26,7 @@ unit cpupara;
 
     uses
        globtype,
-       aasmtai,
+       aasmtai,aasmdata,
        cpubase,
        symconst,symtype,symdef,symsym,
        paramgr,parabase,cgbase;
@@ -41,7 +41,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
-          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -645,7 +645,7 @@ unit cpupara;
       end;
 
 
-    procedure tppcparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure tppcparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
       var
         paraloc : pcgparalocation;
       begin

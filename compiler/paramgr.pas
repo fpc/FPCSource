@@ -31,7 +31,7 @@ unit paramgr;
        cclasses,globtype,
        cpubase,cgbase,
        parabase,
-       aasmtai,
+       aasmtai,aasmdata,
        symconst,symtype,symsym,symdef;
 
     type
@@ -81,14 +81,14 @@ unit paramgr;
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure allocparaloc(list: taasmoutput; const cgpara: TCGPara); virtual;
+          procedure allocparaloc(list: TAsmList; const cgpara: TCGPara); virtual;
 
           {# free a parameter location allocated with alloccgpara
 
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure freeparaloc(list: taasmoutput; const cgpara: TCGPara); virtual;
+          procedure freeparaloc(list: TAsmList; const cgpara: TCGPara); virtual;
 
           { This is used to populate the location information on all parameters
             for the routine as seen in either the caller or the callee. It returns
@@ -108,8 +108,8 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);virtual;
-          procedure duplicateparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);virtual;
+          procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
           function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;abstract;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;virtual;abstract;
@@ -216,7 +216,7 @@ implementation
       end;
 
 
-    procedure tparamanager.allocparaloc(list: taasmoutput; const cgpara: TCGPara);
+    procedure tparamanager.allocparaloc(list: TAsmList; const cgpara: TCGPara);
       var
         paraloc : pcgparalocation;
       begin
@@ -248,7 +248,7 @@ implementation
       end;
 
 
-    procedure tparamanager.freeparaloc(list: taasmoutput; const cgpara: TCGPara);
+    procedure tparamanager.freeparaloc(list: TAsmList; const cgpara: TCGPara);
       var
         paraloc : Pcgparalocation;
         href : treference;
@@ -297,7 +297,7 @@ implementation
       end;
 
 
-    procedure tparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure tparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
       var
         href : treference;
         len  : aint;
@@ -347,7 +347,7 @@ implementation
       end;
 
 
-    procedure tparamanager.duplicateparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure tparamanager.duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
       var
         paraloc,
         newparaloc : pcgparalocation;

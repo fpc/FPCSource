@@ -27,7 +27,7 @@ interface
     uses
        dos,
        cutils,cclasses,
-       aasmbase,aasmtai,aasmcpu,fmodule,globtype,globals,systems,verbose,
+       aasmbase,aasmtai,aasmdata,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
@@ -120,8 +120,8 @@ implementation
 
     procedure timportlibwin32.preparelib(const s : string);
       begin
-         if asmlist[al_imports]=nil then
-           asmlist[al_imports]:=TAAsmoutput.create;
+         if current_asmdata.asmlists[al_imports]=nil then
+           current_asmdata.asmlists[al_imports]:=TAsmList.create;
       end;
 
 
@@ -248,15 +248,15 @@ implementation
          hp1 : timportList;
          hp2 : twin32imported_item;
       begin
-         new_section(asmlist[al_imports],sec_code,'',0);
+         new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
-                 asmlist[al_imports].concat(tai_directive.create(asd_extern,hp2.func^));
-                 asmlist[al_imports].concat(tai_directive.create(asd_nasm_import,hp2.func^+' '+hp1.dllname^+' '+hp2.name^));
+                 current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_extern,hp2.func^));
+                 current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_nasm_import,hp2.func^+' '+hp1.dllname^+' '+hp2.name^));
                  hp2:=twin32imported_item(hp2.next);
                end;
              hp1:=timportlist(hp1.next);
@@ -284,131 +284,131 @@ implementation
          while assigned(hp1) do
            begin
            { Get labels for the sections }
-             objectlibrary.getdatalabel(lhead);
-             objectlibrary.getdatalabel(lname);
-             objectlibrary.getaddrlabel(lidata4);
-             objectlibrary.getaddrlabel(lidata5);
+             current_asmdata.getdatalabel(lhead);
+             current_asmdata.getdatalabel(lname);
+             current_asmdata.getaddrlabel(lidata4);
+             current_asmdata.getaddrlabel(lidata5);
            { create header for this importmodule }
-             asmlist[al_imports].concat(Tai_cutobject.Create_begin);
-             new_section(asmlist[al_imports],sec_idata2,'',0);
-             asmlist[al_imports].concat(Tai_label.Create(lhead));
+             current_asmdata.asmlists[al_imports].concat(Tai_cutobject.Create_begin);
+             new_section(current_asmdata.asmlists[al_imports],sec_idata2,'',0);
+             current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lhead));
              { pointer to procedure names }
-             asmlist[al_imports].concat(Tai_const.Create_rva_sym(lidata4));
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(lidata4));
              { two empty entries follow }
-             asmlist[al_imports].concat(Tai_const.Create_32bit(0));
-             asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
              { pointer to dll name }
-             asmlist[al_imports].concat(Tai_const.Create_rva_sym(lname));
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(lname));
              { pointer to fixups }
-             asmlist[al_imports].concat(Tai_const.Create_rva_sym(lidata5));
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(lidata5));
              { first write the name references }
-             new_section(asmlist[al_imports],sec_idata4,'',0);
-             asmlist[al_imports].concat(Tai_const.Create_32bit(0));
-             asmlist[al_imports].concat(Tai_label.Create(lidata4));
+             new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+             current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lidata4));
              { then the addresses and create also the indirect jump }
-             new_section(asmlist[al_imports],sec_idata5,'',0);
-             asmlist[al_imports].concat(Tai_const.Create_32bit(0));
-             asmlist[al_imports].concat(Tai_label.Create(lidata5));
+             new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
+             current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+             current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lidata5));
 
              { create procedures }
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
                  { insert cuts }
-                 asmlist[al_imports].concat(Tai_cutobject.Create);
+                 current_asmdata.asmlists[al_imports].concat(Tai_cutobject.Create);
                  { create indirect jump }
                  if not hp2.is_var then
                   begin
-                    objectlibrary.getjumplabel(lcode);
+                    current_asmdata.getjumplabel(lcode);
                   {$ifdef ARM}
-                    objectlibrary.getjumplabel(lpcode);
+                    current_asmdata.getjumplabel(lpcode);
                   {$endif ARM}
                     { place jump in al_procedures, insert a code section in the
                       al_imports to reduce the amount of .s files (PFV) }
-                    new_section(asmlist[al_imports],sec_code,'',0);
+                    new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
                     if assigned(hp2.procdef) then
                       mangledstring:=hp2.procdef.mangledname
                     else
                       mangledstring:=hp2.func^;
-                    asmlist[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
-                    asmlist[al_imports].concat(Tai_function_name.Create(''));
+                    current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                    current_asmdata.asmlists[al_imports].concat(Tai_function_name.Create(''));
                   {$ifdef ARM}
                     reference_reset_symbol(href,lpcode,0);
-                    asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
+                    current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
                     reference_reset_base(href,NR_R12,0);
-                    asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
-                    asmlist[al_imports].concat(Tai_label.Create(lpcode));
+                    current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
+                    current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lpcode));
                     reference_reset_symbol(href,lcode,0);
-                    asmlist[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
+                    current_asmdata.asmlists[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
                   {$else ARM}
                     reference_reset_symbol(href,lcode,0);
-                    asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
-                    asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
+                    current_asmdata.asmlists[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
+                    current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(4,$90));
                   {$endif ARM}
                   end;
                  { create head link }
-                 new_section(asmlist[al_imports],sec_idata7,'',0);
-                 asmlist[al_imports].concat(Tai_const.Create_rva_sym(lhead));
+                 new_section(current_asmdata.asmlists[al_imports],sec_idata7,'',0);
+                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(lhead));
                  { fixup }
-                 objectlibrary.getjumplabel(tasmlabel(hp2.lab));
-                 new_section(asmlist[al_imports],sec_idata4,'',0);
-                 asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                 current_asmdata.getjumplabel(tasmlabel(hp2.lab));
+                 new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
+                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
                  { add jump field to al_imports }
-                 new_section(asmlist[al_imports],sec_idata5,'',0);
+                 new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
                  if hp2.is_var then
-                  asmlist[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
+                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
                  else
-                  asmlist[al_imports].concat(Tai_label.Create(lcode));
+                  current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lcode));
                  if (cs_debuginfo in aktmoduleswitches) then
                   begin
                     if assigned(hp2.name) then
                       begin
                         importname:='__imp_'+hp2.name^;
                         suffix:=0;
-                        while assigned(objectlibrary.getasmsymbol(importname)) do
+                        while assigned(current_asmdata.getasmsymbol(importname)) do
                          begin
                            inc(suffix);
                            importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
                          end;
-                        asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                        current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                       end
                     else
                       begin
                         importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
                         suffix:=0;
-                        while assigned(objectlibrary.getasmsymbol(importname)) do
+                        while assigned(current_asmdata.getasmsymbol(importname)) do
                          begin
                            inc(suffix);
                            importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
                          end;
-                        asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                        current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                       end;
                   end;
                  if hp2.name^<>'' then
-                   asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
+                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
                  else
-                   asmlist[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or longint(hp2.ordnr)));
+                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or longint(hp2.ordnr)));
                  { finally the import information }
-                 new_section(asmlist[al_imports],sec_idata6,'',0);
-                 asmlist[al_imports].concat(Tai_label.Create(hp2.lab));
-                 asmlist[al_imports].concat(Tai_const.Create_16bit(hp2.ordnr));
-                 asmlist[al_imports].concat(Tai_string.Create(hp2.name^+#0));
-                 asmlist[al_imports].concat(Tai_align.Create_op(2,0));
+                 new_section(current_asmdata.asmlists[al_imports],sec_idata6,'',0);
+                 current_asmdata.asmlists[al_imports].concat(Tai_label.Create(hp2.lab));
+                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_16bit(hp2.ordnr));
+                 current_asmdata.asmlists[al_imports].concat(Tai_string.Create(hp2.name^+#0));
+                 current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(2,0));
                  hp2:=twin32imported_item(hp2.next);
                end;
 
               { write final section }
-              asmlist[al_imports].concat(Tai_cutobject.Create_end);
+              current_asmdata.asmlists[al_imports].concat(Tai_cutobject.Create_end);
               { end of name references }
-              new_section(asmlist[al_imports],sec_idata4,'',0);
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               { end if addresses }
-              new_section(asmlist[al_imports],sec_idata5,'',0);
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               { dllname }
-              new_section(asmlist[al_imports],sec_idata7,'',0);
-              asmlist[al_imports].concat(Tai_label.Create(lname));
-              asmlist[al_imports].concat(Tai_string.Create(hp1.dllname^+#0));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata7,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lname));
+              current_asmdata.asmlists[al_imports].concat(Tai_string.Create(hp1.dllname^+#0));
 
               hp1:=timportlist(hp1.next);
            end;
@@ -434,131 +434,131 @@ implementation
          while assigned(hp1) do
            begin
               { align al_procedures for the jumps }
-              new_section(asmlist[al_imports],sec_code,'',sizeof(aint));
+              new_section(current_asmdata.asmlists[al_imports],sec_code,'',sizeof(aint));
               { Get labels for the sections }
-              objectlibrary.getjumplabel(l1);
-              objectlibrary.getjumplabel(l2);
-              objectlibrary.getjumplabel(l3);
-              new_section(asmlist[al_imports],sec_idata2,'',0);
+              current_asmdata.getjumplabel(l1);
+              current_asmdata.getjumplabel(l2);
+              current_asmdata.getjumplabel(l3);
+              new_section(current_asmdata.asmlists[al_imports],sec_idata2,'',0);
               { pointer to procedure names }
-              asmlist[al_imports].concat(Tai_const.Create_rva_sym(l2));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(l2));
               { two empty entries follow }
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               { pointer to dll name }
-              asmlist[al_imports].concat(Tai_const.Create_rva_sym(l1));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(l1));
               { pointer to fixups }
-              asmlist[al_imports].concat(Tai_const.Create_rva_sym(l3));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(l3));
 
               { only create one section for each else it will
                 create a lot of idata* }
 
               { first write the name references }
-              new_section(asmlist[al_imports],sec_idata4,'',0);
-              asmlist[al_imports].concat(Tai_label.Create(l2));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l2));
 
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   objectlibrary.getjumplabel(tasmlabel(hp2.lab));
+                   current_asmdata.getjumplabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
-                     asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
+                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
                    else
-                     asmlist[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or hp2.ordnr));
+                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or hp2.ordnr));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the names ... }
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
               { then the addresses and create also the indirect jump }
-              new_section(asmlist[al_imports],sec_idata5,'',0);
-              asmlist[al_imports].concat(Tai_label.Create(l3));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l3));
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
                    if not hp2.is_var then
                     begin
-                      objectlibrary.getjumplabel(l4);
+                      current_asmdata.getjumplabel(l4);
                     {$ifdef ARM}
-                      objectlibrary.getjumplabel(l5);
+                      current_asmdata.getjumplabel(l5);
                     {$endif ARM}
                       { create indirect jump and }
                       { place jump in al_procedures }
-                      new_section(asmlist[al_imports],sec_code,'',0);
+                      new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
                       if assigned(hp2.procdef) then
                         mangledstring:=hp2.procdef.mangledname
                       else
                         mangledstring:=hp2.func^;
-                      asmlist[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
-                      asmlist[al_imports].concat(tai_function_name.create(''));
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                      current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                     {$ifdef ARM}
                       reference_reset_symbol(href,l5,0);
-                      asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
+                      current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
                       reference_reset_base(href,NR_R12,0);
-                      asmlist[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
-                      asmlist[al_imports].concat(Tai_label.Create(l5));
+                      current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
+                      current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l5));
                       reference_reset_symbol(href,l4,0);
-                      asmlist[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
+                      current_asmdata.asmlists[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
                     {$else ARM}
                       reference_reset_symbol(href,l4,0);
-                      asmlist[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
-                      asmlist[al_imports].concat(Tai_align.Create_op(4,$90));
+                      current_asmdata.asmlists[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
+                      current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(4,$90));
                     {$endif ARM}
                       { add jump field to al_imports }
-                      new_section(asmlist[al_imports],sec_idata5,'',0);
+                      new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
                       if (cs_debuginfo in aktmoduleswitches) then
                        begin
                          if assigned(hp2.name) then
                           begin
                             importname:='__imp_'+hp2.name^;
                             suffix:=0;
-                            while assigned(objectlibrary.getasmsymbol(importname)) do
+                            while assigned(current_asmdata.getasmsymbol(importname)) do
                              begin
                                inc(suffix);
                                importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
                              end;
-                            asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end
                          else
                           begin
                             importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
                             suffix:=0;
-                            while assigned(objectlibrary.getasmsymbol(importname)) do
+                            while assigned(current_asmdata.getasmsymbol(importname)) do
                              begin
                                inc(suffix);
                                importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
                              end;
-                            asmlist[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
+                            current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end;
                        end;
-                      asmlist[al_imports].concat(Tai_label.Create(l4));
+                      current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l4));
                     end
                    else
                     begin
-                      asmlist[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_DATA,0));
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_DATA,0));
                     end;
-                   asmlist[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the addresses }
-              asmlist[al_imports].concat(Tai_const.Create_32bit(0));
+              current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
               { finally the import information }
-              new_section(asmlist[al_imports],sec_idata6,'',0);
+              new_section(current_asmdata.asmlists[al_imports],sec_idata6,'',0);
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
-                   asmlist[al_imports].concat(Tai_label.Create(hp2.lab));
+                   current_asmdata.asmlists[al_imports].concat(Tai_label.Create(hp2.lab));
                    { the ordinal number }
-                   asmlist[al_imports].concat(Tai_const.Create_16bit(hp2.ordnr));
-                   asmlist[al_imports].concat(Tai_string.Create(hp2.name^+#0));
-                   asmlist[al_imports].concat(Tai_align.Create_op(2,0));
+                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_16bit(hp2.ordnr));
+                   current_asmdata.asmlists[al_imports].concat(Tai_string.Create(hp2.name^+#0));
+                   current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(2,0));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { create import dll name }
-              new_section(asmlist[al_imports],sec_idata7,'',0);
-              asmlist[al_imports].concat(Tai_label.Create(l1));
-              asmlist[al_imports].concat(Tai_string.Create(hp1.dllname^+#0));
+              new_section(current_asmdata.asmlists[al_imports],sec_idata7,'',0);
+              current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l1));
+              current_asmdata.asmlists[al_imports].concat(Tai_string.Create(hp1.dllname^+#0));
 
               hp1:=timportlist(hp1.next);
            end;
@@ -571,11 +571,11 @@ implementation
 
     procedure texportlibwin32.preparelib(const s:string);
       begin
-         if asmlist[al_exports]=nil then
-           asmlist[al_exports]:=TAAsmoutput.create;
+         if current_asmdata.asmlists[al_exports]=nil then
+           current_asmdata.asmlists[al_exports]:=TAsmList.create;
          EList_indexed:=tFPList.Create;
          EList_nonindexed:=tFPList.Create;
-         objectlibrary.getdatalabel(edatalabel);
+         current_asmdata.getdatalabel(edatalabel);
       end;
 
 
@@ -653,7 +653,7 @@ implementation
          hp,hp2 : texported_item;
          temtexport : TLinkedList;
          address_table,name_table_pointers,
-         name_table,ordinal_table : TAAsmoutput;
+         name_table,ordinal_table : TAsmList;
          i,autoindex,ni_high : longint;
          hole : boolean;
 
@@ -711,10 +711,10 @@ implementation
          ordinal_min:=$7FFFFFFF;
          entries:=0;
          named_entries:=0;
-         objectlibrary.getjumplabel(dll_name_label);
-         objectlibrary.getjumplabel(export_address_table);
-         objectlibrary.getjumplabel(export_name_table_pointers);
-         objectlibrary.getjumplabel(export_ordinal_table);
+         current_asmdata.getjumplabel(dll_name_label);
+         current_asmdata.getjumplabel(export_address_table);
+         current_asmdata.getjumplabel(export_name_table_pointers);
+         current_asmdata.getjumplabel(export_ordinal_table);
 
          { count entries }
          while assigned(hp) do
@@ -735,50 +735,50 @@ implementation
          { we must also count the holes !! }
          entries:=ordinal_max-ordinal_base+1;
 
-         new_section(asmlist[al_exports],sec_edata,'',0);
+         new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         asmlist[al_exports].concat(Tai_symbol.Create_global(edatalabel,0));
+         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Create_global(edatalabel,0));
          { export flags }
-         asmlist[al_exports].concat(Tai_const.Create_32bit(0));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }
-         asmlist[al_exports].concat(Tai_const.Create_32bit(0));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { major version }
-         asmlist[al_exports].concat(Tai_const.Create_16bit(0));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
          { minor version }
-         asmlist[al_exports].concat(Tai_const.Create_16bit(0));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_16bit(0));
          { pointer to dll name }
-         asmlist[al_exports].concat(Tai_const.Create_rva_sym(dll_name_label));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(dll_name_label));
          { ordinal base normally set to 1 }
-         asmlist[al_exports].concat(Tai_const.Create_32bit(ordinal_base));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(ordinal_base));
          { number of entries }
-         asmlist[al_exports].concat(Tai_const.Create_32bit(entries));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(entries));
          { number of named entries }
-         asmlist[al_exports].concat(Tai_const.Create_32bit(named_entries));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(named_entries));
          { address of export address table }
-         asmlist[al_exports].concat(Tai_const.Create_rva_sym(export_address_table));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_address_table));
          { address of name pointer pointers }
-         asmlist[al_exports].concat(Tai_const.Create_rva_sym(export_name_table_pointers));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_name_table_pointers));
          { address of ordinal number pointers }
-         asmlist[al_exports].concat(Tai_const.Create_rva_sym(export_ordinal_table));
+         current_asmdata.asmlists[al_exports].concat(Tai_const.Create_rva_sym(export_ordinal_table));
          { the name }
-         asmlist[al_exports].concat(Tai_label.Create(dll_name_label));
+         current_asmdata.asmlists[al_exports].concat(Tai_label.Create(dll_name_label));
          if st='' then
-           asmlist[al_exports].concat(Tai_string.Create(current_module.modulename^+target_info.sharedlibext+#0))
+           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(current_module.modulename^+target_info.sharedlibext+#0))
          else
-           asmlist[al_exports].concat(Tai_string.Create(st+target_info.sharedlibext+#0));
+           current_asmdata.asmlists[al_exports].concat(Tai_string.Create(st+target_info.sharedlibext+#0));
 
          {  export address table }
-         address_table:=TAAsmoutput.create;
+         address_table:=TAsmList.create;
          address_table.concat(Tai_align.Create_op(4,0));
          address_table.concat(Tai_label.Create(export_address_table));
-         name_table_pointers:=TAAsmoutput.create;
+         name_table_pointers:=TAsmList.create;
          name_table_pointers.concat(Tai_align.Create_op(4,0));
          name_table_pointers.concat(Tai_label.Create(export_name_table_pointers));
-         ordinal_table:=TAAsmoutput.create;
+         ordinal_table:=TAsmList.create;
          ordinal_table.concat(Tai_align.Create_op(4,0));
          ordinal_table.concat(Tai_label.Create(export_ordinal_table));
-         name_table:=TAAsmoutput.Create;
+         name_table:=TAsmList.Create;
          name_table.concat(Tai_align.Create_op(4,0));
          { write each address }
          hp:=texported_item(current_module._exports.first);
@@ -786,7 +786,7 @@ implementation
            begin
               if (hp.options and eo_name)<>0 then
                 begin
-                   objectlibrary.getjumplabel(name_label);
+                   current_asmdata.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
                    ordinal_table.concat(Tai_const.Create_16bit(hp.index-ordinal_base));
                    name_table.concat(Tai_align.Create_op(2,0));
@@ -835,10 +835,10 @@ implementation
               hp:=texported_item(hp.next);
            end;
 
-         asmlist[al_exports].concatlist(address_table);
-         asmlist[al_exports].concatlist(name_table_pointers);
-         asmlist[al_exports].concatlist(ordinal_table);
-         asmlist[al_exports].concatlist(name_table);
+         current_asmdata.asmlists[al_exports].concatlist(address_table);
+         current_asmdata.asmlists[al_exports].concatlist(name_table_pointers);
+         current_asmdata.asmlists[al_exports].concatlist(ordinal_table);
+         current_asmdata.asmlists[al_exports].concatlist(name_table);
          address_table.Free;
          name_table_pointers.free;
          ordinal_table.free;
@@ -852,7 +852,7 @@ implementation
          p  : pchar;
          s  : string;
       begin
-         new_section(asmlist[al_exports],sec_code,'',0);
+         new_section(current_asmdata.asmlists[al_exports],sec_code,'',0);
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
@@ -867,7 +867,7 @@ implementation
                  s:='';
              end;
              p:=strpnew(#9+'export '+s+' '+hp.name^+' '+tostr(hp.index));
-             {asmlist[al_exports].concat(tai_direct.create(p));}
+             {current_asmdata.asmlists[al_exports].concat(tai_direct.create(p));}
              hp:=texported_item(hp.next);
            end;
       end;

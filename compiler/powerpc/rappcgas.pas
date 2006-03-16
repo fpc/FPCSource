@@ -50,7 +50,7 @@ Unit rappcgas;
       globtype,verbose,
       systems,
       { aasm }
-      cpubase,aasmbase,aasmtai,aasmcpu,
+      cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,
       { parser }

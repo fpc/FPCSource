@@ -28,7 +28,7 @@ interface
     uses
       cclasses,cpubase,
       globals,
-      aasmbase,aasmtai,aasmcpu,assemble,aggas;
+      aasmbase,aasmtai,aasmdata,aasmcpu,assemble,aggas;
 
     type
       Tm68kGNUAssembler=class(TGNUassembler)

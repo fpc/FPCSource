@@ -34,7 +34,7 @@ unit procinfo;
       symconst,symtype,symdef,symsym,
       { aasm }
       cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai
+      aasmbase,aasmtai,aasmdata
       ;
 
     const
@@ -78,20 +78,26 @@ unit procinfo;
 
           { register containing currently the got }
           got : tregister;
-          gotlabel : tasmlabel;
+          CurrGOTLabel : tasmlabel;
 
           { Holds the reference used to store all saved registers. }
           save_regs_ref : treference;
 
+          { Labels for TRUE/FALSE condition, BREAK and CONTINUE }
+          CurrBreakLabel,
+          CurrContinueLabel,
+          CurrTrueLabel,
+          CurrFalseLabel : tasmlabel;
+
           { label to leave the sub routine }
-          aktexitlabel : tasmlabel;
+          CurrExitLabel : tasmlabel;
 
           {# The code for the routine itself, excluding entry and
              exit code. This is a linked list of tai classes.
           }
-          aktproccode : taasmoutput;
+          aktproccode : TAsmList;
           { Data (like jump tables) that belongs to this routine }
-          aktlocaldata : taasmoutput;
+          aktlocaldata : TAsmList;
 
           { max. of space need for parameters }
           maxpushedparasize : aint;
@@ -140,12 +146,16 @@ implementation
         framepointer:=NR_FRAME_POINTER_REG;
         maxpushedparasize:=0;
         { asmlists }
-        aktproccode:=Taasmoutput.Create;
-        aktlocaldata:=Taasmoutput.Create;
+        aktproccode:=TAsmList.Create;
+        aktlocaldata:=TAsmList.Create;
         reference_reset(save_regs_ref);
         { labels }
-        objectlibrary.getjumplabel(aktexitlabel);
-        objectlibrary.getjumplabel(gotlabel);
+        current_asmdata.getjumplabel(CurrExitLabel);
+        current_asmdata.getjumplabel(CurrGOTLabel);
+        CurrBreakLabel:=nil;
+        CurrContinueLabel:=nil;
+        CurrTrueLabel:=nil;
+        CurrFalseLabel:=nil;
         maxpushedparasize:=0;
       end;
 

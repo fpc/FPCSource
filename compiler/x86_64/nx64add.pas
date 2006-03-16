@@ -37,7 +37,7 @@ interface
 
     uses
       globtype,globals,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       cgbase,cgutils,cga,cgobj,
       tgobj;
 
@@ -55,30 +55,30 @@ interface
       location_reset(location,LOC_REGISTER,OS_INT);
       { Get a temp register and load the left value into it
         and free the location. }
-      r:=cg.getintregister(exprasmlist,OS_INT);
-      cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
+      r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,left.location,r);
       { Allocate RAX. }
-      cg.getcpuregister(exprasmlist,NR_RAX);
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_RAX);
       { Load the right value. }
-      cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_RAX);
+      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,NR_RAX);
       { Also allocate RDX, since it is also modified by a mul (JM). }
-      cg.getcpuregister(exprasmlist,NR_RDX);
+      cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
       emit_reg(A_MUL,S_Q,r);
       if cs_check_overflow in aktlocalswitches  then
        begin
-         objectlibrary.getjumplabel(hl4);
-         cg.a_jmp_flags(exprasmlist,F_AE,hl4);
-         cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
-         cg.a_label(exprasmlist,hl4);
+         current_asmdata.getjumplabel(hl4);
+         cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
+         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+         cg.a_label(current_asmdata.CurrAsmList,hl4);
        end;
       { Free RDX,RAX }
-      cg.ungetcpuregister(exprasmlist,NR_RDX);
-      cg.ungetcpuregister(exprasmlist,NR_RAX);
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RDX);
+      cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_RAX);
       { Allocate a new register and store the result in RAX in it. }
-      location.register:=cg.getintregister(exprasmlist,OS_INT);
+      location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
       emit_reg_reg(A_MOV,S_Q,NR_RAX,location.register);
-      location_freetemp(exprasmlist,left.location);
-      location_freetemp(exprasmlist,right.location);
+      location_freetemp(current_asmdata.CurrAsmList,left.location);
+      location_freetemp(current_asmdata.CurrAsmList,right.location);
     end;
 
 

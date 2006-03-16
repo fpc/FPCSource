@@ -29,13 +29,13 @@ unit agppcmpw;
 interface
 
     uses
-       aasmtai,
+       aasmtai,aasmdata,
        globals,aasmbase,aasmcpu,assemble,
        cpubase;
 
     type
       TPPCMPWAssembler = class(TExternalAssembler)
-        procedure WriteTree(p:TAAsmoutput);override;
+        procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
@@ -74,7 +74,7 @@ interface
         'csect', {read only data}
         'csect', {bss} 'csect',
         'csect','csect','csect','csect',
-         '','','','','','','','','','','',''
+         '','','','','','','','','','','','','',''
       );
 
     type
@@ -673,7 +673,7 @@ interface
         (#9'dc.l'#9,#9'dc.w'#9,#9'dc.b'#9);
 
 
-    procedure TPPCMPWAssembler.WriteTree(p:TAAsmoutput);
+    procedure TPPCMPWAssembler.WriteTree(p:TAsmList);
     var
       s,
       prefix,
@@ -700,7 +700,7 @@ interface
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
-                 and (p=asmlist[al_procedures]);
+                 and (p=current_asmdata.asmlists[al_procedures]);
       DoNotSplitLine:=false;
       hp:=tai(p.first);
       while assigned(hp) do
@@ -1108,9 +1108,9 @@ interface
                 end;
               ait_marker :
                  begin
-                   if tai_marker(hp).kind=InlineStart then
+                   if tai_marker(hp).kind=mark_InlineStart then
                      inc(InlineLevel)
-                   else if tai_marker(hp).kind=InlineEnd then
+                   else if tai_marker(hp).kind=mark_InlineEnd then
                      dec(InlineLevel);
                  end;
          else
@@ -1204,7 +1204,7 @@ interface
     procedure TPPCMPWAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        objectlibrary.symbolsearch.foreach_static(@writeexternal,nil);
+        current_asmdata.asmsymboldict.foreach_static(@writeexternal,nil);
       end;
 
 
@@ -1253,7 +1253,7 @@ interface
 
     procedure TPPCMPWAssembler.WriteAsmList;
     var
-      hal : tasmlist;
+      hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -1264,11 +1264,11 @@ interface
       WriteAsmFileHeader;
       WriteExternals;
 
-      for hal:=low(Tasmlist) to high(Tasmlist) do
+      for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+TasmlistStr[hal]);
-          writetree(asmlist[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+TasmlistStr[hal]);
+          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+          writetree(current_asmdata.asmlists[hal]);
+          AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 
       AsmWriteLn(#9'end');

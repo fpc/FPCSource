@@ -59,9 +59,9 @@ implementation
 
    uses
       verbose,systems,globals,globtype,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
-      cgbase,cga,pass_2,
+      cgbase,cga,procinfo,pass_2,
       ncon,ncal,ncnv,
       cpubase,
       cgutils,cgobj,cgx86,ncgutil,
@@ -98,12 +98,12 @@ implementation
         href      : treference;
 {$endif cpu64bit}
         resflags  : tresflags;
-        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
+        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-         oldtruelabel:=truelabel;
-         oldfalselabel:=falselabel;
-         objectlibrary.getjumplabel(truelabel);
-         objectlibrary.getjumplabel(falselabel);
+         oldTrueLabel:=current_procinfo.CurrTrueLabel;
+         oldFalseLabel:=current_procinfo.CurrFalseLabel;
+         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -114,8 +114,8 @@ implementation
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               location_copy(location,left.location);
-              truelabel:=oldtruelabel;
-              falselabel:=oldfalselabel;
+              current_procinfo.CurrTrueLabel:=oldTrueLabel;
+              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
@@ -128,17 +128,17 @@ implementation
 {$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.getintregister(exprasmlist,OS_INT);
-                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
+                   cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
                  end
                 else
 {$endif cpu64bit}
                  begin
-                   location_force_reg(exprasmlist,left.location,left.location.size,true);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                   location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
             LOC_FLAGS :
@@ -150,35 +150,35 @@ implementation
 {$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.getintregister(exprasmlist,OS_32);
-                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.register64.reglo,hregister);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,hregister);
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                  end
                 else
 {$endif cpu64bit}
-                  cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
               begin
-                hregister:=cg.getintregister(exprasmlist,OS_INT);
-                objectlibrary.getjumplabel(hlabel);
-                cg.a_label(exprasmlist,truelabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
-                cg.a_jmp_always(exprasmlist,hlabel);
-                cg.a_label(exprasmlist,falselabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
-                cg.a_label(exprasmlist,hlabel);
-                cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
+                hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                current_asmdata.getjumplabel(hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hregister);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
+                cg.a_label(current_asmdata.CurrAsmList,hlabel);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,hregister,hregister);
               end;
             else
               internalerror(10062);
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location.register:=cg.getintregister(exprasmlist,location.size);
-         cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
-         truelabel:=oldtruelabel;
-         falselabel:=oldfalselabel;
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+         current_procinfo.CurrTrueLabel:=oldTrueLabel;
+         current_procinfo.CurrFalseLabel:=oldFalseLabel;
        end;
 
     function tx86typeconvnode.first_int_to_real : tnode;
@@ -212,7 +212,7 @@ implementation
               internalerror(200506061);
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
-            location.register:=cg.getmmregister(exprasmlist,def_cgsize(resulttype.def));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
             if (left.location.loc=LOC_REGISTER) and (torddef(left.resulttype.def).typ=u64bit) then
               begin
 {$ifdef cpu64bit}
@@ -232,8 +232,8 @@ implementation
                      we load bits 0..62 and then check bit 63:
                      if it is 1 then we add $80000000 000000000
                      as double                                  }
-                   objectlibrary.getdatalabel(l1);
-                   objectlibrary.getjumplabel(l2);
+                   current_asmdata.getdatalabel(l1);
+                   current_asmdata.getjumplabel(l2);
 
                    if not(signtested) then
                      begin
@@ -242,33 +242,33 @@ implementation
                        dec(left.location.reference.offset,4);
                      end;
 
-                   exprasmlist.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
 
-                   cg.a_jmp_flags(exprasmlist,F_NC,l2);
-                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resulttype.def) then
                      begin
                        { double (2^64) }
-                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
-                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
                        { simplify for PIC }
-                       tcgx86(cg).make_simple_ref(exprasmlist,href);
-                       exprasmlist.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
+                       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
                    else if is_single(resulttype.def) then
                      begin
                        { single(2^64) }
-                       asmlist[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
+                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
                        { simplify for PIC }
-                       tcgx86(cg).make_simple_ref(exprasmlist,href);
-                       exprasmlist.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
+                       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
                      internalerror(200506071);
-                   cg.a_label(exprasmlist,l2);
+                   cg.a_label(current_asmdata.CurrAsmList,l2);
                 end
               else
                 begin
@@ -277,10 +277,10 @@ implementation
                       case left.location.loc of
                         LOC_CREFERENCE,
                         LOC_REFERENCE :
-                          exprasmList.concat(Taicpu.op_ref_reg(op,S_L,left.location.reference,location.register));
+                          current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,S_L,left.location.reference,location.register));
                         LOC_CREGISTER,
                         LOC_REGISTER :
-                          exprasmList.concat(Taicpu.op_reg_reg(op,S_L,left.location.register,location.register));
+                          current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,S_L,left.location.register,location.register));
                         else
                           internalerror(200506072);
                       end;
@@ -290,19 +290,19 @@ implementation
                       case left.location.loc of
                         LOC_CREFERENCE,
                         LOC_REFERENCE :
-                          exprasmList.concat(Taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
+                          current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
                         LOC_CREGISTER,
                         LOC_REGISTER :
-                          exprasmList.concat(Taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
+                          current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
                         else
                           internalerror(200506073);
                       end;
                     end
                   else
                     begin
-                      hreg:=cg.getintregister(exprasmlist,OS_64);
-                      cg.a_load_loc_reg(exprasmlist,OS_64,left.location,hreg);
-                      exprasmList.concat(Taicpu.Op_reg_reg(op,S_NO,hreg,location.register));
+                      hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
+                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_64,left.location,hreg);
+                      current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(op,S_NO,hreg,location.register));
                     end
                 end;
             end;
@@ -324,17 +324,17 @@ implementation
               signtested:=false;
 
             { We need to load from a reference }
-            location_force_mem(exprasmlist,left.location);
+            location_force_mem(current_asmdata.CurrAsmList,left.location);
 
             { For u32bit we need to load it as comp and need to
               make it 64bits }
             if (torddef(left.resulttype.def).typ=u32bit) then
               begin
-                tg.GetTemp(exprasmlist,8,tt_normal,href);
-                location_freetemp(exprasmlist,left.location);
-                cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
+                tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
+                location_freetemp(current_asmdata.CurrAsmList,left.location);
+                cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
                 inc(href.offset,4);
-                cg.a_load_const_ref(exprasmlist,OS_32,0,href);
+                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);
                 dec(href.offset,4);
                 left.location.reference:=href;
               end;
@@ -344,15 +344,15 @@ implementation
               u32bit,
               scurrency,
               s64bit:
-                exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
+                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
               u64bit:
                 begin
                    { unsigned 64 bit ints are harder to handle:
                      we load bits 0..62 and then check bit 63:
                      if it is 1 then we add $80000000 000000000
                      as double                                  }
-                   objectlibrary.getdatalabel(l1);
-                   objectlibrary.getjumplabel(l2);
+                   current_asmdata.getdatalabel(l1);
+                   current_asmdata.getjumplabel(l2);
 
                    if not(signtested) then
                      begin
@@ -361,32 +361,32 @@ implementation
                        dec(left.location.reference.offset,4);
                      end;
 
-                   exprasmlist.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
-                   cg.a_jmp_flags(exprasmlist,F_NC,l2);
-                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
-                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
-                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
-                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
                    reference_reset_symbol(href,l1,0);
-                   tcgx86(cg).make_simple_ref(exprasmlist,href);
-                   exprasmlist.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
-                   exprasmlist.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
-                   cg.a_label(exprasmlist,l2);
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                   current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
+                   current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));
+                   cg.a_label(current_asmdata.CurrAsmList,l2);
                 end
               else
                 begin
                   if left.resulttype.def.size<4 then
                     begin
-                      tg.GetTemp(exprasmlist,4,tt_normal,href);
-                      location_freetemp(exprasmlist,left.location);
-                      cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
+                      tg.GetTemp(current_asmdata.CurrAsmList,4,tt_normal,href);
+                      location_freetemp(current_asmdata.CurrAsmList,left.location);
+                      cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
                       left.location.reference:=href;
                     end;
-                 exprasmlist.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,left.location.reference));
                 end;
             end;
-            location_freetemp(exprasmlist,left.location);
+            location_freetemp(current_asmdata.CurrAsmList,left.location);
             tcgx86(cg).inc_fpu_stack;
             location.register:=NR_ST;
           end;

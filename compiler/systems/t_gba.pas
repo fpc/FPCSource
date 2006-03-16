@@ -48,7 +48,7 @@ implementation
 
   uses
     cutils,cclasses,verbose,systems,globtype,globals,
-    symconst,script,fmodule,dos,aasmbase,aasmtai,aasmcpu,
+    symconst,script,fmodule,dos,aasmbase,aasmtai,aasmdata,aasmcpu,
     cpubase,cgobj,i_gba;
 
 

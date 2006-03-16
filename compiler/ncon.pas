@@ -28,7 +28,7 @@ interface
     uses
       globtype,widestr,
       node,
-      aasmbase,aasmtai,cpuinfo,globals,
+      aasmbase,aasmtai,aasmdata,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type

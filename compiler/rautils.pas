@@ -27,7 +27,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,cpubase,cpuinfo,cgbase,cgutils,
+  globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
   symconst,symbase,symtype,symdef,symsym;
 
 Const
@@ -118,7 +118,7 @@ type
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
       and concats it to the passed list, the newly created item is returned }
-    function ConcatInstruction(p:TAAsmoutput) : tai;virtual;
+    function ConcatInstruction(p:TAsmList) : tai;virtual;
     Procedure Swapoperands;
   end;
 
@@ -197,15 +197,15 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
                   Instruction generation routines
 ---------------------------------------------------------------------}
 
-  Procedure ConcatPasString(p : TAAsmoutput;s:string);
-  Procedure ConcatLabel(p: TAAsmoutput;var l : tasmlabel);
-  Procedure ConcatConstant(p : TAAsmoutput;value: aint; constsize:byte);
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;symtyp:tasmsymtype;l:aint);
-  Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
-  Procedure ConcatString(p : TAAsmoutput;s:string);
-  procedure ConcatAlign(p:TAAsmoutput;l:aint);
-  Procedure ConcatPublic(p:TAAsmoutput;const s : string);
-  Procedure ConcatLocal(p:TAAsmoutput;const s : string);
+  Procedure ConcatPasString(p : TAsmList;s:string);
+  Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
+  Procedure ConcatConstant(p : TAsmList;value: aint; constsize:byte);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
+  Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
+  Procedure ConcatString(p : TAsmList;s:string);
+  procedure ConcatAlign(p:TAsmList;l:aint);
+  Procedure ConcatPublic(p:TAsmList;const s : string);
+  Procedure ConcatLocal(p:TAsmList;const s : string);
 
 
 Implementation
@@ -810,7 +810,7 @@ Begin
           staticsymtable :
             begin
               initref;
-              opr.ref.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
+              opr.ref.symbol:=current_asmdata.newasmsymbol(tglobalvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
             end;
           parasymtable,
           localsymtable :
@@ -872,7 +872,7 @@ Begin
     typedconstsym :
       begin
         initref;
-        opr.ref.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
+        opr.ref.symbol:=current_asmdata.newasmsymbol(ttypedconstsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
           enumdef,
@@ -920,7 +920,7 @@ Begin
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=objectlibrary.newasmsymbol(tprocsym(sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+        opr.symbol:=current_asmdata.newasmsymbol(tprocsym(sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1040,7 +1040,7 @@ end;
     end;
 
 
-  function TInstruction.ConcatInstruction(p:TAAsmoutput) : tai;
+  function TInstruction.ConcatInstruction(p:TAsmList) : tai;
     var
       ai   : taicpu;
       i : longint;
@@ -1099,7 +1099,7 @@ function TLocalLabel.Gettasmlabel:tasmlabel;
 begin
   if not assigned(lab) then
    begin
-     objectlibrary.getjumplabel(lab);
+     current_asmdata.getjumplabel(lab);
      { this label is forced to be used so it's always written }
      lab.increfs;
    end;
@@ -1392,7 +1392,7 @@ Begin
     labelsym :
       begin
         if not(assigned(tlabelsym(sym).asmblocklabel)) then
-          objectlibrary.getjumplabel(tlabelsym(sym).asmblocklabel);
+          current_asmdata.getjumplabel(tlabelsym(sym).asmblocklabel);
         hl:=tlabelsym(sym).asmblocklabel;
         if emit then
          tlabelsym(sym).defined:=true
@@ -1409,7 +1409,7 @@ end;
  {*************************************************************************}
 
 
-   Procedure ConcatString(p : TAAsmoutput;s:string);
+   Procedure ConcatString(p : TAsmList;s:string);
   {*********************************************************************}
   { PROCEDURE ConcatString(s:string);                                   }
   {  Description: This routine adds the character chain pointed to in   }
@@ -1422,7 +1422,7 @@ end;
      p.concat(Tai_string.Create_pchar(strpcopy(pc,s),length(s)));
   end;
 
-  Procedure ConcatPasString(p : TAAsmoutput;s:string);
+  Procedure ConcatPasString(p : TAsmList;s:string);
   {*********************************************************************}
   { PROCEDURE ConcatPasString(s:string);                                }
   {  Description: This routine adds the character chain pointed to in   }
@@ -1434,7 +1434,7 @@ end;
   end;
 
 
-Procedure ConcatConstant(p: TAAsmoutput; value: aint; constsize:byte);
+Procedure ConcatConstant(p: TAsmList; value: aint; constsize:byte);
 {*********************************************************************}
 { PROCEDURE ConcatConstant(value: aint; maxvalue: aint);        }
 {  Description: This routine adds the value constant to the current   }
@@ -1482,13 +1482,13 @@ Begin
 end;
 
 
-  Procedure ConcatConstSymbol(p : TAAsmoutput;const sym:string;symtyp:tasmsymtype;l:aint);
+  Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
   begin
     p.concat(Tai_const.Createname(sym,symtyp,l));
   end;
 
 
-  Procedure ConcatRealConstant(p : TAAsmoutput;value: bestreal; real_typ : tfloattype);
+  Procedure ConcatRealConstant(p : TAsmList;value: bestreal; real_typ : tfloattype);
   {***********************************************************************}
   { PROCEDURE ConcatRealConstant(value: bestreal; real_typ : tfloattype); }
   {  Description: This routine adds the value constant to the current     }
@@ -1515,7 +1515,7 @@ end;
        end;
     end;
 
-   Procedure ConcatLabel(p: TAAsmoutput;var l : tasmlabel);
+   Procedure ConcatLabel(p: TAsmList;var l : tasmlabel);
   {*********************************************************************}
   { PROCEDURE ConcatLabel                                               }
   {  Description: This routine either emits a label or a labeled        }
@@ -1525,7 +1525,7 @@ end;
      p.concat(Tai_label.Create(l));
    end;
 
-   procedure ConcatAlign(p:TAAsmoutput;l:aint);
+   procedure ConcatAlign(p:TAsmList;l:aint);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
@@ -1535,7 +1535,7 @@ end;
      p.concat(Tai_align.Create(l));
    end;
 
-   procedure ConcatPublic(p:TAAsmoutput;const s : string);
+   procedure ConcatPublic(p:TAsmList;const s : string);
   {*********************************************************************}
   { PROCEDURE ConcatPublic                                              }
   {  Description: This routine emits an global   definition to the      }
@@ -1545,7 +1545,7 @@ end;
        p.concat(Tai_symbol.Createname_global(s,AT_LABEL,0));
    end;
 
-   procedure ConcatLocal(p:TAAsmoutput;const s : string);
+   procedure ConcatLocal(p:TAsmList;const s : string);
   {*********************************************************************}
   { PROCEDURE ConcatLocal                                               }
   {  Description: This routine emits an local    definition to the      }

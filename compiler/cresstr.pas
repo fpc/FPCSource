@@ -62,7 +62,7 @@ uses
    cutils,globtype,globals,
    symdef,
    verbose,fmodule,
-   aasmbase,aasmtai,
+   aasmbase,aasmtai,aasmdata,
    aasmcpu;
 
 
@@ -144,60 +144,60 @@ procedure Tresourcestrings.CreateResourceStringList;
     with p Do
      begin
        if (Value=nil) or (len=0) then
-         asmlist[al_resourcestrings].concat(tai_const.create_sym(nil))
+         current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_sym(nil))
        else
          begin
-            objectlibrary.getdatalabel(l1);
-            asmlist[al_resourcestrings].concat(tai_const.create_sym(l1));
-            maybe_new_object_file(asmlist[al_const]);
-            asmlist[al_const].concat(tai_align.Create(const_align(sizeof(aint))));
-            asmlist[al_const].concat(tai_const.create_aint(-1));
-            asmlist[al_const].concat(tai_const.create_aint(len));
-            asmlist[al_const].concat(tai_label.create(l1));
+            current_asmdata.getdatalabel(l1);
+            current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_sym(l1));
+            maybe_new_object_file(current_asmdata.AsmLists[al_const]);
+            current_asmdata.AsmLists[al_const].concat(tai_align.Create(const_align(sizeof(aint))));
+            current_asmdata.AsmLists[al_const].concat(tai_const.create_aint(-1));
+            current_asmdata.AsmLists[al_const].concat(tai_const.create_aint(len));
+            current_asmdata.AsmLists[al_const].concat(tai_label.create(l1));
             getmem(s,len+1);
             move(value^,s^,len);
             s[len]:=#0;
-            asmlist[al_const].concat(tai_string.create_pchar(s,len));
-            asmlist[al_const].concat(tai_const.create_8bit(0));
+            current_asmdata.AsmLists[al_const].concat(tai_string.create_pchar(s,len));
+            current_asmdata.AsmLists[al_const].concat(tai_const.create_8bit(0));
          end;
        { append Current value (nil) and hash...}
-       asmlist[al_resourcestrings].concat(tai_const.create_sym(nil));
-       asmlist[al_resourcestrings].concat(tai_const.create_32bit(longint(hash)));
+       current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_sym(nil));
+       current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_32bit(longint(hash)));
        { Append the name as a ansistring. }
-       objectlibrary.getdatalabel(l1);
+       current_asmdata.getdatalabel(l1);
        l:=length(name);
-       asmlist[al_resourcestrings].concat(tai_const.create_sym(l1));
-       maybe_new_object_file(asmlist[al_const]);
-       asmlist[al_const].concat(tai_align.create(const_align(sizeof(aint))));
-       asmlist[al_const].concat(tai_const.create_aint(-1));
-       asmlist[al_const].concat(tai_const.create_aint(l));
-       asmlist[al_const].concat(tai_label.create(l1));
+       current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_sym(l1));
+       maybe_new_object_file(current_asmdata.AsmLists[al_const]);
+       current_asmdata.AsmLists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+       current_asmdata.AsmLists[al_const].concat(tai_const.create_aint(-1));
+       current_asmdata.AsmLists[al_const].concat(tai_const.create_aint(l));
+       current_asmdata.AsmLists[al_const].concat(tai_label.create(l1));
        getmem(s,l+1);
        move(Name[1],s^,l);
        s[l]:=#0;
-       asmlist[al_const].concat(tai_string.create_pchar(s,l));
-       asmlist[al_const].concat(tai_const.create_8bit(0));
+       current_asmdata.AsmLists[al_const].concat(tai_string.create_pchar(s,l));
+       current_asmdata.AsmLists[al_const].concat(tai_const.create_8bit(0));
      end;
   end;
 
 Var
   R : tresourceStringItem;
 begin
-  if asmlist[al_resourcestrings]=nil then
-    asmlist[al_resourcestrings]:=taasmoutput.create;
-  maybe_new_object_file(asmlist[al_resourcestrings]);
-  new_section(asmlist[al_resourcestrings],sec_data,'',4);
-  asmlist[al_resourcestrings].concat(tai_align.create(const_align(sizeof(aint))));
-  asmlist[al_resourcestrings].concat(tai_symbol.createname_global(
+  if current_asmdata.AsmLists[al_resourcestrings]=nil then
+    current_asmdata.AsmLists[al_resourcestrings]:=tasmlist.create;
+  maybe_new_object_file(current_asmdata.AsmLists[al_resourcestrings]);
+  new_section(current_asmdata.AsmLists[al_resourcestrings],sec_data,'',4);
+  current_asmdata.AsmLists[al_resourcestrings].concat(tai_align.create(const_align(sizeof(aint))));
+  current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
     make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
-  asmlist[al_resourcestrings].concat(tai_const.create_32bit(resstrcount));
+  current_asmdata.AsmLists[al_resourcestrings].concat(tai_const.create_32bit(resstrcount));
   R:=TResourceStringItem(List.First);
   while assigned(R) do
    begin
      AppendToAsmResList(R);
      R:=TResourceStringItem(R.Next);
    end;
-  asmlist[al_resourcestrings].concat(tai_symbol_end.createname(
+  current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol_end.createname(
     make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,'')));
 end;
 

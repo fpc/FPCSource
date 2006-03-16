@@ -27,7 +27,7 @@ interface
 
 uses
   cclasses,globtype,globals,verbose,
-  aasmbase,aasmtai,
+  aasmbase,aasmtai,aasmdata,
   ogbase,
   symtype,
   cpubase,cpuinfo,cgbase,cgutils;
@@ -234,7 +234,7 @@ uses
     function setcondition(i : taicpu;c : tasmcond) : taicpu;
 
     { inserts pc relative symbols at places where they are reachable }
-    procedure insertpcrelativedata(list,listtoinsert : taasmoutput);
+    procedure insertpcrelativedata(list,listtoinsert : TAsmList);
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -609,17 +609,17 @@ implementation
       end;
 
 
-    procedure insertpcrelativedata(list,listtoinsert : taasmoutput);
+    procedure insertpcrelativedata(list,listtoinsert : TAsmList);
       var
         curpos : longint;
         lastpos : longint;
         curop : longint;
         curtai : tai;
         curdatatai,hp : tai;
-        curdata : taasmoutput;
+        curdata : TAsmList;
         l : tasmlabel;
       begin
-        curdata:=taasmoutput.create;
+        curdata:=TAsmList.create;
         lastpos:=-1;
         curpos:=0;
         curtai:=tai(list.first);
@@ -668,7 +668,7 @@ implementation
               begin
                 lastpos:=curpos;
                 hp:=tai(curtai.next);
-                objectlibrary.getjumplabel(l);
+                current_asmdata.getjumplabel(l);
                 curdata.insert(taicpu.op_sym(A_B,l));
                 curdata.concat(tai_label.create(l));
                 list.insertlistafter(curtai,curdata);

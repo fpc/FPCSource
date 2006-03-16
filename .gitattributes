@@ -7,6 +7,7 @@ compiler/Makefile svneol=native#text/plain
 compiler/Makefile.fpc svneol=native#text/plain
 compiler/README -text
 compiler/aasmbase.pas svneol=native#text/plain
+compiler/aasmdata.pas svneol=native#text/plain
 compiler/aasmtai.pas svneol=native#text/plain
 compiler/aggas.pas svneol=native#text/plain
 compiler/alpha/aasmcpu.pas svneol=native#text/plain
@@ -75,6 +76,7 @@ compiler/browlog.pas svneol=native#text/plain
 compiler/bsdcompile -text
 compiler/catch.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain
+compiler/cfidwarf.pas svneol=native#text/plain
 compiler/cg64f32.pas svneol=native#text/plain
 compiler/cgbase.pas svneol=native#text/plain
 compiler/cgobj.pas svneol=native#text/plain
@@ -96,7 +98,6 @@ compiler/dbgdwarf.pas svneol=native#text/plain
 compiler/dbgstabs.pas svneol=native#text/plain
 compiler/defcmp.pas svneol=native#text/plain
 compiler/defutil.pas svneol=native#text/plain
-compiler/dwarf.pas svneol=native#text/plain
 compiler/export.pas svneol=native#text/plain
 compiler/finput.pas svneol=native#text/plain
 compiler/fmodule.pas svneol=native#text/plain

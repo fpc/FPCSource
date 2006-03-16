@@ -52,7 +52,7 @@ implementation
        globtype,tokens,verbose,widestr,
        systems,
        { aasm }
-       aasmbase,aasmtai,fmodule,
+       aasmbase,aasmtai,aasmdata,fmodule,
        { symtable }
        symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
        { pass 1 }

@@ -28,7 +28,7 @@ unit cpupara;
 
     uses
        globtype,globals,
-       aasmtai,
+       aasmtai,aasmdata,
        cpuinfo,cpubase,cgbase,
        symconst,symbase,symtype,symdef,parabase,paramgr;
 

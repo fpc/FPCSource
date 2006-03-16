@@ -29,7 +29,7 @@ interface
       cclasses,
       dbgbase,
       symtype,symdef,symsym,symtable,symbase,
-      aasmtai;
+      aasmtai,aasmdata;
 
     type
       TDebugInfoStabs=class(TDebugInfo)
@@ -40,7 +40,7 @@ interface
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):Pchar;
-        procedure write_symtable_syms(list:taasmoutput;st:tsymtable);
+        procedure write_symtable_syms(list:TAsmList;st:tsymtable);
         { tdef writing }
         function  def_stab_number(def:tdef):string;
         function  def_stab_classnumber(def:tobjectdef):string;
@@ -49,16 +49,16 @@ interface
         procedure field_add_stabstr(p:Tnamedindexitem;arg:pointer);
         procedure method_add_stabstr(p:Tnamedindexitem;arg:pointer);
         function  def_stabstr(def:tdef):pchar;
-        procedure write_def_stabstr(list:taasmoutput;def:tdef);
-        procedure write_procdef(list:taasmoutput;pd:tprocdef);
-        procedure insertsym(list:taasmoutput;sym:tsym);
+        procedure write_def_stabstr(list:TAsmList;def:tdef);
+        procedure write_procdef(list:TAsmList;pd:tprocdef);
+        procedure insertsym(list:TAsmList;sym:tsym);
       public
         procedure inserttypeinfo;override;
         procedure insertmoduleinfo;override;
-        procedure insertlineinfo(list:taasmoutput);override;
-        procedure referencesections(list:taasmoutput);override;
-        procedure insertdef(list:taasmoutput;def:tdef);override;
-        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);override;
+        procedure insertlineinfo(list:TAsmList);override;
+        procedure referencesections(list:TAsmList);override;
+        procedure insertdef(list:TAsmList;def:tdef);override;
+        procedure write_symtable_defs(list:TAsmList;st:tsymtable);override;
       end;
 
 
@@ -736,7 +736,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.write_def_stabstr(list:taasmoutput;def:tdef);
+    procedure TDebugInfoStabs.write_def_stabstr(list:TAsmList;def:tdef);
       var
         stabchar : string[2];
         ss,st,su : pchar;
@@ -776,7 +776,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.insertdef(list:taasmoutput;def:tdef);
+    procedure TDebugInfoStabs.insertdef(list:TAsmList;def:tdef);
       var
         anc : tobjectdef;
         oldtypesym : tsym;
@@ -882,9 +882,9 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.write_symtable_defs(list:taasmoutput;st:tsymtable);
+    procedure TDebugInfoStabs.write_symtable_defs(list:TAsmList;st:tsymtable);
 
-       procedure dowritestabs(list:taasmoutput;st:tsymtable);
+       procedure dowritestabs(list:TAsmList;st:tsymtable);
          var
            p : tdef;
          begin
@@ -919,9 +919,9 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.write_procdef(list:taasmoutput;pd:tprocdef);
+    procedure TDebugInfoStabs.write_procdef(list:TAsmList;pd:tprocdef);
       var
-        templist : taasmoutput;
+        templist : TAsmList;
         stabsendlabel : tasmlabel;
         mangled_length : longint;
         p : pchar;
@@ -929,7 +929,7 @@ implementation
       begin
         if assigned(pd.procstarttai) then
           begin
-            templist:=taasmoutput.create;
+            templist:=TAsmList.create;
             { para types }
             write_def_stabstr(templist,pd);
             if assigned(pd.parast) then
@@ -939,9 +939,9 @@ implementation
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
               write_symtable_syms(templist,pd.localst);
-            asmlist[al_procedures].insertlistbefore(pd.procstarttai,templist);
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
             { end of procedure }
-            objectlibrary.getlabel(stabsendlabel,alt_dbgtype);
+            current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
             templist.concat(tai_label.create(stabsendlabel));
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
@@ -983,7 +983,7 @@ implementation
               end;
             templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
             freemem(p,2*mangled_length+50);
-            asmlist[al_procedures].insertlistbefore(pd.procendtai,templist);
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procendtai,templist);
             templist.free;
           end;
       end;
@@ -1030,7 +1030,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.insertsym(list:taasmoutput;sym:tsym);
+    procedure TDebugInfoStabs.insertsym(list:TAsmList;sym:tsym);
 
         function fieldvarsym_stabstr(sym:tfieldvarsym):Pchar;
           begin
@@ -1285,7 +1285,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.write_symtable_syms(list:taasmoutput;st:tsymtable);
+    procedure TDebugInfoStabs.write_symtable_syms(list:TAsmList;st:tsymtable);
       var
         p : tsym;
       begin
@@ -1317,7 +1317,7 @@ implementation
     procedure tdebuginfostabs.inserttypeinfo;
       var
         stabsvarlist,
-        stabstypelist : taasmoutput;
+        stabstypelist : TAsmList;
         storefilepos  : tfileposinfo;
         st : tsymtable;
         i  : longint;
@@ -1327,8 +1327,8 @@ implementation
 
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
-        stabsvarlist:=taasmoutput.create;
-        stabstypelist:=taasmoutput.create;
+        stabsvarlist:=TAsmList.create;
+        stabstypelist:=TAsmList.create;
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
@@ -1339,8 +1339,8 @@ implementation
           end
         else
           st:=current_module.localsymtable;
-        new_section(asmlist[al_stabs],sec_data,st.name^,0);
-        asmlist[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
+        new_section(current_asmdata.asmlists[al_stabs],sec_data,st.name^,0);
+        current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
 
         { first write all global/local symbols. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
@@ -1359,8 +1359,8 @@ implementation
         if assigned(current_module.localsymtable) then
           write_symtable_defs(stabstypelist,current_module.localsymtable);
 
-        asmlist[al_stabs].concatlist(stabstypelist);
-        asmlist[al_stabs].concatlist(stabsvarlist);
+        current_asmdata.asmlists[al_stabs].concatlist(stabstypelist);
+        current_asmdata.asmlists[al_stabs].concatlist(stabsvarlist);
 
         { reset stab numbers }
         for i:=0 to defnumberlist.count-1 do
@@ -1381,7 +1381,7 @@ implementation
       end;
 
 
-    procedure tdebuginfostabs.insertlineinfo(list:taasmoutput);
+    procedure tdebuginfostabs.insertlineinfo(list:TAsmList);
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
@@ -1417,7 +1417,7 @@ implementation
                     infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
-                        objectlibrary.getlabel(hlabel,alt_dbgfile);
+                        current_asmdata.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
                         if (infile.path^<>'') then
                           list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_includefile)+
@@ -1436,7 +1436,7 @@ implementation
                      if assigned(currfuncname) and
                         (tf_use_function_relative_addresses in target_info.flags) then
                       begin
-                        objectlibrary.getlabel(hlabel,alt_dbgline);
+                        current_asmdata.getlabel(hlabel,alt_dbgline);
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(n_textline)+',0,'+tostr(currfileinfo.line)+','+
                                           hlabel.name+' - '+{$IFDEF POWERPC64}'.'+{$ENDIF POWERPC64}currfuncname^),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
@@ -1456,12 +1456,12 @@ implementation
       var
         hlabel : tasmlabel;
         infile : tinputfile;
-        templist : taasmoutput;
+        templist : TAsmList;
       begin
         { emit main source n_sourcefile for start of module }
-        objectlibrary.getlabel(hlabel,alt_dbgfile);
+        current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
-        templist:=taasmoutput.create;
+        templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
         if (infile.path^<>'') then
           templist.concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
@@ -1469,20 +1469,20 @@ implementation
         templist.concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
                     ',0,0,'+hlabel.name));
         templist.concat(tai_label.create(hlabel));
-        asmlist[al_start].insertlist(templist);
+        current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
         { emit empty n_sourcefile for end of module }
-        objectlibrary.getlabel(hlabel,alt_dbgfile);
-        templist:=taasmoutput.create;
+        current_asmdata.getlabel(hlabel,alt_dbgfile);
+        templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
         templist.concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         templist.concat(tai_label.create(hlabel));
-        asmlist[al_end].insertlist(templist);
+        current_asmdata.asmlists[al_end].insertlist(templist);
         templist.free;
       end;
 
 
-    procedure tdebuginfostabs.referencesections(list:taasmoutput);
+    procedure tdebuginfostabs.referencesections(list:TAsmList);
       var
         hp   : tused_unit;
       begin

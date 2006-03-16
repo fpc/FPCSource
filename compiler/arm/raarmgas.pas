@@ -53,7 +53,7 @@ Unit raarmgas;
       globtype,globals,verbose,
       systems,
       { aasm }
-      cpuinfo,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,symbase,symtype,symsym,symtable,
       { parser }

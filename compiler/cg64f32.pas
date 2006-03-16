@@ -31,7 +31,7 @@ unit cg64f32;
   interface
 
     uses
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpupara,
        cgbase,cgobj,parabase,cgutils,
        symtype
@@ -42,43 +42,43 @@ unit cg64f32;
          to handle 64-bit integers.
       }
       tcg64f32 = class(tcg64)
-        procedure a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);override;
-        procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);override;
-        procedure a_load64_const_reg(list : taasmoutput;value: int64;reg : tregister64);override;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);override;
-        procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);override;
-        procedure a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);override;
-        procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);override;
+        procedure a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);override;
+        procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);override;
+        procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);override;
+        procedure a_load64_reg_reg(list : TAsmList;regsrc,regdst : tregister64);override;
+        procedure a_load64_const_reg(list : TAsmList;value: int64;reg : tregister64);override;
+        procedure a_load64_loc_reg(list : TAsmList;const l : tlocation;reg : tregister64);override;
+        procedure a_load64_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);override;
+        procedure a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);override;
+        procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);override;
 
-        procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);override;
-        procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);override;
-        procedure a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);override;
-        procedure a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);override;
-        procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
-        procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
+        procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
+        procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
+        procedure a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);override;
+        procedure a_load64low_ref_reg(list : TAsmList;const ref : treference;reg : tregister);override;
+        procedure a_load64high_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);override;
+        procedure a_load64low_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);override;
 
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
-        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);override;
-        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);override;
-        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);override;
+        procedure a_op64_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);override;
+        procedure a_op64_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);override;
+        procedure a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
+        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
 
-        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const paraloc : tcgpara);override;
-        procedure a_param64_const(list : taasmoutput;value : int64;const paraloc : tcgpara);override;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);override;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const paraloc : tcgpara);override;
+        procedure a_param64_reg(list : TAsmList;reg : tregister64;const paraloc : tcgpara);override;
+        procedure a_param64_const(list : TAsmList;value : int64;const paraloc : tcgpara);override;
+        procedure a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
+        procedure a_param64_loc(list : TAsmList;const l : tlocation;const paraloc : tcgpara);override;
 
         {# This routine tries to optimize the a_op64_const_reg operation, by
            removing superfluous opcodes. Returns TRUE if normal processing
            must continue in op64_const_reg, otherwise, everything is processed
            entirely in this routine, by emitting the appropriate 32-bit opcodes.
         }
-        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;override;
+        function optimize64_op_const_reg(list: TAsmList; var op: topcg; var a : int64; var reg: tregister64): boolean;override;
 
-        procedure g_rangecheck64(list: taasmoutput; const l:tlocation;fromdef,todef: tdef); override;
+        procedure g_rangecheck64(list: TAsmList; const l:tlocation;fromdef,todef: tdef); override;
       end;
 
     {# Creates a tregister64 record from 2 32 Bit registers. }
@@ -177,7 +177,7 @@ unit cg64f32;
                                    TCG64F32
 ****************************************************************************}
 
-    procedure tcg64f32.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
+    procedure tcg64f32.a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -195,7 +195,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);
+    procedure tcg64f32.a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);
       var
         tmpref: treference;
       begin
@@ -208,7 +208,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
+    procedure tcg64f32.a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -242,7 +242,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
+    procedure tcg64f32.a_load64_reg_reg(list : TAsmList;regsrc,regdst : tregister64);
 
       begin
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
@@ -250,7 +250,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : int64;reg : tregister64);
+    procedure tcg64f32.a_load64_const_reg(list : TAsmList;value : int64;reg : tregister64);
 
       begin
         cg.a_load_const_reg(list,OS_32,aint(lo(value)),reg.reglo);
@@ -258,7 +258,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);
+    procedure tcg64f32.a_load64_loc_reg(list : TAsmList;const l : tlocation;reg : tregister64);
 
       begin
         case l.loc of
@@ -274,7 +274,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
+    procedure tcg64f32.a_load64_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);
       begin
         case l.loc of
           LOC_REGISTER,LOC_CREGISTER:
@@ -287,7 +287,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);
+    procedure tcg64f32.a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);
 
       begin
         case l.loc of
@@ -301,7 +301,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);
+    procedure tcg64f32.a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);
 
       begin
         case l.loc of
@@ -315,7 +315,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
+    procedure tcg64f32.a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);
       var
         tmpref: treference;
       begin
@@ -329,7 +329,7 @@ unit cg64f32;
           end;
       end;
 
-    procedure tcg64f32.a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
+    procedure tcg64f32.a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);
       var
         tmpref: treference;
       begin
@@ -344,7 +344,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
+    procedure tcg64f32.a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);
       var
         tmpref: treference;
       begin
@@ -359,7 +359,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
+    procedure tcg64f32.a_load64low_ref_reg(list : TAsmList;const ref : treference;reg : tregister);
       var
         tmpref: treference;
       begin
@@ -374,7 +374,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+    procedure tcg64f32.a_load64low_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);
       begin
         case l.loc of
           LOC_REFERENCE,
@@ -391,7 +391,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
+    procedure tcg64f32.a_load64high_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);
       begin
         case l.loc of
           LOC_REFERENCE,
@@ -408,7 +408,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);
+    procedure tcg64f32.a_op64_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -421,7 +421,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);
+    procedure tcg64f32.a_op64_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -435,7 +435,7 @@ unit cg64f32;
 
 
 
-    procedure tcg64f32.a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);
+    procedure tcg64f32.a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -450,7 +450,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+    procedure tcg64f32.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         tempreg: tregister64;
       begin
@@ -461,7 +461,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);
+    procedure tcg64f32.a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64; const ref: treference);
       var
         tempreg: tregister64;
       begin
@@ -473,7 +473,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
+    procedure tcg64f32.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         tempreg: tregister64;
       begin
@@ -485,7 +485,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const paraloc : tcgpara);
+    procedure tcg64f32.a_param64_reg(list : TAsmList;reg : tregister64;const paraloc : tcgpara);
       var
         tmplochi,tmploclo: tcgpara;
       begin
@@ -501,7 +501,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : taasmoutput;value : int64;const paraloc : tcgpara);
+    procedure tcg64f32.a_param64_const(list : TAsmList;value : int64;const paraloc : tcgpara);
       var
         tmplochi,tmploclo: tcgpara;
       begin
@@ -517,7 +517,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const paraloc : tcgpara);
+    procedure tcg64f32.a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);
       var
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
@@ -540,7 +540,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const paraloc : tcgpara);
+    procedure tcg64f32.a_param64_loc(list : TAsmList;const l:tlocation;const paraloc : tcgpara);
       begin
         case l.loc of
           LOC_REGISTER,
@@ -557,7 +557,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.g_rangecheck64(list : taasmoutput;const l:tlocation;fromdef,todef:tdef);
+    procedure tcg64f32.g_rangecheck64(list : TAsmList;const l:tlocation;fromdef,todef:tdef);
 
       var
         neglabel,
@@ -585,7 +585,7 @@ unit cg64f32;
                  hreg:=cg.getintregister(list,OS_32);
                  a_load64high_ref_reg(list,l.reference,hreg);
                end;
-             objectlibrary.getjumplabel(poslabel);
+             current_asmdata.getjumplabel(poslabel);
 
              { check high dword, must be 0 (for positive numbers) }
              cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,0,hreg,poslabel);
@@ -593,7 +593,7 @@ unit cg64f32;
              { It can also be $ffffffff, but only for negative numbers }
              if from_signed and to_signed then
                begin
-                 objectlibrary.getjumplabel(neglabel);
+                 current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end;
              { For all other values we have a range check error }
@@ -616,7 +616,7 @@ unit cg64f32;
 
              if from_signed and to_signed then
                begin
-                 objectlibrary.getjumplabel(endlabel);
+                 current_asmdata.getjumplabel(endlabel);
                  cg.a_jmp_always(list,endlabel);
                  { if the high dword = $ffffffff, then the low dword (when }
                  { considered as a longint) must be < 0                    }
@@ -631,7 +631,7 @@ unit cg64f32;
                      a_load64low_ref_reg(list,l.reference,hreg);
                    end;
                  { get a new neglabel (JM) }
-                 objectlibrary.getjumplabel(neglabel);
+                 current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
 
                  cg.a_call_name(list,'FPC_RANGEERROR');
@@ -682,7 +682,7 @@ unit cg64f32;
                    else
                      cg.a_load_ref_reg(list,l.size,OS_32,l.reference,hreg);
                  end;
-               objectlibrary.getjumplabel(poslabel);
+               current_asmdata.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
                cg.a_call_name(list,'FPC_RANGEERROR');
@@ -691,7 +691,7 @@ unit cg64f32;
       end;
 
 
-    function tcg64f32.optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;
+    function tcg64f32.optimize64_op_const_reg(list: TAsmList; var op: topcg; var a : int64; var reg: tregister64): boolean;
       var
         lowvalue, highvalue : longint;
         hreg: tregister;

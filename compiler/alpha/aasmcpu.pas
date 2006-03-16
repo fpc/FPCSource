@@ -30,7 +30,7 @@ unit aasmcpu;
 
     uses
        aasmbase,globals,verbose,
-       cpubase,aasmtai;
+       cpubase,aasmtai,aasmdata;
 
     type
       tai_frame = class(tai)

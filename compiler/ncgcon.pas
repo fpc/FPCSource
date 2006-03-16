@@ -64,7 +64,7 @@ implementation
     uses
       globtype,widestr,systems,
       verbose,globals,
-      symconst,symdef,aasmbase,aasmtai,aasmcpu,defutil,
+      symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
       ncgutil
@@ -100,7 +100,7 @@ implementation
         if not assigned(lab_real) then
           begin
              { tries to find an old entry }
-             hp1:=tai(asmlist[al_typedconsts].first);
+             hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
              while assigned(hp1) do
                begin
                   if hp1.typ=ait_label then
@@ -136,19 +136,19 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(lab_real) then
                begin
-                  objectlibrary.getdatalabel(lastlabel);
+                  current_asmdata.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
-                  maybe_new_object_file(asmlist[al_typedconsts]);
-                  new_section(asmlist[al_typedconsts],sec_rodata,lastlabel.name,const_align(resulttype.def.size));
-                  asmlist[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                  maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(resulttype.def.size));
+                  current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
                       begin
-                        asmlist[al_typedconsts].concat(Tai_real_32bit.Create(ts32real(value_real)));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_32bit.Create(ts32real(value_real)));
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_32bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                           Message(parser_e_range_check_error);
                       end;
 
@@ -156,37 +156,37 @@ implementation
                       begin
 {$ifdef ARM}
                         if hiloswapped then
-                          asmlist[al_typedconsts].concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_real_64bit.Create_hiloswapped(ts64real(value_real)))
                         else
 {$endif ARM}
-                          asmlist[al_typedconsts].concat(Tai_real_64bit.Create(ts64real(value_real)));
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_real_64bit.Create(ts64real(value_real)));
 
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_64bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                           Message(parser_e_range_check_error);
                      end;
 
                     ait_real_80bit :
                       begin
-                        asmlist[al_typedconsts].concat(Tai_real_80bit.Create(value_real));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real));
 
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_80bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                           Message(parser_e_range_check_error);
                       end;
 {$ifdef cpufloat128}
                     ait_real_128bit :
                       begin
-                        asmlist[al_typedconsts].concat(Tai_real_128bit.Create(value_real));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_128bit.Create(value_real));
 
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_128bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                           Message(parser_e_range_check_error);
                       end;
 {$endif cpufloat128}
@@ -196,7 +196,7 @@ implementation
                       if (value_real>9223372036854775807.0) or (value_real<-9223372036854775808.0) then
                         message(parser_e_range_check_error)
                       else
-                        asmlist[al_typedconsts].concat(Tai_comp_64bit.Create(round(value_real)));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_comp_64bit.Create(round(value_real)));
                   else
                     internalerror(10120);
                   end;
@@ -269,7 +269,7 @@ implementation
               if not(is_widestring(resulttype.def)) then
                 begin
                   { tries to find an old entry }
-                  hp1:=tai(asmlist[al_typedconsts].first);
+                  hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
                   while assigned(hp1) do
                     begin
                        if hp1.typ=ait_label then
@@ -382,32 +382,32 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(lab_str) then
                 begin
-                   objectlibrary.getdatalabel(lastlabel);
+                   current_asmdata.getdatalabel(lastlabel);
                    lab_str:=lastlabel;
-                   maybe_new_object_file(asmlist[al_typedconsts]);
-                   new_section(asmlist[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
-                   asmlist[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case cst_type of
                       cst_ansistring:
                         begin
                            { an empty ansi string is nil! }
                            if len=0 then
-                             asmlist[al_typedconsts].concat(Tai_const.Create_sym(nil))
+                             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(nil))
                            else
                              begin
-                                objectlibrary.getdatalabel(l1);
-                                objectlibrary.getdatalabel(l2);
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l2));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_sym(l1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(len));
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l1));
+                                current_asmdata.getdatalabel(l1);
+                                current_asmdata.getdatalabel(l2);
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l2));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 { include also terminating zero }
                                 getmem(pc,len+1);
                                 move(value_str^,pc^,len);
                                 pc[len]:=#0;
-                                asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -416,24 +416,24 @@ implementation
                         begin
                            { an empty wide string is nil! }
                            if len=0 then
-                             asmlist[al_typedconsts].concat(Tai_const.Create_sym(nil))
+                             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(nil))
                            else
                              begin
-                                objectlibrary.getdatalabel(l1);
-                                objectlibrary.getdatalabel(l2);
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l2));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_sym(l1));
+                                current_asmdata.getdatalabel(l1);
+                                current_asmdata.getdatalabel(l2);
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l2));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
 
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                asmlist[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
-                                asmlist[al_typedconsts].concat(Tai_label.Create(l1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
-                                  asmlist[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
+                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { terminating zero }
-                                asmlist[al_typedconsts].concat(Tai_const.Create_16bit(0));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0));
                                 { return the offset of the real string }
                                 lab_str:=l2;
                              end;
@@ -450,7 +450,7 @@ implementation
                           move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
-                          asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,l+2));
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,l+2));
                         end;
                       cst_conststring:
                         begin
@@ -458,7 +458,7 @@ implementation
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
                           pc[len]:=#0;
-                          asmlist[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
                    end;
                 end;
@@ -503,7 +503,7 @@ implementation
         if not assigned(lab_set) then
           begin
              { tries to found an old entry }
-             hp1:=tai(asmlist[al_typedconsts].first);
+             hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
              while assigned(hp1) do
                begin
                   if hp1.typ=ait_label then
@@ -554,11 +554,11 @@ implementation
              { :-(, we must generate a new entry }
              if not assigned(lab_set) then
                begin
-                 objectlibrary.getdatalabel(lastlabel);
+                 current_asmdata.getdatalabel(lastlabel);
                  lab_set:=lastlabel;
-                 maybe_new_object_file(asmlist[al_typedconsts]);
-                 new_section(asmlist[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
-                 asmlist[al_typedconsts].concat(Tai_label.Create(lastlabel));
+                 maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                 new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
+                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                  { already handled at the start of this method?? (JM)
                  if tsetdef(resulttype.def).settype=smallset then
                   begin
@@ -569,7 +569,7 @@ implementation
                  }
                   begin
                     for i:=0 to 31 do
-                      asmlist[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i xor indexadjust]));
+                      current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i xor indexadjust]));
                   end;
                end;
           end;
@@ -599,14 +599,14 @@ implementation
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
         { label for GUID }
-        objectlibrary.getdatalabel(tmplabel);
-        asmlist[al_typedconsts].concat(tai_align.create(const_align(16)));
-        asmlist[al_typedconsts].concat(Tai_label.Create(tmplabel));
-        asmlist[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
-        asmlist[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
-        asmlist[al_typedconsts].concat(Tai_const.Create_16bit(value.D3));
+        current_asmdata.getdatalabel(tmplabel);
+        current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(16)));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(tmplabel));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint(value.D1)));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D2));
+        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(value.D3));
         for i:=low(value.D4) to high(value.D4) do
-          asmlist[al_typedconsts].concat(Tai_const.Create_8bit(value.D4[i]));
+          current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(value.D4[i]));
         location.reference.symbol:=tmplabel;
       end;
 

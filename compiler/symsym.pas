@@ -367,6 +367,7 @@ implementation
        { tree }
        node,
        { aasm }
+       aasmtai,aasmdata,
        { codegen }
        paramgr,cresstr,
        procinfo
@@ -2327,7 +2328,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA);
+         lab:=current_asmdata.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA);
         get_label:=lab;
       end;
 

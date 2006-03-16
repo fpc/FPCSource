@@ -27,9 +27,9 @@ Unit aopt386;
 Interface
 
 Uses
-  aasmbase,aasmtai,aasmcpu;
+  aasmbase,aasmtai,aasmdata,aasmcpu;
 
-Procedure Optimize(AsmL: TAasmOutput);
+Procedure Optimize(AsmL: TAsmList);
 
 
 Implementation
@@ -40,7 +40,7 @@ Uses
   DAOpt386,POpt386,CSOpt386;
 
 
-Procedure Optimize(AsmL: TAAsmOutput);
+Procedure Optimize(AsmL: TAsmList);
 Var
   BlockStart, BlockEnd, HP: Tai;
   pass: longint;
@@ -60,7 +60,7 @@ Begin
    { Setup labeltable, always necessary }
      blockstart := tai(asml.first);
      blockend := dfa.pass_1(blockstart);
-   { Blockend now either contains an ait_marker with Kind = AsmBlockStart, }
+   { Blockend now either contains an ait_marker with Kind = mark_AsmBlockStart, }
    { or nil                                                                }
      While Assigned(BlockStart) Do
        Begin
@@ -91,17 +91,17 @@ Begin
          BlockStart := BlockEnd;
          While Assigned(BlockStart) And
                (BlockStart.typ = ait_Marker) And
-               (Tai_Marker(BlockStart).Kind = AsmBlockStart) Do
+               (Tai_Marker(BlockStart).Kind = mark_AsmBlockStart) Do
            Begin
            { We stopped at an assembler block, so skip it }
             Repeat
               BlockStart := Tai(BlockStart.Next);
             Until (BlockStart.Typ = Ait_Marker) And
-                  (Tai_Marker(Blockstart).Kind = AsmBlockEnd);
-           { Blockstart now contains a Tai_marker(asmblockend) }
+                  (Tai_Marker(Blockstart).Kind = mark_AsmBlockEnd);
+           { Blockstart now contains a Tai_marker(mark_AsmBlockEnd) }
              If GetNextInstruction(BlockStart, HP) And
                 ((HP.typ <> ait_Marker) Or
-                 (Tai_Marker(HP).Kind <> AsmBlockStart)) Then
+                 (Tai_Marker(HP).Kind <> mark_AsmBlockStart)) Then
              { There is no assembler block anymore after the current one, so }
              { optimize the next block of "normal" instructions              }
                BlockEnd := dfa.pass_1(blockstart)

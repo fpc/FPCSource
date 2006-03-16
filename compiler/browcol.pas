@@ -270,7 +270,7 @@ uses
   CUtils,
   globtype,globals,comphook,
   finput,fmodule,
-  cpuinfo,cgbase,aasmbase,aasmtai,paramgr,
+  cpuinfo,cgbase,aasmbase,aasmtai,aasmdata,paramgr,
   symsym,symdef,symtype,symbase,defutil;
 
 const

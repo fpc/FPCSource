@@ -28,7 +28,7 @@ unit cgcpu;
     uses
        globtype,
        cgbase,cgobj,cg64f32,cgx86,
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,parabase,cgutils,
        symconst,symdef
        ;
@@ -36,28 +36,28 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure do_register_allocation(list:Taasmoutput;headertai:tai);override;
+        procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : tcgpara);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : tcgpara);override;
+        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
-        procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
+        procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
+        procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
 
-        procedure g_exception_reason_save(list : taasmoutput; const href : treference);override;
-        procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);override;
-        procedure g_exception_reason_load(list : taasmoutput; const href : treference);override;
-        procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
+        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
+        procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
+        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
      end;
 
       tcg64f386 = class(tcg64f32)
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
+        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);override;
+        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
@@ -90,7 +90,7 @@ unit cgcpu;
         rgfpu:=Trgx86fpu.create;
       end;
 
-    procedure tcg386.do_register_allocation(list:Taasmoutput;headertai:tai);
+    procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
       begin
         if pi_needs_got in current_procinfo.flags then
           include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
@@ -98,7 +98,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : tcgpara);
+    procedure tcg386.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -117,7 +117,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg386.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -135,7 +135,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
@@ -202,7 +202,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
@@ -241,7 +241,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);
+    procedure tcg386.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         stacksize : longint;
       begin
@@ -328,7 +328,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
+    procedure tcg386.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
         power,len  : longint;
         opsize : topsize;
@@ -358,8 +358,8 @@ unit cgcpu;
         { so we have to access every page first              }
         if target_info.system=system_i386_win32 then
           begin
-             objectlibrary.getjumplabel(again);
-             objectlibrary.getjumplabel(ok);
+             current_asmdata.getjumplabel(again);
+             current_asmdata.getjumplabel(ok);
              a_label(list,again);
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,NR_EDI));
              a_jmp_cond(list,OC_B,ok);
@@ -444,7 +444,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_exception_reason_save(list : taasmoutput; const href : treference);
+    procedure tcg386.g_exception_reason_save(list : TAsmList; const href : treference);
       begin
         if not use_fixed_stack then
           list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
@@ -453,7 +453,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aint);
+    procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: aint);
       begin
         if not use_fixed_stack then
           list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
@@ -462,7 +462,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_exception_reason_load(list : taasmoutput; const href : treference);
+    procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
         if not use_fixed_stack then
           list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
@@ -472,7 +472,7 @@ unit cgcpu;
 
 
 
-    procedure tcg386.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+    procedure tcg386.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       {
       possible calling conventions:
                     default stdcall cdecl pascal register
@@ -641,7 +641,7 @@ unit cgcpu;
         { case 0 }
         else
           begin
-            lab:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            lab:=current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
             list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
           end;
 
@@ -685,7 +685,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
+    procedure tcg64f386.a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -698,7 +698,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
+    procedure tcg64f386.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -727,7 +727,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
+    procedure tcg64f386.a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
@@ -750,7 +750,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
+    procedure tcg64f386.a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;

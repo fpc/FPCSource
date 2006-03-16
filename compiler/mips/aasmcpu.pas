@@ -26,7 +26,7 @@ unit aasmcpu;
 interface
 
 uses
-  cclasses,aasmtai,
+  cclasses,aasmtai,aasmdata,
   aasmbase,globtype,globals,verbose,
   cpubase,cpuinfo,cgbase,cgutils;
 

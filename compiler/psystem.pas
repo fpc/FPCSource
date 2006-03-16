@@ -43,7 +43,7 @@ implementation
       globals,globtype,verbose,
       systems,
       symconst,symtype,symsym,symdef,symtable,
-      aasmtai,aasmcpu,ncgutil,fmodule,
+      aasmtai,aasmdata,aasmcpu,ncgutil,fmodule,
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
       ;
 

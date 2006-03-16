@@ -41,7 +41,7 @@ implementation
       cutils,verbose,globals,
       symconst,symbase,symsym,symtable,defutil,paramgr,parabase,
       cgbase,pass_2,
-      cpuinfo,cpubase,aasmbase,aasmtai,aasmcpu,
+      cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       nmem,nld,ncnv,
       ncgutil,cgutils,cgobj,tgobj,regvars,rgobj,rgcpu,
       cg64f32,cgcpu,cpupi,procinfo;
@@ -57,7 +57,7 @@ implementation
               if po_syscall_legacy in tprocdef(procdefinition).procoptions then
                 begin
                   reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber);
-                  exprasmlist.concat(taicpu.op_ref_reg(A_JSR,S_NO,tmpref,NR_NO));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_JSR,S_NO,tmpref,NR_NO));
                 end
               else
                 internalerror(2005010403);

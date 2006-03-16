@@ -31,7 +31,7 @@ unit raatt;
       { global }
       globtype,
       { aasm }
-      cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+      cpubase,cpuinfo,aasmbase,aasmtai,aasmdata,aasmcpu,
       { assembler reader }
       rabase,
       rasm,
@@ -959,7 +959,7 @@ unit raatt;
           SetupTables;
           _asmsorted:=TRUE;
         end;
-       curlist:=TAAsmoutput.Create;
+       curlist:=TAsmList.Create;
        lasTSec:=sec_code;
        { setup label linked list }
        LocalLabelList:=TLocalLabelList.Create;
@@ -1522,7 +1522,7 @@ unit raatt;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
+           oper.opr.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
          end
         else
          begin

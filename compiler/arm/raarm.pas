@@ -27,7 +27,7 @@ unit raarm;
 
     uses
       cpubase,
-      aasmtai,
+      aasmtai,aasmdata,
       rautils;
 
     type
@@ -36,7 +36,7 @@ unit raarm;
 
       TARMInstruction=class(TInstruction)
         oppostfix : toppostfix;
-        function ConcatInstruction(p:TAAsmoutput) : tai;override;
+        function ConcatInstruction(p:TAsmList) : tai;override;
       end;
 
   implementation
@@ -44,7 +44,7 @@ unit raarm;
     uses
       aasmcpu;
 
-    function TARMInstruction.ConcatInstruction(p:TAAsmoutput) : tai;
+    function TARMInstruction.ConcatInstruction(p:TAsmList) : tai;
       begin
         result:=inherited ConcatInstruction(p);
         (result as taicpu).oppostfix:=oppostfix;

@@ -80,7 +80,7 @@ implementation
        globtype,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,
+       cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,
        paramgr,
@@ -615,7 +615,7 @@ implementation
            begin
              cg.translate_register(tabstractnormalvarsym(p).localloc.register);
              if cs_asm_source in aktglobalswitches then
-               taasmoutput(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
+               TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
                  std_regname(tabstractnormalvarsym(p).localloc.register))))
            end;
       end;
@@ -667,7 +667,7 @@ implementation
         oldprocinfo : tprocinfo;
         oldaktmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        templist : Taasmoutput;
+        templist : TAsmList;
         headertai : tai;
       begin
         { the initialization procedure can be empty, then we
@@ -695,10 +695,7 @@ implementation
         current_procinfo:=self;
         aktfilepos:=entrypos;
 
-        { get new labels }
-        aktbreaklabel:=nil;
-        aktcontinuelabel:=nil;
-        templist:=Taasmoutput.create;
+        templist:=TAsmList.create;
 
         { add parast/localst to symtablestack }
         add_to_symtablestack;
@@ -807,7 +804,7 @@ implementation
 
             { generate code for the node tree }
             do_secondpass(code);
-            aktproccode.concatlist(exprasmlist);
+            aktproccode.concatlist(current_asmdata.CurrAsmList);
 {$ifdef i386}
             procdef.fpu_used:=code.registersfpu;
 {$endif i386}
@@ -843,7 +840,7 @@ implementation
             else
               aktproccode.concatlist(templist);
             { insert exit label at the correct position }
-            cg.a_label(templist,aktexitlabel);
+            cg.a_label(templist,CurrExitLabel);
             if assigned(exitlabel_asmnode.currenttai) then
               aktproccode.insertlistafter(exitlabel_asmnode.currenttai,templist)
             else
@@ -983,13 +980,13 @@ implementation
               debuginfo.insertlineinfo(aktproccode);
 
             { add the procedure to the al_procedures }
-            maybe_new_object_file(asmlist[al_procedures]);
-            new_section(asmlist[al_procedures],sec_code,lower(procdef.mangledname),getprocalign);
-            asmlist[al_procedures].concatlist(aktproccode);
+            maybe_new_object_file(current_asmdata.asmlists[al_procedures]);
+            new_section(current_asmdata.asmlists[al_procedures],sec_code,lower(procdef.mangledname),getprocalign);
+            current_asmdata.asmlists[al_procedures].concatlist(aktproccode);
             { save local data (casetable) also in the same file }
             if assigned(aktlocaldata) and
                (not aktlocaldata.empty) then
-              asmlist[al_procedures].concatlist(aktlocaldata);
+              current_asmdata.asmlists[al_procedures].concatlist(aktlocaldata);
 
             { only now we can remove the temps }
             tg.resettempgen;
@@ -1511,7 +1508,7 @@ implementation
                    begin
                      s:=proc_get_importname(pd);
                      if s<>'' then
-                       gen_external_stub(asmlist[al_procedures],pd,{$IFDEF POWERPC64}'.'+{$ENDIF}s);
+                       gen_external_stub(current_asmdata.asmlists[al_procedures],pd,{$IFDEF POWERPC64}'.'+{$ENDIF}s);
                    end;
 
                  { Import DLL specified? }
@@ -1546,9 +1543,9 @@ implementation
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in aktmoduleswitches) then
-               objectlibrary.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+               current_asmdata.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
              else
-               objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+               current_asmdata.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
            end;
 
          current_procinfo:=old_current_procinfo;

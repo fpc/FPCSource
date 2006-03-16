@@ -30,7 +30,7 @@ interface
       systems,
       symconst,symbase,symdef,symtype,symsym,symtable,
       fmodule,
-      aasmtai;
+      aasmtai,aasmdata;
 
     type
       TDebugInfo=class
@@ -40,12 +40,12 @@ interface
 
         procedure inserttypeinfo;virtual;
         procedure insertmoduleinfo;virtual;
-        procedure insertlineinfo(list:taasmoutput);virtual;
-        procedure referencesections(list:taasmoutput);virtual;
-        procedure insertdef(list:taasmoutput;def:tdef);virtual;abstract;
-        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);virtual;abstract;
+        procedure insertlineinfo(list:TAsmList);virtual;
+        procedure referencesections(list:TAsmList);virtual;
+        procedure insertdef(list:TAsmList;def:tdef);virtual;abstract;
+        procedure write_symtable_defs(list:TAsmList;st:tsymtable);virtual;abstract;
 
-        procedure write_used_unit_type_info(list:taasmoutput;hp:tmodule);
+        procedure write_used_unit_type_info(list:TAsmList;hp:tmodule);
         procedure field_write_defs(p:Tnamedindexitem;arg:pointer);
         procedure method_write_defs(p :tnamedindexitem;arg:pointer);
       end;
@@ -81,12 +81,12 @@ implementation
       end;
 
 
-    procedure tdebuginfo.insertlineinfo(list:taasmoutput);
+    procedure tdebuginfo.insertlineinfo(list:TAsmList);
       begin
       end;
 
 
-    procedure tdebuginfo.referencesections(list:taasmoutput);
+    procedure tdebuginfo.referencesections(list:TAsmList);
       begin
       end;
 
@@ -108,7 +108,7 @@ implementation
       begin
         if (Tsym(p).typ=fieldvarsym) and
            not(sp_static in Tsym(p).symoptions) then
-          insertdef(taasmoutput(arg),tfieldvarsym(p).vartype.def);
+          insertdef(TAsmList(arg),tfieldvarsym(p).vartype.def);
       end;
 
 
@@ -119,12 +119,12 @@ implementation
         if tsym(p).typ=procsym then
           begin
             pd:=tprocsym(p).first_procdef;
-            insertdef(taasmoutput(arg),pd.rettype.def);
+            insertdef(TAsmList(arg),pd.rettype.def);
           end;
       end;
 
 
-    procedure TDebugInfo.write_used_unit_type_info(list:taasmoutput;hp:tmodule);
+    procedure TDebugInfo.write_used_unit_type_info(list:TAsmList;hp:tmodule);
       var
         pu : tused_unit;
       begin

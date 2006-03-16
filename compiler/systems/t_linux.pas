@@ -65,7 +65,7 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,dos,
-    aasmbase,aasmtai,aasmcpu,cpubase,
+    aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,
     i_linux
     ;
@@ -160,7 +160,7 @@ var
   sym : tasmsymbol;
   r : treference;
 begin
-  new_section(asmlist[al_procedures],sec_code,'',0);
+  new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
@@ -172,25 +172,25 @@ begin
         if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
          begin
            { place jump in al_procedures }
-           asmlist[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
-           asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
            if (cs_create_pic in aktmoduleswitches) and
              { other targets need to be checked how it works }
              (target_info.system in [system_x86_64_linux,system_i386_linux]) then
              begin
 {$ifdef x86}
-               sym:=objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+               sym:=current_asmdata.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
                reference_reset_symbol(r,sym,0);
                if cs_create_pic in aktmoduleswitches then
                  r.refaddr:=addr_pic
                else
                  r.refaddr:=addr_full;
-               asmlist[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
+               current_asmdata.asmlists[al_procedures].concat(taicpu.op_ref(A_JMP,S_NO,r));
 {$endif x86}
              end
            else
-             cg.a_jmp_name(asmlist[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
-           asmlist[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
+             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end
      else

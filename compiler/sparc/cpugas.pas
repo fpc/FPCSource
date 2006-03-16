@@ -27,7 +27,7 @@ interface
 
     uses
       cpubase,
-      aasmtai,aasmcpu,assemble,aggas;
+      aasmtai,aasmdata,aasmcpu,assemble,aggas;
 
     type
       TGasSPARC=class(TGnuAssembler)

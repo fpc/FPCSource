@@ -26,7 +26,7 @@ interface
 
 uses
   globtype,
-  aasmtai,
+  aasmtai,aasmdata,
   cpubase,
   symconst, symtype, symdef, symsym,
   paramgr, parabase, cgbase;
@@ -47,7 +47,7 @@ type
       tvarargsparalist): longint; override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
 
-    procedure createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
   private
     procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister;
       var cur_stack_offset: aword);
@@ -488,7 +488,7 @@ begin
   result := true;
 end;
 
-procedure tppcparamanager.createtempparaloc(list: taasmoutput;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+procedure tppcparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 var
   paraloc : pcgparalocation;
 begin

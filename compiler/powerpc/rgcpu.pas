@@ -28,17 +28,17 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,
+       aasmbase,aasmtai,aasmdata,
        cpubase,
        rgobj;
 
      type
        trgcpu = class(trgobj)
 {
-         function getcpuregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
-         procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
-         function getcpuregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
-         procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
+         function getcpuregisterint(list: TAsmList; reg: Tnewregister): tregister; override;
+         procedure ungetregisterint(list: TAsmList; reg: tregister); override;
+         function getcpuregisterfpu(list : TAsmList; r : Toldregister) : tregister;override;
+         procedure ungetregisterfpu(list: TAsmList; r : tregister; size:TCGsize);override;
          procedure cleartempgen; override;
         private
          usedpararegs: Tsupregset;
@@ -52,7 +52,7 @@ unit rgcpu;
       cgobj, verbose, cutils;
 
 (*
-    function trgcpu.getcpuregisterint(list: taasmoutput; reg: Tnewregister): tregister;
+    function trgcpu.getcpuregisterint(list: TAsmList; reg: Tnewregister): tregister;
 
       begin
         if ((reg shr 8) in [RS_R0]) and
@@ -70,7 +70,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
+    procedure trgcpu.ungetregisterint(list: TAsmList; reg: tregister);
 
       begin
         if ((reg.number shr 8) in [RS_R0]) and
@@ -87,7 +87,7 @@ unit rgcpu;
       end;
 
 
-    function trgcpu.getcpuregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+    function trgcpu.getcpuregisterfpu(list : TAsmList; r : Toldregister) : tregister;
       begin
         if (r in [R_F1..R_F13]) and
            not is_reg_var_other[r] then
@@ -103,7 +103,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);
+    procedure trgcpu.ungetregisterfpu(list: TAsmList; r : tregister; size:TCGsize);
       begin
         if (r.enum in [R_F1..R_F13]) and
            not is_reg_var_other[r.enum] then

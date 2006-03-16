@@ -32,7 +32,7 @@ Unit AoptObj;
 
     uses
       globtype,
-      aasmbase,aasmcpu,aasmtai,
+      aasmbase,aasmcpu,aasmtai,aasmdata,
       cclasses,
       cgbase,cgutils,
       cpubase,
@@ -233,7 +233,7 @@ Unit AoptObj;
 
       TAOptObj = class(TAoptBaseCpu)
         { the PAasmOutput list this optimizer instance works on }
-        AsmL: TAasmOutput;
+        AsmL: TAsmList;
 
         { The labelinfo record contains the addresses of the Tai objects }
         { that are labels, how many labels there are and the min and max }
@@ -248,7 +248,7 @@ Unit AoptObj;
         { _BlockStart and _BlockEnd the start and the end of the block }
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
-        Constructor create(_AsmL: TAasmOutput; _BlockStart, _BlockEnd: Tai;
+        Constructor create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                            _LabelInfo: PLabelInfo); virtual;
 
         { processor independent methods }
@@ -726,7 +726,7 @@ Unit AoptObj;
       { ***************************** TAoptObj ********************************** }
       { ************************************************************************* }
 
-      Constructor TAoptObj.create(_AsmL: TAasmOutput; _BlockStart, _BlockEnd: Tai;
+      Constructor TAoptObj.create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
                                   _LabelInfo: PLabelInfo);
       Begin
         AsmL := _AsmL;
@@ -782,19 +782,19 @@ Unit AoptObj;
           OldP := P;
           If (P.typ in SkipInstr) Or
              ((P.typ = ait_marker) And
-              (Tai_Marker(P).Kind = AsmBlockEnd)) Then
+              (Tai_Marker(P).Kind = mark_AsmBlockEnd)) Then
             GetNextInstruction(P, P)
           Else If ((P.Typ = Ait_Marker) And
-              (Tai_Marker(P).Kind = NoPropInfoStart)) Then
-       { a marker of the type NoPropInfoStart can't be the first instruction of a }
+              (Tai_Marker(P).Kind = mark_NoPropInfoStart)) Then
+       { a marker of the type mark_NoPropInfoStart can't be the first instruction of a }
        { paasmoutput list                                                         }
             GetNextInstruction(Tai(P.Previous),P);
           If (P.Typ = Ait_Marker) And
-             (Tai_Marker(P).Kind = AsmBlockStart) Then
+             (Tai_Marker(P).Kind = mark_AsmBlockStart) Then
             Begin
               P := Tai(P.Next);
               While (P.typ <> Ait_Marker) Or
-                    (Tai_Marker(P).Kind <> AsmBlockEnd) Do
+                    (Tai_Marker(P).Kind <> mark_AsmBlockEnd) Do
                 P := Tai(P.Next)
             End;
           Until P = OldP;
@@ -960,7 +960,7 @@ Unit AoptObj;
                       insertllitem(asml,p1,p1.next,tai_comment.Create(
                         strpnew('previous label inserted'))));
       {$endif finaldestdebug}
-                      objectlibrary.getjumplabel(l);
+                      current_asmdata.getjumplabel(l);
                       insertllitem(p1,p1.next,tai_label.Create(l));
                       tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
                       hp.oper[0]^.ref^.symbol := l;

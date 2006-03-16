@@ -47,8 +47,8 @@ interface
     uses
       systems,
       cutils,verbose,
-      paramgr,
-      aasmtai,aasmcpu,defutil,
+      paramgr,procinfo,
+      aasmtai,aasmdata,aasmcpu,defutil,
       cgbase,cgcpu,cgutils,
       cpupara,
       ncon,nset,nadd,
@@ -166,8 +166,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(exprasmlist,left.location,true);
-        location_force_fpureg(exprasmlist,right.location,(left.location.loc<>LOC_CFPUREGISTER));
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,right.location,(left.location.loc<>LOC_CFPUREGISTER));
 
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
         if left.location.loc<>LOC_CFPUREGISTER then
@@ -208,7 +208,7 @@ interface
             internalerror(200306014);
         end;
 
-        exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
            left.location.register,right.location.register,location.register));
       end;
 
@@ -223,8 +223,8 @@ interface
 
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(exprasmlist,left.location,true);
-        location_force_fpureg(exprasmlist,right.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getfpuresflags;
@@ -233,10 +233,10 @@ interface
           op:=A_FCMPd
         else
           op:=A_FCMPs;
-        exprasmlist.concat(taicpu.op_reg_reg(op,
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
              left.location.register,right.location.register));
         { Delay slot (can only contain integer operation) }
-        exprasmlist.concat(taicpu.op_none(A_NOP));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
       end;
 
 
@@ -246,9 +246,9 @@ interface
         force_reg_left_right(true,true);
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -261,9 +261,9 @@ interface
         force_reg_left_right(true,true);
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -282,10 +282,10 @@ interface
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swaped);
-                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
                    toggleflag(nf_swaped);
                 end;
               lten,gten:
@@ -295,19 +295,19 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),truelabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(exprasmlist,getresflags(unsigned),falselabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
-                cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
               unequaln:
-                cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
+                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
            end;
         end;
 
@@ -320,18 +320,18 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
-                   cg.a_jmp_always(exprasmlist,falselabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                 end;
               equaln:
                 begin
-                   cg.a_jmp_flags(exprasmlist,F_NE,falselabel);
-                   cg.a_jmp_always(exprasmlist,truelabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(exprasmlist,F_NE,truelabel);
-                   cg.a_jmp_always(exprasmlist,falselabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NE,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
                 end;
            end;
         end;
@@ -345,9 +345,9 @@ interface
 
         location_reset(location,LOC_JUMP,OS_NO);
 
-        exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
         firstjmp64bitcmp;
-        exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
         secondjmp64bitcmp;
       end;
 
@@ -363,9 +363,9 @@ interface
                   not(is_signed(right.resulttype.def));
 
         if right.location.loc = LOC_CONSTANT then
-          tcgsparc(cg).handle_reg_const_reg(exprasmlist,A_SUBcc,left.location.register,right.location.value,NR_G0)
+          tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)
         else
-          exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBcc,left.location.register,right.location.register,NR_G0));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);

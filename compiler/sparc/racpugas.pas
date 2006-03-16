@@ -51,7 +51,7 @@ Interface
       globtype,verbose,
       systems,
       { aasm }
-      cpubase,aasmbase,aasmtai,aasmcpu,
+      cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,
       { parser }
@@ -343,7 +343,7 @@ Interface
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
                 if not assigned(oper.opr.ref.symbol) then
-                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
+                  oper.opr.ref.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
                 else
                   Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 case oper.opr.typ of

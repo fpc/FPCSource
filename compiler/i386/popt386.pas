@@ -25,12 +25,12 @@ unit popt386;
 
 interface
 
-uses Aasmbase,aasmtai,aasmcpu,verbose;
+uses Aasmbase,aasmtai,aasmdata,aasmcpu,verbose;
 
-procedure PrePeepHoleOpts(asml: taasmoutput; BlockStart, BlockEnd: tai);
-procedure PeepHoleOptPass1(asml: taasmoutput; BlockStart, BlockEnd: tai);
-procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
-procedure PostPeepHoleOpts(asml: taasmoutput; BlockStart, BlockEnd: tai);
+procedure PrePeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
+procedure PeepHoleOptPass1(asml: TAsmList; BlockStart, BlockEnd: tai);
+procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
+procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 
 implementation
 
@@ -56,7 +56,7 @@ begin
 end;
 
 
-function doFpuLoadStoreOpt(asmL: TAAsmoutput; var p: tai): boolean;
+function doFpuLoadStoreOpt(asmL: TAsmList; var p: tai): boolean;
 { returns true if a "continue" should be done after this optimization }
 var hp1, hp2: tai;
 begin
@@ -108,7 +108,7 @@ begin
 end;
 
 
-procedure PrePeepHoleOpts(asml: taasmoutput; BlockStart, BlockEnd: tai);
+procedure PrePeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 var
   p,hp1: tai;
   l: aint;
@@ -402,7 +402,7 @@ end;
 
 
 
-procedure PeepHoleOptPass1(Asml: taasmoutput; BlockStart, BlockEnd: tai);
+procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
 {First pass of peepholeoptimizations}
 
 var
@@ -435,7 +435,7 @@ var
       end;
   end;
 
-  function GetFinalDestination(asml: taasmoutput; hp: taicpu; level: longint): boolean;
+  function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;
   {traces sucessive jumps to their final destination and sets it, e.g.
    je l1                je l3
    <code>               <code>
@@ -508,7 +508,7 @@ var
                   insertllitem(asml,p1,p1.next,tai_comment.Create(
                     strpnew('previous label inserted'))));
   {$endif finaldestdebug}
-                  objectlibrary.getjumplabel(l);
+                  current_asmdata.getjumplabel(l);
                   insertllitem(asml,p1,p1.next,tai_label.Create(l));
                   tasmlabel(taicpu(hp).oper[0]^.ref^.symbol).decrefs;
                   hp.oper[0]^.ref^.symbol := l;
@@ -1657,7 +1657,7 @@ begin
 end;
 
 
-procedure PeepHoleOptPass2(asml: taasmoutput; BlockStart, BlockEnd: tai);
+procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
 
 {$ifdef  USECMOV}
   function CanBeCMOV(p : tai) : boolean;
@@ -1918,7 +1918,7 @@ begin
 end;
 
 
-procedure PostPeepHoleOpts(asml: taasmoutput; BlockStart, BlockEnd: tai);
+procedure PostPeepHoleOpts(asml: TAsmList; BlockStart, BlockEnd: tai);
 var
   p,hp1,hp2: tai;
 begin

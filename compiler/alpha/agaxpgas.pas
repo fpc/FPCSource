@@ -26,7 +26,7 @@ unit agaxpgas;
   interface
 
     uses
-       globals,systems,aasmbase,aasmtai,
+       globals,systems,aasmbase,aasmtai,aasmdata,
        aggas,cpubase;
 
     type

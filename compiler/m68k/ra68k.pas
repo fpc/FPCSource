@@ -26,7 +26,7 @@ unit ra68k;
   interface
 
     uses
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,rautils,cclasses;
 
     type
@@ -35,8 +35,8 @@ unit ra68k;
 
       Tm68kInstruction=class(TInstruction)
         opsize : topsize;
-//        function ConcatInstruction(p : taasmoutput):tai;override;
-        function ConcatLabeledInstr(p : taasmoutput):tai;
+//        function ConcatInstruction(p : TAsmList):tai;override;
+        function ConcatLabeledInstr(p : TAsmList):tai;
       end;
 
   implementation
@@ -49,7 +49,7 @@ unit ra68k;
 *****************************************************************************}
 
 {
- function TM68kInstruction.ConcatInstruction(p : taasmoutput):tai;
+ function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;
   var
     fits : boolean;
   begin
@@ -321,7 +321,7 @@ unit ra68k;
  end;
 }
 
-    function TM68kInstruction.ConcatLabeledInstr(p : taasmoutput):tai;
+    function TM68kInstruction.ConcatLabeledInstr(p : TAsmList):tai;
       begin
         if ((opcode >= A_BCC) and (opcode <= A_BVS)) or
            (opcode = A_BRA) or (opcode = A_BSR) or

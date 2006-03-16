@@ -29,7 +29,7 @@ Unit aoptda;
 
     uses
       cpubase,cgbase,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       aoptcpub, aoptbase;
 
     Type

@@ -34,7 +34,7 @@ interface
       cpubase,
       cgbase,cgutils,
       symtype,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       ogbase;
 
     const

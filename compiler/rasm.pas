@@ -28,7 +28,7 @@ unit rasm;
     uses
       cclasses,
       rabase,
-      aasmtai,
+      aasmtai,aasmdata,
       systems,
       cpubase,
       cgbase;
@@ -37,7 +37,7 @@ unit rasm;
        tasmreader = class(tbaseasmreader)
          firsttoken     : boolean;
          _asmsorted     : boolean;
-         curlist        : TAAsmoutput;
+         curlist        : TAsmList;
          c              : char;
          actasmpattern  : string;
          actopcode      : tasmop;

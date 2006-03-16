@@ -2722,10 +2722,11 @@ INSTALLEXEFILE=$(PPCROSSNAME)
 else
 INSTALLEXEFILE=$(EXENAME)
 endif
-PPC_TARGETS=alpha i386 m68k powerpc sparc arm x86_64 powerpc64 vis ia64
+PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 alpha vis ia64
 .PHONY: $(PPC_TARGETS)
 $(PPC_TARGETS):
 	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
+alltargets: $(ALLTARGETS)
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 all: compiler $(addsuffix _all,$(TARGET_DIRS))
 compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)

@@ -29,7 +29,7 @@ interface
 
 uses
   globtype,
-  cclasses,aasmbase,aasmtai,aasmcpu,cgbase,cgutils,
+  cclasses,aasmbase,aasmtai,aasmdata,aasmcpu,cgbase,cgutils,
   cpubase,optbase;
 
 {******************************* Constants *******************************}
@@ -167,7 +167,7 @@ type
 
 {*********************** procedures and functions ************************}
 
-procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
+procedure InsertLLItem(AsmL: TAsmList; prev, foll, new_one: TLinkedListItem);
 
 
 function RefsEqual(const R1, R2: TReference): Boolean;
@@ -193,11 +193,11 @@ function GetLastInstruction(Current: tai; var Last: tai): Boolean;
 procedure SkipHead(var p: tai);
 function labelCanBeSkipped(p: tai_label): boolean;
 
-procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: tai);
+procedure RemoveLastDeallocForFuncRes(asmL: TAsmList; p: tai);
 function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
            hp: tai): boolean;
 procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
-procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
 function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
 function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
@@ -207,7 +207,7 @@ function OpsEqual(const o1,o2:toper): Boolean;
 
 type
   tdfaobj = class
-    constructor create(_list: taasmoutput); virtual;
+    constructor create(_list: TAsmList); virtual;
 
     function pass_1(_blockstart: tai): tai;
     function pass_2: boolean;
@@ -224,7 +224,7 @@ type
     procedure dodfapass2;
 
     { asm list we're working on }
-    list: taasmoutput;
+    list: TAsmList;
 
     { current part of the asm list }
     blockstart, blockend: tai;
@@ -379,9 +379,9 @@ begin
   until false;
 end;
 
-procedure RemoveLastDeallocForFuncRes(asml: taasmoutput; p: tai);
+procedure RemoveLastDeallocForFuncRes(asml: TAsmList; p: tai);
 
-  procedure DoRemoveLastDeallocForFuncRes(asml: taasmoutput; supreg: tsuperregister);
+  procedure DoRemoveLastDeallocForFuncRes(asml: TAsmList; supreg: tsuperregister);
   var
     hp2: tai;
   begin
@@ -445,7 +445,7 @@ begin
 end;
 
 
-procedure AddRegDeallocFor(asml: taasmoutput; reg: tregister; p: tai);
+procedure AddRegDeallocFor(asml: TAsmList; reg: tregister; p: tai);
 var
   hp1: tai;
   funcResRegs: tregset;
@@ -540,7 +540,7 @@ end;
 
 { inserts new_one between prev and foll }
 
-procedure InsertLLItem(AsmL: TAAsmOutput; prev, foll, new_one: TLinkedListItem);
+procedure InsertLLItem(AsmL: TAsmList; prev, foll, new_one: TLinkedListItem);
 begin
   if assigned(prev) then
     if assigned(foll) then
@@ -984,7 +984,7 @@ function GetNextInstruction(Current: tai; var Next: tai): Boolean;
 begin
   repeat
     if (Current.typ = ait_marker) and
-       (tai_Marker(current).Kind = AsmBlockStart) then
+       (tai_Marker(current).Kind = mark_AsmBlockStart) then
       begin
         GetNextInstruction := False;
         Next := Nil;
@@ -998,16 +998,16 @@ begin
       Current := tai(current.Next);
 {    if assigned(Current) and
        (current.typ = ait_Marker) and
-       (tai_Marker(current).Kind = NoPropInfoStart) then
+       (tai_Marker(current).Kind = mark_NoPropInfoStart) then
       begin
         while assigned(Current) and
               ((current.typ <> ait_Marker) or
-               (tai_Marker(current).Kind <> NoPropInfoend)) Do
+               (tai_Marker(current).Kind <> mark_NoPropInfoEnd)) Do
           Current := tai(current.Next);
       end;}
   until not(assigned(Current)) or
         (current.typ <> ait_Marker) or
-        not(tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoend]);
+        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd]);
   Next := Current;
   if assigned(Current) and
      not((current.typ in SkipInstr) or
@@ -1016,7 +1016,7 @@ begin
     then
       GetNextInstruction :=
          not((current.typ = ait_marker) and
-             (tai_marker(current).kind = asmBlockStart))
+             (tai_marker(current).kind = mark_AsmBlockStart))
     else
       begin
         GetNextInstruction := False;
@@ -1033,29 +1033,29 @@ begin
     Current := tai(current.previous);
     while assigned(Current) and
           (((current.typ = ait_Marker) and
-            not(tai_Marker(current).Kind in [AsmBlockend{,NoPropInfoend}])) or
+            not(tai_Marker(current).Kind in [mark_AsmBlockEnd{,mark_NoPropInfoEnd}])) or
            (current.typ in SkipInstr) or
            ((current.typ = ait_label) and
             labelCanBeSkipped(tai_label(current)))) Do
       Current := tai(current.previous);
 {    if assigned(Current) and
        (current.typ = ait_Marker) and
-       (tai_Marker(current).Kind = NoPropInfoend) then
+       (tai_Marker(current).Kind = mark_NoPropInfoEnd) then
       begin
         while assigned(Current) and
               ((current.typ <> ait_Marker) or
-               (tai_Marker(current).Kind <> NoPropInfoStart)) Do
+               (tai_Marker(current).Kind <> mark_NoPropInfoStart)) Do
           Current := tai(current.previous);
       end;}
   until not(assigned(Current)) or
         (current.typ <> ait_Marker) or
-        not(tai_Marker(current).Kind in [NoPropInfoStart,NoPropInfoend]);
+        not(tai_Marker(current).Kind in [mark_NoPropInfoStart,mark_NoPropInfoEnd]);
   if not(assigned(Current)) or
      (current.typ in SkipInstr) or
      ((current.typ = ait_label) and
       labelCanBeSkipped(tai_label(current))) or
      ((current.typ = ait_Marker) and
-      (tai_Marker(current).Kind = AsmBlockend))
+      (tai_Marker(current).Kind = mark_AsmBlockEnd))
     then
       begin
         Last := nil;
@@ -1077,12 +1077,12 @@ begin
     oldp := p;
     if (p.typ in SkipInstr) or
        ((p.typ = ait_marker) and
-        (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend])) then
+        (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd])) then
       GetNextInstruction(p,p)
     else if ((p.Typ = Ait_Marker) and
-        (tai_Marker(p).Kind = nopropinfostart)) then
-   {a marker of the NoPropInfoStart can't be the first instruction of a
-    TAAsmoutput list}
+        (tai_Marker(p).Kind = mark_NoPropInfoStart)) then
+   {a marker of the mark_NoPropInfoStart can't be the first instruction of a
+    TAsmList list}
       GetNextInstruction(tai(p.previous),p);
     until p = oldp
 end;
@@ -1131,7 +1131,7 @@ begin
            ((p.typ = ait_label) and
             labelCanBeSkipped(tai_label(p))) or
            ((p.typ = ait_marker) and
-            (tai_Marker(p).Kind in [AsmBlockend,inlinestart,inlineend]))) do
+            (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd]))) do
          p := tai(p.next);
     while assigned(p) and
           (p.typ=ait_RegAlloc) Do
@@ -1154,7 +1154,7 @@ begin
 end;
 
 
-procedure AllocRegBetween(asml: taasmoutput; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
 { allocates register reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
 { note that this routine is both called from the peephole optimizer     }
@@ -1964,7 +1964,7 @@ begin
 end;
 
 
-procedure AddInstr2RegContents({$ifdef statedebug} asml: taasmoutput; {$endif}
+procedure AddInstr2RegContents({$ifdef statedebug} asml: TAsmList; {$endif}
 p: taicpu; supreg: tsuperregister);
 {$ifdef statedebug}
 var
@@ -2004,7 +2004,7 @@ begin
 end;
 
 
-procedure AddInstr2OpContents({$ifdef statedebug} asml: TAAsmoutput; {$endif}
+procedure AddInstr2OpContents({$ifdef statedebug} asml: TAsmList; {$endif}
 p: taicpu; const oper: TOper);
 begin
   if oper.typ = top_reg then
@@ -2021,7 +2021,7 @@ end;
 {************************************** TDFAOBJ **************************************}
 {*************************************************************************************}
 
-constructor tdfaobj.create(_list: taasmoutput);
+constructor tdfaobj.create(_list: TAsmList);
 begin
   list := _list;
   blockstart := nil;
@@ -2066,7 +2066,7 @@ begin
       getnextinstruction(p, p);
     end;
   if (prev.typ = ait_marker) and
-     (tai_marker(prev).kind = asmblockstart) then
+     (tai_marker(prev).kind = mark_AsmBlockStart) then
     blockend := prev
   else blockend := nil;
   if labelfound then

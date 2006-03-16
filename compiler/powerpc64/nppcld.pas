@@ -41,7 +41,7 @@ uses
   systems,
   cpubase,
   cgutils, cgobj,
-  aasmbase, aasmtai,
+  aasmbase, aasmtai,aasmdata,
   symconst, symsym,
   procinfo,
   nld;

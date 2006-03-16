@@ -44,7 +44,7 @@ implementation
       systems,
       verbose,globals,
       symconst,symdef,defutil,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,procinfo,
@@ -83,7 +83,7 @@ implementation
         indexreg : tregister;
         href : treference;
 
-        procedure genitem(list:taasmoutput;t : pcaselabel);
+        procedure genitem(list:TAsmList;t : pcaselabel);
           var
             i : aint;
           begin
@@ -103,14 +103,14 @@ implementation
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
-        objectlibrary.getjumplabel(table);
+        current_asmdata.getjumplabel(table);
         { make it a 32bit register }
-        indexreg:=cg.makeregsize(exprasmlist,hregister,OS_INT);
-        cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
+        indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
         href.offset:=(-aint(min_))*4;
@@ -139,16 +139,16 @@ implementation
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                 cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
+                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low-last), hregister);
-                      cg.a_jmp_flags(exprasmlist,F_E,blocklabel(t^.blockid));
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
                   lastrange:=false;
@@ -162,7 +162,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low), hregister);
+                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low), hregister);
                     end
                   else
                     begin
@@ -170,17 +170,17 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      cg.a_op_const_reg(exprasmlist, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
                          (not lastrange) then
-                        cg.a_jmp_flags(exprasmlist,cond_lt,elselabel);
+                        cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_lt,elselabel);
                     end;
                   {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
                    using a_op_const_reg(OP_SUB) is not possible }
                   emit_const_reg(A_SUB,TCGSize2OpSize[opsize],aint(t^._high-t^._low),hregister);
-                  cg.a_jmp_flags(exprasmlist,cond_le,blocklabel(t^.blockid));
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,cond_le,blocklabel(t^.blockid));
                   last:=t^._high;
                   lastrange:=true;
                end;
@@ -209,7 +209,7 @@ implementation
                 lastrange:=false;
                 first:=true;
                 genitem(hp);
-                cg.a_jmp_always(exprasmlist,elselabel);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,elselabel);
              end;
         end;
 

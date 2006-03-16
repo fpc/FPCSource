@@ -41,6 +41,15 @@ interface
 
        TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL);
 
+       { is the label only there for getting an DataOffset (e.g. for i/o
+         checks -> alt_addr) or is it a jump target (alt_jump), for debug
+         info alt_dbgline and alt_dbgfile, etc. }
+       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
+
+    const
+       asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t','c');
+
+    type
        TAsmSectiontype=(sec_none,
          sec_code,
          sec_data,
@@ -69,7 +78,7 @@ interface
        TAsmSymbol = class(TNamedIndexItem)
        private
          { this need to be incremented with every symbol loading into the
-           taasmoutput with loadsym/loadref/const_symbol (PFV) }
+           TAsmList with loadsym/loadref/const_symbol (PFV) }
          refs       : longint;
        public
          bind       : TAsmsymbind;
@@ -86,11 +95,6 @@ interface
          function getrefs: longint;
        end;
 
-       { is the label only there for getting an DataOffset (e.g. for i/o
-         checks -> alt_addr) or is it a jump target (alt_jump), for debug
-         info alt_dbgline and alt_dbgfile }
-       TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
-
        TAsmLabel = class(TAsmSymbol)
          labelnr   : longint;
          labeltype : TAsmLabelType;
@@ -100,47 +104,11 @@ interface
          function getname:string;override;
        end;
 
-       tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))-1] of tasmsymbol;
-       pasmsymbolidxarr = ^tasmsymbolidxarr;
-
-       TObjLibraryData = class(TLinkedListItem)
-       private
-         nextaltnr   : longint;
-         nextlabelnr : array[Tasmlabeltype] of longint;
-       public
-         name,
-         realname     : string[80];
-         symbolsearch : tdictionary; { contains ALL assembler symbols }
-         AltSymbollist : TFPObjectList;
-         constructor create(const n:string);
-         destructor  destroy;override;
-         { asmsymbol }
-         function  newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
-         function  getasmsymbol(const s : string) : tasmsymbol;
-         function  newasmlabel(nr:longint;alt:tasmlabeltype;is_global:boolean) : tasmlabel;
-         {# create a new assembler label }
-         procedure getlabel(var l : tasmlabel;alt:tasmlabeltype);
-         {# create a new assembler label for jumps }
-         procedure getjumplabel(var l : tasmlabel);
-         { make l as a new label and flag is_addr }
-         procedure getaddrlabel(var l : tasmlabel);
-         { make l as a new label and flag is_data }
-         procedure getdatalabel(var l : tasmlabel);
-         {# return a label number }
-         { generate an alternative (duplicate) symbol }
-         procedure GenerateAltSymbol(p:tasmsymbol);
-         procedure ResetAltSymbols;
-       end;
+    function  use_smartlink_section:boolean;
+    function  maybe_smartlink_symbol:boolean;
 
     function LengthUleb128(a: aword) : byte;
     function LengthSleb128(a: aint) : byte;
-
-    const
-      { alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile }
-      asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t','c');
-
-    var
-      objectlibrary : TObjLibraryData;
 
 
 implementation
@@ -149,9 +117,19 @@ implementation
       strings,
       verbose;
 
-    const
-      sectsgrow   = 100;
-      symbolsgrow = 100;
+
+    function use_smartlink_section:boolean;
+      begin
+        result:=(af_smartlink_sections in target_asm.flags) and
+                (tf_smartlink_sections in target_info.flags);
+      end;
+
+
+    function maybe_smartlink_symbol:boolean;
+      begin
+        result:=(cs_create_smart in aktmoduleswitches) or
+                use_smartlink_section;
+      end;
 
 
     function LengthUleb128(a: aword) : byte;
@@ -267,137 +245,6 @@ implementation
       begin
         getname:=inherited getname;
         increfs;
-      end;
-
-
-{****************************************************************************
-                                TObjLibraryData
-****************************************************************************}
-
-    constructor TObjLibraryData.create(const n:string);
-      var
-        alt : TAsmLabelType;
-      begin
-        inherited create;
-        realname:=n;
-        name:=upper(n);
-        { symbols }
-        symbolsearch:=tdictionary.create;
-        symbolsearch.usehash;
-        AltSymbollist:=TFPObjectList.Create(false);
-        { labels }
-        nextaltnr:=1;
-        for alt:=low(TAsmLabelType) to high(TAsmLabelType) do
-          nextlabelnr[alt]:=1;
-      end;
-
-
-    destructor TObjLibraryData.destroy;
-      begin
-        AltSymbollist.free;
-        symbolsearch.free;
-      end;
-
-
-    function TObjLibraryData.newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
-      var
-        hp : tasmsymbol;
-      begin
-        hp:=tasmsymbol(symbolsearch.search(s));
-        if assigned(hp) then
-         begin
-           {$IFDEF EXTDEBUG}
-           if (_typ <> AT_NONE) and
-              (hp.typ <> _typ) and
-              not(cs_compilesystem in aktmoduleswitches) and
-              (target_info.system <> system_powerpc_darwin) then
-             begin
-               //Writeln('Error symbol '+hp.name+' type is ',Ord(_typ),', should be ',Ord(hp.typ));
-               InternalError(2004031501);
-             end;
-           {$ENDIF}
-           if (_bind<>AB_EXTERNAL) then
-             hp.bind:=_bind
-         end
-        else
-         begin
-           { Not found, insert it. }
-           hp:=tasmsymbol.create(s,_bind,_typ);
-           symbolsearch.insert(hp);
-         end;
-        newasmsymbol:=hp;
-      end;
-
-
-    function TObjLibraryData.getasmsymbol(const s : string) : tasmsymbol;
-      begin
-        getasmsymbol:=tasmsymbol(symbolsearch.search(s));
-      end;
-
-
-    procedure TObjLibraryData.GenerateAltSymbol(p:tasmsymbol);
-      begin
-        if not assigned(p.altsymbol) then
-         begin
-           p.altsymbol:=tasmsymbol.create(p.name+'_'+tostr(nextaltnr),p.bind,p.typ);
-           symbolsearch.insert(p.altsymbol);
-           AltSymbollist.Add(p);
-         end;
-      end;
-
-
-    procedure TObjLibraryData.ResetAltSymbols;
-      var
-        i  : longint;
-      begin
-        for i:=0 to AltSymbollist.Count-1 do
-          tasmsymbol(AltSymbollist[i]).altsymbol:=nil;
-        AltSymbollist.Clear;
-      end;
-
-
-    function  TObjLibraryData.newasmlabel(nr:longint;alt:tasmlabeltype;is_global:boolean) : tasmlabel;
-      var
-        hp : tasmlabel;
-      begin
-        if is_global then
-         hp:=tasmlabel.createglobal(name,nr,alt)
-       else
-         hp:=tasmlabel.createlocal(nr,alt);
-        symbolsearch.insert(hp);
-        newasmlabel:=hp;
-      end;
-
-
-    procedure TObjLibraryData.getlabel(var l : tasmlabel;alt:tasmlabeltype);
-      begin
-        l:=tasmlabel.createlocal(nextlabelnr[alt],alt);
-        inc(nextlabelnr[alt]);
-        symbolsearch.insert(l);
-      end;
-
-
-    procedure TObjLibraryData.getjumplabel(var l : tasmlabel);
-      begin
-        l:=tasmlabel.createlocal(nextlabelnr[alt_jump],alt_jump);
-        inc(nextlabelnr[alt_jump]);
-        symbolsearch.insert(l);
-      end;
-
-
-    procedure TObjLibraryData.getdatalabel(var l : tasmlabel);
-      begin
-        l:=tasmlabel.createglobal(name,nextlabelnr[alt_data],alt_data);
-        inc(nextlabelnr[alt_data]);
-        symbolsearch.insert(l);
-      end;
-
-
-    procedure TObjLibraryData.getaddrlabel(var l : tasmlabel);
-      begin
-        l:=tasmlabel.createlocal(nextlabelnr[alt_addr],alt_addr);
-        inc(nextlabelnr[alt_addr]);
-        symbolsearch.insert(l);
       end;
 
 end.

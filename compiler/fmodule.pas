@@ -44,7 +44,7 @@ interface
     uses
        cutils,cclasses,
        globals,finput,
-       symbase,symsym,aasmbase;
+       symbase,symsym,aasmbase,aasmtai,aasmdata;
 
 
     type
@@ -129,8 +129,10 @@ interface
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
         localmacrosymtable : tsymtable;{ pointer to the local macro symtable of this unit }
-        scanner       : pointer;  { scanner object used }
-        procinfo      : pointer;  { current procedure being compiled }
+        scanner       : TObject;  { scanner object used }
+        procinfo      : TObject;  { current procedure being compiled }
+        asmdata       : TObject;  { Assembler data }
+        asmprefix     : pstring;  { prefix for the smartlink asmfiles }
         loaded_from   : tmodule;
         uses_imports  : boolean;  { Set if the module imports from DLL's.}
         imports       : tlinkedlist;
@@ -153,8 +155,6 @@ interface
         localincludesearchpath,
         locallibrarysearchpath : TSearchPathList;
 
-        asmprefix     : pstring;  { prefix for the smartlink asmfiles }
-        librarydata   : TObjLibraryData;   { librarydata for this module }
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -454,7 +454,7 @@ implementation
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
         externals:=TLinkedList.Create;
-        librarydata:=TObjLibraryData.create(realmodulename^);
+        asmdata:=TAsmData.create(realmodulename^);
       end;
 
 
@@ -488,6 +488,12 @@ implementation
              current_scanner:=nil;
             tscannerfile(scanner).free;
          end;
+        if assigned(asmdata) then
+          begin
+            if current_asmdata=asmdata then
+              current_asmdata:=nil;
+             asmdata.free;
+          end;
         if assigned(procinfo) then
           begin
             if current_procinfo=tprocinfo(procinfo) then
@@ -540,16 +546,6 @@ implementation
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
-        if assigned(librarydata) then
-          begin
-{$ifdef MEMDEBUG}
-            d:=tmemdebug.create(modulename^+' - librarydata');
-{$endif}
-            librarydata.free;
-{$ifdef MEMDEBUG}
-            d.free;
-{$endif}
-          end;
         stringdispose(modulename);
         inherited Destroy;
       end;
@@ -580,6 +576,13 @@ implementation
                tprocinfo(procinfo).free;
                procinfo:=hpi;
              end;
+          end;
+        if assigned(asmdata) then
+          begin
+            if current_asmdata=TAsmData(asmdata) then
+             current_asmdata:=nil;
+            asmdata.free;
+            asmdata:=nil;
           end;
         if assigned(globalsymtable) then
           begin
@@ -621,8 +624,7 @@ implementation
         derefdataintflen:=0;
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
-        librarydata.free;
-        librarydata:=TObjLibraryData.create(realmodulename^);
+        asmdata:=TAsmData.create(realmodulename^);
         imports.free;
         imports:=tlinkedlist.create;
         _exports.free;
@@ -838,8 +840,8 @@ implementation
         modulename:=stringdup(upper(s));
         realmodulename:=stringdup(s);
         { also update asmlibrary names }
-        librarydata.name:=modulename^;
-        librarydata.realname:=realmodulename^;
+        current_asmdata.name:=modulename^;
+        current_asmdata.realname:=realmodulename^;
       end;
 
 end.

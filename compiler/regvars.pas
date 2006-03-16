@@ -26,28 +26,28 @@ unit regvars;
 interface
 
     uses
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        node,
        symsym,
        cpubase, cgbase, tgobj;
 
 {$ifdef OLDREGVARS}
     procedure assign_regvars(p: tnode);
-    procedure load_regvars(asml: TAAsmoutput; p: tnode);
-    procedure cleanup_regvars(asml: TAAsmoutput);
-    procedure store_regvar(asml: TAAsmoutput; reg: tregister);
-    procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
-    procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
-    procedure load_all_regvars(asml: TAAsmoutput);
-    procedure free_regvars(list: taasmoutput);
-{    procedure translate_regvars(list: taasmoutput); }
+    procedure load_regvars(asml: TAsmList; p: tnode);
+    procedure cleanup_regvars(asml: TAsmList);
+    procedure store_regvar(asml: TAsmList; reg: tregister);
+    procedure load_regvar(asml: TAsmList; vsym: tvarsym);
+    procedure load_regvar_reg(asml: TAsmList; reg: tregister);
+    procedure load_all_regvars(asml: TAsmList);
+    procedure free_regvars(list: TAsmList);
+{    procedure translate_regvars(list: TAsmList); }
 {$endif OLDREGVARS}
 
 {$ifdef i386}
 (*
-    procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
+    procedure sync_regvars_other(list1, list2: TAsmList; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
-    procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
+    procedure sync_regvars_int(list1, list2: TAsmList; const regvarsloaded1,
       regvarsloaded2: Tsuperregisterset);
 *)
 {$endif i386}
@@ -198,7 +198,7 @@ implementation
                         siz:=OS_32;
 
                       { allocate a register for this regvar }
-                      tvarsym(regvarinfo^.regvars[i]).localloc.register:=cg.getintregister(exprasmlist,siz);
+                      tvarsym(regvarinfo^.regvars[i]).localloc.register:=cg.getintregister(current_asmdata.CurrAsmList,siz);
                       tvarsym(regvarinfo^.regvars[i]).localloc.loc:=LOC_REGISTER;
                       { and make sure it can't be freed }
 {                      rg.makeregvarint(getsupreg(regvarinfo^.regvars[i].localloc.register));}
@@ -263,7 +263,7 @@ implementation
 {$ifdef x86_64}
 {$endif x86_64}
                        begin
-                         tvarsym(regvarinfo^.fpuregvars[i]).localloc.register:=cg.getfpuregister(exprasmlist,OS_F64);
+                         tvarsym(regvarinfo^.fpuregvars[i]).localloc.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
                          tvarsym(regvarinfo^.fpuregvars[i]).localloc.loc:=LOC_FPUREGISTER;
 {                         rg.makeregvarother(regvarinfo^.fpuregvars[i].localloc.register);}
                        end;
@@ -276,7 +276,7 @@ implementation
 
 
 
-    procedure store_regvar(asml: TAAsmoutput; reg: tregister);
+    procedure store_regvar(asml: TAsmList; reg: tregister);
     var
       i: longint;
       cgsize : tcgsize;
@@ -352,7 +352,7 @@ implementation
 {$endif i386}
     end;
 
-    procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
+    procedure load_regvar(asml: TAsmList; vsym: tvarsym);
     var
       hr: treference;
       opsize: tcgsize;
@@ -402,7 +402,7 @@ implementation
 *)
     end;
 
-    procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
+    procedure load_regvar_reg(asml: TAsmList; reg: tregister);
     var
       i: longint;
       regvarinfo: pregvarinfo;
@@ -432,7 +432,7 @@ implementation
 }
     end;
 
-    procedure load_all_regvars(asml: TAAsmoutput);
+    procedure load_all_regvars(asml: TAsmList);
 {
     var
       i: longint;
@@ -450,7 +450,7 @@ implementation
     end;
 
 
-    procedure load_regvars(asml: TAAsmoutput; p: tnode);
+    procedure load_regvars(asml: TAsmList; p: tnode);
     var
       i: longint;
       regvarinfo: pregvarinfo;
@@ -505,7 +505,7 @@ implementation
 
 {$ifdef i386}
 (*
-    procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
+    procedure sync_regvars_other(list1, list2: TAsmList; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     var
       counter: tregisterindex;
@@ -523,7 +523,7 @@ implementation
     end;
 
 
-    procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
+    procedure sync_regvars_int(list1, list2: TAsmList; const regvarsloaded1,
       regvarsloaded2: Tsuperregisterset);
     var
       i : longint;
@@ -545,7 +545,7 @@ implementation
 {$endif i386}
 
 
-    procedure cleanup_regvars(asml: TAAsmoutput);
+    procedure cleanup_regvars(asml: TAsmList);
     var
       i: longint;
       reg : tregister;
@@ -596,7 +596,7 @@ implementation
       stabs generation. It could still be useful to generate the "var X is
       assigned to register Y with weight ZZZ" messages though
 
-    procedure translate_regvars(list: taasmoutput);
+    procedure translate_regvars(list: TAsmList);
       var
         i: longint;
         r: tregister;
@@ -633,7 +633,7 @@ implementation
       end;
 }
 
-    procedure free_regvars(list: taasmoutput);
+    procedure free_regvars(list: TAsmList);
       var
         i: longint;
         reg: tregister;

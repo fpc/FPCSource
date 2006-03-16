@@ -29,7 +29,7 @@ interface
       node,cpuinfo,
       globtype,
       cpubase,cgbase,parabase,cgutils,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symbase,symdef,symsym,symtype,symtable
 {$ifndef cpu64bit}
       ,cg64f32
@@ -57,39 +57,39 @@ interface
 }
 
     procedure firstcomplex(p : tbinarynode);
-    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
+    procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
 //    procedure remove_non_regvars_from_loc(const t: tlocation; var regs:Tsuperregisterset);
 
-    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-    procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
-    procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
-    procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
+    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+    procedure location_force_mem(list:TAsmList;var l:tlocation);
+    procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
 
     { Retrieve the location of the data pointed to in location l, when the location is
       a register it is expected to contain the address of the data }
-    procedure location_get_data_ref(list:TAAsmoutput;const l:tlocation;var ref:treference;loadref:boolean);
+    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean);
 
-    function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
+    function  maybe_pushfpu(list:TAsmList;needed : byte;var l:tlocation) : boolean;
 
     procedure alloc_proc_symbol(pd: tprocdef);
-    procedure gen_proc_symbol(list:Taasmoutput);
-    procedure gen_proc_symbol_end(list:Taasmoutput);
-    procedure gen_proc_entry_code(list:Taasmoutput);
-    procedure gen_proc_exit_code(list:Taasmoutput);
-    procedure gen_stack_check_size_para(list:Taasmoutput);
-    procedure gen_stack_check_call(list:Taasmoutput);
-    procedure gen_save_used_regs(list:TAAsmoutput);
-    procedure gen_restore_used_regs(list:TAAsmoutput);
-    procedure gen_initialize_code(list:TAAsmoutput);
-    procedure gen_finalize_code(list:TAAsmoutput);
-    procedure gen_entry_code(list:TAAsmoutput);
-    procedure gen_exit_code(list:TAAsmoutput);
-    procedure gen_load_para_value(list:TAAsmoutput);
-    procedure gen_load_return_value(list:TAAsmoutput);
+    procedure gen_proc_symbol(list:TAsmList);
+    procedure gen_proc_symbol_end(list:TAsmList);
+    procedure gen_proc_entry_code(list:TAsmList);
+    procedure gen_proc_exit_code(list:TAsmList);
+    procedure gen_stack_check_size_para(list:TAsmList);
+    procedure gen_stack_check_call(list:TAsmList);
+    procedure gen_save_used_regs(list:TAsmList);
+    procedure gen_restore_used_regs(list:TAsmList);
+    procedure gen_initialize_code(list:TAsmList);
+    procedure gen_finalize_code(list:TAsmList);
+    procedure gen_entry_code(list:TAsmList);
+    procedure gen_exit_code(list:TAsmList);
+    procedure gen_load_para_value(list:TAsmList);
+    procedure gen_load_return_value(list:TAsmList);
 
-    procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
-    procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
-    procedure gen_load_vmt_register(list:taasmoutput;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
+    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
+    procedure gen_intf_wrappers(list:TAsmList;st:tsymtable);
+    procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
 
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
     { adds the regvars used in n and its children to rv.allregvars,
@@ -99,7 +99,7 @@ interface
       find out which regvars are used in two different node trees
       (e.g. in the "else" and "then" path, or in various case blocks }
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
-    procedure gen_sync_regvars(list:TAAsmoutput; var rv: tusedregvars);
+    procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
 
    {#
@@ -128,26 +128,26 @@ interface
         reasonbuf  : treference;
       end;
 
-    procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
-    procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
-    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
+    procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
+    procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps);
+    procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
+    procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
     procedure insertbssdata(sym : tglobalvarsym);
 
-    procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
-    procedure gen_free_symtable(list:TAAsmoutput;st:tsymtable);
+    procedure gen_alloc_symtable(list:TAsmList;st:tsymtable);
+    procedure gen_free_symtable(list:TAsmList;st:tsymtable);
 
     { rtti and init/final }
     procedure generate_rtti(p:Ttypesym);
     procedure generate_inittable(p:tsym);
 
-    procedure location_free(list: taasmoutput; const location : TLocation);
+    procedure location_free(list: TAsmList; const location : TLocation);
 
     function getprocalign : shortint;
 
-    procedure gen_pic_helpers(list : taasmoutput);
-    procedure gen_got_load(list : taasmoutput);
+    procedure gen_pic_helpers(list : TAsmList);
+    procedure gen_got_load(list : TAsmList);
 
 implementation
 
@@ -157,7 +157,7 @@ implementation
     globals,systems,verbose,
     ppu,defutil,
     procinfo,paramgr,fmodule,
-    regvars,dwarf,dbgbase,
+    regvars,dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nutils,
     tgobj,cgobj
@@ -174,7 +174,7 @@ implementation
                                   Misc Helpers
 *****************************************************************************}
 
-    procedure location_free(list: taasmoutput; const location : TLocation);
+    procedure location_free(list: TAsmList; const location : TLocation);
       begin
         case location.loc of
           LOC_VOID:
@@ -249,7 +249,7 @@ implementation
       end;
 
 
-    procedure maketojumpbool(list:TAAsmoutput; p : tnode; loadregvars: tloadregvars);
+    procedure maketojumpbool(list:TAsmList; p : tnode; loadregvars: tloadregvars);
     {
       produces jumps to true respectively false labels using boolean expressions
 
@@ -275,9 +275,9 @@ implementation
               if is_constboolnode(p) then
                 begin
                    if tordconstnode(p).value<>0 then
-                     cg.a_jmp_always(list,truelabel)
+                     cg.a_jmp_always(list,current_procinfo.CurrTrueLabel)
                    else
-                     cg.a_jmp_always(list,falselabel)
+                     cg.a_jmp_always(list,current_procinfo.CurrFalseLabel)
                 end
               else
                 begin
@@ -289,16 +289,16 @@ implementation
                          if (p.location.loc = LOC_CREGISTER) then
                            load_regvar_reg(list,p.location.register);
 {$endif OLDREGVARS}
-                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,truelabel);
-                         cg.a_jmp_always(list,falselabel);
+                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
+                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
                      LOC_JUMP:
                        ;
 {$ifdef cpuflags}
                      LOC_FLAGS :
                        begin
-                         cg.a_jmp_flags(list,p.location.resflags,truelabel);
-                         cg.a_jmp_always(list,falselabel);
+                         cg.a_jmp_flags(list,p.location.resflags,current_procinfo.CurrTrueLabel);
+                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
 {$endif cpuflags}
                      else
@@ -347,7 +347,7 @@ implementation
                             EXCEPTION MANAGEMENT
 *****************************************************************************}
 
-    procedure get_exception_temps(list:taasmoutput;var t:texceptiontemps);
+    procedure get_exception_temps(list:TAsmList;var t:texceptiontemps);
       var
         srsym : ttypesym;
       begin
@@ -362,7 +362,7 @@ implementation
       end;
 
 
-    procedure unget_exception_temps(list:taasmoutput;const t:texceptiontemps);
+    procedure unget_exception_temps(list:TAsmList;const t:texceptiontemps);
       begin
         tg.Ungettemp(list,t.jmpbuf);
         tg.ungettemp(list,t.envbuf);
@@ -370,7 +370,7 @@ implementation
       end;
 
 
-    procedure new_exception(list:TAAsmoutput;const t:texceptiontemps;exceptlabel:tasmlabel);
+    procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
       var
         paraloc1,paraloc2,paraloc3 : tcgpara;
       begin
@@ -410,7 +410,7 @@ implementation
      end;
 
 
-    procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
+    procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocallcpuregisters(list);
          cg.a_call_name(list,'FPC_POPADDRSTACK');
@@ -430,7 +430,7 @@ implementation
 
 {$ifndef cpu64bit}
     { 32-bit version }
-    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister,
         hregisterhi : tregister;
@@ -461,11 +461,11 @@ implementation
                   cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
                 LOC_JUMP :
                   begin
-                    cg.a_label(list,truelabel);
+                    cg.a_label(list,current_procinfo.CurrTrueLabel);
                     cg.a_load_const_reg(list,OS_INT,1,hregister);
-                    objectlibrary.getjumplabel(hl);
+                    current_asmdata.getjumplabel(hl);
                     cg.a_jmp_always(list,hl);
-                    cg.a_label(list,falselabel);
+                    cg.a_label(list,current_procinfo.CurrFalseLabel);
                     cg.a_load_const_reg(list,OS_INT,0,hregister);
                     cg.a_label(list,hl);
                   end;
@@ -547,11 +547,11 @@ implementation
                cg.g_flags2reg(list,dst_size,l.resflags,hregister);
              LOC_JUMP :
                begin
-                 cg.a_label(list,truelabel);
+                 cg.a_label(list,current_procinfo.CurrTrueLabel);
                  cg.a_load_const_reg(list,dst_size,1,hregister);
-                 objectlibrary.getjumplabel(hl);
+                 current_asmdata.getjumplabel(hl);
                  cg.a_jmp_always(list,hl);
-                 cg.a_label(list,falselabel);
+                 cg.a_label(list,current_procinfo.CurrFalseLabel);
                  cg.a_load_const_reg(list,dst_size,0,hregister);
                  cg.a_label(list,hl);
                end;
@@ -596,7 +596,7 @@ implementation
 {$else cpu64bit}
 
     { 64-bit version }
-    procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list:TAsmList;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister : tregister;
         hl : tasmlabel;
@@ -610,11 +610,11 @@ implementation
             cg.g_flags2reg(list,dst_size,l.resflags,hregister);
           LOC_JUMP :
             begin
-              cg.a_label(list,truelabel);
+              cg.a_label(list,current_procinfo.CurrTrueLabel);
               cg.a_load_const_reg(list,dst_size,1,hregister);
-              objectlibrary.getjumplabel(hl);
+              current_asmdata.getjumplabel(hl);
               cg.a_jmp_always(list,hl);
-              cg.a_label(list,falselabel);
+              cg.a_label(list,current_procinfo.CurrFalseLabel);
               cg.a_load_const_reg(list,dst_size,0,hregister);
               cg.a_label(list,hl);
             end;
@@ -658,7 +658,7 @@ implementation
 {$endif cpu64bit}
 
 
-    procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
+    procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
         href : treference;
@@ -683,7 +683,7 @@ implementation
       end;
 
 
-    procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
+    procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
         href : treference;
@@ -708,7 +708,7 @@ implementation
       end;
 
 
-    procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
+    procedure location_force_mem(list:TAsmList;var l:tlocation);
       var
         r : treference;
       begin
@@ -751,7 +751,7 @@ implementation
       end;
 
 
-    procedure location_get_data_ref(list:TAAsmoutput;const l:tlocation;var ref:treference;loadref:boolean);
+    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean);
       begin
         case l.loc of
           LOC_REGISTER,
@@ -782,7 +782,7 @@ implementation
                                   Maybe_Save
 *****************************************************************************}
 
-    function maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
+    function maybe_pushfpu(list:TAsmList;needed : byte;var l:tlocation) : boolean;
       begin
 {$ifdef i386}
         if (needed>=maxfpuregs) and
@@ -807,12 +807,12 @@ implementation
       var
         href : treference;
         hreg : tregister;
-        list : TAAsmoutput;
+        list : TAsmList;
         hsym : tparavarsym;
         l    : longint;
         localcopyloc : tlocation;
       begin
-        list:=taasmoutput(arg);
+        list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
@@ -866,12 +866,12 @@ implementation
          begin
            case tglobalvarsym(p).localloc.loc of
              LOC_CREGISTER :
-               cg.a_load_const_reg(taasmoutput(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
+               cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
                    tglobalvarsym(p).localloc.register);
              LOC_REFERENCE : ;
              LOC_CMMREGISTER :
                { clear the whole register }
-               cg.a_opmm_reg_reg(taasmoutput(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).localloc.register),
+               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).localloc.register),
                  tglobalvarsym(p).localloc.register,
                  tglobalvarsym(p).localloc.register,
                  nil);
@@ -887,7 +887,7 @@ implementation
     { generates the code for initialisation of local data }
     procedure initialize_data(p : tnamedindexitem;arg:pointer);
       var
-        oldexprasmlist : TAAsmoutput;
+        OldAsmList : TAsmList;
         hp : tnode;
       begin
         if (tsym(p).typ in [globalvarsym,localvarsym]) and
@@ -896,30 +896,30 @@ implementation
            not(is_class(tabstractvarsym(p).vartype.def)) and
            tabstractvarsym(p).vartype.def.needs_inittable then
          begin
-           oldexprasmlist:=exprasmlist;
-           exprasmlist:=taasmoutput(arg);
+           OldAsmList:=current_asmdata.CurrAsmList;
+           current_asmdata.CurrAsmList:=TAsmList(arg);
            hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
            firstpass(hp);
            secondpass(hp);
            hp.free;
-           exprasmlist:=oldexprasmlist;
+           current_asmdata.CurrAsmList:=OldAsmList;
          end;
       end;
 
 
-    procedure finalize_sym(asmlist:taasmoutput;sym:tsym);
+    procedure finalize_sym(asmlist:TAsmList;sym:tsym);
       var
         hp : tnode;
-        oldexprasmlist : TAAsmoutput;
+        OldAsmList : TAsmList;
       begin
         include(current_procinfo.flags,pi_needs_implicit_finally);
-        oldexprasmlist:=exprasmlist;
-        exprasmlist:=asmlist;
+        OldAsmList:=current_asmdata.CurrAsmList;
+        current_asmdata.CurrAsmList:=asmlist;
         hp:=finalize_data_node(cloadnode.create(sym,sym.owner));
         firstpass(hp);
         secondpass(hp);
         hp.free;
-        exprasmlist:=oldexprasmlist;
+        current_asmdata.CurrAsmList:=OldAsmList;
       end;
 
 
@@ -932,7 +932,7 @@ implementation
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
            not(is_class(tlocalvarsym(p).vartype.def)) and
            tlocalvarsym(p).vartype.def.needs_inittable then
-          finalize_sym(taasmoutput(arg),tsym(p));
+          finalize_sym(TAsmList(arg),tsym(p));
       end;
 
 
@@ -947,7 +947,7 @@ implementation
             begin
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
-                finalize_sym(taasmoutput(arg),tsym(p));
+                finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
             begin
@@ -979,13 +979,13 @@ implementation
                  not(vo_is_external in tglobalvarsym(p).varoptions) and
                  not(is_class(tglobalvarsym(p).vartype.def)) and
                  tglobalvarsym(p).vartype.def.needs_inittable then
-                finalize_sym(taasmoutput(arg),tsym(p));
+                finalize_sym(TAsmList(arg),tsym(p));
             end;
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
-                finalize_sym(taasmoutput(arg),tsym(p));
+                finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
             begin
@@ -1008,9 +1008,9 @@ implementation
       var
         href : treference;
         tmpreg : tregister;
-        list : TAAsmoutput;
+        list : TAsmList;
       begin
-        list:=taasmoutput(arg);
+        list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
            not is_class_or_interface(tparavarsym(p).vartype.def) and
            tparavarsym(p).vartype.def.needs_inittable then
@@ -1036,12 +1036,12 @@ implementation
     { generates the code for decrementing the reference count of parameters }
     procedure final_paras(p : tnamedindexitem;arg:pointer);
       var
-        list : TAAsmoutput;
+        list : TAsmList;
         href : treference;
       begin
         if not(tsym(p).typ=paravarsym) then
           exit;
-        list:=taasmoutput(arg);
+        list:=TAsmList(arg);
         if not is_class_or_interface(tparavarsym(p).vartype.def) and
            tparavarsym(p).vartype.def.needs_inittable then
          begin
@@ -1066,7 +1066,7 @@ implementation
 
 
     { Initialize temp ansi/widestrings,interfaces }
-    procedure inittempvariables(list:taasmoutput);
+    procedure inittempvariables(list:TAsmList);
       var
         hp : ptemprecord;
         href : treference;
@@ -1085,7 +1085,7 @@ implementation
       end;
 
 
-    procedure finalizetempvariables(list:taasmoutput);
+    procedure finalizetempvariables(list:TAsmList);
       var
         hp : ptemprecord;
         href : treference;
@@ -1105,7 +1105,7 @@ implementation
       end;
 
 
-    procedure gen_load_return_value(list:TAAsmoutput);
+    procedure gen_load_return_value(list:TAsmList);
       var
 {$ifndef cpu64bit}
         href   : treference;
@@ -1262,7 +1262,7 @@ implementation
       end;
 
 
-    procedure gen_alloc_regvar(list:TAAsmoutput;sym: tabstractnormalvarsym);
+    procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym);
       begin
         case sym.localloc.loc of
           LOC_CREGISTER:
@@ -1304,7 +1304,7 @@ implementation
       end;
 
 
-    procedure gen_load_para_value(list:TAAsmoutput);
+    procedure gen_load_para_value(list:TAsmList);
 
        procedure get_para(const paraloc:TCGParaLocation);
          begin
@@ -1593,7 +1593,7 @@ implementation
       end;
 
 
-    procedure gen_initialize_code(list:TAAsmoutput);
+    procedure gen_initialize_code(list:TAsmList);
       begin
         { initialize local data like ansistrings }
         case current_procinfo.procdef.proctypeoption of
@@ -1630,7 +1630,7 @@ implementation
       end;
 
 
-    procedure gen_finalize_code(list:TAAsmoutput);
+    procedure gen_finalize_code(list:TAsmList);
       begin
 {$ifdef OLDREGVARS}
         cleanup_regvars(list);
@@ -1664,7 +1664,7 @@ implementation
       end;
 
 
-    procedure gen_entry_code(list:TAAsmoutput);
+    procedure gen_entry_code(list:TAsmList);
       var
         paraloc1,
         paraloc2 : tcgpara;
@@ -1709,7 +1709,7 @@ implementation
       end;
 
 
-    procedure gen_exit_code(list:TAAsmoutput);
+    procedure gen_exit_code(list:TAsmList);
       begin
         { call __EXIT for main program }
         if (not DLLsource) and
@@ -1731,15 +1731,15 @@ implementation
           begin
             if (cs_profile in aktmoduleswitches) or
                (po_global in current_procinfo.procdef.procoptions) then
-               objectlibrary.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION)
+               current_asmdata.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION)
             else
-               objectlibrary.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION);
+               current_asmdata.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION);
             item := tstringlistitem(item.next);
           end;
        end;
 
 
-    procedure gen_proc_symbol(list:Taasmoutput);
+    procedure gen_proc_symbol(list:TAsmList);
       var
         hs : string;
       begin
@@ -1761,7 +1761,7 @@ implementation
 
 
 
-    procedure gen_proc_symbol_end(list:Taasmoutput);
+    procedure gen_proc_symbol_end(list:TAsmList);
       begin
         list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 
@@ -1809,13 +1809,13 @@ implementation
       end;
 
 
-    procedure gen_proc_entry_code(list:Taasmoutput);
+    procedure gen_proc_entry_code(list:TAsmList);
       var
         hitemp,
         lotemp : longint;
       begin
         { generate call frame marker for dwarf call frame info }
-        dwarfcfi.start_frame(list);
+        current_asmdata.asmcfi.start_frame(list);
 
         { All temps are know, write offsets used for information }
         if (cs_asm_source in aktglobalswitches) then
@@ -1839,7 +1839,7 @@ implementation
       end;
 
 
-    procedure gen_proc_exit_code(list:Taasmoutput);
+    procedure gen_proc_exit_code(list:TAsmList);
       var
         parasize : longint;
       begin
@@ -1862,11 +1862,11 @@ implementation
           location_free(list,current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
-        dwarfcfi.end_frame(list);
+        current_asmdata.asmcfi.end_frame(list);
       end;
 
 
-    procedure gen_stack_check_size_para(list:Taasmoutput);
+    procedure gen_stack_check_size_para(list:TAsmList);
       var
         paraloc1   : tcgpara;
       begin
@@ -1879,7 +1879,7 @@ implementation
       end;
 
 
-    procedure gen_stack_check_call(list:Taasmoutput);
+    procedure gen_stack_check_call(list:TAsmList);
       var
         paraloc1   : tcgpara;
       begin
@@ -1896,7 +1896,7 @@ implementation
       end;
 
 
-    procedure gen_save_used_regs(list:TAAsmoutput);
+    procedure gen_save_used_regs(list:TAsmList);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1908,7 +1908,7 @@ implementation
       end;
 
 
-    procedure gen_restore_used_regs(list:TAAsmoutput);
+    procedure gen_restore_used_regs(list:TAsmList);
       begin
         { Pure assembler routines need to save the registers themselves }
         if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1920,7 +1920,7 @@ implementation
       end;
 
 
-    procedure gen_got_load(list : taasmoutput);
+    procedure gen_got_load(list : TAsmList);
       begin
         { if loading got is necessary for more cpus, it can be moved
           to the cg }
@@ -1932,7 +1932,7 @@ implementation
           begin
             current_module.requires_ebx_pic_helper:=true;
             cg.a_call_name_static(list,'fpc_geteipasebx');
-            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
+            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
             list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
             { ecx could be used in leave procedures }
             current_procinfo.got:=NR_EBX;
@@ -1944,7 +1944,7 @@ implementation
                            External handling
 ****************************************************************************}
 
-    procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
+    procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
       begin
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
@@ -1966,7 +1966,7 @@ implementation
         l : aint;
         varalign : shortint;
         storefilepos : tfileposinfo;
-        list : Taasmoutput;
+        list : TAsmList;
         sectype : TAsmSectiontype;
       begin
         storefilepos:=aktfilepos;
@@ -1976,12 +1976,12 @@ implementation
           begin
             if (vo_is_thread_var in sym.varoptions) then
               begin
-                list:=asmlist[al_threadvars];
+                list:=current_asmdata.asmlists[al_threadvars];
                 sectype:=sec_threadvar;
               end
             else
               begin
-                list:=asmlist[al_globals];
+                list:=current_asmdata.asmlists[al_globals];
                 sectype:=sec_bss;
               end;
           end
@@ -1989,7 +1989,7 @@ implementation
           begin
             if (vo_is_thread_var in sym.varoptions) then
               inc(l,sizeof(aint));
-            list:=asmlist[al_globals];
+            list:=current_asmdata.asmlists[al_globals];
             sectype:=sec_bss;
           end;
         varalign:=var_align(size_2_align(l));
@@ -2034,7 +2034,7 @@ implementation
       end;
 
 
-    procedure gen_alloc_symtable(list:TAAsmoutput;st:tsymtable);
+    procedure gen_alloc_symtable(list:TAsmList;st:tsymtable);
       var
         sym     : tsym;
         isaddr  : boolean;
@@ -2102,7 +2102,7 @@ implementation
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
                                   if not(vo_is_dll_var in varoptions) and ((tf_section_threadvars in target_info.flags) or
                                      not(vo_is_thread_var in varoptions)) then
-                                    reference_reset_symbol(localloc.reference,objectlibrary.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
+                                    reference_reset_symbol(localloc.reference,current_asmdata.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
                                 end;
                               else
                                 internalerror(200410103);
@@ -2220,7 +2220,7 @@ implementation
       end;
 *)
 
-    procedure gen_sync_regvars(list:TAAsmoutput; var rv: tusedregvars);
+    procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
       var
         count: longint;
       begin
@@ -2233,7 +2233,7 @@ implementation
       end;
 
 
-    procedure gen_free_symtable(list:TAAsmoutput;st:tsymtable);
+    procedure gen_free_symtable(list:TAsmList;st:tsymtable);
       var
         sym : tsym;
       begin
@@ -2305,11 +2305,11 @@ implementation
            def.rttitablesym:=rsym;
            { write rtti data }
            def.write_child_rtti_data(fullrtti);
-           maybe_new_object_file(asmlist[al_rtti]);
-           new_section(asmlist[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           asmlist[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
+           new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(fullrtti);
-           asmlist[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
+           current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 
@@ -2345,17 +2345,17 @@ implementation
            def.inittablesym:=rsym;
            { write inittable data }
            def.write_child_rtti_data(initrtti);
-           maybe_new_object_file(asmlist[al_rtti]);
-           new_section(asmlist[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
-           asmlist[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
+           maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
+           new_section(current_asmdata.asmlists[al_rtti],sec_rodata,rsym.get_label.name,const_align(sizeof(aint)));
+           current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rsym.get_label,0));
            def.write_rtti_data(initrtti);
-           asmlist[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
+           current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rsym.get_label));
          end;
       end;
 
 
 
-    procedure gen_intf_wrapper(list:taasmoutput;_class:tobjectdef);
+    procedure gen_intf_wrapper(list:TAsmList;_class:tobjectdef);
       var
         i,j,
         proccount : longint;
@@ -2383,7 +2383,7 @@ implementation
       end;
 
 
-    procedure gen_intf_wrappers(list:taasmoutput;st:tsymtable);
+    procedure gen_intf_wrappers(list:TAsmList;st:tsymtable);
       var
         def : tstoreddef;
       begin
@@ -2397,7 +2397,7 @@ implementation
       end;
 
 
-    procedure gen_load_vmt_register(list:taasmoutput;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
+    procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
       var
         href : treference;
       begin
@@ -2461,7 +2461,7 @@ implementation
       end;
 
 
-    procedure gen_pic_helpers(list : taasmoutput);
+    procedure gen_pic_helpers(list : TAsmList);
       var
         href : treference;
       begin

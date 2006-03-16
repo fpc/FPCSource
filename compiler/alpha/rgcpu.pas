@@ -28,14 +28,14 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,
+       aasmbase,aasmtai,aasmdata,
        cpubase,
        rgobj;
 
      type
        trgcpu = class(trgobj)
-         function getcpuregisterint(list: taasmoutput; reg: tregister): tregister; override;
-         procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
+         function getcpuregisterint(list: TAsmList; reg: tregister): tregister; override;
+         procedure ungetregisterint(list: TAsmList; reg: tregister); override;
        end;
 
   implementation
@@ -43,7 +43,7 @@ unit rgcpu;
     uses
       cgobj;
 
-    function trgcpu.getcpuregisterint(list: taasmoutput; reg: tregister): tregister;
+    function trgcpu.getcpuregisterint(list: TAsmList; reg: tregister): tregister;
 
       begin
         if reg = R_0 then
@@ -55,7 +55,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetregisterint(list: taasmoutput; reg: tregister);
+    procedure trgcpu.ungetregisterint(list: TAsmList; reg: tregister);
 
       begin
         if reg = R_0 then

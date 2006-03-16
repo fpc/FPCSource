@@ -39,7 +39,7 @@ interface
       verbose,
       globtype,globals,
       cpuinfo,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       symconst,symdef,
       defutil,
       cgbase,cgutils,
@@ -70,7 +70,7 @@ interface
         { const already used ? }
         if not assigned(lab_real) then
           begin
-            objectlibrary.getjumplabel(lastlabel);
+            current_asmdata.getjumplabel(lastlabel);
             lab_real:=lastlabel;
             current_procinfo.aktlocaldata.concat(Tai_label.Create(lastlabel));
             location.reference.symboldata:=current_procinfo.aktlocaldata.last;
@@ -81,7 +81,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in aktlocalswitches) or
                     (cs_check_overflow in aktlocalswitches)) and
-                    (tai_real_32bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                    (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                     Message(parser_e_range_check_error);
                 end;
 
@@ -95,7 +95,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in aktlocalswitches) or
                     (cs_check_overflow in aktlocalswitches)) and
-                    (tai_real_64bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                    (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                     Message(parser_e_range_check_error);
                end;
 
@@ -106,7 +106,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in aktlocalswitches) or
                     (cs_check_overflow in aktlocalswitches)) and
-                    (tai_real_80bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                    (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                     Message(parser_e_range_check_error);
                 end;
 {$ifdef cpufloat128}
@@ -117,7 +117,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in aktlocalswitches) or
                     (cs_check_overflow in aktlocalswitches)) and
-                    (tai_real_128bit(asmlist[al_typedconsts].last).value=double(MathInf)) then
+                    (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
                     Message(parser_e_range_check_error);
                 end;
 {$endif cpufloat128}

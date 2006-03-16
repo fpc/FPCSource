@@ -30,7 +30,7 @@ interface
 
     uses
       cpubase,
-      aasmbase,aasmtai,aasmcpu,assemble,cgutils;
+      aasmbase,aasmtai,aasmdata,aasmcpu,assemble,cgutils;
 
     type
       Tx86IntelAssembler = class(TExternalAssembler)
@@ -39,7 +39,7 @@ interface
         procedure WriteOper(const o:toper;s : topsize; opcode: tasmop;dest : boolean);
         procedure WriteOper_jmp(const o:toper;s : topsize);
       public
-        procedure WriteTree(p:TAAsmoutput);override;
+        procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         Function  DoAssemble:boolean;override;
         procedure WriteExternals;
@@ -374,7 +374,7 @@ implementation
        PadTabs:=s+#9;
     end;
 
-    procedure tx86IntelAssembler.WriteTree(p:TAAsmoutput);
+    procedure tx86IntelAssembler.WriteTree(p:TAsmList);
     const
       regallocstr : array[tregalloctype] of string[10]=(' allocated',' released',' sync',' resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
@@ -397,7 +397,7 @@ implementation
       { lineinfo is only needed for al_procedures (PFV) }
       do_line:=((cs_asm_source in aktglobalswitches) or
                 (cs_lineinfo in aktmoduleswitches))
-                 and (p=asmlist[al_procedures]);
+                 and (p=current_asmdata.asmlists[al_procedures]);
       InlineLevel:=0;
       DoNotSplitLine:=false;
       hp:=tai(p.first);
@@ -793,9 +793,9 @@ implementation
                end;
            ait_marker :
              begin
-               if tai_marker(hp).kind=InlineStart then
+               if tai_marker(hp).kind=mark_InlineStart then
                  inc(InlineLevel)
-               else if tai_marker(hp).kind=InlineEnd then
+               else if tai_marker(hp).kind=mark_InlineEnd then
                  dec(InlineLevel);
              end;
 
@@ -844,7 +844,7 @@ implementation
     procedure tx86IntelAssembler.WriteExternals;
       begin
         currentasmlist:=self;
-        objectlibrary.symbolsearch.foreach_static(@writeexternal,nil);
+        current_asmdata.AsmSymbolDict.foreach_static(@writeexternal,nil);
       end;
 
 
@@ -857,22 +857,22 @@ implementation
         begin
           if not(cs_asm_extern in aktglobalswitches) then
             begin
-              if Not FileExists(objfile) and
-                 FileExists(ForceExtension(objfile,'.obj')) then
+              if Not FileExists(objfilename) and
+                 FileExists(ForceExtension(objfilename,'.obj')) then
                 begin
-                  Assign(F,ForceExtension(objfile,'.obj'));
-                  Rename(F,objfile);
+                  Assign(F,ForceExtension(objfilename,'.obj'));
+                  Rename(F,objfilename);
                 end;
             end
           else
-            AsmRes.AddAsmCommand('mv',ForceExtension(objfile,'.obj')+' '+objfile,objfile);
+            AsmRes.AddAsmCommand('mv',ForceExtension(objfilename,'.obj')+' '+objfilename,objfilename);
         end;
     end;
 
 
     procedure tx86IntelAssembler.WriteAsmList;
     var
-      hal : tasmlist;
+      hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -894,11 +894,11 @@ implementation
 
       WriteExternals;
 
-      for hal:=low(Tasmlist) to high(Tasmlist) do
+      for hal:=low(TasmlistType) to high(TasmlistType) do
         begin
-          AsmWriteLn(target_asm.comment+'Begin asmlist '+TasmlistStr[hal]);
-          writetree(asmlist[hal]);
-          AsmWriteLn(target_asm.comment+'End asmlist '+TasmlistStr[hal]);
+          AsmWriteLn(target_asm.comment+'Begin asmlist '+AsmListTypeStr[hal]);
+          writetree(current_asmdata.asmlists[hal]);
+          AsmWriteLn(target_asm.comment+'End asmlist '+AsmListTypeStr[hal]);
         end;
 
       AsmWriteLn(#9'END');

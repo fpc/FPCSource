@@ -50,7 +50,7 @@ Implementation
       globtype,verbose,
       systems,
       { aasm }
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,
       { parser }

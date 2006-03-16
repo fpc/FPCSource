@@ -80,7 +80,7 @@ implementation
       systems,
       cutils,verbose,globals,
       symconst,symdef,symsym,defutil,paramgr,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
       cgutils,cgobj,
@@ -101,15 +101,15 @@ implementation
          if (left.nodetype=typen) then
            begin
              reference_reset_symbol(href,
-               objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
-             location.register:=cg.getaddressregister(exprasmlist);
-             cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
+               current_asmdata.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
          else
            begin
              { left contains self, load vmt from self }
              secondpass(left);
-             gen_load_vmt_register(exprasmlist,tobjectdef(left.resulttype.def),left.location,location.register);
+             gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(left.resulttype.def),left.location,location.register);
            end;
       end;
 
@@ -133,12 +133,12 @@ implementation
           begin
             currpi:=current_procinfo;
             location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.getaddressregister(exprasmlist);
+            location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
             { load framepointer of current proc }
             hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
-            cg.a_load_loc_reg(exprasmlist,OS_ADDR,hsym.localloc,location.register);
+            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,hsym.localloc,location.register);
             { walk parents }
             while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
               begin
@@ -153,7 +153,7 @@ implementation
                   internalerror(200309283);
 
                 reference_reset_base(href,location.register,hsym.localloc.reference.offset);
-                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
+                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
               end;
           end;
       end;
@@ -168,8 +168,8 @@ implementation
          secondpass(left);
 
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=cg.getaddressregister(exprasmlist);
-         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
+         location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
       end;
 
 
@@ -190,8 +190,8 @@ implementation
               {$ifdef cpu_uses_separate_address_registers}
                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
-                    location.reference.base := cg.getaddressregister(exprasmlist);
-                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
+                    location.reference.base := cg.getaddressregister(current_asmdata.CurrAsmList);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
                 else
@@ -201,8 +201,8 @@ implementation
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location.reference.base:=cg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
+                 location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                 cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
               end;
             LOC_CONSTANT:
               begin
@@ -219,13 +219,13 @@ implementation
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
-            paramanager.allocparaloc(exprasmlist,paraloc1);
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
-            paramanager.freeparaloc(exprasmlist,paraloc1);
+            paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+            cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
-            cg.allocallcpuregisters(exprasmlist);
-            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-            cg.deallocallcpuregisters(exprasmlist);
+            cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
 
@@ -253,8 +253,8 @@ implementation
                   {$ifdef cpu_uses_separate_address_registers}
                     if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                       begin
-                        location.reference.base:=rg.getaddressregister(exprasmlist);
-                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
+                        location.reference.base:=rg.getaddressregister(current_asmdata.CurrAsmList);
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
                           left.location.register,location.reference.base);
                       end
                     else
@@ -264,8 +264,8 @@ implementation
                 LOC_CREFERENCE,
                 LOC_REFERENCE:
                   begin
-                     location.reference.base:=cg.getaddressregister(exprasmlist);
-                     cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
+                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
                   end;
              end;
              { implicit deferencing }
@@ -274,31 +274,31 @@ implementation
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(exprasmlist,paraloc1);
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.allocallcpuregisters(exprasmlist);
-                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.deallocallcpuregisters(exprasmlist);
+                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
              location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
-             tg.GetTempTyped(exprasmlist,left.resulttype.def,tt_normal,location.reference);
-             cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
+             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resulttype.def,tt_normal,location.reference);
+             cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_use_heaptrc in aktglobalswitches) and
                 (cs_checkpointer in aktlocalswitches) and
                 not(cs_compilesystem in aktmoduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(exprasmlist,paraloc1);
-                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.allocallcpuregisters(exprasmlist);
-                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.deallocallcpuregisters(exprasmlist);
+                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               end;
            end
          else
@@ -349,23 +349,23 @@ implementation
          if location.reference.base=NR_NO then
           begin
             if l<>1 then
-              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
             location.reference.base:=reg;
           end
          else if location.reference.index=NR_NO then
           begin
             if l<>1 then
-              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end
          else
           begin
-            hreg := cg.getaddressregister(exprasmlist);
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
+            hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
             { insert new index register }
             if l<>1 then
-              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end;
        end;
@@ -405,19 +405,19 @@ implementation
                secondpass(hightree);
                { generate compares }
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                 hreg:=cg.makeregsize(exprasmlist,right.location.register,OS_INT)
+                 hreg:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_INT)
                else
                  begin
-                   hreg:=cg.getintregister(exprasmlist,OS_INT);
-                   cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,hreg);
+                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_INT,right.location,hreg);
                  end;
-               objectlibrary.getjumplabel(neglabel);
-               objectlibrary.getjumplabel(poslabel);
-               cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
-               cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-               cg.a_label(exprasmlist,poslabel);
-               cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
-               cg.a_label(exprasmlist,neglabel);
+               current_asmdata.getjumplabel(neglabel);
+               current_asmdata.getjumplabel(poslabel);
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_LT,0,hreg,poslabel);
+               cg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_BE,hightree.location,hreg,neglabel);
+               cg.a_label(current_asmdata.CurrAsmList,poslabel);
+               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR');
+               cg.a_label(current_asmdata.CurrAsmList,neglabel);
                { release hightree }
                hightree.free;
              end;
@@ -427,18 +427,18 @@ implementation
             begin
                paramanager.getintparaloc(pocall_default,1,paraloc1);
                paramanager.getintparaloc(pocall_default,2,paraloc2);
-               paramanager.allocparaloc(exprasmlist,paraloc2);
-               cg.a_param_loc(exprasmlist,right.location,paraloc2);
-               paramanager.allocparaloc(exprasmlist,paraloc1);
-               cg.a_param_loc(exprasmlist,left.location,paraloc1);
-               paramanager.freeparaloc(exprasmlist,paraloc1);
-               paramanager.freeparaloc(exprasmlist,paraloc2);
-               cg.allocallcpuregisters(exprasmlist);
-               cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               cg.deallocallcpuregisters(exprasmlist);
+               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
+               cg.a_param_loc(current_asmdata.CurrAsmList,right.location,paraloc2);
+               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+               cg.a_param_loc(current_asmdata.CurrAsmList,left.location,paraloc1);
+               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK');
+               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end
          else
-           cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
+           cg.g_rangecheck(current_asmdata.CurrAsmList,right.location,right.resulttype.def,left.resulttype.def);
          paraloc1.done;
          paraloc2.done;
        end;
@@ -484,8 +484,8 @@ implementation
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    location.reference.base:=cg.getaddressregister(exprasmlist);
-                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
+                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
                   end;
                 else
                   internalerror(2002032218);
@@ -496,12 +496,12 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    paramanager.getintparaloc(pocall_default,1,paraloc1);
-                   paramanager.allocparaloc(exprasmlist,paraloc1);
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
-                   paramanager.freeparaloc(exprasmlist,paraloc1);
-                   cg.allocallcpuregisters(exprasmlist);
-                   cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   cg.deallocallcpuregisters(exprasmlist);
+                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                   cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
+                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                   cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                   cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -520,8 +520,8 @@ implementation
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                     location.reference.base:=cg.getaddressregister(exprasmlist);
-                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,
+                     location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,
                       left.location.reference,location.reference.base);
                   end;
                 else
@@ -580,17 +580,17 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(exprasmlist,paraloc2);
-                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paraloc2);
+                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(aint)-offsetdec);
-                              paramanager.allocparaloc(exprasmlist,paraloc1);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
-                              paramanager.freeparaloc(exprasmlist,paraloc1);
-                              paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.allocallcpuregisters(exprasmlist);
-                              cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.deallocallcpuregisters(exprasmlist);
+                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                              cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);
+                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
 
                          st_shortstring:
@@ -676,20 +676,20 @@ implementation
               isjump:=(right.expectloc=LOC_JUMP);
               if isjump then
                begin
-                 otl:=truelabel;
-                 objectlibrary.getjumplabel(truelabel);
-                 ofl:=falselabel;
-                 objectlibrary.getjumplabel(falselabel);
+                 otl:=current_procinfo.CurrTrueLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+                 ofl:=current_procinfo.CurrFalseLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
                end;
               secondpass(right);
               
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(exprasmlist,right.location,OS_ADDR,(mulsize = 1));
+              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,(mulsize = 1));
 
               if isjump then
                begin
-                 truelabel:=otl;
-                 falselabel:=ofl;
+                 current_procinfo.CurrTrueLabel:=otl;
+                 current_procinfo.CurrFalseLabel:=ofl;
                end
               else if (right.location.loc = LOC_JUMP) then
                 internalerror(2006010801);
@@ -717,18 +717,18 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(exprasmlist,paraloc2);
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paraloc2);
+                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              cg.a_param_reg(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(aint)-offsetdec);
                               //dec(href.offset,7);
-                              paramanager.allocparaloc(exprasmlist,paraloc1);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
-                              paramanager.freeparaloc(exprasmlist,paraloc1);
-                              paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.allocallcpuregisters(exprasmlist);
-                              cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.deallocallcpuregisters(exprasmlist);
+                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                              cg.a_param_ref(current_asmdata.CurrAsmList,OS_INT,href,paraloc1);
+                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
                          st_shortstring:
                            begin

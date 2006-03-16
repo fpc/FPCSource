@@ -45,10 +45,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,
-      aasmbase,aasmcpu,aasmtai,
+      aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
       cgbase,cgobj,cgutils,
-      pass_1,pass_2,
+      pass_1,pass_2,procinfo,
       ncon,
       cpubase,cpuinfo,
       ncgutil,cgcpu,cg64f32,rgobj;
@@ -67,14 +67,14 @@ implementation
         }
         if left.expectloc=LOC_JUMP then
           begin
-            hl:=truelabel;
-            truelabel:=falselabel;
-            falselabel:=hl;
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
-            maketojumpbool(exprasmlist,left,lr_load_regvars);
-            hl:=truelabel;
-            truelabel:=falselabel;
-            falselabel:=hl;
+            maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
             location.loc:=LOC_JUMP;
           end
         else
@@ -88,8 +88,8 @@ implementation
                 end;
               LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                 begin
-                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
                end;
@@ -107,9 +107,9 @@ implementation
       begin
         secondpass(left);
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        location_force_fpureg(exprasmlist,left.location,false);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
         location:=left.location;
-        exprasmlist.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
           location.register,left.location.register,0),
           cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
       end;

@@ -39,7 +39,7 @@ interface
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
-          procedure second_cmpboolean;override;             
+          procedure second_cmpboolean;override;
        end;
 
 
@@ -49,9 +49,9 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,paramgr,
-      aasmbase,aasmtai,aasmcpu,defutil,htypechk,
+      aasmbase,aasmtai,aasmdata,aasmcpu,defutil,htypechk,
       cgbase,cpuinfo,pass_1,pass_2,regvars,
-      cpupara,cgutils,
+      cpupara,cgutils,procinfo,
       ncon,nset,
       ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
@@ -140,8 +140,8 @@ implementation
           swapleftright;
 
         // put both operands in a register
-        location_force_fpureg(exprasmlist,right.location,true);
-        location_force_fpureg(exprasmlist,left.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
 
         // initialize de result
         if not cmpop then
@@ -152,7 +152,7 @@ implementation
             else if right.location.loc = LOC_FPUREGISTER then
               location.register := right.location.register
             else
-              location.register := cg.getfpuregister(exprasmlist,location.size);
+              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
           end
         else
          begin
@@ -165,14 +165,14 @@ implementation
         if not cmpop then
           begin
           {
-            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
               location.register,left.location.register,
               right.location.register))
-             }  
+             }
           end
         else
           begin
-{            exprasmlist.concat(taicpu.op_reg_reg_reg(op,
+{            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
               newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))}
           end;
       end;
@@ -188,18 +188,18 @@ implementation
 }
         { force fpureg as location, left right doesn't matter
           as both will be in a fpureg }
-        location_force_fpureg(exprasmlist,left.location,true);
-        location_force_fpureg(exprasmlist,right.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,right.location,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
 {
         if nodetype in [equaln,unequaln] then
-          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
+          current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
              left.location.register,right.location.register),
              cgsize2fpuoppostfix[def_cgsize(resulttype.def)]))
         else
-          exprasmlist.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
+          current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
              left.location.register,right.location.register),
              cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
 
@@ -235,12 +235,12 @@ implementation
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-              tmpreg := cg.getintregister(exprasmlist,OS_INT);
+              tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               if left.location.loc = LOC_CONSTANT then
                 begin
-                  cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,
                     not(left.location.value),right.location.register,tmpreg);
-                  exprasmlist.concat(taicpu.op_reg(A_TST,S_L,tmpreg));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,S_L,tmpreg));
                   // the two instructions above should be folded together by
                   // the peepholeoptimizer
                 end
@@ -248,16 +248,16 @@ implementation
                 begin
                   if right.location.loc = LOC_CONSTANT then
                     begin
-                      cg.a_load_const_reg(exprasmlist,OS_INT,
+                      cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
                         aword(right.location.value),tmpreg);
-                      exprasmlist.concat(taicpu.op_reg_reg(A_AND,S_L,
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,
                         tmpreg,left.location.register));
                     end
                   else
-                    exprasmlist.concat(taicpu.op_reg_reg(A_AND,S_L,
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_AND,S_L,
                       right.location.register,left.location.register));
                 end;
-//              cg.ungetcpuregister(exprasmlist,tmpreg);
+//              cg.ungetcpuregister(current_asmdata.CurrAsmList,tmpreg);
               location.resflags := getresflags(true);
             end;
           else
@@ -321,8 +321,8 @@ implementation
             else
               begin
                 useconst := false;
-                tmpreg := cg.getintregister(exprasmlist,OS_INT);
-                cg.a_load_const_reg(exprasmlist,OS_INT,
+                tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
                   aword(right.location.value),tmpreg);
                end
           end
@@ -333,16 +333,16 @@ implementation
         op := A_CMP;
         if (right.location.loc = LOC_CONSTANT) then
           if useconst then
-            exprasmlist.concat(taicpu.op_reg_const(op,S_L,
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(op,S_L,
               left.location.register,longint(right.location.value)))
           else
             begin
-              exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
                 left.location.register,tmpreg));
-//              cg.ungetcpuregister(exprasmlist,tmpreg);
+//              cg.ungetcpuregister(current_asmdata.CurrAsmList,tmpreg);
             end
         else
-          exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_L,
             left.location.register,right.location.register));
      end;
 
@@ -377,38 +377,38 @@ implementation
             isjump:=(left.location.loc=LOC_JUMP);
             if isjump then
               begin
-                 otl:=truelabel;
-                 objectlibrary.getjumplabel(truelabel);
-                 ofl:=falselabel;
-                 objectlibrary.getjumplabel(falselabel);
+                 otl:=current_procinfo.CurrTrueLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+                 ofl:=current_procinfo.CurrFalseLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
               end;
             secondpass(left);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then begin
 //             writeln('ajjaj');
-             location_force_reg(exprasmlist,left.location,cgsize,false);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,cgsize,false);
 //             writeln('reccs?');
-            end; 
+            end;
             if isjump then
              begin
-               truelabel:=otl;
-               falselabel:=ofl;
+               current_procinfo.CurrTrueLabel:=otl;
+               current_procinfo.CurrFalseLabel:=ofl;
              end;
 
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
-                 otl:=truelabel;
-                 objectlibrary.getjumplabel(truelabel);
-                 ofl:=falselabel;
-                 objectlibrary.getjumplabel(falselabel);
+                 otl:=current_procinfo.CurrTrueLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+                 ofl:=current_procinfo.CurrFalseLabel;
+                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
               end;
             secondpass(right);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-             location_force_reg(exprasmlist,right.location,cgsize,false);
+             location_force_reg(current_asmdata.CurrAsmList,right.location,cgsize,false);
             if isjump then
              begin
-               truelabel:=otl;
-               falselabel:=ofl;
+               current_procinfo.CurrTrueLabel:=otl;
+               current_procinfo.CurrFalseLabel:=ofl;
              end;
 
          location_reset(location,LOC_FLAGS,OS_NO);
@@ -419,10 +419,10 @@ implementation
               swapleftright;
 
          if (right.location.loc <> LOC_CONSTANT) then
-           exprasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,
+           current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,S_L,
              left.location.register,right.location.register))
          else
-           exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,
+           current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_CMP,S_L,
              longint(right.location.value),left.location.register));
          location.resflags := getresflags(true);
         end;
@@ -439,10 +439,10 @@ implementation
      begin
       writeln('second_cmp64bit');
       pass_left_right;
-      
-      
+
+
 //     load_left_right(true,false);
-(* 
+(*
         case nodetype of
           ltn,lten,
           gtn,gten:
@@ -470,11 +470,11 @@ implementation
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.getintregister(exprasmlist)
+                            tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList)
                           else
                             tempreg64.reglo := left.location.register64.reglo;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.getintregister(exprasmlist)
+                            tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList)
                           else
                             tempreg64.reghi := left.location.register64.reghi;
                         end;
@@ -484,42 +484,42 @@ implementation
                         { positive values < 65535 using XOR.        }
                         if (longint(right.location.valueqword) >= -32767) and
                            (longint(right.location.valueqword) < 0) then
-                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                             aword(right.location.valueqword),
                             left.location.register64.reglo,tempreg64.reglo)
                         else
-                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
                             aword(right.location.valueqword),
                             left.location.register64.reglo,tempreg64.reglo);
 
                       if ((right.location.valueqword shr 32) <> 0) then
                         if (longint(right.location.valueqword shr 32) >= -32767) and
                            (longint(right.location.valueqword shr 32) < 0) then
-                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,OS_INT,
+                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,
                             aword(right.location.valueqword shr 32),
                             left.location.register64.reghi,tempreg64.reghi)
                         else
-                          cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
+                          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_INT,
                             aword(right.location.valueqword shr 32),
                             left.location.register64.reghi,tempreg64.reghi);
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.getintregister(exprasmlist);
-                       tempreg64.reghi := cg.getintregister(exprasmlist);
-                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
+                       tempreg64.reglo := cg.getintregister(current_asmdata.CurrAsmList);
+                       tempreg64.reghi := cg.getintregister(current_asmdata.CurrAsmList);
+                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
                     end;
 
-                  cg.a_reg_alloc(exprasmlist,R_0);
-                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
+                  cg.a_reg_alloc(current_asmdata.CurrAsmList,R_0);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR_,R_0,
                     tempreg64.reglo,tempreg64.reghi));
-                  cg.a_reg_dealloc(exprasmlist,R_0);
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,R_0);
                   if (tempreg64.reglo <> left.location.register64.reglo) then
-                    cg.ungetregister(exprasmlist,tempreg64.reglo);
+                    cg.ungetregister(current_asmdata.CurrAsmList,tempreg64.reglo);
                   if (tempreg64.reghi <> left.location.register64.reghi) then
-                    cg.ungetregister(exprasmlist,tempreg64.reghi);
+                    cg.ungetregister(current_asmdata.CurrAsmList,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;

@@ -29,7 +29,7 @@ unit rax86;
 interface
 
 uses
-  aasmbase,aasmtai,aasmcpu,
+  aasmbase,aasmtai,aasmdata,aasmcpu,
   cpubase,rautils,cclasses;
 
 { Parser helpers }
@@ -57,7 +57,7 @@ type
     procedure CheckNonCommutativeOpcodes;
     procedure SwapOperands;
     { opcode adding }
-    function ConcatInstruction(p : taasmoutput) : tai;override;
+    function ConcatInstruction(p : TAsmList) : tai;override;
   end;
 
 const
@@ -475,7 +475,7 @@ end;
                               opcode Adding
 *****************************************************************************}
 
-function Tx86Instruction.ConcatInstruction(p : taasmoutput) : tai;
+function Tx86Instruction.ConcatInstruction(p : TAsmList) : tai;
 var
   siz  : topsize;
   i,asize : longint;

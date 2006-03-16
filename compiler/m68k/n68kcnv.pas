@@ -41,7 +41,7 @@ implementation
 
    uses
       verbose,globals,systems,
-      symconst,symdef,aasmbase,aasmtai,
+      symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
       cgbase,pass_1,pass_2,
       ncon,ncal,
@@ -134,17 +134,17 @@ implementation
         if not signed then
            internalerror(20020814);
 
-        location.register:=cg.getfpuregister(exprasmlist,opsize);
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,opsize);
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
               leftreg := left.location.register;
-              exprasmlist.concat(taicpu.op_reg_reg(A_FMOVE,TCGSize2OpSize[opsize],leftreg,
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,TCGSize2OpSize[opsize],leftreg,
                   location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              exprasmlist.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],
                   left.location.reference,location.register));
             end
           else
@@ -178,38 +178,38 @@ implementation
                 { can we optimize it, or do we need to fix the ref. ? }
                 if isvalidrefoffset(left.location.reference) then
                   begin
-                    exprasmlist.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
+                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,TCGSize2OpSize[opsize],
                        left.location.reference));
                   end
                 else
                   begin
-                     hreg2:=cg.getintregister(exprasmlist,opsize);
-                     cg.a_load_ref_reg(exprasmlist,opsize,opsize,
+                     hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,
                         left.location.reference,hreg2);
-                     exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                     cg.ungetcpuregister(exprasmlist,hreg2);
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+//                     cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
                   end;
-//                reference_release(exprasmlist,left.location.reference);
+//                reference_release(current_asmdata.CurrAsmList,left.location.reference);
                 resflags:=F_NE;
-                hreg1:=cg.getintregister(exprasmlist,opsize);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hreg2:=left.location.register;
-                exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-//                cg.ungetcpuregister(exprasmlist,hreg2);
-                hreg1:=cg.getintregister(exprasmlist,opsize);
+                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
+//                cg.ungetcpuregister(current_asmdata.CurrAsmList,hreg2);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=F_NE;
               end;
             LOC_FLAGS :
               begin
-                hreg1:=cg.getintregister(exprasmlist,opsize);
+                hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                 resflags:=left.location.resflags;
               end;
             else
              internalerror(200512182);
          end;
-         cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
+         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
          location.register := hreg1;
       end;
 

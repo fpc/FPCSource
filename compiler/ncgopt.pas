@@ -40,7 +40,7 @@ uses
   globtype,globals,
   pass_1,defutil,htypechk,
   symdef,paramgr,
-  aasmbase,aasmtai,
+  aasmbase,aasmtai,aasmdata,
   ncnv, ncon, pass_2,
   cgbase, cpubase,
   tgobj, cgobj, cgutils,ncgutil;
@@ -93,12 +93,12 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(exprasmlist,left.location.reference) = 256)) and
+         (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
-       tg.Gettemp(exprasmlist,256,tt_normal,href);
-       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255);
-       location_freetemp(exprasmlist,left.location);
+       tg.Gettemp(current_asmdata.CurrAsmList,256,tt_normal,href);
+       cg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,255);
+       location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
        location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
        left.location.reference:=href;
@@ -116,16 +116,16 @@ begin
     if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
       begin
         { get register for the char }
-        hreg := cg.getintregister(exprasmlist,OS_8);
-        cg.a_load_ref_reg(exprasmlist,OS_8,OS_8,right.location.reference,hreg);
+        hreg := cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
-        tg.ungetiftemp(exprasmlist,right.location.reference);
+        tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference);
       end
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := cg.getintregister(exprasmlist,OS_INT);
-  cg.a_load_ref_reg(exprasmlist,OS_8,OS_INT,left.location.reference,lengthreg);
+  lengthreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_INT,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
   if tg.istemp(left.location.reference) then
@@ -135,12 +135,12 @@ begin
   if checklength then
     begin
       { is it already maximal? }
-      objectlibrary.getjumplabel(l);
+      current_asmdata.getjumplabel(l);
       if tg.istemp(left.location.reference) then
         len:=255
       else
         len:=tstringdef(left.resulttype.def).len;
-      cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_EQ,len,lengthreg,l)
+      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,len,lengthreg,l)
     end;
 
   { no, so increase the length and add the new character }
@@ -155,7 +155,7 @@ begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
       { have a scalefactor) and use lengthreg as base  }
-      cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,href2.base,lengthreg);
+      cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,href2.base,lengthreg);
       href2.base := lengthreg;
     end
   else
@@ -176,16 +176,16 @@ begin
     begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
-      cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,hreg,href2);
+      cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,hreg,href2);
     end
   else
-    cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
-  lengthreg:=cg.makeregsize(exprasmlist,lengthreg,OS_8);
+    cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,tordconstnode(right).value,href2);
+  lengthreg:=cg.makeregsize(current_asmdata.CurrAsmList,lengthreg,OS_8);
   { increase the string length }
-  cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
-  cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
+  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_8,1,lengthreg);
+  cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_8,OS_8,lengthreg,left.location.reference);
   if checklength then
-    cg.a_label(exprasmlist,l);
+    cg.a_label(current_asmdata.CurrAsmList,l);
   location_copy(location,left.location);
 end;
 

@@ -49,9 +49,9 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,
-      aasmbase,aasmcpu,aasmtai,
+      aasmbase,aasmcpu,aasmtai,aasmdata,
       defutil,
-      cgbase,cgobj,pass_2,
+      cgbase,cgobj,pass_2,procinfo,
       ncon,
       cpubase,
       ncgutil,cgcpu,cgutils;
@@ -80,18 +80,18 @@ implementation
          location_copy(location,left.location);
 
          { put numerator in register }
-         location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+         location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
          location_copy(location,left.location);
          numerator := location.register;
 
          if (nodetype = modn) then
-           resultreg := cg.GetIntRegister(exprasmlist,OS_INT)
+           resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT)
          else
            begin
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 location.register := cg.GetIntRegister(exprasmlist,OS_INT);
+                 location.register := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                end;
              resultreg := location.register;
            end;
@@ -102,21 +102,21 @@ implementation
            begin
              if is_signed(left.resulttype.def) Then
                begin
-                 tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
-                 cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
+                 tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
                  { if signed, tmpreg=right value-1, otherwise 0 }
-                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
+                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
                  { add to the left value }
-                 cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
-                 cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
+                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,tmpreg,numerator);
+                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),numerator,resultreg);
                end
              else
-               cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,aword(power),numerator,resultreg);
+               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
            end
          else
            begin
              { load divider in a register if necessary }
-             location_force_reg(exprasmlist,right.location,
+             location_force_reg(current_asmdata.CurrAsmList,right.location,
                def_cgsize(right.resulttype.def),true);
              divider := right.location.register;
 
@@ -127,37 +127,37 @@ implementation
              { Fill %y with the -1 or 0 depending on the highest bit }
              if is_signed(left.resulttype.def) then
                begin
-                 tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
-                 exprasmlist.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
-                 exprasmlist.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
+                 tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,tmpreg,NR_Y));
                end
              else
-               exprasmlist.concat(taicpu.op_reg_reg(A_MOV,NR_G0,NR_Y));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOV,NR_G0,NR_Y));
              { wait 3 instructions slots before we can read %y }
-             exprasmlist.concat(taicpu.op_none(A_NOP));
-             exprasmlist.concat(taicpu.op_none(A_NOP));
-             exprasmlist.concat(taicpu.op_none(A_NOP));
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
+             current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 
              op := divops[is_signed(right.resulttype.def),
                           cs_check_overflow in aktlocalswitches];
-             exprasmlist.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
+             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
 
              if (nodetype = modn) then
                begin
-                 objectlibrary.getjumplabel(overflowlabel);
+                 current_asmdata.getjumplabel(overflowlabel);
                  ai:=taicpu.op_cond_sym(A_Bxx,C_O,overflowlabel);
                  ai.delayslot_annulled:=true;
-                 exprasmlist.concat(ai);
-                 exprasmlist.concat(taicpu.op_reg(A_NOT,resultreg));
-                 cg.a_label(exprasmlist,overflowlabel);
-                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
-                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
+                 current_asmdata.CurrAsmList.concat(ai);
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NOT,resultreg));
+                 cg.a_label(current_asmdata.CurrAsmList,overflowlabel);
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
                end;
            end;
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
+        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,ResultType.Def);
       end;
 
 
@@ -199,7 +199,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_64);
 
             { load left operator in a register }
-            location_force_reg(exprasmlist,left.location,OS_64,false);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_64,false);
             hreg64hi:=left.location.register64.reghi;
             hreg64lo:=left.location.register64.reglo;
 
@@ -208,35 +208,35 @@ implementation
               begin
                 if nodetype = shln then
                   begin
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hreg64hi);
+                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64hi);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
+                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval and 31,hreg64lo,hreg64lo);
                   end
                 else
                   begin
-                    cg.a_load_const_reg(exprasmlist,OS_32,0,hreg64lo);
+                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,hreg64lo);
                     if (shiftval and 31) <> 0 then
-                      cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
+                      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval and 31,hreg64hi,hreg64hi);
                   end;
                 location.register64.reglo:=hreg64hi;
                 location.register64.reghi:=hreg64lo;
               end
             else
               begin
-                hregister:=cg.getintregister(exprasmlist,OS_32);
+                hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                 if nodetype = shln then
                   begin
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
-                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,32-shiftval,hreg64lo,hregister);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64hi,hreg64hi);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64hi,hreg64hi);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,shiftval,hreg64lo,hreg64lo);
                   end
                 else
                   begin
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
-                    cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
-                    cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,32-shiftval,hreg64hi,hregister);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64lo,hreg64lo);
+                    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hregister,hreg64lo,hreg64lo);
+                    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,shiftval,hreg64hi,hreg64hi);
                   end;
                 location.register64.reghi:=hreg64hi;
                 location.register64.reglo:=hreg64lo;
@@ -245,14 +245,14 @@ implementation
         else
           begin
             { load left operators in a register }
-            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
             location_copy(location,left.location);
             resultreg := location.register;
             hregister1 := location.register;
             if (location.loc = LOC_CREGISTER) then
               begin
                 location.loc := LOC_REGISTER;
-                resultreg := cg.GetIntRegister(exprasmlist,OS_INT);
+                resultreg := cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                 location.register := resultreg;
               end;
             { determine operator }
@@ -264,13 +264,13 @@ implementation
             if (right.nodetype=ordconstn) then
               begin
                 if tordconstnode(right).value and 31<>0 then
-                  cg.a_op_const_reg_reg(exprasmlist,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,tordconstnode(right).value and 31,hregister1,resultreg)
               end
             else
               begin
                 { load shift count in a register if necessary }
-                location_force_reg(exprasmlist,right.location,def_cgsize(right.resulttype.def),true);
-                cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,right.location.register,hregister1,resultreg);
+                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+                cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
               end;
           end;
       end;
@@ -289,14 +289,14 @@ implementation
         }
         if left.expectloc=LOC_JUMP then
           begin
-            hl:=truelabel;
-            truelabel:=falselabel;
-            falselabel:=hl;
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
             secondpass(left);
-            maketojumpbool(exprasmlist,left,lr_load_regvars);
-            hl:=truelabel;
-            truelabel:=falselabel;
-            falselabel:=hl;
+            maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
+            hl:=current_procinfo.CurrTrueLabel;
+            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
+            current_procinfo.CurrFalseLabel:=hl;
             location.loc:=LOC_JUMP;
           end
         else
@@ -310,8 +310,8 @@ implementation
                 end;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
-                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  exprasmlist.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                end;

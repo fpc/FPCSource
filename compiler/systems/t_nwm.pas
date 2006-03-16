@@ -95,7 +95,7 @@ implementation
     cutils,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
+    fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_nwm
     {$ifdef netware} ,dos {$endif}
     ;
@@ -234,10 +234,10 @@ begin
          begin
 {$ifdef i386}
            { place jump in al_procedures }
-           asmlist[al_procedures].concat(Tai_align.Create_op(4,$90));
-           asmlist[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           asmlist[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,objectlibrary.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-           asmlist[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
+           current_asmdata.asmlists[al_procedures].concat(Tai_align.Create_op(4,$90));
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
+           current_asmdata.asmlists[al_procedures].concat(Taicpu.Op_sym(A_JMP,S_NO,current_asmdata.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
 {$endif i386}
          end;
       end

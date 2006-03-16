@@ -30,7 +30,7 @@ interface
     uses
       cclasses,cpubase,
       globals,cgutils,
-      aasmbase,aasmtai,assemble,aggas;
+      aasmbase,aasmtai,aasmdata,assemble,aggas;
 
     type
       Tx86ATTAssembler=class(TGNUassembler)

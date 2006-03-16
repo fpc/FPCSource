@@ -38,7 +38,7 @@ interface
 
     uses
       cclasses,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       symbase,symtype,symdef,
       DbgBase;
 
@@ -212,19 +212,19 @@ interface
 
         procedure field_add_dwarftag(p:Tnamedindexitem;arg:pointer);
         procedure method_add_dwarftag(p:Tnamedindexitem;arg:pointer);
-        procedure append_procdef(list:taasmoutput;pd:tprocdef);
-        procedure append_dwarftag(list:taasmoutput;def:tdef);
-        procedure insertsym(list:taasmoutput;sym:tsym);
-        procedure write_symtable_syms(list:taasmoutput;st:tsymtable);
+        procedure append_procdef(list:TAsmList;pd:tprocdef);
+        procedure append_dwarftag(list:TAsmList;def:tdef);
+        procedure insertsym(list:TAsmList;sym:tsym);
+        procedure write_symtable_syms(list:TAsmList;st:tsymtable);
         function def_dwarf_lab(def:tdef) : tasmsymbol;
       public
-        procedure insertdef(list:taasmoutput;def:tdef);override;
+        procedure insertdef(list:TAsmList;def:tdef);override;
 
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
-        procedure referencesections(list:taasmoutput);override;
-        procedure insertlineinfo(list:taasmoutput);override;
-        procedure write_symtable_defs(list:taasmoutput;st:tsymtable);override;
+        procedure referencesections(list:TAsmList);override;
+        procedure insertlineinfo(list:TAsmList);override;
+        procedure write_symtable_defs(list:TAsmList;st:tsymtable);override;
       end;
 
 implementation
@@ -441,7 +441,7 @@ implementation
         { Need a new label? }
         if def.dwarf_lab=nil then
           begin
-            objectlibrary.getdatalabel(def.dwarf_lab);
+            current_asmdata.getdatalabel(def.dwarf_lab);
             if nextdefnumber>=defnumberlist.count then
               defnumberlist.count:=nextdefnumber+250;
             defnumberlist[nextdefnumber]:=def;
@@ -459,16 +459,16 @@ implementation
       begin
         inc(currabbrevnumber);
 
-        asmlist[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
 
         { abbrev number }
-        asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(currabbrevnumber));
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(currabbrevnumber));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
         { tag }
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(tag)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(tag)));
 
         { children? }
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_8bit(ord(has_children)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(ord(has_children)));
 
         i:=0;
         while i<=high(data) do
@@ -476,7 +476,7 @@ implementation
             { attribute }
             if data[i].VType=vtInteger then
               begin
-                asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
               end
             else
               internalerror(200601261);
@@ -485,7 +485,7 @@ implementation
             { form }
             if data[i].VType=vtInteger then
               begin
-                asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
               end
             else
               internalerror(200601262);
@@ -496,27 +496,27 @@ implementation
               DW_FORM_string:
                 case data[i].VType of
                   vtChar:
-                    asmlist[al_dwarf_info].concat(tai_string.create(data[i].VChar));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VChar));
                   vtString:
-                    asmlist[al_dwarf_info].concat(tai_string.create(data[i].VString^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VString^));
                   vtAnsistring:
-                    asmlist[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString)));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString)));
                   else
                     internalerror(200601264);
                 end;
 
 
               DW_FORM_flag:
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
 
               DW_FORM_data1:
                  case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
                   else
                     internalerror(200602143);
                 end;
@@ -524,11 +524,11 @@ implementation
               DW_FORM_data2:
                  case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
                   else
                     internalerror(200602144);
                 end;
@@ -536,11 +536,11 @@ implementation
               DW_FORM_data4:
                  case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
                   else
                     internalerror(200602145);
                 end;
@@ -548,11 +548,11 @@ implementation
               DW_FORM_data8:
                  case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
                   else
                     internalerror(200602146);
                 end;
@@ -560,11 +560,11 @@ implementation
               DW_FORM_sdata:
                 case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VQWord^));
                   else
                     internalerror(200601285);
                 end;
@@ -572,11 +572,11 @@ implementation
               DW_FORM_udata:
                 case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VQWord^));
                   else
                     internalerror(200601284);
                 end;
@@ -585,11 +585,11 @@ implementation
               DW_FORM_block1:
                  case data[i].VType of
                   vtInteger:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
                   vtInt64:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
                   vtQWord:
-                    asmlist[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
                   else
                     internalerror(200602141);
                 end;
@@ -603,42 +603,42 @@ implementation
 
     procedure TDebugInfoDwarf.append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_addr)));
-        asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_addr)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
-        asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
 
     procedure TDebugInfoDwarf.append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
 {$ifdef cpu64bit}
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
 {$else cpu64bit}
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
 {$endif cpu64bit}
-        asmlist[al_dwarf_info].concat(tai_const.create_sym(sym));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
 
     procedure TDebugInfoDwarf.finish_entry;
       begin
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
-        asmlist[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
       end;
 
 
     procedure TDebugInfoDwarf.finish_children;
       begin
-        asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
       end;
 
 
@@ -652,8 +652,8 @@ implementation
               DW_AT_name,DW_FORM_string,tsym(p).name+#0,
               DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(tfieldvarsym(p).fieldoffset)
               ]);
-            asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-            asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(tfieldvarsym(p).fieldoffset));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(tfieldvarsym(p).fieldoffset));
 
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(tfieldvarsym(p).vartype.def));
             finish_entry;
@@ -666,7 +666,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.append_dwarftag(list:taasmoutput;def:tdef);
+    procedure TDebugInfoDwarf.append_dwarftag(list:TAsmList;def:tdef);
 
       procedure append_dwarftag_orddef(def:torddef);
         begin
@@ -904,11 +904,11 @@ implementation
               { !!! FIXME !!! }
               { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)
               { insert location attribute manually }
-              asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
-              asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(1));
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_push_object));
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_deref));
+              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
+              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(1));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_push_object));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_deref));
               }
 
               finish_entry;
@@ -972,8 +972,8 @@ implementation
                   DW_AT_accessibility,DW_FORM_data1,DW_ACCESS_public,
                   DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
                 ]);
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
                 finish_entry;
               end;
@@ -997,13 +997,13 @@ implementation
             odt_dispinterface,
             odt_class:
               begin
-                objectlibrary.getdatalabel(obj);
+                current_asmdata.getdatalabel(obj);
                 { implicit pointer }
                 append_entry(DW_TAG_pointer_type,false,[]);
                 append_labelentry_ref(DW_AT_type,obj);
                 finish_entry;
 
-                asmlist[al_dwarf_info].concat(tai_symbol.create(obj,0));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(obj,0));
                 doappend;
               end;
             else
@@ -1035,7 +1035,7 @@ implementation
                   slen:=255;
 
                 { create a structure with two elements }
-                objectlibrary.getdatalabel(arr);
+                current_asmdata.getdatalabel(arr);
                 append_entry(DW_TAG_structure_type,true,[
                   DW_AT_name,DW_FORM_string,'ShortString'#0,
                   DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
@@ -1047,8 +1047,8 @@ implementation
                   DW_AT_name,DW_FORM_string,'Length'#0,
                   DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
                   ]);
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
                 finish_entry;
 
@@ -1057,15 +1057,15 @@ implementation
                   DW_AT_name,DW_FORM_string,'Data'#0,
                   DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
                   ]);
-                asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-                asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(1));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(1));
                 append_labelentry_ref(DW_AT_type,arr);
                 finish_entry;
 
                 finish_children;
 
                 { now the data array }
-                asmlist[al_dwarf_info].concat(tai_symbol.create(arr,0));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
                 append_entry(DW_TAG_array_type,true,[
                   DW_AT_byte_size,DW_FORM_udata,def.size,
                   DW_AT_stride_size,DW_FORM_udata,1*8
@@ -1146,7 +1146,7 @@ implementation
           if def.is_methodpointer then
             begin
               { create a structure with two elements }
-              objectlibrary.getdatalabel(proc);
+              current_asmdata.getdatalabel(proc);
               append_entry(DW_TAG_structure_type,true,[
                 DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
               ]);
@@ -1157,8 +1157,8 @@ implementation
                 DW_AT_name,DW_FORM_string,'Proc'#0,
                 DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
                 ]);
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
               append_labelentry_ref(DW_AT_type,proc);
               finish_entry;
 
@@ -1167,14 +1167,14 @@ implementation
                 DW_AT_name,DW_FORM_string,'Self'#0,
                 DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sizeof(aint))
                 ]);
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              asmlist[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(aint)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sizeof(aint)));
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(class_tobject));
               finish_entry;
 
               finish_children;
 
-              asmlist[al_dwarf_info].concat(tai_symbol.create(proc,0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(proc,0));
               doappend;
             end
           else
@@ -1296,7 +1296,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.insertdef(list:taasmoutput;def:tdef);
+    procedure TDebugInfoDwarf.insertdef(list:TAsmList;def:tdef);
       var
         anc : tobjectdef;
         oldtypesym : tsym;
@@ -1382,9 +1382,9 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.write_symtable_defs(list:taasmoutput;st:tsymtable);
+    procedure TDebugInfoDwarf.write_symtable_defs(list:TAsmList;st:tsymtable);
 
-       procedure dowritedwarf(list:taasmoutput;st:tsymtable);
+       procedure dowritedwarf(list:TAsmList;st:tsymtable);
          var
            p : tdef;
          begin
@@ -1419,7 +1419,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.append_procdef(list:taasmoutput;pd:tprocdef);
+    procedure TDebugInfoDwarf.append_procdef(list:TAsmList;pd:tprocdef);
       var
         procendlabel : tasmlabel;
         mangled_length : longint;
@@ -1436,16 +1436,16 @@ implementation
               }
               ]);
             { append block data }
-            { asmlist[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(pd.))); }
+            { current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(pd.))); }
 
             if not(is_void(tprocdef(pd).rettype.def)) then
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(pd).rettype.def));
 
             { mark end of procedure }
-            objectlibrary.getlabel(procendlabel,alt_dbgtype);
-            asmlist[al_procedures].insertbefore(tai_label.create(procendlabel),pd.procendtai);
+            current_asmdata.getlabel(procendlabel,alt_dbgtype);
+            current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),pd.procendtai);
 
-            append_labelentry(DW_AT_low_pc,objectlibrary.newasmsymbol(pd.mangledname,AB_LOCAL,AT_DATA));
+            append_labelentry(DW_AT_low_pc,current_asmdata.newasmsymbol(pd.mangledname,AB_LOCAL,AT_DATA));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
             {
@@ -1486,10 +1486,10 @@ implementation
 
             { last write the types from this procdef }
             if assigned(pd.parast) then
-              write_symtable_defs(asmlist[al_dwarf_info],pd.parast);
+              write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],pd.parast);
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
-              write_symtable_defs(asmlist[al_dwarf_info],pd.localst);
+              write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],pd.localst);
 
             finish_children;
           end;
@@ -1497,11 +1497,11 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.insertsym(list:taasmoutput;sym:tsym);
+    procedure TDebugInfoDwarf.insertsym(list:TAsmList;sym:tsym);
 
         procedure append_varsym(sym:tabstractnormalvarsym);
           var
-            templist : taasmoutput;
+            templist : TAsmList;
             blocksize : longint;
             regidx : longint;
             tag : tdwarf_tag;
@@ -1518,7 +1518,7 @@ implementation
             if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
               exit;
 
-            templist:=taasmoutput.create;
+            templist:=TAsmList.create;
 
             case sym.localloc.loc of
               LOC_REGISTER,
@@ -1580,7 +1580,7 @@ implementation
               DW_AT_location,DW_FORM_block1,blocksize
               ]);
             { append block data }
-            asmlist[al_dwarf_info].concatlist(templist);
+            current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
 
             templist.free;
@@ -1597,13 +1597,13 @@ implementation
             { for string constants, consttype isn't set because they have no real type }
             if not(sym.consttyp in [conststring,constresourcestring]) then
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
-            asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
             case sym.consttyp of
               conststring:
                 begin
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
-                  asmlist[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
-                  asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
                 end;
               constset,
               constwstring,
@@ -1611,55 +1611,55 @@ implementation
               constresourcestring:
                 begin
                   { write dummy for now }
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
-                  asmlist[al_dwarf_info].concat(tai_string.create(''));
-                  asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(''));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
                 end;
               constord:
                 begin
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
-                  asmlist[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord));
                 end;
               constnil:
                 begin
 {$ifdef cpu64bit}
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
-                  asmlist[al_dwarf_info].concat(tai_const.create_64bit(0));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
 {$else cpu64bit}
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-                  asmlist[al_dwarf_info].concat(tai_const.create_32bit(0));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
 {$endif cpu64bit}
                 end;
               constpointer:
                 begin
 {$ifdef cpu64bit}
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
-                  asmlist[al_dwarf_info].concat(tai_const.create_64bit(sym.value.valueordptr));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(sym.value.valueordptr));
 {$else cpu64bit}
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-                  asmlist[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
 {$endif cpu64bit}
                 end;
               constreal:
                 begin
-                  asmlist[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
                   case tfloatdef(sym.consttype.def).typ of
                     s32real:
                       begin
-                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(4));
-                        asmlist[al_dwarf_info].concat(tai_real_32bit.create(psingle(sym.value.valueptr)^));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_real_32bit.create(psingle(sym.value.valueptr)^));
                       end;
                     s64comp,
                     s64currency,
                     s64real:
                       begin
-                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(8));
-                        asmlist[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
                       end;
                     s80real:
                       begin
-                        asmlist[al_dwarf_info].concat(tai_const.create_8bit(10));
-                        asmlist[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(10));
+                        current_asmdata.asmlists[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^));
                       end;
                     else
                       internalerror(200601291);
@@ -1683,11 +1683,11 @@ implementation
 
         procedure append_absolutesym(sym:tabsolutevarsym);
           var
-            templist : taasmoutput;
+            templist : TAsmList;
             blocksize : longint;
             symlist : psymlistitem;
           begin
-            templist:=taasmoutput.create;
+            templist:=TAsmList.create;
             case tabsolutevarsym(sym).abstyp of
               toaddr :
                 begin
@@ -1729,7 +1729,7 @@ implementation
               DW_AT_location,DW_FORM_block1,blocksize
               ]);
             { append block data }
-            asmlist[al_dwarf_info].concatlist(templist);
+            current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
 
             templist.free;
@@ -1768,8 +1768,8 @@ implementation
                 DW_AT_location,DW_FORM_block1,1+sizeof(aword)
               ]);
               { append block data }
-              asmlist[al_dwarf_info].concat(tai_const.create_8bit(3));
-              asmlist[al_dwarf_info].concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(3));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.createname(sym.mangledname,AT_DATA,0));
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypedconstsym(sym).typedconsttype.def));
 
               finish_entry;
@@ -1813,7 +1813,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.write_symtable_syms(list:taasmoutput;st:tsymtable);
+    procedure TDebugInfoDwarf.write_symtable_syms(list:TAsmList;st:tsymtable);
       var
         p : tsym;
       begin
@@ -1841,34 +1841,34 @@ implementation
 
     procedure TDebugInfoDwarf.insertmoduleinfo;
       var
-        templist : taasmoutput;
+        templist : TAsmList;
       begin
         { insert .Ltext0 label }
-        templist:=taasmoutput.create;
+        templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
         templist.concat(tai_symbol.createname('.Ltext0',AT_DATA,0));
-        asmlist[al_start].insertlist(templist);
+        current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
         { insert .Letext0 label }
-        templist:=taasmoutput.create;
+        templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
         templist.concat(tai_symbol.createname('.Letext0',AT_DATA,0));
-        asmlist[al_end].insertlist(templist);
+        current_asmdata.asmlists[al_end].insertlist(templist);
         templist.free;
 
         { insert .Ldebug_abbrev0 label }
-        templist:=taasmoutput.create;
+        templist:=TAsmList.create;
         new_section(templist,sec_debug_abbrev,'',0);
         templist.concat(tai_symbol.createname('.Ldebug_abbrev0',AT_DATA,0));
-        asmlist[al_start].insertlist(templist);
+        current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
         { insert .Ldebug_line0 label }
-        templist:=taasmoutput.create;
+        templist:=TAsmList.create;
         new_section(templist,sec_debug_line,'',0);
         templist.concat(tai_symbol.createname('.Ldebug_line0',AT_DATA,0));
-        asmlist[al_start].insertlist(templist);
+        current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
       end;
 
@@ -1896,31 +1896,31 @@ implementation
         }
 
         { write start labels }
-        asmlist[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
-        asmlist[al_dwarf_info].concat(tai_symbol.createname('.Ldebug_info0',AT_DATA,0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ldebug_info0',AT_DATA,0));
 
         { start abbrev section }
-        new_section(asmlist[al_dwarf_abbrev],sec_debug_abbrev,'',0);
+        new_section(current_asmdata.asmlists[al_dwarf_abbrev],sec_debug_abbrev,'',0);
 
         { debug info header }
-        objectlibrary.getlabel(lenstartlabel,alt_dbgfile);
+        current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
         { size }
         { currently we create only 32 bit dwarf }
-        asmlist[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
           lenstartlabel,tasmsymbol.create('.Ledebug_info0',AB_COMMON,AT_DATA)));
 
-        asmlist[al_dwarf_info].concat(tai_label.create(lenstartlabel));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
-        asmlist[al_dwarf_info].concat(tai_const.create_16bit(2));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(2));
         { abbrev table }
         if isdwarf64 then
-          asmlist[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
-            objectlibrary.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)))
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
+            current_asmdata.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)))
         else
-          asmlist[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
-            objectlibrary.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
+            current_asmdata.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)));
         { address size }
-        asmlist[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
         append_entry(DW_TAG_compile_unit,true,[
           DW_AT_name,DW_FORM_string,FixFileName(current_module.sourcefiles.get_file(1).name^)+#0,
@@ -1930,36 +1930,36 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
-        append_labelentry_data(DW_AT_stmt_list,objectlibrary.newasmsymbol('.Ldebug_line0',AB_LOCAL,AT_DATA));
-        append_labelentry(DW_AT_low_pc,objectlibrary.newasmsymbol('.Ltext0',AB_LOCAL,AT_DATA));
-        append_labelentry(DW_AT_high_pc,objectlibrary.newasmsymbol('.Letext0',AB_LOCAL,AT_DATA));
+        append_labelentry_data(DW_AT_stmt_list,current_asmdata.newasmsymbol('.Ldebug_line0',AB_LOCAL,AT_DATA));
+        append_labelentry(DW_AT_low_pc,current_asmdata.newasmsymbol('.Ltext0',AB_LOCAL,AT_DATA));
+        append_labelentry(DW_AT_high_pc,current_asmdata.newasmsymbol('.Letext0',AB_LOCAL,AT_DATA));
 
         finish_entry;
 
         { first write all global/local symbols. This will flag all required tdefs }
         if assigned(current_module.globalsymtable) then
-          write_symtable_syms(asmlist[al_dwarf_info],current_module.globalsymtable);
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
-          write_symtable_syms(asmlist[al_dwarf_info],current_module.localsymtable);
+          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
 
         { reset unit type info flag }
         reset_unit_type_info;
 
         { write used types from the used units }
-        write_used_unit_type_info(asmlist[al_dwarf_info],current_module);
+        write_used_unit_type_info(current_asmdata.asmlists[al_dwarf_info],current_module);
 
         { last write the types from this unit }
         if assigned(current_module.globalsymtable) then
-          write_symtable_defs(asmlist[al_dwarf_info],current_module.globalsymtable);
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
-          write_symtable_defs(asmlist[al_dwarf_info],current_module.localsymtable);
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
 
         { close compilation unit entry }
         finish_children;
 
         { end of debug info table }
-        asmlist[al_dwarf_info].concat(tai_const.create_8bit(0));
-        asmlist[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
        { reset all def labels }
         for i:=0 to defnumberlist.count-1 do
           begin
@@ -1977,12 +1977,12 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.referencesections(list:taasmoutput);
+    procedure TDebugInfoDwarf.referencesections(list:TAsmList);
       begin
       end;
 
 
-    procedure TDebugInfoDwarf.insertlineinfo(list:taasmoutput);
+    procedure TDebugInfoDwarf.insertlineinfo(list:TAsmList);
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;

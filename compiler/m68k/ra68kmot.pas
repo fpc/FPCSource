@@ -98,7 +98,7 @@ Implementation
        globals,verbose,
        systems,
        { aasm }
-       cpuinfo,aasmtai,aasmcpu,
+       cpuinfo,aasmtai,aasmdata,aasmcpu,
        cgbase,
        { symtable }
        symbase,symtype,symsym,symtable,
@@ -1311,7 +1311,7 @@ const
                           l:=oper.opr.val;
                           oper.opr.typ := OPR_SYMBOL;
                           oper.opr.symofs := l;
-                          oper.opr.symbol := objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
+                          oper.opr.symbol := current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
                         end;
                  end;
    { // Constant memory offset .              // }
@@ -1713,7 +1713,7 @@ const
             SetupTables;
             _asmsorted := TRUE;
           end;
-        curlist:=TAAsmoutput.Create;
+        curlist:=TAsmList.Create;
         { setup label linked list }
         LocalLabelList:=TLocalLabelList.Create;
         c:=current_scanner.asmgetchar;

@@ -30,13 +30,13 @@ unit rgx86;
     uses
       cclasses,globtype,
       cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       rgobj;
 
     type
        trgx86 = class(trgobj)
          function  get_spill_subreg(r : tregister) : tsubregister;override;
-         function  do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
+         function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
 
        tpushedsavedloc = record
@@ -73,14 +73,14 @@ unit rgx86;
 
           constructor create;
 
-          function getregisterfpu(list: taasmoutput) : tregister;
-          procedure ungetregisterfpu(list: taasmoutput; r : tregister);
+          function getregisterfpu(list: TAsmList) : tregister;
+          procedure ungetregisterfpu(list: TAsmList; r : tregister);
 
           { pushes and restores registers }
-          procedure saveusedfpuregisters(list:Taasmoutput;
+          procedure saveusedfpuregisters(list:TAsmList;
                                          var saved:Tpushedsavedfpu;
                                          const s:Tcpuregisterset);
-          procedure restoreusedfpuregisters(list:Taasmoutput;
+          procedure restoreusedfpuregisters(list:TAsmList;
                                             const saved:Tpushedsavedfpu);
 
           { corrects the fpu stack register by ofs }
@@ -110,7 +110,7 @@ implementation
       end;
 
 
-    function trgx86.do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgx86.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
       var
         replaceoper : longint;
       begin
@@ -232,7 +232,7 @@ implementation
       end;
 
 
-    function trgx86fpu.getregisterfpu(list: taasmoutput) : tregister;
+    function trgx86fpu.getregisterfpu(list: TAsmList) : tregister;
       begin
         { note: don't return R_ST0, see comments above implementation of }
         { a_loadfpu_* methods in cgcpu (JM)                              }
@@ -240,7 +240,7 @@ implementation
       end;
 
 
-    procedure trgx86fpu.ungetregisterfpu(list : taasmoutput; r : tregister);
+    procedure trgx86fpu.ungetregisterfpu(list : TAsmList; r : tregister);
       begin
         { nothing to do, fpu stack management is handled by the load/ }
         { store operations in cgcpu (JM)                              }
@@ -255,7 +255,7 @@ implementation
       end;
 
 
-    procedure trgx86fpu.saveusedfpuregisters(list: taasmoutput;
+    procedure trgx86fpu.saveusedfpuregisters(list: TAsmList;
                                              var saved : tpushedsavedfpu;
                                              const s: tcpuregisterset);
       var
@@ -292,7 +292,7 @@ implementation
       end;
 
 
-    procedure trgx86fpu.restoreusedfpuregisters(list : taasmoutput;
+    procedure trgx86fpu.restoreusedfpuregisters(list : TAsmList;
                                                 const saved : tpushedsavedfpu);
 
       var
@@ -329,7 +329,7 @@ implementation
       end;
 
 (*
-    procedure Trgx86fpu.saveotherregvars(list: taasmoutput; const s: totherregisterset);
+    procedure Trgx86fpu.saveotherregvars(list: TAsmList; const s: totherregisterset);
       var
         r: Tregister;
       begin

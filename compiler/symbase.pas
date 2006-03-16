@@ -178,6 +178,8 @@ implementation
            symsearch:=nil;
          end;
         clear;
+        symindex.free;
+        defindex.free;
         stringdispose(name);
         stringdispose(realname);
       end;

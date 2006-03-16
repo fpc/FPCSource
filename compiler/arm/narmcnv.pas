@@ -58,10 +58,10 @@ implementation
 
    uses
       verbose,globtype,globals,systems,
-      symconst,symdef,aasmbase,aasmtai,
+      symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
       cgbase,cgutils,
-      pass_1,pass_2,
+      pass_1,pass_2,procinfo,
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
@@ -155,11 +155,11 @@ implementation
         instr : taicpu;
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        location_force_reg(exprasmlist,left.location,OS_32,true);
-        location.register:=cg.getfpuregister(exprasmlist,location.size);
+        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
         instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
-        exprasmlist.concat(instr);
+        current_asmdata.CurrAsmList.concat(instr);
       end;
 
 
@@ -168,12 +168,12 @@ implementation
         hregister : tregister;
         href      : treference;
         resflags  : tresflags;
-        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
+        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-         oldtruelabel:=truelabel;
-         oldfalselabel:=falselabel;
-         objectlibrary.getjumplabel(truelabel);
-         objectlibrary.getjumplabel(falselabel);
+         oldTrueLabel:=current_procinfo.CurrTrueLabel;
+         oldFalseLabel:=current_procinfo.CurrFalseLabel;
+         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
          secondpass(left);
          if codegenerror then
           exit;
@@ -184,8 +184,8 @@ implementation
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               location_copy(location,left.location);
-              truelabel:=oldtruelabel;
-              falselabel:=oldfalselabel;
+              current_procinfo.CurrTrueLabel:=oldTrueLabel;
+              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
@@ -197,19 +197,19 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.getintregister(exprasmlist,OS_INT);
-                   cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
                    tcgarm(cg).cgsetflags:=true;
-                   cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
+                   cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,href,hregister);
                    tcgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
-                   location_force_reg(exprasmlist,left.location,left.location.size,true);
+                   location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
                    tcgarm(cg).cgsetflags:=true;
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                    tcgarm(cg).cgsetflags:=false;
                  end;
               end;
@@ -221,31 +221,31 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.getintregister(exprasmlist,OS_32);
-                   cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.register64.reglo,hregister);
+                   hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.register64.reglo,hregister);
                    tcgarm(cg).cgsetflags:=true;
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.register64.reghi,hregister);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,hregister);
                    tcgarm(cg).cgsetflags:=false;
                  end
                 else
                  begin
                    tcgarm(cg).cgsetflags:=true;
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
+                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,left.location.size,left.location.register,left.location.register);
                    tcgarm(cg).cgsetflags:=false;
                  end;
               end;
             LOC_JUMP :
               begin
-                hregister:=cg.getintregister(exprasmlist,OS_INT);
-                objectlibrary.getjumplabel(hlabel);
-                cg.a_label(exprasmlist,truelabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
-                cg.a_jmp_always(exprasmlist,hlabel);
-                cg.a_label(exprasmlist,falselabel);
-                cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
-                cg.a_label(exprasmlist,hlabel);
+                hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                current_asmdata.getjumplabel(hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hregister);
+                cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hregister);
+                cg.a_label(current_asmdata.CurrAsmList,hlabel);
                 tcgarm(cg).cgsetflags:=true;
-                cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_INT,hregister,hregister);
                 tcgarm(cg).cgsetflags:=false;
               end;
             else
@@ -253,10 +253,10 @@ implementation
          end;
          { load flags to register }
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         location.register:=cg.getintregister(exprasmlist,location.size);
-         cg.g_flags2reg(exprasmlist,location.size,resflags,location.register);
-         truelabel:=oldtruelabel;
-         falselabel:=oldfalselabel;
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+         cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
+         current_procinfo.CurrTrueLabel:=oldTrueLabel;
+         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

@@ -28,14 +28,14 @@ Unit aopt;
   Interface
 
     Uses
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       aoptobj;
 
     Type
       TAsmOptimizer = class(TAoptObj)
 
         { _AsmL is the PAasmOutpout list that has to be optimized }
-        Constructor create(_AsmL: taasmoutput); virtual;
+        Constructor create(_AsmL: TAsmList); virtual;
 
         { call the necessary optimizer procedures }
         Procedure Optimize;
@@ -51,7 +51,7 @@ Unit aopt;
     var
       casmoptimizer : class of tasmoptimizer;
 
-    procedure Optimize(AsmL:taasmoutput);
+    procedure Optimize(AsmL:TAsmList);
 
   Implementation
 
@@ -59,7 +59,7 @@ Unit aopt;
       globtype, globals,
       aoptda,aoptcpu,aoptcpud;
 
-    Constructor TAsmOptimizer.create(_AsmL: taasmoutput);
+    Constructor TAsmOptimizer.create(_AsmL: TAsmList);
       Begin
         inherited create(_asml,nil,nil,nil);
       {setup labeltable, always necessary}
@@ -83,7 +83,7 @@ Unit aopt;
           Begin
             While Assigned(P) And
                   ((P.typ <> Ait_Marker) Or
-                   (tai_Marker(P).Kind <> AsmBlockStart)) Do
+                   (tai_Marker(P).Kind <> mark_AsmBlockStart)) Do
               Begin
                 If (p.typ = ait_label) Then
                   If (tai_Label(p).labsym.is_used) Then
@@ -98,7 +98,7 @@ Unit aopt;
                 GetNextInstruction(p, p)
               End;
             if (prev.typ = ait_marker) and
-               (tai_marker(prev).kind = asmblockstart) then
+               (tai_marker(prev).kind = mark_AsmBlockStart) then
               blockend := prev
             else blockend := nil;
             If LabelFound
@@ -108,7 +108,7 @@ Unit aopt;
       End;
 
     Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
-    { Builds a table with the locations of the labels in the taasmoutput.       }
+    { Builds a table with the locations of the labels in the TAsmList.       }
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
     Var p, hp1, hp2: tai;
         UsedRegs: TRegSet;
@@ -228,16 +228,16 @@ Unit aopt;
             BlockStart := BlockEnd;
             While Assigned(BlockStart) And
                   (BlockStart.typ = ait_Marker) And
-                  (tai_Marker(BlockStart).Kind = AsmBlockStart) Do
+                  (tai_Marker(BlockStart).Kind = mark_AsmBlockStart) Do
               Begin
                { we stopped at an assembler block, so skip it    }
                While GetNextInstruction(BlockStart, BlockStart) And
                      ((BlockStart.Typ <> Ait_Marker) Or
-                      (tai_Marker(Blockstart).Kind <> AsmBlockEnd)) Do;
-               { blockstart now contains a tai_marker(asmblockend) }
+                      (tai_Marker(Blockstart).Kind <> mark_AsmBlockEnd)) Do;
+               { blockstart now contains a tai_marker(mark_AsmBlockEnd) }
                If GetNextInstruction(BlockStart, HP) And
                   ((HP.typ <> ait_Marker) Or
-                   (Tai_Marker(HP).Kind <> AsmBlockStart)) Then
+                   (Tai_Marker(HP).Kind <> mark_AsmBlockStart)) Then
                { There is no assembler block anymore after the current one, so }
                { optimize the next block of "normal" instructions              }
                  pass_1
@@ -254,7 +254,7 @@ Unit aopt;
       End;
 
 
-    procedure Optimize(AsmL:taasmoutput);
+    procedure Optimize(AsmL:TAsmList);
       var
         p : TAsmOptimizer;
       begin

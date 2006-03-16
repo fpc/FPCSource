@@ -50,7 +50,7 @@ implementation
       systems,
       cutils,verbose,
       symdef,paramgr,
-      aasmtai,
+      aasmtai,aasmdata,
       nld,ncon,nadd,
       cgutils,cgobj;
 
@@ -97,16 +97,16 @@ implementation
          else if location.reference.base=NR_NO then
           begin
             case location.reference.scalefactor of
-             2 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,1,location.reference.index);
-             4 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,2,location.reference.index);
-             8 : cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,3,location.reference.index);
+             2 : cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,1,location.reference.index);
+             4 : cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,location.reference.index);
+             8 : cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,3,location.reference.index);
             end;
             location.reference.base:=location.reference.index;
           end
          else
           begin
-            hreg := cg.getaddressregister(exprasmlist);
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
+            hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
           end;
          { insert the new index register and scalefactor or
@@ -116,9 +116,9 @@ implementation
          else
            begin
               if ispowerof2(l,l2) then
-                cg.a_op_const_reg(exprasmlist,OP_SHL,OS_ADDR,l2,reg)
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,l2,reg)
               else
-                cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
            end;
          end;
          location.reference.index:=reg;

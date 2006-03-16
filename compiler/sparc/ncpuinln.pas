@@ -47,7 +47,7 @@ implementation
       systems,
       cutils,verbose,
       symconst,symdef,
-      aasmtai,aasmcpu,
+      aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
       cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
@@ -60,11 +60,11 @@ implementation
     procedure tsparcinlinenode.load_fpu_location;
       begin
         secondpass(left);
-        location_force_fpureg(exprasmlist,left.location,true);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
         location_copy(location,left.location);
         if left.location.loc=LOC_CFPUREGISTER then
           begin
-           location.register:=cg.getfpuregister(exprasmlist,location.size);
+           location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
            location.loc := LOC_FPUREGISTER;
          end;
       end;
@@ -102,11 +102,11 @@ implementation
         load_fpu_location;
         case tfloatdef(left.resulttype.def).typ of
           s32real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FABSs,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABSs,left.location.register,location.register));
           s64real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FABSd,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABSd,left.location.register,location.register));
           s128real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FABSq,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABSq,left.location.register,location.register));
           else
             internalerror(200410031);
         end;
@@ -118,11 +118,11 @@ implementation
         load_fpu_location;
         case tfloatdef(left.resulttype.def).typ of
           s32real:
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMULs,left.location.register,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMULs,left.location.register,left.location.register,location.register));
           s64real:
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMULd,left.location.register,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMULd,left.location.register,left.location.register,location.register));
           s128real:
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMULq,left.location.register,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMULq,left.location.register,left.location.register,location.register));
           else
             internalerror(200410032);
         end;
@@ -134,11 +134,11 @@ implementation
         load_fpu_location;
         case tfloatdef(left.resulttype.def).typ of
           s32real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FSQRTs,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTs,left.location.register,location.register));
           s64real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FSQRTd,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTd,left.location.register,location.register));
           s128real:
-            exprasmlist.concat(taicpu.op_reg_reg(A_FSQRTq,left.location.register,location.register));
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTq,left.location.register,location.register));
           else
             internalerror(200410033);
         end;

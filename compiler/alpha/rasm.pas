@@ -47,7 +47,7 @@ Implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmcpu,
+       cpubase,aasmbase,aasmtai,aasmdata,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,
        { pass 1 }

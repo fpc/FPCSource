@@ -38,7 +38,7 @@ implementation
 
     uses
       cpubase,
-      aasmtai,
+      aasmtai,aasmdata,
       aasmcpu,
       paramgr,
       ncal;
@@ -47,7 +47,7 @@ implementation
     procedure tsparccallnode.extra_post_call_code;
       begin
         if paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
-          exprasmlist.concat(taicpu.op_const(A_UNIMP,procdefinition.rettype.def.size and $fff));
+          current_asmdata.CurrAsmList.concat(taicpu.op_const(A_UNIMP,procdefinition.rettype.def.size and $fff));
       end;
 
 

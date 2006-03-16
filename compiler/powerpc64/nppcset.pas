@@ -26,7 +26,7 @@ unit nppcset;
 interface
 
 uses
-  node, nset, ncgset, cpubase, cgbase, cgobj, aasmbase, aasmtai, globtype;
+  node, nset, ncgset, cpubase, cgbase, cgobj, aasmbase, aasmtai,aasmdata, globtype;
 
 type
 
@@ -73,7 +73,7 @@ var
   indexreg : tregister;
   href : treference;
 
-  procedure genitem(list:taasmoutput;t : pcaselabel);
+  procedure genitem(list:TAsmList;t : pcaselabel);
   var
     i : aint;
   begin
@@ -104,24 +104,24 @@ begin
    one or more 64 bit integer adresses which is slow }
   if not(jumptable_no_range) then begin
     { case expr less than min_ => goto elselabel }
-    cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
     { case expr greater than max_ => goto elselabel }
-    cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
   end;
-  objectlibrary.getjumplabel(table);
+  current_asmdata.getjumplabel(table);
   { allocate base and index registers register }
-  indexreg:= cg.makeregsize(exprasmlist, hregister, OS_INT);
+  indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
   { indexreg := hregister; }
-  cg.a_load_reg_reg(exprasmlist, opsize, OS_INT, hregister, indexreg);
+  cg.a_load_reg_reg(current_asmdata.CurrAsmList, opsize, OS_INT, hregister, indexreg);
   { create reference, indexreg := indexreg * sizeof(OS_ADDR) }
-  cg.a_op_const_reg(exprasmlist, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
+  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tcgsize2size[OS_ADDR], indexreg);
   reference_reset_symbol(href, table, (-aint(min_)) * tcgsize2size[OS_ADDR]);
   href.index := indexreg;
 
-  cg.a_load_ref_reg(exprasmlist, OS_INT, OS_INT, href, indexreg);
+  cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, href, indexreg);
 
-  exprasmlist.concat(taicpu.op_reg(A_MTCTR, indexreg));
-  exprasmlist.concat(taicpu.op_none(A_BCTR));
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR, indexreg));
+  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTR));
 
   { generate jump table }
   new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
@@ -144,13 +144,13 @@ var
       value := -value;
       if (value >= low(smallint)) and
         (value <= high(smallint)) then
-        exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDIC_, hregister,
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDIC_, hregister,
           hregister, value))
       else
       begin
-        tmpreg := cg.getintregister(exprasmlist, OS_INT);
-        cg.a_load_const_reg(exprasmlist, OS_INT, value, tmpreg);
-        exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_, hregister,
+        tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, value, tmpreg);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_, hregister,
           hregister, tmpreg));
       end;
     end;
@@ -160,16 +160,16 @@ var
       genitem(t^.less);
     { need we to test the first value }
     if first and (t^._low > get_min_value(left.resulttype.def)) then begin
-      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(t^._low),
+      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, jmp_lt, aword(t^._low),
         hregister, elselabel);
     end;
     if t^._low = t^._high then begin
       if t^._low - last = 0 then
-        cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, 0, hregister,
+        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ, 0, hregister,
           blocklabel(t^.blockid))
       else
         gensub(aint(t^._low - last));
-      tcgppc(cg).a_jmp_cond(exprasmlist, OC_EQ, blocklabel(t^.blockid));
+      tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList, OC_EQ, blocklabel(t^.blockid));
       last := t^._low;
       lastrange := false;
     end else begin
@@ -186,10 +186,10 @@ var
         { immediately. else check the range in between:       }
         gensub(aint(t^._low - last));
         if ((t^._low - last) <> 1) or (not lastrange) then
-          tcgppc(cg).a_jmp_cond(exprasmlist, jmp_lt, elselabel);
+          tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_lt, elselabel);
       end;
       gensub(aint(t^._high - t^._low));
-      tcgppc(cg).a_jmp_cond(exprasmlist, jmp_le, blocklabel(t^.blockid));
+      tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList, jmp_le, blocklabel(t^.blockid));
       last := t^._high;
       lastrange := true;
     end;
@@ -207,7 +207,7 @@ begin
     lastrange := false;
     first := true;
     genitem(hp);
-    cg.a_jmp_always(exprasmlist, elselabel);
+    cg.a_jmp_always(current_asmdata.CurrAsmList, elselabel);
   end;
 end;
 

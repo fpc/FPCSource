@@ -56,10 +56,10 @@ implementation
 
    uses
       verbose,globals,systems,
-      symconst,symdef,aasmbase,aasmtai,
+      symconst,symdef,aasmbase,aasmtai,aasmdata,
       defutil,
       cgbase,cgutils,pass_1,pass_2,
-      ncon,ncal,
+      ncon,ncal,procinfo,
       ncgutil,
       cpubase,aasmcpu,
       tgobj,cgobj;
@@ -115,18 +115,18 @@ implementation
 
       procedure loadsigned;
         begin
-          location_force_mem(exprasmlist,left.location);
+          location_force_mem(current_asmdata.CurrAsmList,left.location);
           { Load memory in fpu register }
-          cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
-          tg.ungetiftemp(exprasmlist,left.location.reference);
+          cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
+          tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           { Convert value in fpu register from integer to float }
           case tfloatdef(resulttype.def).typ of
             s32real:
-               exprasmlist.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
             s64real:
-              exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
             s128real:
-              exprasmlist.concat(taicpu.op_reg_reg(A_FiTOq,location.register,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOq,location.register,location.register));
             else
               internalerror(200408011);
           end;
@@ -141,50 +141,50 @@ implementation
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
         if is_signed(left.resulttype.def) then
           begin
-            location.register:=cg.getfpuregister(exprasmlist,location.size);
+            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             loadsigned;
           end
         else
           begin
-            objectlibrary.getdatalabel(l1);
-            objectlibrary.getjumplabel(l2);
+            current_asmdata.getdatalabel(l1);
+            current_asmdata.getjumplabel(l2);
             reference_reset_symbol(href,l1,0);
-            hregister:=cg.getintregister(exprasmlist,OS_32);
-            cg.a_load_loc_reg(exprasmlist,OS_32,left.location,hregister);
+            hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+            cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,hregister);
 
             { here we need always an 64 bit register }
-            location.register:=cg.getfpuregister(exprasmlist,OS_F64);
-            location_force_mem(exprasmlist,left.location);
+            location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+            location_force_mem(current_asmdata.CurrAsmList,left.location);
             { Load memory in fpu register }
-            cg.a_loadfpu_ref_reg(exprasmlist,OS_F32,left.location.reference,location.register);
-            tg.ungetiftemp(exprasmlist,left.location.reference);
-            exprasmlist.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
+            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
+            tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
 
-            exprasmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
-            cg.a_jmp_flags(exprasmlist,F_GE,l2);
+            current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
+            cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);
 
             case tfloatdef(resulttype.def).typ of
                { converting dword to s64real first and cut off at the end avoids precision loss }
                s32real,
                s64real:
                  begin
-                   hregister:=cg.getfpuregister(exprasmlist,OS_F64);
-                   asmlist[al_typedconsts].concat(tai_align.create(const_align(8)));
-                   asmlist[al_typedconsts].concat(Tai_label.Create(l1));
+                   hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+                   current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(8)));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
-                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
-                   asmlist[al_typedconsts].concat(Tai_const.Create_32bit(0));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
+                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
 
-                   cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,href,hregister);
-                   exprasmlist.concat(taicpu.op_reg_reg_reg(A_FADDD,location.register,hregister,location.register));
-                   cg.a_label(exprasmlist,l2);
+                   cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,href,hregister);
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FADDD,location.register,hregister,location.register));
+                   cg.a_label(current_asmdata.CurrAsmList,l2);
 
                    { cut off if we should convert to single }
                    if tfloatdef(resulttype.def).typ=s32real then
                      begin
                        hregister:=location.register;
-                       location.register:=cg.getfpuregister(exprasmlist,location.size);
-                       exprasmlist.concat(taicpu.op_reg_reg(A_FDTOS,hregister,location.register));
+                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FDTOS,hregister,location.register));
                      end;
                  end;
                else
@@ -209,13 +209,13 @@ implementation
         op : tasmop;
       begin
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        location_force_fpureg(exprasmlist,left.location,false);
+        location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
         { Convert value in fpu register from integer to float }
         op:=conv_op[tfloatdef(resulttype.def).typ,tfloatdef(left.resulttype.def).typ];
         if op=A_NONE then
           internalerror(200401121);
-        location.register:=cg.getfpuregister(exprasmlist,location.size);
-        exprasmlist.concat(taicpu.op_reg_reg(op,left.location.register,location.register));
+        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,left.location.register,location.register));
       end;
 
 
@@ -224,12 +224,12 @@ implementation
         hreg1,hreg2 : tregister;
         resflags : tresflags;
         opsize   : tcgsize;
-        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
+        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
       begin
-        oldtruelabel:=truelabel;
-        oldfalselabel:=falselabel;
-        objectlibrary.getjumplabel(truelabel);
-        objectlibrary.getjumplabel(falselabel);
+        oldTrueLabel:=current_procinfo.CurrTrueLabel;
+        oldFalseLabel:=current_procinfo.CurrFalseLabel;
+        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
         secondpass(left);
         if codegenerror then
           exit;
@@ -241,8 +241,8 @@ implementation
            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
           begin
             location_copy(location,left.location);
-            truelabel:=oldtruelabel;
-            falselabel:=oldfalselabel;
+            current_procinfo.CurrTrueLabel:=oldTrueLabel;
+            current_procinfo.CurrFalseLabel:=oldFalseLabel;
             exit;
           end;
         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
@@ -252,40 +252,40 @@ implementation
             begin
               if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
-                  hreg2:=cg.getintregister(exprasmlist,opsize);
-                  cg.a_load_ref_reg(exprasmlist,opsize,opsize,left.location.reference,hreg2);
+                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.reference,hreg2);
                 end
               else
                 hreg2:=left.location.register;
 {$ifndef cpu64bit}
               if left.location.size in [OS_64,OS_S64] then
                 begin
-                  hreg1:=cg.getintregister(exprasmlist,OS_32);
-                  cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,tregister(succ(longint(hreg2))),hreg1);
+                  hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg2,tregister(succ(longint(hreg2))),hreg1);
                   hreg2:=hreg1;
                   opsize:=OS_32;
                 end;
 {$endif cpu64bit}
-              exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
-              hreg1:=cg.getintregister(exprasmlist,opsize);
-              exprasmlist.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
+              hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
             end;
           LOC_FLAGS :
             begin
-              hreg1:=cg.GetIntRegister(exprasmlist,location.size);
+              hreg1:=cg.GetIntRegister(current_asmdata.CurrAsmList,location.size);
               resflags:=left.location.resflags;
-              cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
+              cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,hreg1);
             end;
           LOC_JUMP :
             begin
-              hreg1:=cg.getintregister(exprasmlist,OS_INT);
-              objectlibrary.getjumplabel(hlabel);
-              cg.a_label(exprasmlist,truelabel);
-              cg.a_load_const_reg(exprasmlist,OS_INT,1,hreg1);
-              cg.a_jmp_always(exprasmlist,hlabel);
-              cg.a_label(exprasmlist,falselabel);
-              cg.a_load_const_reg(exprasmlist,OS_INT,0,hreg1);
-              cg.a_label(exprasmlist,hlabel);
+              hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+              current_asmdata.getjumplabel(hlabel);
+              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg1);
+              cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
+              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg1);
+              cg.a_label(current_asmdata.CurrAsmList,hlabel);
             end;
           else
             internalerror(10062);
@@ -295,8 +295,8 @@ implementation
          if location.size in [OS_64, OS_S64] then
            internalerror(200408241);
 
-        truelabel:=oldtruelabel;
-        falselabel:=oldfalselabel;
+        current_procinfo.CurrTrueLabel:=oldTrueLabel;
+        current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

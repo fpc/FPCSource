@@ -48,7 +48,7 @@ implementation
 uses
   globtype, globals, systems,
   cpubase, cgbase,
-  aasmtai,
+  aasmtai,aasmdata,
   tgobj,
   symconst, symsym, paramgr, symutil,
   verbose;

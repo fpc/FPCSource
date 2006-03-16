@@ -47,7 +47,7 @@ implementation
 
     uses
       cutils,globals,verbose,
-      aasmtai,aasmcpu,
+      aasmtai,aasmdata,aasmcpu,
       symconst,symdef,
       defutil,
       cgbase,pass_2,
@@ -86,12 +86,12 @@ implementation
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
            secondpass(left);
-           location_force_fpureg(exprasmlist,left.location,true);
+           location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
            location_copy(location,left.location);
            if (location.loc = LOC_CFPUREGISTER) then
              begin
                location.loc := LOC_FPUREGISTER;
-               location.register := cg.getfpuregister(exprasmlist,OS_F64);
+               location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
              end;
          end;
 
@@ -99,7 +99,7 @@ implementation
        begin
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
-         exprasmlist.concat(taicpu.op_reg_reg(A_FABS,location.register,
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,
            left.location.register));
        end;
 
@@ -107,7 +107,7 @@ implementation
        begin
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
-         exprasmlist.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
            left.location.register,left.location.register));
        end;
 
@@ -121,19 +121,19 @@ implementation
            LOC_CREFERENCE,
            LOC_REFERENCE:
              begin
-               r:=cg.getintregister(exprasmlist,OS_ADDR);
+               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                if (left.location.reference.offset = 0) and
                   not assigned(left.location.reference.symbol) then
                  begin
                    if (left.location.reference.index = NR_NO) then
-                     exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
+                     current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
                    else
-                     exprasmlist.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
                  end
                else
                  begin
-                   cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
-                   exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,r));
+                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+                   current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_DCBT,0,r));
                  end;
              end;
            else

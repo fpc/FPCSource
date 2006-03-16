@@ -28,7 +28,7 @@ Interface
 
 {$i fpcdefs.inc}
 
-uses cpubase, aoptobj, aoptcpub, aopt, aasmtai, aasmcpu;
+uses cpubase, aoptobj, aoptcpub, aopt, aasmtai,aasmdata, aasmcpu;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)

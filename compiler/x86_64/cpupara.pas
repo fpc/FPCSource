@@ -29,7 +29,7 @@ unit cpupara;
       globtype,
       cpubase,cgbase,
       symconst,symtype,symsym,symdef,
-      aasmtai,
+      aasmtai,aasmdata,
       parabase,paramgr;
 
     type

@@ -350,7 +350,7 @@ interface
 
        { this node is the anchestor for all nodes with at least   }
        { one child, you have to use it if you want to use         }
-       { true- and falselabel                                     }
+       { true- and current_procinfo.CurrFalseLabel                                     }
        punarynode = ^tunarynode;
        tunarynode = class(tnode)
           left : tnode;

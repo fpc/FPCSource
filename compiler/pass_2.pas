@@ -49,7 +49,7 @@ implementation
      globtype,systems,verbose,
      globals,
      paramgr,
-     aasmtai,
+     aasmtai,aasmdata,
      cgbase,
      nflw,cgobj;
 
@@ -143,7 +143,7 @@ implementation
           p := strpnew('second '+secondnames[ht]+' (entry)')
         else
           p := strpnew('second '+secondnames[ht]+' (exit)');
-        exprasmlist.concat(tai_comment.create(p));
+        current_asmdata.CurrAsmList.concat(tai_comment.create(p));
       end;
 {$endif EXTDEBUG}
 
@@ -195,8 +195,8 @@ implementation
 
     function do_secondpass(var p : tnode) : boolean;
       begin
-         { exprasmlist must be empty }
-         if not exprasmlist.empty then
+         { current_asmdata.CurrAsmList must be empty }
+         if not current_asmdata.CurrAsmList.empty then
            internalerror(200405201);
 
          { clear errors before starting }

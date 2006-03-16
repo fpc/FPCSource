@@ -29,7 +29,7 @@ unit agarmgas;
   interface
 
     uses
-       aasmtai,
+       aasmtai,aasmdata,
        aggas,
        cpubase;
 

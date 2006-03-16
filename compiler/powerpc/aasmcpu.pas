@@ -27,7 +27,7 @@ interface
 
 uses
   globtype,verbose,
-  aasmbase,aasmtai,
+  aasmbase,aasmtai,aasmdata,
   cpubase,cgbase,cgutils;
 
     const
@@ -98,7 +98,7 @@ uses
     function spilling_create_load(const ref:treference;r:tregister): tai;
     function spilling_create_store(r:tregister; const ref:treference): tai;
 
-    procedure fixup_jmps(list: taasmoutput);
+    procedure fixup_jmps(list: TAsmList);
 
 implementation
 
@@ -431,7 +431,7 @@ uses cutils, cclasses;
       end;
 
 
-    procedure fixup_jmps(list: taasmoutput);
+    procedure fixup_jmps(list: TAsmList);
       var
         p: tai;
         newjmp: taicpu;
@@ -489,7 +489,7 @@ uses cutils, cclasses;
                            (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
                           begin
                             // add a new label after this jump
-                            objectlibrary.getjumplabel(l);
+                            current_asmdata.getjumplabel(l);
                             list.insertafter(tai_label.create(l),p);
                             // add a new unconditional jump between this jump and the label
                             newjmp := taicpu.op_sym(A_B,taicpu(p).oper[0]^.ref^.symbol);

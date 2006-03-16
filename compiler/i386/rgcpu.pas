@@ -30,7 +30,7 @@ unit rgcpu;
     uses
       cpubase,
       cpuinfo,
-      aasmbase,aasmtai,
+      aasmbase,aasmtai,aasmdata,
       cclasses,globtype,cgbase,rgobj,rgx86;
 
     type

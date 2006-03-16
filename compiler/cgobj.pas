@@ -38,7 +38,7 @@ unit cgobj;
     uses
        cclasses,globtype,
        cpubase,cgbase,cgutils,parabase,
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        symconst,symbase,symtype,symdef,symtable,rgobj
        ;
 
@@ -76,12 +76,12 @@ unit cgobj;
           procedure done_flowgraph;
        {$endif}
           {# Gets a register suitable to do integer operations on.}
-          function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
+          function getintregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           {# Gets a register suitable to do integer operations on.}
-          function getaddressregister(list:Taasmoutput):Tregister;virtual;
-          function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
-          function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
-          function getflagregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getaddressregister(list:TAsmList):Tregister;virtual;
+          function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
+          function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
+          function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -90,29 +90,29 @@ unit cgobj;
 
           function  uses_registers(rt:Tregistertype):boolean;virtual;
           {# Get a specific register.}
-          procedure getcpuregister(list:Taasmoutput;r:Tregister);virtual;
-          procedure ungetcpuregister(list:Taasmoutput;r:Tregister);virtual;
+          procedure getcpuregister(list:TAsmList;r:Tregister);virtual;
+          procedure ungetcpuregister(list:TAsmList;r:Tregister);virtual;
           {# Get multiple registers specified.}
-          procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
+          procedure alloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);virtual;
           {# Free multiple registers specified.}
-          procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);virtual;
+          procedure dealloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);virtual;
 
-          procedure allocallcpuregisters(list:Taasmoutput);virtual;
-          procedure deallocallcpuregisters(list:Taasmoutput);virtual;
-          procedure do_register_allocation(list:Taasmoutput;headertai:tai);virtual;
+          procedure allocallcpuregisters(list:TAsmList);virtual;
+          procedure deallocallcpuregisters(list:TAsmList);virtual;
+          procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
           procedure translate_register(var reg : tregister);
 
-          function makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
+          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
 
           {# Emit a label to the instruction stream. }
-          procedure a_label(list : taasmoutput;l : tasmlabel);virtual;
+          procedure a_label(list : TAsmList;l : tasmlabel);virtual;
 
           {# Allocates register r by inserting a pai_realloc record }
-          procedure a_reg_alloc(list : taasmoutput;r : tregister);
+          procedure a_reg_alloc(list : TAsmList;r : tregister);
           {# Deallocates register r by inserting a pa_regdealloc record}
-          procedure a_reg_dealloc(list : taasmoutput;r : tregister);
+          procedure a_reg_dealloc(list : TAsmList;r : tregister);
           { Synchronize register, make sure it is still valid }
-          procedure a_reg_sync(list : taasmoutput;r : tregister);
+          procedure a_reg_sync(list : TAsmList;r : tregister);
 
           {# Pass a parameter, which is located in a register, to a routine.
 
@@ -124,7 +124,7 @@ unit cgobj;
              @param(r register source of the operand)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : TCGPara);virtual;
+          procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);virtual;
           {# Pass a parameter, which is a constant, to a routine.
 
              A generic version is provided. This routine should
@@ -135,7 +135,7 @@ unit cgobj;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : TCGPara);virtual;
+          procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -146,7 +146,7 @@ unit cgobj;
              @param(r Memory reference of value to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
+          procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -156,7 +156,7 @@ unit cgobj;
              @param(nr parameter number (starting from one) of routine (from left to right))
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_loc(list : taasmoutput;const l : tlocation;const cgpara : TCGPara);
+          procedure a_param_loc(list : TAsmList;const l : tlocation;const cgpara : TCGPara);
           {# Pass the address of a reference to a routine. This routine
              will calculate the address of the reference, and pass this
              calculated address as a parameter.
@@ -168,7 +168,7 @@ unit cgobj;
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : TCGPara);virtual;
+          procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : TCGPara);virtual;
 
           { Remarks:
             * If a method specifies a size you have only to take care
@@ -194,95 +194,95 @@ unit cgobj;
              a temp register on most cpu's resulting in conflicts with the
              registers used for the parameters (PFV)
           }
-          procedure a_call_name(list : taasmoutput;const s : string);virtual; abstract;
-          procedure a_call_reg(list : taasmoutput;reg : tregister);virtual; abstract;
-          procedure a_call_ref(list : taasmoutput;ref : treference);virtual; abstract;
+          procedure a_call_name(list : TAsmList;const s : string);virtual; abstract;
+          procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
+          procedure a_call_ref(list : TAsmList;ref : treference);virtual; abstract;
           { same as a_call_name, might be overriden on certain architectures to emit
             static calls without usage of a got trampoline }
-          procedure a_call_name_static(list : taasmoutput;const s : string);virtual;
+          procedure a_call_name_static(list : TAsmList;const s : string);virtual;
 
           { move instructions }
-          procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aint;register : tregister);virtual; abstract;
-          procedure a_load_const_ref(list : taasmoutput;size : tcgsize;a : aint;const ref : treference);virtual;
-          procedure a_load_const_loc(list : taasmoutput;a : aint;const loc : tlocation);
-          procedure a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
-          procedure a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
-          procedure a_load_reg_loc(list : taasmoutput;fromsize : tcgsize;reg : tregister;const loc: tlocation);
-          procedure a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual; abstract;
-          procedure a_load_ref_ref(list : taasmoutput;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
-          procedure a_load_loc_reg(list : taasmoutput;tosize: tcgsize; const loc: tlocation; reg : tregister);
-          procedure a_load_loc_ref(list : taasmoutput;tosize: tcgsize; const loc: tlocation; const ref : treference);
-          procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
+          procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);virtual; abstract;
+          procedure a_load_const_ref(list : TAsmList;size : tcgsize;a : aint;const ref : treference);virtual;
+          procedure a_load_const_loc(list : TAsmList;a : aint;const loc : tlocation);
+          procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
+          procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
+          procedure a_load_reg_loc(list : TAsmList;fromsize : tcgsize;reg : tregister;const loc: tlocation);
+          procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
+          procedure a_load_loc_reg(list : TAsmList;tosize: tcgsize; const loc: tlocation; reg : tregister);
+          procedure a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
+          procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { fpu move instructions }
-          procedure a_loadfpu_reg_reg(list: taasmoutput; size:tcgsize; reg1, reg2: tregister); virtual; abstract;
-          procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
-          procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
-          procedure a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
-          procedure a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
-          procedure a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
-          procedure a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
+          procedure a_loadfpu_reg_reg(list: TAsmList; size:tcgsize; reg1, reg2: tregister); virtual; abstract;
+          procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
+          procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
+          procedure a_loadfpu_loc_reg(list: TAsmList; const loc: tlocation; const reg: tregister);
+          procedure a_loadfpu_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation);
+          procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
+          procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
           { vector register move instructions }
-          procedure a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
-          procedure a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual; abstract;
-          procedure a_loadmm_reg_ref(list: taasmoutput; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
-          procedure a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
-          procedure a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
-          procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_loc(list: taasmoutput; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
-          procedure a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
+          procedure a_loadmm_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
+          procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_ref(list: TAsmList; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_loc(list: TAsmList; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
+          procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
           { the op_reg_reg, op_reg_ref or op_reg_loc methods and keep in mind   }
           { that in this case the *second* operand is used as both source and   }
           { destination (JM)                                                    }
-          procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; a: Aint; reg: TRegister); virtual; abstract;
-          procedure a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: Aint; const ref: TReference); virtual;
-          procedure a_op_const_loc(list : taasmoutput; Op: TOpCG; a: Aint; const loc: tlocation);
-          procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
-          procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
-          procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
-          procedure a_op_reg_loc(list : taasmoutput; Op: TOpCG; reg: tregister; const loc: tlocation);
-          procedure a_op_ref_loc(list : taasmoutput; Op: TOpCG; const ref: TReference; const loc: tlocation);
+          procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: Aint; reg: TRegister); virtual; abstract;
+          procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: Aint; const ref: TReference); virtual;
+          procedure a_op_const_loc(list : TAsmList; Op: TOpCG; a: Aint; const loc: tlocation);
+          procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
+          procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
+          procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
+          procedure a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
+          procedure a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
 
           { trinary operations for processors that support them, 'emulated' }
           { on others. None with "ref" arguments since I don't think there  }
           { are any processors that support it (JM)                         }
-          procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); virtual;
-          procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
-          procedure a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
-          procedure a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
+          procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister); virtual;
+          procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister); virtual;
+          procedure a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
+          procedure a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation); virtual;
 
           {  comparison operations }
-          procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
+          procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
             l : tasmlabel);virtual; abstract;
-          procedure a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
+          procedure a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
             l : tasmlabel); virtual;
-          procedure a_cmp_const_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; a: aint; const loc: tlocation;
+          procedure a_cmp_const_loc_label(list: TAsmList; size: tcgsize;cmp_op: topcmp; a: aint; const loc: tlocation;
             l : tasmlabel);
-          procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
-          procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
-          procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
-          procedure a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
-          procedure a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
-          procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
+          procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
+          procedure a_cmp_ref_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
+          procedure a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
+          procedure a_cmp_loc_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
+          procedure a_cmp_reg_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
+          procedure a_cmp_ref_loc_label(list: TAsmList; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
-          procedure a_jmp_name(list : taasmoutput;const s : string); virtual; abstract;
-          procedure a_jmp_always(list : taasmoutput;l: tasmlabel); virtual; abstract;
-          procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
+          procedure a_jmp_name(list : TAsmList;const s : string); virtual; abstract;
+          procedure a_jmp_always(list : TAsmList;l: tasmlabel); virtual; abstract;
+          procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
           {# Depending on the value to check in the flags, either sets the register reg to one (if the flag is set)
              or zero (if the flag is cleared). The size parameter indicates the destination size register.
           }
-          procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
-          procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
+          procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
+          procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
           {
              This routine tries to optimize the op_const_reg/ref opcode, and should be
@@ -305,7 +305,7 @@ unit cgobj;
              The size of the value to save is OS_S32. The default version
              saves the exception reason to a temp. memory area.
           }
-         procedure g_exception_reason_save(list : taasmoutput; const href : treference);virtual;
+         procedure g_exception_reason_save(list : TAsmList; const href : treference);virtual;
          {#
              This routine is used in exception management nodes. It should
              save the exception reason constant. The
@@ -315,7 +315,7 @@ unit cgobj;
              The size of the value to save is OS_S32. The default version
              saves the exception reason to a temp. memory area.
           }
-         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);virtual;
+         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);virtual;
          {#
              This routine is used in exception management nodes. It should
              load the exception reason to the FUNCTION_RETURN_REG. The saved value
@@ -325,10 +325,10 @@ unit cgobj;
              The size of the value to save is OS_S32. The default version
              saves the exception reason to a temp. memory area.
           }
-         procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
+         procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
 
-          procedure g_maybe_testself(list : taasmoutput;reg:tregister);
-          procedure g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
+          procedure g_maybe_testself(list : TAsmList;reg:tregister);
+          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
 
@@ -338,7 +338,7 @@ unit cgobj;
              @param(dest Destination reference of copy)
 
           }
-          procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint);virtual; abstract;
+          procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);virtual; abstract;
           {# This should emit the opcode to copy len bytes from the an unaligned source
              to destination.
 
@@ -348,7 +348,7 @@ unit cgobj;
              @param(dest Destination reference of copy)
 
           }
-          procedure g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);virtual;
+          procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);virtual;
           {# This should emit the opcode to a shortrstring from the source
              to destination.
 
@@ -356,12 +356,12 @@ unit cgobj;
              @param(dest Destination reference of copy)
 
           }
-          procedure g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte);
+          procedure g_copyshortstring(list : TAsmList;const source,dest : treference;len:byte);
 
-          procedure g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
-          procedure g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
-          procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference);
-          procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference);
+          procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);
+          procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
+          procedure g_initialize(list : TAsmList;t : tdef;const ref : treference);
+          procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);
 
           {# Generates range checking code. It is to note
              that this routine does not need to be overriden,
@@ -370,38 +370,38 @@ unit cgobj;
              @param(p Node which contains the value to check)
              @param(todef Type definition of node to range check)
           }
-          procedure g_rangecheck(list: taasmoutput; const l:tlocation; fromdef,todef: tdef); virtual;
+          procedure g_rangecheck(list: TAsmList; const l:tlocation; fromdef,todef: tdef); virtual;
 
           {# Generates overflow checking code for a node }
-          procedure g_overflowcheck(list: taasmoutput; const Loc:tlocation; def:tdef); virtual;abstract;
-          procedure g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
+          procedure g_overflowcheck(list: TAsmList; const Loc:tlocation; def:tdef); virtual;abstract;
+          procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);virtual;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);virtual;
-          procedure g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);virtual;
+          procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);virtual;
+          procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);virtual;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
              behavior does nothing, should be overriden as required.
           }
-          procedure g_profilecode(list : taasmoutput);virtual;
+          procedure g_profilecode(list : TAsmList);virtual;
           {# Emits instruction for allocating @var(size) bytes at the stackpointer
 
              @param(size Number of bytes to allocate)
           }
-          procedure g_stackpointer_alloc(list : taasmoutput;size : longint);virtual; abstract;
+          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual; abstract;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
 
              @param(localsize Number of bytes to allocate as locals)
           }
-          procedure g_proc_entry(list : taasmoutput;localsize : longint;nostackframe:boolean);virtual; abstract;
+          procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);virtual; abstract;
           {# Emits instructions for returning from a subroutine.
              Should also restore the framepointer and stack.
 
              @param(parasize  Number of bytes of parameters to deallocate from stack)
           }
-          procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);virtual;abstract;
+          procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);virtual;abstract;
           {# This routine is called when generating the code for the entry point
              of a routine. It should save all registers which are not used in this
              routine, and which should be declared as saved in the std_saved_registers
@@ -413,18 +413,18 @@ unit cgobj;
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_save_standard_registers(list:Taasmoutput);virtual;
+          procedure g_save_standard_registers(list:TAsmList);virtual;
           {# This routine is called when generating the code for the exit point
              of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_restore_standard_registers(list:Taasmoutput);virtual;
-          procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
-          procedure g_adjust_self_value(list:taasmoutput;procdef: tprocdef;ioffset: aint);virtual;
+          procedure g_restore_standard_registers(list:TAsmList);virtual;
+          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
+          procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
-          function g_indirect_sym_load(list:taasmoutput;const symname: string): tregister;virtual;
+          function g_indirect_sym_load(list:TAsmList;const symname: string): tregister;virtual;
        end;
 
 {$ifndef cpu64bit}
@@ -433,40 +433,40 @@ unit cgobj;
        for 64 Bit operations.
     }
     tcg64 = class
-        procedure a_load64_const_ref(list : taasmoutput;value : int64;const ref : treference);virtual;abstract;
-        procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);virtual;abstract;
-        procedure a_load64_const_reg(list : taasmoutput;value : int64;reg : tregister64);virtual;abstract;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);virtual;abstract;
-        procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);virtual;abstract;
-        procedure a_load64_const_loc(list : taasmoutput;value : int64;const l : tlocation);virtual;abstract;
-        procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);virtual;abstract;
+        procedure a_load64_const_ref(list : TAsmList;value : int64;const ref : treference);virtual;abstract;
+        procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);virtual;abstract;
+        procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_load64_reg_reg(list : TAsmList;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_load64_const_reg(list : TAsmList;value : int64;reg : tregister64);virtual;abstract;
+        procedure a_load64_loc_reg(list : TAsmList;const l : tlocation;reg : tregister64);virtual;abstract;
+        procedure a_load64_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);virtual;abstract;
+        procedure a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);virtual;abstract;
+        procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);virtual;abstract;
 
-        procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);virtual;abstract;
-        procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);virtual;abstract;
-        procedure a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);virtual;abstract;
-        procedure a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);virtual;abstract;
-        procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
-        procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
+        procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);virtual;abstract;
+        procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);virtual;abstract;
+        procedure a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);virtual;abstract;
+        procedure a_load64low_ref_reg(list : TAsmList;const ref : treference;reg : tregister);virtual;abstract;
+        procedure a_load64high_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);virtual;abstract;
+        procedure a_load64low_loc_reg(list : TAsmList;const l : tlocation;reg : tregister);virtual;abstract;
 
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);virtual;abstract;
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);virtual;abstract;
-        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;size : tcgsize;regsrc : tregister64;const ref : treference);virtual;abstract;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;regdst : tregister64);virtual;abstract;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const ref : treference);virtual;abstract;
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);virtual;abstract;
-        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);virtual;abstract;
-        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;size : tcgsize;const l : tlocation;reg64 : tregister64);virtual;abstract;
-        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);virtual;
-        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);virtual;
-        procedure a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
-        procedure a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_op64_reg_ref(list : TAsmList;op:TOpCG;size : tcgsize;regsrc : tregister64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_reg(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;regdst : tregister64);virtual;abstract;
+        procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_loc(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const l: tlocation);virtual;abstract;
+        procedure a_op64_reg_loc(list : TAsmList;op:TOpCG;size : tcgsize;reg : tregister64;const l : tlocation);virtual;abstract;
+        procedure a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg64 : tregister64);virtual;abstract;
+        procedure a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);virtual;
+        procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);virtual;
+        procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+        procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
 
-        procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_const(list : taasmoutput;value : int64;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : TCGPara);virtual;abstract;
+        procedure a_param64_reg(list : TAsmList;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
+        procedure a_param64_const(list : TAsmList;value : int64;const loc : TCGPara);virtual;abstract;
+        procedure a_param64_ref(list : TAsmList;const r : treference;const loc : TCGPara);virtual;abstract;
+        procedure a_param64_loc(list : TAsmList;const l : tlocation;const loc : TCGPara);virtual;abstract;
 
         {
              This routine tries to optimize the const_reg opcode, and should be
@@ -480,11 +480,11 @@ unit cgobj;
              @param(reg The register to emit the opcode with, returns the register with
                    which the opcode will be emitted)
         }
-        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : int64; var reg: tregister64): boolean;virtual;abstract;
+        function optimize64_op_const_reg(list: TAsmList; var op: topcg; var a : int64; var reg: tregister64): boolean;virtual;abstract;
 
 
         { override to catch 64bit rangechecks }
-        procedure g_rangecheck64(list: taasmoutput; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
+        procedure g_rangecheck64(list: TAsmList; const l:tlocation; fromdef,todef: tdef);virtual;abstract;
     end;
 {$endif cpu64bit}
 
@@ -503,12 +503,6 @@ implementation
        globals,options,systems,
        verbose,defutil,paramgr,symsym,
        tgobj,cutils,procinfo;
-
-    const
-      { Please leave this here, this module should NOT use
-        exprasmlist, the lists are always passed as arguments.
-        Declaring it as string here results in an error when compiling (PFV) }
-      exprasmlist = 'error';
 
 
 {*****************************************************************************
@@ -552,7 +546,7 @@ implementation
     end;
     {$endif}
 
-    function tcg.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function tcg.getintregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if not assigned(rg[R_INTREGISTER]) then
           internalerror(200312122);
@@ -560,7 +554,7 @@ implementation
       end;
 
 
-    function tcg.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function tcg.getfpuregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if not assigned(rg[R_FPUREGISTER]) then
           internalerror(200312123);
@@ -568,7 +562,7 @@ implementation
       end;
 
 
-    function tcg.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function tcg.getmmregister(list:TAsmList;size:Tcgsize):Tregister;
       begin
         if not assigned(rg[R_MMREGISTER]) then
           internalerror(2003121214);
@@ -576,7 +570,7 @@ implementation
       end;
 
 
-    function tcg.getaddressregister(list:Taasmoutput):Tregister;
+    function tcg.getaddressregister(list:TAsmList):Tregister;
       begin
         if assigned(rg[R_ADDRESSREGISTER]) then
           result:=rg[R_ADDRESSREGISTER].getregister(list,R_SUBWHOLE)
@@ -589,7 +583,7 @@ implementation
       end;
 
 
-    function Tcg.makeregsize(list:Taasmoutput;reg:Tregister;size:Tcgsize):Tregister;
+    function Tcg.makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
       var
         subreg:Tsubregister;
       begin
@@ -602,7 +596,7 @@ implementation
       end;
 
 
-    procedure tcg.getcpuregister(list:Taasmoutput;r:Tregister);
+    procedure tcg.getcpuregister(list:TAsmList;r:Tregister);
       begin
         if not assigned(rg[getregtype(r)]) then
           internalerror(200312125);
@@ -610,7 +604,7 @@ implementation
       end;
 
 
-    procedure tcg.ungetcpuregister(list:Taasmoutput;r:Tregister);
+    procedure tcg.ungetcpuregister(list:TAsmList;r:Tregister);
       begin
         if not assigned(rg[getregtype(r)]) then
           internalerror(200312126);
@@ -618,7 +612,7 @@ implementation
       end;
 
 
-    procedure tcg.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
+    procedure tcg.alloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].alloccpuregisters(list,r)
@@ -627,7 +621,7 @@ implementation
       end;
 
 
-    procedure tcg.allocallcpuregisters(list:Taasmoutput);
+    procedure tcg.allocallcpuregisters(list:TAsmList);
       begin
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 {$ifndef i386}
@@ -639,7 +633,7 @@ implementation
       end;
 
 
-    procedure tcg.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;const r:Tcpuregisterset);
+    procedure tcg.dealloccpuregisters(list:TAsmList;rt:Tregistertype;const r:Tcpuregisterset);
       begin
         if assigned(rg[rt]) then
           rg[rt].dealloccpuregisters(list,r)
@@ -648,7 +642,7 @@ implementation
       end;
 
 
-    procedure tcg.deallocallcpuregisters(list:Taasmoutput);
+    procedure tcg.deallocallcpuregisters(list:TAsmList);
       begin
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 {$ifndef i386}
@@ -706,7 +700,7 @@ implementation
       end;
 
 
-    procedure tcg.do_register_allocation(list:Taasmoutput;headertai:tai);
+    procedure tcg.do_register_allocation(list:TAsmList;headertai:tai);
       var
         rt : tregistertype;
       begin
@@ -730,19 +724,19 @@ implementation
       end;
 
 
-    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
+    procedure tcg.a_reg_alloc(list : TAsmList;r : tregister);
       begin
          list.concat(tai_regalloc.alloc(r,nil));
       end;
 
 
-    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
+    procedure tcg.a_reg_dealloc(list : TAsmList;r : tregister);
       begin
          list.concat(tai_regalloc.dealloc(r,nil));
       end;
 
 
-    procedure tcg.a_reg_sync(list : taasmoutput;r : tregister);
+    procedure tcg.a_reg_sync(list : TAsmList;r : tregister);
       var
         instr : tai;
       begin
@@ -752,7 +746,7 @@ implementation
       end;
 
 
-    procedure tcg.a_label(list : taasmoutput;l : tasmlabel);
+    procedure tcg.a_label(list : TAsmList;l : tasmlabel);
       begin
          list.concat(tai_label.create(l));
       end;
@@ -762,7 +756,7 @@ implementation
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const cgpara : TCGPara);
+    procedure tcg.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -781,7 +775,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const cgpara : TCGPara);
+    procedure tcg.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -800,7 +794,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const cgpara : TCGPara);
+    procedure tcg.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -823,7 +817,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;const cgpara : TCGPara);
+    procedure tcg.a_param_loc(list : TAsmList;const l:tlocation;const cgpara : TCGPara);
       begin
         case l.loc of
           LOC_REGISTER,
@@ -840,7 +834,7 @@ implementation
       end;
 
 
-    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;const cgpara : TCGPara);
+    procedure tcg.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : TCGPara);
       var
          hr : tregister;
       begin
@@ -855,7 +849,7 @@ implementation
                        some generic implementations
 ****************************************************************************}
 
-    procedure tcg.a_load_ref_ref(list : taasmoutput;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
+    procedure tcg.a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
       var
         tmpreg: tregister;
       begin
@@ -868,7 +862,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_const_ref(list : taasmoutput;size : tcgsize;a : aint;const ref : treference);
+    procedure tcg.a_load_const_ref(list : TAsmList;size : tcgsize;a : aint;const ref : treference);
       var
         tmpreg: tregister;
       begin
@@ -878,7 +872,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_const_loc(list : taasmoutput;a : aint;const loc: tlocation);
+    procedure tcg.a_load_const_loc(list : TAsmList;a : aint;const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -891,7 +885,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_reg_loc(list : taasmoutput;fromsize : tcgsize;reg : tregister;const loc: tlocation);
+    procedure tcg.a_load_reg_loc(list : TAsmList;fromsize : tcgsize;reg : tregister;const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -904,7 +898,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_loc_reg(list : taasmoutput; tosize: tcgsize; const loc: tlocation; reg : tregister);
+    procedure tcg.a_load_loc_reg(list : TAsmList; tosize: tcgsize; const loc: tlocation; reg : tregister);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -919,7 +913,7 @@ implementation
       end;
 
 
-    procedure tcg.a_load_loc_ref(list : taasmoutput;tosize: tcgsize; const loc: tlocation; const ref : treference);
+    procedure tcg.a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
       begin
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -1002,7 +996,7 @@ implementation
       end;
 
 
-    procedure tcg.a_loadfpu_loc_reg(list: taasmoutput; const loc: tlocation; const reg: tregister);
+    procedure tcg.a_loadfpu_loc_reg(list: TAsmList; const loc: tlocation; const reg: tregister);
       begin
         case loc.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -1015,7 +1009,7 @@ implementation
       end;
 
 
-    procedure tcg.a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
+    procedure tcg.a_loadfpu_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
@@ -1028,7 +1022,7 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_reg(list : taasmoutput;size : tcgsize;const r : tregister;const cgpara : TCGPara);
+    procedure tcg.a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -1058,7 +1052,7 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_ref(list : taasmoutput;size : tcgsize;const ref : treference;const cgpara : TCGPara);
+    procedure tcg.a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
          href : treference;
       begin
@@ -1078,7 +1072,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference);
+    procedure tcg.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference);
       var
         tmpreg : tregister;
       begin
@@ -1089,7 +1083,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_loc(list : taasmoutput; Op: TOpCG; a: aint; const loc: tlocation);
+    procedure tcg.a_op_const_loc(list : TAsmList; Op: TOpCG; a: aint; const loc: tlocation);
       begin
         case loc.loc of
           LOC_REGISTER, LOC_CREGISTER:
@@ -1102,7 +1096,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
+    procedure tcg.a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize;reg: TRegister;  const ref: TReference);
       var
         tmpreg : tregister;
       begin
@@ -1113,7 +1107,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
+    procedure tcg.a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
 
       var
         tmpreg: tregister;
@@ -1136,7 +1130,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_reg_loc(list : taasmoutput; Op: TOpCG; reg: tregister; const loc: tlocation);
+    procedure tcg.a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
 
       begin
         case loc.loc of
@@ -1150,7 +1144,7 @@ implementation
       end;
 
 
-    procedure tcg.a_op_ref_loc(list : taasmoutput; Op: TOpCG; const ref: TReference; const loc: tlocation);
+    procedure tcg.a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
 
       var
         tmpreg: tregister;
@@ -1170,7 +1164,7 @@ implementation
         end;
       end;
 
-    procedure Tcg.a_op_const_reg_reg(list:Taasmoutput;op:Topcg;size:Tcgsize;
+    procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                      a:aint;src,dst:Tregister);
 
     begin
@@ -1178,7 +1172,7 @@ implementation
       a_op_const_reg(list,op,size,a,dst);
     end;
 
-    procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+    procedure tcg.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
         size: tcgsize; src1, src2, dst: tregister);
       var
         tmpreg: tregister;
@@ -1198,21 +1192,21 @@ implementation
       end;
 
 
-    procedure tcg.a_op_const_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
+    procedure tcg.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; a: aint; src, dst: tregister;setflags : boolean;var ovloc : tlocation);
       begin
         a_op_const_reg_reg(list,op,size,a,src,dst);
         ovloc.loc:=LOC_VOID;
       end;
 
 
-    procedure tcg.a_op_reg_reg_reg_checkoverflow(list: taasmoutput; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
+    procedure tcg.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tcgsize; src1, src2, dst: tregister;setflags : boolean;var ovloc : tlocation);
       begin
         a_op_reg_reg_reg(list,op,size,src1,src2,dst);
         ovloc.loc:=LOC_VOID;
       end;
 
 
-    procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
+    procedure tcg.a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const ref : treference;
      l : tasmlabel);
 
       var
@@ -1224,7 +1218,7 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_const_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aint;const loc : tlocation;
+    procedure tcg.a_cmp_const_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const loc : tlocation;
       l : tasmlabel);
 
       begin
@@ -1239,7 +1233,7 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel);
+    procedure tcg.a_cmp_ref_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel);
       var
         tmpreg: tregister;
       begin
@@ -1249,7 +1243,7 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg : tregister; const ref: treference; l : tasmlabel);
+    procedure tcg.a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; reg : tregister; const ref: treference; l : tasmlabel);
       var
         tmpreg: tregister;
       begin
@@ -1259,13 +1253,13 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_reg_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
+    procedure tcg.a_cmp_reg_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
       begin
         a_cmp_loc_reg_label(list,size,swap_opcmp(cmp_op),loc,reg,l);
       end;
 
 
-    procedure tcg.a_cmp_loc_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
+    procedure tcg.a_cmp_loc_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
       begin
         case loc.loc of
           LOC_REGISTER,
@@ -1282,7 +1276,7 @@ implementation
       end;
 
 
-    procedure tcg.a_cmp_ref_loc_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
+    procedure tcg.a_cmp_ref_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;const ref: treference;const loc : tlocation;
       l : tasmlabel);
       var
         tmpreg: tregister;
@@ -1302,7 +1296,7 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
+    procedure tcg.a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1315,7 +1309,7 @@ implementation
       end;
 
 
-    procedure tcg.a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
+    procedure tcg.a_loadmm_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1328,7 +1322,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
         href : treference;
       begin
@@ -1347,7 +1341,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize;const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_ref(list: TAsmList; size: tcgsize;const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
@@ -1366,7 +1360,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_loc(list: taasmoutput;const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_loc(list: TAsmList;const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1379,7 +1373,7 @@ implementation
       end;
 
 
-    procedure tcg.a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+    procedure tcg.a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
@@ -1397,7 +1391,7 @@ implementation
       end;
 
 
-    procedure tcg.a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;reg: tregister; const ref: treference; shuffle : pmmshuffle);
+    procedure tcg.a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tcgsize;reg: tregister; const ref: treference; shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
@@ -1419,7 +1413,7 @@ implementation
       end;
 
 
-    procedure tcg.a_opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle);
+    procedure tcg.a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_CMMREGISTER,LOC_MMREGISTER:
@@ -1432,13 +1426,13 @@ implementation
       end;
 
 
-    procedure tcg.g_concatcopy_unaligned(list : taasmoutput;const source,dest : treference;len : aint);
+    procedure tcg.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
       begin
         g_concatcopy(list,source,dest,len);
       end;
 
 
-    procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte);
+    procedure tcg.g_copyshortstring(list : TAsmList;const source,dest : treference;len:byte);
       var
         cgpara1,cgpara2,cgpara3 : TCGPara;
       begin
@@ -1466,7 +1460,7 @@ implementation
       end;
 
 
-    procedure tcg.g_incrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+    procedure tcg.g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);
       var
         href : treference;
         incrfunc : string;
@@ -1515,7 +1509,7 @@ implementation
       end;
 
 
-    procedure tcg.g_decrrefcount(list : taasmoutput;t: tdef; const ref: treference);
+    procedure tcg.g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
       var
         href : treference;
         decrfunc : string;
@@ -1583,7 +1577,7 @@ implementation
       end;
 
 
-    procedure tcg.g_initialize(list : taasmoutput;t : tdef;const ref : treference);
+    procedure tcg.g_initialize(list : TAsmList;t : tdef;const ref : treference);
       var
          href : treference;
          cgpara1,cgpara2 : TCGPara;
@@ -1615,7 +1609,7 @@ implementation
       end;
 
 
-    procedure tcg.g_finalize(list : taasmoutput;t : tdef;const ref : treference);
+    procedure tcg.g_finalize(list : TAsmList;t : tdef;const ref : treference);
       var
          href : treference;
          cgpara1,cgpara2 : TCGPara;
@@ -1649,7 +1643,7 @@ implementation
       end;
 
 
-    procedure tcg.g_rangecheck(list: taasmoutput; const l:tlocation;fromdef,todef: tdef);
+    procedure tcg.g_rangecheck(list: TAsmList; const l:tlocation;fromdef,todef: tdef);
     { generate range checking code for the value at location p. The type     }
     { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
     { is the original type used at that location. When both defs are equal   }
@@ -1812,7 +1806,7 @@ implementation
         hreg:=getintregister(list,OS_INT);
         a_load_loc_reg(list,OS_INT,l,hreg);
         a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
-        objectlibrary.getjumplabel(neglabel);
+        current_asmdata.getjumplabel(neglabel);
         {
         if from_signed then
           a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
@@ -1829,13 +1823,13 @@ implementation
       end;
 
 
-    procedure tcg.g_overflowCheck_loc(List:TAasmOutput;const Loc:TLocation;def:TDef;ovloc : tlocation);
+    procedure tcg.g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;ovloc : tlocation);
       begin
         g_overflowCheck(list,loc,def);
       end;
 
 
-    procedure tcg.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference);
+    procedure tcg.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref:TReference);
 
       var
         tmpreg : tregister;
@@ -1846,7 +1840,7 @@ implementation
       end;
 
 
-    procedure tcg.g_maybe_testself(list : taasmoutput;reg:tregister);
+    procedure tcg.g_maybe_testself(list : TAsmList;reg:tregister);
       var
         OKLabel : tasmlabel;
         cgpara1 : TCGPara;
@@ -1854,7 +1848,7 @@ implementation
         if (cs_check_object in aktlocalswitches) or
            (cs_check_range in aktlocalswitches) then
          begin
-           objectlibrary.getjumplabel(oklabel);
+           current_asmdata.getjumplabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
            cgpara1.init;
            paramanager.getintparaloc(pocall_default,1,cgpara1);
@@ -1868,7 +1862,7 @@ implementation
       end;
 
 
-    procedure tcg.g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
+    procedure tcg.g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
       var
         hrefvmt : treference;
         cgpara1,cgpara2 : TCGPara;
@@ -1879,7 +1873,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         if (cs_check_object in aktlocalswitches) then
          begin
-           reference_reset_symbol(hrefvmt,objectlibrary.newasmsymbol(objdef.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+           reference_reset_symbol(hrefvmt,current_asmdata.newasmsymbol(objdef.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
            paramanager.allocparaloc(list,cgpara2);
            a_paramaddr_ref(list,hrefvmt,cgpara2);
            paramanager.allocparaloc(list,cgpara1);
@@ -1909,7 +1903,7 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
-    procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
+    procedure tcg.g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
         sizereg,sourcereg,lenreg : tregister;
         cgpara1,cgpara2,cgpara3 : TCGPara;
@@ -1977,7 +1971,7 @@ implementation
       end;
 
 
-    procedure tcg.g_releasevaluepara_openarray(list : taasmoutput;const l:tlocation);
+    procedure tcg.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
       var
         cgpara1 : TCGPara;
       begin
@@ -1995,7 +1989,7 @@ implementation
       end;
 
 
-    procedure tcg.g_save_standard_registers(list:Taasmoutput);
+    procedure tcg.g_save_standard_registers(list:TAsmList);
       var
         href : treference;
         size : longint;
@@ -2025,7 +2019,7 @@ implementation
       end;
 
 
-    procedure tcg.g_restore_standard_registers(list:Taasmoutput);
+    procedure tcg.g_restore_standard_registers(list:TAsmList);
       var
         href : treference;
         r : integer;
@@ -2046,30 +2040,30 @@ implementation
       end;
 
 
-    procedure tcg.g_profilecode(list : taasmoutput);
+    procedure tcg.g_profilecode(list : TAsmList);
       begin
       end;
 
 
-    procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
+    procedure tcg.g_exception_reason_save(list : TAsmList; const href : treference);
       begin
         a_load_reg_ref(list, OS_INT, OS_INT, NR_FUNCTION_RESULT_REG, href);
       end;
 
 
-    procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aint);
+    procedure tcg.g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);
       begin
         a_load_const_ref(list, OS_INT, a, href);
       end;
 
 
-    procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
+    procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
         a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 
 
-    procedure tcg.g_adjust_self_value(list:taasmoutput;procdef: tprocdef;ioffset: aint);
+    procedure tcg.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);
       var
         hsym : tsym;
         href : treference;
@@ -2102,13 +2096,13 @@ implementation
       end;
 
 
-    procedure tcg.a_call_name_static(list : taasmoutput;const s : string);
+    procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
         a_call_name(list,s);
       end;
 
 
-   function tcg.g_indirect_sym_load(list:taasmoutput;const symname: string): tregister;
+   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string): tregister;
       var
         l: tasmsymbol;
         ref: treference;
@@ -2118,18 +2112,18 @@ implementation
           system_powerpc_darwin,
           system_i386_darwin:
             begin
-              l:=objectlibrary.getasmsymbol('L'+symname+'$non_lazy_ptr');
+              l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
                 begin
-                  l:=objectlibrary.newasmsymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
-                  asmlist[al_picdata].concat(tai_symbol.create(l,0));
-                  asmlist[al_picdata].concat(tai_const.create_indirect_sym(objectlibrary.newasmsymbol(symname,AB_EXTERNAL,AT_DATA)));
-                  asmlist[al_picdata].concat(tai_const.create_32bit(0));
+                  l:=current_asmdata.newasmsymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                  current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
+                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.newasmsymbol(symname,AB_EXTERNAL,AT_DATA)));
+                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
                 end;
               result := cg.getaddressregister(list);
               reference_reset_symbol(ref,l,0);
 {              ref.base:=current_procinfo.got;
-              ref.relsymbol:=current_procinfo.gotlabel;}
+              ref.relsymbol:=current_procinfo.CurrGOTLabel;}
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;
           end;
@@ -2141,14 +2135,14 @@ implementation
 *****************************************************************************}
 
 {$ifndef cpu64bit}
-    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
+    procedure tcg64.a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64; regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);
         a_op64_const_reg(list,op,size,value,regdst);
       end;
 
 
-    procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
+    procedure tcg64.a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);
       var
         tmpreg64 : tregister64;
       begin
@@ -2173,14 +2167,14 @@ implementation
       end;
 
 
-    procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       begin
         a_op64_const_reg_reg(list,op,size,value,regsrc,regdst);
         ovloc.loc:=LOC_VOID;
       end;
 
 
-    procedure tcg64.a_op64_reg_reg_reg_checkoverflow(list: taasmoutput;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
+    procedure tcg64.a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       begin
         a_op64_reg_reg_reg(list,op,size,regsrc1,regsrc2,regdst);
         ovloc.loc:=LOC_VOID;

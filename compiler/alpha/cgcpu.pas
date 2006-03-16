@@ -29,26 +29,26 @@ unit cgcpu;
 interface
 
 uses
-   cgbase,cgobj,aasmbase,aasmtai,aasmcpu,cginfo,cpubase,cpuinfo;
+   cgbase,cgobj,aasmbase,aasmtai,aasmdata,aasmcpu,cginfo,cpubase,cpuinfo;
 
 type
 pcgalpha = ^tcgalpha;
 tcgalpha = class(tcg)
-  procedure a_call_name(list : taasmoutput;const s : string);override;
-  procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);override;
-  procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);override;
-  procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);override;
-  procedure a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
-  procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;
+  procedure a_call_name(list : TAsmList;const s : string);override;
+  procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aword;register : tregister);override;
+  procedure a_load_reg_ref(list : TAsmList;size : tcgsize;register : tregister;const ref : treference);override;
+  procedure a_load_ref_reg(list : TAsmList;size : tcgsize;const ref : treference;register : tregister);override;
+  procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
+  procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aword;
     reg : tregister;  l : tasmlabel);override;
-  procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
-  procedure a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
-  procedure a_cmp_ref_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;
+  procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+  procedure a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
+  procedure a_cmp_ref_const_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aword;
     reg : tregister; l : tasmlabel);
-  procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
-  procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
-  procedure g_maybe_loadself(list : taasmoutput);override;
-  procedure g_restore_frame_pointer(list : taasmoutput);override;
+  procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
+  procedure g_stackframe_entry(list : TAsmList;localsize : longint);override;
+  procedure g_maybe_loadself(list : TAsmList);override;
+  procedure g_restore_frame_pointer(list : TAsmList);override;
 end;
 
 implementation
@@ -56,7 +56,7 @@ implementation
 uses
    globtype,globals;
 
-procedure tcgalpha.g_stackframe_entry(list : taasmoutput;localsize : longint);
+procedure tcgalpha.g_stackframe_entry(list : TAsmList;localsize : longint);
 
 begin
    list.concat(taicpu.op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0)));
@@ -67,7 +67,7 @@ begin
    list.concat(taicpu.op_reg_reg_reg(A_BIS,stack_pointer_reg,stack_pointer_reg,frame_pointer_reg));
 end;
 
-procedure g_exitcode(list : taasmoutput;parasize : longint; nostackframe,inlined : boolean);
+procedure g_exitcode(list : TAsmList;parasize : longint; nostackframe,inlined : boolean);
 
 begin
    { Restore stack pointer from frame pointer }
@@ -81,7 +81,7 @@ begin
     }
 end;
 
-procedure tcgalpha.a_call_name(list : taasmoutput;const s : string);
+procedure tcgalpha.a_call_name(list : TAsmList;const s : string);
 
   begin
      { list^.concat(taicpu,op_sym(A_CALL,S_NO,newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)))); }
@@ -89,69 +89,69 @@ procedure tcgalpha.a_call_name(list : taasmoutput;const s : string);
      abstract;
   end;
 
-procedure tcgalpha.a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);
+procedure tcgalpha.a_load_const_reg(list : TAsmList;size : tcgsize;a : aword;register : tregister);
 
 begin
 end;
 
 
-procedure tcgalpha.a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);
+procedure tcgalpha.a_load_reg_ref(list : TAsmList;size : tcgsize;register : tregister;const ref : treference);
 
 begin
 end;
 
 
-procedure tcgalpha.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);
+procedure tcgalpha.a_load_ref_reg(list : TAsmList;size : tcgsize;const ref : treference;register : tregister);
 
 begin
 end;
 
 
-procedure tcgalpha.a_load_reg_reg(list : taasmoutput;fromsize, tosize : tcgsize;reg1,reg2 : tregister);
+procedure tcgalpha.a_load_reg_reg(list : TAsmList;fromsize, tosize : tcgsize;reg1,reg2 : tregister);
 
 begin
 end;
 
 
-procedure tcgalpha.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
+procedure tcgalpha.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
   l : tasmlabel);
 
 begin
 end;
 
 
-procedure tcgalpha.a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
+procedure tcgalpha.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
 
 begin
 end;
 
 
-procedure tcgalpha.a_cmp_reg_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
+procedure tcgalpha.a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg : tregister;l : tasmlabel);
 
 begin
 end;
 
 
-procedure tcgalpha.a_cmp_ref_const_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;
+procedure tcgalpha.a_cmp_ref_const_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aword;
   reg : tregister; l : tasmlabel);
 
 begin
 end;
 
 
-procedure tcgalpha.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
+procedure tcgalpha.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
 
 begin
 end;
 
 
-procedure tcgalpha.g_maybe_loadself(list : taasmoutput);
+procedure tcgalpha.g_maybe_loadself(list : TAsmList);
 
 begin
 end;
 
 
-procedure tcgalpha.g_restore_frame_pointer(list : taasmoutput);
+procedure tcgalpha.g_restore_frame_pointer(list : TAsmList);
 
 begin
 end;

@@ -45,7 +45,7 @@ unit ncpuset;
       globals,
       systems,
       cpubase,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,cgobj,
       procinfo;
 
@@ -69,7 +69,7 @@ unit ncpuset;
         indexreg,jmpreg,basereg : tregister;
         href : treference;
 
-        procedure genitem(list:taasmoutput;t : pcaselabel);
+        procedure genitem(list:TAsmList;t : pcaselabel);
           var
             i : aint;
           begin
@@ -89,29 +89,29 @@ unit ncpuset;
         if not(jumptable_no_range) then
           begin
              { case expr less than min_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(min_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(min_),hregister,elselabel);
              { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_gt,aint(max_),hregister,elselabel);
+             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
-        objectlibrary.getjumplabel(table);
-        indexreg:=cg.getaddressregister(exprasmlist);
-        cg.a_op_const_reg_reg(exprasmlist,OP_SHL,OS_ADDR,2,hregister,indexreg);
+        current_asmdata.getjumplabel(table);
+        indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
         href.offset:=(-aint(min_))*4;
-        basereg:=cg.getaddressregister(exprasmlist);
-        cg.a_loadaddr_ref_reg(exprasmlist,href,basereg);
+        basereg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,basereg);
 
-        jmpreg:=cg.getaddressregister(exprasmlist);
+        jmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
 
         reference_reset(href);
         href.index:=indexreg;
         href.base:=basereg;
-        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,jmpreg);
+        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,jmpreg);
 
-        exprasmlist.concat(taicpu.op_reg(A_JMP,jmpreg));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_JMP,jmpreg));
         { Delay slot }
-        exprasmlist.concat(taicpu.op_none(A_NOP));
+        current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
         { generate jump table }
         new_section(current_procinfo.aktlocaldata,sec_data,current_procinfo.procdef.mangledname,sizeof(aint));
         current_procinfo.aktlocaldata.concat(Tai_label.Create(table));

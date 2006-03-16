@@ -27,7 +27,7 @@ unit aoptbase;
   interface
 
     uses
-      aasmbase,aasmcpu,aasmtai,
+      aasmbase,aasmcpu,aasmtai,aasmdata,
       cpubase,
       cgbase,
       cgutils;
@@ -157,16 +157,16 @@ unit aoptbase;
         Current := tai(Current.Next);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
-         (Tai_Marker(Current).Kind = NoPropInfoStart) Then
+         (Tai_Marker(Current).Kind = mark_NoPropInfoStart) Then
         Begin
           While Assigned(Current) And
                 ((Current.typ <> ait_Marker) Or
-                 (Tai_Marker(Current).Kind <> NoPropInfoEnd)) Do
+                 (Tai_Marker(Current).Kind <> mark_NoPropInfoEnd)) Do
             Current := Tai(Current.Next);
         End;
     Until Not(Assigned(Current)) Or
           (Current.typ <> ait_Marker) Or
-          (Tai_Marker(Current).Kind <> NoPropInfoEnd);
+          (Tai_Marker(Current).Kind <> mark_NoPropInfoEnd);
     Next := Current;
     If Assigned(Current) And
        Not((Current.typ In SkipInstr) or
@@ -186,29 +186,29 @@ unit aoptbase;
       Current := Tai(Current.previous);
       While Assigned(Current) And
             (((Current.typ = ait_Marker) And
-              Not(Tai_Marker(Current).Kind in [AsmBlockEnd,NoPropInfoEnd])) or
+              Not(Tai_Marker(Current).Kind in [mark_AsmBlockEnd,mark_NoPropInfoEnd])) or
              (Current.typ In SkipInstr) or
              ((Current.typ = ait_label) And
                Not(Tai_Label(Current).labsym.is_used))) Do
         Current := Tai(Current.previous);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
-         (Tai_Marker(Current).Kind = NoPropInfoEnd) Then
+         (Tai_Marker(Current).Kind = mark_NoPropInfoEnd) Then
         Begin
           While Assigned(Current) And
                 ((Current.typ <> ait_Marker) Or
-                 (Tai_Marker(Current).Kind <> NoPropInfoStart)) Do
+                 (Tai_Marker(Current).Kind <> mark_NoPropInfoStart)) Do
             Current := Tai(Current.previous);
         End;
     Until Not(Assigned(Current)) Or
           (Current.typ <> ait_Marker) Or
-          (Tai_Marker(Current).Kind <> NoPropInfoStart);
+          (Tai_Marker(Current).Kind <> mark_NoPropInfoStart);
     If Not(Assigned(Current)) or
        (Current.typ In SkipInstr) or
        ((Current.typ = ait_label) And
         Not(Tai_Label(Current).labsym.is_used)) or
        ((Current.typ = ait_Marker) And
-        (Tai_Marker(Current).Kind = AsmBlockEnd))
+        (Tai_Marker(Current).Kind = mark_AsmBlockEnd))
       Then
         Begin
           Last := Nil;

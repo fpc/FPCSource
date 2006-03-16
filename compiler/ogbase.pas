@@ -31,7 +31,7 @@ interface
       { targets }
       systems,globtype,
       { outputwriters }
-      owbase,owar,
+      owbase,
       { assembler }
       aasmbase;
 
@@ -223,7 +223,7 @@ interface
         function  writedata(data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
       public
-        constructor create(smart:boolean);virtual;
+        constructor create(AWriter:TObjectWriter);virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  startObjectfile(const fn:string):boolean;
@@ -300,7 +300,6 @@ interface
         { writer }
         FWriter : TObjectwriter;
         commonObjSection : TObjSection;
-        commonobjdata,
         internalobjdata : TObjData;
         EntrySym  : TObjSymbol;
         SectionDataAlign,
@@ -317,7 +316,9 @@ interface
         procedure Load_EntryName(const aname:string);virtual;
         procedure Load_Symbol(const aname:string);virtual;
         procedure Order_Start;virtual;
+        procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
+        procedure Order_Align(const aname:string);virtual;
         procedure Order_Zeros(const aname:string);virtual;
         procedure Order_Symbol(const aname:string);virtual;
         procedure Order_EndExeSection;virtual;
@@ -486,6 +487,7 @@ implementation
         relocations.free;
         ObjSymbolRefs.Free;
         ObjSymbolDefines.Free;
+        inherited destroy;
       end;
 
 
@@ -655,6 +657,7 @@ implementation
 {$ifdef MEMDEBUG}
         d.free;
 {$endif}
+        inherited destroy;
       end;
 
 
@@ -994,21 +997,16 @@ implementation
                                 TObjOutput
 ****************************************************************************}
 
-    constructor TObjOutput.create(smart:boolean);
+    constructor TObjOutput.create(AWriter:TObjectWriter);
       begin
-      { init writer }
-        if smart and
-           not(cs_asm_leave in aktglobalswitches) then
-          FWriter:=tarobjectwriter.create(current_module.staticlibfilename^)
-        else
-          FWriter:=TObjectwriter.create;
+        FWriter:=AWriter;
         CObjData:=TObjData;
       end;
 
 
     destructor TObjOutput.destroy;
       begin
-        FWriter.free;
+        inherited destroy;
       end;
 
 
@@ -1081,6 +1079,7 @@ implementation
     destructor tExeSection.destroy;
       begin
         ObjSectionList.Free;
+        inherited destroy;
       end;
 
 
@@ -1145,6 +1144,7 @@ implementation
         FExeSectionList.free;
         objdatalist.free;
         FWriter.free;
+        inherited destroy;
       end;
 
 
@@ -1185,15 +1185,10 @@ implementation
         ObjDataList.Clear;
         { Globals defined in the linker script }
         if not assigned(internalobjdata) then
-          internalobjdata:=CObjData.create('*GLOBALS*');
+          internalobjdata:=CObjData.create('*Internal*');
         AddObjData(internalobjdata);
-        { Common data }
-        if not assigned(commonobjdata) then
-          begin
-            commonobjdata:=CObjData.create('*COMMON*');
-            commonObjSection:=commonobjdata.createsection(sec_bss,'');
-          end;
-        AddObjData(commonobjdata);
+        { Common data section }
+        commonObjSection:=internalobjdata.createsection(sec_bss,'');
       end;
 
 
@@ -1212,6 +1207,12 @@ implementation
 
     procedure TExeOutput.Order_Start;
       begin
+      end;
+
+
+    procedure TExeOutput.Order_End;
+      begin
+        internalobjdata.afterwrite;
       end;
 
 
@@ -1272,6 +1273,22 @@ implementation
       end;
 
 
+    procedure TExeOutput.Order_Align(const aname:string);
+      var
+        code     : integer;
+        alignval : longint;
+        objsec   : TObjSection;
+      begin
+        val(aname,alignval,code);
+        if alignval<=0 then
+          exit;
+        { Create an empty section with the required aligning }
+        inc(Fzeronr);
+        objsec:=internalobjdata.createsection('*align'+tostr(Fzeronr),alignval,CurrExeSec.SecOptions+[oso_data,oso_keep]);
+        CurrExeSec.AddObjSection(objsec);
+      end;
+
+
     procedure TExeOutput.Order_Zeros(const aname:string);
       var
         zeros : array[0..1023] of byte;
@@ -1288,7 +1305,6 @@ implementation
         inc(Fzeronr);
         objsec:=internalobjdata.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_data,oso_keep]);
         internalobjdata.writebytes(zeros,len);
-        internalobjdata.afterwrite;
         CurrExeSec.AddObjSection(objsec);
       end;
 
@@ -1553,10 +1569,10 @@ implementation
                           exemap.AddCommonSymbolsHeader;
                         firstcommon:=false;
                       end;
-                    commonobjdata.setsection(commonObjSection);
-                    commonsym:=commonobjdata.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
+                    internalobjdata.setsection(commonObjSection);
+                    commonsym:=internalobjdata.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
                     commonsym.size:=objsym.size;
-                    commonobjdata.alloc(objsym.size);
+                    internalobjdata.alloc(objsym.size);
                     if assigned(exemap) then
                       exemap.AddCommonSymbol(commonsym);
                     { Assign to the exesymbol }
@@ -1564,8 +1580,6 @@ implementation
                   end;
               end;
           end;
-        if not firstcommon then
-          commonobjdata.afterwrite;
 
         { Generate a list of Unresolved External symbols }
         for i:=0 to ExeSymbolList.count-1 do
@@ -1776,6 +1790,8 @@ implementation
                 AddToObjSectionWorkList(refobjsec);
               end;
           end;
+        ObjSectionWorkList.Free;
+        ObjSectionWorkList:=nil;
 
         { Remove unused objsections from exesections }
         for i:=0 to ExeSections.Count-1 do
@@ -1807,6 +1823,8 @@ implementation
             objdata.fixuprelocs;
           end;
       end;
+
+
 {****************************************************************************
                                 TObjInput
 ****************************************************************************}
@@ -1821,6 +1839,7 @@ implementation
     destructor TObjInput.destroy;
       begin
         FReader.free;
+        inherited destroy;
       end;
 
 

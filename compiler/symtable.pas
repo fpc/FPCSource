@@ -34,7 +34,7 @@ interface
        { ppu }
        ppu,
        { assembler }
-       aasmtai
+       aasmtai,aasmdata
        ;
 
 

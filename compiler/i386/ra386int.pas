@@ -82,7 +82,7 @@ Unit Ra386int;
        globals,verbose,
        systems,
        { aasm }
-       aasmtai,aasmcpu,
+       aasmtai,aasmdata,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symdef,symtable,
        { parser }
@@ -1395,7 +1395,7 @@ Unit Ra386int;
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
+                    oper.opr.ref.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1478,7 +1478,7 @@ Unit Ra386int;
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
-            oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
+            oper.opr.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -2021,7 +2021,7 @@ Unit Ra386int;
          _asmsorted:=TRUE;
        end;
       }
-      curlist:=TAAsmoutput.Create;
+      curlist:=TAsmList.Create;
       { setup label linked list }
       LocalLabelList:=TLocalLabelList.Create;
       { start tokenizer }

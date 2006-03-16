@@ -26,7 +26,7 @@ unit rgcpu;
   interface
 
     uses
-      aasmbase,aasmcpu,aasmtai,
+      aasmbase,aasmcpu,aasmtai,aasmdata,
       cgbase,cgutils,
       cpubase,
       rgobj;
@@ -35,8 +35,8 @@ unit rgcpu;
       trgcpu=class(trgobj)
         procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
-        procedure do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-        procedure do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
       end;
 
 
@@ -86,16 +86,16 @@ implementation
       end;
 
 
-    procedure trgcpu.do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins  : tai;
         tmpref   : treference;
-        helplist : taasmoutput;
+        helplist : TAsmList;
         hreg     : tregister;
       begin
         if abs(spilltemp.offset)>4095 then
           begin
-            helplist:=taasmoutput.create;
+            helplist:=TAsmList.create;
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=tempreg
@@ -122,16 +122,16 @@ implementation
       end;
 
 
-    procedure trgcpu.do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins  : tai;
         tmpref   : treference;
-        helplist : taasmoutput;
+        helplist : TAsmList;
         hreg     : tregister;
       begin
         if abs(spilltemp.offset)>4095 then
           begin
-            helplist:=taasmoutput.create;
+            helplist:=TAsmList.create;
 
             if getregtype(tempreg)=R_INTREGISTER then
               hreg:=getregisterinline(helplist,R_SUBWHOLE)

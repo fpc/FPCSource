@@ -27,7 +27,7 @@ unit cgcpu;
 
     uses
        cgbase,cgobj,cgx86,
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,cpupara,parabase,
        symdef,
        node,symconst,rgx86,procinfo;
@@ -35,8 +35,8 @@ unit cgcpu;
     type
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);override;
-        procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+        procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
+        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
       end;
 
 
@@ -59,7 +59,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.g_proc_exit(list : taasmoutput;parasize:longint;nostackframe:boolean);
+    procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         stacksize : longint;
       begin
@@ -85,7 +85,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const labelname: string; ioffset: longint);
+    procedure tcgx86_64.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
       var
         make_global : boolean;
         href : treference;
@@ -128,7 +128,7 @@ unit cgcpu;
           end
         else
           begin
-            sym:=objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            sym:=current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
             reference_reset_symbol(r,sym,0);
             if cs_create_pic in aktmoduleswitches then
               r.refaddr:=addr_pic

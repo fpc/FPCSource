@@ -28,7 +28,7 @@ interface
 uses
   globtype, symtype, symdef,
   cgbase, cgobj,
-  aasmbase, aasmcpu, aasmtai,
+  aasmbase, aasmcpu, aasmtai,aasmdata,
   cpubase, cpuinfo, cgutils, rgcpu,
   parabase;
 
@@ -42,81 +42,81 @@ type
     { left to right), this allows to move the parameter to    }
     { register, if the cpu supports register calling          }
     { conventions                                             }
-    procedure a_param_const(list: taasmoutput; size: tcgsize; a: aint; const
+    procedure a_param_const(list: TAsmList; size: tcgsize; a: aint; const
       paraloc: tcgpara); override;
-    procedure a_param_ref(list: taasmoutput; size: tcgsize; const r: treference;
+    procedure a_param_ref(list: TAsmList; size: tcgsize; const r: treference;
       const paraloc: tcgpara); override;
-    procedure a_paramaddr_ref(list: taasmoutput; const r: treference; const
+    procedure a_paramaddr_ref(list: TAsmList; const r: treference; const
       paraloc: tcgpara); override;
 
-    procedure a_call_name(list: taasmoutput; const s: string); override;
-    procedure a_call_reg(list: taasmoutput; reg: tregister); override;
+    procedure a_call_name(list: TAsmList; const s: string); override;
+    procedure a_call_reg(list: TAsmList; reg: tregister); override;
 
-    procedure a_op_const_reg(list: taasmoutput; Op: TOpCG; size: TCGSize; a:
+    procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:
       aint; reg: TRegister); override;
-    procedure a_op_reg_reg(list: taasmoutput; Op: TOpCG; size: TCGSize; src,
+    procedure a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src,
       dst: TRegister); override;
 
-    procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+    procedure a_op_const_reg_reg(list: TAsmList; op: TOpCg;
       size: tcgsize; a: aint; src, dst: tregister); override;
-    procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+    procedure a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
       size: tcgsize; src1, src2, dst: tregister); override;
 
     { move instructions }
-    procedure a_load_const_reg(list: taasmoutput; size: tcgsize; a: aint; reg:
+    procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: aint; reg:
       tregister); override;
     { stores the contents of register reg to the memory location described by
     ref }
-    procedure a_load_reg_ref(list: taasmoutput; fromsize, tosize: tcgsize; reg:
+    procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg:
       tregister; const ref: treference); override;
     { loads the memory pointed to by ref into register reg }
-    procedure a_load_ref_reg(list: taasmoutput; fromsize, tosize: tcgsize; const
+    procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const
       Ref: treference; reg: tregister); override;
-    procedure a_load_reg_reg(list: taasmoutput; fromsize, tosize: tcgsize; reg1,
+    procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1,
       reg2: tregister); override;
 
     { fpu move instructions }
-    procedure a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2:
+    procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2:
       tregister); override;
 
-    procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref:
+    procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref:
       treference; reg: tregister); override;
-    procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg:
+    procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg:
       tregister; const ref: treference); override;
 
     {  comparison operations }
-    procedure a_cmp_const_reg_label(list: taasmoutput; size: tcgsize; cmp_op:
+    procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op:
       topcmp; a: aint; reg: tregister;
       l: tasmlabel); override;
-    procedure a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize; cmp_op:
+    procedure a_cmp_reg_reg_label(list: TAsmList; size: tcgsize; cmp_op:
       topcmp; reg1, reg2: tregister; l: tasmlabel); override;
 
-    procedure a_jmp_name(list: taasmoutput; const s: string); override;
-    procedure a_jmp_always(list: taasmoutput; l: tasmlabel); override;
-    procedure a_jmp_flags(list: taasmoutput; const f: TResFlags; l: tasmlabel);
+    procedure a_jmp_name(list: TAsmList; const s: string); override;
+    procedure a_jmp_always(list: TAsmList; l: tasmlabel); override;
+    procedure a_jmp_flags(list: TAsmList; const f: TResFlags; l: tasmlabel);
       override;
 
-    procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags;
+    procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
       reg: TRegister); override;
 
-    procedure g_proc_entry(list: taasmoutput; localsize: longint; nostackframe:
+    procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe:
       boolean); override;
-    procedure g_proc_exit(list: taasmoutput; parasize: longint; nostackframe:
+    procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
       boolean); override;
-    procedure g_save_standard_registers(list: Taasmoutput); override;
-    procedure g_restore_standard_registers(list: Taasmoutput); override;
+    procedure g_save_standard_registers(list: TAsmList); override;
+    procedure g_restore_standard_registers(list: TAsmList); override;
 
-    procedure a_loadaddr_ref_reg(list: taasmoutput; const ref: treference; r:
+    procedure a_loadaddr_ref_reg(list: TAsmList; const ref: treference; r:
       tregister); override;
 
-    procedure g_concatcopy(list: taasmoutput; const source, dest: treference;
+    procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
 
-    procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
+    procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
       override;
-    procedure a_jmp_cond(list: taasmoutput; cond: TOpCmp; l: tasmlabel);
+    procedure a_jmp_cond(list: TAsmList; cond: TOpCmp; l: tasmlabel);
 
-    procedure g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const
+    procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
       labelname: string; ioffset: longint); override;
   private
 
@@ -126,21 +126,21 @@ type
     { offset or symbol, in which case the base will have been changed }
     { to a tempreg (which has to be freed by the caller) containing   }
     { the sum of part of the original reference                       }
-    function fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
+    function fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
 
-    function load_got_symbol(list : taasmoutput; symbol : string) : tregister;
+    function load_got_symbol(list : TAsmList; symbol : string) : tregister;
 
     { returns whether a reference can be used immediately in a powerpc }
     { instruction                                                      }
     function issimpleref(const ref: treference): boolean;
 
     { contains the common code of a_load_reg_ref and a_load_ref_reg }
-    procedure a_load_store(list: taasmoutput; op: tasmop; reg: tregister;
+    procedure a_load_store(list: TAsmList; op: tasmop; reg: tregister;
       ref: treference);
 
     { creates the correct branch instruction for a given combination }
     { of asmcondflags and destination addressing mode                }
-    procedure a_jmp(list: taasmoutput; op: tasmop;
+    procedure a_jmp(list: TAsmList; op: tasmop;
       c: tasmcondflag; crval: longint; l: tasmlabel);
 
     { returns the lowest numbered FP register in use, and the number of used FP registers
@@ -160,12 +160,12 @@ type
      if includeCall is true, the method is marked as having a call, not if false. This
      option is particularly useful to prevent generation of a larger stack frame for the
      register save and restore helper functions. }
-    procedure a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean;
+    procedure a_call_name_direct(list: TAsmList; s: string; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
      as well }
-    procedure loadConstantPIC(list : taasmoutput; size : TCGSize; a : aint; reg : TRegister);
+    procedure loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);
   end;
 
 const
@@ -392,7 +392,7 @@ begin
   inherited done_register_allocators;
 end;
 
-procedure tcgppc.a_param_const(list: taasmoutput; size: tcgsize; a: aint; const
+procedure tcgppc.a_param_const(list: TAsmList; size: tcgsize; a: aint; const
   paraloc: tcgpara);
 var
   ref: treference;
@@ -413,7 +413,7 @@ begin
   end;
 end;
 
-procedure tcgppc.a_param_ref(list: taasmoutput; size: tcgsize; const r:
+procedure tcgppc.a_param_ref(list: TAsmList; size: tcgsize; const r:
   treference; const paraloc: tcgpara);
 
 var
@@ -527,7 +527,7 @@ begin
   end;
 end;
 
-procedure tcgppc.a_paramaddr_ref(list: taasmoutput; const r: treference; const
+procedure tcgppc.a_paramaddr_ref(list: TAsmList; const r: treference; const
   paraloc: tcgpara);
 var
   ref: treference;
@@ -554,16 +554,16 @@ end;
 
 { calling a procedure by name }
 
-procedure tcgppc.a_call_name(list: taasmoutput; const s: string);
+procedure tcgppc.a_call_name(list: TAsmList; const s: string);
 begin
     a_call_name_direct(list, s, true, true);
 end;
 
-procedure tcgppc.a_call_name_direct(list: taasmoutput; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
+procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
   if (prependDot) then
     s := '.' + s;
-  list.concat(taicpu.op_sym(A_BL, objectlibrary.newasmsymbol(s, AB_EXTERNAL,
+  list.concat(taicpu.op_sym(A_BL, current_asmdata.newasmsymbol(s, AB_EXTERNAL,
     AT_FUNCTION)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
@@ -575,7 +575,7 @@ end;
 
 { calling a procedure by address }
 
-procedure tcgppc.a_call_reg(list: taasmoutput; reg: tregister);
+procedure tcgppc.a_call_reg(list: TAsmList; reg: tregister);
 var
   tmpref: treference;
 begin
@@ -618,14 +618,14 @@ end;
 
 {********************** load instructions ********************}
 
-procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
+procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
   reg: TRegister);
 
   { loads a 32 bit constant into the given register, using an optimal instruction sequence.
     This is either LIS, LI or LI+ADDIS.
     Returns true if during these operations the upper 32 bits were filled with 1 bits (e.g.
     sign extension was performed) }
-  function load32bitconstant(list : taasmoutput; size : TCGSize; a : longint;
+  function load32bitconstant(list : TAsmList; size : TCGSize; a : longint;
     reg : TRegister) : boolean;
   var
     is_half_signed : byte;
@@ -648,7 +648,7 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
     This is either LIS, LI or LI+ORIS.
     Returns true if during these operations the upper 32 bits were filled with 1 bits (e.g.
     sign extension was performed) }
-  function load32bitconstantR0(list : taasmoutput; size : TCGSize; a : longint) : boolean;
+  function load32bitconstantR0(list : TAsmList; size : TCGSize; a : longint) : boolean;
   begin
     { if it's a value we can load with a single LI, do it }
     if (a >= low(smallint)) and (a <= high(smallint)) then begin
@@ -666,7 +666,7 @@ procedure tcgppc.a_load_const_reg(list: taasmoutput; size: TCGSize; a: aint;
 
   { emits the code to load a constant by emitting various instructions into the output
    code}
-  procedure loadConstantNormal(list: taasmoutput; size : TCgSize; a: aint; reg: TRegister);
+  procedure loadConstantNormal(list: TAsmList; size : TCgSize; a: aint; reg: TRegister);
   var
     extendssign : boolean;
   begin
@@ -719,7 +719,7 @@ begin
     loadConstantNormal(list, size, a, reg);
 end;
 
-procedure tcgppc.a_load_reg_ref(list: taasmoutput; fromsize, tosize: TCGSize;
+procedure tcgppc.a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
   reg: tregister; const ref: treference);
 
 const
@@ -743,7 +743,7 @@ begin
   a_load_store(list, op, reg, ref2);
 end;
 
-procedure tcgppc.a_load_ref_reg(list: taasmoutput; fromsize, tosize: tcgsize;
+procedure tcgppc.a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize;
   const ref: treference; reg: tregister);
 
 const
@@ -793,7 +793,7 @@ begin
     list.concat(taicpu.op_reg_reg(A_EXTSB, reg, reg));
 end;
 
-procedure tcgppc.a_load_reg_reg(list: taasmoutput; fromsize, tosize: tcgsize;
+procedure tcgppc.a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize;
   reg1, reg2: tregister);
 
 const
@@ -827,7 +827,7 @@ begin
   rg[R_INTREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize;
+procedure tcgppc.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize;
   reg1, reg2: tregister);
 var
   instr: taicpu;
@@ -837,7 +837,7 @@ begin
   rg[R_FPUREGISTER].add_move_instruction(instr);
 end;
 
-procedure tcgppc.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize;
+procedure tcgppc.a_loadfpu_ref_reg(list: TAsmList; size: tcgsize;
   const ref: treference; reg: tregister);
 const
   FpuLoadInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
@@ -865,7 +865,7 @@ begin
   a_load_store(list, op, reg, ref2);
 end;
 
-procedure tcgppc.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg:
+procedure tcgppc.a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg:
   tregister; const ref: treference);
 const
   FpuStoreInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
@@ -885,19 +885,19 @@ begin
   a_load_store(list, op, reg, ref2);
 end;
 
-procedure tcgppc.a_op_const_reg(list: taasmoutput; Op: TOpCG; size: TCGSize; a:
+procedure tcgppc.a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:
   aint; reg: TRegister);
 begin
   a_op_const_reg_reg(list, op, size, a, reg, reg);
 end;
 
-procedure tcgppc.a_op_reg_reg(list: taasmoutput; Op: TOpCG; size: TCGSize; src,
+procedure tcgppc.a_op_reg_reg(list: TAsmList; Op: TOpCG; size: TCGSize; src,
   dst: TRegister);
 begin
   a_op_reg_reg_reg(list, op, size, src, dst, dst);
 end;
 
-procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+procedure tcgppc.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
   size: tcgsize; a: aint; src, dst: tregister);
 var
   useReg : boolean;
@@ -933,7 +933,7 @@ var
       list.concat(taicpu.op_reg_reg_const(A_ANDI_, dst, src, word(a)));
   end;
 
-  procedure do_constant_div(list : taasmoutput; size : TCgSize; a : aint; src, dst : TRegister;
+  procedure do_constant_div(list : TAsmList; size : TCgSize; a : aint; src, dst : TRegister;
     signed : boolean);
   const
     negops : array[boolean] of tasmop = (A_NEG, A_NEGO);
@@ -950,58 +950,58 @@ var
     if (a = 0) then begin
       internalerror(2005061701);
     end else if (a = 1) then begin
-      cg.a_load_reg_reg(exprasmlist, OS_INT, OS_INT, src, dst);
+      cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, src, dst);
     end else if (a = -1) and (signed) then begin
       { note: only in the signed case possible..., may overflow }
-      exprasmlist.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], dst, src));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], dst, src));
     end else if (ispowerof2(a, power, isNegPower)) then begin
       if (signed) then begin
         { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
-        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, power,
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, power,
           src, dst);
-        exprasmlist.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_ADDZE, dst, dst));
         if (isNegPower) then
-          exprasmlist.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
       end else begin
-        cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, power, src, dst)
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, power, src, dst)
       end;
     end else begin
       { replace division by multiplication, both implementations }
       { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
-      divreg := cg.getintregister(exprasmlist, OS_INT);
+      divreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
       if (signed) then begin
         getmagic_signedN(sizeof(aInt)*8, a, magic, shift);
         { load magic value }
-        cg.a_load_const_reg(exprasmlist, OS_INT, magic, divreg);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, magic, divreg);
         { multiply }
-        exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHD, dst, src, divreg));
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHD, dst, src, divreg));
         { add/subtract numerator }
         if (a > 0) and (magic < 0) then begin
-          cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, src, dst, dst);
+          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, src, dst, dst);
         end else if (a < 0) and (magic > 0) then begin
-          cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, src, dst, dst);
+          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, src, dst, dst);
         end;
         { shift shift places to the right (arithmetic) }
-        cg.a_op_const_reg_reg(exprasmlist, OP_SAR, OS_INT, shift, dst, dst);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, shift, dst, dst);
         { extract and add sign bit }
         if (a >= 0) then begin
-          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, src, divreg);
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 63, src, divreg);
         end else begin
-          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, 63, dst, divreg);
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, 63, dst, divreg);
         end;
-        cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, dst, divreg, dst);
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, dst, divreg, dst);
       end else begin
         getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
         { load magic in divreg }
-        cg.a_load_const_reg(exprasmlist, OS_INT, u_magic, divreg);
-        exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, u_magic, divreg);
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
         if (u_add) then begin
-          cg.a_op_reg_reg_reg(exprasmlist, OP_SUB, OS_INT, dst, src, divreg);
-          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT,  1, divreg, divreg);
-          cg.a_op_reg_reg_reg(exprasmlist, OP_ADD, OS_INT, divreg, dst, divreg);
-          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift-1, divreg, dst);
+          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, dst, src, divreg);
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT,  1, divreg, divreg);
+          cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_INT, divreg, dst, divreg);
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift-1, divreg, dst);
         end else begin
-          cg.a_op_const_reg_reg(exprasmlist, OP_SHR, OS_INT, u_shift, dst, dst);
+          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, OS_INT, u_shift, dst, dst);
         end;
       end;
     end;
@@ -1043,7 +1043,7 @@ begin
       else if ispowerof2(a, shift, isneg) then begin
         list.concat(taicpu.op_reg_reg_const(A_SLDI, dst, src, shift));
         if (isneg) then
-          exprasmlist.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NEG, dst, dst));
       end else if (a >= low(smallint)) and (a <= high(smallint)) then
         list.concat(taicpu.op_reg_reg_const(A_MULLI, dst, src,
           smallint(a)))
@@ -1105,7 +1105,7 @@ begin
   end;
 end;
 
-procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+procedure tcgppc.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
   size: tcgsize; src1, src2, dst: tregister);
 const
   op_reg_reg_opcg2asmop32: array[TOpCG] of tasmop =
@@ -1136,7 +1136,7 @@ end;
 
 {*************** compare instructructions ****************}
 
-procedure tcgppc.a_cmp_const_reg_label(list: taasmoutput; size: tcgsize;
+procedure tcgppc.a_cmp_const_reg_label(list: TAsmList; size: tcgsize;
   cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
 var
   scratch_register: TRegister;
@@ -1167,7 +1167,7 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_cmp_reg_reg_label(list: taasmoutput; size: tcgsize;
+procedure tcgppc.a_cmp_reg_reg_label(list: TAsmList; size: tcgsize;
   cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 var
   op: tasmop;
@@ -1186,29 +1186,29 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_jmp_cond(list: taasmoutput; cond: TOpCmp; l: tasmlabel);
+procedure tcgppc.a_jmp_cond(list: TAsmList; cond: TOpCmp; l: tasmlabel);
 
 begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cond], 0, l);
 end;
 
-procedure tcgppc.a_jmp_name(list: taasmoutput; const s: string);
+procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
 var
   p: taicpu;
 begin
-  p := taicpu.op_sym(A_B, objectlibrary.newasmsymbol(s, AB_EXTERNAL,
+  p := taicpu.op_sym(A_B, current_asmdata.newasmsymbol(s, AB_EXTERNAL,
     AT_LABEL));
   p.is_jmp := true;
   list.concat(p)
 end;
 
-procedure tcgppc.a_jmp_always(list: taasmoutput; l: tasmlabel);
+procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
 
 begin
   a_jmp(list, A_B, C_None, 0, l);
 end;
 
-procedure tcgppc.a_jmp_flags(list: taasmoutput; const f: TResFlags; l:
+procedure tcgppc.a_jmp_flags(list: TAsmList; const f: TResFlags; l:
   tasmlabel);
 
 var
@@ -1218,7 +1218,7 @@ begin
   a_jmp(list, A_BC, c.cond, c.cr - RS_CR0, l);
 end;
 
-procedure tcgppc.g_flags2reg(list: taasmoutput; size: TCgSize; const f:
+procedure tcgppc.g_flags2reg(list: TAsmList; size: TCgSize; const f:
   TResFlags; reg: TRegister);
 var
   testbit: byte;
@@ -1259,13 +1259,13 @@ end;
 
 { *********** entry/exit code and address loading ************ }
 
-procedure tcgppc.g_save_standard_registers(list: Taasmoutput);
+procedure tcgppc.g_save_standard_registers(list: TAsmList);
 begin
   { this work is done in g_proc_entry; additionally it is not safe
   to use it because it is called at some weird time }
 end;
 
-procedure tcgppc.g_restore_standard_registers(list: Taasmoutput);
+procedure tcgppc.g_restore_standard_registers(list: TAsmList);
 begin
   { this work is done in g_proc_exit; mainly because it is not safe to
   put the register restore code here because it is called at some weird time }
@@ -1311,7 +1311,7 @@ end;
  IMPORTANT: registers are not to be allocated through the register
  allocator here, because the register colouring has already occured !!
 }
-procedure tcgppc.g_proc_entry(list: taasmoutput; localsize: longint;
+procedure tcgppc.g_proc_entry(list: TAsmList; localsize: longint;
   nostackframe: boolean);
 var
   firstregfpu, firstreggpr: TSuperRegister;
@@ -1445,7 +1445,7 @@ end;
  IMPORTANT: registers are not to be allocated through the register
  allocator here, because the register colouring has already occured !!
 }
-procedure tcgppc.g_proc_exit(list: taasmoutput; parasize: longint; nostackframe:
+procedure tcgppc.g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
   boolean);
 var
   firstregfpu, firstreggpr: TSuperRegister;
@@ -1562,7 +1562,7 @@ begin
 end;
 
 
-procedure tcgppc.a_loadaddr_ref_reg(list: taasmoutput; const ref: treference; r:
+procedure tcgppc.a_loadaddr_ref_reg(list: TAsmList; const ref: treference; r:
   tregister);
 
 var
@@ -1646,7 +1646,7 @@ const
   maxmoveunit = 8;
 
 
-procedure tcgppc.g_concatcopy(list: taasmoutput; const source, dest: treference;
+procedure tcgppc.g_concatcopy(list: TAsmList; const source, dest: treference;
   len: aint);
 
 var
@@ -1742,7 +1742,7 @@ begin
     { explicitely allocate F0 since it can be used safely here
      (for holding date that's being copied) }
     a_reg_alloc(list, NR_F0);
-    objectlibrary.getjumplabel(lab);
+    current_asmdata.getjumplabel(lab);
     a_label(list, lab);
     list.concat(taicpu.op_reg_reg_const(A_SUBIC_, countreg, countreg, 1));
     list.concat(taicpu.op_reg_ref(A_LFDU, NR_F0, src));
@@ -1792,7 +1792,7 @@ begin
 
 end;
 
-procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def:
+procedure tcgppc.g_overflowcheck(list: TAsmList; const l: tlocation; def:
   tdef);
 var
   hl: tasmlabel;
@@ -1800,7 +1800,7 @@ var
 begin
   if not (cs_check_overflow in aktlocalswitches) then
     exit;
-  objectlibrary.getjumplabel(hl);
+  current_asmdata.getjumplabel(hl);
   if not ((def.deftype = pointerdef) or
     ((def.deftype = orddef) and
     (torddef(def).typ in [u64bit, u16bit, u32bit, u8bit, uchar,
@@ -1821,7 +1821,7 @@ begin
   a_label(list, hl);
 end;
 
-procedure tcgppc.g_intf_wrapper(list: TAAsmoutput; procdef: tprocdef; const
+procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
   labelname: string; ioffset: longint);
 
   procedure loadvmttor11;
@@ -1894,7 +1894,7 @@ begin
   end else
     {$note ts:todo add GOT change?? - think not needed :) }
     list.concat(taicpu.op_sym(A_B,
-      objectlibrary.newasmsymbol('.' + procdef.mangledname, AB_EXTERNAL,
+      current_asmdata.newasmsymbol('.' + procdef.mangledname, AB_EXTERNAL,
       AT_FUNCTION)));
 
   List.concat(Tai_symbol_end.Createname(labelname));
@@ -1917,20 +1917,20 @@ begin
     (ref.offset = 0)));
 end;
 
-function tcgppc.load_got_symbol(list: taasmoutput; symbol : string) : tregister;
+function tcgppc.load_got_symbol(list: TAsmList; symbol : string) : tregister;
 var
   l: tasmsymbol;
   ref: treference;
   symname : string;
 begin
-  maybe_new_object_file(asmlist[al_picdata]);
-  symname := '_$' + objectlibrary.name + '$got$' + symbol;
-  l:=objectlibrary.getasmsymbol(symname);
+  maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
+  symname := '_$' + current_asmdata.name + '$got$' + symbol;
+  l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=objectlibrary.newasmsymbol(symname, AB_COMMON, AT_DATA);
-    asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    asmlist[al_picdata].concat(tai_symbol.create_global(l,0));
-    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
+    l:=current_asmdata.newasmsymbol(symname, AB_COMMON, AT_DATA);
+    current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
+    current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
+    current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
   end;
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;
@@ -1945,7 +1945,7 @@ begin
 end;
 
 
-function tcgppc.fixref(list: taasmoutput; var ref: treference; const size : TCgsize): boolean;
+function tcgppc.fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
 var
   tmpreg: tregister;
   name : string;
@@ -1993,7 +1993,7 @@ begin
   {$ENDIF EXTDEBUG}
 end;
 
-procedure tcgppc.a_load_store(list: taasmoutput; op: tasmop; reg: tregister;
+procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
   ref: treference);
 var
   tmpreg, tmpreg2: tregister;
@@ -2139,13 +2139,13 @@ begin
   end;
 end;
 
-procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflag;
+procedure tcgppc.a_jmp(list: TAsmList; op: tasmop; c: tasmcondflag;
   crval: longint; l: tasmlabel);
 var
   p: taicpu;
 
 begin
-  p := taicpu.op_sym(op, objectlibrary.newasmsymbol(l.name, AB_EXTERNAL,
+  p := taicpu.op_sym(op, current_asmdata.newasmsymbol(l.name, AB_EXTERNAL,
     AT_LABEL));
   if op <> A_B then
     create_cond_norm(c, crval, p.condition);
@@ -2159,20 +2159,20 @@ begin
   result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
 end;
 
-procedure tcgppc.loadConstantPIC(list : taasmoutput; size : TCGSize; a : aint; reg : TRegister);
+procedure tcgppc.loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);
 var
   l: tasmsymbol;
   ref: treference;
   symname : string;
 begin
-  maybe_new_object_file(asmlist[al_picdata]);
-  symname := '_$' + objectlibrary.name + '$toc$' + hexstr(a, sizeof(a)*2);
-  l:=objectlibrary.getasmsymbol(symname);
+  maybe_new_object_file(current_asmdata.asmlists[al_picdata]);
+  symname := '_$' + current_asmdata.name + '$toc$' + hexstr(a, sizeof(a)*2);
+  l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=objectlibrary.newasmsymbol(symname,AB_GLOBAL, AT_DATA);
-    asmlist[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
-    asmlist[al_picdata].concat(tai_symbol.create_global(l,0));
-    asmlist[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
+    l:=current_asmdata.newasmsymbol(symname,AB_GLOBAL, AT_DATA);
+    current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
+    current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
+    current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;
   reference_reset_symbol(ref,l,0);
   ref.base := NR_R2;

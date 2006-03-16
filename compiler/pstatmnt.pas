@@ -44,7 +44,7 @@ implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,
+       cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,symtable,defutil,defcmp,
        paramgr,symutil,
@@ -853,7 +853,7 @@ implementation
          if assigned(asmmodeinfos[aktasmmode]) then
            begin
              asmreader:=asmmodeinfos[aktasmmode]^.casmreader.create;
-             asmstat:=casmnode.create(asmreader.assemble as taasmoutput);
+             asmstat:=casmnode.create(asmreader.assemble as TAsmList);
              asmreader.free;
            end
          else
@@ -898,9 +898,9 @@ implementation
            this is needed for the optimizer }
          If Assigned(AsmStat.p_asm) Then
            Begin
-             Marker := Tai_Marker.Create(AsmBlockStart);
+             Marker := Tai_Marker.Create(mark_AsmBlockStart);
              AsmStat.p_asm.Insert(Marker);
-             Marker := Tai_Marker.Create(AsmBlockEnd);
+             Marker := Tai_Marker.Create(mark_AsmBlockEnd);
              AsmStat.p_asm.Concat(Marker);
            End;
          Inside_asm_statement:=false;

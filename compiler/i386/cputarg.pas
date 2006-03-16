@@ -104,6 +104,9 @@ implementation
              Debuginfo
 **************************************}
 
+  {$ifndef NoCFIDwarf}
+      ,cfidwarf
+  {$endif NoCFIDwarf}
   {$ifndef NoDbgStabs}
       ,dbgstabs
   {$endif NoDbgStabs}

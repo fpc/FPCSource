@@ -45,7 +45,7 @@ implementation
       cutils,verbose,globals,
       cgbase,cgutils,
       cpubase,paramgr,
-      aasmtai,aasmcpu,
+      aasmtai,aasmdata,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
       cga,cgobj,cpuinfo;
 
@@ -77,15 +77,15 @@ implementation
             { old-style code (JM)                                         }
             dec(pop_size,pushedparasize);
             if (pop_size < 0) then
-              exprasmlist.concat(taicpu.op_const_reg(A_SUB,S_L,-pop_size,NR_ESP));
+              current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_SUB,S_L,-pop_size,NR_ESP));
             exit;
           end;
 
         { better than an add on all processors }
         if pop_size=4 then
           begin
-            hreg:=cg.getintregister(exprasmlist,OS_INT);
-            exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
+            hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
@@ -94,14 +94,14 @@ implementation
              not(cs_opt_size in aktoptimizerswitches) and
              (aktoptimizecputype=cpu_Pentium) then
             begin
-               hreg:=cg.getintregister(exprasmlist,OS_INT);
-               exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               hreg:=cg.getintregister(exprasmlist,OS_INT);
-               exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
+               hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
+               hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));
             end
         else
           if pop_size<>0 then
-            exprasmlist.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
+            current_asmdata.CurrAsmList.concat(taicpu.op_const_reg(A_ADD,S_L,pop_size,NR_ESP));
       end;
 
 

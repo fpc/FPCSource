@@ -28,15 +28,15 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,aasmtai,aasmdata,aasmcpu,
        cgbase,cgutils,
        cpubase,
        rgobj;
 
      type
        trgcpu = class(trgobj)
-         procedure do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
 
        trgintcpu = class(trgcpu)
@@ -51,20 +51,20 @@ unit rgcpu;
       procinfo;
 
 
-    procedure trgcpu.do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins: tai;
         tmpref : treference;
-        helplist : taasmoutput;
+        helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
       begin
         if abs(spilltemp.offset)>4095 then
           begin
-            helplist:=taasmoutput.create;
+            helplist:=TAsmList.create;
             reference_reset(tmpref);
             { create consts entry }
-            objectlibrary.getjumplabel(l);
+            current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 
@@ -99,20 +99,20 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins: tai;
         tmpref : treference;
-        helplist : taasmoutput;
+        helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
       begin
         if abs(spilltemp.offset)>4095 then
           begin
-            helplist:=taasmoutput.create;
+            helplist:=TAsmList.create;
             reference_reset(tmpref);
             { create consts entry }
-            objectlibrary.getjumplabel(l);
+            current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             tmpref.symboldata:=current_procinfo.aktlocaldata.last;
 

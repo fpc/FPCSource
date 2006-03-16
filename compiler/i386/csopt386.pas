@@ -26,9 +26,9 @@ unit CSOpt386;
 
 interface
 
-uses aasmbase,aasmtai,aasmcpu, cpuinfo, cpubase, optbase, cgbase;
+uses aasmbase,aasmtai,aasmdata,aasmcpu, cpuinfo, cpubase, optbase, cgbase;
 
-function CSE(asml: TAAsmoutput; first, last: tai; pass: longint): boolean;
+function CSE(asml: TAsmList; first, last: tai; pass: longint): boolean;
 
 function doReplaceReg(hp: taicpu; newReg, orgReg: tsuperregister): boolean;
 function changeOp(var o: toper; newReg, orgReg: tsuperregister): boolean;
@@ -832,7 +832,7 @@ begin
 end;
 
 
-procedure ClearRegContentsFrom(asml: taasmoutput; supreg: tsuperregister; p, endP: tai);
+procedure ClearRegContentsFrom(asml: TAsmList; supreg: tsuperregister; p, endP: tai);
 { first clears the contents of reg from p till endP. then the contents are }
 { cleared until the first instruction that changes reg                     }
 var
@@ -883,7 +883,7 @@ begin
 {$endif replaceregdebug}
 end;
 
-procedure RestoreRegContentsTo(asml: taasmoutput; supreg: tsuperregister; const c: TContent; p, endP: tai);
+procedure RestoreRegContentsTo(asml: TAsmList; supreg: tsuperregister; const c: TContent; p, endP: tai);
 var
 {$ifdef replaceregdebug}
   l: longint;
@@ -1351,7 +1351,7 @@ end;
 
 
 
-function ReplaceReg(asml: TAAsmOutput; orgsupreg, newsupreg: tsuperregister; p,
+function ReplaceReg(asml: TAsmList; orgsupreg, newsupreg: tsuperregister; p,
           seqstart: tai; const c: TContent; orgRegCanBeModified: Boolean;
           var returnEndP: tai): Boolean;
 { Tries to replace orgsupreg with newsupreg in all instructions coming after p }
@@ -1482,7 +1482,7 @@ begin
 end;
 
 
-procedure removePrevNotUsedLoad(asml: taasmoutput; p: tai; supreg: tsuperregister; check: boolean);
+procedure removePrevNotUsedLoad(asml: TAsmList; p: tai; supreg: tsuperregister; check: boolean);
 { if check = true, it means the procedure has to check whether it isn't  }
 { possible that the contents are still used after p (used when removing  }
 { instructions because of a "call"), otherwise this is not necessary     }
@@ -1619,7 +1619,7 @@ begin
 end;
 
 
-procedure loadcseregs(asml: taasmoutput; const reginfo: toptreginfo; curseqend, prevseqstart, curseqstart, curprev: tai; cnt: longint);
+procedure loadcseregs(asml: TAsmList; const reginfo: toptreginfo; curseqend, prevseqstart, curseqstart, curprev: tai; cnt: longint);
 var
   regsloaded: tregset;
   regloads, reguses: array[RS_EAX..RS_EDI] of tai;
@@ -1680,7 +1680,7 @@ begin
                 else
                   if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
                     insertpos := regloads[reginfo.new2oldreg[regcounter]];
-                hp := Tai_Marker.Create(NoPropInfoStart);
+                hp := Tai_Marker.Create(mark_NoPropInfoStart);
                 InsertLLItem(asml, insertpos.previous,insertpos, hp);
                 hp2 := taicpu.Op_Reg_Reg(opc, S_L,
                                            {old reg                                        new reg}
@@ -1691,7 +1691,7 @@ begin
                 ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
                 ptaiprop(hp2.optinfo)^.canBeRemoved := false;
                 InsertLLItem(asml, insertpos.previous, insertpos, hp2);
-                hp := Tai_Marker.Create(NoPropInfoEnd);
+                hp := Tai_Marker.Create(mark_NoPropInfoEnd);
                 InsertLLItem(asml, insertpos.previous, insertpos, hp);
                 { adjusts states in previous instruction so that it will  }
                 { definitely be different from the previous or next state }
@@ -1751,12 +1751,12 @@ begin
 end;
 
 
-procedure replaceoperandwithreg(asml: taasmoutput; p: tai; opnr: byte; reg: tregister);
+procedure replaceoperandwithreg(asml: TAsmList; p: tai; opnr: byte; reg: tregister);
 var
   hp: tai;
 begin
   { new instruction -> it's info block is not in the big one allocated at the start }
-  hp := Tai_Marker.Create(NoPropInfoStart);
+  hp := Tai_Marker.Create(mark_NoPropInfoStart);
   InsertLLItem(asml, p.previous,p, hp);
   { duplicate the original instruction and replace it's designated operant with the register }
   hp := tai(p.getcopy);
@@ -1770,12 +1770,12 @@ begin
   ptaiprop(p.optinfo)^.canBeRemoved := true;
   { insert end marker }
   InsertLLItem(asml, p.previous, p, hp);
-  hp := Tai_Marker.Create(NoPropInfoEnd);
+  hp := Tai_Marker.Create(mark_NoPropInfoEnd);
   InsertLLItem(asml, p.previous, p, hp);
 end;
 
 
-procedure doCSE(asml: TAAsmOutput; First, Last: tai; findPrevSeqs, doSubOpts: boolean);
+procedure doCSE(asml: TAsmList; First, Last: tai; findPrevSeqs, doSubOpts: boolean);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
  two different sequences}
@@ -2028,7 +2028,7 @@ begin
                                   (RegLoadedWithNewValue(getsupreg(memreg),false,hp1) or
                                    FindRegDealloc(getsupreg(memreg),hp1))) then
                                 begin
-                                  hp1 := Tai_Marker.Create(NoPropInfoEnd);
+                                  hp1 := Tai_Marker.Create(mark_NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
                                   hp1 := taicpu.op_reg_ref(A_MOV,reg2opsize(memreg),
                                      memreg,taicpu(p).oper[0]^.ref^);
@@ -2038,7 +2038,7 @@ begin
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(hp1.optinfo)^.regs[regcounter].rstate,1);
                                   updatestate(regcounter,hp1);
-                                  hp1 := Tai_Marker.Create(NoPropInfoStart);
+                                  hp1 := Tai_Marker.Create(mark_NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
                                   replaceoperandwithreg(asml,p,0,memreg);
                                   allocregbetween(asml,memreg,hp5,
@@ -2081,7 +2081,7 @@ begin
                                   (RegLoadedWithNewValue(getsupreg(memreg),false,hp1) or
                                    FindRegDealloc(getsupreg(memreg),hp1))) then
                                 begin
-                                  hp1 := Tai_Marker.Create(NoPropInfoEnd);
+                                  hp1 := Tai_Marker.Create(mark_NoPropInfoEnd);
                                   insertllitem(asml,p,p.next,hp1);
                                   hp1 := taicpu.op_reg_ref(A_MOV,reg2opsize(memreg),
                                     memreg,taicpu(p).oper[1]^.ref^);
@@ -2091,7 +2091,7 @@ begin
                                   regcounter := getsupreg(memreg);
                                   incstate(pTaiProp(hp1.optinfo)^.regs[regcounter].rstate,1);
                                   updatestate(regcounter,hp1);
-                                  hp1 := Tai_Marker.Create(NoPropInfoStart);
+                                  hp1 := Tai_Marker.Create(mark_NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
                                   replaceoperandwithreg(asml,p,1,memreg);
                                   allocregbetween(asml,memreg,hp5,
@@ -2109,7 +2109,7 @@ begin
     end;
 end;
 
-function removeInstructs(asml: TAAsmoutput; first, last: tai): boolean;
+function removeInstructs(asml: TAsmList; first, last: tai): boolean;
 { Removes the marked instructions and disposes the PTaiProps of the other }
 { instructions                                                            }
 var
@@ -2122,7 +2122,7 @@ begin
   while (p <> Last) do
     begin
       if (p.typ = ait_marker) and
-         (Tai_marker(p).kind = noPropInfoStart) then
+         (Tai_marker(p).kind = mark_NoPropInfoStart) then
         begin
           hp1 := tai(p.next);
           asml.remove(p);
@@ -2138,8 +2138,8 @@ begin
                 begin
                   case Tai_marker(hp1).kind of
                     { they can be nested! }
-                    noPropInfoStart: inc(nopropinfolevel);
-                    noPropInfoEnd: dec(nopropinfolevel);
+                    mark_NoPropInfoStart: inc(nopropinfolevel);
+                    mark_NoPropInfoEnd: dec(nopropinfolevel);
                     else
                       begin
                         hp1 := p;
@@ -2186,7 +2186,7 @@ begin
     end;
 end;
 
-function CSE(asml: TAAsmOutput; First, Last: tai; pass: longint): boolean;
+function CSE(asml: TAsmList; First, Last: tai; pass: longint): boolean;
 begin
   doCSE(asml, First, Last, not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 2),
         not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 1));

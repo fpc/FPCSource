@@ -66,7 +66,7 @@ implementation
       cutils,verbose,
       symconst,
       defutil,
-      aasmbase,aasmtai,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
       symdef,
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
@@ -191,12 +191,12 @@ implementation
              ;
            LOC_CFPUREGISTER:
              begin
-               cg.a_loadfpu_reg_reg(exprasmlist,left.location.size,
+               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,
                  left.location.register,location.register);
              end;
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
-               cg.a_loadfpu_ref_reg(exprasmlist,
+               cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
                   def_cgsize(left.resulttype.def),
                   left.location.reference,location.register);
              end
@@ -221,19 +221,19 @@ implementation
          if use_sse(resulttype.def) then
            begin
              secondpass(left);
-             location_force_mmregscalar(exprasmlist,left.location,false);
+             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
              case tfloatdef(resulttype.def).typ of
                s32real:
                  reference_reset_symbol(href,
-                   objectlibrary.newasmsymbol('FPC_ABSMASK_SINGLE',AB_EXTERNAL,AT_DATA),0);
+                   current_asmdata.newasmsymbol('FPC_ABSMASK_SINGLE',AB_EXTERNAL,AT_DATA),0);
                s64real:
                  reference_reset_symbol(href,
-                   objectlibrary.newasmsymbol('FPC_ABSMASK_DOUBLE',AB_EXTERNAL,AT_DATA),0);
+                   current_asmdata.newasmsymbol('FPC_ABSMASK_DOUBLE',AB_EXTERNAL,AT_DATA),0);
                else
                  internalerror(200506081);
              end;
-             exprasmlist.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
            end
          else
            begin
@@ -249,9 +249,9 @@ implementation
          if use_sse(resulttype.def) then
            begin
              secondpass(left);
-             location_force_mmregscalar(exprasmlist,left.location,false);
+             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
-             cg.a_opmm_loc_reg(exprasmlist,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
+             cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,OP_MUL,left.location.size,left.location,left.location.register,mms_movescalar);
            end
          else
            begin
@@ -265,13 +265,13 @@ implementation
          if use_sse(resulttype.def) then
            begin
              secondpass(left);
-             location_force_mmregscalar(exprasmlist,left.location,false);
+             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
              case tfloatdef(resulttype.def).typ of
                s32real:
-                 exprasmlist.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
                s64real:
-                 exprasmlist.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,location.register,location.register));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSD,S_XMM,location.register,location.register));
                else
                  internalerror(200510031);
              end;
@@ -317,10 +317,10 @@ implementation
                LOC_CREFERENCE,
                LOC_REFERENCE:
                  begin
-                   r:=cg.getintregister(exprasmlist,OS_ADDR);
-                   cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
+                   r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
                    reference_reset_base(ref,r,0);
-                   exprasmlist.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
                  end;
                else
                  internalerror(200402021);
@@ -361,10 +361,10 @@ implementation
                   begin
                     inc(tcallparanode(left).left.location.reference.offset,
                       (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
-                    cg.a_op_const_ref(exprasmlist,cgop,opsize,l,tcallparanode(left).left.location.reference);
+                    cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
                   end;
                 LOC_CREGISTER :
-                  cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
                 else
                   internalerror(200405022);
               end;
@@ -388,10 +388,10 @@ implementation
 
                 { need a cmp and jmp, but this should be done by the         }
                 { type cast code which does range checking if necessary (FK) }
-                hregister:=cg.makeregsize(exprasmlist,Tcallparanode(Tcallparanode(left).right).left.location.register,opsize)
+                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,Tcallparanode(Tcallparanode(left).right).left.location.register,opsize)
               else
-                hregister:=cg.getintregister(exprasmlist,opsize);
-              cg.a_load_loc_reg(exprasmlist,opsize,tcallparanode(tcallparanode(left).right).left.location,hregister);
+                hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+              cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else

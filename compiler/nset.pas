@@ -28,7 +28,7 @@ interface
     uses
        cclasses,
        node,globtype,globals,
-       aasmbase,aasmtai,symtype;
+       aasmbase,aasmtai,aasmdata,symtype;
 
     type
        pcaselabel = ^tcaselabel;
@@ -506,6 +506,7 @@ implementation
              hp:=pcaseblock(blocks[i]);
              dispose(hp);
            end;
+         blocks.free;
          inherited destroy;
       end;
 

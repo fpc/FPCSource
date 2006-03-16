@@ -68,7 +68,7 @@ interface
     uses
       globtype,globals,systems,
       cutils,verbose,
-      aasmbase,aasmtai,aasmcpu,symsym,symconst,
+      aasmbase,aasmtai,aasmdata,aasmcpu,symsym,symconst,
       defutil,
       nflw,pass_2,
       cgbase,cgobj,
@@ -125,7 +125,7 @@ interface
              (p is tasmlabel) then
            begin
              if not assigned(p.altsymbol) then
-               objectlibrary.GenerateAltSymbol(p);
+               current_asmdata.GenerateAltSymbol(p);
              p:=p.altsymbol;
              p.increfs;
            end;
@@ -217,13 +217,13 @@ interface
          if (nf_get_asm_position in flags) then
            begin
              { Add a marker, to be sure the list is not empty }
-             exprasmlist.concat(tai_marker.create(marker_position));
-             currenttai:=tai(exprasmlist.last);
+             current_asmdata.CurrAsmList.concat(tai_marker.create(mark_Position));
+             currenttai:=tai(current_asmdata.CurrAsmList.last);
              exit;
            end;
 
          { Allocate registers used in the assembler block }
-         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,used_regs_int);
+         cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,used_regs_int);
 
          if (po_inline in current_procinfo.procdef.procoptions) then
            begin
@@ -272,18 +272,18 @@ interface
                    ait_marker :
                      begin
                      { it's not an assembler block anymore }
-                       if (tai_marker(hp2).kind in [AsmBlockStart, AsmBlockEnd]) then
+                       if (tai_marker(hp2).kind in [mark_AsmBlockStart, mark_AsmBlockEnd]) then
                         skipnode:=true;
                      end;
                 end;
                 if not skipnode then
-                  exprasmList.concat(hp2)
+                  current_asmdata.CurrAsmList.concat(hp2)
                 else
                   hp2.free;
                 hp:=tai(hp.next);
               end;
              { restore used symbols }
-             objectlibrary.ResetAltSymbols;
+             current_asmdata.ResetAltSymbols;
            end
          else
            begin
@@ -308,11 +308,11 @@ interface
                 hp:=tai(hp.next);
               end;
              { insert the list }
-             exprasmList.concatlist(p_asm);
+             current_asmdata.CurrAsmList.concatlist(p_asm);
            end;
 
          { Release register used in the assembler block }
-         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,used_regs_int);
+         cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,used_regs_int);
        end;
 
 
@@ -330,8 +330,8 @@ interface
         { replace exitlabel? }
         if nf_block_with_exit in flags then
           begin
-            oldexitlabel:=current_procinfo.aktexitlabel;
-            objectlibrary.getjumplabel(current_procinfo.aktexitlabel);
+            oldexitlabel:=current_procinfo.CurrExitLabel;
+            current_asmdata.getjumplabel(current_procinfo.CurrExitLabel);
           end;
 
         { do second pass on left node }
@@ -353,8 +353,8 @@ interface
         { write exitlabel }
         if nf_block_with_exit in flags then
           begin
-            cg.a_label(exprasmlist,current_procinfo.aktexitlabel);
-            current_procinfo.aktexitlabel:=oldexitlabel;
+            cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrExitLabel);
+            current_procinfo.CurrExitLabel:=oldexitlabel;
           end;
       end;
 
@@ -375,7 +375,7 @@ interface
         if tempinfo^.restype.def.needs_inittable then
           begin
             location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
-            tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.location.reference);
+            tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.location.reference);
           end
         else if tempinfo^.may_be_in_reg then
           begin
@@ -385,7 +385,7 @@ interface
                   location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
                 else
                   location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.restype.def));
-                tempinfo^.location.register:=cg.getfpuregister(exprasmlist,tempinfo^.location.size);
+                tempinfo^.location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
               end
             else
               begin
@@ -396,18 +396,18 @@ interface
 {$ifndef cpu64bit}
                 if tempinfo^.location.size in [OS_64,OS_S64] then
                   begin
-                    tempinfo^.location.register64.reglo:=cg.getintregister(exprasmlist,OS_32);
-                    tempinfo^.location.register64.reghi:=cg.getintregister(exprasmlist,OS_32);
+                    tempinfo^.location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                    tempinfo^.location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                   end
                 else
 {$endif cpu64bit}
-                  tempinfo^.location.register:=cg.getintregister(exprasmlist,tempinfo^.location.size);
+                  tempinfo^.location.register:=cg.getintregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
               end;
           end
         else
           begin
             location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
-            tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.location.reference);
+            tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         tempinfo^.valid := true;
       end;
@@ -443,10 +443,10 @@ interface
         if (tempinfo^.location.loc<>LOC_REFERENCE) then
           internalerror(2004020203);
         if (tempinfo^.temptype = tt_persistent) then
-          tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tt_normal);
-        tg.ungettemp(exprasmlist,tempinfo^.location.reference);
+          tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal);
+        tg.ungettemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
         tempinfo^.location.reference := ref;
-        tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tempinfo^.temptype);
+        tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tempinfo^.temptype);
         { adapt location }
         location.reference := ref;
         inc(location.reference.offset,offset);
@@ -465,10 +465,10 @@ interface
           LOC_REFERENCE:
             begin
               if release_to_normal then
-                tg.ChangeTempType(exprasmlist,tempinfo^.location.reference,tt_normal)
+                tg.ChangeTempType(current_asmdata.CurrAsmList,tempinfo^.location.reference,tt_normal)
               else
                 begin
-                  tg.UnGetTemp(exprasmlist,tempinfo^.location.reference);
+                  tg.UnGetTemp(current_asmdata.CurrAsmList,tempinfo^.location.reference);
                   tempinfo^.valid := false;
                 end;
             end;
@@ -483,12 +483,12 @@ interface
 {$ifndef cpu64bit}
                   if tempinfo^.location.size in [OS_64,OS_S64] then
                     begin
-                      cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reghi);
-                      cg.a_reg_sync(exprasmlist,tempinfo^.location.register64.reglo);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reghi);
+                      cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register64.reglo);
                     end
                   else
 {$endif cpu64bit}
-                    cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+                    cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_REGISTER
@@ -503,7 +503,7 @@ interface
                 begin
                   { make sure the register allocator doesn't reuse the }
                   { register e.g. in the middle of a loop              }
-                  cg.a_reg_sync(exprasmlist,tempinfo^.location.register);
+                  cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_FPUREGISTER

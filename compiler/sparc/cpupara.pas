@@ -26,7 +26,7 @@ interface
     uses
       globtype,
       cclasses,
-      aasmtai,
+      aasmtai,aasmdata,
       cpubase,cpuinfo,
       symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase;
 

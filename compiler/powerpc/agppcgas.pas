@@ -30,7 +30,7 @@ unit agppcgas;
 
     uses
        aasmbase,
-       aasmtai,
+       aasmtai,aasmdata,
        aggas,
        cpubase,
        globtype;

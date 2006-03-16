@@ -26,7 +26,7 @@ unit rappc;
 interface
 
 uses
-  aasmbase, aasmtai, aasmcpu,
+  aasmbase, aasmtai,aasmdata, aasmcpu,
   cpubase, rautils, cclasses;
 
 type

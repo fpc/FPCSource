@@ -636,6 +636,7 @@ uses
          stringdispose(exefilename);
          stringdispose(outputpath);
          stringdispose(path);
+         stringdispose(paramfn);
          { Create names }
          paramfn := stringdup(fn);
          paramallowoutput := allowoutput;
@@ -684,9 +685,9 @@ uses
           p:=path^;
          sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
          { don't use extension alone to check, it can be empty !! }
-         if (OutputFile<>'') or (OutputExtension<>'') then 
+         if (OutputFile<>'') or (OutputExtension<>'') then
            exefilename:=stringdup(p+n+OutputExtension)
-         else  
+         else
            exefilename:=stringdup(p+n+target_info.exeext);
          mapfilename:=stringdup(p+n+'.map');
       end;
@@ -705,6 +706,7 @@ uses
         exefilename:=nil;
         mapfilename:=nil;
         outputpath:=nil;
+        paramfn:=nil;
         path:=nil;
         { status }
         state:=ms_registered;
@@ -738,6 +740,7 @@ uses
         stringdispose(modulename);
         stringdispose(realmodulename);
         stringdispose(mainsource);
+        stringdispose(paramfn);
         inherited destroy;
       end;
 

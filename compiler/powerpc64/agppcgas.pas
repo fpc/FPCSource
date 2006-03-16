@@ -30,7 +30,7 @@ unit agppcgas;
 interface
 
 uses
-  aasmtai,
+  aasmtai,aasmdata,
   aggas,
   cpubase;
 

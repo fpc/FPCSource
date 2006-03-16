@@ -32,7 +32,7 @@ unit rabase;
     type
        tbaseasmreader = class
          constructor create;virtual;
-         { the real return type is taasmoutput, but this would introduce too much unit circles }
+         { the real return type is TAsmList, but this would introduce too much unit circles }
          function Assemble: tlinkedlist;virtual;abstract;
        end;
        tcbaseasmreader = class of tbaseasmreader;
