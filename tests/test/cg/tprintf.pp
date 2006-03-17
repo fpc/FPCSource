@@ -93,7 +93,7 @@ begin
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   printf('Text containing long double: %Lf'+lineending,[e]);
-  sprintf(p,'Text containing long double: %f'+lineending,[e]);
+  sprintf(p,'Text containing long double: %Lf'+lineending,[e]);
   if strpos(p,'long double: 74.7')=nil then
     begin
       writeln('The output of sprintf for long double is wrong:',p);
