@@ -4104,20 +4104,30 @@ Const
      TVC_BYKEYBOARD = 2;
      TVC_BYMOUSE = 1;
      TVC_UNKNOWN = 0;
-  { Tab control styles  }
-     TCS_BUTTONS = 256;
-     TCS_FIXEDWIDTH = 1024;
-     TCS_FOCUSNEVER = 32768;
-     TCS_FOCUSONBUTTONDOWN = 4096;
-     TCS_FORCEICONLEFT = 16;
-     TCS_FORCELABELLEFT = 32;
-     TCS_MULTILINE = 512;
-     TCS_OWNERDRAWFIXED = 8192;
-     TCS_RAGGEDRIGHT = 2048;
+  { Tab control styles  } //commctrl
      TCS_RIGHTJUSTIFY = 0;
      TCS_SINGLELINE = 0;
      TCS_TABS = 0;
-     TCS_TOOLTIPS = 16384;
+     TCS_SCROLLOPPOSITE = $0001;  // assumes multiline tab
+     TCS_BOTTOM         = $0002;
+     TCS_RIGHT          = $0002;
+     TCS_MULTISELECT    = $0004;  // allow multi-select in button mode
+     TCS_FLATBUTTONS    = $0008;
+     TCS_FORCEICONLEFT  = 16;
+     TCS_FORCELABELLEFT = 32;
+     TCS_HOTTRACK       = $0040;
+     TCS_VERTICAL       = $0080;
+     TCS_BUTTONS = 256;
+     TCS_MULTILINE = 512;
+     TCS_FIXEDWIDTH = 1024;
+     TCS_RAGGEDRIGHT = 2048;
+     TCS_FOCUSONBUTTONDOWN = 4096;
+     TCS_OWNERDRAWFIXED = 8192;
+     TCS_TOOLTIPS= 16384;
+     TCS_FOCUSNEVER = 32768;
+
+     TCS_EX_FLATSEPARATORS = $00000001;
+
   { TC_ITEM structure  }
      TCIF_TEXT = 1;
      TCIF_IMAGE = 2;
