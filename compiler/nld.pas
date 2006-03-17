@@ -88,7 +88,7 @@ interface
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
           procedure force_type(tt:ttype);
-          procedure insert_typeconvs;
+          procedure insert_typeconvs(iscvarargs: boolean);
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
 
@@ -911,12 +911,14 @@ implementation
       end;
 
 
-    procedure tarrayconstructornode.insert_typeconvs;
+    procedure tarrayconstructornode.insert_typeconvs(iscvarargs: boolean);
       var
         hp        : tarrayconstructornode;
         dovariant : boolean;
       begin
-        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
+        if (iscvarargs) then
+          include(flags,nf_cvarargs);
+        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant or iscvarargs;
         { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
@@ -927,7 +929,8 @@ implementation
               { Insert typeconvs for array of const }
               if dovariant then
                begin
-                 if hp.left.nodetype=stringconstn then
+                 if not(iscvarargs) and
+                    (hp.left.nodetype=stringconstn) then
                    hp.left:=ctypeconvnode.create_internal(hp.left,cansistringtype)
                  else
                    case hp.left.resulttype.def.deftype of
@@ -935,10 +938,12 @@ implementation
                        hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
                      arraydef :
                        begin
-                         if is_chararray(hp.left.resulttype.def) then
+                         if not(iscvarargs) and
+                            is_chararray(hp.left.resulttype.def) then
                            hp.left:=ctypeconvnode.create_internal(hp.left,charpointertype)
                          else
-                           if is_widechararray(hp.left.resulttype.def) then
+                           if not(iscvarargs) and
+                              is_widechararray(hp.left.resulttype.def) then
                              hp.left:=ctypeconvnode.create_internal(hp.left,widecharpointertype)
                          else
                            CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
@@ -949,20 +954,43 @@ implementation
                             not(is_64bitint(hp.left.resulttype.def)) then
                            hp.left:=ctypeconvnode.create(hp.left,s32inttype)
                          else if is_void(hp.left.resulttype.def) then
-                           CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
+                           CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename)
+                         else if iscvarargs and
+                                 is_currency(hp.left.resulttype.def) then
+                                hp.left:=ctypeconvnode.create(hp.left,s64floattype);
                        end;
                      floatdef :
-                       if not(is_currency(hp.left.resulttype.def)) then
-                         hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
+                       if not(iscvarargs) then
+                         begin
+                           if not(is_currency(hp.left.resulttype.def)) then
+                             hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
+                         end
+                       else
+                         begin
+                           if is_constrealnode(hp.left) and
+                              not(nf_explicit in hp.left.flags) then
+                             MessagePos(hp.left.fileinfo,type_w_double_c_varargs);
+                           if (tfloatdef(hp.left.resulttype.def).typ in [{$ifndef x86_64}s32real,{$endif}s64currency]) or
+                              (is_constrealnode(hp.left) and
+                               not(nf_explicit in hp.left.flags)) then
+                             hp.left:=ctypeconvnode.create(hp.left,s64floattype);
+                         end;
                      procvardef :
                        hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
-                     stringdef,
-                     variantdef,
-                     pointerdef,
-                     classrefdef:
+                     stringdef:
+                       if iscvarargs then
+                         hp.left:=ctypeconvnode.create(hp.left,charpointertype);
+                     variantdef:
+                       if iscvarargs then
+                         CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
+                     pointerdef:
                        ;
+                     classrefdef:
+                       if iscvarargs then
+                         hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                      objectdef :
-                       if is_object(hp.left.resulttype.def) then
+                       if iscvarargs or
+                          is_object(hp.left.resulttype.def) then
                          CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
                      else
                        CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
@@ -987,7 +1015,9 @@ implementation
           resulttypepassed already }
         if assigned(left) then
           begin
-            insert_typeconvs;
+            { in case of C varargs, insert_typeconvs has already been called }
+            if not(nf_cvarargs in flags) then
+              insert_typeconvs(false);
             { call firstpass for all nodes }
             hp:=self;
             while assigned(hp) do

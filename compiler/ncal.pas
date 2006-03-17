@@ -564,13 +564,9 @@ type
              { typechecking needed                                       }
              if (cpf_varargs_para in callparaflags) then
                begin
-                 { convert pascal to C types }
-                 case left.resulttype.def.deftype of
-                   stringdef :
-                     inserttypeconv(left,charpointertype);
-                   floatdef :
-                     inserttypeconv(left,s64floattype);
-                 end;
+                 { this should only happen vor C varargs                    }
+                 { the necessary conversions have already been performed in }
+                 { tarrayconstructornode.insert_typeconvs                   }
                  set_varstate(left,vs_read,[vsf_must_be_valid]);
                  resulttype:=left.resulttype;
                  { also update parasym type to get the correct parameter location
@@ -1061,7 +1057,7 @@ type
         include(callnodeflags,cnf_uses_varargs);
         { Get arrayconstructor node and insert typeconvs }
         hp:=tarrayconstructornode(oldleft.left);
-        hp.insert_typeconvs;
+        hp.insert_typeconvs(true);
         { Add c args parameters }
         { It could be an empty set }
         if assigned(hp) and

@@ -349,6 +349,7 @@ const
   type_w_pointer_to_longint_conv_not_portable=04056;
   type_e_cant_choose_overload_function=04057;
   type_e_illegal_count_var=04058;
+  type_w_double_c_varargs=04059;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -672,9 +673,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39607;
+  MsgTxtSize = 39720;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,75,219,59,62,47,100,22,135,60,
+    19,75,219,60,62,47,100,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

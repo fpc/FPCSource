@@ -228,8 +228,9 @@ interface
          { tarrayconstructnode }
          nf_forcevaria,
          nf_novariaallowed,
+         nf_cvarargs,
 
-         { ttypeconvnode }
+         { ttypeconvnode, and the first one also treal/ord/pointerconstn }
          nf_explicit,
          nf_internal,  { no warnings/hints generated }
          nf_load_procvar,
