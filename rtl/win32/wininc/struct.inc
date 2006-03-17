@@ -3797,7 +3797,7 @@
      TLUID = LUID;
      PLUID = ^LUID;
 
-     LUID_AND_ATTRIBUTES = record
+     LUID_AND_ATTRIBUTES = packed record
           Luid : LUID;
           Attributes : DWORD;
        end;
