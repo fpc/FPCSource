@@ -47,7 +47,6 @@ type
       tvarargsparalist): longint; override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
 
-    procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
   private
     procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister;
       var cur_stack_offset: aword);
@@ -488,6 +487,11 @@ begin
   result := true;
 end;
 
+
+{
+                  
+    breaks e.g. tests/test/cg/tpara1
+                               
 procedure tppcparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 var
   paraloc : pcgparalocation;
@@ -501,6 +505,7 @@ begin
   else
     inherited createtempparaloc(list,calloption,parasym,cgpara);
 end;
+}
 
 begin
   paramanager := tppcparamanager.create;
