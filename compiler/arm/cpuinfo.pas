@@ -87,7 +87,7 @@ Const
 
    level1optimizerswitches = [cs_opt_level1];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe];
-   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3{,cs_opt_loopunroll}];
 
 Implementation
 

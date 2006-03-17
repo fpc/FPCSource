@@ -99,7 +99,7 @@ Const
 
    level1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
    level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe,cs_opt_asmcse];
-   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3,cs_opt_loopunroll];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3{,cs_opt_loopunroll}];
 
 Implementation
 
