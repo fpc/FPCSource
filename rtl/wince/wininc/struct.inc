@@ -2512,59 +2512,49 @@
      TDEVBROADCASTVOLUME = DEV_BROADCAST_VOLUME;
      PDEVBROADCASTVOLUME = ^DEV_BROADCAST_VOLUME;
 
-     DEVMODE = record
-          dmDeviceName : array[0..(CCHDEVICENAME)-1] of BCHAR;
-          dmSpecVersion : WORD;
-          dmDriverVersion : WORD;
-          dmSize : WORD;
-          dmDriverExtra : WORD;
-          dmFields : DWORD;
-          case byte of
-            1: (dmOrientation : SmallInt;
-                dmPaperSize : SmallInt;
-                dmPaperLength : SmallInt;
-                dmPaperWidth : SmallInt;
-                dmScale : SmallInt;
-                dmCopies : SmallInt;
-                dmDefaultSource : SmallInt;
-                dmPrintQuality : SmallInt;
-                dmColor : SmallInt;
-                dmDuplex : SmallInt;
-                dmYResolution : SmallInt;
-                dmTTOption : SmallInt;
-                dmCollate : SmallInt;
-                dmFormName : array[0..(CCHFORMNAME)-1] of BCHAR;
-                dmLogPixels : WORD;
-                dmBitsPerPel : DWORD;
-                dmPelsWidth : DWORD;
-                dmPelsHeight : DWORD;
-                dmDisplayFlags : DWORD;
-                dmDisplayFrequency : DWORD;
-                dmICMMethod : DWORD;
-                dmICMIntent : DWORD;
-                dmMediaType : DWORD;
-                dmDitherType : DWORD;
-                dmICCManufacturer : DWORD;
-                dmICCModel : DWORD
-               );
-            2: (dmPosition: POINTL;
-                dmDisplayOrientation: DWORD;
-                dmDisplayFixedOutput: DWORD;
-               );
-       end;
+     DEVMODEA   = record
+                     dmDeviceName   : array[0.. CCHDEVICENAME-1] of BCHAR;
+                     dmSpecVersion  : WORD;
+                     dmDriverVersion: WORD;
+                     dmSize        : WORD;
+                     dmDriverExtra  : WORD;
+                     dmFields       : DWORD;
+                     dmOrientation  : short;
+                     dmPaperSize    : short;
+                     dmPaperLength  : short;
+                     dmPaperWidth   : short;
+                     dmScale       : short;
+                     dmCopies      : short;
+                     dmDefaultSource: short;
+                     dmPrintQuality : short;
+                     dmColor       : short;
+                     dmDuplex      : short;
+                     dmYResolution  : short;
+                     dmTTOption    : short;
+                     dmCollate     : short;
+                     dmFormName     : array [0..CCHFORMNAME-1] of BCHAR;
+                     dmLogPixels    : WORD;
+                     dmBitsPerPel   : DWORD;
+                     dmPelsWidth    : DWORD;
+                     dmPelsHeight   : DWORD;
+                     dmDisplayFlags : DWORD;
+                     dmDisplayFrequency     : DWORD;
+                     dmICMMethod    : DWORD;
+                     dmICMIntent    : DWORD;
+                     dmMediaType    : DWORD;
+                     dmDitherType   : DWORD;
+                     dmReserved1    : DWORD;
+                     dmReserved2    : DWORD;
+                     dmPanningWidth : DWORD;
+                     dmPanningHeight: DWORD;
+                     dmDisplayOrientation : DWORD;
+                   end;
+     _DEVICEMODE1=DEVMODEA;
+     PDEVMODEA=^DEVMODEA;
+     NPDEVMODEA=^DEVMODEA;
+     LPDEVMODEA=^DEVMODEA;
 
-     LPDEVMODE = ^DEVMODE;
-     _devicemode = DEVMODE;
-     devicemode = DEVMODE;
-     tdevicemode = DEVMODE;
-     tdevicemodeA = DEVMODE;
-     PDeviceModeA = LPDEVMODE;
-     PDeviceMode = LPDEVMODE;
-     TDEVMODE = DEVMODE;
-     PDEVMODE = LPDEVMODE;
-
-
-     devmodeW   = record
+     DEVMODEW   = record
                      dmDeviceName   : array[0.. CCHDEVICENAME-1] of WCHAR;
                      dmSpecVersion  : WORD;
                      dmDriverVersion: WORD;
@@ -2590,15 +2580,8 @@
                      dmPelsWidth    : DWORD;
                      dmPelsHeight   : DWORD;
                      dmDisplayFlags : DWORD;
-                     dmDisplayFrequency     : DWORD;
-                     dmICMMethod    : DWORD;
-                     dmICMIntent    : DWORD;
-                     dmMediaType    : DWORD;
-                     dmDitherType   : DWORD;
-                     dmReserved1    : DWORD;
-                     dmReserved2    : DWORD;
-                     dmPanningWidth : DWORD;
-                     dmPanningHeight: DWORD;
+                     dmDisplayFrequency   : DWORD;
+                     dmDisplayOrientation : DWORD;
                    end;
 
      LPDEVMODEW   = ^DEVMODEW;
@@ -2607,8 +2590,31 @@
      TDeviceModeW = DEVMODEW;
      PDeviceModeW = LPDEVMODEW;
      TDEVMODEW    = DEVMODEW;
-     
      PDEVMODEW    = LPDEVMODEW;
+
+{$IFDEF UNICODE}
+     DEVMODE=DEVMODEW;
+     LPDEVMODE = ^DEVMODEW;
+     _devicemode = DEVMODEW;
+     devicemode = DEVMODEW;
+     tdevicemode = DEVMODEW;
+     tdevicemodeA = DEVMODEW;
+     PDeviceModeA = LPDEVMODEW;
+     PDeviceMode = LPDEVMODEW;
+     TDEVMODE = DEVMODEW;
+     PDEVMODE = LPDEVMODEW;
+{$ELSE UNICODE}
+     DEVMODE=DEVMODEA;
+     LPDEVMODE = ^DEVMODEA;
+     _devicemode = DEVMODEA;
+     devicemode = DEVMODEA;
+     tdevicemode = DEVMODEA;
+     tdevicemodeA = DEVMODEA;
+     PDeviceModeA = LPDEVMODEA;
+     PDeviceMode = LPDEVMODEA;
+     TDEVMODE = DEVMODEA;
+     PDEVMODE = LPDEVMODEA;
+{$ENDIF UNICODE}
 
      DEVNAMES = record
           wDriverOffset : WORD;
