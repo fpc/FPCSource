@@ -19,12 +19,13 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       terminfo dl dynlibs \
       video mouse \
       keyboard variants types dateutils sysconst \
-      cthreads classes strutils rtlconsts \
+      classes strutils rtlconsts \
+      # cthreads
       dos objects \
       cwstring fpmkunit
 
 
-rsts=math varutils typinfo classes variants dateutils  sysconst rtlconst fpmkunit
+rsts=math varutils typinfo classes variants dateutils sysconst rtlconst fpmkunit
 
 [require]
 nortl=y
