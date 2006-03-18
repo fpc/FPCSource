@@ -152,6 +152,7 @@ implementation
            case plist^.sltype of
              sl_load :
                begin
+                 addsymref(plist^.sym);
                  if not assigned(st) then
                    st:=plist^.sym.owner;
                  { p1 can already contain the loadnode of
@@ -172,7 +173,10 @@ implementation
                   p1:=cloadnode.create(plist^.sym,st);
                end;
              sl_subscript :
-               p1:=csubscriptnode.create(plist^.sym,p1);
+               begin
+                 addsymref(plist^.sym);
+                 p1:=csubscriptnode.create(plist^.sym,p1);
+               end;
              sl_typeconv :
                p1:=ctypeconvnode.create_explicit(p1,plist^.tt);
              sl_absolutetype :
@@ -1032,6 +1036,7 @@ implementation
                          if membercall then
                            include(callflags,cnf_member_call);
                          p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).writeaccess.firstsym^.sym),st,p1,callflags);
+                         addsymref(tpropertysym(sym).writeaccess.firstsym^.sym);
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
