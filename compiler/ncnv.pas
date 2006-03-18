@@ -1659,9 +1659,9 @@ implementation
         case left.nodetype of
           realconstn :
             begin
-              if is_currency(resulttype.def) then
+              if (convtype = tc_real_2_currency) then
                 result := resulttype_real_to_currency
-              else if (resulttype.def.deftype = floatdef) then
+              else if (convtype = tc_real_2_real) then
                 result := resulttype_real_to_real
               else
                 exit;
