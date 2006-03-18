@@ -280,7 +280,7 @@ begin
          else
            begin
              ExeCmd[1]:='ld $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
-             DllCmd[1]:='libtool $OPT -dynamic -init PASCALMAIN -multiply_defined suppress  -L. -o $EXE `cat $RES`'
+             DllCmd[1]:='libtool $OPT -dynamic -init _PASCALMAIN -multiply_defined suppress  -L. -o $EXE `cat $RES`'
            end
        end
      else
