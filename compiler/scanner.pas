@@ -301,6 +301,15 @@ implementation
               if changeinit then
                exclude(initlocalswitches,cs_ansistrings);
             end;
+
+           { support goto/label by default in delphi/tp7/mac modes }
+           if ([m_delphi,m_tp7,m_mac] * aktmodeswitches <> []) then
+             begin
+               include(aktmoduleswitches,cs_support_goto);
+               if changeinit then
+                 include(initmoduleswitches,cs_support_goto);
+             end;
+
            { Default enum packing for delphi/tp7 }
            if (m_tp7 in aktmodeswitches) or
               (m_delphi in aktmodeswitches) then
