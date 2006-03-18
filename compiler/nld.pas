@@ -938,12 +938,10 @@ implementation
                        hp.left:=ctypeconvnode.create_internal(hp.left,s32inttype);
                      arraydef :
                        begin
-                         if not(iscvarargs) and
-                            is_chararray(hp.left.resulttype.def) then
+                         if is_chararray(hp.left.resulttype.def) then
                            hp.left:=ctypeconvnode.create_internal(hp.left,charpointertype)
                          else
-                           if not(iscvarargs) and
-                              is_widechararray(hp.left.resulttype.def) then
+                           if is_widechararray(hp.left.resulttype.def) then
                              hp.left:=ctypeconvnode.create_internal(hp.left,widecharpointertype)
                          else
                            CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def.typename);
