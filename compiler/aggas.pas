@@ -586,8 +586,12 @@ implementation
                        asmwrite(#9'.globl ');
                        asmwriteln(Tai_datablock(hp).sym.name);
                      end;
+                   if (target_info.system <> system_arm_linux) then
+                     sepChar := '@'
+                   else
+                     sepChar := '#';
                    if (tf_needs_symbol_type in target_info.flags) then
-                     asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+',@object');
+                     asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
                    if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
                      asmwriteln(#9'.size '+Tai_datablock(hp).sym.name+','+tostr(Tai_datablock(hp).size));
                    asmwrite(Tai_datablock(hp).sym.name);
@@ -867,25 +871,16 @@ implementation
                else
                  begin
                    if (target_info.system <> system_arm_linux) then
-                     begin
-                       sepChar := '@';
-                     end
+                     sepChar := '@'
                    else
-                     begin
-                       sepChar := '#';
-                     end;
-
+                     sepChar := '#';
                    if (tf_needs_symbol_type in target_info.flags) then
                      begin
                        AsmWrite(#9'.type'#9 + tai_symbol(hp).sym.name);
                        if (needsObject(tai_symbol(hp))) then
-                         begin
-                           AsmWriteLn(',' + sepChar + 'object');
-                         end
+                         AsmWriteLn(',' + sepChar + 'object')
                        else
-                         begin
-                           AsmWriteLn(',' + sepChar + 'function');
-                         end;
+                         AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
                AsmWriteLn(tai_symbol(hp).sym.name + ':');
