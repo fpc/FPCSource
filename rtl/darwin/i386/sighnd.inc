@@ -30,7 +30,7 @@ begin
           FPE_FLTRES : Res:=208;  {Device not available}
           FPE_FLTINV : Res:=207;  {Invalid floating point operation}
           Else
-              Res:=208; {coprocessor error}
+            Res:=207; {coprocessor error}
         end;
         { the following is true on ppc, hopefully not on x86 as well }
         { FPU exceptions are completely disabled by the kernel if one occurred, it  }
