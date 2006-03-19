@@ -2937,7 +2937,7 @@
     opcode  : A_MOV;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_immediate,ot_none);
-    code    : #208#8#184#33;
+    code    : #208#8#184#29;
     flags   : if_386 or if_sd
   ),
   (

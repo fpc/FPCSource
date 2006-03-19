@@ -250,10 +250,13 @@ interface
          procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
-         inssize   : shortint;
+         insentry  : PInsEntry;
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
-         insentry  : PInsEntry;
+         inssize   : shortint;
+{$ifdef x86_64}
+         rex       : byte;
+{$endif x86_64}
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):boolean;
@@ -973,12 +976,16 @@ implementation
 *****************************************************************************}
 
     type
-      ea=packed record
+      ea = packed record
         sib_present : boolean;
         bytes : byte;
         size  : byte;
         modrm : byte;
         sib   : byte;
+{$ifdef x86_64}
+        rex_present : boolean;
+        rex   : byte;
+{$endif x86_64}
       end;
 
     procedure taicpu.create_ot(objdata:TObjData);
@@ -1414,7 +1421,19 @@ implementation
             output.bytes:=0;
             output.modrm:=$c0 or (rfield shl 3) or rv;
             output.size:=1;
+
+            if ((getregtype(input.reg)=R_INTREGISTER) and
+              (getsupreg(input.reg)>=RS_R8)) or
+              ((getregtype(input.reg)=R_MMREGISTER) and
+              (getsupreg(input.reg)>=RS_XMM8)) then
+              begin
+                output.rex_present:=true;
+                output.rex:=output.rex or $44;
+                inc(output.size,1);
+              end;
+
             process_ea:=true;
+
             exit;
          end;
         {No register, so memory reference.}
@@ -1444,36 +1463,32 @@ implementation
            { 16 bit address? }
            if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
               ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
-{$ifdef x86_64}
              message(asmw_e_16bit_32bit_not_supported);
-{$else x86_64}
-             message(asmw_e_16bit_not_supported);
-{$endif x86_64}
-{$ifdef OPTEA}
-           { make single reg base }
-           if (br=NR_NO) and (s=1) then
-            begin
-              br:=ir;
-              ir:=NR_NO;
-            end;
-           { convert [3,5,9]*EAX to EAX+[2,4,8]*EAX }
-           if (br=NR_NO) and
-              (((s=2) and (ir<>NR_ESP)) or
-                (s=3) or (s=5) or (s=9)) then
-            begin
-              br:=ir;
-              dec(s);
-            end;
-           { swap ESP into base if scalefactor is 1 }
-           if (s=1) and (ir=NR_ESP) then
-            begin
-              ir:=br;
-              br:=NR_ESP;
-            end;
-{$endif OPTEA}
            { wrong, for various reasons }
            if (ir=NR_ESP) or ((s<>1) and (s<>2) and (s<>4) and (s<>8) and (ir<>NR_NO)) then
             exit;
+
+           if ((getregtype(br)=R_INTREGISTER) and
+             (getsupreg(br)>=RS_R8)) or
+             ((getregtype(br)=R_MMREGISTER) and
+             (getsupreg(br)>=RS_XMM8)) then
+             begin
+               output.rex_present:=true;
+               output.rex:=output.rex or $41;
+             end;
+
+           if ((getregtype(ir)=R_INTREGISTER) and
+             (getsupreg(ir)>=RS_R8)) or
+             ((getregtype(ir)=R_MMREGISTER) and
+             (getsupreg(ir)>=RS_XMM8)) then
+             begin
+               output.rex_present:=true;
+               output.rex:=output.rex or $42;
+             end;
+
+           process_ea:=true;
+
+
            { base }
            case br of
              NR_RAX : base:=0;
@@ -1490,14 +1505,14 @@ implementation
            end;
            { index }
            case ir of
-             NR_EAX : index:=0;
-             NR_ECX : index:=1;
-             NR_EDX : index:=2;
-             NR_EBX : index:=3;
+             NR_RAX : index:=0;
+             NR_RCX : index:=1;
+             NR_RDX : index:=2;
+             NR_RBX : index:=3;
              NR_NO  : index:=4;
-             NR_EBP : index:=5;
-             NR_ESI : index:=6;
-             NR_EDI : index:=7;
+             NR_RBP : index:=5;
+             NR_RSI : index:=6;
+             NR_RDI : index:=7;
            else
              exit;
            end;
@@ -1535,10 +1550,7 @@ implementation
               output.sib:=(scalefactor shl 6) or (index shl 3) or base;
             end;
          end;
-        if output.sib_present then
-         output.size:=2+output.bytes
-        else
-         output.size:=1+output.bytes;
+        output.size:=1+ord(output.sib_present)+ord(output.rex_present)+output.bytes;
         process_ea:=true;
       end;
 
@@ -1708,7 +1720,19 @@ implementation
                 inc(codes,c);
                 inc(len,c);
               end;
-            8,9,10,11 :
+            8,9,10 :
+              begin
+{$ifdef x86_64}
+                if ((getregtype(oper[c-8]^.reg)=R_INTREGISTER) and
+                  (getsupreg(oper[c-8]^.reg)>=RS_R8)) or
+                  ((getregtype(oper[c-8]^.reg)=R_MMREGISTER) and
+                  (getsupreg(oper[c-8]^.reg)>=RS_XMM8)) then
+                  rex:=rex or $41;
+{$endif x86_64}
+                inc(codes);
+                inc(len);
+              end;
+            11 :
               begin
                 inc(codes);
                 inc(len);
@@ -1730,7 +1754,13 @@ implementation
             31,
             48,49,50 :
               inc(len,2);
-            28,29,30, { we don't have 16 bit immediates code }
+            28,29,30:
+              begin
+                if opsize=S_Q then
+                  inc(len,8)
+                else
+                  inc(len,4);
+              end;
             32,33,34,
             52,53,54,
             56,57,58 :
@@ -1741,9 +1771,15 @@ implementation
             208,209,210 :
               begin
                 case (oper[c-208]^.ot and OT_SIZE_MASK) of
-                  OT_BITS16,
-                  OT_BITS64 :
+                  OT_BITS16:
                     inc(len);
+{$ifdef x86_64}
+                  OT_BITS64:
+                    begin
+                      rex:=rex or $48;
+                      inc(len);
+                    end;
+{$endif x86_64}
                 end;
               end;
             212,
@@ -1759,10 +1795,21 @@ implementation
               inc(len);
             64..191 :
               begin
+{$ifdef x86_64}
+                ea_data.rex:=0;
+                ea_data.rex_present:=false;
+{$endif x86_64}
                 if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0) then
-                 Message(asmw_e_invalid_effective_address)
+                  Message(asmw_e_invalid_effective_address)
                 else
-                 inc(len,ea_data.size);
+                  inc(len,ea_data.size);
+{$ifdef x86_64}
+                { did we already create include a rex into the length calculation? }
+                if (rex<>0) and (ea_data.rex<>0) then
+                  dec(len);
+                rex:=rex or ea_data.rex;
+{$endif x86_64}
+
               end;
             else
              InternalError(200603141);
@@ -1821,26 +1868,26 @@ implementation
       }
 
       var
-        currval : longint;
+        currval : aint;
         currsym : tobjsymbol;
 
         procedure getvalsym(opidx:longint);
-        begin
-          case oper[opidx]^.typ of
-            top_ref :
-              begin
-                currval:=oper[opidx]^.ref^.offset;
-                currsym:=ObjData.symbolref(oper[opidx]^.ref^.symbol);
-              end;
-            top_const :
-              begin
-                currval:=longint(oper[opidx]^.val);
-                currsym:=nil;
-              end;
-            else
-              Message(asmw_e_immediate_or_reference_expected);
+          begin
+            case oper[opidx]^.typ of
+              top_ref :
+                begin
+                  currval:=oper[opidx]^.ref^.offset;
+                  currsym:=ObjData.symbolref(oper[opidx]^.ref^.symbol);
+                end;
+              top_const :
+                begin
+                  currval:=longint(oper[opidx]^.val);
+                  currsym:=nil;
+                end;
+              else
+                Message(asmw_e_immediate_or_reference_expected);
+            end;
           end;
-        end;
 
       const
         CondVal:array[TAsmCond] of byte=($0,
@@ -1855,7 +1902,13 @@ implementation
         rfield,
         data,s,opidx : longint;
         ea_data : ea;
+{$ifdef extdebug}
+        rexwritten : boolean;
+{$endif extdebug}
       begin
+{$ifdef extdebug}
+        rexwritten:=false;
+{$endif extdebug}
         { safety check }
         if objdata.currobjsec.size<>insoffset then
           internalerror(200130121);
@@ -1914,6 +1967,13 @@ implementation
               end;
             8,9,10 :
               begin
+                { rex should be written at this point }
+{$ifdef x86_64}
+{$ifdef extdebug}
+                if (rex<>0) and not(rexwritten) then
+                  internalerror(200603192);
+{$endif extdebug}
+{$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
                 objdata.writebytes(bytes,1);
@@ -1972,10 +2032,20 @@ implementation
             28,29,30 :
               begin
                 getvalsym(c-28);
-                if assigned(currsym) then
-                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                if opsize=S_Q then
+                  begin
+                    if assigned(currsym) then
+                     objdata.writereloc(currval,8,currsym,RELOC_ABSOLUTE)
+                    else
+                     objdata.writebytes(currval,8);
+                  end
                 else
-                 objdata.writebytes(currval,4);
+                  begin
+                    if assigned(currsym) then
+                     objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                    else
+                     objdata.writebytes(currval,4);
+                  end
               end;
             32,33,34 :
               begin
@@ -2032,15 +2102,21 @@ implementation
                       bytes[0]:=$66;
                       objdata.writebytes(bytes,1);
                     end;
-                  OT_BITS64 :
-                    begin
 {$ifndef x86_64}
+                  OT_BITS64 :
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
-                      bytes[0]:=$48;
-                      objdata.writebytes(bytes,1);
-                    end;
                 end;
+{$ifdef x86_64}
+                if rex<>0 then
+                  begin
+                    bytes[0]:=rex;
+{$ifdef extdebug}
+                    rexwritten:=true;
+{$endif extdebug}
+                    objdata.writebytes(bytes,1);
+                  end;
+{$endif x86_64}
               end;
             212 :
               begin
@@ -2081,6 +2157,13 @@ implementation
               end
             else
               begin
+                { rex should be written at this point }
+{$ifdef x86_64}
+{$ifdef extdebug}
+                if (rex<>0) and not(rexwritten) then
+                  internalerror(200603191);
+{$endif extdebug}
+{$endif x86_64}
                 if (c>=64) and (c<=191) then
                  begin
                    if (c<127) then
@@ -2094,7 +2177,7 @@ implementation
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
                    if not process_ea(oper[opidx]^,ea_data,rfield) then
-                    Message(asmw_e_invalid_effective_address);
+                     Message(asmw_e_invalid_effective_address);
 
                    pb:=@bytes;
                    pb^:=chr(ea_data.modrm);
