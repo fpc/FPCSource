@@ -589,7 +589,7 @@ implementation
                    if (target_info.system <> system_arm_linux) then
                      sepChar := '@'
                    else
-                     sepChar := '#';
+                     sepChar := '%';
                    if (tf_needs_symbol_type in target_info.flags) then
                      asmwriteln(#9'.type '+Tai_datablock(hp).sym.name+','+sepChar+'object');
                    if (tf_needs_symbol_size in target_info.flags) and (tai_datablock(hp).size > 0) then
