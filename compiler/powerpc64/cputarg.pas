@@ -59,9 +59,7 @@ implementation
              Debuginfo
 **************************************}
 
-  {$ifndef NoDbgStabs}
-      ,dbgstabs
-  {$endif NoDbgStabs}
+{ stabs debug info are not supported, so do not include them here}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}

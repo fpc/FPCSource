@@ -793,12 +793,7 @@ begin
                        end;
                      's' :
                        begin
-                         { stabs debug information not supported }
-                         {$ifdef powerpc64}
-                         IllegalPara(opt);
-                         {$else}
                          paratargetdbg:=dbg_stabs;
-                         {$endif}
                        end;
                      'v' :
                        begin
