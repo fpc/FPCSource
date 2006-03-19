@@ -302,7 +302,22 @@ implementation
               end;
            end
          else
-           location_copy(location,left.location);
+           begin
+             location_copy(location,left.location);
+             { some abi's require that functions return (some) records in }
+             { registers                                                  }
+             case location.loc of
+               LOC_REGISTER:
+                 location_force_mem(current_asmdata.CurrAsmList,location);
+               LOC_REFERENCE,
+               LOC_CREFERENCE:
+                 ;
+{              record regvars are not supported yet 
+               LOC_CREGISTER:                        }
+               else
+                 internalerror(2006031901);
+             end;
+           end;
 
          inc(location.reference.offset,vs.fieldoffset);
          { also update the size of the location }
