@@ -73,7 +73,7 @@ Begin
    InOutRes:=3;
 End;
 
-{ // $define usegetcwd}
+{$define usegetcwd}
 
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
