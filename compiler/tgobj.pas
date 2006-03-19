@@ -353,11 +353,6 @@ implementation
           end
          else
           begin
-            { create a new temp, we need to allocate at least a minimum of
-              4 bytes, else we get two temps at the same position resulting
-              in problems when finding the corresponding temprecord }
-            if size<4 then
-             size:=4;
             { now we can create the templist entry }
             new(tl);
             tl^.temptype:=temptype;
