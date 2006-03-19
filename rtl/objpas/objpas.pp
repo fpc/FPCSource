@@ -240,20 +240,38 @@ Type
      CurrentValue,
      DefaultValue : AnsiString;
      HashValue    : LongWord;
+{$ifdef cpu64}
+     Dummy        : LongWord; // alignment
+{$endif cpu64}
+   end;
+
+   TResourceStringTableList = Packed Record
+     Count : ptrint;
+     Tables : Array[Word] of record
+       TableStart,
+       TableEnd   : PResourceStringRecord;
+     end;
    end;
 
 Var
-  ResourceStrings : TResourceStringRecord; External Name 'FPC_RESOURCESTRINGS';
+  ResourceStringTable : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
 
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
+  i      : Longint;
 begin
-  ResStr:=@ResourceStrings;
-  while ResStr^.Name<>'' do
+  With ResourceStringTable do
     begin
-      ResStr^.CurrentValue:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
-      inc(ResStr);
+      For i:=0 to Count-1 do
+        begin
+          ResStr:=Tables[I].TableStart;
+          while ResStr<Tables[I].TableEnd do
+            begin
+              ResStr^.CurrentValue:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              inc(ResStr);
+            end;
+        end;
     end;
 end;
 
@@ -261,12 +279,19 @@ end;
 Procedure ResetResourceTables;
 Var
   ResStr : PResourceStringRecord;
+  i      : Longint;
 begin
-  ResStr:=@ResourceStrings;
-  while ResStr^.Name<>'' do
+  With ResourceStringTable do
     begin
-      ResStr^.CurrentValue:=ResStr^.DefaultValue;
-      inc(ResStr);
+      For i:=0 to Count-1 do
+        begin
+          ResStr:=Tables[I].TableStart;
+          while ResStr<Tables[I].TableEnd do
+            begin
+              ResStr^.CurrentValue:=ResStr^.DefaultValue;
+              inc(ResStr);
+            end;
+        end;
     end;
 end;
 
@@ -274,12 +299,19 @@ end;
 Procedure FinalizeResourceTables;
 Var
   ResStr : PResourceStringRecord;
+  i      : Longint;
 begin
-  ResStr:=@ResourceStrings;
-  while ResStr^.Name<>'' do
+  With ResourceStringTable do
     begin
-      ResStr^.CurrentValue:='';
-      inc(ResStr);
+      For i:=0 to Count-1 do
+        begin
+          ResStr:=Tables[I].TableStart;
+          while ResStr<Tables[I].TableEnd do
+            begin
+              ResStr^.CurrentValue:='';
+              inc(ResStr);
+            end;
+        end;
     end;
 end;
 
