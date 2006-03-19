@@ -5,7 +5,7 @@
 
 {$asmmode intel }
 
-procedure SomePostScript; assembler;
+procedure SomePostScript; assembler;nostackframe;
   asm
     db '/pop2 { pop pop } def',0;
   end;
