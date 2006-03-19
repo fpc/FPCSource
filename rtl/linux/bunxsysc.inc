@@ -381,12 +381,6 @@ begin
   fptimes:=Do_syscall(syscall_nr_times,TSysParam(@buffer));
 end;
 
-function pfpgetcwd(path : pchar; siz:tsize):pchar;  [public, alias : 'FPC_SYSC_GETCWD'];
-
-begin
-  pfpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
-end;
-
 Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
