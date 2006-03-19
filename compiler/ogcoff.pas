@@ -97,7 +97,7 @@ interface
          function writedata(data:TObjData):boolean;override;
        public
          constructor createcoff(AWriter:TObjectWriter;awin32:boolean);
-         destructor destroy;
+         destructor destroy;override;
        end;
 
        TDJCoffObjOutput = class(TCoffObjOutput)
@@ -423,7 +423,7 @@ implementation
        symbolresize = 200*sizeof(coffsymbol);
        strsresize   = 8192;
 
-       coffsecnames : array[TAsmSectiontype] of string[16] = ('',
+       coffsecnames : array[TAsmSectiontype] of string[17] = ('',
           '.text','.data','.data','.bss','.tls',
           '.text',
           '.stab','.stabstr',
@@ -431,7 +431,7 @@ implementation
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
-                  ''
+          ''
         );
 
 const go32v2stub : array[0..2047] of byte=(

@@ -62,8 +62,8 @@ implementation
       var
          len,base  : longint;
          p,hp      : tnode;
-         i,j,l,
-         varalign  : longint;
+         i,j,l     : longint;
+         varalign  : shortint;
          offset,
          strlength : aint;
          ll        : tasmlabel;
@@ -85,7 +85,6 @@ implementation
          storefilepos : tfileposinfo;
          cursectype : TAsmSectiontype;
          cural : tasmlisttype;
-         sizelabel : tasmlabel;
 
          procedure check_range(def:torddef);
            begin

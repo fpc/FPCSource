@@ -663,7 +663,7 @@ implementation
 
     function TObjData.sectionname(atype:TAsmSectiontype;const aname:string):string;
       const
-        secnames : array[TAsmSectiontype] of string[13] = ('',
+        secnames : array[TAsmSectiontype] of string[16] = ('',
           'code',
           'data',
           'rodata',
@@ -690,7 +690,7 @@ implementation
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {code} [oso_data,oso_load,oso_readonly,oso_executable,oso_keep],
           {data} [oso_data,oso_load,oso_write,oso_keep],
-{$warning TODO Fix rodata be really read-only}
+{$warning TODO Fix rodata be read-only}
           {rodata} [oso_data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
           {threadvar} [oso_load,oso_write],

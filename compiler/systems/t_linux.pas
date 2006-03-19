@@ -323,7 +323,7 @@ Var
   found2,
   linklibc     : boolean;
 begin
-  WriteResponseFile:=False;
+  result:=False;
 { set special options for some targets }
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   if isdll then
@@ -367,205 +367,207 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  with linkres do
+    begin
+      { Write path to search libraries }
+      HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+      while assigned(HPath) do
+       begin
+         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         HPath:=TStringListItem(HPath.Next);
+       end;
+      HPath:=TStringListItem(LibrarySearchPath.First);
+      while assigned(HPath) do
+       begin
+         Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
+         HPath:=TStringListItem(HPath.Next);
+       end;
 
-  { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
-   end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
-   end;
+      Add('INPUT(');
+      { add objectfiles, start with prt0 always }
+      if prtobj<>'' then
+       AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+      { try to add crti and crtbegin if linking to C }
+      if linklibc then
+       begin
+         if librarysearchpath.FindFile('crtbegin.o',s) then
+          AddFileName(s);
+         if librarysearchpath.FindFile('crti.o',s) then
+          AddFileName(s);
+       end;
+      { main objectfiles }
+      while not ObjectFiles.Empty do
+       begin
+         s:=ObjectFiles.GetFirst;
+         if s<>'' then
+          AddFileName(maybequoted(s));
+       end;
+      Add(')');
 
-  LinkRes.Add('INPUT(');
-  { add objectfiles, start with prt0 always }
-  if prtobj<>'' then
-   LinkRes.AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
-  { try to add crti and crtbegin if linking to C }
-  if linklibc then
-   begin
-     if librarysearchpath.FindFile('crtbegin.o',s) then
-      LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crti.o',s) then
-      LinkRes.AddFileName(s);
-   end;
-  { main objectfiles }
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
-   end;
-  LinkRes.Add(')');
+      { Write staticlibraries }
+      if not StaticLibFiles.Empty then
+       begin
+         Add('GROUP(');
+         While not StaticLibFiles.Empty do
+          begin
+            S:=StaticLibFiles.GetFirst;
+            AddFileName(maybequoted(s))
+          end;
+         Add(')');
+       end;
 
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     LinkRes.Add('GROUP(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s))
-      end;
-     LinkRes.Add(')');
-   end;
+      { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+        here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+      if not SharedLibFiles.Empty then
+       begin
+         Add('INPUT(');
+         While not SharedLibFiles.Empty do
+          begin
+            S:=SharedLibFiles.GetFirst;
+            if s<>'c' then
+             begin
+               i:=Pos(target_info.sharedlibext,S);
+               if i>0 then
+                Delete(S,i,255);
+               Add('-l'+s);
+             end
+            else
+             begin
+               linklibc:=true;
+             end;
+          end;
+         { be sure that libc is the last lib }
+         if linklibc then
+          Add('-lc');
+         { when we have -static for the linker the we also need libgcc }
+         if (cs_link_staticflag in aktglobalswitches) then
+          Add('-lgcc');
+         Add(')');
+       end;
 
-  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  if not SharedLibFiles.Empty then
-   begin
-     LinkRes.Add('INPUT(');
-     While not SharedLibFiles.Empty do
-      begin
-        S:=SharedLibFiles.GetFirst;
-        if s<>'c' then
-         begin
-           i:=Pos(target_info.sharedlibext,S);
-           if i>0 then
-            Delete(S,i,255);
-           LinkRes.Add('-l'+s);
-         end
-        else
-         begin
-           linklibc:=true;
-         end;
-      end;
-     { be sure that libc is the last lib }
-     if linklibc then
-      LinkRes.Add('-lc');
-     { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in aktglobalswitches) then
-      LinkRes.Add('-lgcc');
-     LinkRes.Add(')');
-   end;
+      { objects which must be at the end }
+      if linklibc and (libctype<>uclibc) then
+       begin
+         found1:=librarysearchpath.FindFile('crtend.o',s1);
+         found2:=librarysearchpath.FindFile('crtn.o',s2);
+         if found1 or found2 then
+          begin
+            Add('INPUT(');
+            if found1 then
+             AddFileName(s1);
+            if found2 then
+             AddFileName(s2);
+            Add(')');
+          end;
+       end;
 
-  { objects which must be at the end }
-  if linklibc and (libctype<>uclibc) then
-   begin
-     found1:=librarysearchpath.FindFile('crtend.o',s1);
-     found2:=librarysearchpath.FindFile('crtn.o',s2);
-     if found1 or found2 then
-      begin
-        LinkRes.Add('INPUT(');
-        if found1 then
-         LinkRes.AddFileName(s1);
-        if found2 then
-         LinkRes.AddFileName(s2);
-        LinkRes.Add(')');
-      end;
-   end;
-  {Entry point.}
-  linkres.add('ENTRY(_start)');
+      {Entry point.}
+      add('ENTRY(_start)');
 
-  {Sections.}
-{$ifdef OwnLDScript}
-  commented out because it cause problems on several machines with different ld versions (FK)
-  linkres.add('SECTIONS');
-  linkres.add('{');
-  {Read-only sections, merged into text segment:}
-  linkres.add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 +0x100;');
-  linkres.add('  .interp         : { *(.interp) }');
-  linkres.add('  .hash           : { *(.hash) }');
-  linkres.add('  .dynsym         : { *(.dynsym) }');
-  linkres.add('  .dynstr         : { *(.dynstr) }');
-  linkres.add('  .gnu.version    : { *(.gnu.version) }');
-  linkres.add('  .gnu.version_d  : { *(.gnu.version_d) }');
-  linkres.add('  .gnu.version_r  : { *(.gnu.version_r) }');
-  linkres.add('  .rel.dyn        :');
-  linkres.add('    {');
-  linkres.add('      *(.rel.init)');
-  linkres.add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
-  linkres.add('      *(.rel.fini)');
-  linkres.add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
-  linkres.add('      *(.rel.data.rel.ro*)');
-  linkres.add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
-  linkres.add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
-  linkres.add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
-  linkres.add('      *(.rel.got)');
-  linkres.add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
-  linkres.add('    }');
-  linkres.add('  .rela.dyn       :');
-  linkres.add('    {');
-  linkres.add('      *(.rela.init)');
-  linkres.add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
-  linkres.add('      *(.rela.fini)');
-  linkres.add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
-  linkres.add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
-  linkres.add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
-  linkres.add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
-  linkres.add('      *(.rela.got)');
-  linkres.add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
-  linkres.add('    }');
-  linkres.add('  .rel.plt        : { *(.rel.plt) }');
-  linkres.add('  .rela.plt       : { *(.rela.plt) }');
-  linkres.add('  .init           :');
-  linkres.add('  {');
-  linkres.add('    KEEP (*(.init))');
-  linkres.add('  } =0x90909090');
-  linkres.add('  .plt            : { *(.plt) }');
-  linkres.add('  .text           :');
-  linkres.add('  {');
-  linkres.add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
-  linkres.add('    KEEP (*(.text.*personality*))');
-                   {.gnu.warning sections are handled specially by elf32.em.}
-  linkres.add('    *(.gnu.warning)');
-  linkres.add('  } =0x90909090');
-  linkres.add('  .fini           :');
-  linkres.add('  {');
-  linkres.add('    KEEP (*(.fini))');
-  linkres.add('  } =0x90909090');
-  linkres.add('  PROVIDE (_etext = .);');
-  linkres.add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
-  {Adjust the address for the data segment.  We want to adjust up to
-   the same address within the page on the next page up.}
-  linkres.add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1)); . = DATA_SEGMENT_ALIGN (0x1000, 0x1000);');
-  linkres.add('  .dynamic        : { *(.dynamic) }');
-  linkres.add('  .got            : { *(.got) }');
-  linkres.add('  .got.plt        : { *(.got.plt) }');
-  linkres.add('  .data           :');
-  linkres.add('  {');
-  linkres.add('    *(.data .data.* .gnu.linkonce.d.*)');
-  linkres.add('    KEEP (*(.gnu.linkonce.d.*personality*))');
-  linkres.add('  }');
-  linkres.add('  _edata = .;');
-  linkres.add('  PROVIDE (edata = .);');
-{$ifdef zsegment_threadvars}
-  linkres.add('  _z = .;');
-  linkres.add('  .threadvar 0 : AT (_z) { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
-  linkres.add('  PROVIDE (_threadvar_size = SIZEOF(.threadvar));');
-  linkres.add('  . = _z + SIZEOF (.threadvar);');
-{$else}
-  linkres.add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
-{$endif}
-  linkres.add('  __bss_start = .;');
-  linkres.add('  .bss            :');
-  linkres.add('  {');
-  linkres.add('   *(.dynbss)');
-  linkres.add('   *(.bss .bss.* .gnu.linkonce.b.*)');
-  linkres.add('   *(COMMON)');
-  {Align here to ensure that the .bss section occupies space up to
-   _end.  Align after .bss to ensure correct alignment even if the
-   .bss section disappears because there are no input sections.}
-  linkres.add('   . = ALIGN(32 / 8);');
-  linkres.add('  }');
-  linkres.add('  . = ALIGN(32 / 8);');
-  linkres.add('  _end = .;');
-  linkres.add('  PROVIDE (end = .);');
-  linkres.add('  . = DATA_SEGMENT_END (.);');
-  {Stabs debugging sections.}
-  linkres.add('  .stab          0 : { *(.stab) }');
-  linkres.add('  .stabstr       0 : { *(.stabstr) }');
-  linkres.add('}');
-{$endif OwnLDScript}
+      {Sections.}
+      add('SECTIONS');
+      add('{');
+      {Read-only sections, merged into text segment:}
+      add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 +0x100;');
+      add('  .interp         : { *(.interp) }');
+      add('  .hash           : { *(.hash) }');
+      add('  .dynsym         : { *(.dynsym) }');
+      add('  .dynstr         : { *(.dynstr) }');
+      add('  .gnu.version    : { *(.gnu.version) }');
+      add('  .gnu.version_d  : { *(.gnu.version_d) }');
+      add('  .gnu.version_r  : { *(.gnu.version_r) }');
+      add('  .rel.dyn        :');
+      add('    {');
+      add('      *(.rel.init)');
+      add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
+      add('      *(.rel.fini)');
+      add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
+      add('      *(.rel.data.rel.ro*)');
+      add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
+      add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
+      add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
+      add('      *(.rel.got)');
+      add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
+      add('    }');
+      add('  .rela.dyn       :');
+      add('    {');
+      add('      *(.rela.init)');
+      add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+      add('      *(.rela.fini)');
+      add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+      add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+      add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+      add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+      add('      *(.rela.got)');
+      add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+      add('    }');
+      add('  .rel.plt        : { *(.rel.plt) }');
+      add('  .rela.plt       : { *(.rela.plt) }');
+      add('  .init           :');
+      add('  {');
+      add('    KEEP (*(.init))');
+      add('  } =0x90909090');
+      add('  .plt            : { *(.plt) }');
+      add('  .text           :');
+      add('  {');
+      add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+      add('    KEEP (*(.text.*personality*))');
+      {.gnu.warning sections are handled specially by elf32.em.}
+      add('    *(.gnu.warning)');
+      add('  } =0x90909090');
+      add('  .fini           :');
+      add('  {');
+      add('    KEEP (*(.fini))');
+      add('  } =0x90909090');
+      add('  PROVIDE (_etext = .);');
+      add('  .rodata         :');
+      add('  {');
+      add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
+      add('  }');
+      {Adjust the address for the data segment.  We want to adjust up to
+       the same address within the page on the next page up.}
+      add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
+      add('  .dynamic        : { *(.dynamic) }');
+      add('  .got            : { *(.got) }');
+      add('  .got.plt        : { *(.got.plt) }');
+      add('  .data           :');
+      add('  {');
+      add('    *(.data .data.* .gnu.linkonce.d.*)');
+      add('    KEEP (*(.gnu.linkonce.d.*personality*))');
+      add('  }');
+      add('  _edata = .;');
+      add('  PROVIDE (edata = .);');
+    {$ifdef zsegment_threadvars}
+      add('  _z = .;');
+      add('  .threadvar 0 : AT (_z) { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+      add('  PROVIDE (_threadvar_size = SIZEOF(.threadvar));');
+      add('  . = _z + SIZEOF (.threadvar);');
+    {$else}
+      add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+    {$endif}
+      add('  __bss_start = .;');
+      add('  .bss            :');
+      add('  {');
+      add('   *(.dynbss)');
+      add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+      add('   *(COMMON)');
+      {Align here to ensure that the .bss section occupies space up to
+       _end.  Align after .bss to ensure correct alignment even if the
+       .bss section disappears because there are no input sections.}
+      add('   . = ALIGN(32 / 8);');
+      add('  }');
+      add('  . = ALIGN(32 / 8);');
+      add('  _end = .;');
+      add('  PROVIDE (end = .);');
+      {Stabs debugging sections.}
+      add('  .stab          0 : { *(.stab) }');
+      add('  .stabstr       0 : { *(.stabstr) }');
+      add('}');
 
-{ Write and Close response }
-  LinkRes.writetodisk;
-  LinkRes.Free;
+      { Write and Close response }
+      writetodisk;
+      Free;
+    end;
 
   WriteResponseFile:=True;
 end;
@@ -593,6 +595,8 @@ begin
    StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';
+  if (cs_link_map in aktglobalswitches) then
+   StripStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
   if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in aktmoduleswitches) or

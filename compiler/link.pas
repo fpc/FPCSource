@@ -901,6 +901,8 @@ end;
             else
               Comment(V_Error,'DLL not found: '+s);
           end;
+        { Fill external symbols data }
+        exeoutput.FixupSymbols;
         if ErrorCount>0 then
           goto myexit;
 
@@ -913,7 +915,6 @@ end;
 
         { Calc positions in mem and file }
         ParseScript_CalcPos;
-        exeoutput.FixupSymbols;
         exeoutput.FixupRelocations;
         exeoutput.PrintMemoryMap;
         if ErrorCount>0 then

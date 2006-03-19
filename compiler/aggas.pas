@@ -232,7 +232,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
       const
-        secnames : array[TAsmSectiontype] of string[13] = ('',
+        secnames : array[TAsmSectiontype] of string[17] = ('',
           '.text',
           '.data',
 {$warning TODO .rodata not yet working}
@@ -248,7 +248,7 @@ implementation
           'fpc.resptrs',
           '.toc'
         );
-        secnames_pic : array[TAsmSectiontype] of string[13] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[17] = ('',
           '.text',
           '.data.rel',
           '.data.rel',

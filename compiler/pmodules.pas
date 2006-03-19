@@ -155,6 +155,8 @@ implementation
         ltvTables : TAsmList;
         count : longint;
       begin
+        if (tf_section_threadvars in target_info.flags) then
+          exit;
         ltvTables:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
@@ -205,6 +207,8 @@ implementation
         s : string;
         ltvTable : TAsmList;
       begin
+         if (tf_section_threadvars in target_info.flags) then
+           exit;
          ltvTable:=TAsmList.create;
          if assigned(current_module.globalsymtable) then
            current_module.globalsymtable.foreach_static(@AddToThreadvarList,ltvTable);
@@ -273,32 +277,28 @@ implementation
         end;
     end;
 
+
     Procedure InsertResourceTablesTable;
       var
-        hp : tused_unit;
+        hp : tmodule;
         ResourceStringTables : tasmlist;
         count : longint;
       begin
         ResourceStringTables:=tasmlist.Create;
         count:=0;
-        hp:=tused_unit(usedunits.first);
+        hp:=tmodule(loaded_units.first);
         while assigned(hp) do
-         begin
-           If (hp.u.flags and uf_has_resources)=uf_has_resources then
-            begin
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',hp.u.globalsymtable,''),AT_DATA,0));
-              inc(count);
-            end;
-           hp:=tused_unit(hp.next);
-         end;
-        { Add program resources, if any }
-        If resourcestrings.ResStrCount>0 then
-         begin
-           ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',current_module.localsymtable,''),AT_DATA,0));
-           Inc(Count);
-         end;
+          begin
+            If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
+              begin
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),AT_DATA,0));
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),AT_DATA,0));
+                inc(count);
+              end;
+            hp:=tmodule(hp.next);
+          end;
         { Insert TableCount at start }
-        ResourceStringTables.insert(Tai_const.Create_32bit(count));
+        ResourceStringTables.insert(Tai_const.Create_aint(count));
         { Add to data segment }
         maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
         new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',sizeof(aint));
@@ -1048,16 +1048,6 @@ implementation
          { the last char should always be a point }
          consume(_POINT);
 
-         { Generate resoucestrings }
-         If resourcestrings.ResStrCount>0 then
-          begin
-            resourcestrings.CreateResourceStringList;
-            current_module.flags:=current_module.flags or uf_has_resources;
-            { only write if no errors found }
-            if (Errorcount=0) then
-             resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
-          end;
-
          if (Errorcount=0) then
            begin
              { tests, if all (interface) forwards are resolved }
@@ -1100,9 +1090,11 @@ implementation
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
-         { generate a list of threadvars }
-         if not(tf_section_threadvars in target_info.flags) then
-           InsertThreadvars;
+         { Tables }
+         insertThreadVars;
+
+         { Resource strings }
+         GenerateResourceStrings;
 
          { generate imports }
          if current_module.uses_imports then
@@ -1330,14 +1322,6 @@ implementation
             ((current_module.flags and uf_has_exports)<>0) then
            current_asmdata.asmlists[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
 
-         If resourcestrings.ResStrCount>0 then
-          begin
-            resourcestrings.CreateResourceStringList;
-            { only write if no errors found }
-            if (Errorcount=0) then
-             resourcestrings.WriteResourceFile(ForceExtension(current_module.ppufilename^,'.rst'));
-          end;
-
          { finalize? }
          if token=_FINALIZATION then
            begin
@@ -1397,15 +1381,13 @@ implementation
          if (cs_debuginfo in aktmoduleswitches) then
            debuginfo.inserttypeinfo;
 
+         InsertThreadvars;
+
          { generate wrappers for interfaces }
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
 
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
-
-         { generate a list of threadvars }
-         if not(tf_section_threadvars in target_info.flags) then
-           InsertThreadvars;
 
          { generate imports }
          if current_module.uses_imports then
@@ -1414,15 +1396,16 @@ implementation
          if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
 
+         { Resource strings }
+         GenerateResourceStrings;
+
          { insert Tables and StackLength }
-         if not(tf_section_threadvars in target_info.flags) then
-           insertThreadVarTablesTable;
-
-         insertResourceTablesTable;
          insertinitfinaltable;
+         InsertThreadvarTablesTable;
+         InsertResourceTablesTable;
          insertmemorysizes;
-         { Insert symbol to resource info }
 
+         { Insert symbol to resource info }
          InsertResourceInfo;
 
          { create dwarf debuginfo }

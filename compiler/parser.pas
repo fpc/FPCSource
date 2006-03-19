@@ -270,8 +270,6 @@ implementation
           oldaktprocsym    : tprocsym;
         { cg }
           oldparse_only  : boolean;
-        { al_resourcestrings }
-          Oldresourcestrings : tresourcestrings;
         { akt.. things }
           oldaktlocalswitches  : tlocalswitches;
           oldaktmoduleswitches : tmoduleswitches;
@@ -321,7 +319,6 @@ implementation
             oldsourcecodepage:=aktsourcecodepage;
           { save cg }
             oldparse_only:=parse_only;
-            Oldresourcestrings:=resourcestrings;
           { save akt... state }
           { handle the postponed case first }
            if localswitcheschanged then
@@ -399,8 +396,6 @@ implementation
          aktasmmode:=initasmmode;
          aktinterfacetype:=initinterfacetype;
 
-         resourcestrings:=Tresourcestrings.Create;
-
          { load current asmdata from current_module }
          current_asmdata:=TAsmData(current_module.asmdata);
 
@@ -452,9 +447,6 @@ implementation
                    tppumodule(current_module).ppufile:=nil;
                  end;
 
-               resourcestrings.free;
-               resourcestrings:=nil;
-
                { free asmdata }
                if assigned(current_module.asmdata) then
                  begin
@@ -496,7 +488,6 @@ implementation
                 block_type:=old_block_type;
                 { restore cg }
                 parse_only:=oldparse_only;
-                resourcestrings:=oldresourcestrings;
                 { asm data }
                 if assigned(old_compiled_module) then
                   current_asmdata:=tasmdata(old_compiled_module.asmdata)

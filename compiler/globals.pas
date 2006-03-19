@@ -356,10 +356,10 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
-    function var_align(siz: longint): longint;
+    function var_align(siz: shortint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
-    function const_align(siz: longint): longint;
+    function const_align(siz: shortint): shortint;
 
 {$IFDEF MACOS_USE_FAKE_SYSUTILS}
 
@@ -2107,14 +2107,14 @@ end;
       end;
 
 
-    function var_align(siz: longint): longint;
+    function var_align(siz: shortint): shortint;
       begin
         siz := size_2_align(siz);
         var_align := used_align(siz,aktalignment.varalignmin,aktalignment.varalignmax);
       end;
 
 
-    function const_align(siz: longint): longint;
+    function const_align(siz: shortint): shortint;
       begin
         siz := size_2_align(siz);
         const_align := used_align(siz,aktalignment.constalignmin,aktalignment.constalignmax);

@@ -76,8 +76,8 @@ interface
       OT_REG16     = $00201002;
       OT_REG32     = $00201004;
       OT_REG64     = $00201008;
-      OT_MMXREG    = $00201008;  { MMX registers  }
       OT_XMMREG    = $00201010;  { Katmai registers  }
+      OT_MMXREG    = $00201020;  { MMX registers  }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
@@ -776,11 +776,9 @@ implementation
                    if (ot and OT_BITS32)<>0 then
                     s:=s+'32'
                   else
-{$ifdef x86_64}
-                   if (ot and OT_BITS32)<>0 then
+                   if (ot and OT_BITS64)<>0 then
                     s:=s+'64'
                   else
-{$endif x86_64}
                     s:=s+'??';
                   { signed }
                   if (ot and OT_SIGNED)<>0 then

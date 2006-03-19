@@ -1869,6 +1869,7 @@ begin
   def_system_macro('FPC_DARWIN_JMP_MAIN');
   def_system_macro('COMPPROCINLINEFIXED');
   def_system_macro('PARAOUTFILE');
+  def_system_macro('RESSTRSECTIONS');
 
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
@@ -2179,6 +2180,11 @@ begin
      set_target_asm(target_info.assemextern);
      Message1(option_asm_forced,target_asm.idtxt);
    end;
+
+  { disable internal linker if it is not registered }
+  if not assigned(target_info.link) and
+     (cs_link_internal in initglobalswitches) then
+    exclude(initglobalswitches,cs_link_internal);
 
   { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or

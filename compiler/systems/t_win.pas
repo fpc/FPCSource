@@ -932,94 +932,204 @@ begin
     end;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
-
-  { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
-   end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
-   end;
-
-  { add objectfiles, start with prt0 always                  }
-  { profiling of shared libraries is currently not supported }
-  if not ObjectFiles.Empty then
+  LinkRes:=TLinkres.Create(outputexedir+Info.ResName);
+  with linkres do
     begin
-      LinkRes.Add('INPUT(');
-      { For wince external startup file is used and placed first,     }
-      { because ARM prolog structure must be located at the very      }
-      { beginning of code. Otherwise exceptions do not work properly. }
-      if target_info.system in [system_arm_wince,system_i386_wince] then
-        LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
+      { Write path to search libraries }
+      HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+      while assigned(HPath) do
+       begin
+         Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+         HPath:=TStringListItem(HPath.Next);
+       end;
+      HPath:=TStringListItem(LibrarySearchPath.First);
+      while assigned(HPath) do
+       begin
+         Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+         HPath:=TStringListItem(HPath.Next);
+       end;
 
-      while not ObjectFiles.Empty do
+      { add objectfiles, start with prt0 always                  }
+      { profiling of shared libraries is currently not supported }
+      if not ObjectFiles.Empty then
         begin
-          s:=ObjectFiles.GetFirst;
-          if s<>'' then
-            LinkRes.AddFileName(MaybeQuoted(s));
+          Add('INPUT(');
+          { For wince external startup file is used and placed first,     }
+          { because ARM prolog structure must be located at the very      }
+          { beginning of code. Otherwise exceptions do not work properly. }
+          if target_info.system in [system_arm_wince,system_i386_wince] then
+            LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
+          while not ObjectFiles.Empty do
+           begin
+             s:=ObjectFiles.GetFirst;
+             if s<>'' then
+              AddFileName(MaybeQuoted(s));
+           end;
+          Add(')');
         end;
-      LinkRes.Add(')');
-    end;
 
-  { Write staticlibraries }
-  if (not StaticLibFiles.Empty) then
-   begin
-     LinkRes.Add('GROUP(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(MaybeQuoted(s));
-      end;
-     LinkRes.Add(')');
-   end;
-
-  { Write sharedlibraries (=import libraries) }
-  if not SharedLibFiles.Empty then
-   begin
-     LinkRes.Add('INPUT(') ;
-     While not SharedLibFiles.Empty do
-      begin
-        S:=SharedLibFiles.GetFirst;
-        if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+      { Write staticlibraries }
+      if (not StaticLibFiles.Empty) then
+       begin
+         Add('GROUP(');
+         While not StaticLibFiles.Empty do
           begin
-            LinkRes.Add(MaybeQuoted(s2));
-            continue;
+            S:=StaticLibFiles.GetFirst;
+            AddFileName(MaybeQuoted(s));
           end;
-        if pos(target_info.sharedlibprefix,s)=1 then
-          s:=copy(s,length(target_info.sharedlibprefix)+1,255);
-        i:=Pos(target_info.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        LinkRes.Add('-l'+s);
-      end;
-     LinkRes.Add(')');
-   end;
+         Add(')');
+       end;
 
-  { Write DLLs (=direct DLL linking) }
-  if not DLLFiles.Empty then
-   begin
-     LinkRes.Add('INPUT(') ;
-     While not DLLFiles.Empty do
-      begin
-        s:=DLLFiles.GetFirst;
-        if FindDLL(s,s2) then
-          LinkRes.Add(MaybeQuoted(s2))
-        else
-          LinkRes.Add('-l'+s);
-      end;
-     LinkRes.Add(')');
-   end;
+      { Write sharedlibraries (=import libraries) }
+      if not SharedLibFiles.Empty then
+       begin
+         Add('INPUT(') ;
+         While not SharedLibFiles.Empty do
+          begin
+            S:=SharedLibFiles.GetFirst;
+            if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+              begin
+                Add(MaybeQuoted(s2));
+                continue;
+              end;
+            if pos(target_info.sharedlibprefix,s)=1 then
+              s:=copy(s,length(target_info.sharedlibprefix)+1,255);
+            i:=Pos(target_info.sharedlibext,S);
+            if i>0 then
+             Delete(S,i,255);
+            Add('-l'+s);
+          end;
+         Add(')');
+       end;
 
-{ Write and Close response }
-  linkres.writetodisk;
-  LinkRes.Free;
+      { Write DLLs (=direct DLL linking) }
+      if not DLLFiles.Empty then
+       begin
+         Add('INPUT(') ;
+         While not DLLFiles.Empty do
+          begin
+            s:=DLLFiles.GetFirst;
+            if FindDLL(s,s2) then
+              Add(MaybeQuoted(s2))
+            else
+              Add('-l'+s);
+          end;
+         Add(')');
+       end;
+      Add('SEARCH_DIR("/usr/i686-pc-cygwin/lib"); SEARCH_DIR("/usr/lib"); SEARCH_DIR("/usr/lib/w32api");');
+      Add('OUTPUT_FORMAT(pei-i386)');
+      Add('ENTRY(_mainCRTStartup)');
+      Add('SECTIONS');
+      Add('{');
+      Add('  . = SIZEOF_HEADERS;');
+      Add('  . = ALIGN(__section_alignment__);');
+      Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
+      Add('  {');
+      Add('    *(.init)');
+      Add('    *(.text)');
+      Add('    *(SORT(.text$*))');
+      Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
+      Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
+      Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
+      Add('			LONG (-1); *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
+      Add('     *(.fini)');
+      Add('    PROVIDE (etext = .);');
+      Add('    *(.gcc_except_table)');
+      Add('  }');
+      Add('  .data BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    __data_start__ = . ;');
+      Add('    *(.data)');
+      Add('    *(.data2)');
+      Add('    *(SORT(.data$*))');
+      Add('    __data_end__ = . ;');
+      Add('    *(.data_cygwin_nocopy)');
+      Add('  }');
+      Add('  .rdata BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    *(.rdata)');
+      Add('    *(SORT(.rdata$*))');
+      Add('    *(.eh_frame)');
+      Add('    ___RUNTIME_PSEUDO_RELOC_LIST__ = .;');
+      Add('    __RUNTIME_PSEUDO_RELOC_LIST__ = .;');
+      Add('    *(.rdata_runtime_pseudo_reloc)');
+      Add('    ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
+      Add('    __RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
+      Add('  }');
+      Add('  .pdata BLOCK(__section_alignment__) : { *(.pdata) }');
+      Add('  .bss BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    __bss_start__ = . ;');
+      Add('    *(.bss)');
+      Add('    *(COMMON)');
+      Add('    __bss_end__ = . ;');
+      Add('  }');
+      Add('  .edata BLOCK(__section_alignment__) : { *(.edata) }');
+      Add('  .idata BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    SORT(*)(.idata$2)');
+      Add('    SORT(*)(.idata$3)');
+      Add('    /* These zeroes mark the end of the import list.  */');
+      Add('    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);');
+      Add('    SORT(*)(.idata$4)');
+      Add('    SORT(*)(.idata$5)');
+      Add('    SORT(*)(.idata$6)');
+      Add('    SORT(*)(.idata$7)');
+      Add('  }');
+      Add('  .CRT BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    ___crt_xc_start__ = . ;');
+      Add('    *(SORT(.CRT$XC*))  /* C initialization */');
+      Add('    ___crt_xc_end__ = . ;');
+      Add('    ___crt_xi_start__ = . ;');
+      Add('    *(SORT(.CRT$XI*))  /* C++ initialization */');
+      Add('    ___crt_xi_end__ = . ;');
+      Add('    ___crt_xl_start__ = . ;');
+      Add('    *(SORT(.CRT$XL*))  /* TLS callbacks */');
+      Add('    /* ___crt_xl_end__ is defined in the TLS Directory support code */');
+      Add('    ___crt_xp_start__ = . ;');
+      Add('    *(SORT(.CRT$XP*))  /* Pre-termination */');
+      Add('    ___crt_xp_end__ = . ;');
+      Add('    ___crt_xt_start__ = . ;');
+      Add('    *(SORT(.CRT$XT*))  /* Termination */');
+      Add('    ___crt_xt_end__ = . ;');
+      Add('  }');
+      Add('  .tls BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    ___tls_start__ = . ;');
+      Add('    *(.tls)');
+      Add('    *(.tls$)');
+      Add('    *(SORT(.tls$*))');
+      Add('    ___tls_end__ = . ;');
+      Add('  }');
+      Add('  .rsrc BLOCK(__section_alignment__) :');
+      Add('  {');
+      Add('    *(.rsrc)');
+      Add('    *(SORT(.rsrc$*))');
+      Add('  }');
+      Add('  .reloc BLOCK(__section_alignment__) : { *(.reloc) }');
+      Add('  .stab BLOCK(__section_alignment__) (NOLOAD) : { *(.stab) }');
+      Add('  .stabstr BLOCK(__section_alignment__) (NOLOAD) : { *(.stabstr) }');
+      Add('  .debug_aranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_aranges) }');
+      Add('  .debug_pubnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_pubnames) }');
+      Add('  .debug_info BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_info) *(.gnu.linkonce.wi.*) }');
+      Add('  .debug_abbrev BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_abbrev) }');
+      Add('  .debug_line BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_line) }');
+      Add('  .debug_frame BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_frame) }');
+      Add('  .debug_str BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_str) }');
+      Add('  .debug_loc BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_loc) }');
+      Add('  .debug_macinfo BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_macinfo) }');
+      Add('  .debug_weaknames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_weaknames) }');
+      Add('  .debug_funcnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_funcnames) }');
+      Add('  .debug_typenames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_typenames) }');
+      Add('  .debug_varnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_varnames) }');
+      Add('  .debug_ranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_ranges) }');
+      Add('}');
+
+      { Write and Close response }
+      writetodisk;
+    end;
+  Free;
 
   WriteResponseFile:=True;
 end;
@@ -1069,6 +1179,8 @@ begin
     ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then
     StripStr:='-s';
+  if (cs_link_map in aktglobalswitches) then
+    StripStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile(false);

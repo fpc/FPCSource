@@ -65,7 +65,7 @@ implementation
         '',
         '','','','',
         '',
-	''
+        ''
       );
 
       secnamesml64 : array[TAsmSectiontype] of string[7] = ('',

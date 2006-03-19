@@ -115,8 +115,16 @@ implementation
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
                       location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                      location.reference.symbol:=current_asmdata.newasmsymbol(make_mangledname('RESOURCESTRINGLIST',tconstsym(symtableentry).owner,''),AB_EXTERNAL,AT_DATA);
-                      location.reference.offset:=tconstsym(symtableentry).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint);
+                      location.reference.symbol:=current_asmdata.newasmsymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AB_EXTERNAL,AT_DATA);
+                      { Resourcestring layout:
+                          TResourceStringRecord = Packed Record
+                             Name,
+                             CurrentValue,
+                             DefaultValue : AnsiString;
+                             HashValue    : LongWord;
+                           end;
+                      }
+                      location.reference.offset:=sizeof(aint);
                    end
                  else
                    internalerror(22798);
