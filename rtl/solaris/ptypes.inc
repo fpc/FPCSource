@@ -122,6 +122,7 @@ Type
     time32_t = int32_t;
 
 
+    uint16_t = cuint16;
     upad64_t  = qword;
     uintptr_t = ^cuint;
     uint_t    = cuint;
