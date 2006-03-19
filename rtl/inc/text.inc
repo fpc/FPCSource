@@ -1220,7 +1220,8 @@ begin
     fmOutput :
       begin
         TextRec(f).InOutFunc:=@FileWriteFunc;
-        TextRec(f).FlushFunc:=@FileWriteFunc;
+        if Do_Isdevice(hdl) then
+          TextRec(f).FlushFunc:=@FileWriteFunc;
       end;
   else
    HandleError(102);
