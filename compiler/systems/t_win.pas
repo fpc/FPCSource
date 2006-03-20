@@ -898,8 +898,8 @@ begin
      {$else ARM}
        targetopts:='-b pe-i386 -m i386pe';
      {$endif ARM}
-     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
      { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
        use short forms to avoid 128 char limitation problem }
      ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
@@ -1128,8 +1128,8 @@ begin
 
       { Write and Close response }
       writetodisk;
+      Free;
     end;
-  Free;
 
   WriteResponseFile:=True;
 end;
@@ -1143,6 +1143,7 @@ var
   cmds,i       : longint;
   AsBinStr     : string[80];
   GCSectionsStr,
+  MapStr,
   StripStr,
   RelocStr,
   AppTypeStr,
@@ -1158,6 +1159,7 @@ begin
   EntryStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  MapStr:='';
   GCSectionsStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
@@ -1180,7 +1182,7 @@ begin
   if (cs_link_strip in aktglobalswitches) then
     StripStr:='-s';
   if (cs_link_map in aktglobalswitches) then
-    StripStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+    MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -1206,6 +1208,7 @@ begin
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
         Replace(cmdstr,'$STRIP',StripStr);
+        Replace(cmdstr,'$MAP',MapStr);
         if not DefFile.Empty then
           begin
             DefFile.WriteFile;
