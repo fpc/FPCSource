@@ -78,7 +78,7 @@ interface
           procedure derefimpl;override;
           function  size:aint;override;
           function  getvartype:longint;override;
-          function  alignment:longint;override;
+          function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           { rtti generation }
@@ -200,8 +200,8 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  size:aint;override;
-          function  alignment : longint;override;
-          function  padalignment: longint;
+          function  alignment : shortint;override;
+          function  padalignment: shortint;
           function  gettypename:string;override;
           { debug }
           function  needs_inittable : boolean;override;
@@ -260,7 +260,7 @@ interface
           procedure deref;override;
           function  getparentdef:tdef;override;
           function  size : aint;override;
-          function  alignment:longint;override;
+          function  alignment:shortint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
           { this should be called when this class implements an interface }
@@ -348,7 +348,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function size : aint;override;
-          function alignment : longint;override;
+          function alignment : shortint;override;
           { returns the label of the range check string }
           function needs_inittable : boolean;override;
           procedure write_child_rtti_data(rt:trttitype);override;
@@ -365,7 +365,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
-          function alignment:longint;override;
+          function alignment:shortint;override;
           procedure setsize;
           function getvartype : longint;override;
           { rtti }
@@ -380,7 +380,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
-          function alignment:longint;override;
+          function alignment:shortint;override;
           procedure setsize;
           function  getvartype:longint;override;
           { rtti }
@@ -579,7 +579,7 @@ interface
           function  gettypename:string;override;
           function  getmangledparaname:string;override;
           function  is_publishable : boolean;override;
-          function alignment : longint;override;
+          function alignment : shortint;override;
           { init/final }
           function  needs_inittable : boolean;override;
           { rtti }
@@ -1075,7 +1075,7 @@ implementation
       end;
 
 
-    function tstoreddef.alignment : longint;
+    function tstoreddef.alignment : shortint;
       begin
          { natural alignment by default }
          alignment:=size_2_align(savesize);
@@ -1317,7 +1317,7 @@ implementation
       end;
 
 
-    function tstringdef.alignment : longint;
+    function tstringdef.alignment : shortint;
       begin
         case string_typ of
           st_widestring,
@@ -1622,7 +1622,7 @@ implementation
       end;
 
 
-    function torddef.alignment:longint;
+    function torddef.alignment:shortint;
       begin
         if (target_info.system = system_i386_darwin) and
            (typ in [s64bit,u64bit]) then
@@ -1798,7 +1798,7 @@ implementation
       end;
 
 
-    function tfloatdef.alignment:longint;
+    function tfloatdef.alignment:shortint;
       begin
         if (target_info.system = system_i386_darwin) then
           case typ of
@@ -2539,7 +2539,7 @@ implementation
       end;
 
 
-    function tarraydef.alignment : longint;
+    function tarraydef.alignment : shortint;
       begin
          { alignment is the size of the elements }
          if (elementtype.def.deftype in [arraydef,recorddef]) or
@@ -2784,13 +2784,13 @@ implementation
       end;
 
 
-    function trecorddef.alignment:longint;
+    function trecorddef.alignment:shortint;
       begin
         alignment:=trecordsymtable(symtable).recordalignment;
       end;
 
 
-    function trecorddef.padalignment:longint;
+    function trecorddef.padalignment:shortint;
       begin
         padalignment := trecordsymtable(symtable).padalignment;
       end;
@@ -4594,7 +4594,7 @@ implementation
       end;
 
 
-    function tobjectdef.alignment:longint;
+    function tobjectdef.alignment:shortint;
       begin
         if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
           alignment:=sizeof(aint)

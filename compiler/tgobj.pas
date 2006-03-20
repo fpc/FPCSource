@@ -173,14 +173,7 @@ implementation
     procedure ttgobj.resettempgen;
       var
          hp : ptemprecord;
-{$ifdef EXTDEBUG}
-         currpos,
-         lastpos : longint;
-{$endif EXTDEBUG}
       begin
-{$ifdef EXTDEBUG}
-        lastpos:=lasttemp;
-{$endif EXTDEBUG}
         { Clear the old templist }
         while assigned(templist) do
          begin
@@ -192,21 +185,6 @@ implementation
                        ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
                        ' not freed at the end of the procedure');
              end;
-           if direction=1 then
-             currpos:=templist^.pos+templist^.size
-           else
-             currpos:=templist^.pos;
-           if currpos<>lastpos then
-             begin
-               Comment(V_Warning,'tgobj: (ResetTempgen) temp at pos '+tostr(templist^.pos)+
-                       ' with size '+tostr(templist^.size)+' and type '+TempTypeStr[templist^.temptype]+
-                       ' from pos '+tostr(templist^.posinfo.line)+':'+tostr(templist^.posinfo.column)+
-                       ' was expected at position '+tostr(lastpos));
-             end;
-           if direction=1 then
-             lastpos:=templist^.pos
-           else
-             lastpos:=templist^.pos+templist^.size;
 {$endif EXTDEBUG}
            hp:=templist;
            templist:=hp^.next;
@@ -475,7 +453,7 @@ implementation
 
     procedure ttgobj.gettemp(list: TAsmList; size : longint;temptype:ttemptype;var ref : treference);
       var
-        varalign : longint;
+        varalign : shortint;
       begin
         varalign:=size_2_align(size);
         varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
@@ -489,7 +467,7 @@ implementation
 
     procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;var ref : treference);
       var
-        varalign : longint;
+        varalign : shortint;
       begin
         varalign:=def.alignment;
         varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
@@ -599,7 +577,7 @@ implementation
 
     procedure ttgobj.getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
       var
-        varalign : longint;
+        varalign : shortint;
       begin
         varalign:=def.alignment;
         varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
