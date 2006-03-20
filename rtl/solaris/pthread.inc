@@ -21,7 +21,7 @@
 
   const
     PTHREAD_EXPLICIT_SCHED       = 0;
-    PTHREAD_CREATE_DETACHED      = 1;
+    PTHREAD_CREATE_DETACHED      = $40;
     PTHREAD_SCOPE_PROCESS        = 0;
 
   type
@@ -32,75 +32,27 @@
     end;
 
     pthread_attr_t = record
-      __detachstate: cint;
-      __schedpolicy: cint;
-      __schedparam: sched_param;
-      __inheritsched: cint;
-      __scope: cint;
-      __guardsize: size_t;
-      __stackaddr_set: cint;
-      __stackaddr: pointer;
-      __stacksize: size_t;
-    end;
-
-    _pthread_fastlock = record
-      __status: clong;
-      __spinlock: cint;
+      __pthread_attrp : pointer;
     end;
 
     pthread_mutexattr_t = record
-      __mutexkind: cint;
+      __pthread_mutexattrp : pointer;
     end;
 
     pthread_cond_t = record
-      __c_lock: _pthread_fastlock;
-      __c_waiting: pointer;
-      __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
-      __align: clonglong;
+      __pthread_cond_flags : record
+        __pthread_cond_flag : array[0..3] of byte;
+        __pthread_cond_type : uint16_t;
+        __pthread_cond_magic : uint16_t;
+      end;
+      __pthread_cond_data : upad64_t;
     end;
 
     pthread_condattr_t = record
-      __dummy: cint;
+      __pthread_condattrp : pointer;
     end;
 
     pthread_key_t = cuint;
-
-    pthread_rwlock_t = record
-      __rw_readers: cint;
-      __rw_writer: pointer;
-      __rw_read_waiting: pointer;
-      __rw_write_waiting: pointer;
-      __rw_kind: cint;
-      __rw_pshared: cint;
-    end;
-
-    pthread_rwlockattr_t = record
-      __lockkind: cint;
-      __pshared: cint;
-    end;
-
-    sem_t = record
-      sem_count : uint32_t;
-      sem_type : uint16_t;
-      sem_magic : uint16_t;
-      sem_pad1 : array[0..2] of upad64_t;
-      sem_pad2 : array[0..1] of upad64_t;
-    end;
-
-    psem_t          = ^sem_t;
-    TSemaphore  = sem_t;
-    PSemaphore  = ^TSemaphore;
-
-
-    ppthread_t           = ^pthread_t;
-    ppthread_key_t       = ^pthread_key_t;
-    ppthread_mutex_t     = ^pthread_mutex_t;
-    ppthread_attr_t      = ^pthread_attr_t;
-    __destr_func_t       = procedure (p :pointer);cdecl;
-    __startroutine_t     = function (p :pointer):pointer;cdecl;
-    ppthread_mutexattr_t = ^pthread_mutexattr_t;
-    ppthread_cond_t      = ^pthread_cond_t;
-    ppthread_condattr_t  = ^pthread_condattr_t;
 
     pthread_mutex_t = record
       __pthread_mutex_flags : record
@@ -123,6 +75,42 @@
           end;
       __pthread_mutex_data : qword;
     end;
+    
+    pthread_rwlock_t = record
+      __pthread_rwlock_readers : int32_t;
+      __pthread_rwlock_type : uint16_t;
+      __pthread_rwlock_magic : uint16_t;
+      __pthread_rwlock_mutex : pthread_mutex_t;
+      __pthread_rwlock_readercv : pthread_cond_t;
+      __pthread_rwlock_writercv : pthread_cond_t;
+    end;
+
+    pthread_rwlockattr_t = record
+      __pthread_rwlockattrp : pointer;
+    end;
+
+    sem_t = record
+      sem_count : uint32_t;
+      sem_type : uint16_t;
+      sem_magic : uint16_t;
+      sem_pad1 : array[0..2] of upad64_t;
+      sem_pad2 : array[0..1] of upad64_t;
+    end;
+
+    psem_t      = ^sem_t;
+    TSemaphore  = sem_t;
+    PSemaphore  = ^TSemaphore;
+
+
+    ppthread_t           = ^pthread_t;
+    ppthread_key_t       = ^pthread_key_t;
+    ppthread_mutex_t     = ^pthread_mutex_t;
+    ppthread_attr_t      = ^pthread_attr_t;
+    __destr_func_t       = procedure (p :pointer);cdecl;
+    __startroutine_t     = function (p :pointer):pointer;cdecl;
+    ppthread_mutexattr_t = ^pthread_mutexattr_t;
+    ppthread_cond_t      = ^pthread_cond_t;
+    ppthread_condattr_t  = ^pthread_condattr_t;
 
     pthread_spinlock_t = pthread_mutex_t;
 
