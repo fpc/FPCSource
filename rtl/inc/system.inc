@@ -661,6 +661,11 @@ Begin
      dump_stack(stdout,ErrorBase);
      Writeln(stdout,'');
    End;
+  { Make sure that all output is written to the redirected file }
+  Flush(Output);
+  Flush(ErrOutput);
+  Flush(StdOut);
+  Flush(StdErr);
 End;
 
 
