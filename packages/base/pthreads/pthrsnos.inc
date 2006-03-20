@@ -35,21 +35,9 @@ Type
     end;
   
     pthread_attr_t = record
-      __detachstate: cint;
-      __schedpolicy: cint;
-      __schedparam: sched_param;
-      __inheritsched: cint;
-      __scope: cint;
-      __guardsize: size_t;
-      __stackaddr_set: cint;
-      __stackaddr: pointer;
-      __stacksize: size_t;
+      __pthread_attrp : pointer;
     end;
-  
-    _pthread_fastlock = record
-      __status: clong;
-      __spinlock: cint;
-    end;
+
   
     pthread_mutex_t = record
       __pthread_mutex_flags : record
@@ -76,34 +64,35 @@ Type
     pthread_spinlock_t = pthread_mutex_t;
   
     pthread_mutexattr_t = record
-      __mutexkind: cint;
+      __pthread_mutexattrp : pointer;
     end;
   
     pthread_cond_t = record
-      __c_lock: _pthread_fastlock;
-      __c_waiting: pointer;
-      __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
-      __align: clonglong;
+      __pthread_cond_flags : record
+        __pthread_cond_flag : array[0..3] of byte;
+        __pthread_cond_type : uint16_t;
+        __pthread_cond_magic : uint16_t;
+      end;
+      __pthread_cond_data : upad64_t;
     end;
   
     pthread_condattr_t = record
-      __dummy: cint;
+      __pthread_condattrp : pointer;
     end;
   
     pthread_key_t = cuint;
   
     pthread_rwlock_t = record
-      __rw_readers: cint;
-      __rw_writer: pointer;
-      __rw_read_waiting: pointer;
-      __rw_write_waiting: pointer;
-      __rw_kind: cint;
-      __rw_pshared: cint;
+      __pthread_rwlock_readers : int32_t;
+      __pthread_rwlock_type : uint16_t;
+      __pthread_rwlock_magic : uint16_t;
+      __pthread_rwlock_mutex : pthread_mutex_t;
+      __pthread_rwlock_readercv : pthread_cond_t;
+      __pthread_rwlock_writercv : pthread_cond_t;
     end;
   
     pthread_rwlockattr_t = record
-      __lockkind: cint;
-      __pshared: cint;
+      __pthread_rwlockattrp : pointer;
     end;
   
     _once = record
@@ -357,9 +346,6 @@ type
   { redefinitions }
   TThreadAttr = pthread_attr_t;
   PThreadAttr = ^TThreadAttr;
-
-  TPthreadFastlock = _pthread_fastlock;
-  PPthreadFastlock = ^TPthreadFastlock;
 
   TMutexAttribute = pthread_mutexattr_t;
   PMutexAttribute = ^TMutexAttribute;
