@@ -175,13 +175,10 @@ const
   PTHREAD_CANCEL_ASYNCHRONOUS = $02;   
   PTHREAD_CANCELED = pointer(-(19));
 
-
-
-const
-   PTHREAD_ONCE_NOTDONE = 0;   
-   PTHREAD_ONCE_DONE = 1;   
-
-   PTHREAD_BARRIER_SERIAL_THREAD = -(2);   
+  PTHREAD_ONCE_NOTDONE = 0;   
+  PTHREAD_ONCE_DONE = 1;   
+  
+  PTHREAD_BARRIER_SERIAL_THREAD = -(2);   
 
 type
    _Voidfp = procedure (_para1:pointer);cdecl;

@@ -191,13 +191,7 @@ Type
     end;
   itimerspec32_t = itimerspec32;
 
-
-
 const
-    _PTHREAD_MUTEX_NORMAL     = 0;
-    _PTHREAD_MUTEX_ERRORCHECK = 2;
-    _PTHREAD_MUTEX_RECURSIVE  = 4;
-
    { System limits, POSIX value in parentheses, used for buffer and stack allocation }
    { took idefix' values}
 

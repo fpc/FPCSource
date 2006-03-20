@@ -24,6 +24,10 @@
     PTHREAD_CREATE_DETACHED      = $40;
     PTHREAD_SCOPE_PROCESS        = 0;
 
+    _PTHREAD_MUTEX_NORMAL        = 0;
+    _PTHREAD_MUTEX_ERRORCHECK    = 2;
+    _PTHREAD_MUTEX_RECURSIVE     = 4;
+    
   type
     pthread_t = culong;
 
