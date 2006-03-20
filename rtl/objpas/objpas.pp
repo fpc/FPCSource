@@ -76,6 +76,7 @@ unit objpas;
    Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
    Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
+   Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
 {$ifndef RESSTRSECTIONS}
    Function ResourceStringTableCount : Longint;
    Function ResourceStringCount(TableIndex : longint) : longint;
@@ -260,15 +261,49 @@ Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
   ResStr : PResourceStringRecord;
   i      : Longint;
+  s      : AnsiString;
 begin
   With ResourceStringTable do
     begin
       For i:=0 to Count-1 do
         begin
           ResStr:=Tables[I].TableStart;
+          { Skip first entry (name of the Unit) }
+          inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
-              ResStr^.CurrentValue:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              if s<>'' then
+                ResStr^.CurrentValue:=s;
+              inc(ResStr);
+            end;
+        end;
+    end;
+end;
+
+
+Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
+Var
+  ResStr : PResourceStringRecord;
+  i      : Longint;
+  s,
+  UpUnitName : AnsiString;
+begin
+  With ResourceStringTable do
+    begin
+      UpUnitName:=UpCase(UnitName);
+      For i:=0 to Count-1 do
+        begin
+          ResStr:=Tables[I].TableStart;
+          { Check name of the Unit }
+          if ResStr^.Name<>UpUnitName then
+            continue;
+          inc(ResStr);
+          while ResStr<Tables[I].TableEnd do
+            begin
+              s:=SetFunction(ResStr^.Name,ResStr^.DefaultValue,ResStr^.HashValue,arg);
+              if s<>'' then
+                ResStr^.CurrentValue:=s;
               inc(ResStr);
             end;
         end;
@@ -286,6 +321,8 @@ begin
       For i:=0 to Count-1 do
         begin
           ResStr:=Tables[I].TableStart;
+          { Skip first entry (name of the Unit) }
+          inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
               ResStr^.CurrentValue:=ResStr^.DefaultValue;
@@ -306,6 +343,8 @@ begin
       For i:=0 to Count-1 do
         begin
           ResStr:=Tables[I].TableStart;
+          { Skip first entry (name of the Unit) }
+          inc(ResStr);
           while ResStr<Tables[I].TableEnd do
             begin
               ResStr^.CurrentValue:='';
@@ -360,6 +399,12 @@ begin
          For J:=0 to Count-1 do
            With ResRec[J] do
              CurrentValue:=SetFunction(Name,DefaultValue,HashValue,arg);
+end;
+
+
+Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
+begin
+  SetResourceStrings (SetFunction,arg);
 end;
 
 

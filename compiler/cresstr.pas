@@ -126,20 +126,45 @@ uses
 
 
     procedure Tresourcestrings.CreateResourceStringData;
+
+        function WriteValueString(p:pchar;len:longint):TasmLabel;
+        var
+          s : pchar;
+        begin
+          current_asmdata.getdatalabel(result);
+          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
+          current_asmdata.asmlists[al_const].concat(tai_const.create_aint(-1));
+          current_asmdata.asmlists[al_const].concat(tai_const.create_aint(len));
+          current_asmdata.asmlists[al_const].concat(tai_label.create(result));
+          getmem(s,len+1);
+          move(p^,s^,len);
+          s[len]:=#0;
+          current_asmdata.asmlists[al_const].concat(tai_string.create_pchar(s,len));
+          current_asmdata.asmlists[al_const].concat(tai_const.create_8bit(0));
+        end;
+
       Var
         namelab,
         valuelab : tasmlabel;
         resstrlab : tasmsymbol;
-        s : pchar;
-        l : longint;
         R : TResourceStringItem;
       begin
-        { This is only smartlinkable using section smartlinking. Using objects there is
-          no garantuee that  }
         current_asmdata.asmlists[al_resourcestrings].concat(Tai_cutobject.Create_begin);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+current_module.localsymtable.name^+'_start',sizeof(aint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
+
+        { Write unitname entry }
+        namelab:=WriteValueString(@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
+{$ifdef cpu64bit}
+        current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(0));
+{$endif cpu64bit}
+
+        { Add entries }
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
@@ -147,32 +172,11 @@ uses
             new_section(current_asmdata.asmlists[al_const],sec_rodata,'resstrdata_'+R.name,sizeof(aint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
-              begin
-                 current_asmdata.getdatalabel(valuelab);
-                 current_asmdata.asmlists[al_const].concat(tai_align.Create(const_align(sizeof(aint))));
-                 current_asmdata.asmlists[al_const].concat(tai_const.create_aint(-1));
-                 current_asmdata.asmlists[al_const].concat(tai_const.create_aint(R.len));
-                 current_asmdata.asmlists[al_const].concat(tai_label.create(valuelab));
-                 getmem(s,R.len+1);
-                 move(R.value^,s^,R.len);
-                 s[R.len]:=#0;
-                 current_asmdata.asmlists[al_const].concat(tai_string.create_pchar(s,R.len));
-                 current_asmdata.asmlists[al_const].concat(tai_const.create_8bit(0));
-              end
+              valuelab:=WriteValueString(R.Value,R.Len)
             else
               valuelab:=nil;
             { Append the name as a ansistring. }
-            current_asmdata.getdatalabel(namelab);
-            l:=length(R.name);
-            current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
-            current_asmdata.asmlists[al_const].concat(tai_const.create_aint(-1));
-            current_asmdata.asmlists[al_const].concat(tai_const.create_aint(l));
-            current_asmdata.asmlists[al_const].concat(tai_label.create(namelab));
-            getmem(s,l+1);
-            move(R.Name[1],s^,l);
-            s[l]:=#0;
-            current_asmdata.asmlists[al_const].concat(tai_string.create_pchar(s,l));
-            current_asmdata.asmlists[al_const].concat(tai_const.create_8bit(0));
+            namelab:=WriteValueString(@R.Name[1],length(R.name));
 
             {
               Resourcestring index:

@@ -72,22 +72,20 @@ type
 
   procedure GetLanguageIDs(var Lang, FallbackLang: string);
   procedure TranslateResourceStrings(AFile: TMOFile);
+  procedure TranslateUnitResourceStrings(const AUnitName:string; AFile: TMOFile);
   procedure TranslateResourceStrings(const AFilename: String);
+  procedure TranslateUnitResourceStrings(const AUnitName:string; const AFilename: String);
 
 
 implementation
 
 uses {$ifdef win32} windows, {$endif}dos;
 
-var
-  GettextUsed: Boolean;
-
 
 constructor TMOFile.Create(AStream: TStream);
 var
   header: TMOFileHeader;
   i: Integer;
-  s: String;
 begin
   inherited Create;
 
@@ -183,7 +181,7 @@ begin
       Result := '';
       exit;
     end;
-    if (OrigTable^[nstr - 1].length = ALen) and
+    if (OrigTable^[nstr - 1].length = LongWord(ALen)) and
        (StrComp(OrigStrings^[nstr - 1], AOrig) = 0) then
     begin
       Result := TranslStrings^[nstr - 1];
@@ -221,6 +219,12 @@ end;
 procedure TranslateResourceStrings(AFile: TMOFile);
 begin
   SetResourceStrings(@Translate,AFile);
+end;
+
+
+procedure TranslateUnitResourceStrings(const AUnitName:string; AFile: TMOFile);
+begin
+  SetUnitResourceStrings(AUnitName,@Translate,AFile);
 end;
 
 
@@ -297,7 +301,35 @@ begin
   end;
 end;
 
-finalization
-  if GettextUsed then
-    ResetResourceTables;
+
+procedure TranslateUnitResourceStrings(const AUnitName:string; const AFilename: String);
+var
+  mo: TMOFile;
+  lang, FallbackLang: String;
+begin
+  GetLanguageIDs(Lang, FallbackLang);
+  try
+    mo := TMOFile.Create(Format(AFilename, [FallbackLang]));
+    try
+      TranslateUnitResourceStrings(AUnitName,mo);
+    finally
+      mo.Free;
+    end;
+  except
+    on e: Exception do;
+  end;
+
+  lang := Copy(lang, 1, 5);
+  try
+    mo := TMOFile.Create(Format(AFilename, [lang]));
+    try
+      TranslateUnitResourceStrings(AUnitName,mo);
+    finally
+      mo.Free;
+    end;
+  except
+    on e: Exception do;
+  end;
+end;
+
 end.
