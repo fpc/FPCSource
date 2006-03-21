@@ -984,7 +984,7 @@ end;
 ****************************************************************************}
 
 
-{ do a thread save inc/dec }
+{ do a thread-safe inc/dec }
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function cpudeclocked(var l : longint) : boolean;assembler;nostackframe;
 
@@ -1090,7 +1090,7 @@ asm
 .Lj3610:
         movl    %edx,%eax
         call    cpudeclocked
-        movb    %al,%al
+        testb   %al,%al
         je      .Lj3605
 .Lj3620:
         movl    (%esp),%eax
