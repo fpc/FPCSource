@@ -1202,7 +1202,8 @@ begin
                                  (taicpu(hp1).oper[0]^.typ = top_ref) and
                                  (taicpu(hp1).oper[1]^.typ = top_reg) and
                                  (taicpu(p).opsize = taicpu(hp1).opsize) and
-                                 RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) then
+                                 RefsEqual(taicpu(hp1).oper[0]^.ref^,taicpu(p).oper[1]^.ref^) and
+                                 not(reginref(getsupreg(taicpu(hp1).oper[1]^.reg),taicpu(hp1).oper[0]^.ref^)) then
                                 begin
                                   allocregbetween(asml,taicpu(hp1).oper[1]^.reg,p,hp1,usedregs);
                                   taicpu(hp1).loadReg(0,taicpu(hp1).oper[1]^.reg);
