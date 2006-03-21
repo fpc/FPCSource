@@ -78,7 +78,7 @@ general_t_objectpath=01007_T_Der Objektdateienpfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 Zeilen kompiliert, $2 Sekunden
+general_i_abslines_compiled=01008_I_$1 Zeilen kompiliert, $2 Sekunden$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -1772,14 +1772,14 @@ asmw_e_alloc_data_only_in_bss=08004_E_Allozieren von Daten ist nur in "bss"-Absc
 asmw_f_no_binary_writer_selected=08005_F_Kein BinÑrschreiber ausgewÑhlt
 asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 nicht in Tabelle enthalten
 asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 ungÅltige Kombination von Opcode und Operanden
-asmw_e_16bit_not_supported=08008_E_Asm: 16-Bit-Verweise werden nicht untertÅtzt
+asmw_e_16bit_not_supported=08008_E_Asm: 16-Bit-Verweise werden nicht unterstÅtzt
 asmw_e_invalid_effective_address=08009_E_Asm: UngÅltige effektive Adresse
-asmw_e_immediate_or_reference_expected=08010_E_Asm: Konstanten Ausdruck oder Referenz erwartet
+asmw_e_immediate_or_reference_expected=08010_E_Asm: Konstanter Ausdruck oder Referenz erwartet
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 Wert Åberschreitet Grenzen $2
-asmw_e_short_jmp_out_of_range=08012_E_Asm: "Short jump" ist ausserhalb der Bereichs $1
+asmw_e_short_jmp_out_of_range=08012_E_Asm: "Short jump" ist ausserhalb des Bereichs $1
 asmw_e_undefined_label=08013_E_Asm: Undefiniertes Label: $1
-asmw_e_comp_not_supported=08014_E_Asm: Comp wird fÅr diese Ziel nicht unterstÅtzt
-asmw_e_extended_not_supported=08015_E_Asm: Extended Typ wird fÅr diese Ziel nicht unterstÅtzt
+asmw_e_comp_not_supported=08014_E_Asm: Comp wird fÅr dieses Ziel nicht unterstÅtzt
+asmw_e_extended_not_supported=08015_E_Asm: Extended Typ wird fÅr dieses Ziel nicht unterstÅtzt
 asmw_e_duplicate_label=08016_E_Asm: Doppeltes Label $1
 asmw_e_redefined_label=08017_E_Asm: Neu definiertes Label $1
 asmw_e_first_defined_label=08018_E_Asm: First beginnt hier
@@ -2105,11 +2105,11 @@ option_no_debug_support_recompile_fpc=11017_H_Versuchen Sie mit -dGDB erneut zu 
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_E_Sie verwenden den nun ÅberflÅssigen Schalter $1
+option_obsolete_switch=11018_W_Sie verwenden den nun Åberholten Schalter $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_E_Sie benutzen den nun ÅberflÅssigen Schalter $1, bitte benutzen Sie $2
+option_obsolete_switch_use_new=11019_W_Sie benutzen den nun Åberholten Schalter $1, bitte benutzen Sie $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
