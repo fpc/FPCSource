@@ -558,9 +558,9 @@ implementation
         { reset }
         Syms:=TDynamicArray.Create(symbolresize);
         { default sections }
-        symtabsect:=TElfObjSection.create_ext('.symtab',2,0,0,0,4,sizeof(telfsymbol));
-        strtabsect:=TElfObjSection.create_ext('.strtab',3,0,0,0,1,0);
-        shstrtabsect:=TElfObjSection.create_ext('.shstrtab',3,0,0,0,1,0);
+        symtabsect:=TElfObjSection.create_ext('.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
+        strtabsect:=TElfObjSection.create_ext('.strtab',SHT_STRTAB,0,0,0,1,0);
+        shstrtabsect:=TElfObjSection.create_ext('.shstrtab',SHT_STRTAB,0,0,0,1,0);
         { insert the empty and filename as first in strtab }
         strtabsect.writestr(#0);
         strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
@@ -723,9 +723,9 @@ implementation
 {$endif userodata}
            { create the reloc section }
 {$ifdef i386}
-           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
-{$else i386}
            s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+{$else i386}
+           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
            { add the relocations }
            r:=TObjRelocation(s.relocations.first);
