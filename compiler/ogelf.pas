@@ -723,14 +723,10 @@ implementation
 {$endif userodata}
            { create the reloc section }
 {$ifdef i386}
-           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,9,0,symtabsect.secshidx,s.secshidx,4,8);
+           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+{$else i386}
+           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
-{$ifdef x86_64}
-           s.relocsect:=TElfObjSection.create_ext('.rela'+s.name,4,0,symtabsect.secshidx,s.secshidx,4,3*8);
-{$endif x86_64}
-{$ifdef sparc}
-           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,4,0,symtabsect.secshidx,s.secshidx,4,8);
-{$endif sparc}
            { add the relocations }
            r:=TObjRelocation(s.relocations.first);
            while assigned(r) do
@@ -781,7 +777,7 @@ implementation
                   begin
                     reltyp:=R_X86_64_PC32;
                     { length of the relocated location is handled here }
-                    rel.addend:=-4;
+                    rel.addend:=qword(-4);
                   end;
               RELOC_ABSOLUTE :
                   reltyp:=R_X86_64_64;
