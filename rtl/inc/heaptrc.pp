@@ -18,7 +18,6 @@ interface
 {$goto on}
 
 Procedure DumpHeap;
-Procedure MarkHeap;
 
 { define EXTRA to add more
   tests :
@@ -947,19 +946,6 @@ begin
        end
 {$endif EXTRA}
        ;
-     pp:=pp^.previous;
-   end;
-end;
-
-
-procedure markheap;
-var
-  pp : pheap_mem_info;
-begin
-  pp:=heap_mem_root;
-  while pp<>nil do
-   begin
-     pp^.sig:=$AAAAAAAA;
      pp:=pp^.previous;
    end;
 end;

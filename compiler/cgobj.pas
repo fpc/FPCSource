@@ -778,7 +778,7 @@ implementation
                  ref.offset:=cgpara.location^.reference.offset;
                  { use concatcopy, because it can also be a float which fails when
                    load_ref_ref is used }
-                 g_concatcopy(list,r,ref,tcgsize2size[size]);
+                 g_concatcopy(list,r,ref,cgpara.intsize);
               end
             else
               internalerror(2002071004);

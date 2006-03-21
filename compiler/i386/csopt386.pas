@@ -1981,6 +1981,10 @@ begin
                                findRegWithConst(hp1,taicpu(p).opsize,taicpu(p).oper[0]^.val,memreg) then
                               begin
                                 taicpu(p).loadreg(0,memreg);
+                                { mark the used register as read }
+                                incstate(ptaiprop(p.optinfo)^.
+                                   regs[getsupreg(memreg)].rstate,20);
+                                updateState(getsupreg(memreg),p);
                                 allocRegBetween(asml,memreg,
                                   ptaiprop(hp1.optinfo)^.regs[getsupreg(memreg)].startMod,p,
                                   ptaiprop(ptaiprop(hp1.optinfo)^.regs[getsupreg(memreg)].startMod.optinfo)^.usedregs);

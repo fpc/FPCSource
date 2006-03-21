@@ -2222,7 +2222,8 @@ implementation
           not is_boolean(destdef) and
           assigned(source.resulttype.def) and
           (source.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-          not is_boolean(source.resulttype.def) then
+          not is_boolean(source.resulttype.def) and
+          not is_constrealnode(source) then
          begin
            if (destdef.size < source.resulttype.def.size) then
              begin

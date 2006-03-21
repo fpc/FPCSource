@@ -73,6 +73,8 @@ implementation
              else if (value_real=0.0) then
                begin
                   emit_none(A_FLDZ,S_NO);
+                  if (get_real_sign(value_real) < 0) then
+                    emit_none(A_FCHS,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
