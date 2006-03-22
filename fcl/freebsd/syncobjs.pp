@@ -120,6 +120,8 @@ destructor TEventObject.destroy;
 
 begin
   sem_destroy(psem_t(FSem));
+  dispose(FSem);
+  FEventSection.Free;
 end;
 
 procedure TEventObject.ResetEvent;

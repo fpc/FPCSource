@@ -119,6 +119,8 @@ destructor TEventObject.destroy;
 
 begin
   sem_destroy(FSem);
+  dispose(FSem);
+  FEventSection.Free;
 end;
 
 procedure TEventObject.ResetEvent;
