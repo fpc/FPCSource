@@ -30,7 +30,7 @@ begin
           FPE_FLTRES : Res:=208;  {Device not available}
           FPE_FLTINV : Res:=207;  {Invalid floating point operation}
           Else
-              Res:=208; {coprocessor error}
+            Res:=207; {coprocessor error}
         end;
         { FPU exceptions are completely disabled by the kernel if one occurred, it  }
         { seems this is necessary to be able to return to user mode. They can be    }
