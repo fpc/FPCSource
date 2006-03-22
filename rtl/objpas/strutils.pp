@@ -181,6 +181,14 @@ function PosSet (const c:string;const s : ansistring ):Integer;
 function PosSetEx (const c:TSysCharSet;const s : ansistring;count:Integer ):Integer;
 function PosSetEx (const c:string;const s : ansistring;count:Integer ):Integer;
 
+Procedure Removeleadingchars(VAR S : AnsiString; Const CSet:TSysCharset);
+Procedure RemoveTrailingChars(VAR S : AnsiString;Const CSet:TSysCharset);
+Procedure RemovePadChars(VAR S : AnsiString;Const CSet:TSysCharset);
+
+function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
+Function TrimRightSet(const S: String;const CSet:TSysCharSet): String;
+function TrimSet(const S: String;const CSet:TSysCharSet): String;
+
 implementation
 
 { ---------------------------------------------------------------------
@@ -1683,5 +1691,88 @@ begin
       include(cset,c[i]);
   result:=possetex(cset,s,1);
 end;
+
+
+Procedure Removeleadingchars(VAR S : AnsiString; Const CSet:TSysCharset);
+
+VAR I,J : Longint;
+
+Begin
+ I:=Length(S); 
+ IF (I>0) Then
+  Begin
+   J:=1;
+   While (J<=I) And (S[J] IN CSet) DO 
+     INC(J);
+   IF J>1 Then
+    Delete(S,1,J-1);
+   End;
+End;
+
+
+function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
+
+begin
+  result:=s;
+  removeleadingchars(result,cset); 
+end;
+
+Procedure RemoveTrailingChars(VAR S : AnsiString;Const CSet:TSysCharset);
+
+VAR I,J: LONGINT;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=I;
+   While (j>0) and (S[J] IN CSet) DO DEC(J);
+   IF J<>I Then
+    SetLength(S,J);
+  End;
+End;
+
+Function TrimRightSet(const S: String;const CSet:TSysCharSet): String;
+
+begin
+  result:=s;
+  RemoveTrailingchars(result,cset); 
+end;
+
+Procedure RemovePadChars(VAR S : AnsiString;Const CSet:TSysCharset);
+
+VAR I,J,K: LONGINT;
+
+Begin
+ I:=Length(S);
+ IF (I>0) Then
+  Begin
+   J:=I;
+   While (j>0) and (S[J] IN CSet) DO DEC(J);
+   if j=0 Then
+     begin 
+       s:='';
+       exit;
+     end;
+   k:=1;
+   While (k<=I) And (S[k] IN CSet) DO 
+     INC(k);
+   IF k>1 Then
+     begin
+       move(s[k],s[1],j-k+1);
+       setlength(s,j-k+1);
+     end
+   else
+     setlength(s,j);  
+  End;
+End;
+
+function TrimSet(const S: String;const CSet:TSysCharSet): String;
+
+begin
+  result:=s;
+  RemovePadChars(result,cset); 
+end;
+
 
 end.
