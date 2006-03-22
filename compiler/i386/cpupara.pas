@@ -103,6 +103,7 @@ unit cpupara;
                     { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
                       For stdcall we follow delphi instead of GCC }
                     if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                       (def.size>0) and
                        (def.size<=8) then
                      begin
                        result:=false;
