@@ -120,7 +120,7 @@ destructor TEventObject.destroy;
 
 begin
   sem_destroy(FSem);
-  dispose(FSem);
+  dispose(PSemaphore(FSem));
   FEventSection.Free;
 end;
 
