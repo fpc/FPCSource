@@ -365,7 +365,8 @@ begin
       Inc(I,P+1);
       Inc(O,P);
       end;
-   Until (Payload[I]=#0);    
+   Until (Payload[I]=#0);
+   setlength(result,o-1);
 end;
 
 
