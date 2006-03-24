@@ -157,7 +157,7 @@ Function Do_IsDevice(Handle:Longint):boolean;
   data is function-dependent.
 }
 CONST
-  IOCtl_TCGETS=$5401;
+  IOCtl_TCGETS=$40000000+$2C7400+ 19;
 var
   Data : array[0..255] of byte; {Large enough for termios info}
 begin
