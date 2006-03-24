@@ -15,6 +15,9 @@
   { Read filename handling functions implementation }
   {$i fina.inc}
 
+  { variant error codes }
+  {$i varerror.inc}
+
     Function FileSearch (Const Name, DirList : String) : String;
     Var
       I : longint;
@@ -186,6 +189,39 @@
     begin
        if AllowFree then
         inherited FreeInstance;
+    end;
+
+
+    Constructor EVariantError.CreateCode (Code : longint);
+    begin
+       case Code of
+         VAR_OK:
+           Create(SNoError);
+         VAR_PARAMNOTFOUND:
+           Create(SVarParamNotFound);
+         VAR_TYPEMISMATCH:
+           Create(SInvalidVarCast);
+         VAR_BADVARTYPE:
+           Create(SVarBadType);
+         VAR_OVERFLOW:
+           Create(SVarOverflow);
+         VAR_BADINDEX:
+           Create(SVarArrayBounds);
+         VAR_ARRAYISLOCKED:
+           Create(SVarArrayLocked);
+         VAR_NOTIMPL:
+           Create(SVarNotImplemented);
+         VAR_OUTOFMEMORY:
+           Create(SVarOutOfMemory);
+         VAR_INVALIDARG:
+           Create(SVarInvalid);
+         VAR_UNEXPECTED,
+         VAR_EXCEPTION:
+           Create(SVarUnexpected);
+         else
+           CreateFmt(SUnknownErrorCode,[Code]);
+       end;
+       ErrCode:=Code;
     end;
 
 

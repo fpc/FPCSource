@@ -30,12 +30,6 @@ begin
   Raise Exception.Create(SNoInterfaces);
 end;
 
-Constructor EVariantError.CreateCode (Code : longint);
-
-begin
-  ErrCode:=Code;
-end;
-
 Procedure VariantTypeMismatch;
 
 begin
