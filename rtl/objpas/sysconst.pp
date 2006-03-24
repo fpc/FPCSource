@@ -67,7 +67,7 @@ resourcestring
   SInvalidInteger        = '"%s" is an invalid integer';
   SInvalidOp             = 'Invalid floating point operation';
   SInvalidPointer        = 'Invalid pointer operation';
-  SInvalidVarCast        = 'Invalid variant type case';
+  SInvalidVarCast        = 'Invalid variant type cast';
   SInvalidVarNullOp      = 'Invalid NULL variant operation';
   SInvalidVarOp          = 'Invalid variant operation';
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
