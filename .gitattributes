@@ -6751,7 +6751,7 @@ tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/tw4675.pp svneol=native#text/plain
 tests/webtbs/tw4700.pp svneol=native#text/plain
-tests/webtbs/tw4707.pp -text
+tests/webtbs/tw4704.pp -text
 tests/webtbs/tw4763.pp svneol=native#text/plain
 tests/webtbs/tw4768.pp -text
 tests/webtbs/tw4778.pp svneol=native#text/plain
