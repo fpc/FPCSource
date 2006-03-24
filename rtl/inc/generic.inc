@@ -73,12 +73,14 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
 
+{$ifndef INTERNALMOVEFILLCHAR}
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
 procedure FillByte (var x;count : SizeInt;value : byte );
 begin
   FillChar (X,Count,CHR(VALUE));
 end;
 {$endif not FPC_SYSTEM_HAS_FILLBYTE}
+{$endif INTERNALMOVEFILLCHAR}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}

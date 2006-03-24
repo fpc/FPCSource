@@ -62,6 +62,8 @@ const
    fpc_in_leave             = 51; {macpas}
    fpc_in_cycle             = 52; {macpas}
    fpc_in_slice             = 53;
+   fpc_in_move_x            = 54;
+   fpc_in_fillchar_x        = 55;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

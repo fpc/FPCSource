@@ -139,6 +139,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
+{$ifndef INTERNALMOVEFILLCHAR}
 procedure fillchar(var x;count : SizeInt;value : boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   fillchar(x,count,byte(value));
@@ -148,6 +149,7 @@ procedure fillchar(var x;count : SizeInt;value : char);{$ifdef SYSTEMINLINE}inli
 begin
   fillchar(x,count,byte(value));
 end;
+{$endif INTERNALMOVEFILLCHAR}
 
 { Include generic pascal only routines which are not defined in the processor
   specific include file }

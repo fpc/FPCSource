@@ -88,8 +88,10 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
+{$ifndef INTERNALMOVEFILLCHAR}
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
+{$endif INTERNALMOVEFILLCHAR}
 
 procedure fpc_cpuinit;
   begin
@@ -105,6 +107,81 @@ procedure fpc_cpuinit;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
+{$ifdef INTERNALMOVEFILLCHAR}
+
+procedure SysMoveForward(const source;var dest;count:SizeInt);assembler;
+var
+  saveesi,saveedi : longint;
+asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %eax,%esi
+        movl    %edx,%edi
+        movl    %ecx,%edx
+        cld
+        cmpl    $15,%edx
+        jl      .LFMove1
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx
+        andl    $3,%ecx
+        subl    %ecx,%edx
+        rep
+        movsb
+        movl    %edx,%ecx
+        andl    $3,%edx
+        shrl    $2,%ecx
+        rep
+        movsl
+.LFMove1:
+        movl    %edx,%ecx
+        rep
+        movsb
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
+
+procedure SysMoveBackward(const source;var dest;count:SizeInt);assembler;
+var
+  saveesi,saveedi : longint;
+asm
+        movl    %edi,saveedi
+        movl    %esi,saveesi
+        movl    %eax,%esi
+        movl    %edx,%edi
+        movl    %ecx,%edx
+        std
+        addl    %edx,%esi
+        addl    %edx,%edi
+        movl    %edi,%ecx
+        decl    %esi
+        decl    %edi
+        cmpl    $15,%edx
+        jl      .LBMove1
+        negl    %ecx            { Align on 32bits }
+        andl    $3,%ecx
+        subl    %ecx,%edx
+        rep
+        movsb
+        movl    %edx,%ecx
+        andl    $3,%edx
+        shrl    $2,%ecx
+        subl    $3,%esi
+        subl    $3,%edi
+        rep
+        movsl
+        addl    $3,%esi
+        addl    $3,%edi
+.LBMove1:
+        movl    %edx,%ecx
+        rep
+        movsb
+        cld
+        movl    saveedi,%edi
+        movl    saveesi,%esi
+end;
+
+{$else INTERNALMOVEFILLCHAR}
+
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;
 var
   saveesi,saveedi : longint;
@@ -184,13 +261,18 @@ asm
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
+
+{$endif INTERNALMOVEFILLCHAR}
 {$endif FPC_SYSTEM_HAS_MOVE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
+{$ifdef INTERNALMOVEFILLCHAR}
+Procedure SysFillChar(var x;count:SizeInt;value:byte);assembler;
+{$else INTERNALMOVEFILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);assembler;
-
+{$endif INTERNALMOVEFILLCHAR}
 asm
         {A push is prefered over a local variable because a local
          variable causes the compiler to generate a stackframe.}

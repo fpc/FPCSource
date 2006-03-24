@@ -339,6 +339,7 @@ var
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
 
+
 ThreadVar
   ThreadID    : TThreadID;
   { Standard In- and Output }
@@ -368,11 +369,18 @@ ThreadVar
 {$endif}
 {$endif}
 
+{$ifdef INTERNALMOVEFILLCHAR}
+Procedure SysMoveForward(const source;var dest;count:SizeInt);
+Procedure SysMoveBackward(const source;var dest;count:SizeInt);
+Procedure SysFillChar(var x;count:SizeInt;Value:Byte);
+procedure FillByte(var x;count:SizeInt;value:byte);[INTERNPROC: fpc_in_fillchar_x];
+{$else INTERNALMOVEFILLCHAR}
 Procedure Move(const source;var dest;count:SizeInt);{$ifdef INLINEGENERICS}inline;{$endif}
 Procedure FillChar(var x;count:SizeInt;Value:Boolean);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillChar(var x;count:SizeInt;Value:Char);{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure FillChar(var x;count:SizeInt;Value:Byte);{$ifdef INLINEGENERICS}inline;{$endif}
 procedure FillByte(var x;count:SizeInt;value:byte);{$ifdef INLINEGENERICS}inline;{$endif}
+{$endif INTERNALMOVEFILLCHAR}
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
@@ -388,6 +396,12 @@ function  IndexChar0(const buf;len:SizeInt;b:char):SizeInt;
 function  CompareChar0(const buf1,buf2;len:SizeInt):SizeInt;{$ifdef INLINEGENERICS}inline;{$endif}
 procedure prefetch(const mem);[internproc:fpc_in_prefetch_var];
 
+{$ifdef INTERNALMOVEFILLCHAR}
+var
+  fpc_moveforward_proc : pointer = @SysMoveForward public name 'FPC_MOVEFORWARD_PROC';
+  fpc_movebackward_proc : pointer = @SysMoveBackward public name 'FPC_MOVEBACKWARD_PROC';
+  fpc_fillchar_proc : pointer = @SysFillChar public name 'FPC_FILLCHAR_PROC';
+{$endif INTERNALMOVEFILLCHAR}
 
 {****************************************************************************
                           Math Routines
