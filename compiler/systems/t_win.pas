@@ -1137,13 +1137,13 @@ end;
 
 function TLinkerWin32.MakeExecutable:boolean;
 var
+  MapStr,
   binstr : String;
   cmdstr  : TCmdStr;
   success : boolean;
   cmds,i       : longint;
   AsBinStr     : string[80];
   GCSectionsStr,
-  MapStr,
   StripStr,
   RelocStr,
   AppTypeStr,
@@ -1241,6 +1241,7 @@ end;
 
 Function TLinkerWin32.MakeSharedLibrary:boolean;
 var
+  MapStr,
   binstr : String;
   cmdstr  : TCmdStr;
   success : boolean;
@@ -1264,6 +1265,7 @@ begin
   EntryStr:='';
   ImageBaseStr:='';
   StripStr:='';
+  MapStr:='';
   GCSectionsStr:='';
   AsBinStr:=FindUtil(utilsprefix+'as');
   if RelocSection then
@@ -1281,6 +1283,8 @@ begin
     ImageBaseStr:='--image-base=0x'+DLLImageBase^;
   if (cs_link_strip in aktglobalswitches) then
     StripStr:='-s';
+  if (cs_link_map in aktglobalswitches) then
+    MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
 
 { Write used files and libraries }
   WriteResponseFile(true);
@@ -1306,6 +1310,7 @@ begin
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
         Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+        Replace(cmdstr,'$MAP',MapStr);
         if not DefFile.Empty then
           begin
             DefFile.WriteFile;
