@@ -730,6 +730,12 @@ begin
 {$endif unix}
 end;
 
+function CurrentYear:Word;
+var yy,mm,dd : word;
+begin
+  Decodedate(now,yy,mm,dd);
+  Result:=yy;
+end;
 
 Function FileDateToDateTime (Filedate : Longint) : TDateTime;
 

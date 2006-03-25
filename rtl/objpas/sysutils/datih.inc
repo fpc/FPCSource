@@ -127,7 +127,7 @@ function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
-
+function CurrentYear:Word;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
 
