@@ -1452,11 +1452,11 @@ mmxreg,mem            \301\2\x0F\x58\110              PENT,MMX,SM,CYRIX
 
 [POP,popX]
 (Ch_Wop1, Ch_RWESP, Ch_None)
-reg16|32|64           \320\10\x58                     8086
-rm16|32|64            \320\300\1\x8F\200              8086
+reg16|32|64           \320\10\x58\335                 8086
+rm16|32|64            \320\300\1\x8F\200\335          8086
 reg_cs                \1\x0F                          8086,UNDOC,ND
 reg_dess              \4                              8086
-reg_fsgs              \1\x0F\5                        386
+reg_fsgs              \1\x0F\5\335                    386
 
 [POPA,popaX]
 (Ch_All, Ch_None, Ch_None)
@@ -1671,12 +1671,12 @@ xmmreg,xmmreg         \3\x66\x0F\x61\110              WILLAMETTE,SSE2
 
 [PUSH,pushX]
 (Ch_Rop1, Ch_RWESP, Ch_None)
-reg16|32|64           \320\10\x50                     8086
-rm16|32|64            \320\300\1\xFF\206              8086
-imm32                 \325\1\x68\40                   386
-imm16                 \324\1\x68\30                   286
-imm8                  \1\x6A\14                       286
-reg_fsgs              \1\x0F\7                        386,NOX86_64
+reg16|32|64           \320\10\x50\335                 8086
+rm16|32|64            \320\300\1\xFF\206\335          8086
+imm32                 \325\1\x68\40\335               386
+imm16                 \324\1\x68\30\335               286
+imm8                  \1\x6A\14\335                   286
+reg_fsgs              \1\x0F\7\335                    386,NOX86_64
 reg_sreg              \6                              8086,NOX86_64
 
 [PUSHA,pushaX]

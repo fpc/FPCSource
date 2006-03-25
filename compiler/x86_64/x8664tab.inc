@@ -5289,35 +5289,35 @@
     opcode  : A_PUSH;
     ops     : 1;
     optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none);
-    code    : #208#8#80;
+    code    : #208#8#80#221;
     flags   : if_8086
   ),
   (
     opcode  : A_PUSH;
     ops     : 1;
     optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_none,ot_none);
-    code    : #208#192#1#255#134;
+    code    : #208#192#1#255#134#221;
     flags   : if_8086
   ),
   (
     opcode  : A_PUSH;
     ops     : 1;
     optypes : (ot_immediate or ot_bits32,ot_none,ot_none);
-    code    : #213#1#104#32;
+    code    : #213#1#104#32#221;
     flags   : if_386
   ),
   (
     opcode  : A_PUSH;
     ops     : 1;
     optypes : (ot_immediate or ot_bits16,ot_none,ot_none);
-    code    : #212#1#104#24;
+    code    : #212#1#104#24#221;
     flags   : if_286
   ),
   (
     opcode  : A_PUSH;
     ops     : 1;
     optypes : (ot_immediate or ot_bits8 or ot_signed,ot_none,ot_none);
-    code    : #1#106#12;
+    code    : #1#106#12#221;
     flags   : if_286
   ),
   (

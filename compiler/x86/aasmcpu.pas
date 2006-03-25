@@ -1793,6 +1793,18 @@ implementation
             217,218: ;
             219,220 :
               inc(len);
+            221:
+{$ifdef x86_64}
+              { remove rex competely? }
+              if rex=$48 then
+                begin
+                  rex:=0;
+                  dec(len);
+                end
+              else
+                rex:=rex and $f7
+{$endif x86_64}
+              ;
             64..191 :
               begin
 {$ifdef x86_64}
@@ -1865,6 +1877,7 @@ implementation
        * \327          - indicates that this instruction is only valid when the
        *                 operand size is the default (instruction to disassembler,
        *                 generates no code in the assembler)
+       * \335          - removes rex size prefix, i.e. rex.w must be the last opcode
       }
 
       var
@@ -2141,6 +2154,8 @@ implementation
                 bytes[0]:=$f2;
                 objdata.writebytes(bytes,1);
               end;
+            221:
+              ;
             201,
             202,
             213,
