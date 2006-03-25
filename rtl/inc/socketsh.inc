@@ -22,11 +22,19 @@ Type
 
 Const
   { Socket types }
+{$ifdef sunos}
+  SOCK_STREAM     = 2;               { stream socket }
+  SOCK_DGRAM      = 1;               { datagram socket }
+  SOCK_RAW        = 4;               { raw-protocol interface }
+  SOCK_RDM        = 5;               { reliably-delivered message }
+  SOCK_SEQPACKET  = 6;               { sequenced packet stream }
+{$else sunos}
   SOCK_STREAM     = 1;               { stream (connection) socket   }
   SOCK_DGRAM      = 2;               { datagram (conn.less) socket  }
   SOCK_RAW        = 3;               { raw socket                   }
   SOCK_RDM        = 4;               { reliably-delivered message   }
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
+{$endif sunos}
 
   { Protocol families }
   PF_UNSPEC    = 0;                  { Unspecified }
@@ -71,10 +79,10 @@ const
 
 Type
   in_addr = packed record
-             case boolean of   		
-             true: (s_addr  : cuint32);         // inaddr_t=cuint32
-	     false: (s_bytes : packed array[1..4] of byte);
-            end;
+    case boolean of   		
+       true: (s_addr  : cuint32);         // inaddr_t=cuint32
+       false: (s_bytes : packed array[1..4] of byte);
+  end;
 
   TIn_addr = in_addr;
   pin_addr = ^in_addr;
