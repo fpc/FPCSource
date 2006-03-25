@@ -40,8 +40,9 @@ Const
    AF_INET6      = 26;              { Internet Protocol, Version 6 }
    AF_KEY        = 27;              { Security Association DB socket }
    AF_NCA        = 28;              { NCA socket }
+   AF_POLICY     = 29;
 
-   AF_MAX        = 28;
+   AF_MAX        = 29;
 
    PF_IMPLINK    = AF_IMPLINK;
    PF_PUP        = AF_PUP;
