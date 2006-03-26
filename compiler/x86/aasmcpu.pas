@@ -1452,15 +1452,22 @@ implementation
         { it's direct address }
         if (br=NR_NO) and (ir=NR_NO) then
          begin
-           { it's a pure offset }
-           output.sib_present:=false;
+           output.sib_present:=true;
            output.bytes:=4;
-           output.modrm:=5 or (rfield shl 3);
+           output.modrm:=4 or (rfield shl 3);
+           output.sib:=$25;
          end
+        else if (br=NR_RIP) and (ir=NR_NO) then
+          begin
+            { rip based }
+            output.sib_present:=false;
+            output.bytes:=4;
+            output.modrm:=5 or (rfield shl 3);
+          end
         else
         { it's an indirection }
          begin
-           { 16 bit address? }
+           { 16 bit or 32 bit address? }
            if ((ir<>NR_NO) and (isub<>R_SUBADDR)) or
               ((br<>NR_NO) and (bsub<>R_SUBADDR)) then
              message(asmw_e_16bit_32bit_not_supported);
