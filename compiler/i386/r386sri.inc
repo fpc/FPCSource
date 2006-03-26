@@ -1,5 +1,4 @@
 { don't edit, this file is generated from x86reg.dat }
-25,
 0,
 2,
 1,
@@ -33,6 +32,7 @@
 8,
 20,
 12,
+25,
 28,
 18,
 24,
