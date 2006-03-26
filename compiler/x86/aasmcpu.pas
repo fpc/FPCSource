@@ -1428,7 +1428,7 @@ implementation
               (getsupreg(input.reg)>=RS_XMM8)) then
               begin
                 output.rex_present:=true;
-                output.rex:=output.rex or $44;
+                output.rex:=output.rex or $41;
                 inc(output.size,1);
               end;
 
@@ -1850,6 +1850,7 @@ implementation
                           begin
                             if rex=0 then
                               inc(len);
+
                             rex:=rex or $44;
                           end;
                       end;
@@ -2124,16 +2125,16 @@ implementation
                 else
                   begin
                     if assigned(currsym) then
-                     objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                      objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE32)
                     else
-                     objdata.writebytes(currval,4);
+                      objdata.writebytes(currval,4);
                   end
               end;
             32,33,34 :
               begin
                 getvalsym(c-32);
                 if assigned(currsym) then
-                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE32)
                 else
                  objdata.writebytes(currval,4);
               end;
@@ -2153,7 +2154,7 @@ implementation
                 if assigned(currsym) then
                  objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
                 else
-                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE32)
               end;
             56,57,58 :
               begin
@@ -2161,7 +2162,7 @@ implementation
                 if assigned(currsym) then
                  objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
                 else
-                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE32)
               end;
             192,193,194 :
               begin
@@ -2284,7 +2285,7 @@ implementation
                          if (oper[opidx]^.ot and OT_MEMORY)=OT_MEMORY then
                            begin
                              currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
-                             objdata.writereloc(oper[opidx]^.ref^.offset,1,currsym,RELOC_ABSOLUTE)
+                             objdata.writereloc(oper[opidx]^.ref^.offset,1,currsym,RELOC_ABSOLUTE);
                            end
                          else
                           begin
@@ -2296,7 +2297,7 @@ implementation
                      2,4 :
                        begin
                          objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,
-                           objdata.symbolref(oper[opidx]^.ref^.symbol),RELOC_ABSOLUTE);
+                           objdata.symbolref(oper[opidx]^.ref^.symbol),RELOC_ABSOLUTE32);
                          inc(s,ea_data.bytes);
                        end;
                    end;

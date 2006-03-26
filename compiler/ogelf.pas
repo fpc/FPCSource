@@ -725,7 +725,7 @@ implementation
 {$ifdef i386}
            s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$else i386}
-           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           s.relocsect:=TElfObjSection.create_ext('.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
            { add the relocations }
            r:=TObjRelocation(s.relocations.first);
@@ -779,8 +779,16 @@ implementation
                     { length of the relocated location is handled here }
                     rel.addend:=qword(-4);
                   end;
-              RELOC_ABSOLUTE :
-                  reltyp:=R_X86_64_64;
+                RELOC_ABSOLUTE :
+                  begin
+                    reltyp:=R_X86_64_64;
+                    rel.addend:=0;
+                  end;
+                RELOC_ABSOLUTE32 :
+                  begin
+                    reltyp:=R_X86_64_32S;
+                    rel.addend:=0;
+                  end;
                 else
                   internalerror(200602261);
               end;
