@@ -710,13 +710,6 @@
   (
     opcode  : A_DEC;
     ops     : 1;
-    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none);
-    code    : #208#8#72;
-    flags   : if_8086
-  ),
-  (
-    opcode  : A_DEC;
-    ops     : 1;
     optypes : (ot_regmem or ot_bits16 or ot_bits32 or ot_bits64,ot_none,ot_none);
     code    : #208#192#1#255#129;
     flags   : if_8086
@@ -2392,13 +2385,6 @@
     ops     : 2;
     optypes : (ot_reg_ax or ot_bits32 or ot_bits64,ot_reg_dx,ot_none);
     code    : #208#1#237;
-    flags   : if_8086
-  ),
-  (
-    opcode  : A_INC;
-    ops     : 1;
-    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none);
-    code    : #208#8#64;
     flags   : if_8086
   ),
   (
