@@ -19,7 +19,7 @@ Interface
 {$define maybelibc:=}
 
   Uses
-     windows,winsock2,ctypes;
+     winsock2,ctypes;
 
 Type
   size_t  = cuint32;
