@@ -9629,14 +9629,14 @@
     opcode  : A_MOVSXD;
     ops     : 2;
     optypes : (ot_reg64,ot_memory,ot_none);
-    code    : #213#193#1#99#72;
+    code    : #214#193#1#99#72;
     flags   : if_x86_64
   ),
   (
     opcode  : A_MOVSXD;
     ops     : 2;
     optypes : (ot_reg64,ot_reg32,ot_none);
-    code    : #213#193#1#99#72;
+    code    : #214#193#1#99#72;
     flags   : if_x86_64
   ),
   (

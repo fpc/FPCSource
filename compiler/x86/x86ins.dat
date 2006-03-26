@@ -3239,8 +3239,8 @@ reg32,imm             \325\10\xB8\41                  X86_64
 
 [MOVSXD,movslq]
 (Ch_Wop2, Ch_Rop1, Ch_None)
-reg64,mem             \325\301\1\x63\110              X86_64
-reg64,reg32           \325\301\1\x63\110              X86_64
+reg64,mem             \326\301\1\x63\110              X86_64
+reg64,reg32           \326\301\1\x63\110              X86_64
 
 [CQO,cqto]
 (Ch_MRAX, Ch_WRDX, Ch_None)

@@ -712,7 +712,7 @@
     ops     : 1;
     optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none);
     code    : #208#8#72;
-    flags   : if_8086
+    flags   : if_8086 or if_nox86_64
   ),
   (
     opcode  : A_DEC;
@@ -2399,7 +2399,7 @@
     ops     : 1;
     optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none);
     code    : #208#8#64;
-    flags   : if_8086
+    flags   : if_8086 or if_nox86_64
   ),
   (
     opcode  : A_INC;
