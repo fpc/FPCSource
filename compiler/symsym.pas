@@ -264,6 +264,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  getsize:longint;
+          procedure set_mangledname(const s:string);
        end;
 
        tconstvalue = record
@@ -1759,6 +1760,17 @@ implementation
       {$endif}
           end;
         result:=_mangledname^;
+      end;
+
+
+    procedure ttypedconstsym.set_mangledname(const s:string);
+      begin
+        stringdispose(_mangledname);
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(s));
+      {$else}
+        _mangledname:=stringdup(s);
+      {$endif}
       end;
 
 

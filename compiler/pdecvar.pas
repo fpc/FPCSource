@@ -52,7 +52,7 @@ implementation
        symconst,symbase,symtype,symtable,defutil,defcmp,
        fmodule,
        { pass 1 }
-       node,pass_1,
+       node,pass_1,aasmdata,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
        { codegen }
        ncgutil,
@@ -603,7 +603,7 @@ implementation
               include(tcsym.symoptions,sp_internal);
               vs.defaultconstsym:=tcsym;
               symtablestack.top.insert(tcsym);
-              readtypedconst(tt,tcsym,false);
+              readtypedconst(current_asmdata.asmlists[al_typedconsts],tt,tcsym,false);
               { The variable has a value assigned }
               vs.varstate:=vs_initialised;
             end
@@ -614,7 +614,7 @@ implementation
               symtablestack.top.replace(vs,tcsym);
               vs.free;
               consume(_EQUAL);
-              readtypedconst(tt,tcsym,true);
+              readtypedconst(current_asmdata.asmlists[al_typedconsts],tt,tcsym,true);
             end;
         end;
 

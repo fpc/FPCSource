@@ -25,12 +25,12 @@ unit ptconst;
 
 interface
 
-   uses symtype,symsym;
+   uses symtype,symsym,aasmdata;
 
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
     { the assembler label is in the middle (PM) }
-    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
+    procedure readtypedconst(list:tasmlist;const t:ttype;sym : ttypedconstsym;writable : boolean);
 
 implementation
 
@@ -39,7 +39,7 @@ implementation
        globtype,systems,tokens,verbose,
        cutils,globals,widestr,scanner,
        symconst,symbase,symdef,symtable,
-       aasmbase,aasmtai,aasmdata,aasmcpu,defutil,defcmp,
+       aasmbase,aasmtai,aasmcpu,defutil,defcmp,
        { pass 1 }
        node,htypechk,procinfo,
        nmat,nadd,ncal,nmem,nset,ncnv,ninl,ncon,nld,nflw,
@@ -53,7 +53,7 @@ implementation
   {$maxfpuregisters 0}
 {$endif fpc}
     { this procedure reads typed constants }
-    procedure readtypedconst(const t:ttype;sym : ttypedconstsym;writable : boolean);
+    procedure readtypedconst(list:tasmlist;const t:ttype;sym : ttypedconstsym;writable : boolean);
       label
          myexit;
       type
@@ -67,6 +67,7 @@ implementation
          offset,
          strlength : aint;
          ll        : tasmlabel;
+         c_name,
          s,sorg    : string;
          c         : char;
          ca        : pchar;
@@ -85,6 +86,7 @@ implementation
          storefilepos : tfileposinfo;
          cursectype : TAsmSectiontype;
          cural : tasmlisttype;
+         datalist : tasmlist;
 
          procedure check_range(def:torddef);
            begin
@@ -101,40 +103,7 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
-
-         if writable then
-           begin
-             cural:=al_typedconsts;
-             cursectype:=sec_data;
-           end
-         else
-           begin
-             cural:=al_rotypedconsts;
-             cursectype:=sec_rodata;
-           end;
-
-         { Add symbol name if this is specified. For array
-           elements sym=nil and we should skip this }
-         if assigned(sym) then
-           begin
-             storefilepos:=aktfilepos;
-             aktfilepos:=sym.fileinfo;
-
-             { insert cut for smartlinking or alignment }
-             l:=sym.getsize;
-             maybe_new_object_file(current_asmdata.asmlists[cural]);
-             new_section(current_asmdata.asmlists[cural],cursectype,lower(sym.mangledname),const_align(size_2_align(l)));
-
-             if (sym.owner.symtabletype=globalsymtable) or
-                maybe_smartlink_symbol or
-                (assigned(current_procinfo) and
-                 (po_inline in current_procinfo.procdef.procoptions)) or
-                DLLSource then
-               current_asmdata.asmlists[cural].concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,l))
-             else
-               current_asmdata.asmlists[cural].concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,l));
-             aktfilepos:=storefilepos;
-           end;
+         datalist:=tasmlist.create;
 
          case t.def.deftype of
             orddef:
@@ -144,28 +113,28 @@ implementation
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
-                           current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
+                           datalist.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
                     bool16bit :
                       begin
                          if is_constboolnode(p) then
-                           current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
+                           datalist.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
                     bool32bit :
                       begin
                          if is_constboolnode(p) then
-                           current_asmdata.asmlists[cural].concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)))
+                           datalist.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
                     uchar :
                       begin
                          if is_constcharnode(p) then
-                           current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
+                           datalist.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
@@ -174,7 +143,7 @@ implementation
                          if is_constcharnode(p) then
                            inserttypeconv(p,cwidechartype);
                          if is_constwidecharnode(p) then
-                           current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
+                           datalist.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
                            Message(parser_e_illegal_expression);
                       end;
@@ -183,7 +152,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)));
+                              datalist.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)));
                               check_range(torddef(t.def));
                            end
                          else
@@ -194,7 +163,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                             current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(word(tordconstnode(p).value)));
+                             datalist.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)));
                              check_range(torddef(t.def));
                            end
                          else
@@ -205,7 +174,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              current_asmdata.asmlists[cural].concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)));
+                              datalist.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)));
                               if torddef(t.def).typ<>u32bit then
                                check_range(torddef(t.def));
                            end
@@ -230,7 +199,7 @@ implementation
                              intvalue:=0;
                              Message(parser_e_illegal_expression);
                            end;
-                        current_asmdata.asmlists[cural].concat(Tai_const.Create_64bit(intvalue));
+                        datalist.concat(Tai_const.Create_64bit(intvalue));
                       end;
                     else
                       internalerror(3799);
@@ -249,24 +218,24 @@ implementation
 
               case tfloatdef(t.def).typ of
                  s32real :
-                   current_asmdata.asmlists[cural].concat(Tai_real_32bit.Create(ts32real(value)));
+                   datalist.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
 {$ifdef ARM}
                    if aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
-                     current_asmdata.asmlists[cural].concat(Tai_real_64bit.Create_hiloswapped(ts64real(value)))
+                     datalist.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value)))
                    else
 {$endif ARM}
-                     current_asmdata.asmlists[cural].concat(Tai_real_64bit.Create(ts64real(value)));
+                     datalist.concat(Tai_real_64bit.Create(ts64real(value)));
                  s80real :
-                   current_asmdata.asmlists[cural].concat(Tai_real_80bit.Create(value));
+                   datalist.concat(Tai_real_80bit.Create(value));
 
                  { the round is necessary for native compilers where comp isn't a float }
                  s64comp :
-                   current_asmdata.asmlists[cural].concat(Tai_comp_64bit.Create(round(value)));
+                   datalist.concat(Tai_comp_64bit.Create(round(value)));
                  s64currency:
-                   current_asmdata.asmlists[cural].concat(Tai_comp_64bit.Create(round(value*10000)));
+                   datalist.concat(Tai_comp_64bit.Create(round(value*10000)));
                  s128real:
-                   current_asmdata.asmlists[cural].concat(Tai_real_128bit.Create(value));
+                   datalist.concat(Tai_real_128bit.Create(value));
                  else
                    internalerror(18);
               end;
@@ -281,11 +250,11 @@ implementation
                      begin
                         if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
                           message(parser_e_illegal_expression);
-                        current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(current_asmdata.newasmsymbol(
+                        datalist.concat(Tai_const.Create_sym(current_asmdata.newasmsymbol(
                           Tobjectdef(pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA)));
                      end;
                  niln:
-                   current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil));
+                   datalist.concat(Tai_const.Create_sym(nil));
                  else Message(parser_e_illegal_expression);
               end;
               p.free;
@@ -316,23 +285,23 @@ implementation
               if (p.nodetype = pointerconstn) then
                 begin
                   if sizeof(TConstPtrUInt)=8 then
-                    current_asmdata.asmlists[cural].concat(Tai_const.Create_64bit(TConstPtrUInt(tpointerconstnode(p).value)))
+                    datalist.concat(Tai_const.Create_64bit(TConstPtrUInt(tpointerconstnode(p).value)))
                   else
                     if sizeof(TConstPtrUInt)=4 then
-                      current_asmdata.asmlists[cural].concat(Tai_const.Create_32bit(TConstPtrUInt(tpointerconstnode(p).value)))
+                      datalist.concat(Tai_const.Create_32bit(TConstPtrUInt(tpointerconstnode(p).value)))
                   else
                     internalerror(200404122);
                 end
               { nil pointer ? }
               else if p.nodetype=niln then
-                current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil))
+                datalist.concat(Tai_const.Create_sym(nil))
               { maybe pchar ? }
               else
                 if is_char(tpointerdef(t.def).pointertype.def) and
                    (p.nodetype<>addrn) then
                   begin
                     current_asmdata.getdatalabel(ll);
-                    current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(ll));
+                    datalist.concat(Tai_const.Create_sym(ll));
                     if p.nodetype=stringconstn then
                      varalign:=size_2_align(tstringconstnode(p).len)
                     else
@@ -363,7 +332,7 @@ implementation
                    (p.nodetype<>addrn) then
                   begin
                     current_asmdata.getdatalabel(ll);
-                    current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(ll));
+                    datalist.concat(Tai_const.Create_sym(ll));
                     current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(sizeof(aint))));
                     current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(ll));
                     if (p.nodetype in [stringconstn,ordconstn]) then
@@ -445,17 +414,17 @@ implementation
                               if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
                                 Message(type_e_cant_take_address_of_abstract_method)
                               else
-                                current_asmdata.asmlists[cural].concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
+                                datalist.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
                             end;
                           globalvarsym :
-                            current_asmdata.asmlists[cural].concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,AT_DATA,offset));
+                            datalist.concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,AT_DATA,offset));
                           typedconstsym :
-                            current_asmdata.asmlists[cural].concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
+                            datalist.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
                           labelsym :
-                            current_asmdata.asmlists[cural].concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_LABEL,offset));
+                            datalist.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_LABEL,offset));
                           constsym :
                             if tconstsym(srsym).consttyp=constresourcestring then
-                              current_asmdata.asmlists[cural].concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),AT_DATA,tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
+                              datalist.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),AT_DATA,tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
                             else
                               Message(type_e_variable_id_expected);
                           else
@@ -472,7 +441,7 @@ implementation
                   begin
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
-                        current_asmdata.asmlists[cural].concat(Tai_const.createname(
+                        datalist.concat(Tai_const.createname(
                           tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_DATA,0));
                       end
                     else
@@ -502,7 +471,7 @@ implementation
                         if source_info.endian = target_info.endian then
                           begin
                             for l:=0 to p.resulttype.def.size-1 do
-                              current_asmdata.asmlists[cural].concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
+                              datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
                           end
                         else
                           begin
@@ -510,10 +479,10 @@ implementation
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
-                                current_asmdata.asmlists[cural].concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
-                                current_asmdata.asmlists[cural].concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
-                                current_asmdata.asmlists[cural].concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
-                                current_asmdata.asmlists[cural].concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
+                                datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
+                                datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
+                                datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
+                                datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
                                 Inc(j,4);
                               end;
                           end;
@@ -532,9 +501,9 @@ implementation
                      is_subequal(p.resulttype.def,t.def) then
                    begin
                      case longint(p.resulttype.def.size) of
-                       1 : current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
-                       2 : current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
-                       4 : current_asmdata.asmlists[cural].concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
+                       1 : datalist.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
+                       2 : datalist.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
+                       4 : datalist.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
                      end;
                    end
                   else
@@ -584,12 +553,12 @@ implementation
                           message2(parser_w_string_too_long,strpas(strval),tostr(t.def.size-1));
                           strlength:=t.def.size-1;
                         end;
-                       current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(strlength));
+                       datalist.concat(Tai_const.Create_8bit(strlength));
                        { this can also handle longer strings }
                        getmem(ca,strlength+1);
                        move(strval^,ca^,strlength);
                        ca[strlength]:=#0;
-                       current_asmdata.asmlists[cural].concat(Tai_string.Create_pchar(ca,strlength));
+                       datalist.concat(Tai_string.Create_pchar(ca,strlength));
                        { fillup with spaces if size is shorter }
                        if t.def.size>strlength then
                         begin
@@ -599,18 +568,18 @@ implementation
                           fillchar(ca[0],t.def.size-strlength-1,' ');
                           ca[t.def.size-strlength-1]:=#0;
                           { this can also handle longer strings }
-                          current_asmdata.asmlists[cural].concat(Tai_string.Create_pchar(ca,t.def.size-strlength-1));
+                          datalist.concat(Tai_string.Create_pchar(ca,t.def.size-strlength-1));
                         end;
                      end;
                    st_ansistring:
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil))
+                          datalist.concat(Tai_const.Create_sym(nil))
                         else
                           begin
                             current_asmdata.getdatalabel(ll);
-                            current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(ll));
+                            datalist.concat(Tai_const.Create_sym(ll));
                             current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength));
@@ -626,11 +595,11 @@ implementation
                      begin
                         { an empty ansi string is nil! }
                         if (strlength=0) then
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil))
+                          datalist.concat(Tai_const.Create_sym(nil))
                         else
                           begin
                             current_asmdata.getdatalabel(ll);
-                            current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(ll));
+                            datalist.concat(Tai_const.Create_sym(ll));
                             current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
@@ -656,17 +625,17 @@ implementation
                 begin
                   { Only allow nil initialization }
                   consume(_NIL);
-                  current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil));
+                  datalist.concat(Tai_const.Create_sym(nil));
                 end
               else
               if try_to_consume(_LKLAMMER) then
                 begin
                   for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
                     begin
-                      readtypedconst(tarraydef(t.def).elementtype,nil,writable);
+                      readtypedconst(datalist,tarraydef(t.def).elementtype,nil,writable);
                       consume(_COMMA);
                     end;
-                  readtypedconst(tarraydef(t.def).elementtype,nil,writable);
+                  readtypedconst(datalist,tarraydef(t.def).elementtype,nil,writable);
                   consume(_RKLAMMER);
                 end
               else
@@ -701,12 +670,12 @@ implementation
                      begin
                         if i+1-tarraydef(t.def).lowrange<=len then
                           begin
-                             current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(byte(ca^)));
+                             datalist.concat(Tai_const.Create_8bit(byte(ca^)));
                              inc(ca);
                           end
                         else
                           {Fill the remaining positions with #0.}
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(0));
+                          datalist.concat(Tai_const.Create_8bit(0));
                      end;
                    p.free;
                 end
@@ -722,9 +691,9 @@ implementation
               { under tp:  =nil or =var under fpc: =nil or =@var }
               if token=_NIL then
                 begin
-                   current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil));
+                   datalist.concat(Tai_const.Create_sym(nil));
                    if (po_methodpointer in tprocvardef(t.def).procoptions) then
-                     current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil));
+                     datalist.concat(Tai_const.Create_sym(nil));
                    consume(_NIL);
                    goto myexit;
                 end;
@@ -771,7 +740,7 @@ implementation
               if (p.nodetype=loadn) and
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
-                 current_asmdata.asmlists[cural].concat(Tai_const.createname(
+                 datalist.concat(Tai_const.createname(
                    tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,AT_FUNCTION,0));
                end
               else
@@ -793,11 +762,11 @@ implementation
                       p.free;
                       if string2guid(s,tmpguid) then
                         begin
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(tmpguid.D2));
-                          current_asmdata.asmlists[cural].concat(Tai_const.Create_16bit(tmpguid.D3));
+                          datalist.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                          datalist.concat(Tai_const.Create_16bit(tmpguid.D2));
+                          datalist.concat(Tai_const.Create_16bit(tmpguid.D3));
                           for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                            current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                            datalist.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
                         end
                       else
                         Message(parser_e_improper_guid_syntax);
@@ -875,13 +844,13 @@ implementation
                             { if needed fill (alignment) }
                             if tfieldvarsym(srsym).fieldoffset>aktpos then
                                for i:=1 to tfieldvarsym(srsym).fieldoffset-aktpos do
-                                 current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(0));
+                                 datalist.concat(Tai_const.Create_8bit(0));
 
                              { new position }
                              aktpos:=tfieldvarsym(srsym).fieldoffset+tfieldvarsym(srsym).vartype.def.size;
 
                              { read the data }
-                             readtypedconst(tfieldvarsym(srsym).vartype,nil,writable);
+                             readtypedconst(datalist,tfieldvarsym(srsym).vartype,nil,writable);
 
                              { keep previous field for checking whether whole }
                              { record was initialized (JM)                    }
@@ -904,7 +873,7 @@ implementation
                    Message1(parser_w_skipped_fields_after,sorg);
 
                  for i:=1 to t.def.size-aktpos do
-                   current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(0));
+                   datalist.concat(Tai_const.Create_8bit(0));
 
                  consume(_RKLAMMER);
               end;
@@ -922,7 +891,7 @@ implementation
                     end
                   else
                     begin
-                      current_asmdata.asmlists[cural].concat(Tai_const.Create_sym(nil));
+                      datalist.concat(Tai_const.Create_sym(nil));
                     end;
                   p.free;
                 end
@@ -973,8 +942,8 @@ implementation
                                     (vmt_offset<fieldoffset) then
                                    begin
                                      for i:=1 to vmt_offset-aktpos do
-                                       current_asmdata.asmlists[cural].concat(tai_const.create_8bit(0));
-                                     current_asmdata.asmlists[cural].concat(tai_const.createname(vmt_mangledname,AT_DATA,0));
+                                       datalist.concat(tai_const.create_8bit(0));
+                                     datalist.concat(tai_const.createname(vmt_mangledname,AT_DATA,0));
                                      { this is more general }
                                      aktpos:=vmt_offset + sizeof(aint);
                                    end;
@@ -982,17 +951,16 @@ implementation
                                { if needed fill }
                                if fieldoffset>aktpos then
                                  for i:=1 to fieldoffset-aktpos do
-                                   current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(0));
+                                   datalist.concat(Tai_const.Create_8bit(0));
 
                                { new position }
                                aktpos:=fieldoffset+vartype.def.size;
 
                                { read the data }
-                               readtypedconst(vartype,nil,writable);
+                               readtypedconst(datalist,vartype,nil,writable);
 
-                               if token=_SEMICOLON then
-                                 consume(_SEMICOLON)
-                               else break;
+                               if not try_to_consume(_SEMICOLON) then
+                                 break;
                           end;
                      end;
                    if not(m_fpc in aktmodeswitches) and
@@ -1000,13 +968,13 @@ implementation
                       (tobjectdef(t.def).vmt_offset>=aktpos) then
                      begin
                        for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
-                         current_asmdata.asmlists[cural].concat(tai_const.create_8bit(0));
-                       current_asmdata.asmlists[cural].concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
+                         datalist.concat(tai_const.create_8bit(0));
+                       datalist.concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
                        { this is more general }
                        aktpos:=tobjectdef(t.def).vmt_offset + sizeof(aint);
                      end;
                    for i:=1 to t.def.size-aktpos do
-                     current_asmdata.asmlists[cural].concat(Tai_const.Create_8bit(0));
+                     datalist.concat(Tai_const.Create_8bit(0));
                    consume(_RKLAMMER);
                 end;
            end;
@@ -1020,17 +988,61 @@ implementation
            end;
          else Message(parser_e_type_const_not_possible);
          end;
+
+         { Parse hints and public directive }
+         if assigned(sym) then
+           begin
+             try_consume_hintdirective(sym.symoptions);
+
+             { Support public name directive }
+             if try_to_consume(_PUBLIC) then
+               begin
+                 if try_to_consume(_NAME) then
+                   C_name:=get_stringconst
+                 else
+                   C_name:=sorg;
+                 sym.set_mangledname(C_Name);
+               end;
+           end;
+
       myexit:
          block_type:=old_block_type;
 
+         if writable then
+           begin
+             cural:=al_typedconsts;
+             cursectype:=sec_data;
+           end
+         else
+           begin
+             cural:=al_rotypedconsts;
+             cursectype:=sec_rodata;
+           end;
+
+         { Add symbol name if this is specified. For array
+           elements sym=nil and we should skip this }
          if assigned(sym) then
            begin
              storefilepos:=aktfilepos;
              aktfilepos:=sym.fileinfo;
-
-             current_asmdata.asmlists[cural].concat(tai_symbol_end.Createname(sym.mangledname));
+             { insert cut for smartlinking or alignment }
+             maybe_new_object_file(list);
+             new_section(list,cursectype,lower(sym.mangledname),const_align(size_2_align(l)));
+             if (sym.owner.symtabletype=globalsymtable) or
+                maybe_smartlink_symbol or
+                (assigned(current_procinfo) and
+                 (po_inline in current_procinfo.procdef.procoptions)) or
+                DLLSource then
+               list.concat(Tai_symbol.Createname_global(sym.mangledname,AT_DATA,0))
+             else
+               list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
+             list.concatlist(datalist);
+             list.concat(tai_symbol_end.Createname(sym.mangledname));
              aktfilepos:=storefilepos;
-           end;
+           end
+         else
+           list.concatlist(datalist);
+         datalist.free;
       end;
 {$ifdef fpc}
   {$maxfpuregisters default}

@@ -162,6 +162,7 @@ implementation
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          skipequal : boolean;
+         tclist : tasmlist;
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -232,8 +233,11 @@ implementation
                     begin
                       { get init value }
                       consume(_EQUAL);
-                      readtypedconst(tt,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
-                      try_consume_hintdirective(sym.symoptions);
+                      if (cs_typed_const_writable in aktlocalswitches) then
+                        tclist:=current_asmdata.asmlists[al_rotypedconsts]
+                      else
+                        tclist:=current_asmdata.asmlists[al_typedconsts];
+                      readtypedconst(tclist,tt,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
                       consume(_SEMICOLON);
                     end;
                 end;
