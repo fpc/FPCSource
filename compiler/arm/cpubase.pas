@@ -370,6 +370,7 @@ unit cpubase;
     function is_pc(const r : tregister) : boolean;
 
     function is_shifter_const(d : aint;var imm_shift : byte) : boolean;
+    function dwarf_reg(r:tregister):byte;
 
   implementation
 
@@ -515,6 +516,14 @@ unit cpubase;
                 end;
            end;
          result:=false;
+      end;
+
+
+    function dwarf_reg(r:tregister):byte;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
       end;
 
 end.

@@ -397,6 +397,7 @@ function is_condreg(r: tregister): boolean;
 function inverse_cond(const c: TAsmCond): Tasmcond;
 {$IFDEF USEINLINE}inline;{$ENDIF USEINLINE}
 function conditions_equal(const c1, c2: TAsmCond): boolean;
+    function dwarf_reg(r:tregister):byte;
 
 implementation
 
@@ -543,6 +544,14 @@ begin
   else
     result := generic_regname(r);
 end;
+
+    function dwarf_reg(r:tregister):byte;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
+      end;
+
 
 end.
 

@@ -333,6 +333,7 @@ unit cpubase;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function dwarf_reg(r:tregister):byte;
 
 implementation
 
@@ -424,7 +425,7 @@ implementation
             cgsize2subreg:=R_SUBFS;
           OS_F64 :
             cgsize2subreg:=R_SUBFD;
-{            
+{
             begin
               // is this correct? (KB)
               cgsize2subreg:=R_SUBNONE;
@@ -500,6 +501,14 @@ implementation
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
+      end;
+
+
+    function dwarf_reg(r:tregister):byte;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
       end;
 
 end.

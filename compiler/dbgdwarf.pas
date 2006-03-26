@@ -423,6 +423,11 @@ implementation
       { Implementation-defined range end.   }
       DW_OP_hi_user = $ff;
 
+
+{****************************************************************************
+                              TDebugInfoDwarf
+****************************************************************************}
+
     function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
       begin
         { procdefs only need a number, mark them as already written
@@ -1503,8 +1508,8 @@ implementation
           var
             templist : TAsmList;
             blocksize : longint;
-            regidx : longint;
             tag : tdwarf_tag;
+            dreg : byte;
           begin
             { external symbols can't be resolved at link time, so we
               can't generate stabs for them
@@ -1528,10 +1533,10 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                  regidx:=findreg_by_number(sym.localloc.register);
                   templist.concat(tai_const.create_8bit(ord(DW_OP_regx)));
-                  templist.concat(tai_const.create_uleb128bit(regdwarf_table[regidx]));
-                  blocksize:=1+Lengthuleb128(regdwarf_table[regidx]);
+                  dreg:=dwarf_reg(sym.localloc.register);
+                  templist.concat(tai_const.create_uleb128bit(dreg));
+                  blocksize:=1+Lengthuleb128(dreg);
                 end;
               else
                 begin
@@ -1553,8 +1558,8 @@ implementation
                     paravarsym,
                     localvarsym:
                       begin
-                        regidx:=findreg_by_number(sym.localloc.reference.base);
-                        templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+regdwarf_table[regidx]));
+                        dreg:=dwarf_reg(sym.localloc.reference.base);
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
                         templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
                         blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
                       end

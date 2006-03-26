@@ -338,6 +338,7 @@ uses
     function std_regname(r:Tregister):string;
     function std_regnum_search(const s:string):Tregister;
     function findreg_by_number(r:Tregister):tregisterindex;
+    function dwarf_reg(r:tregister):byte;
 
 
 implementation
@@ -457,6 +458,13 @@ implementation
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result := c1 = c2;
+      end;
+
+    function dwarf_reg(r:tregister):byte;
+      begin
+        result:=regdwarf_table[findreg_by_number(r)];
+        if result=-1 then
+          internalerror(200603251);
       end;
 
 end.

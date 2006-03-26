@@ -85,9 +85,6 @@ interface
       end;
 
 
-    function dwarf_reg(r:tregister):byte;
-
-
 implementation
 
     uses
@@ -127,16 +124,6 @@ implementation
       DW_LNE_define_file  = $03;
       DW_LNE_lo_user      = $80;
       DW_LNE_hi_user      = $ff;
-
-
-{****************************************************************************
-                                  Helpers
-****************************************************************************}
-
-    function dwarf_reg(r:tregister):byte;
-      begin
-        result:=regdwarf_table[findreg_by_number(r)];
-      end;
 
 
 {****************************************************************************
@@ -224,7 +211,7 @@ implementation
               dop_reloffset :
                 list.concat(tai_const.create_rel_sym(enc2ait_const[oper[i].enc],oper[i].beginsym,oper[i].endsym));
               dop_reg :
-                list.concat(tai_const.create(enc2ait_const[oper[i].enc],regdwarf_table[findreg_by_number(oper[i].register)]));
+                list.concat(tai_const.create(enc2ait_const[oper[i].enc],dwarf_reg(oper[i].register)));
               else
                 internalerror(200404128);
             end;
