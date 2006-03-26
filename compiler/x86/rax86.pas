@@ -242,65 +242,72 @@ begin
       operands[i].SetCorrectSize(opcode);
       if tx86operand(operands[i]).opsize=S_NO then
         begin
-          case operands[i].Opr.Typ of
-            OPR_LOCAL,
-            OPR_REFERENCE :
-              begin
-                if i=2 then
-                 operand2:=1
-                else
-                 operand2:=2;
-                if operand2<ops then
-                 begin
-                   { Only allow register as operand to take the size from }
-                   if operands[operand2].opr.typ=OPR_REGISTER then
-                     begin
-                       if ((opcode<>A_MOVD) and
-                           (opcode<>A_CVTSI2SS)) then
-                         tx86operand(operands[i]).opsize:=tx86operand(operands[operand2]).opsize;
-                     end
-                   else
-                    begin
-                      { if no register then take the opsize (which is available with ATT),
-                        if not availble then give an error }
-                      if opsize<>S_NO then
-                        tx86operand(operands[i]).opsize:=opsize
-                      else
-                       begin
-                         if (m_delphi in aktmodeswitches) then
-                           Message(asmr_w_unable_to_determine_reference_size_using_dword)
-                         else
-                           Message(asmr_e_unable_to_determine_reference_size);
-                         { recovery }
-                         tx86operand(operands[i]).opsize:=S_L;
-                       end;
-                    end;
-                 end
-                else
-                 begin
-                   if opsize<>S_NO then
-                     tx86operand(operands[i]).opsize:=opsize
-                 end;
-              end;
-            OPR_SYMBOL :
-              begin
-                { Fix lea which need a reference }
-                if opcode=A_LEA then
-                 begin
-                   s:=operands[i].opr.symbol;
-                   so:=operands[i].opr.symofs;
-                   operands[i].opr.typ:=OPR_REFERENCE;
-                   Fillchar(operands[i].opr.ref,sizeof(treference),0);
-                   operands[i].opr.ref.symbol:=s;
-                   operands[i].opr.ref.offset:=so;
-                 end;
 {$ifdef x86_64}
-                tx86operand(operands[i]).opsize:=S_Q;
-{$else x86_64}
-                tx86operand(operands[i]).opsize:=S_L;
+          if (opcode=A_MOVQ) and
+             (ops=2) and
+             (operands[1].opr.typ=OPR_CONSTANT) then
+             opsize:=S_Q
+          else
 {$endif x86_64}
-              end;
-          end;
+            case operands[i].Opr.Typ of
+              OPR_LOCAL,
+              OPR_REFERENCE :
+                begin
+                  if i=2 then
+                   operand2:=1
+                  else
+                   operand2:=2;
+                  if operand2<ops then
+                   begin
+                     { Only allow register as operand to take the size from }
+                     if operands[operand2].opr.typ=OPR_REGISTER then
+                       begin
+                         if ((opcode<>A_MOVD) and
+                             (opcode<>A_CVTSI2SS)) then
+                           tx86operand(operands[i]).opsize:=tx86operand(operands[operand2]).opsize;
+                       end
+                     else
+                      begin
+                        { if no register then take the opsize (which is available with ATT),
+                          if not availble then give an error }
+                        if opsize<>S_NO then
+                          tx86operand(operands[i]).opsize:=opsize
+                        else
+                         begin
+                           if (m_delphi in aktmodeswitches) then
+                             Message(asmr_w_unable_to_determine_reference_size_using_dword)
+                           else
+                             Message(asmr_e_unable_to_determine_reference_size);
+                           { recovery }
+                           tx86operand(operands[i]).opsize:=S_L;
+                         end;
+                      end;
+                   end
+                  else
+                   begin
+                     if opsize<>S_NO then
+                       tx86operand(operands[i]).opsize:=opsize
+                   end;
+                end;
+              OPR_SYMBOL :
+                begin
+                  { Fix lea which need a reference }
+                  if opcode=A_LEA then
+                   begin
+                     s:=operands[i].opr.symbol;
+                     so:=operands[i].opr.symofs;
+                     operands[i].opr.typ:=OPR_REFERENCE;
+                     Fillchar(operands[i].opr.ref,sizeof(treference),0);
+                     operands[i].opr.ref.symbol:=s;
+                     operands[i].opr.ref.offset:=so;
+                   end;
+  {$ifdef x86_64}
+                  tx86operand(operands[i]).opsize:=S_Q;
+  {$else x86_64}
+                  tx86operand(operands[i]).opsize:=S_L;
+  {$endif x86_64}
+                end;
+            end;
         end;
     end;
 end;
@@ -555,14 +562,15 @@ begin
     end;
 
 {$ifdef x86_64}
-  { Convert movq with at least one general registers to mov instruction }
+  { Convert movq with at least one general registers or constant to a mov instruction }
   if (opcode=A_MOVQ) and
      (ops=2) and
      (
       (operands[1].opr.typ=OPR_REGISTER) or
-      (operands[2].opr.typ=OPR_REGISTER)
+      (operands[2].opr.typ=OPR_REGISTER) or
+      (operands[1].opr.typ=OPR_CONSTANT)
      ) then
-    opcode:=A_MOV;
+     opcode:=A_MOV;
 {$endif x86_64}
 
    { GNU AS interprets FDIV without operand differently

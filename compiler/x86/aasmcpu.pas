@@ -1491,27 +1491,43 @@ implementation
 
            { base }
            case br of
+             NR_R8,
              NR_RAX : base:=0;
+             NR_R9,
              NR_RCX : base:=1;
+             NR_R10,
              NR_RDX : base:=2;
+             NR_R11,
              NR_RBX : base:=3;
+             NR_R12,
              NR_RSP : base:=4;
+             NR_R13,
              NR_NO,
              NR_RBP : base:=5;
+             NR_R14,
              NR_RSI : base:=6;
+             NR_R15,
              NR_RDI : base:=7;
            else
              exit;
            end;
            { index }
            case ir of
+             NR_R8,
              NR_RAX : index:=0;
+             NR_R9,
              NR_RCX : index:=1;
+             NR_R10,
              NR_RDX : index:=2;
+             NR_R11,
              NR_RBX : index:=3;
+             NR_R12,
              NR_NO  : index:=4;
+             NR_R13,
              NR_RBP : index:=5;
+             NR_R14,
              NR_RSI : index:=6;
+             NR_R15,
              NR_RDI : index:=7;
            else
              exit;
@@ -1709,6 +1725,9 @@ implementation
       begin
         len:=0;
         codes:=@p^.code;
+{$ifdef x86_64}
+        rex:=0;
+{$endif x86_64}
         repeat
           c:=ord(codes^);
           inc(codes);
@@ -1727,7 +1746,11 @@ implementation
                   (getsupreg(oper[c-8]^.reg)>=RS_R8)) or
                   ((getregtype(oper[c-8]^.reg)=R_MMREGISTER) and
                   (getsupreg(oper[c-8]^.reg)>=RS_XMM8)) then
-                  rex:=rex or $41;
+                  begin
+                    if rex=0 then
+                      inc(len);
+                    rex:=rex or $41;
+                  end;
 {$endif x86_64}
                 inc(codes);
                 inc(len);
@@ -1776,8 +1799,9 @@ implementation
 {$ifdef x86_64}
                   OT_BITS64:
                     begin
+                      if rex=0 then
+                        inc(len);
                       rex:=rex or $48;
-                      inc(len);
                     end;
 {$endif x86_64}
                 end;
@@ -1808,6 +1832,22 @@ implementation
             64..191 :
               begin
 {$ifdef x86_64}
+                 if (c<127) then
+                  begin
+                    if (oper[c and 7]^.typ=top_reg) then
+                      begin
+                        if ((getregtype(oper[c and 7]^.reg)=R_INTREGISTER) and
+                          (getsupreg(oper[c and 7]^.reg)>=RS_R8)) or
+                          ((getregtype(oper[c and 7]^.reg)=R_MMREGISTER) and
+                          (getsupreg(oper[c and 7]^.reg)>=RS_XMM8)) then
+                          begin
+                            if rex=0 then
+                              inc(len);
+                            rex:=rex or $44;
+                          end;
+                      end;
+                  end;
+
                 ea_data.rex:=0;
                 ea_data.rex_present:=false;
 {$endif x86_64}
@@ -1924,7 +1964,7 @@ implementation
 {$endif extdebug}
         { safety check }
         if objdata.currobjsec.size<>insoffset then
-          internalerror(200130121);
+           internalerror(200130121);
         { load data to write }
         codes:=insentry^.code;
         { Force word push/pop for registers }
@@ -1942,6 +1982,16 @@ implementation
               break;
             1,2,3 :
               begin
+{$ifdef x86_64}
+                if rex<>0 then
+                  begin
+                    bytes[0]:=rex;
+{$ifdef extdebug}
+                    rexwritten:=true;
+{$endif extdebug}
+                    objdata.writebytes(bytes,1);
+                  end;
+{$endif x86_64}
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
               end;
@@ -1981,11 +2031,23 @@ implementation
             8,9,10 :
               begin
                 { rex should be written at this point }
+{
 {$ifdef x86_64}
 {$ifdef extdebug}
                 if (rex<>0) and not(rexwritten) then
                   internalerror(200603192);
 {$endif extdebug}
+{$endif x86_64}
+}
+{$ifdef x86_64}
+                if rex<>0 then
+                  begin
+                    bytes[0]:=rex;
+{$ifdef extdebug}
+                    rexwritten:=true;
+{$endif extdebug}
+                    objdata.writebytes(bytes,1);
+                  end;
 {$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
@@ -2120,6 +2182,7 @@ implementation
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
+{
 {$ifdef x86_64}
                 if rex<>0 then
                   begin
@@ -2130,6 +2193,7 @@ implementation
                     objdata.writebytes(bytes,1);
                   end;
 {$endif x86_64}
+}
               end;
             212 :
               begin
