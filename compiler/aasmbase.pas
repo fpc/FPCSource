@@ -109,6 +109,8 @@ interface
 
     function LengthUleb128(a: aword) : byte;
     function LengthSleb128(a: aint) : byte;
+    function EncodeUleb128(a: aword;out buf) : byte;
+    function EncodeSleb128(a: aint;out buf) : byte;
 
 
 implementation
@@ -133,15 +135,10 @@ implementation
 
 
     function LengthUleb128(a: aword) : byte;
-      var
-        b: byte;
       begin
         result:=0;
         repeat
-          b := a and $7f;
           a := a shr 7;
-          if a<>0 then
-            b := b or $80;
           inc(result);
           if a=0 then
             break;
@@ -152,6 +149,7 @@ implementation
     function LengthSleb128(a: aint) : byte;
       var
         b, size: byte;
+        asign : aint;
         neg, more: boolean;
       begin
         more := true;
@@ -162,7 +160,67 @@ implementation
           b := a and $7f;
           a := a shr 7;
           if neg then
-            a := a or -(1 shl (size - 7));
+            begin
+              { Use a variable to be sure that the correct or mask is generated }
+              asign:=1;
+              asign:=asign shl (size - 7);
+              a := a or -asign;
+            end;
+          if (((a = 0) and
+               (b and $40 = 0)) or
+              ((a = -1) and
+               (b and $40 <> 0))) then
+            more := false;
+          inc(result);
+          if not(more) then
+            break;
+        until false;
+      end;
+
+
+    function EncodeUleb128(a: aword;out buf) : byte;
+      var
+        b: byte;
+        pbuf : pbyte;
+      begin
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if a<>0 then
+            b := b or $80;
+          pbuf^:=b;
+          inc(pbuf);
+          inc(result);
+          if a=0 then
+            break;
+        until false;
+      end;
+
+
+    function EncodeSleb128(a: aint;out buf) : byte;
+      var
+        b, size: byte;
+        asign : aint;
+        neg, more: boolean;
+        pbuf : pbyte;
+      begin
+        more := true;
+        neg := a < 0;
+        size := sizeof(a)*8;
+        result:=0;
+        pbuf:=@buf;
+        repeat
+          b := a and $7f;
+          a := a shr 7;
+          if neg then
+            begin
+              { Use a variable to be sure that the correct or mask is generated }
+              asign:=1;
+              asign:=asign shl (size - 7);
+              a := a or -asign;
+            end;
           if (((a = 0) and
                (b and $40 = 0)) or
               ((a = -1) and
@@ -170,6 +228,7 @@ implementation
             more := false
           else
             b := b or $80;
+          pbuf^:=b;
           inc(result);
           if not(more) then
             break;

@@ -1053,6 +1053,8 @@ Implementation
 {$endif x86}
         objsym,
         objsymend : TObjSymbol;
+        leblen : byte;
+        lebbuf : array[0..63] of byte;
       begin
         inlinelevel:=0;
         { main loop }
@@ -1123,6 +1125,18 @@ Implementation
                      end;
                    aitconst_rva_symbol :
                      ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
+                   aitconst_uleb128bit :
+                     begin
+                       leblen:=EncodeUleb128(Tai_const(hp).value,lebbuf);
+                       ObjData.writebytes(lebbuf,leblen);
+                     end;
+                   aitconst_sleb128bit :
+                     begin
+                       leblen:=EncodeSleb128(Tai_const(hp).value,lebbuf);
+                       ObjData.writebytes(lebbuf,leblen);
+                     end;
+                   else
+                     internalerror(200603254);
                  end;
                end;
              ait_label :
@@ -1354,8 +1368,6 @@ Implementation
         to_do:=[low(Tasmlisttype)..high(Tasmlisttype)];
         if usedeffileforexports then
           exclude(to_do,al_exports);
-        {$warning TODO internal writer support for dwarf}
-        exclude(to_do,al_dwarf);
         if not(tf_section_threadvars in target_info.flags) then
           exclude(to_do,al_threadvars);
         for i:=low(TasmlistType) to high(TasmlistType) do

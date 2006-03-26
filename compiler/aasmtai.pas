@@ -1306,6 +1306,12 @@ implementation
           aitconst_indirect_symbol,
           aitconst_rva_symbol :
             result:=sizeof(aint);
+          aitconst_uleb128bit :
+            result:=LengthUleb128(value);
+          aitconst_sleb128bit :
+            result:=LengthSleb128(value);
+          else
+            internalerror(200603253);
         end;
       end;
 

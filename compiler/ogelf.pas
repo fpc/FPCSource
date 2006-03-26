@@ -1181,7 +1181,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : system_any;  //target_i386_linux;
-            flags : [af_outputbinary,af_smartlink_sections];
+            flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
           );
@@ -1195,7 +1195,7 @@ implementation
             asmbin : '';
             asmcmd : '';
             supported_target : system_any;  //target_i386_linux;
-            flags : [af_outputbinary,af_smartlink_sections];
+            flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
           );
@@ -1210,7 +1210,7 @@ implementation
             asmcmd : '';
             supported_target : system_any;  //target_i386_linux;
 //            flags : [af_outputbinary,af_smartlink_sections];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
           );

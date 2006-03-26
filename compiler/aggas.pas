@@ -328,48 +328,31 @@ implementation
 
     procedure TGNUAssembler.WriteDecodedUleb128(a: aword);
       var
-        b: byte;
+        i,len : longint;
+        buf   : array[0..63] of byte;
       begin
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if (a <> 0) then
-            b := b or $80;
-          AsmWrite(tostr(b));
-          if (a <> 0) then
-            AsmWrite(',')
-          else
-            break;
-        until false;
+        len:=EncodeUleb128(a,buf);
+        for i:=0 to len-1 do
+          begin
+            if (i > 0) then
+              AsmWrite(',');
+            AsmWrite(tostr(buf[i]));
+          end;
       end;
 
 
     procedure TGNUAssembler.WriteDecodedSleb128(a: aint);
       var
-        b, size: byte;
-        neg, more: boolean;
+        i,len : longint;
+        buf   : array[0..255] of byte;
       begin
-        more := true;
-        neg := a < 0;
-        size := sizeof(a)*8;
-        repeat
-          b := a and $7f;
-          a := a shr 7;
-          if (neg) then
-            a := a or -(1 shl (size - 7));
-          if (((a = 0) and
-               (b and $40 = 0)) or
-              ((a = -1) and
-               (b and $40 <> 0))) then
-            more := false
-          else
-            b := b or $80;
-          AsmWrite(tostr(b));
-          if (more) then
-            AsmWrite(',')
-          else
-            break;
-        until false;
+        len:=EncodeSleb128(a,buf);
+        for i:=0 to len-1 do
+          begin
+            if (i > 0) then
+              AsmWrite(',');
+            AsmWrite(tostr(buf[i]));
+          end;
       end;
 
 
