@@ -874,7 +874,9 @@ Implementation
                 ofs:=0;
                 relocsym:=nil;
               end;
-            if (nidx=N_Function) and
+            if assigned(relocsym) and
+               (relocsym.bind=AB_GLOBAL) and
+               (nidx=N_Function) and
                (tf_use_function_relative_addresses in target_info.flags) then
               ofs:=0;
             ObjData.writestab(ofs,relocsym,byte(nidx),byte(nother),word(nline),pstr);
