@@ -682,7 +682,8 @@ implementation
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;
            consume(_EQUAL);
-           if (token=_ID) then
+           if (i<>-1) and
+              (token=_ID) then
              aclass.implementedinterfaces.addmappings(i,hs,pattern);
            consume(_ID);
            result:=true;
