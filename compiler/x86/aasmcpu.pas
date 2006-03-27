@@ -1430,6 +1430,14 @@ implementation
                 output.rex_present:=true;
                 output.rex:=output.rex or $41;
                 inc(output.size,1);
+              end
+            else if (getregtype(input.reg)=R_INTREGISTER) and
+              (getsubreg(input.reg)=R_SUBL) and
+              (getsupreg(input.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
+              begin
+                output.rex_present:=true;
+                output.rex:=output.rex or $40;
+                inc(output.size,1);
               end;
 
             process_ea:=true;
@@ -1757,7 +1765,17 @@ implementation
                     if rex=0 then
                       inc(len);
                     rex:=rex or $41;
+                  end
+                else if (getregtype(oper[c-8]^.reg)=R_INTREGISTER) and
+                  (getsubreg(oper[c-8]^.reg)=R_SUBL) and
+                  (getsupreg(oper[c-8]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
+                  begin
+                    if rex=0 then
+                      inc(len);
+
+                    rex:=rex or $40;
                   end;
+
 {$endif x86_64}
                 inc(codes);
                 inc(len);
@@ -1852,6 +1870,15 @@ implementation
                               inc(len);
 
                             rex:=rex or $44;
+                          end
+                        else if (getregtype(oper[c and 7]^.reg)=R_INTREGISTER) and
+                          (getsubreg(oper[c and 7]^.reg)=R_SUBL) and
+                          (getsupreg(oper[c and 7]^.reg) in [RS_RDI,RS_RSI,RS_RBP,RS_RSP]) then
+                          begin
+                            if rex=0 then
+                              inc(len);
+
+                            rex:=rex or $40;
                           end;
                       end;
                   end;
