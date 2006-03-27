@@ -834,8 +834,11 @@ const win32stub : array[0..131] of byte=(
 
     procedure TCoffObjData.CreateDebugSections;
       begin
-        stabssec:=createsection(sec_stab,'');
-        stabstrsec:=createsection(sec_stabstr,'');
+        if target_dbg.id=dbg_stabs then
+          begin
+            stabssec:=createsection(sec_stab,'');
+            stabstrsec:=createsection(sec_stabstr,'');
+          end;
       end;
 
 

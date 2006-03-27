@@ -67,7 +67,6 @@ interface
          constructor create(const n:string);override;
          destructor  destroy;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string):string;override;
-         function  sectiontype2align(atype:TAsmSectiontype):shortint;override;
          procedure CreateDebugSections;override;
          procedure writereloc(data,len:aint;p:TObjSymbol;relative:TObjRelocationType);override;
          procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);override;
@@ -611,19 +610,13 @@ implementation
       end;
 
 
-    function TElfObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
-      begin
-        if atype=sec_stabstr then
-          result:=1
-        else
-          result:=sizeof(aint);
-      end;
-
-
     procedure TElfObjData.CreateDebugSections;
       begin
-        stabssec:=createsection(sec_stab,'');
-        stabstrsec:=createsection(sec_stabstr,'');
+        if target_dbg.id=dbg_stabs then
+          begin
+            stabssec:=createsection(sec_stab,'');
+            stabstrsec:=createsection(sec_stabstr,'');
+          end;
       end;
 
 

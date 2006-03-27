@@ -728,7 +728,10 @@ implementation
 
     function TObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
       begin
-        result:=sizeof(aint);
+        if atype in [sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+          result:=1
+        else
+          result:=sizeof(aint);
       end;
 
 
