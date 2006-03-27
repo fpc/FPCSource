@@ -57,8 +57,8 @@ interface
         destructor destroy; override;
        private
         setcount: longint;
-        procedure WriteDecodedSleb128(a: aint);
-        procedure WriteDecodedUleb128(a: aword);
+        procedure WriteDecodedSleb128(a: int64);
+        procedure WriteDecodedUleb128(a: qword);
         function NextSetLabel: string;
        protected
         InstrWriter: TCPUInstrWriter;
@@ -326,7 +326,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteDecodedUleb128(a: aword);
+    procedure TGNUAssembler.WriteDecodedUleb128(a: qword);
       var
         i,len : longint;
         buf   : array[0..63] of byte;
@@ -341,7 +341,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteDecodedSleb128(a: aint);
+    procedure TGNUAssembler.WriteDecodedSleb128(a: int64);
       var
         i,len : longint;
         buf   : array[0..255] of byte;
@@ -631,9 +631,9 @@ implementation
                          AsmWrite(ait_const2str[aitconst_8bit]);
                          case tai_const(hp).consttype of
                            aitconst_uleb128bit:
-                             WriteDecodedUleb128(aword(tai_const(hp).value));
+                             WriteDecodedUleb128(qword(tai_const(hp).value));
                            aitconst_sleb128bit:
-                             WriteDecodedSleb128(aint(tai_const(hp).value));
+                             WriteDecodedSleb128(int64(tai_const(hp).value));
                          end
                        end
                      else

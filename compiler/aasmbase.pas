@@ -107,10 +107,10 @@ interface
     function  use_smartlink_section:boolean;
     function  maybe_smartlink_symbol:boolean;
 
-    function LengthUleb128(a: aword) : byte;
-    function LengthSleb128(a: aint) : byte;
-    function EncodeUleb128(a: aword;out buf) : byte;
-    function EncodeSleb128(a: aint;out buf) : byte;
+    function LengthUleb128(a: qword) : byte;
+    function LengthSleb128(a: int64) : byte;
+    function EncodeUleb128(a: qword;out buf) : byte;
+    function EncodeSleb128(a: int64;out buf) : byte;
 
 
 implementation
@@ -134,7 +134,7 @@ implementation
       end;
 
 
-    function LengthUleb128(a: aword) : byte;
+    function LengthUleb128(a: qword) : byte;
       begin
         result:=0;
         repeat
@@ -146,10 +146,10 @@ implementation
       end;
 
 
-    function LengthSleb128(a: aint) : byte;
+    function LengthSleb128(a: int64) : byte;
       var
         b, size: byte;
-        asign : aint;
+        asign : int64;
         neg, more: boolean;
       begin
         more := true;
@@ -178,7 +178,7 @@ implementation
       end;
 
 
-    function EncodeUleb128(a: aword;out buf) : byte;
+    function EncodeUleb128(a: qword;out buf) : byte;
       var
         b: byte;
         pbuf : pbyte;
@@ -199,10 +199,10 @@ implementation
       end;
 
 
-    function EncodeSleb128(a: aint;out buf) : byte;
+    function EncodeSleb128(a: int64;out buf) : byte;
       var
         b, size: byte;
-        asign : aint;
+        asign : int64;
         neg, more: boolean;
         pbuf : pbyte;
       begin
@@ -229,6 +229,7 @@ implementation
           else
             b := b or $80;
           pbuf^:=b;
+          inc(pbuf);
           inc(result);
           if not(more) then
             break;

@@ -930,8 +930,8 @@ implementation
               finish_entry;
               { to simplify things, we don't write a multidimensional array here }
               append_entry(DW_TAG_subrange_type,false,[
-                DW_AT_lower_bound,DW_FORM_udata,def.lowrange,
-                DW_AT_upper_bound,DW_FORM_udata,def.highrange
+                DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
+                DW_AT_upper_bound,DW_FORM_sdata,def.highrange
                 ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
               finish_entry;
