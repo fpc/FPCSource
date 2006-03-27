@@ -371,10 +371,10 @@ const
 
         current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
         current_asmdata.asmlists[al_imports].concat(Tai_align.Create(16));
-        result := current_asmdata.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
+        result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        l1 := current_asmdata.newasmsymbol('L'+s+'$lazy_ptr',AB_EXTERNAL,AT_FUNCTION);
+        l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
         reference_reset_symbol(href,l1,0);
         href.refaddr := addr_hi;
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
@@ -386,7 +386,7 @@ const
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        current_asmdata.asmlists[al_imports].concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),AT_FUNCTION,0));
+        current_asmdata.asmlists[al_imports].concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),0));
       end;
 
 
@@ -398,7 +398,7 @@ const
            with some restore code.}
          if (target_info.system <> system_powerpc_darwin) then
            begin
-             list.concat(taicpu.op_sym(A_BL,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+             list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
              if target_info.system=system_powerpc_macos then
                list.concat(taicpu.op_none(A_NOP));
            end
@@ -907,7 +907,7 @@ const
          if (target_info.system = system_powerpc_darwin) then
            p := taicpu.op_sym(A_B,get_darwin_call_stub(s))
         else
-          p := taicpu.op_sym(A_B,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION));
+          p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
         p.is_jmp := true;
         list.concat(p)
       end;
@@ -1112,11 +1112,11 @@ const
 {            save floating-point registers
              if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
                begin
-                  a_call_name(current_asmdata.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g',AB_EXTERNAL,AT_FUNCTION));
+                  a_call_name(current_asmdata.RefAsmSymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'));
                   gotgot:=true;
                end
              else
-               a_call_name(current_asmdata.newasmsymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14),AB_EXTERNAL,AT_FUNCTION));
+               a_call_name(current_asmdata.RefAsmSymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)));
 }
 
              reference_reset_base(href,NR_R1,-8);
@@ -1138,11 +1138,11 @@ const
              {
              if cs_create_pic in aktmoduleswitches then
                begin
-                  a_call_name(current_asmdata.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g',AB_EXTERNAL,AT_FUNCTION));
+                  a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'));
                   gotgot:=true;
                end
              else
-               a_call_name(current_asmdata.newasmsymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14),AB_EXTERNAL,AT_FUNCTION))
+               a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)))
              }
             if (firstregint <= RS_R22) or
                ((cs_opt_size in aktoptimizerswitches) and
@@ -1302,12 +1302,10 @@ const
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
              if (pi_do_call in current_procinfo.flags) then
-               a_call_name(current_asmdata.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
-                 '_x',AB_EXTERNAL,AT_FUNCTION))
+               a_call_name(current_asmdata.RefAsmSymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_x'))
              else
                { leaf node => lr haven't to be restored }
-               a_call_name('_restfpr_'+tostr(ord(firstregfpu.enum)-ord(R_F14)+14)+
-                 '_l');
+               a_call_name('_restfpr_'+tostr(ord(firstregfpu.enum)-ord(R_F14)+14)+'_l');
              genret:=false;
              }
           end;
@@ -2003,7 +2001,7 @@ const
           end
         { case 0 }
         else
-          list.concat(taicpu.op_sym(A_B,current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;

@@ -1395,7 +1395,7 @@ Unit Ra386int;
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
+                    oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr)
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1478,7 +1478,7 @@ Unit Ra386int;
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
-            oper.opr.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
+            oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
           end
         else
           if oper.opr.typ=OPR_NONE then

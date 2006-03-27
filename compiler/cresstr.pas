@@ -189,7 +189,7 @@ uses
             }
             current_asmdata.asmlists[al_resourcestrings].concat(Tai_cutobject.Create);
             new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+r.name,sizeof(aint));
-            resstrlab:=current_asmdata.newasmsymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
+            resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));

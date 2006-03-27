@@ -266,7 +266,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            reference_reset_symbol(href,current_asmdata.newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
           end
         else

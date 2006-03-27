@@ -270,7 +270,7 @@ unit cgcpu;
 
     procedure tcgarm.a_call_name(list : TAsmList;const s : string);
       begin
-        list.concat(taicpu.op_sym(A_BL,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -936,7 +936,7 @@ unit cgcpu;
 
     procedure tcgarm.a_jmp_name(list : TAsmList;const s : string);
       begin
-        list.concat(taicpu.op_sym(A_B,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s)));
       end;
 
 
@@ -1478,7 +1478,7 @@ unit cgcpu;
           end
         { case 0 }
         else
-          list.concat(taicpu.op_sym(A_B,current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         list.concat(Tai_symbol_end.Createname(labelname));
       end;

@@ -1495,11 +1495,11 @@ implementation
             while assigned(hp) do
               begin
                 If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
-                  list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),AT_DATA,0));
+                  list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),0));
                 hp:=tused_unit(hp.next);
               end;
             { include reference to debuginfo for this program }
-            list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
+            list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),0));
           end;
       end;
 

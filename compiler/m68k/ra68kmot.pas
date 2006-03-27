@@ -1311,7 +1311,7 @@ const
                           l:=oper.opr.val;
                           oper.opr.typ := OPR_SYMBOL;
                           oper.opr.symofs := l;
-                          oper.opr.symbol := current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
+                          oper.opr.symbol := current_asmdata.RefAsmSymbol(tempstr);
                         end;
                  end;
    { // Constant memory offset .              // }

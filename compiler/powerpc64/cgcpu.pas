@@ -563,8 +563,7 @@ procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; prependDot : bool
 begin
   if (prependDot) then
     s := '.' + s;
-  list.concat(taicpu.op_sym(A_BL, current_asmdata.newasmsymbol(s, AB_EXTERNAL,
-    AT_FUNCTION)));
+  list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -1196,8 +1195,7 @@ procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
 var
   p: taicpu;
 begin
-  p := taicpu.op_sym(A_B, current_asmdata.newasmsymbol(s, AB_EXTERNAL,
-    AT_LABEL));
+  p := taicpu.op_sym(A_B, current_asmdata.RefAsmSymbol(s));
   p.is_jmp := true;
   list.concat(p)
 end;
@@ -1893,9 +1891,7 @@ begin
     op_onr11methodaddr;
   end else
     {$note ts:todo add GOT change?? - think not needed :) }
-    list.concat(taicpu.op_sym(A_B,
-      current_asmdata.newasmsymbol('.' + procdef.mangledname, AB_EXTERNAL,
-      AT_FUNCTION)));
+    list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
 
   List.concat(Tai_symbol_end.Createname(labelname));
 end;
@@ -1927,7 +1923,7 @@ begin
   symname := '_$' + current_asmdata.name + '$got$' + symbol;
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=current_asmdata.newasmsymbol(symname, AB_COMMON, AT_DATA);
+    l:=current_asmdata.DefineAsmSymbol(symname, AB_COMMON, AT_DATA);
     current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
     current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
     current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symbol + '[TC], ' + symbol));
@@ -2145,8 +2141,7 @@ var
   p: taicpu;
 
 begin
-  p := taicpu.op_sym(op, current_asmdata.newasmsymbol(l.name, AB_EXTERNAL,
-    AT_LABEL));
+  p := taicpu.op_sym(op, current_asmdata.RefAsmSymbol(l.name));
   if op <> A_B then
     create_cond_norm(c, crval, p.condition);
   p.is_jmp := true;
@@ -2169,7 +2164,7 @@ begin
   symname := '_$' + current_asmdata.name + '$toc$' + hexstr(a, sizeof(a)*2);
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
-    l:=current_asmdata.newasmsymbol(symname,AB_GLOBAL, AT_DATA);
+    l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);
     current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
     current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
     current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));

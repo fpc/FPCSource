@@ -231,7 +231,7 @@ begin
              (target_info.system in [system_i386_freebsd]) then
              begin
 {$ifdef x86}
-               sym:=current_asmdata.newasmsymbol(tprocsym(hp2.sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+               sym:=current_asmdata.RefAsmSymbol(tprocsym(hp2.sym).first_procdef.mangledname);
                reference_reset_symbol(r,sym,0);
                if cs_create_pic in aktmoduleswitches then
                  r.refaddr:=addr_pic

@@ -249,8 +249,8 @@ implementation
                      begin
                         if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
                           message(parser_e_illegal_expression);
-                        datalist.concat(Tai_const.Create_sym(current_asmdata.newasmsymbol(
-                          Tobjectdef(pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA)));
+                        datalist.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(
+                          Tobjectdef(pointertype.def).vmt_mangledname)));
                      end;
                  niln:
                    datalist.concat(Tai_const.Create_sym(nil));
@@ -413,17 +413,17 @@ implementation
                               if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
                                 Message(type_e_cant_take_address_of_abstract_method)
                               else
-                                datalist.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,AT_FUNCTION,offset));
+                                datalist.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,offset));
                             end;
                           globalvarsym :
-                            datalist.concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,AT_DATA,offset));
+                            datalist.concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,offset));
                           typedconstsym :
-                            datalist.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
+                            datalist.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,offset));
                           labelsym :
-                            datalist.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_LABEL,offset));
+                            datalist.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
                           constsym :
                             if tconstsym(srsym).consttyp=constresourcestring then
-                              datalist.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),AT_DATA,tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
+                              datalist.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
                             else
                               Message(type_e_variable_id_expected);
                           else
@@ -441,7 +441,7 @@ implementation
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         datalist.concat(Tai_const.createname(
-                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,AT_DATA,0));
+                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,0));
                       end
                     else
                       Message(parser_e_illegal_expression);
@@ -740,7 +740,7 @@ implementation
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
                  datalist.concat(Tai_const.createname(
-                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,AT_FUNCTION,0));
+                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,0));
                end
               else
                Message(parser_e_illegal_expression);
@@ -942,7 +942,7 @@ implementation
                                    begin
                                      for i:=1 to vmt_offset-aktpos do
                                        datalist.concat(tai_const.create_8bit(0));
-                                     datalist.concat(tai_const.createname(vmt_mangledname,AT_DATA,0));
+                                     datalist.concat(tai_const.createname(vmt_mangledname,0));
                                      { this is more general }
                                      aktpos:=vmt_offset + sizeof(aint);
                                    end;
@@ -968,7 +968,7 @@ implementation
                      begin
                        for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
                          datalist.concat(tai_const.create_8bit(0));
-                       datalist.concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,AT_DATA,0));
+                       datalist.concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,0));
                        { this is more general }
                        aktpos:=tobjectdef(t.def).vmt_offset + sizeof(aint);
                      end;

@@ -1543,9 +1543,9 @@ implementation
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in aktmoduleswitches) then
-               current_asmdata.newasmsymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
              else
-               current_asmdata.newasmsymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
+               current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
            end;
 
          current_procinfo:=old_current_procinfo;

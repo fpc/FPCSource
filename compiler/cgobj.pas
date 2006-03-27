@@ -1873,7 +1873,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         if (cs_check_object in aktlocalswitches) then
          begin
-           reference_reset_symbol(hrefvmt,current_asmdata.newasmsymbol(objdef.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0);
            paramanager.allocparaloc(list,cgpara2);
            a_paramaddr_ref(list,hrefvmt,cgpara2);
            paramanager.allocparaloc(list,cgpara1);
@@ -2115,9 +2115,9 @@ implementation
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
                 begin
-                  l:=current_asmdata.newasmsymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
+                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
-                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.newasmsymbol(symname,AB_EXTERNAL,AT_DATA)));
+                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
                 end;
               result := cg.getaddressregister(list);

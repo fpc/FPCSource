@@ -4732,7 +4732,7 @@ implementation
                   exit;
                 if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
                   begin
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(proc.procdef).mangledname,AT_FUNCTION,0));
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(proc.procdef).mangledname,0));
                      typvalue:=1;
                   end
                 else
@@ -4887,7 +4887,7 @@ implementation
          hp:=tproptablelistitem(proptablelist.first);
          while assigned(hp) do
            begin
-              current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(hp.def).vmt_mangledname,AT_DATA,0));
+              current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(hp.def).vmt_mangledname,0));
               hp:=tproptablelistitem(hp.next);
            end;
 
@@ -4951,7 +4951,7 @@ implementation
                if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
                  begin
                    if (oo_has_vmt in objectoptions) then
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(vmt_mangledname,AT_DATA,0))
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(vmt_mangledname,0))
                    else
                      current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
                  end;

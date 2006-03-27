@@ -343,7 +343,7 @@ Interface
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
                 if not assigned(oper.opr.ref.symbol) then
-                  oper.opr.ref.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
+                  oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr)
                 else
                   Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 case oper.opr.typ of

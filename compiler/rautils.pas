@@ -810,7 +810,7 @@ Begin
           staticsymtable :
             begin
               initref;
-              opr.ref.symbol:=current_asmdata.newasmsymbol(tglobalvarsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(sym).mangledname);
             end;
           parasymtable,
           localsymtable :
@@ -872,7 +872,7 @@ Begin
     typedconstsym :
       begin
         initref;
-        opr.ref.symbol:=current_asmdata.newasmsymbol(ttypedconstsym(sym).mangledname,AB_EXTERNAL,AT_DATA);
+        opr.ref.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(sym).mangledname);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
           enumdef,
@@ -920,7 +920,7 @@ Begin
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.newasmsymbol(tprocsym(sym).first_procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+        opr.symbol:=current_asmdata.RefAsmSymbol(tprocsym(sym).first_procdef.mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;
@@ -1484,7 +1484,7 @@ end;
 
   Procedure ConcatConstSymbol(p : TAsmList;const sym:string;symtyp:tasmsymtype;l:aint);
   begin
-    p.concat(Tai_const.Createname(sym,symtyp,l));
+    p.concat(Tai_const.Createname(sym,l));
   end;
 
 

@@ -1522,7 +1522,7 @@ unit raatt;
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=current_asmdata.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
+           oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
          end
         else
          begin

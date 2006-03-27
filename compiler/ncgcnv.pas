@@ -155,7 +155,7 @@ interface
                if tstringconstnode(left).len=0 then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=current_asmdata.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
                 end
@@ -175,7 +175,7 @@ interface
                if tstringconstnode(left).len=0 then
                 begin
                   reference_reset(hr);
-                  hr.symbol:=current_asmdata.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
                 end
@@ -430,7 +430,7 @@ interface
          end;
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
          reference_reset(hr);
-         hr.symbol:=current_asmdata.newasmsymbol('FPC_EMPTYCHAR',AB_EXTERNAL,AT_DATA);
+         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
          cg.a_label(current_asmdata.CurrAsmList,l1);
       end;

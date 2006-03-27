@@ -1450,7 +1450,7 @@ implementation
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
             current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),pd.procendtai);
 
-            append_labelentry(DW_AT_low_pc,current_asmdata.newasmsymbol(pd.mangledname,AB_LOCAL,AT_DATA));
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(pd.mangledname));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
             {
@@ -1551,7 +1551,7 @@ implementation
                         else
                           begin
                             templist.concat(tai_const.create_8bit(3));
-                            templist.concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+                            templist.concat(tai_const.createname(sym.mangledname,0));
                             blocksize:=1+sizeof(aword);
                           end;
                       end;
@@ -1707,7 +1707,7 @@ implementation
               toasm :
                 begin
                   templist.concat(tai_const.create_8bit(3));
-                  templist.concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+                  templist.concat(tai_const.createname(sym.mangledname,0));
                   blocksize:=1+sizeof(aword);
                 end;
               tovar:
@@ -1774,7 +1774,7 @@ implementation
               ]);
               { append block data }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(3));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.createname(sym.mangledname,AT_DATA,0));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.createname(sym.mangledname,0));
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(ttypedconstsym(sym).typedconsttype.def));
 
               finish_entry;
@@ -1920,10 +1920,10 @@ implementation
         { abbrev table }
         if isdwarf64 then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
-            current_asmdata.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)))
+            current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')))
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
-            current_asmdata.newasmsymbol('.Ldebug_abbrev0',AB_EXTERNAL,AT_DATA)));
+            current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')));
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
@@ -1935,9 +1935,9 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
-        append_labelentry_data(DW_AT_stmt_list,current_asmdata.newasmsymbol('.Ldebug_line0',AB_LOCAL,AT_DATA));
-        append_labelentry(DW_AT_low_pc,current_asmdata.newasmsymbol('.Ltext0',AB_LOCAL,AT_DATA));
-        append_labelentry(DW_AT_high_pc,current_asmdata.newasmsymbol('.Letext0',AB_LOCAL,AT_DATA));
+        append_labelentry_data(DW_AT_stmt_list,current_asmdata.RefAsmSymbol('.Ldebug_line0'));
+        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol('.Ltext0'));
+        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol('.Letext0'));
 
         finish_entry;
 

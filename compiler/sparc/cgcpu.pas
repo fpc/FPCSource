@@ -427,7 +427,7 @@ implementation
 
     procedure TCgSparc.a_call_name(list:TAsmList;const s:string);
       begin
-        list.concat(taicpu.op_sym(A_CALL,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)));
         { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
@@ -883,7 +883,7 @@ implementation
 
     procedure TCgSparc.a_jmp_always(List:TAsmList;l:TAsmLabel);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.newasmsymbol(l.name,AB_EXTERNAL,AT_FUNCTION)));
+        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(l.name)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -891,7 +891,7 @@ implementation
 
     procedure tcgsparc.a_jmp_name(list : TAsmList;const s : string);
       begin
-        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        List.Concat(TAiCpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(s)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
       end;
@@ -1298,7 +1298,7 @@ implementation
             list.concat(taicpu.op_reg(A_JMP,NR_L1));
           end
         else
-          list.concat(taicpu.op_sym(A_BA,current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+          list.concat(taicpu.op_sym(A_BA,current_asmdata.RefAsmSymbol(procdef.mangledname)));
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
 

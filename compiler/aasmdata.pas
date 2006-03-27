@@ -128,9 +128,9 @@ interface
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
-        function  newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : tasmsymbol;
+        function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
+        function  RefAsmSymbol(const s : string) : tasmsymbol;
         function  getasmsymbol(const s : string) : tasmsymbol;
-        function  newasmlabel(nr:longint;alt:tasmlabeltype;is_global:boolean) : tasmlabel;
         { create new assembler label }
         procedure getlabel(var l : tasmlabel;alt:tasmlabeltype);
         procedure getjumplabel(var l : tasmlabel);
@@ -315,25 +315,23 @@ implementation
       end;
 
 
-    function TAsmData.newasmsymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
+    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
       var
         hp : tasmsymbol;
       begin
         hp:=tasmsymbol(FAsmSymbolDict.search(s));
         if assigned(hp) then
          begin
-           {$IFDEF EXTDEBUG}
-           if (_typ <> AT_NONE) and
-              (hp.typ <> _typ) and
-              not(cs_compilesystem in aktmoduleswitches) and
-              (target_info.system <> system_powerpc_darwin) then
+           { Redefine is allowed, but the types must be the same. The redefine
+             is needed for Darwin where the labels are first allocated }
+           if (hp.bind<>AB_EXTERNAL) then
              begin
-               //Writeln('Error symbol '+hp.name+' type is ',Ord(_typ),', should be ',Ord(hp.typ));
-               InternalError(2004031501);
+               if (hp.bind<>_bind) and
+                  (hp.typ<>_typ) then
+                 internalerror(200603261);
              end;
-           {$ENDIF}
-           if (_bind<>AB_EXTERNAL) then
-             hp.bind:=_bind
+           hp.typ:=_typ;
+           hp.bind:=_bind;
          end
         else
          begin
@@ -341,7 +339,22 @@ implementation
            hp:=tasmsymbol.create(s,_bind,_typ);
            FAsmSymbolDict.insert(hp);
          end;
-        newasmsymbol:=hp;
+        result:=hp;
+      end;
+
+
+    function TAsmData.RefAsmSymbol(const s : string) : tasmsymbol;
+      var
+        hp : tasmsymbol;
+      begin
+        hp:=tasmsymbol(FAsmSymbolDict.search(s));
+        if not assigned(hp) then
+         begin
+           { Not found, insert it. }
+           hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_NONE);
+           FAsmSymbolDict.insert(hp);
+         end;
+        result:=hp;
       end;
 
 
@@ -369,19 +382,6 @@ implementation
         for i:=0 to FAltSymbolList.Count-1 do
           tasmsymbol(FAltSymbolList[i]).altsymbol:=nil;
         FAltSymbolList.Clear;
-      end;
-
-
-    function  TAsmData.newasmlabel(nr:longint;alt:tasmlabeltype;is_global:boolean) : tasmlabel;
-      var
-        hp : tasmlabel;
-      begin
-        if is_global then
-         hp:=tasmlabel.createglobal(name,nr,alt)
-       else
-         hp:=tasmlabel.createlocal(nr,alt);
-        FAsmSymbolDict.insert(hp);
-        result:=hp;
       end;
 
 

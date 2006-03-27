@@ -72,7 +72,7 @@ implementation
       begin
 {$ifndef sparc}
         location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=current_asmdata.newasmsymbol(tglobalvarsym(symtableentry).mangledname+'@GOT',AB_EXTERNAL,AT_DATA);
+        location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname+'@GOT');
 {$endif sparc}
       end;
 
@@ -105,7 +105,7 @@ implementation
                         location.reference.offset:=tabsolutevarsym(symtableentry).addroffset;
                       end;
                     toasm :
-                      location.reference.symbol:=current_asmdata.newasmsymbol(tabsolutevarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname);
                     else
                       internalerror(200310283);
                   end;
@@ -115,7 +115,7 @@ implementation
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
                       location_reset(location,LOC_CREFERENCE,OS_ADDR);
-                      location.reference.symbol:=current_asmdata.newasmsymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name),AB_EXTERNAL,AT_DATA);
+                      location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name));
                       { Resourcestring layout:
                           TResourceStringRecord = Packed Record
                              Name,
@@ -147,7 +147,7 @@ implementation
                   { DLL variable }
                     begin
                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      location.reference.symbol:=current_asmdata.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname);
                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                       reference_reset_base(location.reference,hregister,0);
                     end
@@ -171,11 +171,11 @@ implementation
                        paraloc1.init;
                        paramanager.getintparaloc(pocall_default,1,paraloc1);
                        hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                       reference_reset_symbol(href,current_asmdata.newasmsymbol('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA),0);
+                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0);
                        cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                        cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
-                       reference_reset_symbol(href,current_asmdata.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
+                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0);
                        paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                        cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                        paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -193,7 +193,7 @@ implementation
                          layout of a threadvar is (4 bytes pointer):
                            0 - Threadvar index
                            4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,current_asmdata.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),sizeof(aint));
+                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),sizeof(aint));
                        cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                        cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                        location.reference.base:=hregister;
@@ -246,7 +246,7 @@ implementation
                               staticsymtable :
                                 begin
                                   if tabstractnormalvarsym(symtableentry).localloc.loc=LOC_INVALID then
-                                    reference_reset_symbol(location.reference,current_asmdata.newasmsymbol(tglobalvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0)
+                                    reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0)
                                   else
                                     location:=tglobalvarsym(symtableentry).localloc;
 {$ifdef i386}
@@ -360,7 +360,7 @@ implementation
                       else
                         begin
                           { load address of the function }
-                          reference_reset_symbol(href,current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION),0);
+                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0);
                           hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                           cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
@@ -372,11 +372,11 @@ implementation
                          location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tprocsym(symtableentry).procdef[1].mangledname);
                        {!!!!! Be aware, work on virtual methods too }
                        if (location.reference.base = NR_NO) then
-                         location.reference.symbol:=current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname);
                     end;
                end;
             typedconstsym :
-              location.reference.symbol:=current_asmdata.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
+              location.reference.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(symtableentry).mangledname);
             labelsym :
               location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
             else internalerror(200510032);

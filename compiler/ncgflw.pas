@@ -1242,7 +1242,7 @@ implementation
          current_asmdata.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
-         reference_reset_symbol(href2,current_asmdata.newasmsymbol(excepttype.vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0);
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.a_paramaddr_ref(current_asmdata.CurrAsmList,href2,paraloc1);

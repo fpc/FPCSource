@@ -525,7 +525,7 @@ unit cgx86;
 
     procedure tcgx86.a_jmp_name(list : TAsmList;const s : string);
       begin
-        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)));
       end;
 
 
@@ -550,7 +550,7 @@ unit cgx86;
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
         current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
-        result := current_asmdata.newasmsymbol(stubname,AB_EXTERNAL,AT_FUNCTION);
+        result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
@@ -569,7 +569,7 @@ unit cgx86;
 
         if (target_info.system <> system_i386_darwin) then
           begin
-            sym:=current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+            sym:=current_asmdata.RefAsmSymbol(s);
             reference_reset_symbol(r,sym,0);
             if cs_create_pic in aktmoduleswitches then
               begin
@@ -595,7 +595,7 @@ unit cgx86;
         sym : tasmsymbol;
         r : treference;
       begin
-        sym:=current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION);
+        sym:=current_asmdata.RefAsmSymbol(s);
         reference_reset_symbol(r,sym,0);
         r.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
@@ -808,8 +808,7 @@ unit cgx86;
                       system_i386_linux:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.newasmsymbol(
-                              '___fpc_threadvar_offset',AB_EXTERNAL,AT_DATA),0);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0);
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end

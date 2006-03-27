@@ -2338,7 +2338,7 @@ implementation
       begin
         { the label is always a global label }
         if not assigned(lab) then
-         lab:=current_asmdata.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA);
+         lab:=current_asmdata.RefAsmSymbol(mangledname);
         get_label:=lab;
       end;
 

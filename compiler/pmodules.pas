@@ -164,7 +164,7 @@ implementation
          begin
            If (hp.u.flags and uf_threadvars)=uf_threadvars then
             begin
-              ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),AT_DATA,0));
+              ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',hp.u.globalsymtable,''),0));
               inc(count);
             end;
            hp:=tused_unit(hp.next);
@@ -172,7 +172,7 @@ implementation
         { Add program threadvars, if any }
         If (current_module.flags and uf_threadvars)=uf_threadvars then
          begin
-           ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),AT_DATA,0));
+           ltvTables.concat(Tai_const.Createname(make_mangledname('THREADVARLIST',current_module.localsymtable,''),0));
            inc(count);
          end;
         { Insert TableCount at start }
@@ -195,7 +195,7 @@ implementation
            (vo_is_thread_var in tglobalvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const.Createname(tglobalvarsym(p).mangledname,AT_DATA,0));
+           ltvTable.concat(tai_const.Createname(tglobalvarsym(p).mangledname,0));
            { size of threadvar }
            ltvTable.concat(tai_const.create_32bit(tglobalvarsym(p).getsize));
          end;
@@ -255,7 +255,7 @@ implementation
           begin
           { Valid pointer to resource information }
           ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',AT_DATA,0));
+          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0));
 {$ifdef EXTERNALRESPTRS}
           current_module.linkotherofiles.add('resptrs.o',link_always);
 {$else EXTERNALRESPTRS}
@@ -291,8 +291,8 @@ implementation
           begin
             If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
               begin
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),AT_DATA,0));
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),AT_DATA,0));
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),0));
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),0));
                 inc(count);
               end;
             hp:=tmodule(hp.next);
@@ -324,11 +324,11 @@ implementation
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
             begin
               if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
               else
                unitinits.concat(Tai_const.Create_sym(nil));
               if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0))
+               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
               else
                unitinits.concat(Tai_const.Create_sym(nil));
               inc(count);
@@ -339,11 +339,11 @@ implementation
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
          begin
            if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
            else
             unitinits.concat(Tai_const.Create_sym(nil));
            if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),AT_FUNCTION,0))
+            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
            else
             unitinits.concat(Tai_const.Create_sym(nil));
            inc(count);

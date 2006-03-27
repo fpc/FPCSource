@@ -398,7 +398,7 @@ interface
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
           constructor Create_indirect_sym(_sym:tasmsymbol);
-          constructor Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
+          constructor Createname(const name:string;ofs:aint);
           constructor Createname_rva(const name:string);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -856,7 +856,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=current_asmdata.newasmsymbol(_name,AB_LOCAL,AT_DATA);
+         sym:=current_asmdata.DefineAsmSymbol(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -869,7 +869,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_datablock;
-         sym:=current_asmdata.newasmsymbol(_name,AB_GLOBAL,AT_DATA);
+         sym:=current_asmdata.DefineAsmSymbol(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -931,7 +931,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_asmdata.newasmsymbol(_name,AB_LOCAL,_symtyp);
+         sym:=current_asmdata.DefineAsmSymbol(_name,AB_LOCAL,_symtyp);
          size:=siz;
          is_global:=false;
       end;
@@ -941,7 +941,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_symbol;
-         sym:=current_asmdata.newasmsymbol(_name,AB_GLOBAL,_symtyp);
+         sym:=current_asmdata.DefineAsmSymbol(_name,AB_GLOBAL,_symtyp);
          size:=siz;
          is_global:=true;
       end;
@@ -986,7 +986,7 @@ implementation
       begin
          inherited Create;
          typ:=ait_symbol_end;
-         sym:=current_asmdata.newasmsymbol(_name,AB_GLOBAL,AT_NONE);
+         sym:=current_asmdata.RefAsmSymbol(_name);
       end;
 
 
@@ -1231,12 +1231,12 @@ implementation
       end;
 
 
-    constructor tai_const.Createname(const name:string;_symtyp:Tasmsymtype;ofs:aint);
+    constructor tai_const.Createname(const name:string;ofs:aint);
       begin
          inherited Create;
          typ:=ait_const;
          consttype:=aitconst_ptr;
-         sym:=current_asmdata.newasmsymbol(name,AB_EXTERNAL,_symtyp);
+         sym:=current_asmdata.RefAsmSymbol(name);
          endsym:=nil;
          value:=ofs;
          { update sym info }
@@ -1249,7 +1249,7 @@ implementation
          inherited Create;
          typ:=ait_const;
          consttype:=aitconst_rva_symbol;
-         sym:=current_asmdata.newasmsymbol(name,AB_EXTERNAL,AT_FUNCTION);
+         sym:=current_asmdata.RefAsmSymbol(name);
          endsym:=nil;
          value:=0;
          { update sym info }

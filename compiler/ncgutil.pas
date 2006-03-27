@@ -1737,11 +1737,7 @@ implementation
         item := tstringlistitem(pd.aliasnames.first);
         while assigned(item) do
           begin
-            if (cs_profile in aktmoduleswitches) or
-               (po_global in current_procinfo.procdef.procoptions) then
-               current_asmdata.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION)
-            else
-               current_asmdata.newasmsymbol(item.str,AB_GLOBAL,AT_FUNCTION);
+            current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION);
             item := tstringlistitem(item.next);
           end;
        end;
@@ -1786,7 +1782,7 @@ implementation
             else
               list.concat(tai_directive.create(asd_mod_term_func,''));
             list.concat(tai_align.create(4));
-            list.concat(Tai_const.Createname(current_procinfo.procdef.mangledname,AT_FUNCTION,0));
+            list.concat(Tai_const.Createname(current_procinfo.procdef.mangledname,0));
           end;
 
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
@@ -1940,7 +1936,7 @@ implementation
           begin
             current_module.requires_ebx_pic_helper:=true;
             cg.a_call_name_static(list,'fpc_geteipasebx');
-            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
+            list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
             list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
             { ecx could be used in leave procedures }
             current_procinfo.got:=NR_EBX;
@@ -2110,7 +2106,7 @@ implementation
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
                                   if not(vo_is_dll_var in varoptions) and ((tf_section_threadvars in target_info.flags) or
                                      not(vo_is_thread_var in varoptions)) then
-                                    reference_reset_symbol(localloc.reference,current_asmdata.newasmsymbol(mangledname,AB_EXTERNAL,AT_DATA),0);
+                                    reference_reset_symbol(localloc.reference,current_asmdata.RefAsmSymbol(mangledname),0);
                                 end;
                               else
                                 internalerror(200410103);

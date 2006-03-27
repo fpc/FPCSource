@@ -641,7 +641,7 @@ unit cgcpu;
         { case 0 }
         else
           begin
-            lab:=current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
             list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
           end;
 

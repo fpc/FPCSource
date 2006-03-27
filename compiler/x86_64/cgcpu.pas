@@ -128,7 +128,7 @@ unit cgcpu;
           end
         else
           begin
-            sym:=current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION);
+            sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
             reference_reset_symbol(r,sym,0);
             if cs_create_pic in aktmoduleswitches then
               r.refaddr:=addr_pic

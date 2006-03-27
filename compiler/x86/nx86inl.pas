@@ -225,11 +225,9 @@ implementation
              location:=left.location;
              case tfloatdef(resulttype.def).typ of
                s32real:
-                 reference_reset_symbol(href,
-                   current_asmdata.newasmsymbol('FPC_ABSMASK_SINGLE',AB_EXTERNAL,AT_DATA),0);
+                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0);
                s64real:
-                 reference_reset_symbol(href,
-                   current_asmdata.newasmsymbol('FPC_ABSMASK_DOUBLE',AB_EXTERNAL,AT_DATA),0);
+                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0);
                else
                  internalerror(200506081);
              end;

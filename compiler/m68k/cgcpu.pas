@@ -247,7 +247,7 @@ unit cgcpu;
     procedure tcg68k.a_call_name(list : TAsmList;const s : string);
 
       begin
-        list.concat(taicpu.op_sym(A_JSR,S_NO,current_asmdata.newasmsymbol(s,AB_EXTERNAL,AT_FUNCTION)));
+        list.concat(taicpu.op_sym(A_JSR,S_NO,current_asmdata.RefAsmSymbol(s)));
       end;
 
 
@@ -1261,7 +1261,7 @@ unit cgcpu;
           end
         { case 0 }
         else
-//          list.concat(taicpu.op_sym(A_B,current_asmdata.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
+//          list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
 
         List.concat(Tai_symbol_end.Createname(labelname));
       end;

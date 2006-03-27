@@ -101,7 +101,7 @@ implementation
          if (left.nodetype=typen) then
            begin
              reference_reset_symbol(href,
-               current_asmdata.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname,AB_EXTERNAL,AT_DATA),0);
+               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
@@ -312,7 +312,7 @@ implementation
                LOC_REFERENCE,
                LOC_CREFERENCE:
                  ;
-{              record regvars are not supported yet 
+{              record regvars are not supported yet
                LOC_CREGISTER:                        }
                else
                  internalerror(2006031901);
@@ -697,7 +697,7 @@ implementation
                  current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
                end;
               secondpass(right);
-              
+
               { if mulsize = 1, we won't have to modify the index }
               location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,(mulsize = 1));
 

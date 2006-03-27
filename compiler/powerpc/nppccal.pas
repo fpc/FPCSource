@@ -85,7 +85,7 @@ implementation
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R31);
 
                   reference_reset(tmpref);
-                  tmpref.symbol:=current_asmdata.newasmsymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname,AB_EXTERNAL,AT_DATA);
+                  tmpref.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname);
                   tmpref.refaddr:=addr_hi;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R31,tmpref));
                   tmpref.base:=NR_R31;

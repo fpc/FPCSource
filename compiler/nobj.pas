@@ -280,7 +280,7 @@ implementation
 
          { write name label }
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -322,7 +322,7 @@ implementation
 
          { write name label }
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -398,7 +398,7 @@ implementation
       begin
          if assigned(p^.l) then
            writedmtaddressentry(p^.l);
-         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname,AT_FUNCTION,0));
+         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname,0));
          if assigned(p^.r) then
            writedmtaddressentry(p^.r);
       end;
@@ -484,7 +484,7 @@ implementation
                      if po_abstractmethod in pd.procoptions then
                        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
                      else
-                       current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,AT_FUNCTION,0));
+                       current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
                    end;
                 end;
            end;
@@ -884,7 +884,7 @@ implementation
               tostr(i)+'_$_'+
               implintf.implprocs(intfindex,i).mangledname);
             { create reference }
-            rawdata.concat(Tai_const.Createname(tmps,AT_FUNCTION,0));
+            rawdata.concat(Tai_const.Createname(tmps,0));
           end;
         section_symbol_end(rawdata,gintfgetvtbllabelname(intfindex));
       end;
@@ -919,7 +919,7 @@ implementation
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
           end;
         { VTable }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),AT_DATA,0));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),0));
         { IOffset field }
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(implintf.ioffsets(contintfindex)));
         { IIDStr }
@@ -1232,9 +1232,9 @@ implementation
                                   { class abstract and it's not allow to      }
                                   { generates an instance                     }
                                   if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    List.concat(Tai_const.Createname('FPC_ABSTRACTERROR',AT_FUNCTION,0))
+                                    List.concat(Tai_const.Createname('FPC_ABSTRACTERROR',0))
                                   else
-                                    List.concat(Tai_const.createname(procdefcoll^.data.mangledname,AT_FUNCTION,0));
+                                    List.concat(Tai_const.createname(procdefcoll^.data.mangledname,0));
                                end;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1310,7 +1310,7 @@ implementation
          { it is not written for parents that don't have any vmt !! }
          if assigned(_class.childof) and
             (oo_has_vmt in _class.childof.objectoptions) then
-           current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,AT_DATA,0))
+           current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(_class.childof.vmt_mangledname,0))
          else
            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
 
