@@ -85,7 +85,6 @@ implementation
          old_block_type : tblock_type;
          storefilepos : tfileposinfo;
          cursectype : TAsmSectiontype;
-         cural : tasmlisttype;
          datalist : tasmlist;
 
          procedure check_range(def:torddef);
@@ -1008,17 +1007,6 @@ implementation
       myexit:
          block_type:=old_block_type;
 
-         if writable then
-           begin
-             cural:=al_typedconsts;
-             cursectype:=sec_data;
-           end
-         else
-           begin
-             cural:=al_rotypedconsts;
-             cursectype:=sec_rodata;
-           end;
-
          { Add symbol name if this is specified. For array
            elements sym=nil and we should skip this }
          if assigned(sym) then
@@ -1026,8 +1014,12 @@ implementation
              storefilepos:=aktfilepos;
              aktfilepos:=sym.fileinfo;
              { insert cut for smartlinking or alignment }
+             if writable then
+               cursectype:=sec_data
+             else
+               cursectype:=sec_rodata;
              maybe_new_object_file(list);
-             new_section(list,cursectype,lower(sym.mangledname),const_align(size_2_align(l)));
+             new_section(list,cursectype,lower(sym.mangledname),const_align(t.def.alignment));
              if (sym.owner.symtabletype=globalsymtable) or
                 maybe_smartlink_symbol or
                 (assigned(current_procinfo) and
