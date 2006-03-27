@@ -190,6 +190,7 @@ const
 
 Type
   TSysCharSet = Set of char;
+  PSysCharSet = ^TSysCharSet;
 
 Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
