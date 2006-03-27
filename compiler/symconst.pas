@@ -295,6 +295,16 @@ type
   );
   tobjectoptions=set of tobjectoption;
 
+  tarraydefoption=(ado_none,
+    ado_IsConvertedPointer,
+    ado_IsDynamicArray,
+    ado_IsVariant,
+    ado_IsConstructor,
+    ado_IsArrayOfConst,
+    ado_IsConstString
+  );
+  tarraydefoptions=set of tarraydefoption;
+
   { options for properties }
   tpropertyoption=(ppo_none,
     ppo_indexed,

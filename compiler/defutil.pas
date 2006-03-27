@@ -463,16 +463,16 @@ implementation
     { true, if p points to a zero based array def }
     function is_zero_based_array(p : tdef) : boolean;
       begin
-         is_zero_based_array:=(p.deftype=arraydef) and
-                              (tarraydef(p).lowrange=0) and
-                              not(is_special_array(p));
+         result:=(p.deftype=arraydef) and
+                 (tarraydef(p).lowrange=0) and
+                 not(is_special_array(p));
       end;
 
     { true if p points to a dynamic array def }
     function is_dynamic_array(p : tdef) : boolean;
       begin
-         is_dynamic_array:=(p.deftype=arraydef) and
-           tarraydef(p).IsDynamicArray;
+         result:=(p.deftype=arraydef) and
+                 (ado_IsDynamicArray in tarraydef(p).arrayoptions);
       end;
 
 
@@ -481,48 +481,42 @@ implementation
       begin
          { check for s32inttype is needed, because for u32bit the high
            range is also -1 ! (PFV) }
-         is_open_array:=(p.deftype=arraydef) and
-                        (tarraydef(p).rangetype.def=s32inttype.def) and
-                        (tarraydef(p).lowrange=0) and
-                        (tarraydef(p).highrange=-1) and
-                        not(tarraydef(p).IsConstructor) and
-                        not(tarraydef(p).IsVariant) and
-                        not(tarraydef(p).IsArrayOfConst) and
-                        not(tarraydef(p).IsDynamicArray);
-
+         result:=(p.deftype=arraydef) and
+                 (tarraydef(p).rangetype.def=s32inttype.def) and
+                 (tarraydef(p).lowrange=0) and
+                 (tarraydef(p).highrange=-1) and
+                 ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
       end;
 
     { true, if p points to an array of const def }
     function is_array_constructor(p : tdef) : boolean;
       begin
-         is_array_constructor:=(p.deftype=arraydef) and
-                        (tarraydef(p).IsConstructor);
+         result:=(p.deftype=arraydef) and
+                 (ado_IsConstructor in tarraydef(p).arrayoptions);
       end;
 
     { true, if p points to a variant array }
     function is_variant_array(p : tdef) : boolean;
       begin
-         is_variant_array:=(p.deftype=arraydef) and
-                        (tarraydef(p).IsVariant);
+         result:=(p.deftype=arraydef) and
+                 (ado_IsVariant in tarraydef(p).arrayoptions);
       end;
 
     { true, if p points to an array of const }
     function is_array_of_const(p : tdef) : boolean;
       begin
-         is_array_of_const:=(p.deftype=arraydef) and
-                        (tarraydef(p).IsArrayOfConst);
+         result:=(p.deftype=arraydef) and
+                 (ado_IsArrayOfConst in tarraydef(p).arrayoptions);
       end;
 
     { true, if p points to a special array }
     function is_special_array(p : tdef) : boolean;
       begin
-         is_special_array:=(p.deftype=arraydef) and
-                        ((tarraydef(p).IsVariant) or
-                         (tarraydef(p).IsArrayOfConst) or
-                         (tarraydef(p).IsConstructor) or
-                         (tarraydef(p).IsDynamicArray) or
-                         is_open_array(p)
-                        );
+         result:=(p.deftype=arraydef) and
+                 (
+                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])<>[]) or
+                  is_open_array(p)
+                 );
       end;
 
     { true if p is an ansi string def }

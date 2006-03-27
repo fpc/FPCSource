@@ -327,11 +327,7 @@ interface
           lowrange,
           highrange  : aint;
           rangetype  : ttype;
-          IsConvertedPointer,
-          IsDynamicArray,
-          IsVariant,
-          IsConstructor,
-          IsArrayOfConst : boolean;
+          arrayoptions : tarraydefoptions;
        protected
           _elementtype : ttype;
        public
@@ -2394,18 +2390,14 @@ implementation
          highrange:=h;
          rangetype:=t;
          elementtype.reset;
-         IsVariant:=false;
-         IsConstructor:=false;
-         IsArrayOfConst:=false;
-         IsDynamicArray:=false;
-         IsConvertedPointer:=false;
+         arrayoptions:=[];
       end;
 
 
     constructor tarraydef.create_from_pointer(const elemt : ttype);
       begin
          self.create(0,$7fffffff,s32inttype);
-         IsConvertedPointer:=true;
+         arrayoptions:=[ado_IsConvertedPointer];
          setelementtype(elemt);
       end;
 
@@ -2418,21 +2410,14 @@ implementation
          ppufile.gettype(rangetype);
          lowrange:=ppufile.getaint;
          highrange:=ppufile.getaint;
-         IsArrayOfConst:=boolean(ppufile.getbyte);
-         IsDynamicArray:=boolean(ppufile.getbyte);
-         IsVariant:=false;
-         IsConstructor:=false;
+         ppufile.getsmallset(arrayoptions);
       end;
 
 
     function tarraydef.getcopy : tstoreddef;
       begin
         result:=tarraydef.create(lowrange,highrange,rangetype);
-        tarraydef(result).IsConvertedPointer:=IsConvertedPointer;
-        tarraydef(result).IsDynamicArray:=IsDynamicArray;
-        tarraydef(result).IsVariant:=IsVariant;
-        tarraydef(result).IsConstructor:=IsConstructor;
-        tarraydef(result).IsArrayOfConst:=IsArrayOfConst;
+        tarraydef(result).arrayoptions:=arrayoptions;
         tarraydef(result)._elementtype:=_elementtype;
       end;
 
@@ -2460,8 +2445,7 @@ implementation
          ppufile.puttype(rangetype);
          ppufile.putaint(lowrange);
          ppufile.putaint(highrange);
-         ppufile.putbyte(byte(IsArrayOfConst));
-         ppufile.putbyte(byte(IsDynamicArray));
+         ppufile.putsmallset(arrayoptions);
          ppufile.writeentry(ibarraydef);
       end;
 
@@ -2476,7 +2460,7 @@ implementation
       var
         qhigh,qlow : qword;
       begin
-        if IsDynamicArray then
+        if ado_IsDynamicArray in arrayoptions then
           begin
             result:=0;
             exit;
@@ -2501,7 +2485,7 @@ implementation
         cachedelecount,
         cachedelesize : aint;
       begin
-        if IsDynamicArray then
+        if ado_IsDynamicArray in arrayoptions then
           begin
             size:=sizeof(aint);
             exit;
@@ -2529,8 +2513,8 @@ implementation
     procedure tarraydef.setelementtype(t: ttype);
       begin
         _elementtype:=t;
-       if not(IsDynamicArray or
-              IsConvertedPointer or
+       if not((ado_IsDynamicArray in arrayoptions) or
+              (ado_IsConvertedPointer in arrayoptions) or
               (highrange<lowrange)) then
          begin
            if (size=-1) then
@@ -2553,7 +2537,7 @@ implementation
 
     function tarraydef.needs_inittable : boolean;
       begin
-         needs_inittable:=IsDynamicArray or elementtype.def.needs_inittable;
+         needs_inittable:=(ado_IsDynamicArray in arrayoptions) or elementtype.def.needs_inittable;
       end;
 
 
@@ -2565,7 +2549,7 @@ implementation
 
     procedure tarraydef.write_rtti_data(rt:trttitype);
       begin
-         if IsDynamicArray then
+         if ado_IsDynamicArray in arrayoptions then
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkdynarray))
          else
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkarray));
@@ -2575,7 +2559,7 @@ implementation
 {$endif cpurequiresproperalignment}
          { size of elements }
          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(elesize));
-         if not(IsDynamicArray) then
+         if not(ado_IsDynamicArray in arrayoptions) then
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(elecount));
          { element type }
          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
@@ -2586,14 +2570,17 @@ implementation
 
     function tarraydef.gettypename : string;
       begin
-         if isarrayofconst or isConstructor then
+         if (ado_IsConstString in arrayoptions) then
+           result:='Constant String'
+         else if (ado_isarrayofconst in arrayoptions) or
+                 (ado_isConstructor in arrayoptions) then
            begin
-             if isvariant or ((highrange=-1) and (lowrange=0)) then
+             if (ado_isvariant in arrayoptions) or ((highrange=-1) and (lowrange=0)) then
                gettypename:='Array Of Const'
              else
                gettypename:='Array Of '+elementtype.def.typename;
            end
-         else if ((highrange=-1) and (lowrange=0)) or IsDynamicArray then
+         else if ((highrange=-1) and (lowrange=0)) or (ado_IsDynamicArray in arrayoptions) then
            gettypename:='Array Of '+elementtype.def.typename
          else
            begin
@@ -2608,7 +2595,7 @@ implementation
 
     function tarraydef.getmangledparaname : string;
       begin
-         if isarrayofconst then
+         if ado_isarrayofconst in arrayoptions then
           getmangledparaname:='array_of_const'
          else
           if ((highrange=-1) and (lowrange=0)) then

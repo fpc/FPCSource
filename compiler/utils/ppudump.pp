@@ -1135,6 +1135,116 @@ begin
 end;
 
 
+procedure readobjectdefoptions;
+type
+  tobjectoption=(oo_none,
+    oo_is_forward,         { the class is only a forward declared yet }
+    oo_has_virtual,        { the object/class has virtual methods }
+    oo_has_private,
+    oo_has_protected,
+    oo_has_strictprivate,
+    oo_has_strictprotected,
+    oo_has_constructor,    { the object/class has a constructor }
+    oo_has_destructor,     { the object/class has a destructor }
+    oo_has_vmt,            { the object/class has a vmt }
+    oo_has_msgstr,
+    oo_has_msgint,
+    oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
+    oo_has_default_property
+  );
+  tobjectoptions=set of tobjectoption;
+  tsymopt=record
+    mask : tobjectoption;
+    str  : string[30];
+  end;
+const
+  symopts=13;
+  symopt : array[1..symopts] of tsymopt=(
+     (mask:oo_has_virtual;        str:'IsForward'),
+     (mask:oo_has_virtual;        str:'HasVirtual'),
+     (mask:oo_has_private;        str:'HasPrivate'),
+     (mask:oo_has_protected;      str:'HasProtected'),
+     (mask:oo_has_strictprivate;  str:'HasStrictPrivate'),
+     (mask:oo_has_strictprotected;str:'HasStrictProtected'),
+     (mask:oo_has_constructor;    str:'HasConstructor'),
+     (mask:oo_has_destructor;     str:'HasDestructor'),
+     (mask:oo_has_vmt;            str:'HasVMT'),
+     (mask:oo_has_msgstr;         str:'HasMsgStr'),
+     (mask:oo_has_msgint;         str:'HasMsgInt'),
+     (mask:oo_can_have_published; str:'CanHavePublished'),
+     (mask:oo_has_default_property;str:'HasDefaultProperty')
+  );
+var
+  symoptions : tobjectoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(symoptions);
+  if symoptions<>[] then
+   begin
+     first:=true;
+     for i:=1to symopts do
+      if (symopt[i].mask in symoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
+
+procedure readarraydefoptions;
+type
+  tarraydefoption=(ado_none,
+    ado_IsConvertedPointer,
+    ado_IsDynamicArray,
+    ado_IsVariant,
+    ado_IsConstructor,
+    ado_IsArrayOfConst,
+    ado_IsConstString
+  );
+  tarraydefoptions=set of tarraydefoption;
+  tsymopt=record
+    mask : tarraydefoption;
+    str  : string[30];
+  end;
+const
+  symopts=6;
+  symopt : array[1..symopts] of tsymopt=(
+     (mask:ado_IsConvertedPointer;str:'ConvertedPointer'),
+     (mask:ado_IsDynamicArray;    str:'IsDynamicArray'),
+     (mask:ado_IsVariant;         str:'IsVariant'),
+     (mask:ado_IsConstructor;     str:'IsConstructor'),
+     (mask:ado_IsArrayOfConst;    str:'ArrayOfConst'),
+     (mask:ado_IsConstString;     str:'ConstString')
+  );
+var
+  symoptions : tarraydefoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(symoptions);
+  if symoptions<>[] then
+   begin
+     first:=true;
+     for i:=1to symopts do
+      if (symopt[i].mask in symoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(symopt[i].str);
+       end;
+   end;
+  writeln;
+end;
+
+
 procedure readnodetree;
 var
   l : longint;
@@ -1558,8 +1668,8 @@ begin
              write  (space,'       Range Type : ');
              readtype;
              writeln(space,'            Range : ',getlongint,' to ',getlongint);
-             writeln(space,'   Is Constructor : ',(getbyte<>0));
-             writeln(space,'       Is Dynamic : ',(getbyte<>0));
+             write  (space,'          Options : ');
+             readarraydefoptions;
            end;
 
          ibprocdef :
@@ -1682,9 +1792,10 @@ begin
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'       Vmt offset : ',getlongint);
-             write(space,  '   Ancestor Class : ');
+             write  (space,  '   Ancestor Class : ');
              readderef;
-             writeln(space,'          Options : ',getlongint);
+             write  (space,'          Options : ');
+             readobjectdefoptions;
 
              if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
                begin
@@ -1871,6 +1982,9 @@ begin
 
          iblinkothersharedlibs :
            ReadLinkContainer('Link other shared lib: ');
+
+         iblinkdlls :
+           ReadLinkContainer('Link DLLs: ');
 
          ibderefdata :
            ReadDerefData;

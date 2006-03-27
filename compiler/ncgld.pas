@@ -749,7 +749,7 @@ implementation
         tmpreg  : tregister;
         paraloc : tcgparalocation;
       begin
-        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
+        dovariant:=(nf_forcevaria in flags) or is_variant_array(resulttype.def);
         if dovariant then
           elesize:=sizeof(aint)+sizeof(aint)
         else

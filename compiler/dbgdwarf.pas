@@ -904,7 +904,7 @@ implementation
               DW_AT_stride_size,DW_FORM_udata,def.elesize*8
               ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementtype.def));
-          if def.IsDynamicArray then
+          if is_dynamic_array(def) then
             begin
               { !!! FIXME !!! }
               { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)

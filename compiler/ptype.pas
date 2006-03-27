@@ -542,7 +542,7 @@ implementation
            else
              begin
                 ap:=tarraydef.create(0,-1,s32inttype);
-                ap.IsDynamicArray:=true;
+                include(ap.arrayoptions,ado_IsDynamicArray);
                 tt.setdef(ap);
              end;
            consume(_OF);

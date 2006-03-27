@@ -649,6 +649,7 @@ implementation
                 l:=0;
               resulttype.setdef(tarraydef.create(0,l,s32inttype));
               tarraydef(resulttype.def).setelementtype(cchartype);
+              include(tarraydef(resulttype.def).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :
             resulttype:=cshortstringtype;

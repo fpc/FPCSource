@@ -348,13 +348,13 @@ implementation
            case vartype.def.deftype of
              arraydef :
                begin
-                 with tarraydef(vartype.def) do
-                   if IsVariant or IsConstructor then
-                     begin
-                       Message1(parser_w_not_supported_for_inline,'array of const');
-                       Message(parser_w_inlining_disabled);
-                       pd.proccalloption:=pocall_default;
-                     end;
+                 if is_array_constructor(vartype.def) or
+                    is_variant_array(vartype.def) then
+                   begin
+                     Message1(parser_w_not_supported_for_inline,'array of const');
+                     Message(parser_w_inlining_disabled);
+                     pd.proccalloption:=pocall_default;
+                   end;
                end;
            end;
          end;
@@ -507,7 +507,7 @@ implementation
                    consume(_CONST);
                    srsym:=search_system_type('TVARREC');
                    tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
-                   tarraydef(tt.def).IsArrayOfConst:=true;
+                   include(tarraydef(tt.def).arrayoptions,ado_IsArrayOfConst);
                  end
                 else
                  begin

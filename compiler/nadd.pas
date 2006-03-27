@@ -1393,7 +1393,8 @@ implementation
 
          { this is a little bit dangerous, also the left type }
          { pointer to should be checked! This broke the mmx support      }
-         else if (rd.deftype=pointerdef) or is_zero_based_array(rd) then
+         else if (rd.deftype=pointerdef) or
+                 (is_zero_based_array(rd) and (rt<>stringconstn)) then
           begin
             if is_zero_based_array(rd) then
               begin
@@ -1419,7 +1420,8 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if (ld.deftype=pointerdef) or is_zero_based_array(ld) then
+         else if (ld.deftype=pointerdef) or
+                 (is_zero_based_array(ld) and (lt<>stringconstn)) then
            begin
              if is_zero_based_array(ld) then
                begin
@@ -1769,7 +1771,7 @@ implementation
               todefsigned) and
              (v >= low(longint)) and
              (v <= high(longint))
-          else            
+          else
             result :=
              (qword(v) >= low(cardinal)) and
              (qword(v) <= high(cardinal))

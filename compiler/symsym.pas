@@ -1260,7 +1260,7 @@ implementation
       begin
         if assigned(vartype.def) and
            ((vartype.def.deftype<>arraydef) or
-            tarraydef(vartype.def).isDynamicArray or
+            is_dynamic_array(vartype.def) or
             (tarraydef(vartype.def).highrange>=tarraydef(vartype.def).lowrange)) then
           result:=vartype.def.size
         else

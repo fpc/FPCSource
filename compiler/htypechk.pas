@@ -1404,8 +1404,8 @@ implementation
             begin
               { set can also be a not yet converted array constructor }
               if (p.resulttype.def.deftype=arraydef) and
-                 (tarraydef(p.resulttype.def).IsConstructor) and
-                 not(tarraydef(p.resulttype.def).IsVariant) then
+                 is_array_constructor(p.resulttype.def) and
+                 not is_variant_array(p.resulttype.def) then
                 eq:=te_equal;
             end;
           procvardef :

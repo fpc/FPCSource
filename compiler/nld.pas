@@ -887,8 +887,9 @@ implementation
            htype:=voidtype;
          resulttype.setdef(tarraydef.create(0,len-1,s32inttype));
          tarraydef(resulttype.def).setelementtype(htype);
-         tarraydef(resulttype.def).IsConstructor:=true;
-         tarraydef(resulttype.def).IsVariant:=varia;
+         include(tarraydef(resulttype.def).arrayoptions,ado_IsConstructor);
+         if varia then
+           include(tarraydef(resulttype.def).arrayoptions,ado_IsVariant);
       end;
 
 
@@ -897,8 +898,8 @@ implementation
         hp : tarrayconstructornode;
       begin
         tarraydef(resulttype.def).setelementtype(tt);
-        tarraydef(resulttype.def).IsConstructor:=true;
-        tarraydef(resulttype.def).IsVariant:=false;
+        include(tarraydef(resulttype.def).arrayoptions,ado_IsConstructor);
+        exclude(tarraydef(resulttype.def).arrayoptions,ado_IsVariant);
         if assigned(left) then
          begin
            hp:=self;
@@ -918,7 +919,7 @@ implementation
       begin
         if (iscvarargs) then
           include(flags,nf_cvarargs);
-        dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant or iscvarargs;
+        dovariant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resulttype.def).arrayoptions) or iscvarargs;
         { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
@@ -1006,7 +1007,7 @@ implementation
         hp : tarrayconstructornode;
         do_variant:boolean;
       begin
-        do_variant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
+        do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resulttype.def).arrayoptions);
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be
