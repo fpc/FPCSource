@@ -1942,7 +1942,7 @@ implementation
                 end;
               top_const :
                 begin
-                  currval:=longint(oper[opidx]^.val);
+                  currval:=aint(oper[opidx]^.val);
                   currsym:=nil;
                 end;
               else
