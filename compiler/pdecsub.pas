@@ -518,26 +518,15 @@ implementation
               end
              else
               begin
+                if (m_mac in aktmodeswitches) then
+                  try_to_consume(_UNIV); {currently does nothing}
+                single_type(tt,false);
+
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
-                        (
-                          (
-                            ((token=_STRING) or (idtoken=_SHORTSTRING)) and
-                            (cs_openstring in aktmoduleswitches) and
-                            not(cs_ansistrings in aktlocalswitches)
-                          ) or
-                        (idtoken=_OPENSTRING)) then
-                 begin
-                   consume(token);
-                   tt:=openshortstringtype;
-                 end
-                else
-                 begin
-                   { everything else }
-                   if (m_mac in aktmodeswitches) then
-                     try_to_consume(_UNIV); {currently does nothing}
-                   single_type(tt,false);
-                 end;
+                   (cs_openstring in aktmoduleswitches) and
+                   is_shortstring(tt.def) then
+                  tt:=openshortstringtype;
 
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
