@@ -1569,7 +1569,7 @@ implementation
            else
             output.bytes:=md;
            { SIB needed ? }
-           if (ir=NR_NO) and (br<>NR_RSP)then
+           if (ir=NR_NO) and (br<>NR_RSP) and (br<>NR_R12) then
             begin
               output.sib_present:=false;
               output.modrm:=(md shl 6) or (rfield shl 3) or base;
