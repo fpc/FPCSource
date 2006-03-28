@@ -46,6 +46,9 @@ interface
     {# Returns the minimal integer value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
 
+    {# Returns the maximal integer value of the type }
+    function get_max_value(def : tdef) : TConstExprInt;
+
     {# Returns basetype of the specified integer range }
     function range_to_basetype(l,h:TConstExprInt):tbasetype;
 
@@ -345,6 +348,20 @@ implementation
              get_min_value:=tenumdef(def).min;
            else
              get_min_value:=0;
+         end;
+      end;
+
+
+    { returns the max. value of the type }
+    function get_max_value(def : tdef) : TConstExprInt;
+      begin
+         case def.deftype of
+           orddef:
+             get_max_value:=torddef(def).high;
+           enumdef:
+             get_max_value:=tenumdef(def).max;
+           else
+             get_max_value:=0;
          end;
       end;
 

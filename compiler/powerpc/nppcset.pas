@@ -144,6 +144,12 @@ implementation
           end;
 
         begin
+           if (get_min_value(left.resulttype.def) >= low(smallint)) and
+              (get_max_value(left.resulttype.def) <= high(word)) then
+             begin
+               genlinearcmplist(hp);
+               exit;
+             end;
            if assigned(t^.less) then
              genitem(t^.less);
            { need we to test the first value }
