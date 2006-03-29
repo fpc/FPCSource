@@ -3244,4 +3244,4 @@ reg64,reg32           \326\301\1\x63\110              X86_64
 
 [CQO,cqto]
 (Ch_MRAX, Ch_WRDX, Ch_None)
-void                  \325\1\x99                      X86_64
+void                  \326\1\x99                      X86_64

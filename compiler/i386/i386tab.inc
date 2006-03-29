@@ -543,7 +543,7 @@
     opcode  : A_CMP;
     ops     : 2;
     optypes : (ot_reg_eax or ot_bits64,ot_immediate,ot_none);
-    code    : #213#1#61#33;
+    code    : #208#1#61#33;
     flags   : if_386 or if_sd
   ),
   (
