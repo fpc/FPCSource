@@ -148,7 +148,7 @@ implementation
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;
 
@@ -164,7 +164,7 @@ implementation
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                      end;
 
@@ -175,7 +175,7 @@ implementation
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;
 {$ifdef cpufloat128}
@@ -186,7 +186,7 @@ implementation
                         { range checking? }
                         if ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) and
-                          (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=double(MathInf)) then
+                          (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;
 {$endif cpufloat128}

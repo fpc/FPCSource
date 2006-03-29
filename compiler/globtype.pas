@@ -67,8 +67,17 @@ than 255 characters. That's why using Ansi Strings}
          int64 constants internally (JM) }
        TConstPtrUInt = AWord;
 
-       tdoublearray = array[0..7] of byte;
-       textendedarray = array[0..9] of byte;
+       { Use a variant record to be sure that the array if aligned correctly }
+       tdoublerec=record
+         case byte of
+           0 : (bytes:array[0..7] of byte);
+           1 : (value:double);
+       end;
+       textendedrec=record
+         case byte of
+           0 : (bytes:array[0..9] of byte);
+           1 : (value:extended);
+       end;
 
        pconstset = ^tconstset;
        tconstset = set of 0..255;

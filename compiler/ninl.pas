@@ -1085,9 +1085,9 @@ implementation
         result:=pi;
       {$else x86}
         {$ifdef cpuextended}
-          result:=extended(MathPiExtended);
+          result:=MathPiExtended.Value;
         {$else cpuextended}
-          result:=double(MathPi);
+          result:=MathPi.Value;
         {$endif cpuextended}
       {$endif x86}
       end;
@@ -1189,9 +1189,9 @@ implementation
               else
                 begin
                   if r=0.0 then
-                    result:=crealconstnode.create(double(MathQNaN),pbestrealtype^)
+                    result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
                   else
-                    result:=crealconstnode.create(double(MathNegInf),pbestrealtype^)
+                    result:=crealconstnode.create(MathNegInf.Value,pbestrealtype^)
                 end
             else
               result:=crealconstnode.create(ln(r),pbestrealtype^)
@@ -1208,7 +1208,7 @@ implementation
                    CGMessage(type_e_wrong_math_argument)
                  end
               else
-                result:=crealconstnode.create(double(MathQNaN),pbestrealtype^)
+                result:=crealconstnode.create(MathQNaN.Value,pbestrealtype^)
             else
               result:=crealconstnode.create(sqrt(r),pbestrealtype^)
           end;
@@ -1828,7 +1828,7 @@ implementation
                   if left.nodetype in [ordconstn,realconstn] then
                     begin
                       result:=crealconstnode.create(exp(getconstrealvalue),pbestrealtype^);
-                      if (trealconstnode(result).value_real=double(MathInf)) and
+                      if (trealconstnode(result).value_real=MathInf.Value) and
                          ((cs_check_range in aktlocalswitches) or
                           (cs_check_overflow in aktlocalswitches)) then
                         begin
