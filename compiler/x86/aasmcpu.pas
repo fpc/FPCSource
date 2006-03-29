@@ -1831,9 +1831,14 @@ implementation
 {$endif x86_64}
                 end;
               end;
-            212,
-            214 :
+            212 :
               inc(len);
+            214 :
+              begin
+                if rex=0 then
+                  inc(len);
+                rex:=rex or $48;
+              end;
             200,
             201,
             202,
@@ -2240,8 +2245,6 @@ implementation
 {$ifndef x86_64}
                 Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
-                bytes[0]:=$48;
-                objdata.writebytes(bytes,1);
               end;
             219 :
               begin
