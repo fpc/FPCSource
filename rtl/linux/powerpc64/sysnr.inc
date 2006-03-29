@@ -1,7 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 by Thomas Schatzl,
+    Copyright (c) 2005-06 by Thomas Schatzl,
     member of the Free Pascal development team.
+
+    Syscall numbers for 2.6.15
 
     This file contains the system call numbers.
     See the file COPYING.FPC, included in this distribution,
@@ -14,13 +16,12 @@
  **********************************************************************}
 { 
   Automatically converted by H2Pas 1.0.0 from 
-  /usr/include/asm-ppc64/unistd.h
+  kernel sources/include/asm-powerpc/unistd.h
+
   The following command line parameters were used:
     unistd.h
 
-  Manual additions for post-2.6.11-1 kernels, in particular:
-  - aliases for syscall_nr_pread/write64 for 2.6.11-3 kernel
-  - syscalls 273-275 for 2.6.13 kernels
+  from a 2.6.15-1.2054 kernel.
 }
 
 const
@@ -294,6 +295,11 @@ const
   syscall_nr_inotify_init = 275;
   syscall_nr_inotify_add_watch = 276;
   syscall_nr_inotify_rm_watch = 277;
+  syscall_nr_spu_run = 278;
+  syscall_nr_spu_create = 279;
+  syscall_nr_pselect6 = 280;
+  syscall_nr_ppoll = 281;
+  syscall_nr_unshare = 282;
 
   syscall_nr_pwrite64 = syscall_nr_pwrite;
   syscall_nr_pread64 = syscall_nr_pread;
