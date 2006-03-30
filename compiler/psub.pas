@@ -613,7 +613,8 @@ implementation
             (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin
-             cg.translate_register(tabstractnormalvarsym(p).localloc.register);
+             if not(cs_no_regalloc in aktglobalswitches) then
+               cg.translate_register(tabstractnormalvarsym(p).localloc.register);
              if cs_asm_source in aktglobalswitches then
                TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
                  std_regname(tabstractnormalvarsym(p).localloc.register))))

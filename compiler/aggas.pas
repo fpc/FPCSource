@@ -91,7 +91,7 @@ implementation
     uses
       cutils,systems,
       fmodule,finput,verbose,
-      itcpugas
+      itcpugas,cpubase
       ;
 
     const
@@ -469,7 +469,7 @@ implementation
                  begin
                    AsmWrite(#9+target_asm.comment+'Register ');
                    repeat
-                     AsmWrite(gas_regname(Tai_regalloc(hp).reg));
+                     AsmWrite(std_regname(Tai_regalloc(hp).reg));
                      if (hp.next=nil) or
                         (tai(hp.next).typ<>ait_regalloc) or
                         (tai_regalloc(hp.next).ratype<>tai_regalloc(hp).ratype) then

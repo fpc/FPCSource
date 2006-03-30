@@ -429,11 +429,31 @@ implementation
       var
         p : tregisterindex;
       begin
-        p:=findreg_by_number(r);
-        if p<>0 then
-          result:=std_regname_table[p]
+        { For double floats show a pair like %f0:%f1 }
+        if (getsubreg(r)=R_SUBFD) and
+           (getsupreg(r)<first_fpu_imreg) then
+          begin
+            setsubreg(r,R_SUBFS);
+            p:=findreg_by_number(r);
+            if p<>0 then
+              result:=std_regname_table[p]
+            else
+              result:=generic_regname(r);
+            setsupreg(r,getsupreg(r)+1);
+            p:=findreg_by_number(r);
+            if p<>0 then
+              result:=result+':'+std_regname_table[p]
+            else
+              result:=result+':'+generic_regname(r);
+          end
         else
-          result:=generic_regname(r);
+          begin
+            p:=findreg_by_number(r);
+            if p<>0 then
+              result:=std_regname_table[p]
+            else
+              result:=generic_regname(r);
+          end;
       end;
 
 
