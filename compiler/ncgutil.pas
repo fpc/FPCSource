@@ -1223,7 +1223,15 @@ implementation
               else
                 internalerror(200405025);
             end;
-         end;
+          end
+{$ifdef x86}
+         else
+          begin
+            { the caller will pop a value off the cpu stack }
+            if (funcretloc.loc = LOC_FPUREGISTER) then
+              list.concat(taicpu.op_none(A_FLDZ));
+          end;
+{$endif x86}
       end;
 
 
