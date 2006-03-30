@@ -100,13 +100,18 @@ implementation
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
-             tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
-             { if signed, tmpreg=right value-1, otherwise 0 }
-             cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
-             { add to the left value }
-             cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
-             cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
+             if is_signed(left.resulttype.def) Then
+               begin
+                 tmpreg:=cg.GetIntRegister(exprasmlist,OS_INT);
+                 cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,31,numerator,tmpreg);
+                 { if signed, tmpreg=right value-1, otherwise 0 }
+                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
+                 { add to the left value }
+                 cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
+                 cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
+               end
+             else
+               cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,aword(power),numerator,resultreg);
            end
          else
            begin
