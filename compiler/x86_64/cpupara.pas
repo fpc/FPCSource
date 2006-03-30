@@ -405,25 +405,18 @@ unit cpupara;
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_REFERENCE;
-                          { Extended needs a single location }
-                          if (paracgsize=OS_F80) then
-                            begin
-                              paraloc^.size:=paracgsize;
-                              l:=paralen;
-                            end
+                          if paracgsize in [OS_F32,OS_F64,OS_F80,OS_F128] then
+                            paraloc^.size:=int_float_cgsize(paralen)
                           else
-                            begin
-                              l:=paralen;
-                              paraloc^.size:=int_cgsize(l);
-                            end;
+                            paraloc^.size:=int_cgsize(paralen);
                           if side=callerside then
                             paraloc^.reference.index:=NR_STACK_POINTER_REG
                           else
                             paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                          varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                          varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
                           paraloc^.reference.offset:=parasize;
-                          parasize:=align(parasize+l,varalign);
-                          dec(paralen,l);
+                          parasize:=align(parasize+paralen,varalign);
+                          paralen:=0;
                         end;
                     end;
                     if (locidx<2) and

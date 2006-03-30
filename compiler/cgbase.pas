@@ -280,6 +280,7 @@ interface
        size.
     }
     function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
+    function int_float_cgsize(const a: aint): tcgsize;
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;{$ifdef USEINLINE}inline;{$endif}
@@ -516,6 +517,23 @@ implementation
           result:=OS_NO
         else
           result:=size2cgsize[a];
+      end;
+
+
+    function int_float_cgsize(const a: aint): tcgsize;
+      begin
+        case a of
+          4 :
+            result:=OS_F32;
+          8 :
+            result:=OS_F64;
+          10 :
+            result:=OS_F80;
+          16 :
+            result:=OS_F128;
+          else
+            internalerror(200603211);
+        end;
       end;
 
 
