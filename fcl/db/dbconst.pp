@@ -75,6 +75,8 @@ Const
   SNoParseSQL              = '%s is only possible if ParseSQL is True';
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
+  SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
+  SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
 
 Implementation
 

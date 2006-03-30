@@ -139,7 +139,7 @@ begin
   if (P.ApplicationName='') then
     begin
     If (P.CommandLine='') then
-      Raise Exception.Create(SNoCommandline);
+      Raise EProcess.Create(SNoCommandline);
     Cmd:=P.CommandLine;
     end
   else
@@ -204,7 +204,7 @@ Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
 
    begin
     If not CreatePipeHandles(P[peRead],P[peWrite]) then
-      Raise Exception.Create('Failed to create pipes');
+      Raise EProcess.Create('Failed to create pipes');
    end;
 
   Procedure ClosePair(Var P : TPipePair);
@@ -268,7 +268,7 @@ begin
           PName:=FileSearch(Pname,fpgetenv('PATH'));
         Pid:=fpfork;
         if Pid<0 then
-          Raise Exception.Create('Failed to Fork process');
+          Raise EProcess.Create('Failed to Fork process');
         if (PID>0) then
           begin
           // Parent process. Copy process information.

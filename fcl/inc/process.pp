@@ -130,6 +130,8 @@ Type
     Property WindowWidth : Cardinal Read dwXSize Write SetWindowWidth;
     Property FillAttribute : Cardinal read FFillAttribute Write FFillAttribute;
   end;
+  
+  EProcess = Class(Exception);
 
 implementation
 

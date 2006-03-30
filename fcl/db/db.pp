@@ -1510,11 +1510,14 @@ type
     FEditBuf        : PRecUpdateBuffer;
     FApplyingUpdates: boolean;
     FBDeletedRecords: integer;
+    FFieldBufPositions : array of longint;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
     function GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
+    procedure SetPacketRecords(aValue : integer);
+    function  IntAllocRecordBuffer: PChar;
   protected
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
@@ -1557,6 +1560,9 @@ type
     procedure ApplyUpdates; virtual;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
+    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+  published
+    property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
   end;
 
   { TParam }

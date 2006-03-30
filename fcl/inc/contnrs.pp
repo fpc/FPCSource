@@ -14,6 +14,8 @@
 {$mode objfpc}
 {$endif}
 {$H+}
+{$ifdef CLASSESINLINE}{$inline on}{$endif}
+
 unit contnrs;
 
 interface
@@ -23,8 +25,8 @@ uses
 
 
 Type
-
-{$inline on}
+  TObjectListCallback = procedure(data:TObject;arg:pointer) of object;
+  TObjectListStaticCallback = procedure(data:TObject;arg:pointer);
 
   TFPObjectList = class(TObject)
   private
@@ -33,8 +35,8 @@ Type
     function GetCount: integer;
     procedure SetCount(const AValue: integer);
   protected
-    function GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+    function GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
     procedure SetCapacity(NewCapacity: Integer);
     function GetCapacity: integer;
   public
@@ -42,21 +44,23 @@ Type
     constructor Create(FreeObjects : Boolean);
     destructor Destroy; override;
     procedure Clear;
-    function Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
-    procedure Delete(Index: Integer); {$ifdef HASINLINE} inline;{$endif}
+    function Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPObjectList;
     function Extract(Item: TObject): TObject;
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer;
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
     function First: TObject;
     function Last: TObject;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj:TFPObjectList);
     procedure Pack;
     procedure Sort(Compare: TListSortCompare);
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -312,12 +316,12 @@ begin
     FList.Count := AValue;
 end;
 
-function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef HASINLINE} inline;{$endif}
+function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   Result := TObject(FList[Index]);
 end;
 
-procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
@@ -334,12 +338,12 @@ begin
   Result := FList.Capacity;
 end;
 
-function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef HASINLINE} inline;{$endif}
+function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   Result := FList.Add(AObject);
 end;
 
-procedure TFPObjectList.Delete(Index: Integer); {$ifdef HASINLINE} inline;{$endif}
+procedure TFPObjectList.Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
@@ -398,7 +402,7 @@ begin
         Inc(I);
 end;
 
-procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef HASINLINE} inline;{$endif}
+procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
 begin
   FList.Insert(Index, Pointer(AObject));
 end;
@@ -436,6 +440,17 @@ function TFPObjectList.Last: TObject;
 begin
   Result := TObject(FList.Last);
 end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListCallBack(proc2call),arg);
+end;
+
+procedure TFPObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
 
 { TObjectList }
 

@@ -36,15 +36,18 @@ type
   TSqlite3Dataset = class (TCustomSqliteDataset)
   private
     function SqliteExec(AHandle: Pointer; ASql:PChar):Integer;override;
-    function GetSqliteHandle: Pointer; override;
+    function InternalGetHandle: Pointer; override;
     function GetSqliteVersion: String; override;
-    procedure SqliteClose(AHandle: Pointer);override;
+    procedure InternalCloseHandle;override;
     procedure BuildLinkedList; override;
   protected
+    procedure InternalCancel;override;
     procedure InternalInitFieldDefs; override;
+    function GetRowsAffected:Integer; override;
   public
+    procedure ExecuteDirect(const ASql: String);override;
     function SqliteReturnString: String; override;
-    function TableExists: Boolean;override;
+    function TableExists(const ATableName:String): Boolean;override;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
   end;
 
@@ -75,14 +78,15 @@ begin
   Result:=sqlite3_exec(AHandle, ASql, nil, nil, nil);
 end;
 
-procedure TSqlite3Dataset.SqliteClose(AHandle: Pointer);
+procedure TSqlite3Dataset.InternalCloseHandle;
 begin
-  sqlite3_close(AHandle);
+  sqlite3_close(FSqliteHandle);
+  FSqliteHandle:=nil;
   //todo:handle return data
 end;
 
 
-function TSqlite3Dataset.GetSqliteHandle: Pointer;
+function TSqlite3Dataset.InternalGetHandle: Pointer;
 begin
   FSqliteReturnId:=sqlite3_open(PChar(FFileName),@Result);
 end;
@@ -91,35 +95,47 @@ procedure TSqlite3Dataset.InternalInitFieldDefs;
 var
   vm:Pointer;
   ColumnStr:String;
-  Counter,FieldSize:Integer;
+  i,FieldSize:Integer;
   AType:TFieldType;
 begin
+  {$ifdef DEBUG}
+  WriteLn('##TSqlite3Dataset.InternalInitFieldDefs##');
+  {$endif}
+  FAutoIncFieldNo:=-1;
   FieldDefs.Clear;
   sqlite3_prepare(FSqliteHandle,PChar(FSql),-1,@vm,nil);
-	sqlite3_step(vm);
-	for Counter:= 0 to sqlite3_column_count(vm) - 1 do
-	begin
-   ColumnStr:= UpperCase(StrPas(sqlite3_column_decltype(vm,Counter)));
-   if (ColumnStr = 'INTEGER') then
+  sqlite3_step(vm);
+  for i:= 0 to sqlite3_column_count(vm) - 1 do
+  begin
+   ColumnStr:= UpperCase(StrPas(sqlite3_column_decltype(vm,i)));
+   if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
    begin
-     AType:= ftInteger;
+     if AutoIncrementKey and (UpperCase(StrPas(sqlite3_column_name(vm,i))) = UpperCase(PrimaryKey)) then
+     begin
+       AType:= ftAutoInc;
+       FAutoIncFieldNo:=i;
+     end
+     else
+       AType:= ftInteger;
      FieldSize:=SizeOf(LongInt);
-   end else if (ColumnStr = 'VARCHAR') then
+   end else if Pos('VARCHAR',ColumnStr) = 1 then
    begin
      AType:= ftString;
-     FieldSize:=10;//??
-   end else if (ColumnStr = 'BOOLEAN') then
+     FieldSize:=0;
+   end else if Pos('BOOL',ColumnStr) = 1 then
    begin
      AType:= ftBoolean;
-     FieldSize:=SizeOf(Boolean);
-   end else if (ColumnStr = 'FLOAT') then
+     FieldSize:=SizeOf(WordBool);
+   end else if Pos('AUTOINC',ColumnStr) = 1 then
+   begin
+     AType:= ftAutoInc;
+     FieldSize:=SizeOf(LongInt);
+     if FAutoIncFieldNo = -1 then
+       FAutoIncFieldNo:= i;
+   end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
    begin
      AType:= ftFloat;
      FieldSize:=SizeOf(Double);
-   end else if (ColumnStr = 'WORD') then
-   begin
-     AType:= ftWord;
-     FieldSize:=SizeOf(Word);
    end else if (ColumnStr = 'DATETIME') then
    begin
      AType:= ftDateTime;
@@ -132,39 +148,53 @@ begin
    begin
      AType:= ftLargeInt;
      FieldSize:=SizeOf(Int64);
-   end else if (ColumnStr = 'CURRENCY') then
-   begin
-     AType:= ftCurrency;
-     FieldSize:=SizeOf(Double);
    end else if (ColumnStr = 'TIME') then
    begin
      AType:= ftTime;
      FieldSize:=SizeOf(TDateTime);
-   end else if (ColumnStr = 'MEMO') then
+   end else if (ColumnStr = 'TEXT') then
    begin
      AType:= ftMemo;
-     FieldSize:=10;//??
-   end else if (ColumnStr = 'AUTOINC') then
+     FieldSize:=0;
+   end else if (ColumnStr = 'CURRENCY') then
    begin
-     AType:= ftAutoInc;
-     FieldSize:=SizeOf(Integer);
-     if FAutoIncFieldNo = -1 then
-       FAutoIncFieldNo:= Counter;
+     AType:= ftCurrency;
+     FieldSize:=SizeOf(Double);
+   end else if (ColumnStr = 'WORD') then
+   begin
+     AType:= ftWord;
+     FieldSize:=SizeOf(Word);
    end else
    begin
      DatabaseError('Field type "'+ColumnStr+'" not recognized',Self);
    end;
-   FieldDefs.Add(StrPas(sqlite3_column_name(vm,Counter)), AType, FieldSize, False);
+   FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, FieldSize, False);
    {$ifdef DEBUG}
-   writeln('Field Name: ',sqlite3_column_name(vm,Counter));
-   writeln('Field Type: ',sqlite3_column_decltype(vm,Counter));
+   writeln('  Field[',i,'] Name: ',sqlite3_column_name(vm,i));
+   writeln('  Field[',i,'] Type: ',sqlite3_column_decltype(vm,i));
    {$endif}
   end;
-	sqlite3_finalize(vm);
+  sqlite3_finalize(vm);
   FRowBufferSize:=(SizeOf(PPChar)*FieldDefs.Count);
   {$ifdef DEBUG}
-  writeln('FieldDefs.Count: ',FieldDefs.Count);
+  writeln('  FieldDefs.Count: ',FieldDefs.Count);
   {$endif}
+end;
+
+function TSqlite3Dataset.GetRowsAffected: Integer;
+begin
+  Result:=sqlite3_changes(FSqliteHandle);
+end;
+
+procedure TSqlite3Dataset.ExecuteDirect(const ASql: String);
+var
+  vm:Pointer;
+begin
+  FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,Pchar(ASql),-1,@vm,nil);
+  if FSqliteReturnId <> SQLITE_OK then
+    DatabaseError(SqliteReturnString,Self);
+  FSqliteReturnId:=sqlite3_step(vm);
+  sqlite3_finalize(vm);
 end;
 
 procedure TSqlite3Dataset.BuildLinkedList;
@@ -180,12 +210,7 @@ begin
 
   FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,Pchar(FSql),-1,@vm,nil);
   if FSqliteReturnId <> SQLITE_OK then
-  case FSqliteReturnId of
-  SQLITE_ERROR:
-    DatabaseError('Invalid SQL',Self);
-  else
-    DatabaseError('Error returned by sqlite while retrieving data: '+SqliteReturnString,Self);
-  end;
+    DatabaseError(SqliteReturnString,Self);
 
   FDataAllocated:=True;
 
@@ -200,7 +225,7 @@ begin
     TempItem^.Next^.Previous:=TempItem;
     TempItem:=TempItem^.Next;
     GetMem(TempItem^.Row,FRowBufferSize);
-    For Counter := 0 to FRowCount - 1 do
+    for Counter := 0 to FRowCount - 1 do
       TempItem^.Row[Counter]:=StrNew(sqlite3_column_text(vm,Counter));
     FSqliteReturnId:=sqlite3_step(vm);
   end;
@@ -210,92 +235,128 @@ begin
   TempItem^.Next:=FEndItem;
   FEndItem^.Previous:=TempItem;
 
-  // Alloc item used in append/insert
+  // Alloc temporary item used in append/insert
   GetMem(FCacheItem^.Row,FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
     FCacheItem^.Row[Counter]:=nil;
   // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets
   GetMem(FBeginItem^.Row,FRowBufferSize);
+  //Todo: see if is better to nullif using FillDWord
   for Counter := 0 to FRowCount - 1 do
     FBeginItem^.Row[Counter]:=nil;
 end;
 
-function TSqlite3Dataset.TableExists: Boolean;
+procedure TSqlite3Dataset.InternalCancel;
+{
 var
-  AHandle,vm:Pointer;
+  vm:Pointer;
+  i:Integer;
+  ActiveItem:PDataRecord;
+  ASql:String;
+}
 begin
+{
+  //WriteLn('InternalCancel called');
+  if FPrimaryKeyNo <> - 1 then //requires a primarykey
+  begin
+    ActiveItem:=PPDataRecord(ActiveBuffer)^;
+    if ActiveItem = FBeginItem then //Dataset is empty
+      Exit;
+    for i:= 0 to FRowCount -1 do
+      StrDispose(ActiveItem^.Row[i]);
+
+    if FAddedItems.IndexOf(ActiveItem) <> -1 then //the record is not in the database
+    begin
+      for i:= 0 to FRowCount - 1 do
+      begin
+        ActiveItem^.Row[i]:=nil;
+        //DataEvent(deFieldChange, Ptrint(Fields[i]));
+      end;
+      Exit;
+    end;
+    ASql:=FSelectSqlStr+' Where '+Fields[FPrimaryKeyNo].FieldName+
+      ' = '+StrPas(ActiveItem^.Row[FPrimaryKeyNo]);
+    //writeln(Asql);
+    sqlite3_prepare(FSqliteHandle,PChar(ASql),-1,@vm,nil);
+    if sqlite3_step(vm) = SQLITE_ROW then
+    begin
+      for i:= 0 to FRowCount - 1 do
+      begin
+        ActiveItem^.Row[i]:=StrNew(sqlite3_column_text(vm,i));
+        //DataEvent(deFieldChange, Ptrint(Fields[i]));
+      end;
+    end;
+    sqlite3_finalize(vm);
+  end;
+}
+end;
+
+function TSqlite3Dataset.TableExists(const ATableName:String): Boolean;
+var
+  vm:Pointer;
+begin
+  {$ifdef DEBUG}
+  writeln('##TSqlite3Dataset.TableExists##');
+  {$endif}
   Result:=False;
-  if not (FTableName = '') and FileExists(FFileName) then
+  if not (ATableName = '') and FileExists(FFileName) then
   begin
     if FSqliteHandle = nil then
-    begin
-      {$ifdef DEBUG}
-      writeln('TableExists - FSqliteHandle=nil : Opening a file');
-      {$endif}
-      AHandle:=GetSqliteHandle;
-    end
-    else
-    begin
-      {$ifdef DEBUG}
-      writeln('TableExists - FSqliteHandle<>nil : Using FSqliteHandle');
-      {$endif}
-      AHandle:=FSqliteHandle;
-    end;
-    FSqliteReturnId:=sqlite3_prepare(AHandle,
-    Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ FTableName+ ''';'),
+      GetSqliteHandle;
+    FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,
+    Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';'),
       -1,@vm,nil);
     {$ifdef DEBUG}
-    WriteLn('TableExists.sqlite3_prepare - SqliteReturnString:',SqliteReturnString);
+    WriteLn('  sqlite3_prepare - SqliteReturnString:',SqliteReturnString);
     {$endif}
     FSqliteReturnId:=sqlite3_step(vm);
     {$ifdef DEBUG}
-    WriteLn('TableExists.sqlite3_step - SqliteReturnString:',SqliteReturnString);
+    WriteLn('  sqlite3_step - SqliteReturnString:',SqliteReturnString);
     {$endif}
     Result:=FSqliteReturnId = SQLITE_ROW;
     sqlite3_finalize(vm);
-    if (FSqliteHandle = nil) then
-      sqlite3_close(AHandle);
   end;
   {$ifdef DEBUG}
-  WriteLn('TableExists ('+FTableName+') Result:',Result);
+  WriteLn('  Table '+ATableName+' exists: ',Result);
   {$endif}
 end;
 
 function TSqlite3Dataset.SqliteReturnString: String;
 begin
  case FSqliteReturnId of
-      SQLITE_OK           : Result := 'SQLITE_OK          ';
-      SQLITE_ERROR        : Result := 'SQLITE_ERROR       ';
-      SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL    ';
-      SQLITE_PERM         : Result := 'SQLITE_PERM        ';
-      SQLITE_ABORT        : Result := 'SQLITE_ABORT       ';
-      SQLITE_BUSY         : Result := 'SQLITE_BUSY        ';
-      SQLITE_LOCKED       : Result := 'SQLITE_LOCKED      ';
-      SQLITE_NOMEM        : Result := 'SQLITE_NOMEM       ';
-      SQLITE_READONLY     : Result := 'SQLITE_READONLY    ';
-      SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT   ';
-      SQLITE_IOERR        : Result := 'SQLITE_IOERR       ';
-      SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT     ';
-      SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND    ';
-      SQLITE_FULL         : Result := 'SQLITE_FULL        ';
-      SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN    ';
-      SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL    ';
-      SQLITE_EMPTY        : Result := 'SQLITE_EMPTY       ';
-      SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA      ';
-      SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG      ';
-      SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT  ';
-      SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH    ';
-      SQLITE_MISUSE       : Result := 'SQLITE_MISUSE      ';
-      SQLITE_NOLFS        : Result := 'SQLITE_NOLFS       ';
-      SQLITE_AUTH         : Result := 'SQLITE_AUTH        ';
-      SQLITE_FORMAT       : Result := 'SQLITE_FORMAT      ';
-      SQLITE_RANGE        : Result := 'SQLITE_RANGE       ';
-      SQLITE_ROW          : Result := 'SQLITE_ROW         ';
-      SQLITE_NOTADB       : Result := 'SQLITE_NOTADB      ';
-      SQLITE_DONE         : Result := 'SQLITE_DONE        ';
+      SQLITE_OK           : Result := 'SQLITE_OK';
+      SQLITE_ERROR        : Result := 'SQLITE_ERROR';
+      SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
+      SQLITE_PERM         : Result := 'SQLITE_PERM';
+      SQLITE_ABORT        : Result := 'SQLITE_ABORT';
+      SQLITE_BUSY         : Result := 'SQLITE_BUSY';
+      SQLITE_LOCKED       : Result := 'SQLITE_LOCKED';
+      SQLITE_NOMEM        : Result := 'SQLITE_NOMEM';
+      SQLITE_READONLY     : Result := 'SQLITE_READONLY';
+      SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT';
+      SQLITE_IOERR        : Result := 'SQLITE_IOERR';
+      SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT';
+      SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND';
+      SQLITE_FULL         : Result := 'SQLITE_FULL';
+      SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN';
+      SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL';
+      SQLITE_EMPTY        : Result := 'SQLITE_EMPTY';
+      SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA';
+      SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG';
+      SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT';
+      SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH';
+      SQLITE_MISUSE       : Result := 'SQLITE_MISUSE';
+      SQLITE_NOLFS        : Result := 'SQLITE_NOLFS';
+      SQLITE_AUTH         : Result := 'SQLITE_AUTH';
+      SQLITE_FORMAT       : Result := 'SQLITE_FORMAT';
+      SQLITE_RANGE        : Result := 'SQLITE_RANGE';
+      SQLITE_ROW          : Result := 'SQLITE_ROW';
+      SQLITE_NOTADB       : Result := 'SQLITE_NOTADB';
+      SQLITE_DONE         : Result := 'SQLITE_DONE';
   else
     Result:='Unknow Return Value';
  end;
+ Result:=Result+' - '+sqlite3_errmsg(FSqliteHandle);
 end;
 
 function TSqlite3Dataset.GetSqliteVersion: String;
@@ -305,7 +366,7 @@ end;
 
 function TSqlite3Dataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
 var
-  vm,AHandle:Pointer;
+  vm:Pointer;
     
   procedure FillStrings;
   begin
@@ -324,20 +385,12 @@ var
     end;
   end;    
 begin
-  if FSqliteHandle <> nil then
-    AHandle:=FSqliteHandle
-  else
-    if FileExists(FFileName) then
-      AHandle:=GetSqliteHandle
-    else
-      DatabaseError('File "'+FFileName+'" not Exists',Self);    
+  if FSqliteHandle = nil then
+    GetSqliteHandle;
   Result:='';
-  // It's up to the caller clear or not the list
-  //if AStrList <> nil then
-  //  AStrList.Clear;
-  FSqliteReturnId:=sqlite3_prepare(AHandle,Pchar(ASql),-1,@vm,nil);
+  FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,Pchar(ASql),-1,@vm,nil);
   if FSqliteReturnId <> SQLITE_OK then
-    DatabaseError('Error returned by sqlite in QuickQuery: '+SqliteReturnString,Self);
+    DatabaseError(SqliteReturnString,Self);
     
   FSqliteReturnId:=sqlite3_step(vm);
   if (FSqliteReturnId = SQLITE_ROW) and (sqlite3_column_count(vm) > 0) then
@@ -352,8 +405,6 @@ begin
     end;          
   end;  
   sqlite3_finalize(vm); 
-  if FSqliteHandle = nil then
-    sqlite3_close(AHandle);
 end;
 
 end.

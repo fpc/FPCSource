@@ -23,8 +23,14 @@ begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
   BookmarkSize := sizeof(TBufBookmark);
-// temporary set it here
   FPacketRecords := 10;
+end;
+
+procedure TBufDataset.SetPacketRecords(aValue : integer);
+
+begin
+  if aValue > 0 then FPacketRecords := aValue
+    else DatabaseError(SInvPacketRecordsValue);
 end;
 
 destructor TBufDataset.Destroy;
@@ -37,6 +43,14 @@ Function TBufDataset.GetCanModify: Boolean;
 
 begin
   Result:= False;
+end;
+
+function TBufDataset.intAllocRecordBuffer: PChar;
+
+begin
+  // Only the internal buffers of TDataset provide bookmark information
+  result := AllocMem(FRecordsize);
+  result^ := #1; // this 'deletes' the record
 end;
 
 function TBufDataset.AllocRecordBuffer: PChar;
@@ -76,6 +90,7 @@ begin
   If FBBufferCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
   FBBuffercount := 0;
+  SetLength(FFieldBufPositions,0);
   FBCurrentrecord := -1;
   FIsEOF := true;
   FIsbOF := true;
@@ -295,26 +310,23 @@ var i : integer;
 
 begin
   i := 0;
-  if FPacketRecords > 0 then
+  if FBBufferCount < FBRecordCount+FPacketRecords then
     begin
-    if FBBufferCount < FBRecordCount+FPacketRecords then
-      begin
-      FBBufferCount := FBBuffercount + FPacketRecords;
-      ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
-      end;
-
-    repeat
-    FBBuffers[FBRecordCount+i] := AllocRecordBuffer;
-    b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
-    inc(i);
-    until (i = FPacketRecords) or b;
-    if b then
-      begin
-      dec(i);
-      FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
-      end;
-    FBRecordCount := FBRecordCount + i;
+    FBBufferCount := FBBuffercount + FPacketRecords;
+    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
     end;
+
+  repeat
+  FBBuffers[FBRecordCount+i] := intAllocRecordBuffer;
+  b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
+  inc(i);
+  until (i = FPacketRecords) or b;
+  if b then
+    begin
+    dec(i);
+    FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
+    end;
+  FBRecordCount := FBRecordCount + i;
   result := i;
 end;
 
@@ -403,19 +415,10 @@ begin
       result := false;
       exit;
       end;
-    inc(Currbuff,FNullmaskSize);
 
-    for x := 0 to FieldDefs.count-1 do
-      begin
-      if (Field.FieldName = FieldDefs[x].Name) then
-        begin
-        // a nil-buffer is allowed for the fields.isNull function
-        if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
-        Result := True;
-        Break;
-        end
-      else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
-      end;
+    inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
+    if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
+    Result := True;
     end;
 end;
 
@@ -508,7 +511,7 @@ begin
 
   inc(FBRecordCount);
   FBCurrentRecord := FBRecordCount -1;
-  FBBuffers[FBCurrentRecord] := AllocRecordBuffer;
+  FBBuffers[FBCurrentRecord] := intAllocRecordBuffer;
   fillchar(FBBuffers[FBCurrentRecord]^,FNullmaskSize,255);
   unSetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
   fillchar(ActiveBuffer^,FNullmaskSize,255);
@@ -705,8 +708,12 @@ var x : longint;
 begin
   FNullmaskSize := 1+((FieldDefs.count) div 8);
   FRecordSize := FNullmaskSize;
+  SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
+    begin
+    FFieldBufPositions[x] := FRecordSize;
     inc(FRecordSize, GetFieldSize(FieldDefs[x]));
+    end;
 end;
 
 function TBufDataset.GetRecordSize : Word;
@@ -743,6 +750,83 @@ Function TBufDataset.GetRecordCount: Longint;
 begin
   Result := FBRecordCount-FBDeletedRecords;
 end;
+
+Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
+
+var keyfield    : TField;     // Field to search in
+    ValueBuffer : pchar;      // Pointer to value to search for, in TField' internal format
+    VBLength    : integer;
+
+    FieldBufPos : PtrInt;     // Amount to add to the record buffer to get the FieldBuffer
+    li          : Longint;
+    i           : longint;
+    CurrBuff    : pchar;
+    cb          : pchar;
+    bm          : TBufBookmark;
+    
+    CheckNull   : Boolean;
+
+begin
+// For now it is only possible to search in one field at the same time
+  result := False;
+
+  keyfield := FieldByName(keyfields);
+  CheckNull := VarIsNull(KeyValues);
+
+  if not CheckNull then
+    begin
+    case keyfield.DataType of
+      ftInteger : begin
+                  li := KeyValues;
+                  ValueBuffer := @li;
+                  VBLength := sizeof(li);
+                  end;
+    else
+      DatabaseErrorFmt(SInvalidSearchFieldType,[Fieldtypenames[keyfield.DataType]],self);
+    end;
+
+    FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
+    end;
+
+  i := 0;
+  repeat
+  CurrBuff := FBBuffers[i];
+  GetBookmarkData(CurrBuff,@bm);
+
+  if not GetDeleted(pbyte(CurrBuff)) then
+    begin
+
+    If CheckNull then
+      begin
+      if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+        begin
+        result := True;
+        break;
+        end;
+      end
+    else if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      begin
+      inc(CurrBuff,FieldBufPos);
+      if CompareByte(ValueBuffer^,CurrBuff^,VBLength) = 0 then
+        begin
+        result := True;
+        break;
+        end;
+      end;
+
+    end;
+  if i = FBRecordCount -1 then getnextpacket;
+  inc(i)
+  until i = FBRecordCount;
+
+  if Result then
+    begin
+    bm.BookmarkData := i;
+    bm.BookmarkFlag := bfCurrent;
+    GotoBookmark(@bm);
+    end;
+end;
+
 
 
 
