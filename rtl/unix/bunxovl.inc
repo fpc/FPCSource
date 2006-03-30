@@ -175,6 +175,20 @@ begin
  FpWrite:=FpWrite(fd,pchar(@buf),nbytes);
 end;
 
+{$ifdef linux}
+function  FppRead           (fd : cInt;var buf; nbytes : TSize; offset:Toff): TSsize; {$ifdef VER2_0}inline;{$endif}
+
+begin
+  FppRead:=FppRead(fd,pchar(@buf),nbytes,offset);
+end;
+
+function  FppWrite          (fd : cInt;const buf; nbytes : TSize; offset:Toff): TSsize; {$ifdef VER2_0}inline;{$endif}
+
+begin
+  FppWrite:=FppWrite(fd,pchar(@buf),nbytes,offset);
+end;
+{$endif}
+
 Function  FpOpen    (path : pChar; flags : cInt):cInt; {$ifdef VER2_0}inline;{$endif}
 
 begin

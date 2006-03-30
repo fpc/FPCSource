@@ -720,7 +720,7 @@ Begin
    end;
   If Len>1 Then
     fpc_WriteBlanks(t,Len-1);
-  If TextRec(t).BufPos+1>=TextRec(t).BufSize Then
+  If TextRec(t).BufPos>=TextRec(t).BufSize Then
     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=c;
   Inc(TextRec(t).BufPos);
@@ -743,7 +743,7 @@ Begin
    end;
   If Len>1 Then
     fpc_WriteBlanks(t,Len-1);
-  If TextRec(t).BufPos+1>=TextRec(t).BufSize Then
+  If TextRec(t).BufPos>=TextRec(t).BufSize Then
     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   ch:=c;
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=ch;

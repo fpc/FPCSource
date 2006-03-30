@@ -381,49 +381,20 @@ begin
   fptimes:=Do_syscall(syscall_nr_times,TSysParam(@buffer));
 end;
 
-function pfpgetcwd(path : pchar; siz:tsize):pchar;  [public, alias : 'FPC_SYSC_GETCWD'];
-
-begin
-  pfpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
-end;
-
 Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
 {
   Select checks whether the file descriptor sets in readfs/writefs/exceptfs
   have changed.
 }
 
-{$ifdef cpui386}
-Var
-  SelectArray : Array[1..5] of TSysParam;
-{$endif}
-
 begin
-{$ifdef cpui386}
-  {$define bunxfunc_fpselect_implemented}
-  SelectArray[1]:=n;
-  SelectArray[2]:=TSysParam(Readfds);
-  Selectarray[3]:=TSysParam(Writefds);
-  selectarray[4]:=TSysParam(exceptfds);
-  Selectarray[5]:=TSysParam(TimeOut);
-  fpSelect:=do_syscall(syscall_nr_select,TSysParam(@selectarray));
-{$endif cpui386}
 {$ifdef cpux86_64}
   {$define bunxfunc_fpselect_implemented}
   fpSelect:=do_syscall(syscall_nr_select,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpux86_64}
-{$ifdef cpuarm}
+{$else}
   {$define bunxfunc_fpselect_implemented}
   fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpuarm}
-{$ifdef cpupowerpc}
-  {$define bunxfunc_fpselect_implemented}
-  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpupowerpc}
-{$ifdef cpusparc}
-  {$define bunxfunc_fpselect_implemented}
-  fpSelect:=do_syscall(syscall_nr__newselect,n,tsysparam(readfds),tsysparam(writefds),tsysparam(exceptfds),tsysparam(timeout));
-{$endif cpusparc}
+{$endif}
 {$ifndef bunxfunc_fpselect_implemented}
   {$error Implement fpselect}
 {$endif bunxfunc_fpselect_implemented}
@@ -527,7 +498,56 @@ Function fpSymlink(oldname,newname:pchar):cint;
 }
 
 begin
- fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
+  fpsymlink:=do_syscall(syscall_nr_symlink,TSysParam(oldname),TSysParam(newname));
 end;
 
+function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
+
+begin
+  
+ 	{$ifdef CPU64}
+	    Fppread:=do_syscall(syscall_nr_pread64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
+	{$else}
+           Fppread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,
+           {$ifdef 64bitfs}
+	     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+           {$else}
+	     {$ifdef FPC_BIG_ENDIAN}    0,lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),0{$endif}
+	   {$endif}
+            );
+        {$endif}
+end;
+
+function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
+
+begin
+ 	{$ifdef CPU64}
+           Fppwrite:=do_syscall(syscall_nr_pwrite64,Fd,TSysParam(buf),nbytes,TSysParam(OffSet));
+	{$else}
+           Fppwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,
+	  // ,0  = possible alignment here.
+           {$ifdef 64bitfs}
+	     {$ifdef FPC_BIG_ENDIAN}    hi(offset),lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),hi(offset){$endif}
+           {$else}
+	     {$ifdef FPC_BIG_ENDIAN}    0,lo(offset){$endif}
+	     {$ifdef FPC_LITTLE_ENDIAN} lo(offset),0{$endif}
+	   {$endif}
+            );
+        {$endif}
+end;
+
+function Fpreadv(fd: cint; const iov : piovec; iovcnt : cint):ssize_t; [public, alias : 'FPC_SYSC_READV'];
+
+begin
+  Fpreadv:=do_syscall(syscall_nr_readv,Fd,TSysParam(iov),iovcnt);
+end;
+
+function Fpwritev(fd: cint; const iov : piovec; iovcnt : cint):ssize_t;  [public, alias : 'FPC_SYSC_WRITEV'];
+
+begin
+  Fpwritev:=do_syscall(syscall_nr_writev,Fd,TSysParam(iov),iovcnt);
+end;
 

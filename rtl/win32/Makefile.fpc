@@ -9,7 +9,7 @@ main=rtl
 loaders=wprt0 wdllprt0 gprt0 wcygprt0
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
-      windows winsock initc cmem dynlibs signals \
+      windows winsock winsock2 initc cmem dynlibs signals \
       dos crt objects messages \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils varutils variants typinfo classes \
@@ -128,7 +128,9 @@ opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+winsock2$(PPUEXT) : winsock2.pp windows$(PPUEXT) system$(PPUEXT)
+
+sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) winsock2$(PPUEXT) system$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
 initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)

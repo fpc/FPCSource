@@ -88,8 +88,6 @@ const
  syscall_nr_getpriority                 =100;
  syscall_nr_setsockopt                  =105;
  syscall_nr_gettimeofday                =116;
- syscall_nr_readv                       =120;
- syscall_nr_writev                      =121;
 
  syscall_nr_fchown                      =123;
  syscall_nr_fchmod                      =124;
@@ -112,8 +110,7 @@ const
  syscall_nr_uname                       =164;
 
  syscall_nr_rtprio                      =166;
- syscall_nr_pread                       =173;
- syscall_nr_pwrite                      =174;
+
  syscall_nr_ntp_adjtime                 =176;
  syscall_nr_setegid                     =182;
  syscall_nr_seteuid                     =183;
@@ -228,7 +225,11 @@ syscall_nr_getdirentries                =196;
 
 }
 
-{More or less checked BSD syscalls}
+{More or less checked/in use FreeBSD syscalls}
+ syscall_nr_readv                       =120;
+ syscall_nr_writev                      =121;
+ syscall_nr_pread                       =173;
+ syscall_nr_pwrite                      =174;
  syscall_nr_semsys                      =169;
  syscall_nr_msgsys                      =170;
  syscall_nr_shmsys                      =171;
@@ -260,7 +261,7 @@ syscall_nr_getdirentries                =196;
  syscall_nr_flock                       = 131;
  syscall_nr_fork                        =   2;
  syscall_nr_fstat                       = 189;
- syscall_nr_fstatfs                     = 158;
+ syscall_nr_fstatfs                     = 158;  // COMPAT4x
  syscall_nr_fsync                       =  95;
  syscall_nr_ftruncate                   = 201;
  syscall_nr_getdents                    = 272;
@@ -295,14 +296,14 @@ syscall_nr_getdirentries                =196;
  syscall_nr_setpriority                 =  96;
  syscall_nr_setsockopt                  = 105;
  syscall_nr_shutdown                    = 134;
- syscall_nr_sigaction                   = 342;
+ syscall_nr_sigaction                   = 342;  // COMPAT4x
  syscall_nr_sigpending                  = 343;
  syscall_nr_sigprocmask                 = 340;
  syscall_nr_sigsuspend                  = 341;
  syscall_nr_socket                      =  97;
  syscall_nr_socketpair                  = 135;
  syscall_nr_stat                        = 188;
- syscall_nr_statfs                      = 157;
+ syscall_nr_statfs                      = 157;  // COMPAT4x
  syscall_nr_symlink                     =  57;
  syscall_nr_umask                       =  60;
  syscall_nr_unlink                      =  10;

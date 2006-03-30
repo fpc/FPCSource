@@ -658,7 +658,7 @@
      TAPE_SETMARKS = 0;
      TAPE_SHORT_FILEMARKS = $2;
   { CreateWindow  }
-     CW_USEDEFAULT = $80000000;
+     CW_USEDEFAULT = longint($80000000);
      WS_BORDER = $800000;
      WS_CAPTION = $c00000;
      WS_CHILD = $40000000;

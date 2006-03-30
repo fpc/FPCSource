@@ -16,6 +16,7 @@
 unit Video;
 
 {$I-}
+{$GOTO on}
 
 {*****************************************************************************}
                                    interface
@@ -96,7 +97,7 @@ const term_codes_ansi:Ttermcodes= {Linux escape sequences are equal to ansi sequ
       term_codes_vt100:Ttermcodes=
         (#$0E,                                              {enter_alt_charset_mode}
          #$0F,                                              {exit_alt_charset_mode}
-         #$1B#$5B#$48#$1B#$5B#$4A#$24#$3C#$35#$30#$3E,      {clear_screen}
+         #$1B#$5B#$48#$1B#$5B#$4A{#$24#$3C#$35#$30#$3E},    {clear_screen}
          #$1B#$5B#$48,                                      {cursor_home}
          nil,                                               {cursor_normal}
          nil,                                               {cursor_visible}
@@ -107,8 +108,8 @@ const term_codes_ansi:Ttermcodes= {Linux escape sequences are equal to ansi sequ
          #$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
 
       term_codes_vt220:Ttermcodes=
-        (#$1B#$28#$30#$24#$3C#$32#$3E,                      {enter_alt_charset_mode}
-         #$1B#$28#$42#$24#$3C#$34#$3E,                      {exit_alt_charset_mode}
+        (#$1B#$28#$30{#$24#$3C#$32#$3E},                    {enter_alt_charset_mode}
+         #$1B#$28#$42{#$24#$3C#$34#$3E},                    {exit_alt_charset_mode}
          #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
          #$1B#$5B#$48,                                      {cursor_home}
          nil,                                               {cursor_normal}
@@ -272,7 +273,7 @@ end;
 
 function SendEscapeSeqNdx(Ndx:Ttermcode) : boolean;
 var
-  P,pdelay: PChar;
+  P{,pdelay}:PChar;
 begin
   SendEscapeSeqNdx:=false;
   if not assigned(cur_term_Strings) then
@@ -280,13 +281,13 @@ begin
   P:=cur_term_Strings^[Ndx];
   if assigned(p) then
    begin { Do not transmit the delays }
-     pdelay:=strpos(p,'$<');
+{     pdelay:=strpos(p,'$<');
      if assigned(pdelay) then
-       pdelay^:=#0;
+       pdelay^:=#0;}
      fpWrite(stdoutputhandle, P^, StrLen(P));
      SendEscapeSeqNdx:=true;
-     if assigned(pdelay) then
-       pdelay^:='$';
+{     if assigned(pdelay) then
+       pdelay^:='$';}
    end;
 end;
 
@@ -528,7 +529,7 @@ end;
 
 function GetTermString(ndx:Ttermcode):String;
 var
-   P,pdelay: PChar;
+   P{,pdelay}: PChar;
 begin
   GetTermString:='';
   if not assigned(cur_term_Strings) then
@@ -536,12 +537,12 @@ begin
   P:=cur_term_Strings^[Ndx];
   if assigned(p) then
    begin { Do not transmit the delays }
-     pdelay:=strpos(p,'$<');
+{     pdelay:=strpos(p,'$<');
      if assigned(pdelay) then
-       pdelay^:=#0;
+       pdelay^:=#0;}
      GetTermString:=StrPas(p);
-     if assigned(pdelay) then
-       pdelay^:='$';
+{     if assigned(pdelay) then
+       pdelay^:='$';}
    end;
 end;
 
@@ -661,6 +662,57 @@ begin
  {turn autowrap on}
 //  SendEscapeSeq(#27'[?7h');
 end;
+
+{$ifdef linux}
+procedure update_vcsa(force:boolean);
+
+const max_updates=64;
+
+label update,update_all,equal_loop,unequal_loop;
+
+var position,update_count,i:word;
+    update_positions:array[0..max_updates-1] of word;
+    update_lengths:array[0..max_updates-1] of word;
+
+begin
+  if force then
+    goto update_all;
+
+  update_count:=0;
+  i:=0;
+
+equal_loop:
+  repeat
+    if videobuf^[i]<>oldvideobuf^[i] then
+      goto unequal_loop;
+    inc(i);
+  until i>videobufsize div 2;
+  goto update;
+
+unequal_loop:
+  if update_count>=max_updates then
+    goto update_all;
+  update_positions[update_count]:=i;
+  update_lengths[update_count]:=0;
+  inc(update_count);
+  repeat
+    if videobuf^[i]=oldvideobuf^[i] then
+      goto equal_loop;
+    inc(i);
+    inc(update_lengths[update_count-1]);
+  until i>videobufsize div 2;
+
+update:
+  for i:=1 to update_count do
+    begin
+      position:=update_positions[i-1];
+      fppwrite(ttyfd,videobuf^[position],update_lengths[i-1]*2,4+position*2);
+    end;
+  exit;
+update_all:
+  fppwrite(ttyfd,videobuf^,videobufsize,4);
+end;
+{$endif}
 
 var
   preInitVideoTio, postInitVideoTio: termio.termios;
@@ -851,10 +903,10 @@ begin
          ACSOut:=StrPas(cur_term_strings^[exit_alt_charset_mode]);
          if (ACSIn<>'') and (ACSOut<>'') then
            SendEscapeSeqNdx(ena_acs);
-         if pos('$<',ACSIn)>0 then
+{         if pos('$<',ACSIn)>0 then
            ACSIn:=Copy(ACSIn,1,Pos('$<',ACSIn)-1);
          if pos('$<',ACSOut)>0 then
-           ACSOut:=Copy(ACSOut,1,Pos('$<',ACSOut)-1);
+           ACSOut:=Copy(ACSOut,1,Pos('$<',ACSOut)-1);}
          If fpGetEnv('TERM')='xterm' then
            NoExtendedFrame := true;  {use of acs for xterm is ok}
        end
@@ -933,6 +985,7 @@ var
   i : longint;
   p1,p2 : plongint;
 begin
+(*
   if not force then
    begin
 {$ifdef cpui386}
@@ -969,20 +1022,13 @@ begin
   else
    DoUpdate:=true;
   if not DoUpdate then
-   exit;
+   exit;*)
 {$ifdef linux}
   if Console=ttylinux then
-   begin
-     fplSeek(TTYFd, 4, Seek_Set);
-     fpWrite(TTYFd, VideoBuf^,VideoBufSize);
-   end
+    update_vcsa(force)
   else
-   begin
 {$endif}
-     UpdateTTY(force);
-{$ifdef linux}
-   end;
-{$endif}
+    UpdateTTY(force);
   Move(VideoBuf^, OldVideoBuf^, VideoBufSize);
 end;
 
@@ -1003,19 +1049,14 @@ begin
 {$ifdef linux}
   if Console=ttylinux then
    begin
-     fplSeek(TTYFd, 2, Seek_Set);
      Pos[1]:=NewCursorX;
      Pos[2]:=NewCursorY;
-     fpWrite(TTYFd, Pos, 2);
+     fppwrite(ttyfd,pos,2,2);
    end
   else
-   begin
 {$endif}
-     { newcursorx,y and CursorX,Y are 0 based ! }
-     SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
-{$ifdef linux}
-   end;
-{$endif}
+    { newcursorx,y and CursorX,Y are 0 based ! }
+    SendEscapeSeq(XY2Ansi(NewCursorX+1,NewCursorY+1,CursorX+1,CursorY+1));
   CursorX:=NewCursorX;
   CursorY:=NewCursorY;
 end;

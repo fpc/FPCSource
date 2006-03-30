@@ -16,12 +16,6 @@
  **********************************************************************}
 
 
-Type
-  EVarianterror = Class(Exception)
-    ErrCode : longint;
-    Constructor CreateCode(Code : Longint);
-  end;
-
 { Variant functions }
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;
@@ -75,22 +69,9 @@ Procedure DumpVariant(Const VArgSrc : TVarData);
 Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
 
 
+{$i varerror.inc}
 // Names match the ones in Borland varutils unit.
-
 const
-  VAR_OK            = HRESULT($00000000);
-  VAR_PARAMNOTFOUND = HRESULT($80020004);
-  VAR_TYPEMISMATCH  = HRESULT($80020005);
-  VAR_BADVARTYPE    = HRESULT($80020008);
-  VAR_EXCEPTION     = HRESULT($80020009);
-  VAR_OVERFLOW      = HRESULT($8002000A);
-  VAR_BADINDEX      = HRESULT($8002000B);
-  VAR_ARRAYISLOCKED = HRESULT($8002000D);
-  VAR_NOTIMPL       = HRESULT($80004001);
-  VAR_OUTOFMEMORY   = HRESULT($8007000E);
-  VAR_INVALIDARG    = HRESULT($80070057);
-  VAR_UNEXPECTED    = HRESULT($8000FFFF);
-
   ARR_NONE          = $0000;
   ARR_FIXEDSIZE     = $0010;
   ARR_OLESTR        = $0100;

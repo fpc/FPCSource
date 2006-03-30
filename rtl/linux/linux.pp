@@ -64,7 +64,7 @@ Const
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
-  EPoll_Data = record
+  EPoll_Data = Record
     case integer of
       0: (ptr: pointer);
       1: (fd: cint);
@@ -74,7 +74,7 @@ type
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
-  EPoll_Event = record
+  EPoll_Event = Record
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
@@ -189,7 +189,7 @@ end;
 
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
 begin
-  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd), 
+  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd),
     tsysparam(op), tsysparam(fd), tsysparam(event));
 end;
 

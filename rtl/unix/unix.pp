@@ -384,6 +384,9 @@ End;
 // execvP has the searchpath as array of ansistring ( const char *search_path)
 
 {$define FPC_USE_FPEXEC}
+{$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
+{$define SHELL_USE_FPEXEC}
+{$endif}
 Function Shell(const Command:String):cint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -399,19 +402,23 @@ Function Shell(const Command:String):cint;
 - The Old CreateShellArg gives back pointers to a local var
 }
 var
-{$ifndef FPC_USE_FPEXEC}
+{$ifndef SHELL_USE_FPEXEC}
   p      : ppchar;
 {$endif}
   pid    : cint;
 begin
- {$ifndef FPC_USE_FPEXEC}
+ {$ifndef SHELL_USE_FPEXEC}
   p:=CreateShellArgv(command);
 {$endif}
+{$ifdef USE_VFORK}
+  pid:=fpvfork;
+{$else USE_VFORK}
   pid:=fpfork;
+{$endif USE_VFORK}
   if pid=0 then // We are in the Child
    begin
      {This is the child.}
-     {$ifndef FPC_USE_FPEXEC}
+     {$ifndef SHELL_USE_FPEXEC}
        fpExecve(p^,p,envp);
      {$else}
       fpexecl('/bin/sh',['-c',Command]);
@@ -422,7 +429,7 @@ begin
    Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1; // indicate an error
-  {$ifndef FPC_USE_FPEXEC}
+  {$ifndef SHELL_USE_FPEXEC}
   FreeShellArgV(p);
   {$endif}
 end;
@@ -432,18 +439,22 @@ Function Shell(const Command:AnsiString):cint;
   AnsiString version of Shell
 }
 var
-{$ifndef FPC_USE_FPEXEC}
+{$ifndef SHELL_USE_FPEXEC}
   p     : ppchar;
 {$endif}
   pid   : cint;
 begin { Changes as above }
-{$ifndef FPC_USE_FPEXEC}
+{$ifndef SHELL_USE_FPEXEC}
   p:=CreateShellArgv(command);
 {$endif}
+{$ifdef USE_VFORK}
+  pid:=fpvfork;
+{$else USE_VFORK}
   pid:=fpfork;
+{$endif USE_VFORK}
   if pid=0 then // We are in the Child
    begin
-    {$ifdef FPC_USE_FPEXEC}
+    {$ifdef SHELL_USE_FPEXEC}
       fpexecl('/bin/sh',['-c',Command]);
     {$else}
      fpExecve(p^,p,envp);
@@ -454,7 +465,7 @@ begin { Changes as above }
    Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1;
- {$ifndef FPC_USE_FPEXEC}
+ {$ifndef SHELL_USE_FPEXEC}
   FreeShellArgV(p);
  {$ENDIF}
 end;

@@ -45,6 +45,7 @@ Uses UnixType;
 
 {$i bunxovlh.inc}
 
+{$i genfunch.inc}
 
 implementation
 
@@ -59,7 +60,7 @@ Uses Sysctl;
 {$ifndef FPC_USE_LIBC}
   {$i syscallh.inc}       // do_syscall declarations themselves
   {$i sysnr.inc}          // syscall numbers.
-  {$i bsyscall.inc}  			// cpu specific syscalls
+  {$i bsyscall.inc}       // cpu specific syscalls
   {$i bunxsysc.inc}       // syscalls in system unit.
   {$i settimeo.inc}
 {$endif}

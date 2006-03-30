@@ -3651,6 +3651,7 @@ rtl/inc/threadh.inc svneol=native#text/plain
 rtl/inc/threadvr.inc svneol=native#text/plain
 rtl/inc/typefile.inc svneol=native#text/plain
 rtl/inc/ucomplex.pp svneol=native#text/plain
+rtl/inc/varerror.inc -text
 rtl/inc/variant.inc svneol=native#text/plain
 rtl/inc/varianth.inc svneol=native#text/plain
 rtl/inc/variants.pp svneol=native#text/plain
@@ -4229,6 +4230,7 @@ rtl/unix/dos.pp svneol=native#text/plain
 rtl/unix/dynlibs.inc svneol=native#text/plain
 rtl/unix/errors.pp svneol=native#text/plain
 rtl/unix/genfdset.inc svneol=native#text/plain
+rtl/unix/genfunch.inc svneol=native#text/plain
 rtl/unix/genfuncs.inc svneol=native#text/plain
 rtl/unix/gensigset.inc svneol=native#text/plain
 rtl/unix/initc.pp svneol=native#text/plain
@@ -4321,6 +4323,7 @@ rtl/win32/wininc/unidef.inc svneol=native#text/plain
 rtl/win32/wininc/unidef.sed -text
 rtl/win32/wininc/unifun.inc svneol=native#text/plain
 rtl/win32/winsock.pp svneol=native#text/plain
+rtl/win32/winsock2.pp svneol=native#text/plain
 rtl/win32/winsysut.pp svneol=native#text/plain
 rtl/win32/wprt0.as -text
 rtl/win32/wprt0_10.as -text
@@ -6442,6 +6445,7 @@ tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/tw4675.pp svneol=native#text/plain
 tests/webtbs/tw4700.pp svneol=native#text/plain
+tests/webtbs/tw4707.pp -text
 tests/webtbs/tw4763.pp svneol=native#text/plain
 tests/webtbs/tw4768.pp -text
 tests/webtbs/tw4778.pp svneol=native#text/plain

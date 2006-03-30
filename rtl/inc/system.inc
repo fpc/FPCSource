@@ -773,10 +773,11 @@ Begin
      Begin
        caller_addr := get_caller_addr(bp);
        caller_frame := get_caller_frame(bp);
-       if (caller_addr=nil) or
-          (caller_frame=nil) then
+       if (caller_addr=nil) then
          break;
        Writeln(f,BackTraceStrFunc(caller_addr));
+       if (caller_frame=nil) then
+         break;
        Inc(i);
        If ((i>max_frame_dump) and is_dev) or (i>256) Then
          break;

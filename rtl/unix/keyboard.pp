@@ -201,23 +201,22 @@ var oldesc0,oldesc1,oldesc2,oldesc4,oldesc8:word;
 
 procedure prepare_patching;
 
-var e:^chgentry;
-    entry : kbentry;
+var entry : kbentry;
     i:longint;
 
 begin
   for i:=low(kbdchange) to high(kbdchange) do
-   begin
-     e:=@kbdchange[i];
-     entry.kb_table:=e^.tab;
-     entry.kb_index:=e^.idx;
-     fpIoctl(stdinputhandle,KDGKBENT,@entry);
-     e^.oldval:=entry.kb_value;
-     entry.kb_table:=e^.oldtab;
-     entry.kb_index:=e^.oldidx;
-     fpioctl(stdinputhandle,KDGKBENT,@entry);
-     e^.newval:=entry.kb_value;
-   end;
+   with kbdchange[i] do
+     begin
+       entry.kb_table:=tab;
+       entry.kb_index:=idx;
+       fpIoctl(stdinputhandle,KDGKBENT,@entry);
+       oldval:=entry.kb_value;
+       entry.kb_table:=oldtab;
+       entry.kb_index:=oldidx;
+       fpioctl(stdinputhandle,KDGKBENT,@entry);
+       newval:=entry.kb_value;
+     end;
   {Save old escape code.}
   entry.kb_index:=1;
   entry.kb_table:=0;
@@ -239,7 +238,6 @@ end;
 
 procedure PatchKeyboard;
 var
-  e : ^chgentry;
   entry : kbentry;
   sentry : kbsentry;
   i:longint;
@@ -248,13 +246,13 @@ begin
   meta:=K_ESCPREFIX;
   fpIoctl(stdinputhandle,KDSKBMETA,@meta);
   for i:=low(kbdchange) to high(kbdchange) do
-   begin
-     e:=@kbdchange[i];
-     entry.kb_table:=e^.tab;
-     entry.kb_index:=e^.idx;
-     entry.kb_value:=e^.newval;
-     fpioctl(stdinputhandle,KDSKBENT,@entry);
-   end;
+    with kbdchange[i] do
+      begin
+        entry.kb_table:=tab;
+        entry.kb_index:=idx;
+        entry.kb_value:=newval;
+        fpioctl(stdinputhandle,KDSKBENT,@entry);
+      end;
 
   {Map kernel escape key code to symbol F32.}
   entry.kb_index:=1;
@@ -286,13 +284,13 @@ begin
   if oldmeta in [K_ESCPREFIX,K_METABIT] then
     fpioctl(stdinputhandle,KDSKBMETA,@oldmeta);
   for i:=low(kbdchange) to high(kbdchange) do
-   begin
-     e:=@kbdchange[i];
-     entry.kb_table:=e^.tab;
-     entry.kb_index:=e^.idx;
-     entry.kb_value:=e^.oldval;
-     fpioctl(stdinputhandle,KDSKBENT,@entry);
-   end;
+    with kbdchange[i] do
+      begin
+        entry.kb_table:=tab;
+        entry.kb_index:=idx;
+        entry.kb_value:=oldval;
+        fpioctl(stdinputhandle,KDSKBENT,@entry);
+      end;
 
   entry.kb_index:=1;
   entry.kb_table:=0;

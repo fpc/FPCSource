@@ -118,7 +118,10 @@ type
    EInvalidPointer  = Class(EHeapMemoryError);
    EOutOfMemory     = Class(EHeapMemoryError);
    EInvalidCast = Class(Exception);
-   EVariantError = Class(Exception);
+   EVariantError = Class(Exception)
+     ErrCode : longint;
+     Constructor CreateCode(Code : Longint);
+   end;
 
    EAccessViolation = Class(EExternal);
    EBusError = Class(EAccessViolation);
