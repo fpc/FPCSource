@@ -1835,9 +1835,11 @@ implementation
               inc(len);
             214 :
               begin
+{$ifdef x86_64}
                 if rex=0 then
                   inc(len);
                 rex:=rex or $48;
+{$endif x86_64}
               end;
             200,
             201,
