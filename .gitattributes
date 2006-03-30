@@ -4343,6 +4343,7 @@ rtl/x86_64/x86_64.inc svneol=native#text/plain
 tests/MPWMake -text
 tests/Makefile svneol=native#text/plain
 tests/Makefile.fpc svneol=native#text/plain
+tests/bench/ansibench.pp -text
 tests/bench/dmisc.pas svneol=native#text/plain
 tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
@@ -4579,6 +4580,7 @@ tests/tbf/tb0175.pp svneol=native#text/plain
 tests/tbf/tb0176.pp svneol=native#text/plain
 tests/tbf/tb0177.pp svneol=native#text/plain
 tests/tbf/tb0178.pp svneol=native#text/plain
+tests/tbf/tb0179.pp svneol=native#text/plain
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain
@@ -6444,8 +6446,9 @@ tests/webtbs/tw4635.pp svneol=native#text/plain
 tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/tw4675.pp svneol=native#text/plain
+tests/webtbs/tw4678.pp -text
 tests/webtbs/tw4700.pp svneol=native#text/plain
-tests/webtbs/tw4707.pp -text
+tests/webtbs/tw4704.pp -text
 tests/webtbs/tw4763.pp svneol=native#text/plain
 tests/webtbs/tw4768.pp -text
 tests/webtbs/tw4778.pp svneol=native#text/plain
