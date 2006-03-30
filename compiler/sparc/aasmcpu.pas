@@ -246,10 +246,16 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        if opnr=ops-1 then
-          result := operand_write
-        else
-          result := operand_read;
+        result := operand_read;
+        case opcode of
+          A_FCMPs,A_FCMPd,A_FCMPq :
+            ;
+          else
+            begin
+              if opnr=ops-1 then
+                result := operand_write;
+            end;
+        end;
       end;
 
 
