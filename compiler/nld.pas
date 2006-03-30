@@ -317,12 +317,12 @@ implementation
              resulttype:=ttypedconstsym(symtableentry).typedconsttype;
            procsym :
              begin
+               { Return the first procdef. In case of overlaoded
+                 procdefs the matching procdef will be choosen
+                 when the expected procvardef is known, see get_information
+                 in htypechk.pas (PFV) }
                if not assigned(procdef) then
-                begin
-                  if Tprocsym(symtableentry).procdef_count>1 then
-                   CGMessage(parser_e_no_overloaded_procvars);
-                  procdef:=tprocsym(symtableentry).first_procdef;
-                end;
+                 procdef:=tprocsym(symtableentry).first_procdef;
 
                { the result is a procdef, addrn and proc_to_procvar
                  typeconvn need this as resulttype so they know

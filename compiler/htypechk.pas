@@ -1796,6 +1796,7 @@ implementation
         pt       : tcallparanode;
         eq       : tequaltype;
         convtype : tconverttype;
+        pdtemp,
         pdoper   : tprocdef;
         releasecurrpt : boolean;
         cdoptions : tcompare_defs_options;
@@ -1847,6 +1848,24 @@ implementation
                       def_from:=currpt.left.resulttype.def;
                     end;
                 end;
+
+             { If we expect a procvar and the left is loadnode that
+               returns a procdef we need to find the correct overloaded
+               procdef that matches the expected procvar. The loadnode
+               temporary returned the first procdef (PFV) }
+             if (def_to.deftype=procvardef) and
+                (currpt.left.nodetype=loadn) and
+                (currpt.left.resulttype.def.deftype=procdef) then
+               begin
+                 pdtemp:=tprocsym(Tloadnode(currpt.left).symtableentry).search_procdef_byprocvardef(Tprocvardef(def_to));
+                 if assigned(pdtemp) then
+                   begin
+                     tloadnode(currpt.left).procdef:=pdtemp;
+                     currpt.left.resulttype.setdef(tloadnode(currpt.left).procdef);
+                     currpt.resulttype:=currpt.left.resulttype;
+                     def_from:=currpt.left.resulttype.def;
+                   end;
+               end;
 
               { varargs are always equal, but not exact }
               if (po_varargs in hp^.data.procoptions) and

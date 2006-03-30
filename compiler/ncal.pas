@@ -1691,14 +1691,11 @@ type
                       else
                         begin
                           { in tp mode we can try to convert to procvar if
-                            there are no parameters specified. Only try it
-                            when there is only one proc definition, else the
-                            loadnode will give a strange error }
+                            there are no parameters specified }
                           if not(assigned(left)) and
                              not(cnf_inherited in callnodeflags) and
                              ((m_tp_procvar in aktmodeswitches) or
                               (m_mac_procvar in aktmodeswitches)) and
-                             (symtableprocentry.procdef_count=1) and
                              (not assigned(methodpointer) or
                               (methodpointer.nodetype <> typen)) then
                             begin
