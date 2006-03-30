@@ -1119,10 +1119,12 @@ implementation
       var
         def: tdef;
         hs,
+        prefix,
         mappedname: string;
         nextexist: pointer;
         implprocdef: tprocdef;
       begin
+        prefix:=_class.implementedinterfaces.interfaces(intfindex).symtable.name^+'.';
         def:=tdef(intf.symtable.defindex.first);
         while assigned(def) do
           begin
@@ -1131,7 +1133,7 @@ implementation
                 implprocdef:=nil;
                 nextexist:=nil;
                 repeat
-                  hs:=intf.symtable.name^+'.'+tprocdef(def).procsym.name;
+                  hs:=prefix+tprocdef(def).procsym.name;
                   mappedname:=_class.implementedinterfaces.getmappings(intfindex,hs,nextexist);
                   if mappedname<>'' then
                     implprocdef:=gintfgetcprocdef(tprocdef(def),mappedname);
