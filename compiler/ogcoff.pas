@@ -664,7 +664,8 @@ const win32stub : array[0..131] of byte=(
           include(aoptions,oso_debug);
         if flags and PE_SCN_CNT_UNINITIALIZED_DATA=0 then
           include(aoptions,oso_data);
-        if flags and PE_SCN_LNK_REMOVE<>0 then
+        if (flags and PE_SCN_LNK_REMOVE<>0) or
+           (flags and PE_SCN_MEM_DISCARDABLE<>0) then
           include(aoptions,oso_noload)
         else
           include(aoptions,oso_load);
@@ -1658,6 +1659,10 @@ const win32stub : array[0..131] of byte=(
                    djdecodesechdrflags(secname,sechdr.flags);
                    secalign:=sizeof(aint);
                  end;
+{$warning TODO idata keep can maybe replaced with grouping of text and idata}
+               if (Copy(secname,1,6)='.idata') or
+                  (Copy(secname,1,6)='.rsrc') then
+                 include(secoptions,oso_keep);
                objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
                FSecTbl^[i]:=objsec;
                if not win32 then
@@ -1667,9 +1672,6 @@ const win32stub : array[0..131] of byte=(
                objsec.coffrelocpos:=sechdr.relocpos;
                objsec.datapos:=sechdr.datapos;
                objsec.Size:=sechdr.dataSize;
-{$warning TODO idata keep can maybe replaced with grouping of text and idata}
-               if Copy(objsec.name,1,6)='.idata' then
-                 include(objsec.secoptions,oso_keep);
              end;
            { ObjSymbols }
            Reader.Seek(header.sympos);
@@ -1975,8 +1977,13 @@ const win32stub : array[0..131] of byte=(
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-{$warning TODO GUI/CUI Subsystem}
-            peoptheader.Subsystem:=3;
+            if target_info.system in [system_arm_wince,system_i386_wince] then
+              peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
+            else
+              if apptype=app_gui then
+                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
+            else
+              peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
             peoptheader.DllCharacteristics:=0;
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
@@ -2332,7 +2339,10 @@ const win32stub : array[0..131] of byte=(
         with LinkScript do
           begin
             Concat('READUNITOBJECTS');
-            Concat('ENTRYNAME _mainCRTStartup');
+            if apptype=app_gui then
+              Concat('ENTRYNAME _WinMainCRTStartup')
+            else
+              Concat('ENTRYNAME _mainCRTStartup');
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  OBJSECTION .text*');

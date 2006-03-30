@@ -814,9 +814,7 @@ end;
             else if keyword='ZEROS' then
               ExeOutput.Order_Zeros(para)
             else if keyword='SYMBOL' then
-              ExeOutput.Order_Symbol(para)
-            else if keyword='STABS' then
-              ExeOutput.Order_Stabs;
+              ExeOutput.Order_Symbol(para);
             hp:=tstringlistitem(hp.next);
           end;
         exeoutput.Order_End;
@@ -909,6 +907,7 @@ end;
         { Create .exe sections and add .o sections }
         ParseScript_Order;
         exeoutput.RemoveUnreferencedSections;
+        exeoutput.MergeStabs;
         exeoutput.RemoveEmptySections;
         if ErrorCount>0 then
           goto myexit;

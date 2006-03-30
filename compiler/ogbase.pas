@@ -42,15 +42,15 @@ interface
       TExeSection = class;
       TExeSymbol  = class;
 
-      TObjRelocationType = (RELOC_ABSOLUTE,RELOC_RELATIVE,RELOC_RVA
+      TObjRelocationType = (Reloc_ABSOLUTE,Reloc_RELATIVE,Reloc_RVA
 {$ifdef x86_64}
-        ,RELOC_ABSOLUTE32
+        ,Reloc_ABSOLUTE32
 {$endif x86_64}
       );
 
       TObjSectionOption = (
-       { Has data available in the file }
-       oso_data,
+       { Has Data available in the file }
+       oso_Data,
        { Is loaded into memory }
        oso_load,
        { Not loaded into memory }
@@ -102,7 +102,7 @@ interface
 
      TObjRelocation = class(TLinkedListItem)
         DataOffset,
-        orgsize    : aint;  { original size of the symbol to relocate, required for COFF }
+        orgsize    : aint;  { original size of the symbol to Relocate, required for COFF }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
         typ        : TObjRelocationType;
@@ -120,13 +120,13 @@ interface
        ObjData    : TObjData;
        SecSymIdx  : longint;   { index for the section in symtab }
        SecAlign   : shortint;   { alignment of the section }
-       { section data }
+       { section Data }
        Size,
        DataPos,
        MemPos     : aint;
        DataAlignBytes : shortint;
-       { relocation }
-       relocations : TLinkedList;
+       { Relocation }
+       Relocations : TLinkedList;
        { Symbols this section references and defines }
        ObjSymbolRefs     : TFPObjectList;
        ObjSymbolDefines  : TFPObjectList;
@@ -139,13 +139,14 @@ interface
        function  writestr(const s:string):aint;
        function  WriteZeros(l:longint):aint;
        procedure setmempos(var mpos:aint);
-       procedure setdatapos(var dpos:aint);
+       procedure setDatapos(var dpos:aint);
        procedure alloc(l:aint);
-       procedure addsymreloc(ofs:aint;p:TObjSymbol;reloctype:TObjRelocationType);
-       procedure addsectionreloc(ofs:aint;aobjsec:TObjSection;reloctype:TObjRelocationType);
+       procedure addsymReloc(ofs:aint;p:TObjSymbol;Reloctype:TObjRelocationType);
+       procedure addsectionReloc(ofs:aint;aobjsec:TObjSection;Reloctype:TObjRelocationType);
        procedure AddSymbolDefine(p:TObjSymbol);
        procedure AddSymbolRef(p:TObjSymbol);
-       procedure fixuprelocs;virtual;
+       procedure FixupRelocs;virtual;
+       procedure ReleaseData;
        function  FullName:string;
        property  Data:TDynamicArray read FData;
        property  SecOptions:TObjSectionOptions read FSecOptions write SetSecOptions;
@@ -171,7 +172,6 @@ interface
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
-       procedure section_fixuprelocs(p:TObject;arg:pointer);
      protected
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
@@ -189,7 +189,6 @@ interface
        function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions):TObjSection;virtual;
        procedure CreateDebugSections;virtual;
        function  findsection(const aname:string):TObjSection;
-       procedure removesection(asec:TObjSection);
        procedure setsection(asec:TObjSection);
        { Symbols }
        function  createsymbol(const aname:string):TObjSymbol;
@@ -202,15 +201,14 @@ interface
        procedure alloc(len:aint);
        procedure allocalign(len:shortint);
        procedure allocstab(p:pchar);
-       procedure writebytes(const data;len:aint);
-       procedure writereloc(data,len:aint;p:TObjSymbol;reloctype:TObjRelocationType);virtual;abstract;
+       procedure writebytes(const Data;len:aint);
+       procedure writeReloc(Data,len:aint;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;
        procedure afterwrite;virtual;
        procedure resetsections;
-       procedure fixuprelocs;
        property Name:string[80] read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TFPObjectList read FObjSymbolList;
@@ -224,14 +222,14 @@ interface
       protected
         { writer }
         FWriter    : TObjectwriter;
-        function  writedata(data:TObjData):boolean;virtual;abstract;
+        function  writeData(Data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
       public
         constructor create(AWriter:TObjectWriter);virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
         function  startObjectfile(const fn:string):boolean;
-        function  writeobjectfile(data:TObjData):boolean;
+        function  writeobjectfile(Data:TObjData):boolean;
         procedure exportsymbol(p:TObjSymbol);
         property Writer:TObjectWriter read FWriter;
       end;
@@ -243,13 +241,13 @@ interface
       protected
         { reader }
         FReader    : TObjectreader;
-        function  readObjData(data:TObjData):boolean;virtual;abstract;
+        function  readObjData(Data:TObjData):boolean;virtual;abstract;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
       public
         constructor create;virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
-        function  readobjectfile(const fn:string;data:TObjData):boolean;virtual;
+        function  readobjectfile(const fn:string;Data:TObjData):boolean;virtual;
         property Reader:TObjectReader read FReader;
       end;
       TObjInputClass=class of TObjInput;
@@ -304,17 +302,17 @@ interface
         { writer }
         FWriter : TObjectwriter;
         commonObjSection : TObjSection;
-        internalobjdata : TObjData;
+        internalObjData : TObjData;
         EntrySym  : TObjSymbol;
         SectionDataAlign,
         SectionMemAlign : aint;
-        function  writedata:boolean;virtual;abstract;
+        function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
       public
         constructor create;virtual;
         destructor  destroy;override;
-        procedure AddObjData(objdata:TObjData);
+        procedure AddObjData(ObjData:TObjData);
         function  FindExeSection(const aname:string):TExeSection;
         procedure Load_Start;virtual;
         procedure Load_EntryName(const aname:string);virtual;
@@ -326,7 +324,6 @@ interface
         procedure Order_Zeros(const aname:string);virtual;
         procedure Order_Symbol(const aname:string);virtual;
         procedure Order_EndExeSection;virtual;
-        procedure Order_Stabs;
         procedure Order_ObjSection(const aname:string);virtual;
         procedure CalcPos_ExeSection(const aname:string);virtual;
         procedure CalcPos_EndExeSection;virtual;
@@ -335,8 +332,9 @@ interface
         procedure CalcPos_Symbols;virtual;
         procedure ResolveSymbols;
         procedure PrintMemoryMap;
-        procedure FixUpSymbols;
-        procedure FixUpRelocations;
+        procedure FixupSymbols;
+        procedure FixupRelocations;
+        procedure MergeStabs;
         procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
         procedure ResolveExternals(const libname:string);virtual;
@@ -359,7 +357,7 @@ interface
 
 {$ifdef i386}
     const
-      RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
+      Reloc_ABSOLUTE32 = Reloc_ABSOLUTE;
 {$endif i386}
 
     var
@@ -372,7 +370,7 @@ implementation
       cutils,globals,verbose,fmodule,ogmap;
 
     const
-      sectiondatagrowsize = 1024;
+      sectionDatagrowsize = 1024;
 
 
 {*****************************************************************************
@@ -473,17 +471,17 @@ implementation
       begin
         inherited createname(Aname);
         name:=Aname;
-        { data }
+        { Data }
         Size:=0;
-        datapos:=0;
+        Datapos:=0;
         mempos:=0;
         FData:=Nil;
         { Setting the secoptions allocates Data if needed }
         secoptions:=Aoptions;
         secalign:=Aalign;
         secsymidx:=0;
-        { relocation }
-        relocations:=TLinkedList.Create;
+        { Relocation }
+        Relocations:=TLinkedList.Create;
         ObjSymbolRefs:=TFPObjectList.Create(false);
         ObjSymbolDefines:=TFPObjectList.Create(false);
       end;
@@ -493,7 +491,7 @@ implementation
       begin
         if assigned(Data) then
           Data.Free;
-        relocations.free;
+        Relocations.free;
         ObjSymbolRefs.Free;
         ObjSymbolDefines.Free;
         inherited destroy;
@@ -503,9 +501,9 @@ implementation
     procedure TObjSection.SetSecOptions(Aoptions:TObjSectionOptions);
       begin
         FSecOptions:=FSecOptions+AOptions;
-        if (oso_data in secoptions) and
+        if (oso_Data in secoptions) and
            not assigned(FData) then
-          FData:=TDynamicArray.Create(sectiondatagrowsize);
+          FData:=TDynamicArray.Create(sectionDatagrowsize);
       end;
 
 
@@ -514,7 +512,7 @@ implementation
         result:=size;
         if assigned(Data) then
           begin
-            if Size<>data.size then
+            if Size<>Data.size then
               internalerror(200602281);
             Data.write(d,l);
             inc(Size,l);
@@ -546,18 +544,18 @@ implementation
       end;
 
 
-    procedure TObjSection.setdatapos(var dpos:aint);
+    procedure TObjSection.setDatapos(var dpos:aint);
       begin
-        if oso_data in secoptions then
+        if oso_Data in secoptions then
           begin
-            { get aligned datapos }
-            datapos:=align(dpos,secalign);
-            dataalignbytes:=datapos-dpos;
-            { return updated datapos }
-            dpos:=datapos+size;
+            { get aligned Datapos }
+            Datapos:=align(dpos,secalign);
+            Dataalignbytes:=Datapos-dpos;
+            { return updated Datapos }
+            dpos:=Datapos+size;
           end
         else
-          datapos:=dpos;
+          Datapos:=dpos;
       end;
 
 
@@ -575,15 +573,15 @@ implementation
       end;
 
 
-    procedure TObjSection.addsymreloc(ofs:aint;p:TObjSymbol;reloctype:TObjRelocationType);
+    procedure TObjSection.addsymReloc(ofs:aint;p:TObjSymbol;Reloctype:TObjRelocationType);
       begin
-        relocations.concat(TObjRelocation.CreateSymbol(ofs,p,reloctype));
+        Relocations.concat(TObjRelocation.CreateSymbol(ofs,p,Reloctype));
       end;
 
 
-    procedure TObjSection.addsectionreloc(ofs:aint;aobjsec:TObjSection;reloctype:TObjRelocationType);
+    procedure TObjSection.addsectionReloc(ofs:aint;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
-        relocations.concat(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
+        Relocations.concat(TObjRelocation.CreateSection(ofs,aobjsec,Reloctype));
       end;
 
 
@@ -603,15 +601,31 @@ implementation
       end;
 
 
-    procedure TObjSection.fixuprelocs;
+    procedure TObjSection.FixupRelocs;
       begin
+      end;
+
+
+    procedure TObjSection.ReleaseData;
+      begin
+        if assigned(FData) then
+          begin
+            FData.free;
+            FData:=nil;
+          end;
+        Relocations.free;
+        Relocations:=nil;
+        ObjSymbolRefs.Free;
+        ObjSymbolRefs:=nil;
+        ObjSymbolDefines.Free;
+        ObjSymbolDefines:=nil;
       end;
 
 
     function  TObjSection.FullName:string;
       begin
-        if assigned(objdata) then
-          result:=objdata.Name+'('+Name+')'
+        if assigned(ObjData) then
+          result:=ObjData.Name+'('+Name+')'
         else
           result:=Name;
       end;
@@ -649,7 +663,7 @@ implementation
 {$endif}
       begin
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(name+' - objdata symbols');
+        d:=tmemdebug.create(name+' - ObjData symbols');
 {$endif}
         ResetCachedAsmSymbols;
         FCachedAsmSymbolList.free;
@@ -659,7 +673,7 @@ implementation
         d.free;
 {$endif}
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(name+' - objdata sections');
+        d:=tmemdebug.create(name+' - ObjData sections');
 {$endif}
         FObjSectionDict.free;
         FObjSectionList.free;
@@ -674,13 +688,13 @@ implementation
       const
         secnames : array[TAsmSectiontype] of string[16] = ('',
           'code',
-          'data',
-          'rodata',
+          'Data',
+          'roData',
           'bss',
           'threadvar',
           'stub',
           'stab','stabstr',
-          'idata2','idata4','idata5','idata6','idata7','edata',
+          'iData2','iData4','iData5','iData6','iData7','eData',
           'eh_frame',
           'debug_frame','debug_info','debug_line','debug_abbrev',
           'fpc',
@@ -697,29 +711,29 @@ implementation
     function TObjData.sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;
       const
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
-          {code} [oso_data,oso_load,oso_readonly,oso_executable,oso_keep],
-          {data} [oso_data,oso_load,oso_write,oso_keep],
-{$warning TODO Fix rodata be read-only}
-          {rodata} [oso_data,oso_load,oso_write,oso_keep],
+          {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {Data} [oso_Data,oso_load,oso_write,oso_keep],
+{$warning TODO Fix roData be read-only}
+          {roData} [oso_Data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
           {threadvar} [oso_load,oso_write],
-          {stub} [oso_data,oso_load,oso_readonly,oso_executable],
-          {stab} [oso_data,oso_noload,oso_debug],
-          {stabstr} [oso_data,oso_noload,oso_strings,oso_debug],
-{$warning TODO idata keep can maybe replaced with grouping of text and idata}
-          {idata2} [oso_data,oso_load,oso_write,oso_keep],
-          {idata4} [oso_data,oso_load,oso_write,oso_keep],
-          {idata5} [oso_data,oso_load,oso_write,oso_keep],
-          {idata6} [oso_data,oso_load,oso_write,oso_keep],
-          {idata7} [oso_data,oso_load,oso_write,oso_keep],
-          {edata} [oso_data,oso_load,oso_readonly],
-          {eh_frame} [oso_data,oso_load,oso_readonly],
-          {debug_frame} [oso_data,oso_noload,oso_debug],
-          {debug_info} [oso_data,oso_noload,oso_debug],
-          {debug_line} [oso_data,oso_noload,oso_debug],
-          {debug_abbrev} [oso_data,oso_noload,oso_debug],
-          {fpc} [oso_data,oso_load,oso_write,oso_keep],
-          {toc} [oso_data,oso_load,oso_readonly]
+          {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
+          {stab} [oso_Data,oso_noload,oso_debug],
+          {stabstr} [oso_Data,oso_noload,oso_strings,oso_debug],
+{$warning TODO iData keep can maybe replaced with grouping of text and iData}
+          {iData2} [oso_Data,oso_load,oso_write,oso_keep],
+          {iData4} [oso_Data,oso_load,oso_write,oso_keep],
+          {iData5} [oso_Data,oso_load,oso_write,oso_keep],
+          {iData6} [oso_Data,oso_load,oso_write,oso_keep],
+          {iData7} [oso_Data,oso_load,oso_write,oso_keep],
+          {eData} [oso_Data,oso_load,oso_readonly],
+          {eh_frame} [oso_Data,oso_load,oso_readonly],
+          {debug_frame} [oso_Data,oso_noload,oso_debug],
+          {debug_info} [oso_Data,oso_noload,oso_debug],
+          {debug_line} [oso_Data,oso_noload,oso_debug],
+          {debug_abbrev} [oso_Data,oso_noload,oso_debug],
+          {fpc} [oso_Data,oso_load,oso_write,oso_keep],
+          {toc} [oso_Data,oso_load,oso_readonly]
         );
       begin
         result:=secoptions[atype];
@@ -763,13 +777,6 @@ implementation
     function TObjData.FindSection(const aname:string):TObjSection;
       begin
         result:=TObjSection(FObjSectionDict.Search(aname));
-      end;
-
-
-    procedure TObjData.removesection(asec:TObjSection);
-      begin
-        FObjSectionDict.Delete(asec.name);
-        FObjSectionList.Remove(asec);
       end;
 
 
@@ -869,11 +876,11 @@ implementation
       end;
 
 
-    procedure TObjData.writebytes(const data;len:aint);
+    procedure TObjData.writebytes(const Data;len:aint);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402251);
-        CurrObjSec.write(data,len);
+        CurrObjSec.write(Data,len);
       end;
 
 
@@ -914,7 +921,7 @@ implementation
       begin
         with TObjSection(p) do
           begin
-            if assigned(data) then
+            if assigned(Data) then
               writezeros(align(size,secalign)-size);
           end;
       end;
@@ -925,16 +932,9 @@ implementation
         with TObjSection(p) do
           begin
             Size:=0;
-            datapos:=0;
+            Datapos:=0;
             mempos:=0;
           end;
-      end;
-
-
-    procedure TObjData.section_fixuprelocs(p:TObject;arg:pointer);
-      begin
-        if TObjSection(p).Used then
-          TObjSection(p).fixuprelocs;
       end;
 
 
@@ -987,8 +987,8 @@ implementation
             hstab.nother:=0;
             hstab.ndesc:=(StabsSec.Size div sizeof(TObjStabEntry))-1;
             hstab.nvalue:=StabStrSec.Size;
-            StabsSec.data.seek(0);
-            StabsSec.data.write(hstab,sizeof(hstab));
+            StabsSec.Data.seek(0);
+            StabsSec.Data.write(hstab,sizeof(hstab));
           end;
       end;
 
@@ -996,12 +996,6 @@ implementation
     procedure TObjData.resetsections;
       begin
         FObjSectionList.ForEachCall(@section_reset,nil);
-      end;
-
-
-    procedure TObjData.fixuprelocs;
-      begin
-        FObjSectionList.ForEachCall(@section_fixuprelocs,nil);
       end;
 
 
@@ -1042,10 +1036,10 @@ implementation
       end;
 
 
-    function TObjOutput.writeobjectfile(data:TObjData):boolean;
+    function TObjOutput.writeobjectfile(Data:TObjData):boolean;
       begin
         if errorcount=0 then
-         result:=writedata(data)
+         result:=writeData(Data)
         else
          result:=true;
         { close the writer }
@@ -1100,7 +1094,7 @@ implementation
         ObjSectionList.Add(objsec);
         if (SecOptions<>[]) then
           begin
-            if (oso_data in SecOptions)<>(oso_data in objsec.SecOptions) then
+            if (oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions) then
               Comment(V_Error,'Incompatible section options');
           end
         else
@@ -1109,8 +1103,9 @@ implementation
             SecAlign:=objsec.SecAlign;
             SecOptions:=SecOptions+objsec.SecOptions;
           end;
-        { relate ObjSection to ExeSection }
+        { relate ObjSection to ExeSection, and mark it Used by default }
         objsec.ExeSection:=self;
+        objsec.Used:=true;
       end;
 
 
@@ -1154,7 +1149,7 @@ implementation
         CommonObjSymbols.free;
         FExeSectionDict.free;
         FExeSectionList.free;
-        objdatalist.free;
+        ObjDatalist.free;
         FWriter.free;
         inherited destroy;
       end;
@@ -1167,7 +1162,7 @@ implementation
          begin
            { Only write the .o if there are no errors }
            if errorcount=0 then
-             result:=writedata
+             result:=writeData
            else
              result:=true;
            { close the writer }
@@ -1178,11 +1173,11 @@ implementation
       end;
 
 
-    procedure TExeOutput.AddObjData(objdata:TObjData);
+    procedure TExeOutput.AddObjData(ObjData:TObjData);
       begin
-        if objdata.classtype<>FCObjData then
-          Comment(V_Error,'Invalid input object format for '+objdata.name+' got '+objdata.classname+' expected '+FCObjData.classname);
-        ObjDataList.Add(objdata);
+        if ObjData.classtype<>FCObjData then
+          Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
+        ObjDataList.Add(ObjData);
       end;
 
 
@@ -1196,11 +1191,11 @@ implementation
       begin
         ObjDataList.Clear;
         { Globals defined in the linker script }
-        if not assigned(internalobjdata) then
-          internalobjdata:=CObjData.create('*Internal*');
-        AddObjData(internalobjdata);
-        { Common data section }
-        commonObjSection:=internalobjdata.createsection(sec_bss,'');
+        if not assigned(internalObjData) then
+          internalObjData:=CObjData.create('*Internal*');
+        AddObjData(internalObjData);
+        { Common Data section }
+        commonObjSection:=internalObjData.createsection(sec_bss,'');
       end;
 
 
@@ -1212,8 +1207,8 @@ implementation
 
     procedure TExeOutput.Load_Symbol(const aname:string);
       begin
-        internalobjdata.createsection('*'+aname,0,[]);
-        internalobjdata.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION);
+        internalObjData.createsection('*'+aname,0,[]);
+        internalObjData.SymbolDefine(aname,AB_GLOBAL,AT_FUNCTION);
       end;
 
 
@@ -1224,7 +1219,7 @@ implementation
 
     procedure TExeOutput.Order_End;
       begin
-        internalobjdata.afterwrite;
+        internalObjData.afterwrite;
       end;
 
 
@@ -1255,17 +1250,17 @@ implementation
     procedure TExeOutput.Order_ObjSection(const aname:string);
       var
         i,j     : longint;
-        objdata : TObjData;
+        ObjData : TObjData;
         objsec  : TObjSection;
       begin
         if not assigned(CurrExeSec) then
           internalerror(200602181);
         for i:=0 to ObjDataList.Count-1 do
           begin
-            objdata:=TObjData(ObjDataList[i]);
-            for j:=0 to objdata.ObjSectionList.Count-1 do
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSectionList.Count-1 do
               begin
-                objsec:=TObjSection(objdata.ObjSectionList[j]);
+                objsec:=TObjSection(ObjData.ObjSectionList[j]);
                 if MatchPattern(aname,objsec.name) then
                   CurrExeSec.AddObjSection(objsec);
               end;
@@ -1277,7 +1272,7 @@ implementation
       var
         ObjSection : TObjSection;
       begin
-        ObjSection:=internalobjdata.findsection('*'+aname);
+        ObjSection:=internalObjData.findsection('*'+aname);
         if not assigned(ObjSection) then
           internalerror(200603041);
         ObjSection.SecOptions:=CurrExeSec.SecOptions;
@@ -1296,7 +1291,7 @@ implementation
           exit;
         { Create an empty section with the required aligning }
         inc(Fzeronr);
-        objsec:=internalobjdata.createsection('*align'+tostr(Fzeronr),alignval,CurrExeSec.SecOptions+[oso_data,oso_keep]);
+        objsec:=internalObjData.createsection('*align'+tostr(Fzeronr),alignval,CurrExeSec.SecOptions+[oso_Data,oso_keep]);
         CurrExeSec.AddObjSection(objsec);
       end;
 
@@ -1315,130 +1310,9 @@ implementation
           internalerror(200602254);
         fillchar(zeros,len,0);
         inc(Fzeronr);
-        objsec:=internalobjdata.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_data,oso_keep]);
-        internalobjdata.writebytes(zeros,len);
+        objsec:=internalObjData.createsection('*zeros'+tostr(Fzeronr),0,CurrExeSec.SecOptions+[oso_Data,oso_keep]);
+        internalObjData.writebytes(zeros,len);
         CurrExeSec.AddObjSection(objsec);
-      end;
-
-
-    procedure TExeOutput.Order_Stabs;
-      var
-        stabexesec,
-        stabstrexesec : TExeSection;
-        currstabsec,
-        currstabstrsec,
-        mergedstabsec,
-        mergedstabstrsec : TObjSection;
-        nextstabreloc,
-        currstabreloc : TObjRelocation;
-        i,j,
-        stabcnt : longint;
-        skipstab : boolean;
-        hstab   : TObjStabEntry;
-        stabrelocofs : longint;
-        buf     : array[0..1023] of byte;
-        bufend,
-        bufsize  : longint;
-      begin
-        stabexesec:=FindExeSection('.stab');
-        stabstrexesec:=FindExeSection('.stabstr');
-        if (stabexesec=nil) or
-           (stabstrexesec=nil) or
-           (stabexesec.ObjSectionlist.count=0) then
-          exit;
-        { Create new stabsection }
-        stabrelocofs:=@hstab.nvalue-@hstab;
-        mergedstabsec:=internalobjdata.CreateSection(sec_stab,'');
-        mergedstabstrsec:=internalobjdata.CreateSection(sec_stabstr,'');
-
-        { write stab for hdrsym }
-        fillchar(hstab,sizeof(TObjStabEntry),0);
-        mergedstabsec.write(hstab,sizeof(TObjStabEntry));
-
-        { .stabstr starts with a #0 }
-        buf[0]:=0;
-        mergedstabstrsec.write(buf[0],1);
-
-        { Copy stabs and corresponding relocations }
-        for i:=0 to stabexesec.ObjSectionList.Count-1 do
-          begin
-            currstabsec:=TObjSection(stabexesec.ObjSectionList[i]);
-            currstabstrsec:=currstabsec.objdata.findsection('.stabstr');
-            if assigned(currstabstrsec) then
-              begin
-                stabcnt:=currstabsec.data.size div sizeof(TObjStabEntry);
-                currstabsec.data.seek(0);
-                currstabreloc:=TObjRelocation(currstabsec.relocations.first);
-                for j:=0 to stabcnt-1 do
-                  begin
-                    skipstab:=false;
-                    currstabsec.data.read(hstab,sizeof(TObjStabEntry));
-                    { Only include first hdrsym stab }
-                    if hstab.ntype=0 then
-                      skipstab:=true;
-                    if not skipstab then
-                      begin
-                        { Copy string in stabstr }
-                        if hstab.strpos<>0 then
-                          begin
-                            currstabstrsec.data.seek(hstab.strpos);
-                            hstab.strpos:=mergedstabstrsec.Size;
-                            repeat
-                              bufsize:=currstabstrsec.data.read(buf,sizeof(buf));
-                              bufend:=indexbyte(buf,bufsize,0);
-                              if bufend=-1 then
-                                bufend:=bufsize
-                              else
-                                begin
-                                  { include the #0 }
-                                  inc(bufend);
-                                end;
-                              mergedstabstrsec.write(buf,bufend);
-                            until (bufend<>-1) or (bufsize<sizeof(buf));
-                          end;
-                        { Copy relocation }
-                        while assigned(currstabreloc) and
-                              (currstabreloc.dataoffset<j*sizeof(TObjStabEntry)+stabrelocofs) do
-                          currstabreloc:=TObjRelocation(currstabreloc.next);
-                        if assigned(currstabreloc) then
-                          begin
-                            if (currstabreloc.dataoffset=j*sizeof(TObjStabEntry)+stabrelocofs) then
-                              begin
-                                currstabreloc.dataoffset:=mergedstabsec.Size+stabrelocofs;
-                                nextstabreloc:=TObjRelocation(currstabreloc.next);
-                                currstabsec.relocations.remove(currstabreloc);
-                                mergedstabsec.relocations.concat(currstabreloc);
-                                currstabreloc:=nextstabreloc;
-                              end;
-                          end;
-                        mergedstabsec.write(hstab,sizeof(hstab));
-                      end;
-                  end;
-              end;
-
-            { Unload stabs }
-            if assigned(currstabstrsec) then
-              currstabsec.objdata.removesection(currstabstrsec);
-            currstabsec.objdata.removesection(currstabsec);
-          end;
-
-        { Generate new HdrSym }
-        if mergedstabsec.Size>0 then
-          begin
-            hstab.strpos:=1;
-            hstab.ntype:=0;
-            hstab.nother:=0;
-            hstab.ndesc:=word((mergedstabsec.Size div sizeof(TObjStabEntry))-1);
-            hstab.nvalue:=mergedstabstrsec.Size;
-            mergedstabsec.data.seek(0);
-            mergedstabsec.data.write(hstab,sizeof(hstab));
-          end;
-
-        { Replace all sections with our combined stabsec }
-        stabexesec.ObjSectionList.Clear;
-        stabstrexesec.ObjSectionList.Clear;
-        stabexesec.AddObjSection(mergedstabsec);
-        stabstrexesec.AddObjSection(mergedstabstrsec);
       end;
 
 
@@ -1455,7 +1329,7 @@ implementation
         { Alignment of ExeSection }
         CurrMemPos:=align(CurrMemPos,SectionMemAlign);
         CurrExeSec.MemPos:=CurrMemPos;
-        if (oso_data in currexesec.SecOptions) then
+        if (oso_Data in currexesec.SecOptions) then
           begin
             CurrDataPos:=align(CurrDataPos,SectionDataAlign);
             CurrExeSec.DataPos:=CurrDataPos;
@@ -1468,13 +1342,13 @@ implementation
             { Position in memory }
             objsec.setmempos(CurrMemPos);
             { Position in File }
-            if (oso_data in objsec.SecOptions) then
+            if (oso_Data in objsec.SecOptions) then
               begin
-                if not (oso_data in currexesec.SecOptions) then
+                if not (oso_Data in currexesec.SecOptions) then
                   internalerror(200603043);
                 if not assigned(objsec.Data) then
                   internalerror(200603044);
-                objsec.setdatapos(CurrDataPos);
+                objsec.setDatapos(CurrDataPos);
               end;
           end;
 
@@ -1510,7 +1384,7 @@ implementation
 
     procedure TExeOutput.ResolveSymbols;
       var
-        objdata   : TObjData;
+        ObjData   : TObjData;
         exesym    : TExeSymbol;
         objsym,
         commonsym : TObjSymbol;
@@ -1530,10 +1404,10 @@ implementation
         { Step 1, Register symbols }
         for i:=0 to ObjDataList.Count-1 do
           begin
-            objdata:=TObjData(ObjDataList[i]);
-            for j:=0 to objdata.ObjSymbolList.Count-1 do
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSymbolList.Count-1 do
               begin
-                objsym:=TObjSymbol(objdata.ObjSymbolList[j]);
+                objsym:=TObjSymbol(ObjData.ObjSymbolList[j]);
                 { Skip local symbols }
                 if objsym.bind=AB_LOCAL then
                   continue;
@@ -1581,10 +1455,10 @@ implementation
                           exemap.AddCommonSymbolsHeader;
                         firstcommon:=false;
                       end;
-                    internalobjdata.setsection(commonObjSection);
-                    commonsym:=internalobjdata.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
+                    internalObjData.setsection(commonObjSection);
+                    commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
                     commonsym.size:=objsym.size;
-                    internalobjdata.alloc(objsym.size);
+                    internalObjData.alloc(objsym.size);
                     if assigned(exemap) then
                       exemap.AddCommonSymbol(commonsym);
                     { Assign to the exesymbol }
@@ -1651,7 +1525,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.FixUpSymbols;
+    procedure TExeOutput.FixupSymbols;
       var
         i   : longint;
         sym : TObjSymbol;
@@ -1703,6 +1577,154 @@ implementation
       end;
 
 
+    procedure TExeOutput.MergeStabs;
+      var
+        stabexesec,
+        stabstrexesec : TExeSection;
+        relocsec,
+        currstabsec,
+        currstabstrsec,
+        mergedstabsec,
+        mergedstabstrsec : TObjSection;
+        hstabreloc,
+        currstabReloc : TObjRelocation;
+        i,j,
+        mergestabcnt,
+        stabcnt : longint;
+        skipstab : boolean;
+        hstab   : TObjStabEntry;
+        stabRelocofs : longint;
+        buf     : array[0..1023] of byte;
+        bufend,
+        bufsize  : longint;
+      begin
+        stabexesec:=FindExeSection('.stab');
+        stabstrexesec:=FindExeSection('.stabstr');
+        if (stabexesec=nil) or
+           (stabstrexesec=nil) or
+           (stabexesec.ObjSectionlist.count=0) then
+          exit;
+        { Create new stabsection }
+        stabRelocofs:=@hstab.nvalue-@hstab;
+        mergedstabsec:=internalObjData.CreateSection(sec_stab,'');
+        mergedstabstrsec:=internalObjData.CreateSection(sec_stabstr,'');
+
+        { write stab for hdrsym }
+        fillchar(hstab,sizeof(TObjStabEntry),0);
+        mergedstabsec.write(hstab,sizeof(TObjStabEntry));
+        mergestabcnt:=1;
+
+        { .stabstr starts with a #0 }
+        buf[0]:=0;
+        mergedstabstrsec.write(buf[0],1);
+
+        { Copy stabs and corresponding Relocations }
+        for i:=0 to stabexesec.ObjSectionList.Count-1 do
+          begin
+            currstabsec:=TObjSection(stabexesec.ObjSectionList[i]);
+            currstabstrsec:=currstabsec.ObjData.findsection('.stabstr');
+            if assigned(currstabstrsec) then
+              begin
+                stabcnt:=currstabsec.Data.size div sizeof(TObjStabEntry);
+                currstabsec.Data.seek(0);
+                currstabReloc:=TObjRelocation(currstabsec.Relocations.first);
+                for j:=0 to stabcnt-1 do
+                  begin
+                    hstabreloc:=nil;
+                    skipstab:=false;
+                    currstabsec.Data.read(hstab,sizeof(TObjStabEntry));
+                    { Only include first hdrsym stab }
+                    if hstab.ntype=0 then
+                      skipstab:=true;
+                    if not skipstab then
+                      begin
+                        { Find corresponding Relocation }
+                        while assigned(currstabReloc) and
+                              (currstabReloc.Dataoffset<j*sizeof(TObjStabEntry)+stabRelocofs) do
+                          currstabReloc:=TObjRelocation(currstabReloc.next);
+                        if assigned(currstabReloc) and
+                           (currstabReloc.Dataoffset=j*sizeof(TObjStabEntry)+stabRelocofs) then
+                          begin
+                            hstabReloc:=currstabReloc;
+                            currstabReloc:=TObjRelocation(currstabReloc.next);
+                          end;
+                        { Check if the stab is refering to a removed section }
+                        if assigned(hstabreloc) then
+                          begin
+                            if assigned(hstabreloc.Symbol) then
+                              relocsec:=hstabreloc.Symbol.ObjSection
+                            else
+                              relocsec:=hstabreloc.ObjSection;
+                            if not assigned(relocsec) then
+                              internalerror(200603302);
+                            if not relocsec.Used then
+                              skipstab:=true;
+                          end;
+                      end;
+                    if not skipstab then
+                      begin
+                        { Copy string in stabstr }
+                        if hstab.strpos<>0 then
+                          begin
+                            currstabstrsec.Data.seek(hstab.strpos);
+                            hstab.strpos:=mergedstabstrsec.Size;
+                            repeat
+                              bufsize:=currstabstrsec.Data.read(buf,sizeof(buf));
+                              bufend:=indexbyte(buf,bufsize,0);
+                              if bufend=-1 then
+                                bufend:=bufsize
+                              else
+                                begin
+                                  { include the #0 }
+                                  inc(bufend);
+                                end;
+                              mergedstabstrsec.write(buf,bufend);
+                            until (bufend<>-1) or (bufsize<sizeof(buf));
+                          end;
+                        { Copy and Update the relocation }
+                        if assigned(hstabreloc) then
+                          begin
+                            hstabreloc.Dataoffset:=mergestabcnt*sizeof(TObjStabEntry)+stabRelocofs;
+                            currstabsec.Relocations.remove(hstabreloc);
+                            mergedstabsec.Relocations.concat(hstabreloc);
+                          end;
+                        { Write updated stab }
+                        mergedstabsec.write(hstab,sizeof(hstab));
+                        inc(mergestabcnt);
+                      end;
+                  end;
+              end;
+
+            { Unload stabs }
+            if assigned(currstabstrsec) then
+              begin
+                currstabstrsec.Used:=False;
+                currstabstrsec.ReleaseData;
+              end;
+            currstabsec.Used:=false;
+            currstabsec.ReleaseData;
+          end;
+
+        { Generate new HdrSym }
+        if mergedstabsec.Size>0 then
+          begin
+            hstab.strpos:=1;
+            hstab.ntype:=0;
+            hstab.nother:=0;
+            hstab.ndesc:=word(mergestabcnt-1);
+            hstab.nvalue:=mergedstabstrsec.Size;
+            mergedstabsec.Data.seek(0);
+            mergedstabsec.Data.write(hstab,sizeof(hstab));
+          end;
+
+        { Replace all sections with our combined stabsec }
+        stabexesec.ObjSectionList.Clear;
+        stabstrexesec.ObjSectionList.Clear;
+        stabexesec.AddObjSection(mergedstabsec);
+        stabstrexesec.AddObjSection(mergedstabstrsec);
+      end;
+
+
     procedure TExeOutput.RemoveEmptySections;
       var
         i      : longint;
@@ -1745,7 +1767,7 @@ implementation
       var
         i,j     : longint;
         exesec  : TExeSection;
-        objdata : TObjData;
+        ObjData : TObjData;
         refobjsec,
         objsec  : TObjSection;
         objsym  : TObjSymbol;
@@ -1759,10 +1781,10 @@ implementation
           adding the sections with oso_keep flags to the ObjSectionWorkList }
         for i:=0 to ObjDataList.Count-1 do
           begin
-            objdata:=TObjData(ObjDataList[i]);
-            for j:=0 to objdata.ObjSectionList.Count-1 do
+            ObjData:=TObjData(ObjDataList[i]);
+            for j:=0 to ObjData.ObjSectionList.Count-1 do
               begin
-                objsec:=TObjSection(objdata.ObjSectionList[j]);
+                objsec:=TObjSection(ObjData.ObjSectionList[j]);
                 objsec.Used:=false;
 {$warning TODO remove debug section always keep}
                 if oso_debug in objsec.secoptions then
@@ -1817,6 +1839,7 @@ implementation
                     if assigned(exemap) then
                       exemap.Add('Removing '+objsec.FullName);
                     exesec.ObjSectionlist[j]:=nil;
+                    objsec.ReleaseData;
                   end;
               end;
             exesec.ObjSectionlist.Pack;
@@ -1824,15 +1847,22 @@ implementation
       end;
 
 
-    procedure TExeOutput.FixUpRelocations;
+    procedure TExeOutput.FixupRelocations;
       var
-        i       : longint;
-        objdata : TObjData;
+        i,j     : longint;
+        exesec  : TExeSection;
+        objsec  : TObjSection;
       begin
-        for i:=0 to ObjDataList.Count-1 do
+        for i:=0 to ExeSections.Count-1 do
           begin
-            objdata:=TObjData(ObjDataList[i]);
-            objdata.fixuprelocs;
+            exesec:=TExeSection(ExeSections[i]);
+            for j:=0 to exesec.ObjSectionlist.count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionlist[j]);
+                if not objsec.Used then
+                  internalerror(200603301);
+                objsec.FixupRelocs;
+              end;
           end;
       end;
 
@@ -1861,13 +1891,13 @@ implementation
       end;
 
 
-    function TObjInput.readobjectfile(const fn:string;data:TObjData):boolean;
+    function TObjInput.readobjectfile(const fn:string;Data:TObjData):boolean;
       begin
         result:=false;
         { start the reader }
         if FReader.openfile(fn) then
          begin
-           result:=readObjData(data);
+           result:=readObjData(Data);
            FReader.closefile;
          end;
       end;
