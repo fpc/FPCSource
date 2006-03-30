@@ -2667,7 +2667,7 @@ mem,xmmreg              \300\3\x66\x0F\xE7\101          WILLAMETTE,SSE2,SM
 
 [MOVNTI]
 (Ch_All, Ch_None, Ch_None)
-mem,reg32               \300\2\x0F\xC3\101              WILLAMETTE,SSE2,SM
+mem,reg32|64            \320\300\2\x0F\xC3\101          WILLAMETTE,SSE2,SM
 
 [MOVNTPD]
 (Ch_All, Ch_None, Ch_None)

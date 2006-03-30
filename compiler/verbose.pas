@@ -508,7 +508,7 @@ var
                   end;
                 'E' :
                   begin
-                    v:=v or V_Error;
+                     v:=v or V_Error;
                     inc(status.errorcount);
                   end;
                 'O' :

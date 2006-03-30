@@ -8172,8 +8172,8 @@
   (
     opcode  : A_MOVNTI;
     ops     : 2;
-    optypes : (ot_memory,ot_reg32,ot_none);
-    code    : #192#2#15#195#65;
+    optypes : (ot_memory,ot_reg32 or ot_bits64,ot_none);
+    code    : #208#192#2#15#195#65;
     flags   : if_willamette or if_sse2 or if_sm
   ),
   (
