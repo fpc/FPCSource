@@ -28,7 +28,6 @@ type
   DWORD = LongWord;
 
   PLongint = System.PLongint;
-  PInteger = System.PInteger;
   PSmallInt = System.PSmallInt;
   PDouble = System.PDouble;
   PByte = System.PByte;
