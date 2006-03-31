@@ -2163,7 +2163,14 @@ begin
 
   { maybe override assembler }
   if (paratargetasm<>as_none) then
-    set_target_asm(paratargetasm);
+    begin
+      if not set_target_asm(paratargetasm) then
+        begin
+          Message2(option_incompatible_asm,asminfos[paratargetasm]^.idtxt,target_info.name);
+          set_target_asm(target_info.assemextern);
+          Message1(option_asm_forced,target_asm.idtxt);
+        end;
+    end;
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in initglobalswitches) and
@@ -2171,14 +2178,6 @@ begin
    begin
      Message(option_switch_bin_to_src_assembler);
      set_target_asm(target_info.assemextern);
-   end;
-
-  if (target_asm.supported_target <> system_any) and
-     (target_asm.supported_target <> target_info.system) then
-   begin
-     Message2(option_incompatible_asm,target_asm.idtxt,target_info.name);
-     set_target_asm(target_info.assemextern);
-     Message1(option_asm_forced,target_asm.idtxt);
    end;
 
   { disable internal linker if it is not registered }
