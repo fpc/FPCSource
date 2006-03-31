@@ -196,7 +196,7 @@ end;
 
 Type
   TPipeEnd = (peRead,peWrite);
-  TPipePair = Array[TPipeEnd] of Integer;
+  TPipePair = Array[TPipeEnd] of cint;
 
 Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
 
@@ -284,12 +284,17 @@ begin
              ChDir(FCurrentDirectory);
           if PoUsePipes in Options then
             begin
+            fpclose(HI[peWrite]);
             fpdup2(HI[peRead],0);
+            fpclose(HO[peRead]);
             fpdup2(HO[peWrite],1);
             if (poStdErrToOutPut in Options) then
               fpdup2(HO[peWrite],2)
-            else
+            else 
+              begin
+              fpclose(HE[peRead]);
               fpdup2(HE[peWrite],2);
+              end
             end
           else if poNoConsole in Options then
             begin
