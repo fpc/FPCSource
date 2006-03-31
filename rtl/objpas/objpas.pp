@@ -71,11 +71,11 @@ unit objpas;
 ****************************************************************************}
 
    type
-     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint) : AnsiString;
+     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint;arg:pointer) : AnsiString;
 
    Function Hash(S : AnsiString) : longint;
    Procedure ResetResourceTables;
-   Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+   Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
    Function ResourceStringTableCount : Longint;
    Function ResourceStringCount(TableIndex : longint) : longint;
    Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
@@ -276,7 +276,7 @@ begin
 end;
 *)
 
-Procedure SetResourceStrings (SetFunction :  TResourceIterator);
+Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 
 Var I,J : longint;
 
@@ -286,7 +286,7 @@ begin
       With Tables[I]^ do
          For J:=0 to Count-1 do
            With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,HashValue);
+             CurrentValue:=SetFunction(Name,DefaultValue,HashValue,arg);
 end;
 
 
