@@ -149,7 +149,11 @@ uses
         resstrlab : tasmsymbol;
         R : TResourceStringItem;
       begin
-        current_asmdata.asmlists[al_resourcestrings].concat(Tai_cutobject.Create_begin);
+        { Put resourcestrings in a new objectfile. Putting it in multiple files
+	  makes the linking too dependent on the linker script requiring a SORT(*) for
+	  the data sections }
+        maybe_new_object_file(current_asmdata.asmlists[al_const]);
+        maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+current_module.localsymtable.name^+'_start',sizeof(aint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
@@ -168,7 +172,6 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            maybe_new_object_file(current_asmdata.asmlists[al_const]);
             new_section(current_asmdata.asmlists[al_const],sec_rodata,'resstrdata_'+R.name,sizeof(aint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
@@ -187,7 +190,6 @@ uses
                      HashValue    : LongWord;
                    end;
             }
-            current_asmdata.asmlists[al_resourcestrings].concat(Tai_cutobject.Create);
             new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+r.name,sizeof(aint));
             resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
@@ -201,7 +203,6 @@ uses
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
             R:=TResourceStringItem(R.Next);
           end;
-        current_asmdata.asmlists[al_resourcestrings].concat(Tai_cutobject.Create_end);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+current_module.localsymtable.name^+'_end',sizeof(aint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'END'),AT_DATA,0));
