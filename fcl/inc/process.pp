@@ -90,10 +90,14 @@ Type
     FStderrStream : TInputPipeStream;
     procedure CloseProcessHandles; virtual;
     Procedure CreateStreams(InHandle,OutHandle,ErrHandle : Longint);virtual;
+    procedure FreeStream(var AStream: THandleStream);
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
     Procedure Execute; virtual;
+    procedure CloseInput; virtual;
+    procedure CloseOutput; virtual;
+    procedure CloseStderr; virtual;
     Function Resume : Integer; virtual;
     Function Suspend : Integer; virtual;
     Function Terminate (AExitCode : Integer): Boolean; virtual;
@@ -156,17 +160,6 @@ begin
 end;
 
 Procedure TProcess.FreeStreams;
-
-  procedure FreeStream(var S: THandleStream);
-
-  begin
-    if (S<>Nil) then
-      begin
-      FileClose(S.Handle);
-      FreeAndNil(S);
-      end;
-  end;
-
 begin
   If FStderrStream<>FOutputStream then
     FreeStream(FStderrStream);
@@ -203,6 +196,27 @@ begin
     FStderrStream:=TInputPipeStream.Create(ErrHandle);
 end;
 
+procedure TProcess.FreeStream(var AStream: THandleStream);
+begin
+  if AStream = nil then exit;
+  FileClose(AStream.Handle);
+  FreeAndNil(AStream);
+end;
+
+procedure TProcess.CloseInput;
+begin
+  FreeStream(FInputStream);
+end;
+
+procedure TProcess.CloseOutput;
+begin
+  FreeStream(FOutputStream);
+end;
+
+procedure TProcess.CloseStderr;
+begin
+  FreeStream(FStderrStream);
+end;
 
 Procedure TProcess.SetWindowColumns (Value : Cardinal);
 
