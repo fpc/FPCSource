@@ -902,6 +902,8 @@ const win32stub : array[0..131] of byte=(
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_RVA);
                       inc(data,symaddr);
                     end;
+                  else
+                    internalerror(200604013);
                 end;
               end
             else
@@ -1432,7 +1434,7 @@ const win32stub : array[0..131] of byte=(
 {$endif i386}
 {$ifdef x86_64}
              IMAGE_REL_AMD64_REL32:
-                 rel_type:=RELOC_RELATIVE;
+               rel_type:=RELOC_RELATIVE;
              IMAGE_REL_AMD64_ADDR32:
                rel_type:=RELOC_ABSOLUTE32;
              IMAGE_REL_AMD64_ADDR64:
