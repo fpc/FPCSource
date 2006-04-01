@@ -773,7 +773,9 @@ const win32stub : array[0..131] of byte=(
                     dec(address,TCoffObjSection(relocsec).orgmempos);
                   inc(address,relocval);
                 end;
+{$ifdef x86_64}
               RELOC_ABSOLUTE32,
+{$endif x86_64}
               RELOC_ABSOLUTE :
                 begin
                   if oso_common in relocsec.secoptions then
