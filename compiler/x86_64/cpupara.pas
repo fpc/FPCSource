@@ -61,6 +61,9 @@ unit cpupara;
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
       parammsupregs : array[0..7] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7);
 
+      paraintsupregs_winx64 : array[0..3] of tsuperregister = (RS_RCX,RS_RDX,RS_R8,RS_R9);
+      parammsupregs_winx64 : array[0..3] of tsuperregister = (RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3);
+
     procedure getvalueparaloc(p : tdef;var loc1,loc2:tcgloc);
       begin
         loc1:=LOC_INVALID;
@@ -233,18 +236,37 @@ unit cpupara;
         with paraloc^ do
          begin
            size:=OS_INT;
-           if nr<1 then
-             internalerror(200304303)
-           else if nr<=high(paraintsupregs)+1 then
+           if target_info.system=system_x86_64_win64 then
              begin
-                loc:=LOC_REGISTER;
-                register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],R_SUBWHOLE);
+               if nr<1 then
+                 internalerror(200304303)
+               else if nr<=high(paraintsupregs_winx64)+1 then
+                 begin
+                    loc:=LOC_REGISTER;
+                    register:=newreg(R_INTREGISTER,paraintsupregs_winx64[nr-1],R_SUBWHOLE);
+                 end
+               else
+                 begin
+                    loc:=LOC_REFERENCE;
+                    reference.index:=NR_STACK_POINTER_REG;
+                    reference.offset:=(nr-6)*sizeof(aint);
+                 end;
              end
            else
              begin
-                loc:=LOC_REFERENCE;
-                reference.index:=NR_STACK_POINTER_REG;
-                reference.offset:=(nr-6)*sizeof(aint);
+               if nr<1 then
+                 internalerror(200304303)
+               else if nr<=high(paraintsupregs)+1 then
+                 begin
+                    loc:=LOC_REGISTER;
+                    register:=newreg(R_INTREGISTER,paraintsupregs[nr-1],R_SUBWHOLE);
+                 end
+               else
+                 begin
+                    loc:=LOC_REFERENCE;
+                    reference.index:=NR_STACK_POINTER_REG;
+                    reference.offset:=(nr-6)*sizeof(aint);
+                 end;
              end;
           end;
       end;
@@ -357,12 +379,20 @@ unit cpupara;
                     case loc[locidx] of
                       LOC_REGISTER :
                         begin
-                          if (intparareg>high(paraintsupregs)) then
+                          { winx64 uses different registers }
+                          if ((target_info.system=system_x86_64_win64) and
+                            (intparareg>high(paraintsupregs_winx64))) or
+                            ((target_info.system<>system_x86_64_win64) and
+                            (intparareg>high(paraintsupregs))) then
                             loc[locidx]:=LOC_REFERENCE;
                         end;
                       LOC_MMREGISTER :
                         begin
-                          if (mmparareg>high(parammsupregs)) then
+                          { winx64 uses different registers }
+                          if ((target_info.system=system_x86_64_win64) and
+                            (intparareg>high(parammsupregs_winx64))) or
+                            ((target_info.system<>system_x86_64_win64) and
+                            (intparareg>high(parammsupregs))) then
                             loc[locidx]:=LOC_REFERENCE;
                         end;
                     end;
@@ -385,7 +415,13 @@ unit cpupara;
                                 paraloc^.size:=OS_64;
                               subreg:=cgsize2subreg(paraloc^.size);
                             end;
-                          paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
+
+                          { winx64 uses different registers }
+                          if target_info.system=system_x86_64_win64 then
+                            paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs_winx64[intparareg],subreg)
+                          else
+                            paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
+
                           inc(intparareg);
                           dec(paralen,tcgsize2size[paraloc^.size]);
                         end;
@@ -393,7 +429,12 @@ unit cpupara;
                         begin
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_MMREGISTER;
-                          paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
+
+                          { winx64 uses different registers }
+                          if target_info.system=system_x86_64_win64 then
+                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],R_SUBNONE)
+                          else
+                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
                           if paracgsize=OS_F128 then
                             paraloc^.size:=OS_F64
                           else
