@@ -773,6 +773,7 @@ const win32stub : array[0..131] of byte=(
                     dec(address,TCoffObjSection(relocsec).orgmempos);
                   inc(address,relocval);
                 end;
+              RELOC_ABSOLUTE32,
               RELOC_ABSOLUTE :
                 begin
                   if oso_common in relocsec.secoptions then
@@ -786,6 +787,8 @@ const win32stub : array[0..131] of byte=(
                   inc(address,relocval);
                   inc(address,relocsec.objdata.imagebase);
                 end;
+              else
+                internalerror(200604014);
             end;
             data.Seek(r.dataoffset);
             data.Write(address,4);
