@@ -249,6 +249,7 @@ interface
         function  newObjData(const n:string):TObjData;
         function  readobjectfile(const fn:string;Data:TObjData):boolean;virtual;
         property Reader:TObjectReader read FReader;
+        procedure inputerror(const s : string);
       end;
       TObjInputClass=class of TObjInput;
 
@@ -1902,5 +1903,9 @@ implementation
          end;
       end;
 
+    procedure TObjInput.inputerror(const s : string);
+      begin
+        Comment(V_Error,s+' while reading '+reader.filename);
+      end;
 
 end.

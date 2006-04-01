@@ -60,6 +60,7 @@ type
     bufidx,
     bufmax : longint;
     function readbuf:boolean;
+    function getfilename : string;
   public
     constructor create;
     destructor  destroy;override;
@@ -68,6 +69,7 @@ type
     procedure seek(len:longint);
     function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
+    property filename : string read getfilename;
   end;
 
 implementation
@@ -339,5 +341,9 @@ begin
   readarray:=(idx=orglen);
 end;
 
+function tobjectreader.getfilename : string;
+  begin
+    result:=f.filename;
+  end;
 
 end.

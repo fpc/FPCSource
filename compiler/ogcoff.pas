@@ -223,15 +223,15 @@ implementation
 
     const
 {$ifdef i386}
-       COFF_MAGIC = $14c;
+       COFF_MAGIC       = $14c;
        COFF_OPT_MAGIC   = $10b;
 {$endif i386}
 {$ifdef arm}
-       COFF_MAGIC = $1c0;
+       COFF_MAGIC       = $1c0;
        COFF_OPT_MAGIC   = $10b;
 {$endif arm}
 {$ifdef x86_64}
-       COFF_MAGIC = $14c;
+       COFF_MAGIC       = $8664;
        COFF_OPT_MAGIC   = $20b;
 {$endif x86_64}
 
@@ -1360,7 +1360,7 @@ const win32stub : array[0..131] of byte=(
         result:=nil;
         if (secidx<1) or (secidx>FSecCount) then
           begin
-            Comment(V_Error,'Error reading coff file, invalid section index');
+            InputError('Failed reading coff file, invalid section index');
             exit;
           end;
         result:=FSecTbl^[secidx];
@@ -1394,7 +1394,7 @@ const win32stub : array[0..131] of byte=(
              $07 : rel_type:=RELOC_RVA;
            else
              begin
-               Comment(V_Error,'Error reading coff file');
+               InputError('Failed reading coff file, illegal reloctype $'+system.hexstr(rel.reloctype,4));
                exit;
              end;
            end;
@@ -1408,7 +1408,7 @@ const win32stub : array[0..131] of byte=(
             end
            else
             begin
-              Comment(V_Error,'Error reading coff file');
+              InputError('Failed reading coff file, can''t resolve symbol of relocation');
               exit;
             end;
          end;
@@ -1507,7 +1507,7 @@ const win32stub : array[0..131] of byte=(
                 COFF_SYM_SECTION :
                   begin
                     if sym.section=0 then
-                      Comment(V_Error,'Error reading coff file');
+                      InputError('Failed reading coff file, illegal section');
                     objsec:=GetSection(sym.section);
                     if sym.value>=objsec.mempos then
                       address:=sym.value-objsec.mempos;
@@ -1552,7 +1552,7 @@ const win32stub : array[0..131] of byte=(
                 Reader.Seek(datapos);
                 if not Reader.ReadArray(data,Size) then
                   begin
-                    Comment(V_Error,'Error reading coff file');
+                    Comment(V_Error,'Error reading coff file, can''t read object data');
                     exit;
                   end;
               end;
@@ -1600,12 +1600,12 @@ const win32stub : array[0..131] of byte=(
            { Read COFF header }
            if not reader.read(header,sizeof(coffheader)) then
              begin
-               Comment(V_Error,'Error reading coff file');
+               Comment(V_Error,'Error reading coff file, can''t read header: '+reader.filename);
                exit;
              end;
            if header.mach<>COFF_MAGIC then
              begin
-               Comment(V_Error,'Not a coff file');
+               Comment(V_Error,'Not a coff file, illegal magic: '+reader.filename);
                exit;
              end;
            { Strings }
@@ -1622,7 +1622,7 @@ const win32stub : array[0..131] of byte=(
              end;
            if not Reader.ReadArray(FCoffStrs,Strsize-4) then
              begin
-               Comment(V_Error,'Error reading coff file');
+               Comment(V_Error,'Error reading coff file: '+reader.filename);
                exit;
              end;
            { Section headers }
@@ -1635,7 +1635,7 @@ const win32stub : array[0..131] of byte=(
              begin
                if not reader.read(sechdr,sizeof(sechdr)) then
                 begin
-                  Comment(V_Error,'Error reading coff file');
+                  Comment(V_Error,'Error reading coff file, can''t read section header: '+reader.filename);
                   exit;
                 end;
                move(sechdr.name,secnamebuf,8);
