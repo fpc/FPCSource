@@ -1472,50 +1472,43 @@ type
 
   PBufBookmark = ^TBufBookmark;
   TBufBookmark = record
-    BookmarkData : integer;
+    BookmarkData : Pointer;
     BookmarkFlag : TBookmarkFlag;
   end;
-
-  PFieldUpdateBuffer = ^TFieldUpdateBuffer;
-  TFieldUpdateBuffer = record
-    FieldNo      : integer;
-    NewValue     : pointer;
-    IsNull       : boolean;
+  
+  PBufRecLinkItem = ^TBufRecLinkItem;
+  TBufRecLinkItem = record
+    prior   : PBufRecLinkItem;
+    next    : PBufRecLinkItem;
   end;
-
-  TFieldsUpdateBuffer = array of TFieldUpdateBuffer;
 
   PRecUpdateBuffer = ^TRecUpdateBuffer;
   TRecUpdateBuffer = record
-    RecordNo           : integer;
-    FieldsUpdateBuffer : TFieldsUpdateBuffer;
     UpdateKind         : TUpdateKind;
+    BookmarkData       : pointer;
+    OldValuesBuffer    : pchar;
   end;
 
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
   TBufDataset = class(TDBDataSet)
   private
-    FBBuffers       : TBufferArray;
-    FBRecordCount   : integer;
-    FBBufferCount   : integer;
-    FBCurrentRecord : integer;
-    FIsEOF          : boolean;
-    FIsBOF          : boolean;
+    FCurrentRecBuf  : PBufRecLinkItem;
+    FLastRecBuf     : PBufRecLinkItem;
+    FFirstRecBuf    : PBufRecLinkItem;
+
     FPacketRecords  : integer;
     FRecordSize     : Integer;
     FNullmaskSize   : byte;
     FOpen           : Boolean;
     FUpdateBuffer   : TRecordsUpdateBuffer;
-    FEditBuf        : PRecUpdateBuffer;
-    FApplyingUpdates: boolean;
-    FBDeletedRecords: integer;
+    FCurrentUpdateBuffer : integer;
+
     FFieldBufPositions : array of longint;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
-    function GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
-    function GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
+    function GetRecordUpdateBuffer : boolean;
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
   protected
@@ -1531,9 +1524,6 @@ type
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
     procedure InternalPost; override;
-    procedure InternalCancel; override;
-    procedure InternalEdit; override;
-    procedure InternalInsert; override;
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
