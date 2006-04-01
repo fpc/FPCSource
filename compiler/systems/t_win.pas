@@ -283,12 +283,12 @@ implementation
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
            begin
-           { Get labels for the sections }
+             { Get labels for the sections }
              current_asmdata.getdatalabel(lhead);
              current_asmdata.getdatalabel(lname);
              current_asmdata.getaddrlabel(lidata4);
              current_asmdata.getaddrlabel(lidata5);
-           { create header for this importmodule }
+             { create header for this importmodule }
              current_asmdata.asmlists[al_imports].concat(Tai_cutobject.Create_begin);
              new_section(current_asmdata.asmlists[al_imports],sec_idata2,'',0);
              current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lhead));
@@ -353,12 +353,14 @@ implementation
                  current_asmdata.getjumplabel(tasmlabel(hp2.lab));
                  new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
                  current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                 if target_info.system=system_x86_64_win64 then
+                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
                  { add jump field to al_imports }
                  new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
                  if hp2.is_var then
-                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
+                   current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_FUNCTION,0))
                  else
-                  current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lcode));
+                   current_asmdata.asmlists[al_imports].concat(Tai_label.Create(lcode));
                  if (cs_debuginfo in aktmoduleswitches) then
                   begin
                     if assigned(hp2.name) then
@@ -385,9 +387,19 @@ implementation
                       end;
                   end;
                  if hp2.name^<>'' then
-                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
+                   begin
+                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                     if target_info.system=system_x86_64_win64 then
+                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+                   end
                  else
-                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or longint(hp2.ordnr)));
+                   begin
+                     if target_info.system=system_x86_64_win64 then
+                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_64bit(int64($8000000000000000) or int64(hp2.ordnr)))
+                     else
+                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or longint(hp2.ordnr)));
+                   end;
+
                  { finally the import information }
                  new_section(current_asmdata.asmlists[al_imports],sec_idata6,'',0);
                  current_asmdata.asmlists[al_imports].concat(Tai_label.Create(hp2.lab));
@@ -402,6 +414,8 @@ implementation
               { end of name references }
               new_section(current_asmdata.asmlists[al_imports],sec_idata4,'',0);
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+              if target_info.system=system_x86_64_win64 then
+                current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
               { end if addresses }
               new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
@@ -462,17 +476,29 @@ implementation
                 begin
                    current_asmdata.getjumplabel(tasmlabel(hp2.lab));
                    if hp2.name^<>'' then
-                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab))
+                     begin
+                       current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                       if target_info.system=system_x86_64_win64 then
+                         current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+                     end
                    else
-                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or hp2.ordnr));
+                     begin
+                       if target_info.system=system_x86_64_win64 then
+                         current_asmdata.asmlists[al_imports].concat(Tai_const.Create_64bit(int64($8000000000000000) or hp2.ordnr))
+                       else
+                         current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(longint($80000000) or hp2.ordnr));
+                     end;
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the names ... }
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+              if target_info.system=system_x86_64_win64 then
+                current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
               { then the addresses and create also the indirect jump }
               new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
               current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l3));
+
               hp2:=twin32imported_item(hp1.imported_items.first);
               while assigned(hp2) do
                 begin
@@ -538,10 +564,14 @@ implementation
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.func^,AT_DATA,0));
                     end;
                    current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(hp2.lab));
+                   if target_info.system=system_x86_64_win64 then
+                     current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
                    hp2:=twin32imported_item(hp2.next);
                 end;
               { finalize the addresses }
               current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
+              if target_info.system=system_x86_64_win64 then
+                current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));
 
               { finally the import information }
               new_section(current_asmdata.asmlists[al_imports],sec_idata6,'',0);

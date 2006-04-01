@@ -1124,7 +1124,11 @@ Implementation
                          ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
                    aitconst_rva_symbol :
-                     ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
+                     { PE32+? }
+                     if target_info.system=system_x86_64_win64 then
+                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
+                     else
+                       ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                    aitconst_uleb128bit :
                      begin
                        leblen:=EncodeUleb128(Tai_const(hp).value,lebbuf);

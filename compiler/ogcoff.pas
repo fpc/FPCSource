@@ -1996,7 +1996,7 @@ const win32stub : array[0..131] of byte=(
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_RELOCS_STRIPPED or
-                         {PE_FILE_BYTES_REVERSED_LO or }PE_FILE_32BIT_MACHINE or
+                         {PE_FILE_BYTES_REVERSED_LO or }
                          PE_FILE_LINE_NUMS_STRIPPED;
             if FindExeSection('.stab')=nil then
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
@@ -2005,6 +2005,10 @@ const win32stub : array[0..131] of byte=(
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
+
+        if target_info.system in [system_i386_win32,system_arm_wince,system_i386_wince] then
+          header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
+
         FWriter.write(header,sizeof(header));
         { Optional COFF Header }
         if win32 then
@@ -2172,11 +2176,11 @@ const win32stub : array[0..131] of byte=(
           idata7label:=internalobjdata.SymbolDefine('__imp_dll_'+basedllname,AB_LOCAL,AT_DATA);
           { idata2 }
           internalobjdata.SetSection(idata2objsection);
-          internalobjdata.writereloc(0,sizeof(aint),idata4label,RELOC_RVA);
+          internalobjdata.writereloc(0,sizeof(longint),idata4label,RELOC_RVA);
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
-          internalobjdata.writereloc(0,sizeof(aint),idata7label,RELOC_RVA);
-          internalobjdata.writereloc(0,sizeof(aint),idata5label,RELOC_RVA);
+          internalobjdata.writereloc(0,sizeof(longint),idata7label,RELOC_RVA);
+          internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_RVA);
           { idata7 }
           internalobjdata.SetSection(idata7objsection);
           internalobjdata.writebytes(basedllname[1],length(basedllname));
@@ -2191,9 +2195,13 @@ const win32stub : array[0..131] of byte=(
           { idata4 }
           internalobjdata.SetSection(idata4objsection);
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          if target_info.system=system_x86_64_win64 then
+            internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { idata5 }
           internalobjdata.SetSection(idata5objsection);
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          if target_info.system=system_x86_64_win64 then
+            internalobjdata.writebytes(emptyint,sizeof(emptyint));
         end;
 
         function AddProcImport(const afuncname:string):TObjSymbol;
@@ -2225,11 +2233,16 @@ const win32stub : array[0..131] of byte=(
           internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
-          internalobjdata.writereloc(0,sizeof(aint),idata6label,RELOC_RVA);
+          internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+          internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          if target_info.system=system_x86_64_win64 then
+            internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
           idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
-          internalobjdata.writereloc(0,sizeof(aint),idata6label,RELOC_RVA);
+          internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+          if target_info.system=system_x86_64_win64 then
+            internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { text, jmp }
           internalobjdata.SetSection(textobjsection);
           result:=internalobjdata.SymbolDefine('_'+afuncname,AB_GLOBAL,AT_FUNCTION);
