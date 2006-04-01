@@ -327,7 +327,25 @@ implementation
        PE_DATADIR_IMPORTADDRESSTABLE = 12;
        PE_DATADIR_DELAYIMPORT = 13;
 
-    type
+       IMAGE_REL_AMD64_ABSOLUTE    = $0000;  { Reference is absolute, no relocation is necessary }
+       IMAGE_REL_AMD64_ADDR64      = $0001;  { 64-bit address (VA). }
+       IMAGE_REL_AMD64_ADDR32      = $0002;  { 32-bit address (VA). }
+       IMAGE_REL_AMD64_ADDR32NB    = $0003;  { 32-bit address w/o image base (RVA). }
+       IMAGE_REL_AMD64_REL32       = $0004;  { 32-bit relative address from byte following reloc }
+       IMAGE_REL_AMD64_REL32_1     = $0005;  { 32-bit relative address from byte distance 1 from reloc }
+       IMAGE_REL_AMD64_REL32_2     = $0006;  { 32-bit relative address from byte distance 2 from reloc }
+       IMAGE_REL_AMD64_REL32_3     = $0007;  { 32-bit relative address from byte distance 3 from reloc }
+       IMAGE_REL_AMD64_REL32_4     = $0008;  { 32-bit relative address from byte distance 4 from reloc }
+       IMAGE_REL_AMD64_REL32_5     = $0009;  { 32-bit relative address from byte distance 5 from reloc }
+       IMAGE_REL_AMD64_SECTION     = $000A;  { Section index }
+       IMAGE_REL_AMD64_SECREL      = $000B;  { 32 bit offset from base of section containing target }
+       IMAGE_REL_AMD64_SECREL7     = $000C;  { 7 bit unsigned offset from base of section containing target }
+       IMAGE_REL_AMD64_TOKEN       = $000D;  { 32 bit metadata token }
+       IMAGE_REL_AMD64_SREL32      = $000E;  { 32 bit signed span-dependent value emitted into object }
+       IMAGE_REL_AMD64_PAIR        = $000F;
+       IMAGE_REL_AMD64_SSPAN32     = $0010;  { 32 bit signed span-dependent value applied at link time }
+
+       type
        { Structures which are written directly to the output file }
        coffheader=packed record
          mach   : word;
@@ -1108,6 +1126,7 @@ const win32stub : array[0..131] of byte=(
               else
                rel.sym:=0;
             end;
+{$ifdef i386}
            case r.typ of
              RELOC_RELATIVE :
                rel.reloctype:=$14;
@@ -1115,7 +1134,24 @@ const win32stub : array[0..131] of byte=(
                rel.reloctype:=$6;
              RELOC_RVA :
                rel.reloctype:=$7;
+             else
+               internalerror(200604011);
            end;
+{$endif i386}
+{$ifdef x86_64}
+           case r.typ of
+             RELOC_RELATIVE :
+               rel.reloctype:=IMAGE_REL_AMD64_REL32;
+             RELOC_ABSOLUTE32 :
+               rel.reloctype:=IMAGE_REL_AMD64_ADDR32;
+             RELOC_ABSOLUTE :
+               rel.reloctype:=IMAGE_REL_AMD64_ADDR64;
+             RELOC_RVA :
+               rel.reloctype:=IMAGE_REL_AMD64_ADDR32NB;
+             else
+               internalerror(200604012);
+           end;
+{$endif x86_64}
            FWriter.write(rel,sizeof(rel));
            r:=TObjRelocation(r.next);
          end;
@@ -1389,9 +1425,21 @@ const win32stub : array[0..131] of byte=(
          begin
            FReader.read(rel,sizeof(rel));
            case rel.reloctype of
+{$ifdef i386}
              $14 : rel_type:=RELOC_RELATIVE;
              $06 : rel_type:=RELOC_ABSOLUTE;
              $07 : rel_type:=RELOC_RVA;
+{$endif i386}
+{$ifdef x86_64}
+             IMAGE_REL_AMD64_REL32:
+                 rel_type:=RELOC_RELATIVE;
+             IMAGE_REL_AMD64_ADDR32:
+               rel_type:=RELOC_ABSOLUTE32;
+             IMAGE_REL_AMD64_ADDR64:
+               rel_type:=RELOC_ABSOLUTE;
+             IMAGE_REL_AMD64_ADDR32NB:
+               rel_type:=RELOC_RVA;
+{$endif x86_64}
            else
              begin
                InputError('Failed reading coff file, illegal reloctype $'+system.hexstr(rel.reloctype,4));
