@@ -50,7 +50,6 @@ end;
 function TBufDataset.AllocRecordBuffer: PChar;
 begin
   result := AllocMem(FRecordsize + sizeof(TBufBookmark));
-  result^ := #1; // this 'deletes' the record
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -102,36 +101,18 @@ begin
     FCurrentRecBuf := FLastRecBuf;
 end;
 
-procedure unSetDeleted(NullMask : pbyte); //inline;
-begin
-  NullMask[0] := NullMask[0] and not 1;
-end;
-
-procedure SetDeleted(NullMask : pbyte); //inline;
-begin
-  NullMask[0] := NullMask[0] or 1;
-end;
-
-function GetDeleted(NullMask : pbyte) : boolean; //inline;
-begin
-  result := (NullMask[0] and 1) = 1;
-end;
-
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
-  inc(x);
   NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
 end;
 
 procedure SetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
-  inc(x);
   NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
 end;
 
 function GetFieldIsNull(NullMask : pbyte;x : longint) : boolean; //inline;
 begin
-  inc(x);
   result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
 end;
 
@@ -327,7 +308,7 @@ begin
     else
       begin
       CurrBuff := ActiveBuffer;
-      if not assigned(CurrBuff) or GetDeleted(pbyte(CurrBuff)) then
+      if not assigned(CurrBuff) then
         begin
         result := false;
         exit;
@@ -388,7 +369,6 @@ var RecToDelete : PBufRecLinkItem;
 
 begin
   GetBookmarkData(ActiveBuffer,@RecToDelete);
-  SetDeleted(pbyte(ActiveBuffer));
 
   if RecToDelete <> FFirstRecBuf then RecToDelete^.prior^.next := RecToDelete^.next
   else FFirstRecBuf := RecToDelete^.next;
@@ -561,7 +541,7 @@ procedure TBufDataset.CalcRecordSize;
 var x : longint;
 
 begin
-  FNullmaskSize := 1+((FieldDefs.count) div 8);
+  FNullmaskSize := 1+((FieldDefs.count-1) div 8);
   FRecordSize := FNullmaskSize;
   SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
@@ -583,7 +563,6 @@ begin
   FillChar(Buffer^, FRecordSize, #0);
 
   fillchar(Buffer^,FNullmaskSize,255);
-  unSetDeleted(pbyte(Buffer));
 end;
 
 procedure TBufDataset.SetRecNo(Value: Longint);
