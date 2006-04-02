@@ -1013,8 +1013,6 @@ Implementation
                  if assigned(Tai_stab(hp).str) then
                    convertstab(Tai_stab(hp).str);
                end;
-             ait_function_name,
-             ait_force_line : ;
              ait_symbol :
                ObjData.SymbolDefine(Tai_symbol(hp).sym);
              ait_symbol_end :
@@ -1051,7 +1049,9 @@ Implementation
 {$ifdef x86}
         co : comp;
 {$endif x86}
+        hs : string;
         objsym,
+        objsymparent,
         objsymend : TObjSymbol;
         leblen : byte;
         lebbuf : array[0..63] of byte;

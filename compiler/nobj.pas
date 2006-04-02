@@ -1209,6 +1209,8 @@ implementation
          vmtentry : pvmtentry;
          procdefcoll : pprocdefcoll;
          i : longint;
+         procname,
+         hs : string;
       begin
          { walk trough all numbers for virtual methods and search }
          { the method                                             }
@@ -1224,18 +1226,17 @@ implementation
                      begin
                         { writes the addresses to the VMT }
                         { but only this which are declared as virtual }
-                        if procdefcoll^.data.extnumber=i then
+                        if (procdefcoll^.data.extnumber=i) and
+                           (po_virtualmethod in procdefcoll^.data.procoptions) then
                           begin
-                             if (po_virtualmethod in procdefcoll^.data.procoptions) then
-                               begin
-                                  { if a method is abstract, then is also the }
-                                  { class abstract and it's not allow to      }
-                                  { generates an instance                     }
-                                  if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                                    List.concat(Tai_const.Createname('FPC_ABSTRACTERROR',0))
-                                  else
-                                    List.concat(Tai_const.createname(procdefcoll^.data.mangledname,0));
-                               end;
+                            if (po_abstractmethod in procdefcoll^.data.procoptions) then
+                              procname:='FPC_ABSTRACTERROR'
+                            else
+                              procname:=procdefcoll^.data.mangledname;
+                            List.concat(Tai_const.createname(procname,0));
+                            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
+                            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+                            break;
                           end;
                         procdefcoll:=procdefcoll^.next;
                      end;
@@ -1255,6 +1256,7 @@ implementation
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
          interfacetable : tasmlabel;
+         hs : string;
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1356,6 +1358,13 @@ implementation
          current_asmdata.asmlists[al_globals].concat(Tai_const.create(aitconst_ptr,0));
          { write the size of the VMT }
          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
+         { write vtinherit symbol to notify the linker of the class inheritance tree }
+         hs:='VTINHERIT'+'_'+_class.vmt_mangledname+'$$';
+         if assigned(_class.childof) then
+           hs:=hs+_class.childof.vmt_mangledname
+         else
+           hs:=hs+_class.vmt_mangledname;
+         current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
       end;
 
 

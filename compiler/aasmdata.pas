@@ -122,6 +122,7 @@ interface
       public
         name,
         realname      : string[80];
+        NextVTEntryNr : longint;
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
