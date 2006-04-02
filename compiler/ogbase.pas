@@ -89,7 +89,7 @@ interface
 
      TObjSectionOptions = set of TObjSectionOption;
 
-     TObjSymbol = class(TNamedIndexItem)
+     TObjSymbol = class(TFPHashObject)
      public
        bind       : TAsmsymbind;
        typ        : TAsmsymtype;
@@ -101,7 +101,7 @@ interface
        size       : aint;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
-       constructor create(const s:string);
+       constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aint;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
      end;
@@ -127,7 +127,7 @@ interface
         constructor CreateSection(ADataOffset:aint;aobjsec:TObjSection;Atyp:TObjRelocationType);
      end;
 
-     TObjSection = class(TNamedIndexItem)
+     TObjSection = class(TFPHashObject)
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
@@ -149,7 +149,7 @@ interface
        ExeSection  : TExeSection;
        Used       : boolean;
        VTRefList : TFPObjectList;
-       constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
+       constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
        function  write(const d;l:aint):aint;
        function  writestr(const s:string):aint;
@@ -172,14 +172,10 @@ interface
      private
        FName       : string[80];
        FCurrObjSec : TObjSection;
-       { ObjSections will be stored in order in SectsIndex, this is at least
-         required for stabs debuginfo. The SectsDict is only used for lookups (PFV) }
-       FObjSectionDict  : TDictionary;
-       FObjSectionList  : TFPObjectList;
+       FObjSectionList  : TFPHashObjectList;
        FCObjSection     : TObjSectionClass;
        { Symbols that will be defined in this object file }
-       FObjSymbolList    : TFPObjectList;
-       FObjSymbolDict    : TDictionary;
+       FObjSymbolList    : TFPHashObjectList;
        FCachedAsmSymbolList : TFPObjectList;
        { Special info sections that are written to during object generation }
        FStabsObjSec,
@@ -226,8 +222,8 @@ interface
        procedure resetsections;
        property Name:string[80] read FName;
        property CurrObjSec:TObjSection read FCurrObjSec;
-       property ObjSymbolList:TFPObjectList read FObjSymbolList;
-       property ObjSectionList:TFPObjectList read FObjSectionList;
+       property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
+       property ObjSectionList:TFPHashObjectList read FObjSectionList;
      end;
      TObjDataClass = class of TObjData;
 
@@ -293,15 +289,14 @@ interface
         function  VTableRef(VTableIdx:Longint):TObjRelocation;
       end;
 
-      TExeSymbol = class(TNamedIndexItem)
+      TExeSymbol = class(TFPHashObject)
         ObjSymbol  : TObjSymbol;
         ExeSection : TExeSection;
         { Used for vmt references optimization }
         VTable     : TExeVTable;
-        constructor create(sym:TObjSymbol);
       end;
 
-      TExeSection = class(tnamedindexitem)
+      TExeSection = class(TFPHashObject)
       private
         FSecSymIdx : longint;
         FObjSectionList : TFPObjectList;
@@ -311,7 +306,7 @@ interface
         MemPos     : aint;
         SecAlign   : shortint;
         SecOptions : TObjSectionOptions;
-        constructor create(const n:string);virtual;
+        constructor create(AList:TFPHashObjectList;const AName:string);virtual;
         destructor  destroy;override;
         procedure AddObjSection(objsec:TObjSection);
         property ObjSectionList:TFPObjectList read FObjSectionList;
@@ -325,12 +320,10 @@ interface
         FCObjData         : TObjDataClass;
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
-        FExeSectionList   : TFPObjectList;
-        FExeSectionDict   : TDictionary;
+        FExeSectionList   : TFPHashObjectList;
         Fzeronr           : longint;
         { Symbols }
-        FExeSymbolDict    : TDictionary;
-        FExeSymbolList,
+        FExeSymbolList    : TFPHashObjectList;
         FUnresolvedExeSymbols : TFPObjectList;
         FExternalObjSymbols,
         FCommonObjSymbols   : TFPObjectList;
@@ -385,10 +378,9 @@ interface
         procedure ResolveExternals(const libname:string);virtual;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
-        property ExeSections:TFPObjectList read FExeSectionList;
+        property ExeSections:TFPHashObjectList read FExeSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
-        property ExeSymbolDict:TDictionary read FExeSymbolDict;
-        property ExeSymbolList:TFPObjectList read FExeSymbolList;
+        property ExeSymbolList:TFPHashObjectList read FExeSymbolList;
         property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
         property ExternalObjSymbols:TFPObjectList read FExternalObjSymbols;
         property CommonObjSymbols:TFPObjectList read FCommonObjSymbols;
@@ -411,16 +403,21 @@ implementation
       cutils,globals,verbose,fmodule,ogmap;
 
     const
-      sectionDatagrowsize = 1024;
+      sectionDatagrowsize = 256-sizeof(ptrint);
 
+{$ifdef MEMDEBUG}
+    var
+      memobjsymbols,
+      memobjsections : TMemDebug;
+{$endif MEMDEBUG}
 
 {*****************************************************************************
                                  TObjSymbol
 *****************************************************************************}
 
-    constructor TObjSymbol.create(const s:string);
+    constructor TObjSymbol.create(AList:TFPHashObjectList;const AName:string);
       begin;
-        inherited createname(s);
+        inherited create(AList,AName);
         bind:=AB_EXTERNAL;
         typ:=AT_NONE;
         symidx:=-1;
@@ -508,10 +505,9 @@ implementation
                               TObjSection
 ****************************************************************************}
 
-    constructor TObjSection.create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
+    constructor TObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
       begin
-        inherited createname(Aname);
-        name:=Aname;
+        inherited Create(AList,Aname);
         { Data }
         Size:=0;
         Datapos:=0;
@@ -670,17 +666,11 @@ implementation
       begin
         inherited create;
         FName:=SplitFileName(n);
-        { sections, the SectsIndex owns the items, the FObjSectionDict
-          is only used for lookups }
-        FObjSectionDict:=tdictionary.create;
-        FObjSectionDict.noclear:=true;
-        FObjSectionList:=TFPObjectList.Create(true);
+        FObjSectionList:=TFPHashObjectList.Create(true);
         FStabsObjSec:=nil;
         FStabStrObjSec:=nil;
         { symbols }
-        FObjSymbolDict:=tdictionary.create;
-        FObjSymbolDict.noclear:=true;
-        FObjSymbolList:=TFPObjectList.Create(true);
+        FObjSymbolList:=TFPHashObjectList.Create(true);
         FCachedAsmSymbolList:=TFPObjectList.Create(false);
         { section class type for creating of new sections }
         FCObjSection:=TObjSection;
@@ -695,20 +685,22 @@ implementation
       begin
 {$ifdef MEMDEBUG}
         d:=tmemdebug.create(name+' - ObjData symbols');
+        MemObjSymbols.Start;
 {$endif}
         ResetCachedAsmSymbols;
         FCachedAsmSymbolList.free;
-        FObjSymbolDict.free;
         FObjSymbolList.free;
 {$ifdef MEMDEBUG}
+        MemObjSymbols.Stop;
         d.free;
 {$endif}
 {$ifdef MEMDEBUG}
         d:=tmemdebug.create(name+' - ObjData sections');
+        MemObjSections.Start;
 {$endif}
-        FObjSectionDict.free;
         FObjSectionList.free;
 {$ifdef MEMDEBUG}
+        MemObjSections.Stop;
         d.free;
 {$endif}
         inherited destroy;
@@ -788,12 +780,10 @@ implementation
 
     function TObjData.createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions):TObjSection;
       begin
-        result:=TObjSection(FObjSectionDict.search(aname));
+        result:=TObjSection(FObjSectionList.Find(aname));
         if not assigned(result) then
           begin
-            result:=CObjSection.create(aname,aalign,aoptions);
-            FObjSectionDict.Insert(result);
-            FObjSectionList.Add(result);
+            result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions);
             result.ObjData:=self;
           end;
         FCurrObjSec:=result;
@@ -807,7 +797,7 @@ implementation
 
     function TObjData.FindSection(const aname:string):TObjSection;
       begin
-        result:=TObjSection(FObjSectionDict.Search(aname));
+        result:=TObjSection(FObjSectionList.Find(aname));
       end;
 
 
@@ -821,13 +811,9 @@ implementation
 
     function TObjData.createsymbol(const aname:string):TObjSymbol;
       begin
-        result:=TObjSymbol(FObjSymbolDict.search(aname));
+        result:=TObjSymbol(FObjSymbolList.Find(aname));
         if not assigned(result) then
-          begin
-            result:=TObjSymbol.Create(aname);
-            FObjSymbolDict.Insert(result);
-            FObjSymbolList.Add(result);
-          end;
+          result:=TObjSymbol.Create(FObjSymbolList,aname);
       end;
 
 
@@ -1173,23 +1159,12 @@ implementation
 
 
 {****************************************************************************
-                                 TExeSymbol
+                                TExeSection
 ****************************************************************************}
 
-    constructor TExeSymbol.create(sym:TObjSymbol);
+    constructor TExeSection.create(AList:TFPHashObjectList;const AName:string);
       begin
-        inherited createname(sym.name);
-        ObjSymbol:=sym;
-      end;
-
-
-{****************************************************************************
-                                tExeSection
-****************************************************************************}
-
-    constructor tExeSection.create(const n:string);
-      begin
-        inherited createname(n);
+        inherited create(AList,AName);
         Size:=0;
         MemPos:=0;
         DataPos:=0;
@@ -1198,14 +1173,14 @@ implementation
       end;
 
 
-    destructor tExeSection.destroy;
+    destructor TExeSection.destroy;
       begin
         ObjSectionList.Free;
         inherited destroy;
       end;
 
 
-    procedure tExeSection.AddObjSection(objsec:TObjSection);
+    procedure TExeSection.AddObjSection(objsec:TObjSection);
       begin
         ObjSectionList.Add(objsec);
         if (SecOptions<>[]) then
@@ -1236,19 +1211,14 @@ implementation
         { object files }
         FObjDataList:=TFPObjectList.Create(true);
         { symbols }
-        FExeSymbolDict:=tdictionary.create;
-        FExeSymbolDict.noclear:=true;
-        FExeSymbolDict.usehash;
-        FExeSymbolList:=TFPObjectList.Create(true);
+        FExeSymbolList:=TFPHashObjectList.Create(true);
         FUnresolvedExeSymbols:=TFPObjectList.Create(false);
         FExternalObjSymbols:=TFPObjectList.Create(false);
         FCommonObjSymbols:=TFPObjectList.Create(false);
         FExeVTableList:=TFPObjectList.Create(false);
         FEntryName:='start';
         { sections }
-        FExeSectionDict:=TDictionary.create;
-        FExeSectionDict.noclear:=true;
-        FExeSectionList:=TFPObjectList.Create(true);
+        FExeSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
         SectionMemAlign:=$1000;
         SectionDataAlign:=$200;
@@ -1259,13 +1229,11 @@ implementation
 
     destructor TExeOutput.destroy;
       begin
-        FExeSymbolDict.free;
         FExeSymbolList.free;
         UnresolvedExeSymbols.free;
         ExternalObjSymbols.free;
         CommonObjSymbols.free;
         ExeVTableList.free;
-        FExeSectionDict.free;
         FExeSectionList.free;
         ObjDatalist.free;
         FWriter.free;
@@ -1301,7 +1269,7 @@ implementation
 
     function  TExeOutput.FindExeSection(const aname:string):TExeSection;
       begin
-        result:=TExeSection(FExeSectionDict.Search(aname));
+        result:=TExeSection(FExeSectionList.Find(aname));
       end;
 
 
@@ -1347,11 +1315,7 @@ implementation
       begin
         sec:=FindExeSection(aname);
         if not assigned(sec) then
-          begin
-            sec:=CExeSection.create(aname);
-            FExeSectionDict.Insert(sec);
-            FExeSectionList.Add(sec);
-          end;
+          sec:=CExeSection.create(FExeSectionList,aname);
         { Clear ExeSection contents }
         FCurrExeSec:=sec;
       end;
@@ -1401,7 +1365,7 @@ implementation
     procedure TExeOutput.Order_Align(const aname:string);
       var
         code     : integer;
-        alignval : longint;
+        alignval : shortint;
         objsec   : TObjSection;
       begin
         val(aname,alignval,code);
@@ -1521,8 +1485,8 @@ implementation
             k:=Pos('$$',hs);
             if k=0 then
               internalerror(200603311);
-            childexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,1,k-1)));
-            parentexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,k+2,length(hs)-k-1)));
+            childexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,1,k-1)));
+            parentexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,k+2,length(hs)-k-1)));
             if not assigned(childexesym) or
                not assigned(parentexesym)then
               internalerror(200603312);
@@ -1551,7 +1515,7 @@ implementation
             k:=Pos('$$',hs);
             if k=0 then
               internalerror(200603319);
-            vtableexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,1,k-1)));
+            vtableexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,1,k-1)));
             val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
             if (code<>0) then
               internalerror(200603318);
@@ -1618,13 +1582,9 @@ implementation
                     continue;
                   end;
                 { Search for existing exesymbol }
-                exesym:=texesymbol(FExeSymbolDict.search(objsym.name));
+                exesym:=texesymbol(FExeSymbolList.Find(objsym.name));
                 if not assigned(exesym) then
-                  begin
-                    exesym:=texesymbol.createname(objsym.name);
-                    FExeSymbolDict.insert(exesym);
-                    FExeSymbolList.Add(exesym);
-                  end;
+                  exesym:=texesymbol.Create(FExeSymbolList,objsym.name);
                 { Defining the symbol? }
                 if objsym.bind=AB_GLOBAL then
                   begin
@@ -1684,7 +1644,7 @@ implementation
         Comment(V_Debug,'Number of unresolved externals in objects '+tostr(UnresolvedExeSymbols.Count));
 
         { Find entry symbol and print in map }
-        exesym:=texesymbol(ExeSymbolDict.search(EntryName));
+        exesym:=texesymbol(ExeSymbolList.Find(EntryName));
         if assigned(exesym) then
           begin
             EntrySym:=exesym.ObjSymbol;
@@ -1964,8 +1924,7 @@ implementation
                ) then
               begin
                 Comment(V_Debug,'Deleting empty section '+exesec.name);
-                FExeSectionDict.Delete(exesec.name);
-                FExeSectionList[i]:=nil;
+                FExeSectionList.Delete(i);
               end;
           end;
         ExeSections.Pack;
@@ -2097,7 +2056,7 @@ implementation
                     k:=Pos('$$',hs);
                     if k=0 then
                       internalerror(200603314);
-                    vtableexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,1,k-1)));
+                    vtableexesym:=texesymbol(FExeSymbolList.Find(Copy(hs,1,k-1)));
                     val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
                     if (code<>0) then
                       internalerror(200603317);
@@ -2141,6 +2100,8 @@ implementation
         for i:=0 to ExeSections.Count-1 do
           begin
             exesec:=TExeSection(ExeSections[i]);
+            if not assigned(exesec) then
+              continue;
             for j:=0 to exesec.ObjSectionlist.count-1 do
               begin
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
@@ -2192,4 +2153,16 @@ implementation
         Comment(V_Error,s+' while reading '+reader.filename);
       end;
 
+
+{$ifdef MEMDEBUG}
+initialization
+  memobjsymbols:=TMemDebug.create('ObjSymbols');
+  memobjsymbols.stop;
+  memobjsections:=TMemDebug.create('ObjSections');
+  memobjsections.stop;
+
+finalization
+  memobjsymbols.free;
+  memobjsections.free;
+{$endif MEMDEBUG}
 end.

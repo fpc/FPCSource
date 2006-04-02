@@ -48,8 +48,8 @@ interface
           shentsize : longint;
           { relocation }
           relocsect : TElfObjSection;
-          constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-          constructor create_ext(const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+          constructor create_ext(AList:TFPHashObjectList;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
           destructor  destroy;override;
        end;
 
@@ -517,9 +517,9 @@ implementation
                                TSection
 ****************************************************************************}
 
-    constructor TElfObjSection.create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
+    constructor TElfObjSection.create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);
       begin
-        inherited create(Aname,Aalign,aoptions);
+        inherited create(AList,Aname,Aalign,aoptions);
         secshidx:=0;
         shstridx:=0;
         encodesechdrflags(aoptions,shtype,shflags);
@@ -531,12 +531,12 @@ implementation
       end;
 
 
-    constructor TElfObjSection.create_ext(const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
+    constructor TElfObjSection.create_ext(AList:TFPHashObjectList;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
       var
         aoptions : TObjSectionOptions;
       begin
         decodesechdrflags(Ashtype,Ashflags,aoptions);
-        inherited create(Aname,Aalign,aoptions);
+        inherited create(AList,Aname,Aalign,aoptions);
         secshidx:=0;
         shstridx:=0;
         shtype:=AshType;
@@ -565,9 +565,9 @@ implementation
         inherited create(n);
         CObjSection:=TElfObjSection;
         { default sections }
-        symtabsect:=TElfObjSection.create_ext('.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
-        strtabsect:=TElfObjSection.create_ext('.strtab',SHT_STRTAB,0,0,0,1,0);
-        shstrtabsect:=TElfObjSection.create_ext('.shstrtab',SHT_STRTAB,0,0,0,1,0);
+        symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
+        strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
+        shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
         { insert the empty and filename as first in strtab }
         strtabsect.writestr(#0);
         strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
@@ -725,9 +725,9 @@ implementation
 {$endif userodata}
            { create the reloc section }
 {$ifdef i386}
-           s.relocsect:=TElfObjSection.create_ext('.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           s.relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$else i386}
-           s.relocsect:=TElfObjSection.create_ext('.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           s.relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do

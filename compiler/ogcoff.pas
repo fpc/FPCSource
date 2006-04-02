@@ -45,17 +45,17 @@ interface
        public
          secidx   : longint;
          flags    : longword;
-         constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
          procedure addsymsizereloc(ofs:aint;p:TObjSymbol;symsize:aint;reloctype:TObjRelocationType);
          procedure fixuprelocs;override;
        end;
 
        TDJCoffObjSection = class(TCoffObjSection)
-         constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
        end;
 
        TPECoffObjSection = class(TCoffObjSection)
-         constructor create(const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
+         constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
        end;
 
        TCoffObjData = class(TObjData)
@@ -143,15 +143,15 @@ interface
        private
          win32   : boolean;
        public
-         constructor createcoff(const n:string;awin32:boolean);
+         constructor createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
        end;
 
        TDJCoffExeSection = class(TCoffExeSection)
-         constructor create(const n:string);override;
+         constructor create(AList:TFPHashObjectList;const n:string);override;
        end;
 
        TPECoffExeSection = class(TCoffExeSection)
-         constructor create(const n:string);override;
+         constructor create(AList:TFPHashObjectList;const n:string);override;
        end;
 
        TCoffexeoutput = class(texeoutput)
@@ -721,9 +721,9 @@ const win32stub : array[0..131] of byte=(
                                TCoffObjSection
 ****************************************************************************}
 
-    constructor TCoffObjSection.create(const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
       begin
-        inherited create(aname,aalign,aoptions);
+        inherited create(AList,aname,aalign,aoptions);
       end;
 
 
@@ -816,9 +816,9 @@ const win32stub : array[0..131] of byte=(
                                TDJCoffObjSection
 ****************************************************************************}
 
-    constructor TDJCoffObjSection.create(const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TDJCoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
       begin
-        inherited create(aname,aalign,aoptions);
+        inherited create(alist,aname,aalign,aoptions);
       end;
 
 
@@ -826,9 +826,9 @@ const win32stub : array[0..131] of byte=(
                                TPECoffObjSection
 ****************************************************************************}
 
-    constructor TPECoffObjSection.create(const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
+    constructor TPECoffObjSection.create(AList:TFPHashObjectList;const aname:string;aalign:shortint;aoptions:TObjSectionOptions);
       begin
-        inherited create(aname,aalign,aoptions);
+        inherited create(alist,aname,aalign,aoptions);
       end;
 
 
@@ -1783,22 +1783,22 @@ const win32stub : array[0..131] of byte=(
 ****************************************************************************}
 
 
-    constructor TCoffExeSection.createcoff(const n:string;awin32:boolean);
+    constructor TCoffExeSection.createcoff(AList:TFPHashObjectList;const n:string;awin32:boolean);
       begin
-        inherited create(n);
+        inherited create(AList,n);
         win32:=awin32;
       end;
 
 
-    constructor TDJCoffExeSection.create(const n:string);
+    constructor TDJCoffExeSection.create(AList:TFPHashObjectList;const n:string);
       begin
-        inherited createcoff(n,false);
+        inherited createcoff(AList,n,false);
       end;
 
 
-    constructor TPECoffExeSection.create(const n:string);
+    constructor TPECoffExeSection.create(AList:TFPHashObjectList;const n:string);
       begin
-        inherited createcoff(n,false);
+        inherited createcoff(AList,n,false);
       end;
 
 
