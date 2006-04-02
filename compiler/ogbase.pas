@@ -1119,7 +1119,6 @@ implementation
     procedure TExeVTable.AddChild(vt:TExeVTable);
       begin
         ChildList.Add(vt);
-writeln(ExeSymbol.Name,'-',vt.ExeSymbol.Name);
       end;
 
 
@@ -1163,7 +1162,6 @@ writeln(ExeSymbol.Name,'-',vt.ExeSymbol.Name);
         CheckIdx(VTableIdx);
         if EntryArray[VTableIdx].Used then
           exit;
-writeln(ExeSymbol.Name,'(',VTableIdx,')');
         { Restore relocation if available }
         if assigned(EntryArray[VTableIdx].ObjRelocation) then
           begin
@@ -1600,19 +1598,22 @@ writeln(ExeSymbol.Name,'(',VTableIdx,')');
                   VTENTRY and VTINHERIT symbols }
                 if objsym.bind=AB_LOCAL then
                   begin
-                    hs:=objsym.name;
-                    if (hs[1]='V') then
+                    if cs_link_opt_vtable in aktglobalswitches then
                       begin
-                        if Copy(hs,1,5)='VTREF' then
+                        hs:=objsym.name;
+                        if (hs[1]='V') then
                           begin
-                            if not assigned(objsym.ObjSection.VTRefList) then
-                              objsym.ObjSection.VTRefList:=TFPObjectList.Create(false);
-                            objsym.ObjSection.VTRefList.Add(objsym);
-                          end
-                        else if Copy(hs,1,7)='VTENTRY' then
-                          VTEntryList.Add(objsym)
-                        else if Copy(hs,1,9)='VTINHERIT' then
-                          VTInheritList.Add(objsym);
+                            if Copy(hs,1,5)='VTREF' then
+                              begin
+                                if not assigned(objsym.ObjSection.VTRefList) then
+                                  objsym.ObjSection.VTRefList:=TFPObjectList.Create(false);
+                                objsym.ObjSection.VTRefList.Add(objsym);
+                              end
+                            else if Copy(hs,1,7)='VTENTRY' then
+                              VTEntryList.Add(objsym)
+                            else if Copy(hs,1,9)='VTINHERIT' then
+                              VTInheritList.Add(objsym);
+                          end;
                       end;
                     continue;
                   end;
@@ -1697,7 +1698,8 @@ writeln(ExeSymbol.Name,'(',VTableIdx,')');
           Comment(V_Error,'Entrypoint '+EntryName+' not defined');
 
         { Generate VTable tree }
-        BuildVTableTree(VTInheritList,VTEntryList);
+        if cs_link_opt_vtable in aktglobalswitches then
+          BuildVTableTree(VTInheritList,VTEntryList);
         VTInheritList.Free;
         VTEntryList.Free;
       end;
@@ -2085,23 +2087,26 @@ writeln(ExeSymbol.Name,'(',VTableIdx,')');
               DoReloc(TObjRelocation(objsec.ObjRelocations[i]));
 
             { Process Virtual Entry calls }
-            for i:=0 to objsec.VTRefList.count-1 do
+            if cs_link_opt_vtable in aktglobalswitches then
               begin
-                objsym:=TObjSymbol(objsec.VTRefList[i]);
-                hs:=objsym.name;
-                Delete(hs,1,Pos('_',hs));
-                k:=Pos('$$',hs);
-                if k=0 then
-                  internalerror(200603314);
-                vtableexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,1,k-1)));
-                val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
-                if (code<>0) then
-                  internalerror(200603317);
-                if not assigned(vtableexesym) then
-                  internalerror(200603315);
-                if not assigned(vtableexesym.vtable) then
-                  internalerror(200603316);
-                DoVTableRef(vtableexesym.vtable,vtableidx);
+                for i:=0 to objsec.VTRefList.count-1 do
+                  begin
+                    objsym:=TObjSymbol(objsec.VTRefList[i]);
+                    hs:=objsym.name;
+                    Delete(hs,1,Pos('_',hs));
+                    k:=Pos('$$',hs);
+                    if k=0 then
+                      internalerror(200603314);
+                    vtableexesym:=texesymbol(FExeSymbolDict.search(Copy(hs,1,k-1)));
+                    val(Copy(hs,k+2,length(hs)-k-1),vtableidx,code);
+                    if (code<>0) then
+                      internalerror(200603317);
+                    if not assigned(vtableexesym) then
+                      internalerror(200603315);
+                    if not assigned(vtableexesym.vtable) then
+                      internalerror(200603316);
+                    DoVTableRef(vtableexesym.vtable,vtableidx);
+                  end;
               end;
           end;
         ObjSectionWorkList.Free;

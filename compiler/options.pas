@@ -1251,6 +1251,13 @@ begin
                     'c' : Cshared:=TRUE;
                     't' :
                       include(initglobalswitches,cs_link_staticflag);
+                    'v' :
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(initglobalswitches,cs_link_opt_vtable)
+                        else
+                          include(initglobalswitches,cs_link_opt_vtable);
+                      end;
                     'D' :
                       begin
                         def_system_macro('FPC_LINK_DYNAMIC');
