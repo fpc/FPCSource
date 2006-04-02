@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2002 by Florian Klaempfl
+    Copyright (c) 2002-2006 by Florian Klaempfl
 
     This unit contains the CPU specific part of tprocinfo
 
@@ -32,6 +32,8 @@ interface
 
     type
        tx86_64procinfo = class(tcgprocinfo)
+         procedure set_first_temp_offset;override;
+         procedure generate_parameter_info;override;
          function calc_stackframe_size:longint;override;
        end;
 
@@ -39,17 +41,43 @@ interface
 implementation
 
     uses
+      systems,
       globals,
       cutils,
+      symconst,
       tgobj;
+
+
+    procedure tx86_64procinfo.set_first_temp_offset;
+      begin
+        if target_info.system=system_x86_64_win64 then
+          begin
+            if not(po_assembler in procdef.procoptions) and
+              (tg.direction > 0) then
+              tg.setfirsttemp(tg.direction*maxpushedparasize+4*8);
+          end
+        else
+          inherited;
+      end;
+
+
+    procedure tx86_64procinfo.generate_parameter_info;
+      begin
+        inherited generate_parameter_info;
+        if target_info.system=system_x86_64_win64 then
+          para_stack_size:=0;
+      end;
 
 
     function tx86_64procinfo.calc_stackframe_size:longint;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(aktalignment.localalignmin,16));
         { RSP should be aligned on 16 bytes }
-        result:=Align(tg.direction*tg.lasttemp,16)+maxpushedparasize;
+        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,16);
+        if target_info.system=system_x86_64_win64 then
+          inc(result,4*8);
       end;
+
 
 begin
    cprocinfo:=tx86_64procinfo;
