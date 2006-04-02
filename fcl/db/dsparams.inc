@@ -676,7 +676,7 @@ begin
   if Assigned(Field) then
     begin
     // Need TField.Value
-    // AssignFieldValue(Field,Field.Value);
+    AssignFieldValue(Field,Field.Value);
     Name:=Field.FieldName;
     end
   else
@@ -721,7 +721,46 @@ begin
     end;
 end;
 
+procedure TParam.AssignFromField(Field : TField);
+
+begin
+  if Assigned(Field) then
+    begin
+    FDataType:=Field.DataType;
+    case Field.DataType of
+      ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
+      // Need TField.AsSmallInt
+      ftSmallint : AsSmallint:=Field.AsInteger;
+      // Need TField.AsWord
+      ftWord     : AsWord:=Field.AsInteger;
+      ftInteger,
+      ftAutoInc  : AsInteger:=Field.AsInteger;
+      // Need TField.AsCurrency
+      ftCurrency : AsCurrency:=Field.asCurrency;
+      ftFloat    : AsFloat:=Field.asFloat;
+      ftBoolean  : AsBoolean:=Field.AsBoolean;
+      ftBlob,
+      ftGraphic..ftTypedBinary,
+      ftOraBlob,
+      ftOraClob,
+      ftString,
+      ftMemo,
+      ftAdt,
+      ftFixedChar: AsString:=Field.AsString;
+      ftTime,
+      ftDate,
+      ftDateTime : AsDateTime:=Field.AsDateTime;
+      ftBytes,
+      ftVarBytes : ; // Todo.
+    else
+      If not (DataType in [ftCursor, ftArray, ftDataset,ftReference]) then
+        DatabaseErrorFmt(SBadParamFieldType, [Name], DataSet);
+    end;
+    end;
+end;
+
 Procedure TParam.AssignFieldValue(Field: TField; const AValue: Variant);
+
 begin
   If Assigned(Field) then
     begin
@@ -917,3 +956,25 @@ begin
   end;
 end;
 
+
+Procedure TParams.CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
+
+Var
+  I : Integer;
+  P : TParam;
+  F : TField;
+  
+begin
+  If (ADataSet<>Nil) then
+    For I:=0 to Count-1 do
+     begin
+     P:=Items[i];
+     if CopyBound or (not P.Bound) then
+       begin
+       F:=ADataset.FieldByName(P.Name);
+       P.AssignFromField(F);   
+       If Not CopyBound then
+         P.Bound:=False;
+       end;
+    end;
+end;

@@ -176,6 +176,7 @@ type
     FWhereStartPos       : integer;
     FWhereStopPos        : integer;
     FParseSQL            : boolean;
+    FMasterLink          : TMasterParamsDatalink;
 //    FSchemaInfo          : TSchemaInfo;
 
     procedure FreeFldBuffers;
@@ -211,6 +212,8 @@ type
     Procedure SetActive (Value : Boolean); override;
     procedure SetFiltered(Value: Boolean); override;
     procedure SetFilterText(const Value: string); override;
+    Function GetDataSource : TDatasource;
+    Procedure SetDataSource(AValue : TDatasource); 
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -220,6 +223,7 @@ type
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     property Prepared : boolean read IsPrepared;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   published
     // redeclared data set properties
     property Active;
@@ -260,6 +264,7 @@ type
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL;
+    Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
 //    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
   end;
 
@@ -545,8 +550,9 @@ begin
   UnPrepare;
   if (FSQL <> nil) then
     begin
-    if not assigned(FParams) then FParams := TParams.create(self);
     FParams.ParseSQL(FSQL.Text,True);
+    If Assigned(FMasterLink) then
+      FMasterLink.RefreshParamNames;
     end;
 end;
 
@@ -708,6 +714,8 @@ end;
 
 procedure TSQLQuery.Execute;
 begin
+  If (FParams.Count>0) and Assigned(FMasterLink) then
+    FMasterLink.CopyParamsFromMaster(False);
   (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
@@ -921,6 +929,7 @@ end;
 constructor TSQLQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
+  FParams := TParams.create(self);
   FSQL := TStringList.Create;
   FSQL.OnChange := @OnChangeSQL;
   FIndexDefs := TIndexDefs.Create(Self);
@@ -929,7 +938,6 @@ begin
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
   FUpdateMode := upWhereKeyOnly;
-
   FUsePrimaryKeyAsKey := True;
 end;
 
@@ -938,6 +946,7 @@ begin
   if Active then Close;
   UnPrepare;
   if assigned(FCursor) then (Database as TSQLConnection).DeAllocateCursorHandle(FCursor);
+  FreeAndNil(FMasterLink);
   FreeAndNil(FParams);
   FreeAndNil(FSQL);
   FreeAndNil(FIndexDefs);
@@ -1132,6 +1141,45 @@ function TSQLQuery.GetStatementType : TStatementType;
 begin
   if assigned(FCursor) then Result := FCursor.FStatementType
     else Result := stNone;
+end;
+
+Procedure TSQLQuery.SetDataSource(AVAlue : TDatasource);
+
+Var
+  DS : TDatasource;
+
+begin
+  DS:=DataSource;
+  If (AValue<>DS) then
+    begin
+    If Assigned(DS) then
+      DS.RemoveFreeNotification(Self);
+    If Assigned(AValue) then
+      begin
+      AValue.FreeNotification(Self);  
+      FMasterLink:=TMasterParamsDataLink.Create(Self);
+      FMasterLink.Datasource:=AValue;
+      end
+    else
+      FreeAndNil(FMasterLink);  
+    end;
+end;
+
+Function TSQLQuery.GetDataSource : TDatasource;
+
+begin
+  If Assigned(FMasterLink) then
+    Result:=FMasterLink.DataSource
+  else
+    Result:=Nil;
+end;
+
+procedure TSQLQuery.Notification(AComponent: TComponent; Operation: TOperation); 
+
+begin
+  Inherited;
+  If (Operation=opRemove) and (AComponent=DataSource) then
+    DataSource:=Nil;
 end;
 
 end.

@@ -1265,7 +1265,7 @@ type
 
   TMasterDataLink = class(TDetailDataLink)
   private
-    FDataSet: TDataSet;
+    FDetailDataSet: TDataSet;
     FFieldNames: string;
     FFields: TList;
     FOnMasterChange: TNotifyEvent;
@@ -1277,8 +1277,10 @@ type
     function GetDetailDataSet: TDataSet; override;
     procedure LayoutChanged; override;
     procedure RecordChanged(Field: TField); override;
+    Procedure DoMasterDisable; virtual;
+    Procedure DoMasterChange; virtual;
   public
-    constructor Create(ADataSet: TDataSet);
+    constructor Create(ADataSet: TDataSet);virtual;
     destructor Destroy; override;
     property FieldNames: string read FFieldNames write SetFieldNames;
     property Fields: TList read FFields;
@@ -1619,6 +1621,7 @@ type
     Procedure AssignField(Field: TField);
     Procedure AssignToField(Field: TField);
     Procedure AssignFieldValue(Field: TField; const AValue: Variant);
+    procedure AssignFromField(Field : TField);
     Procedure Clear;
     Procedure GetData(Buffer: Pointer);
     Function  GetDataSize: Integer;
@@ -1682,9 +1685,24 @@ type
     Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String; overload;
     Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
     Procedure RemoveParam(Value: TParam);
+    Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
     Property Items[Index: Integer] : TParam read GetItem write SetItem; default;
     Property ParamValues[const ParamName: string] : Variant read GetParamValue write SetParamValue;
+  end;
+
+  TMasterParamsDataLink = Class(TMasterDataLink)
+  Private
+    FParams : TParams;
+    Procedure SetParams(AVAlue : TParams);  
+  Protected  
+    Procedure DoMasterDisable; override;
+    Procedure DoMasterChange; override;
+  Public
+    constructor Create(ADataSet: TDataSet); override;
+    Procedure RefreshParamNames; virtual;
+    Procedure CopyParamsFromMaster(CopyBound : Boolean); virtual;
+    Property Params : TParams Read FParams Write SetParams;  
   end;
 
 const
@@ -1820,7 +1838,7 @@ Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
 
 implementation
 
-uses dbconst;
+uses dbconst,typinfo;
 
 { ---------------------------------------------------------------------
     Auxiliary functions
