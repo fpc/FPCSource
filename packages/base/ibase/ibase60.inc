@@ -2455,33 +2455,28 @@ implementation
 
 {$IFDEF LinkDynamically}
 
-var RefCount : integer;
+ResourceString
+  SErrEmbeddedFailed = 'Can not load embedded Firebird client "%s". Check your installation.';
+  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s" or "%s"). Check your installation.';
+  SErrLoadFailed     = 'Can not load Firebird client library "%s". Check your installation.';
+  SErrAlreadyLoaded  = 'Firebird interface already initialized from library %s.';
+  
+var 
+  RefCount : integer;
+  LoadedLibrary : String;
 
-Procedure InitialiseIBase60;
+Function TryInitialiseIBase60(Const LibraryName : String) : Boolean;
 
 begin
-  inc(RefCount);
-  if RefCount = 1 then
+  Result:=False;
+  if (RefCount=0) then
     begin
-    If UseEmbeddedFirebird then
-      begin
-      IBaseLibraryHandle:=loadlibrary(fbembedlib);
-      if (IBaseLibraryHandle=nilhandle) then
-        Raise EInOutError.Create('Can not load Firebird Embedded client. Is it installed? ('+fbembedlib+')');
-      end
-    else 
-      begin
-      IBaseLibraryHandle:=loadlibrary(fbclib);
-      if (IBaseLibraryHandle=nilhandle) then
-        begin
-        IBaseLibraryHandle:=loadlibrary(gdslib);
-        if (IBaseLibraryHandle=nilhandle) then
-          begin
-          RefCount := 0;
-          Raise EInOutError.Create('Can not load Firebird or Interbase client. Is it installed? ('+gdslib+' or '+fbclib+')');
-          end;
-        end;
-      end;  
+    IBaseLibraryHandle:=LoadLibrary(LibraryName);
+    Result:=(IBaseLibraryHandle<>nilhandle);
+    If not Result then
+      Exit;
+    inc(RefCount);
+    LoadedLibrary:=LibraryName;
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
     pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');
@@ -2648,16 +2643,48 @@ begin
     pointer(isc_reset_form) := GetProcedureAddress(IBaseLibraryHandle,'isc_reset_form');
     pointer(isc_suspend_window) := GetProcedureAddress(IBaseLibraryHandle,'isc_suspend_window');
 {$ENDIF}
-    end;
+    end
+  else
+    begin
+    If (LoadedLibrary<>LibraryName) then
+      Raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    Result:=True;
+    end;  
 end;
+
+Procedure InitialiseIBase60;
+
+begin
+  If UseEmbeddedFirebird then
+    begin
+    If Not TryInitialiseIBase60(fbembedlib) then
+      Raise EInOutError.CreateFmt(SErrEmbeddedFailed,[fbembedlib]);
+    end
+  else
+    begin
+    If (Not TryInitialiseIBase60(fbclib)) and
+       (Not TryInitialiseIBase60(gdslib)) then
+        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[gdslib,fbclib]);
+    end;    
+end;
+
+Procedure InitialiseIBase60(Const LibraryName : String);
+
+begin
+  If Not TryInitialiseIbase60(LibraryName) then
+    Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
+end;
+
 
 Procedure ReleaseIBase60;
 
 begin
-  if RefCount > 0 then dec(RefCount);
-  if RefCount = 0 then
+  if RefCount>1 then
+    Dec(RefCount)
+  else if UnloadLibrary(IBaseLibraryHandle) then 
     begin
-    if not UnloadLibrary(IBaseLibraryHandle) then inc(RefCount);
+    Dec(RefCount);
+    LoadedLibrary:='';
     end;
 end;
 
