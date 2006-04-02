@@ -1796,19 +1796,6 @@ implementation
               { keep argc, argv and envp properly on the stack }
               cg.a_jmp_name(list,target_info.cprefix+'FPC_SYSTEMMAIN');
              end;
-
-            { Reference all DEBUGINFO sections from the main .text section }
-            if (cs_debuginfo in aktmoduleswitches) then
-              debuginfo.referencesections(list);
-
-            { Insert Ident of the compiler in the main .text section }
-            if (not (cs_create_smart in aktmoduleswitches)) then
-             begin
-               list.concat(Tai_section.create(sec_data,'',0));
-               list.concat(Tai_align.Create(const_align(32)));
-               list.concat(Tai_string.Create('FPC '+full_version_string+
-                 ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
-             end;
           end;
       end;
 

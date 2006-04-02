@@ -367,8 +367,13 @@ implementation
         stkcookie: string;
 {$ENDIF POWERPC}
       begin
-        { stacksize can be specified and is now simulated }
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
+        { Insert Ident of the compiler in the main .data section }
+        current_asmdata.asmlists[al_globals].concat(Tai_section.create(sec_data,'',0));
+        current_asmdata.asmlists[al_globals].concat(Tai_align.Create(const_align(32)));
+        current_asmdata.asmlists[al_globals].concat(Tai_string.Create('FPC '+full_version_string+
+          ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
+        { stacksize can be specified and is now simulated }
         new_section(current_asmdata.asmlists[al_globals],sec_data,'__stklen', sizeof(aint));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('__stklen',AT_DATA,sizeof(aint)));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(stacksize));
@@ -1395,6 +1400,10 @@ implementation
 
          if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
+
+         { Reference all DEBUGINFO sections from the main .text section }
+         if (cs_debuginfo in aktmoduleswitches) then
+           debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
          { Resource strings }
          GenerateResourceStrings;

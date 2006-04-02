@@ -276,8 +276,12 @@ implementation
           (target_info.system=system_i386_win32) then
           secname:='.tls';
 
+        { For bss we need to set some flags that are target dependent,
+          it is easier to disable it for smartlinking. It doesn't take up
+          filespace }
         if use_smartlink_section and
-           (aname<>'') then
+           (aname<>'') and
+           (atype<>sec_bss) then
           result:=secname+'.'+aname
         else
           result:=secname;

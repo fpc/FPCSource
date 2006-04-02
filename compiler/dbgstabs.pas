@@ -1319,7 +1319,6 @@ implementation
         stabsvarlist,
         stabstypelist : TAsmList;
         storefilepos  : tfileposinfo;
-        st : tsymtable;
         i  : longint;
       begin
         storefilepos:=aktfilepos;
@@ -1332,15 +1331,9 @@ implementation
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
-        if current_module.is_unit then
-          begin
-            current_module.flags:=current_module.flags or uf_has_debuginfo;
-            st:=current_module.globalsymtable;
-          end
-        else
-          st:=current_module.localsymtable;
-        new_section(current_asmdata.asmlists[al_stabs],sec_data,st.name^,0);
-        current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',st,''),AT_DATA,0));
+        current_module.flags:=current_module.flags or uf_has_debuginfo;
+        new_section(current_asmdata.asmlists[al_stabs],sec_data,current_module.localsymtable.name^,0);
+        current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
 
         { first write all global/local symbols. This will flag all required tdefs  }
         if assigned(current_module.globalsymtable) then
@@ -1456,50 +1449,46 @@ implementation
       var
         hlabel : tasmlabel;
         infile : tinputfile;
-        templist : TAsmList;
       begin
         { emit main source n_sourcefile for start of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
+        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0);
+        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
         if (infile.path^<>'') then
-          templist.concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
+          current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
                       ',0,0,'+hlabel.name));
-        templist.concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
+        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
                     ',0,0,'+hlabel.name));
-        templist.concat(tai_label.create(hlabel));
-        current_asmdata.asmlists[al_start].insertlist(templist);
-        templist.free;
+        current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
-        templist.concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
-        templist.concat(tai_label.create(hlabel));
-        current_asmdata.asmlists[al_end].insertlist(templist);
-        templist.free;
+        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0);
+        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
+        current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
+        current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
       end;
 
 
     procedure tdebuginfostabs.referencesections(list:TAsmList);
       var
-        hp   : tused_unit;
+        hp : tmodule;
       begin
         { Reference all DEBUGINFO sections from the main .text section }
-        if (target_info.system <> system_powerpc_macos) then
+        if (target_info.system=system_powerpc_macos) then
+          exit;
+        list.concat(Tai_section.create(sec_data,'',0));
+        { include reference to all debuginfo sections of used units }
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
           begin
-            list.concat(Tai_section.create(sec_data,'',0));
-            { include reference to all debuginfo sections of used units }
-            hp:=tused_unit(usedunits.first);
-            while assigned(hp) do
+            If (hp.flags and uf_has_debuginfo)=uf_has_debuginfo then
               begin
-                If (hp.u.flags and uf_has_debuginfo)=uf_has_debuginfo then
-                  list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.u.globalsymtable,''),0));
-                hp:=tused_unit(hp.next);
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',hp.localsymtable,''),0));
               end;
-            { include reference to debuginfo for this program }
-            list.concat(Tai_const.Createname(make_mangledname('DEBUGINFO',current_module.localsymtable,''),0));
+            hp:=tmodule(hp.next);
           end;
       end;
 

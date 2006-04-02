@@ -1056,7 +1056,7 @@ begin
       Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
       Add('  {');
       Add('    *(.init)');
-      Add('    *(.text)');
+      add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
       Add('    *(SORT(.text$*))');
       Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
       Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
@@ -1069,7 +1069,7 @@ begin
       Add('  .data BLOCK(__section_alignment__) :');
       Add('  {');
       Add('    __data_start__ = . ;');
-      Add('    *(.data)');
+      add('    *(.data .data.* .gnu.linkonce.d.*)');
       Add('    *(.data2)');
       Add('    *(SORT(.data$*))');
       Add('    __data_end__ = . ;');
@@ -1078,6 +1078,7 @@ begin
       Add('  .rdata BLOCK(__section_alignment__) :');
       Add('  {');
       Add('    *(.rdata)');
+      add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
       Add('    *(SORT(.rdata$*))');
       Add('    *(.eh_frame)');
       Add('    ___RUNTIME_PSEUDO_RELOC_LIST__ = .;');
@@ -1090,7 +1091,8 @@ begin
       Add('  .bss BLOCK(__section_alignment__) :');
       Add('  {');
       Add('    __bss_start__ = . ;');
-      Add('    *(.bss)');
+      Add('    *(.bss .bss.* .gnu.linkonce.b.*)');
+      Add('    *(SORT(.bss$*))');
       Add('    *(COMMON)');
       Add('    __bss_end__ = . ;');
       Add('  }');
@@ -1127,7 +1129,7 @@ begin
       Add('  .tls BLOCK(__section_alignment__) :');
       Add('  {');
       Add('    ___tls_start__ = . ;');
-      Add('    *(.tls)');
+      Add('    *(.tls .tls.*)');
       Add('    *(.tls$)');
       Add('    *(SORT(.tls$*))');
       Add('    ___tls_end__ = . ;');
