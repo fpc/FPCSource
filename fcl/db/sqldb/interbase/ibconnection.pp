@@ -609,7 +609,10 @@ begin
     begin
     ParNr := ParamBinding[SQLVarNr];
     if AParams[ParNr].IsNull then
-      in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1
+      begin
+      If Assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then
+        in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1;
+      end
     else
       begin
       if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
