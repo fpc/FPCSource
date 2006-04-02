@@ -1096,6 +1096,10 @@ end;
       Var
         p,pmax : pchar;
       begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
         result:=0;
         p:=@s[1];
         pmax:=@s[length(s)+1];
@@ -1104,6 +1108,10 @@ end;
             result:=((result shl 5) - result) xor LongWord(P^);
             inc(p);
           end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
       end;
 
 
