@@ -9,14 +9,18 @@ main=rtl
 loaders=$(LOADERS)
 units=system ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
-      windows winsock initc cmem dynlibs signals \
-      dos crt objects messages \
+      windows winsock cmem \
+      dos objects \
       rtlconsts sysconst sysutils math types \
-      strutils convutils dateutils varutils variants typinfo classes \
-      cpu mmx charset ucomplex getopts \
-      winevent sockets printer \
-      video mouse keyboard \
-      winsysut fpmkunit
+      strutils convutils dateutils
+#      varutils variants typinfo classes \
+#      cpu mmx charset ucomplex getopts \
+#      winevent sockets printer \
+#      video mouse keyboard \
+#      winsysut fpmkunit
+#      dynlibs signals crt messages \
+#     no cygwin so far
+#	initc
 
 rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
@@ -40,7 +44,8 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
-WININC=wininc
+WININC=../win/wininc
+WINDIR=../win
 
 UNITPREFIX=rtl
 
@@ -114,12 +119,13 @@ messages$(PPUEXT): messages.pp $(WININC)/messages.inc system$(PPUEXT)
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) system$(PPUEXT)
 
-winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) system$(PPUEXT)
+winsock$(PPUEXT) : $(WINDIR)/winsock.pp windows$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/winsock.pp
 
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) system$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
-initc$(PPUEXT) : initc.pp system$(PPUEXT)
+# initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 
@@ -127,20 +133,21 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) system$(PPUEXT)
+dos$(PPUEXT) : $(WINDIR)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/dos.pp
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
-objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT) dos$(PPUEXT)
 
 
 #
 # Delphi Compatible Units
 #
 
-sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
+sysutils$(PPUEXT) : $(WINDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
                     objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(WINDIR)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
@@ -156,8 +163,8 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/math.pp
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
-                    $(OBJPASDIR)/varutilh.inc varutils.pp sysutils$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR) varutils.pp
+                    $(OBJPASDIR)/varutilh.inc $(WINDIR)/varutils.pp sysutils$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(WINDIR)/varutils.pp
 
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp

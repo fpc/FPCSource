@@ -72,6 +72,10 @@
 
      LONGLONG  = int64;
      PLONGLONG = ^LONGLONG;
+     INT_PTR = PtrInt;
+     UINT_PTR = PtrUInt;
+     LONG_PTR = PtrInt;
+     ULONG_PTR = PtrUInt;
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
@@ -802,14 +806,14 @@ type
   { argument types are unknown }
   function MAKEINTATOM(i : longint) : LPTSTR;
     begin
-       MAKEINTATOM:=LPTSTR(DWORD(WORD(i)));
+       MAKEINTATOM:=LPTSTR(ULONG_PTR(WORD(i)));
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function MAKEINTRESOURCE(i : longint) : LPTSTR;
     begin
-       MAKEINTRESOURCE:=LPTSTR(DWORD(WORD(i)));
+       MAKEINTRESOURCE:=LPTSTR(ULONG_PTR(WORD(i)));
     end;
 
   { was #define dname(params) def_expr }

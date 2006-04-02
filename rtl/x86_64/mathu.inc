@@ -12,6 +12,7 @@
 
 **********************************************************************}
 
+{$ifndef WIN64}
 {$define FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;assembler;
   asm
@@ -20,7 +21,7 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
-
+{$endif WIN64}
 
 procedure SetSSECSR(w : dword);
   var

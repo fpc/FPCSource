@@ -2057,6 +2057,13 @@ rtl/win/*.ppu
 rtl/win/*.s
 rtl/win/fpcmade.*
 rtl/win/units
+rtl/win/wininc/*.bak
+rtl/win/wininc/*.exe
+rtl/win/wininc/*.o
+rtl/win/wininc/*.ppu
+rtl/win/wininc/*.s
+rtl/win/wininc/fpcmade.*
+rtl/win/wininc/units
 rtl/win32/*.bak
 rtl/win32/*.exe
 rtl/win32/*.o
@@ -2064,13 +2071,6 @@ rtl/win32/*.ppu
 rtl/win32/*.s
 rtl/win32/fpcmade.*
 rtl/win32/units
-rtl/win32/wininc/*.bak
-rtl/win32/wininc/*.exe
-rtl/win32/wininc/*.o
-rtl/win32/wininc/*.ppu
-rtl/win32/wininc/*.s
-rtl/win32/wininc/fpcmade.*
-rtl/win32/wininc/units
 rtl/win64/*.bak
 rtl/win64/*.exe
 rtl/win64/*.o

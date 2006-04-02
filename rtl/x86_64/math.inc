@@ -36,7 +36,6 @@ FPC_ABSMASK_DOUBLE:
                             FPU Control word
  ****************************************************************************}
 
-{$ifndef WIN64}
     procedure Set8087CW(cw:word);assembler;
     asm
       movw cw,%ax
@@ -58,7 +57,6 @@ FPC_ABSMASK_DOUBLE:
       fnstcw (%rsp)
       popq %rax
     end;
-{$endif WIN64}
 
 {****************************************************************************
                        EXTENDED data type routines

@@ -27,7 +27,7 @@ Type
 {$else unix}
     FindHandle : THandle;
 {$endif unix}
-{$if defined(Win32) or defined(WinCE)}
+{$if defined(Win32) or defined(WinCE) or defined(Win64)}
     FindData : TWin32FindData;
 {$endif}
 {$ifdef netware_clib}
@@ -68,23 +68,23 @@ Const
   fsFromCurrent   = 1;
   fsFromEnd       = 2;
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
-Function FileCreate (Const FileName : String) : Longint;
-Function FileCreate (Const FileName : String; Mode : Integer) : Longint;
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
-Procedure FileClose (Handle : Longint);
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
+Function FileCreate (Const FileName : String) : THandle;
+Function FileCreate (Const FileName : String; Mode : Integer) : THandle;
+Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
+Function FileSeek (Handle : THandle;FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
+Procedure FileClose (Handle : THandle);
+Function FileTruncate (Handle : THandle;Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
 Function DirectoryExists (Const Directory : String) : Boolean;
 Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 Procedure FindClose (Var F : TSearchrec);
-Function FileGetDate (Handle : Longint) : Longint;
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileGetDate (Handle : THandle) : Longint;
+Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
 Function FileGetAttr (Const FileName : String) : Longint;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
