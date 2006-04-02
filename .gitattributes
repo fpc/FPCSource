@@ -5443,6 +5443,9 @@ tests/test/cg/obj/tcext4.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
 tests/test/cg/obj/win32/i386/tcext3.o -text
 tests/test/cg/obj/win32/i386/tcext4.o -text
+tests/test/cg/obj/win64/x86_64/ctest.o -text
+tests/test/cg/obj/win64/x86_64/tcext3.o -text
+tests/test/cg/obj/win64/x86_64/tcext4.o -text
 tests/test/cg/obj/wince/arm/ctest.o -text
 tests/test/cg/obj/wince/arm/tcext3.o -text
 tests/test/cg/obj/wince/arm/tcext4.o -text
