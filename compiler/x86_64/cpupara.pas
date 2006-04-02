@@ -390,9 +390,9 @@ unit cpupara;
                         begin
                           { winx64 uses different registers }
                           if ((target_info.system=system_x86_64_win64) and
-                            (intparareg>high(parammsupregs_winx64))) or
+                            (mmparareg>high(parammsupregs_winx64))) or
                             ((target_info.system<>system_x86_64_win64) and
-                            (intparareg>high(parammsupregs))) then
+                            (mmparareg>high(parammsupregs))) then
                             loc[locidx]:=LOC_REFERENCE;
                         end;
                     end;

@@ -1700,7 +1700,7 @@ implementation
            toaddr :
              mangledname:='$'+tostr(addroffset);
            else
-             internalerror(200411061);
+             internalerror(200411062);
          end;
       end;
 
