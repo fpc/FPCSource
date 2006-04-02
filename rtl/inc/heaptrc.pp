@@ -1090,7 +1090,7 @@ begin
      end;
 end;
 
-{$ifdef win32}
+{$if defined(win32) or defined(win64)}
    function GetEnvironmentStrings : pchar; stdcall;
      external 'kernel32' name 'GetEnvironmentStringsA';
    function FreeEnvironmentStrings(p : pchar) : longbool; stdcall;
@@ -1118,7 +1118,7 @@ begin
      end;
    FreeEnvironmentStrings(p);
 end;
-{$else win32}
+{$else defined(win32) or defined(win64)}
 
 {$ifdef wince}
 Function GetEnv(P:string):Pchar;
