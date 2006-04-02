@@ -63,8 +63,7 @@ procedure TBufDataset.InternalOpen;
 begin
   CalcRecordSize;
 
-//  FBRecordcount := 0;
-//  FBDeletedRecords := 0;
+  FBRecordcount := 0;
 
   FFirstRecBuf := pointer(IntAllocRecordBuffer);
   FLastRecBuf := FFirstRecBuf;
@@ -242,14 +241,17 @@ var i : integer;
     pb : pchar;
     
 begin
-  for i := 0 to FPacketRecords-1 do
+  i := 0;
+  pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
+  while (i < FPacketRecords) and (loadbuffer(pb) = grOk) do
     begin
+    FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
+    FLastRecBuf^.next^.prior := FLastRecBuf;
+    FLastRecBuf := FLastRecBuf^.next;
     pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
-    if (loadbuffer(pb)<>grOk) then break;
-    PBufRecLinkItem(FLastRecBuf)^.next := pointer(IntAllocRecordBuffer);
-    PBufRecLinkItem(PBufRecLinkItem(FLastRecBuf)^.next)^.prior := FLastRecBuf;
-    FLastRecBuf := PBufRecLinkItem(FLastRecBuf)^.next;
+    inc(i);
     end;
+  FBRecordCount := FBRecordCount + i;
   result := i;
 end;
 
@@ -409,6 +411,7 @@ begin
     FreeRecordBuffer(pchar(RecToDelete));
     end;
 
+  dec(FBRecordCount);
   FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukDelete;
 end;
 
@@ -452,7 +455,7 @@ var SaveBookmark : pchar;
 
 begin
   CheckBrowseMode;
-  
+
   // There is no bookmark available if the dataset is empty
   if not IsEmpty then
     GetBookmarkData(ActiveBuffer,@SaveBookmark);
@@ -524,6 +527,8 @@ begin
       BookmarkData := FCurrentRecBuf;
       BookmarkFlag := bfInserted;
       end;
+      
+    inc(FBRecordCount);
     end
   else
     GetBookmarkData(ActiveBuffer,@FCurrentRecBuf);
@@ -583,14 +588,41 @@ end;
 
 procedure TBufDataset.SetRecNo(Value: Longint);
 
+var recnr        : integer;
+    TmpRecBuffer : PBufRecLinkItem;
+
 begin
-  GotoBookmark(@value);
+  if value > RecordCount then
+    begin
+    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount);
+    if value > RecordCount then
+      begin
+      DatabaseError(SNoSuchRecord,self);
+      exit;
+      end;
+    end;
+  TmpRecBuffer := FFirstRecBuf;
+  for recnr := 1 to value-1 do
+    TmpRecBuffer := TmpRecBuffer^.next;
+  GotoBookmark(TmpRecBuffer);
 end;
 
 function TBufDataset.GetRecNo: Longint;
 
+Var SearchRecBuffer : PBufRecLinkItem;
+    TmpRecBuffer    : PBufRecLinkItem;
+    recnr           : integer;
+
 begin
-//  GetBookmarkData(ActiveBuffer,@Result);
+  GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
+  TmpRecBuffer := FFirstRecBuf;
+  recnr := 1;
+  while TmpRecBuffer <> SearchRecBuffer do
+    begin
+    inc(recnr);
+    TmpRecBuffer := TmpRecBuffer^.next;
+    end;
+  result := recnr;
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;
@@ -602,7 +634,8 @@ end;
 Function TBufDataset.GetRecordCount: Longint;
 
 begin
-//  Result := FBRecordCount-FBDeletedRecords;
+  if state <> dsInsert then Result := FBRecordCount
+    else Result := FBRecordCount+1;
 end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;

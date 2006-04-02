@@ -1498,6 +1498,7 @@ type
     FCurrentRecBuf  : PBufRecLinkItem;
     FLastRecBuf     : PBufRecLinkItem;
     FFirstRecBuf    : PBufRecLinkItem;
+    FBRecordCount   : integer;
 
     FPacketRecords  : integer;
     FRecordSize     : Integer;
