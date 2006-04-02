@@ -2248,7 +2248,6 @@ const win32stub : array[0..131] of byte=(
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
           internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-          internalobjdata.writebytes(emptyint,sizeof(emptyint));
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { idata5, import address table }
