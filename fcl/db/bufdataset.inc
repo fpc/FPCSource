@@ -77,8 +77,8 @@ var pc : pchar;
 
 begin
   FOpen:=False;
-  CancelUpdates;
   FCurrentRecBuf := FFirstRecBuf;
+  SetLength(FUpdateBuffer,0);
   while assigned(FCurrentRecBuf) do
     begin
     pc := pointer(FCurrentRecBuf);
@@ -365,30 +365,38 @@ end;
 
 procedure TBufDataset.InternalDelete;
 
-var RecToDelete : PBufRecLinkItem;
-
 begin
-  GetBookmarkData(ActiveBuffer,@RecToDelete);
+  GetBookmarkData(ActiveBuffer,@FCurrentRecBuf);
 
-  if RecToDelete <> FFirstRecBuf then RecToDelete^.prior^.next := RecToDelete^.next
-  else FFirstRecBuf := RecToDelete^.next;
+  if FCurrentRecBuf <> FFirstRecBuf then FCurrentRecBuf^.prior^.next := FCurrentRecBuf^.next
+  else FFirstRecBuf := FCurrentRecBuf^.next;
 
-  RecToDelete^.next^.prior :=  RecToDelete^.prior;
+  FCurrentRecBuf^.next^.prior :=  FCurrentRecBuf^.prior;
 
-  FCurrentRecBuf := RecToDelete^.next;
-  
   if not GetRecordUpdateBuffer then
     begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
 
-    FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := pchar(RecToDelete);
-    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := RecToDelete;
+    FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := pchar(FCurrentRecBuf);
+    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
+
+    FCurrentRecBuf := FCurrentRecBuf^.next;
     end
   else
     begin
-    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
-    FreeRecordBuffer(pchar(RecToDelete));
+    if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify then
+      begin
+      FCurrentRecBuf := FCurrentRecBuf^.next;
+      FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
+      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
+      end
+    else
+      begin
+      FCurrentRecBuf := FCurrentRecBuf^.next;
+      FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
+      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := nil;  //this 'disables' the updatebuffer
+      end;
     end;
 
   dec(FBRecordCount);
@@ -404,27 +412,51 @@ end;
 
 procedure TBufDataset.CancelUpdates;
 
-begin
-// To be implemented
-{  for r := 0 to high(FUpdateBuffer) do
-    begin
-    if FUpdateBuffer[r].RecordNo > -1 then
-     if FUpdateBuffer[r].UpdateKind = ukDelete then
-      begin
-      dec(FBDeletedRecords);
-      unSetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
-      end
-    else if FUpdateBuffer[r].UpdateKind = ukInsert then
-      begin
-      inc(FBDeletedRecords);
-      SetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
-      end;
-    for f := 0 to high(FUpdateBuffer[r].FieldsUpdateBuffer) do
-      FreeMem(FUpdateBuffer[r].FieldsUpdateBuffer[f].newvalue);
+var r              : Integer;
 
+begin
+  CheckBrowseMode;
+
+  if Length(FUpdateBuffer) > 0 then
+    begin
+    r := 0;
+    while r < Length(FUpdateBuffer) do with FUpdateBuffer[r] do
+      begin
+      if assigned(FUpdateBuffer[r].BookmarkData) then
+        begin
+        if UpdateKind = ukModify then
+          begin
+          move(FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,BookmarkData^,RecordSize+sizeof(TBufRecLinkItem));
+          FreeRecordBuffer(OldValuesBuffer);
+          end
+        else if UpdateKind = ukDelete then
+          begin
+          if assigned(PBufRecLinkItem(BookmarkData)^.prior) then  // or else it was the first record
+            PBufRecLinkItem(BookmarkData)^.prior^.next := BookmarkData
+          else
+            FFirstRecBuf := BookmarkData;
+          PBufRecLinkItem(BookmarkData)^.next^.prior := BookmarkData;
+          inc(FBRecordCount);
+          end
+        else if UpdateKind = ukInsert then
+          begin
+          if assigned(PBufRecLinkItem(BookmarkData)^.prior) then // or else it was the first record
+            PBufRecLinkItem(BookmarkData)^.prior^.next := PBufRecLinkItem(BookmarkData)^.next
+          else
+            FFirstRecBuf := PBufRecLinkItem(BookmarkData)^.next;
+          PBufRecLinkItem(BookmarkData)^.next^.prior := PBufRecLinkItem(BookmarkData)^.prior;
+          // resync won't work if the currentbuffer is freed...
+          if FCurrentRecBuf = BookmarkData then FCurrentRecBuf := FCurrentRecBuf^.next;
+          FreeRecordBuffer(BookmarkData);
+          dec(FBRecordCount);
+          end;
+        end;
+      inc(r);
+      end;
+
+    SetLength(FUpdateBuffer,0);
+    Resync([]);
     end;
-  SetLength(FUpdateBuffer,0);
-  if FOpen then Resync([]);}
 end;
 
 procedure TBufDataset.ApplyUpdates;

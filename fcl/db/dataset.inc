@@ -162,6 +162,8 @@ Procedure TDataset.ClearBuffers;
 begin
   FRecordCount:=0;
   FactiveRecord:=0;
+  // Make sure that the active record is 'empty', ie: that all fields are null
+  InternalInitRecord(ActiveBuffer);
   FCurrentRecord:=-1;
   FBOF:=True;
   FEOF:=True;
