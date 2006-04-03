@@ -46,8 +46,6 @@ interface
           shlink,
           shinfo,
           shentsize : longint;
-          { relocation }
-          relocsect : TElfObjSection;
           constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
           constructor create_ext(AList:TFPHashObjectList;const Aname:string;Ashtype,Ashflags,Ashlink,Ashinfo:longint;Aalign:shortint;Aentsize:longint);
           destructor  destroy;override;
@@ -55,14 +53,6 @@ interface
 
        TElfObjData = class(TObjData)
        public
-         symtabsect,
-         strtabsect,
-         shstrtabsect,
-         gotpcsect,
-         gotoffsect,
-         goTSect,
-         plTSect,
-         symsect  : TElfObjSection;
          constructor create(const n:string);override;
          destructor  destroy;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string):string;override;
@@ -73,6 +63,14 @@ interface
 
        TElfObjectOutput = class(tObjOutput)
        private
+         symtabsect,
+         strtabsect,
+         shstrtabsect,
+         gotpcsect,
+         gotoffsect,
+         goTSect,
+         plTSect,
+         symsect  : TElfObjSection;
          elf32data : TElfObjData;
          symidx,
          localsyms : longint;
@@ -87,14 +85,13 @@ interface
          procedure section_count_sections(p:TObject;arg:pointer);
          procedure section_create_relocsec(p:TObject;arg:pointer);
          procedure section_set_datapos(p:TObject;arg:pointer);
-         procedure section_relocsec_set_datapos(p:TObject;arg:pointer);
          procedure section_write_data(p:TObject;arg:pointer);
          procedure section_write_sechdr(p:TObject;arg:pointer);
-         procedure section_write_relocsec(p:TObject;arg:pointer);
        protected
          function writedata(data:TObjData):boolean;override;
        public
          constructor Create(AWriter:TObjectWriter);override;
+         destructor Destroy;override;
        end;
 
        TElfAssembler = class(tinternalassembler)
@@ -527,7 +524,6 @@ implementation
         shinfo:=0;
         if name='.stab' then
           shentsize:=sizeof(TObjStabEntry);
-        relocsect:=nil;
       end;
 
 
@@ -544,14 +540,11 @@ implementation
         shlink:=Ashlink;
         shinfo:=Ashinfo;
         shentsize:=Aentsize;
-        relocsect:=nil;
       end;
 
 
     destructor TElfObjSection.destroy;
       begin
-        if assigned(relocsect) then
-          relocsect.free;
         inherited destroy;
       end;
 
@@ -564,13 +557,6 @@ implementation
       begin
         inherited create(n);
         CObjSection:=TElfObjSection;
-        { default sections }
-        symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
-        strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
-        shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
-        { insert the empty and filename as first in strtab }
-        strtabsect.writestr(#0);
-        strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
         { we need at least the following sections }
         createsection(sec_code,'');
         createsection(sec_data,'');
@@ -585,9 +571,6 @@ implementation
 
     destructor TElfObjData.destroy;
       begin
-        symtabsect.free;
-        strtabsect.free;
-        shstrtabsect.free;
         inherited destroy;
       end;
 
@@ -701,6 +684,12 @@ implementation
       end;
 
 
+    destructor TElfObjectOutput.destroy;
+      begin
+        inherited destroy;
+      end;
+
+
     procedure TElfObjectOutput.createrelocsection(s:TElfObjSection);
       var
         i    : longint;
@@ -711,6 +700,7 @@ implementation
         objreloc : TObjRelocation;
         relsym,
         reltyp   : longint;
+        relocsect : TObjSection;
       begin
         with elf32data do
          begin
@@ -725,9 +715,9 @@ implementation
 {$endif userodata}
            { create the reloc section }
 {$ifdef i386}
-           s.relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rel'+s.name,SHT_REL,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$else i386}
-           s.relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
+           relocsect:=TElfObjSection.create_ext(ObjSectionList,'.rela'+s.name,SHT_RELA,0,symtabsect.secshidx,s.secshidx,4,sizeof(TElfReloc));
 {$endif i386}
            { add the relocations }
            for i:=0 to s.Objrelocations.count-1 do
@@ -790,9 +780,9 @@ implementation
                { write reloc }
 {$ifdef ver2_0_0}
                relnative:=MaybeSwapElfReloc(rel);
-               s.relocsect.write(relnative,sizeof(rel));
+               relocsect.write(relnative,sizeof(rel));
 {$else}
-               s.relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
+               relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
 {$endif ver2_0_0}
              end;
          end;
@@ -814,9 +804,9 @@ implementation
         inc(localsyms);
 {$ifdef ver2_0_0}
         elfsymnative:=MaybeSwapElfSymbol(elfsym);
-        elf32data.symtabsect.write(elfsymnative,sizeof(elfsym));
+        symtabsect.write(elfsymnative,sizeof(elfsym));
 {$else}
-        elf32data.symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
+        symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
 {$endif ver2_0_0}
       end;
 
@@ -935,9 +925,7 @@ implementation
 
     procedure TElfObjectOutput.section_write_sh_string(p:TObject;arg:pointer);
       begin
-        TElfObjSection(p).shstridx:=elf32data.shstrtabsect.writestr(TObjSection(p).name+#0);
-        if assigned(TElfObjSection(p).relocsect) then
-          TElfObjSection(p).relocsect.shstridx:=elf32data.shstrtabsect.writestr(TElfObjSection(p).relocsect.name+#0);
+        TElfObjSection(p).shstridx:=shstrtabsect.writestr(TObjSection(p).name+#0);
       end;
 
 
@@ -945,14 +933,8 @@ implementation
       begin
         with elf32data do
          begin
-           with shstrtabsect do
-            begin
-              writestr(#0);
-              symtabsect.shstridx:=writestr('.symtab'#0);
-              strtabsect.shstridx:=writestr('.strtab'#0);
-              shstrtabsect.shstridx:=writestr('.shstrtab'#0);
-              ObjSectionList.ForEachCall(@section_write_sh_string,nil);
-            end;
+           shstrtabsect.writestr(#0);
+           ObjSectionList.ForEachCall(@section_write_sh_string,nil);
          end;
       end;
 
@@ -986,6 +968,8 @@ implementation
     procedure TElfObjectOutput.writesectiondata(s:TElfObjSection);
       begin
         FWriter.writezeros(s.dataalignbytes);
+        if s.Datapos<>FWriter.ObjSize then
+          internalerror(200604031);
         FWriter.writearray(s.data);
       end;
 
@@ -994,8 +978,6 @@ implementation
       begin
         TElfObjSection(p).secshidx:=pword(arg)^;
         inc(pword(arg)^);
-        if TElfObjSection(p).ObjRelocations.count>0 then
-          inc(pword(arg)^);
       end;
 
 
@@ -1009,13 +991,6 @@ implementation
     procedure TElfObjectOutput.section_set_datapos(p:TObject;arg:pointer);
       begin
         TObjSection(p).setdatapos(paint(arg)^);
-      end;
-
-
-    procedure TElfObjectOutput.section_relocsec_set_datapos(p:TObject;arg:pointer);
-      begin
-        if assigned(TElfObjSection(p).relocsect) then
-          TElfObjSection(p).relocsect.setdatapos(paint(arg)^);
       end;
 
 
@@ -1033,17 +1008,7 @@ implementation
     procedure TElfObjectOutput.section_write_sechdr(p:TObject;arg:pointer);
       begin
         writesectionheader(TElfObjSection(p));
-        if assigned(TElfObjSection(p).relocsect) then
-          writesectionheader(TElfObjSection(p).relocsect);
       end;
-
-
-    procedure TElfObjectOutput.section_write_relocsec(p:TObject;arg:pointer);
-      begin
-        if assigned(TElfObjSection(p).relocsect) then
-          writesectiondata(TElfObjSection(p).relocsect);
-      end;
-
 
 
     function TElfObjectOutput.writedata(data:TObjData):boolean;
@@ -1060,39 +1025,34 @@ implementation
         elf32data:=TElfObjData(data);
         with elf32data do
          begin
+           { default sections }
+           symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
+           strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
+           shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
+           { insert the empty and filename as first in strtab }
+           strtabsect.writestr(#0);
+           strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }
            ObjSectionList.ForEachCall(@section_count_sections,@nsections);
-           { add default sections }
-           shstrtabsect.secshidx:=nsections;
-           inc(nsections);
-           symtabsect.secshidx:=nsections;
-           inc(nsections);
-           strtabsect.secshidx:=nsections;
-           inc(nsections);
            { create .symtab and .strtab }
            createsymtab;
-           { Create the relocation sections }
+           { Create the relocation sections, this needs valid secidx and symidx }
            ObjSectionList.ForEachCall(@section_create_relocsec,nil);
+           { recalc nsections to incude the reloc sections }
+           nsections:=1;
+           ObjSectionList.ForEachCall(@section_count_sections,@nsections);
            { create .shstrtab }
            createshstrtab;
 
            { Calculate the filepositions }
            datapos:=$40; { elfheader + alignment }
-           { sections first }
+           { section data }
            ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
-           { shstrtab }
-           shstrtabsect.setdatapos(datapos);
            { section headers }
            shoffset:=datapos;
-           inc(datapos,nsections*sizeof(telfsechdr));
-           { symtab }
-           symtabsect.setdatapos(datapos);
-           { strtab }
-           strtabsect.setdatapos(datapos);
-           { .rel sections }
-           ObjSectionList.ForEachCall(@section_relocsec_set_datapos,@datapos);
+           inc(datapos,(nsections+1)*sizeof(telfsechdr));
 
            { Write ELF Header }
            fillchar(header,sizeof(header),0);
@@ -1141,22 +1101,11 @@ implementation
            writer.write(MaybeSwapHeader(header),sizeof(header));
 {$endif ver2_0_0}
            writer.writezeros($40-sizeof(header)); { align }
-         { Sections }
+           { Sections }
            ObjSectionList.ForEachCall(@section_write_data,nil);
-         { .shstrtab }
-           writesectiondata(shstrtabsect);
-         { section headers, start with an empty header for sh_undef }
+           { section headers, start with an empty header for sh_undef }
            writer.writezeros(sizeof(telfsechdr));
            ObjSectionList.ForEachCall(@section_write_sechdr,nil);
-           writesectionheader(shstrtabsect);
-           writesectionheader(symtabsect);
-           writesectionheader(strtabsect);
-         { .symtab }
-           writesectiondata(symtabsect);
-         { .strtab }
-           writesectiondata(strtabsect);
-         { .rel sections }
-           ObjSectionList.ForEachCall(@section_write_relocsec,nil);
          end;
         result:=true;
       end;
