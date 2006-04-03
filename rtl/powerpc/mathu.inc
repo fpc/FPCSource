@@ -21,6 +21,7 @@ const
   UnderflowMask        = %00100000;
   ZeroDivideMask       = %00010000;
   InexactMask          = %00001000;
+  ExceptionsPendingMask = %11111111111111100000011100000000;
 
   ExceptionMask        = InvalidOperationMask or OverflowMask or UnderflowMask or ZeroDivideMask or InexactMask;
 
@@ -29,14 +30,14 @@ const
 function getFPSCR : DWord; assembler; nostackframe;
 asm
   mffs f0
-  stfd f0, -8(r1)
-  lwz r3, -12(r1)
+  stfd f0, -12(r1)
+  lwz r3, -8(r1)
 end;
 
 procedure setFPSCR(newFPSCR : DWord); assembler; nostackframe;
 asm
-  stw r3, -12(r1)
-  lfd f0, -8(r1)
+  stw r3, -8(r1)
+  lfd f0, -12(r1)
   mtfsf 255, f0
 end;
 
@@ -82,13 +83,13 @@ begin
   result := [];
   if ((getFPSCR and InvalidOperationMask) <> 0) then 
     result := result + [exInvalidOp];
-  if ((getFPSCR and OverflowMask) <> 0) then 
+  if ((getFPSCR and OverflowMask) = 0) then 
     result := result + [exOverflow];
-  if ((getFPSCR and UnderflowMask) <> 0) then 
+  if ((getFPSCR and UnderflowMask) = 0) then 
     result := result + [exUnderflow];
-  if ((getFPSCR and ZeroDivideMask) <> 0) then 
+  if ((getFPSCR and ZeroDivideMask) = 0) then 
     result := result + [exZeroDivide];
-  if ((getFPSCR and InexactMask) <> 0) then 
+  if ((getFPSCR and InexactMask) = 0) then 
     result := result + [exPrecision];
 end;
 
@@ -108,7 +109,7 @@ begin
   if (exPrecision in Mask) then
     mode := mode or InexactMask;
   
-  setFPSCR((getFPSCR and (not ExceptionMask)) or mode);
+  setFPSCR((getFPSCR or ExceptionMask) and not mode and not ExceptionsPendingMask);
   result := Mask - [exDenormalized];
 end;
 
