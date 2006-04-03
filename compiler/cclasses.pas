@@ -1105,7 +1105,7 @@ end;
         pmax:=@s[length(s)+1];
         while (p<pmax) do
           begin
-            result:=((result shl 5) - result) xor LongWord(P^);
+            result:=LongWord((result shl 5) - result) xor LongWord(P^);
             inc(p);
           end;
 {$ifdef overflowon}
