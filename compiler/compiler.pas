@@ -391,6 +391,7 @@ begin
        { no message possible after this !!    }
        DoneCompiler;
      end;
+     DoneVerbose;
   except
 
     on EControlCAbort do
