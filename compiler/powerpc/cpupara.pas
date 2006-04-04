@@ -464,7 +464,7 @@ unit cpupara;
                       inc(nextintreg);
                       dec(paralen,tcgsize2size[paraloc^.size]);
                       if target_info.abi=abi_powerpc_aix then
-                        inc(stack_offset,tcgsize2size[paraloc^.size]);
+                        inc(stack_offset,align(tcgsize2size[paraloc^.size],4));
                     end
                   else if (loc = LOC_FPUREGISTER) and
                           (nextfloatreg <= maxfpureg) then
