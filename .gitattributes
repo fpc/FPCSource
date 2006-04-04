@@ -5464,6 +5464,7 @@ tests/test/units/dos/tidos.pp svneol=native#text/plain
 tests/test/units/dos/tidos2.pp svneol=native#text/plain
 tests/test/units/dos/tverify.pp svneol=native#text/plain
 tests/test/units/dos/tversion.pp svneol=native#text/plain
+tests/test/units/math/tmask.pp svneol=native#text/plain
 tests/test/units/math/tnaninf.pp svneol=native#text/plain
 tests/test/units/math/ttrig1.pp svneol=native#text/plain
 tests/test/units/objects/testobj.pp svneol=native#text/plain
