@@ -398,6 +398,7 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      install_exception_handlers;
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
+     ExitCode:=0;
      asm
          { allocate space for an exception frame }
         pushl $0
