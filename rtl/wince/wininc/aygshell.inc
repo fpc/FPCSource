@@ -330,7 +330,6 @@ const
   IDM_SHAREDNEW        = 10;
   IDM_SHAREDNEWDEFAULT = 11;
 
-
   NOMENU                  = $FFFF;
   SHA_INPUTDIALOG         = $0001;
   SHACTI_FSIPUP           = $0001;
@@ -370,12 +369,21 @@ const
   SHRG_LONGDELAY      = $00000008;
   SHRG_NOANIMATION    = $00000010;
 
+  {Sip info}
+  SIP_STATUS_UNAVAILABLE = 0;
+  SIP_STATUS_AVAILABLE  = 1;
+
+  SIPF_OFF    =	$00000000;
+  SIPF_ON     =	$00000001;
+  SIPF_DOCKED =	$00000002;
+  SIPF_LOCKED =	$00000004;
+
   {Supported system parameters}
+  SPI_SETCOMPLETIONINFO  = 223;
   SPI_SETSIPINFO         = 224;
   SPI_GETSIPINFO         = 225;
   SPI_SETCURRENTIM       = 226;
   SPI_GETCURRENTIM       = 227;
-  SPI_SETCOMPLETIONINFO  = 223;
   SPI_APPBUTTONCHANGE    = 228;
   SPI_RESERVED           = 229;
   SPI_SYNCSETTINGSCHANGE = 230;
@@ -389,28 +397,28 @@ const
 
 type
   //Struct sent through WM_NOTIFY when SHRG_NOTIFYPARENT is used
-  NMRGINFO = record
+  NMRGINFO = packed record
     hdr : NMHDR;
     ptAction : POINT;
     dwItemSpec : DWORD;
   end;
   PNMRGINFO=^NMRGINFO;
 
-  SHACTIVATEINFO = record
+  SHACTIVATEINFO = packed record
     cbSize : DWORD;
     hwndLastFocus : HWND ;
     bits : Longint ;
   end;
   PSHACTIVATEINFO=^SHACTIVATEINFO;
 
-  SHINITDLGINFO = record
+  SHINITDLGINFO = packed record
     dwMask: DWORD;
     hDlg: HWND;
     dwFlags : DWORD ;
    end;
   PSHINITDLGINFO=^SHINITDLGINFO;
 
-  SHMENUBARINFO = record
+  SHMENUBARINFO = packed record
     cbSize : DWORD;        // IN  - Indicates which members of struct are valid
     hwndParent : HWND ;    // IN
     dwFlags : DWORD ;      // IN  - Some features we want
@@ -424,7 +432,7 @@ type
   PSHMENUBARINFO=^SHMENUBARINFO;
 
   {SHRecognizeGesture}
-  SHRGI = record
+  SHRGI = packed record
     cbSize     : DWORD;
     hwndClient : HWND ;
     ptDown     : POINT;
@@ -433,6 +441,18 @@ type
   SHRGINFO=SHRGI;
   PSHRGINFO=^SHRGI;
 
+  {Sip info}
+  SIPINFO = packed record
+    cbSize           : DWORD;
+    fdwFlags         : DWORD;
+    rcVisibleDesktop : RECT;
+    rcSipRect        : RECT;
+    dwImDataSize     : DWORD;
+    pvImData        : void;
+  end;
+  TSIPINFO=SIPINFO;
+  PSIPINFO=^SIPINFO;
+  
   SIPSTATE= (SIP_UP= 0,SIP_DOWN,SIP_FORCEDOWN,SIP_UNCHANGED,SIP_INPUTDIALOG);
 
 //*****************************************************************************
