@@ -182,6 +182,10 @@ procedure gtk_tree_view_column_cell_get_size(tree_column:PGtkTreeViewColumn; cel
             height:Pgint); cdecl; external gtklib;
 function gtk_tree_view_column_cell_is_visible(tree_column:PGtkTreeViewColumn):gboolean; cdecl; external gtklib;
 procedure gtk_tree_view_column_focus_cell(tree_column:PGtkTreeViewColumn; cell:PGtkCellRenderer); cdecl; external gtklib;
+
+// since gtk 2.4
+procedure gtk_tree_view_column_set_expand(tree_column: PGtkTreeViewColumn; Expand : gboolean); cdecl; external gtklib;
+function gtk_tree_view_column_get_expand(tree_column: PGtkTreeViewColumn): gboolean; cdecl; external gtklib;
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------
