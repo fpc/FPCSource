@@ -219,7 +219,11 @@ implementation
     uses
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap;
+       ogmap,
+{$ifdef win32}
+       windows
+{$endif win32}
+       ;
 
     const
 {$ifdef i386}
@@ -2128,6 +2132,11 @@ const win32stub : array[0..131] of byte=(
         CObjData:=TPECoffObjData;
       end;
 
+{$ifdef win32}
+    var
+      Wow64DisableWow64FsRedirection : function (var OldValue : pointer) : boolean;stdcall;
+      Wow64RevertWow64FsRedirection : function (OldValue : pointer) : boolean;stdcall;
+{$endif win32}
 
     function TPECoffexeoutput.LoadDLL(const dllname:string):boolean;
       type
@@ -2220,9 +2229,15 @@ const win32stub : array[0..131] of byte=(
 
         function AddProcImport(const afuncname:string):TObjSymbol;
         const
+{$ifdef x86_64}
+          jmpopcode : array[0..2] of byte = (
+            $ff,$24,$25
+          );
+{$else x86_64}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
+{$endif x86_64}
           nopopcodes : array[0..1] of byte = (
             $90,$90
           );
@@ -2260,15 +2275,28 @@ const win32stub : array[0..131] of byte=(
           internalobjdata.SetSection(textobjsection);
           result:=internalobjdata.SymbolDefine('_'+afuncname,AB_GLOBAL,AT_FUNCTION);
           internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
-          internalobjdata.writereloc(0,sizeof(aint),idata5label,RELOC_ABSOLUTE);
+          internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
           internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
         end;
+
+      var
+        p : pointer;
 
       begin
         result:=false;
         basedllname:=splitfilename(dllname);
+{$ifdef win32}
+        if (target_info.system=system_x86_64_win64) and
+          assigned(Wow64DisableWow64FsRedirection) then
+          Wow64DisableWow64FsRedirection(p);
+{$endif win32}
         DLLReader:=TObjectReader.Create;
         DLLReader.OpenFile(dllname);
+{$ifdef win32}
+        if (target_info.system=system_x86_64_win64) and
+          assigned(Wow64RevertWow64FsRedirection) then
+          Wow64RevertWow64FsRedirection(p);
+{$endif win32}
         if not DLLReader.Read(DosHeader,sizeof(DosHeader)) or
            (DosHeader[0]<>$4d) or (DosHeader[1]<>$5a) then
           begin
@@ -2280,14 +2308,14 @@ const win32stub : array[0..131] of byte=(
         if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
            (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+', Not a PE file');
+            Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
             exit;
           end;
         if not DLLReader.Read(Header,sizeof(CoffHeader)) or
            (Header.mach<>COFF_MAGIC) or
            (Header.opthdr<>sizeof(coffpeoptheader)) then
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+', Not a PE file');
+            Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
             exit;
           end;
         { Read optheader }
@@ -2334,11 +2362,21 @@ const win32stub : array[0..131] of byte=(
               end;
             { Read Function name from DLL, prepend _ and terminate with #0 }
             DLLReader.Seek(sechdr.datapos+NameOfs);
-            DLLReader.Read(FuncName[2],sizeof(FuncName)-3);
-            { Add underscore to be compatible with ld.exe importing }
-            FuncName[1]:='_';
-            FuncName[sizeof(FuncName)-1]:=#0;
-            FuncName[0]:=chr(Strlen(@FuncName[1]));
+
+            { target which requires the _ prepention? }
+            if target_info.system in [system_i386_win32] then
+              begin
+                DLLReader.Read(FuncName[2],sizeof(FuncName)-3);
+                { Add underscore to be compatible with ld.exe importing }
+                FuncName[1]:='_';
+                FuncName[sizeof(FuncName)-1]:=#0;
+              end
+            else
+              begin
+                DLLReader.Read(FuncName[1],sizeof(FuncName)-3);
+                FuncName[sizeof(FuncName)-1]:=#0;
+                FuncName[0]:=chr(Strlen(@FuncName[1]));
+              end;
 
             for j:=0 to UnresolvedExeSymbols.Count-1 do
               begin
@@ -2348,7 +2386,9 @@ const win32stub : array[0..131] of byte=(
                    (exesym.name=FuncName) then
                   begin
                     { Remove underscore }
-                    Delete(FuncName,1,1);
+                    if target_info.system in [system_i386_win32] then
+                      Delete(FuncName,1,1);
+
                     exesym.objsymbol:=AddProcImport(FuncName);
                     UnresolvedExeSymbols[j]:=nil;
                     break;
@@ -2548,6 +2588,24 @@ const win32stub : array[0..131] of byte=(
 {$endif arm}
 
 
+{$ifdef win32}
+  procedure SetupProcVars;
+    var
+      hinstLib : THandle;
+    begin
+      Wow64DisableWow64FsRedirection:=nil;
+      Wow64RevertWow64FsRedirection:=nil;
+      hinstLib:=LoadLibrary('kernel32.dll');
+      if hinstLib<>0 then
+        begin
+          pointer(Wow64DisableWow64FsRedirection):=GetProcAddress(hinstLib,'Wow64DisableWow64FsRedirection');
+          pointer(Wow64RevertWow64FsRedirection):=GetProcAddress(hinstLib,'Wow64RevertWow64FsRedirection');
+          FreeLibrary(hinstLib);
+        end;
+    end;
+{$endif win32}
+
+
 initialization
 {$ifdef i386}
   RegisterAssembler(as_i386_coff_info,TDJCoffAssembler);
@@ -2561,4 +2619,7 @@ initialization
 {$ifdef arm}
   RegisterAssembler(as_arm_pecoffwince_info,TPECoffAssembler);
 {$endif arm}
+{$ifdef win32}
+  SetupProcVars;
+{$endif win32}
 end.

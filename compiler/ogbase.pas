@@ -1683,15 +1683,19 @@ implementation
         for i:=0 to ExeSections.Count-1 do
           begin
             exesec:=TExeSection(ExeSections[i]);
-            exemap.AddMemoryMapExeSection(exesec);
-            for j:=0 to exesec.ObjSectionList.count-1 do
+            { a fphashlist can contain nil even after pack }
+            if assigned(exesec) then
               begin
-                objsec:=TObjSection(exesec.ObjSectionList[j]);
-                exemap.AddMemoryMapObjectSection(objsec);
-                for k:=0 to objsec.ObjSymbolDefines.Count-1 do
+                exemap.AddMemoryMapExeSection(exesec);
+                for j:=0 to exesec.ObjSectionList.count-1 do
                   begin
-                    objsym:=TObjSymbol(objsec.ObjSymbolDefines[k]);
-                    exemap.AddMemoryMapSymbol(objsym);
+                    objsec:=TObjSection(exesec.ObjSectionList[j]);
+                    exemap.AddMemoryMapObjectSection(objsec);
+                    for k:=0 to objsec.ObjSymbolDefines.Count-1 do
+                      begin
+                        objsym:=TObjSymbol(objsec.ObjSymbolDefines[k]);
+                        exemap.AddMemoryMapSymbol(objsym);
+                      end;
                   end;
               end;
           end;
