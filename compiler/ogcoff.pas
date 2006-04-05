@@ -2279,9 +2279,10 @@ const win32stub : array[0..131] of byte=(
           internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
         end;
 
+{$ifdef win32}
       var
         p : pointer;
-
+{$endif win32}
       begin
         result:=false;
         basedllname:=splitfilename(dllname);
@@ -2375,8 +2376,8 @@ const win32stub : array[0..131] of byte=(
               begin
                 DLLReader.Read(FuncName[1],sizeof(FuncName)-3);
                 FuncName[sizeof(FuncName)-1]:=#0;
-                FuncName[0]:=chr(Strlen(@FuncName[1]));
               end;
+            FuncName[0]:=chr(Strlen(@FuncName[1]));
 
             for j:=0 to UnresolvedExeSymbols.Count-1 do
               begin
