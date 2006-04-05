@@ -81,7 +81,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
   result := [];
-  if ((getFPSCR and InvalidOperationMask) <> 0) then 
+  if ((getFPSCR and InvalidOperationMask) = 0) then 
     result := result + [exInvalidOp];
   if ((getFPSCR and OverflowMask) = 0) then 
     result := result + [exOverflow];
