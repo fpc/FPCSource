@@ -217,12 +217,12 @@ interface
 implementation
 
     uses
-       cutils,verbose,globals,
-       fmodule,aasmtai,aasmdata,
-       ogmap
 {$ifdef win32}
        windows,
 {$endif win32}
+       cutils,verbose,globals,
+       fmodule,aasmtai,aasmdata,
+       ogmap
        ;
 
     const
