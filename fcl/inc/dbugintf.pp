@@ -51,7 +51,7 @@ ResourceString
 implementation
 
 Uses 
-  SysUtils, classes,msgintf, process, simpleipc;
+  SysUtils, classes,dbugmsg, process, simpleipc;
 
 Const
   DmtInformation = lctInformation;
