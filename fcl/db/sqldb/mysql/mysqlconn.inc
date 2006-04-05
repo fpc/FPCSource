@@ -260,7 +260,11 @@ end;
 
 procedure TConnectionName.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  // not necessary
+  With Cursor as TCursorName do
+    begin
+    mysql_close(FQMySQL);
+    FQMysql := nil;
+    end;
 end;
 
 procedure TConnectionName.FreeFldBuffers(cursor: TSQLCursor);
