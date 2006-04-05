@@ -5,7 +5,7 @@
 interface
 
 uses
-  Classes, SysUtils,sqldb,db,
+  Classes, SysUtils,sqldb,db,dynlibs,
 {$IfDef mysql50}
   mysql50dyn;
   {$DEFINE TConnectionName:=TMySQL50Connection}
@@ -54,6 +54,7 @@ Type
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
+    FDidConnect : Boolean;
     function GetClientInfo: string;
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
@@ -150,11 +151,20 @@ end;
 
 function TConnectionName.GetClientInfo: string;
 
+Var
+  B : Boolean;
+
 begin
   // To make it possible to call this if there's no connection yet
-  InitialiseMysql;
-  Result:=strpas(mysql_get_client_info());
-  ReleaseMysql;
+  B:=(MysqlLibraryHandle=Nilhandle);
+  If B then
+    InitialiseMysql;
+  Try  
+    Result:=strpas(mysql_get_client_info());
+  Finally  
+    if B then
+      ReleaseMysql;
+  end;  
 end;
 
 function TConnectionName.GetServerStatus: String;
@@ -194,7 +204,9 @@ end;
 
 procedure TConnectionName.DoInternalConnect;
 begin
-  InitialiseMysql;
+  FDidConnect:=(MySQLLibraryHandle=NilHandle);
+  if FDidConnect then
+    InitialiseMysql;
 {$IFDEF mysql50}
   if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
     Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
@@ -217,7 +229,8 @@ begin
   inherited DoInternalDisconnect;
   mysql_close(FMySQL);
   FMySQL:=Nil;
-  ReleaseMysql;
+  if FDidConnect then
+    ReleaseMysql;
 end;
 
 function TConnectionName.GetHandle: pointer;
