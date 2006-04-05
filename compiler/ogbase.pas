@@ -518,7 +518,7 @@ implementation
         secalign:=Aalign;
         secsymidx:=0;
         { relocation }
-        ObjRelocations:=TFPObjectList.Create(false);
+        ObjRelocations:=TFPObjectList.Create(true);
         ObjSymbolDefines:=TFPObjectList.Create(false);
         VTRefList:=TFPObjectList.Create(false);
       end;
@@ -1683,19 +1683,15 @@ implementation
         for i:=0 to ExeSections.Count-1 do
           begin
             exesec:=TExeSection(ExeSections[i]);
-            { a fphashlist can contain nil even after pack }
-            if assigned(exesec) then
+            exemap.AddMemoryMapExeSection(exesec);
+            for j:=0 to exesec.ObjSectionList.count-1 do
               begin
-                exemap.AddMemoryMapExeSection(exesec);
-                for j:=0 to exesec.ObjSectionList.count-1 do
+                objsec:=TObjSection(exesec.ObjSectionList[j]);
+                exemap.AddMemoryMapObjectSection(objsec);
+                for k:=0 to objsec.ObjSymbolDefines.Count-1 do
                   begin
-                    objsec:=TObjSection(exesec.ObjSectionList[j]);
-                    exemap.AddMemoryMapObjectSection(objsec);
-                    for k:=0 to objsec.ObjSymbolDefines.Count-1 do
-                      begin
-                        objsym:=TObjSymbol(objsec.ObjSymbolDefines[k]);
-                        exemap.AddMemoryMapSymbol(objsym);
-                      end;
+                    objsym:=TObjSymbol(objsec.ObjSymbolDefines[k]);
+                    exemap.AddMemoryMapSymbol(objsym);
                   end;
               end;
           end;
@@ -1870,7 +1866,8 @@ implementation
                         if assigned(hstabreloc) then
                           begin
                             hstabreloc.Dataoffset:=mergestabcnt*sizeof(TObjStabEntry)+stabRelocofs;
-                            currstabsec.ObjRelocations[currstabrelocidx-1]:=nil;
+                            { Remove from List without freeing the object }
+                            currstabsec.ObjRelocations.List[currstabrelocidx-1]:=nil;
                             mergedstabsec.ObjRelocations.Add(hstabreloc);
                           end;
                         { Write updated stab }

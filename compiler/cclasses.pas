@@ -159,6 +159,7 @@ type
     NextIndex : Integer;
     Data      : Pointer;
   end;
+  PHashItem=^THashItem;
 
 const
   MaxHashListSize = Maxint div 16;
@@ -195,6 +196,7 @@ type
     procedure StrExpand(MinIncSize:Integer);
     procedure SetStrCapacity(NewCapacity: Integer);
     procedure SetHashCapacity(NewCapacity: Integer);
+    procedure ReHash;
   public
     constructor Create;
     destructor Destroy; override;
@@ -216,6 +218,7 @@ type
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get; default;
     property List: PHashItemList read FHashList;
+    property Strs: PChar read FStrs;
   end;
 
 
@@ -228,7 +231,7 @@ type
   TFPHashObject = class
   private
     FOwner : TFPHashObjectList;
-    FIndex : Integer;
+    FStrIndex : Integer;
   protected
     function GetName:string;
   public
@@ -765,47 +768,26 @@ begin
 end;
 
 procedure TFPList.Pack;
-Var
-  {Last,I,J,}
-  Runner : Longint;
+var
+  NewCount,
+  i : integer;
+  pdest,
+  psrc : PPointer;
 begin
-  // Not the fastest; but surely correct
-  for Runner := Fcount - 1 downto 0 do
-    if Items[Runner] = Nil then
-      Self.Delete(Runner);
-{ The following may be faster in case of large and defragmented lists
-  If count=0 then exit;
-  Runner:=0;I:=0;
-  TheLast:=Count;
-  while runner<count do
+  NewCount:=0;
+  psrc:=@FList[0];
+  pdest:=psrc;
+  For I:=0 To FCount-1 Do
     begin
-    // Find first Nil
-    While (FList^[Runner]<>Nil) and (Runner<Count) do Runner:=Runner+1;
-    if Runner<Count do
-      begin
-      // Start searching for non-nil from last known nil+1
-      if i<Runner then I:=Runner+1;
-      While (Flist[I]^=Nil) and (I<Count) do I:=I+1;
-      // Start looking for last non-nil of block.
-      J:=I+1;
-      While (Flist^[J]<>Nil) and (J<Count) do J:=J+1;
-      // Move block and zero out
-      Move (Flist^[I],Flist^[Runner],J*SizeOf(Pointer));
-      FillWord (Flist^[I],(J-I)*WordRatio,0);
-      // Update Runner and Last to point behind last block
-      TheLast:=Runner+(J-I);
-      If J=Count then
-         begin
-         // Shortcut, when J=Count we checked all pointers
-         Runner:=Count
-      else
-         begin
-         Runner:=TheLast;
-         I:=j;
-      end;
+      if assigned(psrc^) then
+        begin
+          pdest^:=psrc^;
+          inc(pdest);
+          inc(NewCount);
+        end;
+      inc(psrc);
     end;
-  Count:=TheLast;
-}
+  FCount:=NewCount;
 end;
 
 // Needed by Sort method.
@@ -1189,8 +1171,6 @@ end;
 
 
 procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
-var
-  i : Integer;
 begin
   If (NewCapacity < 1) then
     Error (SListCapacityError, NewCapacity);
@@ -1198,7 +1178,14 @@ begin
     exit;
   FHashCapacity:=NewCapacity;
   ReallocMem(FHashTable, FHashCapacity*sizeof(Integer));
-  { Rehash }
+  ReHash;
+end;
+
+
+procedure TFPHashList.ReHash;
+var
+  i : Integer;
+begin
   FillDword(FHashTable^,FHashCapacity,LongWord(-1));
   For i:=0 To FCount-1 Do
     AddToHashTable(i);
@@ -1371,7 +1358,29 @@ begin
 end;
 
 procedure TFPHashList.Pack;
+var
+  NewCount,
+  i : integer;
+  pdest,
+  psrc : PHashItem;
 begin
+  NewCount:=0;
+  psrc:=@FHashList[0];
+  pdest:=psrc;
+  For I:=0 To FCount-1 Do
+    begin
+      if assigned(psrc^.Data) then
+        begin
+          pdest^:=psrc^;
+          inc(pdest);
+          inc(NewCount);
+        end;
+      inc(psrc);
+    end;
+  FCount:=NewCount;
+  { We need to ReHash to update the IndexNext }
+  ReHash;
+  { Release over-capacity }
   SetCapacity(FCount);
   SetStrCapacity(FStrCount);
 end;
@@ -1447,15 +1456,18 @@ end;
 *****************************************************************************}
 
 constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:string);
+var
+  Index : Integer;
 begin
   FOwner:=HashObjectList;
-  FIndex:=HashObjectList.Add(s,Self);
+  Index:=HashObjectList.Add(s,Self);
+  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
 end;
 
 
 function TFPHashObject.GetName:string;
 begin
-  Result:=FOwner.NameOfIndex(FIndex);
+  Result:=PShortString(@FOwner.List.Strs[FStrIndex])^;
 end;
 
 
