@@ -1260,6 +1260,11 @@ type_e_cant_choose_overload_function=04057_E_Can't determine which overloaded fu
 type_e_illegal_count_var=04058_E_Illegal counter variable
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+type_w_double_c_varargs=04059_W_Converting constant real value to double for C variable argument, add explicit typecast to prevent this.
+% In C, constant real values are double by default. For this reason, if you
+% pass a constant real value to a variable argument part of a C function, FPC
+% by default converts this constant to double as well. If you want to prevent
+% this from happening, add an explicit typecast around the constant.
 % \end{description}
 #
 # Symtable

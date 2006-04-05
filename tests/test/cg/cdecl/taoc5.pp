@@ -36,19 +36,19 @@ end;
 
 begin
  l:=4.0;
- test_one_double([3.45]);
+ test_one_double([double(3.45)]);
  if abs(l-3.45)>0.01 then
    has_errors:=true;
  l:=4.0;
- test_one_double([3.45,2.45]);
+ test_one_double([double(3.45),double(2.45)]);
  if abs(l-3.45)>0.01 then
    has_errors:=true;
  l:=4;
- test_one_double([3.45,24.25,678.8]);
+ test_one_double([double(3.45),double(24.25),double(678.8)]);
  if abs(l-3.45)>0.01 then
    has_errors:=true;
  l:=4;
- test_two_doubles([3.45,4.56]);
+ test_two_doubles([double(3.45),double(4.56)]);
  if abs(l-4.56)>0.01 then
    has_errors:=true;
  if has_errors then

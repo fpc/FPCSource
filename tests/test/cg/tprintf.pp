@@ -83,21 +83,23 @@ begin
     end;
 
   Writeln('Testing with single double argument');
-  printf('Text containing double: %f'+lineending,[d]);
-  sprintf(p,'Text containing double: %f'+lineending,[d]);
+  printf('Text containing double: %lf'+lineending,[d]);
+  sprintf(p,'Text containing double: %lf'+lineending,[d]);
   if strpos(p,'double: 45.4')=nil then
     begin
       writeln('The output of sprintf for double is wrong: ',p);
       has_errors:=true;
     end;
 
-  printf('Text containing long double: %f'+lineending,[e]);
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  printf('Text containing long double: %Lf'+lineending,[e]);
   sprintf(p,'Text containing long double: %Lf'+lineending,[e]);
   if strpos(p,'long double: 74.7')=nil then
     begin
       writeln('The output of sprintf for long double is wrong:',p);
       has_errors:=true;
     end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
   Writeln('Testing with combined pchar argument');
   printf('Text containing "%s" and "%s" text'+lineending,[s,s2]);
@@ -137,8 +139,8 @@ begin
     end;
 
   Writeln('Testing with single double argument');
-  printf('Text containing double: %f"%s"'+lineending,[d,s2]);
-  sprintf(p,'Text containing double: %f"%s"'+lineending,[d,s2]);
+  printf('Text containing double: %lf"%s"'+lineending,[d,s2]);
+  sprintf(p,'Text containing double: %lf"%s"'+lineending,[d,s2]);
   if (strpos(p,'double: 45.4')=nil) or
      (strpos(p,'"next"')=nil) then
     begin
@@ -146,14 +148,16 @@ begin
       has_errors:=true;
     end;
 
-  printf('Text containing long double: %f"%s"'+lineending,[e,s2]);
-  sprintf(p,'Text containing long double: %f"%s"'+lineending,[e,s2]);
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  printf('Text containing long double: %Lf"%s"'+lineending,[e,s2]);
+  sprintf(p,'Text containing long double: %Lf"%s"'+lineending,[e,s2]);
   if (strpos(p,'long double: 74.7')=nil) or
      (strpos(p,'"next"')=nil) then
     begin
       writeln('The output of sprintf for long double is wrong:',p);
       has_errors:=true;
     end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
   if has_errors then
     halt(1);

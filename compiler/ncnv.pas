@@ -48,6 +48,7 @@ interface
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          function simplify:tnode;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
           function assign_allowed:boolean;
@@ -1032,8 +1033,6 @@ implementation
                include(left.flags,nf_is_currency);
                resulttypepass(left);
              end;
-         if left.nodetype=realconstn then
-           result:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
       end;
 
 
@@ -1440,6 +1439,10 @@ implementation
               te_exact,
               te_equal :
                 begin
+                  result := simplify;
+                  if assigned(result) then
+                    exit;
+
                   { because is_equal only checks the basetype for sets we need to
                     check here if we are loading a smallset into a normalset }
                   if (resulttype.def.deftype=setdef) and
@@ -1481,6 +1484,9 @@ implementation
               te_convert_l2,
               te_convert_l3 :
                 begin
+                  result := simplify;
+                  if assigned(result) then
+                    exit;
                   { nothing to do }
                 end;
 
@@ -1656,15 +1662,51 @@ implementation
               CGMessage(type_w_pointer_to_longint_conv_not_portable);
           end;
 
+        result := simplify;
+        if assigned(result) then
+          exit;
+
+        { now call the resulttype helper to do constant folding }
+        result:=resulttype_call_helper(convtype);
+      end;
+
+
+    function ttypeconvnode.simplify: tnode;
+      var
+        hp: tnode;
+      begin
+        result := nil;
         { Constant folding and other node transitions to
           remove the typeconv node }
         case left.nodetype of
+          realconstn :
+            begin
+              if (convtype = tc_real_2_currency) then
+                result := resulttype_real_to_currency
+              else if (convtype = tc_real_2_real) then
+                result := resulttype_real_to_real
+              else
+                exit;
+              if not(assigned(result)) then
+                begin
+                  result := left;
+                  left := nil;
+                end;
+              if (result.nodetype = realconstn) then
+                begin
+                  result:=crealconstnode.create(trealconstnode(result).value_real,resulttype);
+                  if ([nf_explicit,nf_internal] * flags <> []) then
+                    include(result.flags, nf_explicit);
+                end;
+            end;
           niln :
             begin
               { nil to ordinal node }
               if (resulttype.def.deftype=orddef) then
                begin
                  hp:=cordconstnode.create(0,resulttype,true);
+                 if ([nf_explicit,nf_internal] * flags <> []) then
+                   include(hp.flags, nf_explicit);
                  result:=hp;
                  exit;
                end
@@ -1674,6 +1716,8 @@ implementation
                 begin
                   hp:=cnilnode.create;
                   hp.resulttype:=resulttype;
+                  if ([nf_explicit,nf_internal] * flags <> []) then
+                    include(hp.flags, nf_explicit);
                   result:=hp;
                   exit;
                 end
@@ -1685,6 +1729,8 @@ implementation
                       (po_methodpointer in tprocvardef(resulttype.def).procoptions)) then
                  begin
                    left.resulttype:=resulttype;
+                   if ([nf_explicit,nf_internal] * flags <> []) then
+                     include(left.flags, nf_explicit);
                    result:=left;
                    left:=nil;
                    exit;
@@ -1701,6 +1747,8 @@ implementation
                  (convtype<>tc_cchar_2_pchar) then
                 begin
                    hp:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value),resulttype);
+                   if ([nf_explicit,nf_internal] * flags <> []) then
+                     include(hp.flags, nf_explicit);
                    result:=hp;
                    exit;
                 end
@@ -1709,6 +1757,8 @@ implementation
                 begin
                    { replace the resulttype and recheck the range }
                    left.resulttype:=resulttype;
+                   if ([nf_explicit,nf_internal] * flags <> []) then
+                     include(left.flags, nf_explicit);
                    testrange(left.resulttype.def,tordconstnode(left).value,(nf_explicit in flags));
                    result:=left;
                    left:=nil;
@@ -1722,6 +1772,8 @@ implementation
               if (resulttype.def.deftype=pointerdef) then
                 begin
                    left.resulttype:=resulttype;
+                   if ([nf_explicit,nf_internal] * flags <> []) then
+                     include(left.flags, nf_explicit);
                    result:=left;
                    left:=nil;
                    exit;
@@ -1731,15 +1783,15 @@ implementation
                 begin
                    hp:=cordconstnode.create(TConstExprInt(tpointerconstnode(left).value),
                      resulttype,not(nf_explicit in flags));
+                   if ([nf_explicit,nf_internal] * flags <> []) then
+                     include(hp.flags, nf_explicit);
                    result:=hp;
                    exit;
                 end;
             end;
         end;
-
-        { now call the resulttype helper to do constant folding }
-        result:=resulttype_call_helper(convtype);
       end;
+
 
       procedure Ttypeconvnode.mark_write;
 
