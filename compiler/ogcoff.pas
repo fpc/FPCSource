@@ -219,9 +219,9 @@ implementation
     uses
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap,
+       ogmap
 {$ifdef win32}
-       windows
+       windows,
 {$endif win32}
        ;
 
