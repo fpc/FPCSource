@@ -562,7 +562,7 @@ implementation
     function int_cgsize(const a: aint): tcgsize;{$ifdef USEINLINE}inline;{$endif}
       const
         size2cgsize : array[0..8] of tcgsize = (
-          OS_NO,OS_8,OS_16,OS_32,OS_32,OS_64,OS_64,OS_64,OS_64
+          OS_NO,OS_8,OS_16,OS_NO,OS_32,OS_NO,OS_NO,OS_NO,OS_64
         );
       begin
         if a>8 then
