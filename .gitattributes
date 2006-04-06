@@ -5263,6 +5263,7 @@ tests/test/cg/tnot.pp svneol=native#text/plain
 tests/test/cg/tobjsiz2.pp svneol=native#text/plain
 tests/test/cg/tobjsize.pp svneol=native#text/plain
 tests/test/cg/tpara1.pp svneol=native#text/plain
+tests/test/cg/tpara2.pp svneol=native#text/plain
 tests/test/cg/tprintf.pp svneol=native#text/plain
 tests/test/cg/traise1.pp svneol=native#text/plain
 tests/test/cg/traise2.pp svneol=native#text/plain
