@@ -151,28 +151,43 @@ function IS_BLOB(n : longint) : boolean;
 function MYSQL_COUNT_ERROR : longint;
 function mysql_reload(mysql : pmysql) : longint;
 
-
-Procedure InitialiseMysql4;
+Function InitialiseMysql4 : Integer;
+Function InitialiseMysql4(Const LibraryName : String) : Integer;
 Procedure ReleaseMysql4;
 
 var Mysql4LibraryHandle : TLibHandle;
 
 implementation
 
-var RefCount : integer;
+ResourceString
+  SErrAlreadyLoaded = 'MySQL 4.1 already initialized from library %s';
+  SLoadFailed       = 'Can not load MySQL 4.1 library "%s". Please check your installation.';
+  
+var 
+  RefCount : integer;
+  LoadedLibrary : String;
+  
+Function InitialiseMysql4 : Integer;
 
-Procedure InitialiseMysql4;
+begin
+  // Use Default library
+  Result:=InitialiseMySQL4(Mysqllib);
+end;
+
+Function InitialiseMysql4(Const LibraryName : String) : Integer;
+
 
 begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    Mysql4LibraryHandle := loadlibrary(Mysqllib);
+    Mysql4LibraryHandle := loadlibrary(LibraryName);
     if Mysql4LibraryHandle = nilhandle then
       begin
       RefCount := 0;
-      Raise EInOutError.Create('Can not load MySQL client. Is it installed? ('+Mysqllib+')');
+      Raise EInOutError.CreateFmt(SLoadFailed,[LibraryName]);
       end;
+    LoadedLibrary:=LibraryName;  
     pointer(mysql_get_client_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_client_info');
 
     // To avoid the strangest problems for ppl using other client-libs
@@ -260,7 +275,11 @@ begin
     pointer(net_safe_read) := GetProcedureAddress(Mysql4LibraryHandle,'net_safe_read');
 
     InitialiseMysql4_com;
-    end;
+    end
+  else
+    If (LibraryName<>LoadedLibrary) then
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+  Result:=RefCount;  
 end;
 
 Procedure ReleaseMysql4;
@@ -269,7 +288,10 @@ begin
   if RefCount > 0 then dec(RefCount);
   if RefCount = 0 then
     begin
-    if not UnloadLibrary(Mysql4LibraryHandle) then inc(RefCount);
+    if not UnloadLibrary(Mysql4LibraryHandle) then 
+      inc(RefCount)
+    else
+      LoadedLibrary:='';
     ReleaseMysql4_com;
     end;
 end;
