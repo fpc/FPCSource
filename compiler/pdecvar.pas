@@ -1101,7 +1101,7 @@ implementation
              }
              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
                 is_first_field and
-                (trecordsymtable(symtablestack).usefieldalignment = -1) then
+                (trecordsymtable(symtablestack.top).usefieldalignment = -1) then
                begin
                  tempdef := tt.def;
                  while tempdef.deftype = arraydef do
@@ -1112,8 +1112,8 @@ implementation
                    maxpadalign := trecorddef(tempdef).padalignment;
 
                  if (maxpadalign > 4) and
-                    (maxpadalign > trecordsymtable(symtablestack).padalignment) then
-                   trecordsymtable(symtablestack).padalignment := maxpadalign;
+                    (maxpadalign > trecordsymtable(symtablestack.top).padalignment) then
+                   trecordsymtable(symtablestack.top).padalignment := maxpadalign;
                  is_first_field := false;
                end;
 {$endif powerpc}
