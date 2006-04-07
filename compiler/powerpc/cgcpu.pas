@@ -252,32 +252,6 @@ const
                   if (sizeleft <> 3) then
                     begin
                       a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                      { the following is only for AIX abi systems, but the }
-                      { conditions should never be true for SYSV (if they  }
-                      { are, there is a bug in cpupara)                    }
-
-                      { update: this doesn't work yet (we have to shift     }
-                      { right again in ncgutil when storing the parameters, }
-                      { and additionally Apple's documentation seems to be  }
-                      { wrong, in that these values are always kept in the  }
-                      { lower bytes of the registers                        }
-
-{
-                      if (paraloc.composite) and
-                         (sizeleft <= 2) and
-                         ((paraloc.intsize > 4) or
-                          (target_info.system <> system_powerpc_darwin)) then
-                        begin
-                          case sizeleft of
-                            1:
-                              a_op_const_reg(list,OP_SHL,OS_INT,24,location^.register);
-                            2:
-                              a_op_const_reg(list,OP_SHL,OS_INT,16,location^.register);
-                            else
-                              internalerror(2005010910);
-                          end;
-                        end;
-}
                     end
                   else
                     begin
