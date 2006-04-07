@@ -58,10 +58,10 @@ interface
          RELOC_ZERO
       );
 
-{$ifdef i386}
+{$ifndef x86_64}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
-{$endif i386}
+{$endif x86_64}
 
     type
       TObjSectionOption = (
