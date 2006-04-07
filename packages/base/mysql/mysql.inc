@@ -1499,7 +1499,6 @@ begin
   Result:=InitialiseMySQL(Mysqllib);
 end;
 
-Function dlerror : pchar; cdecl; external;
 
 Function InitialiseMysql(Const LibraryName : String) : Integer;
 
@@ -1510,7 +1509,6 @@ begin
     MysqlLibraryHandle := loadlibrary(LibraryName);
     if (MysqlLibraryHandle=nilhandle) then
       begin
-      writeln(dlerror);
       Raise EInOutError.CreateFmt(SLoadFailed,[LibraryName]);
       end;
     Inc(RefCount);  
