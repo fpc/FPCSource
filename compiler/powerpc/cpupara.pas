@@ -429,7 +429,7 @@ unit cpupara;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
               if (target_info.abi = abi_powerpc_aix) and
-                 (paradef.deftype = recorddef) then
+                 (paradef.deftype in [recorddef,arraydef]) then
                 hp.paraloc[side].composite:=true;
 {$ifndef cpu64bit}
               if (target_info.abi=abi_powerpc_sysv) and
@@ -508,8 +508,20 @@ unit cpupara;
                          paraloc^.reference.index:=NR_STACK_POINTER_REG
                        else
                          paraloc^.reference.index:=NR_R12;
-                       paraloc^.reference.offset:=stack_offset;
+                       
+                       if (target_info.abi = abi_powerpc_aix) and
+                          (hp.paraloc[side].intsize < 3) then
+                           paraloc^.reference.offset:=stack_offset+(4-paralen)
+                       else
+                         paraloc^.reference.offset:=stack_offset;
+
                        inc(stack_offset,align(paralen,4));
+                       while (paralen > 0) and
+                             (nextintreg < RS_R11) do
+                          begin
+                            inc(nextintreg);
+                            dec(paralen,sizeof(aint));
+                          end;
                        paralen := 0;
                     end;
                 end;
