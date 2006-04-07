@@ -5412,6 +5412,7 @@ tests/test/cg/obj/darwin/i386/tcext4.o -text
 tests/test/cg/obj/darwin/powerpc/ctest.o -text
 tests/test/cg/obj/darwin/powerpc/tcext3.o -text
 tests/test/cg/obj/darwin/powerpc/tcext4.o -text
+tests/test/cg/obj/darwin/powerpc/tcext5.o -text
 tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/freebsd/i386/tcext3.o -text
 tests/test/cg/obj/freebsd/i386/tcext4.o -text
@@ -5440,6 +5441,7 @@ tests/test/cg/obj/solaris/sparc/tcext3.o -text
 tests/test/cg/obj/solaris/sparc/tcext4.o -text
 tests/test/cg/obj/tcext3.c -text
 tests/test/cg/obj/tcext4.c -text
+tests/test/cg/obj/tcext5.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
 tests/test/cg/obj/win32/i386/tcext3.o -text
 tests/test/cg/obj/win32/i386/tcext4.o -text
@@ -5478,6 +5480,7 @@ tests/test/cg/tcalext.pp svneol=native#text/plain
 tests/test/cg/tcalext2.pp svneol=native#text/plain
 tests/test/cg/tcalext3.pp -text
 tests/test/cg/tcalext4.pp -text
+tests/test/cg/tcalext5.pp svneol=native#text/plain
 tests/test/cg/tcalfun1.pp svneol=native#text/plain
 tests/test/cg/tcalfun2.pp svneol=native#text/plain
 tests/test/cg/tcalfun3.pp svneol=native#text/plain
