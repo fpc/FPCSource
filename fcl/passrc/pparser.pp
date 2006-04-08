@@ -1421,14 +1421,39 @@ begin
  {       El['calling-conv'] := 'cdecl';}
         ExpectToken(tkSemicolon);
         end 
+      else if (Tok='PASCAL') then
+        begin
+{        El['calling-conv'] := 'pascal';}
+        ExpectToken(tkSemicolon);
+        end 
       else if (Tok='STDCALL') then
         begin
 {        El['calling-conv'] := 'stdcall';}
         ExpectToken(tkSemicolon);
         end 
+      else if (Tok='OLDFPCCALL') then
+        begin
+{        El['calling-conv'] := 'oldfpccall';}
+        ExpectToken(tkSemicolon);
+        end 
+      else if (Tok='EXTDECL') then
+        begin
+{        El['calling-conv'] := 'extdecl';}
+        ExpectToken(tkSemicolon);
+        end 
+      else if (Tok='REGISTER') then
+        begin
+{        El['calling-conv'] := 'register';}
+        ExpectToken(tkSemicolon);
+        end 
       else if (Tok='COMPILERPROC') then
         begin
 {      El['calling-conv'] := 'compilerproc';}
+        ExpectToken(tkSemicolon);
+        end
+      else if (Tok='VARARGS') then
+        begin
+{      'varargs': needs CDECL & EXTERNAL }
         ExpectToken(tkSemicolon);
         end
       else if (tok='DEPRECATED') then  
@@ -1442,6 +1467,10 @@ begin
         ExpectToken(tkSemicolon);
         end 
       else if (tok='INLINE') then
+        begin
+        ExpectToken(tkSemicolon);
+        end 
+      else if (tok='ASSEMBLER') then
         begin
         ExpectToken(tkSemicolon);
         end 
@@ -1482,116 +1511,184 @@ procedure TPasParser.ParseProperty(Element:TPasElement);
   begin
     ExpectIdentifier;
     Result := CurTokenString;
-    while True do
-    begin
+
+    while True do begin
       NextToken;
-      if CurToken = tkDot then
-      begin
+      if CurToken = tkDot then begin
         ExpectIdentifier;
         Result := Result + '.' + CurTokenString;
       end else
         break;
     end;
-    UngetToken;
+	
+    if CurToken = tkSquaredBraceOpen then begin
+      Result := Result + '[';
+      NextToken;
+      if CurToken in [tkIdentifier, tkNumber] then begin
+	Result := Result + CurTokenString;
+      end;
+      ExpectToken(tkSquaredBraceClose);
+      Result := Result + ']';
+    end else 
+      UngetToken;
+  
+//    writeln(Result);
+
   end;
 
 begin
+
   NextToken;
-  // !!!: Parse array properties correctly
-  if CurToken = tkSquaredBraceOpen then
-  begin
-  ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
-  NextToken;
+// if array prop then parse [ arg1:type1;... ]  
+  if CurToken = tkSquaredBraceOpen then begin
+  // !!!: Parse array properties correctly  
+    ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
+    NextToken;
   end;
 
-  if CurToken = tkColon then
-  begin
+  if CurToken = tkColon then begin
+// if ":prop_data_type" if supplied then read it  
   // read property type
-          TPasProperty(Element).VarType := ParseType(Element);
-  NextToken;
+    TPasProperty(Element).VarType := ParseType(Element);
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'index' access modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then
-          TPasProperty(Element).IndexValue := ParseExpression
-  else
-          UngetToken;
-  NextToken;
+
+  if CurToken <> tkSemicolon then begin
+//  if indexed prop then read the index value    
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then
+//    read 'index' access modifier    
+      TPasProperty(Element).IndexValue := ParseExpression
+    else
+//    not indexed prop will be recheck for another token
+      UngetToken;
+
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'read' access modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'READ') then
-          TPasProperty(Element).ReadAccessorName := GetAccessorName
-  else
-          UngetToken;
-  NextToken;
+  
+// if the accessors list is not finished  
+  if CurToken <> tkSemicolon then begin
+    // read 'read' access modifier
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'READ') then
+      TPasProperty(Element).ReadAccessorName := GetAccessorName
+    else
+//    not read accessor will be recheck for another token
+      UngetToken;
+    
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'write' access modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
-          TPasProperty(Element).WriteAccessorName := GetAccessorName
-  else
-          UngetToken;
-  NextToken;
+  
+// if the accessors list is not finished    
+  if CurToken <> tkSemicolon then begin
+    // read 'write' access modifier
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
+      TPasProperty(Element).WriteAccessorName := GetAccessorName
+    else
+//    not write accessor will be recheck for another token
+      UngetToken;
+    
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'stored' access modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'STORED') then
-  begin
-          NextToken;
-          if CurToken = tkTrue then
-          TPasProperty(Element).StoredAccessorName := 'True'
-          else if CurToken = tkFalse then
-          TPasProperty(Element).StoredAccessorName := 'False'
-          else if CurToken = tkIdentifier then
-          TPasProperty(Element).StoredAccessorName := CurTokenString
-          else
-          ParseExc(SParserSyntaxError);
+  
+// if the specifiers list is not finished      
+  if CurToken <> tkSemicolon then begin
+    // read 'stored' access modifier
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'STORED') then begin
+      NextToken;
+      if CurToken = tkTrue then
+        TPasProperty(Element).StoredAccessorName := 'True'
+      else if CurToken = tkFalse then
+        TPasProperty(Element).StoredAccessorName := 'False'
+      else if CurToken = tkIdentifier then
+        TPasProperty(Element).StoredAccessorName := CurTokenString
+      else
+        ParseExc(SParserSyntaxError);
+    end else
+//    not stored accessor will be recheck for another token    
+      UngetToken;
+
+    NextToken;
+  end;
+  
+// if the specifiers list is not finished        
+  if CurToken <> tkSemicolon then begin
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
+//    read 'default' value modifier -> ParseExpression(DEFAULT <value>) 
+      TPasProperty(Element).DefaultValue := ParseExpression
+    else
+//    not "default <value>" prop will be recheck for another token        
+      UngetToken;
+      
+    NextToken;
+  end;
+  
+// if the specifiers list is not finished          
+  if CurToken <> tkSemicolon then begin
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NODEFAULT') then begin
+//    read 'nodefault' modifier
+      TPasProperty(Element).IsNodefault:=true;
+    end;
+//  stop recheck for specifiers - start from next token
+    NextToken;
+  end;
+
+// after NODEFAULT may be a ";"
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
+  end;
+
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then begin
+//  what is after DEFAULT token at the end  
+    NextToken;
+    if CurToken = tkSemicolon then begin
+//    ";" then DEFAULT=prop
+      TPasProperty(Element).IsDefault := True;
+      UngetToken;
+    end else begin
+//    "!;" then a step back to get phrase "DEFAULT <value>"
+      UngetToken;
+//    DefaultValue  -> ParseExpression(DEFAULT <value>)  and stay on the <value>
+      TPasProperty(Element).DefaultValue := ParseExpression;
+    end;
+
+//!!  there may be DEPRECATED token
+    NextToken;
+    
+  end;
+
+// after DEFAULT may be a ";"
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
+  end;
+  
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
+//  nothing to do on DEPRECATED - just to accept
+//    NextToken;
   end else
-          UngetToken;
-  NextToken;
+    UngetToken;;
+    
+//!!   else
+//  not DEFAULT prop accessor will be recheck for another token      
+//!!    UngetToken;
+
+{
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'default' value modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
-          TPasProperty(Element).DefaultValue := ParseExpression
-  else
-          UngetToken;
-  NextToken;
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
+//  nothing to do - just to process
+    NextToken;
   end;
-  if CurToken <> tkSemicolon then
-  begin
-  // read 'nodefault' modifier
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NODEFAULT') then
-  begin
-          TPasProperty(Element).IsNodefault:=true;
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
   end;
-  NextToken;
-  end;
-  if CurToken = tkSemicolon then
-  begin
-  // read semicolon
-  NextToken;
-  end;
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
-  begin
-  NextToken;
-  if CurToken = tkSemicolon then
-  begin
-	  TPasProperty(Element).IsDefault := True;
-          UngetToken;
-  end else
-  begin
-          UngetToken;
-          TPasProperty(Element).DefaultValue := ParseExpression;
-  end;
-  end else
-  UngetToken;
+}
+
+
+    
 end;
 
 
@@ -1782,19 +1879,31 @@ var
           Proc.IsAbstract := True
         else if s = 'OVERRIDE' then
           Proc.IsOverride := True
+        else if s = 'REINTRODUCE' then
+          Proc.IsReintroduced := True
         else if s = 'OVERLOAD' then
           Proc.IsOverload := True
-        else if s = 'MESSAGE' then
-        begin
+        else if s = 'STATIC' then
+          Proc.IsStatic := True
+        else if s = 'MESSAGE' then begin
           Proc.IsMessage := True;
           repeat
             NextToken;
           until CurToken = tkSemicolon;
           UngetToken;
-        end else if s = 'CDECL' then
+        end 
+	else if s = 'CDECL' then
+{      El['calling-conv'] := 'cdecl';}
+	else if s = 'PASCAL' then
 {      El['calling-conv'] := 'cdecl';}
         else if s = 'STDCALL' then
 {      El['calling-conv'] := 'stdcall';}
+        else if s = 'OLDFPCCALL' then
+{      El['calling-conv'] := 'oldfpccall';}
+        else if s = 'EXTDECL' then
+{      El['calling-conv'] := 'extdecl';}
+        else if s = 'DEPRECATED' then
+{      El['calling-conv'] := 'deprecated';}
         else
         begin
           UngetToken;
