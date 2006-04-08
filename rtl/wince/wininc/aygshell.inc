@@ -448,7 +448,7 @@ type
     rcVisibleDesktop : RECT;
     rcSipRect        : RECT;
     dwImDataSize     : DWORD;
-    pvImData        : void;
+    pvImData         : pointer;
   end;
   TSIPINFO=SIPINFO;
   PSIPINFO=^SIPINFO;

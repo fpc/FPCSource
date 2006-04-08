@@ -123,7 +123,7 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
@@ -146,7 +146,7 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String) : THandle;
 var
   fn: PWideChar;
 begin
@@ -157,13 +157,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : SizeInt;
+Function FileCreate (Const FileName : String; Mode:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
 Var
   res : dword;
 begin
@@ -174,7 +174,7 @@ begin
 end;
 
 
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Var
   Res : dword;
 begin
@@ -185,20 +185,20 @@ begin
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : THandle;FOffset,Origin : Longint) : Longint;
 begin
   Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
   {$warning need to add 64bit call }
   Result := longint(SetFilePointer(Handle, longint(FOffset), nil, longint(Origin)));
 end;
 
 
-Procedure FileClose (Handle : Longint);
+Procedure FileClose (Handle : THandle);
 begin
   if Handle<=4 then
    exit;
@@ -206,7 +206,7 @@ begin
 end;
 
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle;Size: Longint) : boolean;
 begin
   Result:=longint(SetFilePointer(handle,Size,nil,FILE_BEGIN))<>-1;
   If Result then
@@ -328,7 +328,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : THandle) : Longint;
 Var
   FT : TFileTime;
 begin
@@ -339,7 +339,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Var
   FT: TFileTime;
 begin
