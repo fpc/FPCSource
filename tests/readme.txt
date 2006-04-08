@@ -1,8 +1,8 @@
 Directories
 -----------
-webtbs...........Tests for web-bug-database bugs (success in compilation)
+webtbs...........Tests for web-bug-database bugs (should compile/run)
                    Digits in filename refer to bug database entry
-webtbf...........Tests for web-bug-database bugs (fail compile)
+webtbf...........Tests for web-bug-database bugs (should not compile/run)
                    Digits in filename refer to bug database entry
 test.............Testsuites for different aspects of the compiler/rtl etc
 tbs..............Tests for other bugs, added by the fpc core team
@@ -11,14 +11,14 @@ tbf..............Tests for other bugs, added by the fpc core team
                    (fail compile) Digits in filename is a serial no
 units............Helper units for doing the tests
 utils............Utilities for processing tests
-packages.........Tests for packages: to run this tests, the full fpc sources
-                 must be build
+packages.........Tests for packages: to run these tests, the full fpc sources
+                 must be built
 
 
 Writing a test
 --------------
 A test should have a name on the form t*.pp, to be recognized as a test.
-It should return 0 on success, any other value indicate failure.
+It should return 0 on success, any other value indicates failure.
 
 
 
@@ -58,7 +58,7 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
                    from compiler, followed by an optional note. Will not
                    be logged as a bug.
 
-  NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,linux
+  NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,powerpc
         No space between the elements and the comma.
 
 Usage
