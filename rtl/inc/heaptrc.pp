@@ -815,7 +815,7 @@ begin
 {$IFDEF OS2}
   { inside stack ? }
   if (PtrUInt (P) > PtrUInt (Get_Frame)) and
-     (PtrUInt (P) < StackTop) then
+     (PtrUInt (P) < PtrUInt (StackTop)) then
     goto _exit;
   { inside data or bss ? }
   if (PtrUInt (P) >= PtrUInt (@etext)) and (PtrUInt (P) < PtrUInt (@eend)) then
