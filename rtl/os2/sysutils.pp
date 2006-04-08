@@ -939,7 +939,7 @@ begin
 (* Work around a bug in OS/2 - argument to DosExecPgm *)
 (* should not cross 64K boundary. *)
    if ((PtrUInt (Args) + 1024) and $FFFF) < 1024 then
-    Inc (Args, 1024);
+    Inc (pointer (Args), 1024);
    ArgSize := 0;
    Move (Path [1], Args^ [ArgSize], Length (Path));
    Inc (ArgSize, Length (Path));
