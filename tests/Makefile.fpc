@@ -155,6 +155,7 @@ copyfiles: $(TEST_OUTPUTDIR)
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
         $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
 
