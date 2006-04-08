@@ -338,6 +338,9 @@ begin
       NewType := ftInteger;
       NewSize := 0;
       end;
+{$ifdef mysql50}
+    FIELD_TYPE_NEWDECIMAL,
+{$endif}
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
@@ -551,6 +554,9 @@ begin
         VI := 0;
       Move(VI, Dest^, Result);
       end;
+{$ifdef mysql50}
+    FIELD_TYPE_NEWDECIMAL,
+{$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       Result := SizeOf(Double);
