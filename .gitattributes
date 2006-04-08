@@ -5433,6 +5433,7 @@ tests/test/cg/obj/linux/sparc/ctest.o -text
 tests/test/cg/obj/linux/x86_64/ctest.o -text
 tests/test/cg/obj/linux/x86_64/tcext3.o -text
 tests/test/cg/obj/linux/x86_64/tcext4.o -text
+tests/test/cg/obj/linux/x86_64/tcext5.o -text
 tests/test/cg/obj/macos/powerpc/ctest.o -text
 tests/test/cg/obj/netbsd/m68k/ctest.o -text
 tests/test/cg/obj/os2/i386/ctest.o -text
