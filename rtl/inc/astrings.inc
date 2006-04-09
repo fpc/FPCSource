@@ -479,16 +479,22 @@ end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; compilerproc;
 var
-   ofs, strlength : SizeInt;
+   ofs, strlength: SizeInt;
+   samestring: boolean;
 begin
    if Str='' then
      exit;
+   samestring := pointer(s) = pointer(str);
    { needed in case s and str are the same string }
    strlength := length(str);
    ofs:=Length(S);
    SetLength(S,ofs+strlength);
    { the pbyte cast avoids an unique call which isn't necessary because SetLength was just called }
-   move(Str[1],(pointer(S)+ofs)^,strlength+1);
+   if not(samestring) then
+     move(Str[1],(pointer(S)+ofs)^,strlength+1)
+   else
+     { the setlength may have relocated the string, so str may no longer be valid }
+     move(S[1],(pointer(S)+ofs)^,strlength+1)
 end;
 
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
