@@ -2023,9 +2023,14 @@ implementation
     function ttypeconvnode.first_bool_to_bool : tnode;
       begin
          first_bool_to_bool:=nil;
-         expectloc:=LOC_REGISTER;
-         if registersint<1 then
-           registersint:=1;
+         if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+           expectloc := left.expectloc
+         else
+           begin
+             expectloc:=LOC_REGISTER;
+             if registersint<1 then
+               registersint:=1;
+           end;
       end;
 
 

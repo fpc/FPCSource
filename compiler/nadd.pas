@@ -818,13 +818,13 @@ implementation
                 if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
                    right:=ctypeconvnode.create_internal(right,left.resulttype);
-                   ttypeconvnode(right).convtype:=tc_bool_2_int;
+                   ttypeconvnode(right).convtype:=tc_bool_2_bool;
                    resulttypepass(right);
                  end
                 else if torddef(left.resulttype.def).size<torddef(right.resulttype.def).size then
                  begin
                    left:=ctypeconvnode.create_internal(left,right.resulttype);
-                   ttypeconvnode(left).convtype:=tc_bool_2_int;
+                   ttypeconvnode(left).convtype:=tc_bool_2_bool;
                    resulttypepass(left);
                  end;
                 case nodetype of

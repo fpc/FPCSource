@@ -392,10 +392,18 @@ interface
           the bits that define the true status can be outside the limits
           of the new size and truncating the register can result in a 0
           value }
-        if resulttype.def.size<left.resulttype.def.size then
-          second_int_to_bool
-        else
-          second_bool_to_int;
+        if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+          begin
+            secondpass(left);
+            if (left.location.loc <> left.expectloc) then
+              internalerror(20060409);
+            location_copy(location,left.location);
+          end
+         else
+           if resulttype.def.size<left.resulttype.def.size then
+             second_int_to_bool
+           else
+             second_bool_to_int;
       end;
 
 
