@@ -166,7 +166,8 @@ begin
      FieldSize:=SizeOf(Word);
    end else
    begin
-     DatabaseError('Field type "'+ColumnStr+'" not recognized',Self);
+     AType:= ftString;
+     FieldSize:=0;
    end;
    FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, FieldSize, False);
    {$ifdef DEBUG}
