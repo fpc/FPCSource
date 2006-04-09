@@ -517,19 +517,25 @@ var
                   begin
                     v:=v or V_Warning;
                     if status.errorwarning then
-                     inc(status.errorcount);
+                     inc(status.errorcount)
+                    else
+                     inc(status.countWarnings);
                   end;
                 'N' :
                   begin
                     v:=v or V_Note;
                     if status.errornote then
-                     inc(status.errorcount);
+                     inc(status.errorcount)
+                    else
+                     inc(status.countNotes);
                   end;
                 'H' :
                   begin
                     v:=v or V_Hint;
                     if status.errorhint then
-                     inc(status.errorcount);
+                     inc(status.errorcount)
+                    else
+                     inc(status.countHints);
                   end;
                 'I' :
                   v:=v or V_Info;
@@ -830,3 +836,4 @@ finalization
   { Be sure to close the redirect files to flush all data }
   DoneRedirectFile;
 end.
+

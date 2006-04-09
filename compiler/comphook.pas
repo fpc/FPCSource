@@ -77,7 +77,10 @@ type
     currentcolumn : longint;  { current line and column }
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
-    errorcount    : longint;  { number of generated errors }
+    errorcount,
+    countWarnings,
+    countNotes,
+    countHints    : longint;  { number of found errors/warnings/notes/hints }
     codesize,
     datasize      : aint;
   { program info }

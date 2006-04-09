@@ -1,4 +1,6 @@
 const
+  general_text_bytes_code=01019;
+  general_text_bytes_data=01020;
   general_t_compilername=01000;
   general_d_sourceos=01001;
   general_i_targetos=01002;
@@ -18,6 +20,9 @@ const
   general_i_hint=01016;
   general_e_path_does_not_exist=01017;
   general_f_compilation_aborted=01018;
+  general_i_number_of_warnings=01021;
+  general_i_number_of_hints=01022;
+  general_i_number_of_notes=01023;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -673,9 +678,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39720;
+  MsgTxtSize = 39829;
 
   MsgIdxMax : array[1..20] of longint=(
-    19,75,219,60,62,47,100,22,135,60,
+    24,75,219,60,62,47,100,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

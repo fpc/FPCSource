@@ -45,8 +45,10 @@
 #
 # General
 #
-# 01016 is the last used one
+# 01023 is the last used one
 #
+general_text_bytes_code=01019_bytes code
+general_text_bytes_data=01020_bytes data
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -79,7 +81,7 @@ general_t_objectpath=01007_T_Using object path: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 Lines compiled, $2 sec$3
+general_i_abslines_compiled=01008_I_$1 lines compiled, $2 sec$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -113,6 +115,13 @@ general_i_hint=01016_I_Hint:
 general_e_path_does_not_exist=01017_E_Path "$1" does not exist
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilation aborted
+% Compilation was aborted.
+general_i_number_of_warnings=01021_I_$1 warning(s) issued
+% Total number of warnings issued during compilation.
+general_i_number_of_hints=01022_I_$1 hint(s) issued
+% Total number of hints issued during compilation.
+general_i_number_of_notes=01023_I_$1 note(s) issued
+% Total number of notes issued during compilation.
 % \end{description}
 #
 # Scanner

@@ -382,10 +382,19 @@ begin
             starttime:=starttime+3600.0*24.0;
           timestr:=tostr(trunc(starttime))+'.'+tostr(trunc(frac(starttime)*10));
           if status.codesize<>-1 then
-            linkstr:=', '+tostr(status.codesize)+' bytes code, '+tostr(status.datasize)+' bytes data'
+            linkstr:=', '+tostr(status.codesize)+' ' +strpas(MessagePChar(general_text_bytes_code))+', '+tostr(status.datasize)+' '+strpas(MessagePChar(general_text_bytes_data))
           else
             linkstr:='';
           Message3(general_i_abslines_compiled,tostr(status.compiledlines),timestr,linkstr);
+          if (Status.Verbosity and V_Warning = V_Warning) and
+                                               (Status.CountWarnings <> 0) then
+           Message1 (general_i_number_of_warnings, tostr (Status.CountWarnings));
+          if (Status.Verbosity and V_Hint = V_Hint) and
+                                                  (Status.CountHints <> 0) then
+           Message1 (general_i_number_of_hints, tostr (Status.CountHints));
+          if (Status.Verbosity and V_Note = V_Note) and
+                                               (Status.CountNotes <> 0) then
+           Message1 (general_i_number_of_notes, tostr (Status.CountNotes));
         end;
      finally
        { no message possible after this !!    }
