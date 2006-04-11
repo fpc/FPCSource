@@ -1977,6 +1977,12 @@ end;
       begin
         result:=false;
         hs:=upper(s);
+        if (hs = 'DEFAULT') then
+          begin
+            a := pocall_default;
+            result := true;
+            exit;
+          end;
         for t:=low(tproccalloption) to high(tproccalloption) do
          if DefProcCallName[t]=hs then
           begin
