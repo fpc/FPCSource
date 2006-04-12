@@ -839,8 +839,11 @@ parser_e_only_publishable_classes_can__be_published=03156_E_Only class which are
 % are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
 parser_e_proc_directive_expected=03157_E_Procedure directive expected
-% When declaring a procedure in a const block you used a ; after the
-% procedure declaration after which a procedure directive must follow.
+% This error is triggered when you have a \var{\{\$Calling\}} directive without
+% a calling convention specified.
+% It also happens when declaring a procedure in a const block and you
+% used a ; after a procedure declaration which must be followed by a
+% procedure directive.
 % Correct declarations are:
 % \begin{verbatim}
 % const
