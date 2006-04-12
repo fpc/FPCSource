@@ -1976,7 +1976,7 @@ end;
         hs : string;
       begin
         result:=false;
-        if (hs = '') then
+        if (s = '') then
           exit;
         hs:=upper(s);
         if (hs = 'DEFAULT') then
