@@ -93,6 +93,8 @@ unit cpupara;
 
 
     function ti386paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+      var
+        size: longint;
       begin
         case target_info.system of
           system_i386_win32 :
@@ -117,8 +119,11 @@ unit cpupara;
               case def.deftype of
                 recorddef : 
                   begin
-                    if (def.size > 0) and
-                       (def.size <= 8) then
+                    size := def.size;
+                    if (size > 0) and
+                       (size <= 8) and
+                       { only if size is a power of 2 }
+                       ((size and (size-1)) = 0) then
                       begin
                         result := false;
                         exit;
@@ -166,7 +171,11 @@ unit cpupara;
                  (def.size<=16) then
                 result:=false
               else
-                result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>sizeof(aint));
+                result:=
+                  (not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+                   (def.size>sizeof(aint))) or
+                  ((calloption = pocall_mwpascal) and
+                   (varspez=vs_const));
             end;
           arraydef :
             begin
@@ -229,7 +238,8 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cdecl,
-          pocall_cppdecl :
+          pocall_cppdecl,
+          pocall_mwpascal :
             result:=[RS_EAX,RS_EDX,RS_ECX];
           pocall_far16,
           pocall_pascal,
