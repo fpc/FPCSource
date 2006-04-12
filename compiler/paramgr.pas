@@ -141,7 +141,8 @@ implementation
            (def.deftype=recorddef) or
            ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
            ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
-           ((def.deftype=objectdef) and is_object(def)) or
+           { interfaces are also passed by reference to be compatible with delphi and COM }
+           ((def.deftype=objectdef) and (is_object(def) or is_interface(def))) or
            (def.deftype=variantdef) or
            ((def.deftype=setdef) and (tsetdef(def).settype<>smallset));
       end;
