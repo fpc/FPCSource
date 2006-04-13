@@ -2731,9 +2731,9 @@ implementation
                   procname := 'fpc_class_as_intf'
                 else
                   procname := 'fpc_intf_as';
-                call := ccallnode.createinternres(procname,
-                   ccallparanode.create(right,ccallparanode.create(left,nil)),
-                   resulttype);
+                call := ccallnode.createintern(procname,
+                   ccallparanode.create(right,ccallparanode.create(left,nil)));
+                call := ctypeconvnode.create_internal(call,resulttype);
               end;
             left := nil;
             right := nil;
