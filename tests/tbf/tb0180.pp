@@ -1,3 +1,4 @@
+{ %fail }
 { %OPT=-Sew }
 {$calling }
 
