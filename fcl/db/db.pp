@@ -354,7 +354,6 @@ type
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
-    property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
     property LookupList: TLookupList read GetLookupList;
   published
     property AlignMent : TAlignMent Read FAlignMent write SetAlignment default taLeftJustify;
@@ -374,6 +373,7 @@ type
     property KeyFields: string read FKeyFields write FKeyFields;
     property LookupCache: Boolean read FLookupCache write FLookupCache;
     property Origin: string read FOrigin write FOrigin;
+    property ProviderFlags : TProviderFlags read FProviderFlags write FProviderFlags;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
     property Required: Boolean read FRequired write FRequired;
     property Visible: Boolean read FVisible write SetVisible default True;
@@ -1472,16 +1472,16 @@ type
 
   { TBufDataset }
 
-  PBufBookmark = ^TBufBookmark;
-  TBufBookmark = record
-    BookmarkData : Pointer;
-    BookmarkFlag : TBookmarkFlag;
-  end;
-  
   PBufRecLinkItem = ^TBufRecLinkItem;
   TBufRecLinkItem = record
     prior   : PBufRecLinkItem;
     next    : PBufRecLinkItem;
+  end;
+
+  PBufBookmark = ^TBufBookmark;
+  TBufBookmark = record
+    BookmarkData : PBufRecLinkItem;
+    BookmarkFlag : TBookmarkFlag;
   end;
 
   PRecUpdateBuffer = ^TRecUpdateBuffer;

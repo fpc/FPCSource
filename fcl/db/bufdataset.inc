@@ -213,7 +213,9 @@ end;
 
 procedure TBufDataset.InternalGotoBookmark(ABookmark: Pointer);
 begin
-  FCurrentRecBuf := ABookmark;
+  // note that ABookMark should be a PBufBookmark. But this way it can also be
+  // a pointer to a TBufRecLinkItem
+  FCurrentRecBuf := pointer(ABookmark^);
 end;
 
 function TBufDataset.getnextpacket : integer;
@@ -339,14 +341,17 @@ var CurrBuff : pointer;
     NullMask : pbyte;
 
 begin
-  if not (state in [dsEdit, dsInsert]) then
+  if not (state in [dsEdit, dsInsert, dsFilter]) then
     begin
     DatabaseErrorFmt(SNotInEditState,[NAme],self);
     exit;
     end;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
-    CurrBuff := ActiveBuffer;
+    if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
+      CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
+    else
+      CurrBuff := ActiveBuffer;
     NullMask := CurrBuff;
 
     inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
@@ -478,7 +483,7 @@ begin
     begin
     if assigned(FUpdateBuffer[r].BookmarkData) then
       begin
-      InternalGotoBookmark(FUpdateBuffer[r].BookmarkData);
+      InternalGotoBookmark(@FUpdateBuffer[r].BookmarkData);
       Resync([rmExact,rmCenter]);
       if ApplyRecUpdate(FUpdateBuffer[r].UpdateKind) then
         begin
@@ -495,7 +500,7 @@ begin
 
   if not IsEmpty then
     begin
-    InternalGotoBookMark(SaveBookMark);
+    InternalGotoBookMark(@SaveBookMark);
     Resync([rmExact,rmCenter]);
     end
   else
@@ -651,58 +656,103 @@ end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
 
+
+  function CompareText0(substr, astr: pchar; len : integer; options: TLocateOptions): integer;
+
+  var
+    i : integer; Chr1, Chr2: byte;
+  begin
+    result := 0;
+    i := 0;
+    chr1 := 1;
+    while (result=0) and (i<len) and (chr1 <> 0) do
+      begin
+      Chr1 := byte(substr[i]);
+      Chr2 := byte(astr[i]);
+      inc(i);
+      if loCaseInsensitive in options then
+        begin
+        if Chr1 in [97..122] then
+          dec(Chr1,32);
+        if Chr2 in [97..122] then
+          dec(Chr2,32);
+        end;
+      result := Chr1 - Chr2;
+      end;
+    if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
+  end;
+
+
 var keyfield    : TField;     // Field to search in
     ValueBuffer : pchar;      // Pointer to value to search for, in TField' internal format
     VBLength    : integer;
 
     FieldBufPos : PtrInt;     // Amount to add to the record buffer to get the FieldBuffer
-    li          : Longint;
-    i           : longint;
+    CurrLinkItem: PBufRecLinkItem;
     CurrBuff    : pchar;
-    cb          : pchar;
     bm          : TBufBookmark;
-    
+
     CheckNull   : Boolean;
+    SaveState   : TDataSetState;
 
 begin
 // For now it is only possible to search in one field at the same time
-{  result := False;
+  result := False;
 
   keyfield := FieldByName(keyfields);
   CheckNull := VarIsNull(KeyValues);
 
   if not CheckNull then
     begin
-    case keyfield.DataType of
-      ftInteger : begin
-                  li := KeyValues;
-                  ValueBuffer := @li;
-                  VBLength := sizeof(li);
-                  end;
-    else
-      DatabaseErrorFmt(SInvalidSearchFieldType,[Fieldtypenames[keyfield.DataType]],self);
-    end;
+    SaveState := State;
+    SetTempState(dsFilter);
+    keyfield.Value := KeyValues;
+    RestoreState(SaveState);
 
     FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
+    VBLength := keyfield.DataSize;
+    ValueBuffer := AllocMem(VBLength);
+    currbuff := pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)+FieldBufPos;
+    move(currbuff^,ValueBuffer^,VBLength);
     end;
 
-  i := 0;
-  repeat
-  CurrBuff := FBBuffers[i];
-  GetBookmarkData(CurrBuff,@bm);
+  CurrLinkItem := FFirstRecBuf;
 
-  if not GetDeleted(pbyte(CurrBuff)) then
+  if CheckNull then
     begin
-
-    If CheckNull then
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
-      if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      result := True;
+      break;
+      end;
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
+    end
+  else if keyfield.DataType = ftString then
+    begin
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      begin
+      inc(CurrBuff,FieldBufPos);
+      if CompareText0(ValueBuffer,CurrBuff,VBLength,options) = 0 then
         begin
         result := True;
         break;
         end;
-      end
-    else if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      end;
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
+    end
+  else
+    begin
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
       if CompareByte(ValueBuffer^,CurrBuff^,VBLength) = 0 then
@@ -712,16 +762,19 @@ begin
         end;
       end;
 
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
     end;
-  if i = FBRecordCount -1 then getnextpacket;
-  inc(i)
-  until i = FBRecordCount;
+
 
   if Result then
     begin
-//    bm.BookmarkData := i;
+    bm.BookmarkData := CurrLinkItem;
     bm.BookmarkFlag := bfCurrent;
     GotoBookmark(@bm);
-    end;}
+    end;
+
+  ReAllocmem(ValueBuffer,0);
 end;
 
