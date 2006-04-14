@@ -1879,6 +1879,14 @@ end;
         t : tproccalloption;
       begin
         result:=false;
+        if (s = '') then
+          exit;
+        if (s = 'DEFAULT') then
+          begin
+            AktDefProcCall := pocall_default;
+            result := true;
+            exit;
+          end;
         for t:=low(tproccalloption) to high(tproccalloption) do
          if DefProcCallName[t]=s then
           begin

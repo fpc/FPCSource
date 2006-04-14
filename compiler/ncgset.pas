@@ -302,9 +302,9 @@ implementation
                       if (left.location.loc = LOC_CREGISTER) and
                          (hr<>pleftreg) then
                         begin
-                          cg.a_op_const_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg);
+                          { don't change this back to a_op_const_reg/a_load_reg_reg, since pleftreg must not be modified }
                           hr:=cg.getintregister(exprasmlist,opsize);
-                          cg.a_load_reg_reg(exprasmlist,opsize,opsize,pleftreg,hr);
+                          cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                         end
                       else
