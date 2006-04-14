@@ -351,7 +351,7 @@ parser_e_syntax_error=03000_E_Parser - Syntax Error
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
 % An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Procedure type "$1" ignored
-% The specified is ignored by FPC programs.
+% The specified procedure directive is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_Not all declarations of "$1" are declared with OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
