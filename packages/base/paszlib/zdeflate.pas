@@ -374,7 +374,7 @@ procedure  flush_pending (var strm : z_stream); forward;
 {local}
 function read_buf(strm : z_streamp;
                   buf : Pbyte;
-                  size : cardinal) : integer; forward;
+                  size : cardinal) : cardinal; forward;
 {$ifdef ASMV}
 procedure match_init; { asm code initialization }
 function longest_match(var deflate_state; cur_match : IPos) : cardinal; forward;
@@ -698,9 +698,7 @@ begin
               and s^.hash_mask;
 
   for n := 0 to length - MIN_MATCH do
-  begin
     INSERT_STRING(s^, n, hash_head);
-  end;
   {if (hash_head <> 0) then
     hash_head := 0;  - to make compiler happy }
   deflateSetDictionary := Z_OK;
@@ -1139,31 +1137,25 @@ end;
   (See also flush_pending()). }
 
 {local}
-function read_buf(strm : z_streamp; buf : Pbyte; size : cardinal) : integer;
-var
-  len : cardinal;
+function read_buf(strm:z_streamp;buf:Pbyte;size:cardinal):cardinal;
+
+var len:cardinal;
+
 begin
-  len := strm^.avail_in;
-
-  if (len > size) then
-    len := size;
-  if (len = 0) then
-  begin
-    read_buf := 0;
-    exit;
-  end;
-
+  len:=strm^.avail_in;
+  if len>size then
+    len:=size;
   dec(strm^.avail_in, len);
 
-  if deflate_state_ptr(strm^.state)^.noheader = 0 then
-  begin
-    strm^.adler := adler32(strm^.adler, strm^.next_in, len);
-  end;
-  move(strm^.next_in^,buf^,len);
-  inc(strm^.next_in, len);
-  inc(strm^.total_in, len);
-
-  read_buf := len;
+  if len<>0 then
+    begin
+      if deflate_state_ptr(strm^.state)^.noheader=0 then
+        strm^.adler:=adler32(strm^.adler,strm^.next_in,len);
+      move(strm^.next_in^,buf^,len);
+      inc(strm^.next_in,len);
+      inc(strm^.total_in,len);
+    end;
+  read_buf:=len;
 end;
 
 { ===========================================================================
@@ -1754,7 +1746,7 @@ begin
     if (s.strstart = 0) or (longint(s.strstart) >= max_start) then
     begin
       { strstart = 0 is possible when wraparound on 16-bit machine }
-      s.lookahead := cardinal(s.strstart - max_start);
+      s.lookahead := cardinal(s.strstart) - cardinal(max_start);
       s.strstart := cardinal(max_start);
       {FLUSH_BLOCK(s, FALSE);}
       FLUSH_BLOCK_ONLY(s, FALSE);
@@ -1837,9 +1829,7 @@ begin
       dictionary, and set hash_head to the head of the hash chain: }
 
     if (s.lookahead >= MIN_MATCH) then
-    begin
       INSERT_STRING(s, s.strstart, hash_head);
-    end;
 
     { Find the longest match, discarding those <= prev_length.
       At this point we have always match_length < MIN_MATCH }
@@ -1960,33 +1950,30 @@ begin
   hash_head := ZNIL;
 
   { Process the input block. }
-  while TRUE do
-  begin
+  repeat
     { Make sure that we always have enough lookahead, except
       at the end of the input file. We need MAX_MATCH bytes
       for the next match, plus MIN_MATCH bytes to insert the
       string following the next match. }
 
     if (s.lookahead < MIN_LOOKAHEAD) then
-    begin
-      fill_window(s);
-      if (s.lookahead < MIN_LOOKAHEAD) and (flush = Z_NO_FLUSH) then
       begin
-        deflate_slow := need_more;
-        exit;
-      end;
+        fill_window(s);
+        if (s.lookahead < MIN_LOOKAHEAD) and (flush = Z_NO_FLUSH) then
+          begin
+            deflate_slow := need_more;
+            exit;
+          end;
 
-      if (s.lookahead = 0) then
-        break; { flush the current block }
-    end;
+        if s.lookahead=0 then
+          break; { flush the current block }
+      end;
 
     { Insert the string window[strstart .. strstart+2] in the
       dictionary, and set hash_head to the head of the hash chain: }
 
     if (s.lookahead >= MIN_MATCH) then
-    begin
       INSERT_STRING(s, s.strstart, hash_head);
-    end;
 
     { Find the longest match, discarding those <= prev_length. }
 
@@ -1996,106 +1983,111 @@ begin
 
     if (hash_head <> ZNIL) and (s.prev_length < s.max_lazy_match) and
        (s.strstart - hash_head <= {MAX_DIST}(s.w_size-MIN_LOOKAHEAD)) then
-    begin
+      begin
         { To simplify the code, we prevent matches with the string
           of window index 0 (in particular we have to avoid a match
           of the string with itself at the start of the input file). }
 
         if (s.strategy <> Z_HUFFMAN_ONLY) then
-        begin
           s.match_length := longest_match (s, hash_head);
-        end;
         { longest_match() sets match_start }
 
         if (s.match_length <= 5) and ((s.strategy = Z_FILTERED) or
              ((s.match_length = MIN_MATCH) and
               (s.strstart - s.match_start > TOO_FAR))) then
-        begin
+          begin
             { If prev_match is also MIN_MATCH, match_start is garbage
               but we will ignore the current match anyway. }
 
             s.match_length := MIN_MATCH-1;
-        end;
-    end;
+          end;
+      end;
     { If there was a match at the previous step and the current
       match is not better, output the previous match: }
 
-    if (s.prev_length >= MIN_MATCH)
-      and (s.match_length <= s.prev_length) then
-    begin
-      max_insert := s.strstart + s.lookahead - MIN_MATCH;
-      { Do not insert strings in hash table beyond this. }
-      {$ifdef DEBUG}
-      check_match(s, s.strstart-1, s.prev_match, s.prev_length);
-      {$endif}
+    if (s.prev_length>=MIN_MATCH) and (s.match_length<=s.prev_length) then
+      begin
+        max_insert := s.strstart + s.lookahead - MIN_MATCH;
+        { Do not insert strings in hash table beyond this. }
+        {$ifdef DEBUG}
+        check_match(s, s.strstart-1, s.prev_match, s.prev_length);
+        {$endif}
 
-      {_tr_tally_dist(s, s->strstart -1 - s->prev_match,
-	                s->prev_length - MIN_MATCH, bflush);}
-      bflush := _tr_tally(s, s.strstart -1 - s.prev_match,
-                           s.prev_length - MIN_MATCH);
+        {_tr_tally_dist(s, s->strstart -1 - s->prev_match,
+  	                  s->prev_length - MIN_MATCH, bflush);}
+        bflush := _tr_tally(s, s.strstart -1 - s.prev_match,
+                             s.prev_length - MIN_MATCH);
 
       { Insert in hash table all strings up to the end of the match.
         strstart-1 and strstart are already inserted. If there is not
         enough lookahead, the last two strings are not inserted in
         the hash table. }
 
-      dec(s.lookahead, s.prev_length-1);
-      dec(s.prev_length, 2);
-      repeat
+{$ifdef debug}
+        if s.lookahead<s.prev_length-1 then
+           runerror(255);
+{$endif}
+        dec(s.lookahead, s.prev_length-1);
+        dec(s.prev_length, 2);
+        repeat
+          inc(s.strstart);
+          if s.strstart<=max_insert then
+            INSERT_STRING(s, s.strstart, hash_head);
+          dec(s.prev_length);
+        until s.prev_length = 0;
+        s.match_available := false;
+        s.match_length := MIN_MATCH-1;
         inc(s.strstart);
-        if (s.strstart <= max_insert) then
-        begin
-          INSERT_STRING(s, s.strstart, hash_head);
-        end;
-        dec(s.prev_length);
-      until (s.prev_length = 0);
-      s.match_available := FALSE;
-      s.match_length := MIN_MATCH-1;
-      inc(s.strstart);
 
-      if (bflush) then  {FLUSH_BLOCK(s, FALSE);}
-      begin
-        FLUSH_BLOCK_ONLY(s, FALSE);
-        if (s.strm^.avail_out = 0) then
-        begin
-          deflate_slow := need_more;
-          exit;
-        end;
-      end;
-    end
-    else
-      if (s.match_available) then
-      begin
-        { If there was no match at the previous position, output a
-          single literal. If there was a match but the current match
-          is longer, truncate the previous match to a single literal. }
-        {$IFDEF DEBUG}
-        Tracevv(char(s.window^[s.strstart-1]));
-        {$ENDIF}
-        bflush := _tr_tally (s, 0, s.window^[s.strstart-1]);
-
-        if bflush then
-        begin
-          FLUSH_BLOCK_ONLY(s, FALSE);
-        end;
-        inc(s.strstart);
-        dec(s.lookahead);
-        if (s.strm^.avail_out = 0) then
-        begin
-          deflate_slow := need_more;
-          exit;
-        end;
+        if bflush then  {FLUSH_BLOCK(s, FALSE);}
+          begin
+            FLUSH_BLOCK_ONLY(s,false);
+            if s.strm^.avail_out=0 then
+              begin
+                deflate_slow := need_more;
+                exit;
+              end;
+          end;
       end
+    else
+      if s.match_available then
+        begin
+          { If there was no match at the previous position, output a
+            single literal. If there was a match but the current match
+            is longer, truncate the previous match to a single literal. }
+          {$IFDEF DEBUG}
+          Tracevv(char(s.window^[s.strstart-1]));
+          {$ENDIF}
+          bflush := _tr_tally (s, 0, s.window^[s.strstart-1]);
+
+          if bflush then
+            FLUSH_BLOCK_ONLY(s, FALSE);
+          inc(s.strstart);
+{$ifdef debug}
+          if s.lookahead=0 then
+             runerror(255);
+{$endif}
+          dec(s.lookahead);
+          if (s.strm^.avail_out = 0) then
+            begin
+              deflate_slow := need_more;
+              exit;
+            end;
+        end
       else
-      begin
+        begin
         { There is no previous match to compare with, wait for
           the next step to decide. }
 
-        s.match_available := TRUE;
-        inc(s.strstart);
-        dec(s.lookahead);
-      end;
-  end;
+          s.match_available := TRUE;
+          inc(s.strstart);
+{$ifdef debug}
+          if s.lookahead=0 then
+             runerror(255);
+{$endif}
+          dec(s.lookahead);
+        end;
+  until false;
 
   {$IFDEF DEBUG}
   Assert (flush <> Z_NO_FLUSH, 'no flush?');
