@@ -474,7 +474,7 @@ implementation
           end;
         candidates.free;
 
-        inc(operpd.procsym.refs);
+        addsymref(operpd.procsym);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
@@ -620,7 +620,7 @@ implementation
           end;
         candidates.free;
 
-        inc(operpd.procsym.refs);
+        addsymref(operpd.procsym);
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
