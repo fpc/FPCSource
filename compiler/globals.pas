@@ -2251,7 +2251,7 @@ end;
         nwcopyright  := '';
         UseDeffileForExports:=false;
         UseDeffileForExportsSetExplicitly:=false;
-        GenerateImportSection:=false;
+        GenerateImportSection:=true;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;
