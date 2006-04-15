@@ -104,7 +104,7 @@ begin
   AddDisk('/fd0');
   writeln('DiskSize 4 : ',DiskSize(4));
 {$ENDIF}
-  write('FindFirst/FindNext Test');
+  writeln('FindFirst/FindNext Test');
 
   FindFirst('*.*',$20,Dir);
   while (DosError=0) do
