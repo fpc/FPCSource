@@ -42,7 +42,11 @@ interface
 {$I zconf.inc}
 
 uses
-  zbase;
+  zbase
+  {$ifdef DEBUG} 
+  ,sysutils   {for inttostr}
+  {$endif}
+  ;
 
 { ===========================================================================
   Internal compression state. }
