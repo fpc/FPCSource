@@ -1017,7 +1017,7 @@
      TCONSOLESCREENBUFFERINFO = CONSOLE_SCREEN_BUFFER_INFO;
      PCONSOLESCREENBUFFERINFO = ^CONSOLE_SCREEN_BUFFER_INFO;
 
-{$ifdef __i386__}
+{$ifdef i386}
   type
 
      FLOATING_SAVE_AREA = record
@@ -1630,7 +1630,6 @@
           dwDebugEventCode : DWORD;
           dwProcessId : DWORD;
           dwThreadId : DWORD;
-          u : record
               case longint of
                  0 : ( Exception : EXCEPTION_DEBUG_INFO );
                  1 : ( CreateThread : CREATE_THREAD_DEBUG_INFO );
@@ -1641,7 +1640,6 @@
                  6 : ( UnloadDll : UNLOAD_DLL_DEBUG_INFO );
                  7 : ( DebugString : OUTPUT_DEBUG_STRING_INFO );
                  8 : ( RipInfo : RIP_INFO );
-              end;
        end;
      LPDEBUG_EVENT = ^DEBUG_EVENT;
      _DEBUG_EVENT = DEBUG_EVENT;
