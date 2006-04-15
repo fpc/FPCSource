@@ -1833,12 +1833,12 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.system = system_i386_darwin) and
+               ((target_info.system in [system_i386_darwin,system_x86_64_win64]) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if (target_info.system = system_i386_darwin) then
+                if (target_info.system in [system_i386_darwin,system_x86_64_win64]) then
                   localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
