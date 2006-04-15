@@ -50,7 +50,7 @@ begin
     c^.dbits := Byte(bd);
     c^.ltree := tl;
     c^.dtree := td;
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Tracev('inflate:       codes new');
     {$ENDIF}
   end;
@@ -167,7 +167,7 @@ begin
       if (e = 0) then            { literal }
       begin
         c^.sub.lit := t^.base;
-       {$IFDEF DEBUG}
+       {$IFDEF ZLIB_DEBUG}
         if (t^.base >= $20) and (t^.base < $7f) then
           Tracevv('inflate:         literal '+char(t^.base))
         else
@@ -191,7 +191,7 @@ begin
       end;
       if (e and 32 <> 0) then            { end of block }
       begin
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracevv('inflate:         end of block');
         {$ENDIF}        
         c^.mode := WASH;
@@ -243,7 +243,7 @@ begin
 
       c^.sub.code.need := c^.dbits;
       c^.sub.code.tree := c^.dtree;
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       Tracevv('inflate:         length '+IntToStr(c^.len));
       {$ENDIF}
       c^.mode := DIST;
@@ -337,7 +337,7 @@ begin
       {DUMPBITS(j);}
       b := b shr j;
       dec(k, j);
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       Tracevv('inflate:         distance '+ IntToStr(c^.sub.copy.dist));
       {$ENDIF}
       c^.mode := COPY;
@@ -483,7 +483,7 @@ begin
       {$ifdef patch112}
       if (k > 7) then           { return unused byte, if any }
       begin
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Assert(k < 16, 'inflate_codes grabbed too many bytes');
         {$ENDIF}
         dec(k, 8);
@@ -565,7 +565,7 @@ procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
 begin
   ZFREE(z, c);
-  {$IFDEF DEBUG}  
+  {$IFDEF ZLIB_DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}
 end;

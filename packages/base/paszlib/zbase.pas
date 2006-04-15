@@ -399,7 +399,7 @@ const
   PRESET_DICT = $20; { preset dictionary flag in zlib header }
 
 
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   procedure Assert(cond : boolean; msg : string);
   {$ENDIF}
 
@@ -443,7 +443,7 @@ const
 const
   z_verbose : integer = 1;
 
-{$IFDEF DEBUG}
+{$IFDEF ZLIB_DEBUG}
 procedure z_error (m : string);
 {$ENDIF}
 

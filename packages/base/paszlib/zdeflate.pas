@@ -384,7 +384,7 @@ function longest_match(var s : deflate_state; cur_match : IPos) : cardinal;
   forward;
 {$endif}
 
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
 {local}
 procedure check_match(var s : deflate_state;
                       start, match : IPos;
@@ -994,7 +994,7 @@ begin
 
     end;
   end;
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Assert(strm.avail_out > 0, 'bug2');
   {$ENDIF}
   if (flush <> Z_FINISH) then
@@ -1271,7 +1271,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
     { The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
       It is easy to get rid of this optimization if necessary. }
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert((s.hash_bits >= 8) and (MAX_MATCH = 258), 'Code too clever');
     {$ENDIF}
     { Do not waste too much time if we already have a good match: }
@@ -1285,11 +1285,11 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
     if (cardinal(nice_match) > s.lookahead) then
       nice_match := s.lookahead;
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert(longint(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
     {$ENDIF}
     repeat
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Assert(cur_match < s.strstart, 'no future');
         {$ENDIF}
         match := @(s.window^[cur_match]);
@@ -1321,7 +1321,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
           at strstart+257. If MAX_MATCH-2 is not a multiple of 8, it is
           necessary to put more guard bytes at the end of the window, or
           to check more often for insufficient lookahead. }
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Assert(pzByteArray(scan)^[2] = pzByteArray(match)^[2], 'scan[2]?');
         {$ENDIF}
         inc(scan);
@@ -1336,7 +1336,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
         { The funny "do while" generates better code on most compilers }
 
         { Here, scan <= window+strstart+257 }
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         {$ifopt R+} {$define RangeCheck} {$endif} {$R-}
         Assert(ptrint(scan) <=
                ptrint(@(s.window^[cardinal(s.window_size-1)])),
@@ -1370,7 +1370,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
 
         inc(scan, 2);
         inc(match);
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Assert( scan^ = match^, 'match[2]?');
         {$ENDIF}
         { We check for insufficient lookahead only every 8th comparison;
@@ -1387,7 +1387,7 @@ distances are limited to MAX_DIST instead of WSIZE. }
           inc(scan); inc(match); if (scan^ <> match^) then break;
         until (ptrint(scan) >= ptrint(strend));
 
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Assert(ptrint(scan) <=
                ptrint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
@@ -1446,7 +1446,7 @@ begin
 
     { The code is optimized for HASH_BITS >= 8 and MAX_MATCH-2 multiple of 16.
       It is easy to get rid of this optimization if necessary. }
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert((s.hash_bits >= 8) and (MAX_MATCH = 258), 'Code too clever');
 
     Assert(longint(s.strstart) <= s.window_size-MIN_LOOKAHEAD, 'need lookahead');
@@ -1504,7 +1504,7 @@ begin
 end;
 {$endif} { FASTEST }
 
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
 { ===========================================================================
   Check that the match at match_start is indeed a match. }
 
@@ -1631,7 +1631,7 @@ begin
       * Otherwise, window_size == 2*WSIZE so more >= 2.
       * If there was sliding, more >= WSIZE. So in all cases, more >= 2. }
 
-     {$IFDEF DEBUG}
+     {$IFDEF ZLIB_DEBUG}
      Assert(more >= 2, 'more < 2');
      {$ENDIF}
 
@@ -1671,7 +1671,7 @@ begin
 
   s.block_start := s.strstart;
   flush_pending(s.strm^);
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Tracev('[FLUSH]');
   {$ENDIF}
 end;
@@ -1721,7 +1721,7 @@ begin
     { Fill the window as much as possible: }
     if (s.lookahead <= 1) then
     begin
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       Assert( (s.strstart < s.w_size + {MAX_DIST}s.w_size-MIN_LOOKAHEAD) or
               (s.block_start >= longint(s.w_size)), 'slide too late');
       {$ENDIF}
@@ -1735,7 +1735,7 @@ begin
       if (s.lookahead = 0) then
         break; { flush the current block }
     end;
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert(s.block_start >= 0, 'block gone');
     {$ENDIF}
     inc(s.strstart, s.lookahead);
@@ -1847,7 +1847,7 @@ begin
     end;
     if (s.match_length >= MIN_MATCH) then
     begin
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       check_match(s, s.strstart, s.match_start, s.match_length);
       {$ENDIF}
 
@@ -1898,7 +1898,7 @@ end;
     else
     begin
       { No match, output a literal byte }
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       Tracevv(char(s.window^[s.strstart]));
       {$ENDIF}
       {_tr_tally_lit (s, 0, s.window^[s.strstart], bflush);}
@@ -2009,7 +2009,7 @@ begin
       begin
         max_insert := s.strstart + s.lookahead - MIN_MATCH;
         { Do not insert strings in hash table beyond this. }
-        {$ifdef DEBUG}
+        {$ifdef ZLIB_DEBUG}
         check_match(s, s.strstart-1, s.prev_match, s.prev_length);
         {$endif}
 
@@ -2023,7 +2023,7 @@ begin
         enough lookahead, the last two strings are not inserted in
         the hash table. }
 
-{$ifdef debug}
+{$ifdef ZLIB_DEBUG}
         if s.lookahead<s.prev_length-1 then
            runerror(255);
 {$endif}
@@ -2055,7 +2055,7 @@ begin
           { If there was no match at the previous position, output a
             single literal. If there was a match but the current match
             is longer, truncate the previous match to a single literal. }
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           Tracevv(char(s.window^[s.strstart-1]));
           {$ENDIF}
           bflush := _tr_tally (s, 0, s.window^[s.strstart-1]);
@@ -2063,7 +2063,7 @@ begin
           if bflush then
             FLUSH_BLOCK_ONLY(s, FALSE);
           inc(s.strstart);
-{$ifdef debug}
+{$ifdef ZLIB_DEBUG}
           if s.lookahead=0 then
              runerror(255);
 {$endif}
@@ -2081,7 +2081,7 @@ begin
 
           s.match_available := TRUE;
           inc(s.strstart);
-{$ifdef debug}
+{$ifdef ZLIB_DEBUG}
           if s.lookahead=0 then
              runerror(255);
 {$endif}
@@ -2089,12 +2089,12 @@ begin
         end;
   until false;
 
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Assert (flush <> Z_NO_FLUSH, 'no flush?');
   {$ENDIF}
   if (s.match_available) then
   begin
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Tracevv(char(s.window^[s.strstart-1]));
     bflush :=
     {$ENDIF}

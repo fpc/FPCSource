@@ -42,10 +42,10 @@ interface
 {$I zconf.inc}
 
 uses
-  zbase
-  {$ifdef DEBUG} 
-  ,sysutils   {for inttostr}
+  {$ifdef ZLIB_DEBUG}
+  sysutils,
   {$endif}
+  zbase
   ;
 
 { ===========================================================================
@@ -287,7 +287,7 @@ type
     matches : cardinal;       { number of string matches in current block }
     last_eob_len : integer;   { bit length of EOB code for last block }
 
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
     bits_sent : longint;    { bit length of the compressed data }
 {$endif}
 
@@ -783,7 +783,7 @@ procedure send_bits(var s : deflate_state;
                     value : integer;   { value to send }
                     length : integer); { number of bits }
 begin
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracevv(' l '+IntToStr(length)+ ' v '+IntToStr(value));
   Assert((length > 0) and (length <= 15), 'invalid length');
   inc(s.bits_sent, longint(length));
@@ -815,7 +815,7 @@ begin
   {$IFDEF NoRangeCheck} {$Q+} {$UNDEF NoRangeCheck} {$ENDIF}
 end;
 
-{$else} { !DEBUG }
+{$else} { !ZLIB_DEBUG }
 
 
 macro send_code(s, c, tree)
@@ -842,7 +842,7 @@ begin integer len := length;\
     s^.bi_valid += len;\
   end\
 end;
-{$endif} { DEBUG }
+{$endif} { ZLIB_DEBUG }
 
 { ===========================================================================
   Reverse the first len bits of a code, using straightforward code (a faster
@@ -900,7 +900,7 @@ begin
   { Check that the bit counts in bl_count are consistent. The last code
     must be all ones. }
 
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Assert (code + bl_count[MAX_BITS]-1 = (1 shl MAX_BITS)-1,
           'inconsistent bit counts');
   Tracev(#13'gen_codes: max_code '+IntToStr(max_code));
@@ -914,7 +914,7 @@ begin
     { Now reverse the bits }
     tree^[n].fc.Code := bi_reverse(next_code[len], len);
     inc(next_code[len]);
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     if (n>31) and (n<128) then
       Tracecv(tree <> tree_ptr(@static_ltree),
        (^M'n #'+IntToStr(n)+' '+char(n)+' l '+IntToStr(len)+' c '+
@@ -1159,7 +1159,7 @@ begin
   s.bi_buf := 0;
   s.bi_valid := 0;
   s.last_eob_len := 8; { enough lookahead for inflate }
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
   s.bits_sent := 0;
 {$endif}
 
@@ -1301,7 +1301,7 @@ begin
   end;
   if (overflow = 0) then
     exit;
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(^M'bit length overflow');
   {$endif}
   { This happens for example on obj2 and pic of the Calgary corpus }
@@ -1336,7 +1336,7 @@ begin
         continue;
       if (tree^[m].dl.Len <> cardinal(bits)) then
       begin
-        {$ifdef DEBUG}
+        {$ifdef ZLIB_DEBUG}
         Trace('code '+IntToStr(m)+' bits '+IntToStr(tree^[m].dl.Len)
               +'.'+IntToStr(bits));
         {$ENDIF}
@@ -1599,7 +1599,7 @@ begin
       if (count < min_count) then
       begin
         repeat
-          {$ifdef DEBUG}
+          {$ifdef ZLIB_DEBUG}
           Tracevvv(#13'cd '+IntToStr(curlen));
           {$ENDIF}
           send_bits(s, s.bl_tree[curlen].fc.Code, s.bl_tree[curlen].dl.Len);
@@ -1611,16 +1611,16 @@ begin
         begin
           if (curlen <> prevlen) then
           begin
-            {$ifdef DEBUG}
+            {$ifdef ZLIB_DEBUG}
             Tracevvv(#13'cd '+IntToStr(curlen));
             {$ENDIF}
             send_bits(s, s.bl_tree[curlen].fc.Code, s.bl_tree[curlen].dl.Len);
             dec(count);
           end;
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           Assert((count >= 3) and (count <= 6), ' 3_6?');
           {$ENDIF}
-          {$ifdef DEBUG}
+          {$ifdef ZLIB_DEBUG}
           Tracevvv(#13'cd '+IntToStr(REP_3_6));
           {$ENDIF}
           send_bits(s, s.bl_tree[REP_3_6].fc.Code, s.bl_tree[REP_3_6].dl.Len);
@@ -1629,7 +1629,7 @@ begin
         else
           if (count <= 10) then
           begin
-            {$ifdef DEBUG}
+            {$ifdef ZLIB_DEBUG}
             Tracevvv(#13'cd '+IntToStr(REPZ_3_10));
             {$ENDIF}
             send_bits(s, s.bl_tree[REPZ_3_10].fc.Code, s.bl_tree[REPZ_3_10].dl.Len);
@@ -1637,7 +1637,7 @@ begin
           end
           else
           begin
-            {$ifdef DEBUG}
+            {$ifdef ZLIB_DEBUG}
             Tracevvv(#13'cd '+IntToStr(REPZ_11_138));
             {$ENDIF}
             send_bits(s, s.bl_tree[REPZ_11_138].fc.Code, s.bl_tree[REPZ_11_138].dl.Len);
@@ -1693,7 +1693,7 @@ begin
   end;
   { Update opt_len to include the bit length tree and counts }
   inc(s.opt_len, 3*(max_blindex+1) + 5+5+4);
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(^M'dyn trees: dyn %ld, stat %ld {s.opt_len, s.static_len}');
   {$ENDIF}
 
@@ -1713,7 +1713,7 @@ procedure send_all_trees(var s : deflate_state;
 var
   rank : integer;                    { index in bl_order }
 begin
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Assert ((lcodes >= 257) and (dcodes >= 1) and (blcodes >= 4),
           'not enough codes');
   Assert ((lcodes <= L_CODES) and (dcodes <= D_CODES)
@@ -1725,22 +1725,22 @@ begin
   send_bits(s, blcodes-4,  4); { not -3 as stated in appnote.txt }
   for rank := 0 to blcodes-1 do
   begin
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracev(^M'bl code '+IntToStr(bl_order[rank]));
     {$ENDIF}
     send_bits(s, s.bl_tree[bl_order[rank]].dl.Len, 3);
   end;
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(^M'bl tree: sent '+IntToStr(s.bits_sent));
   {$ENDIF}
 
   send_tree(s, s.dyn_ltree, lcodes-1); { literal tree }
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(^M'lit tree: sent '+IntToStr(s.bits_sent));
   {$ENDIF}
 
   send_tree(s, s.dyn_dtree, dcodes-1); { distance tree }
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(^M'dist tree: sent '+IntToStr(s.bits_sent));
   {$ENDIF}
 end;
@@ -1768,7 +1768,7 @@ begin
     end;
   s.bi_buf := 0;
   s.bi_valid := 0;
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
   s.bits_sent := (s.bits_sent+7) and (not 7);
 {$endif}
 end;
@@ -1799,11 +1799,11 @@ begin
     s.pending_buf^[s.pending] := byte(word(not len) shr 8);;
     inc(s.pending);
 
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
     inc(s.bits_sent, 2*16);
 {$endif}
   end;
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
   inc(s.bits_sent, longint(len shl 3));
 {$endif}
   while (len <> 0) do
@@ -1877,7 +1877,7 @@ end;
 procedure _tr_align(var s : deflate_state);
 begin
   send_bits(s, STATIC_TREES shl 1, 3);
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracevvv(#13'cd '+IntToStr(END_BLOCK));
   {$ENDIF}
   send_bits(s, static_ltree[END_BLOCK].fc.Code, static_ltree[END_BLOCK].dl.Len);
@@ -1890,7 +1890,7 @@ begin
   if (1 + s.last_eob_len + 10 - s.bi_valid < 9) then
   begin
     send_bits(s, STATIC_TREES shl 1, 3);
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracevvv(#13'cd '+IntToStr(END_BLOCK));
     {$ENDIF}
     send_bits(s, static_ltree[END_BLOCK].fc.Code, static_ltree[END_BLOCK].dl.Len);
@@ -1961,7 +1961,7 @@ begin
     if (dist = 0) then
     begin
       { send a literal byte }
-      {$ifdef DEBUG}
+      {$ifdef ZLIB_DEBUG}
       Tracevvv(#13'cd '+IntToStr(lc));
       Tracecv((lc > 31) and (lc < 128), ' '+char(lc)+' ');
       {$ENDIF}
@@ -1972,7 +1972,7 @@ begin
       { Here, lc is the match length - MIN_MATCH }
       code := _length_code[lc];
       { send the length code }
-      {$ifdef DEBUG}
+      {$ifdef ZLIB_DEBUG}
       Tracevvv(#13'cd '+IntToStr(code+LITERALS+1));
       {$ENDIF}
       send_bits(s, ltree[code+LITERALS+1].fc.Code, ltree[code+LITERALS+1].dl.Len);
@@ -1989,12 +1989,12 @@ begin
       else
         code := _dist_code[256+(dist shr 7)];
 
-      {$IFDEF DEBUG}
+      {$IFDEF ZLIB_DEBUG}
       Assert (code < D_CODES, 'bad d_code');
       {$ENDIF}
 
       { send the distance code }
-      {$ifdef DEBUG}
+      {$ifdef ZLIB_DEBUG}
       Tracevvv(#13'cd '+IntToStr(code));
       {$ENDIF}
       send_bits(s, dtree[code].fc.Code, dtree[code].dl.Len);
@@ -2007,12 +2007,12 @@ begin
     end; { literal or match pair ? }
 
     { Check that the overlay between pending_buf and d_buf+l_buf is ok: }
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert(s.pending < s.lit_bufsize + 2*lx, 'pendingBuf overflow');
     {$ENDIF}
   until (lx >= s.last_lit);
 
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracevvv(#13'cd '+IntToStr(END_BLOCK));
   {$ENDIF}
   send_bits(s, ltree[END_BLOCK].fc.Code, ltree[END_BLOCK].dl.Len);
@@ -2044,12 +2044,12 @@ begin
 
     { Construct the literal and distance trees }
     build_tree(s, s.l_desc);
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracev(^M'lit data: dyn %ld, stat %ld {s.opt_len, s.static_len}');
     {$ENDIF}
 
     build_tree(s, s.d_desc);
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracev(^M'dist data: dyn %ld, stat %ld {s.opt_len, s.static_len}');
     {$ENDIF}
     { At this point, opt_len and static_len are the total bit lengths of
@@ -2063,7 +2063,7 @@ begin
     opt_lenb := (s.opt_len+3+7) shr 3;
     static_lenb := (s.static_len+3+7) shr 3;
 
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracev(^M'opt %lu(%lu) stat %lu(%lu) stored %lu lit %u '+
 	    '{opt_lenb, s.opt_len, static_lenb, s.static_len, stored_len,'+
 	    's.last_lit}');
@@ -2075,7 +2075,7 @@ begin
   end
   else
   begin
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
     Assert(buf <> nil, 'lost buf');
     {$ENDIF}
     static_lenb := stored_len + 5;
@@ -2145,7 +2145,7 @@ begin
       compress_block(s, s.dyn_ltree, s.dyn_dtree);
       inc(s.compressed_len, 3 + s.opt_len);
     end;
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Assert (s.compressed_len = s.bits_sent, 'bad compressed size');
   {$ENDIF}
   init_block(s);
@@ -2155,7 +2155,7 @@ begin
     bi_windup(s);
     inc(s.compressed_len, 7);  { align on byte boundary }
   end;
-  {$ifdef DEBUG}
+  {$ifdef ZLIB_DEBUG}
   Tracev(#13'comprlen %lu(%lu) {s.compressed_len shr 3,'+
          's.compressed_len-7*ord(eof)}');
   {$ENDIF}
@@ -2172,7 +2172,7 @@ function _tr_tally (var s : deflate_state;
    dist : cardinal;          { distance of matched string }
    lc : cardinal) : boolean; { match length-MIN_MATCH or unmatched char (if dist=0) }
 var
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   MAX_DIST : word;
   {$ENDIF}
   code : word;
@@ -2202,7 +2202,7 @@ begin
       code := _dist_code[dist]
     else
       code := _dist_code[256+(dist shr 7)];
-    {$IFDEF DEBUG}
+    {$IFDEF ZLIB_DEBUG}
 {macro  MAX_DIST(s) <=> ((s)^.w_size-MIN_LOOKAHEAD)
    In order to simplify the code, particularly on 16 bit machines, match
    distances are limited to MAX_DIST instead of WSIZE. }
@@ -2229,7 +2229,7 @@ begin
             (cardinal(5)+extra_dbits[dcode])) );
     end;
     out_length := out_length shr 3;
-    {$ifdef DEBUG}
+    {$ifdef ZLIB_DEBUG}
     Tracev(^M'last_lit %u, in %ld, out ~%ld(%ld%%) ');
           { s.last_lit, in_length, out_length,
            cardinal(100) - out_length*100 div in_length)); }

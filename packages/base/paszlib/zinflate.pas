@@ -219,7 +219,7 @@ begin
   else
     z.state^.mode := METHOD;
   inflate_blocks_reset(z.state^.blocks^, z, Z_NULL);
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: reset');
   {$ENDIF}
   inflateReset :=  Z_OK;
@@ -237,7 +237,7 @@ begin
     inflate_blocks_free(z.state^.blocks, z);
   ZFREE(z, z.state);
   z.state := Z_NULL;
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: end');
   {$ENDIF}
   inflateEnd :=  Z_OK;
@@ -296,7 +296,7 @@ begin
     inflateInit2_ := Z_MEM_ERROR;
     exit;
   end;
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: allocated');
   {$ENDIF}
   { reset state }
@@ -447,7 +447,7 @@ begin
           z.state^.sub.marker := 5;       { can't try inflateSync }
           continue;           { break C-switch }
         end;
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracev('inflate: zlib check ok');
         {$ENDIF}
         z.state^.mode := DONE; { falltrough }
@@ -512,7 +512,7 @@ begin
           z.state^.sub.marker := 5;       { can't try inflateSync }
           continue;      { break C-switch }
         end;
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracev('inflate: zlib header ok');
         {$ENDIF}
         if ((b and PRESET_DICT) = 0) then
