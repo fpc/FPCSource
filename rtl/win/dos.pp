@@ -326,9 +326,9 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
-   function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
-                             freeclusters,totalclusters:longint):longbool;
-     stdcall; external 'kernel32' name 'GetDiskFreeSpaceA';
+function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
+                          freeclusters,totalclusters:DWORD):longbool;
+  stdcall; external 'kernel32' name 'GetDiskFreeSpaceA';
 type
    TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,
                              total,free):longbool;stdcall;
@@ -798,9 +798,11 @@ begin
    GetVersionEx(versioninfo);
    kernel32dll:=0;
    GetDiskFreeSpaceEx:=nil;
+{$ifndef win64}
    if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
      (versioninfo.dwBuildNUmber>=1000)) or
      (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
+{$endif win64}
      begin
         kernel32dll:=LoadLibrary('kernel32');
         if kernel32dll<>0 then
