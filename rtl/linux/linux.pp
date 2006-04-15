@@ -61,6 +61,59 @@ Const
   EPOLL_CTL_MOD = 2;
   EPOLL_CTL_DEL = 3;
 
+  {Some console iotcl's.}
+  GIO_FONT        = $4B60;  {gets font in expanded form}
+  PIO_FONT        = $4B61;  {use font in expanded form}
+  GIO_FONTX       = $4B6B;  {get font using struct consolefontdesc}
+  PIO_FONTX       = $4B6C;  {set font using struct consolefontdesc}
+  PIO_FONTRESET   = $4B6D;  {reset to default font}
+  GIO_CMAP        = $4B70;  {gets colour palette on VGA+}
+  PIO_CMAP        = $4B71;  {sets colour palette on VGA+}
+  KIOCSOUND       = $4B2F;  {start sound generation (0 for off)}
+  KDMKTONE        = $4B30;  {generate tone}
+  KDGETLED        = $4B31;  {return current led state}
+  KDSETLED        = $4B32;  {set led state [lights, not flags]}
+  KDGKBTYPE       = $4B33;  {get keyboard type}
+  KDADDIO         = $4B34;  {add i/o port as valid}
+  KDDELIO         = $4B35;  {del i/o port as valid}
+  KDENABIO        = $4B36;  {enable i/o to video board}
+  KDDISABIO       = $4B37;  {disable i/o to video board}
+  KDSETMODE       = $4B3A;  {set text/graphics mode}
+  KDGETMODE       = $4B3B;  {get current mode}
+  KDMAPDISP       = $4B3C;  {map display into address space}
+  KDUNMAPDISP     = $4B3D;  {unmap display from address space}
+  GIO_SCRNMAP     = $4B40;  {get screen mapping from kernel}
+  PIO_SCRNMAP     = $4B41;  {put screen mapping table in kernel}
+  GIO_UNISCRNMAP  = $4B69;  {get full Unicode screen mapping}
+  PIO_UNISCRNMAP  = $4B6A;  {set full Unicode screen mapping}
+  GIO_UNIMAP      = $4B66;  {get unicode-to-font mapping from kernel}
+  PIO_UNIMAP      = $4B67;  {put unicode-to-font mapping in kernel}
+  PIO_UNIMAPCLR   = $4B68;  {clear table, possibly advise hash algorithm}
+  KDGKBDIACR      = $4B4A;  {read kernel accent table}
+  KDSKBDIACR      = $4B4B;  {write kernel accent table}
+  KDGETKEYCODE    = $4B4C;  {read kernel keycode table entry}
+  KDSETKEYCODE    = $4B4D;  {write kernel keycode table entry}
+  KDSIGACCEPT     = $4B4E;  {accept kbd generated signals}
+  KDFONTOP        = $4B72;  {font operations}
+
+  {Keyboard types (for KDGKBTYPE)}
+  KB_84           = 1;
+  KB_101          = 2;    {Normal PC keyboard.}
+  KB_OTHER        = 3;
+
+  {Keyboard LED constants.}
+  LED_SCR         = 1;    {scroll lock led}
+  LED_NUM         = 2;    {num lock led}
+  LED_CAP         = 4;    {caps lock led}
+
+  {Tty modes. (for KDSETMODE)}
+  KD_TEXT         = 0;
+  KD_GRAPHICS     = 1;
+  KD_TEXT0        = 2;    {obsolete}
+  KD_TEXT1        = 3;    {obsolete}
+
+
+
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
 
