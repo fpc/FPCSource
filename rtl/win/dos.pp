@@ -340,7 +340,7 @@ function diskfree(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : longword;
   qwtotal,qwfree,qwcaller : int64;
 
 
@@ -378,7 +378,7 @@ function disksize(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : longword;
   qwtotal,qwfree,qwcaller : int64;
 
 begin
