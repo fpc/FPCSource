@@ -991,10 +991,17 @@ begin
   //!! To be implemented
 end;
 
+Procedure TDataset.CheckBiDirectional;
+
+begin
+  if FIsUniDirectional then DataBaseError(SUniDirectional);
+end;
+
 Procedure TDataset.SetFilterOptions(Value: TFilterOptions);
 
 begin
-  //!! To be implemented
+  CheckBiDirectional;
+  FFilterOptions := Value;
 end;
 
 Procedure TDataset.SetFilterText(const Value: string);
@@ -1012,7 +1019,7 @@ end;
 Procedure TDataset.SetFound(const Value: Boolean);
 
 begin
-  //!! To be implemented
+  FFound := Value;
 end;
 
 Procedure TDataset.SetModified(Value: Boolean);
@@ -1054,7 +1061,8 @@ end;
 Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
 
 begin
-  //!! To be implemented
+  CheckBiDirectional;
+  FOnFilterRecord := Value;
 end;
 
 Procedure TDataset.SetRecNo(Value: Longint);
@@ -1637,7 +1645,7 @@ Var
   Function ScrollBackward : Integer;
 
   begin
-    if FIsUniDirectional then DatabaseError(SUniDirectional);
+    CheckBiDirectional;
     Result:=0;
 {$ifdef dsdebug}
     Writeln('Scrolling backward:',Abs(Distance));
@@ -1989,8 +1997,7 @@ end;
 Function TDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
 
 begin
-  if fIsUnidirectional then
-    DataBaseError(SUniDirectional);
+  CheckBiDirectional;
   Result := False;
 end;
 

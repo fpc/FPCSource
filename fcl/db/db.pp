@@ -218,7 +218,6 @@ type
     FAlignMent : TAlignment;
     FAttributeSet : String;
     FCalculated : Boolean;
-    FCanModify : Boolean;
     FConstraintErrorMessage : String;
     FCustomConstraint : String;
     FDataSet : TDataSet;
@@ -227,7 +226,6 @@ type
     FDefaultExpression : String;
     FDisplayLabel : String;
     FDisplayWidth : Longint;
-    FEditText : String;
     FFieldKind : TFieldKind;
     FFieldName : String;
     FFieldNo : Longint;
@@ -260,6 +258,8 @@ type
     procedure SetIndex(AValue: Integer);
     Procedure SetDataset(AValue : TDataset);
     function GetDisplayText: String;
+    function GetEditText: String;
+    procedure SetEditText(const AValue: string);
     procedure SetDisplayLabel(const AValue: string);
     procedure SetDisplayWidth(const AValue: Longint);
     function GetDisplayWidth: integer;
@@ -337,7 +337,7 @@ type
     property AsVariant: variant read GetAsVariant write SetAsVariant;
     property AttributeSet: string read FAttributeSet write FAttributeSet;
     property Calculated: Boolean read FCalculated write FCalculated;
-    property CanModify: Boolean read FCanModify;
+    property CanModify: Boolean read GetCanModify;
     property CurValue: Variant read GetCurValue;
     property DataSet: TDataSet read FDataSet write SetDataSet;
     property DataSize: Word read GetDataSize;
@@ -350,7 +350,7 @@ type
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
     property Size: Word read FSize write FSize;
-    property Text: string read FEditText write FEditText;
+    property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
     property OldValue: variant read GetOldValue;
@@ -985,6 +985,7 @@ type
     procedure CalculateFields(Buffer: PChar); virtual;
     procedure CheckActive; virtual;
     procedure CheckInactive; virtual;
+    procedure CheckBiDirectional;
     procedure Loaded; override;
     procedure ClearBuffers; virtual;
     procedure ClearCalcFields(Buffer: PChar); virtual;
@@ -1166,7 +1167,7 @@ type
     property FieldValues[fieldname : string] : Variant read GetFieldValues write SetFieldValues; default;
     property Filter: string read FFilterText write SetFilterText;
     property Filtered: Boolean read FFiltered write SetFiltered default False;
-    property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
+    property FilterOptions: TFilterOptions read FFilterOptions write SetFilterOptions;
     property Active: Boolean read GetActive write SetActive default False;
     property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields;
     property BeforeOpen: TDataSetNotifyEvent read FBeforeOpen write FBeforeOpen;
