@@ -19,8 +19,6 @@ Const
   Max_Path    = 260;
 
 Type
-  TWin32Handle = longint;
-
   PWin32FileTime = ^TWin32FileTime;
   TWin32FileTime = record
     dwLowDateTime,
@@ -44,7 +42,7 @@ Type
   end;
 
   Searchrec = Packed Record
-    FindHandle  : TWin32Handle;
+    FindHandle  : THandle;
     W32FindData : TWin32FindData;
     ExcludeAttr : longint;
     time : longint;
@@ -97,7 +95,7 @@ type
 
 var
    versioninfo : OSVERSIONINFO;
-   kernel32dll : TWin32Handle;
+   kernel32dll : THandle;
 
 {******************************************************************************
                            --- Conversion ---
@@ -259,8 +257,8 @@ end;
 type
   PProcessInformation = ^TProcessInformation;
   TProcessInformation = record
-    hProcess: TWin32Handle;
-    hThread: TWin32Handle;
+    hProcess: THandle;
+    hThread: THandle;
     dwProcessId: DWORD;
     dwThreadId: DWORD;
   end;
@@ -271,24 +269,23 @@ type
                lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
                var lpProcessInformation: TProcessInformation): longbool;
      stdcall; external 'kernel32' name 'CreateProcessA';
-   function getExitCodeProcess(h:TWin32Handle;var code:longint):longbool;
+   function getExitCodeProcess(h:THandle;var code:longint):longbool;
      stdcall; external 'kernel32' name 'GetExitCodeProcess';
-   function WaitForSingleObject(hHandle: TWin32Handle; dwMilliseconds: DWORD): DWORD;
+   function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
      stdcall; external 'kernel32' name 'WaitForSingleObject';
-   function CloseHandle(h : TWin32Handle) : longint;
+   function CloseHandle(h : THandle) : longint;
      stdcall; external 'kernel32' name 'CloseHandle';
 
 procedure exec(const path : pathstr;const comline : comstr);
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
-  Proc : TWin32Handle;
   l    : Longint;
   CommandLine : array[0..511] of char;
   AppParam : array[0..255] of char;
   pathlocal : string;
 begin
-  DosError := 0;
+  DosError:=0;
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
@@ -315,13 +312,12 @@ begin
      DosError:=Last2DosError(GetLastError);
      exit;
    end;
-  Proc:=PI.hProcess;
-  CloseHandle(PI.hThread);
-  if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
-    GetExitCodeProcess(Proc,l)
+  if WaitForSingleObject(PI.hProcess,dword($ffffffff))<>$ffffffff then
+    GetExitCodeProcess(PI.hProcess,l)
   else
     l:=-1;
-  CloseHandle(Proc);
+  CloseHandle(PI.hProcess);
+  CloseHandle(PI.hThread);
   LastDosExitCode:=l;
 end;
 
@@ -421,11 +417,11 @@ end;
 
 { Needed kernel calls }
 
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): TWin32Handle;
+   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
      stdcall; external 'kernel32' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: TWin32Handle; var lpFindFileData: TWIN32FindData): LongBool;
+   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): LongBool;
      stdcall; external 'kernel32' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: TWin32Handle): LongBool;
+   function FindCloseFile (hFindFile: THandle): LongBool;
      stdcall; external 'kernel32' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
@@ -775,13 +771,13 @@ begin
 end;
 
 
-function FreeLibrary(hLibModule : TWin32Handle) : longbool;
+function FreeLibrary(hLibModule : THandle) : longbool;
   stdcall; external 'kernel32' name 'FreeLibrary';
 function GetVersionEx(var VersionInformation:OSVERSIONINFO) : longbool;
   stdcall; external 'kernel32' name 'GetVersionExA';
-function LoadLibrary(lpLibFileName : pchar):TWin32Handle;
+function LoadLibrary(lpLibFileName : pchar):THandle;
   stdcall; external 'kernel32' name 'LoadLibraryA';
-function GetProcAddress(hModule : TWin32Handle;lpProcName : pchar) : pointer;
+function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
   stdcall; external 'kernel32' name 'GetProcAddress';
 
 var

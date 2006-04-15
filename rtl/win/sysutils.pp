@@ -756,7 +756,7 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integ
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
-  Proc : TWin32Handle;
+  Proc : THandle;
   l    : DWord;
   CommandLine : ansistring;
   e : EOSError;
@@ -788,11 +788,11 @@ begin
       raise e;
     end;
   Proc:=PI.hProcess;
-  CloseHandle(PI.hThread);
   if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
     begin
       GetExitCodeProcess(Proc,l);
       CloseHandle(Proc);
+      CloseHandle(PI.hThread);
       result:=l;
     end
   else
@@ -800,6 +800,7 @@ begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
       CloseHandle(Proc);
+      CloseHandle(PI.hThread);
       raise e;
     end;
 end;

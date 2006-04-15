@@ -62,7 +62,7 @@ const
   System_exception_frame : PEXCEPTION_FRAME =nil;
 
 type
-  TStartupInfo=packed record
+  TStartupInfo = record
     cb : longint;
     lpReserved : Pointer;
     lpDesktop : Pointer;
@@ -78,9 +78,9 @@ type
     wShowWindow : Word;
     cbReserved2 : Word;
     lpReserved2 : Pointer;
-    hStdInput : longint;
-    hStdOutput : longint;
-    hStdError : longint;
+    hStdInput : THandle;
+    hStdOutput : THandle;
+    hStdError : THandle;
   end;
 
 var
@@ -391,6 +391,7 @@ var
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
+    EBP : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
@@ -401,17 +402,19 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      ExitCode:=0;
      asm
          { allocate space for an exception frame }
-        pushl $0
-        pushl %fs:(0)
+        pushq $0
+        pushq %fs:(0)
         { movl  %esp,%fs:(0)
           but don't insert it as it doesn't
           point to anything yet
           this will be used in signals unit }
         movl %esp,%eax
         movl %eax,System_exception_frame
-        pushl %ebp
-        movl %esp,%eax
-        movl %eax,st
+        { keep stack aligned }
+        pushq $0
+        pushq %rbp
+        movq %rsp,%rax
+        movq %rax,st
      end;
      StackTop:=st;
      asm
@@ -419,9 +422,10 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
         movw %ss,%ax
         movl %eax,_SS
         call SysResetFPU
-        xorl %ebp,%ebp
+        xorl %rbp,%rbp
         call PASCALMAIN
-        popl %ebp
+        popq %rbp
+        popq %rax
      end;
      { if we pass here there was no error ! }
      system_exit;
@@ -991,9 +995,6 @@ procedure fpc_cpucodeinit;
   begin
   end;
 
-
-
-
 {****************************************************************************
                       OS dependend widestrings
 ****************************************************************************}
@@ -1150,9 +1151,9 @@ procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in a messagebox }
-  StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
-  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
-  StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
+  StdInputHandle:=THandle(GetStdHandle(STD_INPUT_HANDLE));
+  StdOutputHandle:=THandle(GetStdHandle(STD_OUTPUT_HANDLE));
+  StdErrorHandle:=THandle(GetStdHandle(STD_ERROR_HANDLE));
   if not IsConsole then
    begin
      AssignError(stderr);
@@ -1220,5 +1221,5 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-  InitWin32Widestrings
+  InitWin32Widestrings;
 end.

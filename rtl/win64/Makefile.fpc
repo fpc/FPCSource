@@ -9,8 +9,8 @@ main=rtl
 loaders=$(LOADERS)
 units=system ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
-      windows winsock cmem \
       dos objects \
+      windows winsock cmem \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils
 #      varutils variants typinfo classes \
