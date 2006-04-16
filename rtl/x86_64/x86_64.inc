@@ -46,10 +46,16 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifdef win64}
+        orq     %rcx,%rcx
+        jz      .Lg_a_null
+        movq    8(%rcx),%rax
+{$else win64}
         { %rdi = framebp }
         orq     %rdi,%rdi
         jz      .Lg_a_null
         movq    8(%rdi),%rax
+{$endif win64}
 .Lg_a_null:
 end ['RAX'];
 
@@ -57,10 +63,16 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
+{$ifdef win64}
+        orq     %rcx,%rcx
+        jz      .Lg_a_null
+        movq    (%rcx),%rax
+{$else win64}
         { %rdi = framebp }
         orq     %rdi,%rdi
         jz      .Lg_a_null
         movq    (%rdi),%rax
+{$endif win64}
 .Lg_a_null:
 end ['RAX'];
 
@@ -245,6 +257,22 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;
 { does a thread save inc/dec }
 function declocked(var l : longint) : boolean;assembler;
   asm
+{$ifdef win64}
+     {
+       l: %rcx
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Ldeclockednolock
+     lock
+     decl       (%rcx)
+     jmp        .Ldeclockedend
+.Ldeclockednolock:
+     decl       (%rcx)
+.Ldeclockedend:
+     setzb      %al
+{$else win64}
      {
        l: %rdi
      }
@@ -264,12 +292,29 @@ function declocked(var l : longint) : boolean;assembler;
      decl       (%rdi)
 .Ldeclockedend:
      setzb      %al
+{$endif win64}
   end;
 
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_INT64}
 function declocked(var l : int64) : boolean;assembler;
   asm
+{$ifdef win64}
+     {
+       l: %rcx
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Ldeclockednolock
+     lock
+     decq       (%rcx)
+     jmp        .Ldeclockedend
+.Ldeclockednolock:
+     decq       (%rcx)
+.Ldeclockedend:
+     setzb      %al
+{$else win64}
      {
        l: %rdi
      }
@@ -289,6 +334,7 @@ function declocked(var l : int64) : boolean;assembler;
      decq       (%rdi)
 .Ldeclockedend:
      setzb      %al
+{$endif win64}
   end;
 
 
@@ -296,6 +342,21 @@ function declocked(var l : int64) : boolean;assembler;
 procedure inclocked(var l : longint);assembler;
 
   asm
+{$ifdef win64}
+     {
+       l: %rcx
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Linclockednolock
+     lock
+     incl       (%rcx)
+     jmp        .Linclockedend
+.Linclockednolock:
+     incl       (%rcx)
+.Linclockedend:
+{$else win64}
      {
        l: %rdi
      }
@@ -314,6 +375,7 @@ procedure inclocked(var l : longint);assembler;
 .Linclockednolock:
      incl       (%rdi)
 .Linclockedend:
+{$endif win64}
   end;
 
 
@@ -321,6 +383,21 @@ procedure inclocked(var l : longint);assembler;
 procedure inclocked(var l : int64);assembler;
 
   asm
+{$ifdef win64}
+     {
+       l: %rcx
+     }
+     { this check should be done because a lock takes a lot }
+     { of time!                                             }
+     cmpb       $0,IsMultithread
+     jz         .Linclockednolock
+     lock
+     incq       (%rcx)
+     jmp        .Linclockedend
+.Linclockednolock:
+     incq       (%rcx)
+.Linclockedend:
+{$else win64}
      {
        l: %rdi
      }
@@ -339,6 +416,7 @@ procedure inclocked(var l : int64);assembler;
 .Linclockednolock:
      incq       (%rdi)
 .Linclockedend:
+{$endif win64}
   end;
 
 
