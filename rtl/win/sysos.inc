@@ -15,10 +15,10 @@
 
 const
    { constants for GetStdHandle }
-   STD_INPUT_HANDLE = dword($fffffff6);
-   STD_OUTPUT_HANDLE = dword($fffffff5);
-   STD_ERROR_HANDLE = dword($fffffff4);
-   INVALID_HANDLE_VALUE = dword($ffffffff);
+   STD_INPUT_HANDLE = dword(-10);
+   STD_OUTPUT_HANDLE = dword(-11);
+   STD_ERROR_HANDLE = dword(-12);
+   INVALID_HANDLE_VALUE = THandle(-1);
 
    IGNORE = 0;               { Ignore signal }
    INFINITE = longint($FFFFFFFF);     { Infinite timeout }

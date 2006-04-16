@@ -19,23 +19,23 @@ Const
   Max_Path    = 260;
 
 Type
-  PWin32FileTime = ^TWin32FileTime;
-  TWin32FileTime = record
+  PWinFileTime = ^TWinFileTime;
+  TWinFileTime = record
     dwLowDateTime,
     dwHighDateTime : DWORD;
   end;
 
-  PWin32FindData = ^TWin32FindData;
-  TWin32FindData = record
-    dwFileAttributes: Cardinal;
-    ftCreationTime: TWin32FileTime;
-    ftLastAccessTime: TWin32FileTime;
-    ftLastWriteTime: TWin32FileTime;
-    nFileSizeHigh: Cardinal;
-    nFileSizeLow: Cardinal;
-    dwReserved0: Cardinal;
-    dwReserved1: Cardinal;
-    cFileName: array[0..MAX_PATH - 1] of Char;
+  PWinFindData = ^TWinFindData;
+  TWinFindData = record
+    dwFileAttributes: DWORD;
+    ftCreationTime: TWinFileTime;
+    ftLastAccessTime: TWinFileTime;
+    ftLastWriteTime: TWinFileTime;
+    nFileSizeHigh: DWORD;
+    nFileSizeLow: DWORD;
+    dwReserved0: DWORD;
+    dwReserved1: DWORD;
+    cFileName: array[0..MAX_PATH-1] of Char;
     cAlternateFileName: array[0..13] of Char;
     // The structure should be 320 bytes long...
     pad : system.integer;
@@ -43,7 +43,7 @@ Type
 
   Searchrec = Packed Record
     FindHandle  : THandle;
-    W32FindData : TWin32FindData;
+    WinFindData : TWinFindData;
     ExcludeAttr : longint;
     time : longint;
     size : longint;
@@ -77,7 +77,7 @@ uses
 {$I dos.inc}
 
 const
-   INVALID_HANDLE_VALUE = longint($ffffffff);
+   INVALID_HANDLE_VALUE = THandle(-1);
 
    VER_PLATFORM_WIN32s = 0;
    VER_PLATFORM_WIN32_WINDOWS = 1;
@@ -85,13 +85,13 @@ const
 
 type
    OSVERSIONINFO = record
-        dwOSVersionInfoSize : DWORD;
-        dwMajorVersion : DWORD;
-        dwMinorVersion : DWORD;
-        dwBuildNumber : DWORD;
-        dwPlatformId : DWORD;
-        szCSDVersion : array[0..127] of char;
-     end;
+     dwOSVersionInfoSize : DWORD;
+     dwMajorVersion : DWORD;
+     dwMinorVersion : DWORD;
+     dwBuildNumber : DWORD;
+     dwPlatformId : DWORD;
+     szCSDVersion : array[0..127] of char;
+   end;
 
 var
    versioninfo : OSVERSIONINFO;
@@ -101,18 +101,18 @@ var
                            --- Conversion ---
 ******************************************************************************}
 
-   function GetLastError : DWORD;
-     stdcall; external 'kernel32' name 'GetLastError';
-   function FileTimeToDosDateTime(const ft :TWin32FileTime;var data,time : word) : longbool;
-     stdcall; external 'kernel32' name 'FileTimeToDosDateTime';
-   function DosDateTimeToFileTime(date,time : word;var ft :TWin32FileTime) : longbool;
-     stdcall; external 'kernel32' name 'DosDateTimeToFileTime';
-   function FileTimeToLocalFileTime(const ft : TWin32FileTime;var lft : TWin32FileTime) : longbool;
-     stdcall; external 'kernel32' name 'FileTimeToLocalFileTime';
-   function LocalFileTimeToFileTime(const lft : TWin32FileTime;var ft : TWin32FileTime) : longbool;
-     stdcall; external 'kernel32' name 'LocalFileTimeToFileTime';
-   function GetTickCount : longint;
-     stdcall;external 'kernel32' name 'GetTickCount';
+function GetLastError : DWORD;
+  stdcall; external 'kernel32' name 'GetLastError';
+function FileTimeToDosDateTime(const ft :TWinFileTime;var data,time : word) : longbool;
+  stdcall; external 'kernel32' name 'FileTimeToDosDateTime';
+function DosDateTimeToFileTime(date,time : word;var ft :TWinFileTime) : longbool;
+  stdcall; external 'kernel32' name 'DosDateTimeToFileTime';
+function FileTimeToLocalFileTime(const ft : TWinFileTime;var lft : TWinFileTime) : longbool;
+  stdcall; external 'kernel32' name 'FileTimeToLocalFileTime';
+function LocalFileTimeToFileTime(const lft : TWinFileTime;var ft : TWinFileTime) : longbool;
+  stdcall; external 'kernel32' name 'LocalFileTimeToFileTime';
+function GetTickCount : longint;
+  stdcall;external 'kernel32' name 'GetTickCount';
 
 function GetMsCount: int64;
 begin
@@ -147,18 +147,18 @@ begin
 end;
 
 
-Function DosToWinTime (DTime:longint;Var Wtime : TWin32FileTime):longbool;
+Function DosToWinTime (DTime:longint;Var Wtime : TWinFileTime):longbool;
 var
-  lft : TWin32FileTime;
+  lft : TWinFileTime;
 begin
   DosToWinTime:=DosDateTimeToFileTime(longrec(dtime).hi,longrec(dtime).lo,lft) and
                 LocalFileTimeToFileTime(lft,Wtime);
 end;
 
 
-Function WinToDosTime (Const Wtime : TWin32FileTime;var DTime:longint):longbool;
+Function WinToDosTime (Const Wtime : TWinFileTime;var DTime:longint):longbool;
 var
-  lft : TWin32FileTime;
+  lft : TWinFileTime;
 begin
   WinToDosTime:=FileTimeToLocalFileTime(WTime,lft) and
                 FileTimeToDosDateTime(lft,longrec(dtime).hi,longrec(dtime).lo);
@@ -263,18 +263,18 @@ type
     dwThreadId: DWORD;
   end;
 
-   function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar;
-               lpProcessAttributes, lpThreadAttributes: Pointer;
-               bInheritHandles: Longbool; dwCreationFlags: DWORD; lpEnvironment: Pointer;
-               lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
-               var lpProcessInformation: TProcessInformation): longbool;
-     stdcall; external 'kernel32' name 'CreateProcessA';
-   function getExitCodeProcess(h:THandle;var code:longint):longbool;
-     stdcall; external 'kernel32' name 'GetExitCodeProcess';
-   function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
-     stdcall; external 'kernel32' name 'WaitForSingleObject';
-   function CloseHandle(h : THandle) : longint;
-     stdcall; external 'kernel32' name 'CloseHandle';
+function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar;
+            lpProcessAttributes, lpThreadAttributes: Pointer;
+            bInheritHandles: Longbool; dwCreationFlags: DWORD; lpEnvironment: Pointer;
+            lpCurrentDirectory: PChar; const lpStartupInfo: TStartupInfo;
+            var lpProcessInformation: TProcessInformation): longbool;
+  stdcall; external 'kernel32' name 'CreateProcessA';
+function getExitCodeProcess(h:THandle;var code:longint):longbool;
+  stdcall; external 'kernel32' name 'GetExitCodeProcess';
+function WaitForSingleObject(hHandle: THandle; dwMilliseconds: DWORD): DWORD;
+  stdcall; external 'kernel32' name 'WaitForSingleObject';
+function CloseHandle(h : THandle) : longint;
+  stdcall; external 'kernel32' name 'CloseHandle';
 
 procedure exec(const path : pathstr;const comline : comstr);
 var
@@ -340,7 +340,7 @@ function diskfree(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longword;
+  free,total : DWORD;
   qwtotal,qwfree,qwcaller : int64;
 
 
@@ -378,7 +378,7 @@ function disksize(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longword;
+  free,total : DWORD;
   qwtotal,qwfree,qwcaller : int64;
 
 begin
@@ -417,12 +417,12 @@ end;
 
 { Needed kernel calls }
 
-   function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;
-     stdcall; external 'kernel32' name 'FindFirstFileA';
-   function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWIN32FindData): LongBool;
-     stdcall; external 'kernel32' name 'FindNextFileA';
-   function FindCloseFile (hFindFile: THandle): LongBool;
-     stdcall; external 'kernel32' name 'FindClose';
+function FindFirstFile (lpFileName: PChar; var lpFindFileData: TWinFindData): THandle;
+  stdcall; external 'kernel32' name 'FindFirstFileA';
+function FindNextFile  (hFindFile: THandle; var lpFindFileData: TWinFindData): LongBool;
+  stdcall; external 'kernel32' name 'FindNextFileA';
+function FindCloseFile (hFindFile: THandle): LongBool;
+  stdcall; external 'kernel32' name 'FindClose';
 
 Procedure StringToPchar (Var S : String);
 Var L : Longint;
@@ -444,22 +444,22 @@ end;
 procedure FindMatch(var f:searchrec);
 begin
   { Find file with correct attribute }
-  While (F.W32FindData.dwFileAttributes and cardinal(F.ExcludeAttr))<>0 do
+  While (F.WinFindData.dwFileAttributes and DWORD(F.ExcludeAttr))<>0 do
    begin
-     if not FindNextFile (F.FindHandle,F.W32FindData) then
+     if not FindNextFile (F.FindHandle,F.WinFindData) then
       begin
         DosError:=Last2DosError(GetLastError);
         if DosError=2 then
-         DosError:=18;
+          DosError:=18;
         exit;
       end;
    end;
 
   { Convert some attributes back }
-  f.size:=F.W32FindData.NFileSizeLow;
-  f.attr:=WinToDosAttr(F.W32FindData.dwFileAttributes);
-  WinToDosTime(F.W32FindData.ftLastWriteTime,f.Time);
-  f.Name:=StrPas(@F.W32FindData.cFileName);
+  f.size:=F.WinFindData.NFileSizeLow;
+  f.attr:=WinToDosAttr(F.WinFindData.dwFileAttributes);
+  WinToDosTime(F.WinFindData.ftLastWriteTime,f.Time);
+  f.Name:=StrPas(@F.WinFindData.cFileName);
 end;
 
 
@@ -474,14 +474,14 @@ begin
   StringToPchar(f.name);
 
   { FindFirstFile is a Win32 Call }
-  F.W32FindData.dwFileAttributes:=DosToWinAttr(f.attr);
-  F.FindHandle:=FindFirstFile (pchar(@f.Name),F.W32FindData);
+  F.WinFindData.dwFileAttributes:=DosToWinAttr(f.attr);
+  F.FindHandle:=FindFirstFile (pchar(@f.Name),F.WinFindData);
 
-  If longint(F.FindHandle)=Invalid_Handle_value then
+  If F.FindHandle=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
      if DosError=2 then
-      DosError:=18;
+       DosError:=18;
      exit;
    end;
   { Find file with correct attribute }
@@ -493,11 +493,11 @@ procedure findnext(var f : searchRec);
 begin
 { no error }
   doserror:=0;
-  if not FindNextFile (F.FindHandle,F.W32FindData) then
+  if not FindNextFile (F.FindHandle,F.WinFindData) then
    begin
      DosError:=Last2DosError(GetLastError);
      if DosError=2 then
-      DosError:=18;
+       DosError:=18;
      exit;
    end;
 { Find file with correct attribute }
@@ -507,7 +507,7 @@ end;
 
 Procedure FindClose(Var f: SearchRec);
 begin
-  If longint(F.FindHandle)<>Invalid_Handle_value then
+  If F.FindHandle<>Invalid_Handle_value then
    FindCloseFile(F.FindHandle);
 end;
 
@@ -516,21 +516,20 @@ end;
                                --- File ---
 ******************************************************************************}
 
-   function GeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
-     stdcall; external 'kernel32' name 'GetFileTime';
-   function SeTWin32FileTime(h : longint;creation,lastaccess,lastwrite : PWin32FileTime) : longbool;
-     stdcall; external 'kernel32' name 'SetFileTime';
-   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
-     stdcall; external 'kernel32' name 'SetFileAttributesA';
-   function GetFileAttributes(lpFileName : pchar) : longint;
-     stdcall; external 'kernel32' name 'GetFileAttributesA';
+function GetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime) : longbool;
+  stdcall; external 'kernel32' name 'GetFileTime';
+function SetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime) : longbool;
+  stdcall; external 'kernel32' name 'SetFileTime';
+function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
+  stdcall; external 'kernel32' name 'SetFileAttributesA';
+function GetFileAttributes(lpFileName : pchar) : longint;
+  stdcall; external 'kernel32' name 'GetFileAttributesA';
 
 
 { <immobilizer> }
 
 function GetFullPathName(lpFileName: PChar; nBufferLength: Longint; lpBuffer: PChar; var lpFilePart : PChar):DWORD;
     stdcall; external 'kernel32' name 'GetFullPathNameA';
-
 function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWORD):DWORD;
     stdcall; external 'kernel32' name 'GetShortPathNameA';
 
@@ -582,14 +581,13 @@ begin
   findclose(s);
 end;
 
-{ </immobilizer> }
 
 procedure getftime(var f;var time : longint);
 var
-   ft : TWin32FileTime;
+   ft : TWinFileTime;
 begin
   doserror:=0;
-  if GeTWin32FileTime(filerec(f).Handle,nil,nil,@ft) and
+  if GetWinFileTime(filerec(f).Handle,nil,nil,@ft) and
      WinToDosTime(ft,time) then
     exit
   else
@@ -602,11 +600,11 @@ end;
 
 procedure setftime(var f;time : longint);
 var
-  ft : TWin32FileTime;
+  ft : TWinFileTime;
 begin
   doserror:=0;
   if DosToWinTime(time,ft) and
-     SeTWin32FileTime(filerec(f).Handle,nil,nil,@ft) then
+     SetWinFileTime(filerec(f).Handle,nil,nil,@ft) then
    exit
   else
    DosError:=Last2DosError(GetLastError);
@@ -696,10 +694,10 @@ end;
   terminated by a #0
 }
 
-   function GetEnvironmentStrings : pchar;
-     stdcall; external 'kernel32' name 'GetEnvironmentStringsA';
-   function FreeEnvironmentStrings(p : pchar) : longbool;
-     stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
+function GetEnvironmentStrings : pchar;
+  stdcall; external 'kernel32' name 'GetEnvironmentStringsA';
+function FreeEnvironmentStrings(p : pchar) : longbool;
+  stdcall; external 'kernel32' name 'FreeEnvironmentStringsA';
 
 function envcount : longint;
 var
