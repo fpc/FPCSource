@@ -50,9 +50,36 @@ begin
     end;
 end;
 
+
+procedure test3;
+var
+  b: longint;
+  l: int64;
+begin
+  b := low(longint)+1;
+  dec(b,2);
+  l := b;
+  if (l <> high(longint)) then
+    begin
+      writeln('neg error with shortint');
+      error := true;
+    end;
+
+  b := high(longint)-1;
+  inc(b,2);
+  l := b;
+  if (l <> low(longint)) then
+    begin
+      writeln('pos error with shortint');
+      error := true;
+    end;
+end;
+
 begin
   error := false;
   test;
   test2;
+  test3;
   halt(ord(error));
 end.
+
