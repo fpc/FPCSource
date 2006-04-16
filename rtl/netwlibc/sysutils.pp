@@ -81,7 +81,7 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
 BEGIN
   NWOpenFlags:=0;
@@ -96,75 +96,75 @@ BEGIN
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String) : THandle;
 begin
   FileCreate:=Fpopen(Pchar(FileName),O_RdWr or O_Creat or O_Trunc or O_Binary);
   if FileCreate >= 0 then
     FileSetAttr (Filename, 0);  // dont know why but open always sets ReadOnly flag
 end;
 
-Function FileCreate (Const FileName : String; mode:longint) : Longint;
+Function FileCreate (Const FileName : String; mode:longint) : THandle;
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
 begin
   FileRead:=libc.fpread (Handle,@Buffer,Count);
 end;
 
 
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 begin
   FileWrite:=libc.fpwrite (Handle,@Buffer,Count);
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : THandle; FOffset,Origin : Longint) : Longint;
 begin
   FileSeek:=libc.fplseek (Handle,FOffset,Origin);
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
   FileSeek:=libc.fplseek64 (Handle,FOffset,Origin);
 end;
 
 
-Procedure FileClose (Handle : Longint);
+Procedure FileClose (Handle : THandle);
 begin
   libc.fpclose(Handle);
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle; Size: Longint) : boolean;
 begin
   FileTruncate:=(libc.fpchsize(Handle,Size) = 0);
 end;
 
-Function FileLock (Handle,FOffset,FLen : Longint) : Longint;
+Function FileLock (Handle : THandle; FOffset,FLen : Longint) : Longint;
 begin
   {$warning FileLock not implemented}
   //FileLock := _lock (Handle,FOffset,FLen);
   FileLock := -1;
 end;
 
-Function FileLock (Handle : Longint; FOffset,FLen : Int64) : Longint;
+Function FileLock (Handle : THandle; FOffset,FLen : Int64) : Longint;
 begin
   {$warning need to add 64bit FileLock call }
   //FileLock := FileLock (Handle, longint(FOffset),longint(FLen));
   FileLock := -1;
 end;
 
-Function FileUnlock (Handle,FOffset,FLen : Longint) : Longint;
+Function FileUnlock (Handle : THandle; FOffset,FLen : Longint) : Longint;
 begin
   //FileUnlock := _unlock (Handle,FOffset,FLen);
   {$warning FileUnLock not implemented}
   FileUnlock := -1;
 end;
 
-Function FileUnlock (Handle : Longint; FOffset,FLen : Int64) : Longint;
+Function FileUnlock (Handle : THandle; FOffset,FLen : Int64) : Longint;
 begin
   {$warning need to add 64bit FileUnlock call }
   //FileUnlock := FileUnlock (Handle, longint(FOffset),longint(FLen));
@@ -311,7 +311,7 @@ end;
 
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : THandle) : Longint;
 Var Info : TStat;
     _PTM : PTM;
 begin
@@ -329,7 +329,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle; Age : Longint) : Longint;
 Begin
   {dont know how to do that, utime needs filename}
   result := -1;
