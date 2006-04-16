@@ -149,7 +149,7 @@ sysutils$(PPUEXT) : $(WINDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+        $(COMPILER) -Fi../win -Fi$(OBJPASDIR)/classes classes.pp
 
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
         $(COMPILER) winsysut.pp

@@ -97,7 +97,7 @@ end;
 
 { TThread }
 
-function ThreadProc(ThreadObjPtr: Pointer): Integer;
+function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
 var
   FreeThread: Boolean;
   Thread: TThread absolute ThreadObjPtr;

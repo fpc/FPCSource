@@ -4536,6 +4536,7 @@ rtl/win/sysos.inc svneol=native#text/plain
 rtl/win/sysosh.inc svneol=native#text/plain
 rtl/win/systhrd.inc svneol=native#text/plain
 rtl/win/sysutils.pp svneol=native#text/plain
+rtl/win/tthread.inc svneol=native#text/plain
 rtl/win/varutils.pp svneol=native#text/plain
 rtl/win/wininc/Makefile svneol=native#text/plain
 rtl/win/wininc/ascdef.inc svneol=native#text/plain
@@ -4568,7 +4569,6 @@ rtl/win32/printer.pp svneol=native#text/plain
 rtl/win32/signals.pp svneol=native#text/plain
 rtl/win32/sockets.pp svneol=native#text/plain
 rtl/win32/system.pp svneol=native#text/plain
-rtl/win32/tthread.inc svneol=native#text/plain
 rtl/win32/video.pp svneol=native#text/plain
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
@@ -4581,6 +4581,7 @@ rtl/win32/wprt0.as -text
 rtl/win32/wprt0_10.as -text
 rtl/win64/Makefile svneol=native#text/plain
 rtl/win64/Makefile.fpc svneol=native#text/plain
+rtl/win64/classes.pp svneol=native#text/plain
 rtl/win64/system.pp svneol=native#text/plain
 rtl/win64/windows.pp svneol=native#text/plain
 rtl/wince/Makefile svneol=native#text/plain

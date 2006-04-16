@@ -54,7 +54,7 @@ type
    pvararray = ^tvararray;
 
    tvararraybound = packed record
-     elementcount,lowbound  : SizeInt;
+     elementcount,lowbound  : longint;
    end;
 
    tvararrayboundarray = array[0..0] of tvararraybound;

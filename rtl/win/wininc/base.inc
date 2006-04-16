@@ -129,7 +129,7 @@
      LANGID = word;
      LCID   = DWORD;
      LCTYPE = DWORD;
-     LPARAM = longint;
+     LPARAM = LONG_PTR;
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;

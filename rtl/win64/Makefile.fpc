@@ -12,12 +12,12 @@ units=system ctypes objpas macpas strings \
       dos objects \
       windows winsock cmem \
       rtlconsts sysconst sysutils math types \
-      strutils convutils dateutils
-#      varutils variants typinfo classes \
+      strutils convutils dateutils \
+      varutils variants typinfo classes
+#      winsysut fpmkunit
 #      cpu mmx charset ucomplex getopts \
 #      winevent sockets printer \
 #      video mouse keyboard \
-#      winsysut fpmkunit
 #      dynlibs signals crt messages \
 #     no cygwin so far
 #	initc
@@ -151,7 +151,7 @@ sysutils$(PPUEXT) : $(WINDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+        $(COMPILER) -Fi../win -Fi$(OBJPASDIR)/classes classes.pp
 
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
         $(COMPILER) winsysut.pp
