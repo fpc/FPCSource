@@ -17,6 +17,9 @@
 type
    jmp_buf = packed record
      rbx,rbp,r12,r13,r14,r15,rsp,rip : qword;
+{$ifdef win64}
+     rsi,rdi : qword;
+{$endif win64}
    end;
    pjmp_buf = ^jmp_buf;
 
