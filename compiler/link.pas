@@ -678,6 +678,13 @@ begin
       until (not assigned(current)) or (not success);
     end;
 
+  if (target_ar.arfinishcmd <> '') then
+    begin
+      SplitBinCmd(target_ar.arfinishcmd,binstr,cmdstr);
+      Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
+      success:=DoExec(binstr,cmdstr,false,true);
+    end;
+
   { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
    if not(cs_link_extern in aktglobalswitches) then
@@ -981,14 +988,16 @@ end;
     const
       ar_gnu_ar_info : tarinfo =
           (
-            id    : ar_gnu_ar;
-            arcmd : 'ar rs $LIB $FILES'
+            id          : ar_gnu_ar;
+            arcmd       : 'ar qS $LIB $FILES';
+            arfinishcmd : 'ar s $LIB'
           );
 
       ar_gnu_ar_scripted_info : tarinfo =
           (
             id    : ar_gnu_ar_scripted;
-            arcmd : 'ar -M < $SCRIPT'
+            arcmd : 'ar -M < $SCRIPT';
+            arfinishcmd : ''
           );
 
 initialization
