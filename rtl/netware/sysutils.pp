@@ -79,7 +79,7 @@ implementation
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 VAR NWOpenFlags : longint;
 BEGIN
   NWOpenFlags:=0;
@@ -94,54 +94,54 @@ BEGIN
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String) : THandle;
 
 begin
   FileCreate:=_open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
-Function FileCreate (Const FileName : String; mode:longint) : Longint;
+Function FileCreate (Const FileName : String; mode:longint) : THandle;
 
 begin
   FileCreate:=FileCreate (FileName);
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Var Buffer; Count : longint) : longint;
 
 begin
   FileRead:=_read (Handle,@Buffer,Count);
 end;
 
 
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : longint;
 
 begin
   FileWrite:=_write (Handle,@Buffer,Count);
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : THandle; FOffset,Origin : Longint) : Longint;
 
 begin
   FileSeek:=_lseek (Handle,FOffset,Origin);
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
   {$warning need to add 64bit FileSeek }
   FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));
 end;
 
 
-Procedure FileClose (Handle : Longint);
+Procedure FileClose (Handle : THandle);
 
 begin
   _close(Handle);
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle; Size: Longint) : boolean;
 
 begin
   FileTruncate:=(_chsize(Handle,Size) = 0);
@@ -268,7 +268,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : THandle) : Longint;
 Var Info : NWStatBufT;
     PTM  : PNWTM;
 begin
@@ -286,7 +286,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle; Age : Longint) : Longint;
 begin
   { i think its impossible under netware from FileHandle. I dident found a way to get the
     complete pathname of a filehandle, that would be needed for ChangeDirectoryEntry }
