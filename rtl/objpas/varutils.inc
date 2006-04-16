@@ -349,7 +349,7 @@ Const
      ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_NONE,ARR_UNKNOWN,
      ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
 
-Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
+Function SafeArrayCreate(VarType, Dim: DWord; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
   var
     res : HRESULT;
     I   : SizeInt;
@@ -378,7 +378,7 @@ Function SafeArrayCreate(VarType, Dim: SizeInt; const Bounds: TVarArrayBoundArra
   end;
 
 
-Function SafeArrayAllocDescriptor(DimCount: SizeInt; var psa: PVarArray): HRESULT;stdcall;
+Function SafeArrayAllocDescriptor(DimCount: Dword; var psa: PVarArray): HRESULT;stdcall;
 begin
   try
     { one bound item is included in TVarArray }
@@ -590,7 +590,7 @@ begin
   end;
 end;
 
-Function SafeArrayGetLBound(psa: PVarArray; Dim: SizeInt; var LBound: SizeInt): HRESULT;stdcall;
+Function SafeArrayGetLBound(psa: PVarArray; Dim: DWord; var LBound: LongInt): HRESULT;stdcall;
 begin
   Result:=CheckVarArray(psa);
   if Result<>VAR_OK then
@@ -601,7 +601,7 @@ begin
     Result:=VAR_BADINDEX;
 end;
 
-Function SafeArrayGetUBound(psa: PVarArray; Dim: SizeInt; var UBound: SizeInt): HRESULT;stdcall;
+Function SafeArrayGetUBound(psa: PVarArray; Dim : DWord; var UBound: LongInt): HRESULT;stdcall;
 begin
   Result:=CheckVarArray(psa);
   if Result<>VAR_OK then
