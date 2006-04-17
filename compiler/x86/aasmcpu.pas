@@ -1557,7 +1557,7 @@ implementation
             exit;
            end;
            if (br=NR_NO) or
-              ((br<>NR_EBP) and (o=0) and (sym=nil)) then
+              ((br<>NR_RBP) and (o=0) and (sym=nil)) then
             md:=0
            else
             if ((o>=-128) and (o<=127) and (sym=nil)) then
