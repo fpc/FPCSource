@@ -125,8 +125,12 @@ unit cgcpu;
           begin
             if (procdef.extnumber=$ffff) then
               Internalerror(200006139);
-            { mov  0(%rdi),%rax ; load vmt}
-            reference_reset_base(href,NR_RDI,0);
+            { load vmt from first paramter }
+            { win64 uses a different abi }
+            if target_info.system=system_x86_64_win64 then
+              reference_reset_base(href,NR_RCX,0)
+            else
+              reference_reset_base(href,NR_RDI,0);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber));
