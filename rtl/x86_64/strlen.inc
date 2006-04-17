@@ -16,7 +16,12 @@
   Implemented using the code from  glibc: libc/sysdeps/x86_64/strlen.S Version 1.2
 }
 asm
+        { win64 has different calling conventions }
+{$ifdef win64}
+        movq %rcx, %rdi                { Duplicate source pointer. }
+{$else win64}
         movq %rdi, %rcx                { Duplicate source pointer. }
+{$endif win64}
         andl $7, %ecx                  { mask alignment bits }
         movq %rdi, %rax                { duplicate destination.  }
         jz .LFPC_STRLEN_1               { aligned => start loop }

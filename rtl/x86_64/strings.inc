@@ -18,7 +18,17 @@
 {$define FPC_UNIT_HAS_STRCOPY}
 { Created from glibc: libc/sysdeps/x86_64/strcpy.S Version 1.2 }
 function strcopy(dest,source : pchar) : pchar;assembler;
+{$ifdef win64}
+var
+  rdi,rsi : int64;
+{$endif win64}
 asm
+{$ifdef win64}
+        movq %rsi,rsi
+        movq %rdi,rdi
+        movq %rdx, %rsi
+        movq %rcx, %rdi
+{$endif win64}
         movq %rsi, %rcx                { Source register. }
         andl $7, %ecx                  { mask alignment bits }
         movq %rdi, %rdx                { Duplicate destination pointer.  }
@@ -139,13 +149,27 @@ asm
 
 .LFPC_STRCOPY_4:
         movq        %rdi, %rax        { Source is return value.  }
+{$ifdef win64}
+        movq rsi,%rsi
+        movq rdi,%rdi
+{$endif win64}
 end;
 
 
 {$define FPC_UNIT_HAS_STRCOMP}
 { Created from glibc: libc/sysdeps/x86_64/strcmp.S Version 1.2 }
 function StrComp(Str1, Str2: PChar): SizeInt;assembler;
+{$ifdef win64}
+var
+  rdi,rsi : int64;
+{$endif win64}
 asm
+{$ifdef win64}
+        movq %rsi,rsi
+        movq %rdi,rdi
+        movq %rdx, %rsi
+        movq %rcx, %rdi
+{$endif win64}
 .LFPC_STRCMP_LOOP:
         movb        (%rdi), %al
         cmpb        (%rsi), %al
@@ -163,5 +187,9 @@ asm
         movq        $-1, %rcx
         cmovbq      %rcx, %rax
 .Lexit:
+{$ifdef win64}
+        movq rsi,%rsi
+        movq rdi,%rdi
+{$endif win64}
 end;
 
