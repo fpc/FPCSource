@@ -118,9 +118,9 @@ opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) system$(PPUEXT)
 winsock$(PPUEXT) : $(WINDIR)/winsock.pp windows$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(WINDIR)/winsock.pp
 
-winsock2$(PPUEXT) : winsock2.pp windows$(PPUEXT) system$(PPUEXT)
+winsock2$(PPUEXT) : $(WINDIR)/winsock2.pp windows$(PPUEXT) system$(PPUEXT)
 
-sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) winsock2$(PPUEXT) system$(PPUEXT) \
+sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) winsock2$(PPUEXT) system$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
@@ -135,7 +135,7 @@ dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
 dos$(PPUEXT) : $(WINDIR)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(WINDIR)/dos.pp
 
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+crt$(PPUEXT) : $(WINDIR)/crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
 
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
