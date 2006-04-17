@@ -176,9 +176,9 @@ begin
                  ButtonCount:=0;
                end;
 {$ifdef fpc}
-          'F' :
+{          'F' :
              if Length(Param)=1 then
-               NoExtendedFrame:=true;
+               NoExtendedFrame:=true;}
 {$ifdef Unix}
           'T' :  DebuggeeTTY:=Copy(Param,2,High(Param));
 {$endif Unix}
