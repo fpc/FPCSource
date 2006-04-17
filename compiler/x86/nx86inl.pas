@@ -199,7 +199,12 @@ implementation
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
                   def_cgsize(left.resulttype.def),
                   left.location.reference,location.register);
-             end
+             end;
+           LOC_MMREGISTER,LOC_CMMREGISTER:
+             begin
+               location:=left.location;
+               location_force_fpureg(current_asmdata.CurrAsmList,location,false);
+             end;
            else
              internalerror(309991);
          end;
