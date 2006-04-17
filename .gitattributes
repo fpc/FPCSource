@@ -4474,6 +4474,7 @@ rtl/unix/bunxh.inc svneol=native#text/plain
 rtl/unix/bunxovl.inc svneol=native#text/plain
 rtl/unix/bunxovlh.inc svneol=native#text/plain
 rtl/unix/classes.pp svneol=native#text/plain
+rtl/unix/convert.inc -text
 rtl/unix/crt.pp svneol=native#text/plain
 rtl/unix/cthreads.pp svneol=native#text/plain
 rtl/unix/ctypes.inc svneol=native#text/plain
