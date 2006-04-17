@@ -64,15 +64,7 @@ type
    end;
 
    TDLLScanner=class
-   public
-     f:file;
-     impname:string;
-     TheWord:array[0..1]of char;
-     HeaderOffset:cardinal;
-     loaded:integer;
-     function isSuitableFileType(x:cardinal):longbool;virtual;abstract;
-     function GetEdata(HeaderEntry:cardinal):longbool;virtual;abstract;
-     function Scan(const binname:string):longbool;virtual;abstract;
+     function Scan(const binname:string):boolean;virtual;abstract;
    end;
 
    TImportLibClass=class of TImportLib;

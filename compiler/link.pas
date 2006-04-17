@@ -43,18 +43,19 @@ Type
     end;
 
     TLinker = class(TAbstractLinker)
+    private
+       procedure AddProcdefImports(p:tnamedindexitem;arg:pointer);
     public
        HasResources,
        HasExports      : boolean;
        ObjectFiles,
-       DLLFiles,
        SharedLibFiles,
        StaticLibFiles  : TStringList;
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
+       procedure AddExternalSymbol(const libname,symname:string);virtual;
        Procedure AddObject(const S,unitpath : String;isunit:boolean);
-       Procedure AddDLL(const S : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
        Procedure AddStaticCLibrary(const S : String);
@@ -79,6 +80,8 @@ Type
     private
        FCExeOutput : TExeOutputClass;
        FCObjInput  : TObjInputClass;
+       { Libraries }
+       FExternalLibraryList : TFPHashObjectList;
        procedure Load_ReadObject(const para:string);
        procedure Load_ReadUnitObjects;
        procedure ParseScript_Load;
@@ -88,12 +91,14 @@ Type
     protected
        property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
        property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
+       property ExternalLibraryList:TFPHashObjectList read FExternalLibraryList;
        procedure DefaultLinkScript;virtual;abstract;
        linkscript : TStringList;
     public
        Constructor Create;override;
        Destructor Destroy;override;
        Function  MakeExecutable:boolean;override;
+       procedure AddExternalSymbol(const libname,symname:string);override;
      end;
 
 
@@ -119,6 +124,7 @@ uses
   cutils,
   script,globals,verbose,comphook,ppu,
   aasmbase,aasmtai,aasmdata,aasmcpu,
+  symbase,symdef,symtype,symconst,
   ogmap;
 
 type
@@ -281,7 +287,6 @@ Constructor TLinker.Create;
 begin
   Inherited Create;
   ObjectFiles:=TStringList.Create_no_double;
-  DLLFiles:=TStringList.Create_no_double;
   SharedLibFiles:=TStringList.Create_no_double;
   StaticLibFiles:=TStringList.Create_no_double;
 end;
@@ -290,9 +295,18 @@ end;
 Destructor TLinker.Destroy;
 begin
   ObjectFiles.Free;
-  DLLFiles.Free;
   SharedLibFiles.Free;
   StaticLibFiles.Free;
+end;
+
+
+procedure TLinker.AddProcdefImports(p:tnamedindexitem;arg:pointer);
+begin
+  if tdef(p).deftype<>procdef then
+    exit;
+  if assigned(tprocdef(p).import_dll) and
+     assigned(tprocdef(p).import_name) then
+    AddExternalSymbol(tprocdef(p).import_dll^,tprocdef(p).import_name^);
 end;
 
 
@@ -378,22 +392,23 @@ begin
       AddStaticCLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
       AddSharedCLibrary(linkothersharedlibs.Getusemask(mask));
-     { (Windows) DLLs }
-     while not linkdlls.empty do
-      AddDLL(linkdlls.Getusemask(mask));
+     { Known Library/DLL Imports }
+     if assigned(globalsymtable) then
+       globalsymtable.defindex.foreach(@AddProcdefImports,nil);
+     if assigned(localsymtable) then
+       localsymtable.defindex.foreach(@AddProcdefImports,nil);
    end;
 end;
+
+
+    procedure TLinker.AddExternalSymbol(const libname,symname:string);
+      begin
+      end;
 
 
 Procedure TLinker.AddObject(const S,unitpath : String;isunit:boolean);
 begin
   ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
-end;
-
-
-Procedure TLinker.AddDLL(const S : String);
-begin
-  DLLFiles.Concat(s);
 end;
 
 
@@ -714,6 +729,7 @@ end;
       begin
         inherited Create;
         linkscript:=TStringList.Create;
+        FExternalLibraryList:=TFPHashObjectList.Create(true);
         exemap:=nil;
         exeoutput:=nil;
         CObjInput:=TObjInput;
@@ -723,6 +739,7 @@ end;
     Destructor TInternalLinker.Destroy;
       begin
         linkscript.free;
+        ExternalLibraryList.Free;
         if assigned(exeoutput) then
           begin
             exeoutput.free;
@@ -734,6 +751,20 @@ end;
             exemap:=nil;
           end;
         inherited destroy;
+      end;
+
+
+    procedure TInternalLinker.AddExternalSymbol(const libname,symname:string);
+      var
+        ExtLibrary : TExternalLibrary;
+        ExtSymbol : TFPHashObject;
+      begin
+        ExtLibrary:=TExternalLibrary(ExternalLibraryList.Find(libname));
+        if not assigned(ExtLibrary) then
+          ExtLibrary:=TExternalLibrary.Create(ExternalLibraryList,libname);
+        ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList.Find(symname));
+        if not assigned(ExtSymbol) then
+          ExtSymbol:=TFPHashObject.Create(ExtLibrary.ExternalSymbolList,symname);
       end;
 
 
@@ -897,15 +928,8 @@ end;
         { Load .o files and resolve symbols }
         ParseScript_Load;
         exeoutput.ResolveSymbols;
-        { DLL Linking }
-        While not DLLFiles.Empty do
-          begin
-            s:=DLLFiles.GetFirst;
-            if FindDLL(s,s2) then
-              exeoutput.ResolveExternals(s2)
-            else
-              Comment(V_Error,'DLL not found: '+s);
-          end;
+        { Generate symbols and code to do the importing }
+        exeoutput.GenerateLibraryImports(ExternalLibraryList);
         { Fill external symbols data }
         exeoutput.FixupSymbols;
         if ErrorCount>0 then

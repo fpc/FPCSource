@@ -263,7 +263,10 @@ type
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
-    po_compilerproc
+    po_compilerproc,
+    { importing }
+    po_has_importdll,
+    po_has_importname
   );
   tprocoptions=set of tprocoption;
 

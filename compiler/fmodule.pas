@@ -519,6 +519,7 @@ implementation
         stringdispose(objfilename);
         stringdispose(newfilename);
         stringdispose(ppufilename);
+        stringdispose(importlibfilename);
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);

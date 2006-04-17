@@ -184,8 +184,7 @@ interface
          idatalabnr : longint;
        public
          constructor create;override;
-         function  LoadDLL(const dllname:string):boolean;
-         procedure ResolveExternals(const libname:string);override;
+         procedure GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);override;
        end;
 
        TObjSymbolrec = record
@@ -213,6 +212,11 @@ interface
          procedure DefaultLinkScript;override;
        end;
 
+
+    type
+      Treaddllproc = procedure(const dllname,funcname:string);
+
+    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
 implementation
 
@@ -865,7 +869,7 @@ const win32stub : array[0..131] of byte=(
         secname:=coffsecnames[atype];
         if use_smartlink_section and
            (aname<>'') then
-          result:=secname+'$'+aname
+          result:=secname+'.'+aname
         else
           result:=secname;
       end;
@@ -1204,6 +1208,8 @@ const win32stub : array[0..131] of byte=(
            for i:=0 to ObjSymbolList.Count-1 do
              begin
                objsym:=TObjSymbol(ObjSymbolList[i]);
+               if (objsym.typ=AT_LABEL) and (objsym.bind=AB_LOCAL) then
+                 continue;
                case objsym.bind of
                  AB_GLOBAL :
                    begin
@@ -2132,42 +2138,9 @@ const win32stub : array[0..131] of byte=(
         CObjData:=TPECoffObjData;
       end;
 
-{$ifdef win32}
-    var
-      Wow64DisableWow64FsRedirection : function (var OldValue : pointer) : boolean;stdcall;
-      Wow64RevertWow64FsRedirection : function (OldValue : pointer) : boolean;stdcall;
-{$endif win32}
 
-    function TPECoffexeoutput.LoadDLL(const dllname:string):boolean;
-      type
-       TPECoffExpDir=packed record
-         flag,
-         stamp      : cardinal;
-         Major,
-         Minor      : word;
-         Name,
-         Base,
-         NumFuncs,
-         NumNames,
-         AddrFuncs,
-         AddrNames,
-         AddrOrds   : cardinal;
-       end;
+    procedure TPECoffexeoutput.GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);
       var
-        basedllname : string;
-        DLLReader : TObjectReader;
-        DosHeader : array[0..$7f] of byte;
-        PEMagic   : array[0..3] of byte;
-        Header    : CoffHeader;
-        peheader  : coffpeoptheader;
-        NameOfs,
-        newheaderofs : longint;
-        expdir    : TPECoffExpDir;
-        i,j       : longint;
-        found     : boolean;
-        sechdr    : CoffSecHdr;
-        FuncName  : string;
-        exesym    : TExeSymbol;
         textobjsection,
         idata2objsection,
         idata4objsection,
@@ -2175,12 +2148,13 @@ const win32stub : array[0..131] of byte=(
         idata6objsection,
         idata7objsection : TObjSection;
 
-        procedure StartImport;
+        procedure StartImport(const dllname:string);
         var
           idata4label,
           idata5label,
           idata7label : TObjSymbol;
-          emptyint : longint;
+          emptyint    : longint;
+          basedllname : string;
         begin
           if assigned(exemap) then
             begin
@@ -2188,6 +2162,7 @@ const win32stub : array[0..131] of byte=(
               exemap.Add('Importing from DLL '+dllname);
             end;
           emptyint:=0;
+          basedllname:=splitfilename(dllname);
           textobjsection:=internalobjdata.createsection(sec_code,'');
           idata2objsection:=internalobjdata.createsection(sec_idata2,'');
           idata4objsection:=internalobjdata.createsection(sec_idata4,'');
@@ -2248,8 +2223,6 @@ const win32stub : array[0..131] of byte=(
         begin
           result:=nil;
           emptyint:=0;
-          if not assigned(idata2objsection) then
-            StartImport;
           if assigned(exemap) then
             exemap.Add(' Importing Function '+afuncname);
           { idata6, import data (ordnr+name) }
@@ -2279,133 +2252,31 @@ const win32stub : array[0..131] of byte=(
           internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
         end;
 
-{$ifdef win32}
       var
-        p : pointer;
-{$endif win32}
+        i,j : longint;
+        ExtLibrary : TExternalLibrary;
+        ExtSymbol  : TFPHashObject;
+        exesym     : TExeSymbol;
       begin
-        result:=false;
-        basedllname:=splitfilename(dllname);
-{$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
-          assigned(Wow64DisableWow64FsRedirection) then
-          Wow64DisableWow64FsRedirection(p);
-{$endif win32}
-        DLLReader:=TObjectReader.Create;
-        DLLReader.OpenFile(dllname);
-{$ifdef win32}
-        if (target_info.system=system_x86_64_win64) and
-          assigned(Wow64RevertWow64FsRedirection) then
-          Wow64RevertWow64FsRedirection(p);
-{$endif win32}
-        if not DLLReader.Read(DosHeader,sizeof(DosHeader)) or
-           (DosHeader[0]<>$4d) or (DosHeader[1]<>$5a) then
+        for i:=0 to ExternalLibraryList.Count-1 do
           begin
-            Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
-            exit;
-          end;
-        newheaderofs:=longint(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
-        DLLReader.Seek(newheaderofs);
-        if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
-           (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
-          begin
-            Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
-            exit;
-          end;
-        if not DLLReader.Read(Header,sizeof(CoffHeader)) or
-           (Header.mach<>COFF_MAGIC) or
-           (Header.opthdr<>sizeof(coffpeoptheader)) then
-          begin
-            Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
-            exit;
-          end;
-        { Read optheader }
-        DLLreader.Read(peheader,sizeof(coffpeoptheader));
-        { Section headers }
-        found:=false;
-        for i:=1 to header.nsects do
-          begin
-            if not DLLreader.read(sechdr,sizeof(sechdr)) then
+            ExtLibrary:=TExternalLibrary(ExternalLibraryList[i]);
+            idata2objsection:=nil;
+            idata4objsection:=nil;
+            idata5objsection:=nil;
+            idata6objsection:=nil;
+            idata7objsection:=nil;
+            StartImport(ExtLibrary.Name);
+            for j:=0 to ExtLibrary.ExternalSymbolList.Count-1 do
               begin
-                Comment(V_Error,'Error reading coff file '+DLLName);
-                exit;
-              end;
-            if (sechdr.rvaofs<=peheader.DataDirectory[PE_DATADIR_EDATA].vaddr) and
-               (peheader.DataDirectory[PE_DATADIR_EDATA].vaddr<sechdr.rvaofs+sechdr.vsize) then
-              begin
-                found:=true;
-                break;
-              end;
-          end;
-        if not found then
-          begin
-            Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
-            exit;
-          end;
-        { Process edata }
-        idata2objsection:=nil;
-        idata4objsection:=nil;
-        idata5objsection:=nil;
-        idata6objsection:=nil;
-        idata7objsection:=nil;
-        DLLReader.Seek(sechdr.datapos+peheader.DataDirectory[PE_DATADIR_EDATA].vaddr-sechdr.rvaofs);
-        DLLReader.Read(expdir,sizeof(expdir));
-        for i:=0 to expdir.NumNames-1 do
-          begin
-            DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
-            DLLReader.Read(NameOfs,4);
-            Dec(NameOfs,sechdr.rvaofs);
-            if (NameOfs<0) or
-               (NameOfs>sechdr.vsize) then
-              begin
-                Comment(V_Error,'DLL does contains invalid exports');
-                break;
-              end;
-            { Read Function name from DLL, prepend _ and terminate with #0 }
-            DLLReader.Seek(sechdr.datapos+NameOfs);
-
-            { target which requires the _ prepention? }
-            if target_info.system in [system_i386_win32] then
-              begin
-                DLLReader.Read(FuncName[2],sizeof(FuncName)-3);
-                { Add underscore to be compatible with ld.exe importing }
-                FuncName[1]:='_';
-                FuncName[sizeof(FuncName)-1]:=#0;
-              end
-            else
-              begin
-                DLLReader.Read(FuncName[1],sizeof(FuncName)-3);
-                FuncName[sizeof(FuncName)-1]:=#0;
-              end;
-            FuncName[0]:=chr(Strlen(@FuncName[1]));
-
-            for j:=0 to UnresolvedExeSymbols.Count-1 do
-              begin
-                exesym:=TExeSymbol(UnresolvedExeSymbols[j]);
+                ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ExtSymbol.Name));
                 if assigned(exesym) and
-                   not assigned(exesym.objsymbol) and
-                   (exesym.name=FuncName) then
-                  begin
-                    { Remove underscore }
-                    if target_info.system in [system_i386_win32] then
-                      Delete(FuncName,1,1);
-
-                    exesym.objsymbol:=AddProcImport(FuncName);
-                    UnresolvedExeSymbols[j]:=nil;
-                    break;
-                  end;
+                   not assigned(exesym.objsymbol) then
+                  exesym.objsymbol:=AddProcImport(ExtSymbol.Name);
               end;
+            EndImport;
           end;
-        UnresolvedExeSymbols.Pack;
-        if assigned(idata2objsection) then
-          EndImport;
-        DLLReader.Free;
-      end;
-
-
-    procedure TPECoffexeoutput.ResolveExternals(const libname:string);
-      begin
-        LoadDLL(libname);
       end;
 
 
@@ -2502,6 +2373,130 @@ const win32stub : array[0..131] of byte=(
             Concat('STABS');
             Concat('SYMBOLS');
           end;
+      end;
+
+
+{*****************************************************************************
+                                   DLLReader
+*****************************************************************************}
+
+{$ifdef win32}
+    var
+      Wow64DisableWow64FsRedirection : function (var OldValue : pointer) : boolean;stdcall;
+      Wow64RevertWow64FsRedirection : function (OldValue : pointer) : boolean;stdcall;
+{$endif win32}
+
+    function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
+      type
+       TPECoffExpDir=packed record
+         flag,
+         stamp      : cardinal;
+         Major,
+         Minor      : word;
+         Name,
+         Base,
+         NumFuncs,
+         NumNames,
+         AddrFuncs,
+         AddrNames,
+         AddrOrds   : cardinal;
+       end;
+      var
+        DLLReader : TObjectReader;
+        DosHeader : array[0..$7f] of byte;
+        PEMagic   : array[0..3] of byte;
+        Header    : CoffHeader;
+        peheader  : coffpeoptheader;
+        NameOfs,
+        newheaderofs : longint;
+        FuncName  : string;
+        expdir    : TPECoffExpDir;
+        i         : longint;
+        found     : boolean;
+        sechdr    : CoffSecHdr;
+{$ifdef win32}
+        p : pointer;
+{$endif win32}
+      begin
+        result:=false;
+{$ifdef win32}
+        if (target_info.system=system_x86_64_win64) and
+          assigned(Wow64DisableWow64FsRedirection) then
+          Wow64DisableWow64FsRedirection(p);
+{$endif win32}
+        DLLReader:=TObjectReader.Create;
+        DLLReader.OpenFile(dllname);
+{$ifdef win32}
+        if (target_info.system=system_x86_64_win64) and
+          assigned(Wow64RevertWow64FsRedirection) then
+          Wow64RevertWow64FsRedirection(p);
+{$endif win32}
+        if not DLLReader.Read(DosHeader,sizeof(DosHeader)) or
+           (DosHeader[0]<>$4d) or (DosHeader[1]<>$5a) then
+          begin
+            Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
+            exit;
+          end;
+        newheaderofs:=longint(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
+        DLLReader.Seek(newheaderofs);
+        if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
+           (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
+          begin
+            Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
+            exit;
+          end;
+        if not DLLReader.Read(Header,sizeof(CoffHeader)) or
+           (Header.mach<>COFF_MAGIC) or
+           (Header.opthdr<>sizeof(coffpeoptheader)) then
+          begin
+            Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
+            exit;
+          end;
+        { Read optheader }
+        DLLreader.Read(peheader,sizeof(coffpeoptheader));
+        { Section headers }
+        found:=false;
+        for i:=1 to header.nsects do
+          begin
+            if not DLLreader.read(sechdr,sizeof(sechdr)) then
+              begin
+                Comment(V_Error,'Error reading coff file '+DLLName);
+                exit;
+              end;
+            if (sechdr.rvaofs<=peheader.DataDirectory[PE_DATADIR_EDATA].vaddr) and
+               (peheader.DataDirectory[PE_DATADIR_EDATA].vaddr<sechdr.rvaofs+sechdr.vsize) then
+              begin
+                found:=true;
+                break;
+              end;
+          end;
+        if not found then
+          begin
+            Comment(V_Warning,'DLL '+DLLName+' does not contain any exports');
+            exit;
+          end;
+        { Process edata }
+        DLLReader.Seek(sechdr.datapos+peheader.DataDirectory[PE_DATADIR_EDATA].vaddr-sechdr.rvaofs);
+        DLLReader.Read(expdir,sizeof(expdir));
+        for i:=0 to expdir.NumNames-1 do
+          begin
+            DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
+            DLLReader.Read(NameOfs,4);
+            Dec(NameOfs,sechdr.rvaofs);
+            if (NameOfs<0) or
+               (NameOfs>sechdr.vsize) then
+              begin
+                Comment(V_Error,'DLL does contains invalid exports');
+                break;
+              end;
+            { Read Function name from DLL, prepend _ and terminate with #0 }
+            DLLReader.Seek(sechdr.datapos+NameOfs);
+            DLLReader.Read(FuncName[1],sizeof(FuncName)-3);
+            FuncName[sizeof(FuncName)-1]:=#0;
+            FuncName[0]:=chr(Strlen(@FuncName[1]));
+            readdllproc(DLLName,FuncName);
+          end;
+        DLLReader.Free;
       end;
 
 

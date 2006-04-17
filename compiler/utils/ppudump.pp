@@ -921,7 +921,10 @@ type
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
-    po_compilerproc
+    po_compilerproc,
+    { importing }
+    po_has_importdll,
+    po_has_importname
   );
   tprocoptions=set of tprocoption;
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
@@ -964,7 +967,7 @@ const
      (mask:potype_function;    str:'Function'),
      (mask:potype_procedure;   str:'Procedure')
   );
-  procopts=35;
+  procopts=37;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -1000,7 +1003,9 @@ const
      (mask:po_syscall_r12base; str:'SyscallR12Base'),
      (mask:po_local;           str:'Local'),
      (mask:po_inline;          str:'Inline'),
-     (mask:po_compilerproc;    str:'CompilerProc')
+     (mask:po_compilerproc;    str:'CompilerProc'),
+     (mask:po_has_importdll;   str:'HasImportDLL'),
+     (mask:po_has_importname;  str:'HasImportName')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1689,11 +1694,15 @@ begin
              write  (space,'       SymOptions : ');
              readsymoptions;
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
-	       begin
+               begin
                  { library symbol for AmigaOS/MorphOS }
                  write  (space,'   Library symbol : ');
                  readderef;
-	       end;
+               end;
+             if (po_has_importdll in procoptions) then
+               writeln(space,'       Import DLL : ',getstring);
+             if (po_has_importname in procoptions) then
+               writeln(space,'      Import Name : ',getstring);
              if (po_inline in procoptions) then
               begin
                 write  (space,'       FuncretSym : ');

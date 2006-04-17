@@ -146,6 +146,7 @@ interface
           objfilename,              { fullname of the objectfile }
           newfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
+          importlibfilename,        { fullname of the import libraryfile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
           mapfilename,              { fullname of the mapfile }
@@ -630,6 +631,7 @@ uses
          stringdispose(objfilename);
          stringdispose(newfilename);
          stringdispose(ppufilename);
+         stringdispose(importlibfilename);
          stringdispose(staticlibfilename);
          stringdispose(sharedlibfilename);
          stringdispose(mapfilename);
@@ -677,13 +679,16 @@ uses
            if OutputExtension <> '' then extension := OutputExtension;
          end;
 
+         importlibfilename:=stringdup(p+target_info.staticClibprefix+'imp'+n+target_info.staticlibext);
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
+
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
           p:=OutputExeDir
          else
           p:=path^;
          sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
+
          { don't use extension alone to check, it can be empty !! }
          if (OutputFile<>'') or (OutputExtension<>'') then
            exefilename:=stringdup(p+n+OutputExtension)
@@ -701,6 +706,7 @@ uses
         ppufilename:=nil;
         objfilename:=nil;
         newfilename:=nil;
+        importlibfilename:=nil;
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
         exefilename:=nil;
@@ -731,6 +737,7 @@ uses
         stringdispose(objfilename);
         stringdispose(newfilename);
         stringdispose(ppufilename);
+        stringdispose(importlibfilename);
         stringdispose(staticlibfilename);
         stringdispose(sharedlibfilename);
         stringdispose(exefilename);

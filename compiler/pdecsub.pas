@@ -1460,10 +1460,12 @@ begin
       if not(token=_SEMICOLON) and not(idtoken=_NAME) then
         begin
           import_dll:=stringdup(get_stringconst);
+          include(procoptions,po_has_importdll);
           if (idtoken=_NAME) then
            begin
              consume(_NAME);
              import_name:=stringdup(get_stringconst);
+             include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
            end;
@@ -1483,6 +1485,7 @@ begin
            begin
              consume(_NAME);
              import_name:=stringdup(get_stringconst);
+             include(procoptions,po_has_importname);
              if import_name^='' then
                message(parser_e_empty_import_name);
            end;
@@ -2040,13 +2043,6 @@ const
                     same DLL function. This is also needed for compatability
                     with Delphi and TP7 }
                   case target_info.system of
-                    system_i386_win32 :
-                      begin
-                        { We need to use the name with a _ prefix if we let ld.exe do
-                          the importing for us }
-                        if not GenerateImportSection then
-                          result:=target_info.Cprefix+pd.import_name^;
-                      end;
                     system_i386_wdosx,
                     system_i386_emx,system_i386_os2,
                     system_arm_wince,system_i386_wince :

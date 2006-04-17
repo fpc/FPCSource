@@ -314,6 +314,15 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
+      TExternalLibrary = class(TFPHashObject)
+      private
+        FExternalSymbolList : TFPHashObjectList;
+      public
+        constructor create(AList:TFPHashObjectList;const AName:string);virtual;
+        destructor  destroy;override;
+        property ExternalSymbolList:TFPHashObjectList read FExternalSymbolList;
+      end;
+
       TExeOutput = class
       private
         { ExeSections }
@@ -349,8 +358,8 @@ interface
       public
         constructor create;virtual;
         destructor  destroy;override;
-        procedure AddObjData(ObjData:TObjData);
         function  FindExeSection(const aname:string):TExeSection;
+        procedure AddObjData(ObjData:TObjData);
         procedure Load_Start;virtual;
         procedure Load_EntryName(const aname:string);virtual;
         procedure Load_Symbol(const aname:string);virtual;
@@ -375,7 +384,7 @@ interface
         procedure MergeStabs;
         procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
-        procedure ResolveExternals(const libname:string);virtual;
+        procedure GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);virtual;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
         property ExeSections:TFPHashObjectList read FExeSectionList;
@@ -1201,6 +1210,24 @@ implementation
 
 
 {****************************************************************************
+                                TExternalLibrary
+****************************************************************************}
+
+    constructor TExternalLibrary.create(AList:TFPHashObjectList;const AName:string);
+      begin
+        inherited create(AList,AName);
+        FExternalSymbolList:=TFPHashObjectList.Create(false);
+      end;
+
+
+    destructor TExternalLibrary.destroy;
+      begin
+        ExternalSymbolList.Free;
+        inherited destroy;
+      end;
+
+
+{****************************************************************************
                                 TExeOutput
 ****************************************************************************}
 
@@ -1259,17 +1286,17 @@ implementation
       end;
 
 
+    function  TExeOutput.FindExeSection(const aname:string):TExeSection;
+      begin
+        result:=TExeSection(FExeSectionList.Find(aname));
+      end;
+
+
     procedure TExeOutput.AddObjData(ObjData:TObjData);
       begin
         if ObjData.classtype<>FCObjData then
           Comment(V_Error,'Invalid input object format for '+ObjData.name+' got '+ObjData.classname+' expected '+FCObjData.classname);
         ObjDataList.Add(ObjData);
-      end;
-
-
-    function  TExeOutput.FindExeSection(const aname:string):TExeSection;
-      begin
-        result:=TExeSection(FExeSectionList.Find(aname));
       end;
 
 
@@ -1665,7 +1692,7 @@ implementation
       end;
 
 
-    procedure TExeOutput.ResolveExternals(const libname:string);
+    procedure TExeOutput.GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);
       begin
       end;
 

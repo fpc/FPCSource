@@ -3175,9 +3175,15 @@ implementation
          ppufile.getderef(libsymderef);
 {$endif powerpc}
          { import stuff }
-         import_dll:=nil;
-         import_name:=nil;
-         import_nr:=0;
+         if po_has_importdll in procoptions then
+           import_dll:=stringdup(ppufile.getstring)
+         else
+           import_dll:=nil;
+         if po_has_importname in procoptions then
+           import_name:=stringdup(ppufile.getstring)
+         else
+           import_name:=nil;
+         import_nr:=ppufile.getword;
          { inline stuff }
          if (po_has_inlininginfo in procoptions) then
            begin
@@ -3303,6 +3309,12 @@ implementation
          { library symbol for AmigaOS/MorphOS }
          ppufile.putderef(libsymderef);
 {$endif powerpc}
+         { import }
+         if po_has_importdll in procoptions then
+           ppufile.putstring(import_dll^);
+         if po_has_importname in procoptions then
+           ppufile.putstring(import_name^);
+         ppufile.putword(import_nr);
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
