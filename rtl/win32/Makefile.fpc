@@ -110,8 +110,8 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) system$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp
 
-messages$(PPUEXT): messages.pp $(WININC)/messages.inc system$(PPUEXT)
-        $(COMPILER) -I$(WININC) messages.pp
+messages$(PPUEXT): $(WINDIR)/messages.pp $(WININC)/messages.inc system$(PPUEXT)
+        $(COMPILER) -I$(WININC) $(WINDIR)/messages.pp
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) system$(PPUEXT)
 
@@ -126,6 +126,7 @@ sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) winsock2$(PPUEXT
 initc$(PPUEXT) : initc.pp system$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
+	$(COMPILER) -I$(WINDIR) $(INC)/dynlibs.pp
 
 #
 # TP7 Compatible RTL Units
@@ -138,6 +139,8 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PP
 
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
+printer$(PPUEXT) : $(WINDIR)/printer.pp system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/printer.pp
 
 #
 # Delphi Compatible Units
@@ -224,3 +227,11 @@ callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
 
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)
+
+winevent$(PPUEXT) : $(WINDIR)/winevent.pp windows$(PPUEXT)
+
+video$(PPUEXT) : $(WINDIR)/video.pp windows$(PPUEXT) dos$(PPUEXT)
+
+mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
+
+keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)

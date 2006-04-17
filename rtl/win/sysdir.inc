@@ -28,6 +28,7 @@ begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
+  writeln(buffer);
   if not aFunc(@buffer) then
     begin
       errno:=GetLastError;

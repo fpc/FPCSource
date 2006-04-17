@@ -246,121 +246,121 @@ endif
 OBJPASDIR=$(RTL)/objpas
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts
+override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpmkunit
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_LOADERS+=$(LOADERS)
@@ -2101,39 +2101,40 @@ system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp -Fi../win
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   system$(PPUEXT)
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) system$(PPUEXT)
 	$(COMPILER) -I$(WININC) windows.pp
-messages$(PPUEXT): messages.pp $(WININC)/messages.inc system$(PPUEXT)
-	$(COMPILER) -I$(WININC) messages.pp
+messages$(PPUEXT): $(WINDIR)/messages.pp $(WININC)/messages.inc system$(PPUEXT)
+	$(COMPILER) -I$(WININC) $(WINDIR)/messages.pp
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) system$(PPUEXT)
 winsock$(PPUEXT) : $(WINDIR)/winsock.pp windows$(PPUEXT) system$(PPUEXT)
-	$(COMPILER) $(WINDIR)/winsock.pp
-sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) system$(PPUEXT) \
+winsock2$(PPUEXT) : $(WINDIR)/winsock2.pp windows$(PPUEXT) system$(PPUEXT)
+sockets$(PPUEXT) : $(WINDIR)/sockets.pp windows$(PPUEXT) winsock$(PPUEXT) system$(PPUEXT) \
 		   $(INC)/sockets.inc $(INC)/socketsh.inc
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
+	$(COMPILER) -I$(WINDIR) $(INC)/dynlibs.pp
 dos$(PPUEXT) : $(WINDIR)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(WINDIR)/dos.pp
-crt$(PPUEXT) : crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
-objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT) dos$(PPUEXT)
+crt$(PPUEXT) : $(WINDIR)/crt.pp $(INC)/textrec.inc system$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT)
+objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
+printer$(PPUEXT) : $(WINDIR)/printer.pp system$(PPUEXT)
 sysutils$(PPUEXT) : $(WINDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-		    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT)
+		    objpas$(PPUEXT) dos$(PPUEXT) windows$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $(WINDIR)/sysutils.pp
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT)
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi../win -Fi$(OBJPASDIR)/classes classes.pp
-winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT)
-	$(COMPILER) winsysut.pp
-typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT) system$(PPUEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 		    $(OBJPASDIR)/varutilh.inc $(WINDIR)/varutils.pp sysutils$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR) $(WINDIR)/varutils.pp
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
@@ -2141,11 +2142,11 @@ rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
-dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
+dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp system$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
-convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp system$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
-strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp system$(PPUEXT)
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
@@ -2158,7 +2159,11 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) system$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
-variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT)
+variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT) system$(PPUEXT)
+winevent$(PPUEXT) : $(WINDIR)/winevent.pp windows$(PPUEXT) system$(PPUEXT)
+video$(PPUEXT) : $(WINDIR)/video.pp windows$(PPUEXT) dos$(PPUEXT) system$(PPUEXT)
+mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
+keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
