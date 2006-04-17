@@ -107,6 +107,9 @@ unit cgcpu;
         (* NOT IN USE: *)
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aint);
 
+        { clear out potential overflow bits from 8 or 16 bit operations  }
+        { the upper 24/16 bits of a register after an operation          }
+        procedure maybeadjustresult(list: taasmoutput; op: TOpCg; size: tcgsize; dst: tregister);
 
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
@@ -552,21 +555,30 @@ const
        var
          instr: taicpu;
        begin
-         case tosize of
-           OS_8:
-             instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
-               reg2,reg1,0,31-8+1,31);
-           OS_S8:
-             instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
-           OS_16:
-             instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
-               reg2,reg1,0,31-16+1,31);
-           OS_S16:
-             instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
-           OS_32,OS_S32:
-             instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
-           else internalerror(2002090901);
-         end;
+         if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
+            ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and
+             (fromsize <> tosize)) or
+            { needs to mask out the sign in the top 16 bits }
+            ((fromsize = OS_S8) and
+             (tosize = OS_16)) then
+           case tosize of
+             OS_8:
+               instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                 reg2,reg1,0,31-8+1,31);
+             OS_S8:
+               instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
+             OS_16:
+               instr := taicpu.op_reg_reg_const_const_const(A_RLWINM,
+                 reg2,reg1,0,31-16+1,31);
+             OS_S16:
+               instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
+             OS_32,OS_S32:
+               instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
+             else internalerror(2002090901);
+           end
+         else
+           instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
+           
          list.concat(instr);
          rg[R_INTREGISTER].add_move_instruction(instr);
        end;
@@ -647,6 +659,16 @@ const
          end;
 
 
+    procedure tcgppc.maybeadjustresult(list: taasmoutput; op: TOpCg; size: tcgsize; dst: tregister);
+      const
+        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+      begin
+        if (op in overflowops) and
+           (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+          a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
     procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
                        size: tcgsize; a: aint; src, dst: tregister);
       var
@@ -685,9 +707,23 @@ const
               begin
                 case op of
                   OP_OR:
-                    list.concat(taicpu.op_reg_const(A_LI,dst,-1));
+                    case size of
+                      OS_8, OS_S8:
+                        list.concat(taicpu.op_reg_const(A_LI,dst,255));
+                      OS_16, OS_S16:
+                        a_load_const_reg(list,OS_16,65535,dst);
+                      else
+                        list.concat(taicpu.op_reg_const(A_LI,dst,-1));
+                    end;
                   OP_XOR:
-                    list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
+                    case size of
+                      OS_8, OS_S8:
+                        list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src,255));
+                      OS_16, OS_S16:
+                        list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src,65535));
+                      else
+                        list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
+                    end;
                   OP_AND:
                     a_load_reg_reg(list,size,size,src,dst);
                 end;
@@ -697,7 +733,13 @@ const
                ((op <> OP_AND) or
                 not gotrlwi) then
               begin
+                if ((size = OS_8) and
+                    (byte(a) <> a)) or
+                   ((size = OS_S8) and
+                    (shortint(a) <> a)) then
+                  internalerror(200604142);
                 list.concat(taicpu.op_reg_reg_const(oplo,dst,src,word(a)));
+                { and/or/xor -> cannot overflow in high 16 bits }
                 exit;
               end;
             { all basic constant instructions also have a shifted form that }
@@ -707,6 +749,8 @@ const
                (not(op = OP_AND) or
                 not gotrlwi) then
               begin
+                if (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+                  internalerror(200604141);
                 list.concat(taicpu.op_reg_reg_const(ophi,dst,src,word(a shr 16)));
                 exit;
               end;
@@ -721,6 +765,7 @@ const
                   (a <= high(smallint)) then
              begin
                list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,smallint(a)));
+               maybeadjustresult(list,op,size,dst);
                exit;
              end;
 
@@ -817,6 +862,7 @@ const
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
           end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -841,6 +887,7 @@ const
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;
+         maybeadjustresult(list,op,size,dst);
        end;
 
 

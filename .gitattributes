@@ -5243,6 +5243,7 @@ tests/test/cg/tcnvint1.pp svneol=native#text/plain
 tests/test/cg/tcnvint2.pp svneol=native#text/plain
 tests/test/cg/tcnvint3.pp svneol=native#text/plain
 tests/test/cg/tcnvint4.pp svneol=native#text/plain
+tests/test/cg/tcnvint5.pp svneol=native#text/plain
 tests/test/cg/tcnvptr.pp svneol=native#text/plain
 tests/test/cg/tcnvset.pp svneol=native#text/plain
 tests/test/cg/tcnvstr1.pp svneol=native#text/plain
