@@ -149,7 +149,11 @@ implementation
         if target_info.system<>system_x86_64_win64 then
           s64currencytype.setdef(tfloatdef.create(s64currency))
         else
-          s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+          begin
+            s64currencytype.setdef(torddef.create(scurrency,low(int64),high(int64)));
+            pbestrealtype:=@s64floattype;
+          end;
+
 {$endif x86}
 {$ifdef powerpc}
         s32floattype.setdef(tfloatdef.create(s32real));
@@ -198,9 +202,6 @@ implementation
         cfiletype.setdef(tfiledef.createuntyped);
         cvarianttype.setdef(tvariantdef.create(vt_normalvariant));
         colevarianttype.setdef(tvariantdef.create(vt_olevariant));
-
-        if target_info.system=system_x86_64_win64 then
-          pbestrealtype:=@s64floattype;
 
 {$ifdef cpufpemu}
         { Normal types }
@@ -332,6 +333,9 @@ implementation
       var
         oldcurrentmodule : tmodule;
       begin
+        if target_info.system=system_x86_64_win64 then
+          pbestrealtype:=@s64floattype;
+
         oldcurrentmodule:=current_module;
         current_module:=nil;
         loadtype('byte',u8inttype);
