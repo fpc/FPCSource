@@ -132,7 +132,7 @@ type
    PLPWSTR = ^LPWSTR;
 
   PSecurityAttributes = ^TSecurityAttributes;
-  TSecurityAttributes = packed record
+  TSecurityAttributes = record
     nLength : DWORD;
     lpSecurityDescriptor : Pointer;
     bInheritHandle : BOOL;
@@ -235,7 +235,7 @@ threadvar
      stdcall;external KernelDLL name 'MoveFileA';
    function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
+                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
      stdcall;external KernelDLL name 'CreateFileA';
    function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 

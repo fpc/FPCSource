@@ -42,7 +42,7 @@ type
 
 const
 { Default filehandles }
-  UnusedHandle    : THandle = -1;
+  UnusedHandle    : THandle = THandle(-1);
   StdInputHandle  : THandle = 0;
   StdOutputHandle : THandle = 0;
   StdErrorHandle  : THandle = 0;

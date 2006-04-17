@@ -209,7 +209,7 @@ Var
   security : TSecurityAttributes;
 begin
   AllowSlash(p);
-{ close first if opened }
+  { close first if opened }
   if ((flags and $10000)=0) then
    begin
      case filerec(f).mode of
@@ -223,9 +223,9 @@ begin
       end;
      end;
    end;
-{ reset file handle }
+  { reset file handle }
   filerec(f).handle:=UnusedHandle;
-{ convert filesharing }
+  { convert filesharing }
   shflags:=0;
   if ((filemode and fmshareExclusive) = fmshareExclusive) then
     { no sharing }
@@ -238,7 +238,7 @@ begin
   else
     if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
       shflags := file_Share_Read + file_Share_Write;
-{ convert filemode to filerec modes }
+  { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin
          filerec(f).mode:=fminput;
@@ -253,13 +253,13 @@ begin
          oflags:=longint(GENERIC_WRITE or GENERIC_READ);
        end;
   end;
-{ create it ? }
+  { create it ? }
   if (flags and $1000)<>0 then
-   cd:=CREATE_ALWAYS
-{ or Append/Open ? }
+    cd:=CREATE_ALWAYS
+  { or Append/Open ? }
   else
     cd:=OPEN_EXISTING;
-{ empty name is special }
+  { empty name is special }
   if p[0]=#0 then
    begin
      case FileRec(f).mode of
@@ -280,7 +280,8 @@ begin
   security.bInheritHandle:=true;
   security.lpSecurityDescriptor:=nil;
   filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
-{ append mode }
+
+  { append mode }
   if ((flags and $100)<>0) and
      (filerec(f).handle<>0) and
      (filerec(f).handle<>UnusedHandle) then
@@ -288,7 +289,8 @@ begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
    end;
-{ get errors }
+
+  { get errors }
   { handle -1 is returned sometimes !! (PM) }
   if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
