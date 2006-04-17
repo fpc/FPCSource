@@ -691,7 +691,10 @@ implementation
                  end;
              end;
 
-{$ifdef cpuextended}
+           { the "and defined(FPC_HAS_TYPE_EXTENDED)" isn't optimal but currently the only solution
+             it prevents proper cross compilation to i386 though
+           }
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
            ait_real_80bit :
              begin
                if do_line then
