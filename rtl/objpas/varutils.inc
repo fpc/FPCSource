@@ -613,7 +613,7 @@ begin
     Result:=VAR_BADINDEX
 end;
 
-Function SafeArrayGetDim(psa: PVarArray): SizeInt;stdcall;
+Function SafeArrayGetDim(psa: PVarArray): HRESULT;stdcall;
 begin
   if CheckVarArray(psa)<>VAR_OK then
     Result:=0

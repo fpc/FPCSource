@@ -34,7 +34,7 @@ function SafeArrayCreate(VarType, Dim: dword; const Bounds: TVarArrayBoundArray)
 function SafeArrayDestroy(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyData(psa: PVarArray): HRESULT; stdcall;
 function SafeArrayDestroyDescriptor(psa: PVarArray): HRESULT; stdcall;
-function SafeArrayGetDim(psa: PVarArray): SizeInt; stdcall;
+function SafeArrayGetDim(psa: PVarArray):HRESULT; stdcall;
 function SafeArrayGetElemsize(psa: PVarArray): LongWord; stdcall;
 function SafeArrayGetElement(psa: PVarArray; Indices: PVarArrayCoorArray;  Data: Pointer): HRESULT; stdcall;
 function SafeArrayGetLBound(psa: PVarArray; Dim: longword;  var LBound: longint): HRESULT; stdcall;
