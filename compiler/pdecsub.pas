@@ -1477,7 +1477,10 @@ begin
            end;
           { default is to used the realname of the procedure }
           if (import_nr=0) and not assigned(import_name) then
-            import_name:=stringdup(procsym.realname);
+            begin
+              import_name:=stringdup(procsym.realname);
+              include(procoptions,po_has_importname);
+            end;
         end
       else
         begin
