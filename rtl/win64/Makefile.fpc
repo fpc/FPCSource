@@ -13,9 +13,9 @@ units=system ctypes objpas macpas strings \
       windows winsock cmem \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils \
-      varutils variants typinfo classes
+      varutils variants typinfo classes getopts
 #      winsysut fpmkunit
-#      cpu mmx charset ucomplex getopts \
+#      cpu mmx charset ucomplex \
 #      winevent sockets printer \
 #      video mouse keyboard \
 #      dynlibs signals crt messages \
