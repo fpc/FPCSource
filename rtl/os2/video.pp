@@ -94,7 +94,6 @@ begin
     ScreenColor := Color >= Colors_16;
     end;
   VioGetCurPos (CursorY, CursorX, 0);
-  LowAscii := true;
   SetCursorType (LastCursorType);
 { Get the address of the videobuffer.}
   if VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0) = 0 then

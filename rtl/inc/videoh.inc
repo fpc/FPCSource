@@ -98,10 +98,19 @@ var
   VideoBufSize : Longint;
   CursorLines  : Byte;
 
-const
-  LowAscii     : Boolean = true;
-  NoExtendedFrame : Boolean = false;
-  FVMaxWidth = 132;
+const {The following constants were variables in the past.
+       - Lowascii was set to true if ASCII characters < 32 were available
+       - NoExtendedFrame was set to true if the double with line drawing
+         characters were set to true.
+
+      These variables did exist because of VT100 limitations on Unix. However,
+      only part of the character set problem was solved this way. Nowadays, the
+      video unit converts characters to the output character set (which might be
+      VT100) automatically, so the user does not need to worry about it anymore.}
+      LowAscii = true;
+      NoExtendedFrame = false;
+
+      FVMaxWidth = 132;
 
 Procedure LockScreenUpdate;
 { Increments the screen update lock count with one.}
