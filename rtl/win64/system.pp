@@ -1,9 +1,9 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2005 by Florian Klaempfl and Pavel Ozerski
+    Copyright (c) 1999-2006 by Florian Klaempfl and Pavel Ozerski
     member of the Free Pascal development team.
 
-    FPC Pascal system unit for the Win32 API.
+    FPC Pascal system unit for the Win64 API.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -404,8 +404,8 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
           but don't insert it as it doesn't
           point to anything yet
           this will be used in signals unit }
-        movl %esp,%eax
-        movl %eax,System_exception_frame
+        movq %rsp,%rax
+        movq %rax,System_exception_frame
         { keep stack aligned }
         pushq $0
         pushq %rbp
@@ -414,7 +414,7 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      end;
      StackTop:=st;
      asm
-        xorl %eax,%eax
+        xorl %rax,%rax
         movw %ss,%ax
         movl %eax,_SS
         call SysResetFPU
@@ -610,80 +610,67 @@ function is_prefetch(p : pointer) : boolean;
 }
 
 const
-  SEVERITY_SUCCESS                = $00000000;
-  SEVERITY_INFORMATIONAL  = $40000000;
-  SEVERITY_WARNING                = $80000000;
-  SEVERITY_ERROR                  = $C0000000;
+  SEVERITY_SUCCESS                        = $00000000;
+  SEVERITY_INFORMATIONAL                  = $40000000;
+  SEVERITY_WARNING                        = $80000000;
+  SEVERITY_ERROR                          = $C0000000;
 
 const
   STATUS_SEGMENT_NOTIFICATION             = $40000005;
   DBG_TERMINATE_THREAD                    = $40010003;
   DBG_TERMINATE_PROCESS                   = $40010004;
-  DBG_CONTROL_C                                   = $40010005;
-  DBG_CONTROL_BREAK                               = $40010008;
+  DBG_CONTROL_C                           = $40010005;
+  DBG_CONTROL_BREAK                       = $40010008;
 
   STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-  STATUS_DATATYPE_MISALIGNMENT    = $80000002;
-  STATUS_BREAKPOINT                               = $80000003;
-  STATUS_SINGLE_STEP                              = $80000004;
+  STATUS_DATATYPE_MISALIGNMENT            = $80000002;
+  STATUS_BREAKPOINT                       = $80000003;
+  STATUS_SINGLE_STEP                      = $80000004;
   DBG_EXCEPTION_NOT_HANDLED               = $80010001;
 
   STATUS_ACCESS_VIOLATION                 = $C0000005;
   STATUS_IN_PAGE_ERROR                    = $C0000006;
   STATUS_INVALID_HANDLE                   = $C0000008;
-  STATUS_NO_MEMORY                                = $C0000017;
+  STATUS_NO_MEMORY                        = $C0000017;
   STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-  STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
+  STATUS_NONCONTINUABLE_EXCEPTION         = $C0000025;
   STATUS_INVALID_DISPOSITION              = $C0000026;
-  STATUS_ARRAY_BOUNDS_EXCEEDED    = $C000008C;
-  STATUS_FLOAT_DENORMAL_OPERAND   = $C000008D;
+  STATUS_ARRAY_BOUNDS_EXCEEDED            = $C000008C;
+  STATUS_FLOAT_DENORMAL_OPERAND           = $C000008D;
   STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
   STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-  STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
+  STATUS_FLOAT_INVALID_OPERATION          = $C0000090;
   STATUS_FLOAT_OVERFLOW                   = $C0000091;
   STATUS_FLOAT_STACK_CHECK                = $C0000092;
   STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-  STATUS_INTEGER_DIVIDE_BY_ZERO   = $C0000094;
+  STATUS_INTEGER_DIVIDE_BY_ZERO           = $C0000094;
   STATUS_INTEGER_OVERFLOW                 = $C0000095;
-  STATUS_PRIVILEGED_INSTRUCTION   = $C0000096;
+  STATUS_PRIVILEGED_INSTRUCTION           = $C0000096;
   STATUS_STACK_OVERFLOW                   = $C00000FD;
   STATUS_CONTROL_C_EXIT                   = $C000013A;
-  STATUS_FLOAT_MULTIPLE_FAULTS    = $C00002B4;
+  STATUS_FLOAT_MULTIPLE_FAULTS            = $C00002B4;
   STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
 
   EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION    = -1;
+  EXCEPTION_CONTINUE_EXECUTION            = $fffffffff;
   EXCEPTION_CONTINUE_SEARCH               = 0;
 
-  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
+  EXCEPTION_MAXIMUM_PARAMETERS            = 15;
 
-  CONTEXT_X86                                     = $00010000;
+  CONTEXT_X86                             = $00010000;
   CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
   CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
   CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
-  CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
-  CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
-  CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
+  CONTEXT_FLOATING_POINT                  = CONTEXT_X86 or $00000008;
+  CONTEXT_DEBUG_REGISTERS                 = CONTEXT_X86 or $00000010;
+  CONTEXT_EXTENDED_REGISTERS              = CONTEXT_X86 or $00000020;
 
   CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
-  MAXIMUM_SUPPORTED_EXTENSION     = 512;
+  MAXIMUM_SUPPORTED_EXTENSION             = 512;
 
 type
-  PFloatingSaveArea = ^TFloatingSaveArea;
-  TFloatingSaveArea = packed record
-          ControlWord : Cardinal;
-          StatusWord : Cardinal;
-          TagWord : Cardinal;
-          ErrorOffset : Cardinal;
-          ErrorSelector : Cardinal;
-          DataOffset : Cardinal;
-          DataSelector : Cardinal;
-          RegisterArea : array[0..79] of Byte;
-          Cr0NpxState : Cardinal;
-  end;
-
   M128A = record
     Low : QWord;
     High : Int64;
@@ -758,12 +745,12 @@ type
 
 type
   PExceptionRecord = ^TExceptionRecord;
-  TExceptionRecord = packed record
-    ExceptionCode   : Longint;
-    ExceptionFlags  : Longint;
+  TExceptionRecord = record
+    ExceptionCode   : DWord;
+    ExceptionFlags  : DWord;
     ExceptionRecord : PExceptionRecord;
     ExceptionAddress : Pointer;
-    NumberParameters : Longint;
+    NumberParameters : DWord;
     ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
   end;
 
@@ -773,12 +760,10 @@ type
     ContextRecord     : PContext;
   end;
 
-{ type of functions that should be used for exception handling }
-  TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
+  TVectoredExceptionHandler = function (excep : PExceptionPointers) : Longint;
 
-function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
-        stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
-
+function AddVectoredExceptionHandler(FirstHandler : DWORD;VectoredHandler : TVectoredExceptionHandler) : longint;
+        external 'kernel32' name 'AddVectoredExceptionHandler';
 const
   MaxExceptionLevel = 16;
   exceptLevel : Byte = 0;
@@ -789,13 +774,13 @@ var
   resetFPU        : array[0..MaxExceptionLevel-1] of Boolean;
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-procedure DebugHandleErrorAddrFrame(error, addr, frame : longint);
+procedure DebugHandleErrorAddrFrame(error : longint; addr, frame : pointer);
 begin
   if IsConsole then
     begin
       write(stderr,'HandleErrorAddrFrame(error=',error);
-      write(stderr,',addr=',hexstr(addr,8));
-      writeln(stderr,',frame=',hexstr(frame,8),')');
+      write(stderr,',addr=',hexstr(int64(addr),16));
+      writeln(stderr,',frame=',hexstr(int64(frame),16),')');
     end;
   HandleErrorAddrFrame(error,addr,frame);
 end;
@@ -803,7 +788,8 @@ end;
 
 procedure JumpToHandleErrorFrame;
   var
-    rip, rbp, error : int64;
+    rip, rbp : int64;
+    error : longint;
   begin
     // save ebp
     asm
@@ -820,15 +806,12 @@ procedure JumpToHandleErrorFrame;
       writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
     if resetFPU[exceptLevel] then
-      asm
-        fninit
-        fldcw   fpucw
-      end;
+      SysResetFPU;
     { build a fake stack }
     asm
       movq   rbp,%r8
       movq   rip,%rdx
-      movq   error,%rcx
+      movl   error,%ecx
       pushq  rip
       movq   rbp,%rbp // Change frame pointer
 
@@ -841,13 +824,17 @@ procedure JumpToHandleErrorFrame;
   end;
 
 
-function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
+function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint;public;
   var
     res: longint;
     err: byte;
     must_reset_fpu: boolean;
   begin
-    res := EXCEPTION_CONTINUE_SEARCH;
+    res:=EXCEPTION_CONTINUE_SEARCH;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+    if IsConsole then
+      Writeln(stderr,'syswin64_x86_64_exception_handler called');
+{$endif SYSTEMEXCEPTIONDEBUG}
     if excep^.ContextRecord^.SegSs=_SS then
       begin
         err := 0;
@@ -928,9 +915,9 @@ function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint
 {$ifdef SYSTEMEXCEPTIONDEBUG}
             if IsConsole then begin
               writeln(stderr,'Exception Continue Exception set at ',
-                      hexstr(exceptEip[exceptLevel],8));
-              writeln(stderr,'Eip changed to ',
-                      hexstr(int64(@JumpToHandleErrorFrame),16), ' error=', error);
+                      hexstr(exceptRip[exceptLevel-1],16));
+              writeln(stderr,'Rip changed to ',
+                      hexstr(int64(@JumpToHandleErrorFrame),16), ' error=', err);
             end;
 {$endif SYSTEMEXCEPTIONDEBUG}
         end;
@@ -938,38 +925,16 @@ function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint
     syswin64_x86_64_exception_handler := res;
   end;
 
-procedure install_exception_handlers;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-  var
-    oldexceptaddr,
-    newexceptaddr : Longint;
-{$endif SYSTEMEXCEPTIONDEBUG}
 
+
+procedure install_exception_handlers;
   begin
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,oldexceptaddr
-    end;
-{$endif SYSTEMEXCEPTIONDEBUG}
-    SetUnhandledExceptionFilter(@syswin64_x86_64_exception_handler);
-{$ifdef SYSTEMEXCEPTIONDEBUG}
-    asm
-      movl $0,%eax
-      movl %fs:(%eax),%eax
-      movl %eax,newexceptaddr
-    end;
-    if IsConsole then
-      writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-                     ' new exception  ',hexstr(newexceptaddr,8));
-{$endif SYSTEMEXCEPTIONDEBUG}
+    AddVectoredExceptionHandler(1,@syswin64_x86_64_exception_handler);
   end;
 
 
 procedure remove_exception_handlers;
   begin
-    SetUnhandledExceptionFilter(nil);
   end;
 
 
@@ -1176,6 +1141,7 @@ const
 }
 
 begin
+  SysResetFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
   { get some helpful informations }
