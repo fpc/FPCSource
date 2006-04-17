@@ -88,6 +88,10 @@ var
   {$define PE32}
 {$endif}
 
+{$if defined(win64)}
+  {$define PE32PLUS}
+{$endif}
+
 {$ifdef netwlibc}
 {$define netware}
 {$endif}
@@ -414,6 +418,124 @@ begin
   LoadPeCoff:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
 {$endif PE32}
+
+
+{$ifdef PE32PLUS}
+function LoadPeCoff:boolean;
+type
+  tdosheader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+  tpeheader = packed record
+     PEMagic : longint;
+     Machine : word;
+     NumberOfSections : word;
+     TimeDateStamp : longint;
+     PointerToSymbolTable : longint;
+     NumberOfSymbols : longint;
+     SizeOfOptionalHeader : word;
+     Characteristics : word;
+     Magic : word;
+     MajorLinkerVersion : byte;
+     MinorLinkerVersion : byte;
+     SizeOfCode : longint;
+     SizeOfInitializedData : longint;
+     SizeOfUninitializedData : longint;
+     AddressOfEntryPoint : longint;
+     BaseOfCode : longint;
+     BaseOfData : longint;
+     ImageBase : longint;
+     SectionAlignment : longint;
+     FileAlignment : longint;
+     MajorOperatingSystemVersion : word;
+     MinorOperatingSystemVersion : word;
+     MajorImageVersion : word;
+     MinorImageVersion : word;
+     MajorSubsystemVersion : word;
+     MinorSubsystemVersion : word;
+     Reserved1 : longint;
+     SizeOfImage : longint;
+     SizeOfHeaders : longint;
+     CheckSum : longint;
+     Subsystem : word;
+     DllCharacteristics : word;
+     SizeOfStackReserve : int64;
+     SizeOfStackCommit : int64;
+     SizeOfHeapReserve : int64;
+     SizeOfHeapCommit : int64;
+     LoaderFlags : longint;
+     NumberOfRvaAndSizes : longint;
+     DataDirectory : array[1..$80] of byte;
+  end;
+  tcoffsechdr=packed record
+    name     : array[0..7] of char;
+    vsize    : longint;
+    rvaofs   : longint;
+    datalen  : longint;
+    datapos  : longint;
+    relocpos : longint;
+    lineno1  : longint;
+    nrelocs  : word;
+    lineno2  : word;
+    flags    : longint;
+  end;
+var
+  dosheader  : tdosheader;
+  peheader   : tpeheader;
+  coffsec    : tcoffsechdr;
+  i : longint;
+begin
+  processaddress := 0;
+  LoadPeCoff:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  if filesize(f)<sizeof(dosheader) then
+   exit;
+  blockread(f,dosheader,sizeof(tdosheader));
+  seek(f,dosheader.e_lfanew);
+  blockread(f,peheader,sizeof(tpeheader));
+  if peheader.pemagic<>$4550 then
+   exit;
+  { read section info }
+  for i:=1to peheader.NumberOfSections do
+   begin
+     blockread(f,coffsec,sizeof(tcoffsechdr));
+     if (coffsec.name[4]='b') and
+        (coffsec.name[1]='s') and
+        (coffsec.name[2]='t') then
+      begin
+        if (coffsec.name[5]='s') and
+           (coffsec.name[6]='t') then
+         stabstrofs:=coffsec.datapos
+        else
+         begin
+           stabofs:=coffsec.datapos;
+           stabcnt:=coffsec.datalen div sizeof(tstab);
+         end;
+      end;
+   end;
+  LoadPeCoff:=(stabofs<>-1) and (stabstrofs<>-1);
+end;
+{$endif PE32PLUS}
 
 
 {$IFDEF EMX}
@@ -811,20 +933,20 @@ packed record
      ncmds: longint;
      sizeofcmds: longint;
      flags: longint;
- 
+
 end;
 
 cmdblock=
 packed record
    cmd: longint;
-   cmdsize: longint; 
+   cmdsize: longint;
 end;
 
 symbSeg=
 packed record
- symoff :      longint; 
- nsyms  :      longint;  
- stroff :      longint; 
+ symoff :      longint;
+ nsyms  :      longint;
+ stroff :      longint;
  strsize:      longint;
 end;
 
@@ -923,6 +1045,13 @@ begin
      exit;
    end;
 {$endif}
+{$ifdef PE32PLUS}
+  if LoadPECoff then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif PE32PLUS}
 {$ifdef ELF32}
   if LoadElf32 then
    begin
