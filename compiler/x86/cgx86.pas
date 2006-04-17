@@ -1732,14 +1732,14 @@ unit cgx86;
 
 
     procedure tcgx86.g_stackpointer_alloc(list : TAsmList;localsize : longint);
-{$ifdef i386}
+{$ifdef x86}
 {$ifndef NOTARGETWIN}
       var
         href : treference;
         i : integer;
         again : tasmlabel;
 {$endif NOTARGETWIN}
-{$endif i386}
+{$endif x86}
       begin
         if localsize>0 then
          begin
@@ -1780,6 +1780,42 @@ unit cgx86;
            else
 {$endif NOTARGETWIN}
 {$endif i386}
+{$ifdef x86_64}
+{$ifndef NOTARGETWIN}
+           { windows guards only a few pages for stack growing, }
+           { so we have to access every page first              }
+           if (target_info.system=system_x86_64_win64) and
+              (localsize>=winstackpagesize) then
+             begin
+               if localsize div winstackpagesize<=5 then
+                 begin
+                    list.concat(Taicpu.Op_const_reg(A_SUB,S_Q,localsize,NR_RSP));
+                    for i:=1 to localsize div winstackpagesize do
+                      begin
+                         reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4);
+                         list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
+                      end;
+                    reference_reset_base(href,NR_RSP,0);
+                    list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
+                 end
+               else
+                 begin
+                    current_asmdata.getjumplabel(again);
+                    getcpuregister(list,NR_R10);
+                    list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
+                    a_label(list,again);
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,winstackpagesize,NR_RSP));
+                    reference_reset_base(href,NR_RSP,0);
+                    list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
+                    list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
+                    a_jmp_cond(list,OC_NE,again);
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize-4,NR_RSP));
+                    ungetcpuregister(list,NR_R10);
+                 end
+             end
+           else
+{$endif NOTARGETWIN}
+{$endif x86_64}
             list.concat(Taicpu.Op_const_reg(A_SUB,tcgsize2opsize[OS_ADDR],localsize,NR_STACK_POINTER_REG));
          end;
       end;
