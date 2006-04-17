@@ -20,9 +20,10 @@ var
 begin
    for i:=1 to 20 do
      try
-        d;
+       d;
      except
        on exception do
-         ;
+        ;
      end;
+   writeln('ok');
 end.
