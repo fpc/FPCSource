@@ -2078,7 +2078,7 @@ implementation
                                       if isaddr then
                                         tg.GetLocal(list,sizeof(aint),voidpointertype.def,localloc.reference)
                                       else
-                                        tg.GetLocal(list,getsize,vartype.def,localloc.reference);
+                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vartype.def,localloc.reference);
                                     end;
                                 end;
                               localsymtable,

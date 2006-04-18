@@ -101,6 +101,7 @@ unit tgobj;
 
           { Allocate space for a local }
           procedure getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
+          procedure getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
           procedure UnGetLocal(list: TAsmList; const ref : treference);
        end;
 
@@ -576,16 +577,18 @@ implementation
 
 
     procedure ttgobj.getlocal(list: TAsmList; size : longint;def:tdef;var ref : treference);
-      var
-        varalign : shortint;
       begin
-        varalign:=def.alignment;
-        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+        getlocal(list, size, def.alignment, def, ref);
+      end;
+
+    procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
+      begin
+        alignment:=used_align(alignment,aktalignment.localalignmin,aktalignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,varalign,tt_persistent,nil);
+        ref.offset:=alloctemp(list,size,alignment,tt_persistent,nil);
       end;
 
 
