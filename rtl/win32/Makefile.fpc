@@ -32,7 +32,7 @@ target=win32
 
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON)
+sourcedir=$(INC) $(PROCINC) $(COMMON) $(WINDIR)
 
 
 [prerules]
