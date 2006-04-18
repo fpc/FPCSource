@@ -55,6 +55,8 @@ includedir_solaris=unix
 includedir_qnx=unix
 includedir_beos=unix
 includedir_emx=os2
+includedir_win32=win
+includedir_win64=win
 sourcedir=$(OS_TARGET) inc
 
 [install]

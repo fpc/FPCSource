@@ -43,7 +43,7 @@ Type
       Function Read (Var Buffer; Count : Longint) : longint; Override;
     end;
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
                              Var OutPipe : TOutputPipeStream);
 
@@ -60,7 +60,7 @@ Implementation
 Procedure CreatePipeStreams (Var InPipe : TInputPipeStream;
                              Var OutPipe : TOutputPipeStream);
 
-Var InHandle,OutHandle : Longint;
+Var InHandle,OutHandle : THandle;
 
 begin
   if CreatePipeHandles (InHandle, OutHandle) then

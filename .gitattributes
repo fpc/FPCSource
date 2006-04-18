@@ -1014,13 +1014,13 @@ fcl/unix/pipes.inc svneol=native#text/plain
 fcl/unix/process.inc svneol=native#text/plain
 fcl/unix/resolve.inc svneol=native#text/plain
 fcl/unix/simpleipc.inc svneol=native#text/plain
-fcl/win32/eventlog.inc svneol=native#text/plain
+fcl/win/eventlog.inc svneol=native#text/plain
+fcl/win/pipes.inc svneol=native#text/plain
 fcl/win32/fclel.mc -text
 fcl/win32/fclel.rc -text
 fcl/win32/fclel.res -text
 fcl/win32/fileinfo.pp svneol=native#text/plain
 fcl/win32/httpapp.pp svneol=native#text/plain
-fcl/win32/pipes.inc svneol=native#text/plain
 fcl/win32/process.inc svneol=native#text/plain
 fcl/win32/resolve.inc svneol=native#text/plain
 fcl/win32/simpleipc.inc svneol=native#text/plain
