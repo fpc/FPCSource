@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-Procedure DumpMem (P : Pointer;Size : Longint);
+{Procedure DumpMem (P : Pointer;Size : Longint);
 
 Var i : longint;
 
@@ -22,7 +22,7 @@ begin
   For I:=0 to Size-1 do
     Write (Pbyte(P)[i],' ');
   Writeln;
-end;
+end;}
 
 { ---------------------------------------------------------------------
     TFieldDef
@@ -878,6 +878,23 @@ begin
 end;
 
 // TField private methods
+
+procedure TField.SetEditText(const AValue: string);
+begin
+  if Assigned(OnSetText) then
+    OnSetText(Self, AValue)
+  else
+    SetText(AValue);
+end;
+
+function TField.GetEditText: String;
+begin
+  SetLength(Result, 0);
+  if Assigned(OnGetText) then
+    OnGetText(Self, Result, False)
+  else
+    GetText(Result, False);
+end;
 
 function TField.GetDisplayText: String;
 begin

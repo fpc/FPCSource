@@ -28,14 +28,14 @@ dirs=xml image db shedit passrc net fpcunit
 units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp \
       wformat whtml wtex rttiutils bufstream streamex
-units_freebsd=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
-units_darwin=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
-units_solaris=process ssockets resolve fpasync syncobjs simpleipc msgintf dbugintf
-units_netbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
-units_openbsd=process ssockets resolve fpasync simpleipc msgintf dbugintf
-units_linux=process resolve ssockets fpasync syncobjs simpleipc msgintf dbugintf
-units_win32=process fileinfo resolve ssockets syncobjs simpleipc msgintf dbugintf
-units_wince=process fileinfo resolve ssockets syncobjs simpleipc msgintf dbugintf
+units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
+units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
+units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
+units_netbsd=process ssockets resolve fpasync simpleipc dbugmsg dbugintf
+units_openbsd=process ssockets resolve fpasync simpleipc dbugmsg dbugintf
+units_linux=process resolve ssockets fpasync syncobjs simpleipc dbugmsg dbugintf
+units_win32=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
+units_wince=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
 units_os2=resolve ssockets
 units_emx=resolve ssockets
 units_netware=resolve ssockets
@@ -67,4 +67,4 @@ fpcdir=..
 # xmlreg needs the XML units, XML units depend on avl_tree
 xmlreg.pp: avl_tree$(PPUEXT) xml inc/xmlreg.pp
 
-dbugintf$(PPUEXT): msgintf.pp simpleipc.pp
+dbugintf$(PPUEXT): dbugmsg.pp simpleipc.pp

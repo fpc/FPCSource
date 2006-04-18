@@ -3,7 +3,7 @@ program dbugsrv;
 {$APPTYPE CONSOLE}
 
 uses
-  classes,SysUtils,simpleipc,msgintf;
+  classes,SysUtils,simpleipc,dbugmsg;
 
 Var
   Srv : TSimpleIPCServer;

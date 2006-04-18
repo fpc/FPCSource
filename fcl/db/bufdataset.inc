@@ -18,7 +18,6 @@
   ---------------------------------------------------------------------}
 
 constructor TBufDataset.Create(AOwner : TComponent);
-
 begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
@@ -27,37 +26,30 @@ begin
 end;
 
 procedure TBufDataset.SetPacketRecords(aValue : integer);
-
 begin
   if aValue > 0 then FPacketRecords := aValue
     else DatabaseError(SInvPacketRecordsValue);
 end;
 
 destructor TBufDataset.Destroy;
-
 begin
   inherited destroy;
 end;
 
 Function TBufDataset.GetCanModify: Boolean;
-
 begin
   Result:= False;
 end;
 
 function TBufDataset.intAllocRecordBuffer: PChar;
-
 begin
-  // Only the internal buffers of TDataset provide bookmark information
-  result := AllocMem(FRecordsize);
-  result^ := #1; // this 'deletes' the record
+  // Note: Only the internal buffers of TDataset provide bookmark information
+  result := AllocMem(FRecordsize+sizeof(TBufRecLinkItem));
 end;
 
 function TBufDataset.AllocRecordBuffer: PChar;
-
 begin
   result := AllocMem(FRecordsize + sizeof(TBufBookmark));
-  result^ := #1; // this 'deletes' the record
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -71,214 +63,137 @@ begin
   CalcRecordSize;
 
   FBRecordcount := 0;
-  FBDeletedRecords := 0;
-  FBBuffercount := 0;
-  FBCurrentrecord := -1;
+
+  FFirstRecBuf := pointer(IntAllocRecordBuffer);
+  FLastRecBuf := FFirstRecBuf;
+  FCurrentRecBuf := FLastRecBuf;
+
   FOpen:=True;
-  FIsEOF := false;
-  FIsbOF := true;
 end;
 
 procedure TBufDataset.InternalClose;
 
-var i : integer;
+var pc : pchar;
 
 begin
   FOpen:=False;
-  CancelUpdates;
-  for i := 0 to FBRecordCount-1 do FreeRecordBuffer(FBBuffers[i]);
-  If FBBufferCount > 0 then ReAllocMem(FBBuffers,0);
-  FBRecordcount := 0;
-  FBBuffercount := 0;
+  FCurrentRecBuf := FFirstRecBuf;
+  SetLength(FUpdateBuffer,0);
+  while assigned(FCurrentRecBuf) do
+    begin
+    pc := pointer(FCurrentRecBuf);
+    FCurrentRecBuf := FCurrentRecBuf^.next;
+    FreeRecordBuffer(pc);
+    end;
   SetLength(FFieldBufPositions,0);
-  FBCurrentrecord := -1;
-  FIsEOF := true;
-  FIsbOF := true;
 end;
 
 procedure TBufDataset.InternalFirst;
 begin
-  FBCurrentRecord := -1;
-  FIsEOF := false;
+  FCurrentRecBuf := FFirstRecBuf;
 end;
 
 procedure TBufDataset.InternalLast;
 begin
   repeat
   until getnextpacket < FPacketRecords;
-  FIsBOF := false;
-  FBCurrentRecord := FBRecordcount;
-end;
-
-procedure unSetDeleted(NullMask : pbyte); //inline;
-begin
-  NullMask[0] := NullMask[0] and not 1;
-end;
-
-procedure SetDeleted(NullMask : pbyte); //inline;
-begin
-  NullMask[0] := NullMask[0] or 1;
-end;
-
-function GetDeleted(NullMask : pbyte) : boolean; //inline;
-begin
-  result := (NullMask[0] and 1) = 1;
+  if FLastRecBuf <> FFirstRecBuf then
+    FCurrentRecBuf := FLastRecBuf;
 end;
 
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
-  inc(x);
   NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
 end;
 
 procedure SetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
-  inc(x);
   NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
 end;
 
 function GetFieldIsNull(NullMask : pbyte;x : longint) : boolean; //inline;
 begin
-  inc(x);
   result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
 end;
 
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
-var x         : longint;
-    RecUpdBuf : PRecUpdateBuffer;
-    FieldUpdBuf : PFieldUpdateBuffer;
-    NullMask     : pbyte;
-
 begin
   Result := grOK;
   case GetMode of
     gmPrior :
-      if FIsBOF then
-        result := grBOF
-      else if FBCurrentRecord <= 0 then
+      if not assigned(PBufRecLinkItem(FCurrentRecBuf)^.prior) then
         begin
         Result := grBOF;
-        FBCurrentRecord := -1;
         end
       else
         begin
-        Dec(FBCurrentRecord);
-        FIsEof := false;
+        FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.prior;
         end;
     gmCurrent :
-      if (FBCurrentRecord < 0) or (FBCurrentRecord >= FBRecordCount) then
+      if FCurrentRecBuf = FLastRecBuf then
         Result := grError;
     gmNext :
-      if FIsEOF then
-        result := grEOF
-      else if FBCurrentRecord >= (FBRecordCount - 1) then
+      if FCurrentRecBuf = FLastRecBuf then // Dataset is empty (just opened)
+        begin
+        if getnextpacket = 0 then result := grEOF;
+        end
+      else if (PBufRecLinkItem(FCurrentRecBuf)^.next = FLastRecBuf) then
         begin
         if getnextpacket > 0 then
           begin
-          Inc(FBCurrentRecord);
-          FIsBof := false;
+          FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.next;
           end
         else
           begin
-          FIsEOF := true;
           result:=grEOF;
           end
         end
       else
         begin
-        Inc(FBCurrentRecord);
-        FIsBof := false;
+        FCurrentRecBuf := PBufRecLinkItem(FCurrentRecBuf)^.next;
         end;
   end;
 
   if Result = grOK then
     begin
-    if GetDeleted(pbyte(FBBuffers[FBCurrentRecord])) then
-      begin
-      if getmode = gmCurrent then
-        if DoCheck then
-          begin
-          Result := grError;
-          DatabaseError(SDeletedRecord);
-          exit;
-          end
-        else
-          getmode := gmnext;
-      Result := GetRecord(Buffer,getmode,DoCheck);
-      exit
-      end;
 
     with PBufBookmark(Buffer + RecordSize)^ do
       begin
-      BookmarkData := FBCurrentRecord;
+      BookmarkData := FCurrentRecBuf;
       BookmarkFlag := bfCurrent;
       end;
-    move(FBBuffers[FBCurrentRecord]^,buffer^,RecordSize);
-// Cached Updates:
-    If GetRecordUpdateBuffer(FBCurrentRecord,RecUpdBuf) then
-      begin
-      NullMask := pbyte(buffer);
-      inc(buffer,FNullmaskSize);
-
-      for x := 0 to FieldDefs.count-1 do
-        begin
-        if GetFieldUpdateBuffer(x,RecUpdBuf,FieldUpdBuf) then
-          If not FieldUpdBuf^.IsNull then
-            begin
-            unSetFieldIsNull(NullMask,x);
-            move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
-            end
-          else
-            SetFieldIsNull(NullMask,x);
-        Inc(Buffer, GetFieldSize(FieldDefs[x]));
-        end;
-      end;
+    move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,RecordSize);
     end
   else if (Result = grError) and doCheck then
     DatabaseError('No record');
 end;
 
-function TBufDataset.GetRecordUpdateBuffer(rno : integer;var RecUpdBuf : PRecUpdateBuffer) : boolean;
+function TBufDataset.GetRecordUpdateBuffer : boolean;
 
-var r : integer;
-
-begin
-  Result := False;
-  for r := 0 to high(FUpdateBuffer) do
-    if (FUpdateBuffer[r].RecordNo = rno) and (@FUpdateBuffer[r] <> FEditBuf) then // Neglect the edit-buffer
-      begin
-      RecUpdBuf := @FUpdateBuffer[r];
-      Result := True;
-      Break;
-      end;
-end;
-
-function TBufDataset.GetFieldUpdateBuffer(fieldno : integer;RecUpdBuf : PRecUpdateBuffer;var FieldUpdBuf : pFieldUpdateBuffer) : boolean;
-
-var f : integer;
+var x : integer;
+    CurrBuff : PChar;
 
 begin
-  Result := False;
-  for f := 0 to High(RecUpdBuf^.FieldsUpdateBuffer) do
-    if RecUpdBuf^.FieldsUpdateBuffer[f].FieldNo = fieldno then
+  GetBookmarkData(ActiveBuffer,@CurrBuff);
+  if (FCurrentUpdateBuffer >= length(FUpdateBuffer)) or (FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData <> CurrBuff) then
+   for x := 0 to high(FUpdateBuffer) do
+    if FUpdateBuffer[x].BookmarkData = CurrBuff then
       begin
-      FieldUpdBuf := @RecUpdBuf^.FieldsUpdateBuffer[f];
-      Result := True;
-      Break;
+      FCurrentUpdateBuffer := x;
+      break;
       end;
+  Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and (FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData = CurrBuff);
 end;
 
 procedure TBufDataset.InternalSetToRecord(Buffer: PChar);
 begin
-  FBCurrentRecord := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
-  FIsEOF := False;
-  FIsBOF := False;
+  FCurrentRecBuf := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
 end;
 
 procedure TBufDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  PBufBookmark(Buffer + RecordSize)^.BookmarkData := PInteger(Data)^;
+  PBufBookmark(Buffer + RecordSize)^.BookmarkData := pointer(Data^);
 end;
 
 procedure TBufDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
@@ -288,7 +203,7 @@ end;
 
 procedure TBufDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  PInteger(Data)^ := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
+  pointer(Data^) := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
 end;
 
 function TBufDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
@@ -298,33 +213,26 @@ end;
 
 procedure TBufDataset.InternalGotoBookmark(ABookmark: Pointer);
 begin
-  FBCurrentRecord := Plongint(ABookmark)^;
-  FIsEOF := False;
-  FIsBOF := False;
+  // note that ABookMark should be a PBufBookmark. But this way it can also be
+  // a pointer to a TBufRecLinkItem
+  FCurrentRecBuf := pointer(ABookmark^);
 end;
 
 function TBufDataset.getnextpacket : integer;
 
 var i : integer;
-    b : boolean;
-
+    pb : pchar;
+    
 begin
   i := 0;
-  if FBBufferCount < FBRecordCount+FPacketRecords then
+  pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
+  while (i < FPacketRecords) and (loadbuffer(pb) = grOk) do
     begin
-    FBBufferCount := FBBuffercount + FPacketRecords;
-    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
-    end;
-
-  repeat
-  FBBuffers[FBRecordCount+i] := intAllocRecordBuffer;
-  b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
-  inc(i);
-  until (i = FPacketRecords) or b;
-  if b then
-    begin
-    dec(i);
-    FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
+    FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
+    FLastRecBuf^.next^.prior := FLastRecBuf;
+    FLastRecBuf := FLastRecBuf^.next;
+    pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
+    inc(i);
     end;
   FBRecordCount := FBRecordCount + i;
   result := i;
@@ -364,14 +272,12 @@ begin
 
   NullMask := pointer(buffer);
   fillchar(Nullmask^,FNullmaskSize,0);
-
   inc(buffer,FNullmaskSize);
 
   for x := 0 to FieldDefs.count-1 do
     begin
     if not LoadField(FieldDefs[x],buffer) then
       SetFieldIsNull(NullMask,x);
-
     inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
   Result := grOK;
@@ -385,9 +291,7 @@ end;
 
 function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-var
-  x        : longint;
-  CurrBuff : pchar;
+var CurrBuff : pchar;
 
 begin
   Result := False;
@@ -395,15 +299,18 @@ begin
     begin
     if state = dsOldValue then
       begin
-      if FApplyingUpdates then
-        CurrBuff := FBBuffers[fbcurrentrecord] // This makes it possible for ApplyUpdates to get values from deleted records
-      else
-        CurrBuff := FBBuffers[GetRecNo];
+      if not GetRecordUpdateBuffer then
+        begin
+        // There is no old value available
+        result := false;
+        exit;
+        end;
+      currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem);
       end
     else
       begin
       CurrBuff := ActiveBuffer;
-      if not assigned(CurrBuff) or GetDeleted(pbyte(CurrBuff)) then
+      if not assigned(CurrBuff) then
         begin
         result := false;
         exit;
@@ -429,139 +336,76 @@ begin
 end;
 
 procedure TBufDataset.SetFieldData(Field: TField; Buffer: Pointer);
-var
-  x        : longint;
-  CurrBuff : pointer;
-  NullMask : pbyte;
-  FieldUpdBuf : PFieldUpdateBuffer;
+
+var CurrBuff : pointer;
+    NullMask : pbyte;
 
 begin
-  if not (state in [dsEdit, dsInsert]) then
+  if not (state in [dsEdit, dsInsert, dsFilter]) then
     begin
     DatabaseErrorFmt(SNotInEditState,[NAme],self);
     exit;
     end;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
-    CurrBuff := ActiveBuffer;
+    if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
+      CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
+    else
+      CurrBuff := ActiveBuffer;
     NullMask := CurrBuff;
 
-    inc(Currbuff,FNullmaskSize);
-
-    for x := 0 to FieldDefs.count-1 do
+    inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
+    if assigned(buffer) then
       begin
-      if (Field.FieldName = FieldDefs[x].Name) then
-        begin
-        if assigned(buffer) then
-          begin
-          Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[x]));
-          unSetFieldIsNull(NullMask,x);
-          end
-        else
-          SetFieldIsNull(NullMask,x);
-        // cached updates
-        with FEditBuf^ do
-          begin
-          if not GetFieldUpdateBuffer(x,FEditBuf,FieldUpdBuf) then
-            begin
-            SetLength(FieldsUpdateBuffer,length(FieldsUpdateBuffer)+1);
-            FieldUpdBuf := @FieldsUpdateBuffer[high(FieldsUpdateBuffer)];
-            GetMem(FieldUpdBuf^.NewValue,GetFieldSize(FieldDefs[x]));
-            FieldUpdBuf^.FieldNo := x;
-            end;
-          if assigned(buffer) then
-            begin
-            Move(Buffer^, FieldUpdBuf^.NewValue^, GetFieldSize(FieldDefs[x]));
-            FieldUpdBuf^.IsNull := False;
-            end
-          else FieldUpdBuf^.IsNull := True;
-          end;
-        Break;
-        end
-      else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
-      end;
+      Move(Buffer^, CurrBuff^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
+      unSetFieldIsNull(NullMask,Field.FieldNo-1);
+      end
+    else
+      SetFieldIsNull(NullMask,Field.FieldNo-1);
+      
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
     end;
 end;
 
-procedure TBufDataset.InternalEdit;
-
-begin
-  if not GetRecordUpdateBuffer(recno,FEditBuf) then
-    begin
-    If not assigned(FEditBuf) then
-      begin
-      SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
-      FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
-      end;
-    FEditBuf^.UpdateKind := ukModify;
-    FEditBuf^.RecordNo := getrecno;
-    end;
-end;
-
-procedure TBufDataset.InternalInsert;
-
-begin
-  if FBRecordCount > FBBufferCount-1 then
-    begin
-    inc(FBBufferCount);
-    ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
-    end;
-
-  inc(FBRecordCount);
-  FBCurrentRecord := FBRecordCount -1;
-  FBBuffers[FBCurrentRecord] := intAllocRecordBuffer;
-  fillchar(FBBuffers[FBCurrentRecord]^,FNullmaskSize,255);
-  unSetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
-  fillchar(ActiveBuffer^,FNullmaskSize,255);
-  unSetDeleted(pbyte(ActiveBuffer));
-
-  // cached updates:
-  If not assigned(FEditBuf) then
-    begin
-    SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
-    FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
-    end;
-  FEditBuf^.RecordNo := FBCurrentRecord;
-  FEditBuf^.UpdateKind := ukInsert;
-
-  with PBufBookmark(ActiveBuffer + RecordSize)^ do
-    begin
-    BookmarkData := FBCurrentRecord;
-    BookmarkFlag := bfInserted;
-    end;
-end;
-
 procedure TBufDataset.InternalDelete;
 
-var tel : integer;
-
 begin
-  SetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
-  SetDeleted(pbyte(ActiveBuffer));
-  inc(FBDeletedRecords);
+  GetBookmarkData(ActiveBuffer,@FCurrentRecBuf);
 
-  if GetRecordUpdateBuffer(recno,FEditBuf) and (FEditBuf^.UpdateKind = ukInsert) then
+  if FCurrentRecBuf <> FFirstRecBuf then FCurrentRecBuf^.prior^.next := FCurrentRecBuf^.next
+  else FFirstRecBuf := FCurrentRecBuf^.next;
+
+  FCurrentRecBuf^.next^.prior :=  FCurrentRecBuf^.prior;
+
+  if not GetRecordUpdateBuffer then
     begin
-    if assigned(FEditBuf^.FieldsUpdateBuffer) then
-      for tel := 0 to high(FEditBuf^.FieldsUpdateBuffer) do
-        if not FEditBuf^.FieldsUpdateBuffer[tel].IsNull then
-          freemem(FEditBuf^.FieldsUpdateBuffer[tel].NewValue);
-    setlength(FEditBuf^.FieldsUpdateBuffer,0);
-    FEditBuf^.RecordNo := -1;
+    FCurrentUpdateBuffer := length(FUpdateBuffer);
+    SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
+
+    FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := pchar(FCurrentRecBuf);
+    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
+
+    FCurrentRecBuf := FCurrentRecBuf^.next;
     end
   else
     begin
-    If not assigned(FEditBuf) then
+    if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify then
       begin
-      SetLength(FUpdateBuffer,length(FUpdateBuffer)+1);
-      FEditBuf := @FUpdateBuffer[high(FUpdateBuffer)];
+      FCurrentRecBuf := FCurrentRecBuf^.next;
+      FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
+      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
+      end
+    else
+      begin
+      FCurrentRecBuf := FCurrentRecBuf^.next;
+      FreeRecordBuffer(pchar(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData));
+      FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := nil;  //this 'disables' the updatebuffer
       end;
-    FEditBuf^.RecordNo := FBCurrentRecord;
-    FEditBuf^.UpdateKind := ukDelete;
     end;
-  FEditBuf := nil;
+
+  dec(FBRecordCount);
+  FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukDelete;
 end;
 
 
@@ -573,90 +417,87 @@ end;
 
 procedure TBufDataset.CancelUpdates;
 
-var r,f : integer;
+var r              : Integer;
 
 begin
-  for r := 0 to high(FUpdateBuffer) do
-    begin
-    if FUpdateBuffer[r].RecordNo > -1 then
-     if FUpdateBuffer[r].UpdateKind = ukDelete then
-      begin
-      dec(FBDeletedRecords);
-      unSetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
-      end
-    else if FUpdateBuffer[r].UpdateKind = ukInsert then
-      begin
-      inc(FBDeletedRecords);
-      SetDeleted(pbyte(FBBuffers[FUpdateBuffer[r].RecordNo]));
-      end;
-    for f := 0 to high(FUpdateBuffer[r].FieldsUpdateBuffer) do
-      FreeMem(FUpdateBuffer[r].FieldsUpdateBuffer[f].newvalue);
+  CheckBrowseMode;
 
+  if Length(FUpdateBuffer) > 0 then
+    begin
+    r := 0;
+    while r < Length(FUpdateBuffer) do with FUpdateBuffer[r] do
+      begin
+      if assigned(FUpdateBuffer[r].BookmarkData) then
+        begin
+        if UpdateKind = ukModify then
+          begin
+          move(FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,BookmarkData^,RecordSize+sizeof(TBufRecLinkItem));
+          FreeRecordBuffer(OldValuesBuffer);
+          end
+        else if UpdateKind = ukDelete then
+          begin
+          if assigned(PBufRecLinkItem(BookmarkData)^.prior) then  // or else it was the first record
+            PBufRecLinkItem(BookmarkData)^.prior^.next := BookmarkData
+          else
+            FFirstRecBuf := BookmarkData;
+          PBufRecLinkItem(BookmarkData)^.next^.prior := BookmarkData;
+          inc(FBRecordCount);
+          end
+        else if UpdateKind = ukInsert then
+          begin
+          if assigned(PBufRecLinkItem(BookmarkData)^.prior) then // or else it was the first record
+            PBufRecLinkItem(BookmarkData)^.prior^.next := PBufRecLinkItem(BookmarkData)^.next
+          else
+            FFirstRecBuf := PBufRecLinkItem(BookmarkData)^.next;
+          PBufRecLinkItem(BookmarkData)^.next^.prior := PBufRecLinkItem(BookmarkData)^.prior;
+          // resync won't work if the currentbuffer is freed...
+          if FCurrentRecBuf = BookmarkData then FCurrentRecBuf := FCurrentRecBuf^.next;
+          FreeRecordBuffer(BookmarkData);
+          dec(FBRecordCount);
+          end;
+        end;
+      inc(r);
+      end;
+
+    SetLength(FUpdateBuffer,0);
+    Resync([]);
     end;
-  SetLength(FUpdateBuffer,0);
-  if FOpen then Resync([]);
 end;
 
 procedure TBufDataset.ApplyUpdates;
 
-var SaveBookmark : Integer;
-    r,i          : Integer;
-    buffer       : PChar;
-    x            : integer;
-    FieldUpdBuf : PFieldUpdateBuffer;
-    NullMask    : pbyte;
+var SaveBookmark : pchar;
+    r            : Integer;
+    FailedCount  : integer;
 
 begin
   CheckBrowseMode;
-  
+
   // There is no bookmark available if the dataset is empty
   if not IsEmpty then
-    SaveBookMark := GetRecNo;
+    GetBookmarkData(ActiveBuffer,@SaveBookmark);
 
   r := 0;
+  FailedCount := 0;
   while r < Length(FUpdateBuffer) do
     begin
-    if (@FUpdateBuffer[r] <> FEditBuf) and // Neglect edit-buffer
-       (FUpdateBuffer[r].RecordNo <> -1) then // And the 'deleted' buffers
+    if assigned(FUpdateBuffer[r].BookmarkData) then
       begin
-      FApplyingUpdates := true;
-      if FUpdateBuffer[r].UpdateKind = ukDelete then
-        InternalGotoBookmark(@(FUpdateBuffer[r].RecordNo))
-      else
-        begin
-        InternalGotoBookMark(@FUpdateBuffer[r].RecordNo);
-        Resync([rmExact,rmCenter]);
-        end;
+      InternalGotoBookmark(@FUpdateBuffer[r].BookmarkData);
+      Resync([rmExact,rmCenter]);
       if ApplyRecUpdate(FUpdateBuffer[r].UpdateKind) then
         begin
-        buffer := FBBuffers[FUpdateBuffer[r].RecordNo];
-        NullMask := pbyte(buffer);
-
-        inc(buffer,FNullmaskSize);
-
-        for x := 0 to FieldDefs.count-1 do
-          begin
-          if GetFieldUpdateBuffer(x,@FUpdateBuffer[r],FieldUpdBuf) then
-            If not FieldUpdBuf^.IsNull then
-              begin
-              unSetFieldIsNull(NullMask,x);
-              move(FieldUpdBuf^.NewValue^,buffer^,GetFieldSize(FieldDefs[x]));
-              FreeMem(FieldUpdBuf^.NewValue);
-              end
-            else
-              SetFieldIsNull(NullMask,x);
-          Inc(Buffer, GetFieldSize(FieldDefs[x]));
-          end;
-
-        for i := r to high(FUpdateBuffer)-1 do
-          FUpdateBuffer[i] := FupdateBuffer[i+1];
-        dec(r);
-        SetLength(FUpdateBuffer,high(FUpdateBuffer));
-        end;
-      FApplyingUpdates := False;
+        FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
+        FUpdateBuffer[r].BookmarkData := nil;
+        end
+      else
+        Inc(FailedCount);
       end;
     inc(r);
     end;
+  if failedcount = 0 then
+    SetLength(FUpdateBuffer,0);
+
   if not IsEmpty then
     begin
     InternalGotoBookMark(@SaveBookMark);
@@ -668,45 +509,76 @@ end;
 
 procedure TBufDataset.InternalPost;
 
-begin
-  if state in [dsEdit, dsInsert] then
-    begin
-    if Length(FUpdateBuffer[High(FUpdateBuffer)].FieldsUpdateBuffer) > 0 then
-      FEditBuf := nil;
-    end;
-end;
-
-procedure TBufDataset.InternalCancel;
-
-var tel : integer;
+Var tmpRecBuffer : PBufRecLinkItem;
+    CurrBuff     : PChar;
 
 begin
-  if state in [dsEdit, dsInsert] then
+  if state = dsInsert then
     begin
-    if state = dsInsert then
+    if GetBookmarkFlag(ActiveBuffer) = bfEOF then
+      // Append
+      FCurrentRecBuf := FLastRecBuf
+    else
+      // The active buffer is the newly created TDataset record,
+      // from which the bookmark is set to the record where the new record should be
+      // inserted
+      GetBookmarkData(ActiveBuffer,@FCurrentRecBuf);
+
+    // Create the new record buffer
+    tmpRecBuffer := FCurrentRecBuf^.prior;
+
+    FCurrentRecBuf^.prior := pointer(IntAllocRecordBuffer);
+    FCurrentRecBuf^.prior^.next := FCurrentRecBuf;
+    FCurrentRecBuf := FCurrentRecBuf^.prior;
+    If assigned(tmpRecBuffer) then // if not, it's the first record
       begin
-      SetDeleted(pbyte(FBBuffers[FBCurrentRecord]));
-      SetDeleted(pbyte(ActiveBuffer));
-      inc(FBDeletedRecords);
+      FCurrentRecBuf^.prior := tmpRecBuffer;
+      tmpRecBuffer^.next := FCurrentRecBuf
+      end
+    else
+      FFirstRecBuf := FCurrentRecBuf;
+
+    // Link the newly created record buffer to the newly created TDataset record
+    with PBufBookmark(ActiveBuffer + RecordSize)^ do
+      begin
+      BookmarkData := FCurrentRecBuf;
+      BookmarkFlag := bfInserted;
       end;
-    FEditBuf^.RecordNo := -1;
+      
+    inc(FBRecordCount);
+    end
+  else
+    GetBookmarkData(ActiveBuffer,@FCurrentRecBuf);
 
-    // clear the fieldbuffers
-    if assigned(FEditBuf^.FieldsUpdateBuffer) then
-      for tel := 0 to high(FEditBuf^.FieldsUpdateBuffer) do
-        if not FEditBuf^.FieldsUpdateBuffer[tel].IsNull then
-          freemem(FEditBuf^.FieldsUpdateBuffer[tel].NewValue);
-    setlength(FEditBuf^.FieldsUpdateBuffer,0);
+  if not GetRecordUpdateBuffer then
+    begin
+    FCurrentUpdateBuffer := length(FUpdateBuffer);
+    SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
+
+    FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData := FCurrentRecBuf;
+
+    if state = dsEdit then
+      begin
+      // Update the oldvalues-buffer
+      FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := intAllocRecordBuffer;
+      move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,RecordSize+sizeof(TBufRecLinkItem));
+      FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukModify;
+      end
+    else
+      FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukInsert;
     end;
-end;
 
+  CurrBuff := pchar(FCurrentRecBuf);
+  inc(Currbuff,sizeof(TBufRecLinkItem));
+  move(ActiveBuffer^,CurrBuff^,RecordSize);
+end;
 
 procedure TBufDataset.CalcRecordSize;
 
 var x : longint;
 
 begin
-  FNullmaskSize := 1+((FieldDefs.count) div 8);
+  FNullmaskSize := 1+((FieldDefs.count-1) div 8);
   FRecordSize := FNullmaskSize;
   SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
@@ -723,20 +595,50 @@ begin
 end;
 
 procedure TBufDataset.InternalInitRecord(Buffer: PChar);
+
 begin
   FillChar(Buffer^, FRecordSize, #0);
+
+  fillchar(Buffer^,FNullmaskSize,255);
 end;
 
 procedure TBufDataset.SetRecNo(Value: Longint);
 
+var recnr        : integer;
+    TmpRecBuffer : PBufRecLinkItem;
+
 begin
-  GotoBookmark(@value);
+  if value > RecordCount then
+    begin
+    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount);
+    if value > RecordCount then
+      begin
+      DatabaseError(SNoSuchRecord,self);
+      exit;
+      end;
+    end;
+  TmpRecBuffer := FFirstRecBuf;
+  for recnr := 1 to value-1 do
+    TmpRecBuffer := TmpRecBuffer^.next;
+  GotoBookmark(TmpRecBuffer);
 end;
 
 function TBufDataset.GetRecNo: Longint;
 
+Var SearchRecBuffer : PBufRecLinkItem;
+    TmpRecBuffer    : PBufRecLinkItem;
+    recnr           : integer;
+
 begin
-  GetBookmarkData(ActiveBuffer,@Result);
+  GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
+  TmpRecBuffer := FFirstRecBuf;
+  recnr := 1;
+  while TmpRecBuffer <> SearchRecBuffer do
+    begin
+    inc(recnr);
+    TmpRecBuffer := TmpRecBuffer^.next;
+    end;
+  result := recnr;
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;
@@ -748,23 +650,50 @@ end;
 Function TBufDataset.GetRecordCount: Longint;
 
 begin
-  Result := FBRecordCount-FBDeletedRecords;
+  if state <> dsInsert then Result := FBRecordCount
+    else Result := FBRecordCount+1;
 end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
+
+
+  function CompareText0(substr, astr: pchar; len : integer; options: TLocateOptions): integer;
+
+  var
+    i : integer; Chr1, Chr2: byte;
+  begin
+    result := 0;
+    i := 0;
+    chr1 := 1;
+    while (result=0) and (i<len) and (chr1 <> 0) do
+      begin
+      Chr1 := byte(substr[i]);
+      Chr2 := byte(astr[i]);
+      inc(i);
+      if loCaseInsensitive in options then
+        begin
+        if Chr1 in [97..122] then
+          dec(Chr1,32);
+        if Chr2 in [97..122] then
+          dec(Chr2,32);
+        end;
+      result := Chr1 - Chr2;
+      end;
+    if (result <> 0) and (chr1 = 0) and (loPartialKey in options) then result := 0;
+  end;
+
 
 var keyfield    : TField;     // Field to search in
     ValueBuffer : pchar;      // Pointer to value to search for, in TField' internal format
     VBLength    : integer;
 
     FieldBufPos : PtrInt;     // Amount to add to the record buffer to get the FieldBuffer
-    li          : Longint;
-    i           : longint;
+    CurrLinkItem: PBufRecLinkItem;
     CurrBuff    : pchar;
-    cb          : pchar;
     bm          : TBufBookmark;
-    
+
     CheckNull   : Boolean;
+    SaveState   : TDataSetState;
 
 begin
 // For now it is only possible to search in one field at the same time
@@ -775,36 +704,55 @@ begin
 
   if not CheckNull then
     begin
-    case keyfield.DataType of
-      ftInteger : begin
-                  li := KeyValues;
-                  ValueBuffer := @li;
-                  VBLength := sizeof(li);
-                  end;
-    else
-      DatabaseErrorFmt(SInvalidSearchFieldType,[Fieldtypenames[keyfield.DataType]],self);
-    end;
+    SaveState := State;
+    SetTempState(dsFilter);
+    keyfield.Value := KeyValues;
+    RestoreState(SaveState);
 
     FieldBufPos := FFieldBufPositions[keyfield.FieldNo-1];
+    VBLength := keyfield.DataSize;
+    ValueBuffer := AllocMem(VBLength);
+    currbuff := pointer(FLastRecBuf)+sizeof(TBufRecLinkItem)+FieldBufPos;
+    move(currbuff^,ValueBuffer^,VBLength);
     end;
 
-  i := 0;
-  repeat
-  CurrBuff := FBBuffers[i];
-  GetBookmarkData(CurrBuff,@bm);
+  CurrLinkItem := FFirstRecBuf;
 
-  if not GetDeleted(pbyte(CurrBuff)) then
+  if CheckNull then
     begin
-
-    If CheckNull then
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
-      if GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      result := True;
+      break;
+      end;
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
+    end
+  else if keyfield.DataType = ftString then
+    begin
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      begin
+      inc(CurrBuff,FieldBufPos);
+      if CompareText0(ValueBuffer,CurrBuff,VBLength,options) = 0 then
         begin
         result := True;
         break;
         end;
-      end
-    else if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
+      end;
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
+    end
+  else
+    begin
+    repeat
+    currbuff := pointer(CurrLinkItem)+sizeof(TBufRecLinkItem);
+    if not GetFieldIsnull(pbyte(CurrBuff),keyfield.Fieldno-1) then
       begin
       inc(CurrBuff,FieldBufPos);
       if CompareByte(ValueBuffer^,CurrBuff^,VBLength) = 0 then
@@ -814,19 +762,19 @@ begin
         end;
       end;
 
+    CurrLinkItem := CurrLinkItem^.next;
+    if CurrLinkItem = FLastRecBuf then getnextpacket;
+    until CurrLinkItem = FLastRecBuf;
     end;
-  if i = FBRecordCount -1 then getnextpacket;
-  inc(i)
-  until i = FBRecordCount;
+
 
   if Result then
     begin
-    bm.BookmarkData := i;
+    bm.BookmarkData := CurrLinkItem;
     bm.BookmarkFlag := bfCurrent;
     GotoBookmark(@bm);
     end;
+
+  ReAllocmem(ValueBuffer,0);
 end;
-
-
-
 

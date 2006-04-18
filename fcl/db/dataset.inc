@@ -991,10 +991,17 @@ begin
   //!! To be implemented
 end;
 
+Procedure TDataset.CheckBiDirectional;
+
+begin
+  if FIsUniDirectional then DataBaseError(SUniDirectional);
+end;
+
 Procedure TDataset.SetFilterOptions(Value: TFilterOptions);
 
 begin
-  //!! To be implemented
+  CheckBiDirectional;
+  FFilterOptions := Value;
 end;
 
 Procedure TDataset.SetFilterText(const Value: string);
@@ -1012,7 +1019,7 @@ end;
 Procedure TDataset.SetFound(const Value: Boolean);
 
 begin
-  //!! To be implemented
+  FFound := Value;
 end;
 
 Procedure TDataset.SetModified(Value: Boolean);
@@ -1054,7 +1061,8 @@ end;
 Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
 
 begin
-  //!! To be implemented
+  CheckBiDirectional;
+  FOnFilterRecord := Value;
 end;
 
 Procedure TDataset.SetRecNo(Value: Longint);
@@ -1209,10 +1217,11 @@ end;
 
 Procedure TDataset.Delete;
 
-
 begin
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
+  If IsEmpty then
+    DatabaseError(SDatasetEmpty,Self);
   if State in [dsInsert] then
   begin
     Cancel;
@@ -1296,6 +1305,9 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     fBOF := false;
     // 29:01:05, JvdS: Why is this here?!? It can result in records with the same bookmark-data?
     // I would say that the 'internalinsert' should do this. But I don't know how Tdbf handles it
+
+    // 1-apr-06, JvdS: It just sets the bookmark of the newly inserted record to the place
+    // where the record should be inserted. So it is ok.
     if FRecordcount > 0 then
       SetBookMarkData(ActiveBuffer,pointer(BookBeforeInsert));
     end;
@@ -1633,7 +1645,7 @@ Var
   Function ScrollBackward : Integer;
 
   begin
-    if FIsUniDirectional then DatabaseError(SUniDirectional);
+    CheckBiDirectional;
     Result:=0;
 {$ifdef dsdebug}
     Writeln('Scrolling backward:',Abs(Distance));
@@ -1806,6 +1818,8 @@ begin
 {$endif}
       // nothing found, invalidate buffer and bail out.
       ClearBuffers;
+      // Make sure that the active record is 'empty', ie: that all fields are null
+      InternalInitRecord(ActiveBuffer);
       DataEvent(deDatasetChange,0);
       exit;
       end;
@@ -1983,8 +1997,7 @@ end;
 Function TDataset.Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean;
 
 begin
-  if fIsUnidirectional then
-    DataBaseError(SUniDirectional);
+  CheckBiDirectional;
   Result := False;
 end;
 

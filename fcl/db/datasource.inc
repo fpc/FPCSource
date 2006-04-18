@@ -163,7 +163,10 @@ end;
 Function TDatalink.GetDataSet : TDataset;
 
 begin
-  Result:=FDataSource.DataSet
+  If Assigned(Datasource) then
+    Result:=DataSource.DataSet
+  else
+    Result:=Nil;  
 end;
 
 
@@ -329,8 +332,8 @@ constructor TMasterDataLink.Create(ADataSet: TDataSet);
 
 begin
   inherited Create;
-  FDataSet := ADataSet;
-  FFields := TList.Create;
+  FDetailDataSet:=ADataSet;
+  FFields:=TList.Create;
 end;
 
 
@@ -353,26 +356,25 @@ begin
     FFields.Clear;
     raise;
   end;
-  if FDataSet.Active and not (csDestroying in FDataSet.ComponentState) then
+  if FDetailDataSet.Active and not (csDestroying in FDetailDataSet.ComponentState) then
     if Active and (FFields.Count > 0) then
-    begin
-      if Assigned(FOnMasterChange) then FOnMasterChange(Self);
-    end else
-      if Assigned(FOnMasterDisable) then FOnMasterDisable(Self);
+      DoMasterChange
+    else
+      DoMasterDisable;  
 end;
 
 
 Procedure TMasterDataLink.CheckBrowseMode;
 
 begin
-  if FDataSet.Active then FDataSet.CheckBrowseMode;
+  if FDetailDataSet.Active then FDetailDataSet.CheckBrowseMode;
 end;
 
 
 Function TMasterDataLink.GetDetailDataSet: TDataSet;
 
 begin
-  Result := FDataSet;
+  Result := FDetailDataSet;
 end;
 
 
@@ -386,23 +388,122 @@ end;
 Procedure TMasterDataLink.RecordChanged(Field: TField);
 
 begin
-  if (DataSource.State <> dsSetKey) and FDataSet.Active and
+  if (DataSource.State <> dsSetKey) and FDetailDataSet.Active and
      (FFields.Count > 0) and ((Field = nil) or
-     (FFields.IndexOf(Field) >= 0)) and
-     Assigned(FOnMasterChange) then
-    FOnMasterChange(Self);
+     (FFields.IndexOf(Field) >= 0)) then
+    DoMasterChange;  
 end;
 
 procedure TMasterDatalink.SetFieldNames(const Value: string);
 
 begin
   if FFieldNames <> Value then
-  begin
+    begin
     FFieldNames := Value;
     ActiveChanged;
-  end;
+    end;
 end;
 
+Procedure TMasterDataLink.DoMasterDisable; 
+
+begin
+  if Assigned(FOnMasterDisable) then 
+    FOnMasterDisable(Self);
+end;
+
+Procedure TMasterDataLink.DoMasterChange; 
+
+begin
+  If Assigned(FOnMasterChange) then
+    FOnMasterChange(Self);
+end;
+
+{ ---------------------------------------------------------------------
+    TMasterDataLink
+  ---------------------------------------------------------------------}
+
+constructor TMasterParamsDataLink.Create(ADataSet: TDataSet);
+
+Var
+  P : TParams;
+
+begin
+  inherited Create(ADataset);
+  If (ADataset<>Nil) then
+    begin
+    P:=TParams(GetObjectProp(ADataset,'Params',TParams));
+    if (P<>Nil) then
+      Params:=P;
+    end;  
+end;
+
+
+Procedure TMasterParamsDataLink.SetParams(AVAlue : TParams);  
+
+Var
+  N : String;
+
+begin
+  N:=DetailDataset.Name;
+  FParams:=AValue;
+  If (AValue<>Nil) then
+    RefreshParamNames;
+end;
+
+Procedure TMasterParamsDataLink.RefreshParamNames; 
+
+Var
+  FN : String;
+  DS : TDataset;
+  F  : TField;
+  I : Integer;
+
+begin
+  FN:='';
+  DS:=Dataset;
+  If Assigned(FParams) then
+    begin
+    F:=Nil;
+    For I:=0 to FParams.Count-1 do
+      begin
+      If Assigned(DS) then
+        F:=DS.FindField(FParams[i].Name);
+      If (Not Assigned(DS)) or (F<>Nil) then
+        begin
+        If (FN<>'') then
+          FN:=FN+';';
+        FN:=FN+FParams[i].Name; 
+        end;
+      end;
+    end;
+  FieldNames:=FN;  
+end;
+
+Procedure TMasterParamsDataLink.CopyParamsFromMaster(CopyBound : Boolean);
+
+begin
+  if Assigned(FParams) then
+    FParams.CopyParamValuesFromDataset(Dataset,CopyBound);
+end;
+
+Procedure TMasterParamsDataLink.DoMasterDisable; 
+
+begin
+  Inherited;
+  If Assigned(DetailDataset) and DetailDataset.Active then
+    DetailDataset.Close;
+end;
+
+Procedure TMasterParamsDataLink.DoMasterChange; 
+
+begin
+  Inherited;
+  if Assigned(Params) and Assigned(DetailDataset) and DetailDataset.Active then
+    begin
+    DetailDataset.Close;
+    DetailDataset.Open;
+    end;
+end;
 
 { ---------------------------------------------------------------------
     TDatasource

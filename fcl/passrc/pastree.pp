@@ -346,7 +346,7 @@ type
     function GetDeclaration(full: Boolean): string; override;
     procedure GetModifiers(List: TStrings);
     IsVirtual, IsDynamic, IsAbstract, IsOverride,
-      IsOverload, IsMessage: Boolean;
+      IsOverload, IsMessage, isReintroduced, isStatic: Boolean;
   end;
 
   TPasFunction = class(TPasProcedure)
@@ -1374,6 +1374,8 @@ begin
   DoAdd(IsOverride,' Override');
   DoAdd(IsAbstract,' Abstract');
   DoAdd(IsOverload,' Overload');
+  DoAdd(IsReintroduced,' Reintroduce');
+  DoAdd(IsStatic,' Static');
   DoAdd(IsMessage,' Message');
 end;
 

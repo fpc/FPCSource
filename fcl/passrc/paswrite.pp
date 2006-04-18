@@ -303,6 +303,11 @@ begin
     wrt(' override;');
   if AProc.IsOverload then
     wrt(' overload;');
+  if AProc.IsReintroduced then
+    wrt(' reintroduce;');
+  if AProc.IsStatic then
+    wrt(' static;');
+
 
   // !!!: Not handled: Message, calling conventions
 

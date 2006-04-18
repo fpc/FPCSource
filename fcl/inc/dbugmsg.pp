@@ -15,7 +15,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
-unit msgintf;
+unit dbugmsg;
 
 interface
 
