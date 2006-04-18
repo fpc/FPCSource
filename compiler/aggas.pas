@@ -839,6 +839,11 @@ implementation
 
            ait_symbol :
              begin
+               if (target_info.system = system_powerpc64_linux) and
+                 (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in aktmoduleswitches) then
+                 begin
+                 AsmWriteLn('.globl _mcount');
+               end;
                if tai_symbol(hp).is_global then
                 begin
                   AsmWrite('.globl'#9);
@@ -853,7 +858,8 @@ implementation
                    AsmWriteLn('.quad .' + tai_symbol(hp).sym.name + ', .TOC.@tocbase, 0');
                    AsmWriteLn('.previous');
                    AsmWriteLn('.size ' + tai_symbol(hp).sym.name + ', 24');
-                   AsmWriteLn('.globl .' + tai_symbol(hp).sym.name);
+                   if (tai_symbol(hp).is_global) then
+                     AsmWriteLn('.globl .' + tai_symbol(hp).sym.name);
                    AsmWriteLn('.type .' + tai_symbol(hp).sym.name + ', @function');
                    { the dotted name is the name of the actual function entry }
                    AsmWrite('.');
