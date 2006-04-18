@@ -34,12 +34,15 @@ uses  baseunix,termio,strings
 {$i video.inc}
 
 
-Type TConsoleType = (ttyNetwork
+type  Tconsole_type=(ttyNetwork
                      {$ifdef linux},ttyLinux{$endif}
                      ,ttyFreeBSD
                      ,ttyNetBSD);
 
-type  Ttermcode=(
+      Tconversion=(cv_none,
+                   cv_vga_to_acs);
+
+      Ttermcode=(
         enter_alt_charset_mode,
         exit_alt_charset_mode,
         clear_screen,
@@ -55,7 +58,7 @@ type  Ttermcode=(
       Ttermcodes=array[Ttermcode] of Pchar;
       Ptermcodes=^Ttermcodes;
 
-const term_codes_ansi:Ttermcodes= {Linux escape sequences are equal to ansi sequences}
+const term_codes_ansi:Ttermcodes=
         (#$1B#$5B#$31#$31#$6D,                              {enter_alt_charset_mode}
          #$1B#$5B#$31#$30#$6D,                              {exit_alt_charset_mode}
          #$1B#$5B#$48#$1B#$5B#$4A,                          {clear_screen}
@@ -155,10 +158,12 @@ const    terminal_names:array[0..8] of string[7]=(
                         @term_codes_vt220,
                         @term_codes_xterm);
 
+const convert:Tconversion=cv_none;
+
 var
   LastCursorType : byte;
   TtyFd: Longint;
-  Console: TConsoleType;
+  Console: Tconsole_type;
   cur_term_strings:Ptermcodes;
 {$ifdef logging}
   f: file;
@@ -178,95 +183,61 @@ const
 {  can_delete_term : boolean = false;}
   ACSIn : string = '';
   ACSOut : string = '';
-  InACS : boolean =false;
+  in_ACS : boolean =false;
 
-function IsACS(var ch,ACSchar : char): boolean;
+function convert_vga_to_acs(ch:char):word;
+
+{Ch contains a character in the VGA character set (i.e. codepage 437).
+ This routine tries to convert some VGA symbols as well as possible to the
+ xterm alternate character set.
+
+ Return type is word to allow expanding to UCS-2 characters in the
+ future.}
+
 begin
-  IsACS:=false;
   case ch of
+    #18:
+      convert_vga_to_acs:=word('|');
     #24, #30: {}
-      ch:='^';
+      convert_vga_to_acs:=word('^');
     #25, #31: {}
-      ch:='v';
+      convert_vga_to_acs:=word('v');
     #26, #16: {Never introduce a ctrl-Z ... }
-      ch:='>';
-    {#27,needed in Escape sequences} #17: {}
-      ch:='<';
+      convert_vga_to_acs:=word('>');
+    {#27,} #17: {}
+      convert_vga_to_acs:=word('<');
     #176, #177, #178: {°±²}
-      begin
-        IsACS:=true;
-        ACSChar:='a';
-      end;
+      convert_vga_to_acs:=$f800+word('a');
     #180, #181, #182, #185: {´µ¶¹}
-      begin
-        IsACS:=true;
-        ACSChar:='u';
-      end;
+      convert_vga_to_acs:=$f800+word('u');
     #183, #184, #187, #191: {·¸»¿}
-      begin
-        IsACS:=true;
-        ACSChar:='k';
-      end;
+      convert_vga_to_acs:=$f800+word('k');
     #188, #189, #190, #217: {¼½¾Ù}
-      begin
-        IsACS:=true;
-        ACSChar:='j';
-      end;
+      convert_vga_to_acs:=$f800+word('j');
     #192, #200, #211, #212: {ÀÈÓÔ}
-      begin
-        IsACS:=true;
-        ACSChar:='m';
-      end;
+      convert_vga_to_acs:=$f800+word('m');
     #193, #202, #207, #208: {ÁÊÏÐ}
-      begin
-        IsACS:=true;
-        ACSChar:='v';
-      end;
+      convert_vga_to_acs:=$f800+word('v');
     #194, #203, #209, #210: {ÂËÑÒ}
-      begin
-        IsACS:=true;
-        ACSChar:='w';
-      end;
+      convert_vga_to_acs:=$f800+word('w');
     #195, #198, #199, #204: {ÃÆÇÌ}
-      begin
-        IsACS:=true;
-        ACSChar:='t';
-      end;
+      convert_vga_to_acs:=$f800+word('t');
     #196, #205: {ÄÍ}
-      begin
-        IsACS:=true;
-        ACSChar:='q';
-      end;
+      convert_vga_to_acs:=$f800+word('q');
     #179, #186: {³º}
-      begin
-        IsACS:=true;
-        ACSChar:='x';
-      end;
+      convert_vga_to_acs:=$f800+word('x');
     #197, #206, #215, #216: {ÅÎ×Ø}
-      begin
-        IsACS:=true;
-        ACSChar:='n';
-      end;
+      convert_vga_to_acs:=$f800+word('n');
     #201, #213, #214, #218: {ÉÕÖÚ}
-      begin
-        IsACS:=true;
-        ACSChar:='l';
-      end;
+      convert_vga_to_acs:=$f800+word('l');
     #254: { þ }
-      begin
-        ch:='*';
-      end;
+      convert_vga_to_acs:=word('*');
     { Shadows for Buttons }
-    #220: { Ü }
-      begin
-        IsACS:=true;
-        ACSChar:='a';
-      end;
+    #220  { Ü },
     #223: { ß }
-      begin
-        IsACS:=true;
-        ACSChar:='a';
-      end;
+      convert_vga_to_acs:=$f800+word('a');
+    else
+      convert_vga_to_acs:=word(ch);
   end;
 end;
 
@@ -298,12 +269,10 @@ begin
 end;
 
 
-Function IntStr(l:longint):string;
-var
-  s : string;
+function IntStr(l:longint):string;
+
 begin
-  Str(l,s);
-  IntStr:=s;
+  Str(l,intstr);
 end;
 
 
@@ -315,7 +284,18 @@ Function XY2Ansi(x,y,ox,oy:longint):String;
   is (1, 1)), while SetCursorPos parameters and CursorX and CursorY
   are 0-based (top-left corner of the screen is (0, 0)).
 }
-Begin
+
+var delta:longint;
+    direction:char;
+    movement:string[32];
+
+begin
+  if ((x=1) and (oy+1=y)) and (console<>ttyfreebsd) then
+    begin
+      XY2Ansi:=#13#10;
+      exit;
+    end;
+  direction:='H';
   if y=oy then
    begin
      if x=ox then
@@ -328,40 +308,27 @@ Begin
         XY2Ansi:=#13;
         exit;
       end;
-     if x>ox then
-      begin
-        XY2Ansi:=#27'['+IntStr(x-ox)+'C';
-        exit;
-      end
-     else
-      begin
-        XY2Ansi:=#27'['+IntStr(ox-x)+'D';
-        exit;
-      end;
+     delta:=ox-x;
+     direction:=char(byte('C')+byte(x<=ox));
    end;
   if x=ox then
    begin
-     if y>oy then
-      begin
-        XY2Ansi:=#27'['+IntStr(y-oy)+'B';
-        exit;
-      end
-     else
-      begin
-        XY2Ansi:=#27'['+IntStr(oy-y)+'A';
-        exit;
-      end;
+     delta:=oy-y;
+     direction:=char(byte('A')+byte(y>oy));
    end;
-  if ((x=1) and (oy+1=y)) and (console<>ttyfreebsd) then
-   XY2Ansi:=#13#10
+
+  if direction='H' then
+    movement:=intstr(y)+';'+intstr(x)
   else
-   XY2Ansi:=#27'['+IntStr(y)+';'+IntStr(x)+'H';
-End;
+    movement:=intstr(abs(delta));
+
+  xy2ansi:=#27'['+movement+direction;
+end;
 
 
 
-const
-  AnsiTbl : string[8]='04261537';
+const  ansitbl:array[0..7] of char='04261537';
+
 Function Attr2Ansi(Attr,OAttr:longint):string;
 {
   Convert Attr to an Ansi String, the Optimal code is calculate
@@ -408,12 +375,12 @@ begin
   if (Fg<>OFg) then
    begin
      AddSep('3');
-     hstr:=hstr+AnsiTbl[(Fg and 7)+1];
+     hstr:=hstr+AnsiTbl[fg and 7];
    end;
   if (Bg<>OBg) then
    begin
      AddSep('4');
-     hstr:=hstr+AnsiTbl[(Bg and 7)+1];
+     hstr:=hstr+AnsiTbl[bg and 7];
    end;
   if hstr='0' then
    hstr:='';
@@ -445,37 +412,38 @@ var
   p,pold   : pvideocell;
   LastLineWidth : Longint;
 
-procedure TransformUsingACS(var st : string);
-var
-  res : string;
-  i : longint;
-  ch,ACSch : char;
-begin
-  res:='';
-  for i:=1 to length(st) do
-    begin
-      ch:=st[i];
-      if IsACS(ch,ACSch) then
-        begin
-          if not InACS then
-            begin
-              res:=res+ACSIn;
-              InACS:=true;
-            end;
-          res:=res+ACSch;
-        end
-      else
-        begin
-          if InACS then
+  procedure transform_using_acs(var st:string);
+
+  var res:string;
+      i:byte;
+      c:char;
+      converted:word;
+
+  begin
+    res:='';
+    for i:=1 to length(st) do
+      begin
+        c:=st[i];
+        converted:=convert_vga_to_acs(c);
+        if converted and $ff00=$f800 then
+          begin
+            if not in_ACS then
+              begin
+                res:=res+ACSIn;
+                in_ACS:=true;
+              end;
+            c:=char(converted and $ff);
+          end
+        else
+          if in_ACS then
             begin
               res:=res+ACSOut+Attr2Ansi(LastAttr,0);
-              InACS:=false;
+              in_ACS:=false;
             end;
-          res:=res+ch;
-        end;
-    end;
-  st:=res;
-end;
+        res:=res+c;
+      end;
+    st:=res;
+  end;
 
 
 
@@ -488,8 +456,8 @@ end;
        hstr:=#13#10+hstr;
        dec(eol);
      end;
-    if NoExtendedFrame and (ACSIn<>'') and (ACSOut<>'') then
-      TransformUsingACS(Hstr);
+    if (convert=cv_vga_to_acs) and (ACSIn<>'') and (ACSOut<>'') then
+      transform_using_acs(Hstr);
     move(hstr[1],outbuf[outptr],length(hstr));
     inc(outptr,length(hstr));
     if outptr>=1024 then
@@ -527,6 +495,7 @@ end;
     Spaces:=0;
   end;
 
+(*
 function GetTermString(ndx:Ttermcode):String;
 var
    P{,pdelay}: PChar;
@@ -545,6 +514,7 @@ begin
        pdelay^:='$';}
    end;
 end;
+*)
 
 begin
   OutPtr:=0;
@@ -657,7 +627,7 @@ begin
   blockwrite(f,nl,1);
 {$endif logging}
   fpWrite(stdoutputhandle,outbuf,outptr);
-  if InACS then
+  if in_ACS then
     SendEscapeSeqNdx(exit_alt_charset_mode);
  {turn autowrap on}
 //  SendEscapeSeq(#27'[?7h');
@@ -803,9 +773,6 @@ const font_vga:array[0..6] of char=#15#27'%@'#27'(U';
       font_custom:array[0..2] of char=#27'(K';
 
 begin
-{$ifndef CPUI386}
-  LowAscii:=false;
-{$endif CPUI386}
   { check for tty }
   if (IsATTY(stdinputhandle)=1) then
    begin
@@ -863,7 +830,6 @@ begin
           {No VGA font :( }
           fpwrite(stdoutputhandle,font_custom,3);
         { running on a remote terminal, no error with /dev/vcsa }
-        LowAscii:=false;
    {$ifdef linux}
       end;
    {$endif}
@@ -908,7 +874,7 @@ begin
          if pos('$<',ACSOut)>0 then
            ACSOut:=Copy(ACSOut,1,Pos('$<',ACSOut)-1);}
          If fpGetEnv('TERM')='xterm' then
-           NoExtendedFrame := true;  {use of acs for xterm is ok}
+           convert:=cv_vga_to_acs;  {use of acs for xterm is ok}
        end
      else
        begin
@@ -932,6 +898,7 @@ var font_custom:array[0..2] of char=#27'(K';
 
 begin
   prepareDoneVideo;
+  SetCursorType(crUnderLine);
 {$ifdef linux}
   if Console=ttylinux then
    SetCursorPos(0,0)
@@ -942,7 +909,6 @@ begin
      SendEscapeSeqNdx(cursor_home);
      SendEscapeSeqNdx(cursor_normal);
      SendEscapeSeqNdx(cursor_visible);
-     SetCursorType(crUnderLine);
      SendEscapeSeq(#27'[H');
      if cur_term_strings=@term_codes_linux then
        begin

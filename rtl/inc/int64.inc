@@ -348,7 +348,7 @@
               ((q1>q3) or (q2>q3) or
                 { the bit 63 can be only set if we have $80000000 00000000 }
                 { and sign is true                                         }
-                ((tqwordrec(q3).high and dword($80000000))<>0) and
+                (q3 shr 63<>0) and
                  ((q3<>(qword(1) shl 63)) or not(sign))
                 ) then
                 HandleErrorFrame(215,get_frame);

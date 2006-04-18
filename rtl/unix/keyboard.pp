@@ -1247,7 +1247,7 @@ begin
       { default for Ctrl Prefix is ^W }
       if CtrlPrefix=0 then
         CtrlPrefix:=23;
-      if copy(fpgetenv('TERM'),1,4)='xterm' then
+      if copy(fpgetenv('TERM'),1,5)='xterm' then
           {The alt key should generate an escape prefix. Save the old setting
            make make it send that escape prefix.}
           write(#27'[?1036s'#27'[?1036h');
@@ -1265,7 +1265,7 @@ begin
   unpatchkeyboard;
 {$endif linux}
 
-  if copy(fpgetenv('TERM'),1,4)='xterm' then
+  if copy(fpgetenv('TERM'),1,5)='xterm' then
      {Restore the old alt key behaviour.}
      write(#27'[?1036r');
 
