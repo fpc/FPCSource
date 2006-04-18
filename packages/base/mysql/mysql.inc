@@ -1473,142 +1473,163 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-Procedure InitialiseMysql;
+Function InitialiseMysql(Const LibraryName : String) : Integer;
+Function InitialiseMysql : Integer;
 Procedure ReleaseMysql;
 
-var Mysql4LibraryHandle : TLibHandle;
+var MysqlLibraryHandle : TLibHandle;
 {$ENDIF}
 
 implementation
 
 {$IFDEF LinkDynamically}
 
-var RefCount : integer;
+ResourceString
+  SErrAlreadyLoaded = 'MySQL interface already initialized from library %s.';
+  SLoadFailed       = 'Can not load MySQL library "%s". Please check your installation.';
+  
+var 
+  RefCount : integer;
+  LoadedLibrary : String;
 
-Procedure InitialiseMysql;
+Function InitialiseMysql : Integer;
 
 begin
-  inc(RefCount);
-  if RefCount = 1 then
+  // Use Default library
+  Result:=InitialiseMySQL(Mysqllib);
+end;
+
+
+Function InitialiseMysql(Const LibraryName : String) : Integer;
+
+
+begin
+  if (RefCount=0) then
     begin
-    Mysql4LibraryHandle := loadlibrary(Mysqllib);
-    if Mysql4LibraryHandle = nilhandle then
+    MysqlLibraryHandle := loadlibrary(LibraryName);
+    if (MysqlLibraryHandle=nilhandle) then
       begin
-      RefCount := 0;
-      Raise EInOutError.Create('Can not load MySQL client. Is it installed? ('+Mysqllib+')');
+      Raise EInOutError.CreateFmt(SLoadFailed,[LibraryName]);
       end;
+    Inc(RefCount);  
+    LoadedLibrary:=LibraryName;
 // Only the procedure that are given in the c-library documentation are loaded, to
 // avoid problems with 'incomplete' libraries
-    pointer(my_init) := GetProcedureAddress(Mysql4LibraryHandle,'my_init');
-    pointer(my_thread_init) := GetProcedureAddress(Mysql4LibraryHandle,'my_thread_init');
-    pointer(my_thread_end) := GetProcedureAddress(Mysql4LibraryHandle,'my_thread_end');
+    pointer(my_init) := GetProcedureAddress(MysqlLibraryHandle,'my_init');
+    pointer(my_thread_init) := GetProcedureAddress(MysqlLibraryHandle,'my_thread_init');
+    pointer(my_thread_end) := GetProcedureAddress(MysqlLibraryHandle,'my_thread_end');
 
-    pointer(mysql_affected_rows) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_affected_rows');
-    pointer(mysql_autocommit) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_autocommit');
-    pointer(mysql_change_user) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_change_user');
-//    pointer(mysql_charset_name) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_charset_name');
-    pointer(mysql_close) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_close');
-    pointer(mysql_commit) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_commit');
-//    pointer(mysql_connect) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_connect');
-//    pointer(mysql_create_db) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_create_db');
-    pointer(mysql_data_seek) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_data_seek');
-//    pointer(mysql_drop_db) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_drop_db');
-    pointer(mysql_debug) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_debug');
-    pointer(mysql_dump_debug_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_dump_debug_info');
-    pointer(mysql_eof) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_eof');
-    pointer(mysql_errno) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_errno');
-    pointer(mysql_error) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_error');
-    pointer(mysql_escape_string) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_escape_string');
-    pointer(mysql_fetch_field) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_field');
-    pointer(mysql_fetch_field_direct) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_field_direct');
-    pointer(mysql_fetch_fields) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_fields');
-    pointer(mysql_fetch_lengths) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_lengths');
-    pointer(mysql_fetch_row) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_fetch_row');
-    pointer(mysql_field_seek) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_field_seek');
-    pointer(mysql_field_count) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_field_count');
-    pointer(mysql_field_tell) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_field_tell');
-    pointer(mysql_free_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_free_result');
-    pointer(mysql_get_client_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_client_info');
-    pointer(mysql_get_client_version) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_client_version');
-    pointer(mysql_get_host_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_host_info');
-    pointer(mysql_get_server_version) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_server_version');
-    pointer(mysql_get_proto_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_proto_info');
-    pointer(mysql_get_server_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_get_server_info');
-    pointer(mysql_info) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_info');
-    pointer(mysql_init) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_init');
-    pointer(mysql_insert_id) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_insert_id');
-    pointer(mysql_kill) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_kill');
-    pointer(mysql_library_end) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_server_end');
-    pointer(mysql_library_init) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_server_init');
-    pointer(mysql_list_dbs) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_list_dbs');
-    pointer(mysql_list_fields) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_list_fields');
-    pointer(mysql_list_processes) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_list_processes');
-    pointer(mysql_list_tables) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_list_tables');
-    pointer(mysql_more_results) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_more_results');
-    pointer(mysql_next_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_next_result');
-    pointer(mysql_num_fields) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_num_fields');
-    pointer(mysql_num_rows) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_num_rows');
-    pointer(mysql_options) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_options');
-    pointer(mysql_ping) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_ping');
-    pointer(mysql_query) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_query');
-    pointer(mysql_real_connect) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_real_connect');
-    pointer(mysql_real_escape_string) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_real_escape_String');
-    pointer(mysql_real_query) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_real_query');
-    pointer(mysql_refresh) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_refresh');
-//    pointer(mysql_reload) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_reload');
-    pointer(mysql_rollback) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_rollback');
-    pointer(mysql_row_seek) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_row_seek');
-    pointer(mysql_row_tell) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_row_tell');
-    pointer(mysql_select_db) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_select_db');
-    pointer(mysql_server_end) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_server_end');
-    pointer(mysql_server_init) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_server_init');
-    pointer(mysql_set_server_option) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_set_server_option');
-    pointer(mysql_sqlstate) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_sqlstate');
-    pointer(mysql_shutdown) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_shutdown');
-    pointer(mysql_stat) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stat');
-    pointer(mysql_store_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_store_result');
-    pointer(mysql_thread_id) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_thread_id');
-//    pointer(mysql_thread_save) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_thread_save');
-    pointer(mysql_use_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_use_result');
-    pointer(mysql_warning_count) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_warning_count');
-
-    pointer(mysql_stmt_init) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_init');
-    pointer(mysql_stmt_prepare) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_prepare');
-    pointer(mysql_stmt_execute) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_execute');
-    pointer(mysql_stmt_fetch) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_fetch');
-    pointer(mysql_stmt_fetch_column) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_fetch_column');
-    pointer(mysql_stmt_store_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_store_result');
-    pointer(mysql_stmt_param_count) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_param_count');
-    pointer(mysql_stmt_attr_set) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_attr_set');
-    pointer(mysql_stmt_attr_get) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_attr_get');
-    pointer(mysql_stmt_bind_param) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_bind_param');
-    pointer(mysql_stmt_bind_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_bind_result');
-    pointer(mysql_stmt_close) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_close');
-    pointer(mysql_stmt_reset) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_reset');
-    pointer(mysql_stmt_free_result) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_free_result');
-    pointer(mysql_stmt_send_long_data) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_send_long_data');
-    pointer(mysql_stmt_result_metadata) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_result_metadata');
-    pointer(mysql_stmt_param_metadata) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_param_metadata');
-    pointer(mysql_stmt_errno) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_errno');
-    pointer(mysql_stmt_error) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_error');
-    pointer(mysql_stmt_sqlstate) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_sqlstate');
-    pointer(mysql_stmt_row_seek) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_row_seek');
-    pointer(mysql_stmt_row_tell) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_row_tell');
-    pointer(mysql_stmt_data_seek) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_data_seek');
-    pointer(mysql_stmt_num_rows) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_num_rows');
-    pointer(mysql_stmt_affected_rows) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_affected_rows');
-    pointer(mysql_stmt_insert_id) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_insert_id');
-    pointer(mysql_stmt_field_count) := GetProcedureAddress(Mysql4LibraryHandle,'mysql_stmt_field_count');
-    end;
+    pointer(mysql_affected_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_affected_rows');
+    pointer(mysql_autocommit) := GetProcedureAddress(MysqlLibraryHandle,'mysql_autocommit');
+    pointer(mysql_change_user) := GetProcedureAddress(MysqlLibraryHandle,'mysql_change_user');
+//    pointer(mysql_charset_name) := GetProcedureAddress(MysqlLibraryHandle,'mysql_charset_name');
+    pointer(mysql_close) := GetProcedureAddress(MysqlLibraryHandle,'mysql_close');
+    pointer(mysql_commit) := GetProcedureAddress(MysqlLibraryHandle,'mysql_commit');
+//    pointer(mysql_connect) := GetProcedureAddress(MysqlLibraryHandle,'mysql_connect');
+//    pointer(mysql_create_db) := GetProcedureAddress(MysqlLibraryHandle,'mysql_create_db');
+    pointer(mysql_data_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_data_seek');
+//    pointer(mysql_drop_db) := GetProcedureAddress(MysqlLibraryHandle,'mysql_drop_db');
+    pointer(mysql_debug) := GetProcedureAddress(MysqlLibraryHandle,'mysql_debug');
+    pointer(mysql_dump_debug_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_dump_debug_info');
+    pointer(mysql_eof) := GetProcedureAddress(MysqlLibraryHandle,'mysql_eof');
+    pointer(mysql_errno) := GetProcedureAddress(MysqlLibraryHandle,'mysql_errno');
+    pointer(mysql_error) := GetProcedureAddress(MysqlLibraryHandle,'mysql_error');
+    pointer(mysql_escape_string) := GetProcedureAddress(MysqlLibraryHandle,'mysql_escape_string');
+    pointer(mysql_fetch_field) := GetProcedureAddress(MysqlLibraryHandle,'mysql_fetch_field');
+    pointer(mysql_fetch_field_direct) := GetProcedureAddress(MysqlLibraryHandle,'mysql_fetch_field_direct');
+    pointer(mysql_fetch_fields) := GetProcedureAddress(MysqlLibraryHandle,'mysql_fetch_fields');
+    pointer(mysql_fetch_lengths) := GetProcedureAddress(MysqlLibraryHandle,'mysql_fetch_lengths');
+    pointer(mysql_fetch_row) := GetProcedureAddress(MysqlLibraryHandle,'mysql_fetch_row');
+    pointer(mysql_field_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_field_seek');
+    pointer(mysql_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_field_count');
+    pointer(mysql_field_tell) := GetProcedureAddress(MysqlLibraryHandle,'mysql_field_tell');
+    pointer(mysql_free_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_free_result');
+    pointer(mysql_get_client_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_client_info');
+    pointer(mysql_get_client_version) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_client_version');
+    pointer(mysql_get_host_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_host_info');
+    pointer(mysql_get_server_version) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_server_version');
+    pointer(mysql_get_proto_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_proto_info');
+    pointer(mysql_get_server_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_get_server_info');
+    pointer(mysql_info) := GetProcedureAddress(MysqlLibraryHandle,'mysql_info');
+    pointer(mysql_init) := GetProcedureAddress(MysqlLibraryHandle,'mysql_init');
+    pointer(mysql_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_insert_id');
+    pointer(mysql_kill) := GetProcedureAddress(MysqlLibraryHandle,'mysql_kill');
+    pointer(mysql_library_end) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_end');
+    pointer(mysql_library_init) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_init');
+    pointer(mysql_list_dbs) := GetProcedureAddress(MysqlLibraryHandle,'mysql_list_dbs');
+    pointer(mysql_list_fields) := GetProcedureAddress(MysqlLibraryHandle,'mysql_list_fields');
+    pointer(mysql_list_processes) := GetProcedureAddress(MysqlLibraryHandle,'mysql_list_processes');
+    pointer(mysql_list_tables) := GetProcedureAddress(MysqlLibraryHandle,'mysql_list_tables');
+    pointer(mysql_more_results) := GetProcedureAddress(MysqlLibraryHandle,'mysql_more_results');
+    pointer(mysql_next_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_next_result');
+    pointer(mysql_num_fields) := GetProcedureAddress(MysqlLibraryHandle,'mysql_num_fields');
+    pointer(mysql_num_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_num_rows');
+    pointer(mysql_options) := GetProcedureAddress(MysqlLibraryHandle,'mysql_options');
+    pointer(mysql_ping) := GetProcedureAddress(MysqlLibraryHandle,'mysql_ping');
+    pointer(mysql_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_query');
+    pointer(mysql_real_connect) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_connect');
+    pointer(mysql_real_escape_string) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_String');
+    pointer(mysql_real_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_query');
+    pointer(mysql_refresh) := GetProcedureAddress(MysqlLibraryHandle,'mysql_refresh');
+//    pointer(mysql_reload) := GetProcedureAddress(MysqlLibraryHandle,'mysql_reload');
+    pointer(mysql_rollback) := GetProcedureAddress(MysqlLibraryHandle,'mysql_rollback');
+    pointer(mysql_row_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_row_seek');
+    pointer(mysql_row_tell) := GetProcedureAddress(MysqlLibraryHandle,'mysql_row_tell');
+    pointer(mysql_select_db) := GetProcedureAddress(MysqlLibraryHandle,'mysql_select_db');
+    pointer(mysql_server_end) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_end');
+    pointer(mysql_server_init) := GetProcedureAddress(MysqlLibraryHandle,'mysql_server_init');
+    pointer(mysql_set_server_option) := GetProcedureAddress(MysqlLibraryHandle,'mysql_set_server_option');
+    pointer(mysql_sqlstate) := GetProcedureAddress(MysqlLibraryHandle,'mysql_sqlstate');
+    pointer(mysql_shutdown) := GetProcedureAddress(MysqlLibraryHandle,'mysql_shutdown');
+    pointer(mysql_stat) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stat');
+    pointer(mysql_store_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_store_result');
+    pointer(mysql_thread_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_thread_id');
+//    pointer(mysql_thread_save) := GetProcedureAddress(MysqlLibraryHandle,'mysql_thread_save');
+    pointer(mysql_use_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_use_result');
+    pointer(mysql_warning_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_warning_count');
+    pointer(mysql_stmt_init) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_init');
+    pointer(mysql_stmt_prepare) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_prepare');
+    pointer(mysql_stmt_execute) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_execute');
+    pointer(mysql_stmt_fetch) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_fetch');
+    pointer(mysql_stmt_fetch_column) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_fetch_column');
+    pointer(mysql_stmt_store_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_store_result');
+    pointer(mysql_stmt_param_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_param_count');
+    pointer(mysql_stmt_attr_set) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_attr_set');
+    pointer(mysql_stmt_attr_get) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_attr_get');
+    pointer(mysql_stmt_bind_param) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_bind_param');
+    pointer(mysql_stmt_bind_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_bind_result');
+    pointer(mysql_stmt_close) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_close');
+    pointer(mysql_stmt_reset) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_reset');
+    pointer(mysql_stmt_free_result) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_free_result');
+    pointer(mysql_stmt_send_long_data) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_send_long_data');
+    pointer(mysql_stmt_result_metadata) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_result_metadata');
+    pointer(mysql_stmt_param_metadata) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_param_metadata');
+    pointer(mysql_stmt_errno) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_errno');
+    pointer(mysql_stmt_error) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_error');
+    pointer(mysql_stmt_sqlstate) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_sqlstate');
+    pointer(mysql_stmt_row_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_row_seek');
+    pointer(mysql_stmt_row_tell) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_row_tell');
+    pointer(mysql_stmt_data_seek) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_data_seek');
+    pointer(mysql_stmt_num_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_num_rows');
+    pointer(mysql_stmt_affected_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_affected_rows');
+    pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
+    pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
+    end
+  else
+    If (LibraryName<>LoadedLibrary) then
+      Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+  Result:=RefCount;  
 end;
 
 Procedure ReleaseMysql;
 
 begin
-  if RefCount > 0 then dec(RefCount);
-  if RefCount = 0 then
+  if RefCount> 1 then
+    Dec(RefCount)
+  else if UnloadLibrary(MysqlLibraryHandle) then 
     begin
-    if not UnloadLibrary(Mysql4LibraryHandle) then inc(RefCount);
+    Dec(RefCount);
+    LoadedLibrary:='';
     end;
 end;
 

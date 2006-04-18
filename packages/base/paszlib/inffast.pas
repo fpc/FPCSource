@@ -94,7 +94,7 @@ begin
       {DUMPBITS(t^.bits);}
       b := b shr t^.bits;
       dec(k, t^.bits);
-     {$IFDEF DEBUG}
+     {$IFDEF ZLIB_DEBUG}
       if (t^.base >= $20) and (t^.base < $7f) then
         Tracevv('inflate:         * literal '+char(t^.base))
       else
@@ -118,7 +118,7 @@ begin
         {DUMPBITS(e);}
         b := b shr e;
         dec(k, e);
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracevv('inflate:         * length ' + IntToStr(c));
         {$ENDIF}
         { decode distance base of block to copy }
@@ -156,7 +156,7 @@ begin
             b := b shr e;
             dec(k, e);
 
-            {$IFDEF DEBUG}
+            {$IFDEF ZLIB_DEBUG}
             Tracevv('inflate:         * distance '+IntToStr(d));
             {$ENDIF}
             { do the copy }
@@ -236,7 +236,7 @@ begin
           b := b shr t^.bits;
           dec(k, t^.bits);
 
-         {$IFDEF DEBUG}
+         {$IFDEF ZLIB_DEBUG}
           if (t^.base >= $20) and (t^.base < $7f) then
             Tracevv('inflate:         * literal '+char(t^.base))
           else
@@ -251,7 +251,7 @@ begin
       else
         if (e and 32 <> 0) then
         begin
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           Tracevv('inflate:         * end of block');
           {$ENDIF}
           {UNGRAB}

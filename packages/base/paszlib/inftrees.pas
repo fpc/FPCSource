@@ -30,7 +30,7 @@ const
   MANY = 1440;
 
 
-{$ifdef DEBUG}
+{$ifdef ZLIB_DEBUG}
 var
   inflate_hufts : cardinal;
 {$endif}

@@ -118,7 +118,7 @@ begin
     s.check := s.checkfn(cardinal(0), Pbyte(NIL), 0);
     z.adler := s.check;
   end;
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Tracev('inflate:   blocks reset');
   {$ENDIF}
 end;
@@ -158,7 +158,7 @@ begin
   Inc(s^.zend, w);
   s^.checkfn := c;
   s^.mode := ZTYPE;
-  {$IFDEF DEBUG}  
+  {$IFDEF ZLIB_DEBUG}  
   Tracev('inflate:   blocks allocated');
   {$ENDIF}
   inflate_blocks_reset(s^, z, nil);
@@ -240,7 +240,7 @@ begin
         case (t shr 1) of
           0:                         { stored }
             begin
-              {$IFDEF DEBUG}
+              {$IFDEF ZLIB_DEBUG}
               if s.last then
                 Tracev('inflate:     stored block (last)')
               else
@@ -260,7 +260,7 @@ begin
           1:                         { fixed }
             begin
               begin
-                {$IFDEF DEBUG}
+                {$IFDEF ZLIB_DEBUG}
                 if s.last then
                   Tracev('inflate:     fixed codes blocks (last)')
                 else
@@ -290,7 +290,7 @@ begin
             end;
           2:                         { dynamic }
             begin
-              {$IFDEF DEBUG}
+              {$IFDEF ZLIB_DEBUG}
               if s.last then
                 Tracev('inflate:     dynamic codes block (last)')
               else
@@ -367,7 +367,7 @@ begin
         s.sub.left := cardinal(b) and $ffff;
         k := 0;
         b := 0;                      { dump bits }
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracev('inflate:       stored length '+IntToStr(s.sub.left));
         {$ENDIF}
         if s.sub.left <> 0 then
@@ -453,7 +453,7 @@ begin
         dec(s.sub.left, t);
         if (s.sub.left = 0) then
         begin
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           if (ptrint(q) >= ptrint(s.read)) then
             Tracev('inflate:       stored end '+
                 IntToStr(z.total_out + ptrint(q) - ptrint(s.read)) + ' total out')
@@ -533,7 +533,7 @@ begin
         dec(k, 14);
 
         s.sub.trees.index := 0;
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracev('inflate:       table sizes ok');
         {$ENDIF}
         s.mode := BTREE;
@@ -601,7 +601,7 @@ begin
           exit;
         end;
         s.sub.trees.index := 0;
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         Tracev('inflate:       bits tree ok');
         {$ENDIF}
         s.mode := DTREE;
@@ -756,7 +756,7 @@ begin
             inflate_blocks := inflate_flush(s,z,r);
             exit;
           end;
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           Tracev('inflate:       trees ok');
           {$ENDIF}          
           { c renamed to cs }
@@ -809,7 +809,7 @@ begin
           m := cardinal(ptrint(s.read)-ptrint(q)-1)
         else
           m := cardinal(ptrint(s.zend)-ptrint(q));
-        {$IFDEF DEBUG}
+        {$IFDEF ZLIB_DEBUG}
         if (ptrint(q) >= ptrint(s.read)) then
           Tracev('inflate:       codes end '+
               IntToStr(z.total_out + ptrint(q) - ptrint(s.read)) + ' total out')
@@ -826,7 +826,7 @@ begin
         {$ifndef patch112}
         if (k > 7) then           { return unused byte, if any }
         begin
-          {$IFDEF DEBUG}
+          {$IFDEF ZLIB_DEBUG}
           Assert(k < 16, 'inflate_codes grabbed too many bytes');
           {$ENDIF}
           dec(k, 8);
@@ -920,7 +920,7 @@ begin
   ZFREE(z, s^.window);
   ZFREE(z, s^.hufts);
   ZFREE(z, s);
-  {$IFDEF DEBUG}
+  {$IFDEF ZLIB_DEBUG}
   Trace('inflate:   blocks freed');
   {$ENDIF}  
   inflate_blocks_free := Z_OK;
