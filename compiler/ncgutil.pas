@@ -1691,9 +1691,7 @@ implementation
             if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
                not (current_procinfo.procdef.proctypeoption=potype_proginit) then
               begin
-                cg.allocallcpuregisters(list);
                 cg.g_profilecode(list);
-                cg.deallocallcpuregisters(list);
               end;
           end;
 
