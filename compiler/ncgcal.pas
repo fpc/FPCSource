@@ -440,16 +440,6 @@ implementation
                         end
                       else
                         begin
-                          { Check for passing a constant to var,out parameter }
-                          if (parasym.varspez in [vs_var,vs_out]) and
-                             (left.location.loc<>LOC_REFERENCE) then
-                           begin
-                             { passing self to a var parameter is allowed in
-                               TP and delphi }
-                             if not((left.location.loc=LOC_CREFERENCE) and
-                                    is_self_node(left)) then
-                              internalerror(200106041);
-                           end;
                           { Force to be in memory }
                           if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                             location_force_mem(current_asmdata.CurrAsmList,left.location);
