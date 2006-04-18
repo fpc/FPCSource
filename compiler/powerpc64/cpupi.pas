@@ -68,14 +68,14 @@ var
 begin
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
-    ofs := align(maxpushedparasize + LinkageAreaSizeELF, 8);
+    ofs := align(maxpushedparasize + LinkageAreaSizeELF, ELF_STACK_ALIGN);
 
     { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
       for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
       so we don't that too. Uncomment the next three lines if this is required }
-//    if (ofs < 112) then begin
-//      ofs := 112;
-//    end;
+    if (cs_profile in initmoduleswitches) and (ofs < 112) then begin
+      ofs := 112;
+    end;
     tg.setfirsttemp(ofs);
   end else begin
     locals := 0;
@@ -100,7 +100,7 @@ begin
         numfpr * tcgsize2size[OS_FLOAT], ELF_STACK_ALIGN);
 
     if (pi_do_call in flags) or (tg.lasttemp <> tg.firsttemp) or
-      (result > RED_ZONE_SIZE) then begin
+      (result > RED_ZONE_SIZE) {or (cs_profile in initmoduleswitches)} then begin
       result := align(result + tg.lasttemp, ELF_STACK_ALIGN);
     end;
   end else

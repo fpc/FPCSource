@@ -348,7 +348,8 @@ const
      stdcall and cdecl. The alignment value should be the one defined
      by GCC or the target ABI.
   }
-  std_param_align = 16;
+  std_param_align = 8;
+  vmx_std_param_align = 16;
 
   {*****************************************************************************
                               CPU Dependent Constants

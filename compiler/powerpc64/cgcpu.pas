@@ -99,6 +99,7 @@ type
     procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags;
       reg: TRegister); override;
 
+    procedure g_profilecode(list: TAsmList); override;
     procedure g_proc_entry(list: TAsmList; localsize: longint; nostackframe:
       boolean); override;
     procedure g_proc_exit(list: TAsmList; parasize: longint; nostackframe:
@@ -182,7 +183,7 @@ uses
   sysutils,
   globals, verbose, systems, cutils,
   symconst, symsym, fmodule,
-  rgobj, tgobj, cpupi, procinfo, paramgr;
+  rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
 
 function ref2string(const ref : treference) : string;
 begin
@@ -1299,6 +1300,14 @@ begin
       end;
 end;
 
+
+procedure tcgppc.g_profilecode(list: TAsmList);
+begin
+    // TODO: save GPRs
+    a_call_name_direct(list, '_mcount', false, true);
+    // TODO: restore GPRs
+end;
+
 { Generates the entry code of a procedure/function.
 
  This procedure may be called before, as well as after g_return_from_proc
@@ -1356,12 +1365,12 @@ var
         end;
       { VMX registers not supported by FPC atm }
 
-      { in this branch we may always need to store LR ourselves}
+      { in this branch we always need to store LR ourselves}
       mayNeedLRStore := true;
     end;
 
     { we may need to store R0 (=LR) ourselves }
-    if (mayNeedLRStore) and (needslinkreg) then begin
+    if ((cs_profile in initmoduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
@@ -1369,7 +1378,6 @@ var
 
 var
   href: treference;
-
 begin
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
@@ -1380,7 +1388,8 @@ begin
 
   { determine whether we need to save the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
+      ((pi_do_call in current_procinfo.flags) or (cs_profile in initmoduleswitches))) or
     ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 
@@ -1518,7 +1527,8 @@ begin
 
   { determine whether we need to restore the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and (pi_do_call in current_procinfo.flags)) or
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
+      ((pi_do_call in current_procinfo.flags) or (cs_profile in initmoduleswitches))) or
     ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
 

@@ -79,7 +79,7 @@ begin
     // everything that is less than 64 bits is converted to a 64 bit signed
     // integer - because the int_to_real conversion is faster for 64 bit
     // signed ints compared to 64 bit unsigned ints.
-    if (not (torddef(left.resulttype.def).typ in [s64bit, u64bit])) then begin
+    if (not (torddef(left.resulttype.def).typ in [s64bit, u64bit, scurrency])) then begin
       inserttypeconv(left, s64inttype);
     end;
   end;

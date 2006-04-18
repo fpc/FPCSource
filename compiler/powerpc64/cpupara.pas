@@ -90,7 +90,7 @@ begin
   with paraloc^ do begin
     size := OS_INT;
     if (nr <= 8) then begin
-      if nr = 0 then
+      if (nr = 0) then
         internalerror(200309271);
       loc := LOC_REGISTER;
       register := newreg(R_INTREGISTER, RS_R2 + nr, R_SUBWHOLE);
@@ -248,10 +248,9 @@ end;
 
 function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:
   tcallercallee): longint;
-
 var
   cur_stack_offset: aword;
-  curintreg, curfloatreg, curmmreg: tsuperregister;
+  curintreg, curfloatreg, curmmreg : tsuperregister;
 begin
   init_values(curintreg, curfloatreg, curmmreg, cur_stack_offset);
 
@@ -265,7 +264,6 @@ function tppcparamanager.create_paraloc_info_intern(p: tabstractprocdef; side:
   tcallercallee; paras: tparalist;
   var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset:
   aword; isVararg : boolean): longint;
-
 var
   stack_offset: longint;
   paralen: aint;
@@ -280,6 +278,7 @@ var
   parashift : byte;
 
 begin
+//writeln('begin create_paraloc_info');
 {$IFDEF extdebug}
   if po_explicitparaloc in p.procoptions then
     internalerror(200411141);
@@ -341,7 +340,7 @@ begin
           loc := LOC_REGISTER;
           paracgsize := int_cgsize(paralen);
           if (paralen in [3,5,6,7]) then
-            parashift := (tcgsize2size[paracgsize]-paralen) * 8;
+            parashift := (8-paralen) * 8;
         end;
       end else begin
         loc := getparaloc(paradef);
@@ -382,14 +381,13 @@ begin
         paraloc^.loc := loc;
         paraloc^.shiftval := parashift;
 
-        if (paracgsize <> OS_NO) then
-          { make sure we don't lose whether or not the type is signed }
-          if (paradef.deftype <> orddef) then
-            paraloc^.size := int_cgsize(paralen)
-          else
-            paraloc^.size := paracgsize
-        else
-          paraloc^.size := OS_INT;
+        { make sure we don't lose whether or not the type is signed }
+        if (paracgsize <> OS_NO) and (paradef.deftype <> orddef) then
+          paracgsize := int_cgsize(paralen);
+        if (paracgsize = OS_NO) then
+          paraloc^.size := OS_INT
+        else 
+          paraloc^.size := paracgsize;
 
         paraloc^.register := newreg(R_INTREGISTER, nextintreg, R_SUBNONE);
         inc(nextintreg);
@@ -406,7 +404,7 @@ begin
         inc(nextintreg);
         inc(nextfloatreg);
         dec(paralen, tcgsize2size[paraloc^.size]);
-        
+     
         inc(stack_offset, tcgsize2size[OS_FLOAT]);
       end else if (loc = LOC_MMREGISTER) then begin
         { Altivec not supported }
@@ -444,7 +442,7 @@ function tppcparamanager.create_varargs_paraloc_info(p: tabstractprocdef;
 var
   cur_stack_offset: aword;
   parasize, l: longint;
-  curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;
+  curintreg, firstfloatreg, curfloatreg, curmmreg: tsuperregister;  
   i: integer;
   hp: tparavarsym;
   paraloc: pcgparalocation;
