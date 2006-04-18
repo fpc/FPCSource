@@ -10,7 +10,6 @@ resourcestring
 
 begin
   writeln(s);
-  readln;
   if length(s)=0
     then halt(1);
   if (s<>'test')
