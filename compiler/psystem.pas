@@ -161,6 +161,7 @@ implementation
         addtype('AnsiString',cansistringtype);
 {$endif}
         addtype('WideString',cwidestringtype);
+        addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',booltype);
         adddef('WordBool',torddef.create(bool16bit,0,1));
