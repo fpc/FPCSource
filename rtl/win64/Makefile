@@ -2164,6 +2164,10 @@ callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT) system$(PPUEXT)
 winevent$(PPUEXT) : $(WINDIR)/winevent.pp windows$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/winevent.pp
 video$(PPUEXT) : $(WINDIR)/video.pp windows$(PPUEXT) dos$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/video.pp
 mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/mouse.pp
 keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
+	$(COMPILER) $(WINDIR)/keyboard.pp
