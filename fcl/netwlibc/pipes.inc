@@ -14,7 +14,7 @@
  **********************************************************************}
 
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 
 begin
   Result := false;  {todo}
