@@ -1198,6 +1198,13 @@ implementation
           var
             st : string;
           begin
+            result:=nil;
+            { Don't write info for default parameter values, the N_Func breaks
+              the N_Func for the function itself.
+              Valgrind does not support constants }
+            if (sym.owner.symtabletype=parasymtable) or
+               (cs_gdb_valgrind in aktglobalswitches) then
+              exit;
             case sym.consttyp of
               conststring:
                 begin
@@ -1221,11 +1228,7 @@ implementation
                   st:='i0';
                 end;
             end;
-            { valgrind does not support constants }
-            if cs_gdb_valgrind in aktglobalswitches then
-              result:=nil
-            else
-              result:=sym_stabstr_evaluate(sym,'"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
+            result:=sym_stabstr_evaluate(sym,'"${name}:c=$1;",${N_FUNCTION},0,${line},0',[st]);
           end;
 
         function typesym_stabstr(sym:ttypesym) : pchar;
@@ -1424,7 +1427,7 @@ implementation
                   end;
 
                 { line changed ? }
-                if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
+                if (currfileinfo.line>lastfileinfo.line) and (currfileinfo.line<>0) then
                   begin
                      if assigned(currfuncname) and
                         (tf_use_function_relative_addresses in target_info.flags) then
