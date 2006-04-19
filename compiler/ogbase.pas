@@ -1887,7 +1887,7 @@ implementation
                                   inc(bufend);
                                 end;
                               mergedstabstrsec.write(buf,bufend);
-                            until (bufend<>-1) or (bufsize<sizeof(buf));
+                            until (buf[bufend-1]=0) or (bufsize<sizeof(buf));
                           end;
                         { Copy and Update the relocation }
                         if assigned(hstabreloc) then
