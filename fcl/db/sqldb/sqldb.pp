@@ -164,6 +164,9 @@ type
     FUpdateable          : boolean;
     FTableName           : string;
     FSQL                 : TStringList;
+    FUpdateSQL,
+    FInsertSQL,
+    FDeleteSQL           : TStringList;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
     FIndexDefs           : TIndexDefs;
@@ -179,6 +182,10 @@ type
     FMasterLink          : TMasterParamsDatalink;
 //    FSchemaInfo          : TSchemaInfo;
 
+    FUpdateQry,
+    FDeleteQry,
+    FInsertQry           : TSQLQuery;
+
     procedure FreeFldBuffers;
     procedure InitUpdates(ASQL : string);
     function GetIndexDefs : TIndexDefs;
@@ -189,7 +196,7 @@ type
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
     procedure OnChangeSQL(Sender : TObject);
-
+    procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
     Procedure SQLParser(var ASQL : string);
     procedure ApplyFilter;
@@ -258,6 +265,9 @@ type
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStringlist read FSQL write FSQL;
+    property UpdateSQL : TStringlist read FUpdateSQL write FUpdateSQL;
+    property InsertSQL : TStringlist read FInsertSQL write FInsertSQL;
+    property DeleteSQL : TStringlist read FDeleteSQL write FDeleteSQL;
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
@@ -541,10 +551,7 @@ end;
 { TSQLQuery }
 procedure TSQLQuery.OnChangeSQL(Sender : TObject);
 
-var s         : string;
-    i         : integer;
-    p         : pchar;
-    ParamName : String;
+var ParamName : String;
 
 begin
   UnPrepare;
@@ -554,6 +561,12 @@ begin
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
+end;
+
+procedure TSQLQuery.OnChangeModifySQL(Sender : TObject);
+
+begin
+  CheckInactive;
 end;
 
 Procedure TSQLQuery.SetTransaction(Value : TDBTransaction);
@@ -738,6 +751,9 @@ begin
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
+  if assigned(FUpdateQry) then FreeAndNil(FUpdateQry);
+  if assigned(FInsertQry) then FreeAndNil(FInsertQry);
+  if assigned(FDeleteQry) then FreeAndNil(FDeleteQry);
 //  FRecordSize := 0;
   inherited internalclose;
 end;
@@ -874,6 +890,20 @@ end;
 
 procedure TSQLQuery.InternalOpen;
 
+  procedure InitialiseModifyQuery(var qry : TSQLQuery; aSQL: TSTringList);
+  
+  begin
+    qry := TSQLQuery.Create(nil);
+    with qry do
+      begin
+      ParseSQL := False;
+      DataBase := Self.DataBase;
+      Transaction := Self.Transaction;
+      SQL.Assign(aSQL);
+      end;
+  end;
+
+
 var tel         : integer;
     f           : TField;
     s           : string;
@@ -888,20 +918,26 @@ begin
         begin
         CreateFields;
 
-        if FUpdateable and FusePrimaryKeyAsKey then
+        if FUpdateable then
           begin
-          UpdateIndexDefs;
-          for tel := 0 to indexdefs.count-1 do {with indexdefs[tel] do}
+          if FusePrimaryKeyAsKey then
             begin
-            if ixPrimary in indexdefs[tel].options then
+            UpdateIndexDefs;
+            for tel := 0 to indexdefs.count-1 do {with indexdefs[tel] do}
               begin
-              // Todo: If there is more then one field in the key, that must be parsed
-                s := indexdefs[tel].fields;
-                F := Findfield(s);
-                if F <> nil then
-                  F.ProviderFlags := F.ProviderFlags + [pfInKey];
+              if ixPrimary in indexdefs[tel].options then
+                begin
+                // Todo: If there is more then one field in the key, that must be parsed
+                  s := indexdefs[tel].fields;
+                  F := Findfield(s);
+                  if F <> nil then
+                    F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                end;
               end;
             end;
+          InitialiseModifyQuery(FDeleteQry,FDeleteSQL);
+          InitialiseModifyQuery(FUpdateQry,FUpdateSQL);
+          InitialiseModifyQuery(FInsertQry,FInsertSQL);
           end;
         end;
       end
@@ -922,7 +958,7 @@ begin
     Prepare;
     Execute;
   finally
-    if not IsPrepared then (database as TSQLConnection).UnPrepareStatement(Fcursor);
+    if (not IsPrepared) and (assigned(database)) then (database as TSQLConnection).UnPrepareStatement(Fcursor);
   end;
 end;
 
@@ -932,6 +968,14 @@ begin
   FParams := TParams.create(self);
   FSQL := TStringList.Create;
   FSQL.OnChange := @OnChangeSQL;
+
+  FUpdateSQL := TStringList.Create;
+  FUpdateSQL.OnChange := @OnChangeModifySQL;
+  FInsertSQL := TStringList.Create;
+  FInsertSQL.OnChange := @OnChangeModifySQL;
+  FDeleteSQL := TStringList.Create;
+  FDeleteSQL.OnChange := @OnChangeModifySQL;
+
   FIndexDefs := TIndexDefs.Create(Self);
   FReadOnly := false;
   FParseSQL := True;
@@ -949,6 +993,9 @@ begin
   FreeAndNil(FMasterLink);
   FreeAndNil(FParams);
   FreeAndNil(FSQL);
+  FreeAndNil(FInsertSQL);
+  FreeAndNil(FDeleteSQL);
+  FreeAndNil(FUpdateSQL);
   FreeAndNil(FIndexDefs);
   inherited Destroy;
 end;
@@ -1008,11 +1055,7 @@ var
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
        ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
-      begin
-      // This should be converted to something like GetAsSQLText, but better wait until variants (oldvalue) are working for strings
-      s := fields[x].oldvalue; // This directly int the line below raises a variant-error
-      sql_where := sql_where + '(' + fields[x].FieldName + '=' + s + ') and ';
-      end;
+      sql_where := sql_where + '(' + fields[x].FieldName + '= :OLD_' + fields[x].FieldName + ') and ';
   end;
 
   function ModifyRecQuery : string;
@@ -1029,10 +1072,7 @@ var
       UpdateWherePart(sql_where,x);
 
       if (pfInUpdate in Fields[x].ProviderFlags) then
-        if fields[x].IsNull then // check for null
-          sql_set := sql_set + fields[x].FieldName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
-        else
-          sql_set := sql_set + fields[x].FieldName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+        sql_set := sql_set + fields[x].FieldName + '=:' + fields[x].FieldName + ',';
       end;
 
     setlength(sql_set,length(sql_set)-1);
@@ -1054,8 +1094,8 @@ var
       begin
       if not fields[x].IsNull then
         begin
-        sql_fields := sql_fields + fields[x].DisplayName + ',';
-        sql_values := sql_values + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+        sql_fields := sql_fields + fields[x].FieldName + ',';
+        sql_values := sql_values + ':' + fields[x].FieldName + ',';
         end;
       end;
     setlength(sql_fields,length(sql_fields)-1);
@@ -1079,15 +1119,41 @@ var
     result := 'delete from ' + FTableName + ' where ' + sql_where;
   end;
 
+var qry : tsqlquery;
+    x   : integer;
+    Fld : TField;
+    
 begin
   Result := True;
     case UpdateKind of
-      ukModify : s := ModifyRecQuery;
-      ukInsert : s := InsertRecQuery;
-      ukDelete : s := DeleteRecQuery;
-    end; {case}
+      ukModify : begin
+                 qry := FUpdateQry;
+                 if trim(qry.sql.Text) = '' then qry.SQL.Add(ModifyRecQuery);
+                 end;
+      ukInsert : begin
+                 qry := FInsertQry;
+                 if trim(qry.sql.Text) = '' then qry.SQL.Add(InsertRecQuery);
+                 end;
+      ukDelete : begin
+                 qry := FDeleteQry;
+                 if trim(qry.sql.Text) = '' then qry.SQL.Add(DeleteRecQuery);
+                 end;
+    end;
   try
-    (Database as TSQLConnection).ExecuteDirect(s,Transaction as TSQLTransaction);
+  with qry do
+    begin
+    for x := 0 to Params.Count-1 do with params[x] do if leftstr(name,4)='OLD_' then
+      begin
+      Fld := self.FieldByName(copy(name,5,length(name)-4));
+      AssignFieldValue(Fld,Fld.OldValue);
+      end
+    else
+      begin
+      Fld := self.FieldByName(name);
+      AssignFieldValue(Fld,Fld.Value);
+      end;
+    execsql;
+    end;
   except
     on EDatabaseError do Result := False
   else

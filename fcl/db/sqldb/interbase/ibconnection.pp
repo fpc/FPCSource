@@ -625,7 +625,7 @@ begin
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           {$R+}
           end;
-        ftString  :
+        ftString,ftFixedChar  :
           begin
           {$R-}
           s := AParams[ParNr].AsString;
@@ -656,9 +656,7 @@ begin
           {$R+}
           end;
       else
-        begin
-        DatabaseError('This kind of parameter in not (yet) supported.',self);
-        end;
+        DatabaseError('Parameters of the type '+ Fieldtypenames[AParams[ParNr].DataType] +' are not (yet) supported.',self);
       end {case}
       end;
     end;

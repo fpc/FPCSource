@@ -634,7 +634,7 @@ begin
     clear
   else
     Try
-      FValue:=VarAsType(AValue,VT)
+      FValue:=VarAsType(FValue,VT)
     except
       Clear;
     end;
@@ -972,7 +972,7 @@ begin
      if CopyBound or (not P.Bound) then
        begin
        F:=ADataset.FieldByName(P.Name);
-       P.AssignFromField(F);   
+       P.AssignField(F);
        If Not CopyBound then
          P.Bound:=False;
        end;
