@@ -1802,6 +1802,7 @@ begin
 {$ifdef i386}
   def_system_macro('CPU86');
   def_system_macro('CPU87');
+  def_system_macro('CPU386');
 {$endif}
 {$ifdef m68k}
   def_system_macro('CPU68');
