@@ -774,10 +774,16 @@ implementation
 
     function TObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
       begin
-        if atype in [sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
-          result:=1
-        else
-          result:=sizeof(aint);
+        case atype of
+          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+            result:=1;
+          sec_code,
+          sec_bss,
+          sec_data:
+            result:=16;
+          else
+            result:=sizeof(aint);
+        end;
       end;
 
 
