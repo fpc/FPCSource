@@ -116,6 +116,7 @@ interface
          function  realname:string;
          procedure buildderef;virtual;
          procedure deref;virtual;
+         procedure derefimpl; virtual;
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
@@ -393,6 +394,11 @@ implementation
        stabstring:=nil;
     end;
 {$endif GDB}
+
+
+    procedure Tsym.derefimpl;
+      begin
+      end;
 
 
     function tsym.realname : string;
