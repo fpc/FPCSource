@@ -1444,6 +1444,8 @@ procedure pd_external(pd:tabstractprocdef);
   that case either import_nr<>0 or import_name<>nil is true, so
   the procedure is either imported by number or by name. (DM)
 }
+var
+  hs : string;
 begin
   if pd.deftype<>procdef then
     internalerror(2003042615);
@@ -1459,7 +1461,11 @@ begin
         follow (FK) }
       if not(token=_SEMICOLON) and not(idtoken=_NAME) then
         begin
-          import_dll:=stringdup(get_stringconst);
+          { Always add library prefix and suffix to create an uniform name }
+          hs:=AddExtension(get_stringconst,target_info.sharedlibext);
+          if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
+            hs:=target_info.sharedlibprefix+hs;
+          import_dll:=stringdup(hs);
           include(procoptions,po_has_importdll);
           if (idtoken=_NAME) then
            begin

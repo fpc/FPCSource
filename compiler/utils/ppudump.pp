@@ -1703,6 +1703,7 @@ begin
                writeln(space,'       Import DLL : ',getstring);
              if (po_has_importname in procoptions) then
                writeln(space,'      Import Name : ',getstring);
+             writeln(space,'      Import Nr : ',getword);
              if (po_inline in procoptions) then
               begin
                 write  (space,'       FuncretSym : ');
