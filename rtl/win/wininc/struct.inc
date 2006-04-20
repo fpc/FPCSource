@@ -1775,7 +1775,7 @@
           ExceptionRecord : ^_EXCEPTION_RECORD;
           ExceptionAddress : PVOID;
           NumberParameters : DWORD;
-          ExceptionInformation : array[0..(EXCEPTION_MAXIMUM_PARAMETERS)-1] of DWORD;
+          ExceptionInformation : array[0..(EXCEPTION_MAXIMUM_PARAMETERS)-1] of ULONG_PTR;
        end;
      PEXCEPTION_RECORD = ^EXCEPTION_RECORD;
      _EXCEPTION_RECORD = EXCEPTION_RECORD;
