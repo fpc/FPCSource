@@ -26,7 +26,7 @@ unit cgcpu;
 interface
 
 uses
-  globtype, symtype, symdef,
+  globtype, symtype, symdef, symsym,
   cgbase, cgobj,
   aasmbase, aasmcpu, aasmtai,aasmdata,
   cpubase, cpuinfo, cgutils, rgcpu,
@@ -167,6 +167,9 @@ type
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
      as well }
     procedure loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);
+
+    procedure profilecode_savepara(para : tparavarsym; list : TAsmList);
+    procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
 
 const
@@ -180,9 +183,9 @@ const
 implementation
 
 uses
-  sysutils,
+  sysutils, cclasses,
   globals, verbose, systems, cutils,
-  symconst, symsym, fmodule,
+  symconst, fmodule,
   rgobj, tgobj, cpupi, procinfo, paramgr, cpupara;
 
 function ref2string(const ref : treference) : string;
@@ -669,6 +672,7 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
   procedure loadConstantNormal(list: TAsmList; size : TCgSize; a: aint; reg: TRegister);
   var
     extendssign : boolean;
+    instr : taicpu;
   begin
     if (lo(a) = 0) and (hi(a) <> 0) then begin
       { load only upper 32 bits, and shift }
@@ -734,6 +738,11 @@ var
   op: TAsmOp;
   ref2: TReference;
 begin
+  if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
+    internalerror(2002090903);
+  if not (tosize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
+    internalerror(2002090905);
+
   ref2 := ref;
   fixref(list, ref2, tosize);
   if tosize in [OS_S8..OS_S64] then
@@ -772,7 +781,7 @@ begin
   {$ENDIF EXTDEBUG}
 
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
-    internalerror(2002090902);
+    internalerror(2002090904);
   ref2 := ref;
   fixref(list, ref2, tosize);
   { the caller is expected to have adjusted the reference already
@@ -1300,12 +1309,44 @@ begin
       end;
 end;
 
+procedure tcgppc.profilecode_savepara(para : tparavarsym; list : TAsmList);
+begin
+  case (para.paraloc[calleeside].location^.loc) of
+    LOC_REGISTER, LOC_CREGISTER:
+      a_load_reg_ref(list, OS_INT, para.paraloc[calleeside].Location^.size,
+        para.paraloc[calleeside].Location^.register, para.localloc.reference);
+    LOC_FPUREGISTER, LOC_CFPUREGISTER:
+      a_loadfpu_reg_ref(list, para.paraloc[calleeside].Location^.size, 
+        para.paraloc[calleeside].Location^.register, para.localloc.reference);
+    LOC_MMREGISTER, LOC_CMMREGISTER:
+      // not supported    
+      internalerror(2006041801);
+  end;
+end;
+
+procedure tcgppc.profilecode_restorepara(para : tparavarsym; list : TAsmList);
+begin
+  case (para.paraloc[calleeside].Location^.loc) of
+    LOC_REGISTER, LOC_CREGISTER:
+      a_load_ref_reg(list, para.paraloc[calleeside].Location^.size, OS_INT, 
+        para.localloc.reference, para.paraloc[calleeside].Location^.register);
+    LOC_FPUREGISTER, LOC_CFPUREGISTER:
+      a_loadfpu_ref_reg(list, para.paraloc[calleeside].Location^.size, 
+        para.localloc.reference, para.paraloc[calleeside].Location^.register);
+    LOC_MMREGISTER, LOC_CMMREGISTER:
+      // not supported    
+      internalerror(2006041802);
+  end;
+end;
+
 
 procedure tcgppc.g_profilecode(list: TAsmList);
 begin
-    // TODO: save GPRs
-    a_call_name_direct(list, '_mcount', false, true);
-    // TODO: restore GPRs
+  current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
+
+  a_call_name_direct(list, '_mcount', false, true);
+
+  current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
 end;
 
 { Generates the entry code of a procedure/function.
