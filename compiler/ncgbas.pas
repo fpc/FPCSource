@@ -381,6 +381,7 @@ interface
           begin
             if tempinfo^.restype.def.deftype=floatdef then
               begin
+{$ifdef x86}
                 if use_sse(tempinfo^.restype.def) then
                   begin
                     if (tempinfo^.temptype = tt_persistent) then
@@ -390,6 +391,7 @@ interface
                     tempinfo^.location.register:=cg.getmmregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
                   end
                 else
+{$endif x86}
                   begin
                     if (tempinfo^.temptype = tt_persistent) then
                       location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
