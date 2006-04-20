@@ -68,8 +68,8 @@ interface
     uses
       globtype,globals,systems,
       cutils,verbose,
-      aasmbase,aasmtai,aasmdata,aasmcpu,symsym,symconst,
-      defutil,
+      aasmbase,aasmtai,aasmdata,aasmcpu,
+      symsym,symconst,symdef,defutil,
       nflw,pass_2,
       cgbase,cgobj,
       procinfo,
@@ -381,11 +381,22 @@ interface
           begin
             if tempinfo^.restype.def.deftype=floatdef then
               begin
-                if (tempinfo^.temptype = tt_persistent) then
-                  location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
+                if use_sse(tempinfo^.restype.def) then
+                  begin
+                    if (tempinfo^.temptype = tt_persistent) then
+                      location_reset(tempinfo^.location,LOC_CMMREGISTER,def_cgsize(tempinfo^.restype.def))
+                    else
+                      location_reset(tempinfo^.location,LOC_MMREGISTER,def_cgsize(tempinfo^.restype.def));
+                    tempinfo^.location.register:=cg.getmmregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
+                  end
                 else
-                  location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.restype.def));
-                tempinfo^.location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
+                  begin
+                    if (tempinfo^.temptype = tt_persistent) then
+                      location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
+                    else
+                      location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.restype.def));
+                    tempinfo^.location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
+                  end;
               end
             else
               begin
@@ -429,7 +440,9 @@ interface
               inc(location.reference.offset,offset);
               { tempinfo^.valid should be set to false it it's a normal temp }
             end;
-          LOC_REGISTER,LOC_FPUREGISTER:
+          LOC_REGISTER,
+          LOC_FPUREGISTER,
+          LOC_MMREGISTER :
             tempinfo^.valid := false;
         end;
       end;
@@ -507,6 +520,21 @@ interface
                 end;
               if release_to_normal then
                 tempinfo^.location.loc := LOC_FPUREGISTER
+              else
+                tempinfo^.valid := false;
+            end;
+          LOC_CMMREGISTER,
+          LOC_MMREGISTER:
+            begin
+              if not(cs_opt_regvar in aktoptimizerswitches) or
+                 (pi_has_goto in current_procinfo.flags) then
+                begin
+                  { make sure the register allocator doesn't reuse the }
+                  { register e.g. in the middle of a loop              }
+                  cg.a_reg_sync(current_asmdata.CurrAsmList,tempinfo^.location.register);
+                end;
+              if release_to_normal then
+                tempinfo^.location.loc := LOC_MMREGISTER
               else
                 tempinfo^.valid := false;
             end;
