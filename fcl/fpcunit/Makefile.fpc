@@ -11,7 +11,7 @@ exampledirs=exampletests
 
 [compiler]
 options=-S2h
-targetdir=../$(OS_TARGET)
+targetdir=.
 
 [install]
 fpcpackage=y
