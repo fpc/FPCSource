@@ -250,6 +250,8 @@ unit cgx86;
 
     procedure tcgx86.dec_fpu_stack;
       begin
+        if rgfpu.fpuvaroffset<=0 then
+          internalerror(200604201);
         dec(rgfpu.fpuvaroffset);
       end;
 
@@ -538,8 +540,6 @@ unit cgx86;
     function tcgx86.get_darwin_call_stub(const s: string): tasmsymbol;
       var
         stubname: string;
-        href: treference;
-        l1: tasmsymbol;
       begin
         stubname := 'L'+s+'$stub';
         result := current_asmdata.getasmsymbol(stubname);
