@@ -165,7 +165,7 @@
      LPTSTR = Pchar;
 {$endif}
 
-     LRESULT = longint;
+     LRESULT = LONG_PTR;
 
      LPVOID  = pointer;
      LPCVOID = pointer;
@@ -248,7 +248,7 @@
      ULONG  = cardinal;
      USHORT = word;
 
-     WPARAM = Longint;
+     WPARAM = LONG_PTR;
      PLPSTR = ^LPSTR;
      PLPWStr= ^LPWStr;
 
