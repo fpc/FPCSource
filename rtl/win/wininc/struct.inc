@@ -1077,7 +1077,7 @@
           Low: ULONGLONG;
           High: LONGLONG;
        end;
-     _M128A = M128A
+     _M128A = M128A;
      TM128A = M128A;
      PM128A = TM128A;
 
