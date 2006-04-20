@@ -47,45 +47,56 @@ function GetSSECSR : dword;
 
 function GetRoundMode: TFPURoundingMode;
 begin
-  Result := TFPURoundingMode((Get8087CW shr 10) and 3);
+{$ifdef win64}
+  Result:=TFPURoundingMode((GetSSECSR shr 13) and $3);
+{$else win64}
+  Result:=TFPURoundingMode((Get8087CW shr 10) and $3);
+{$endif win64}
 end;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   CtlWord: Word;
 begin
-  CtlWord := Get8087CW;
+  CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  Result := TFPURoundingMode((CtlWord shr 10) and 3);
+  SetSSECSR((((GetSSECSR shr 13) and $fffffffc) or dword(RoundMode)) shl 13);
+  Result:=GetRoundMode;
 end;
 
 function GetPrecisionMode: TFPUPrecisionMode;
 begin
-  Result := TFPUPrecisionMode((Get8087CW shr 8) and 3);
+  Result:=TFPUPrecisionMode((Get8087CW shr 8) and 3);
 end;
 
 function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
 var
   CtlWord: Word;
 begin
-  CtlWord := Get8087CW;
+  CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $FCFF) or (Ord(Precision) shl 8));
-  Result := TFPUPrecisionMode((CtlWord shr 8) and 3);
+  Result:=TFPUPrecisionMode((CtlWord shr 8) and 3);
 end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
-  Result := TFPUExceptionMask(dword(Get8087CW and $3F));
+{$ifdef win64}
+  Result:=TFPUExceptionMask((GetSSECSR shr 7) and $1f);
+{$else win64}
+  Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
+{$endif win64}
 end;
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 var
   CtlWord: Word;
 begin
-  CtlWord := Get8087CW;
-  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
-  Result := TFPUExceptionMask(dword(CtlWord and $3F));
+  CtlWord:=Get8087CW;
+  Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
+  SetSSECSR((((GetSSECSR shr 7) and $ffffffe0) or dword(Mask)) shl 7);
+  Result:=GetExceptionMask;
 end;
+
 
 procedure ClearExceptions(RaisePending: Boolean);assembler;
 asm
