@@ -57,6 +57,7 @@ Unit aopt;
 
     uses
       globtype, globals,
+      verbose,
       aoptda,aoptcpu,aoptcpud;
 
     Constructor TAsmOptimizer.create(_AsmL: TAsmList);
@@ -85,22 +86,20 @@ Unit aopt;
                   ((P.typ <> Ait_Marker) Or
                    (tai_Marker(P).Kind <> mark_AsmBlockStart)) Do
               Begin
-                If (p.typ = ait_label) Then
-                  If (tai_Label(p).labsym.is_used) Then
-                    Begin
-                      LabelFound := True;
-                      If (tai_Label(p).labsym.labelnr < LowLabel) Then
-                        LowLabel := tai_Label(p).labsym.labelnr;
-                      If (tai_Label(p).labsym.labelnr > HighLabel) Then
-                        HighLabel := tai_Label(p).labsym.labelnr
-                    End;
+                If (p.typ = ait_label) and
+                   (tai_Label(p).labsym.labeltype=alt_jump) and
+                   (tai_Label(p).labsym.is_used) Then
+                  Begin
+                    LabelFound := True;
+                    If (tai_Label(p).labsym.labelnr < LowLabel) Then
+                      LowLabel := tai_Label(p).labsym.labelnr;
+                    If (tai_Label(p).labsym.labelnr > HighLabel) Then
+                      HighLabel := tai_Label(p).labsym.labelnr
+                  End;
                 prev := p;
                 GetNextInstruction(p, p)
               End;
-            if (prev.typ = ait_marker) and
-               (tai_marker(prev).kind = mark_AsmBlockStart) then
-              blockend := prev
-            else blockend := nil;
+            blockend:=p;
             If LabelFound
               Then LabelDif := HighLabel-LowLabel+1
               Else LabelDif := 0
@@ -112,6 +111,7 @@ Unit aopt;
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
     Var p, hp1, hp2: tai;
         UsedRegs: TRegSet;
+        LabelIdx : longint;
     Begin
       UsedRegs := [];
       With LabelInfo^ Do
@@ -124,8 +124,16 @@ Unit aopt;
               Begin
                 Case p.typ Of
                   ait_Label:
-                    If tai_label(p).labsym.is_used Then
-                      LabelTable^[tai_label(p).labsym.labelnr-LowLabel].PaiObj := p;
+                    begin
+                      If tai_label(p).labsym.is_used and
+                         (tai_Label(p).labsym.labeltype=alt_jump) then
+                        begin
+                          LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
+                          if LabelIdx>LabelDif then
+                            internalerror(200604202);
+                          LabelTable^[LabelIdx].PaiObj := p;
+                        end;
+                    end;
                   ait_regAlloc:
                     begin
                     {!!!!!!!!!
@@ -178,11 +186,14 @@ Unit aopt;
 
     procedure tasmoptimizer.clear;
       begin
-        if LabelInfo^.labeldif <> 0 then
+        if assigned(LabelInfo^.labeltable) then
           begin
             freemem(LabelInfo^.labeltable);
             LabelInfo^.labeltable := nil;
           end;
+        LabelInfo^.labeldif:=0;
+        LabelInfo^.lowlabel:=high(AWord);
+        LabelInfo^.highlabel:=0;
       end;
 
     procedure tasmoptimizer.pass_1;
