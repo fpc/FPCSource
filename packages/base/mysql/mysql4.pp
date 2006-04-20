@@ -39,20 +39,11 @@ uses ctypes,my4_sys,mysql4_com;
   const
     External_library = 'libmysqlclient.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     External_library = 'libmysql.dll';
 {$ENDIF}
-
-  { Pointers to basic pascal types, inserted by h2pas conversion program.}
-{  Type
-    PLongint  = ^Longint;
-    PSmallInt = ^SmallInt;
-    PByte     = ^Byte;
-    PWord     = ^Word;
-    PDWord    = ^DWord;
-    PDouble   = ^Double;}
 
 {$i mysql4types.inc}
 

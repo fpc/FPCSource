@@ -452,7 +452,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex
+override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex  process resolve ssockets fpasync syncobjs simpleipc dbugmsg dbugintf
@@ -2315,8 +2315,8 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
-REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_NETDB=1
+REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1

@@ -19,11 +19,11 @@ uses
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
 {$ENDIF}
 
-{$ifndef win32}
+{$ifndef Windows}
 {$linklib c}
 {$linklib m}
 {$linklib mysqlclient}

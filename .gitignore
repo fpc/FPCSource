@@ -417,13 +417,6 @@ fcl/unix/*.ppu
 fcl/unix/*.s
 fcl/unix/fpcmade.*
 fcl/unix/units
-fcl/win32/*.bak
-fcl/win32/*.exe
-fcl/win32/*.o
-fcl/win32/*.ppu
-fcl/win32/*.s
-fcl/win32/fpcmade.*
-fcl/win32/units
 fcl/xml/*.bak
 fcl/xml/*.exe
 fcl/xml/*.o

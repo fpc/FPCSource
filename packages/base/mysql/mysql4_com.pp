@@ -13,7 +13,7 @@ uses
   const
     External_library = 'libmysqlclient.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     External_library = 'libmysql.dll';

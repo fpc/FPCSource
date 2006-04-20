@@ -25,12 +25,7 @@ uses ctypes,
   const
     ocilib = 'libociei.so';
 {$ENDIF}
-{$IFDEF Win32}
-  {$DEFINE extdecl:=stdcall}
-  const
-    ocilib = 'oci.dll';
-{$ENDIF}
-{$IFDEF Wince}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     ocilib = 'oci.dll';

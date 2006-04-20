@@ -22,7 +22,7 @@ uses dynlibs, sysutils;
   const
     Mysqllib = 'libmysqlclient.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     Mysqllib = 'libmysql.dll';

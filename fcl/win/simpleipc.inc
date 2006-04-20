@@ -69,7 +69,7 @@ begin
   Result:=0;
   If (Message=WM_COPYDATA) then
     begin
-    I:=TWinMsgServerComm(GetWindowLong(HWindow,GWL_USERDATA));
+    I:=TWinMsgServerComm(GetWindowLongPtr(HWindow,GWL_USERDATA));
     If (I<>NIl) then
       begin
       Msg.Message:=Message;
@@ -105,7 +105,7 @@ begin
     PChar(aWindowName), WS_POPUP {!0}, 0, 0, 0, 0, 0, 0, HInstance, nil);
   if (Result=0) then
     Owner.DoError(SErrFailedToCreateWindow,[aWindowName]);
-  SetWindowLong(Result,GWL_USERDATA,Longint(Self));
+  SetWindowLongPtr(Result,GWL_USERDATA,PtrInt(Self));
 end;
 
 constructor TWinMsgServerComm.Create(AOWner: TSimpleIPCServer);

@@ -18,11 +18,7 @@ uses
   const
     pqlib = 'libpq.so';
 {$ENDIF}
-{$IFDEF Win32}
-  const
-    pqlib = 'libpq.dll';
-{$ENDIF}
-{$IFDEF Wince}
+{$IFDEF Windows}
   const
     pqlib = 'libpq.dll';
 {$ENDIF}

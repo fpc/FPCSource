@@ -608,7 +608,7 @@ type
   end;
   {$EXTERNALSYM _LUID}
   LUID = _LUID;
-  {$EXTERNALSYM LUID}  
+  {$EXTERNALSYM LUID}
   TLuid = LUID;
 
   DWORDLONG = ULONGLONG;
@@ -644,8 +644,10 @@ function UInt32x32To64(a, b: DWORD): ULONGLONG;
 
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 
+{$ifdef cpui386}
 {$EXTERNALSYM Int64ShllMod32}
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
+{$endif cpui386}
 {$EXTERNALSYM Int64ShraMod32}
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 {$EXTERNALSYM Int64ShrlMod32}
@@ -822,7 +824,7 @@ type
 //
 
   PLIST_ENTRY32 = ^LIST_ENTRY32;
-  {$EXTERNALSYM PLIST_ENTRY32}  
+  {$EXTERNALSYM PLIST_ENTRY32}
   {$EXTERNALSYM PLIST_ENTRY32}
   LIST_ENTRY32 = record
     Flink: DWORD;
@@ -1323,7 +1325,7 @@ type
   HWINEVENTHOOK = HANDLE;
   {$EXTERNALSYM HWINEVENTHOOK}
   HUMPD = HANDLE;
-  {$EXTERNALSYM HUMPD}  
+  {$EXTERNALSYM HUMPD}
 
   HFILE = {$IFDEF USE_DELPHI_TYPES} Windows.HFILE {$ELSE} Longword {$ENDIF};
   {$EXTERNALSYM HFILE}
@@ -1679,14 +1681,11 @@ begin
 end;
 
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
-asm
-        MOV     ECX, ShiftCount
-        MOV     EAX, DWORD PTR [Value]
-        MOV     EDX, DWORD PTR [Value + 4]
-        SHLD    EDX, EAX, CL
-        SHL     EAX, CL
+begin
+  Result:=Value shl Shiftcount;
 end;
 
+{$ifdef cpui386}
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
 asm
         MOV     ECX, ShiftCount
@@ -1695,14 +1694,11 @@ asm
         SHRD    EAX, EDX, CL
         SAR     EDX, CL
 end;
+{$endif cpui386}
 
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
-asm
-        MOV     ECX, ShiftCount
-        MOV     EAX, DWORD PTR [Value]
-        MOV     EDX, DWORD PTR [Value + 4]
-        SHRD    EAX, EDX, CL
-        SHR     EDX, CL
+begin
+  Result:=Value shr Shiftcount;
 end;
 
 procedure ListEntry32To64(l32: PLIST_ENTRY32; l64: PLIST_ENTRY64);

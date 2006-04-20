@@ -622,11 +622,13 @@ type
 // writers to not leave them inadvertantly in their code.
 //
 
+{$ifdef cpui386}
 function GetFiberData: PVOID;
 {$EXTERNALSYM GetFiberData}
 
 function GetCurrentFiber: PVOID;
 {$EXTERNALSYM GetCurrentFiber}
+{$endif cpui386}
 
 //
 //  Define the size of the 80387 save area, which is in the context frame.
@@ -709,7 +711,7 @@ type
 type
   PContext = ^CONTEXT;
   _CONTEXT  = record
-
+{$ifdef cpui386}
     //
     // The flags values within this flag control the contents of
     // a CONTEXT record.
@@ -791,6 +793,7 @@ type
     //
 
     ExtendedRegisters: array [0..MAXIMUM_SUPPORTED_EXTENSION - 1] of BYTE;
+{$endif cpui386}
   end;
   {$EXTERNALSYM _CONTEXT}
   CONTEXT = _CONTEXT;
@@ -950,7 +953,7 @@ type
   PACCESS_MASK = ^ACCESS_MASK;
   {$EXTERNALSYM PACCESS_MASK}
   TAccessMask = ACCESS_MASK;
-  PAccessMask = PACCESS_MASK;  
+  PAccessMask = PACCESS_MASK;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -1907,7 +1910,7 @@ type
   PACCESS_ALLOWED_CALLBACK_ACE = ^ACCESS_ALLOWED_CALLBACK_ACE;
   {$EXTERNALSYM PACCESS_ALLOWED_CALLBACK_ACE}
   TAccessAllowedCallBackAce = ACCESS_ALLOWED_CALLBACK_ACE;
-  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;  
+  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;
 
   _ACCESS_DENIED_CALLBACK_ACE = record
     Header: ACE_HEADER;
@@ -2806,7 +2809,7 @@ type
   PTOKEN_ORIGIN = ^TOKEN_ORIGIN;
   {$EXTERNALSYM PTOKEN_ORIGIN}
   TTokenOrigin = TOKEN_ORIGIN;
-  PTokenOrigin = PTOKEN_ORIGIN;  
+  PTokenOrigin = PTOKEN_ORIGIN;
 
 //
 // Security Tracking Mode
@@ -2872,7 +2875,7 @@ type
   PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
   {$EXTERNALSYM PSECURITY_INFORMATION}
   TSecurityInformation = SECURITY_INFORMATION;
-  PSecurityInformation = PSECURITY_INFORMATION;  
+  PSecurityInformation = PSECURITY_INFORMATION;
 
 const
   OWNER_SECURITY_INFORMATION = $00000001;
@@ -3109,8 +3112,10 @@ type
 // Define function to return the current Thread Environment Block
 //
 
+{$ifdef cpui386}
 function NtCurrentTeb: PNT_TIB;
 {$EXTERNALSYM NtCurrentTeb}
+{$endif cpui386}
 
 const
   THREAD_BASE_PRIORITY_LOWRT = 15;         // value that gets a thread to LowRealtime-1
@@ -3170,7 +3175,7 @@ type
   PQUOTA_LIMITS_EX = ^QUOTA_LIMITS_EX;
   {$EXTERNALSYM PQUOTA_LIMITS_EX}
   TQuotaLimitsEx = QUOTA_LIMITS_EX;
-  PQuotaLimitsEx = PQUOTA_LIMITS_EX;  
+  PQuotaLimitsEx = PQUOTA_LIMITS_EX;
 
   PIO_COUNTERS = ^IO_COUNTERS;
   {$EXTERNALSYM PIO_COUNTERS}
@@ -3324,7 +3329,7 @@ type
   PJOBOBJECT_JOBSET_INFORMATION = ^JOBOBJECT_JOBSET_INFORMATION;
   {$EXTERNALSYM PJOBOBJECT_JOBSET_INFORMATION}
   TJobObjectSetInformation = JOBOBJECT_JOBSET_INFORMATION;
-  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;  
+  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;
 
 const
   JOB_OBJECT_TERMINATE_AT_END_OF_JOB = 0;
@@ -3536,7 +3541,7 @@ type
   {$EXTERNALSYM SYSTEM_LOGICAL_PROCESSOR_INFORMATION}
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION = ^SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
   TSystemLogicalProcessorInformation = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;  
+  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
 
 const
   PROCESSOR_INTEL_386     = 386;
@@ -5146,7 +5151,7 @@ type
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 {$EXTERNALSYM IMAGE_FIRST_SECTION}
-  
+
 const
   IMAGE_SIZEOF_SECTION_HEADER = 40;
   {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
@@ -7156,7 +7161,7 @@ type
   PSLIST_ENTRY = PSINGLE_LIST_ENTRY;
   {$EXTERNALSYM PSLIST_ENTRY}
   TSListEntry = SLIST_ENTRY;
-  PSListEntry = PSLIST_ENTRY;  
+  PSListEntry = PSLIST_ENTRY;
 
 type
   _SLIST_HEADER = record
@@ -7174,7 +7179,7 @@ type
   PSLIST_HEADER = ^SLIST_HEADER;
   {$EXTERNALSYM PSLIST_HEADER}
   TSListHeader = SLIST_HEADER;
-  PSListHeader = PSLIST_HEADER;  
+  PSListHeader = PSLIST_HEADER;
 
 procedure RtlInitializeSListHead(ListHead: PSLIST_HEADER); stdcall;
 {$EXTERNALSYM RtlInitializeSListHead}
@@ -7637,8 +7642,8 @@ type
 
     //
     // Filled by verifier provider DLL
-    // 
-    
+    //
+
     ProviderNtdllHeapFreeCallback: RTL_VERIFIER_NTDLLHEAPFREE_CALLBACK;
   end;
   {$EXTERNALSYM _RTL_VERIFIER_PROVIDER_DESCRIPTOR}
@@ -8978,6 +8983,7 @@ begin
 //    ( sizeof(TOKEN_AUDIT_POLICY) + (((C) > ANYSIZE_ARRAY) ? (sizeof(TOKEN_AUDIT_POLICY_ELEMENT) * ((C) - ANYSIZE_ARRAY)) : 0) )
 end;
 
+{$ifdef cpui386}
 function NtCurrentTeb: PNT_TIB;
 asm
         MOV     EAX, FS:[0]
@@ -8993,6 +8999,7 @@ function GetCurrentFiber: PVOID;
 asm
         MOV     EAX, FS:[$10]
 end;
+{$endif cpui386}
 
 function Int32x32To64(a, b: LONG): LONGLONG;
 begin

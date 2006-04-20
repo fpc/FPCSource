@@ -8,9 +8,7 @@
 
 { Extra types introduced for pascal }
 Type
-  pbyte = ^byte;
-  pcardinal = ^cardinal;
-  Socket = longint;
+  Socket = ptrint;
   my_bool = byte;
 
 Const

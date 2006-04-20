@@ -4,7 +4,7 @@
     {$ELSEIF defined(BASEPACKAGES)}
     Directory:='mysql';
     {$ENDIF}
-    OS:=[linux,win32,netbsd,openbsd,freebsd,darwin];
+    OS:=[linux,win32,win64,netbsd,openbsd,freebsd,darwin];
     T:=Targets.AddUnit('mysql4_com');
     T:=Targets.AddUnit('mysql4_version');
     T:=Targets.AddUnit('mysql4');

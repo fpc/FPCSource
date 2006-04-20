@@ -27,13 +27,13 @@ uses mysql3_com, mysql3_version;
   const
     Mysqllib = 'mysqlclient';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     Mysqllib = 'libmysql';
 {$ENDIF}
 
-{$ifndef win32}
+{$ifndef Windows}
 {$linklib c}
 {$linklib m}
 {$linklib mysqlclient}

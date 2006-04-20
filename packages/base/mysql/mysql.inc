@@ -32,7 +32,7 @@ uses
   const
     mysqllib = 'libmysqlclient.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     mysqllib = 'libmysql.dll';

@@ -22,7 +22,7 @@ uses
   const
     odbclib = 'libodbc.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     odbclib = 'odbc32.dll';

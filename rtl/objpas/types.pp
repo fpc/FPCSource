@@ -16,18 +16,10 @@ unit types;
 
   interface
 
-{$ifdef Win32}
- {$define Win32orCE}
-{$endif Win32}
-
-{$ifdef Wince}
- {$define Win32orCE}
-{$endif Wince}
-
-{$ifdef Win32orCE}
+{$ifdef Windows}
     uses
        Windows;
-{$endif Win32orCE}
+{$endif Windows}
 
 const
   RT_RCDATA = PChar(10);
@@ -55,7 +47,7 @@ type
   TStringDynArray = array of AnsiString;
   TWideStringDynArray   = array of WideString;
 
-{$ifdef Win32orCE}
+{$ifdef Windows}
   TPoint = Windows.TPoint;
 {$else}
   TPoint =
@@ -70,7 +62,7 @@ type
   PPoint = ^TPoint;
   tagPOINT = TPoint;
 
-{$ifdef Win32orCE}
+{$ifdef Windows}
   TRect = Windows.TRect;
 {$else}
   TRect =
@@ -82,10 +74,10 @@ type
       0: (Left,Top,Right,Bottom : Longint);
       1: (TopLeft,BottomRight : TPoint);
     end;
-{$endif Win32orCE}
+{$endif Windows}
   PRect = ^TRect;
 
-{$ifdef Win32orCE}
+{$ifdef Windows}
   TSize = Windows.TSize;
 {$else}
   TSize =
@@ -96,7 +88,7 @@ type
      cx : Longint;
      cy : Longint;
   end;
-{$endif Win32orCE}
+{$endif Windows}
   PSize = ^TSize;
   tagSIZE = TSize;
   SIZE = TSize;
@@ -117,7 +109,7 @@ type
   POleStr = PWideChar;
   PPOleStr = ^POleStr;
 
-{$ifndef win32orCE}
+{$ifndef Windows}
 const
 
   STGTY_STORAGE   = 1;
@@ -259,7 +251,7 @@ type
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
-{$endif win32orCE}
+{$endif Windows}
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
 function Rect(Left,Top,Right,Bottom : Integer) : TRect;

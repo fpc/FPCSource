@@ -47,7 +47,7 @@ uses ctypes,dynlibs, classes, sysutils, my4_sys, mysql4_comdyn;
   const
     Mysqllib = 'libmysqlclient.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     Mysqllib = 'libmysql.dll';

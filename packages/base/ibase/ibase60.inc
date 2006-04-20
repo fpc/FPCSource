@@ -21,7 +21,7 @@ Var
     fbclib = 'libfbclient.so';
     fbembedlib = 'libfbembed.so';
 {$ENDIF}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}
   const
     gdslib = 'gds32.dll';

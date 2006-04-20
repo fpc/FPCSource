@@ -4,7 +4,7 @@
     {$ELSEIF defined(BASEPACKAGES)}
     Directory:='ibase';
     {$ENDIF}
-    OS:=[linux,win32,netbsd,openbsd,freebsd,darwin];
+    OS:=[linux,win32,win64,netbsd,openbsd,freebsd,darwin];
     T:=Targets.AddUnit('ibase40');
     T:=Targets.AddUnit('ibase60');
     T:=Targets.AddUnit('ibase60dyn');
