@@ -18,9 +18,9 @@ unit FPUsrScr;
 interface
 
 uses
-{$ifdef win32}
+{$ifdef Windows}
   windows,
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
   {$ifdef VER1_0}
     linux,
@@ -194,9 +194,9 @@ type
     end;
 {$endif}
 
-{$ifdef win32}
-    PWin32Screen = ^TWin32Screen;
-    TWin32Screen = object(TScreen)
+{$ifdef Windows}
+    PWindowsScreen = ^TWindowsScreen;
+    TWindowsScreen = object(TScreen)
       constructor Init;
       destructor  Done; virtual;
     public
@@ -975,10 +975,10 @@ end;
 {$endif}
 
 {****************************************************************************
-                                 TWin32Screen
+                                 TWindowsScreen
 ****************************************************************************}
 
-{$ifdef win32}
+{$ifdef Windows}
 
 procedure UpdateFileHandles;
 begin
@@ -990,7 +990,7 @@ begin
   {TextRec(StdErr).Handle:=StdErrorHandle;}
 end;
 
-constructor TWin32Screen.Init;
+constructor TWindowsScreen.Init;
 var
   SecurityAttr : Security_attributes;
   BigWin : Coord;
@@ -1016,9 +1016,9 @@ begin
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
   IdeMode:=ConsoleMode;
 {$ifdef debug}
-{define win32bigwin}
+{define Windowsbigwin}
 {$endif debug}
-{$ifdef win32bigwin}
+{$ifdef Windowsbigwin}
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
@@ -1030,7 +1030,7 @@ begin
   res:=SetConsoleScreenBufferSize(StartScreenBufferHandle,BigWin);
   if not res then
     error:=GetLastError;
-{$endif win32bigwin}
+{$endif Windowsbigwin}
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   { make sure that the IDE Screen Handle has the maximum display size
@@ -1046,7 +1046,7 @@ begin
   SwitchBackToIDEScreen;
 end;
 
-destructor TWin32Screen.Done;
+destructor TWindowsScreen.Done;
 begin
   { copy the Dos buffer content into the original ScreenBuffer
     which remains the startup std_output_handle PM }
@@ -1060,7 +1060,7 @@ begin
   inherited Done;
 end;
 
-function TWin32Screen.GetWidth: integer;
+function TWindowsScreen.GetWidth: integer;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
@@ -1069,7 +1069,7 @@ begin
   GetWidth:=ConsoleScreenBufferInfo.dwSize.X;
 end;
 
-function TWin32Screen.GetHeight: integer;
+function TWindowsScreen.GetHeight: integer;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
@@ -1078,7 +1078,7 @@ begin
   GetHeight:=ConsoleScreenBufferInfo.dwSize.Y;
 end;
 
-function TWin32Screen.CanScroll : boolean;
+function TWindowsScreen.CanScroll : boolean;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
   BufferLines : longint;
@@ -1092,7 +1092,7 @@ begin
   CanScroll:=(BufferLines>WindowLines);
 end;
 
-function TWin32Screen.Scroll(i : integer) : integer;
+function TWindowsScreen.Scroll(i : integer) : integer;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
   ConsoleWindow : Small_rect;
@@ -1116,7 +1116,7 @@ begin
     Scroll:=0;
 end;
 
-procedure TWin32Screen.GetLine(Line: integer; var Text, Attr: string);
+procedure TWindowsScreen.GetLine(Line: integer; var Text, Attr: string);
 type
   CharInfoArray = Array [0..255] of Char_Info;
 var
@@ -1153,7 +1153,7 @@ begin
 end;
 
 
-procedure TWin32Screen.GetCursorPos(var P: TPoint);
+procedure TWindowsScreen.GetCursorPos(var P: TPoint);
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
 begin
@@ -1163,7 +1163,7 @@ begin
   P.Y:=ConsoleScreenBufferInfo.dwCursorPosition.Y;
 end;
 
-procedure TWin32Screen.BufferCopy(Src, Dest : THandle);
+procedure TWindowsScreen.BufferCopy(Src, Dest : THandle);
 type
   CharInfoArray = Array [0..256*255-1] of Char_Info;
 var
@@ -1243,7 +1243,7 @@ begin
   SetConsoleCursorPosition(Dest, ConsoleScreenBufferInfo.dwCursorPosition);
 end;
 
-procedure TWin32Screen.Capture;
+procedure TWindowsScreen.Capture;
 begin
   {if StartScreenBufferHandle=IdeScreenBufferHandle then
     BufferCopy(IDEScreenBufferHandle,DosScreenBufferHandle)
@@ -1252,14 +1252,14 @@ begin
   SaveConsoleScreen;
 end;
 
-procedure TWin32Screen.Restore;
+procedure TWindowsScreen.Restore;
 begin
   SwitchToConsoleScreen;
 end;
 
-{ dummy for win32 as the Buffer screen
+{ dummy for Windows as the Buffer screen
   do hold all the info }
-procedure TWin32Screen.SaveIDEScreen;
+procedure TWindowsScreen.SaveIDEScreen;
 begin
   IdeScreenMode:=ScreenMode;
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
@@ -1268,9 +1268,9 @@ begin
   UpdateFileHandles;
 end;
 
-{ dummy for win32 as the Buffer screen
+{ dummy for Windows as the Buffer screen
   do hold all the info }
-procedure TWin32Screen.SaveConsoleScreen;
+procedure TWindowsScreen.SaveConsoleScreen;
 begin
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
   { set the dummy buffer as active already now PM }
@@ -1278,7 +1278,7 @@ begin
   UpdateFileHandles;
 end;
 
-procedure TWin32Screen.SwitchToConsoleScreen;
+procedure TWindowsScreen.SwitchToConsoleScreen;
 begin
   SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
   SetStdHandle(cardinal(Std_Output_Handle),DosScreenBufferHandle);
@@ -1287,7 +1287,7 @@ begin
   IDEActive:=false;
 end;
 
-procedure TWin32Screen.SwitchBackToIDEScreen;
+procedure TWindowsScreen.SwitchBackToIDEScreen;
 var
   ConsoleScreenBufferInfo : Console_screen_buffer_info;
   WindowPos : Small_rect;
@@ -1480,8 +1480,8 @@ begin
     UserScreen:=New(PLinuxScreen, Init);
   {$else}
 
-    {$ifdef Win32}
-      UserScreen:=New(PWin32Screen, Init);
+    {$ifdef Windows}
+      UserScreen:=New(PWindowsScreen, Init);
     {$else}
       {$ifdef OS2}
         UserScreen:=New(POS2Screen, Init);
@@ -1492,7 +1492,7 @@ begin
           UserScreen:=New(PScreen, Init);
         {$endif netwlibc}
       {$endif OS2}
-    {$endif Win32}
+    {$endif Windows}
   {$endif Unix}
 {$endif Dos}
 end;

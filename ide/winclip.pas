@@ -41,10 +41,10 @@ implementation
     dos;
 {$endif DOS}
 
-{$ifdef win32}
+{$ifdef Windows}
   uses
     strings,windows;
-{$endif win32}
+{$endif Windows}
 
 {$ifdef DOS}
 function WinClipboardSupported : boolean;
@@ -94,7 +94,7 @@ begin
 end;
 {$endif DOS}
 
-{$ifdef win32}
+{$ifdef Windows}
 function WinClipboardSupported : boolean;
 begin
   WinClipboardSupported:=true;
@@ -127,7 +127,7 @@ begin
   else
     InternGetDataSize:=0;
 end;
-{$endif win32}
+{$endif Windows}
 
 
 function GetTextWinClipboardSize : longint;
@@ -143,10 +143,10 @@ var
   r : Registers;
   M : MemPtr;
 {$endif DOS}
-{$ifdef win32}
+{$ifdef Windows}
   h : HGlobal;
   pp : pchar;
-{$endif win32}
+{$endif Windows}
 begin
   p:=nil;
   GetTextWinClipBoardData:=False;
@@ -169,7 +169,7 @@ begin
   RealIntr($2F,r);
   GetTextWinClipBoardData:=(r.ax<>0);
 {$endif DOS}
-{$ifdef win32}
+{$ifdef Windows}
   h:=GetClipboardData(CF_OEMTEXT);
   if h<>0 then
     begin
@@ -180,7 +180,7 @@ begin
       GlobalUnlock(h);
     end;
   GetTextWinClipBoardData:=h<>0;
-{$endif win32}
+{$endif Windows}
   CloseWinClipBoard;
 {$ifdef DOS}
   M.MoveDataFrom(l,P^);
@@ -194,11 +194,11 @@ var
   r : Registers;
   M : MemPtr;
 {$endif DOS}
-{$ifdef win32}
+{$ifdef Windows}
   h : HGlobal;
   pp : pchar;
   res : boolean;
-{$endif win32}
+{$endif Windows}
 begin
   SetTextWinClipBoardData:=False;
   if (l=0) or (l>65520) then
@@ -226,7 +226,7 @@ begin
   RealIntr($2F,r);
   FreeDosMem(M);
 {$endif DOS}
-{$ifdef win32}
+{$ifdef Windows}
   h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l+1);
   pp:=pchar(GlobalLock(h));
   move(p^,pp^,l+1);
@@ -238,7 +238,7 @@ begin
   SetClipboardData(CF_TEXT,h);
   GlobalUnlock(h);
   SetTextWinClipBoardData:=res;
-{$endif win32}
+{$endif Windows}
   CloseWinClipBoard;
 end;
 

@@ -95,7 +95,7 @@ begin
          GetDir(DriveNumber,StoreDir2);
 {$ifndef FPC}
          ChDir(Copy(FileDir,1,2));
-           { sets InOutRes in win32 PM }
+           { sets InOutRes in Windows PM }
 {$endif not FPC}
        end;
      if (FileDir<>'') and ExistsDir(FileDir) then

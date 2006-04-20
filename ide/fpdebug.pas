@@ -21,9 +21,9 @@ end.
 interface
 {$i globdir.inc}
 uses
-{$ifdef win32}
+{$ifdef Windows}
   Windows,
-{$endif win32}
+{$endif Windows}
   Objects,Dialogs,Drivers,Views,
 {$ifndef NODEBUG}
   GDBCon,GDBInt,
@@ -338,9 +338,9 @@ uses
 {$endif DOS}
   App,Strings,
   FVConsts,
-{$ifdef win32}
+{$ifdef Windows}
   Windebug,
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
   {$ifdef VER1_0}
     Linux,
@@ -468,20 +468,20 @@ begin
 { should we also use / chars ? }
   for i:=1 to Length(st) do
     if st[i]='\' then
-{$ifdef win32}
+{$ifdef Windows}
   { Don't touch at '\ ' used to escapes spaces in windows file names PM }
      if (i=length(st)) or (st[i+1]<>' ') then
-{$endif win32}
+{$endif Windows}
       st[i]:='/';
-{$ifdef win32}
-{ for win32 we should convert e:\ into //e/ PM }
+{$ifdef Windows}
+{ for Windows we should convert e:\ into //e/ PM }
   if (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:=CygDrivePrefix+'/'+st[1]+copy(st,3,length(st));
 { support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
   for i:=Length(st) downto 1 do
     if (st[i]=' ') and ((i=1) or (st[i-1]<>'\')) then
       st:=copy(st,1,i-1)+'\'+copy(st,i,length(st));
-{$endif win32}
+{$endif Windows}
 {$ifdef go32v2}
 { for go32v2 we should convert //e/ back into e:/  PM }
   if (length(st)>3) and (st[1]='/') and (st[2]='/') and (st[4]='/') then
@@ -500,13 +500,13 @@ begin
 {$ifdef Unix}
   OSFileName:=st;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
  {$ifndef NODEBUG}
-{ for win32 we should convert /cygdrive/e/ into e:\ PM }
+{ for Windows we should convert /cygdrive/e/ into e:\ PM }
   if pos(CygDrivePrefix+'/',st)=1 then
     st:=st[Length(CygdrivePrefix)+2]+':\'+copy(st,length(CygdrivePrefix)+4,length(st));
  {$endif NODEBUG}
-{$endif win32}
+{$endif Windows}
 { support spaces in the name by escaping them but without changing '\ ' into '\\ ' }
   for i:=Length(st) downto 2 do
     if (st[i]=' ') and (st[i-1]='\') then
@@ -762,14 +762,14 @@ begin
   else
     begin
 {$endif SUPPORT_REMOTE}
-{$ifdef win32}
+{$ifdef Windows}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
     Command('set new-console on')
   else
     Command('set new-console off');
   NoSwitch:=DebuggeeTTY<>'';
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
   { Run the debuggee in another tty }
   if DebuggeeTTY <> '' then
@@ -1261,17 +1261,17 @@ begin
      end;
   { In case we have something that the compiler touched }
   AskToReloadAllModifiedFiles;
-{$ifdef win32}
+{$ifdef Windows}
   main_pid_valid:=false;
-{$endif win32}
+{$endif Windows}
 end;
 
 
 procedure TDebugController.DoDebuggerScreen;
-{$ifdef win32}
+{$ifdef Windows}
   var
    IdeMode : DWord;
-{$endif win32}
+{$endif Windows}
 begin
   if NoSwitch then
     begin
@@ -1283,7 +1283,7 @@ begin
       Message(Application,evBroadcast,cmDebuggerStopped,pointer(ptrint(RunCount)));
       PopStatus;
     end;
-{$ifdef win32}
+{$ifdef Windows}
    if NoSwitch then
      begin
        { Ctrl-C as normal char }
@@ -1292,16 +1292,16 @@ begin
        SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
      end;
    ChangeDebuggeeWindowTitleTo(Stopped_State);
-{$endif win32}
+{$endif Windows}
 end;
 
 
 procedure TDebugController.DoUserScreen;
 
-{$ifdef win32}
+{$ifdef Windows}
   var
    IdeMode : DWord;
-{$endif win32}
+{$endif Windows}
 begin
   Inc(RunCount);
   if NoSwitch then
@@ -1321,7 +1321,7 @@ begin
       PushStatus(msg_runningprogram);
       IDEApp.ShowUserScreen;
     end;
-{$ifdef win32}
+{$ifdef Windows}
    if NoSwitch then
      begin
        { Ctrl-C as interrupt }
@@ -1330,7 +1330,7 @@ begin
        SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
      end;
    ChangeDebuggeeWindowTitleTo(Running_State);
-{$endif win32}
+{$endif Windows}
 end;
 
 {$endif NODEBUG}

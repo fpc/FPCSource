@@ -70,11 +70,13 @@
   {$define HasSysMsgUnit}
 {$endif}
 
-{$ifdef Win32}
+{$ifdef Windows}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
   {$define WinClipSupported}
-  {$define HasSignal}
+  {$ifdef win32}
+    {$define HasSignal}
+  {$endif}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
 {$endif}
