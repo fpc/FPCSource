@@ -31,8 +31,8 @@ Const
   SA_NOCLDSTOP = 1;
   SA_NOCLDWAIT = 2;
   SA_SIGINFO   = 4;
-  SA_SHIRQ     = $04000000;
-  SA_STACK     = $08000000;
+  SA_RESTORER  = $04000000;
+  SA_ONSTACK   = $08000000;
   SA_RESTART   = $10000000;
   SA_INTERRUPT = $20000000;
   SA_NOMASK    = $40000000;
@@ -133,11 +133,9 @@ const
   SI_PAD_SIZE   = ((128 div sizeof(longint)) - 3);
 
 type
-  SigSet  =  array[0..wordsinsigset-1] of cuLong;
-  sigset_t= SigSet;
-  PSigSet = ^SigSet;
-  psigset_t=psigset;
-  TSigSet = SigSet;
+  sigset_t = array[0..wordsinsigset-1] of cuLong;
+  tsigset  = sigset_t;
+  psigset  = ^tsigset;
 
   psiginfo = ^tsiginfo;
   tsiginfo = record
@@ -181,37 +179,22 @@ type
 {$i sighndh.inc}
 
 type
-  SignalHandler   = Procedure(Sig : Longint);cdecl;
-  PSignalHandler  = ^SignalHandler;
-  SignalRestorer  = Procedure;cdecl;
-  PSignalRestorer = ^SignalRestorer;
-  SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
-
-{$ifdef CPUARM}
-{$define NEWSIGNAL}
-{$endif CPUARM}
-
-{$ifdef CPUx86_64}
-{$define NEWSIGNAL}
-{$endif CPUx86_64}
-
-{$ifdef CPUPOWERPC64}
-{$define NEWSIGNAL}
-{$endif CPUPOWERPC64}
-
-  SigActionRec = packed record  // this is temporary for the migration
-    sa_handler : SigActionHandler;
-   {$ifdef NEWSIGNAL}
-    Sa_Flags    : culong;
-    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
-    Sa_Mask     : SigSet;
-   {$else NEWSIGNAL}
-    Sa_Mask     : SigSet;
-    Sa_Flags    : cuLong;
-    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
-   {$endif NEWSIGNAL}
+  signalhandler_t = procedure(signal: longint); cdecl;
+  sigactionhandler_t = procedure(signal: longint; info: psiginfo; context: psigcontext); cdecl;
+  sigrestorerhandler_t = procedure; cdecl;
+      
+  signalhandler = signalhandler_t;
+  sigactionhandler = sigactionhandler_t;
+  sigrestorerhandler = sigrestorerhandler_t;
+  tsignalhandler = signalhandler_t;
+  tsigactionhandler = sigactionhandler_t;
+  tsigrestorerhandler = sigrestorerhandler_t;
+  
+  psigactionrec = ^sigactionrec;
+  sigactionrec = packed record
+    sa_handler: sigactionhandler_t;
+    sa_flags: dword;
+    sa_restorer: sigrestorerhandler_t;
+    sa_mask: sigset_t;
   end;
-  TSigActionRec = SigActionRec;
-  PSigActionRec = ^SigActionRec;
-
 

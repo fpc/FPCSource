@@ -208,8 +208,49 @@ asm
 end;
 {$endif cpusparc}
 
+{$if defined(cpui386) or defined(cpuarm) or defined(cpux86_64)}
+  {$define NEED_USER_TRAMPOLINE}
+{$endif}
+{$if defined(cpui386) or defined(cpuarm)}
+  {$define NEED_USER_TRAMPOLINE_RT_DIFFERENT}
+{$endif}
 
-function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
+{$ifdef NEED_USER_TRAMPOLINE}
+
+procedure linux_restore; cdecl; nostackframe; assembler;
+asm
+{$ifdef cpuarm}
+  swi __NR_sigreturn;
+{$endif}
+{$ifdef cpui386}
+  popl %eax
+  movl $syscall_nr_sigreturn, %eax
+  int $0x80
+{$endif}
+{$ifdef cpux86_64}
+  moq $syscall_nr_rt_sigreturn, %rax
+  syscall
+{$endif}
+end;
+
+{$endif}
+
+{$ifdef NEED_USER_TRAMPOLINE_RT_DIFFERENT}
+
+procedure linux_restore_rt; cdecl; nostackframe; assembler;
+asm
+{$ifdef cpuarm}                                                                                             
+  swi syscall_nr_rt_sigreturn                                                                               
+{$endif}
+{$ifdef cpui386}
+  movl $syscall_nr_rt_sigreturn, %eax
+  int $0x80
+{$endif}
+end;
+
+{$endif}
+
+function Fpsigaction(sig: cint; new_action, old_action: psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 {
   Change action of process upon receipt of a signal.
   Signum specifies the signal (all except SigKill and SigStop).
@@ -219,9 +260,25 @@ function Fpsigaction(sig: cint; act : psigactionrec; oact : psigactionrec): cint
 begin
 {$ifdef cpusparc}
   { Sparc has an extra stub parameter }
-  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
 {$else cpusparc}
-  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact),TSysParam(8));
+{$ifdef NEED_USER_TRAMPOLINE}
+  if new_action <> nil then
+  begin
+    // a different stack (SA_ONSTACK) requires sa_restorer field
+    if (new_action^.sa_flags and (SA_RESTORER or SA_ONSTACK)) = 0 then
+    begin
+      new_action^.sa_flags := new_action^.sa_flags or SA_RESTORER;
+{$ifdef NEED_USER_TRAMPOLINE_RT_DIFFERENT}
+      if (new_action^.sa_flags and SA_SIGINFO) <> 0 then
+        new_action^.sa_restorer := @linux_restore_rt
+      else
+{$endif}
+        new_action^.sa_restorer := @linux_restore;
+    end;                                                                                                    
+  end;                                                                                                      
+{$endif}
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(8));
 {$endif cpusparc}
 end;
 

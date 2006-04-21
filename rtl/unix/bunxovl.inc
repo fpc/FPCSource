@@ -138,7 +138,7 @@ var sa,osa : sigactionrec;
 
 begin
      sa.sa_handler:=SigActionHandler(handler);
-     FillChar(sa.sa_mask,sizeof(sigset),#0);
+     FillChar(sa.sa_mask,sizeof(sa.sa_mask),#0);
      sa.sa_flags := 0;
 {     if (sigintr and signum) =0 then
  {restart behaviour needs libc}
