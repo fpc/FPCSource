@@ -289,10 +289,6 @@ begin
   C:=Cursor as TCursorName;
   if c.FStatementType=stSelect then
     c.FNeedData:=False;
-  If (C.FRes<>Nil) then
-    begin
-    C.FRes:=Nil;
-    end;
   if (c.FQMySQL <> Nil) then
     begin
     mysql_close(c.FQMySQL);
