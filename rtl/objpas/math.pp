@@ -699,24 +699,24 @@ function floor(x : float) : integer;
        Floor := Floor-1;
   end;
 
-procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 
-  begin
-      Exponent :=0;
-      if (abs(x)<0.5) then
-       While (abs(x)<0.5) do
-       begin
-         x := x*2;
-         Dec(Exponent);
-       end
-      else
-       While (abs(x)>1) do
-       begin
-         x := x/2;
-         Inc(Exponent);
-       end;
-      mantissa := x;
-  end;
+procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
+begin
+  Exponent:=0;
+  if (X<>0) then
+    if (abs(X)<0.5) then
+      repeat
+        X:=X*2;
+        Dec(Exponent);
+      until (abs(X)>=0.5)
+    else
+      while (abs(X)>=1) do 
+        begin
+        X:=X/2;
+        Inc(Exponent);
+        end;
+  Mantissa:=X;
+end;
 
 function ldexp(x : float;const p : Integer) : float;
 
