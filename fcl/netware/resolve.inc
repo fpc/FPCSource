@@ -1,1 +1,1 @@
-{$include ../win32/resolve.inc}
+{$include ../win/resolve.inc}
