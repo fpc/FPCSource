@@ -1,4 +1,4 @@
-PROGRAM TestApp;
+PROGRAM testapp;
 
 { $UNDEF OS2PM}
 

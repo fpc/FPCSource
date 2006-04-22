@@ -1079,6 +1079,7 @@ fv/tabs.pas svneol=native#text/plain
 fv/test/Makefile svneol=native#text/plain
 fv/test/Makefile.fpc svneol=native#text/plain
 fv/test/platform.inc svneol=native#text/plain
+fv/test/testapp.lpi -text
 fv/test/testapp.pas svneol=native#text/plain
 fv/time.pas svneol=native#text/plain
 fv/timeddlg.pas svneol=native#text/plain
