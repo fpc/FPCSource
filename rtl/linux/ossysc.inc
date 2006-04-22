@@ -228,7 +228,7 @@ asm
   int $0x80
 {$endif}
 {$ifdef cpux86_64}
-  moq $syscall_nr_rt_sigreturn, %rax
+  movq $syscall_nr_rt_sigreturn, %rax
   syscall
 {$endif}
 end;
