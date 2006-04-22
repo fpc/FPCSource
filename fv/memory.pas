@@ -145,7 +145,7 @@ FUNCTION GetBufferSize (P: Pointer): Word;
 Change the size of buffer given by pointer P to the size requested.
 01Oct99 LdB
 ---------------------------------------------------------------------}
-FUNCTION SetBufferSize (P: Pointer; Size: Word): Boolean;
+FUNCTION SetBufferSize (var P: Pointer; Size: Word): Boolean;
 
 {-DisposeBuffer------------------------------------------------------
 Dispose of buffer given by pointer P.
@@ -753,7 +753,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetBufferSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 01Oct99 LdB     }
 {---------------------------------------------------------------------------}
-FUNCTION SetBufferSize (P: Pointer; Size: Word): Boolean;
+FUNCTION SetBufferSize (var P: Pointer; Size: Word): Boolean;
 VAR NewSize: Word;
 BEGIN
    SetBufferSize := False;                            { Preset failure }
@@ -767,7 +767,13 @@ BEGIN
      SetBufferSize := True;                           { Return success }
    End;
    {$ELSE}                                            { DPMI/WIN/NT/OS2 CODE }
-   SetBufferSize := False;                            { No block resizing }
+ {$ifdef fpc}
+   Dec(Pointer(P),SizeOf(TBuffer));                 { Correct to buffer }
+   SetBufferSize := ReAllocMem(P, Size + SizeOf(TBuffer)) <> nil;
+   if SetBufferSize then
+      TBuffer(P^).Size := Size + SizeOf(TBuffer);
+   Inc(Pointer(P), SizeOf(TBuffer));                 { Correct to buffer }
+{$endif fpc}
    {$ENDIF}
 END;
 

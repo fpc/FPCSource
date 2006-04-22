@@ -2946,7 +2946,8 @@ end; { TEditor.SetBufLen }
 
 function TEditor.SetBufSize (NewSize : Sw_Word) : Boolean;
 begin
-  SetBufSize := NewSize <= BufSize;
+//  SetBufSize := NewSize <= BufSize;
+  SetBufSize := SetBufferSize(Buffer, NewSize);
 end; { TEditor.SetBufSize }
 
 
