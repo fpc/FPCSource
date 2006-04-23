@@ -748,7 +748,7 @@ implementation
                 * open arrays
               - no inline assembler
             }
-            if (cs_opt_level1 in aktoptimizerswitches) and
+            if (cs_opt_stackframe in aktoptimizerswitches) and
                not(po_assembler in procdef.procoptions) and
                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter])=[]) then
