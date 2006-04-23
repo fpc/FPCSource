@@ -12,6 +12,7 @@
       <MainUnit Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <LazDoc Paths=""/>
     <PublishOptions>
@@ -33,7 +34,9 @@
         <UnitName Value="testapp"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
       </Unit0>
     </Units>
     <JumpHistory Count="0" HistoryIndex="-1"/>
