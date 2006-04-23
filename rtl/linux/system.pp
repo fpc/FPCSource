@@ -134,11 +134,7 @@ begin
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags:=SA_SIGINFO
-{$ifdef cpux86_64}
-    or $4000000
-{$endif cpux86_64}
-    ;
+  act.sa_flags:=SA_SIGINFO;
   FpSigAction(SIGFPE,@act,nil);
   FpSigAction(SIGSEGV,@act,nil);
   FpSigAction(SIGBUS,@act,nil);
