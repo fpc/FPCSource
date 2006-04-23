@@ -191,9 +191,9 @@ type
   tsigrestorerhandler = sigrestorerhandler_t;
   
   psigactionrec = ^sigactionrec;
-  sigactionrec = packed record
+  sigactionrec = record
     sa_handler: sigactionhandler_t;
-    sa_flags: dword;
+    sa_flags: culong;
     sa_restorer: sigrestorerhandler_t;
     sa_mask: sigset_t;
   end;
