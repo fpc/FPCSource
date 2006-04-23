@@ -323,9 +323,9 @@ implementation
                      procedure matching requires equal parameters }
                    if is_constnode(pt) and
                       is_ordinal(pt.resulttype.def)
-{$ifndef cpu64}
+{$ifndef cpu64bit}
                       and (not is_64bitint(pt.resulttype.def))
-{$endif cpu64}
+{$endif cpu64bit}
                       then
                      begin
                        if is_integer(pt.resulttype.def) then
