@@ -1062,7 +1062,7 @@
           Esp : DWORD;
           SegSs : DWORD;
        end;
-{$endif}          
+{$endif}
 
 {$ifdef cpux86_64}
 {$define __HASCONTEXT__}
@@ -1149,32 +1149,32 @@
 {$note todo, fix alignment }
   type
      CONTEXT = record
-  
+
           //
           // Register parameter home addresses.
           //
           // N.B. These fields are for convience - they could be used to extend the
           //      context record in the future.
           //
-      
+
           P1Home: DWORD64;
           P2Home: DWORD64;
           P3Home: DWORD64;
           P4Home: DWORD64;
           P5Home: DWORD64;
           P6Home: DWORD64;
-      
+
           //
           // Control flags.
           //
-      
+
           ContextFlags: DWORD;
           MxCsr: DWORD;
-      
+
           //
           // Segment Registers and processor flags.
           //
-      
+
           SegCs: WORD;
           SegDs: WORD;
           SegEs: WORD;
@@ -1182,22 +1182,22 @@
           SegGs: WORD;
           SegSs: WORD;
           EFlags: DWORD;
-      
+
           //
           // Debug registers
           //
-      
+
           Dr0: DWORD64;
           Dr1: DWORD64;
           Dr2: DWORD64;
           Dr3: DWORD64;
           Dr6: DWORD64;
           Dr7: DWORD64;
-      
+
           //
           // Integer registers.
           //
-      
+
           Rax: DWORD64;
           Rcx: DWORD64;
           Rdx: DWORD64;
@@ -1214,17 +1214,17 @@
           R13: DWORD64;
           R14: DWORD64;
           R15: DWORD64;
-      
+
           //
           // Program counter.
           //
-      
+
           Rip: DWORD64;
-      
+
           //
           // Floating point state.
           //
-      
+
           FltSave: XMM_SAVE_AREA32; // MWE: only translated the FltSave part of the union
 (*
           union  {
@@ -1251,18 +1251,18 @@
               };
           };
 *)
-      
+
           //
           // Vector registers.
           //
-      
+
           VectorRegister: array[0..25] of M128A;
           VectorControl: DWORD64;
-      
+
           //
           // Special debug control registers.
           //
-      
+
           DebugControl: DWORD64;
           LastBranchToRip: DWORD64;
           LastBranchFromRip: DWORD64;
@@ -4184,7 +4184,7 @@
           hSubMenu : HMENU;
           hbmpChecked : HBITMAP;
           hbmpUnchecked : HBITMAP;
-          dwItemData : DWORD;
+          dwItemData : ULONG_PTR;
           dwTypeData : LPTSTR;
           cch : UINT;
           hbmpItem : HBITMAP;
