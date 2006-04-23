@@ -751,6 +751,10 @@ begin
     default_target(source_info.system);
     {$define source_system_set}
   {$else cpux86_64}
+   {$ifdef MSWindows}
+    default_target(system_x86_64_win64);
+    {$define source_system_set}
+   {$endif}
    {$ifdef linux}
     default_target(system_x86_64_linux);
     {$define source_system_set}
