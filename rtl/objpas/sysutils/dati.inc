@@ -57,7 +57,7 @@ end;
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 begin
   result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
-  result.Date := DateDelta + Trunc(System.Int(DateTime));
+  result.Date := DateDelta + Round(System.Int(DateTime));
 end ;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
