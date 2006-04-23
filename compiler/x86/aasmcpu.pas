@@ -1403,7 +1403,7 @@ implementation
 
 
 {$ifdef x86_64}
-    function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
+    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -1413,12 +1413,11 @@ implementation
         isub,bsub : tsubregister;
       begin
         process_ea:=false;
+        fillchar(output,sizeof(output),0);
         {Register ?}
         if (input.typ=top_reg) then
           begin
             rv:=regval(input.reg);
-            output.sib_present:=false;
-            output.bytes:=0;
             output.modrm:=$c0 or (rfield shl 3) or rv;
             output.size:=1;
 
@@ -1588,7 +1587,7 @@ implementation
 
 {$else x86_64}
 
-    function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
+    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -1598,12 +1597,11 @@ implementation
         isub,bsub : tsubregister;
       begin
         process_ea:=false;
+        fillchar(output,sizeof(output),0);
         {Register ?}
         if (input.typ=top_reg) then
           begin
             rv:=regval(input.reg);
-            output.sib_present:=false;
-            output.bytes:=0;
             output.modrm:=$c0 or (rfield shl 3) or rv;
             output.size:=1;
             process_ea:=true;
@@ -1890,8 +1888,6 @@ implementation
                       end;
                   end;
 
-                ea_data.rex:=0;
-                ea_data.rex_present:=false;
 {$endif x86_64}
                 if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0) then
                   Message(asmw_e_invalid_effective_address)
@@ -2073,14 +2069,14 @@ implementation
             8,9,10 :
               begin
                 { rex should be written at this point }
-{
+(*
 {$ifdef x86_64}
 {$ifdef extdebug}
                 if (rex<>0) and not(rexwritten) then
                   internalerror(200603192);
 {$endif extdebug}
 {$endif x86_64}
-}
+*)
 {$ifdef x86_64}
                 if rex<>0 then
                   begin
@@ -2224,7 +2220,7 @@ implementation
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
-{
+(*
 {$ifdef x86_64}
                 if rex<>0 then
                   begin
@@ -2235,7 +2231,7 @@ implementation
                     objdata.writebytes(bytes,1);
                   end;
 {$endif x86_64}
-}
+*)
               end;
             212 :
               begin
