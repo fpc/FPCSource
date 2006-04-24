@@ -716,12 +716,14 @@ implementation
         { Add some default variables like FPCDIR, UNITSDIR }
         AddFPCDefaultVariables;
         { Load LCL code ? }
+{$ifdef SupportLCL}
         s:=GetVariable('require_packages',true);
         if (pos('lcl',s)>0) or (PackageName='lcl') then
          begin
            FUsesLCL:=true;
            AddLCLDefaultVariables;
          end;
+{$endif SupportLCL}
         { Show globals }
         Verbose(FPCMakeDebug,s_globals);
         Variables.Foreach(@PrintDic);
