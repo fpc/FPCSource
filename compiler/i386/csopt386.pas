@@ -904,15 +904,39 @@ begin
 {  ptaiprop(p.optinfo)^.Regs[reg] := c;}
   newrstate := c.rstate;
   incstate(newrstate,$7f);
-  while (p <> endP) do
+  memconflict := false;
+  invalsmemwrite := false;
+  while (p <> endP) and
+        not(memconflict) and
+        not(invalsmemwrite) do
     begin
       if not(ptaiprop(p.optinfo)^.canberemoved) and
          regreadbyinstruction(supreg,p) then
         incstate(newrstate,1);
-      ptaiprop(p.optinfo)^.Regs[supreg] := c;
-      ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
+      // is this a write to memory that destroys the contents we are restoring?
+      memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
+      if not memconflict and not invalsmemwrite then
+        begin
+          ptaiprop(p.optinfo)^.Regs[supreg] := c;
+          ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
+        end
+      else
+        begin
+          clearRegContentsFrom(asml,supreg,p,endP);
+{$ifdef replaceregdebug}
+           if assigned(p) then
+             begin
+               hp := tai_comment.Create(strpnew(
+                 'stopping restoring of '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+'because memory conflict... '+tostr(l)));
+               insertllitem(asml,p,p.next,hp);
+             end;
+{$endif replaceregdebug}
+          exit
+        end;
+    
       getNextInstruction(p,p);
     end;
+  
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
   if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
     begin
