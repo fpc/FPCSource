@@ -2323,6 +2323,8 @@ S*2Aas_assemble using GNU AS
 3*3Op1_set target processor to 386/486
 3*3Op2_set target processor to Pentium/PentiumMMX (tm)
 3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
+3*3Op4_set target processor to Pentium 4 (tm)
+3*3Op5_set target processor to Pentium M (tm)
 6*2Og_generate smaller code
 6*2OG_generate faster code (default)
 6*2Ox_optimize maximum (still BUGGY!!!)
