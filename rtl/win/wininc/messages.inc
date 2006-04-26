@@ -1188,6 +1188,16 @@ Type
 
 {$else}
 
+{$ifdef cpu64}
+     HALFLRESULT = DWORD;
+     HALFPARAM = DWORD;
+     HALFPARAMBOOL = LONGBOOL;
+{$else}
+     HALFLRESULT = WORD;
+     HALFPARAM = WORD;
+     HALFPARAMBOOL = WORDBOOL;
+{$endif}
+
      MSG = record
           hwnd : HWND;
           message : UINT;
@@ -1204,7 +1214,7 @@ Type
 
 
      PMessage = ^TMessage;
-     TMessage = packed record       {fields according to ICS}
+     TMessage = record       {fields according to ICS}
         msg      : UINT;
         case longint of
           0: (
@@ -1214,26 +1224,26 @@ Type
              );
           1: (
               wParamlo,
-              wParamhi : WORD;  // Is there Windows type for half an wparam?
+              wParamhi : HALFPARAM;  // Is there Windows type for half an wparam?
               lParamlo,
-              lParamhi : WORD;
+              lParamhi : HALFPARAM;
               Resultlo,
-              Resulthi : WORD;
+              Resulthi : HALFLRESULT;
              );
        end;
 
-    TWMSize = packed record
-      Msg: Cardinal;
-      SizeType : LongInt;
-      Width : Word;
-      Height : Word;
-      Result : LongInt;
+    TWMSize = record
+      Msg: UINT;
+      SizeType : WPARAM;
+      Width : HALFPARAM;
+      Height : HALFPARAM;
+      Result : LRESULT;
     End;
 
-    TWMNoParams = packed record
-      Msg : Cardinal;
-      Unused : array[0..3] of Word;
-      Result : Longint;
+    TWMNoParams = record
+      Msg : UINT;
+      Unused : array[0..3] of HALFPARAM;
+      Result : LRESULT;
     end;
 
     TWMGetDlgCode = TWMNoParams;
@@ -1241,67 +1251,68 @@ Type
     TWMGetFont = TWMNoParams;
 
     TWMScroll = record
-      Msg : Cardinal;
-      ScrollCode : SmallInt;
-      Pos : SmallInt;
+      Msg : UINT;
+      ScrollCode : HALFPARAM;
+      Pos : HALFPARAM;
       ScrollBar : HWND;
-      Result : LongInt;
+      Result : LRESULT;
     end;
 
     TWMHScroll = TWMScroll;
     TWMVScroll = TWMScroll;
 
-    TWMGetText = packed record
-      Msg : Cardinal;
-      TextMax : LongInt;
+    TWMGetText = record
+      Msg : UINT;
+      TextMax : LPARAM;
       Text : PChar;
-      Result : LongInt;
+      Result : LRESULT;
     end;
 
     TWMGetTextLength = TWMNoParams;
 
-    TWMKillFocus = packed record
-       Msg : Cardinal;
+    TWMKillFocus = record
+       Msg : UINT;
        FocusedWnd : HWND;
-       UnUsed : LongInt;
-       Result : LongInt;
+       UnUsed : WPARAM;
+       Result : LRESULT;
     End;
 
-    TWMSetCursor = packed record
-      Msg : Cardinal;
+    TWMSetCursor = record
+      Msg : UINT;
       CursorWnd : HWND;
-      HitTest : Word;
-      MouseMsg : Word;
-      Result : LongInt;
+      HitTest : HALFPARAM;
+      MouseMsg : HALFPARAM;
+      Result : LRESULT;
     end;
 
-    TWMSetFocus = packed record
-      Msg : Cardinal;
+    TWMSetFocus = record
+      Msg : UINT;
       FocusedWnd : HWND;
-      Unused : LongInt;
-      Result : LongInt;
+      Unused : WPARAM;
+      Result : LRESULT;
     end;
 
-    TWMSetFont = packed record
-      Msg : Cardinal;
+    TWMSetFont = record
+      Msg : UINT;
       Font : HFONT;
-      Redraw : WordBool;
-      Unused : Word;
-      Result : LongInt;
+      Redraw : HALFPARAMBOOL;
+      Unused : HALFPARAM;
+      Result : LRESULT;
     end;
 
-    TWMShowWindow = packed record
-      Msg : Cardinal;
-      Show : BOOL;
-      Status : LongInt;
-      Result : LongInt;
+    TWMShowWindow = record
+      Msg : UINT;
+      Show : HALFPARAMBOOL;
+      Unused : HALFPARAM;
+      Status : WPARAM;
+      Result : LRESULT;
     end;
 
-    TWMEraseBkgnd = packed record
-      Msg: Cardinal;
+    TWMEraseBkgnd = record
+      Msg: UINT;
       DC: HDC;
-      Unused: Longint;
-      Result: Longint;
+      Unused: LPARAM;
+      Result: LRESULT;
     end;
 
 {$endif messagesunit}
