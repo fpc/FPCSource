@@ -449,7 +449,6 @@ interface
       end;
 
 
-
     procedure tcgaddnode.second_add64bit;
       var
         op         : TOpCG;

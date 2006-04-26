@@ -1444,8 +1444,8 @@ implementation
             exit;
          end;
         {No register, so memory reference.}
-        if (input.typ<>top_ref) then
-          internalerror(200409262);
+        if input.typ<>top_ref then
+          internalerror(200409263);
         ir:=input.ref^.index;
         br:=input.ref^.base;
         isub:=getsubreg(ir);
