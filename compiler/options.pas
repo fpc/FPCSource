@@ -771,19 +771,11 @@ begin
                while j<=length(more) do
                  begin
                    case more[j] of
-                     'd' :
+                     'd',
+                     'g' :
                        begin
-                         if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_dbx)
-                         else
-                           include(initglobalswitches,cs_gdb_dbx);
-                       end;
-                    'g' :
-                       begin
-                         if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_gsym)
-                         else
-                           include(initglobalswitches,cs_gdb_gsym);
+                         { ignore for compatibility,
+                           the code for dbx and gsym is broken }
                        end;
                      'h' :
                        begin
