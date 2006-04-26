@@ -258,8 +258,8 @@ function GetWindowLong(hWnd:HWND; nIndex:longint):LONG; external 'user32' name '
 function SetWindowLong(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32' name 'SetWindowLongA';
 function GetWindowLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetWindowLongPtrA';
 function SetWindowLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetWindowLongPtrA';
-function GetClassLong(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetClassLongA';
-function SetClassLong(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG_PTR; external 'user32' name 'SetClassLongA';
+function GetClassLong(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongA';
+function SetClassLong(hWnd:HWND; nIndex:longint; dwNewLong:LONG):DWORD; external 'user32' name 'SetClassLongA';
 function GetClassLongPtr(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongPtrA';
 function SetClassLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetClassLongPtrA';
 function FindWindow(lpClassName:LPCSTR; lpWindowName:LPCSTR):HWND; external 'user32' name 'FindWindowA';
