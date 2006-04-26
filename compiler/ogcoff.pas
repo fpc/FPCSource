@@ -355,6 +355,20 @@ implementation
        IMAGE_REL_AMD64_SSPAN32     = $0010;  { 32 bit signed span-dependent value applied at link time }
 {$endif x86_64}
 
+{$ifdef arm}
+       IMAGE_REL_ARM_ABSOLUTE      = $0000;     { No relocation required }
+       IMAGE_REL_ARM_ADDR32        = $0001;     { 32 bit address }
+       IMAGE_REL_ARM_ADDR32NB      = $0002;     { 32 bit address w/o image base }
+       IMAGE_REL_ARM_BRANCH24      = $0003;     { 24 bit offset << 2 & sign ext. }
+       IMAGE_REL_ARM_BRANCH11      = $0004;     { Thumb: 2 11 bit offsets }
+       IMAGE_REL_ARM_TOKEN         = $0005;     { clr token }
+       IMAGE_REL_ARM_GPREL12       = $0006;     { GP-relative addressing (ARM) }
+       IMAGE_REL_ARM_GPREL7        = $0007;     { GP-relative addressing (Thumb) }
+       IMAGE_REL_ARM_BLX24         = $0008;
+       IMAGE_REL_ARM_BLX11         = $0009;
+       IMAGE_REL_ARM_SECTION       = $000E;     { Section table index }
+       IMAGE_REL_ARM_SECREL        = $000F;     { Offset within section }
+{$endif arm}
        R_DIR32 = 6;
        R_IMAGEBASE = 7;
        R_PCRLONG = 20;
@@ -1156,7 +1170,15 @@ const win32stub : array[0..131] of byte=(
             case objreloc.typ of
 {$ifdef arm}
               RELOC_ABSOLUTE :
-                ;
+                rel.reloctype:=IMAGE_REL_ARM_ADDR32;
+
+              { I've no idea if this is correct (FK):
+              RELOC_RELATIVE :
+                rel.reloctype:=IMAGE_REL_ARM_GPREL12;
+              }
+
+              RELOC_RVA :
+                rel.reloctype:=IMAGE_REL_ARM_ADDR32NB;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
@@ -1177,7 +1199,7 @@ const win32stub : array[0..131] of byte=(
                 rel.reloctype:=IMAGE_REL_AMD64_ADDR32NB;
 {$endif x86_64}
               else
-                internalerror(200603311);
+                internalerror(200603312);
             end;
             FWriter.write(rel,sizeof(rel));
           end;
