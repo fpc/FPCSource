@@ -259,8 +259,12 @@ function MessageBoxExA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT; w
 function MessageBoxIndirectA(_para1:LPMSGBOXPARAMS):longint; external 'user32' name 'MessageBoxIndirectA';
 function GetWindowLongA(hWnd:HWND; nIndex:longint):LONG; external 'user32' name 'GetWindowLongA';
 function SetWindowLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32' name 'SetWindowLongA';
+function GetWindowLongPtrA(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetWindowLongPtrA';
+function SetWindowLongPtrA(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetWindowLongPtrA';
 function GetClassLongA(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongA';
 function SetClassLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):DWORD; external 'user32' name 'SetClassLongA';
+function GetClassLongPtrA(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetClassLongPtrA';
+function SetClassLongPtrA(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetClassLongPtrA';
 function FindWindowA(lpClassName:LPCSTR; lpWindowName:LPCSTR):HWND; external 'user32' name 'FindWindowA';
 function FindWindowExA(_para1:HWND; _para2:HWND; _para3:LPCSTR; _para4:LPCSTR):HWND; external 'user32' name 'FindWindowExA';
 function GetClassNameA(hWnd:HWND; lpClassName:LPSTR; nMaxCount:longint):longint; external 'user32' name 'GetClassNameA';
