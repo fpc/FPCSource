@@ -69,9 +69,18 @@
 
      PINTEGER = ^longint;
      PBOOL    = ^BOOL;
-
+                        
      LONGLONG  = int64;
      PLONGLONG = ^LONGLONG;
+     ULONGLONG  = qword;      // used in AMD64 CONTEXT
+     PULONGLONG = ^ULONGLONG; //
+     DWORD64 = qword;         //
+     PDWORD64 = ^DWORD64;     //
+     
+     INT_PTR = PtrInt;
+     UINT_PTR = PtrUInt;
+     LONG_PTR = PtrInt;
+     ULONG_PTR = PtrUInt;
 
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
@@ -125,7 +134,7 @@
      LANGID = word;
      LCID   = DWORD;
      LCTYPE = DWORD;
-     LPARAM = longint;
+     LPARAM = LONG_PTR;
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;
@@ -161,7 +170,7 @@
      LPTSTR = Pchar;
 {$endif}
 
-     LRESULT = longint;
+     LRESULT = LONG_PTR;
 
      LPVOID  = pointer;
      LPCVOID = pointer;
@@ -244,7 +253,7 @@
      ULONG  = cardinal;
      USHORT = word;
 
-     WPARAM = Longint;
+     WPARAM = LONG_PTR;
      PLPSTR = ^LPSTR;
      PLPWStr= ^LPWStr;
 
@@ -802,14 +811,14 @@ type
   { argument types are unknown }
   function MAKEINTATOM(i : longint) : LPTSTR;
     begin
-       MAKEINTATOM:=LPTSTR(DWORD(WORD(i)));
+       MAKEINTATOM:=LPTSTR(ULONG_PTR(WORD(i)));
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function MAKEINTRESOURCE(i : longint) : LPTSTR;
     begin
-       MAKEINTRESOURCE:=LPTSTR(DWORD(WORD(i)));
+       MAKEINTRESOURCE:=LPTSTR(ULONG_PTR(WORD(i)));
     end;
 
   { was #define dname(params) def_expr }

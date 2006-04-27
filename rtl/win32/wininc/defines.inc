@@ -5258,8 +5258,9 @@ Const
   DECLARE_HANDLE(HANDLE);
   #endif
    *)
-{$ifdef __PPC__}
 
+{$ifdef cpupowerpc32}
+  { ppc  }
   const
      CONTEXT_CONTROL = 1;
      CONTEXT_FLOATING_POINT = 2;
@@ -5267,23 +5268,51 @@ Const
      CONTEXT_DEBUG_REGISTERS = 8;
      CONTEXT_FULL = (CONTEXT_CONTROL or CONTEXT_FLOATING_POINT) or CONTEXT_INTEGER;
      CONTEXT_DEBUGGER = CONTEXT_FULL;
-{$else}
+{$endif}
+
+{$ifdef cpui386}
   { x86  }
   { The doc refered me to winnt.h, so I had to look...  }
 
   const
      SIZE_OF_80387_REGISTERS = 80;
   { Values for contextflags  }
-     CONTEXT_i386 = $10000;
-     CONTEXT_CONTROL = CONTEXT_i386 or 1;
-     CONTEXT_INTEGER = CONTEXT_i386 or 2;
-     CONTEXT_SEGMENTS = CONTEXT_i386 or 4;
-     CONTEXT_FLOATING_POINT = CONTEXT_i386 or 8;
-     CONTEXT_DEBUG_REGISTERS = CONTEXT_i386 or $10;
+     CONTEXT_i386 = $10000;    // this assumes that i386 and 
+     CONTEXT_i486 = $10000;    // i486 have identical context records
+     
+     CONTEXT_CONTROL = CONTEXT_i386 or 1;              // SS:SP, CS:IP, FLAGS, BP
+     CONTEXT_INTEGER = CONTEXT_i386 or 2;              // AX, BX, CX, DX, SI, DI
+     CONTEXT_SEGMENTS = CONTEXT_i386 or 4;             // DS, ES, FS, GS
+     CONTEXT_FLOATING_POINT = CONTEXT_i386 or 8;       // 387 state
+     CONTEXT_DEBUG_REGISTERS = CONTEXT_i386 or $10;    // DB 0-3,6,7
+     CONTEXT_EXTENDED_REGISTERS = CONTEXT_i386 or $20; // cpu specific extensions
      CONTEXT_FULL = (CONTEXT_CONTROL or CONTEXT_INTEGER) or CONTEXT_SEGMENTS;
+     CONTEXT_ALL = CONTEXT_FULL or CONTEXT_FLOATING_POINT or CONTEXT_DEBUG_REGISTERS or CONTEXT_EXTENDED_REGISTERS;
   { our own invention  }
      FLAG_TRACE_BIT = $100;
      CONTEXT_DEBUGGER = CONTEXT_FULL or CONTEXT_FLOATING_POINT;
+{$endif}                                                       
+
+{$ifdef cpux86_64}
+  const
+     INITIAL_MXCSR = $1f80;            // initial MXCSR value
+     INITIAL_FPCSR = $027f;            // initial FPCSR value
+
+     CONTEXT_AMD64 = $100000;
+   
+     CONTEXT_CONTROL         = (CONTEXT_AMD64 or $00000001);
+     CONTEXT_INTEGER         = (CONTEXT_AMD64 or $00000002);
+     CONTEXT_SEGMENTS        = (CONTEXT_AMD64 or $00000004);
+     CONTEXT_FLOATING_POINT  = (CONTEXT_AMD64 or $00000008);
+     CONTEXT_DEBUG_REGISTERS = (CONTEXT_AMD64 or $00000010);
+   
+     CONTEXT_FULL            = (CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_FLOATING_POINT);
+     CONTEXT_ALL             = (CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS or CONTEXT_FLOATING_POINT or CONTEXT_DEBUG_REGISTERS);
+   
+     CONTEXT_EXCEPTION_ACTIVE    = $08000000;
+     CONTEXT_SERVICE_ACTIVE      = $10000000;
+     CONTEXT_EXCEPTION_REQUEST   = $40000000;
+     CONTEXT_EXCEPTION_REPORTING = $80000000;
 {$endif}
 
   const
