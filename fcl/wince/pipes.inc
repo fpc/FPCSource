@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
+Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 // No pipes under dos, sorry...
 begin
   Result := False;

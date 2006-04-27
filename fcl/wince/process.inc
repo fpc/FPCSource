@@ -136,25 +136,11 @@ end;
 
 Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean);
 
-  Procedure DoCreatePipeHandles(Var H1,H2 : THandle);
-
-  Var
-    I,O : Longint;
-
-  begin
-    CreatePipeHandles(I,O);
-    H1:=Thandle(I);
-    H2:=THandle(O);
-  end;
-
-
-
-
 begin
-  DoCreatePipeHandles(SI.hStdInput,HI);
-  DoCreatePipeHandles(HO,Si.hStdOutput);
+  CreatePipeHandles(SI.hStdInput,HI);
+  CreatePipeHandles(HO,Si.hStdOutput);
   if CE then
-    DoCreatePipeHandles(HE,SI.hStdError)
+    CreatePipeHandles(HE,SI.hStdError)
   else
     begin
     SI.hStdError:=SI.hStdOutput;
