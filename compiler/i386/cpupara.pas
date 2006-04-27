@@ -206,7 +206,7 @@ unit cpupara;
           objectdef :
             result:=is_object(def);
           stringdef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:= (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
           procvardef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
           setdef :
