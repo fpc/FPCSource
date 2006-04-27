@@ -358,14 +358,15 @@ end;
 
 const  ansitbl:array[0..7] of char='04261537';
 
-Function Attr2Ansi(Attr,OAttr:longint):string;
+{$ifdef disabled}
+Function Attr2Ansi(Attr,OAttr:byte):string;
 {
   Convert Attr to an Ansi String, the Optimal code is calculate
   with use of the old OAttr
 }
 var
   hstr : string[16];
-  OFg,OBg,Fg,Bg : longint;
+  OFg,OBg,Fg,Bg:byte;
 
   procedure AddSep(ch:char);
   begin
@@ -385,12 +386,16 @@ begin
   Bg:=Attr shr 4;
   OFg:=OAttr and $f;
   OBg:=OAttr shr 4;
+{  This resets colours to their defaults, the problem is we don't know what
+  the default is, i.e. it can either be white on black or back on white or
+  even something totally different. This causes undesired colour schemes
+  in the IDE on some terminals.
   if (OFg<>7) or (Fg=7) or ((OFg>7) and (Fg<8)) or ((OBg>7) and (Bg<8)) then
    begin
      hstr:='0';
      OFg:=7;
      OBg:=0;
-   end;
+   end;}
   if (Fg>7) and (OFg<8) then
    begin
      AddSep('1');
@@ -415,6 +420,50 @@ begin
    hstr:='';
   Attr2Ansi:=#27'['+hstr+'m';
 end;
+{$endif}
+
+function attr2ansi(attr,oattr:byte):string;
+
+var OFg,OBg,Fg,Bg:byte;
+
+begin
+  Fg:=Attr and $f;
+  Bg:=Attr shr 4;
+  OFg:=OAttr and $f;
+  OBg:=OAttr shr 4;
+  attr2ansi:=#27'[';
+  if fg and 8<>0 then
+    begin
+      {Enable bold if not yet on.}
+      if ofg and 8=0 then
+        attr2ansi:=attr2ansi+'1;';
+    end
+  else
+    {Disable bold if on.}
+    if ofg and 8<>0 then
+      attr2ansi:=attr2ansi+'22;';
+  if bg and 8<>0 then
+    begin
+      {Enable bold if not yet on.}
+      if obg and 8=0 then
+        attr2ansi:=attr2ansi+'5;';
+    end
+  else
+    {Disable bold if on.}
+    if obg and 8<>0 then
+      attr2ansi:=attr2ansi+'25;';
+
+  if fg and 7<>ofg and 7 then
+     attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+  if bg and 7<>obg and 7 then
+     attr2ansi:=attr2ansi+'4'+ansitbl[bg and 7]+';';
+
+  if attr2ansi[length(attr2ansi)]=';' then
+    attr2ansi[length(attr2ansi)]:='m'
+  else
+   attr2ansi:='';
+end;
+
 
 procedure UpdateTTY(Force:boolean);
 type
@@ -633,7 +682,7 @@ begin
   p:=PVideoCell(VideoBuf);
   pold:=PVideoCell(OldVideoBuf);
 { init Attr, X,Y and set autowrap off }
-  SendEscapeSeq(#27'[m'#27'[?7l'{#27'[H'} );
+  SendEscapeSeq(#27'[0;40;37m'#27'[?7l'{#27'[H'} );
 //  1.0.x: SendEscapeSeq(#27'[m'{#27'[H'});
   LastAttr:=7;
   LastX:=-1;
