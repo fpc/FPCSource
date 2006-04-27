@@ -60,7 +60,6 @@ type
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);virtual;
       procedure importvariable(vs:tglobalvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
-      procedure generatesmartlib;virtual;
    end;
 
    TDLLScanner=class
@@ -184,12 +183,6 @@ end;
 
 
 procedure timportlib.generatelib;
-begin
-  NotSupported;
-end;
-
-
-procedure timportlib.generatesmartlib;
 begin
   NotSupported;
 end;

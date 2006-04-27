@@ -100,14 +100,6 @@ implementation
         if (cs_create_smart in aktmoduleswitches) and
            (not use_smartlink_section) then
          begin
-           { regenerate the importssection for win32 }
-           if assigned(current_asmdata.asmlists[al_imports]) and
-              (target_info.system in [system_i386_win32,system_i386_wdosx, system_arm_wince,system_i386_wince]) then
-            begin
-              current_asmdata.asmlists[al_imports].clear;
-              importlib.generatesmartlib;
-            end;
-
            GenerateAsm(true);
            if (af_needar in target_asm.flags) then
              Linker.MakeStaticLibrary;

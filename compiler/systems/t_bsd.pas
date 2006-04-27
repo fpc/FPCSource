@@ -53,7 +53,6 @@ implementation
       procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
-      procedure generatesmartlib;override;
     end;
 
     timportlibbsd=class(timportlib)
@@ -109,12 +108,6 @@ implementation
         { the rest is handled in the nppcld.pas tppcloadnode }
         vs.set_mangledname(name);
       end;
-
-
-    procedure timportlibdarwin.generatesmartlib;
-      begin
-         generatelib;
-       end;
 
 
     procedure timportlibdarwin.generatelib;
