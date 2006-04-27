@@ -728,6 +728,16 @@ begin
     inc(LastX);
    end;
   OutData(XY2Ansi(CursorX+1,CursorY+1,LastX,LastY));
+  if in_ACS then
+    begin
+      {If the program crashes and the ACS is still enabled, the user's
+       keyboard will output strange characters. Therefore we disable the
+       acs after each screen update, so the risk that it happens is greatly
+       reduced.}
+{      SendEscapeSeqNdx(exit_alt_charset_mode);}
+      outdata(acsout);
+      in_acs:=false;
+    end;
 {$ifdef logging}
   blockwrite(f,logstart[1],length(logstart));
   blockwrite(f,nl,1);
@@ -737,8 +747,6 @@ begin
   blockwrite(f,nl,1);
 {$endif logging}
   fpWrite(stdoutputhandle,outbuf,outptr);
-  if in_ACS then
-    SendEscapeSeqNdx(exit_alt_charset_mode);
  {turn autowrap on}
 //  SendEscapeSeq(#27'[?7h');
 end;
