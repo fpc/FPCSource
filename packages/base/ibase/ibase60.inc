@@ -28,13 +28,6 @@ Var
     fbclib = 'fbclient.dll';
     fbembedlib = 'fbembed.dll';
 {$ENDIF}
-{$IFDEF Wince}
-  {$DEFINE extdecl:=stdcall}
-  const
-    gdslib = 'gds32.dll';
-    fbclib = 'fbclient.dll';
-    fbembedlib = 'fbembed.dll';
-{$ENDIF}
 
 type
   {  Unsigned types }
