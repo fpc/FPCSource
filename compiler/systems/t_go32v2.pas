@@ -215,7 +215,7 @@ var
   success : boolean;
   StripStr : string[40];
 begin
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -238,7 +238,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    begin
      RemoveFile(outputexedir+Info.ResName);
      RemoveFile(outputexedir+Info.ScriptName);
@@ -289,7 +289,7 @@ var
   zerobuf : pointer;
 begin
   { when -s is used quit, because there is no .exe }
-  if cs_link_extern in aktglobalswitches then
+  if cs_link_nolink in aktglobalswitches then
    exit;
   { open file }
   assign(f,n);

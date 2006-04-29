@@ -516,7 +516,7 @@ var
   success  : boolean;
   StripStr : string[2];
 begin
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -540,7 +540,7 @@ begin
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
   { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
     RemoveFile(outputexedir+Info.ResName);
 
 { Call nlmconv }
@@ -552,7 +552,7 @@ begin
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
-    if (success) and not(cs_link_extern in aktglobalswitches) then
+    if (success) and not(cs_link_nolink in aktglobalswitches) then
     begin
       RemoveFile(outputexedir+'n'+Info.ResName);
       RemoveFile(outputexedir+tmpLinkFileName);

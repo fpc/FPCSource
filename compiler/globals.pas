@@ -2266,7 +2266,7 @@ end;
         initmodeswitches:=fpcmodeswitches;
         initlocalswitches:=[cs_check_io,cs_typed_const_writable];
         initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
-        initglobalswitches:=[cs_check_unit_name,cs_link_static{$ifdef INTERNALLINKER},cs_link_internal{$endif}];
+        initglobalswitches:=[cs_check_unit_name,cs_link_static,cs_link_extern];
         initoptimizerswitches:=[];
         initsourcecodepage:='8859-1';
         initpackenum:=4;

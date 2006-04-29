@@ -92,6 +92,4 @@
 {$DEFINE MACOS_USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
 
-{ Use the internal linker by default }
-{ define INTERNALLINKER}
 {$define SUPPORT_UNALIGNED}

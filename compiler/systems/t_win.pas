@@ -1212,7 +1212,7 @@ var
   EntryStr,
   ImageBaseStr : string[40];
 begin
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -1289,7 +1289,7 @@ begin
    success:=PostProcessExecutable(current_module.exefilename^,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    begin
      RemoveFile(outputexedir+Info.ResName);
      RemoveFile('base.$$$');
@@ -1318,7 +1318,7 @@ var
   ImageBaseStr : string[40];
 begin
   MakeSharedLibrary:=false;
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Create some replacements }
@@ -1391,7 +1391,7 @@ begin
    success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    begin
      RemoveFile(outputexedir+Info.ResName);
      RemoveFile('base.$$$');
@@ -1498,7 +1498,7 @@ var
 begin
   postprocessexecutable:=false;
   { when -s is used or it's a dll then quit }
-  if (cs_link_extern in aktglobalswitches) then
+  if (cs_link_nolink in aktglobalswitches) then
    begin
      case apptype of
        app_native :
@@ -1687,7 +1687,6 @@ initialization
   RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
-  RegisterExternalLinker(system_x64_win64_info,TLinkerWin32);
   RegisterInternalLinker(system_x64_win64_info,TPECoffLinker);
   RegisterImport(system_x86_64_win64,TImportLibWin32);
   RegisterExport(system_x86_64_win64,TExportLibWin32);

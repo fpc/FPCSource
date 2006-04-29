@@ -210,7 +210,7 @@ var
 begin
   //TODO Only external link in MPW is possible, otherwise yell.
 
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
     Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -248,7 +248,7 @@ begin
                 success:=DoExec('Execute',CmdStr,true,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
     RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

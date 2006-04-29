@@ -190,7 +190,7 @@ begin
    found:=objectsearchpath.FindFile(s,foundfile);
   if not(cs_link_on_target in aktglobalswitches) and (not found) then
    found:=FindFile(s,exepath,foundfile);
-  if not(cs_link_extern in aktglobalswitches) and (not found) then
+  if not(cs_link_nolink in aktglobalswitches) and (not found) then
    Message1(exec_w_objfile_not_found,s);
 
   {Restore file extension}
@@ -435,7 +435,7 @@ begin
   if s='' then
    exit;
   found:=FindLibraryFile(s,target_info.staticlibprefix,target_info.staticlibext,ns);
-  if not(cs_link_extern in aktglobalswitches) and (not found) then
+  if not(cs_link_nolink in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
   StaticLibFiles.Concat(ns);
 end;
@@ -464,7 +464,7 @@ begin
   if s='' then
    exit;
   found:=FindLibraryFile(s,target_info.staticclibprefix,target_info.staticclibext,ns);
-  if not(cs_link_extern in aktglobalswitches) and (not found) then
+  if not(cs_link_nolink in aktglobalswitches) and (not found) then
    Message1(exec_w_libfile_not_found,s);
   StaticLibFiles.Concat(ns);
 end;
@@ -553,10 +553,10 @@ begin
    Found:=FindFile(utilexe,utilsdirectory,Foundbin);
   if (not Found) then
    Found:=FindExe(utilexe,Foundbin);
-  if (not Found) and not(cs_link_extern in aktglobalswitches) then
+  if (not Found) and not(cs_link_nolink in aktglobalswitches) then
    begin
      Message1(exec_e_util_not_found,utilexe);
-     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+     aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
    end;
   if (FoundBin<>'') then
    Message1(exec_t_using_util,FoundBin);
@@ -569,7 +569,7 @@ var
   exitcode: longint;
 begin
   DoExec:=true;
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    begin
      if useshell then
        exitcode := shell(maybequoted(command)+' '+para)
@@ -579,13 +579,13 @@ begin
        if ExecuteProcess(command,para) <> 0
        then begin
          Message(exec_e_error_while_linking);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
          DoExec:=false;
        end;
      except on E:EOSError do
        begin
          Message(exec_e_cant_call_linker);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
          DoExec:=false;
        end;
      end
@@ -600,20 +600,20 @@ begin
      if (doserror<>0) then
       begin
          Message(exec_e_cant_call_linker);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
          DoExec:=false;
       end
      else
       if (exitcode<>0) then
        begin
         Message(exec_e_error_while_linking);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+        aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
         DoExec:=false;
        end;
    end;
 {$ENDIF USE_SYSUTILS}
 { Update asmres when externmode is set }
-  if cs_link_extern in aktglobalswitches then
+  if cs_link_nolink in aktglobalswitches then
    begin
      if showinfo then
        begin
@@ -702,7 +702,7 @@ begin
 
   { Clean up }
   if not(cs_asm_leave in aktglobalswitches) then
-   if not(cs_link_extern in aktglobalswitches) then
+   if not(cs_link_nolink in aktglobalswitches) then
     begin
       while not SmartLinkOFiles.Empty do
         RemoveFile(SmartLinkOFiles.GetFirst);
@@ -976,33 +976,32 @@ end;
                                  Init/Done
 *****************************************************************************}
 
-procedure InitLinker;
-var
- lk : TlinkerClass;
-begin
-  if (cs_link_internal in aktglobalswitches) and
-     assigned(target_info.link) then
-   begin
-     lk:=TLinkerClass(target_info.link);
-     linker:=lk.Create;
-   end
-  else if assigned(target_info.linkextern) then
-   begin
-     lk:=TlinkerClass(target_info.linkextern);
-     linker:=lk.Create;
-   end
-  else
-  begin
-   linker:=Tlinker.Create;
-  end;
-end;
+    procedure InitLinker;
+      var
+        lk : TlinkerClass;
+      begin
+        if (cs_link_extern in aktglobalswitches) and
+           assigned(target_info.linkextern) then
+          begin
+            lk:=TlinkerClass(target_info.linkextern);
+            linker:=lk.Create;
+          end
+        else
+          if assigned(target_info.link) then
+            begin
+              lk:=TLinkerClass(target_info.link);
+              linker:=lk.Create;
+            end
+        else
+          linker:=Tlinker.Create;
+      end;
 
 
-procedure DoneLinker;
-begin
-  if assigned(linker) then
-   Linker.Free;
-end;
+    procedure DoneLinker;
+      begin
+        if assigned(linker) then
+         Linker.Free;
+      end;
 
 
 {*****************************************************************************

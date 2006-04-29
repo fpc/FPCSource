@@ -132,8 +132,8 @@ than 255 characters. That's why using Ansi Strings}
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,
          { linking }
-         cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
-         cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,cs_link_opt_vtable,
+         cs_link_nolink,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
+         cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,
          cs_link_map,cs_link_pthread
        );

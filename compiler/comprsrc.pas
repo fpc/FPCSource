@@ -92,10 +92,10 @@ begin
 {$ELSE USE_SYSUTILS}
   fsplit(resbin,respath,n,e);
 {$ENDIF USE_SYSUTILS}
-  if (not resfound) and not(cs_link_extern in aktglobalswitches) then
+  if (not resfound) and not(cs_link_nolink in aktglobalswitches) then
    begin
      Message(exec_e_res_not_found);
-     aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+     aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
    end;
 {$IFDEF USE_SYSUTILS}
   srcfilepath := SplitPath(current_module.mainsource^);
@@ -117,7 +117,7 @@ begin
      (srcfilepath<>'') then
     s:=s+' --include '+maybequoted(srcfilepath);
 { Execute the command }
-  if not (cs_link_extern in aktglobalswitches) then
+  if not (cs_link_nolink in aktglobalswitches) then
    begin
      Message1(exec_i_compilingresource,fname);
      Message2(exec_d_resbin_params,resbin,s);
@@ -126,13 +126,13 @@ begin
        if ExecuteProcess(resbin,s) <> 0 then
        begin
          Message(exec_e_error_while_linking);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
        end;
      except
        on E:EOSError do
        begin
          Message(exec_e_cant_call_linker);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
        end
      end;
 {$ELSE USE_SYSUTILS}
@@ -142,18 +142,18 @@ begin
      if (doserror<>0) then
       begin
         Message(exec_e_cant_call_linker);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+        aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
       end
      else
       if (dosexitcode<>0) then
        begin
          Message(exec_e_error_while_linking);
-         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
        end;
 {$ENDIF USE_SYSUTILS}
     end;
   { Update asmres when externmode is set }
-  if cs_link_extern in aktglobalswitches then
+  if cs_link_nolink in aktglobalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
   if ObjUsed then
     current_module.linkotherofiles.add(resobj,link_always);

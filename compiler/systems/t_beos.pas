@@ -379,7 +379,7 @@ var
   StaticStr,
   StripStr   : string[40];
 begin
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -414,7 +414,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,true);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -432,7 +432,7 @@ var
 
  begin
   MakeSharedLibrary:=false;
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Create some replacements }
@@ -474,7 +474,7 @@ var
    end;
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }

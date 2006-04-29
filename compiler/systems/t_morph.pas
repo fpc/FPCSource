@@ -207,7 +207,7 @@ var
   StripStr: string[40];
 begin
 
-  if not(cs_link_extern in aktglobalswitches) then
+  if not(cs_link_nolink in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
   if not (cs_link_on_target in aktglobalswitches) then
@@ -251,7 +251,7 @@ begin
    end;
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_extern in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

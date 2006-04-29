@@ -101,25 +101,11 @@ var
 
 procedure set_default_link_type;
 begin
-  { win32 and wdosx need smartlinking by default to prevent including too much
-    dll dependencies }
-  if not(cs_link_internal in initglobalswitches) and
-     (target_info.system in [system_i386_win32,system_i386_wdosx]) then
-    begin
-      def_system_macro('FPC_LINK_SMART');
-      undef_system_macro('FPC_LINK_STATIC');
-      undef_system_macro('FPC_LINK_DYNAMIC');
-      initglobalswitches:=initglobalswitches+[cs_link_smart];
-      initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_static];
-    end
-  else
-    begin
-      undef_system_macro('FPC_LINK_SMART');
-      def_system_macro('FPC_LINK_STATIC');
-      undef_system_macro('FPC_LINK_DYNAMIC');
-      initglobalswitches:=initglobalswitches+[cs_link_static];
-      initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
-    end;
+  undef_system_macro('FPC_LINK_SMART');
+  def_system_macro('FPC_LINK_STATIC');
+  undef_system_macro('FPC_LINK_DYNAMIC');
+  initglobalswitches:=initglobalswitches+[cs_link_static];
+  initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
 end;
 
 
@@ -544,9 +530,9 @@ begin
                         include(initlocalswitches,cs_check_io);
                     'n' :
                       If UnsetBool(More, j) then
-                        exclude(initglobalswitches,cs_link_extern)
+                        exclude(initglobalswitches,cs_link_nolink)
                       Else
-                        include(initglobalswitches,cs_link_extern);
+                        include(initglobalswitches,cs_link_nolink);
                     'o' :
                       If UnsetBool(More, j) then
                         exclude(initlocalswitches,cs_check_overflow)
@@ -675,9 +661,9 @@ begin
            'E' :
              begin
                if UnsetBool(More, 0) then
-                 exclude(initglobalswitches,cs_link_extern)
+                 exclude(initglobalswitches,cs_link_nolink)
                else
-                 include(initglobalswitches,cs_link_extern);
+                 include(initglobalswitches,cs_link_nolink);
              end;
 
            'F' :
@@ -982,13 +968,13 @@ begin
              begin
                if UnsetBool(More, 0) then
                  begin
-                   initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern];
+                   initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more<>'' then
                      IllegalPara(opt);
                  end
                else
                  begin
-                   initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern];
+                   initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more='h' then
                      initglobalswitches:=initglobalswitches-[cs_link_on_target]
                    else if more='t' then
@@ -1225,12 +1211,23 @@ begin
                while j<=length(more) do
                 begin
                   case More[j] of
+                    'c' : Cshared:=TRUE;
+                    'd' : Dontlinkstdlibpath:=TRUE;
+                    'e' :
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(initglobalswitches,cs_link_extern)
+                        else
+                          include(initglobalswitches,cs_link_extern);
+                      end;
+                    'f' :
+                      include(initglobalswitches,cs_link_pthread);
                     'i' :
                       begin
                         If UnsetBool(More, j) then
-                          exclude(initglobalswitches,cs_link_internal)
+                          include(initglobalswitches,cs_link_extern)
                         else
-                          include(initglobalswitches,cs_link_internal);
+                          exclude(initglobalswitches,cs_link_extern);
                       end;
                     'm' :
                       begin
@@ -1239,8 +1236,12 @@ begin
                         else
                           include(initglobalswitches,cs_link_map);
                       end;
-                    'f' :
-                      include(initglobalswitches,cs_link_pthread);
+                    'r' :
+                      begin
+                        rlinkpath:=Copy(more,2,length(More)-1);
+                        DefaultReplacements(rlinkpath);
+                        More:='';
+                      end;
                     's' :
                       begin
                         If UnsetBool(More, j) then
@@ -1248,7 +1249,6 @@ begin
                         else
                           include(initglobalswitches,cs_link_strip);
                       end;
-                    'c' : Cshared:=TRUE;
                     't' :
                       include(initglobalswitches,cs_link_staticflag);
                     'v' :
@@ -1268,17 +1268,17 @@ begin
                         include(initglobalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
-                    'd' : Dontlinkstdlibpath:=TRUE;
-                    'P' : Begin
-                             utilsprefix:=Copy(more,2,length(More)-1);
-                             DefaultReplacements(utilsprefix);
-                             More:='';
-                          End;
-                    'r' : Begin
-                             rlinkpath:=Copy(more,2,length(More)-1);
-                             DefaultReplacements(rlinkpath);
-                             More:='';
-                          end;
+                    'M' :
+                      begin
+                        mainaliasname:=Copy(more,2,length(More)-1);
+                        More:='';
+                      end;
+                    'P' :
+                      begin
+                        utilsprefix:=Copy(more,2,length(More)-1);
+                        DefaultReplacements(utilsprefix);
+                        More:='';
+                      end;
                     'S' :
                       begin
                         def_system_macro('FPC_LINK_STATIC');
@@ -1298,11 +1298,6 @@ begin
                         include(initglobalswitches,cs_link_smart);
                         exclude(initglobalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
-                      end;
-                    'M' :
-                      begin
-                        mainaliasname:=Copy(more,2,length(More)-1);
-                        More:='';
                       end;
                     '-' :
                       begin
@@ -2188,10 +2183,12 @@ begin
      set_target_asm(target_info.assemextern);
    end;
 
-  { disable internal linker if it is not registered }
-  if not assigned(target_info.link) and
-     (cs_link_internal in initglobalswitches) then
-    exclude(initglobalswitches,cs_link_internal);
+  { disable internal linker if it is not registered or
+    if we skip the linking }
+  if not(cs_link_extern in initglobalswitches) and
+     (not assigned(target_info.link) or
+      (cs_link_nolink in initglobalswitches)) then
+    exclude(initglobalswitches,cs_link_extern);
 
   { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or
@@ -2204,13 +2201,10 @@ begin
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
-     (target_info.system in [system_i386_win32]) then
+     (target_info.system in [system_i386_win32,system_x86_64_win64]) then
     exclude(target_info.flags,tf_smartlink_sections);
 
   if (cs_link_extern in initglobalswitches) then
-    exclude(initglobalswitches,cs_link_internal);
-
-  if (cs_link_internal in initglobalswitches) then
     begin
       { By default don't create import section if we use the internal linker }
       if not GenerateImportSectionSetExplicitly then
