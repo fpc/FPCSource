@@ -62,6 +62,7 @@ const
    in_leave             = 51; {macpas}
    in_cycle             = 52; {macpas}
    in_slice_x           = 53;
+   in_unaligned_x       = 54;
 
 { Internal constant functions }
    in_const_sqr        = 100;

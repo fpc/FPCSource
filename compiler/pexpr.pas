@@ -520,6 +520,20 @@ implementation
               statement_syssym:=p2;
             end;
 
+{$ifdef SUPPORT_UNALIGNED}
+          in_unaligned_x :
+            begin
+              err:=false;
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              p2:=ccallparanode.create(p1,nil);
+              p2:=geninlinenode(in_unaligned_x,false,p2);
+              consume(_RKLAMMER);
+              statement_syssym:=p2;
+            end;
+{$endif SUPPORT_UNALIGNED}
+
           in_assigned_x :
             begin
               err:=false;

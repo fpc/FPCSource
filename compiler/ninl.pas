@@ -2012,15 +2012,21 @@ implementation
                    end;
                 end;
 
- {$ifdef SUPPORT_MMX}
+{$ifdef SUPPORT_MMX}
               in_mmx_pcmpeqb..in_mmx_pcmpgtw:
                 begin
                 end;
- {$endif SUPPORT_MMX}
+{$endif SUPPORT_MMX}
               in_prefetch_var:
                 begin
                   resulttype:=voidtype;
                 end;
+{$ifdef SUPPORT_UNALIGNED}
+              in_unaligned_x:
+                begin
+                  resulttype:=left.resulttype;
+                end;
+{$endif SUPPORT_UNALIGNED}
               in_assert_x_y :
                 begin
                   resulttype:=voidtype;
@@ -2409,7 +2415,12 @@ implementation
            begin
              expectloc:=LOC_VOID;
            end;
-
+{$ifdef SUPPORT_UNALIGNED}
+         in_unaligned_x:
+           begin
+             expectloc:=left.expectloc;
+           end;
+{$endif SUPPORT_UNALIGNED}
           else
             internalerror(8);
           end;

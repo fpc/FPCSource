@@ -94,3 +94,4 @@
 
 { Use the internal linker by default }
 { define INTERNALLINKER}
+{$define SUPPORT_UNALIGNED}

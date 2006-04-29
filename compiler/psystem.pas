@@ -90,6 +90,9 @@ implementation
         systemunit.insert(tsyssym.create('Length',in_length_x));
         systemunit.insert(tsyssym.create('New',in_new_x));
         systemunit.insert(tsyssym.create('Dispose',in_dispose_x));
+{$ifdef SUPPORT_UNALIGNED}
+        systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
+{$endif SUPPORT_UNALIGNED}
       end;
 
 

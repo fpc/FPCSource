@@ -56,6 +56,9 @@ unit cgutils;
          { (An)+ and -(An)                      }
          direction : tdirection;
 {$endif m68k}
+{$ifdef SUPPORT_UNALIGNED}
+         alignment : byte;
+{$endif SUPPORT_UNALIGNED}
       end;
 
       tlocation = record
