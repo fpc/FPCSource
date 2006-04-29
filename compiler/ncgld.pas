@@ -596,8 +596,8 @@ implementation
                         { Use unaligned copy when the offset is not aligned }
                         len:=left.resulttype.def.size;
                         if (right.location.reference.offset mod sizeof(aint)<>0) or
-                            (left.location.reference.offset mod sizeof(aint)<>0) or
-                            (right.resulttype.def.alignment<sizeof(aint)) then
+                          (left.location.reference.offset mod sizeof(aint)<>0) or
+                          (right.resulttype.def.alignment<sizeof(aint)) then
                           cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
                         else
                           cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);

@@ -850,7 +850,11 @@ implementation
                   cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vartype.def).len)
                 end
               else
-                cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vartype.def.size);
+                begin
+                  { pass proper alignment info }
+                  localcopyloc.reference.alignment:=tparavarsym(p).vartype.def.alignment;
+                  cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vartype.def.size);
+                end;
               { update localloc of varsym }
               tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
               tparavarsym(p).localloc:=localcopyloc;

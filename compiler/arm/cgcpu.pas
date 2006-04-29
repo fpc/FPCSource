@@ -1531,7 +1531,11 @@ unit cgcpu;
 
     procedure tcgarm.g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);
       begin
-        g_concatcopy_internal(list,source,dest,len,true);
+        if (source.alignment in [1..3]) or
+          (dest.alignment in [1..3]) then
+          g_concatcopy_internal(list,source,dest,len,false)
+        else
+          g_concatcopy_internal(list,source,dest,len,true);
       end;
 
 
