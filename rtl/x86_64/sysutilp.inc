@@ -78,7 +78,7 @@ end;
 function InterLockedCompareExchange(var Target: longint; Compare, NewValue: longint): longint; assembler;
 asm
 {$ifdef win64}
-        movl            %r8l,%eax
+        movl            %r8d,%eax
         lock
         cmpxchgl        %edx,(%rcx)
 {$else win64}
