@@ -507,8 +507,8 @@ implementation
                { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
                { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
                { HERE UNDER TASM!                              }
-                 if tai_align(hp).aligntype>1 then
-                   AsmWriteLn(#9'ALIGN '+tostr(tai_align(hp).aligntype));
+                 if tai_align_abstract(hp).aligntype>1 then
+                   AsmWriteLn(#9'ALIGN '+tostr(tai_align_abstract(hp).aligntype));
                end;
            ait_datablock :
              begin
