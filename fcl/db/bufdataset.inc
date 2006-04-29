@@ -90,7 +90,7 @@ end;
 
 procedure TBufDataset.InternalFirst;
 begin
-  FCurrentRecBuf := FFirstRecBuf;
+  FCurrentRecBuf := nil;
 end;
 
 procedure TBufDataset.InternalLast;
@@ -138,6 +138,7 @@ begin
         begin
         if getnextpacket = 0 then result := grEOF;
         end
+      else if FCurrentRecBuf = nil then FCurrentRecBuf := FFirstRecBuf
       else if (PBufRecLinkItem(FCurrentRecBuf)^.next = FLastRecBuf) then
         begin
         if getnextpacket > 0 then
