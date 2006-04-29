@@ -455,9 +455,10 @@ implementation
               if (sym.typ=typesym) then
                begin
                  if ((token=_CLASS) or
-                     (token=_INTERFACE)) and
+                     (token=_INTERFACE) or
+                     (token=_DISPINTERFACE)) and
                     (assigned(ttypesym(sym).restype.def)) and
-                    is_class_or_interface(ttypesym(sym).restype.def) and
+                    is_class_or_interface_or_dispinterface(ttypesym(sym).restype.def) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).restype.def).objectoptions) then
                   begin
                     { we can ignore the result   }

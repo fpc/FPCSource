@@ -685,6 +685,7 @@ implementation
                     aktpackrecords:=oldaktpackrecords;
                   end;
               end;
+            _DISPINTERFACE,
             _CLASS,
             _CPPCLASS,
             _INTERFACE,

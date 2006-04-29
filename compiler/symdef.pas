@@ -735,6 +735,7 @@ interface
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
+    function is_class_or_interface_or_dispinterface(def: tdef): boolean;
 
 
 {$ifdef x86}
@@ -4240,7 +4241,7 @@ implementation
         set_parent(c);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
-        if objecttype in [odt_interfacecorba,odt_interfacecom] then
+        if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
         if objecttype in [odt_class,odt_interfacecorba] then
@@ -4270,7 +4271,7 @@ implementation
 
          { load guid }
          iidstr:=nil;
-         if objecttype in [odt_interfacecom,odt_interfacecorba] then
+         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
               new(iidguid);
               ppufile.getguid(iidguid^);
@@ -4373,7 +4374,7 @@ implementation
          ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
          ppufile.putsmallset(objectoptions);
-         if objecttype in [odt_interfacecom,odt_interfacecorba] then
+         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
            begin
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
@@ -4480,7 +4481,7 @@ implementation
              lastvtableindex:=c.lastvtableindex;
              objectoptions:=objectoptions+(c.objectoptions*
                inherited_objectoptions);
-             if not (objecttype in [odt_interfacecom,odt_interfacecorba]) then
+             if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
                begin
                   { add the data of the anchestor class }
                   inc(tobjectsymtable(symtable).datasize,tobjectsymtable(c.symtable).datasize);
@@ -4501,7 +4502,7 @@ implementation
 
    procedure tobjectdef.insertvmt;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba] then
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
           exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
@@ -4524,7 +4525,7 @@ implementation
 
    procedure tobjectdef.check_forwards;
      begin
-        if not(objecttype in [odt_interfacecom,odt_interfacecorba]) then
+        if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
           tstoredsymtable(symtable).check_forwards;
         if (oo_is_forward in objectoptions) then
           begin
@@ -4586,7 +4587,7 @@ implementation
 
     function tobjectdef.size : aint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
           result:=sizeof(aint)
         else
           result:=tobjectsymtable(symtable).datasize;
@@ -4595,7 +4596,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
           alignment:=sizeof(aint)
         else
           alignment:=tobjectsymtable(symtable).recordalignment;
@@ -4638,6 +4639,7 @@ implementation
     function tobjectdef.needs_inittable : boolean;
       begin
          case objecttype of
+            odt_dispinterface,
             odt_class :
               needs_inittable:=false;
             odt_interfacecom:
@@ -5495,6 +5497,15 @@ implementation
           assigned(def) and
           (def.deftype=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
+      end;
+
+
+    function is_class_or_interface_or_dispinterface(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
 

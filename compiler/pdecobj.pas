@@ -368,7 +368,7 @@ implementation
               aktobjectdef.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
               p.free;
               valid:=string2guid(aktobjectdef.iidstr^,aktobjectdef.iidguid^);
-              if (classtype=odt_interfacecom) and not assigned(aktobjectdef.iidguid) and not valid then
+              if (classtype in [odt_interfacecom,odt_dispinterface]) and not assigned(aktobjectdef.iidguid) and not valid then
                 Message(parser_e_improper_guid_syntax);
             end
           else
