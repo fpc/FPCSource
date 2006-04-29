@@ -1358,12 +1358,14 @@ unit cgcpu;
 
     procedure tcgarm.g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : aint;aligned : boolean);
       var
-        srcref,dstref:treference;
-        srcreg,destreg,countreg,r:tregister;
+        srcref,dstref,usedtmpref,usedtmpref2:treference;
+        srcreg,destreg,countreg,r,tmpreg,tmpreg2:tregister;
         helpsize:aword;
         copysize:byte;
         cgsize:Tcgsize;
+        so:tshifterop;
 
+      { will never be called with count<=4 }
       procedure genloop(count : aword;size : byte);
         const
           size2opsize : array[1..4] of tcgsize = (OS_8,OS_16,OS_NO,OS_32);
@@ -1371,7 +1373,7 @@ unit cgcpu;
           l : tasmlabel;
         begin
           current_asmdata.getjumplabel(l);
-          a_load_const_reg(list,OS_INT,count,countreg);
+          a_load_const_reg(list,OS_INT,count div size,countreg);
           cg.a_label(list,l);
           srcref.addressmode:=AM_POSTINDEXED;
           dstref.addressmode:=AM_POSTINDEXED;
@@ -1382,6 +1384,47 @@ unit cgcpu;
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
           list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
+          srcref.offset:=1;
+          dstref.offset:=1;
+          case count mod size of
+            1:
+              begin
+                a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+              end;
+            2:
+              if aligned then
+                begin
+                  a_load_ref_reg(list,OS_16,OS_16,srcref,r);
+                  a_load_reg_ref(list,OS_16,OS_16,r,dstref);
+                end
+              else
+                begin
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                end;
+            3:
+              if aligned then
+                begin
+                  srcref.offset:=2;
+                  dstref.offset:=2;
+                  a_load_ref_reg(list,OS_16,OS_16,srcref,r);
+                  a_load_reg_ref(list,OS_16,OS_16,r,dstref);
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                end
+              else
+                begin
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                  a_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                end;
+          end;
           { keep the registers alive }
           list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
           list.concat(taicpu.op_reg_reg(A_MOV,srcreg,srcreg));
@@ -1389,6 +1432,7 @@ unit cgcpu;
         end;
 
       begin
+
         if len=0 then
           exit;
         helpsize:=12;
@@ -1422,6 +1466,44 @@ unit cgcpu;
           end
         else
           begin
+            cgsize:=OS_32;
+            if (len<=4) then
+              begin
+                r:=getintregister(list,cgsize);
+                case Len of
+                  1,2,3,4:
+                    begin
+                      usedtmpref:=a_internal_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                      if Len=1 then
+                        a_load_reg_ref(list,OS_8,OS_8,r,dstref)
+                      else
+                        begin
+                          tmpreg:=getintregister(list,cgsize);
+                          usedtmpref2:=a_internal_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                          inc(usedtmpref.offset,1);
+                          a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                          inc(usedtmpref2.offset,1);
+                          a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                          if len>2 then
+                            begin
+                              inc(usedtmpref.offset,1);
+                              a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                              inc(usedtmpref2.offset,1);
+                              a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                              if len>3 then
+                                begin
+                                  inc(usedtmpref.offset,1);
+                                  a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                                  inc(usedtmpref2.offset,1);
+                                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                                end;
+                            end;
+                        end;
+                    end;
+                end;
+              end
+            else
+              begin
                 destreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,dest,destreg);
                 reference_reset_base(dstref,destreg,0);
@@ -1432,31 +1514,13 @@ unit cgcpu;
 
                 countreg:=getintregister(list,OS_32);
 
-//            if cs_opt_size in aktoptimizerswitches  then
-                genloop(len,1);
-{
-            else
-              begin
-                helpsize:=len shr 2;
-                len:=len and 3;
-                if helpsize>1 then
-                  begin
-                    a_load_const_reg(list,OS_INT,helpsize,countreg);
-                    list.concat(Taicpu.op_none(A_REP,S_NO));
-                  end;
-                if helpsize>0 then
-                  list.concat(Taicpu.op_none(A_MOVSD,S_NO));
-                if len>1 then
-                  begin
-                    dec(len,2);
-                    list.concat(Taicpu.op_none(A_MOVSW,S_NO));
-                  end;
-                if len=1 then
-                  list.concat(Taicpu.op_none(A_MOVSB,S_NO));
-                end;
-}
-            end;
+                if aligned then
+                  genloop(len,4)
+                else
+                  genloop(len,1);
+              end;
           end;
+      end;
 
 
     procedure tcgarm.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
