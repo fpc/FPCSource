@@ -208,6 +208,7 @@ type
     FFieldDef: TDbfFieldDef;
     FDbfFile: TDbfFile;
     FFieldName: string;
+    FExprWord: TExprWord;
   protected
     function GetFieldVal: Pointer; virtual; abstract;
     function GetFieldType: TExpressionType; virtual; abstract;
@@ -857,7 +858,7 @@ begin
     if Args[1][arg1len-1] = '*' then
     begin
       arg0len := StrLen(Args[0]);
-      match := arg1len >= arg0len - 1;
+      match := arg0len >= arg1len - 1;
       if match then
         match := AnsiStrLIComp(Args[0], Args[1], arg1len-1) = 0;
     end else begin
@@ -923,7 +924,7 @@ begin
     if Args[1][arg1len-1] = '*' then
     begin
       arg0len := StrLen(Args[0]);
-      match := arg1len >= arg0len - 1;
+      match := arg0len >= arg1len - 1;
       if match then
         match := AnsiStrLComp(Args[0], Args[1], arg1len-1) = 0;
     end else begin
@@ -1355,8 +1356,6 @@ begin
     // clear and regenerate functions
     FCaseInsensitive := NewInsensitive;
     FillExpressList;
-    if Length(Expression) > 0 then
-      ParseExpression(Expression);
   end;
 end;
 
@@ -1367,8 +1366,6 @@ begin
     // refill function list
     FPartialMatch := NewPartialMatch;
     FillExpressList;
-    if Length(Expression) > 0 then
-      ParseExpression(Expression);
   end;
 end;
 
@@ -1384,7 +1381,11 @@ begin
 end;
 
 procedure TDbfParser.FillExpressList;
+var
+  lExpression: string;
 begin
+  lExpression := FCurrentExpression;
+  ClearExpressions;
   FWordsList.FreeAll;
   FWordsList.AddList(DbfWordsGeneralList, 0, DbfWordsGeneralList.Count - 1);
   if FCaseInsensitive then
@@ -1405,6 +1406,8 @@ begin
       FWordsList.AddList(DbfWordsSensNoPartialList, 0, DbfWordsSensNoPartialList.Count - 1);
     end;
   end;
+  if Length(lExpression) > 0 then
+    ParseExpression(lExpression);
 end;
 
 function TDbfParser.GetVariableInfo(VarName: string): TDbfFieldDef;
@@ -1430,46 +1433,39 @@ begin
         begin
           { raw string fields have fixed length, not null-terminated }
           TempFieldVar := TRawStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-          DefineStringVariableFixedLen(VarName, TempFieldVar.FieldVal, FieldInfo.Size);
+          TempFieldVar.FExprWord := DefineStringVariableFixedLen(VarName, TempFieldVar.FieldVal, FieldInfo.Size);
         end else begin
           { ansi string field function translates and null-terminates field value }
           TempFieldVar := TAnsiStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-          DefineStringVariable(VarName, TempFieldVar.FieldVal);
+          TempFieldVar.FExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
         end;
       end;
     ftBoolean:
       begin
         TempFieldVar := TBooleanFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineBooleanVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.FExprWord := DefineBooleanVariable(VarName, TempFieldVar.FieldVal);
       end;
     ftFloat:
       begin
         TempFieldVar := TFloatFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineFloatVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.FExprWord := DefineFloatVariable(VarName, TempFieldVar.FieldVal);
       end;
     ftAutoInc, ftInteger, ftSmallInt:
       begin
         TempFieldVar := TIntegerFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineIntegerVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.FExprWord := DefineIntegerVariable(VarName, TempFieldVar.FieldVal);
       end;
-{
-    ftSmallInt:
-      begin
-        TempFieldVar := TSmallIntFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineSmallIntVariable(VarName, TempFieldVar.FieldVal);
-      end;
-}
 {$ifdef SUPPORT_INT64}
     ftLargeInt:
       begin
         TempFieldVar := TLargeIntFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineLargeIntVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.FExprWord := DefineLargeIntVariable(VarName, TempFieldVar.FieldVal);
       end;
 {$endif}
     ftDate, ftDateTime:
       begin
         TempFieldVar := TDateTimeFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.FExprWord := DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
       end;
   else
     raise EDbfError.CreateFmt(STRING_INDEX_BASED_ON_INVALID_FIELD, [VarName]);
@@ -1497,7 +1493,7 @@ begin
     for I := 0 to FFieldVarList.Count - 1 do
     begin
       // replacing with nil = undefining variable
-      ReplaceFunction(TFieldVar(FFieldVarList.Objects[I]).FieldName, nil);
+      FWordsList.DoFree(TFieldVar(FFieldVarList.Objects[I]).FExprWord);
       TFieldVar(FFieldVarList.Objects[I]).Free;
     end;
     FFieldVarList.Clear;
@@ -1509,7 +1505,7 @@ end;
 
 procedure TDbfParser.ParseExpression(AExpression: string);
 var
-  TempBuffer: array[0..4000] of Char;
+  TempBuffer: pchar;
 begin
   // clear any current expression
   ClearExpressions;
@@ -1525,8 +1521,13 @@ begin
     if ResultType = etString then
     begin
       // make empty record
-      TDbfFile(FDbfFile).InitRecord(@TempBuffer[0]);
-      FResultLen := StrLen(ExtractFromBuffer(@TempBuffer[0]));
+      GetMem(TempBuffer, TDbfFile(FDbfFile).RecordSize);
+      try
+        TDbfFile(FDbfFile).InitRecord(TempBuffer);
+        FResultLen := StrLen(ExtractFromBuffer(TempBuffer));
+      finally
+        FreeMem(TempBuffer);
+      end;
     end;
   end else begin
     // simple field, create field variable for it
