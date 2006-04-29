@@ -897,7 +897,7 @@ begin
                       initoptimizerswitches:=initoptimizerswitches+level3optimizerswitches;
                     'a' :
                       begin
-                        if not(UpdateAlignmentStr(Copy(Opt,j+1,255),ParaAlignment)) then
+                        if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
                           IllegalPara(opt);
                         break;
                       end;
