@@ -975,17 +975,35 @@ var
 begin
   Result := nil;
   child := node.FirstChild;
-  while Assigned(child) do
-  begin
-    if index = 0 then
+  If UseFilter Then
     begin
-      Result := child;
-      break;
-    end;
-    if (not UseFilter) or (child.NodeName = filter) then
-      Dec(index);
-    child := child.NextSibling;
-  end;
+      while Assigned(child) do
+        begin
+          if (child.nodename=filter) then
+            begin
+              if index=0 then
+                begin
+                  Result := child;
+                  break;
+                end;
+              dec(index);
+            end;
+          child := child.NextSibling;
+        end;
+    end
+  else
+    begin
+      while Assigned(child) do
+        begin
+          if index = 0 then
+            begin
+              Result := child;
+              break;
+            end;
+          Dec(index);
+          child := child.NextSibling;
+        end;
+    end
 end;
 
 
