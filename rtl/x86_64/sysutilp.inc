@@ -73,3 +73,17 @@ asm
         movl    %edi,%eax
 {$endif win64}
 end;
+
+
+function InterLockedCompareExchange(var Target: longint; Compare, NewValue: longint): longint; assembler;
+asm
+{$ifdef win64}
+        movl            %r8l,%eax
+        lock
+        cmpxchgl        %edx,(%rcx)
+{$else win64}
+        movl            %edx,%eax
+        lock
+        cmpxchgl        %esi,(%rdi)
+{$endif win64}
+end;
