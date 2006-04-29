@@ -5753,6 +5753,7 @@ tests/test/tstrreal1.pp svneol=native#text/plain
 tests/test/tstrreal2.pp svneol=native#text/plain
 tests/test/tstrreal3.pp -text
 tests/test/tsubdecl.pp svneol=native#text/plain
+tests/test/tunaligned1.pp svneol=native#text/plain
 tests/test/tunit1.pp svneol=native#text/plain
 tests/test/tunit2.pp svneol=native#text/plain
 tests/test/tunit3.pp svneol=native#text/plain
