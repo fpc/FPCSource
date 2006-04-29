@@ -22,6 +22,8 @@ const
 
   TDBF_TABLELEVEL_FOXPRO = 25;
 
+  JulianDateDelta = 1721425; { number of days between 1.1.4714 BC and "0" }
+
 type
   EDbfError = class (EDatabaseError);
   EDbfWriteError = class (EDbfError);

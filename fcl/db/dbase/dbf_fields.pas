@@ -258,7 +258,10 @@ begin
   // convert VCL fieldtypes to native DBF fieldtypes
   VCLToNative;
   // for integer / float fields try fill in size/precision
-  CheckSizePrecision;
+  if FSize = 0 then
+    SetDefaultSize
+  else
+    CheckSizePrecision;
   // VCL does not have default value support
   AllocBuffers;
   FHasDefault := false;
@@ -430,7 +433,7 @@ begin
     ftFloat:
       begin
         FSize := 18;
-        FPrecision := 9;
+        FPrecision := 8;
       end;
     ftCurrency, ftBCD:
       begin

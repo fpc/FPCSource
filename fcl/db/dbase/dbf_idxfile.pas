@@ -2916,6 +2916,9 @@ end;
 
 procedure TIndexFile.InsertKey(Buffer: PChar);
 begin
+  // ignore deleted records
+  if (FModifyMode = mmNormal) and (FUniqueMode = iuDistinct) and (Buffer^ = '*') then
+    exit;
   // check proper index and modifiability
   if FCanEdit and (PIndexHdr(FIndexHeader)^.KeyLen <> 0) then
   begin

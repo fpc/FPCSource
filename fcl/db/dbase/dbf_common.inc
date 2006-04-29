@@ -190,6 +190,7 @@
 {$ifdef DELPHI_6}
 
   {$define SUPPORT_PATHDELIM}
+  {$define SUPPORT_SEPARATE_VARIANTS_UNIT}
 
 {$endif}
 {$endif}
@@ -226,6 +227,8 @@
   {$define SUPPORT_UINT32_CARDINAL}
   {$define SUPPORT_REINTRODUCE}
   {$define SUPPORT_MATH_UNIT}
+  {$define SUPPORT_VARIANTS}
+  {$define SUPPORT_SEPARATE_VARIANTS_UNIT}
 
   // FPC 2.0.x improvements
   {$ifdef VER2}

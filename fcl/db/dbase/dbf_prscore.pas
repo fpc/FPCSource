@@ -58,7 +58,6 @@ type
 
     procedure CompileExpression(AnExpression: string);
     procedure EvaluateCurrent;
-    procedure ReplaceExprWord(OldExprWord, NewExprWord: TExprWord); virtual;
     procedure DisposeList(ARec: PExpressionRec);
     procedure DisposeTree(ExprRec: PExpressionRec);
     function CurrentExpression: string; virtual; abstract;
@@ -73,20 +72,18 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure AddReplaceExprWord(AExprWord: TExprWord);
-    procedure DefineFloatVariable(AVarName: string; AValue: PDouble);
-    procedure DefineIntegerVariable(AVarName: string; AValue: PInteger);
+    function DefineFloatVariable(AVarName: string; AValue: PDouble): TExprWord;
+    function DefineIntegerVariable(AVarName: string; AValue: PInteger): TExprWord;
 //    procedure DefineSmallIntVariable(AVarName: string; AValue: PSmallInt);
 {$ifdef SUPPORT_INT64}
-    procedure DefineLargeIntVariable(AVarName: string; AValue: PLargeInt);
+    function DefineLargeIntVariable(AVarName: string; AValue: PLargeInt): TExprWord;
 {$endif}
-    procedure DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec);
-    procedure DefineBooleanVariable(AVarName: string; AValue: PBoolean);
-    procedure DefineStringVariable(AVarName: string; AValue: PPChar);
-    procedure DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer);
-    procedure DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
-        AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc);
-    procedure ReplaceFunction(OldName: string; AFunction: TObject);
+    function DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec): TExprWord;
+    function DefineBooleanVariable(AVarName: string; AValue: PBoolean): TExprWord;
+    function DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
+    function DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer): TExprWord;
+    function DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
+        AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc): TExprWord;
     procedure Evaluate(AnExpression: string);
     function AddExpression(AnExpression: string): Integer;
     procedure ClearExpressions; virtual;
@@ -897,56 +894,56 @@ begin
   end;
 end;
 
-procedure TCustomExpressionParser.DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
-  AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc);
+function TCustomExpressionParser.DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
+  AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc): TExprWord;
 begin
-  AddReplaceExprWord(TFunction.Create(AFunctName, AShortName, ATypeSpec, AMinFunctionArg, AResultType, AFuncAddress, ADescription));
+  Result := TFunction.Create(AFunctName, AShortName, ATypeSpec, AMinFunctionArg, AResultType, AFuncAddress, ADescription);
+  FWordsList.Add(Result);
 end;
 
-procedure TCustomExpressionParser.DefineIntegerVariable(AVarName: string; AValue: PInteger);
+function TCustomExpressionParser.DefineIntegerVariable(AVarName: string; AValue: PInteger): TExprWord;
 begin
-  AddReplaceExprWord(TIntegerVariable.Create(AVarName, AValue));
+  Result := TIntegerVariable.Create(AVarName, AValue);
+  FWordsList.Add(Result);
 end;
-
-{
-procedure TCustomExpressionParser.DefineSmallIntVariable(AVarName: string; AValue: PSmallInt);
-begin
-  AddReplaceExprWord(TSmallIntVariable.Create(AVarName, AValue));
-end;
-}
 
 {$ifdef SUPPORT_INT64}
 
-procedure TCustomExpressionParser.DefineLargeIntVariable(AVarName: string; AValue: PLargeInt);
+function TCustomExpressionParser.DefineLargeIntVariable(AVarName: string; AValue: PLargeInt): TExprWord;
 begin
-  AddReplaceExprWord(TLargeIntVariable.Create(AVarName, AValue));
+  Result := TLargeIntVariable.Create(AVarName, AValue);
+  FWordsList.Add(Result);
 end;
 
 {$endif}
 
-procedure TCustomExpressionParser.DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec);
+function TCustomExpressionParser.DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec): TExprWord;
 begin
-  AddReplaceExprWord(TDateTimeVariable.Create(AVarName, AValue));
+  Result := TDateTimeVariable.Create(AVarName, AValue);
+  FWordsList.Add(Result);
 end;
 
-procedure TCustomExpressionParser.DefineBooleanVariable(AVarName: string; AValue: PBoolean);
+function TCustomExpressionParser.DefineBooleanVariable(AVarName: string; AValue: PBoolean): TExprWord;
 begin
-  AddReplaceExprWord(TBooleanVariable.Create(AVarName, AValue));
+  Result := TBooleanVariable.Create(AVarName, AValue);
+  FWordsList.Add(Result);
 end;
 
-procedure TCustomExpressionParser.DefineFloatVariable(AVarName: string; AValue: PDouble);
+function TCustomExpressionParser.DefineFloatVariable(AVarName: string; AValue: PDouble): TExprWord;
 begin
-  AddReplaceExprWord(TFloatVariable.Create(AVarName, AValue));
+  Result := TFloatVariable.Create(AVarName, AValue);
+  FWordsList.Add(Result);
 end;
 
-procedure TCustomExpressionParser.DefineStringVariable(AVarName: string; AValue: PPChar);
+function TCustomExpressionParser.DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
 begin
-  DefineStringVariableFixedLen(AVarName, AValue, -1);
+  Result := DefineStringVariableFixedLen(AVarName, AValue, -1);
 end;
 
-procedure TCustomExpressionParser.DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer);
+function TCustomExpressionParser.DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer): TExprWord;
 begin
-  AddReplaceExprWord(TStringVariable.Create(AVarName, AValue, ALength));
+  Result := TStringVariable.Create(AVarName, AValue, ALength);
+  FWordsList.Add(Result);
 end;
 
 {
@@ -975,32 +972,6 @@ begin
     if FLastRec^.ExprWord <> nil then
       Result := FLastRec^.ExprWord.ResultType;
   end;
-end;
-
-procedure TCustomExpressionParser.ReplaceExprWord(OldExprWord, NewExprWord: TExprWord);
-var
-  J: Integer;
-  Rec: PExpressionRec;
-  p, pnew: pointer;
-begin
-  if OldExprWord.MaxFunctionArg <> NewExprWord.MaxFunctionArg then
-    raise Exception.Create('Cannot replace variable/function MaxFunctionArg doesn''t match');
-
-  p := OldExprWord.AsPointer;
-  pnew := NewExprWord.AsPointer;
-  Rec := FCurrentRec;
-  repeat
-    if (Rec^.ExprWord = OldExprWord) then
-    begin
-      Rec^.ExprWord := NewExprWord;
-      Rec^.Oper := NewExprWord.ExprFunc;
-    end;
-    if p <> nil then
-      for J := 0 to Rec^.ExprWord.MaxFunctionArg - 1 do
-        if Rec^.Args[J] = p then
-          Rec^.Args[J] := pnew;
-    Rec := Rec^.Next;
-  until Rec = nil;
 end;
 
 function TCustomExpressionParser.MakeRec: PExpressionRec;
@@ -1044,45 +1015,11 @@ begin
   //CurrentIndex := Result;
 end;
 
-procedure TCustomExpressionParser.ReplaceFunction(OldName: string; AFunction:
-  TObject);
-var
-  I: Integer;
-begin
-  // clearing only allowed when expression is not present
-  if (AFunction = nil) and (FCurrentRec <> nil) then
-    raise Exception.Create('Cannot undefine function/variable while expression present');
-
-  if FWordsList.Search(PChar(OldName), I) then
-  begin
-    // if no function specified, then no need to replace!
-    if AFunction <> nil then
-      ReplaceExprWord(TExprWord(FWordsList.Items[I]), TExprWord(AFunction));
-    FWordsList.AtFree(I);
-  end;
-  if AFunction <> nil then
-    FWordsList.Add(AFunction);
-end;
-
 procedure TCustomExpressionParser.ClearExpressions;
 begin
   DisposeList(FCurrentRec);
   FCurrentRec := nil;
   FLastRec := nil;
-end;
-
-procedure TCustomExpressionParser.AddReplaceExprWord(AExprWord: TExprWord);
-var
-  IOldVar: Integer;
-begin
-  if FWordsList.Search(PChar(AExprWord.Name), IOldVar) then
-  begin
-    ReplaceExprWord(TExprWord(FWordsList.Items[IOldVar]), AExprWord);
-    FWordsList.AtFree(IOldVar);
-    FWordsList.Add(AExprWord);
-  end
-  else
-    FWordsList.Add(AExprWord);
 end;
 
 function TCustomExpressionParser.GetFunctionDescription(AFunction: string):

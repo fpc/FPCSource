@@ -1146,9 +1146,8 @@ var
   TempDstDef, TempSrcDef: TDbfFieldDef;
   OldIndexFiles: TStrings;
   IndexName, NewBaseName: string;
-  I, lRecNo, lFieldNo, lFieldSize, lBlobRecNo, lWRecNo, srcOffset, dstOffset: Integer;
+  I, lRecNo, lFieldNo, lFieldSize, lBlobPageNo, lWRecNo, srcOffset, dstOffset: Integer;
   pBuff, pDestBuff: PChar;
-  pBlobRecNoBuff: array[1..11] of Char;
   RestructFieldInfo: PRestructFieldInfo;
   BlobStream: TMemoryStream;
 begin
@@ -1303,19 +1302,18 @@ begin
             if TempDstDef.IsBlob and ((DbfFieldDefs = nil) or (TempDstDef.CopyFrom >= 0)) then
             begin
               // get current blob blockno
-              GetFieldData(lFieldNo, ftString, pBuff, @pBlobRecNoBuff[1]);
-              lBlobRecNo := StrToIntDef(pBlobRecNoBuff, -1);
+              GetFieldData(lFieldNo, ftInteger, pBuff, @lBlobPageNo);
               // valid blockno read?
-              if lBlobRecNo >= 0 then
+              if lBlobPageNo > 0 then
               begin
                 BlobStream.Clear;
-                FMemoFile.ReadMemo(lBlobRecNo, BlobStream);
+                FMemoFile.ReadMemo(lBlobPageNo, BlobStream);
                 BlobStream.Position := 0;
                 // always append
-                DestDbfFile.FMemoFile.WriteMemo(lBlobRecNo, 0, BlobStream);
+                DestDbfFile.FMemoFile.WriteMemo(lBlobPageNo, 0, BlobStream);
               end;
               // write new blockno
-              DestDbfFile.SetFieldData(lFieldNo, ftInteger, @lBlobRecNo, pDestBuff);
+              DestDbfFile.SetFieldData(lFieldNo, ftInteger, @lBlobPageNo, pDestBuff);
             end else if (DbfFieldDefs <> nil) and (TempDstDef.CopyFrom >= 0) then
             begin
               // copy content of field
@@ -1497,6 +1495,7 @@ begin
   FieldSize := AFieldDef.Size;
   Src := PChar(Src) + FieldOffset;
   asciiContents := false;
+  Result := true;
   // field types that are binary and of which the fieldsize should not be truncated
   case AFieldDef.NativeFieldType of
     '+', 'I':
@@ -1549,7 +1548,7 @@ begin
         Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
         if Result and (Dst <> nil) then
         begin
-          timeStamp.Date := PInteger(Src)^ - 1721425;
+          timeStamp.Date := PInteger(Src)^ - JulianDateDelta;
           timeStamp.Time := PInteger(PChar(Src)+4)^;
           date := TimeStampToDateTime(timeStamp);
           SaveDateToDst;
@@ -1803,7 +1802,7 @@ begin
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
-          PInteger(Dst)^ := timeStamp.Date + 1721425;
+          PInteger(Dst)^ := timeStamp.Date + JulianDateDelta;
           PInteger(PChar(Dst)+4)^ := timeStamp.Time;
         end;
       end;
@@ -2129,42 +2128,47 @@ begin
       // always uppercase index expression
       IndexField := AnsiUpperCase(IndexField);
       try
-        // create index if asked
-        lIndexFile.CreateIndex(IndexField, IndexName, Options);
-        // add all records
-        PackIndex(lIndexFile, IndexName);
-        // if we wanted to open index readonly, but we created it, then reopen
-        if Mode = pfReadOnly then
-        begin
-          lIndexFile.CloseFile;
-          lIndexFile.Mode := pfReadOnly;
-          lIndexFile.OpenFile;
+        try
+          // create index if asked
+          lIndexFile.CreateIndex(IndexField, IndexName, Options);
+          // add all records
+          PackIndex(lIndexFile, IndexName);
+          // if we wanted to open index readonly, but we created it, then reopen
+          if Mode = pfReadOnly then
+          begin
+            lIndexFile.CloseFile;
+            lIndexFile.Mode := pfReadOnly;
+            lIndexFile.OpenFile;
+          end;
+          // if mdx file just created, write changes to dbf header
+          // set MDX flag to true
+          PDbfHdr(Header)^.MDXFlag := 1;
+          WriteHeader;
+        except
+          on EDbfError do
+          begin
+            // :-( need to undo 'damage'....
+            // remove index from list(s) if just added
+            if addedIndexFile >= 0 then
+              FIndexFiles.Delete(addedIndexFile);
+            if addedIndexName >= 0 then
+              FIndexNames.Delete(addedIndexName);
+            // if no file created, do not destroy!
+            if addedIndexFile >= 0 then
+            begin
+              lIndexFile.Close;
+              Sysutils.DeleteFile(lIndexFileName);
+              if FMdxFile = lIndexFile then
+                FMdxFile := nil;
+              lIndexFile.Free;
+            end;
+            raise;
+          end;
         end;
-        // if mdx file just created, write changes to dbf header
-        // set MDX flag to true
-        PDbfHdr(Header)^.MDXFlag := 1;
-        WriteHeader;
-      except
-        // :-( need to undo 'damage'....
-        // remove index from list(s) if just added
-        if addedIndexFile >= 0 then
-          FIndexFiles.Delete(addedIndexFile);
-        if addedIndexName >= 0 then
-          FIndexNames.Delete(addedIndexName);
-        // delete index file itself
-        lIndexFile.DeleteIndex(IndexName);
-        // if no file created, do not destroy!
-        if addedIndexFile >= 0 then
-        begin
-          lIndexFile.Close;
-          Sysutils.DeleteFile(lIndexFileName);
-          if FMdxFile = lIndexFile then
-            FMdxFile := nil;
-          lIndexFile.Free;
-        end;
+      finally
+        // return to previous mode
+        if TempMode <> pfNone then EndExclusive;
       end;
-      // return to previous mode
-      if TempMode <> pfNone then EndExclusive;
     end;
   end;
 end;
@@ -2203,24 +2207,35 @@ begin
   if lIndexFile.CacheSize < 16384 * 1024 then
     lIndexFile.CacheSize := 16384 * 1024;
 {$endif}
-  while cur <= last do
-  begin
-    ReadRecord(cur, FPrevBuffer);
-    lIndexFile.Insert(cur, FPrevBuffer);
-    inc(cur);
+  try
+    try
+      while cur <= last do
+      begin
+        ReadRecord(cur, FPrevBuffer);
+        lIndexFile.Insert(cur, FPrevBuffer);
+        inc(cur);
+      end;
+    except
+      on E: EDbfError do
+      begin
+        lIndexFile.DeleteIndex(lIndexFile.IndexName);
+        raise;
+      end;
+    end;
+  finally
+    // restore previous mode
+{$ifdef USE_CACHE}
+    BufferAhead := false;
+    lIndexFile.BufferAhead := true;
+{$endif}
+    lIndexFile.Flush;
+{$ifdef USE_CACHE}
+    lIndexFile.BufferAhead := false;
+    lIndexFile.CacheSize := prevCache;
+{$endif}
+    lIndexFile.UpdateMode := prevMode;
+    lIndexFile.IndexName := prevIndex;
   end;
-  // restore previous mode
-{$ifdef USE_CACHE}
-  BufferAhead := false;
-  lIndexFile.BufferAhead := true;
-{$endif}
-  lIndexFile.Flush;
-{$ifdef USE_CACHE}
-  lIndexFile.BufferAhead := false;
-  lIndexFile.CacheSize := prevCache;
-{$endif}
-  lIndexFile.UpdateMode := prevMode;
-  lIndexFile.IndexName := prevIndex;
 end;
 
 procedure TDbfFile.RepageIndex(AIndexFile: string);
@@ -2690,8 +2705,11 @@ begin
 {$ifdef WIN32}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
-//  Windows.GetUserName(@FUserName[0], FUserNameLen);
-  Windows.GetComputerName(PChar(FUserName), FUserNameLen);
+  Windows.GetComputerName(PChar(FUserName), 
+    {$ifdef DELPHI_3}Windows.DWORD({$endif}
+      FUserNameLen
+    {$ifdef DELPHI_3}){$endif}
+    );
   SetLength(FUserName, FUserNameLen);
 {$else}  
 {$ifdef FPC}

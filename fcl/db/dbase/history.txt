@@ -36,6 +36,19 @@ BUGS & WARNINGS
 V6.4.8
 
 - remove duplicate names, may cause ambiguity
+- allow duplicate names in function list for expressions
+- remember exprword reference for every field variable so we can remove it
+- prevent possible buffer overrun when parsing expression (thx leexgone)
+- fix some memory references in the parser
+- add ability for locate/lookup to use alternate index than current one
+- fix tdbf.copyfrom fieldname copy and fieldno index for size/precision
+- make TDbf.CheckMasterRange public so master/detail can be synced manually
+    when for example .DisableControls is active
+- allow calc/lookup fields to work in filters
+- fix loosing blobs when packing table (rep by cllerici)
+- support variants for freepascal
+- fix (filter) parser string partial matching for "A*" strings
+- make distinct index creation more robust
 
 
 ------------------------
