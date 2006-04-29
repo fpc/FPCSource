@@ -413,7 +413,9 @@ implementation
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
+{$ifdef arm}
          mangledstring : string;
+{$endif arm}
       begin
         AsmPrefix:='imp'+Lower(current_module.modulename^);
         idatalabnr:=0;
@@ -429,11 +431,15 @@ implementation
             hp2:=twin32imported_item(hp1.imported_items.first);
             while assigned(hp2) do
               begin
+{$ifdef arm}
                 if assigned(hp2.procdef) then
                   mangledstring:=hp2.procdef.mangledname
                 else
                   mangledstring:=hp2.name^;
                 AddImport(hp2.name^,mangledstring,hp2.ordnr,hp2.is_var);
+{$else arm}
+                AddImport(hp2.name^,hp2.name^,hp2.ordnr,hp2.is_var);
+{$endif arm}
                 hp2:=twin32imported_item(hp2.next);
               end;
             EndImport;
