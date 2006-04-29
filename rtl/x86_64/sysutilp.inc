@@ -19,7 +19,11 @@
 
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
         movq    %rdi,%rax
+{$endif win64}
         movl    $-1,%edx
         xchgq   %rdx,%rax
         lock
@@ -30,7 +34,11 @@ end;
 
 function InterLockedIncrement (var Target: longint) : longint; assembler;
 asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
         movq    %rdi,%rax
+{$endif win64}
         movl    $1,%edx
         xchgq   %rdx,%rax
         lock
@@ -41,17 +49,27 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
 asm
+{$ifdef win64}
+        xchgl   (%rcx),%edx
+        movl    %edx,%eax
+{$else win64}
         xchgl   (%rdi),%esi
         movl    %esi,%eax
+{$endif win64}
 end;
 
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
 asm
+{$ifdef win64}
+        xchgq   %rcx,%rdx
+        lock
+        xaddl   %ecx, (%rdx)
+        movl    %ecx,%eax
+{$else win64}
         xchgq   %rdi,%rsi
         lock
         xaddl   %edi, (%rsi)
         movl    %edi,%eax
+{$endif win64}
 end;
-
-
