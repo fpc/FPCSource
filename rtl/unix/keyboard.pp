@@ -196,6 +196,7 @@ const
 const
   oldmeta : longint = 0;
   meta : longint = 0;
+  double_esc_hack_enabled : boolean = false;
 
 var oldesc0,oldesc1,oldesc2,oldesc4,oldesc8:word;
 
@@ -690,7 +691,7 @@ begin
   {This is a distusting hack for certain even more disgusting xterms: Some of
    them send two escapes for an alt-key. If we wouldn't do this, we would need
    to put a lot of entries twice in the table.}
-  if (st[1]=#27) and (st[2]='#27') and
+  if double_esc_hack_enabled and (st[1]=#27) and (st[2]='#27') and
      (st[3] in ['a'..'z','A'..'Z','0'..'9','-','+','_','=']) then
     inc(p);
   NPT:=RootTree[St[p]];
@@ -1126,15 +1127,25 @@ begin
           if inhead=intail then
             fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
           ch:=ttyRecvChar;
-          if ch=#27 then
+          if (ch=#27) and double_esc_hack_enabled then
             begin
               {This is the same hack as in findsequence; see findsequence for
                explanation.}
               ch:=ttyrecvchar;
-              if not(ch in ['a'..'z','A'..'Z','0'..'9','-','+','_','=']) then
+              {Alt+O cannot be used in this situation, it can be a function key.} 
+              if not(ch in ['a'..'z','A'..'N','P'..'Z','0'..'9','-','+','_','=']) then
                 begin
-                  pushkey(ch);
+                  if intail=0 then
+                    intail:=insize
+                  else
+                    dec(intail);
+                  inbuf[intail]:=ch;
                   ch:=#27;
+                end
+              else
+                begin
+                  write(#27'[?1036l');
+                  double_esc_hack_enabled:=false;
                 end;
             end;
            NNPT:=FindChild(ord(ch),NPT);
@@ -1273,7 +1284,10 @@ begin
       if copy(fpgetenv('TERM'),1,5)='xterm' then
           {The alt key should generate an escape prefix. Save the old setting
            make make it send that escape prefix.}
+        begin
           write(#27'[?1036s'#27'[?1036h');
+          double_esc_hack_enabled:=true;
+        end;
 {$ifdef linux}
     end;
 {$endif}
