@@ -34,7 +34,15 @@ interface
           procedure pass_2;override;
        end;
 
+
+       Tsetpart=record
+         range : boolean;      {Part is a range.}
+         start,stop : byte;    {Start/stop when range; Stop=element when an element.}
+       end;
+       Tsetparts=array[1..8] of Tsetpart;
+
        tcginnode = class(tinnode)
+          function pass_1: tnode;override;
           procedure pass_2;override;
        protected
           {# Routine to test bitnumber in bitnumber register on value
@@ -49,6 +57,8 @@ interface
           procedure emit_bit_test_reg_reg(list : TAsmList;
                                           bitsize: tcgsize; bitnumber,value : tregister;
                                           ressize: tcgsize; res :tregister);virtual;
+          function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean; virtual;
+          function analizeset(const Aset:Tconstset;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
        end;
 
        tcgcasenode = class(tcasenode)
@@ -161,84 +171,65 @@ implementation
     end;
 
 
-    procedure tcginnode.pass_2;
-       type
-         Tsetpart=record
-           range : boolean;      {Part is a range.}
-           start,stop : byte;    {Start/stop when range; Stop=element when an element.}
-         end;
-       var
-         l,l3       : tasmlabel;
-         adjustment : aint;
-         href : treference;
-         hr,hr2,
-         pleftreg   : tregister;
-         setparts   : array[1..8] of Tsetpart;
-         opsize     : tcgsize;
-         genjumps,
-         use_small  : boolean;
-         i,numparts : byte;
+  function tcginnode.analizeset(const Aset:Tconstset; out setparts:tsetparts; out numparts: byte; is_small:boolean):boolean;
+    var
+      compares,maxcompares:word;
+      i:byte;
+    begin
+      analizeset:=false;
+      numparts:=0;
+      compares:=0;
+      { Lots of comparisions take a lot of time, so do not allow
+        too much comparisions. 8 comparisions are, however, still
+        smalller than emitting the set }
+      if cs_opt_size in aktoptimizerswitches then
+        maxcompares:=8
+      else
+        maxcompares:=5;
+      { when smallset is possible allow only 3 compares the smallset
+        code is for littlesize also smaller when more compares are used }
+      if is_small then
+        maxcompares:=3;
+      for i:=0 to 255 do
+        if i in Aset then
+          begin
+            if (numparts=0) or (i<>setparts[numparts].stop+1) then
+              begin
+                {Set element is a separate element.}
+                inc(compares);
+                if compares>maxcompares then
+                  exit;
+                inc(numparts);
+                setparts[numparts].range:=false;
+                setparts[numparts].stop:=i;
+              end
+            else
+              {Set element is part of a range.}
+              if not setparts[numparts].range then
+                begin
+                  {Transform an element into a range.}
+                  setparts[numparts].range:=true;
+                  setparts[numparts].start:=setparts[numparts].stop;
+                  setparts[numparts].stop:=i;
+                  { there's only one compare per range anymore. Only a }
+                  { sub is added, but that's much faster than a        }
+                  { cmp/jcc combo so neglect its effect                }
+{                  inc(compares);
+                  if compares>maxcompares then
+                   exit; }
+                end
+              else
+                begin
+                  {Extend a range.}
+                  setparts[numparts].stop:=i;
+                end;
+          end;
+      analizeset:=true;
+    end;
 
-         function analizeset(const Aset:Tconstset;is_small:boolean):boolean;
-           var
-             compares,maxcompares:word;
-             i:byte;
-           begin
-             analizeset:=false;
-             numparts:=0;
-             compares:=0;
-             { Lots of comparisions take a lot of time, so do not allow
-               too much comparisions. 8 comparisions are, however, still
-               smalller than emitting the set }
-             if cs_opt_size in aktoptimizerswitches then
-              maxcompares:=8
-             else
-              maxcompares:=5;
-             { when smallset is possible allow only 3 compares the smallset
-               code is for littlesize also smaller when more compares are used }
-             if is_small then
-              maxcompares:=3;
-             for i:=0 to 255 do
-              if i in Aset then
-               begin
-                 if (numparts=0) or (i<>setparts[numparts].stop+1) then
-                  begin
-                  {Set element is a separate element.}
-                    inc(compares);
-                    if compares>maxcompares then
-                         exit;
-                    inc(numparts);
-                    setparts[numparts].range:=false;
-                    setparts[numparts].stop:=i;
-                  end
-                 else
-                  {Set element is part of a range.}
-                  if not setparts[numparts].range then
-                   begin
-                     {Transform an element into a range.}
-                     setparts[numparts].range:=true;
-                     setparts[numparts].start:=setparts[numparts].stop;
-                     setparts[numparts].stop:=i;
-                     { there's only one compare per range anymore. Only a }
-                     { sub is added, but that's much faster than a        }
-                     { cmp/jcc combo so neglect its effect                }
-{                     inc(compares);
-                     if compares>maxcompares then
-                      exit; }
-                   end
-                  else
-                   begin
-                    {Extend a range.}
-                    setparts[numparts].stop:=i;
-                   end;
-              end;
-             analizeset:=true;
-           end;
 
-       begin
-         { We check first if we can generate jumps, this can be done
-           because the resulttype.def is already set in firstpass }
-
+    function tcginnode.checkgenjumps(out setparts: Tsetparts; out numparts: byte;out use_small: boolean): boolean;
+      begin
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
          use_small:=(tsetdef(right.resulttype.def).settype=smallset) and
@@ -246,8 +237,40 @@ implementation
                      (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
-         genjumps:=(right.nodetype=setconstn) and
-                   analizeset(Tsetconstnode(right).value_set^,use_small);
+         checkgenjumps:=(right.nodetype=setconstn) and
+                   analizeset(Tsetconstnode(right).value_set^,setparts,numparts,use_small);
+      end;
+
+
+    function tcginnode.pass_1: tnode;
+      var
+        setparts: Tsetparts;
+        numparts: byte;
+        use_small: boolean;
+      begin
+        result := inherited pass_1;
+        if not(assigned(result)) and
+          checkgenjumps(setparts,numparts,use_small) then
+          expectloc := LOC_JUMP;
+      end;
+
+    procedure tcginnode.pass_2;
+       var
+         adjustment : aint;
+         href : treference;
+         hr,hr2,
+         pleftreg   : tregister;
+         setparts   : Tsetparts;
+         opsize     : tcgsize;
+         genjumps,
+         use_small  : boolean;
+         i,numparts : byte;
+
+       begin
+         { We check first if we can generate jumps, this can be done
+           because the resulttype.def is already set in firstpass }
+
+         genjumps := checkgenjumps(setparts,numparts,use_small);
 
          opsize:=OS_32;
 
@@ -265,18 +288,11 @@ implementation
          if nf_swaped in flags then
           swapleftright;
 
-         { location is always LOC_JUMP }
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-
          if genjumps then
           begin
-            { allocate a register for the result }
-            location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-            { Get a label to jump to the end }
-            current_asmdata.getjumplabel(l);
+            { location is always LOC_JUMP }
+            location_reset(location,LOC_JUMP,OS_NO);
 
-            { clear the register value, indicating result is FALSE }
-            cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
             { If register is used, use only lower 8 bits }
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
             pleftreg := left.location.register;
@@ -323,37 +339,33 @@ implementation
                     { (this will never overflow since we check at the     }
                     { beginning whether stop-start <> 255)                }
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_B,
-                      setparts[i].stop-setparts[i].start+1,pleftreg,l);
+                      setparts[i].stop-setparts[i].start+1,pleftreg,current_procinfo.CurrTrueLabel);
                   end
                 else
                   { if setparts[i].start = 0 and setparts[i].stop = 255,  }
                   { it's always true since "in" is only allowed for bytes }
                   begin
-                    cg.a_jmp_always(current_asmdata.CurrAsmList,l);
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
                   end;
               end
              else
               begin
                 { Emit code to check if left is an element }
                 cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,
-                      setparts[i].stop-adjustment,pleftreg,l);
+                      setparts[i].stop-adjustment,pleftreg,current_procinfo.CurrTrueLabel);
               end;
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
-             current_asmdata.getjumplabel(l3);
-             cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
-             { Now place the end label if IN success }
-             cg.a_label(current_asmdata.CurrAsmList,l);
-             { result register is 1 }
-             cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register);
-             { in case value is not found }
-             cg.a_label(current_asmdata.CurrAsmList,l3);
+             cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
           end
          else
          {*****************************************************************}
          {                     NO JUMP TABLE GENERATION                    }
          {*****************************************************************}
           begin
+            { location is always LOC_REGISTER }
+            location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+
             { We will now generated code to check the set itself, no jmps,
               handle smallsets separate, because it allows faster checks }
             if use_small then
