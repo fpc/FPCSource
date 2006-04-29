@@ -328,16 +328,23 @@ implementation
           objdata.free;
         end;
 
-        procedure AddImport(const afuncname:string;ordnr:word;isvar:boolean);
+        procedure AddImport(const afuncname, implabelname:string;ordnr:word;isvar:boolean);
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
             $ff,$24,$25
           );
 {$else x86_64}
+  {$ifdef arm}
+          jmpopcode : array[0..7] of byte = (
+            $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
+            $00,$f0,$9c,$e5     // ldr pc, [ip]
+          );
+  {$else arm}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
+  {$endif arm}
 {$endif x86_64}
           nopopcodes : array[0..1] of byte = (
             $90,$90
@@ -393,7 +400,7 @@ implementation
           if not isvar then
             begin
               objdata.SetSection(textobjsection);
-              implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_FUNCTION);
+              implabel:=objdata.SymbolDefine(implabelname,AB_GLOBAL,AT_FUNCTION);
               objdata.writebytes(jmpopcode,sizeof(jmpopcode));
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
               objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,sizeof(nopopcodes))-objdata.CurrObjSec.size);
@@ -406,6 +413,7 @@ implementation
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
+         mangledstring : string;
       begin
         AsmPrefix:='imp'+Lower(current_module.modulename^);
         idatalabnr:=0;
@@ -421,7 +429,11 @@ implementation
             hp2:=twin32imported_item(hp1.imported_items.first);
             while assigned(hp2) do
               begin
-                AddImport(hp2.name^,hp2.ordnr,hp2.is_var);
+                if assigned(hp2.procdef) then
+                  mangledstring:=hp2.procdef.mangledname
+                else
+                  mangledstring:=hp2.name^;
+                AddImport(hp2.name^,mangledstring,hp2.ordnr,hp2.is_var);
                 hp2:=twin32imported_item(hp2.next);
               end;
             EndImport;
@@ -1679,6 +1691,7 @@ initialization
 {$endif x86_64}
 {$ifdef arm}
   RegisterExternalLinker(system_arm_wince_info,TLinkerWin32);
+  RegisterInternalLinker(system_arm_wince_info,TPECoffLinker);
   RegisterImport(system_arm_wince,TImportLibWin32);
   RegisterExport(system_arm_wince,TExportLibWin32);
   RegisterRes(res_gnu_wince_windres_info);

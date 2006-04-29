@@ -1367,8 +1367,13 @@ const win32stub : array[0..131] of byte=(
            header.syms:=symidx;
            if win32 then
              begin
+{$ifdef arm}
+               header.flag:=PE_FILE_32BIT_MACHINE or
+                            PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$else arm}
                header.flag:=PE_FILE_BYTES_REVERSED_LO or PE_FILE_32BIT_MACHINE or
                             PE_FILE_LINE_NUMS_STRIPPED or PE_FILE_LOCAL_SYMS_STRIPPED;
+{$endif arm}
                if not gotreloc then
                  header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
              end
