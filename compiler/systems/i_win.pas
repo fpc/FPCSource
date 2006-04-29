@@ -197,7 +197,7 @@ unit i_win;
                 localalignmin   : 0;
                 localalignmax   : 4;
                 recordalignmin  : 0;
-                recordalignmax  : 2;
+                recordalignmax  : 4;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
