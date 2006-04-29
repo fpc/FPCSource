@@ -79,7 +79,7 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
-      symconst,symdef,symsym,defutil,paramgr,
+      symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
@@ -320,6 +320,13 @@ implementation
            end;
 
          inc(location.reference.offset,vs.fieldoffset);
+{$ifdef SUPPORT_UNALIGNED}
+         { packed? }
+         if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
+           (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
+           location.reference.alignment:=1;
+{$endif SUPPORT_UNALIGNED}
+
          { also update the size of the location }
          location.size:=def_cgsize(resulttype.def);
          paraloc1.done;
