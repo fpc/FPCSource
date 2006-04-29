@@ -628,17 +628,23 @@ function TBufDataset.GetRecNo: Longint;
 Var SearchRecBuffer : PBufRecLinkItem;
     TmpRecBuffer    : PBufRecLinkItem;
     recnr           : integer;
+    abuf            : PChar;
 
 begin
-  GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
-  TmpRecBuffer := FFirstRecBuf;
-  recnr := 1;
-  while TmpRecBuffer <> SearchRecBuffer do
+  abuf := ActiveBuffer;
+  if assigned(abuf) then
     begin
-    inc(recnr);
-    TmpRecBuffer := TmpRecBuffer^.next;
-    end;
-  result := recnr;
+    GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
+    TmpRecBuffer := FFirstRecBuf;
+    recnr := 1;
+    while TmpRecBuffer <> SearchRecBuffer do
+      begin
+      inc(recnr);
+      TmpRecBuffer := TmpRecBuffer^.next;
+      end;
+    result := recnr;
+    end
+  else result := -1;
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;

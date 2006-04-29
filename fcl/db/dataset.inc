@@ -27,6 +27,13 @@ begin
   FFieldDefs:=TFieldDefs.Create(Self);
   FFieldList:=TFields.Create(Self);
   FDataSources:=TList.Create;
+  
+// FBuffer must be allocated on create, to make Activebuffer return nil
+  ReAllocMem(FBuffers,SizeOf(PChar));
+//  pointer(FBuffers^) := nil;
+  FBuffers[0] := nil;
+  FActiveRecord := 0;
+  FBufferCount := 0;
 end;
 
 
@@ -46,12 +53,9 @@ begin
       TDatasource(Items[Count - 1]).DataSet:=Nil;
     Free;
     end;
-  if Assigned(FBuffers) then
-    begin
-    for i := 0 to FBufferCount do
-      FreeRecordBuffer(FBuffers[i]);
-    FreeMem(FBuffers);
-    end;
+  for i := 0 to FBufferCount do
+    FreeRecordBuffer(FBuffers[i]);
+  FreeMem(FBuffers);
   Inherited Destroy;
 end;
 
@@ -922,7 +926,7 @@ begin
 {$endif}
     except
       I:=FBufferCount;
-      While (I<(Value+1)) and (FBuffers[i]<>Nil) do
+      While (I<(Value+1)) do
         begin
         FreeRecordBuffer(FBuffers[i]);
         Inc(i);
@@ -946,7 +950,14 @@ begin
       begin
       For I:=Value+1 to FBufferCount do
         FreeRecordBuffer(FBuffers[i]);
-      ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
+      // FBuffer must stay allocated, to make sure that Activebuffer returns nil
+      if Value = -1 then
+        begin
+        ReAllocMem(FBuffers,SizeOf(Pchar));
+        FBuffers[0] := nil;
+        end
+      else
+        ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
     if FRecordcount > Value then FRecordcount := Value;
     end;
@@ -1095,13 +1106,11 @@ end;
 
 Function TDataset.ControlsDisabled: Boolean;
 
-
 begin
   Result := (FDisableControlsCount > 0);
 end;
 
 Function TDataset.ActiveBuffer: PChar;
-
 
 begin
 {$ifdef dsdebug}
