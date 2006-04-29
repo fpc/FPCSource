@@ -679,17 +679,25 @@ end;
 function FindSequence(const St : String;var AChar,AScan :byte) : boolean;
 var
   NPT : PTreeElement;
-  i : byte;
+  i,p : byte;
 begin
   FindSequence:=false;
   AChar:=0;
   AScan:=0;
   if St='' then
     exit;
-  NPT:=RootTree[St[1]];
+  p:=1;
+  {This is a distusting hack for certain even more disgusting xterms: Some of
+   them send two escapes for an alt-key. If we wouldn't do this, we would need
+   to put a lot of entries twice in the table.}
+  if (st[1]=#27) and (st[2]='#27') and
+     (st[3] in ['a'..'z','A'..'Z','0'..'9','-','+','_','=']) then
+    inc(p);
+  NPT:=RootTree[St[p]];
+
   if npt<>nil then
     begin
-      for i:=2 to Length(St) do
+      for i:=p+1 to Length(St) do
         begin
           NPT:=FindChild(ord(St[i]),NPT);
           if NPT=nil then
@@ -1037,8 +1045,12 @@ var
   store    : array [0..8] of char;
   arrayind : byte;
   NPT,NNPT : PTreeElement;
+
+
   procedure GenMouseEvent;
+
   var MouseEvent: TMouseEvent;
+
   begin
     Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
     case ch of
@@ -1105,41 +1117,52 @@ begin
     PushKey(ch)
   else
     begin
-     fpFD_ZERO(fdsin);
-     fpFD_SET(StdInputHandle,fdsin);
-     store[0]:=ch;
-     arrayind:=1;
+      fpFD_ZERO(fdsin);
+      fpFD_SET(StdInputHandle,fdsin);
+      store[0]:=ch;
+      arrayind:=1;
       while assigned(NPT) and syskeypressed do
         begin
           if inhead=intail then
             fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
           ch:=ttyRecvChar;
-          NNPT:=FindChild(ord(ch),NPT);
-          if assigned(NNPT) then
+          if ch=#27 then
             begin
-              NPT:=NNPT;
-              if NPT^.CanBeTerminal and
-                 assigned(NPT^.SpecialHandler) then
-                break;
-            End;
-          if ch<>#0 then
-            begin
-              store[arrayind]:=ch;
-              inc(arrayind);
-            end;
-          if not assigned(NNPT) then
-            begin
-              if ch<>#0 then
+              {This is the same hack as in findsequence; see findsequence for
+               explanation.}
+              ch:=ttyrecvchar;
+              if not(ch in ['a'..'z','A'..'Z','0'..'9','-','+','_','=']) then
                 begin
-                  { Put that unused char back into InBuf }
-                  If InTail=0 then
-                    InTail:=InSize-1
-                  else
-                    Dec(InTail);
-                  InBuf[InTail]:=ch;
+                  pushkey(ch);
+                  ch:=#27;
                 end;
-              break;
             end;
+           NNPT:=FindChild(ord(ch),NPT);
+           if assigned(NNPT) then
+             begin
+               NPT:=NNPT;
+               if NPT^.CanBeTerminal and
+                  assigned(NPT^.SpecialHandler) then
+                 break;
+             End;
+           if ch<>#0 then
+             begin
+               store[arrayind]:=ch;
+               inc(arrayind);
+             end;
+           if not assigned(NNPT) then
+             begin
+               if ch<>#0 then
+                 begin
+                   { Put that unused char back into InBuf }
+                   If InTail=0 then
+                     InTail:=InSize-1
+                   else
+                     Dec(InTail);
+                   InBuf[InTail]:=ch;
+                 end;
+               break;
+             end;
         end;
       if assigned(NPT) and NPT^.CanBeTerminal then
         begin
