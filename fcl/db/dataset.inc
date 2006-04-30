@@ -1275,7 +1275,7 @@ end;
 Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
 
-  procedure DoInsert;
+  procedure DoInsert(DoAppend : Boolean);
 
   Var BookBeforeInsert : TBookmarkStr;
       TempBuf : pointer;
@@ -1286,18 +1286,22 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   If FRecordcount > 0 then
     BookBeforeInsert:=Bookmark;
 
-  if FActiveRecord < FRecordCount-1 then
+  if not DoAppend then
     begin
-    TempBuf := FBuffers[FBuffercount];
-    move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
-    FBuffers[FActiveRecord]:=TempBuf;
+    if FRecordCount > 0 then
+      begin
+      TempBuf := FBuffers[FBuffercount];
+      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
+      FBuffers[FActiveRecord]:=TempBuf;
+      end;
     end
   else if FRecordcount=FBuffercount then
     shiftbuffersbackward
-  else begin
+  else
+    begin
     if FRecordCount>0 then
-    inc(FActiveRecord);
-  end;
+      inc(FActiveRecord);
+    end;
 
   // Active buffer is now edit buffer. Initialize.
   InitRecord(FBuffers[FActiveRecord]);
@@ -1339,8 +1343,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('going to insert mode');
 {$endif}
-
-    DoInsert;
+    DoInsert(false);
     end
   else
     begin
@@ -1352,7 +1355,7 @@ begin
     GetPriorRecords;
     if FRecordCount>0 then
       FActiveRecord:=FRecordCount-1;
-    DoInsert;
+    DoInsert(True);
     SetBookmarkFlag(ActiveBuffer,bfEOF);
     FBOF :=False;
     FEOF := true;
