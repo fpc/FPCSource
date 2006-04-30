@@ -3148,6 +3148,7 @@ type
   function ProgIDFromCLSID(const _para1:TCLSID; out _para2:POLESTR):HRESULT;stdcall; external  'ole32.dll' name 'ProgIDFromCLSID';
 
   function CLSIDFromProgID(_para1:POLESTR; _para2:LPCLSID):HRESULT;stdcall; external  'ole32.dll' name 'CLSIDFromProgID';
+  function CLSIDFromProgID(_para1:POLESTR; out _para2:TCLSID):HRESULT;stdcall; external  'ole32.dll' name 'CLSIDFromProgID';
 
   function StringFromGUID2(const _para1:TGUID; _para2:LPOLESTR; _para3:longint):longint;stdcall; external  'ole32.dll' name 'StringFromGUID2';
 
