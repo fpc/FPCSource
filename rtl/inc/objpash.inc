@@ -13,7 +13,7 @@
     TO MODIFY THE COMPILER AND OBJPAS.INC ACCORDINGLY, OTHERWISE
     THIS WILL LEAD TO CRASHES IN THE RESULTING COMPILER AND/OR RTL.
 
-    IN PARTICULAR, THE IMPLEMENTATION PART OF THIS INCLUDE FILE, 
+    IN PARTICULAR, THE IMPLEMENTATION PART OF THIS INCLUDE FILE,
     OBJPAS.INC, USES SOME HARDCODED RECORD MEMBER OFFSETS.
 
     See the file COPYING.FPC, included in this distribution,
@@ -189,14 +189,14 @@
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
           ['{00020400-0000-0000-C000-000000000046}']
-          function GetTypeInfoCount(out count : longint) : longint;stdcall;
-          function GetTypeInfo(Index,LocaleID : longint;
+          function GetTypeInfoCount(out count : longint) : HResult;stdcall;
+          function GetTypeInfo(Index,LocaleID : HResult;
             out TypeInfo): LongInt;stdcall;
           function GetIDsOfNames(const iid: TGUID; names: Pointer;
-            NameCount, LocaleID: LongInt; DispIDs: Pointer) : longint;stdcall;
+            NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult;stdcall;
           function Invoke(DispID: LongInt;const iid : TGUID;
             LocaleID : longint; Flags: Word;var params;
-            VarResult,ExcepInfo,ArgErr : pointer) : longint;stdcall;
+            VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
        end;
 
        TInterfacedObject = class(TObject,IUnknown)
