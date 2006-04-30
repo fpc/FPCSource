@@ -1629,6 +1629,7 @@ begin
   else if UnloadLibrary(MysqlLibraryHandle) then 
     begin
     Dec(RefCount);
+    MysqlLibraryHandle := NilHandle;
     LoadedLibrary:='';
     end;
 end;
