@@ -2677,6 +2677,7 @@ begin
   else if UnloadLibrary(IBaseLibraryHandle) then 
     begin
     Dec(RefCount);
+    IBaseLibraryHandle := NilHandle;
     LoadedLibrary:='';
     end;
 end;
