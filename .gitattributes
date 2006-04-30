@@ -369,6 +369,7 @@ compiler/ppc.cfg -text
 compiler/ppc.conf -text
 compiler/ppc.dof -text
 compiler/ppc.dpr -text
+compiler/ppcgen/cgppc.pas svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
 compiler/ppu.pas svneol=native#text/plain
 compiler/procinfo.pas svneol=native#text/plain

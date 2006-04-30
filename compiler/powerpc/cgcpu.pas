@@ -27,13 +27,13 @@ unit cgcpu;
 
     uses
        globtype,symtype,symdef,
-       cgbase,cgobj,
+       cgbase,cgobj,cgppc,
        aasmbase,aasmcpu,aasmtai,aasmdata,
        cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
        parabase;
 
     type
-      tcgppc = class(tcg)
+      tcgppc = class(tcgppcgen)
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 

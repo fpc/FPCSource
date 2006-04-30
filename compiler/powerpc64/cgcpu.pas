@@ -27,13 +27,13 @@ interface
 
 uses
   globtype, symtype, symdef, symsym,
-  cgbase, cgobj,
+  cgbase, cgobj,cgppc,
   aasmbase, aasmcpu, aasmtai,aasmdata,
   cpubase, cpuinfo, cgutils, rgcpu,
   parabase;
 
 type
-  tcgppc = class(tcg)
+  tcgppc = class(tcgppcgen)
     procedure init_register_allocators; override;
     procedure done_register_allocators; override;
 
