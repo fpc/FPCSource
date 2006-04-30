@@ -190,8 +190,8 @@
        IDispatch = interface(IUnknown)
           ['{00020400-0000-0000-C000-000000000046}']
           function GetTypeInfoCount(out count : longint) : HResult;stdcall;
-          function GetTypeInfo(Index,LocaleID : HResult;
-            out TypeInfo): LongInt;stdcall;
+          function GetTypeInfo(Index,LocaleID : longint;
+            out TypeInfo): HResult;stdcall;
           function GetIDsOfNames(const iid: TGUID; names: Pointer;
             NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult;stdcall;
           function Invoke(DispID: LongInt;const iid : TGUID;
