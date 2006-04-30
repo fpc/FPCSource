@@ -88,7 +88,7 @@ implementation
           p : tpropertysym;
         begin
            { check for a class }
-           if not((is_class_or_interface(aktobjectdef)) or
+           if not((is_class_or_interface_or_dispinterface(aktobjectdef)) or
               (not(m_tp7 in aktmodeswitches) and (is_object(aktobjectdef)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);

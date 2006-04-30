@@ -352,7 +352,7 @@ implementation
            begin
               { do an property override }
               overriden:=search_class_member(aclass.childof,p.name);
-              if assigned(overriden) and (overriden.typ=propertysym) then
+              if assigned(overriden) and (overriden.typ=propertysym) and not(is_dispinterface(aclass)) then
                 begin
                   p.dooverride(tpropertysym(overriden));
                 end
@@ -362,98 +362,120 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
-         if (sp_published in current_object_option) and
+         if ((sp_published in current_object_option) or is_dispinterface(aclass)) and
             not(p.proptype.def.is_publishable) then
            Message(parser_e_cant_publish_that_property);
 
-         if try_to_consume(_READ) then
-          begin
-            p.readaccess.clear;
-            if parse_symlist(p.readaccess,def) then
-             begin
-               sym:=p.readaccess.firstsym^.sym;
-               case sym.typ of
-                 procsym :
-                   begin
-                     { read is function returning the type of the property }
-                     readprocdef.rettype:=p.proptype;
-                     { Insert hidden parameters }
-                     handle_calling_convention(readprocdef);
-                     { search procdefs matching readprocdef }
-                     { we ignore hidden stuff here because the property access symbol might have
-                       non default calling conventions which might change the hidden stuff;
-                       see tw3216.pp (FK) }
-                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden]);
-                     if not assigned(p.readaccess.procdef) then
-                       Message(parser_e_ill_property_access_sym);
-                   end;
-                 fieldvarsym :
-                   begin
-                     if not assigned(def) then
-                       internalerror(200310071);
-                     if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
-                      begin
-                        { property parameters are allowed if this is
-                          an indexed property, because the index is then
-                          the parameter.
-                          Note: In the help of Kylix it is written
-                          that it isn't allowed, but the compiler accepts it (PFV) }
-                        if (ppo_hasparameters in p.propoptions) then
-                         Message(parser_e_ill_property_access_sym);
-                      end
-                     else
-                      IncompatibleTypes(def,p.proptype.def);
-                   end;
-                 else
-                   Message(parser_e_ill_property_access_sym);
+         if not(is_dispinterface(aclass)) then
+           begin
+             if try_to_consume(_READ) then
+               begin
+                 p.readaccess.clear;
+                 if parse_symlist(p.readaccess,def) then
+                  begin
+                    sym:=p.readaccess.firstsym^.sym;
+                    case sym.typ of
+                      procsym :
+                        begin
+                          { read is function returning the type of the property }
+                          readprocdef.rettype:=p.proptype;
+                          { Insert hidden parameters }
+                          handle_calling_convention(readprocdef);
+                          { search procdefs matching readprocdef }
+                          { we ignore hidden stuff here because the property access symbol might have
+                            non default calling conventions which might change the hidden stuff;
+                            see tw3216.pp (FK) }
+                          p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden]);
+                          if not assigned(p.readaccess.procdef) then
+                            Message(parser_e_ill_property_access_sym);
+                        end;
+                      fieldvarsym :
+                        begin
+                          if not assigned(def) then
+                            internalerror(200310071);
+                          if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
+                           begin
+                             { property parameters are allowed if this is
+                               an indexed property, because the index is then
+                               the parameter.
+                               Note: In the help of Kylix it is written
+                               that it isn't allowed, but the compiler accepts it (PFV) }
+                             if (ppo_hasparameters in p.propoptions) then
+                              Message(parser_e_ill_property_access_sym);
+                           end
+                          else
+                           IncompatibleTypes(def,p.proptype.def);
+                        end;
+                      else
+                        Message(parser_e_ill_property_access_sym);
+                    end;
+                  end;
                end;
-             end;
-          end;
-         if try_to_consume(_WRITE) then
-          begin
-            p.writeaccess.clear;
-            if parse_symlist(p.writeaccess,def) then
-             begin
-               sym:=p.writeaccess.firstsym^.sym;
-               case sym.typ of
-                 procsym :
-                   begin
-                     { write is a procedure with an extra value parameter
-                       of the of the property }
-                     writeprocdef.rettype:=voidtype;
-                     inc(paranr);
-                     hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.proptype,[]);
-                     writeprocdef.parast.insert(hparavs);
-                     { Insert hidden parameters }
-                     handle_calling_convention(writeprocdef);
-                     { search procdefs matching writeprocdef }
-                     p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults]);
-                     if not assigned(p.writeaccess.procdef) then
-                       Message(parser_e_ill_property_access_sym);
-                   end;
-                 fieldvarsym :
-                   begin
-                     if not assigned(def) then
-                       internalerror(200310072);
-                     if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
-                      begin
-                        { property parameters are allowed if this is
-                          an indexed property, because the index is then
-                          the parameter.
-                          Note: In the help of Kylix it is written
-                          that it isn't allowed, but the compiler accepts it (PFV) }
-                        if (ppo_hasparameters in p.propoptions) then
-                         Message(parser_e_ill_property_access_sym);
-                      end
-                     else
-                      IncompatibleTypes(def,p.proptype.def);
-                   end;
-                 else
-                   Message(parser_e_ill_property_access_sym);
+             if try_to_consume(_WRITE) then
+               begin
+                 p.writeaccess.clear;
+                 if parse_symlist(p.writeaccess,def) then
+                  begin
+                    sym:=p.writeaccess.firstsym^.sym;
+                    case sym.typ of
+                      procsym :
+                        begin
+                          { write is a procedure with an extra value parameter
+                            of the of the property }
+                          writeprocdef.rettype:=voidtype;
+                          inc(paranr);
+                          hparavs:=tparavarsym.create('$value',10*paranr,vs_value,p.proptype,[]);
+                          writeprocdef.parast.insert(hparavs);
+                          { Insert hidden parameters }
+                          handle_calling_convention(writeprocdef);
+                          { search procdefs matching writeprocdef }
+                          p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.rettype.def,[cpo_allowdefaults]);
+                          if not assigned(p.writeaccess.procdef) then
+                            Message(parser_e_ill_property_access_sym);
+                        end;
+                      fieldvarsym :
+                        begin
+                          if not assigned(def) then
+                            internalerror(200310072);
+                          if compare_defs(def,p.proptype.def,nothingn)>=te_equal then
+                           begin
+                             { property parameters are allowed if this is
+                               an indexed property, because the index is then
+                               the parameter.
+                               Note: In the help of Kylix it is written
+                               that it isn't allowed, but the compiler accepts it (PFV) }
+                             if (ppo_hasparameters in p.propoptions) then
+                              Message(parser_e_ill_property_access_sym);
+                           end
+                          else
+                           IncompatibleTypes(def,p.proptype.def);
+                        end;
+                      else
+                        Message(parser_e_ill_property_access_sym);
+                    end;
+                  end;
                end;
-             end;
-          end;
-         if assigned(aclass) then
+           end
+         else
+           begin
+             if try_to_consume(_READONLY) then
+               begin
+               end
+             else if try_to_consume(_WRITEONLY) then
+               begin
+               end;
+             if try_to_consume(_DISPID) then
+               begin
+                 pt:=comp_expr(true);
+                 if is_constintnode(pt) then
+                   // tprocdef(pd).extnumber:=tordconstnode(pt).value
+                 else
+                   Message(parser_e_dispid_must_be_ord_const);
+                 pt.free;
+               end;
+           end;
+
+         if assigned(aclass) and not(is_dispinterface(aclass)) then
            begin
              include(p.propoptions,ppo_stored);
              if try_to_consume(_STORED) then

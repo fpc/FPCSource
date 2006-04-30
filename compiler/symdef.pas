@@ -5473,7 +5473,7 @@ implementation
         result:=
           assigned(def) and
           (def.deftype=objectdef) and
-          (tobjectdef(def).objecttype in [odt_dispinterface]);
+          (tobjectdef(def).objecttype=odt_dispinterface);
       end;
 
 
