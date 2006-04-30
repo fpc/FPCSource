@@ -731,6 +731,7 @@ interface
     function is_interfacecom(def: tdef): boolean;
     function is_interfacecorba(def: tdef): boolean;
     function is_interface(def: tdef): boolean;
+    function is_dispinterface(def: tdef): boolean;
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
@@ -5464,6 +5465,15 @@ implementation
           assigned(def) and
           (def.deftype=objectdef) and
           (tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba]);
+      end;
+
+
+    function is_dispinterface(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.deftype=objectdef) and
+          (tobjectdef(def).objecttype in [odt_dispinterface]);
       end;
 
 

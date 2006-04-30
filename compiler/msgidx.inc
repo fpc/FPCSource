@@ -296,6 +296,7 @@ const
   parser_e_dispinterface_cant_have_parent=03216;
   parser_e_dispinterface_needs_a_guid=03217;
   parser_w_overridden_methods_not_same_ret=03218;
+  parser_e_dispid_must_be_ord_const=03219;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -678,9 +679,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39835;
+  MsgTxtSize = 39882;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,75,219,60,62,47,100,22,135,60,
+    24,75,220,60,62,47,100,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

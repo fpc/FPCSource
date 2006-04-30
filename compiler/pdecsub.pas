@@ -30,14 +30,15 @@ interface
 
     type
       tpdflag=(
-        pd_body,       { directive needs a body }
-        pd_implemen,   { directive can be used implementation section }
-        pd_interface,  { directive can be used interface section }
-        pd_object,     { directive can be used object declaration }
-        pd_procvar,    { directive can be used procvar declaration }
-        pd_notobject,  { directive can not be used object declaration }
-        pd_notobjintf, { directive can not be used interface declaration }
-        pd_notprocvar  { directive can not be used procvar declaration }
+        pd_body,         { directive needs a body }
+        pd_implemen,     { directive can be used implementation section }
+        pd_interface,    { directive can be used interface section }
+        pd_object,       { directive can be used object declaration }
+        pd_procvar,      { directive can be used procvar declaration }
+        pd_notobject,    { directive can not be used object declaration }
+        pd_notobjintf,   { directive can not be used interface declaration }
+        pd_notprocvar,   { directive can not be used procvar declaration }
+        pd_dispinterface { directive can be used with dispinterface methods }
       );
       tpdflags=set of tpdflag;
 
@@ -1219,7 +1220,7 @@ begin
        if is_constintnode(pt) then
          begin
            include(pd.procoptions,po_msgint);
-           pd.messageinf.i:=pt^.value;
+           pd.messageinf.i:=pt.value;
          end
        else
          Message(parser_e_ill_msg_expr);
@@ -1227,6 +1228,22 @@ begin
     end;
 {$endif WITHDMT}
 end;
+
+
+procedure pd_dispid(pd:tabstractprocdef);
+var
+  pt : tnode;
+begin
+  if pd.deftype<>procdef then
+    internalerror(200604301);
+  pt:=comp_expr(true);
+  if is_constintnode(pt) then
+    tprocdef(pd).extnumber:=tordconstnode(pt).value
+  else
+    Message(parser_e_dispid_must_be_ord_const);
+  pt.free;
+end;
+
 
 procedure pd_static(pd:tabstractprocdef);
 begin
@@ -1517,7 +1534,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=37;
+  num_proc_directives=38;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1574,6 +1591,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_assembler,po_external]
+    ),(
+      idtok:_DISPID;
+      pd_flags : [pd_dispinterface];
+      handler  : @pd_dispid;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_DYNAMIC;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
@@ -1981,6 +2007,10 @@ const
            { check if method and directive not for interface }
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
+            exit;
+           { check if method and directive not for interface }
+           if is_dispinterface(tprocdef(pd)._class) and
+             not(pd_dispinterface in proc_direcdata[p].pd_flags) then
             exit;
          end;
 
