@@ -135,7 +135,7 @@ Function Do_IsDevice(Handle:THandle):boolean;
   data is function-dependent.
 }
 const
-{$ifdef PowerPC}
+{$if defined(PowerPC) or defined(PowerPc64)}
   IOCtl_TCGETS=$402c7413;
 {$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
