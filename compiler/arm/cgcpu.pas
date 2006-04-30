@@ -752,7 +752,7 @@ unit cgcpu;
                  begin
                    shifterop_reset(so);so.shiftmode:=SM_LSR;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,Ref);
+                   usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,Ref);
                    inc(usedtmpref.offset);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
                    a_internal_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref);
@@ -761,7 +761,6 @@ unit cgcpu;
                  begin
                    shifterop_reset(so);so.shiftmode:=SM_LSR;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-
                    usedtmpref:=a_internal_load_reg_ref(list,OS_8,OS_8,reg,Ref);
                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,tmpreg,reg,so));
                    inc(usedtmpref.offset);
@@ -786,7 +785,7 @@ unit cgcpu;
        var
          oppostfix:toppostfix;
          usedtmpref,usedtmpref2: treference;
-         tmpreg,tmpreg2 : tregister;
+         tmpreg,tmpreg2,tmpreg3 : tregister;
          so : tshifterop;
        begin
          case FromSize of
@@ -810,19 +809,28 @@ unit cgcpu;
              case FromSize of
                OS_16,OS_S16:
                  begin
+                   a_loadaddr_ref_reg(list,ref,reg);
+                   reference_reset_base(usedtmpref,reg,0);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
-                   usedtmpref:=a_internal_load_ref_reg(list,OS_8,OS_8,Ref,tmpreg);
+                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                    inc(usedtmpref.offset);
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
-                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,reg,tmpreg,so));
+                   tmpreg2:=getintregister(list,OS_INT);
+                   if FromSize=OS_16 then
+                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2)
+                   else
+                     a_internal_load_ref_reg(list,OS_S8,OS_S8,usedtmpref,tmpreg2);
+                   list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,tmpreg,tmpreg2,so));
                  end;
                OS_32,OS_S32:
                  begin
-                   shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
                    tmpreg2:=getintregister(list,OS_INT);
-                   usedtmpref:=a_internal_load_ref_reg(list,OS_8,OS_8,Ref,reg);
+                   tmpreg3:=getintregister(list,OS_INT);
+                   shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
+                   a_loadaddr_ref_reg(list,ref,tmpreg3);
+                   reference_reset_base(usedtmpref,tmpreg3,0);
+                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                    inc(usedtmpref.offset);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,tmpreg2,reg,tmpreg,so));
@@ -1373,6 +1381,7 @@ unit cgcpu;
           l : tasmlabel;
         begin
           current_asmdata.getjumplabel(l);
+          if count<size then size:=1;
           a_load_const_reg(list,OS_INT,count div size,countreg);
           cg.a_label(list,l);
           srcref.addressmode:=AM_POSTINDEXED;
