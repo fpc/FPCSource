@@ -669,6 +669,7 @@ interface
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
+       hresulttype,
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,

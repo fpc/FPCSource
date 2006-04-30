@@ -376,6 +376,7 @@ implementation
         loadtype('variant',cvarianttype);
         loadtype('olevariant',colevarianttype);
         loadtype('methodpointer',methodpointertype);
+        loadtype('HRESULT',hresulttype);
 {$ifdef cpu64bit}
         uinttype:=u64inttype;
         sinttype:=s64inttype;

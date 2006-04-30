@@ -1890,6 +1890,11 @@ implementation
                          end;
                        variantdef:
                          begin
+                           { dispatch call }
+                           if token=_ID then
+                             begin
+                               consume(_ID);
+                             end;
                          end;
                        classrefdef:
                          begin
