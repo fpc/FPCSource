@@ -100,16 +100,11 @@ implementation
            if pd.deftype=procdef then
             akttokenpos:=tprocdef(pd).fileinfo;
 
-           if is_interfacecom(tprocdef(pd)._class) then
-             paranr:=paranr_result_com
+           { For left to right add it at the end to be delphi compatible }
+           if pd.proccalloption in pushleftright_pocalls then
+             paranr:=paranr_result_leftright
            else
-             begin
-               { For left to right add it at the end to be delphi compatible }
-               if pd.proccalloption in pushleftright_pocalls then
-                 paranr:=paranr_result_leftright
-               else
-                 paranr:=paranr_result;
-             end;
+             paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.rettype,[vo_is_funcret,vo_is_hidden_para]);
            pd.parast.insert(vs);
@@ -157,10 +152,7 @@ implementation
           begin
             { Generate self variable }
             tt:=voidpointertype;
-            if is_interfacecom(tprocdef(pd)._class) then
-              vs:=tparavarsym.create('$self',paranr_self_com,vs_value,tt,[vo_is_self,vo_is_hidden_para])
-            else
-              vs:=tparavarsym.create('$self',paranr_self,vs_value,tt,[vo_is_self,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$self',paranr_self,vs_value,tt,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
         else
@@ -198,10 +190,7 @@ implementation
                       vsp:=vs_var;
                     tt.setdef(tprocdef(pd)._class);
                   end;
-                if is_interfacecom(tprocdef(pd)._class) then
-                  vs:=tparavarsym.create('$self',paranr_self_com,vsp,tt,[vo_is_self,vo_is_hidden_para])
-                else
-                  vs:=tparavarsym.create('$self',paranr_self,vsp,tt,[vo_is_self,vo_is_hidden_para]);
+                vs:=tparavarsym.create('$self',paranr_self,vsp,tt,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
 
                 akttokenpos:=storepos;

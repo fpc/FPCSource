@@ -95,10 +95,8 @@ const
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
   paranr_parentfp = 1;
-  paranr_result = 2;
-  paranr_result_com = 3;
-  paranr_self = 3;
-  paranr_self_com = 2;
+  paranr_self = 2;
+  paranr_result = 3;
   paranr_vmt = 4;
   { Required to support variations of syscalls on MorphOS }
   paranr_syscall_basesysv = 9;
