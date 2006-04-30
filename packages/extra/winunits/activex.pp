@@ -700,6 +700,10 @@ TYPE
     MEMBERID            = DispId;
     HREFTYPE            = DWord;
 
+    PSYSINT = ^SYSINT;
+    SYSINT = LongInt;
+    PSYSUINT = ^SYSUINT;
+    SYSUINT = LongWord;
 
 // Enums
     VARKIND             = DWord;
