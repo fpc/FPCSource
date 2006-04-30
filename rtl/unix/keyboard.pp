@@ -81,6 +81,8 @@ const KbShiftUp    = $f0;
       KbShiftHome  = $f4;
       KbShiftEnd   = $f5;
 
+      double_esc_hack_enabled : boolean = false;
+
 {$ifdef Unused}
 type
    TKeyState = Record
@@ -196,7 +198,6 @@ const
 const
   oldmeta : longint = 0;
   meta : longint = 0;
-  double_esc_hack_enabled : boolean = false;
 
 var oldesc0,oldesc1,oldesc2,oldesc4,oldesc8:word;
 
