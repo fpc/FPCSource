@@ -902,9 +902,7 @@ implementation
                      current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(aint)),AT_FUNCTION,0));
                    end;
 
-                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                  reference_reset_base(href,vmtreg,vmtoffset);
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,pvreg);
 
                  { Load parameters that are in temporary registers in the
                    correct parameter register }
@@ -923,7 +921,7 @@ implementation
 
                  { call method }
                  extra_call_code;
-                 cg.a_call_reg(current_asmdata.CurrAsmList,pvreg);
+                 cg.a_call_ref(current_asmdata.CurrAsmList,href);
                  extra_post_call_code;
                end
              else
