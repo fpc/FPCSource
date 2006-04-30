@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 units=buildjwa
-implicitunits=winver mmsystem comobj  ole2 activex shellapi shlobj \
+implicitunits=winver mmsystem comobj ole2 activex shellapi shlobj oleserver \
  jwawintype jwawinbase jwawinnt \
  jwalmerr jwalmmsg jwaaclui jwaadsdb jwalmerrlog jwalmjoin jwaauthz  \
  jwabits jwalmremutl jwalmrepl jwalmserver jwalmshare jwalmsname \
@@ -37,7 +37,7 @@ implicitunits=winver mmsystem comobj  ole2 activex shellapi shlobj \
  jwaschemadef jwasecext jwasecurity jwasensapi jwashlguid jwasisbkup \
  jwasporder jwasrrestoreptapi jwasubauth jwasvcguid jwatlhelp32 \
  jwatmschema jwatraffic jwauserenv jwauxtheme jwawbemcli jwawinable \
-  jwawinber jwawincon jwawincpl jwawincred jwawincrypt \
+ jwawinber jwawincon jwawincpl jwawincred jwawincrypt \
  jwawindns jwawinefs jwawinerror jwawinfax jwawingdi jwawinioctl \
  jwawinldap jwawinnetwk jwawinnls jwawinperf jwawinreg jwawinresrc \
  jwawinsafer jwawinsock jwawinsock2 jwawinsvc jwawinuser \

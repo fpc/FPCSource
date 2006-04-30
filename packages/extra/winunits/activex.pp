@@ -3254,6 +3254,8 @@ type
   function CoGetInstanceFromIStorage(_para1:PCOSERVERINFO; _para2:PCLSID; _para3:IUnknown; _para4:DWORD; _para5:IStorage;
              _para6:DWORD; _para7:PMULTI_QI):HRESULT;stdcall; external  'ole32.dll' name 'CoGetInstanceFromIStorage';
 
+  type
+    TDispID = DISPID;
 
 implementation
 
