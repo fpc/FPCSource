@@ -29,8 +29,7 @@ unit cgppc;
        globtype,symtype,symdef,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,aasmdata,
-       cpubase,cpuinfo,cgutils,cg64f32,rgcpu,
-       parabase;
+       cpubase,cpuinfo,cgutils,rgcpu;
 
     type
       tcgppcgen = class(tcg)
