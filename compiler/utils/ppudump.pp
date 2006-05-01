@@ -1444,7 +1444,7 @@ begin
          ibfieldvarsym :
            begin
              readabstractvarsym('Field Variable symbol ',varoptions);
-             writeln(space,'      Address : ',getlongint);
+             writeln(space,'      Address : ',getaint);
            end;
 
          ibglobalvarsym :
@@ -1589,7 +1589,8 @@ type
     odt_object,
     odt_interfacecom,
     odt_interfacecorba,
-    odt_cppclass
+    odt_cppclass,
+    odt_dispinterface
   );
   tvarianttype = (
     vt_normalvariant,vt_olevariant
@@ -1672,7 +1673,7 @@ begin
              readtype;
              write  (space,'       Range Type : ');
              readtype;
-             writeln(space,'            Range : ',getlongint,' to ',getlongint);
+             writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
            end;
@@ -1771,7 +1772,7 @@ begin
          ibrecorddef :
            begin
              readcommondef('Record definition');
-             writeln(space,'         DataSize : ',getlongint);
+             writeln(space,'         DataSize : ',getaint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
@@ -1798,7 +1799,7 @@ begin
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    Name of Class : ',getstring);
-             writeln(space,'         DataSize : ',getlongint);
+             writeln(space,'         DataSize : ',getaint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'       Vmt offset : ',getlongint);
@@ -1807,7 +1808,7 @@ begin
              write  (space,'          Options : ');
              readobjectdefoptions;
 
-             if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba] then
+             if tobjectdeftype(b) in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
                begin
                   { IIDGUID }
                   for j:=1to 16 do
@@ -1863,9 +1864,9 @@ begin
              readcommondef('Enumeration type definition');
              write(space,'Base enumeration type : ');
              readderef;
-             writeln(space,' Smallest element : ',getlongint);
-             writeln(space,'  Largest element : ',getlongint);
-             writeln(space,'             Size : ',getlongint);
+             writeln(space,' Smallest element : ',getaint);
+             writeln(space,'  Largest element : ',getaint);
+             writeln(space,'             Size : ',getaint);
            end;
 
          ibclassrefdef :
