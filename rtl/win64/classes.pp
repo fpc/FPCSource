@@ -32,7 +32,10 @@ uses
 type
   TWndMethod = procedure(var msg : TMessage) of object;
 
-{$i classesh.inc}
+function MakeObjectInstance(Method: TWndMethod): Pointer;
+procedure FreeObjectInstance(ObjectInstance: Pointer);
+
+  {$i classesh.inc}
 
 implementation
 
@@ -41,6 +44,18 @@ uses
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
+
+function MakeObjectInstance(Method: TWndMethod): Pointer;
+  begin
+    runerror(211);
+  end;
+
+
+procedure FreeObjectInstance(ObjectInstance: Pointer);
+  begin
+    runerror(211);
+  end;
+
 
 initialization
   CommonInit;
