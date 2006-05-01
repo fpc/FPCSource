@@ -169,7 +169,12 @@ endif
 
 # PowerPC specific
 ifeq ($(PPC_TARGET),powerpc)
-override LOCALOPT+=
+override LOCALOPT+=-Fuppcgen
+endif
+
+# PowerPC64 specific
+ifeq ($(PPC_TARGET),powerpc64)
+override LOCALOPT+=-Fuppcgen
 endif
 
 # m68k specific
