@@ -1597,6 +1597,35 @@ Type
       Result : LRESULT;
     end;
 
+    TWMCreate = record
+      Msg : UINT;
+      Unused : Integer;
+      CreateStruct : PCreateStruct;
+      Result : LRESULT;
+    end;
+
+    TWMCtlColor = record
+      Msg : UINT;
+      ChildDC : HDC;
+      ChildWnd : HWND;
+      Result : LRESULT;
+    end;
+
+    TWMCtlColorScrollbar = TWMCtlColor;
+    TWMCtlColorStatic    = TWMCtlColor;
+    TWMCtlColorBtn       = TWMCtlColor;
+    TWMCtlColorListbox   = TWMCtlColor;
+    TWMCtlColorMsgbox    = TWMCtlColor;
+    TWMCtlColorDlg       = TWMCtlColor;
+    TWMCtlColorEdit      = TWMCtlColor;
+
+    TWMInitDialog = record
+      Msg : UINT;
+      Focus : HWND;
+      InitParam : Longint;
+      Result : LRESULT;
+    end;
+
     {$endif messagesunit}
 
 {$endif read_interface}

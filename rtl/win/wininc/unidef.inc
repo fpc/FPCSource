@@ -288,6 +288,7 @@ function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIn
 function AddFontResource(_para1:LPCWSTR):longint; external 'gdi32' name 'AddFontResourceW';
 function CopyMetaFile(_para1:HMETAFILE; _para2:LPCWSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileW';
 function CreateFontIndirect(_para1:PLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
+function CreateFontIndirect(var _para1:LOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectW';
 function CreateFont(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
   external 'gdi32' name 'CreateFontW';
 function CreateIC(_para1:LPCWSTR; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPDEVMODE):HDC; external 'gdi32' name 'CreateICW';

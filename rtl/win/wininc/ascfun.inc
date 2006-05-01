@@ -292,6 +292,7 @@ function CopyMetaFileA(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi
 function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCSTR):HFONT;
 external 'gdi32' name 'CreateFontA';
 function CreateFontIndirectA(_para1:LPLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectA';
+function CreateFontIndirectA(var _para1:LOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectA';
 function CreateICA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:LPDEVMODE):HDC; external 'gdi32' name 'CreateICA';
 function CreateMetaFileA(_para1:LPCSTR):HDC; external 'gdi32' name 'CreateMetaFileA';
 function CreateScalableFontResourceA(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR; _para4:LPCSTR):WINBOOL; external 'gdi32' name 'CreateScalableFontResourceA';
