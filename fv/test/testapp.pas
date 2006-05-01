@@ -202,11 +202,11 @@ BEGIN
       NewItem('~V~iew Clipboard', '', kbNoKey, cmClipboard, hcNoContext,
       nil)))),                 { Standard edit menu plus view clipboard}
     NewSubMenu('~T~est', 0, NewMenu(
-      NewItem('Ascii Chart','',kbNoKey,cmAscii,hcNoContext,
-      NewItem('Window 1','',kbNoKey,cmWindow1,hcNoContext,
-      NewItem('Window 2','',kbNoKey,cmWindow2,hcNoContext,
-      NewItem('Window 3','',kbNoKey,cmWindow3,hcNoContext,
-      NewItem('Timed Box','',kbNoKey,cmTimedBox,hcNoContext,
+      NewItem('~A~scii Chart','',kbNoKey,cmAscii,hcNoContext,
+      NewItem('Window ~1~','',kbNoKey,cmWindow1,hcNoContext,
+      NewItem('Window ~2~','',kbNoKey,cmWindow2,hcNoContext,
+      NewItem('Window ~3~','',kbNoKey,cmWindow3,hcNoContext,
+      NewItem('~T~imed Box','',kbNoKey,cmTimedBox,hcNoContext,
       NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
       NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
       NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
