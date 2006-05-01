@@ -902,9 +902,9 @@
           CtlID : UINT;
           hwndItem : HWND;
           itemID1 : UINT;
-          itemData1 : DWORD;
+          itemData1 : ULONG_PTR;
           itemID2 : UINT;
-          itemData2 : DWORD;
+          itemData2 : ULONG_PTR;
        end;
      tagCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
      TCOMPAREITEMSTRUCT = COMPAREITEMSTRUCT;
@@ -1878,7 +1878,7 @@
           CtlID : UINT;
           itemID : UINT;
           hwndItem : HWND;
-          itemData : UINT;
+          itemData : ULONG_PTR;
        end;
      tagDELETEITEMSTRUCT = DELETEITEMSTRUCT;
      TDELETEITEMSTRUCT = DELETEITEMSTRUCT;
@@ -2181,7 +2181,7 @@
           hwndItem : HWND;
           hDC : HDC;
           rcItem : RECT;
-          itemData : DWORD;
+          itemData : ULONG_PTR;
        end;
      LPDRAWITEMSTRUCT = ^DRAWITEMSTRUCT;
      tagDRAWITEMSTRUCT = DRAWITEMSTRUCT;
@@ -4120,7 +4120,7 @@
           itemID : UINT;
           itemWidth : UINT;
           itemHeight : UINT;
-          itemData : DWORD;
+          itemData : ULONG_PTR;
        end;
      LPMEASUREITEMSTRUCT = ^MEASUREITEMSTRUCT;
      tagMEASUREITEMSTRUCT = MEASUREITEMSTRUCT;
