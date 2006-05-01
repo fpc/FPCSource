@@ -35,7 +35,10 @@ type
 function MakeObjectInstance(Method: TWndMethod): Pointer;
 procedure FreeObjectInstance(ObjectInstance: Pointer);
 
-  {$i classesh.inc}
+function AllocateHWnd(Method: TWndMethod): HWND;
+procedure DeallocateHWnd(Wnd: HWND);
+
+{$i classesh.inc}
 
 implementation
 
@@ -52,6 +55,18 @@ function MakeObjectInstance(Method: TWndMethod): Pointer;
 
 
 procedure FreeObjectInstance(ObjectInstance: Pointer);
+  begin
+    runerror(211);
+  end;
+
+
+function AllocateHWnd(Method: TWndMethod): HWND;
+  begin
+    runerror(211);
+  end;
+
+
+procedure DeallocateHWnd(Wnd: HWND);
   begin
     runerror(211);
   end;
