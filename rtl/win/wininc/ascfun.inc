@@ -298,6 +298,7 @@ function CreateScalableFontResourceA(_para1:DWORD; _para2:LPCSTR; _para3:LPCSTR;
 function EnumFontFamiliesExA(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32' name 'EnumFontFamiliesExA';
 function EnumFontFamiliesA(_para1:HDC; _para2:LPCSTR; _para3:FONTENUMPROC; _para4:LPARAM):longint; external 'gdi32' name 'EnumFontFamiliesA';
 function EnumFontsA(_para1:HDC; _para2:LPCSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external 'gdi32' name 'EnumFontsA';
+function EnumFontsA(_para1:HDC; _para2:LPCSTR; _para3:ENUMFONTSPROC; _para4:pointer):longint; external 'gdi32' name 'EnumFontsA';
 function GetCharWidthA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32' name 'GetCharWidthA';
 function GetCharWidth32A(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external 'gdi32' name 'GetCharWidth32A';
 function GetCharWidthFloatA(_para1:HDC; _para2:UINT; _para3:UINT; _para4:PSingle):WINBOOL; external 'gdi32' name 'GetCharWidthFloatA';
