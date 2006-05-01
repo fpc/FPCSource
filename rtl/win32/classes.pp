@@ -29,6 +29,9 @@ uses
   typinfo,
   windows;
 
+type
+  TWndMethod = procedure(var msg : TMessage) of object;
+
 {$i classesh.inc}
 
 implementation
@@ -41,7 +44,7 @@ uses
 
 initialization
   CommonInit;
-  
+
 finalization
   CommonCleanup;
 end.
