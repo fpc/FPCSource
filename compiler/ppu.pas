@@ -262,6 +262,7 @@ type
 implementation
 
   uses
+    systems,
 {$ifdef Test_Double_checksum}
     comphook,
 {$endif def Test_Double_checksum}
@@ -666,16 +667,32 @@ end;
 function tppufile.getreal:ppureal;
 var
   d : ppureal;
+  hd : double;
 begin
-  if entryidx+sizeof(ppureal)>entry.size then
-   begin
-     error:=true;
-     getreal:=0;
-     exit;
-   end;
-  readdata(d,sizeof(ppureal));
-  getreal:=d;
-  inc(entryidx,sizeof(ppureal));
+  if target_info.system=system_x86_64_win64 then
+    begin
+      if entryidx+sizeof(hd)>entry.size then
+       begin
+         error:=true;
+         getreal:=0;
+         exit;
+       end;
+      readdata(hd,sizeof(hd));
+      getreal:=hd;
+      inc(entryidx,sizeof(hd));
+    end
+  else
+    begin
+      if entryidx+sizeof(ppureal)>entry.size then
+       begin
+         error:=true;
+         getreal:=0;
+         exit;
+       end;
+      readdata(d,sizeof(ppureal));
+      getreal:=d;
+      inc(entryidx,sizeof(ppureal));
+    end;
 end;
 
 
@@ -992,8 +1009,16 @@ end;
 
 
 procedure tppufile.putreal(d:ppureal);
+var
+  hd : double;
 begin
-  putdata(d,sizeof(ppureal));
+  if target_info.system=system_x86_64_win64 then
+    begin
+      hd:=d;
+      putdata(hd,sizeof(hd));
+    end
+  else
+    putdata(d,sizeof(ppureal));
 end;
 
 
