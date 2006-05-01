@@ -3480,13 +3480,18 @@ Const
      ODA_DRAWENTIRE = 1;
      ODA_FOCUS = 4;
      ODA_SELECT = 2;
-     ODS_CHECKED = 8;
-     ODS_COMBOBOXEDIT = 4096;
-     ODS_DEFAULT = 32;
-     ODS_DISABLED = 4;
-     ODS_FOCUS = 16;
-     ODS_GRAYED = 2;
      ODS_SELECTED = 1;
+     ODS_GRAYED = 2;
+     ODS_DISABLED = 4;
+     ODS_CHECKED = 8;
+     ODS_FOCUS = 16;
+     ODS_DEFAULT = 32;
+     ODS_HOTLIGHT = $0040;
+     ODS_INACTIVE = $0080;
+     ODS_NOACCEL = $0100;
+     ODS_NOFOCUSRECT = $0200;
+     ODS_COMBOBOXEDIT = $1000;
+
   { Common control window classes  }
      ANIMATE_CLASSW = 'SysAnimate32';
      HOTKEY_CLASSW = 'msctls_hotkey32';
@@ -5277,9 +5282,9 @@ Const
   const
      SIZE_OF_80387_REGISTERS = 80;
   { Values for contextflags  }
-     CONTEXT_i386 = $10000;    // this assumes that i386 and 
+     CONTEXT_i386 = $10000;    // this assumes that i386 and
      CONTEXT_i486 = $10000;    // i486 have identical context records
-     
+
      CONTEXT_CONTROL = CONTEXT_i386 or 1;              // SS:SP, CS:IP, FLAGS, BP
      CONTEXT_INTEGER = CONTEXT_i386 or 2;              // AX, BX, CX, DX, SI, DI
      CONTEXT_SEGMENTS = CONTEXT_i386 or 4;             // DS, ES, FS, GS
@@ -5291,7 +5296,7 @@ Const
   { our own invention  }
      FLAG_TRACE_BIT = $100;
      CONTEXT_DEBUGGER = CONTEXT_FULL or CONTEXT_FLOATING_POINT;
-{$endif}                                                       
+{$endif}
 
 {$ifdef cpux86_64}
   const
@@ -5299,16 +5304,16 @@ Const
      INITIAL_FPCSR = $027f;            // initial FPCSR value
 
      CONTEXT_AMD64 = $100000;
-   
+
      CONTEXT_CONTROL         = (CONTEXT_AMD64 or $00000001);
      CONTEXT_INTEGER         = (CONTEXT_AMD64 or $00000002);
      CONTEXT_SEGMENTS        = (CONTEXT_AMD64 or $00000004);
      CONTEXT_FLOATING_POINT  = (CONTEXT_AMD64 or $00000008);
      CONTEXT_DEBUG_REGISTERS = (CONTEXT_AMD64 or $00000010);
-   
+
      CONTEXT_FULL            = (CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_FLOATING_POINT);
      CONTEXT_ALL             = (CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS or CONTEXT_FLOATING_POINT or CONTEXT_DEBUG_REGISTERS);
-   
+
      CONTEXT_EXCEPTION_ACTIVE    = $08000000;
      CONTEXT_SERVICE_ACTIVE      = $10000000;
      CONTEXT_EXCEPTION_REQUEST   = $40000000;
