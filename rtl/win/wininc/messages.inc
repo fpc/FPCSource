@@ -1261,9 +1261,12 @@ Type
       Result: LRESULT;
     end;
 
-    TWMKeyDown = TWMKey;
-    TWMKeyUp   = TWMKey;
-    TWMChar    = TWMKey;
+    TWMKeyDown    = TWMKey;
+    TWMKeyUp      = TWMKey;
+    TWMChar       = TWMKey;
+    TWMSysChar    = TWMKey;
+    TWMSysKeyDown = TWMKey;
+    TWMSysKeyUp   = TWMKey;
 
     TWMMenuChar = record
       Msg: UINT;
@@ -1623,6 +1626,20 @@ Type
       Msg : UINT;
       Focus : HWND;
       InitParam : Longint;
+      Result : LRESULT;
+    end;
+
+    TWMNCPaint = record
+      Msg : UINT;
+      RGN : HRGN;
+      Unused : Longint;
+      Result : LRESULT;
+    end;
+
+    TWMSetText = record
+      Msg : UINT;
+      Unused : Longint;
+      Text : PChar;
       Result : LRESULT;
     end;
 

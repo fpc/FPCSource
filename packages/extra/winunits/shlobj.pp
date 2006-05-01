@@ -30,6 +30,12 @@ unit shlobj;
         function SetNameOf(hwndOwner: HWND; pidl: PItemIDList; lpszName: POLEStr; uFlags: DWORD; var ppidlOut: PItemIDList): HRESULT; stdcall;
       end;
 
+      IAutoComplete = interface(IUnknown)
+        ['{00bb2762-6a77-11d0-a535-00c04fd7d062}']
+        function Init(hwndEdit: HWND; punkACL: IUnknown; pwszRegKeyPath: LPCWSTR; pwszQuickComplete: LPCWSTR): HRESULT; stdcall;
+        function Enable(fEnable: BOOL): HRESULT; stdcall;
+      end;
+
   implementation
 
 end.
