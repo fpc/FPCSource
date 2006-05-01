@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2006 by Carl Eric Codere and Peter Vreman
 
-    Does the parsing for the i386 intel styled inline assembler.
+    Does the parsing for the x86-64 intel styled inline assembler.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-Unit ra386int;
+Unit rax64int;
 
 {$i fpcdefs.inc}
 
@@ -29,7 +29,7 @@ Unit ra386int;
       rax86int;
 
     type
-      ti386intreader = class(tx86intreader)
+      tx8664intreader = class(tx86intreader)
         // procedure handleopcode;override;
       end;
 
@@ -40,7 +40,7 @@ Unit ra386int;
       rabase,systems,rax86,aasmcpu;
 
 {
-    procedure ti386intreader.handleopcode;
+    procedure tx8664intreader.handleopcode;
       var
         instr : Tx86Instruction;
       begin
@@ -57,18 +57,14 @@ Unit ra386int;
       end;
 }
 
-{*****************************************************************************
-                               Initialize
-*****************************************************************************}
-
 const
-  asmmode_i386_intel_info : tasmmodeinfo =
+  asmmode_x86_64_intel_info : tasmmodeinfo =
           (
-            id    : asmmode_i386_intel;
+            id    : asmmode_x86_64_intel;
             idtxt : 'INTEL';
-            casmreader : ti386intreader;
+            casmreader : tx8664intreader;
           );
 
-begin
-  RegisterAsmMode(asmmode_i386_intel_info);
+initialization
+  RegisterAsmMode(asmmode_x86_64_intel_info);
 end.

@@ -67,6 +67,9 @@ implementation
   {$ifndef NoRax64att}
        ,rax64att
   {$endif NoRax64att}
+  {$ifndef NoRax64int}
+       ,rax64int
+  {$endif NoRax64int}
 
 {**************************************
              Debuginfo

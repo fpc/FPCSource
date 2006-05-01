@@ -65,6 +65,7 @@ interface
             ,asmmode_sparc_gas
             ,asmmode_x86_64_gas
             ,asmmode_m68k_mot
+            ,asmmode_x86_64_intel
        );
 
      (* IMPORTANT NOTE:
