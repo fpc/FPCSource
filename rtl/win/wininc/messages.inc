@@ -1166,6 +1166,8 @@ Type
     TMessage            = Windows.TMessage;
     TWMSize             = Windows.TWMSize;
     TWMNoParams         = Windows.TWMNoParams;
+    TWMKey              = Windows.TWMKey;
+    TWMMenuChar         = Windows.TWMMenuChar;
     TWMScroll           = Windows.TWMScroll;
     TWMGetText          = Windows.TWMGetText;
     TWMKillFocus        = Windows.TWMKillFocus;
@@ -1246,9 +1248,36 @@ Type
       Result : LRESULT;
     end;
 
-    TWMGetDlgCode = TWMNoParams;
-    TWMFontChange = TWMNoParams;
-    TWMGetFont = TWMNoParams;
+    TWMCancelMode = TWMNoParams;
+    TWMNCDestroy  = TWMNoParams;
+    TWMDestroy    = TWMNoParams;
+    TWMClose      = TWMNoParams;
+
+    TWMKey = record
+      Msg: UINT;
+      CharCode: Word;
+      Unused: Word;
+      KeyData: Longint;
+      Result: LRESULT;
+    end;
+
+    TWMKeyDown = TWMKey;
+    TWMKeyUp   = TWMKey;
+    TWMChar    = TWMKey;
+
+    TWMMenuChar = record
+      Msg: UINT;
+      User: Char;
+      MenuFlag: Word;
+      Menu: HMENU;
+      Result: LRESULT;
+    end;
+
+    TWMGetDlgCode     = TWMNoParams;
+    TWMFontChange     = TWMNoParams;
+    TWMGetFont        = TWMNoParams;
+    TWMSysColorChange = TWMNoParams;
+    TWMQueryDragIcon  = TWMNoParams;
 
     TWMScroll = record
       Msg : UINT;
@@ -1309,13 +1338,266 @@ Type
     end;
 
     TWMEraseBkgnd = record
-      Msg: UINT;
-      DC: HDC;
-      Unused: LPARAM;
-      Result: LRESULT;
+      Msg : UINT;
+      DC : HDC;
+      Unused : LPARAM;
+      Result : LRESULT;
     end;
 
-{$endif messagesunit}
+    TWMNCHitTest = record
+      Msg : UINT;
+      Unused : Longint;
+      case Integer of
+        0: (XPos : Smallint;YPos : Smallint);
+        1:  ( Pos : TSmallPoint;Result: LRESULT);
+    end;
+
+    TWMMouse = record
+      Msg : UINT;
+      Keys : Longint;
+      case Integer of
+        0: (XPos : Smallint;YPos : Smallint);
+        1: (Pos : TSmallPoint;Result : LRESULT);
+    end;
+
+    TWMLButtonDblClk  = TWMMouse;
+    TWMLButtonDown    = TWMMouse;
+    TWMLButtonUp      = TWMMouse;
+    TWMMButtonDblClk  = TWMMouse;
+    TWMMButtonDown    = TWMMouse;
+    TWMMButtonUp      = TWMMouse;
+
+    TWMMouseWheel = record
+      Msg : UINT;
+      Keys : SmallInt;
+      WheelDelta : SmallInt;
+      case Integer of
+        0: (XPos : Smallint;YPos : Smallint);
+        1: (Pos : TSmallPoint;Result : LRESULT);
+    end;
+
+    TWMNCHitMessage = record
+      Msg : UINT;
+      HitTest : Longint;
+      XCursor : Smallint;
+      YCursor : Smallint;
+      Result : LRESULT;
+    end;
+
+    TWMNCLButtonDblClk  = TWMNCHitMessage;
+    TWMNCLButtonDown    = TWMNCHitMessage;
+    TWMNCLButtonUp      = TWMNCHitMessage;
+    TWMNCMButtonDblClk  = TWMNCHitMessage;
+    TWMNCMButtonDown    = TWMNCHitMessage;
+    TWMNCMButtonUp      = TWMNCHitMessage;
+    TWMNCMouseMove      = TWMNCHitMessage;
+    TWMRButtonDblClk    = TWMMouse;
+    TWMRButtonDown      = TWMMouse;
+    TWMRButtonUp        = TWMMouse;
+    TWMMouseMove        = TWMMouse;
+
+    TWMPaint = record
+      Msg : UINT;
+      DC : HDC;
+      Unused : Longint;
+      Result : LRESULT;
+    end;
+
+    TWMCommand = record
+      Msg : UINT;
+      ItemID : Word;
+      NotifyCode : Word;
+      Ctl : HWND;
+      Result : LRESULT;
+    end;
+
+    TWMNotify = record
+      Msg : UINT;
+      IDCtrl : Longint;
+      NMHdr : PNMHdr;
+      Result : LRESULT;
+    end;
+
+    TWMPrint = record
+      Msg : UINT;
+      DC : HDC;
+      Flags : Cardinal;
+      Result : LRESULT;
+    end;
+
+    TWMPrintClient = TWMPrint;
+
+    TWMWinIniChange = record
+      Msg : UINT;
+      Unused : Integer;
+      Section : PChar;
+      Result : LRESULT;
+    end;
+
+    TWMContextMenu = record
+      Msg : UINT;
+      hWnd : HWND;
+      case Integer of
+        0: (XPos : Smallint;YPos : Smallint);
+        1: (Pos : TSmallPoint;Result : LRESULT);
+    end;
+
+    TWMNCCalcSize = record
+      Msg : UINT;
+      CalcValidRects : BOOL;
+      CalcSize_Params : PNCCalcSizeParams;
+      Result : LRESULT;
+    end;
+
+    TWMCharToItem = record
+      Msg : UINT;
+      Key : Word;
+      CaretPos : Word;
+      ListBox: HWND;
+      Result : LRESULT;
+    end;
+
+    TWMVKeyToItem = TWMCharToItem;
+
+    TWMParentNotify = record
+      Msg : UINT;
+      case Event : Word of
+        WM_CREATE, WM_DESTROY: (ChildID : Word;ChildWnd : HWnd);
+        WM_LBUTTONDOWN, WM_MBUTTONDOWN, WM_RBUTTONDOWN: (Value : Word;XPos : Smallint;YPos : Smallint);
+        0: (Value1 : Word;Value2 : Longint;Result : LRESULT);
+    end;
+
+    TWMSysCommand = record
+      Msg : UINT;
+      case CmdType : Longint of
+        SC_HOTKEY: (ActivateWnd : HWND);
+        SC_KEYMENU: (Key : Word);
+        SC_CLOSE, SC_HSCROLL, SC_MAXIMIZE, SC_MINIMIZE, SC_MOUSEMENU, SC_MOVE,
+        SC_NEXTWINDOW, SC_PREVWINDOW, SC_RESTORE, SC_SCREENSAVE, SC_SIZE,
+        SC_TASKLIST, SC_VSCROLL: (XPos : Smallint; YPos : Smallint;Result : LRESULT);
+    end;
+
+    TWMMove = record
+      Msg : UINT;
+      Unused : Integer;
+      case Integer of
+        0: (XPos : Smallint;YPos : Smallint);
+        1: (Pos : TSmallPoint;Result : LRESULT);
+    end;
+
+    TWMWindowPosMsg = record
+      Msg : UINT;
+      Unused : Integer;
+      WindowPos : PWindowPos;
+      Result : LRESULT;
+    end;
+
+    TWMWindowPosChanged  = TWMWindowPosMsg;
+    TWMWindowPosChanging = TWMWindowPosMsg;
+
+    TWMCompareItem = record
+      Msg : UINT;
+      Ctl : HWnd;
+      CompareItemStruct : PCompareItemStruct;
+      Result : LRESULT;
+    end;
+
+    TWMDeleteItem = record
+      Msg : UINT;
+      Ctl : HWND;
+      DeleteItemStruct : PDeleteItemStruct;
+      Result : LRESULT;
+    end;
+
+    TWMDrawItem = record
+      Msg : UINT;
+      Ctl : HWND;
+      DrawItemStruct : PDrawItemStruct;
+      Result : LRESULT;
+    end;
+
+    TWMMeasureItem = record
+      Msg : UINT;
+      IDCtl : HWnd;
+      MeasureItemStruct : PMeasureItemStruct;
+      Result : LRESULT
+    end;
+
+    TWMNCCreate = record
+      Msg : UINT;
+      Unused : Integer;
+      CreateStruct : PCreateStruct;
+      Result : LRESULT;
+    end;
+
+    TWMInitMenuPopup = record
+      Msg : UINT;
+      MenuPopup : HMENU;
+      Pos : Smallint;
+      SystemMenu : WordBool;
+      Result : LRESULT;
+    end;
+
+    TWMMenuSelect = record
+      Msg : UINT;
+      IDItem : Word;
+      MenuFlag : Word;
+      Menu: HMENU;
+      Result : LRESULT;
+    end;
+
+    TWMActivate = record
+      Msg : UINT;
+      Active : Word;
+      Minimized : WordBool;
+      ActiveWindow : HWND;
+      Result : LRESULT;
+    end;
+
+    TWMQueryEndSession = record
+      Msg : UINT;
+      Source : Longint;
+      Unused : Longint;
+      Result : LRESULT;
+    end;
+
+    TWMMDIActivate = record
+      Msg : UINT;
+      case Integer of
+        0: (ChildWnd : HWND);
+        1: (DeactiveWnd : HWND;ActiveWnd : HWND;Result: LRESULT);
+    end;
+
+    TWMNextDlgCtl = record
+      Msg : UINT;
+      CtlFocus : Longint;
+      Handle : WordBool;
+      Unused : Word;
+      Result : LRESULT;
+    end;
+
+    TWMHelp = record
+      Msg : UINT;
+      Unused : Integer;
+      HelpInfo : PHelpInfo;
+      Result : LRESULT;
+    end;
+
+    TWMGetMinMaxInfo = record
+      Msg : UINT;
+      Unused : Integer;
+      MinMaxInfo : PMinMaxInfo;
+      Result : LRESULT;
+    end;
+
+    TWMSettingChange = record
+      Msg : UINT;
+      Flag : Integer;
+      Section : PChar;
+      Result : LRESULT;
+    end;
+
+    {$endif messagesunit}
 
 {$endif read_interface}
 
