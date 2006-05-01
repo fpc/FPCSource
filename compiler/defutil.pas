@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2006 by Florian Klaempfl
 
     This unit provides some help routines for type handling
 
@@ -210,6 +210,8 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
+    {# returns true, if the type passed is can be used with windows automation }
+    function is_automatable(p : tdef) : boolean;
 
 implementation
 
@@ -916,6 +918,22 @@ implementation
               { undefined size }
               result:=OS_NO;
             end;
+        end;
+      end;
+
+
+    function is_automatable(p : tdef) : boolean;
+      begin
+        result:=false;
+        case p.deftype of
+          orddef:
+            result:=torddef(p).typ in [u8bit,s32bit,s16bit,bool16bit];
+          floatdef:
+            result:=tfloatdef(p).typ in [s64currency,s64real,s32real];
+          stringdef:
+            result:=tstringdef(p).string_typ in [st_shortstring,st_ansistring];
+          variantdef:
+            result:=true;
         end;
       end;
 

@@ -744,7 +744,6 @@ implementation
              exit;
            end;
 
-
          registersint:=left.registersint+right.registersint;
          registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
