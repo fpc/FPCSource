@@ -257,12 +257,19 @@ function MessageBoxEx(hWnd:HWND; lpText:LPCWSTR; lpCaption:LPCWSTR; uType:UINT; 
 function MessageBoxIndirect(_para1:LPMSGBOXPARAMS):longint; external 'user32' name 'MessageBoxIndirectW';
 function GetWindowLong(hWnd:HWND; nIndex:longint):LONG; external 'user32' name 'GetWindowLongW';
 function SetWindowLong(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32' name 'SetWindowLongW';
-function GetWindowLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetWindowLongPtrW';
-function SetWindowLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetWindowLongPtrW';
 function GetClassLong(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongW';
 function SetClassLong(hWnd:HWND; nIndex:longint; dwNewLong:LONG):DWORD; external 'user32' name 'SetClassLongW';
+{$ifdef cpu64}
+function GetWindowLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetWindowLongPtrW';
+function SetWindowLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetWindowLongPtrW';
 function GetClassLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetClassLongPtrW';
 function SetClassLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetClassLongPtrW';
+{$else}
+function GetWindowLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetWindowLongW';
+function SetWindowLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetWindowLongW';
+function GetClassLongPtr(hWnd:HWND; nIndex:longint):LONG_PTR; external 'user32' name 'GetClassLongW';
+function SetClassLongPtr(hWnd:HWND; nIndex:longint; dwNewLong:LONG_PTR):LONG_PTR; external 'user32' name 'SetClassLongW';
+{$endif}
 function FindWindow(lpClassName:LPCWSTR; lpWindowName:LPCWSTR):HWND; external 'user32' name 'FindWindowW';
 function FindWindowEx(_para1:HWND; _para2:HWND; _para3:LPCWSTR; _para4:LPCWSTR):HWND; external 'user32' name 'FindWindowExW';
 function GetClassName(hWnd:HWND; lpClassName:LPWSTR; nMaxCount:longint):longint; external 'user32' name 'GetClassNameW';
