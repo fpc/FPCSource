@@ -633,9 +633,10 @@ Var SearchRecBuffer : PBufRecLinkItem;
 
 begin
   abuf := ActiveBuffer;
-  if assigned(abuf) then
+  // If abuf isn't assigned, the recordset probably isn't opened.
+  if assigned(abuf) and (FRecordCount>0) then
     begin
-    GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
+    GetBookmarkData(abuf,@SearchRecBuffer);
     TmpRecBuffer := FFirstRecBuf;
     recnr := 1;
     while TmpRecBuffer <> SearchRecBuffer do
