@@ -47,7 +47,8 @@ unit cgcpu;
         procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string);override;
-        procedure a_call_reg(list : TAsmList;reg: tregister); override;
+        procedure a_call_reg(list : TAsmList;reg: tregister);override;
+        procedure a_call_ref(list : TAsmList;ref: treference);override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
@@ -295,6 +296,17 @@ unit cgcpu;
           if not(pi_do_call in current_procinfo.flags) then
             internalerror(2003060703);
 }
+        include(current_procinfo.flags,pi_do_call);
+      end;
+
+
+    procedure tcgarm.a_call_ref(list : TAsmList;ref: treference);
+      begin
+        a_reg_alloc(list,NR_R12);
+        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_R12);
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
+        list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+        a_reg_dealloc(list,NR_R12);
         include(current_procinfo.flags,pi_do_call);
       end;
 
@@ -1131,7 +1143,7 @@ unit cgcpu;
             list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
             { allocate necessary stack size }
-            { don't use  a_op_const_reg_reg here because we don't allow register allocations
+            { don't use a_op_const_reg_reg here because we don't allow register allocations
               in the entry/exit code }
             if not(is_shifter_const(localsize,shift)) then
               begin
