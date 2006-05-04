@@ -101,7 +101,7 @@ implementation
             akttokenpos:=tprocdef(pd).fileinfo;
 
            { For left to right add it at the end to be delphi compatible }
-           if pd.proccalloption in pushleftright_pocalls then
+           if pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])  then
              paranr:=paranr_result_leftright
            else
              paranr:=paranr_result;

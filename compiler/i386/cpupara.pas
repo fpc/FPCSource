@@ -99,25 +99,31 @@ unit cpupara;
         case target_info.system of
           system_i386_win32 :
             begin
-              case def.deftype of
-                recorddef :
-                  begin
-                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
-                      For stdcall we follow delphi instead of GCC }
-                    if (calloption in [pocall_cdecl,pocall_cppdecl]) and
-                       (def.size>0) and
-                       (def.size<=8) then
-                     begin
-                       result:=false;
-                       exit;
-                     end;
-                  end;
-              end;
+              if calloption=pocall_safecall then
+                begin
+                  result:=true;
+                  exit;
+                end
+              else
+                case def.deftype of
+                  recorddef :
+                    begin
+                      { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
+                        For stdcall we follow delphi instead of GCC }
+                      if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                         (def.size>0) and
+                         (def.size<=8) then
+                       begin
+                         result:=false;
+                         exit;
+                       end;
+                    end;
+                end;
             end;
           system_i386_darwin :
             begin
               case def.deftype of
-                recorddef : 
+                recorddef :
                   begin
                     size := def.size;
                     if (size > 0) and
