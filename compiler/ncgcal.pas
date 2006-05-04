@@ -1035,6 +1035,17 @@ implementation
                  internalerror(2004110214);
               end;
            end;
+
+{$if defined(x86) or defined(arm)}
+         if procdefinition.proccalloption=pocall_safecall then
+           begin
+
+             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+           end;
+{$endif}
+
          if cg.uses_registers(R_MMREGISTER) then
            cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_MMREGISTER,regs_to_save_mm);
          if cg.uses_registers(R_FPUREGISTER) then

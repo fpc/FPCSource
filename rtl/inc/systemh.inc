@@ -650,7 +650,7 @@ Type
   TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
-
+  TSafeCallErrorProc = Procedure(error : HResult;addr : pointer);
 
 
 const
@@ -658,7 +658,7 @@ const
   ErrorProc         : TErrorProc = nil;
   AbstractErrorProc : TAbstractErrorProc = nil;
   AssertErrorProc   : TAssertErrorProc = @SysAssert;
-
+  SafeCallErrorProc : TSafeCallErrorProc = nil;
 
 {*****************************************************************************
                           SetJmp/LongJmp

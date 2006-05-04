@@ -519,10 +519,12 @@ begin
   HandleErrorFrame(201,get_frame);
 end;
 
+
 procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; compilerproc;
 begin
   HandleErrorFrame(200,get_frame);
 end;
+
 
 procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; compilerproc;
 begin
@@ -549,12 +551,26 @@ Begin
   InOutRes:=0;
 End;
 
+
 Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
 (* ThreadID is stored in a threadvar and made available in interface *)
 (* to allow setup of this value during thread initialization.        *)
   GetThreadID := ThreadID;
 end;
+
+
+function fpc_safecallcheck(res : hresult) : hresult;[public,alias:'FPC_SAFECALLCHECK']; compilerproc;
+begin
+  if res<0 then
+    begin
+      if assigned(SafeCallErrorProc) then
+        SafeCallErrorProc(res,get_frame);
+      HandleErrorFrame(229,get_frame);
+    end;
+  result:=res;
+end;
+
 
 {*****************************************************************************
                          Stack check code

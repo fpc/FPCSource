@@ -143,13 +143,35 @@ unit comobj;
        OleCheck(CLSIDFromProgID(PWideChar(WideString(id)),result));
      end;
 
+
+   procedure SafeCallErrorHandler(err : HResult;addr : pointer);
+     var
+       info : IErrorInfo;
+       descr,src,helpfile : widestring;
+       helpctx : DWORD;
+     begin
+       if GetErrorInfo(0,info)=S_OK then
+         begin
+           info.GetDescription(descr);
+           info.GetSource(src);
+           info.GetHelpFile(helpfile);
+           info.GetHelpContext(helpctx);
+           raise EOleException.Create(descr,err,src,helpfile,helpctx) at addr;
+         end
+       else
+         raise EOleException.Create('',err,'','',0) at addr;
+     end;
+
+
 const
   Initialized : boolean = false;
 
 initialization
   if not(IsLibrary) then
     Initialized:=Succeeded(CoInitialize(nil));
+  SafeCallErrorProc:=@SafeCallErrorHandler;
 finalization
+  SafeCallErrorProc:=nil;
   if Initialized then
     CoUninitialize;
 end.
