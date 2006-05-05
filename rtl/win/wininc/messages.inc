@@ -1253,6 +1253,14 @@ Type
     TWMDestroy       = TWMNoParams;
     TWMClose         = TWMNoParams;
     TWMQueryUIState  = TWMNoParams;
+
+    TWMUIState = record
+      Msg : UINT;
+      Action : Word;
+      Flags : Word;
+      Unused : HRESULT;
+    end;
+
     TWMChangeUIState = TWMUIState;
     TWMUpdateUIState = TWMUIState;
 
