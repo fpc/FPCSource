@@ -3,7 +3,7 @@ program testapiv3x;
 {$APPTYPE CONSOLE}
 {$MODE DELPHI}
 
-uses windows, sqlite3, sysutils;
+uses sqlite3, sysutils;
 
 const
  DBFILE='dbtest.db';
