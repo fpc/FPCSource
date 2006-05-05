@@ -717,7 +717,7 @@ implementation
 
          { save current current_procinfo.CurrTrueLabel and current_procinfo.CurrFalseLabel }
          isjump:=false;
-         if left.location.loc=LOC_JUMP then
+         if left.expectloc=LOC_JUMP then
           begin
             otl:=current_procinfo.CurrTrueLabel;
             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
@@ -743,7 +743,10 @@ implementation
           begin
             current_procinfo.CurrTrueLabel:=otl;
             current_procinfo.CurrFalseLabel:=ofl;
-          end;
+          end
+         else
+          if (left.location.loc=LOC_JUMP) then
+            internalerror(2006050501);
 
          { we need the min_label always to choose between }
          { cmps and subs/decs                             }
