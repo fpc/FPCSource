@@ -1248,10 +1248,13 @@ Type
       Result : LRESULT;
     end;
 
-    TWMCancelMode = TWMNoParams;
-    TWMNCDestroy  = TWMNoParams;
-    TWMDestroy    = TWMNoParams;
-    TWMClose      = TWMNoParams;
+    TWMCancelMode    = TWMNoParams;
+    TWMNCDestroy     = TWMNoParams;
+    TWMDestroy       = TWMNoParams;
+    TWMClose         = TWMNoParams;
+    TWMQueryUIState  = TWMNoParams;
+    TWMChangeUIState = TWMUIState;
+    TWMUpdateUIState = TWMUIState;
 
     TWMKey = record
       Msg: UINT;
