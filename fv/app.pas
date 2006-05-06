@@ -1065,8 +1065,9 @@ BEGIN
 END;
 
 procedure TApplication.WriteShellMsg;
+
 begin
-  PrintStr(Strings^.Get(sTypeExitOnReturn));
+  writeln(Strings^.Get(sTypeExitOnReturn));
 end;
 
 
