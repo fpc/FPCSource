@@ -41,6 +41,7 @@ unit cpupara;
        public
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
@@ -143,6 +144,17 @@ unit cpupara;
                loc1:=LOC_REGISTER;
              end;
         end;
+      end;
+
+
+    function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+      var
+        size: longint;
+      begin
+        if (target_info.system=system_x86_64_win64) and (calloption=pocall_safecall) then
+          result:=true
+        else
+          result:=inherited ret_in_param(def,calloption);
       end;
 
 
