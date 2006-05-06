@@ -898,16 +898,15 @@ procedure decide_codepages;
 var s:string;
 
 begin
-{$ifdef linux}
-  if console=ttyLinux then
+  if external_codepage in vga_codepages then
     begin
+      {Possible override...}
       s:=upcase(fpgetenv('CONSOLEFONT_CP'));
       if s='CP437' then
         external_codepage:=cp437
       else if s='CP850' then
         external_codepage:=cp850;
     end;
-{$endif}
   {A non-vcsa Linux console can display most control characters, but not all.}
   if {$ifdef linux}(console<>ttyLinux) and{$endif}
      (cur_term_strings=@term_codes_linux) then
@@ -998,7 +997,10 @@ begin
          { open console, $1b6=rw-rw-rw- }
          ttyfd:=fpopen(fname,$1b6,O_RDWR);
          if ttyfd<>-1 then
-           console:=ttylinux
+           begin
+             console:=ttylinux;
+             external_codepage:=cp437;  {VCSA defaults to codepage 437.}
+           end
          else
            if try_grab_vcsa then
              begin
