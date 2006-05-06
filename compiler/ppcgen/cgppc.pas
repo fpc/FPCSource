@@ -44,11 +44,12 @@ unit cgppc;
        rgobj,tgobj,cpupi,procinfo,paramgr;
 
   procedure tcgppcgen.a_call_ref(list : TAsmList;ref: treference);
+    var
+      tempreg : TRegister;
     begin
-      a_reg_alloc(list,NR_R0);
-      a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_R0);
-      a_call_reg(list,NR_R0);
-      a_reg_dealloc(list,NR_R0);
+      tempreg := getintregister(list, OS_ADDR);
+      a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,tempreg);
+      a_call_reg(list,tempreg);
     end;
 
 end.
