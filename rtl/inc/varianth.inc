@@ -36,6 +36,8 @@ const
    varint64 = 20;
    varqword = 21;
 
+   varrecord = 36;
+
    varstrarg = $48;
    varstring = $100;
    varany = $101;
@@ -104,7 +106,9 @@ type
                      varany :  (vany : pointer);
                      vararray : (varray : pvararray);
                      varbyref : (vpointer : pointer);
-                 );
+                     { unused so far, only to fill up space }
+                     varrecord : (vrecord : pointer;precinfo : pointer);
+                );
                1:
                  (vlongs : array[0..2] of longint);
            );

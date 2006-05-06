@@ -2055,7 +2055,11 @@ implementation
 
     procedure tvariantdef.setsize;
       begin
-         savesize:=16;
+{$ifdef cpu64bit}
+        savesize:=24;
+{$else cpu64bit}
+        savesize:=16;
+{$endif cpu64bit}
       end;
 
 
