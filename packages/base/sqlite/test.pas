@@ -1,13 +1,12 @@
 program test;
+
 uses sqlite,sqlitedb, strings,classes;
-
-
 
 var
   MySQL: TSQLite;
   SQL: String;
-  i,j : Integer;
-  a : TStringList;
+  i, j: Integer;
+  a: TStringList;
 begin
   Writeln('Creating class');
   MySQL := TSQLite.Create('test.db');

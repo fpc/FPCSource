@@ -7,7 +7,7 @@ name=sqlite
 version=2.0.0
 
 [target]
-units=sqlite sqlite3
+units=sqlite sqlite3 sqlitedb
 
 [require]
 
