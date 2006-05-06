@@ -879,7 +879,7 @@ begin
   { DoneKeyboard should be called last to
     restore the keyboard correctly PM }
 {$ifndef go32v2}
-  DoneScreen;
+  donevideo;
 {$endif ndef go32v2}
   DoneKeyboard;
   If UseMouse then
@@ -904,7 +904,7 @@ begin
   else
     ButtonCount:=0;
 {$ifndef go32v2}
-  InitScreen;
+  initvideo;
 {$endif ndef go32v2}
 {$ifdef Windows}
   { write the empty screen to dummy console handle }

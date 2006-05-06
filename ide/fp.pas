@@ -284,6 +284,16 @@ begin
 {$ENDIF}
 end;
 
+{The square bullet needs an MS-DOS code page. On Unix it is for sure the code
+ page is not available before video is initialized. (And only in certain
+ circumstances after that, so, use a plain ascii character as bullet on Unix.)}
+
+{$ifdef unix}
+const bullet='*';
+{$else}
+const bullet='þ';
+{$endif}
+
 BEGIN
 {$IFDEF HasSignal}
   EnableCatchSignals;
@@ -294,12 +304,12 @@ BEGIN
   HistorySize:=16384;
 
   { Startup info }
-  writeln('þ Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
-  writeln('þ Compiler Version '+Version_String);
+  writeln(bullet+' Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
+  writeln(bullet+' Compiler Version '+Version_String);
 {$ifndef NODEBUG}
-  writeln('þ GBD Version '+GDBVersion);
+  writeln(bullet+' GBD Version '+GDBVersion);
  {$ifdef Windows}
-   writeln('þ Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+   writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
  {$endif Windows}
 {$endif NODEBUG}
@@ -480,8 +490,8 @@ BEGIN
 {$ifdef unix}
   Video.ClearScreen;
 {$endif unix}
-  Video.DoneVideo;
-  Keyboard.DoneKeyboard;
+{  Video.DoneVideo;
+  Keyboard.DoneKeyboard;}
 {$endif fpc}
 {$ifdef VESA}
   DoneVESAScreenModes;
