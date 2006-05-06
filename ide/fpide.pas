@@ -606,7 +606,6 @@ procedure TIDEApp.Idle;
 begin
   inherited Idle;
   Message(Application,evIdle,0,nil);
-  GiveUpTimeSlice;
 end;
 
 procedure TIDEApp.GetEvent(var Event: TEvent);
