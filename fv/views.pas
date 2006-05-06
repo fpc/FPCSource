@@ -2697,13 +2697,16 @@ const
   InitFrame: array[0..17] of Byte =
     ($06, $0A, $0C, $05, $00, $05, $03, $0A, $09,
      $16, $1A, $1C, $15, $00, $15, $13, $1A, $19);
-  FrameChars: array[0..31] of Char =
-    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉÇ ¼ÍÏ»¶Ñ ';
+  FrameChars_437: array[0..31] of Char =
+    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉÇ ¼ÍÏ»¶ÑÎ';
+  FrameChars_850: array[0..31] of Char =
+    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉº ¼ÍÍ»ºÍÎ';
 var
   FrameMask : array[0..MaxViewWidth-1] of Byte;
   ColorMask : word;
   i,j,k     : {Sw_  lo and hi are used !! }integer;
   CurrView  : PView;
+  p         : Pchar;
 begin
   FrameMask[0]:=InitFrame[n];
   FillChar(FrameMask[1],Size.X-2,InitFrame[n+1]);
@@ -2761,8 +2764,14 @@ begin
      CurrView:=CurrView^.Next;
    end;
   ColorMask:=Color shl 8;
+  p:=framechars_437;
+  {$ifdef unix}
+  {Codepage variables are currently Unix only.}
+  if internal_codepage<>cp437 then
+    p:=framechars_850;
+  {$endif}
   for i:=0 to Size.X-1 do
-    TVideoBuf(FrameBuf)[i]:=ord(FrameChars[FrameMask[i]]) or ColorMask;
+    TVideoBuf(FrameBuf)[i]:=ord(p[FrameMask[i]]) or ColorMask;
 end;
 
 
