@@ -635,45 +635,174 @@ begin
 end;
 {$endif SUPPORT_REMOTE}
 
-procedure TIDEApp.Directories;
-var R,R2: TRect;
-    D: PCenterDialog;
-    IL : array[0..11] of PEditorInputLine;
-    Count,I : integer;
-const
-  LW = 25;
+
+
+procedure TIDEApp.directories;
+
+{Shows a window where the user can configure the directories the compilerproc
+ will search files or output files to.}
+
+var tab:Ptab;
+    tabR,R,R2:Trect;
+    D:PCenterDialog;
+    s,misc_string:string;
+    E_units,E_includes,E_libraries,E_objects,e:Pfpmemo;
+    L_units,L_includes,L_libraries,L_objects:Plabel;
+    c:PunsortedStringCollection;
+    count,i,j:integer;
+    IL:array[0..11] of PEditorInputLine;
+    misc_items:PTabItem;
+    misc_tabfocus:Pview;
+
+const LW=25;
+
 begin
-  Count:=DirectorySwitches^.ItemCount;
-  R.Assign(0,0,round(ScreenWidth*64/80),2+Count*2);
-  New(D, Init(R, dialog_directories));
-  with D^ do
-  begin
-    HelpCtx:=hcdirectories;
-    GetExtent(R);
-    R.Grow(-2,-2);
-    Dec(R.B.X);
-    R.B.Y:=R.A.Y+1;
-    for i:=Count-1 downto 0 do
-     begin
-       R2.Copy(R);
-       R2.A.X:=LW;
-       New(IL[i], Init(R2, 255));
-       IL[i]^.Data^:=DirectorySwitches^.GetStringItem(i);
-       Insert(IL[i]);
-       R2.Copy(R);
-       R2.B.X:=LW;
-       Insert(New(PLabel, Init(R2, DirectorySwitches^.ItemName(i), IL[i])));
-       R.Move(0,2);
-     end;
-  end;
-  InsertButtons(D);
-  IL[Count-1]^.Select;
-  if Desktop^.ExecView(D)=cmOK then
-   begin
-     for i:=Count-1 downto 0 do
-      DirectorySwitches^.SetStringItem(i,IL[i]^.Data^);
-   end;
-  Dispose(D, Done);
+  R.assign(0,0,screenwidth*64 div 80,18);
+  new(D,init(R,dialog_directories));
+  if d^.size.x<72 then
+    misc_string:='~M~isc.'
+  else
+    misc_string:='~M~iscellaneous';
+
+  {Create editors.}
+  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  new(E_units,init(R,nil,nil,nil));
+  R.assign(1,3,d^.size.x-4,4);
+  new(L_units,init(R,'Unit ~d~irectories:',E_units));
+
+  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  new(E_includes,init(R,nil,nil,nil));
+  R.assign(1,3,d^.size.x-4,4);
+  new(L_includes,init(R,'Include ~d~irectories:',E_includes));
+
+  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  new(E_libraries,init(R,nil,nil,nil));
+  R.assign(1,3,d^.size.x-4,4);
+  new(L_libraries,init(R,'Library ~d~irectories:',E_libraries));
+
+  R.assign(1,4,d^.size.x-4,d^.size.y-4);
+  new(E_objects,init(R,nil,nil,nil));
+  R.assign(1,3,d^.size.x-4,4);
+  new(L_objects,init(R,'Object file ~d~irectories:',E_objects));
+
+  {The switches that are put into the editors are of type multistring.
+   We add multistrings to the editor. Other inputboxes are created on
+   demand on the "Miscellaneous" tab.}
+  R.assign(1,4,d^.size.x-5,5);
+  count:=DirectorySwitches^.ItemCount;
+  misc_items:=nil;
+  misc_tabfocus:=nil;
+  for i:=0 to count-1 do
+    begin
+      if directorySwitches^.GetItemTyp(i)=ot_MultiString then
+        begin
+          case directorySwitches^.itemParam(i)[3] of
+            'u':
+              e:=E_units;
+            'i':
+              e:=E_includes;
+            'l':
+              e:=E_libraries;
+            'o':
+              e:=E_objects;
+            else
+              messagebox('Internal error: Unknown switch.',nil,mfOkButton);
+          end;
+          e^.setcontent(directorySwitches^.getMultiStringItem(i));
+          e^.addline(''); {Empty line so user can scroll below existing dirs.}
+          IL[i]:=nil;
+        end
+      else
+        begin
+          R2.copy(R);
+          R2.A.X:=LW;
+          new(IL[i],init(R2,255));
+          IL[i]^.data^:=DirectorySwitches^.GetStringItem(i);
+          misc_items:=newTabItem(IL[i],misc_items);
+          if misc_tabfocus=nil then
+            misc_tabfocus:=IL[i];
+          R2.copy(R);
+          R2.B.X:=LW;
+          misc_items:=newTabItem(
+                        new(Plabel,init(R2,
+                                        DirectorySwitches^.ItemName(i),
+                                        IL[i])),
+                        misc_items);
+          R.move(0,2);
+        end;
+    end;
+
+  {Create some tabs in the window.}
+  tabR.assign(1,1,d^.size.x-2,d^.size.y-1);
+  new(tab,init(tabR,
+    newtabdef('~U~nits',e_units,
+      NewTabItem(L_units,
+      NewTabItem(E_units,
+      nil)),
+    NewTabDef('~I~nclude files',E_includes,
+      NewTabItem(L_includes,
+      NewTabItem(E_includes,
+      nil)),
+    NewTabDef('~L~ibraries',E_libraries,
+      NewTabItem(L_libraries,
+      NewTabItem(E_libraries,
+      nil)),
+    NewTabDef('~O~bject files',E_objects,
+      NewTabItem(L_objects,
+      NewTabItem(E_objects,
+      nil)),
+    NewTabDef(misc_string,misc_tabfocus,
+      misc_items,
+    nil)))))
+  ));
+
+  tab^.growmode:=0;
+  d^.insert(tab);
+  insertbuttons(D);
+  if desktop^.execview(D)=cmOK then
+    begin
+      {Move the data from the window back into the switches.}
+      for i:=0 to count-1 do
+        if directorySwitches^.GetItemTyp(i)=ot_MultiString then
+          begin
+            case directorySwitches^.itemParam(i)[3] of
+              'u':
+                e:=E_units;
+              'i':
+                e:=E_includes;
+              'l':
+                e:=E_libraries;
+              'o':
+                e:=E_objects;
+              else
+                messagebox('Internal error: Unknown switch.',nil,mfOkButton);
+            end;
+            c:=directorySwitches^.getMultiStringItem(i);
+            c^.freeall;
+            for j:=0 to e^.getlinecount-1 do
+              begin
+                s:=e^.getlinetext(j);
+                {Strip string.}
+                while (length(s)>0) and (s[length(s)]=' ') do
+                  dec(s[0]);
+                while (length(s)>0) and (s[1]=' ') do
+                  system.delete(s,1,1);
+                if s<>'' then
+                  c^.insert(newstr(s));
+              end;
+          end
+        else
+          begin
+            s:=IL[i]^.data^;
+            {Strip string.}
+            while (length(s)>0) and (s[length(s)]=' ') do
+              dec(s[0]);
+            while (length(s)>0) and (s[1]=' ') do
+              system.delete(s,1,1);
+            DirectorySwitches^.SetStringItem(i,s);
+          end;
+    end;
+  dispose(D,done);
 end;
 
 procedure TIDEApp.Tools;
