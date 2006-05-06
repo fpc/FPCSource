@@ -1039,7 +1039,9 @@ implementation
 {$if defined(x86) or defined(arm)}
          if procdefinition.proccalloption=pocall_safecall then
            begin
-
+{$ifdef x86_64}
+             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_RAX,NR_RCX);
+{$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
