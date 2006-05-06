@@ -19,9 +19,29 @@ unit comobj;
   interface
 
     uses
-      sysutils;
+      sysutils,activex;
 
     type
+      TComServerObject = class(TObject)
+      protected
+        function CountObject(Created: Boolean): Integer; virtual; abstract;
+        function CountFactory(Created: Boolean): Integer; virtual; abstract;
+        function GetHelpFileName: string; virtual; abstract;
+        function GetServerFileName: string; virtual; abstract;
+        function GetServerKey: string; virtual; abstract;
+        function GetServerName: string; virtual; abstract;
+        function GetStartSuspended: Boolean; virtual; abstract;
+        function GetTypeLib: ITypeLib; virtual; abstract;
+        procedure SetHelpFileName(const Value: string); virtual; abstract;
+      public
+        property HelpFileName: string read GetHelpFileName write SetHelpFileName;
+        property ServerFileName: string read GetServerFileName;
+        property ServerKey: string read GetServerKey;
+        property ServerName: string read GetServerName;
+        property TypeLib: ITypeLib read GetTypeLib;
+        property StartSuspended: Boolean read GetStartSuspended;
+      end;
+
       EOleError = class(Exception);
 
       EOleSysError = class(EOleError)
@@ -60,7 +80,7 @@ unit comobj;
   implementation
 
     uses
-       windows,activex;
+       windows;
 
     constructor EOleSysError.Create(const Msg: string; aErrorCode: HRESULT; aHelpContext: Integer);
       var
