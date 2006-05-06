@@ -1197,6 +1197,16 @@ const win32stub : array[0..131] of byte=(
                 rel.reloctype:=IMAGE_REL_AMD64_ADDR64;
               RELOC_RVA :
                 rel.reloctype:=IMAGE_REL_AMD64_ADDR32NB;
+              RELOC_RELATIVE_1 :
+                rel.reloctype:=IMAGE_REL_AMD64_REL32_1;
+              RELOC_RELATIVE_2 :
+                rel.reloctype:=IMAGE_REL_AMD64_REL32_2;
+              RELOC_RELATIVE_3 :
+                rel.reloctype:=IMAGE_REL_AMD64_REL32_3;
+              RELOC_RELATIVE_4 :
+                rel.reloctype:=IMAGE_REL_AMD64_REL32_4;
+              RELOC_RELATIVE_5 :
+                rel.reloctype:=IMAGE_REL_AMD64_REL32_5;
 {$endif x86_64}
               else
                 internalerror(200603312);
@@ -1471,10 +1481,11 @@ const win32stub : array[0..131] of byte=(
 
     procedure TCoffObjInput.read_relocs(s:TCoffObjSection);
       var
-        rel      : coffreloc;
-        rel_type : TObjRelocationType;
-        i        : longint;
-        p        : TObjSymbol;
+        rel       : coffreloc;
+        rel_type  : TObjRelocationType;
+        i         : longint;
+        p         : TObjSymbol;
+        extradist : longint;
       begin
         for i:=1 to s.coffrelocs do
          begin
@@ -1501,6 +1512,16 @@ const win32stub : array[0..131] of byte=(
                rel_type:=RELOC_ABSOLUTE;
              IMAGE_REL_AMD64_ADDR32NB:
                rel_type:=RELOC_RVA;
+             IMAGE_REL_AMD64_REL32_1:
+               rel_type:=RELOC_RELATIVE_1;
+             IMAGE_REL_AMD64_REL32_2:
+               rel_type:=RELOC_RELATIVE_2;
+             IMAGE_REL_AMD64_REL32_3:
+               rel_type:=RELOC_RELATIVE_3;
+             IMAGE_REL_AMD64_REL32_4:
+               rel_type:=RELOC_RELATIVE_4;
+             IMAGE_REL_AMD64_REL32_5:
+               rel_type:=RELOC_RELATIVE_5;
 {$endif x86_64}
            else
              begin

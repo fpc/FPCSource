@@ -48,6 +48,12 @@ interface
 {$ifdef x86_64}
          { 32bit Relocation to absolute address }
          RELOC_ABSOLUTE32,
+         { 64 bit coff only }
+         RELOC_RELATIVE_1,
+         RELOC_RELATIVE_2,
+         RELOC_RELATIVE_3,
+         RELOC_RELATIVE_4,
+         RELOC_RELATIVE_5,
 {$endif x86_64}
          { Relative relocation }
          RELOC_RELATIVE,
