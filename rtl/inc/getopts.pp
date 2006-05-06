@@ -214,8 +214,6 @@ end;
 
 Function Internal_getopt (Var Optstring : string;LongOpts : POption;
                           LongInd : pointer;Long_only : boolean ) : char;
-type
-  pinteger=^integer;
 var
   temp,endopt,
   option_index : byte;
@@ -392,7 +390,7 @@ begin
            end; { argument in next parameter end;}
           nextchar:=0;
           if longind<>nil then
-           pinteger(longind)^:=indfound+1;
+           plongint(longind)^:=indfound+1;
           if pfound^.flag<>nil then
            begin
              pfound^.flag^:=pfound^.value;
