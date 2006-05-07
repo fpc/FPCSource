@@ -1280,7 +1280,7 @@ const
   VideoInitialized : boolean = false;
 
 {---------------------------------------------------------------------------}
-{  InitKeyboard -> Platforms ALL - 07Nov06 DM                               }
+{  InitKeyboard -> Platforms ALL - 07May06 DM                               }
 {---------------------------------------------------------------------------}
 
 procedure initkeyboard;inline;
@@ -1290,7 +1290,7 @@ begin
 end;
 
 {---------------------------------------------------------------------------}
-{  DoneKeyboard -> Platforms ALL - 07Nov06 DM                               }
+{  DoneKeyboard -> Platforms ALL - 07May06 DM                               }
 {---------------------------------------------------------------------------}
 
 procedure donekeyboard;inline;
