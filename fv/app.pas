@@ -1022,16 +1022,30 @@ END;
 {  DosShell -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Oct99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TApplication.DosShell;
+
+{$ifdef unix}
+var s:string;
+{$endif}
+
 BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
   drivers.donevideo;
+  drivers.donekeyboard;
 {  DoneDosMem;}
   WriteShellMsg;
+{$ifdef Unix}
+  s:=getenv('SHELL');
+  if s='' then
+    s:='/bin/sh';
+  exec(s,'');
+{$else}
   SwapVectors;
   Exec(GetEnv('COMSPEC'), '');
   SwapVectors;
+{$endif}
 {  InitDosMem;}
+  drivers.initkeyboard;
   drivers.initvideo;
   InitEvents;
   InitSysError;
