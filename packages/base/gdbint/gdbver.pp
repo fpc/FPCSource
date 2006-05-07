@@ -11,30 +11,19 @@ program find_gdb_version;
   {$Linklib c}
 {$endif}
 
-{$Linklib gdb}
+{$LINKLIB libgdb.a}
 
 uses
   strings;
 
 const
-{$ifdef OpenBSD}
-  ver_name = '_version';
-{$else}
-{$ifdef unix}
-  ver_name = 'version';
-{$else not unix}
-  ver_name = '_version';
-{$endif}
-{$endif}
-
-  { This variable should be change with
-    change in GDB CVS PM }
+  { This variable should be change with change in GDB CVS PM }
   Current_cvs_version : longint = 503;
   Max_version_length = 255;
 
 var
-  v5_version : array[0..0] of char;external name ver_name;
-  version : pchar;
+  version : array[0..0] of char;cvar;external;
+  gdbversion : pchar;
   subver_str : string;
   i, version_number,
   subversion_number : longint;
@@ -44,27 +33,27 @@ var
 
 begin
   only_ver:=(Paramcount>0) and (ParamStr(1)='-n');
-  getmem(version,Max_version_length+1);
-  strlcopy(version,@v5_version,Max_version_length);
-  version[Max_version_length]:=#0;
-  if (version[0] in ['4','5','6','7','8','9']) and (version[1]='.') then
+  getmem(gdbversion,Max_version_length+1);
+  strlcopy(gdbversion,@version,Max_version_length);
+  gdbversion[Max_version_length]:=#0;
+  if (gdbversion[0] in ['4','5','6','7','8','9']) and (gdbversion[1]='.') then
     begin
       if not only_ver then
-        Writeln('GDB version is ',pchar(@v5_version));
-      version_number:=ord(version[0])-ord('0');
+        Writeln('GDB version is ',pchar(@version));
+      version_number:=ord(gdbversion[0])-ord('0');
       i:=2;
       subver_str:='';
-      while version[i] in ['0'..'9'] do
+      while gdbversion[i] in ['0'..'9'] do
         begin
-          subver_str:=subver_str+version[i];
+          subver_str:=subver_str+gdbversion[i];
           inc(i);
         end;
       val(subver_str,subversion_number,error);
       inc(i);
       subver_str:='';
-      while version[i] in ['0'..'9'] do
+      while gdbversion[i] in ['0'..'9'] do
         begin
-          subver_str:=subver_str+version[i];
+          subver_str:=subver_str+gdbversion[i];
           inc(i);
         end;
       if subver_str<>'' then
@@ -76,8 +65,8 @@ begin
          (subversion_number<=99) then
         version_number:=version_number*100+subversion_number;
     end
-  else if (version[0]='2') and (version[1]='0') and
-          (version[2] in ['0'..'9']) and (version[3] in ['0'..'9']) then
+  else if (gdbversion[0]='2') and (gdbversion[1]='0') and
+          (gdbversion[2] in ['0'..'9']) and (gdbversion[3] in ['0'..'9']) then
     begin
       { CVS version from 2000 to 2099,
         assume current_cvs_version  PM }
@@ -89,7 +78,7 @@ begin
         Writeln('Unsupported GDB version');
       version_number:=0;
     end;
-  freemem(version,Max_version_length+1);
+  freemem(gdbversion);
   if only_ver then
     Write(version_number);
   Halt(version_number);
