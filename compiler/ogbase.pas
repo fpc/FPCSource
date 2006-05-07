@@ -1650,26 +1650,26 @@ implementation
             if assigned(objsym.exesymbol.objsymbol) then
               begin
                 if objsym.exesymbol.ObjSymbol.size<>objsym.size then
-                  internalerror(200206301)
-                else
+                  internalerror(200206301);
+              end
+            else
+              begin
+                { allocate new objsymbol in .bss of *COMMON* and assign
+                  it to the exesymbol }
+                if firstcommon then
                   begin
-                    { allocate new objsymbol in .bss of *COMMON* and assign
-                      it to the exesymbol }
-                    if firstcommon then
-                      begin
-                        if assigned(exemap) then
-                          exemap.AddCommonSymbolsHeader;
-                        firstcommon:=false;
-                      end;
-                    internalObjData.setsection(commonObjSection);
-                    commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
-                    commonsym.size:=objsym.size;
-                    internalObjData.alloc(objsym.size);
                     if assigned(exemap) then
-                      exemap.AddCommonSymbol(commonsym);
-                    { Assign to the exesymbol }
-                    objsym.exesymbol.objsymbol:=commonsym
+                      exemap.AddCommonSymbolsHeader;
+                    firstcommon:=false;
                   end;
+                internalObjData.setsection(commonObjSection);
+                commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
+                commonsym.size:=objsym.size;
+                internalObjData.alloc(objsym.size);
+                if assigned(exemap) then
+                  exemap.AddCommonSymbol(commonsym);
+                { Assign to the exesymbol }
+                objsym.exesymbol.objsymbol:=commonsym
               end;
           end;
 
