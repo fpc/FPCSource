@@ -323,7 +323,7 @@ end;
 function TSQLite.Query(Sql: String; Table: TStrings ): boolean;
 //var
 //  fPMsg: PChar;
-var Psql : pchar;
+//var Psql : pchar;
 begin
   fError := SQLITE_ERROR;
   if fIsOpen then
@@ -333,13 +333,10 @@ begin
     fTable := Table;
     if fTable <> nil then
       fTable.Clear;
-   Psql:=StrAlloc (length(Sql)+1);
-   strpcopy(Psql,Sql);
    List_FieldName.clear;
    List_Field.clear;
    Nb_Champ:=-1;
-    fError := SQLite_Exec(fSQLite, Psql, @ExecCallback, Self, @fPMsg);
-    strdispose(Psql);
+    fError := SQLite_Exec(fSQLite, PChar(sql), @ExecCallback, Self, @fPMsg);
     SQLite_FreeMem(fPMsg);
     fChangeCount := SQLite_Changes(fSQLite);
     fTable := nil;
@@ -348,7 +345,7 @@ begin
       fOnQueryComplete(Self);
   end;
   fMsg := ErrorMessage(fError);
-  Result := (fError <> SQLITE_OK);
+  Result := (fError = SQLITE_OK);
 end;
 
 function TSQLite.Cancel: boolean;
@@ -385,7 +382,6 @@ end;
 
 function TSQLite.ErrorMessage(ErrNo: Integer): string;
 begin
-  exit;
   if ErrNo = 0 then
     Result := MsgNoError
   else
