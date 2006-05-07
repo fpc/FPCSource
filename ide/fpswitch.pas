@@ -29,7 +29,8 @@ const
 type
     TParamID =
       (idNone,idAlign,idRangeChecks,idStackChecks,idIOChecks,
-       idOverflowChecks,idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
+       idOverflowChecks,idObjMethCallChecks,
+       idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
        idSymInfNone,idSymInfGlobalOnly,idSymInfGlobalLocal,
        idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
        idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
@@ -969,6 +970,8 @@ begin
      AddBooleanItem(opt_tp7compatibility,'o',idNone);
      AddBooleanItem(opt_delphicompatibility,'d',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
+     AddBooleanItem(opt_assertions,'a',idNone);
+     AddBooleanItem(opt_kylix,'k',idNone);
      { Useless as they are not passed to the compiler PM
      AddBooleanItem(opt_strictvarstrings,'/',idStrictVarStrings);
      AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);
@@ -992,6 +995,8 @@ begin
      AddBooleanItem(opt_stackchecking,'t',idStackChecks);
      AddBooleanItem(opt_iochecking,'i',idIOChecks);
      AddBooleanItem(opt_overflowchecking,'o',idOverflowChecks);
+     AddBooleanItem(opt_objmethcallvalid,'R',idObjMethCallChecks);
+{     AddBooleanItem(opt_pic,'g',idNone);}
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
@@ -1041,7 +1046,7 @@ begin
   with AsmReaderSwitches^ do
    begin
 {$ifdef I386}
-     AddSelectItem(opt_directassembler,'direct',idAsmDirect);
+{     AddSelectItem(opt_directassembler,'direct',idAsmDirect);}
      AddSelectItem(opt_attassembler,'att',idAsmATT);
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
@@ -1099,6 +1104,7 @@ begin
      AddStringItem(opt_exeppudirectories,'E',idNone,true,true);
      AddStringItem(opt_ppuoutputdirectory,'U',idNone,true,true);
      AddStringItem(opt_cross_tools_directory,'D',idNone,true,true);
+     AddStringItem(opt_dynamic_linker,'L',idNone,false,false);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
@@ -1244,6 +1250,7 @@ begin
     idStackChecks    : AddSwitch('S'+P^.GetSwitchStr(SM));
     idIOChecks       : AddSwitch('I'+P^.GetSwitchStr(SM));
     idOverflowChecks : AddSwitch('Q'+P^.GetSwitchStr(SM));
+    idObjMethCallChecks: AddSwitch('OBJECTCHECKS'+P^.GetSwitchStr(SM));
 {    idAsmDirect      : if P^.GetParamValueBool[SM] then AddParam('ASMMODE DIRECT');
     idAsmATT         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE ATT');
     idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');

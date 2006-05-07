@@ -783,6 +783,8 @@ const
       opt_tp7compatibility = 'TP/BP ~7~.0 compatibility';
       opt_delphicompatibility = 'Del~p~hi compatibility';
       opt_allowstaticinobjects = 'A~l~low STATIC in objects';
+      opt_assertions = 'Include ~a~ssertion code';
+      opt_kylix = 'Load ~K~ylix compat. unit fpcylix';
       opt_strictvarstrings = 'Strict ~v~ar-strings';
       opt_extendedsyntax = 'E~x~tended syntax';
       opt_allowmmxoperations = 'Allow MMX op~e~rations';
@@ -799,6 +801,9 @@ const
       opt_stackchecking = '~S~tack checking';
       opt_iochecking = '~I~/O checking';
       opt_overflowchecking = 'Integer ~o~verflow checking';
+      opt_objmethcallvalid = 'Object ~m~ethod call checking';
+      { Code generation }
+      opt_pic = '~P~osition independend code';
       { Code options }
       opt_generatefastercode = 'Generate ~f~aster code';
       opt_generatesmallercode = 'Generate s~m~aller code';
@@ -846,6 +851,7 @@ const
       opt_exeppudirectories = '~E~XE output directory';
       opt_ppuoutputdirectory = '~P~PU output directory';
       opt_cross_tools_directory = '~C~ross tools directory';
+      opt_dynamic_linker = '~D~ynamic linker path';
       { Library options }
       opt_librariesdefault = '~T~arget default';
       opt_dynamiclibraries = 'Link to ~D~ynamic libraries';
