@@ -83,6 +83,10 @@ interface
     end;
 
     tDLLScannerWin32=class(tDLLScanner)
+    private
+      importfound : boolean;
+      procedure CheckDLLFunc(const dllname,funcname:string);
+    public
       function Scan(const binname:string):boolean;override;
     end;
 
@@ -1621,7 +1625,7 @@ end;
                             TDLLScannerWin32
 ****************************************************************************}
 
-    procedure CheckDLLFunc(const dllname,funcname:string);
+    procedure tDLLScannerWin32.CheckDLLFunc(const dllname,funcname:string);
       var
         hp : tExternalsItem;
       begin
@@ -1642,6 +1646,7 @@ end;
 //                  timportlibwin32(importlib).importvariable_str(funcname,dllname,funcname)
 //                else
                 timportlibwin32(importlib).importprocedure_str(funcname,dllname,0,funcname);
+                importfound:=true;
                 exit;
               end;
             hp:=tExternalsItem(hp.next);
@@ -1654,7 +1659,7 @@ end;
         hs,
         dllname : string;
       begin
-        result:=true;
+        result:=false;
         { is there already an import library the we will use that one }
         if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
           exit;
@@ -1662,7 +1667,9 @@ end;
         hs:=AddExtension(binname,target_info.sharedlibext);
         if not FindDll(hs,dllname) then
           exit;
+        importfound:=false;
         ReadDLLImports(dllname,@CheckDLLFunc);
+        result:=importfound;
       end;
 
 

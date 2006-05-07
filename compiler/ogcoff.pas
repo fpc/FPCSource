@@ -214,7 +214,7 @@ interface
 
 
     type
-      Treaddllproc = procedure(const dllname,funcname:string);
+      Treaddllproc = procedure(const dllname,funcname:string) of object;
 
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
