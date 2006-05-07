@@ -962,20 +962,11 @@ end;
 {$ifdef UNIX}
     IOStatus:=0;
     ExecuteResult:=Shell(MaybeQuoted(FixPath(Progname))+' '+Comline);
-  {$ifdef ver1_0}
-    { Signal that causes the stop of the shell }
-    IOStatus:=ExecuteResult and $7F;
-    { Exit Code seems to be in the second byte,
-      is this also true for BSD ??
-      $80 bit is a CoreFlag apparently }
-    ExecuteResult:=(ExecuteResult and $ff00) shr 8;
-  {$else}
     if ExecuteResult<0 then
       begin
         IOStatus:=(-ExecuteResult) and $7f;
         ExecuteResult:=((-ExecuteResult) and $ff00) shr 8;
       end;
-  {$endif}
 {$else}
   {$ifdef Windows}
     StoreInherit:=ExecInheritsHandles;
