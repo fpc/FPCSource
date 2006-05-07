@@ -3662,10 +3662,9 @@ implementation
 
          inherited buildderefimpl;
 
-         { Locals }
-         if assigned(localst) and
-            ((po_has_inlininginfo in procoptions) or
-             ((current_module.flags and uf_local_browser)<>0)) then
+         { Locals, always build deref info it might be needed
+           if the unit needs to be reloaded }
+         if assigned(localst) then
            begin
              tlocalsymtable(localst).buildderef;
              tlocalsymtable(localst).buildderefimpl;
