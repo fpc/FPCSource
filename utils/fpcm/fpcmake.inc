@@ -2216,7 +2216,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   #010+
   '#',' LCL Platform'#010+
   'ifndef LCL_PLATFORM'#010+
-  'ifeq ($(OS_TARGET),win32)'#010+
+  'ifneq ($(findstring $(OS_TARGET),win32 win64),)'#010+
   'LCL_PLATFORM=win32'#010+
   'else'#010+
   'LCL_PLATFORM=gtk'#010+
@@ -2226,8 +2226,8 @@ const fpcmakeini : array[0..211,1..240] of char=(
   #010+
   '# Check if the specified LCLDIR is correct'#010+
   'ifdef LCLDIR'#010+
-  'override LCLDIR:=$(subst \,/,$(LCLDIR))'#010+
-  'ifeq ($(wi','ldcard $(LCLDIR)/units/$(LCL_PLATFORM)),)'#010+
+  'override LCLDIR:=$(subst \,/',',$(LCLDIR))'#010+
+  'ifeq ($(wildcard $(LCLDIR)/units/$(LCL_PLATFORM)),)'#010+
   'override LCLDIR=wrong'#010+
   'endif'#010+
   'else'#010+
@@ -2237,7 +2237,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   '# Check if the default LCLDIR is correct'#010+
   'ifdef DEFAULT_LCLDIR'#010+
   'override LCLDIR:=$(subst \,/,$(DEFAULT_LCLDIR))'#010+
-  'ifeq ($(wildcard $(LCLDIR)','/units/$(LCL_PLATFORM)),)'#010+
+  'ifeq',' ($(wildcard $(LCLDIR)/units/$(LCL_PLATFORM)),)'#010+
   'override LCLDIR=wrong'#010+
   'endif'#010+
   'endif'#010+
@@ -2245,7 +2245,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   '# Check for development version'#010+
   'ifeq ($(LCLDIR),wrong)'#010+
   'override LCLDIR=$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard'+
-  ' $(addsuffix /units/$(LCL_PLATFORM),$(BASEDIR)/lcl $(B','ASEDIR)))))'#010+
+  ' $(addsuffix /units/$(LCL_PLATFO','RM),$(BASEDIR)/lcl $(BASEDIR)))))'#010+
   'ifeq ($(LCLDIR),)'#010+
   'override LCLDIR=wrong'#010+
   'endif'#010+
@@ -2254,7 +2254,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   '# Check for release version'#010+
   'ifeq ($(LCLDIR),wrong)'#010+
   'override LCLDIR=$(subst /units/$(LCL_PLATFORM),,$(firstword $(wildcard'+
-  ' $(addsuffix /lib/lazarus/units/$(LCL_PLATFORM),/usr/l','ocal /usr))))'#010+
+  ' $(addsuffix /lib/lazarus/units/','$(LCL_PLATFORM),/usr/local /usr))))'#010+
   'ifeq ($(LCLDIR),)'#010+
   'override LCLDIR=wrong'#010+
   'endif'#010+
@@ -2263,8 +2263,8 @@ const fpcmakeini : array[0..211,1..240] of char=(
   '# Generate dirs'#010+
   'override LCLUNITDIR:=$(wildcard $(LCLDIR)/units/$(LCL_PLATFORM) $(LCLD'+
   'IR)/units)'#010+
-  'override LCLCOMPONENTDIR:=$(wildcard $(LCLDIR)/.. $(LCLDIR)/../compone'+
-  'nts $(','LCLDIR)/components)'#010+
+  'override LCLCOMPONENTDIR:=$(wildcard $(LCLDIR)/.. $(LC','LDIR)/../compo'+
+  'nents $(LCLDIR)/components)'#010+
   'export LCLDIR LCLUNITDIR LCLCOMPONENTDIR'#010+
   #010+
   '# Add LCL dirs to paths'#010+
@@ -2272,7 +2272,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   'override COMPILER_UNITDIR+=$(LCLUNITDIR)'#010+
   #010+
   '[lclinforules]'#010+
-  '################################################','####################'+
+  '##########################','##########################################'+
   '#'#010+
   '# LCL Info rules'#010+
   '#####################################################################'#010+
@@ -2283,7 +2283,7 @@ const fpcmakeini : array[0..211,1..240] of char=(
   'lclinfo:'#010+
   '        @$(ECHO)  == LCL info =='#010+
   '        @$(ECHO)'#010+
-  '        @$(ECHO)  Platform','............. $(LCL_PLATFORM)'#010+
+  '    ','    @$(ECHO)  Platform............. $(LCL_PLATFORM)'#010+
   '        @$(ECHO)  LCLDIR............... $(LCLDIR)'#010+
   '        @$(ECHO)  LCL Unit dir......... $(LCLUNITDIR)'#010+
   '        @$(ECHO)  LCL Component dir.... $(LCLCOMPONENTDIR)'#010+
