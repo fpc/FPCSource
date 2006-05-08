@@ -1047,6 +1047,7 @@ BEGIN                                                 { Compatability only }
 {  InitDosMem;}
   drivers.initkeyboard;
   drivers.initvideo;
+  InitScreen;
   InitEvents;
   InitSysError;
   Redraw;
