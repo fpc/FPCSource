@@ -322,12 +322,12 @@ end;
 
 function TDbfFile.GetUseFloatFields: Boolean;
 begin
-  Result := FFieldDefs.UseFloatFields;
+//  Result := FFieldDefs.UseFloatFields;
 end;
 
 procedure TDbfFile.SetUseFloatFields(NewUse: Boolean);
 begin
-  FFieldDefs.UseFloatFields := NewUse;
+//  FFieldDefs.UseFloatFields := NewUse;
 end;
 
 procedure TDbfFile.Open;
