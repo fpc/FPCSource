@@ -875,7 +875,7 @@ begin
 
       // apply field transformation tricks
       if (lNativeFieldType = 'C') 
-{$ifdef USE_LONG_CHAR_FIELDS}
+{$ifndef USE_LONG_CHAR_FIELDS}
           and (FDbfVersion = xFoxPro) 
 {$endif}
                 then

@@ -23,13 +23,21 @@ BUGS & WARNINGS
       don't know the index of the field they have to copy from (Dbf_Fields)
 - BCB3/D3 compatibility:
     - you will NOT be able to use Int64 features:
-      - large numeric fields with zero precision (set UseFloatFields to true)
+      - large numeric fields with zero precision (they will be float fields)
       - datetime fields '@'
       - double fields 'O'
       - maybe more...look in source where Int64 is used
     - no codepage conversion available other than oem<->ansi
     - storedefs is not updated automatically when fielddefs are changed
 
+
+
+------------------------
+V6.4.9
+
+- fix use long char fields check icw foxpro (thx rpoverdijk)
+- fix TDbf.GetRecNo AV when no file open
+- remove UseFloatFields, delphi 3 will use float fields, others not
 
 
 ------------------------
