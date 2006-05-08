@@ -271,7 +271,8 @@ interface
             tf_files_case_aware,
             tf_p_ext_support,
             tf_has_dllscanner,
-            tf_use_function_relative_addresses
+            tf_use_function_relative_addresses,
+            tf_winlikewidestring
        );
 
        psysteminfo = ^tsysteminfo;

@@ -1985,6 +1985,9 @@ begin
   if source_info.cpu<>target_info.cpu then
     def_system_macro('FPC_CPUCROSSCOMPILING');
 
+  if tf_winlikewidestring in target_info.flags then
+    def_system_macro('FPC_WINLIKEWIDESTRING');
+
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
