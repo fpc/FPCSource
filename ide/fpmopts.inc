@@ -63,14 +63,14 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,R3,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
-    RB1,{RB2,}RB3,RB4,RB5,RB6: PRadioButtons;
+    RB1,RB2,RB3,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
     IL: PEditorInputLine;
     IL2: PEditorInputLine;
     Count : integer;
     I,L: longint;
     Tab: PTab;
-    Label11,{Label12,}
+    Label11,Label12,
     Label21,Label22,Label23,
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
@@ -93,8 +93,9 @@ begin
     Count:=SyntaxSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
-{    R2.B.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;} R2.B.X:=R2.B.X-4;
-    R2.B.Y:=R2.A.Y+((Count+1) div 2);
+    R2.B.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-3;{ R2.B.X:=R2.B.X-4;}
+{    R2.B.Y:=R2.A.Y+((Count+1) div 2);}
+    R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
       Items:=NewSItem(SyntaxSwitches^.ItemName(I), Items);
@@ -105,6 +106,23 @@ begin
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
     New(Label11, Init(R2, label_compiler_syntaxswitches, CB1));
+
+    Count:=CompilerModeSwitches^.ItemCount;
+    R.Copy(TabIR);
+    R2.Copy(R);
+    R2.A.X:=(R2.A.X+(R2.B.X-R2.A.X) div 2)-2;
+    R2.B.X:=R2.B.X-3;
+{    R2.B.Y:=R2.A.Y+((Count+1) div 2);}
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(CompilerModeSwitches^.ItemName(I), Items);
+    New(RB2, Init(R2, Items));
+    L:=CompilerModeSwitches^.GetCurrSel;
+    RB2^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label12, Init(R2, label_compiler_mode, RB2));
 
     { --- Sheet 2 --- }
     Count:=CodegenSwitches^.ItemCount;
@@ -254,7 +272,9 @@ begin
       NewTabDef(page_compiler_syntax,CB1,
         NewTabItem(Label11,
         NewTabItem(CB1,
-        nil)),
+        NewTabItem(Label12,
+        NewTabItem(RB2,
+        nil)))),
       NewTabDef(page_compiler_codegeneration,CB3,
         NewTabItem(Label21,
         NewTabItem(CB3,
@@ -309,6 +329,7 @@ begin
   begin
     for I:=0 to SyntaxSwitches^.ItemCount-1 do
       SyntaxSwitches^.SetBooleanItem(I,CB1^.Mark(I));
+    CompilerModeSwitches^.SetCurrSel(RB2^.Value);
     for I:=0 to CodeGenSwitches^.ItemCount-1 do
       CodegenSwitches^.SetBooleanItem(I,CB3^.Mark(I));
     for I:=0 to OptimizationSwitches^.ItemCount-1 do

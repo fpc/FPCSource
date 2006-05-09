@@ -165,6 +165,7 @@ var
     ProfileInfoSwitches,
     {MemorySizeSwitches, doubled !! }
     SyntaxSwitches,
+    CompilerModeSwitches,
     VerboseSwitches,
     CodegenSwitches,
     OptimizationSwitches,
@@ -819,6 +820,7 @@ begin
      TargetSwitches^.WriteItemsCfg;
      VerboseSwitches^.WriteItemsCfg;
      SyntaxSwitches^.WriteItemsCfg;
+     CompilerModeSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
      OptimizationSwitches^.WriteItemsCfg;
      OptimizingGoalSwitches^.WriteItemsCfg;
@@ -890,6 +892,7 @@ begin
                  if not ProcessorSwitches^.ReadItemsCfg(s) then
                    res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
              end;
+       'M' : res:=CompilerModeSwitches^.ReadItemsCfg(s);
        'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
        's' : res:=LinkAfterSwitches^.ReadItemsCfg(s);
        'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
@@ -961,14 +964,14 @@ begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
    begin
-     AddBooleanItem(opt_objectpascal,'2',idNone);
+//     AddBooleanItem(opt_objectpascal,'2',idNone);
      AddBooleanItem(opt_clikeoperators,'c',idNone);
      AddBooleanItem(opt_stopafterfirsterror,'e',idNone);
      AddBooleanItem(opt_allowlabelandgoto,'g',idNone);
      AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
      AddBooleanItem(opt_globalcmacros,'m',idNone);
-     AddBooleanItem(opt_tp7compatibility,'o',idNone);
-     AddBooleanItem(opt_delphicompatibility,'d',idNone);
+//     AddBooleanItem(opt_tp7compatibility,'o',idNone);
+//     AddBooleanItem(opt_delphicompatibility,'d',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
      AddBooleanItem(opt_assertions,'a',idNone);
      AddBooleanItem(opt_kylix,'k',idNone);
@@ -977,6 +980,17 @@ begin
      AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);
      AddBooleanItem(opt_allowmmxoperations,'/',idMMXOps);  }
    end;
+  New(CompilerModeSwitches,InitSelect('M'));
+  with CompilerModeSwitches^ do
+    begin
+       AddSelectItem(opt_mode_freepascal,'fpc',idNone);
+       AddSelectItem(opt_mode_objectpascal,'objfpc',idNone);
+       AddSelectItem(opt_mode_turbopascal,'tp',idNone);
+       AddSelectItem(opt_mode_delphi,'delphi',idNone);
+       AddSelectItem(opt_mode_macpascal,'macpascal',idNone);
+{      GNU Pascal mode doesn't do much, better disable it
+       AddSelectItem(opt_mode_gnupascal,'gpc',idNone);}
+    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
    begin
@@ -996,7 +1010,7 @@ begin
      AddBooleanItem(opt_iochecking,'i',idIOChecks);
      AddBooleanItem(opt_overflowchecking,'o',idOverflowChecks);
      AddBooleanItem(opt_objmethcallvalid,'R',idObjMethCallChecks);
-{     AddBooleanItem(opt_pic,'g',idNone);}
+     AddBooleanItem(opt_pic,'g',idNone);
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
@@ -1167,6 +1181,8 @@ begin
        { AT&T reader }
        AsmReaderSwitches^.SetCurrSel(1);
 {$endif i386}
+       { FPC mode}
+       CompilerModeSwitches^.SetCurrSel(0);
        { 128k stack }
        MemorySwitches^.SetLongintItem(0,65536*2);
        { 2 MB heap }
@@ -1202,8 +1218,10 @@ begin
 end;
 
 procedure DoneSwitches;
+
 begin
   dispose(SyntaxSwitches,Done);
+  dispose(CompilerModeSwitches,Done);
   dispose(VerboseSwitches,Done);
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
@@ -1241,7 +1259,9 @@ procedure AddParam(const S: string);
 begin
   MiscParams^.Insert(NewStr(S));
 end;
+
 procedure EnumSwitches(P: PSwitches);
+
 procedure HandleSwitch(P: PSwitchItem); {$ifndef FPC}far;{$endif}
 begin
   case P^.ParamID of
@@ -1288,6 +1308,7 @@ begin
   EnumSwitches(DebugInfoSwitches);
   EnumSwitches(ProfileInfoSwitches);
   EnumSwitches(SyntaxSwitches);
+  EnumSwitches(CompilerModeSwitches);
   EnumSwitches(VerboseSwitches);
   EnumSwitches(CodegenSwitches);
   EnumSwitches(OptimizationSwitches);
