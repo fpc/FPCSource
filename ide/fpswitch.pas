@@ -965,16 +965,16 @@ begin
   with SyntaxSwitches^ do
    begin
 //     AddBooleanItem(opt_objectpascal,'2',idNone);
-     AddBooleanItem(opt_clikeoperators,'c',idNone);
      AddBooleanItem(opt_stopafterfirsterror,'e',idNone);
      AddBooleanItem(opt_allowlabelandgoto,'g',idNone);
-     AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
      AddBooleanItem(opt_globalcmacros,'m',idNone);
+     AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
 //     AddBooleanItem(opt_tp7compatibility,'o',idNone);
 //     AddBooleanItem(opt_delphicompatibility,'d',idNone);
-     AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
      AddBooleanItem(opt_assertions,'a',idNone);
      AddBooleanItem(opt_kylix,'k',idNone);
+     AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
+     AddBooleanItem(opt_clikeoperators,'c',idNone);
      { Useless as they are not passed to the compiler PM
      AddBooleanItem(opt_strictvarstrings,'/',idStrictVarStrings);
      AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);

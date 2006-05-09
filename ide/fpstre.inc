@@ -779,8 +779,8 @@ const
       opt_clikeoperators = 'C-like operators';
       opt_stopafterfirsterror = 'Stop after first error';
       opt_allowlabelandgoto = 'Allow LABEL and GOTO';
-      opt_cplusplusstyledinline = 'C++ styled inline';
-      opt_globalcmacros = 'Global C macros';
+      opt_cplusplusstyledinline = 'Allow inline';
+      opt_globalcmacros = 'Enable macros';
       opt_allowstaticinobjects = 'Allow STATIC in objects';
       opt_assertions = 'Include assertion code';
       opt_kylix = 'Load Kylix compat. unit';
