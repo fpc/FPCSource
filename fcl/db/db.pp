@@ -51,7 +51,7 @@ type
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
     deCheckBrowseMode, dePropertyChange, deFieldListChange, deFocusControl,
-    deParentScroll);
+    deParentScroll,deConnectChange,deReconcileError,deDisabledStateChange);
 
   TUpdateStatus = (usUnmodified, usModified, usInserted, usDeleted);
   TUpdateStatusSet = SET OF TUpdateStatus;
@@ -965,7 +965,7 @@ type
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Procedure DoInternalClose(DoCheck : Boolean);
+    Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
@@ -1509,6 +1509,8 @@ type
     FCurrentUpdateBuffer : integer;
 
     FFieldBufPositions : array of longint;
+    
+    FAllPacketsFetched : boolean;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;

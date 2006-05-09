@@ -2399,7 +2399,7 @@ end;
 Procedure Tfields.Changed;
 
 begin
-  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) then
+  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) and FDataset.Active then
     FDataSet.DataEvent(deFieldListChange, 0);
   If Assigned(FOnChange) then
     FOnChange(Self);

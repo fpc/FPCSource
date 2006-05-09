@@ -34,6 +34,8 @@ begin
   FBuffers[0] := nil;
   FActiveRecord := 0;
   FBufferCount := 0;
+  FEOF := True;
+  FBOF := True;
 end;
 
 
@@ -396,16 +398,14 @@ begin
     DoAfterOpen;
     DoAfterScroll;
   except
-    DoInternalClose(false);
+    DoInternalClose;
     raise;
   end;
 end;
 
-Procedure TDataset.DoInternalClose(DoCheck : Boolean);
+Procedure TDataset.DoInternalClose;
 
 begin
-  if DoCheck then
-    CheckBrowsemode;
   DoBeforeScroll;
   DoBeforeClose;
   FreeFieldBuffers;
@@ -822,7 +822,7 @@ begin
       DoInternalOpen;
     end
   else if not value and (Fstate <> dsinactive) then
-    DoInternalClose(True);
+    DoInternalClose;
 end;
 
 procedure TDataset.Loaded;
@@ -1697,10 +1697,11 @@ Var
 begin
   CheckBrowseMode;
   Result:=0; TheResult:=0;
-  If ((Distance>0) and FEOF) or
+  DoBeforeScroll;
+  If (Distance = 0) or
+     ((Distance>0) and FEOF) or
      ((Distance<0) and FBOF) then
     exit;
-  DoBeforeScroll;
   Try
     Scrolled := 0;
     If Distance>0 then
@@ -1711,11 +1712,7 @@ begin
 {$ifdef dsdebug}
     WriteLn('ActiveRecord=', FActiveRecord,' FEOF=',FEOF,' FBOF=',FBOF);
 {$Endif}
-//    If FRecordCount<>PrevRecordCount then
-    if Scrolled = 0 then
-      DataEvent(deDatasetChange,0)
-    else
-      DataEvent(deDatasetScroll,Scrolled);
+    DataEvent(deDatasetScroll,Scrolled);
     DoAfterScroll;
     Result:=TheResult;
   end;
@@ -1772,7 +1769,9 @@ begin
     writeln ('Post: Browse mode set');
 {$endif}
     DoAfterPost;
-    end;
+    end
+  else
+    DatabaseErrorFmt(SNotInEditState, [Name], Self);
 end;
 
 Procedure TDataset.Prior;
@@ -1926,7 +1925,7 @@ Procedure TDataset.UpdateRecord;
 
 begin
   if not (State in dsEditModes) then
-    DatabaseError(SNotInEditState, Self);
+    DatabaseErrorFmt(SNotInEditState, [Name], Self);
   DataEvent(deUpdateRecord, 0);
 end;
 

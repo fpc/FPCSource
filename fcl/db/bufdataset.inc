@@ -27,7 +27,7 @@ end;
 
 procedure TBufDataset.SetPacketRecords(aValue : integer);
 begin
-  if aValue > 0 then FPacketRecords := aValue
+  if (aValue = -1) or (aValue > 0) then FPacketRecords := aValue
     else DatabaseError(SInvPacketRecordsValue);
 end;
 
@@ -68,6 +68,7 @@ begin
   FLastRecBuf := FFirstRecBuf;
   FCurrentRecBuf := FLastRecBuf;
 
+  FAllPacketsFetched := False;
   FOpen:=True;
 end;
 
@@ -96,7 +97,7 @@ end;
 procedure TBufDataset.InternalLast;
 begin
   repeat
-  until getnextpacket < FPacketRecords;
+  until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
   if FLastRecBuf <> FFirstRecBuf then
     FCurrentRecBuf := FLastRecBuf;
 end;
@@ -225,9 +226,14 @@ var i : integer;
     pb : pchar;
     
 begin
+  if FAllPacketsFetched then
+    begin
+    result := 0;
+    exit;
+    end;
   i := 0;
   pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
-  while (i < FPacketRecords) and (loadbuffer(pb) = grOk) do
+  while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
     begin
     FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
     FLastRecBuf^.next^.prior := FLastRecBuf;
@@ -268,6 +274,7 @@ begin
   if not Fetch then
     begin
     Result := grEOF;
+    FAllPacketsFetched := True;
     Exit;
     end;
 
@@ -611,7 +618,7 @@ var recnr        : integer;
 begin
   if value > RecordCount then
     begin
-    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount);
+    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
     if value > RecordCount then
       begin
       DatabaseError(SNoSuchRecord,self);
@@ -634,7 +641,7 @@ Var SearchRecBuffer : PBufRecLinkItem;
 begin
   abuf := ActiveBuffer;
   // If abuf isn't assigned, the recordset probably isn't opened.
-  if assigned(abuf) and (FRecordCount>0) then
+  if assigned(abuf) and (FBRecordCount>0) and (state <> dsInsert) then
     begin
     GetBookmarkData(abuf,@SearchRecBuffer);
     TmpRecBuffer := FFirstRecBuf;
@@ -646,7 +653,7 @@ begin
       end;
     result := recnr;
     end
-  else result := -1;
+  else result := 0;
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;
@@ -658,8 +665,7 @@ end;
 Function TBufDataset.GetRecordCount: Longint;
 
 begin
-  if state <> dsInsert then Result := FBRecordCount
-    else Result := FBRecordCount+1;
+  Result := FBRecordCount;
 end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
