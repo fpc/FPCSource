@@ -1872,6 +1872,7 @@ begin
   def_system_macro('COMPPROCINLINEFIXED');
   def_system_macro('PARAOUTFILE');
   def_system_macro('RESSTRSECTIONS');
+  def_system_macro('FPC_HASFIXED64BITVARIANT');
 
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
