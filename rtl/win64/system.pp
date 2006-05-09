@@ -55,7 +55,6 @@ const
 
   { Thread count for DLL }
   Thread_count : longint = 0;
-  System_exception_frame : PEXCEPTION_FRAME =nil;
 
 type
   TStartupInfo = record
@@ -387,25 +386,13 @@ var
 procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
   var
     ST : pointer;
-    EBP : pointer;
   begin
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
      install_exception_handlers;
-     { This strange construction is needed to solve the _SS problem
-       with a smartlinked syswin32 (PFV) }
      ExitCode:=0;
      asm
-         { allocate space for an exception frame }
-        pushq $0
-        pushq %fs:(0)
-        { movl  %esp,%fs:(0)
-          but don't insert it as it doesn't
-          point to anything yet
-          this will be used in signals unit }
-        movq %rsp,%rax
-        movq %rax,System_exception_frame
         { keep stack aligned }
         pushq $0
         pushq %rbp
@@ -1129,16 +1116,12 @@ begin
  GetProcessID := ProcessID;
 end;
 
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 begin
   result := stklen;
 end;
 
-{
-const
-   Exe_entry_code : pointer = @Exe_entry;
-   Dll_entry_code : pointer = @Dll_entry;
-}
 
 begin
   SysResetFPU;
