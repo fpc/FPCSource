@@ -353,7 +353,7 @@ type
 
 {$ifdef SUPPORT_VARIANTS}
     function  Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
-    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC_VERSION}override;{$endif}
+    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC}override;{$endif}
 {$endif}
 
     function  IsDeleted: Boolean;
@@ -402,7 +402,6 @@ type
     property StoreDefs: Boolean read FStoreDefs write FStoreDefs default False;
     property TableName: string read FTableName write SetTableName;
     property TableLevel: Integer read FTableLevel write SetTableLevel;
-      (* default {$ifdef SUPPORT_INT64} false {$else} true {$endif}; *)
     property Version: string read GetVersion write SetVersion stored false;
     property BeforeAutoCreate: TBeforeAutoCreateEvent read FBeforeAutoCreate write FBeforeAutoCreate;
     property OnCompareRecord: TNotifyEvent read FOnCompareRecord write FOnCompareRecord;
