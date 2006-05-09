@@ -15,7 +15,7 @@
  **********************************************************************}
 
 
-procedure UniqueString(Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
+Procedure UniqueString (Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
 Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 Function Pos (c : Char; Const s : WideString) : SizeInt;
 Function Pos (c : WideChar; Const s : WideString) : SizeInt;
