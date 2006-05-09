@@ -1484,8 +1484,13 @@ implementation
          if incrfunc<>'' then
           begin
             paramanager.allocparaloc(list,cgpara1);
-            { these functions get the pointer by value }
-            a_param_ref(list,OS_ADDR,ref,cgpara1);
+            { widestrings aren't ref. counted on all platforms so we need the address
+              to create a real copy }
+            if is_widestring(t) then
+              a_paramaddr_ref(list,ref,cgpara1)
+            else
+              { these functions get the pointer by value }
+              a_param_ref(list,OS_ADDR,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,incrfunc);

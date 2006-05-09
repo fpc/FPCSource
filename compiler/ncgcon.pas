@@ -427,8 +427,13 @@ implementation
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
+                                if tf_winlikewidestring in target_info.flags then
+                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.def.size))
+                                else
+                                  begin
+                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
+                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
+                                  end;
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));

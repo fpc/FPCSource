@@ -600,8 +600,13 @@ implementation
                             current_asmdata.getdatalabel(ll);
                             datalist.concat(Tai_const.Create_sym(ll));
                             current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
-                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
-                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
+                            if tf_winlikewidestring in target_info.flags then
+                              current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.def.size))
+                            else
+                              begin
+                                current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
+                                current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
+                              end;
                             current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));

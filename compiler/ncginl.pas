@@ -356,9 +356,18 @@ implementation
            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
            current_asmdata.getjumplabel(lengthlab);
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
-           reference_reset_base(href,left.location.register,-sizeof(aint));
-           hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-           cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
+           if is_widestring(left.resulttype.def) and (tf_winlikewidestring in target_info.flags) then
+             begin
+               reference_reset_base(href,left.location.register,-sizeof(dword));
+               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
+               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
+             end
+           else
+             begin
+               reference_reset_base(href,left.location.register,-sizeof(aint));
+               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
+               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
+             end;
            if is_widestring(left.resulttype.def) then
              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);

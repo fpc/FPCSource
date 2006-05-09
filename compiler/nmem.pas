@@ -757,7 +757,7 @@ implementation
 
          if (nf_callunique in flags) and
             (is_ansistring(left.resulttype.def) or
-             is_widestring(left.resulttype.def)) then
+             (is_widestring(left.resulttype.def) and not(tf_winlikewidestring in target_info.flags))) then
            begin
              left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
                ccallparanode.create(
@@ -767,7 +767,9 @@ implementation
              { double resulttype passes somwhere else may cause this to be }
              { reset though :/                                             }
              exclude(flags,nf_callunique);
-           end;
+           end
+         else if is_widestring(left.resulttype.def) and (tf_winlikewidestring in target_info.flags) then
+           exclude(flags,nf_callunique);
 
          { the register calculation is easy if a const index is used }
          if right.nodetype=ordconstn then

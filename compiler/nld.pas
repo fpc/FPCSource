@@ -645,6 +645,7 @@ implementation
            right:=nil;
            exit;
          end;
+
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
         if left.resulttype.def.deftype=variantdef then
@@ -655,6 +656,18 @@ implementation
                  caddrnode.create_internal(left),voidpointertype),
                nil));
            result:=ccallnode.createintern('fpc_variant_copy',hp);
+           left:=nil;
+           right:=nil;
+           exit;
+         end;
+
+        { call helpers for windows widestrings, they aren't ref. counted }
+        if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resulttype.def) then
+         begin
+           hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
+               ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
+               nil));
+           result:=ccallnode.createintern('fpc_widestr_assign',hp);
            left:=nil;
            right:=nil;
            exit;

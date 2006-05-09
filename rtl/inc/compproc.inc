@@ -129,13 +129,13 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt); compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt; compilerproc;
 {$endif EXTRAANSISHORT}
-{ pointer argument because otherwise when calling this, we get }
-{ an endless loop since a 'var s: ansistring' must be made     }
-{ unique as well                                               }
+{ pointer argument because otherwise when calling this, we get
+  an endless loop since a 'var s: ansistring' must be made
+  unique as well                                               }
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
-Procedure fpc_WideStr_Incr_Ref (S : Pointer); compilerproc;
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer); compilerproc;
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring; compilerproc;
 Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerproc;
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
@@ -157,7 +157,9 @@ Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
+{$ifndef FPC_WINLIKEWIDESTRING}
 function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
+{$endif FPC_WINLIKEWIDESTRING}
 
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
