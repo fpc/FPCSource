@@ -102,8 +102,8 @@ type
   public
     property Environment:TODBCEnvironment read FEnvironment;
   published
-    property Driver:string read FDriver write FDriver;                         // will be passed as DRIVER connection parameter
-    property FileDSN:string read FFileDSN write FFileDSN;                      // will be passed as FILEDSN parameter
+    property Driver:string read FDriver write FDriver;    // will be passed as DRIVER connection parameter
+    property FileDSN:string read FFileDSN write FFileDSN; // will be passed as FILEDSN parameter
     // Redeclare properties from TSQLConnection
     property Password;     // will be passed as PWD connection parameter
     property Transaction;
@@ -599,11 +599,14 @@ begin
         else
           BlobBufferSize:=DEFAULT_BLOB_BUFFER_SIZE;
         try
-          // Allocate the buffer and memorystream
-          BlobBuffer:=GetMem(BlobBufferSize);
-          BlobMemoryStream:=TMemoryStream.Create;
-          if BlobBufferSize>0 then
+          // init BlobBuffer and BlobMemoryStream to nil pointers
+          BlobBuffer:=nil;
+          BlobMemoryStream:=nil;
+          if BlobBufferSize>0 then // Note: zero-length BLOB is represented as nil pointer in the field buffer to save memory usage
           begin
+            // Allocate the buffer and memorystream
+            BlobBuffer:=GetMem(BlobBufferSize);
+            BlobMemoryStream:=TMemoryStream.Create;
             // Retrieve data in parts (or effectively in one part if StrLenOrInd<>SQL_NO_TOTAL above)
             repeat
               Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, BlobBuffer, BlobBufferSize, @StrLenOrInd);
@@ -618,12 +621,14 @@ begin
           end;
           // Store memorystream pointer in Field buffer and in the cursor's FBlobStreams list
           TObject(buffer^):=BlobMemoryStream;
-          ODBCCursor.FBlobStreams.Add(BlobMemoryStream);
+          if BlobMemoryStream<>nil then
+            ODBCCursor.FBlobStreams.Add(BlobMemoryStream);
           // Set BlobMemoryStream to nil, so it won't get freed in the finally block below
           BlobMemoryStream:=nil;
         finally
           BlobMemoryStream.Free;
-          Freemem(BlobBuffer,BlobBufferSize);
+          if BlobBuffer<>nil then
+            Freemem(BlobBuffer,BlobBufferSize);
         end;
       end;
     end;
@@ -642,12 +647,12 @@ var
   ODBCCursor: TODBCCursor;
   BlobMemoryStream, BlobMemoryStreamCopy: TMemoryStream;
 begin
-  // TODO: implement TODBCConnection.CreateBlobStream
-  if Mode=bmRead then
+  if (Mode=bmRead) and not Field.IsNull then
   begin
     Field.GetData(@BlobMemoryStream);
     BlobMemoryStreamCopy:=TMemoryStream.Create;
-    BlobMemoryStreamCopy.LoadFromStream(BlobMemoryStream);
+    if BlobMemoryStream<>nil then
+      BlobMemoryStreamCopy.LoadFromStream(BlobMemoryStream);
     Result:=BlobMemoryStreamCopy;
   end
   else
