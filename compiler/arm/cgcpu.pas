@@ -459,6 +459,16 @@ unit cgcpu;
               it saves us a register }
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a,l1) and not(cgsetflags or setflags) then
               a_op_const_reg_reg(list,OP_SHL,size,l1,src,dst)
+            { for example : b=a*5 -> b=a*4+a with add instruction and shl }
+            else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a-1,l1) and not(cgsetflags or setflags) then
+              begin
+                if l1>32 then{roozbeh does this ever happen?}
+                  internalerror(200308291);
+                shifterop_reset(so);
+                so.shiftmode:=SM_LSL;
+                so.shiftimm:=l1;
+                list.concat(taicpu.op_reg_reg_reg_shifterop(A_ADD,dst,src,src,so));
+              end
             else
               begin
                 tmpreg:=getintregister(list,size);
@@ -569,6 +579,7 @@ unit cgcpu;
           imm_shift : byte;
           l : tasmlabel;
           hr : treference;
+          tmpreg : tregister;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
@@ -576,6 +587,23 @@ unit cgcpu;
             list.concat(taicpu.op_reg_const(A_MOV,reg,a))
           else if is_shifter_const(not(a),imm_shift) then
             list.concat(taicpu.op_reg_const(A_MVN,reg,not(a)))
+          { loading of constants with mov and orr }
+          {else [if (is_shifter_const(a-byte(a),imm_shift)) then
+            begin
+              }{ roozbeh:why using tmpreg later causes error in compiling of system.pp,and also those other similars}
+              {list.concat(taicpu.op_reg_const(A_MOV,reg,a-byte(a)));
+              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,byte(a)));
+            end
+          else if (is_shifter_const(a-word(a),imm_shift)) and (is_shifter_const(word(a),imm_shift)) then
+            begin
+              list.concat(taicpu.op_reg_const(A_MOV,reg,a-word(a)));
+              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,word(a)));
+            end
+          else if (is_shifter_const(a-(longint(a) shl 8) shr 8,imm_shift)) and (is_shifter_const((longint(a) shl 8) shr 8,imm_shift)) then
+            begin
+              list.concat(taicpu.op_reg_const(A_MOV,reg,a-(longint(a) shl 8)shr 8));
+              list.concat(taicpu.op_reg_reg_const(A_ORR,reg,reg,(longint(a) shl 8)shr 8));
+            end}
           else
             begin
                reference_reset(hr);
@@ -1377,6 +1405,9 @@ unit cgcpu;
 
 
     procedure tcgarm.g_concatcopy_internal(list : TAsmList;const source,dest : treference;len : aint;aligned : boolean);
+      const
+        maxtmpreg=10;{roozbeh: can be reduced to 8 or lower if might conflick with reserved ones,also +2 is used becouse of regs required for referencing}
+
       var
         srcref,dstref,usedtmpref,usedtmpref2:treference;
         srcreg,destreg,countreg,r,tmpreg,tmpreg2:tregister;
@@ -1384,6 +1415,8 @@ unit cgcpu;
         copysize:byte;
         cgsize:Tcgsize;
         so:tshifterop;
+        tmpregisters:array[1..maxtmpreg]of tregister;
+        tmpregi,tmpregi2:byte;
 
       { will never be called with count<=4 }
       procedure genloop(count : aword;size : byte);
@@ -1456,13 +1489,38 @@ unit cgcpu;
 
         if len=0 then
           exit;
-        helpsize:=12;
+        helpsize:=12+maxtmpreg*4;//52 with maxtmpreg=10
         dstref:=dest;
         srcref:=source;
         if cs_opt_size in aktoptimizerswitches then
           helpsize:=8;
         if (len<=helpsize) and aligned then
           begin
+            tmpregi:=0;
+            srcreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,source,srcreg);
+            reference_reset_base(srcref,srcreg,0);
+
+            while (len div  4 <> 0) and (tmpregi<=maxtmpreg) do
+              begin
+                inc(tmpregi);
+                tmpregisters[tmpregi]:=getintregister(list,OS_32);
+                a_load_ref_reg(list,OS_32,OS_32,srcref,tmpregisters[tmpregi]);
+                inc(srcref.offset,4);
+                dec(len,4);
+              end;
+
+            destreg:=getintregister(list,OS_ADDR);
+            a_loadaddr_ref_reg(list,dest,destreg);
+            reference_reset_base(dstref,destreg,0);
+            tmpregi2:=1;
+            while (tmpregi2<=tmpregi) do
+              begin
+                a_load_reg_ref(list,OS_32,OS_32,tmpregisters[tmpregi2],dstref);
+                inc(dstref.offset,4);
+                inc(tmpregi2);
+              end;
+
             copysize:=4;
             cgsize:=OS_32;
             while len<>0 do
@@ -1483,48 +1541,43 @@ unit cgcpu;
                 a_load_reg_ref(list,cgsize,cgsize,r,dstref);
                 inc(srcref.offset,copysize);
                 inc(dstref.offset,copysize);
-              end;
+              end;{end of while}
           end
         else
           begin
             cgsize:=OS_32;
-            if (len<=4) then
+            if (len<=4) then{len<=4 and not aligned}
               begin
                 r:=getintregister(list,cgsize);
-                case Len of
-                  1,2,3,4:
-                    begin
-                      usedtmpref:=a_internal_load_ref_reg(list,OS_8,OS_8,srcref,r);
-                      if Len=1 then
-                        a_load_reg_ref(list,OS_8,OS_8,r,dstref)
-                      else
-                        begin
-                          tmpreg:=getintregister(list,cgsize);
-                          usedtmpref2:=a_internal_load_reg_ref(list,OS_8,OS_8,r,dstref);
-                          inc(usedtmpref.offset,1);
-                          a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
-                          inc(usedtmpref2.offset,1);
-                          a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
-                          if len>2 then
-                            begin
-                              inc(usedtmpref.offset,1);
-                              a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
-                              inc(usedtmpref2.offset,1);
-                              a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
-                              if len>3 then
-                                begin
-                                  inc(usedtmpref.offset,1);
-                                  a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
-                                  inc(usedtmpref2.offset,1);
-                                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
-                                end;
-                            end;
+                usedtmpref:=a_internal_load_ref_reg(list,OS_8,OS_8,srcref,r);
+                if Len=1 then
+                  a_load_reg_ref(list,OS_8,OS_8,r,dstref)
+                else
+                  begin
+                    tmpreg:=getintregister(list,cgsize);
+                    usedtmpref2:=a_internal_load_reg_ref(list,OS_8,OS_8,r,dstref);
+                    inc(usedtmpref.offset,1);
+                    a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                    inc(usedtmpref2.offset,1);
+                    a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                    if len>2 then
+                      begin
+                        inc(usedtmpref.offset,1);
+                        a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                        inc(usedtmpref2.offset,1);
+                        a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                        if len>3 then
+                          begin
+                            inc(usedtmpref.offset,1);
+                            a_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
+                            inc(usedtmpref2.offset,1);
+                            a_load_reg_ref(list,OS_8,OS_8,tmpreg,usedtmpref2);
+                          end;
                         end;
-                    end;
-                end;
-              end
+                      end;
+            end{end of if len<=4}
             else
-              begin
+              begin{unaligned & 4<len<helpsize **or** aligned/unaligned & len>helpsize}
                 destreg:=getintregister(list,OS_ADDR);
                 a_loadaddr_ref_reg(list,dest,destreg);
                 reference_reset_base(dstref,destreg,0);
@@ -1535,14 +1588,15 @@ unit cgcpu;
 
                 countreg:=getintregister(list,OS_32);
 
-                if aligned then
-                  genloop(len,4)
-                else
-                  genloop(len,1);
-              end;
+//            if cs_opt_size in aktoptimizerswitches  then
+                { roozbeh : it seems loading 1 byte is faster becouse of caching/fetching(?) }
+                {if aligned then
+                genloop(len,4)
+                else}
+                genloop(len,1);
+            end;
           end;
-      end;
-
+    end;
 
     procedure tcgarm.g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);
       begin
