@@ -33,6 +33,8 @@ uses
 {$i sysutilh.inc}
 
 type
+  TSystemTime = Windows.TSystemTime;
+  
   EWinCEError = class(Exception)
   public
     ErrorCode : DWORD;

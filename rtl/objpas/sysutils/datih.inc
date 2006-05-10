@@ -78,13 +78,13 @@ const
    }
 
 type
-{$if not(defined(win32)) and not(defined(win64)) }
+{$ifndef windows}
    { Win32 reuses the struct from the Windows unit }
    TSystemTime = record
       Year, Month, Day: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
-{$endif win32}
+{$endif windows}
 
    TTimeStamp = record
       Time: integer;   { Number of milliseconds since midnight }
