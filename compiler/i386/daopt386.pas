@@ -187,6 +187,7 @@ function writeToRegDestroysContents(destReg, supreg: tsuperregister;
 function writeDestroysContents(const op: toper; supreg: tsuperregister; size: tcgsize;
   const c: tcontent; var memwritedestroyed: boolean): boolean;
 
+function sequenceDependsonReg(const Content: TContent; seqreg: tsuperregister; supreg: tsuperregister): Boolean;
 
 function GetNextInstruction(Current: tai; var Next: tai): Boolean;
 function GetLastInstruction(Current: tai; var Last: tai): Boolean;

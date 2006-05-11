@@ -842,6 +842,7 @@ var
 {$endif replaceregdebug}
     regcounter: tsuperregister;
     oldStartmod: tai;
+    regstoclear: tregset;
 begin
 {$ifdef replaceregdebug}
   l := random(1000);
@@ -850,26 +851,43 @@ begin
   insertllitem(asml,p.previous,p,hp);
 {$endif replaceregdebug}
   ptaiprop(p.optinfo)^.Regs[supreg].typ := con_unknown;
+  regstoclear := [supreg];
   while (p <> endP) do
     begin
       for regcounter := RS_EAX to RS_EDI do
-        if (regcounter <> supreg) and
-           assigned(ptaiprop(p.optinfo)^.regs[supreg].memwrite) and
-           reginref(regcounter,ptaiprop(p.optinfo)^.regs[supreg].memwrite.oper[1]^.ref^) then
-          clearmemwrites(p,regcounter);
-      with ptaiprop(p.optinfo)^.Regs[supreg] do
         begin
-          typ := con_unknown;
-          memwrite := nil;
+          if (regcounter <> supreg) and
+             assigned(ptaiprop(p.optinfo)^.regs[supreg].memwrite) and
+             reginref(regcounter,ptaiprop(p.optinfo)^.regs[supreg].memwrite.oper[1]^.ref^) then
+            clearmemwrites(p,regcounter);
+          { needs double loop to cheack for each dependency combination? }
+          if assigned(ptaiprop(p.optinfo)^.regs[regcounter].startmod) and
+             sequencedependsonreg(ptaiprop(p.optinfo)^.regs[regcounter],regcounter,supreg) then
+            include(regstoclear,regcounter);
+
+          if regcounter in regstoclear then
+            with ptaiprop(p.optinfo)^.Regs[regcounter] do
+              begin
+                typ := con_unknown;
+                memwrite := nil;
+              end;
         end;
       getNextInstruction(p,p);
     end;
   oldStartmod := ptaiprop(p.optinfo)^.Regs[supreg].startmod;
   repeat
-    with ptaiprop(p.optinfo)^.Regs[supreg] do
+    for regcounter := RS_EAX to RS_EDI do
       begin
-        typ := con_unknown;
-        memwrite := nil;
+        { needs double loop to cheack for each dependency combination? }
+        if assigned(ptaiprop(p.optinfo)^.regs[regcounter].startmod) and
+           sequencedependsonreg(ptaiprop(p.optinfo)^.regs[regcounter],regcounter,supreg) then
+          include(regstoclear,regcounter);
+        with ptaiprop(p.optinfo)^.Regs[supreg] do
+          if regcounter in regstoclear then
+            begin
+              typ := con_unknown;
+              memwrite := nil;
+            end;
       end;
   until not getNextInstruction(p,p) or
         (ptaiprop(p.optinfo)^.Regs[supreg].startmod <> oldStartmod);
@@ -889,7 +907,8 @@ var
   l: longint;
 {$endif replaceregdebug}
   hp: tai;
-  dummyregs: tregset;
+  validregs, prevvalidregs: tregset;
+  regcounter: tsuperregister;
   tmpState, newrstate: byte;
   prevcontenttyp: byte;
   memconflict: boolean;
@@ -906,6 +925,8 @@ begin
   incstate(newrstate,$7f);
   memconflict := false;
   invalsmemwrite := false;
+  validregs := [RS_EAX..RS_EDI];
+  prevvalidregs := validregs;
   while (p <> endP) and
         not(memconflict) and
         not(invalsmemwrite) do
@@ -914,8 +935,16 @@ begin
          regreadbyinstruction(supreg,p) then
         incstate(newrstate,1);
       // is this a write to memory that destroys the contents we are restoring?
-      memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
-      if not memconflict and not invalsmemwrite then
+      memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,validregs,false,invalsmemwrite);
+      if (validregs <> prevvalidregs) then
+        begin
+          prevvalidregs := validregs >< prevvalidregs;
+          for regcounter := RS_EAX to RS_EDI do
+            if regcounter in prevvalidregs then
+              clearRegContentsFrom(asml,regcounter,p,endP);
+        end;
+      prevvalidregs := validregs;
+      if (not memconflict and not invalsmemwrite) then
         begin
           ptaiprop(p.optinfo)^.Regs[supreg] := c;
           ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
@@ -946,13 +975,20 @@ begin
       if (ptaiprop(hp.optinfo)^.regs[supreg].rstate = ptaiprop(p.optinfo)^.regs[supreg].rstate) then
         internalerror(2004122710);
      end;
-  dummyregs := [supreg];
   repeat
     newrstate := ptaiprop(p.optinfo)^.Regs[supreg].rState;
     prevcontenttyp := ptaiprop(p.optinfo)^.Regs[supreg].typ;
     // is this a write to memory that destroys the contents we are restoring?
-    memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
-    if not memconflict and not invalsmemwrite then
+    memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,validregs,false,invalsmemwrite);
+    if (validregs <> prevvalidregs) then
+      begin
+        prevvalidregs := validregs >< prevvalidregs;
+        for regcounter := RS_EAX to RS_EDI do
+          if regcounter in prevvalidregs then
+            clearRegContentsFrom(asml,regcounter,p,p);
+      end;
+    prevvalidregs := validregs;
+    if (not memconflict and not invalsmemwrite) then
       begin
         ptaiprop(p.optinfo)^.Regs[supreg] := c;
         ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
