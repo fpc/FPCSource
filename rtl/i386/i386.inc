@@ -18,7 +18,7 @@
                                Primitives
 ****************************************************************************}
 var
-  has_sse_support,has_mmx_support,os_supports_sse : boolean;
+  os_supports_sse : boolean;
 
 {$asmmode intel}
 

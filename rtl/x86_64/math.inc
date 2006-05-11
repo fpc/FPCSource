@@ -37,26 +37,49 @@ FPC_ABSMASK_DOUBLE:
  ****************************************************************************}
 
     procedure Set8087CW(cw:word);assembler;
-    asm
-      movw cw,%ax
+      asm        
+        movw cw,%ax
 {$ifdef FPC_PIC}
-      movq default8087cw@GOTPCREL(%rip),%rax
-      movw %ax,(%rax)
-      fnclex
-      fldcw (%rax)
+        movq default8087cw@GOTPCREL(%rip),%rax
+        movw %ax,(%rax)
+        fnclex
+        fldcw (%rax)
 {$else FPC_PIC}
-      movw %ax,default8087cw
-      fnclex
-      fldcw default8087cw
+        movw %ax,default8087cw
+        fnclex
+        fldcw default8087cw
 {$endif FPC_PIC}
-    end;
+      end;
+
 
     function Get8087CW:word;assembler;
-    asm
-      pushq $0
-      fnstcw (%rsp)
-      popq %rax
-    end;
+      asm
+        pushq $0
+        fnstcw (%rsp)
+        popq %rax
+      end;
+    
+    
+    procedure SetSSECSR(w : dword);
+      var
+        _w : dword;
+      begin
+        _w:=w;
+        asm
+          ldmxcsr _w
+        end;
+      end;
+    
+    
+    function GetSSECSR : dword;
+      var
+        _w : dword;
+      begin
+        asm
+          stmxcsr _w
+        end;
+        result:=_w;
+      end;
 
 {****************************************************************************
                        EXTENDED data type routines

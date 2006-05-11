@@ -576,3 +576,34 @@ begin
     end;
 end;
 
+
+function SafeLoadLibrary(const FileName: AnsiString;
+  ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
+  var
+    mode : DWord;
+{$if defined(cpui386) or defined(cpux86_64)}
+    fpucw : Word;
+    ssecw : DWord;
+{$endif}
+  begin
+    mode:=SetErrorMode(ErrorMode);
+    try
+{$if defined(cpui386) or defined(cpux86_64)}
+      fpucw:=Get8087CW;
+{$ifdef cpui386}
+      if has_sse_support then
+{$endif cpui386}
+        ssecw:=GetSSECSR;
+{$endif}
+      Result:=LoadLibrary(PChar(Filename));
+    finally
+{$if defined(cpui386) or defined(cpux86_64)}
+      Set8087CW(fpucw);
+{$ifdef cpui386}
+      if has_sse_support then
+{$endif cpui386}
+        SetSSECSR(ssecw);
+{$endif}
+      SetErrorMode(mode);
+    end;
+  end;

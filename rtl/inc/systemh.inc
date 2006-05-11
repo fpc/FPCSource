@@ -294,8 +294,13 @@ type
 
 const
 {$ifdef cpui386}
-  Test8086 : byte = 2;       { Always i386 or newer }
-  Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
+  { Always i386 or newer }
+  Test8086 : byte = 2;
+  { Always 387 or newer. Emulated if needed. }
+  Test8087 : byte = 3;
+  { will be detected at startup }
+  has_sse_support : boolean = false;
+  has_mmx_support : boolean = false;
 {$endif cpui386}
 {$ifdef cpum68k}
   Test68000 : byte = 0;      { Must be determined at startup for both }

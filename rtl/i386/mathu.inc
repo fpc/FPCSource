@@ -22,29 +22,6 @@ function arctan2(y,x : float) : float;assembler;
      fwait
   end;
 
-
-procedure SetSSECSR(w : dword);
-  var
-    _w : dword;
-  begin
-    _w:=w;
-    asm
-      ldmxcsr _w
-    end;
-  end;
-
-
-function GetSSECSR : dword;
-  var
-    _w : dword;
-  begin
-    asm
-      stmxcsr _w
-    end;
-    result:=_w;
-  end;
-
-
 function GetRoundMode: TFPURoundingMode;
 begin
   Result := TFPURoundingMode((Get8087CW shr 10) and 3);

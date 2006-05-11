@@ -179,12 +179,9 @@ Var
 
 type
   TTerminateProc = Function: Boolean;
-
-
-
+  
   procedure AddTerminateProc(TermProc: TTerminateProc);
   function CallTerminateProcs: Boolean;
-
 
 
 Var
@@ -237,3 +234,5 @@ Type
   { interface handling }
   {$i intfh.inc}
 
+  function SafeLoadLibrary(const FileName: AnsiString;
+    ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
