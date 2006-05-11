@@ -442,8 +442,8 @@ begin
         NewItem(menu_options_env_codetemplates,'', kbNoKey, cmCodeTemplateOptions, hcCodeTemplateOptions,
         NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
         NewItem(menu_options_env_keybmouse,'', kbNoKey, cmMouse, hcMouse,
-        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
-        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
+{        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
+        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,}
 {$ifdef Unix}
         NewItem(menu_options_learn_keys,'', kbNoKey, cmKeys, hcKeys,
 {$endif Unix}
@@ -451,7 +451,7 @@ begin
 {$ifdef Unix}
         )
 {$endif Unix}
-        ))))))))),
+        {))}))))))),
       NewLine(
       NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,
