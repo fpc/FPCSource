@@ -177,8 +177,9 @@ Procedure DisposeWideString(Var S : Pointer);
 begin
   If S=Nil then
     exit;
+{$ifndef MSWINDOWS}
   Dec (S,WideFirstOff);
-{$ifdef MSWINDOWS}
+{$else MSWINDOWS}
   if winwidestringalloc then
     SysFreeString(S)
   else
@@ -423,7 +424,8 @@ begin
   NewSize:=0;
   for i:=low(sarr) to high(sarr) do
     inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
+  SetLength
+  (result,NewSize);
   pc:=pwidechar(result);
   for i:=low(sarr) to high(sarr) do
     begin
@@ -463,6 +465,7 @@ begin
   l:=IndexChar(p^,-1,#0);
   widestringmanager.Ansi2WideMoveProc(P,fpc_PChar_To_WideStr,l);
 end;
+
 
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
 var
@@ -706,7 +709,9 @@ begin
         ;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
+{$ifndef FPC_WINLIKEWIDESTRING}
       PWideRec(Pointer(S)-FirstOff)^.Len:=l*sizeof(WideChar);
+{$endif FPC_WINLIKEWIDESTRING}
     end
   else
     begin
