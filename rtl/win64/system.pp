@@ -379,6 +379,12 @@ begin
 end;
 
 var
+  { old compilers emitted a reference to _fltused if a module contains
+    floating type code so the linker could leave away floating point
+    libraries or not. VC does this as well so we need to define this
+    symbol as well (FK)
+  }
+  _fltused : int64;cvar;public;
   { value of the stack segment
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
