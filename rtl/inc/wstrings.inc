@@ -680,15 +680,14 @@ begin
               not winwidestringalloc and
 {$endif MSWINDOWS}
               (PWideRec(Pointer(S)-WideFirstOff)^.Ref = 1) then
-{$endif FPC_WINLIKEWIDESTRING}
         begin
           Dec(Pointer(S),WideFirstOff);
           if L*sizeof(WideChar)+WideRecLen>MemSize(Pointer(S)) then
               reallocmem(pointer(S), L*sizeof(WideChar)+WideRecLen);
           Inc(Pointer(S), WideFirstOff);
         end
-{$ifndef FPC_WINLIKEWIDESTRING}
       else
+{$endif FPC_WINLIKEWIDESTRING}
         begin
           { Reallocation is needed... }
           Temp:=Pointer(NewWideString(L));
@@ -697,13 +696,13 @@ begin
               if l < succ(length(s)) then
                 movelen := l
               { also move terminating null }
-              else movelen := succ(length(s));
+              else
+                movelen := succ(length(s));
               Move(Pointer(S)^,Temp^,movelen * Sizeof(WideChar));
             end;
           fpc_widestr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
         end
-{$endif FPC_WINLIKEWIDESTRING}
         ;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
