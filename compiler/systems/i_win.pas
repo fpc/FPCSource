@@ -114,7 +114,7 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
-            Cprefix      : '_';
+            Cprefix      : '';
             newline      : #13#10;
             dirsep       : '\';
             assem        : as_x86_64_pecoff;
