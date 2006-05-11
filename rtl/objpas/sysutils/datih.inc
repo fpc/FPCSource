@@ -78,7 +78,8 @@ const
    }
 
 type
-{$ifndef windows}
+{ windows isn't defined in 2.0.2 (FK) }
+{$if not(defined(windows)) and not(defined(win32))}
    { Win32 reuses the struct from the Windows unit }
    TSystemTime = record
       Year, Month, Day: word;
