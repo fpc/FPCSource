@@ -1025,7 +1025,7 @@ function AddrStr(Addr: longint): string;
 type TLongint = record LoW,HiW: word; end;
 begin
   with TLongint(Addr) do
-  AddrStr:='$'+IntToHex(HiW,4)+IntToHex(LoW,4);
+  AddrStr:='$'+hexstr(HiW,4)+hexstr(LoW,4);
 end;
 begin
   ClearFormatParams;

@@ -287,7 +287,7 @@ begin
                       if (OldKey=WantedKeys[i]) and (i<>j) then
                         begin
                           If ConfirmBox('"'+St+'" is used for'+#13+
-                            'key $'+IntToHex(OldKey,4)+' '+WantedKeysLabels[i]+#13+
+                            'key $'+hexstr(oldKey,4)+' '+WantedKeysLabels[i]+#13+
                             'Change it to '+WantedKeysLabels[j],nil,true)=cmYes then
                             begin
                               KeyEscape[i]:='';

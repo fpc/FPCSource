@@ -146,7 +146,6 @@ function FloatToStr(D: Double; Decimals: byte): string;
 function FloatToStrL(D: Double; Decimals: byte; MinLen: byte): string;
 function HexToInt(S: string): longint;
 function HexToCard(S: string): cardinal;
-function IntToHex(L: longint; MinLen: integer): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
@@ -502,30 +501,6 @@ begin
     Inc(I);
   end;
   HexToCard:=L;
-end;
-
-function IntToHex(L: longint; MinLen: integer): string;
-const HexNums : string[16] = '0123456789ABCDEF';
-var S: string;
-    R: real;
-function DivF(Mit,Mivel: real): longint;
-begin
-  DivF:=trunc(Mit/Mivel);
-end;
-function ModF(Mit,Mivel: real): longint;
-begin
-  ModF:=trunc(Mit-DivF(Mit,Mivel)*Mivel);
-end;
-begin
-  S:='';
-  R:=L; if R<0 then begin R:=R+2147483647+2147483647+2; end;
-  repeat
-    Insert(HexNums[ModF(R,16)+1],S,1);
-    R:=DivF(R,16);
-  until R=0;
-  while length(S)<MinLen do
-    Insert('0',S,1);
-  IntToHex:=S;
 end;
 
 function FloatToStr(D: Double; Decimals: byte): string;
