@@ -4629,6 +4629,7 @@ rtl/wince/wininc/struct.inc -text
 rtl/wince/wininc/unidef.inc -text
 rtl/wince/winres.inc -text
 rtl/wince/winsock.pp svneol=native#text/plain
+rtl/wince/winsock2.pp svneol=native#text/plain
 rtl/x86_64/int64p.inc svneol=native#text/plain
 rtl/x86_64/makefile.cpu -text
 rtl/x86_64/math.inc svneol=native#text/plain
