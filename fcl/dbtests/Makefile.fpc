@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for DB TestFramework 
+#
+
+[package]
+main=fcl
+
+[target]
+examples=dbtestframework
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
