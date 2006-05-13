@@ -20,6 +20,8 @@
 
 unit Classes;
 
+{$INLINE ON}
+
 interface
 
 uses
