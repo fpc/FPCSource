@@ -154,6 +154,16 @@ override LOCALOPT+=-dUNIX
 endif
 endif
 
+REVINC:=$(wildcard revision.inc)
+ifneq ($(REVINC),)
+override LOCALOPT+=-dREVINC
+ifeq ($(REVSTR),)
+SVNVERSION:=$(wildcard svnversion$(EXEEXT))
+REVSTR:=$(shell svnversion .)
+export REVSTR
+endif
+endif
+
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
 override LOCALOPT+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
 
@@ -342,6 +352,9 @@ msg: msgtxt.inc
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
+ifneq ($(REVSTR),)
+        $(ECHO) "'$(REVSTR)'" > revision.inc
+endif
         $(COMPILER) pp.pas
         $(EXECPPAS)
         $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)

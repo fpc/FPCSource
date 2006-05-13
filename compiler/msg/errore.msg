@@ -2180,8 +2180,8 @@ option_config_is_dir=11040_F_Config file $1 is a directory
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2005 by Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
+Copyright (c) 1993-2006 by Florian Klaempfl
 ]
 
 #
