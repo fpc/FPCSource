@@ -477,9 +477,12 @@ implementation
 
          if assigned(aclass) and not(is_dispinterface(aclass)) then
            begin
-             include(p.propoptions,ppo_stored);
+             { ppo_stored might be not set by an overridden property }
+             if not(ppo_is_override in p.propoptions) then
+               include(p.propoptions,ppo_stored);
              if try_to_consume(_STORED) then
               begin
+                include(p.propoptions,ppo_stored);
                 p.storedaccess.clear;
                 case token of
                   _ID:
