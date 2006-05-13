@@ -144,8 +144,6 @@ function StrToInt(const S: string): longint;
 function StrToCard(const S: string): cardinal;
 function FloatToStr(D: Double; Decimals: byte): string;
 function FloatToStrL(D: Double; Decimals: byte; MinLen: byte): string;
-function HexToInt(S: string): longint;
-function HexToCard(S: string): cardinal;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
@@ -465,42 +463,6 @@ begin
   Val(S,L,C); if C<>0 then L:=$ffffffff;
   LastStrToCardResult:=C;
   StrToCard:=L;
-end;
-
-function HexToInt(S: string): longint;
-var L,I: longint;
-    C: char;
-const HexNums: string[16] = '0123456789ABCDEF';
-begin
-  S:=Trim(S); L:=0; I:=1; LastHexToIntResult:=0;
-  while (I<=length(S)) and (LastHexToIntResult=0) do
-  begin
-    C:=Upcase(S[I]);
-    if C in['0'..'9','A'..'F'] then
-    begin
-      L:=L*16+(Pos(C,HexNums)-1);
-    end else LastHexToIntResult:=I;
-    Inc(I);
-  end;
-  HexToInt:=L;
-end;
-
-function HexToCard(S: string): cardinal;
-var L,I: cardinal;
-    C: char;
-const HexNums: string[16] = '0123456789ABCDEF';
-begin
-  S:=Trim(S); L:=0; I:=1; LastHexToCardResult:=0;
-  while (I<=length(S)) and (LastHexToCardResult=0) do
-  begin
-    C:=Upcase(S[I]);
-    if C in['0'..'9','A'..'F'] then
-    begin
-      L:=L*16+(Pos(C,HexNums)-1);
-    end else LastHexToCardResult:=I;
-    Inc(I);
-  end;
-  HexToCard:=L;
 end;
 
 function FloatToStr(D: Double; Decimals: byte): string;
