@@ -809,7 +809,6 @@ const win32stub : array[0..131] of byte=(
                   inc(address,relocval);
                 end;
 {$ifdef x86_64}
-              RELOC_ABSOLUTE32,
               { 64 bit coff only }
               RELOC_RELATIVE_1:
                 begin
@@ -836,6 +835,7 @@ const win32stub : array[0..131] of byte=(
                   address:=address-mempos+relocval;
                   dec(address,objreloc.dataoffset+5);
                 end;
+              RELOC_ABSOLUTE32,
 {$endif x86_64}
               RELOC_ABSOLUTE :
                 begin
