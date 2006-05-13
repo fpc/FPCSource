@@ -1052,7 +1052,8 @@ implementation
                 end;
               top_const :
                 begin
-                  if opsize=S_NO then
+                  { allow 3rd operand being a constant and expect no size for shuf* etc. }
+                  if (opsize=S_NO) and (i<>2) then
                     message(asmr_e_invalid_opcode_and_operand);
                   if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
                     ot:=OT_IMM8 or OT_SIGNED
