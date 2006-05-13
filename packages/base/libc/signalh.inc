@@ -67,14 +67,14 @@ Type
   PSigVec = ^TSigVec;
 
 
-function sigemptyset(SigSet : TSigSet):longint;cdecl;external clib name 'sigemptyset';
-function sigfillset(SigSet : TSigSet):longint;cdecl;external clib name 'sigfillset';
-function sigaddset(SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigaddset';
-function sigdelset(SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigdelset';
-function sigismember(SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigismember';
-function sigisemptyset(SigSet : TSigSet):longint;cdecl;external clib name 'sigisemptyset';
-function sigandset(SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigandset';
-function sigorset(SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigorset';
+function sigemptyset(var SigSet : TSigSet):longint;cdecl;external clib name 'sigemptyset';
+function sigfillset(var SigSet : TSigSet):longint;cdecl;external clib name 'sigfillset';
+function sigaddset(var SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigaddset';
+function sigdelset(var SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigdelset';
+function sigismember(const SigSet : TSigSet; SigNum : Longint):longint;cdecl;external clib name 'sigismember';
+function sigisemptyset(const SigSet : TSigSet):longint;cdecl;external clib name 'sigisemptyset';
+function sigandset(var SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigandset';
+function sigorset(var SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigorset';
 function sigprocmask(__how:longint; SigSet : TSigSet; var oldset: Tsigset):longint;cdecl;external clib name 'sigprocmask';
 function sigsuspend(SigSet : TSigSet):longint;cdecl;external clib name 'sigsuspend';
 function sigaction(__sig:longint; Const act: _sigaction; Var oldact: _sigaction):longint;cdecl;external clib name 'sigaction';
