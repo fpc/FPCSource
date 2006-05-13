@@ -149,6 +149,18 @@ implementation
          if codegenerror then
            exit;
 
+         result:=simplify;
+         if assigned(result) then
+           exit;
+
+         { allow operator overloading }
+         t:=self;
+         if isbinaryoverloaded(t) then
+           begin
+              result:=t;
+              exit;
+           end;
+
          { we need 2 orddefs always }
          if (left.resulttype.def.deftype<>orddef) then
            inserttypeconv(right,sinttype);
@@ -171,18 +183,6 @@ implementation
                  rv:=1;
                end;
             end;
-
-         result:=simplify;
-         if assigned(result) then
-           exit;
-
-         { allow operator overloading }
-         t:=self;
-         if isbinaryoverloaded(t) then
-           begin
-              result:=t;
-              exit;
-           end;
 
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
