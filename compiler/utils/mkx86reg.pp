@@ -456,11 +456,9 @@ begin
    while 2*regcount_bsstart<regcount do
      regcount_bsstart:=regcount_bsstart*2;
    build_regnum_index;
+   build_int_regname_index;
    if not(x86_64) then
-     begin
-       build_int_regname_index;
-       build_nasm_regname_index;
-     end;
+     build_nasm_regname_index;
    build_std_regname_index;
    build_att_regname_index;
    write_inc_files;
