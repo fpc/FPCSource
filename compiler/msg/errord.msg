@@ -46,6 +46,8 @@
 #
 # General
 #
+# 01023 is the last used one
+#
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -112,7 +114,16 @@ general_i_hint=01016_I_Hinweis:
 general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Kompilieren abgebrochen
-% \end{description}
+% Compilation was aborted.
+general_text_bytes_code=01019_bytes Code
+general_text_bytes_data=01020_bytes Daten
+general_i_number_of_warnings=01021_I_$1 Warnung(en) ausgegeben
+% Total number of warnings issued during compilation.
+general_i_number_of_hints=01022_I_$1 Hinweis(e) ausgegeben
+% Total number of hints issued during compilation.
+general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
+% Total number of notes issued during compilation.%
+\end{description}
 #
 # Scanner
 #
@@ -342,8 +353,7 @@ parser_e_syntax_error=03000_E_Parser - Syntaxfehler
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT-Prozeduren dÅrfen nicht verschachtelt sein
 % An \VAR{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Prozedurtyp $1 wird ignoriert
-% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
-% This is introduced first for Delphi compatibility.
+% The specified procedure directive is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_Nicht alle Deklarationen von "$1" sind mit OVERLOAD deklariert
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
@@ -831,8 +841,11 @@ parser_e_only_publishable_classes_can__be_published=03156_E_Nur Klassen, die im 
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
 parser_e_proc_directive_expected=03157_E_Prozedurdirektive erwartet
-% When declaring a procedure in a const block you used a ; after the
-% procedure declaration after which a procedure directive must follow.
+% This error is triggered when you have a \var{\{\$Calling\}} directive without
+% a calling convention specified.
+% It also happens when declaring a procedure in a const block and you
+% used a ; after a procedure declaration which must be followed by a
+% procedure directive.
 % Correct declarations are:
 % \begin{verbatim}
 % const
@@ -1035,6 +1048,7 @@ parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen 
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
+parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs mÅssen ganzzahlige Konstanten sein
 % \end{description}
 #
 # Type Checking
@@ -1080,7 +1094,7 @@ type_e_integer_expr_expected=04005_E_Integer-Ausdruck erwartet, aber "$1" erhalt
 type_e_boolean_expr_expected=04006_E_Booleschen Ausdruck erwartet, aber "$1" erhalten
 % The expression must be a boolean type, it should be return true or
 % false.
-type_e_ordinal_expr_expected=04007_E_Ganzahligen Ausdruck erwartet
+type_e_ordinal_expr_expected=04007_E_Ganzzahliger Ausdruck erwartet
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
