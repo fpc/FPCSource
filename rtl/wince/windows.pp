@@ -46,6 +46,7 @@ interface
 {$i messages.inc}
 {$i unidef.inc}
 {$i func.inc}
+{$i ascfun.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
@@ -64,6 +65,7 @@ implementation
 {$i messages.inc}
 {$i unidef.inc}
 {$i func.inc}
+{$i ascfun.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}

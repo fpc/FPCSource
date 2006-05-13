@@ -43,9 +43,17 @@
   If not, write to the Free Software Foundation,
   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+
+  *What should contain this file*
+
+  Imported functions including xxxW plus default name without the W.
+  it's an union of rtl\win\wininc\unifun.inc and rtl\win\wininc\unidef.inc
+  example: LoadLibraryW an Loadlibrary declaration.
+
   Changes :
 
   08/22/2005 update for wince4.2 port, orinaudo@gmail.com
+  05/13/2006 added some xxxW declarations, remaining a lot !,orinaudo@gmail.com
 }
 
 {$ifdef read_interface}
@@ -162,7 +170,9 @@ function LoadIcon(hInstance:HINST; lpIconName:LPCWSTR):HICON; external UserDLLCo
 function LoadImage(_para1:HINST; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint;_para6:UINT):HANDLE; external UserDLLCore name 'LoadImageW';
 function LoadKeyboardLayout(pwszKLID:LPCWSTR; Flags:UINT):HKL; external UserDLLCore name 'LoadKeyboardLayoutW';
 function LoadLibrary(lpLibFileName:LPCWSTR):HINST; external KernelDLL name 'LoadLibraryW';
+function LoadLibraryW(lpLibFileName:LPCWSTR):HINST; external KernelDLL name 'LoadLibraryW';
 function LoadLibraryEx(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINST; external KernelDLL name 'LoadLibraryExW';
+function LoadLibraryExW(lpLibFileName:LPCWSTR; hFile:HANDLE; dwFlags:DWORD):HINST; external KernelDLL name 'LoadLibraryExW';
 function LoadMenu(hInstance:HINST; lpMenuName:LPCWSTR):HMENU; external UserDLLCore name 'LoadMenuW';
 function LoadString(hInstance:HINST; uID:UINT; lpBuffer:LPWSTR; nBufferMax:longint):longint; external UserDLLCore name 'LoadStringW';
 function lstrcmp(lpString1:LPCWSTR; lpString2:LPCWSTR):longint; external KernelDLL name 'lstrcmpW'; //~winbase result is int

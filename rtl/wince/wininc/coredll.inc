@@ -769,8 +769,6 @@
       3AB LoadIntChainHandler
       3AD LoadKernelLibrary
       499 LoadKeyboardLayoutW
-      323 LoadLibraryExW
-      322 LoadLibraryW
       4A6 LoadMenuW
       328 LoadResource
       329 LoadStringW

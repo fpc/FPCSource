@@ -4615,6 +4615,7 @@ rtl/wince/sysutils.pp -text
 rtl/wince/tthread.inc -text
 rtl/wince/varutils.pp -text
 rtl/wince/windows.pp -text
+rtl/wince/wininc/ascfun.inc svneol=native#text/plain
 rtl/wince/wininc/aygshell.inc -text
 rtl/wince/wininc/base.inc -text
 rtl/wince/wininc/commctrl.inc -text

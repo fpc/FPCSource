@@ -586,7 +586,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
     ssecw : DWord;
 {$endif}
   begin
-{$if defined(windows) or defined(win32)}
+{$if defined(win64) or defined(win32)}
     mode:=SetErrorMode(ErrorMode);
 {$endif}
     try
@@ -598,7 +598,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
         ssecw:=GetSSECSR;
 {$endif}
 {$if defined(windows) or defined(win32)}
-      Result:=LoadLibrary(PChar(Filename));
+      Result:=LoadLibraryA(PChar(Filename));
 {$endif}
       finally
 {$if defined(cpui386) or defined(cpux86_64)}
@@ -608,7 +608,7 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$endif cpui386}
         SetSSECSR(ssecw);
 {$endif}
-{$if defined(windows) or defined(win32)}
+{$if defined(win64) or defined(win32)}
       SetErrorMode(mode);
 {$endif}
     end;
