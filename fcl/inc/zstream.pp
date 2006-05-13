@@ -44,9 +44,8 @@ type
   ECompressionError = class(EZlibError);
   EDecompressionError = class(EZlibError);
 
-  TCustomZlibStream = class(TStream)
+  TCustomZlibStream = class(TOwnerStream)
   private
-    FStrm: TStream;
     FStrmPos: Integer;
     FOnProgress: TNotifyEvent;
     FZRec: TZStream;
@@ -82,7 +81,7 @@ type
     procedure DecompressBuf(const InBuf: Pointer; InBytes: Integer;
     OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
   public
-    constructor Create(Source: TStream);
+    constructor Create(ASource: TStream);
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -200,8 +199,7 @@ end;
 
 constructor TCustomZLibStream.Create(Strm: TStream);
 begin
-  inherited Create;
-  FStrm := Strm;
+  inherited Create(Strm);
   FStrmPos := Strm.Position;
 end;
 
@@ -230,16 +228,16 @@ begin
   FZRec.next_in := nil;
   FZRec.avail_in := 0;
   try
-    if FStrm.Position <> FStrmPos then FStrm.Position := FStrmPos;
+    if Source.Position <> FStrmPos then Source.Position := FStrmPos;
     while (CompressionCheck(deflate(FZRec, Z_FINISH)) <> Z_STREAM_END)
       and (FZRec.avail_out = 0) do
     begin
-      FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
+      Source.WriteBuffer(FBuffer, sizeof(FBuffer));
       FZRec.next_out := @FBuffer;
       FZRec.avail_out := sizeof(FBuffer);
     end;
     if FZRec.avail_out < sizeof(FBuffer) then
-      FStrm.WriteBuffer(FBuffer, sizeof(FBuffer) - FZRec.avail_out);
+      Source.WriteBuffer(FBuffer, sizeof(FBuffer) - FZRec.avail_out);
   finally
     deflateEnd(FZRec);
   end;
@@ -267,16 +265,16 @@ function TCompressionStream.Write(const Buffer; Count: Longint): Longint;
 begin
   FZRec.next_in := @Buffer;
   FZRec.avail_in := Count;
-  if FStrm.Position <> FStrmPos then FStrm.Position := FStrmPos;
+  if Source.Position <> FStrmPos then Source.Position := FStrmPos;
   while (FZRec.avail_in > 0) do
   begin
     CompressionCheck(deflate(FZRec, 0));
     if FZRec.avail_out = 0 then
     begin
-      FStrm.WriteBuffer(FBuffer, sizeof(FBuffer));
+      Source.WriteBuffer(FBuffer, sizeof(FBuffer));
       FZRec.next_out := @FBuffer;
       FZRec.avail_out := sizeof(FBuffer);
-      FStrmPos := FStrm.Position;
+      FStrmPos := Source.Position;
       Progress(Self);
     end;
   end;
@@ -305,9 +303,9 @@ end;
 
 // TDecompressionStream
 
-constructor TDecompressionStream.Create(Source: TStream);
+constructor TDecompressionStream.Create(ASource: TStream);
 begin
-  inherited Create(Source);
+  inherited Create(ASource);
   FZRec.next_in := @FBuffer;
   DecompressionCheck(inflateInit(FZRec));
 end;
@@ -332,19 +330,19 @@ function TDecompressionStream.Read(var Buffer; Count: Longint): Longint;
 begin
   FZRec.next_out := @Buffer;
   FZRec.avail_out := Count;
-  if FStrm.Position <> FStrmPos then FStrm.Position := FStrmPos;
+  if Source.Position <> FStrmPos then Source.Position := FStrmPos;
   while (FZRec.avail_out > 0) do
   begin
     if FZRec.avail_in = 0 then
     begin
-      FZRec.avail_in := FStrm.Read(FBuffer, sizeof(FBuffer));
+      FZRec.avail_in := Source.Read(FBuffer, sizeof(FBuffer));
       if FZRec.avail_in = 0 then
         begin
           Result := Count - FZRec.avail_out;
           Exit;
         end;
       FZRec.next_in := @FBuffer;
-      FStrmPos := FStrm.Position;
+      FStrmPos := Source.Position;
       Progress(Self);
     end;
     DeCompressionCheck(inflate(FZRec, 0));
@@ -368,7 +366,7 @@ begin
     DecompressionCheck(inflateReset(FZRec));
     FZRec.next_in := @FBuffer;
     FZRec.avail_in := 0;
-    FStrm.Position := 0;
+    Source.Position := 0;
     FStrmPos := 0;
   end
   else if ( (Offset >= 0) and (Origin = soFromCurrent)) or
