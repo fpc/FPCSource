@@ -49,7 +49,7 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-  {$IFDEF FreeBSD}
+  {$IF DEFINED(FreeBSD) or DEFINED(Linux)}
   IPC_PRIVATE : TKey = 0;
   {$ENDIF}
 
