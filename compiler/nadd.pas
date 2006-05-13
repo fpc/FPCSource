@@ -1517,6 +1517,8 @@ implementation
 
 
     function taddnode.first_addstring: tnode;
+      const
+        swap_relation: array [ltn..unequaln] of Tnodetype=(gtn, gten, ltn, lten, equaln, unequaln);
       var
         p: tnode;
       begin
@@ -1547,6 +1549,7 @@ implementation
                       p := left;
                       left := right;
                       right := p;
+                      nodetype:=swap_relation[nodetype];
                     end;
                   if is_shortstring(left.resulttype.def) or
                      (nodetype in [gtn,gten,ltn,lten]) then
