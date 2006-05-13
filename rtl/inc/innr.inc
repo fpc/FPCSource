@@ -64,6 +64,9 @@ const
    fpc_in_slice             = 53;
    fpc_in_move_x            = 54;
    fpc_in_fillchar_x        = 55;
+   fpc_in_get_frame         = 56;
+   fpc_in_get_caller_addr   = 57;
+   fpc_in_get_caller_frame  = 58;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

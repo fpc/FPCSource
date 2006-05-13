@@ -608,9 +608,15 @@ Procedure getdir(drivenr:byte;var dir:ansistring);
 *****************************************************************************}
 
 { os independent calls to allow backtraces }
+{$IFDEF INTERNAL_BACKTRACE}
+function get_frame:pointer;[INTERNPROC:fpc_in_get_frame];
+function get_caller_addr(framebp:pointer):pointer;[INTERNPROC:fpc_in_get_caller_addr];
+function get_caller_frame(framebp:pointer):pointer;[INTERNPROC:fpc_in_get_caller_frame];
+{$ELSE}
 function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ENDIF}
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_ptr];
