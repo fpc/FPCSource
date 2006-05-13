@@ -686,7 +686,10 @@ implementation
            not(cs_browser in aktmoduleswitches) then
           exclude(aktmoduleswitches,cs_local_browser);
         if (cs_create_pic in aktmoduleswitches) then
-          def_system_macro('FPC_PIC');
+          begin
+            def_system_macro('FPC_PIC');
+            def_system_macro('PIC');
+          end;
       end;
 
 
