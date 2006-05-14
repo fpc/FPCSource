@@ -97,23 +97,6 @@ end;
 
 { TThread }
 
-function ThreadProc(ThreadObjPtr: Pointer): Integer;
-var
-  FreeThread: Boolean;
-  Thread: TThread absolute ThreadObjPtr;
-begin
-  try
-    Thread.Execute;
-  except
-    Thread.FFatalException := TObject(AcquireExceptionObject);
-  end;
-  FreeThread := Thread.FFreeOnTerminate;
-  Result := Thread.FReturnValue;
-  Thread.FFinished := True;
-  Thread.DoTerminate;
-  if FreeThread then Thread.Free;
-end;
-
 constructor TThread.Create(CreateSuspended: Boolean;
                            const StackSize: SizeUInt = DefaultStackSize);
 var

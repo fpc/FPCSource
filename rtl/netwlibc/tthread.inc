@@ -247,7 +247,8 @@ begin
     LThread.Free;
     WRITE_DEBUG('Thread freed'#13#10);
   end;
-  WRITE_DEBUG('thread func exiting'#13#10);
+  WRITE_DEBUG('thread func calling EndThread'#13#10);
+  EndThread(Result);
 end;
 
 { TThread }
