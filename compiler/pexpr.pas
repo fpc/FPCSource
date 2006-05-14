@@ -827,6 +827,24 @@ implementation
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
             end;
+          in_get_frame:
+            begin
+              statement_syssym:=geninlinenode(l,false,nil);
+            end;
+          in_get_caller_frame:
+            begin
+              if try_to_consume(_LKLAMMER) then
+                begin
+                  {You used to call get_caller_frame as get_caller_frame(get_frame),
+                   however, as a stack frame may not exist, it does more harm than
+                   good, so ignore it.}
+                  in_args:=true;
+                  p1:=comp_expr(true);
+                  p1.destroy;
+                  consume(_RKLAMMER);
+                end;
+              statement_syssym:=geninlinenode(l,false,nil);
+            end;
 
           else
             internalerror(15);

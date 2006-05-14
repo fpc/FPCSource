@@ -63,6 +63,9 @@ const
    in_cycle             = 52; {macpas}
    in_slice_x           = 53;
    in_unaligned_x       = 54;
+   in_get_frame         = 56;
+   in_get_caller_addr   = 57;
+   in_get_caller_frame  = 58;
 
 { Internal constant functions }
    in_const_sqr        = 100;

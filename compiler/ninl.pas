@@ -2056,7 +2056,12 @@ implementation
                    else
                      include(current_procinfo.flags,pi_do_call);
                 end;
-
+              in_get_frame,
+              in_get_caller_frame,
+              in_get_caller_addr:
+                begin
+                  resulttype:=voidpointertype;
+                end;
                else
                 internalerror(8);
             end;
@@ -2410,6 +2415,20 @@ implementation
               { should be handled by det_resulttype }
               internalerror(200108234);
             end;
+         in_get_frame:
+            begin
+              expectloc:=LOC_CREGISTER;
+            end;
+         in_get_caller_frame:
+            begin
+              expectloc:=LOC_REGISTER;
+              registersint:=1;
+            end;
+         in_get_caller_addr:
+            begin
+              expectloc:=LOC_REGISTER;
+              registersint:=1;
+            end;
 
          in_prefetch_var:
            begin
@@ -2422,7 +2441,7 @@ implementation
            end;
 {$endif SUPPORT_UNALIGNED}
           else
-            internalerror(8);
+            internalerror(89);
           end;
          dec(parsing_para_level);
        end;

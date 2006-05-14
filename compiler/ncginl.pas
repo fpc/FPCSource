@@ -47,6 +47,9 @@ interface
           procedure second_cos_real; virtual;
           procedure second_sin_real; virtual;
           procedure second_assigned; virtual;
+          procedure second_get_frame;virtual;
+          procedure second_get_caller_frame;virtual;
+          procedure second_get_caller_addr;virtual;
           procedure second_prefetch; virtual;
        end;
 
@@ -79,77 +82,49 @@ implementation
 
          case inlinenumber of
             in_assert_x_y:
-              begin
-                 second_Assert;
-              end;
+              second_Assert;
             in_sizeof_x,
             in_typeof_x :
-              begin
-                 second_SizeofTypeOf;
-              end;
+              second_SizeofTypeOf;
             in_length_x :
-              begin
-                 second_Length;
-              end;
+              second_Length;
             in_pred_x,
             in_succ_x:
-              begin
-                 second_PredSucc;
-              end;
+               second_PredSucc;
             in_dec_x,
             in_inc_x :
-              begin
-                second_IncDec;
-              end;
+              second_IncDec;
             in_typeinfo_x:
-               begin
-                  second_TypeInfo;
-               end;
+              second_TypeInfo;
             in_include_x_y,
             in_exclude_x_y:
-              begin
-                 second_IncludeExclude;
-              end;
+              second_IncludeExclude;
             in_pi_real:
-              begin
-                second_pi;
-              end;
+              second_pi;
             in_sin_real:
-              begin
-                second_sin_real;
-              end;
+              second_sin_real;
             in_arctan_real:
-              begin
-                second_arctan_real;
-              end;
+              second_arctan_real;
             in_abs_real:
-              begin
-                second_abs_real;
-              end;
+              second_abs_real;
             in_sqr_real:
-              begin
-                second_sqr_real;
-              end;
+              second_sqr_real;
             in_sqrt_real:
-              begin
-                second_sqrt_real;
-              end;
+              second_sqrt_real;
             in_ln_real:
-              begin
-                second_ln_real;
-              end;
+              second_ln_real;
             in_cos_real:
-              begin
-                 second_cos_real;
-              end;
+               second_cos_real;
             in_prefetch_var:
-              begin
-                second_prefetch;
-              end;
+              second_prefetch;
             in_assigned_x:
-              begin
-                second_assigned;
-              end;
+              second_assigned;
+            in_get_frame:
+              second_get_frame;
+            in_get_caller_frame:
+              second_get_caller_frame;
+            in_get_caller_addr:
+              second_get_caller_addr;
 {$ifdef SUPPORT_UNALIGNED}
             in_unaligned_x:
               begin
@@ -700,6 +675,69 @@ implementation
         location_reset(location,LOC_JUMP,OS_NO);
       end;
 
+    procedure Tcginlinenode.second_get_frame;
+
+    var frame_ref:Treference;
+
+    begin
+      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+        begin
+          location_reset(location,LOC_CONSTANT,OS_ADDR);
+          location.value:=0;
+        end
+      else
+        begin
+          location_reset(location,LOC_CREGISTER,OS_ADDR);
+          location.register:=current_procinfo.framepointer;
+        end;
+    end;
+
+    procedure Tcginlinenode.second_get_caller_frame;
+
+    var frame_ref:Treference;
+
+    begin
+      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+        begin
+          location_reset(location,LOC_CREGISTER,OS_ADDR);
+          location.register:=NR_FRAME_POINTER_REG;
+{          location_reset(location,LOC_REGISTER,OS_ADDR);
+          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+          cg.a_load_reg_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,NR_FRAME_POINTER_REG,location.register);}
+        end
+      else
+        begin
+          location_reset(location,LOC_REGISTER,OS_ADDR);
+          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+          reference_reset_base(frame_ref,current_procinfo.framepointer,0);
+          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+        end;
+    end;
+
+    procedure Tcginlinenode.second_get_caller_addr;
+
+    var frame_ref:Treference;
+
+    begin
+      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+        begin
+          location_reset(location,LOC_REGISTER,OS_ADDR);
+          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+          reference_reset_base(frame_ref,NR_STACK_POINTER_REG,0);
+          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+        end
+      else
+        begin
+          location_reset(location,LOC_REGISTER,OS_ADDR);
+          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+        {$ifdef cpu64bit}
+          reference_reset_base(frame_ref,current_procinfo.framepointer,8);
+        {$else}
+          reference_reset_base(frame_ref,current_procinfo.framepointer,4);
+        {$endif}
+          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+        end;
+    end;
 
 begin
    cinlinenode:=tcginlinenode;
