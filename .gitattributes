@@ -5468,6 +5468,7 @@ tests/test/cg/obj/tcext5.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
 tests/test/cg/obj/win32/i386/tcext3.o -text
 tests/test/cg/obj/win32/i386/tcext4.o -text
+tests/test/cg/obj/win32/i386/tcext5.o -text
 tests/test/cg/obj/win64/x86_64/ctest.o -text svneol=unset#unset
 tests/test/cg/obj/win64/x86_64/tcext3.o -text
 tests/test/cg/obj/win64/x86_64/tcext4.o -text
