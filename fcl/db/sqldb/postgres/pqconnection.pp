@@ -24,8 +24,8 @@ type
     protected
     Statement : string;
     tr        : Pointer;
-    nFields   : integer;
     res       : PPGresult;
+    CurTuple  : integer;
     Nr        : string;
   end;
 
@@ -392,9 +392,7 @@ begin
     inc(FCursorCount);
     // Prior to v8 there is no support for cursors and parameters.
     // So that's not supported.
-    if FStatementType = stselect then
-      statement := 'DECLARE slctst' + name + nr +' BINARY CURSOR FOR ' + buf
-    else if FStatementType in [stInsert,stUpdate,stDelete] then
+    if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
       begin
       tr := aTransaction.Handle;
       // Only available for pq 8.0, so don't use it...
@@ -441,20 +439,7 @@ end;
 procedure TPQConnection.FreeFldBuffers(cursor : TSQLCursor);
 
 begin
-  with cursor as TPQCursor do
-   if (PQresultStatus(res) <> PGRES_FATAL_ERROR) then //Don't try to do anything if the transaction has already encountered an error.
-    begin
-    if FStatementType = stselect then
-      begin
-      Res := pqexec(tr,pchar('CLOSE slctst' + name + nr));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-        begin
-        pqclear(res);
-        DatabaseError(SErrClearSelection + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
-        end
-      end;
-    pqclear(res);
-    end;
+// Do nothing
 end;
 
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
@@ -466,7 +451,7 @@ var ar  : array of pointer;
 begin
   with cursor as TPQCursor do
     begin
-    if FStatementType in [stInsert,stUpdate,stDelete] then
+    if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
       if Assigned(AParams) and (AParams.count > 0) then
         begin
@@ -486,12 +471,7 @@ begin
           FreeMem(ar[i]);
         end
       else
-        res := PQexecPrepared(tr,pchar('prepst'+nr),0,nil,nil,nil,0);
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-        begin
-        pqclear(res);
-        DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
-        end;
+        res := PQexecPrepared(tr,pchar('prepst'+nr),0,nil,nil,nil,1);
       end
     else
       begin
@@ -502,11 +482,11 @@ begin
       if assigned(AParams) then for i := 0 to AParams.count-1 do
         s := stringreplace(s,':'+AParams[i].Name,AParams[i].asstring,[rfReplaceAll,rfIgnoreCase]);
       res := pqexec(tr,pchar(s));
-      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
-        begin
-        pqclear(res);
-        DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
-        end;
+      end;
+    if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+      begin
+      pqclear(res);
+      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
       end;
     end;
 end;
@@ -518,36 +498,28 @@ var
   size      : integer;
   st        : string;
   fieldtype : tfieldtype;
-  BaseRes   : PPGresult;
+  nFields   : integer;
 
 begin
   with cursor as TPQCursor do
     begin
-//    BaseRes := pqexecParams(tr,'FETCH 0 IN selectst' + pchar(name) ,0,nil,nil,nil,nil,1);
-    st := pchar('FETCH 0 IN slctst' + name+nr);
-    BaseRes := pqexec(tr,pchar(st));
-    if (PQresultStatus(BaseRes) <> PGRES_TUPLES_OK) then
-      begin
-      pqclear(BaseRes);
-      DatabaseError(SErrFieldDefsFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
-      end;
-    nFields := PQnfields(BaseRes);
+    nFields := PQnfields(Res);
     for i := 0 to nFields-1 do
       begin
-      size := PQfsize(BaseRes, i);
-      fieldtype := TranslateFldType(PQftype(BaseRes, i));
+      size := PQfsize(Res, i);
+      fieldtype := TranslateFldType(PQftype(Res, i));
 
       if (fieldtype = ftstring) and (size = -1) then
         begin
-        size := pqfmod(baseres,i)-3;
+        size := pqfmod(res,i)-3;
         if size = -4 then size := dsMaxStringSize;
         end;
       if fieldtype = ftdate  then
         size := sizeof(double);
 
-      TFieldDef.Create(FieldDefs, PQfname(BaseRes, i), fieldtype,size, False, (i + 1));
+      TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1));
       end;
-    pqclear(baseres);
+    CurTuple := -1;
     end;
 end;
 
@@ -563,14 +535,8 @@ var st : string;
 begin
   with cursor as TPQCursor do
     begin
-    st := pchar('FETCH NEXT IN slctst' + name+nr);
-    Res := pqexec(tr,pchar(st));
-    if (PQresultStatus(res) <> PGRES_TUPLES_OK) then
-      begin
-      pqclear(Res);
-      DatabaseError(SErrfetchFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
-      end;
-    Result := (PQntuples(res)<>0);
+    inc(CurTuple);
+    Result := (PQntuples(res)>CurTuple);
     end;
 end;
 
@@ -593,12 +559,12 @@ begin
     if PQfname(Res, x) <> FieldDef.Name then
       DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
 
-    if pqgetisnull(res,0,x)=1 then
+    if pqgetisnull(res,CurTuple,x)=1 then
       result := false
     else
       begin
       i := PQfsize(res, x);
-      CurrBuff := pqgetvalue(res,0,x);
+      CurrBuff := pqgetvalue(res,CurTuple,x);
 
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
@@ -608,7 +574,7 @@ begin
           end;
         ftString  :
           begin
-          li := pqgetlength(res,0,x);
+          li := pqgetlength(res,curtuple,x);
           Move(CurrBuff^, Buffer^, li);
           pchar(Buffer + li)^ := #0;
           i := pqfmod(res,x)-3;
