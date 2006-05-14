@@ -1874,7 +1874,7 @@ begin
   def_system_macro('RESSTRSECTIONS');
   def_system_macro('FPC_HASFIXED64BITVARIANT');
 {$ifdef x86}
-  def_system_macro('INTERNAL_BACKTRACE');
+{  def_system_macro('INTERNAL_BACKTRACE');}
 {$endif}
 
   if pocall_default = pocall_register then
