@@ -1604,6 +1604,7 @@ implementation
                                 (left.resulttype.def.deftype=formaldef) or
                                 (
                                  not(is_open_array(left.resulttype.def)) and
+                                 not(is_array_constructor(left.resulttype.def)) and
                                  (left.resulttype.def.size=resulttype.def.size)
                                 ) or
                                 (
