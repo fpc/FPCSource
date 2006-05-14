@@ -85,34 +85,15 @@ procedure AddThread;
 begin
   if ThreadCount = 0 then
     ThreadWindow := AllocateWindow;
-  Inc(ThreadCount);
+  InterlockedIncrement(ThreadCount);
 end;
 
 procedure RemoveThread;
 begin
-  Dec(ThreadCount);
-  if ThreadCount = 0 then
+  if InterlockedDecrement(ThreadCount)=0 then
     PostMessage(ThreadWindow, CM_DESTROYWINDOW, 0, 0);
 end;
 
-{ TThread }
-
-function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
-var
-  FreeThread: Boolean;
-  Thread: TThread absolute ThreadObjPtr;
-begin
-  try
-    Thread.Execute;
-  except
-    Thread.FFatalException := TObject(AcquireExceptionObject);
-  end;
-  FreeThread := Thread.FFreeOnTerminate;
-  Result := Thread.FReturnValue;
-  Thread.FFinished := True;
-  Thread.DoTerminate;
-  if FreeThread then Thread.Free;
-end;
 
 constructor TThread.Create(CreateSuspended: Boolean;
                            const StackSize: SizeUInt = DefaultStackSize);
@@ -182,7 +163,8 @@ procedure TThread.SetSuspended(Value: Boolean);
 begin
   if Value <> FSuspended then
     if Value then
-      Suspend else
+      Suspend
+    else
       Resume;
 end;
 
