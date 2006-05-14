@@ -737,7 +737,7 @@ unit cgx86;
             instr:=taicpu.op_reg_reg(op,s,reg1,reg2);
             { Notify the register allocator that we have written a move instruction so
               it can try to eliminate it. }
-            if reg1<>NR_ESP then
+            if (reg1<>NR_ESP) and (reg1<>NR_EBP) then
               add_move_instruction(instr);
             list.concat(instr);
           end;
