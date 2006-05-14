@@ -110,10 +110,6 @@ implementation
          if codegenerror then
            exit;
 
-         result:=simplify;
-         if assigned(result) then
-           exit;
-
          { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
