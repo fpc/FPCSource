@@ -615,7 +615,7 @@ Unit raarmgas;
                   ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL])) then
                   begin
                     Consume(AS_COMMA);
-                    if not(TryBuildShifterOp(instr.Operands[4] as tarmoperand)) then
+                    if not(TryBuildShifterOp(instr.Operands[operandnum+1] as tarmoperand)) then
                       Message(asmr_e_illegal_shifterop_syntax);
                     Inc(operandnum);
                   end
