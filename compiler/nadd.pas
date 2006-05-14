@@ -1561,6 +1561,20 @@ implementation
         case nodetype of
           addn:
             begin
+              if (left.nodetype=stringconstn) and (tstringconstnode(left).len=0) then
+                begin
+                  result:=right;
+                  left:=nil;
+                  right:=nil;
+                  exit;
+                end;
+              if (right.nodetype=stringconstn) and (tstringconstnode(right).len=0) then
+                begin
+                  result:=left;
+                  left:=nil;
+                  right:=nil;
+                  exit;
+                end;
               { create the call to the concat routine both strings as arguments }
               result := ccallnode.createintern('fpc_'+
                 tstringdef(resulttype.def).stringtypname+'_concat',
