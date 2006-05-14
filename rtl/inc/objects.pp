@@ -56,6 +56,7 @@ UNIT Objects;
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
+{$INLINE ON} {Turn on inlining.}
 {====================================================================}
 
 {$ifdef win32}
@@ -576,8 +577,8 @@ TYPE
   VMT      Pointer to the VMT (obtained by TypeOf()).
   returns  Pointer to the instance.
 }
-function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
-function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
+function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;inline;
+function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
 
 { Method calls.
 
@@ -585,8 +586,8 @@ function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param
   Obj      Pointer to the instance. NIL if new instance to be allocated.
   returns  Pointer to the instance.
 }
-function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
-function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
+function CallVoidMethod(Method: pointer; Obj: pointer): pointer;inline;
+function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;inline;
 
 { Local-function/procedure calls.
 
@@ -594,8 +595,8 @@ function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): poin
   Frame    Frame pointer of the wrapping function.
 }
 
-function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;
-function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;
+function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;inline;
+function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;inline;
 
 { Calls of functions/procedures local to methods.
 
@@ -603,8 +604,8 @@ function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): point
   Frame    Frame pointer of the wrapping method.
   Obj      Pointer to the object that the method belongs to.
 }
-function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;
-function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;
+function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;inline;
+function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
 
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -747,13 +748,13 @@ type
   PointerMethod = function(Obj: pointer; Param1: pointer): pointer;
 
 
-function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;
+function CallVoidConstructor(Ctor: pointer; Obj: pointer; VMT: pointer): pointer;inline;
 begin
   CallVoidConstructor := VoidConstructor(Ctor)(Obj, VMT);
 end;
 
 
-function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;
+function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param1: pointer): pointer;inline;
 {$undef FPC_CallPointerConstructor_Implemented}
 begin
   {$define FPC_CallPointerConstructor_Implemented}
@@ -764,13 +765,13 @@ end;
 {$endif not FPC_CallPointerConstructor_Implemented}
 
 
-function CallVoidMethod(Method: pointer; Obj: pointer): pointer;
+function CallVoidMethod(Method: pointer; Obj: pointer): pointer;inline;
 begin
   CallVoidMethod := VoidMethod(Method)(Obj)
 end;
 
 
-function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;
+function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): pointer;inline;
 {$undef FPC_CallPointerMethod_Implemented}
 begin
 {$define FPC_CallPointerMethod_Implemented}
@@ -781,25 +782,25 @@ end;
 {$endif not FPC_CallPointerMethod_Implemented}
 
 
-function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;
+function CallVoidLocal(Func: pointer; Frame: Pointer): pointer;inline;
 begin
   CallVoidLocal := VoidLocal(Func)(Frame)
 end;
 
 
-function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;
+function CallPointerLocal(Func: pointer; Frame: Pointer; Param1: pointer): pointer;inline;
 begin
   CallPointerLocal := PointerLocal(Func)(Frame, Param1)
 end;
 
 
-function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;
+function CallVoidMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer): pointer;inline;
 begin
   CallVoidMethodLocal := VoidMethodLocal(Func)(Frame)
 end;
 
 
-function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;
+function CallPointerMethodLocal(Func: pointer; Frame: Pointer; Obj: pointer; Param1: pointer): pointer;inline;
 begin
   CallPointerMethodLocal := PointerMethodLocal(Func)(Frame, Param1)
 end;
