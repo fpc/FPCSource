@@ -125,6 +125,12 @@ implementation
          caseexpr:=comp_expr(true);
          { determines result type }
          do_resulttypepass(caseexpr);
+         { variants must be accepted, but first they must be converted to integer }
+         if caseexpr.resulttype.def.deftype=variantdef then
+           begin
+             caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
+             do_resulttypepass(caseexpr);
+           end;
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
