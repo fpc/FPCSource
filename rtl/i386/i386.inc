@@ -975,7 +975,7 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 {$include strlen.inc}
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-
+{$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
@@ -1007,7 +1007,7 @@ asm
         movl    (%eax),%eax
 .Lgnf_null:
 end ['EAX'];
-
+{$ENDIF}
 
 {****************************************************************************
                                  Math
