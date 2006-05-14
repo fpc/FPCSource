@@ -395,7 +395,7 @@ begin
             begin
               if PDL^.Address<>0 then
                 begin
-                  Debugger^.Command('tbreak *0x'+IntToHex(PDL^.Address,8));
+                  Debugger^.Command('tbreak *0x'+HexStr(PDL^.Address,sizeof(pointer)*2));
                 end
               else
                 begin
@@ -486,7 +486,7 @@ begin
         begin
           if PDL^.Address<>0 then
             begin
-              PB:=New(PBreakpoint,init_address(IntToHex(PDL^.Address,8)));
+              PB:=New(PBreakpoint,init_address(HexStr(PDL^.Address,sizeof(pointer)*2)));
               BreakpointsCollection^.Insert(PB);
               WD^.Editor^.SetLineFlagState(CurY,lfBreakpoint,true);
             end
