@@ -121,6 +121,7 @@ begin
    begin
      Message1(exec_i_compilingresource,fname);
      Message2(exec_d_resbin_params,resbin,s);
+     FlushOutput;
 {$IFDEF USE_SYSUTILS}
      try
        if ExecuteProcess(resbin,s) <> 0 then

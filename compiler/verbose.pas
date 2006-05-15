@@ -103,6 +103,8 @@ interface
     procedure CGMessagePos2(const pos:tfileposinfo;t:longint;const s1,s2:string);
     procedure CGMessagePos3(const pos:tfileposinfo;t:longint;const s1,s2,s3:string);
 
+    procedure FlushOutput;
+
     procedure InitVerbose;
     procedure DoneVerbose;
 
@@ -782,6 +784,18 @@ var
               codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
+
+
+procedure FlushOutput;
+begin
+  if not (Status.Use_StdErr) then (* StdErr is flushed after every line *)
+    begin
+      if Status.Use_Redir then
+        Flush(Status.RedirFile)
+      else
+        Flush(Output);
+    end;
+end;
 
 
 {*****************************************************************************

@@ -173,6 +173,7 @@ procedure CreateTempDir(const s:string);
  end;
 procedure call_as(const name:string);
  begin
+  FlushOutput;
 {$IFDEF USE_SYSUTILS}
   ExecuteProcess(as_name,'-o '+name+'o '+name);
 {$ELSE USE_SYSUTILS}
@@ -192,6 +193,7 @@ procedure call_ar;
   GetFAttr(f,attr);
   If DOSError=0 then
    erase(f);
+  FlushOutput;
 {$IFDEF USE_SYSUTILS}
   ExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
 {$ELSE USE_SYSUTILS}

@@ -51,7 +51,8 @@ interface
       public
       {filenames}
         path     : pathstr;
-        name     : namestr;
+        fname, name: namestr;  (* name for modulename given in source, fname
+                                  for base file name w/o path and extension  *)
         AsmFileName,         { current .s and .o file }
         ObjFileName,
         ppufilename  : string;
@@ -201,6 +202,7 @@ Implementation
         AsmFileName:=current_module.get_AsmFilename;
         ObjFileName:=current_module.ObjFileName^;
         name:=Lower(current_module.modulename^);
+        fname:=current_module.newfilename^;
         path:=current_module.outputpath^;
         asmprefix := current_module.asmprefix^;
         if not assigned(current_module.outputpath) then
@@ -261,7 +263,7 @@ Implementation
         inherited Create(smart);
         if SmartAsm then
          begin
-           path:=FixPath(path+FixFileName(name)+target_info.smartext,false);
+           path:=FixPath(path+FixFileName(fname)+target_info.smartext,false);
            CreateSmartLinkPath(path);
          end;
         Outcnt:=0;
@@ -372,6 +374,7 @@ Implementation
         if not(cs_asm_extern in aktglobalswitches) then
 {$IFDEF USE_SYSUTILS}
         try
+          FlushOutput;
           DosExitCode := ExecuteProcess(command,para);
           if DosExitCode <>0
           then begin
@@ -387,6 +390,7 @@ Implementation
         end
 {$ELSE USE_SYSUTILS}
          begin
+           FlushOutput;
            swapvectors;
            exec(maybequoted(command),para);
            swapvectors;
