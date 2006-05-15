@@ -15,7 +15,7 @@
 {$mode objfpc}
 {$endif}
 
-UNIT IDEA;
+Unit idea;
 
 {
  IDEA encryption routines for pascal
@@ -48,67 +48,62 @@ INTERFACE
 
 Uses Sysutils,Classes;
 
-CONST IDEAKEYSIZE = 16;
-      IDEABLOCKSIZE = 8;
-      ROUNDS = 8;
-      KEYLEN = (6*ROUNDS+4);
+CONST 
+  IDEAKEYSIZE   = 16;
+  IDEABLOCKSIZE = 8;
+  ROUNDS        = 8;
+  KEYLEN        = (6*ROUNDS+4);
 
-TYPE IDEAkey = ARRAY[0..keylen-1] OF Word;
-     ideacryptkey = ARRAY[0..7] OF Word;
-     ideacryptdata = ARRAY[0..3] OF Word;
-
-PROCEDURE EnKeyIdea(userkey: ideacryptkey; VAR z: ideakey);
-PROCEDURE DeKeyIdea(z: IDEAKey; VAR dk: ideakey);
-PROCEDURE CipherIdea(input: ideacryptdata; VAR outdata: ideacryptdata; z: IDEAkey);
+TYPE 
+  TIDEAKey       = ARRAY[0..keylen-1] OF Word;
+  TIdeaCryptKey  = ARRAY[0..7] OF Word;
+  TIdeaCryptData = ARRAY[0..3] OF Word;
+  
+  { For backward compatibility }
+  IDEAkey = TIDEAkey;
+  IdeaCryptKey = TIdeaCryptKey;
+  IdeaCryptData = TIdeaCryptData;
+  
+PROCEDURE EnKeyIdea(UserKey: TIdeacryptkey; VAR z: TIDEAKey);
+PROCEDURE DeKeyIdea(z: TIDEAKey; VAR dk: TIDEAKey);
+PROCEDURE CipherIdea(Input: TIDEACryptData; VAR outdata: TIDEACryptData; z: TIDEAKey);
 
 Type
+  EIDEAError = Class(EStreamError);
 
-EIDEAError = Class(EStreamError);
-
-TIDEAEncryptStream = Class(TStream)
-  private
-    FDest : TStream;
-    FKey : IDEAKey;
-    FData : IDEACryptData;
+  TIDEAStream = Class(TOwnerStream)
+  Private
+    FKey    : TIDEAKey;
+    FData   : TIDEACryptData;
     FBufpos : Byte;
-    FPos : Longint;
+    FPos    : Longint;
+  Public
+    Constructor Create(AKey : TIDEAKey; Dest: TStream);
+    Property Key : TIDEAKey Read FKey;
+  end;
+
+  TIDEAEncryptStream = Class(TIDEAStream)
   public
-    constructor Create(AKey : ideakey; Dest: TStream);
-    destructor Destroy; override;
+    Destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     procedure Flush;
-    Property Key : IDEAKey Read FKey;
   end;
 
-TIDEADeCryptStream = Class(TStream)
-  private
-    FSRC : TStream;
-    FKey : IDEAKey;
-    FData : IDEACryptData;
-    FBufpos : Byte;
-    FPos : Longint;
+  TIDEADeCryptStream = Class(TIDEAStream)
   public
-    constructor Create(AKey : ideakey; Src: TStream);
-    destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    Property Key : IDEAKey Read FKey;
   end;
 
-IMPLEMENTATION
+Implementation
 
 Const
-  SNoSeekAllowed = 'Seek not allowed on encryption streams';
-  SNoReadAllowed = 'Reading from encryption stream not allowed';
+  SNoSeekAllowed  = 'Seek not allowed on encryption streams';
+  SNoReadAllowed  = 'Reading from encryption stream not allowed';
   SNoWriteAllowed = 'Writing to decryption stream not allowed';
-
-{$ifdef fpc}
-Type
-  PChar = ^Byte;
-{$endif}
 
 PROCEDURE mul(VAR a:Word; b: Word);
 VAR p: LongInt;
@@ -250,15 +245,23 @@ BEGIN
   FOR r := 0 TO 51 DO z[r] := 0;
 END;
 
-constructor TIDEAEncryptStream.Create(AKey : ideakey; Dest: TStream);
+{ ---------------------------------------------------------------------
+    TIDEAStream
+  ---------------------------------------------------------------------}
+  
+
+Constructor TIDEAStream.Create(AKey : ideakey; Dest: TStream);
 
 begin
-  inherited Create;
+  inherited Create(Dest);
   FKey:=AKey;
-  FDest:=Dest;
   FBufPos:=0;
   Fpos:=0;
 end;
+
+{ ---------------------------------------------------------------------
+    TIDEAEncryptStream
+  ---------------------------------------------------------------------}
 
 Destructor TIDEAEncryptStream.Destroy;
 
@@ -279,7 +282,7 @@ begin
     // Fill with nulls
     FillChar(PChar(@FData)[FBufPos],SizeOf(FData)-FBufPos,#0);
     CipherIdea(Fdata,OutData,FKey);
-    FDest.Write(OutData,SizeOf(OutData));
+    Source.Write(OutData,SizeOf(OutData));
     // fixed: Manual flush and then free will now work
     FBufPos := 0;
     end;
@@ -310,7 +313,7 @@ begin
       // Empty buffer.
       CipherIdea(Fdata,OutData,FKey);
       // this will raise an exception if needed.
-      FDest.Writebuffer(OutData,SizeOf(OutData));
+      Source.Writebuffer(OutData,SizeOf(OutData));
       FBufPos:=0;
       end
     else
@@ -331,20 +334,11 @@ begin
     Raise EIDEAError.Create(SNoSeekAllowed);
 end;
 
-constructor TIDEADeCryptStream.Create(AKey : ideakey; Src: TStream);
 
-begin
-  inherited Create;
-  FKey:=AKey;
-  FPos:=0;
-  FBufPos:=SizeOf(Fdata);
-  FSrc:=Src;
-end;
+{ ---------------------------------------------------------------------
+    TIDEADecryptStream
+  ---------------------------------------------------------------------}
 
-destructor TIDEADeCryptStream.Destroy;
-begin
-  Inherited destroy;
-end;
 
 function TIDEADeCryptStream.Read(var Buffer; Count: Longint): Longint;
 
@@ -370,7 +364,7 @@ begin
     // Fill buffer again if needed.
     If (FBufPos=SizeOf(FData)) and (Count>0) then
       begin
-      mvsize:=FSrc.Read(InData,SizeOf(InData));
+      mvsize:=Source.Read(InData,SizeOf(InData));
       If mvsize>0 then
         begin
         If MvSize<SizeOf(InData) Then
