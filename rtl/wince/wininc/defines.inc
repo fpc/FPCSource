@@ -47,6 +47,7 @@
   08/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
   02-09-2006 : updated
   05-15-2006 : +oleaut32, *syscolor
+}
 
 
 {$ifdef read_interface}
