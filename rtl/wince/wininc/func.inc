@@ -322,8 +322,8 @@ function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL;
 function ImageList_SetImageCount(himl: HIMAGELIST; uNewCount: UINT): longint; external ComctlDLLCore name 'ImageList_SetImageCount';
 function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external ComctlDLLCore name 'ImageList_SetOverlayImage';
 function InflateRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external UserDLLCore name 'InflateRect';
-procedure InitCommonControls; external ComctlDLL name 'InitCommonControls'; 
-//function InitCommonControlsEx(_para1:LPINITCOMMONCONTROLSEX):WINBOOL; external ComctlDLL name 'InitCommonControlsEx'; //- conflict with other def
+procedure InitCommonControls; external ComctlDLL name 'InitCommonControls';
+function InitCommonControlsEx(_para1:LPINITCOMMONCONTROLSEX):WINBOOL; external ComctlDLL name 'InitCommonControlsEx';
 procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'InitializeCriticalSection';
 function InSendMessage:WINBOOL; external UserDLLCore name 'InSendMessage';
 function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';

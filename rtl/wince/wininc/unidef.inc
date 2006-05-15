@@ -150,6 +150,7 @@ function GetStringTypeEx(Locale:LCID; dwInfoType:DWORD; lpSrcStr:LPCWSTR; cchSrc
 function GetTempFileName(lpPathName:LPCWSTR; lpPrefixString:LPCWSTR; uUnique:UINT; lpTempFileName:LPWSTR):UINT; external KernelDLL name 'GetTempFileNameW';
 function GetTempPath(nBufferLength:DWORD; lpBuffer:LPWSTR):DWORD; external KernelDLL name 'GetTempPathW';
 function GetTextExtentExPoint(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT;_para6:LPINT; _para7:LPSIZE):WINBOOL; external GdiDLL name 'GetTextExtentExPointW';
+function GetTextExtentExPointW(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:longint; _para5:LPINT;_para6:LPINT; _para7:LPSIZE):WINBOOL; external GdiDLL name 'GetTextExtentExPointW';
 function GetTextFace(_para1:HDC; _para2:longint; _para3:LPWSTR):longint; external GdiDLL name 'GetTextFaceW';
 function GetTextMetrics(_para1:HDC; _para2:LPTEXTMETRICW):WINBOOL; external GdiDLL name 'GetTextMetricsW';
 function GetTimeFormat(Locale:LCID; dwFlags:DWORD; lpTime:LPSYSTEMTIME; lpFormat:LPCWSTR; lpTimeStr:LPWSTR;cchTime:longint):longint; external KernelDLL name 'GetTimeFormatW';
@@ -249,6 +250,8 @@ function EnumPropsEx(hWnd:HWND; lpEnumFunc:PROPENUMPROCEX; lParam:LPARAM):longin
 //'...W' not exported but '...' is
 function GetCharABCWidths(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPABC):WINBOOL; external GdiDLL name 'GetCharABCWidths';
 function GetCharWidth32(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPINT):WINBOOL; external GdiDLL name 'GetCharWidth32';
+function GetTextExtentPoint(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
+function GetTextExtentPoint32(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 //wince has W
 function GetProcAddress(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external KernelDLL name 'GetProcAddressW';
 //'GetPropW', not exported but 'GetProp' with widechar header are
@@ -583,15 +586,6 @@ end;
 
 {$ifdef WINCE}
 //begin wince only
-function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
-begin
- DialogBoxParam:=DialogBoxIndirectParam( hInstance,
-                                         LPCDLGTEMPLATEW(LoadResource(hInstance, FindResource(hInstance, lpTemplateName, RT_DIALOG))),
-                                         hWndParent,
-                                         lpDialogFunc,
-                                         dwInitParam);
-end;
-
 function CreateDialogParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
 begin
   CreateDialogIndirectParam(hInstance,
@@ -602,6 +596,25 @@ end;
 function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 begin
   CreateDialogParam(hInstance, lpName, hWndParent, lpDialogFunc, 0);
+end;
+
+function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
+begin
+ DialogBoxParam:=DialogBoxIndirectParam( hInstance,
+                                         LPCDLGTEMPLATEW(LoadResource(hInstance, FindResource(hInstance, lpTemplateName, RT_DIALOG))),
+                                         hWndParent,
+                                         lpDialogFunc,
+                                         dwInitParam);
+end;
+
+function GetTextExtentPoint(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
+begin
+  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, @_para4);
+end;
+
+function GetTextExtentPoint32(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
+begin
+  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, @_para4);
 end;
 
 //end wince only

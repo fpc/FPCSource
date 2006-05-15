@@ -50,6 +50,7 @@ interface
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
+{$i oleaut32.inc}
 {$i redef.inc}
 
 {$undef read_interface}
@@ -69,6 +70,7 @@ implementation
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
+{$i oleaut32.inc}
 {$i redef.inc}
 
 {$undef read_implementation}

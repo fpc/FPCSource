@@ -4626,6 +4626,7 @@ rtl/wince/wininc/errors.inc -text
 rtl/wince/wininc/func.inc -text
 rtl/wince/wininc/makefile.inc -text
 rtl/wince/wininc/messages.inc -text
+rtl/wince/wininc/oleaut32.inc svneol=native#text/plain
 rtl/wince/wininc/redef.inc -text
 rtl/wince/wininc/struct.inc -text
 rtl/wince/wininc/unidef.inc -text

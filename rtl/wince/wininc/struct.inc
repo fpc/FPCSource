@@ -943,7 +943,7 @@
           dwSize:DWORD;             // size of this structure
           dwICC:DWORD;              // flags indicating which classes to be initialized
         end;  
-     INITCOMMONCONTROLSEX=tagINITCOMMONCONTROLSEX;
+     TINITCOMMONCONTROLSEX=tagINITCOMMONCONTROLSEX;
      LPINITCOMMONCONTROLSEX=^tagINITCOMMONCONTROLSEX;
 
      COMMCONFIG = record
