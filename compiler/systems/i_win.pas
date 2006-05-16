@@ -151,7 +151,7 @@ unit i_win;
             system       : system_arm_wince;
             name         : 'WinCE for ARM';
             shortname    : 'WinCE';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_winlikewidestring];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_winlikewidestring,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : 'UNDER_CE;WINDOWS';
