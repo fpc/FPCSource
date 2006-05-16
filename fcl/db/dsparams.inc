@@ -765,7 +765,7 @@ begin
   If Assigned(Field) then
     begin
     // Need TField.FixedChar property.
-    if (Field.DataType = ftString) {and TStringField(Field).FixedChar} then
+    if (Field.DataType = ftString) and TStringField(Field).FixedChar then
       DataType:=ftFixedChar
     else if (Field.DataType = ftMemo) and (Field.Size > 255) then
       DataType:=ftString

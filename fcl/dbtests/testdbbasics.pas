@@ -23,6 +23,9 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestDoubleClose;
+    procedure TestAssignFieldftString;
+    procedure TestAssignFieldftFixedChar;
     procedure TestSelectQueryBasics;
     procedure TestPostOnlyInEditState;
     procedure TestMove;                    // bug 5048
@@ -266,6 +269,53 @@ begin
   inherited RunTest;
 //  inherited RunTest;
 //  inherited RunTest;
+end;
+
+procedure TTestDBBasics.TestDoubleClose;
+begin
+  with DBConnector.GetNDataset(1) do
+    begin
+    close;
+    close;
+    open;
+    close;
+    close;
+    end;
+end;
+
+procedure TTestDBBasics.TestAssignFieldftString;
+var AParam : TParam;
+    AField : TField;
+begin
+  AParam := TParam.Create(nil);
+
+  with DBConnector.GetNDataset(1) do
+    begin
+    open;
+    AField := fieldbyname('name');
+    (AField as tstringfield).FixedChar := true;
+    AParam.AssignField(AField);
+    AssertTrue(ftFixedChar=AParam.DataType);
+    close;
+    end;
+  AParam.Free;
+end;
+
+procedure TTestDBBasics.TestAssignFieldftFixedChar;
+var AParam : TParam;
+    AField : TField;
+begin
+  AParam := TParam.Create(nil);
+  with DBConnector.GetNDataset(1) do
+    begin
+    open;
+    AField := fieldbyname('name');
+    (AField as tstringfield).FixedChar := true;
+    AParam.AssignField(AField);
+    AssertTrue(ftFixedChar=AParam.DataType);
+    close;
+    end;
+  AParam.Free;
 end;
 
 { TSQLTestSetup }

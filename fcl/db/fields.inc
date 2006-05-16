@@ -960,6 +960,7 @@ constructor TStringField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDataType(ftString);
+  FFixedChar := False;
   Size:=20;
 end;
 
