@@ -461,7 +461,7 @@ begin
   Result:=Nil;
   If (AName='') or Not assigned(FComponents) then exit;
   For i:=0 to FComponents.Count-1 do
-    if TComponent(FComponents[I]).Name=AName then
+    if (CompareText(TComponent(FComponents[I]).Name,AName)=0) then
       begin
       Result:=TComponent(FComponents.Items[I]);
       exit;
