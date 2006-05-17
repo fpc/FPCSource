@@ -99,6 +99,8 @@ procedure tppcaddnode.load_left_right(cmpop, load_constants: boolean);
   procedure load_node(var n: tnode);
   begin
     case n.location.loc of
+      LOC_CREGISTER:
+        ;
       LOC_REGISTER:
         if not cmpop then
         begin
@@ -123,6 +125,8 @@ procedure tppcaddnode.load_left_right(cmpop, load_constants: boolean);
               location.register := n.location.register;
           end;
         end;
+      else
+        location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
     end;
   end;
 

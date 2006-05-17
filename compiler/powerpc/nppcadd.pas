@@ -111,6 +111,8 @@ interface
       procedure load_node(var n: tnode);
         begin
           case n.location.loc of
+            LOC_CREGISTER:
+              ;
             LOC_REGISTER:
               if (not cmpop) and
                  ((nodetype <> muln) or
@@ -147,6 +149,8 @@ interface
                       end;
                   end;
               end;
+            else
+              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
           end;
         end;
 
