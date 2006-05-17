@@ -267,7 +267,7 @@ implementation
                        { we can't inline the referenced parent procedure }
                        exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                        { reference in nested procedures, variable needs to be in memory }
-                       make_not_regable(self);
+                       make_not_regable(self,vr_none);
                      end;
                    { static variables referenced in procedures or from finalization,
                      variable needs to be in memory.
@@ -278,7 +278,7 @@ implementation
                        (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
                        (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
                       ) then
-                     make_not_regable(self);
+                     make_not_regable(self,vr_none);
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }
@@ -361,10 +361,11 @@ implementation
                 if assigned(left) then
                   firstpass(left);
                 if not is_addr_param_load and
-                   tabstractvarsym(symtableentry).is_regvar then
+                   tabstractvarsym(symtableentry).is_regvar(is_addr_param_load) then
                   begin
                     case tabstractvarsym(symtableentry).varregable of
-                      vr_intreg :
+                      vr_intreg,
+                      vr_addr :
                         expectloc:=LOC_CREGISTER;
                       vr_fpureg :
                         expectloc:=LOC_CFPUREGISTER;

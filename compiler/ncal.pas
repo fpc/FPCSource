@@ -699,7 +699,7 @@ type
                          (tloadnode(left).is_addr_param_load)
                         )
                     ) then
-                   make_not_regable(left);
+                   make_not_regable(left,vr_addr);
 
                  if do_count then
                   begin
@@ -2068,7 +2068,7 @@ type
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tabstractvarsym(p).varregable<>vr_none);
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,not(tabstractvarsym(p).varregable in [vr_none,vr_addr]));
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -2141,7 +2141,7 @@ type
                 { contents to that temp and then substitute the paramter    }
                 { with the temp everywhere in the function                  }
                 if
-                  ((tparavarsym(para.parasym).varregable = vr_none) and
+                  ((tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
                    not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]))  or
                   { we can't assign to formaldef temps }
                   ((para.parasym.vartype.def.deftype<>formaldef) and
@@ -2205,9 +2205,7 @@ type
                    )
                   ) then
                   begin
-                    { in theory, this is always regable, but ncgcall can't }
-                    { handle it yet in all situations (JM)                 }
-                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).varregable <> vr_none);
+                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr]));
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2235,7 +2233,7 @@ type
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).varregable<>vr_none);
+                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr]));
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));

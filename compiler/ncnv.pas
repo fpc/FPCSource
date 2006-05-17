@@ -1385,7 +1385,7 @@ implementation
             convtype:=tc_equal;
             if not(tstoreddef(resulttype.def).is_intregable) and
                not(tstoreddef(resulttype.def).is_fpuregable) then
-              make_not_regable(left);
+              make_not_regable(left,vr_addr);
             exit;
           end;
 
@@ -1561,7 +1561,7 @@ implementation
                          not(tstoreddef(resulttype.def).is_fpuregable)) or
                         ((left.resulttype.def.deftype = floatdef) and
                          (resulttype.def.deftype <> floatdef))  then
-                       make_not_regable(left);
+                       make_not_regable(left,vr_addr);
 
                      { class/interface to class/interface, with checkobject support }
                      if is_class_or_interface(resulttype.def) and
@@ -2320,7 +2320,7 @@ implementation
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }
         if (resulttype.def.size<left.resulttype.def.size) then
-          make_not_regable(left);
+          make_not_regable(left,vr_addr);
       end;
 
 

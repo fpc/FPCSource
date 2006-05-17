@@ -345,7 +345,10 @@ type
   tvarregable=(vr_none,
     vr_intreg,
     vr_fpureg,
-    vr_mmreg
+    vr_mmreg,
+    { does not mean "needs address register", but "if it's a parameter which is }
+    { passed by reference, then its address can be put in a register            }
+    vr_addr
   );
 
   { types of the symtables }

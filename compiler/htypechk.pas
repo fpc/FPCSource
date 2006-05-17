@@ -124,7 +124,7 @@ interface
     function isbinaryoverloaded(var t : tnode) : boolean;
 
     { Register Allocation }
-    procedure make_not_regable(p : tnode);
+    procedure make_not_regable(p : tnode; how: tvarregable);
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { procvar handling }
@@ -641,18 +641,18 @@ implementation
 ****************************************************************************}
 
     { marks an lvalue as "unregable" }
-    procedure make_not_regable(p : tnode);
+    procedure make_not_regable(p : tnode; how: tvarregable);
       begin
          case p.nodetype of
             typeconvn :
-              make_not_regable(ttypeconvnode(p).left);
+              make_not_regable(ttypeconvnode(p).left,how);
             loadn :
-              if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym]) or
-                 ((tloadnode(p).symtableentry.typ = paravarsym) and
-                  { not a nested variable }
-                  (assigned(tloadnode(p).left) or
-                   not(tparavarsym(tloadnode(p).symtableentry).varspez in [vs_var,vs_out]))) then
-                tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+              if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) and
+                 (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) then
+                if (tloadnode(p).symtableentry.typ = paravarsym) then
+                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
+                else
+                  tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
          end;
       end;
 
@@ -1009,7 +1009,7 @@ implementation
                       be in a register }
                     if (m_tp7 in aktmodeswitches) or
                        (todef.size<fromdef.size) then
-                      make_not_regable(hp)
+                      make_not_regable(hp,vr_addr)
                     else
                       if report_errors then
                         CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));

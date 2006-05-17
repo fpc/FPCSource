@@ -2008,7 +2008,8 @@ implementation
           begin
             localloc.size:=cgsize;
             case varregable of
-              vr_intreg :
+              vr_intreg,
+              vr_addr :
                 begin
                   localloc.loc:=LOC_CREGISTER;
                 end;
@@ -2057,7 +2058,7 @@ implementation
                           cgsize:=def_cgsize(vartype.def);
 {$ifndef OLDREGVARS}
                         { When there is assembler code we can't use regvars }
-                        if is_regvar then
+                        if is_regvar(isaddr) then
                           begin
                             init_regvar_loc(tabstractnormalvarsym(sym),cgsize);
                             if (st.symtabletype <> parasymtable) then

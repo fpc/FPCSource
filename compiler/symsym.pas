@@ -145,7 +145,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  getsize : longint;
-          function  is_regvar:boolean;
+          function  is_regvar(refpara: boolean):boolean;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
@@ -1268,7 +1268,7 @@ implementation
       end;
 
 
-    function tabstractvarsym.is_regvar:boolean;
+    function tabstractvarsym.is_regvar(refpara: boolean):boolean;
       begin
         { Register variables are not allowed in the following cases:
            - regvars are disabled
@@ -1280,7 +1280,10 @@ implementation
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
                 not(vo_has_local_copy in varoptions) and
-                (varregable<>vr_none);
+                ((refpara and
+                  (varregable <> vr_none)) or
+                 (not refpara and
+                  not(varregable in [vr_none,vr_addr])));
       end;
 
 

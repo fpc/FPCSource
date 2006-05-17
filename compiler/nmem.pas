@@ -340,7 +340,7 @@ implementation
         if codegenerror then
          exit;
 
-        make_not_regable(left);
+        make_not_regable(left,vr_addr);
 
         { don't allow constants }
         if is_constnode(left) then
