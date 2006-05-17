@@ -44,7 +44,7 @@ Type
 Implementation
 
   uses
-    cutils, cgbase;
+    cutils, cgbase, cgcpu, cgobj;
 
 const
   calculation_target_op0: array[tasmop] of tasmop = (a_none,
@@ -152,6 +152,18 @@ const
         else
           result := false;
       end;
+    end;
+
+
+  function rlwinm2mask(l1,l2: longint): longint;
+    begin
+       // 1 shl 32 = 1 instead of 0 on x86
+      if (l1 <> 0) then
+        result :=  (1 shl (32 - l1) - 1) xor (1 shl (31 - l2) - 1)
+      else
+        result := not(1 shl (31 - l2) - 1);
+      if (l1 > l2) then
+        result := not(result);        
     end;
 
 
@@ -277,39 +289,46 @@ const
                      (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
                      (taicpu(next1).oper[2]^.val = 0) then
                     begin
-                      l1 := taicpu(p).oper[4]^.val;
-                      if (l1 < taicpu(p).oper[3]^.val) then
-                        inc(l1,32);
-                      l2 := taicpu(next1).oper[4]^.val;
-                      if (l2 < taicpu(next1).oper[3]^.val) then
-                        inc(l2,32);
-
-                      if (taicpu(p).oper[3]^.val > l2) or
-                         (taicpu(next1).oper[3]^.val > l1) then
-                        begin
-                          // masks have no bits in common
-                          taicpu(p).opcode := A_LI;
-                          taicpu(p).loadconst(1,0);
-                          taicpu(p).clearop(2);
-                          taicpu(p).clearop(3);
-                          taicpu(p).clearop(4);
-                          taicpu(p).ops := 2;
-                          taicpu(p).opercnt := 2;
-                          asml.remove(next1);
-                          next1.free;
-                        end
-                      else
-                        // some of the cases with l1>32 or l2>32 can be
-                        // optimized, but others can't (like 19,17 and 25,23)
-                        if (l1 < 32) and
-                           (l2 < 32) then
-                        begin
-                          taicpu(p).oper[3]^.val := max(taicpu(p).oper[3]^.val,taicpu(next1).oper[3]^.val);
-                          taicpu(p).oper[4]^.val := min(taicpu(p).oper[4]^.val,taicpu(next1).oper[4]^.val);
-                          asml.remove(next1);
-                          next1.free;
-                          result := true;
-                        end;
+                      l1 := rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val);
+                      l2 := rlwinm2mask(taicpu(next1).oper[3]^.val,taicpu(next1).oper[4]^.val);
+                      l1 := l1 and l2;
+                      case l1 of
+                        -1:
+                          begin
+                            asml.remove(next1);
+                            next1.free;
+                            if (taicpu(p).oper[2]^.val = 0) then
+                              begin
+                                next1 := tai(p.next);
+                                asml.remove(p);
+                                p.free;
+                                p := next1;
+                                result := true;
+                              end;
+                          end;
+                        0:
+                          begin
+                            // masks have no bits in common
+                            taicpu(p).opcode := A_LI;
+                            taicpu(p).loadconst(1,0);
+                            taicpu(p).clearop(2);
+                            taicpu(p).clearop(3);
+                            taicpu(p).clearop(4);
+                            taicpu(p).ops := 2;
+                            taicpu(p).opercnt := 2;
+                            asml.remove(next1);
+                            next1.free;
+                            result := true;
+                          end
+                        else if tcgppc(cg).get_rlwi_const(l1,l1,l2) then
+                          begin
+                            taicpu(p).oper[3]^.val := l1;
+                            taicpu(p).oper[4]^.val := l2;
+                            asml.remove(next1);
+                            next1.free;
+                            result := true;
+                          end;
+                      end;
                     end;
                 end;
             end;
@@ -395,8 +414,8 @@ const
                       begin
                         taicpu(p).opcode := A_ANDIS_;
                         taicpu(p).oper[2]^.val :=
-                          ((1 shl (16-taicpu(p).oper[3]^.val)) - 1) and
-                          not((1 shl (15-taicpu(p).oper[4]^.val)) - 1);
+                          ((1 shl (16-taicpu(p).oper[3]^.val)) - 1) xor
+                          ((1 shl (15-taicpu(p).oper[4]^.val)) - 1);
                         taicpu(p).clearop(3);
                         taicpu(p).clearop(4);
                         taicpu(p).ops := 3;
@@ -406,9 +425,7 @@ const
                        (taicpu(p).oper[4]^.val >= 16) then
                       begin
                         taicpu(p).opcode := A_ANDI_;
-                        taicpu(p).oper[2]^.val :=
-                          ((1 shl (32-taicpu(p).oper[3]^.val)) - 1) and
-                          not((1 shl (31-taicpu(p).oper[4]^.val)) - 1);
+                        taicpu(p).oper[2]^.val := rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val);
                         taicpu(p).clearop(3);
                         taicpu(p).clearop(4);
                         taicpu(p).ops := 3;
