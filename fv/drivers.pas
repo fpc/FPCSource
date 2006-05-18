@@ -1188,6 +1188,8 @@ begin
    end
   else
    FillChar(Event,sizeof(TEvent),0);
+  if MouseReverse and ((Event.Buttons and 3) in [1,2]) then
+    Event.Buttons := Event.Buttons xor 3;
 end;
 
 {---------------------------------------------------------------------------}

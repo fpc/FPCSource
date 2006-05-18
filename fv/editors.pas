@@ -1069,9 +1069,14 @@ Var
   c      : char;
 begin
   len:=length(str);
+  if (len=0) or (len>size) then
+  begin
+    IScan := NotFoundValue;
+    exit;
+  end;
   { create uppercased string }
   s[0]:=chr(len);
-  for x:=1to len do
+  for x:=1 to len do
    begin
      if str[x] in ['a'..'z'] then
       s[x]:=chr(ord(str[x])-32)
@@ -1114,8 +1119,8 @@ begin
     IScan := NotFoundValue
   else
     IScan := numb - pred(len);
-end;
-
+end; 
+  
 
 {****************************************************************************
                                  TIndicator
