@@ -85,8 +85,8 @@ implementation
            hp:=texported_item.create;
            if token=_ID then
              begin
-                orgs:=orgpattern;
-                consume_sym(srsym,srsymtable);
+                consume_sym_orgid(srsym,srsymtable,orgs);
+                { orgpattern is still valid here }
                 hp.sym:=srsym;
                 InternalProcName:='';
                 case srsym.typ of

@@ -81,6 +81,7 @@ interface
     { consume a symbol, if not found give an error and
       and return an errorsym }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+    function consume_sym_orgid(var srsym:tsym;var srsymtable:tsymtable;var s : string):boolean;
 
     function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
 
@@ -173,6 +174,9 @@ implementation
 
     { check if a symbol contains the hint directive, and if so gives out a hint
       if required.
+
+      If this code is changed, it's like that consume_sym_orgid must be changed
+      as well (FK)
     }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
@@ -201,6 +205,37 @@ implementation
         result:=assigned(srsym);
       end;
 
+
+    { check if a symbol contains the hint directive, and if so gives out a hint
+      if required and returns the id with it's original casing
+    }
+    function consume_sym_orgid(var srsym:tsym;var srsymtable:tsymtable;var s : string):boolean;
+      begin
+        { first check for identifier }
+        if token<>_ID then
+          begin
+            consume(_ID);
+            srsym:=generrorsym;
+            srsymtable:=nil;
+            result:=false;
+            exit;
+          end;
+        searchsym(pattern,srsym,srsymtable);
+        { handle unit specification like System.Writeln }
+        try_consume_unitsym(srsym,srsymtable);
+        { if nothing found give error and return errorsym }
+        if assigned(srsym) then
+          check_hints(srsym,srsym.symoptions)
+        else
+          begin
+            identifier_not_found(orgpattern);
+            srsym:=generrorsym;
+            srsymtable:=nil;
+          end;
+        s:=orgpattern;
+        consume(_ID);
+        result:=assigned(srsym);
+      end;
 
     function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
