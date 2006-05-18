@@ -76,6 +76,7 @@ begin
     end;
 end;
 
+(*
 Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 Var NewVideoBuf,NewOldVideoBuf : PVideoBuf;
@@ -106,6 +107,37 @@ begin
     end;
   FreeVideoBuf;
   VideoBufSize:=NewVideoBufSize;
+  VideoBuf:=NewVideoBuf;
+  OldVideoBuf:=NewOldVideoBuf;
+end;
+*)
+Procedure AssignVideoBuf (OldCols, OldRows : Word);
+
+var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
+    old_rowstart,new_rowstart:word;
+
+begin
+  VideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
+  GetMem(NewVideoBuf,VideoBufSize);
+  GetMem(NewOldVideoBuf,VideoBufSize);
+  {Move contents of old videobuffers to new if there are any.}
+  if VideoBuf<>nil then
+    begin
+      if ScreenWidth<OldCols then
+        OldCols:=ScreenWidth;
+      if ScreenHeight<OldRows then
+        OldRows:=ScreenHeight;
+      old_rowstart:=0;
+      new_rowstart:=0;
+      repeat
+        move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+        move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+        inc(old_rowstart,OldCols);
+        inc(new_rowstart,ScreenWidth);
+        dec(OldRows);
+      until OldRows=0;
+    end;
+  FreeVideoBuf;
   VideoBuf:=NewVideoBuf;
   OldVideoBuf:=NewOldVideoBuf;
 end;
