@@ -75,7 +75,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
 begin
-  R.Assign(0,0,72,21);
+  R.Assign(0,0,76,21);
   New(D, Init(R, dialog_compilerswitches));
   with D^ do
   begin
@@ -171,10 +171,11 @@ begin
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
 
+    { --- Sheet 3 --- }
     Count:=ProcessorSwitches^.ItemCount;
-    R2.Copy(TabIR);
-    R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2-2;
-    Inc(R2.A.Y,CodegenSwitches^.ItemCount+2);
+    R.Copy(TabIR);
+    R2.Copy(R);
+    R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
@@ -280,10 +281,12 @@ begin
         NewTabItem(CB3,
         NewTabItem(Label22,
         NewTabItem(CB2,
-        NewTabItem(Label23,
         NewTabItem(RB3,
+        nil))))),
+      NewTabDef('~P~rocessor',RB1,
+        NewTabItem(Label23,
         NewTabItem(RB1,
-        nil))))))),
+        nil)),
       NewTabDef(page_compiler_verbose,CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
@@ -300,7 +303,7 @@ begin
         NewTabItem(Label53,
         NewTabItem(RB6,
         nil)))))),
-      nil)))))));
+      nil))))))));
     Tab^.GrowMode:=0;
     Insert(Tab);
 
