@@ -165,14 +165,21 @@ implementation
           op:=A_SHR;
 
         { special treatment of 32bit values for backwards compatibility }
+        { mul optimizations require to keep the sign (FK) }
         if left.resulttype.def.size<=4 then
           begin
-            opsize:=OS_32;
+            if is_signed(left.resulttype.def) then
+              opsize:=OS_S32
+            else
+              opsize:=OS_32;
             mask:=31;
           end
         else
           begin
-            opsize:=OS_64;
+            if is_signed(left.resulttype.def) then
+              opsize:=OS_S64
+            else
+              opsize:=OS_64;
             mask:=63;
           end;
 
