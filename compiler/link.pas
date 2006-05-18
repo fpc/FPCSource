@@ -525,6 +525,7 @@ begin
   DoExec:=true;
   if not(cs_link_extern in aktglobalswitches) then
    begin
+     FlushOutput;
      if useshell then
        exitcode := shell(maybequoted(command)+' '+para)
      else
@@ -605,7 +606,7 @@ begin
 { remove the library, to be sure that it is rewritten }
   RemoveFile(current_module.staticlibfilename^);
 { Call AR }
-  smartpath:=current_module.outputpath^+FixPath(lower(current_module.modulename^)+target_info.smartext,false);
+  smartpath:=current_module.outputpath^+FixPath(current_module.newfilename^+target_info.smartext,false);
   SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
   binstr := FindUtil(utilsprefix + binstr);
   Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
