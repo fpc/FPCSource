@@ -5431,6 +5431,7 @@ tests/test/cg/obj/ctest.c -text
 tests/test/cg/obj/darwin/i386/ctest.o -text
 tests/test/cg/obj/darwin/i386/tcext3.o -text
 tests/test/cg/obj/darwin/i386/tcext4.o -text
+tests/test/cg/obj/darwin/i386/tcext5.o -text
 tests/test/cg/obj/darwin/powerpc/ctest.o -text
 tests/test/cg/obj/darwin/powerpc/tcext3.o -text
 tests/test/cg/obj/darwin/powerpc/tcext4.o -text
