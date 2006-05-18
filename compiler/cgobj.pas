@@ -958,7 +958,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(a), powerval) then
+              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in aktlocalswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -976,7 +976,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(a), powerval) then
+               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in aktlocalswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
