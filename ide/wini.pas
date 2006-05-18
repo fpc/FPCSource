@@ -88,6 +88,11 @@ implementation
 uses
   WUtils;
 
+{$IFOPT Q+}
+  {$Q-}
+  {$DEFINE REENABLE_Q}
+{$ENDIF}
+
 function CalcHash(const s: String): Cardinal;
 var
   i: integer;
@@ -96,6 +101,10 @@ begin
   for i := 1 to Length(s) do
     CalcHash := CalcHash shl 9 - CalcHash shl 4 + Ord(S[I]);
 end;
+
+{$IFDEF REENABLE_Q}
+  {$Q+}
+{$ENDIF}
 
 constructor TINIEntry.Init(const ALine: string);
 begin

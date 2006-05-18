@@ -21,7 +21,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '1.0.6';
+     VersionStr           = '1.0.8';
 
      MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
@@ -81,11 +81,7 @@ const
      WinHelpExt           = '.hlp';
      HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt+';*'+INFExt;
 
-{$ifdef UNIX}
-     EnterSign            = '<'+#196#217;
-{$else}
      EnterSign            = #17#196#217;
-{$endif}
 
      { Main menu submenu indexes }
      menuFile             = 0;

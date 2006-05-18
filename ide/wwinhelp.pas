@@ -1511,11 +1511,11 @@ begin
                     begin
                       if LastEmittedChar<>ord(hscLineBreak) then
                         EmitText(hscLineBreak);
-                      EmitDebugText('[tag0x'+IntToHex(Cmd,2)+']');
+                      EmitDebugText('[tag0x'+hexstr(Cmd,2)+']');
                     end;
               $80 : begin
                       FontNumber:=ReadSHORT;
-                      EmitDebugText('[font'+IntToStr(FontNumber)+']');
+                      EmitDebugText('[font'+inttostr(FontNumber)+']');
                     end;
               $81 : {LineBreak}
                     begin
@@ -1614,7 +1614,7 @@ begin
                         AddLinkToTopic(T,ID,LinkOfs);
                       end;
                     end;
-              else EmitDebugText('[tag0x'+IntToHex(Cmd,2)+']');
+              else EmitDebugText('[tag0x'+hexstr(Cmd,2)+']');
             end;
           end;
           if SLen>0 then

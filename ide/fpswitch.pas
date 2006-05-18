@@ -29,7 +29,8 @@ const
 type
     TParamID =
       (idNone,idAlign,idRangeChecks,idStackChecks,idIOChecks,
-       idOverflowChecks,idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
+       idOverflowChecks,idObjMethCallChecks,
+       idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
        idSymInfNone,idSymInfGlobalOnly,idSymInfGlobalLocal,
        idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
        idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
@@ -38,7 +39,7 @@ type
 
     TSwitchMode = (om_Normal,om_Debug,om_Release);
 
-    TSwitchItemTyp = (ot_Select,ot_Boolean,ot_String,ot_Longint);
+    TSwitchItemTyp = (ot_Select,ot_Boolean,ot_String,ot_MultiString,ot_Longint);
 
     PSwitchItem = ^TSwitchItem;
     TSwitchItem = object(TObject)
@@ -48,8 +49,9 @@ type
       ParamID   : TParamID;
       constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
-      function  ParamValue:string;virtual;
+      function  ParamValue(nr:sw_integer):string;virtual;
       function  ParamValueBool(SM: TSwitchMode):boolean;virtual;
+      function  ParamCount:sw_integer;virtual;
       function  GetSwitchStr(SM: TSwitchMode): string; virtual;
       function  GetNumberStr(SM: TSwitchMode): string; virtual;
       function  GetOptionStr(SM: TSwitchMode): string; virtual;
@@ -81,9 +83,21 @@ type
       SeparateSpaces : boolean;
       constructor Init(const n,p:string;AID: TParamID; mult,allowspaces:boolean);
       function  NeedParam:boolean;virtual;
-      function  ParamValue:string;virtual;
+      function  ParamValue(nr:sw_integer):string;virtual;
       procedure Reset;virtual;
     end;
+
+    PMultiStringItem = ^TMultiStringItem;
+    TMultiStringItem = object(TSwitchItem)
+      MultiStr : array[TSwitchMode] of PunsortedStringCollection;
+      constructor Init(const n,p:string;AID: TParamID);
+      function  NeedParam:boolean;virtual;
+      function  ParamValue(nr:sw_integer):string;virtual;
+      function  ParamCount:sw_integer;virtual;
+      procedure Reset;virtual;
+      destructor done;virtual;
+    end;
+
 
     PLongintItem = ^TLongintItem;
     TLongintItem = object(TSwitchItem)
@@ -110,13 +124,16 @@ type
       procedure AddBooleanItem(const name,param:string; AID: TParamID);
       procedure AddLongintItem(const name,param:string; AID: TParamID);
       procedure AddStringItem(const name,param:string;AID: TParamID;mult,allowspaces:boolean);
+      procedure AddMultiStringItem(const name,param:string;AID: TParamID);
       function  GetCurrSel:integer;
       function  GetCurrSelParam : String;
       function  GetBooleanItem(index:integer):boolean;
       function  GetLongintItem(index:integer):longint;
       function  GetStringItem(index:integer):string;
+      function  GetMultiStringItem(index:integer):PunsortedStringCollection;
+      function  GetItemTyp(index:integer):TSwitchItemTyp;
       procedure SetCurrSel(index:integer);
-      function  SetCurrSelParam(const s : String) : boolean;
+      function  SetCurrSelParam(const s:string) : boolean;
       procedure SetBooleanItem(index:integer;b:boolean);
       procedure SetLongintItem(index:integer;l:longint);
       procedure SetStringItem(index:integer;const s:string);
@@ -148,6 +165,7 @@ var
     ProfileInfoSwitches,
     {MemorySizeSwitches, doubled !! }
     SyntaxSwitches,
+    CompilerModeSwitches,
     VerboseSwitches,
     CodegenSwitches,
     OptimizationSwitches,
@@ -203,7 +221,7 @@ begin
 end;
 
 
-function TSwitchItem.ParamValue:string;
+function TSwitchItem.ParamValue(nr:sw_integer):string;
 begin
   ParamValue:='';
 end;
@@ -212,6 +230,12 @@ function TSwitchItem.ParamValueBool(SM: TSwitchMode):boolean;
 begin
   Abstract;
   ParamValueBool:=false;
+end;
+
+function TSwitchItem.ParamCount:sw_integer;
+
+begin
+  ParamCount:=1;
 end;
 
 function TSwitchItem.GetSwitchStr(SM: TSwitchMode): string;
@@ -309,7 +333,7 @@ begin
 end;
 
 
-function TStringItem.ParamValue:string;
+function TStringItem.ParamValue(nr:sw_integer):string;
 begin
   ParamValue:=Str[SwitchesMode];
 end;
@@ -320,6 +344,58 @@ begin
   FillChar(Str,sizeof(Str),0);
 end;
 
+{*****************************************************************************
+            TMultiStringItem
+*****************************************************************************}
+
+constructor TMultiStringItem.Init(const n,p:string;AID:TParamID);
+
+var i:TSwitchMode;
+
+begin
+  inherited Init(n,p,AID);
+  typ:=ot_MultiString;
+  for i:=low(MultiStr) to high(MultiStr) do
+    new(MultiStr[i],init(5,5));
+{  Reset;}
+end;
+
+function TMultiStringItem.NeedParam:boolean;
+
+begin
+  NeedParam:=(multistr[SwitchesMode]^.count<>0);
+end;
+
+function TMultiStringItem.ParamValue(nr:sw_integer):string;
+
+begin
+  ParamValue:=MultiStr[SwitchesMode]^.at(nr)^;
+end;
+
+function TMultiStringItem.ParamCount:sw_integer;
+
+begin
+  ParamCount:=Multistr[SwitchesMode]^.count;
+end;
+
+procedure TMultiStringItem.Reset;
+
+var i:TSwitchMode;
+
+begin
+  for i:=low(multiStr) to high(multiStr) do
+    MultiStr[i]^.freeall;
+end;
+
+destructor TmultiStringItem.done;
+
+var i:TSwitchMode;
+
+begin
+  for i:=low(MultiStr) to high(MultiStr) do
+    dispose(MultiStr[i],done);
+  inherited done;
+end;
 
 {*****************************************************************************
                 TLongintItem
@@ -410,11 +486,15 @@ begin
 end;
 
 
-procedure TSwitches.AddStringItem(const name,param:string;AID: TParamID;mult,allowspaces:boolean);
+procedure TSwitches.AddStringItem(const name,param:string;AID:TParamID;mult,allowspaces:boolean);
 begin
   Items^.Insert(New(PStringItem,Init(name,Param,AID,mult,allowspaces)));
 end;
 
+procedure TSwitches.AddMultiStringItem(const name,param:string;AID:TParamID);
+begin
+  Items^.Insert(New(PMultiStringItem,Init(name,Param,AID)));
+end;
 
 function TSwitches.ItemCount:integer;
 begin
@@ -496,6 +576,29 @@ begin
    GetStringItem:='';
 end;
 
+function TSwitches.GetMultiStringItem(index:integer):PUnsortedStringCollection;
+
+var p:PMultiStringItem;
+
+begin
+  if index<ItemCount then
+    p:=Items^.at(Index)
+  else
+    p:=nil;
+  if (p<>nil) and (p^.typ=ot_multistring) then
+    GetMultiStringItem:=p^.MultiStr[SwitchesMode]
+  else
+    GetMultiStringItem:=nil;
+end;
+
+function TSwitches.GetItemTyp(index:integer):TSwitchItemTyp;
+
+var p:PSwitchItem;
+
+begin
+  assert(index<itemcount);
+  GetItemTyp:=PSwitchItem(items^.at(index))^.typ;
+end;
 
 procedure TSwitches.SetBooleanItem(index:integer;b:boolean);
 var
@@ -613,7 +716,8 @@ var
          end
        else
          if P^.Param<>'/' then
-           Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
+           for i:=0 to p^.ParamCount-1 do
+             Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue(i));
      end;
   end;
 
@@ -681,6 +785,8 @@ begin
            else
             PStringItem(FoundP)^.Str[SwitchesMode]:=Copy(s,length(FoundP^.Param)+1,255);
          end;
+      ot_MultiString :
+        PMultiStringItem(foundP)^.MultiStr[SwitchesMode]^.insert(newstr(copy(s,length(foundP^.param)+1,255)));
       ot_Longint : Val(Copy(s,length(FoundP^.Param)+1,255),PLongintItem(FoundP)^.Val[SwitchesMode],code);
      end;
      ReadItemsCfg:=true;
@@ -714,6 +820,7 @@ begin
      TargetSwitches^.WriteItemsCfg;
      VerboseSwitches^.WriteItemsCfg;
      SyntaxSwitches^.WriteItemsCfg;
+     CompilerModeSwitches^.WriteItemsCfg;
      CodegenSwitches^.WriteItemsCfg;
      OptimizationSwitches^.WriteItemsCfg;
      OptimizingGoalSwitches^.WriteItemsCfg;
@@ -785,6 +892,7 @@ begin
                  if not ProcessorSwitches^.ReadItemsCfg(s) then
                    res:=OptimizingGoalSwitches^.ReadItemsCfg(s);
              end;
+       'M' : res:=CompilerModeSwitches^.ReadItemsCfg(s);
        'p' : res:=ProfileInfoSwitches^.ReadItemsCfg(s);
        's' : res:=LinkAfterSwitches^.ReadItemsCfg(s);
        'R' : res:=AsmReaderSwitches^.ReadItemsCfg(s);
@@ -856,20 +964,33 @@ begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
    begin
-     AddBooleanItem(opt_objectpascal,'2',idNone);
-     AddBooleanItem(opt_clikeoperators,'c',idNone);
+//     AddBooleanItem(opt_objectpascal,'2',idNone);
      AddBooleanItem(opt_stopafterfirsterror,'e',idNone);
      AddBooleanItem(opt_allowlabelandgoto,'g',idNone);
-     AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
      AddBooleanItem(opt_globalcmacros,'m',idNone);
-     AddBooleanItem(opt_tp7compatibility,'o',idNone);
-     AddBooleanItem(opt_delphicompatibility,'d',idNone);
+     AddBooleanItem(opt_cplusplusstyledinline,'i',idNone);
+//     AddBooleanItem(opt_tp7compatibility,'o',idNone);
+//     AddBooleanItem(opt_delphicompatibility,'d',idNone);
+     AddBooleanItem(opt_assertions,'a',idNone);
+     AddBooleanItem(opt_kylix,'k',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
+     AddBooleanItem(opt_clikeoperators,'c',idNone);
      { Useless as they are not passed to the compiler PM
      AddBooleanItem(opt_strictvarstrings,'/',idStrictVarStrings);
      AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);
      AddBooleanItem(opt_allowmmxoperations,'/',idMMXOps);  }
    end;
+  New(CompilerModeSwitches,InitSelect('M'));
+  with CompilerModeSwitches^ do
+    begin
+       AddSelectItem(opt_mode_freepascal,'fpc',idNone);
+       AddSelectItem(opt_mode_objectpascal,'objfpc',idNone);
+       AddSelectItem(opt_mode_turbopascal,'tp',idNone);
+       AddSelectItem(opt_mode_delphi,'delphi',idNone);
+       AddSelectItem(opt_mode_macpascal,'macpascal',idNone);
+{      GNU Pascal mode doesn't do much, better disable it
+       AddSelectItem(opt_mode_gnupascal,'gpc',idNone);}
+    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
    begin
@@ -888,6 +1009,8 @@ begin
      AddBooleanItem(opt_stackchecking,'t',idStackChecks);
      AddBooleanItem(opt_iochecking,'i',idIOChecks);
      AddBooleanItem(opt_overflowchecking,'o',idOverflowChecks);
+     AddBooleanItem(opt_objmethcallvalid,'R',idObjMethCallChecks);
+     AddBooleanItem(opt_pic,'g',idNone);
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
@@ -937,7 +1060,7 @@ begin
   with AsmReaderSwitches^ do
    begin
 {$ifdef I386}
-     AddSelectItem(opt_directassembler,'direct',idAsmDirect);
+{     AddSelectItem(opt_directassembler,'direct',idAsmDirect);}
      AddSelectItem(opt_attassembler,'att',idAsmATT);
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
@@ -988,13 +1111,14 @@ begin
   New(DirectorySwitches,Init('F'));
   with DirectorySwitches^ do
    begin
-     AddStringItem(opt_unitdirectories,'u',idNone,true,true);
-     AddStringItem(opt_includedirectories,'i',idNone,true,true);
-     AddStringItem(opt_librarydirectories,'l',idNone,true,true);
-     AddStringItem(opt_objectdirectories,'o',idNone,true,true);
+     AddMultiStringItem(opt_unitdirectories,'u',idNone);
+     AddMultiStringItem(opt_includedirectories,'i',idNone);
+     AddMultiStringItem(opt_librarydirectories,'l',idNone);
+     AddMultiStringItem(opt_objectdirectories,'o',idNone);
      AddStringItem(opt_exeppudirectories,'E',idNone,true,true);
      AddStringItem(opt_ppuoutputdirectory,'U',idNone,true,true);
      AddStringItem(opt_cross_tools_directory,'D',idNone,true,true);
+     AddStringItem(opt_dynamic_linker,'L',idNone,false,false);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
@@ -1057,6 +1181,8 @@ begin
        { AT&T reader }
        AsmReaderSwitches^.SetCurrSel(1);
 {$endif i386}
+       { FPC mode}
+       CompilerModeSwitches^.SetCurrSel(0);
        { 128k stack }
        MemorySwitches^.SetLongintItem(0,65536*2);
        { 2 MB heap }
@@ -1092,8 +1218,10 @@ begin
 end;
 
 procedure DoneSwitches;
+
 begin
   dispose(SyntaxSwitches,Done);
+  dispose(CompilerModeSwitches,Done);
   dispose(VerboseSwitches,Done);
   dispose(CodegenSwitches,Done);
   dispose(OptimizationSwitches,Done);
@@ -1131,7 +1259,9 @@ procedure AddParam(const S: string);
 begin
   MiscParams^.Insert(NewStr(S));
 end;
+
 procedure EnumSwitches(P: PSwitches);
+
 procedure HandleSwitch(P: PSwitchItem); {$ifndef FPC}far;{$endif}
 begin
   case P^.ParamID of
@@ -1140,6 +1270,7 @@ begin
     idStackChecks    : AddSwitch('S'+P^.GetSwitchStr(SM));
     idIOChecks       : AddSwitch('I'+P^.GetSwitchStr(SM));
     idOverflowChecks : AddSwitch('Q'+P^.GetSwitchStr(SM));
+    idObjMethCallChecks: AddSwitch('OBJECTCHECKS'+P^.GetSwitchStr(SM));
 {    idAsmDirect      : if P^.GetParamValueBool[SM] then AddParam('ASMMODE DIRECT');
     idAsmATT         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE ATT');
     idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');
@@ -1177,6 +1308,7 @@ begin
   EnumSwitches(DebugInfoSwitches);
   EnumSwitches(ProfileInfoSwitches);
   EnumSwitches(SyntaxSwitches);
+  EnumSwitches(CompilerModeSwitches);
   EnumSwitches(VerboseSwitches);
   EnumSwitches(CodegenSwitches);
   EnumSwitches(OptimizationSwitches);

@@ -548,7 +548,8 @@ const
       static_switchesmode_switchesmode = 'Switches Mode';
 
       dialog_compilerswitches = 'Compiler Switches';
-      label_compiler_syntaxswitches = 'Syntax Switches';
+      label_compiler_syntaxswitches = 'S~y~ntax Switches';
+      label_compiler_mode = 'Compiler ~m~ode';
       label_compiler_runtimechecks = 'Run-time checks';
       label_compiler_optimizations = 'Optimizations';
       label_compiler_targetprocessor = 'Target processor';
@@ -774,18 +775,25 @@ const
       msg_automaticallycreateddontedit = 'Automaticly created file, don''t edit.';
 
       { Compiler options }
-      opt_objectpascal = '~O~bject pascal support';
-      opt_clikeoperators = '~C~-like operators';
-      opt_stopafterfirsterror = 'S~t~op after first error';
-      opt_allowlabelandgoto = 'Allo~w~ LABEL and GOTO';
-      opt_cplusplusstyledinline = 'C++ styled ~i~nline';
-      opt_globalcmacros = 'Global C ~m~acros';
-      opt_tp7compatibility = 'TP/BP ~7~.0 compatibility';
-      opt_delphicompatibility = 'Del~p~hi compatibility';
-      opt_allowstaticinobjects = 'A~l~low STATIC in objects';
-      opt_strictvarstrings = 'Strict ~v~ar-strings';
-      opt_extendedsyntax = 'E~x~tended syntax';
-      opt_allowmmxoperations = 'Allow MMX op~e~rations';
+      opt_objectpascal = 'Object pascal support';
+      opt_clikeoperators = 'C-like operators';
+      opt_stopafterfirsterror = 'Stop after first error';
+      opt_allowlabelandgoto = 'Allow LABEL and GOTO';
+      opt_cplusplusstyledinline = 'Allow inline';
+      opt_globalcmacros = 'Enable macros';
+      opt_allowstaticinobjects = 'Allow STATIC in objects';
+      opt_assertions = 'Include assertion code';
+      opt_kylix = 'Load Kylix compat. unit';
+      opt_strictvarstrings = 'Strict var-strings';
+      opt_extendedsyntax = 'Extended syntax';
+      opt_allowmmxoperations = 'Allow MMX operations';
+
+      opt_mode_freepascal = 'Free Pascal dialect';
+      opt_mode_objectpascal = 'Object Pascal extension on';
+      opt_mode_turbopascal = 'Turbo Pascal compatible';
+      opt_mode_delphi = 'Delphi compatible';
+      opt_mode_macpascal = 'Macintosh Pascal dialect';
+      opt_mode_gnupascal = 'GNU Pascal';
       { Verbose options }
       opt_warnings = '~W~arnings';
       opt_notes = 'N~o~tes';
@@ -799,6 +807,9 @@ const
       opt_stackchecking = '~S~tack checking';
       opt_iochecking = '~I~/O checking';
       opt_overflowchecking = 'Integer ~o~verflow checking';
+      opt_objmethcallvalid = 'Object ~m~ethod call checking';
+      { Code generation }
+      opt_pic = '~P~osition independend code';
       { Code options }
       opt_generatefastercode = 'Generate ~f~aster code';
       opt_generatesmallercode = 'Generate s~m~aller code';
@@ -846,6 +857,7 @@ const
       opt_exeppudirectories = '~E~XE output directory';
       opt_ppuoutputdirectory = '~P~PU output directory';
       opt_cross_tools_directory = '~C~ross tools directory';
+      opt_dynamic_linker = '~D~ynamic linker path';
       { Library options }
       opt_librariesdefault = '~T~arget default';
       opt_dynamiclibraries = 'Link to ~D~ynamic libraries';

@@ -111,7 +111,7 @@ begin
   HelpCtx:=hcWindowList;
   New(C, Init(20,10));
 
-  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-13;
+  GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.X:=R.B.X-14;
   R2.Copy(R); R2.Move(1,0); R2.A.X:=R2.B.X-1;
   New(SB, Init(R2)); Insert(SB);
   New(LB, Init(R, SB));

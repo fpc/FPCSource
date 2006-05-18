@@ -146,7 +146,6 @@ function FloatToStr(D: Double; Decimals: byte): string;
 function FloatToStrL(D: Double; Decimals: byte; MinLen: byte): string;
 function HexToInt(S: string): longint;
 function HexToCard(S: string): cardinal;
-function IntToHex(L: longint; MinLen: integer): string;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
 function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
@@ -190,8 +189,6 @@ function StrPas(C: PChar): string;
 {$endif}
 function MemToStr(var B; Count: byte): string;
 procedure StrToMem(S: string; var B);
-
-procedure GiveUpTimeSlice;
 
 const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
@@ -504,30 +501,6 @@ begin
     Inc(I);
   end;
   HexToCard:=L;
-end;
-
-function IntToHex(L: longint; MinLen: integer): string;
-const HexNums : string[16] = '0123456789ABCDEF';
-var S: string;
-    R: real;
-function DivF(Mit,Mivel: real): longint;
-begin
-  DivF:=trunc(Mit/Mivel);
-end;
-function ModF(Mit,Mivel: real): longint;
-begin
-  ModF:=trunc(Mit-DivF(Mit,Mivel)*Mivel);
-end;
-begin
-  S:='';
-  R:=L; if R<0 then begin R:=R+2147483647+2147483647+2; end;
-  repeat
-    Insert(HexNums[ModF(R,16)+1],S,1);
-    R:=DivF(R,16);
-  until R=0;
-  while length(S)<MinLen do
-    Insert('0',S,1);
-  IntToHex:=S;
 end;
 
 function FloatToStr(D: Double; Decimals: byte): string;
@@ -1319,52 +1292,6 @@ begin
   if Assigned(SrcF) then Dispose(SrcF, Done);
   CopyFile:=OK;
 end;
-
-procedure GiveUpTimeSlice;
-{$ifdef GO32V2}{$define DOS}{$endif}
-{$ifdef TP}{$define DOS}{$endif}
-{$ifdef DOS}
-var r: registers;
-begin
-  Intr ($28, R); (* This is supported everywhere. *)
-  r.ax:=$1680;
-  intr($2f,r);
-end;
-{$endif}
-{$ifdef Unix}
-  var
-    req,rem : timespec;
-begin
-  req.tv_sec:=0;
-  req.tv_nsec:=10000000;{ 10 ms }
-  {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
-end;
-{$endif}
-{$IFDEF OS2}
-begin
- DosSleep (5);
-end;
-{$ENDIF}
-{$ifdef Win32}
-begin
-  { if the return value of this call is non zero then
-    it means that a ReadFileEx or WriteFileEx have completed
-    unused for now ! }
-  { wait for 10 ms }
-  if SleepEx(10,true)=WAIT_IO_COMPLETION then
-    begin
-      { here we should handle the completion of the routines
-        if we use them }
-    end;
-end;
-{$endif}
-{$undef DOS}
-{$ifdef netwlibc} {$define netware} {$endif}
-{$ifdef netware}
-begin
-  Delay (10);
-end;
-{$endif}
 
 procedure RegisterWUtils;
 begin

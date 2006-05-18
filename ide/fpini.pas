@@ -209,9 +209,7 @@ var C: string;
 begin
   C:='';
   for I:=1 to length(S) do
-    begin
-      Insert('#$'+IntToHex(ord(S[I]),2),C,Length(C)+1);
-    end;
+    Insert('#$'+hexstr(ord(S[I]),2),C,Length(C)+1);
   PaletteToStr:=C;
 end;
 

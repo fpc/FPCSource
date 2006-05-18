@@ -442,8 +442,8 @@ begin
         NewItem(menu_options_env_codetemplates,'', kbNoKey, cmCodeTemplateOptions, hcCodeTemplateOptions,
         NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
         NewItem(menu_options_env_keybmouse,'', kbNoKey, cmMouse, hcMouse,
-        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
-        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
+{        NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
+        NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,}
 {$ifdef Unix}
         NewItem(menu_options_learn_keys,'', kbNoKey, cmKeys, hcKeys,
 {$endif Unix}
@@ -451,7 +451,7 @@ begin
 {$ifdef Unix}
         )
 {$endif Unix}
-        ))))))))),
+        {))}))))))),
       NewLine(
       NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,
@@ -534,7 +534,7 @@ begin
       StdStatusKeys(
       NewStatusKey('~Cursor~ Move', kbNoKey, 65535,
       NewStatusKey('~Shift+Cursor~ Size', kbNoKey, 65535,
-      NewStatusKey('~<ды~ Done', kbNoKey, 65535,
+      NewStatusKey('~'#17'ды~ Done', kbNoKey, 65535, {#17 = left arrow}
       NewStatusKey('~Esc~ Cancel', kbNoKey, 65535,
       nil)))))),
     NewStatusDef(hcStackWindow, hcStackWindow,
@@ -606,7 +606,6 @@ procedure TIDEApp.Idle;
 begin
   inherited Idle;
   Message(Application,evIdle,0,nil);
-  GiveUpTimeSlice;
 end;
 
 procedure TIDEApp.GetEvent(var Event: TEvent);
@@ -880,7 +879,7 @@ begin
   { DoneKeyboard should be called last to
     restore the keyboard correctly PM }
 {$ifndef go32v2}
-  DoneScreen;
+  donevideo;
 {$endif ndef go32v2}
   DoneKeyboard;
   If UseMouse then
@@ -905,7 +904,7 @@ begin
   else
     ButtonCount:=0;
 {$ifndef go32v2}
-  InitScreen;
+  initvideo;
 {$endif ndef go32v2}
 {$ifdef win32}
   { write the empty screen to dummy console handle }
