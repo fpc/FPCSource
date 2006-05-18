@@ -2,11 +2,9 @@ unit ToolsUnit;
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
-  {$DEFINE SQLDB_AVAILABLE}
-  {$DEFINE DBF_AVAILABLE}
-{$ELSE}
-  {$DEFINE DBF_AVAILABLE}
 {$ENDIF}
+
+{$I settings.inc}
 
 interface
 
@@ -36,7 +34,7 @@ type
 
   TTestDataLink = class(TDataLink)
      protected
-{$IFDEF FPC}
+{$IFDEF fpc}
        procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
 {$ELSE}
        procedure DataEvent(Event: TDataEvent; Info: longint); override;
@@ -46,10 +44,11 @@ type
 
 const
   DataEventnames : Array [TDataEvent] of String[19] =
-    ('deFieldChange', 'deRecordChange', 'deDataSetChange',
-    'deDataSetScroll', 'deLayoutChange', 'deUpdateRecord', 'deUpdateState',
-    'deCheckBrowseMode', 'dePropertyChange', 'deFieldListChange', 'deFocusControl',
-    'deParentScroll','deConnectChange','deReconcileError','deDisabledStateChange');
+    ('deFieldChange', 'deRecordChange', 'deDataSetChange', 'deDataSetScroll',
+     'deLayoutChange', 'deUpdateRecord', 'deUpdateState', 'deCheckBrowseMode',
+     'dePropertyChange', 'deFieldListChange', 'deFocusControl' ,'deParentScroll'
+{$IFNDEF VER2_0_2}, 'deConnectChange','deReconcileError','deDisabledStateChange'{$ENDIF}
+    );
 
 var dbtype,
     dbname,

@@ -1,17 +1,24 @@
-program dbtestframework_console;
+program dbtestframework;
 
 {$IFDEF FPC}
   {$mode objfpc}{$H+}
 {$ENDIF}
 
+{$include settings.inc}
 
 {$APPTYPE CONSOLE}
 
 uses
   SysUtils,
-  fpcunit,testregistry,testreport,
-  testdbbasics;
-
+  fpcunit,testregistry,
+{$ifdef SQLDB_AVAILABLE}
+  testsqlfieldtypes,
+{$ENDIF}
+{$IFDEF DBF_AVAILABLE}
+  testdbbasics,
+{$ENDIF}
+  testreport;
+  
 var
   FXMLResultsWriter: TXMLResultsWriter;
   testResult: TTestResult;
