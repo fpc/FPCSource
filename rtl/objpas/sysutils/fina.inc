@@ -53,20 +53,26 @@ Result := Copy(FileName, 1, I);
 end;
 
 function ExtractFileDrive(const FileName: string): string;
-var i: longint;
+
+var 
+  i,l: longint;
+
 begin
-if (Length(FileName) >= 2) and (FileName[2] = ':') then
-   result := Copy(FileName, 1, 2)
-else if (Length(FileName) >= 2) and (FileName[1] in ['/', '\']) and
-   (FileName[2] in ['/', '\']) then begin
-   i := 2;
-   While (i < Length(Filename)) do begin
-           if Filename[i + 1] in ['/', '\'] then break;
-      inc(i);
-      end ;
-   Result := Copy(FileName, 1, i);
-   end
-else Result := '';
+  Result := '';
+  l:=Length(FileName);
+  if (L>=2) then
+    begin
+    If (FileName[2]=':') then
+      result:=Copy(FileName,1,2)
+    else if (FileName[1] in ['/','\']) and
+            (FileName[2] in ['/','\']) then 
+      begin
+      i := 2;
+      While (i<L) and Not (Filename[i+1] in ['/', '\']) do
+        inc(i);
+      Result:=Copy(FileName,1,i);
+      end;
+    end;
 end;
 
 function ExtractFileName(const FileName: string): string;
