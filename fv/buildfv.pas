@@ -20,6 +20,7 @@ uses
   stddlg,
   asciitab,
   tabs,
+  memory,
   colortxt,
   statuses,
   histlist,

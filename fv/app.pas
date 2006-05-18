@@ -230,7 +230,7 @@ TYPE
       PROCEDURE Run; Virtual;
       PROCEDURE Idle; Virtual;
       PROCEDURE InitScreen; Virtual;
-      procedure DoneScreen; virtual;
+{      procedure DoneScreen; virtual;}
       PROCEDURE InitDeskTop; Virtual;
       PROCEDURE OutOfMemory; Virtual;
       PROCEDURE InitMenuBar; Virtual;
@@ -789,11 +789,15 @@ END;
 {  InitScreen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TProgram.InitScreen;
+
+{Initscreen is passive only, i.e. it detects the video size and capabilities
+ after initalization. Active video initalization is the task of Tapplication.}
+
 BEGIN
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
-  Drivers.InitVideo;
+{  Drivers.InitVideo;}
   if (ScreenMode.Col div ScreenMode.Row<2) then
     ShadowSize.X := 1
   else
@@ -809,11 +813,11 @@ BEGIN
 END;
 
 
-procedure TProgram.DoneScreen;
+{procedure TProgram.DoneScreen;
 begin
   Drivers.DoneVideo;
   Buffer:=nil;
-end;
+end;}
 
 
 {--TProgram-----------------------------------------------------------------}
@@ -965,14 +969,15 @@ END;
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TApplication.Init;
 BEGIN
-{   InitMemory;}                                        { Start memory up }
+{   InitMemory;}                                              { Start memory up }
+   initkeyboard;
    Drivers.InitVideo;                                         { Start video up }
    Drivers.InitEvents;                                        { Start event drive }
    Drivers.InitSysError;                                      { Start system error }
-   InitHistory;                                       { Start history up }
+   InitHistory;                                               { Start history up }
    InitResource;
    InitMsgBox;
-   Inherited Init;                                    { Call ancestor }
+   Inherited Init;                                            { Call ancestor }
    { init mouse and cursor }
    Video.SetCursorType(crHidden);
    Mouse.SetMouseXY(1,1);
@@ -988,8 +993,9 @@ BEGIN
    DoneResource;
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
-   DoneScreen;
+   drivers.donevideo;
 {   DoneMemory;}                                       { Close memory }
+   donekeyboard;
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1016,17 +1022,48 @@ END;
 {  DosShell -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Oct99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TApplication.DosShell;
+
+{$ifdef unix}
+var s:string;
+{$endif}
+
 BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
+<<<<<<< .working
+  drivers.donevideo;
+  drivers.donekeyboard;
+{  DoneDosMem;}
+=======
   DoneScreen;
 {  DoneDosMem;}
+>>>>>>> .merge-right.r2720
   WriteShellMsg;
+{$ifdef Unix}
+  s:=getenv('SHELL');
+  if s='' then
+    s:='/bin/sh';
+  exec(s,'');
+{$else}
   SwapVectors;
   Exec(GetEnv('COMSPEC'), '');
   SwapVectors;
+<<<<<<< .working
+<<<<<<< .working
+=======
+{$endif}
+>>>>>>> .merge-right.r3452
+{  InitDosMem;}
+  drivers.initkeyboard;
+  drivers.initvideo;
+<<<<<<< .working
+=======
 {  InitDosMem;}
   InitScreen;
+>>>>>>> .merge-right.r2720
+=======
+  InitScreen;
+>>>>>>> .merge-right.r3455
   InitEvents;
   InitSysError;
   Redraw;
@@ -1059,8 +1096,9 @@ BEGIN
 END;
 
 procedure TApplication.WriteShellMsg;
+
 begin
-  PrintStr(Strings^.Get(sTypeExitOnReturn));
+  writeln(Strings^.Get(sTypeExitOnReturn));
 end;
 
 

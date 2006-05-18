@@ -1831,7 +1831,16 @@ BEGIN
            Bc := GetColor($0703) Else                 { Set selected colour }
              If AmDefault Then Bc := GetColor($0602); { Set is default colour }
      End;
-   If (Title <> Nil) Then Begin                       { We have a title }
+   if title=nil then
+    begin
+      MoveChar(Db[0],' ',GetColor(8),1);
+      {No title, draw an empty button.}
+      for j:=sw_integer(downflag) to size.x-2 do
+        MoveChar(Db[j],' ',Bc,1);
+    end
+   else
+    {We have a title.}
+    begin
      If (Flags AND bfLeftJust = 0) Then Begin         { Not left set title }
        I := CTextWidth(Title^);                        { Fetch title width }
        I := (Size.X - I) DIV 2;                    { Centre in button }
@@ -1850,26 +1859,25 @@ BEGIN
      MoveCStr(Db[I+pos], Title^, Bc);                        { Move title to buffer }
      For j:=pos+CStrLen(Title^)+I to size.X-2 do
        MoveChar(Db[j],' ',Bc,1);
-     If not DownFlag then
-       Bc:=GetColor(8);
-     MoveChar(Db[Size.X-1],' ',Bc,1);
-     WriteLine(0, 0, Size.X,
-       1, Db);                  { Write the title }
-     If Size.Y>1 then Begin
-       Bc:=GetColor(8);
-       if not DownFlag then
-         begin
-           c:='Ü';
-           MoveChar(Db,c,Bc,1);
-           WriteLine(Size.X-1, 0, 1, 1, Db);
-         end;
-       MoveChar(Db,' ',Bc,1);
-       if DownFlag then c:=' '
-       else c:='ß';
-       MoveChar(Db[1],c,Bc,Size.X-1);
-       WriteLine(0, 1, Size.X, 1, Db);
-     End;
-   End;
+    end;
+    If not DownFlag then
+      Bc:=GetColor(8);
+    MoveChar(Db[Size.X-1],' ',Bc,1);
+    WriteLine(0, 0, Size.X,1, Db);                  { Write the title }
+    If Size.Y>1 then Begin
+      Bc:=GetColor(8);
+      if not DownFlag then
+        begin
+          c:='Ü';
+          MoveChar(Db,c,Bc,1);
+          WriteLine(Size.X-1, 0, 1, 1, Db);
+        end;
+      MoveChar(Db,' ',Bc,1);
+      if DownFlag then c:=' '
+      else c:='ß';
+      MoveChar(Db[1],c,Bc,Size.X-1);
+      WriteLine(0, 1, Size.X, 1, Db);
+    End;
 END;
 
 {--TButton------------------------------------------------------------------}

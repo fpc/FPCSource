@@ -303,15 +303,6 @@ USES MsgBox;                                          { GFV standard unit }
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
-{  IsNumber -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB          }
-{---------------------------------------------------------------------------}
-FUNCTION IsNumber (Chr: Char): Boolean;
-BEGIN
-   If (Chr >= '0') AND (Chr <= '9') Then              { Check if '0..9' }
-     IsNumber := True Else IsNumber := False;         { Return result }
-END;
-
-{---------------------------------------------------------------------------}
 {  IsLetter -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 18May98 LdB          }
 {---------------------------------------------------------------------------}
 FUNCTION IsLetter (Chr: Char): Boolean;
@@ -520,7 +511,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
              ';': Inc(I);                             { Next character }
              '*': Begin
                  Inc(I);                              { Next character }
-                 While IsNumber(Pic^[I]) Do Inc(I);   { Search for text }
+                 While Pic^[I] in ['0'..'9'] Do Inc(I);   { Search for text }
                  ToGroupEnd(I);                       { Move to group end }
                  Continue;                            { Now continue }
                End;
@@ -554,7 +545,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
        Itr := 0;                                      { Zero iteration }
        Iteration := prError;                          { Preset error result }
        Inc(I);                                        { Skip '*' character }
-       While (IsNumber(Pic^[I])) Do Begin             { Entry is a number }
+       While Pic^[I] in ['0'..'9'] Do Begin           { Entry is a number }
          Itr := Itr * 10 + Byte(Pic^[I]) - Byte('0'); { Convert to number }
          Inc(I);                                      { Next character }
        End;
@@ -606,7 +597,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
          While True Do
            Case Pic^[J] Of
              '[': ToGroupEnd(J);                      { Find name end }
-             '*': If (IsNumber(Pic^[J + 1]) = False)
+             '*': If not(Pic^[J + 1] in ['0'..'9'])
                Then Begin
                  Inc(J);                              { Next name }
                  ToGroupEnd(J);                       { Find name end }
@@ -631,7 +622,7 @@ VAR I, J: Byte; Rslt: TPicResult; Reprocess: Boolean;
          End;
          Ch := Input[J];                              { Fetch character }
          Case Pic^[I] of
-           '#': If (NOT IsNumber(Ch)) Then Exit       { Check is a number }
+           '#': If NOT (Ch in ['0'..'9']) Then Exit   { Check is a number }
                Else Consume(Ch);                      { Transfer number }
            '?': If (NOT IsLetter(Ch)) Then Exit       { Check is a letter }
                Else Consume(Ch);                      { Transfer character }

@@ -57,6 +57,10 @@ UNIT Drivers;
   {$DEFINE ENDIAN_BIG}
 {$endif CPU68K}
 
+{$ifdef FPC}
+  {$INLINE ON}
+{$endif}
+
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
          Windows,                                     { Standard unit }
@@ -464,6 +468,21 @@ PROCEDURE DoneEvents;
 {                           VIDEO CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+{-Initkeyboard-------------------------------------------------------
+Initializes the keyboard. Before it is called read(ln)/write(ln)
+are functional, after it is called FV's keyboard routines are
+functional.
+---------------------------------------------------------------------}
+
+procedure initkeyboard;
+
+{-Donekeyboard-------------------------------------------------------
+Restores keyboard to original state. FV's keyboard routines may not
+be used after a call to this. Read(ln)/write(ln) can be used again.
+---------------------------------------------------------------------}
+
+procedure donekeyboard;
+
 {-InitVideo---------------------------------------------------------
 Initializes the video manager, Saves the current screen mode in
 StartupMode, and switches to the mode indicated by ScreenMode.
@@ -830,7 +849,7 @@ PROCEDURE ExitDrivers; {$IFNDEF PPC_FPC}{$IFNDEF OS_UNIX} FAR; {$ENDIF}{$ENDIF}
 BEGIN
    DoneSysError;                                      { Relase error trap }
    DoneEvents;                                        { Close event driver }
-   DoneKeyboard;
+{   DoneKeyboard;}
    DoneVideo;
    ExitProc := SaveExit;                              { Restore old exit }
 END;
@@ -1169,6 +1188,8 @@ begin
    end
   else
    FillChar(Event,sizeof(TEvent),0);
+  if MouseReverse and ((Event.Buttons and 3) in [1,2]) then
+    Event.Buttons := Event.Buttons xor 3;
 end;
 
 {---------------------------------------------------------------------------}
@@ -1259,6 +1280,26 @@ END;
 
 const
   VideoInitialized : boolean = false;
+
+{---------------------------------------------------------------------------}
+{  InitKeyboard -> Platforms ALL - 07May06 DM                               }
+{---------------------------------------------------------------------------}
+
+procedure initkeyboard;inline;
+
+begin
+  keyboard.initkeyboard;
+end;
+
+{---------------------------------------------------------------------------}
+{  DoneKeyboard -> Platforms ALL - 07May06 DM                               }
+{---------------------------------------------------------------------------}
+
+procedure donekeyboard;inline;
+
+begin
+  keyboard.donekeyboard;
+end;
 
 {---------------------------------------------------------------------------}
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
@@ -1521,7 +1562,7 @@ END;
 BEGIN
    ButtonCount := DetectMouse;                        { Detect mouse }
    DetectVideo;                                       { Detect video }
-   InitKeyboard;
+{   InitKeyboard;}
    InitSystemMsg;
 {$ifdef win32}
    SetFileApisToOEM;

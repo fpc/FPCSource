@@ -211,5 +211,5 @@ var i:word;
 
 begin
   for i:=0 to standard_label_count-1 do
-    strings^.put(standard_labels[i].nr,strpas(standard_labels[i].text));
+    labels^.put(standard_labels[i].nr,strpas(standard_labels[i].text));
 end;

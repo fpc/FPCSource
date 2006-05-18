@@ -1,4 +1,4 @@
-PROGRAM TestApp;
+PROGRAM testapp;
 
 { $UNDEF OS2PM}
 
@@ -40,7 +40,7 @@ PROGRAM TestApp;
 {$IFDEF OS2PM}
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
 {$ENDIF OS2PM}
-     Objects, Drivers, Views, Menus, Dialogs, App,             { Standard GFV units }
+     Objects, Drivers, Views, Editors, Menus, Dialogs, App,             { Standard GFV units }
      FVConsts,
      {$ifdef TEST}
      AsciiTab,
@@ -48,7 +48,7 @@ PROGRAM TestApp;
      {$ifdef DEBUG}
      Gfvgraph,
      {$endif DEBUG}
-     Gadgets, TimedDlg, MsgBox;
+     Gadgets, TimedDlg, MsgBox, StdDlg;
 
 
 CONST cmAppToolbar = 1000;
@@ -61,12 +61,17 @@ CONST cmAppToolbar = 1000;
       cmCloseWindow2    = 1102;
       cmCloseWindow3    = 1103;
 
+
 {---------------------------------------------------------------------------}
 {          TTestAppp OBJECT - STANDARD APPLICATION WITH MENU                }
 {---------------------------------------------------------------------------}
 TYPE
    PTVDemo = ^TTVDemo;
+
+   { TTVDemo }
+
    TTVDemo = OBJECT (TApplication)
+        ClipboardWindow: PEditWindow;
         Clock: PClockView;
         Heap: PHeapView;
         P1,P2,P3 : PGroup;
@@ -78,11 +83,15 @@ TYPE
       PROCEDURE HandleEvent(var Event : TEvent);virtual;
       PROCEDURE InitMenuBar; Virtual;
       PROCEDURE InitDeskTop; Virtual;
+      PROCEDURE InitStatusLine; Virtual;
       PROCEDURE Window1;
       PROCEDURE Window2;
       PROCEDURE Window3;
       PROCEDURE TimedBox;
       PROCEDURE AsciiWindow;
+      PROCEDURE ShowAboutBox;
+      PROCEDURE NewEditWindow;
+      PROCEDURE OpenFile;
       PROCEDURE CloseWindow(var P : PGroup);
     End;
 
@@ -93,6 +102,7 @@ TYPE
 CONSTRUCTOR TTvDemo.Init;
 VAR R: TRect;
 BEGIN
+  EditorDialog := @StdEditorDialog;
   Inherited Init;
   { Initialize demo gadgets }
 
@@ -102,10 +112,14 @@ BEGIN
   Insert(Clock);
 
   GetExtent(R);
-  Dec(R.B.X);
-  R.A.X := R.B.X - 12; R.A.Y := R.B.Y - 1;
-  Heap := New(PHeapView, Init(R));
-  Insert(Heap);
+  ClipboardWindow := New(PEditWindow, Init(R, '', wnNoNumber));
+  if ValidView(ClipboardWindow) <> nil then
+  begin
+    ClipboardWindow^.Hide;
+    ClipboardWindow^.Editor^.CanUndo := False;
+    InsertWindow(ClipboardWindow);
+    Clipboard := ClipboardWindow^.Editor;
+  end;
 END;
 
 procedure TTVDemo.Idle;
@@ -149,6 +163,13 @@ BEGIN
    Inherited HandleEvent(Event);                      { Call ancestor }
    If (Event.What = evCommand) Then Begin
      Case Event.Command Of
+       cmClipBoard:
+         begin
+           ClipboardWindow^.Select;
+           ClipboardWindow^.Show;
+         end;
+       cmNew     : NewEditWindow;
+       cmOpen    : OpenFile;
        cmWindow1 : Window1;
        cmWindow2 : Window2;
        cmWindow3 : Window3;
@@ -157,6 +178,7 @@ BEGIN
        cmCloseWindow1 : CloseWindow(P1);
        cmCloseWindow2 : CloseWindow(P2);
        cmCloseWindow3 : CloseWindow(P3);
+       cmAbout: ShowAboutBox;
        Else Exit;                                     { Unhandled exit }
      End;
    End;
@@ -175,19 +197,27 @@ BEGIN
     NewSubMenu('~F~ile', 0, NewMenu(
       StdFileMenuItems(Nil)),                         { Standard file menu }
     NewSubMenu('~E~dit', 0, NewMenu(
-      StdEditMenuItems(Nil)),                         { Standard edit menu }
+      StdEditMenuItems(
+      NewLine(
+      NewItem('~V~iew Clipboard', '', kbNoKey, cmClipboard, hcNoContext,
+      nil)))),                 { Standard edit menu plus view clipboard}
     NewSubMenu('~T~est', 0, NewMenu(
-      NewItem('Ascii Chart','',kbNoKey,cmAscii,hcNoContext,
-      NewItem('Window 1','',kbNoKey,cmWindow1,hcNoContext,
-      NewItem('Window 2','',kbNoKey,cmWindow2,hcNoContext,
-      NewItem('Window 3','',kbNoKey,cmWindow3,hcNoContext,
-      NewItem('Timed Box','',kbNoKey,cmTimedBox,hcNoContext,
+      NewItem('~A~scii Chart','',kbNoKey,cmAscii,hcNoContext,
+      NewItem('Window ~1~','',kbNoKey,cmWindow1,hcNoContext,
+      NewItem('Window ~2~','',kbNoKey,cmWindow2,hcNoContext,
+      NewItem('Window ~3~','',kbNoKey,cmWindow3,hcNoContext,
+      NewItem('~T~imed Box','',kbNoKey,cmTimedBox,hcNoContext,
       NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
       NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
       NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
       Nil))))))))),
     NewSubMenu('~W~indow', 0, NewMenu(
-      StdWindowMenuItems(Nil)), Nil)))))));            { Standard window  menu }
+      StdWindowMenuItems(Nil)),        { Standard window  menu }
+    NewSubMenu('~H~elp', hcNoContext, NewMenu(
+      NewItem('~A~bout...','',kbNoKey,cmAbout,hcNoContext,
+      nil)),
+    nil))))) //end NewSubMenus
+   ))); //end MenuBar
 END;
 
 {--TTvDemo------------------------------------------------------------------}
@@ -217,6 +247,31 @@ BEGIN
    End;*)
    Desktop := New(PDeskTop, Init(R));
 END;
+
+procedure TTVDemo.InitStatusLine;
+var
+   R: TRect;
+begin
+  GetExtent(R);
+  R.A.Y := R.B.Y - 1;
+  R.B.X := R.B.X - 12;
+  New(StatusLine,
+    Init(R,
+      NewStatusDef(0, $EFFF,
+        NewStatusKey('~F3~ Open', kbF3, cmOpen,
+        NewStatusKey('~F4~ New', kbF4, cmNew,
+        NewStatusKey('~Alt+F3~ Close', kbAltF3, cmClose,
+        StdStatusKeys(nil
+        )))),nil
+      )
+    )
+  );
+
+  GetExtent(R);
+  R.A.X := R.B.X - 12; R.A.Y := R.B.Y - 1;
+  Heap := New(PHeapView, Init(R));
+  Insert(Heap);
+end;
 
 PROCEDURE TTvDemo.Window1;
 VAR R: TRect; P: PGroup;
@@ -253,6 +308,38 @@ begin
 {$endif TEST}
 end;
 
+PROCEDURE TTVDemo.ShowAboutBox;
+begin
+  MessageBox(#3'Free Vision TUI Framework'#13 +
+    #3'Test/Demo Application'#13+
+    #3'(www.freepascal.org)',
+    nil, mfInformation or mfOKButton);
+end;
+
+PROCEDURE TTVDemo.NewEditWindow;
+var
+  R: TRect;
+begin
+  R.Assign(0, 0, 60, 20);
+  InsertWindow(New(PEditWindow, Init(R, '', wnNoNumber)));
+end;
+
+PROCEDURE TTVDemo.OpenFile;
+var
+  R: TRect;
+  FileDialog: PFileDialog;
+  FileName: FNameStr;
+const
+  FDOptions: Word = fdOKButton or fdOpenButton;
+begin
+  FileName := '*.*';
+  New(FileDialog, Init(FileName, 'Open file', '~F~ile name', FDOptions, 1));
+  if ExecuteDialog(FileDialog, @FileName) <> cmCancel then
+  begin
+    R.Assign(0, 0, 75, 20);
+    InsertWindow(New(PEditWindow, Init(R, FileName, wnNoNumber)));
+  end;
+end;
 
 PROCEDURE TTvDemo.TimedBox;
 var
@@ -280,6 +367,7 @@ BEGIN
       P:=Nil;
     END;
 END;
+
 PROCEDURE TTvDemo.Window2;
 VAR R: TRect; P: PGroup;
 BEGIN
@@ -362,8 +450,6 @@ BEGIN
    End;*)
 
    MyApp.Init;                                        { Initialize app }
-
-
    MyApp.Run;                                         { Run the app }
 {$IFDEF OS2PM}
    {$IFDEF OS_OS2}
