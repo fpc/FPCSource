@@ -6817,6 +6817,7 @@ tests/webtbs/tw5015.pp svneol=native#text/plain
 tests/webtbs/tw5023.pp svneol=native#text/plain
 tests/webtbs/tw5036.pp svneol=native#text/plain
 tests/webtbs/tw5082.pp -text svneol=unset#text/plain
+tests/webtbs/tw6491.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain
