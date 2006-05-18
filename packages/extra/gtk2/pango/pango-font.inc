@@ -192,6 +192,8 @@ procedure pango_font_description_set_stretch(desc:PPangoFontDescription; stretch
 function pango_font_description_get_stretch(desc:PPangoFontDescription):TPangoStretch; cdecl; external pangolib;
 procedure pango_font_description_set_size(desc:PPangoFontDescription; size:gint); cdecl; external pangolib;
 function pango_font_description_get_size(desc:PPangoFontDescription):gint; cdecl; external pangolib;
+procedure pango_font_description_set_absolute_size(desc:PPangoFontDescription;size:double); cdecl; external pangolib;
+function pango_font_description_get_size_is_absolute (desc:PPangoFontDescription;size:double):gboolean; cdecl; external pangolib;
 function pango_font_description_get_set_fields(desc:PPangoFontDescription):TPangoFontMask; cdecl; external pangolib;
 procedure pango_font_description_unset_fields(desc:PPangoFontDescription; to_unset:TPangoFontMask); cdecl; external pangolib;
 procedure pango_font_description_merge(desc:PPangoFontDescription; desc_to_merge:PPangoFontDescription; replace_existing:gboolean); cdecl; external pangolib;
