@@ -5161,6 +5161,7 @@ tests/test/cg/obj/tcext5.c -text
 tests/test/cg/obj/win32/i386/ctest.o -text
 tests/test/cg/obj/win32/i386/tcext3.o -text
 tests/test/cg/obj/win32/i386/tcext4.o -text
+tests/test/cg/obj/win32/i386/tcext5.o -text
 tests/test/cg/ptest.pp svneol=native#text/plain
 tests/test/cg/taddbool.pp svneol=native#text/plain
 tests/test/cg/taddcard.pp svneol=native#text/plain
