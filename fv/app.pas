@@ -1030,14 +1030,9 @@ var s:string;
 BEGIN                                                 { Compatability only }
   DoneSysError;
   DoneEvents;
-<<<<<<< .working
   drivers.donevideo;
   drivers.donekeyboard;
 {  DoneDosMem;}
-=======
-  DoneScreen;
-{  DoneDosMem;}
->>>>>>> .merge-right.r2720
   WriteShellMsg;
 {$ifdef Unix}
   s:=getenv('SHELL');
@@ -1048,22 +1043,11 @@ BEGIN                                                 { Compatability only }
   SwapVectors;
   Exec(GetEnv('COMSPEC'), '');
   SwapVectors;
-<<<<<<< .working
-<<<<<<< .working
-=======
 {$endif}
->>>>>>> .merge-right.r3452
 {  InitDosMem;}
   drivers.initkeyboard;
   drivers.initvideo;
-<<<<<<< .working
-=======
-{  InitDosMem;}
   InitScreen;
->>>>>>> .merge-right.r2720
-=======
-  InitScreen;
->>>>>>> .merge-right.r3455
   InitEvents;
   InitSysError;
   Redraw;

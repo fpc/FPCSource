@@ -213,33 +213,34 @@ begin
   PaletteToStr:=C;
 end;
 
-function StrToPalette(S: string): string;
-var I,P,X: integer;
-    C: string;
-    Hex: boolean;
-    OK: boolean;
+function strtopalette(S: string): string;
+
+{Converts a string in palette string format, i.e #$41#$42#$43 or
+#65#66#67 to an actual format.}
+
+var i,p,x,len:byte;
+    code:integer;
+
 begin
-  C:=''; I:=1;
-  OK:=S<>'';
-  while OK and (I<=length(S)) and (S[I]='#') do
-  begin
-    Inc(I); Hex:=false;
-    if S[I]='$' then begin Inc(I); Hex:=true; end;
-    P:=Pos('#',copy(S,I,High(S))); if P>0 then P:=I+P-1 else P:=length(S)+1;
-    if Hex=false then
-      begin
-        X:=StrToInt(copy(S,I,P-I));
-        OK:=(LastStrToIntResult=0) and (0<=X) and (X<=High(S));
-      end
-    else
-      begin
-        X:=HexToInt(copy(S,I,P-I));
-        OK:=(LastHexToIntResult=0) and (0<=X) and (X<=255);
-      end;
-    if OK then C:=C+chr(X);
-    Inc(I,P-I);
-  end;
-  StrToPalette:=C;
+  i:=1;
+  len:=0;
+  while (i<=length(S)) and (s[i]='#') do
+    begin
+      s[i]:=#0;
+      inc(i);
+      p:=pos('#',s);
+      if p=0 then
+        p:=length(s)
+      else
+        p:=p-i;
+      val(copy(s,i,p),x,code); {Val supports hexadecimal.}
+      if code<>0 then
+        break;
+      inc(len);
+      strtopalette[len]:=char(X);
+      inc(i,p);
+    end;
+  strtopalette[0]:=char(len);
 end;
 
 {$ifndef NODEBUG}

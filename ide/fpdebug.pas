@@ -1031,8 +1031,9 @@ function TDebugController.GetPointerAt(addr : CORE_ADDR) : CORE_ADDR;
 var
   st : string;
   p : longint;
+  code : integer;
 begin
-  Command('x /wx 0x'+hexstr(longint(addr),8));
+  Command('x /wx 0x'+hexstr(PtrInt(addr),sizeof(PtrInt)*2));
   st:=strpas(GetOutput);
   p:=pos(':',st);
   while (p<length(st)) and (st[p+1] in [' ',#9]) do
@@ -1044,7 +1045,7 @@ begin
   while (st[p] in ['0'..'9','A'..'F','a'..'f']) do
     inc(p);
   Delete(st,p,High(st));
-  GetPointerAt:=HexToCard(st);
+  Val('$'+st,GetPointerAt,code);
 end;
 
 procedure TDebugController.DoSelectSourceLine(const fn:string;line:longint);
@@ -1193,7 +1194,7 @@ begin
        begin
           if (ExitCode<>0) or (ExitAddr<>0) then
             WarningBox(#3'Run Time Error '+IntToStr(ExitCode)+#13+
-                     #3'Error address $'+IntToHex(ExitAddr,8),nil)
+                     #3'Error address $'+HexStr(ExitAddr,8),nil)
           else
             WarningBox(#3'Run Time Error',nil);
        end
@@ -1714,6 +1715,8 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
       PDL : PDisasLine;
       S : string;
       ps,qs,i : longint;
+      HAddr : PtrInt;
+      code : integer;
   begin
     for i:=0 to PDisassemblyWindow(W)^.Editor^.GetLineCount-1 do
       begin
@@ -1732,7 +1735,8 @@ procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
           end
         else
           begin
-            If (P^.typ=bt_address) and (PDL^.Address=HexToCard(P^.Name^)) then
+            Val('$'+P^.Name^,HAddr,code);
+            If (P^.typ=bt_address) and (PDL^.Address=HAddr) then
               PDisassemblyWindow(W)^.Editor^.SetLineFlagState(i,lfBreakpoint,P^.state=bs_enabled);
           end;
       end;
