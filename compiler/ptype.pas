@@ -336,7 +336,7 @@ implementation
         begin
           consume(_SET);
           consume(_OF);
-          read_anon_type(tt2,true);
+          read_type(tt2,'',true);
           if assigned(tt2.def) then
            begin
              case tt2.def.deftype of
