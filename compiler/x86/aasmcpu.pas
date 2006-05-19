@@ -1987,7 +1987,7 @@ implementation
                  (oper[1]^.typ=top_reg) and
                  (oper[0]^.reg=oper[1]^.reg)
                 ) or
-                (((opcode=A_MOVSS) or (opcode=A_MOVSD)) and
+                (((opcode=A_MOVSS) or (opcode=A_MOVSD) or (opcode=A_MOVQ)) and
                  (regtype = R_MMREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and

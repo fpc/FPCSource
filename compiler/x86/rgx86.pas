@@ -199,7 +199,13 @@ implementation
                               A_CVTSS2SI,
                               A_CVTTPS2PI,
                               A_CVTTSS2SI,
-                              A_IMUL :
+                              A_IMUL,
+                              A_XORPD,
+                              A_XORPS,
+                              A_ORPD,
+                              A_ORPS,
+                              A_ANDPD,
+                              A_ANDPS:
                                 replaceoper:=-1;
                             end;
                           end;
