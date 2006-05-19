@@ -896,6 +896,7 @@ implementation
         pd : tprocdef;
         isclassmethod : boolean;
         locationstr: string;
+        popclass : boolean;
       begin
         locationstr:='';
         pd:=nil;
@@ -924,7 +925,18 @@ implementation
                       if try_to_consume(_COLON) then
                        begin
                          inc(testcurobject);
+                         { Add objectsymtable to be able to find generic type definitions }
+                         popclass:=false;
+                         if assigned(pd._class) and
+                            (pd.parast.symtablelevel=normal_function_level) and
+                            (symtablestack.top.symtabletype<>objectsymtable) then
+                           begin
+                             symtablestack.push(pd._class.symtable);
+                             popclass:=true;
+                           end;
                          single_type(pd.rettype,false);
+                         if popclass then
+                           symtablestack.pop(pd._class.symtable);
                          pd.test_if_fpu_result;
                          dec(testcurobject);
 
