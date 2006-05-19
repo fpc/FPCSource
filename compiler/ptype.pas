@@ -419,7 +419,41 @@ implementation
            block_type:=old_block_type;
         end;
 
-        procedure array_dec;
+
+      procedure set_dec;
+        begin
+          consume(_SET);
+          consume(_OF);
+          read_anon_type(tt2,true);
+          if assigned(tt2.def) then
+           begin
+             case tt2.def.deftype of
+               { don't forget that min can be negativ  PM }
+               enumdef :
+                 if tenumdef(tt2.def).min>=0 then
+                  // !! tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
+                  tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).max))
+                 else
+                  Message(sym_e_ill_type_decl_set);
+               orddef :
+                 begin
+                   if (torddef(tt2.def).typ<>uvoid) and
+                      (torddef(tt2.def).low>=0) then
+                     // !! tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
+                     tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
+                   else
+                     Message(sym_e_ill_type_decl_set);
+                 end;
+               else
+                 Message(sym_e_ill_type_decl_set);
+             end;
+           end
+          else
+           tt:=generrortype;
+        end;
+
+
+      procedure array_dec;
         var
           lowval,
           highval   : aint;
@@ -630,34 +664,7 @@ implementation
               end;
             _SET:
               begin
-                consume(_SET);
-                consume(_OF);
-                read_anon_type(tt2,true);
-                if assigned(tt2.def) then
-                 begin
-                   case tt2.def.deftype of
-                     { don't forget that min can be negativ  PM }
-                     enumdef :
-                       if tenumdef(tt2.def).min>=0 then
-                        // !! tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
-                        tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).max))
-                       else
-                        Message(sym_e_ill_type_decl_set);
-                     orddef :
-                       begin
-                         if (torddef(tt2.def).typ<>uvoid) and
-                            (torddef(tt2.def).low>=0) then
-                           // !! tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
-                           tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
-                         else
-                           Message(sym_e_ill_type_decl_set);
-                       end;
-                     else
-                       Message(sym_e_ill_type_decl_set);
-                   end;
-                 end
-                else
-                 tt:=generrortype;
+                set_dec;
               end;
            _CARET:
               begin
@@ -674,6 +681,8 @@ implementation
                 consume(_PACKED);
                 if token=_ARRAY then
                   array_dec
+                else if token=_SET then
+                  set_dec
                 else
                   begin
                     oldaktpackrecords:=aktpackrecords;
