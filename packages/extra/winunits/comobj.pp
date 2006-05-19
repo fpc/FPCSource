@@ -22,26 +22,6 @@ unit comobj;
       sysutils,activex;
 
     type
-      TComServerObject = class(TObject)
-      protected
-        function CountObject(Created: Boolean): Integer; virtual; abstract;
-        function CountFactory(Created: Boolean): Integer; virtual; abstract;
-        function GetHelpFileName: string; virtual; abstract;
-        function GetServerFileName: string; virtual; abstract;
-        function GetServerKey: string; virtual; abstract;
-        function GetServerName: string; virtual; abstract;
-        function GetStartSuspended: Boolean; virtual; abstract;
-        function GetTypeLib: ITypeLib; virtual; abstract;
-        procedure SetHelpFileName(const Value: string); virtual; abstract;
-      public
-        property HelpFileName: string read GetHelpFileName write SetHelpFileName;
-        property ServerFileName: string read GetServerFileName;
-        property ServerKey: string read GetServerKey;
-        property ServerName: string read GetServerName;
-        property TypeLib: ITypeLib read GetTypeLib;
-        property StartSuspended: Boolean read GetStartSuspended;
-      end;
-
       EOleError = class(Exception);
 
       EOleSysError = class(EOleError)
@@ -62,8 +42,57 @@ unit comobj;
         property Source: string read FSource write FSource;
       end;
 
-  EOleRegistrationError = class(EOleError);
+      EOleRegistrationError = class(EOleError);
 
+      TComServerObject = class(TObject)
+      protected
+        function CountObject(Created: Boolean): Integer; virtual; abstract;
+        function CountFactory(Created: Boolean): Integer; virtual; abstract;
+        function GetHelpFileName: string; virtual; abstract;
+        function GetServerFileName: string; virtual; abstract;
+        function GetServerKey: string; virtual; abstract;
+        function GetServerName: string; virtual; abstract;
+        function GetStartSuspended: Boolean; virtual; abstract;
+        function GetTypeLib: ITypeLib; virtual; abstract;
+        procedure SetHelpFileName(const Value: string); virtual; abstract;
+      public
+        property HelpFileName: string read GetHelpFileName write SetHelpFileName;
+        property ServerFileName: string read GetServerFileName;
+        property ServerKey: string read GetServerKey;
+        property ServerName: string read GetServerName;
+        property TypeLib: ITypeLib read GetTypeLib;
+        property StartSuspended: Boolean read GetStartSuspended;
+      end;
+
+    {
+      TComObject = class(TObject, IUnknown, ISupportErrorInfo)
+      protected
+        { IUnknown }
+        function IUnknown.QueryInterface = ObjQueryInterface;
+        function IUnknown._AddRef = ObjAddRef;
+        function IUnknown._Release = ObjRelease;
+        { IUnknown methods for other interfaces }
+        function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+        function _AddRef: Integer; stdcall;
+        function _Release: Integer; stdcall;
+        { ISupportErrorInfo }
+        function InterfaceSupportsErrorInfo(const iid: TIID): HResult; stdcall;
+      public
+        constructor Create;
+        constructor CreateAggregated(const Controller: IUnknown);
+        constructor CreateFromFactory(Factory: TComObjectFactory; const Controller: IUnknown);
+        destructor Destroy; override;
+        procedure Initialize; virtual;
+        function ObjAddRef: Integer; virtual; stdcall;
+        function ObjQueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+        function ObjRelease: Integer; virtual; stdcall;
+        function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult; override;
+        property Controller: IUnknown;
+        property Factory: TComObjectFactory;
+        property RefCount: Integer;
+        property ServerExceptionHandler: IServerExceptionHandler;
+      end;
+    }
 
     function CreateClassID : ansistring;
 
@@ -117,8 +146,7 @@ unit comobj;
 
    function CreateComObject(const ClassID : TGUID) : IUnknown;
      begin
-       {!!!!!!!}
-       runerror(211);
+       OleCheck(CoCreateInstance(ClassID,nil,CLSCTX_INPROC_SERVER or CLSCTX_LOCAL_SERVER,IUnknown,result));
      end;
 
 
