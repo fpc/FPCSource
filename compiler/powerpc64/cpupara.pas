@@ -278,7 +278,6 @@ var
   parashift : byte;
 
 begin
-//writeln('begin create_paraloc_info');
 {$IFDEF extdebug}
   if po_explicitparaloc in p.procoptions then
     internalerror(200411141);
@@ -292,8 +291,8 @@ begin
 
   for i := 0 to paras.count - 1 do begin
     parashift := 0;
-
     hp := tparavarsym(paras[i]);
+
     paradef := hp.vartype.def;
     { Syscall for Morphos can have already a paraloc set; not supported on ppc64 }
     if (vo_has_explicit_paraloc in hp.varoptions) then begin

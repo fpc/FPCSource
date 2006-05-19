@@ -195,6 +195,26 @@ begin
     result := result + ref.symbol.name;
 end;
 
+function cgsize2string(const size : TCgSize) : string;
+const
+  cgsize_strings : array[TCgSize] of string[6] = (
+    'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
+    'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
+    'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_MS8', 'OS_MS16', 'OS_MS32',
+    'OS_MS64', 'OS_MS128');
+begin
+  result := cgsize_strings[size];
+end;
+
+function is_signed_cgsize(const size : TCgSize) : Boolean;
+begin
+  case size of
+    OS_S8,OS_S16,OS_S32,OS_S64 : result := true;
+    OS_8,OS_16,OS_32,OS_64 : result := false;
+    else
+      internalerror(2006050701);
+  end;
+end;
 
 { helper function which calculate "magic" values for replacement of unsigned
  division by constant operation by multiplication. See the PowerPC compiler
@@ -581,19 +601,21 @@ end;
 procedure tcgppc.a_call_reg(list: TAsmList; reg: tregister);
 var
   tmpref: treference;
+  tempreg : TRegister;
 begin
   if (not (cs_opt_size in aktoptimizerswitches)) then begin
+    tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
-    into R0 }
+    into tempreg }
     reference_reset_base(tmpref, reg, 0);
-    a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R0);
+    a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
     reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_ELF);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
-    list.concat(taicpu.op_reg(A_MTCTR, NR_R0));
+    list.concat(taicpu.op_reg(A_MTCTR, tempreg));
 
     { load new TOC pointer from function descriptor into RTOC register }
     reference_reset_base(tmpref, reg, tcgsize2size[OS_ADDR]);
@@ -601,15 +623,18 @@ begin
 
     { load new environment pointer from function descriptor into R11 register }
     reference_reset_base(tmpref, reg, 2*tcgsize2size[OS_ADDR]);
+    a_reg_alloc(list, NR_R11);
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_R11);
-
     { call function }
     list.concat(taicpu.op_none(A_BCTRL));
+    a_reg_dealloc(list, NR_R11);
   end else begin
     { call ptrgl helper routine which expects the pointer to the function descriptor
     in R11 }
+    a_reg_alloc(list, NR_R11);
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
     a_call_name_direct(list, '.ptrgl', false, false);
+    a_reg_dealloc(list, NR_R11);
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
@@ -695,9 +720,11 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
            32 bits should contain -1
           - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
            32 bits should contain 0 }
+        a_reg_alloc(list, NR_R0);
         load32bitconstantR0(list, size, hi(a));
         { combine both registers }
         list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
+        a_reg_dealloc(list, NR_R0);
       end;
     end;
   end;
@@ -709,7 +736,7 @@ var
 
 begin
   {$IFDEF EXTDEBUG}
-  astring := 'a_load_const reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]);
+  astring := 'a_load_const_reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]);
   list.concat(tai_comment.create(strpnew(astring)));
   {$ENDIF EXTDEBUG}
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
@@ -1151,6 +1178,11 @@ var
   scratch_register: TRegister;
   signed: boolean;
 begin
+
+  {$IFDEF EXTDEBUG}
+  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]))));
+  {$ENDIF EXTDEBUG}
+
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
   { in the following case, we generate more efficient code when }
   { signed is true                                              }
@@ -1162,14 +1194,14 @@ begin
       list.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR0, reg, a))
     else begin
       scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      a_load_const_reg(list, OS_64, a, scratch_register);
+      a_load_const_reg(list, OS_INT, a, scratch_register);
       list.concat(taicpu.op_reg_reg_reg(A_CMPD, NR_CR0, reg, scratch_register));
     end
   else if (aword(a) <= $FFFF) then
     list.concat(taicpu.op_reg_reg_const(A_CMPLDI, NR_CR0, reg, aword(a)))
   else begin
     scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    a_load_const_reg(list, OS_64, a, scratch_register);
+    a_load_const_reg(list, OS_INT, a, scratch_register);
     list.concat(taicpu.op_reg_reg_reg(A_CMPLD, NR_CR0, reg,
       scratch_register));
   end;
@@ -1181,6 +1213,10 @@ procedure tcgppc.a_cmp_reg_reg_label(list: TAsmList; size: tcgsize;
 var
   op: tasmop;
 begin
+  {$IFDEF extdebug}
+  list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + cgsize2string(size) + ' op ' + inttostr(ord(cmp_op)))));
+  {$ENDIF extdebug}
+
   if cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE] then
     if (size in [OS_64, OS_S64]) then
       op := A_CMPD
@@ -2069,18 +2105,18 @@ begin
    adjust the offset accordingly }
   case op of
     A_LD, A_LDU, A_STD, A_STDU, A_LWA :
-     if ((ref.offset mod 4) <> 0) then begin
-       tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+       if ((ref.offset mod 4) <> 0) then begin
+        tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
 
-       if (ref.base <> NR_NO) then begin
-         a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
-         ref.base := tmpreg;
-       end else begin
-         list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
-         ref.base := tmpreg;
-       end;
-       ref.offset := (ref.offset div 4) * 4;
-     end;
+        if (ref.base <> NR_NO) then begin
+          a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
+          ref.base := tmpreg;
+        end else begin
+          list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
+          ref.base := tmpreg;
+        end;
+        ref.offset := (ref.offset div 4) * 4;
+      end;
   end;
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_store1 ' + BoolToStr(ref.refaddr = addr_pic))));
@@ -2229,7 +2265,6 @@ begin
   {$ENDIF EXTDEBUG}
   cg.a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
 end;
-
 
 begin
   cg := tcgppc.create;

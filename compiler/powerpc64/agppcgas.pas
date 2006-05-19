@@ -61,10 +61,10 @@ uses
 {****************************************************************************}
 
 constructor TPPCGNUAssembler.create(smart: boolean);
-  begin
-    inherited create(smart);
-    InstrWriter := TPPCInstrWriter.create(self);
-  end;
+begin
+  inherited create(smart);
+  InstrWriter := TPPCInstrWriter.create(self);
+end;
 
 
 procedure TPPCGNUAssembler.WriteExtraHeader;
@@ -88,18 +88,15 @@ function getreferencestring(var ref: treference): string;
 var
   s: string;
 begin
-  with ref do
-  begin
+  with ref do begin
     if ((offset < -32768) or (offset > 32767)) and
       (refaddr = addr_no) then
       ; //internalerror(19991);
     if (refaddr = addr_no) then
       s := ''
-    else
-    begin
+    else begin
       s := '(';
-      if assigned(symbol) then
-      begin
+      if assigned(symbol) then begin
         s := s + symbol.name;
         if assigned(relsymbol) then
           s := s + '-' + relsymbol.name;
@@ -107,33 +104,27 @@ begin
     end;
     if offset < 0 then
       s := s + tostr(offset)
-    else if (offset > 0) then
-    begin
+    else if (offset > 0) then begin
       if assigned(symbol) then
         s := s + '+' + tostr(offset)
       else
         s := s + tostr(offset);
     end;
 
-    if (refaddr in [addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta]) then
-    begin
+    if (refaddr in [addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta]) then begin
       s := s + ')';
       if (target_info.system <> system_powerpc_darwin) then
         s := s + refaddr2str[refaddr];
     end;
     if (refaddr = addr_pic) then s := s + ')';
 
-    if (index = NR_NO) and (base <> NR_NO) then
-    begin
-      if offset = 0 then
-      begin
+    if (index = NR_NO) and (base <> NR_NO) then begin
+      if offset = 0 then begin
         if not (assigned(symbol)) then
           s := s + '0';
       end;
       s := s + '(' + gas_regname(base) + ')';
-    end
-    else if (index <> NR_NO) and (base <> NR_NO) then
-    begin
+    end else if (index <> NR_NO) and (base <> NR_NO) then begin
       if (offset = 0) then
         s := s + gas_regname(base) + ',' + gas_regname(index)
       else
@@ -181,16 +172,14 @@ begin
     top_const:
       getopstr := tostr(longint(o.val));
     top_ref:
-      if o.ref^.refaddr = addr_full then
-      begin
+      if o.ref^.refaddr = addr_full then begin
         hs := o.ref^.symbol.name;
         if o.ref^.offset > 0 then
           hs := hs + '+' + tostr(o.ref^.offset)
         else if o.ref^.offset < 0 then
           hs := hs + tostr(o.ref^.offset);
         getopstr := hs;
-      end
-      else
+      end else
         getopstr := getreferencestring(o.ref^);
   else
     internalerror(2002070604);
@@ -270,8 +259,7 @@ begin
           end;
         end
           { we have a trap instruction }
-      else
-      begin
+      else begin
         internalerror(2002070601);
         { not yet implemented !!!!!!!!!!!!!!!!!!!!! }
         { case tempstr := 'tw';}
@@ -292,12 +280,10 @@ var
   sep: string[3];
 begin
   op := taicpu(hp).opcode;
-  if is_calljmp(op) then
-  begin
+  if is_calljmp(op) then begin
     { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
     case op of
-      A_BL :
-        s := #9 + gas_op2str[op] + #9;
+      A_BL,
       A_B, A_BA, A_BLA:
         s := #9 + gas_op2str[op] + #9;
       A_BCTR, A_BCTRL, A_BLR, A_BLRL:
@@ -311,28 +297,23 @@ begin
       end;
     end;
 
-    if (taicpu(hp).ops > 0) and (taicpu(hp).oper[0]^.typ <> top_none) then
-    begin
+    if (taicpu(hp).ops > 0) and (taicpu(hp).oper[0]^.typ <> top_none) then begin
       { first write the current contents of s, because the symbol }
       { may be 255 characters                                     }
       owner.AsmWrite(s);
       s := getopstr_jmp(taicpu(hp).oper[0]^);
     end;
-  end
-  else
+  end else begin
     { process operands }
-  begin
     s := #9 + gas_op2str[op];
-    if taicpu(hp).ops <> 0 then
-    begin
+    if taicpu(hp).ops <> 0 then begin
       {
         if not is_calljmp(op) then
           sep:=','
         else
       }
       sep := #9;
-      for i := 0 to taicpu(hp).ops - 1 do
-      begin
+      for i := 0 to taicpu(hp).ops - 1 do begin
         // debug code
         // writeln(s);
         // writeln(taicpu(hp).fileinfo.line);

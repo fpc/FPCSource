@@ -73,7 +73,7 @@ const
     'extlwi', 'extlwi.', 'extrwi', 'extrwi.', 'inslwi', 'inslwi.', 'insrwi',
     'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
     'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
-    'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
+    'clrslwi.', 'bf', 'bt', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
     'crnot', 'mt', 'mf', 'nop', 'li', 'lis', 'la', 'mr', 'mr.', 'not', 'mtcr',
       'mtlr', 'mflr',
     'mtctr', 'mfctr',
@@ -124,8 +124,7 @@ begin
   p := 0;
   i := regnumber_count_bsstart;
   repeat
-    if (p + i <= high(tregisterindex)) and (gas_regname_table[gas_regname_index[p
-      + i]] <= s) then
+    if (p + i <= high(tregisterindex)) and (gas_regname_table[gas_regname_index[p + i]] <= s) then
       p := p + i;
     i := i shr 1;
   until i = 0;

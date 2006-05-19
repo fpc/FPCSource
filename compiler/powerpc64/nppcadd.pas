@@ -176,6 +176,11 @@ begin
   // get the constant on the right if there is one
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
+
+  {$IFDEF EXTDEBUG}
+  current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
+  {$ENDIF EXTDEBUG}
+
   // can we use an immediate, or do we have to load the
   // constant in a register first?
   if (right.location.loc = LOC_CONSTANT) then begin
@@ -198,13 +203,14 @@ begin
     else begin
       useconst := false;
       tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT,
-        right.location.value, tmpreg);
+      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, right.location.value, tmpreg);
     end
   end else
     useconst := false;
+
   location.loc := LOC_FLAGS;
   location.resflags := getresflags;
+
   if not unsigned then
     if useconst then
       op := A_CMPDI
@@ -492,10 +498,10 @@ begin
   if not (cmpop) and
     (location.register = NR_NO) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
-
+  {$ifdef extdebug}
   astring := 'addsmallset0 ' + inttostr(aword(1) shl aword(right.location.value)) + ' ' + inttostr(right.location.value);
   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew(astring)));
-
+  {$endif extdebug}
 
   case nodetype of
     addn:
@@ -508,10 +514,10 @@ begin
           if assigned(tsetelementnode(right).right) then
             internalerror(43244);
           if (right.location.loc = LOC_CONSTANT) then begin
-
+            {$ifdef extdebug}
             astring := 'addsmallset1 ' + inttostr(aword(1) shl aword(right.location.value)) + ' ' + inttostr(right.location.value);
             current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew(astring)));
-
+            {$endif extdebug}
 
             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_64,
               aint(1) shl aint(right.location.value),
@@ -526,9 +532,10 @@ begin
               cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_64, tmpreg,
                 left.location.register, location.register)
             end else begin
+              {$ifdef extdebug}
               astring := 'addsmallset2 ' + inttostr(left.location.value);
               current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew(astring)));
-
+              {$endif extdebug}
               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_OR, OS_64,
                 left.location.value, tmpreg, location.register);
             end;
@@ -572,7 +579,7 @@ begin
         end;
       end;
     equaln,
-      unequaln:
+    unequaln:
       begin
         emit_compare(true);
         opdone := true;
@@ -717,8 +724,7 @@ begin
     not (cmpop) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
-  if not (cs_check_overflow in aktlocalswitches) or
-    (cmpop) or
+  if not (cs_check_overflow in aktlocalswitches) or (cmpop) or
     (nodetype in [orn, andn, xorn]) then
   begin
     case nodetype of
@@ -775,6 +781,10 @@ begin
         end;
       ltn, lten, gtn, gten, equaln, unequaln:
         begin
+          {$ifdef extdebug}
+          current_asmdata.CurrAsmList.concat(tai_comment.create('tppcaddnode.pass2'));
+          {$endif extdebug}
+
           emit_compare(unsigned);
         end;
     end;

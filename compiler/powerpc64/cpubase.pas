@@ -81,7 +81,7 @@ type
     a_extlwi, a_extlwi_, a_extrwi, a_extrwi_, a_inslwi, a_inslwi_, a_insrwi,
     a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
     a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
-    a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
+    a_clrslwi_, a_bf, a_bt, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
     a_crnot, a_mt {move to special prupose reg}, a_mf
       {move from special purpose reg},
     a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr, a_mtlr, a_mflr,
@@ -212,7 +212,7 @@ const
     true, false,
     true, false, false, true, false, false, true, false);
 
-  AsmCondFlag2Str: array[TAsmCondFlag] of string[4] = ({cf_none}'',
+  AsmCondFlag2Str : array[TAsmCondFlag] of string[4] = ({cf_none}'',
     { conditions when not using ctr decrement etc}
     'lt', 'le', 'eq', 'ge', 'gt', 'nl', 'ne', 'ng', 'so', 'ns', 'un', 'nu',
     't', 'f', 'dnz', 'dnzt', 'dnzf', 'dz', 'dzt', 'dzf');
@@ -398,7 +398,7 @@ function is_condreg(r: tregister): boolean;
 function inverse_cond(const c: TAsmCond): Tasmcond;
 {$IFDEF USEINLINE}inline;{$ENDIF USEINLINE}
 function conditions_equal(const c1, c2: TAsmCond): boolean;
-    function dwarf_reg(r:tregister):byte;
+function dwarf_reg(r:tregister):byte;
 
 implementation
 
@@ -546,12 +546,12 @@ begin
     result := generic_regname(r);
 end;
 
-    function dwarf_reg(r:tregister):byte;
-      begin
-        result:=regdwarf_table[findreg_by_number(r)];
-        if result=-1 then
-          internalerror(200603251);
-      end;
+function dwarf_reg(r:tregister):byte;
+begin
+  result:=regdwarf_table[findreg_by_number(r)];
+  if result=-1 then
+    internalerror(200603251);
+end;
 
 
 end.
