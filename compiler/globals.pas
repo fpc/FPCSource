@@ -2020,7 +2020,7 @@ end;
         for t:=low(tfputype) to high(tfputype) do
           if fputypestr[t]=s then
             begin
-              aktfputype:=t;
+              a:=t;
               result:=true;
               break;
             end;
