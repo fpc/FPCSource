@@ -641,14 +641,21 @@ implementation
 ****************************************************************************}
 
     { marks an lvalue as "unregable" }
-    procedure make_not_regable(p : tnode; how: tvarregable);
+    procedure make_not_regable_intern(p : tnode; how: tvarregable; records_only: boolean);
       begin
          case p.nodetype of
+             subscriptn:
+               make_not_regable_intern(tsubscriptnode(p).left,how,true);
             typeconvn :
-              make_not_regable(ttypeconvnode(p).left,how);
+               if (ttypeconvnode(p).resulttype.def.deftype = recorddef) then
+                 make_not_regable_intern(ttypeconvnode(p).left,how,false)
+               else
+                 make_not_regable_intern(ttypeconvnode(p).left,how,records_only);
             loadn :
               if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) and
-                 (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) then
+                 (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
+                 ((not records_only) or
+                  (tabstractvarsym(tloadnode(p).symtableentry).vartype.def.deftype = recorddef)) then
                 if (tloadnode(p).symtableentry.typ = paravarsym) then
                   tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
                 else
@@ -656,6 +663,10 @@ implementation
          end;
       end;
 
+    procedure make_not_regable(p : tnode; how: tvarregable);
+      begin
+        make_not_regable_intern(p,how,false);
+      end;
 
     { calculates the needed registers for a binary operator }
     procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);

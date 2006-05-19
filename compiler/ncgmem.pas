@@ -307,28 +307,51 @@ implementation
              { some abi's require that functions return (some) records in }
              { registers                                                  }
              case location.loc of
-               LOC_REGISTER:
-                 location_force_mem(current_asmdata.CurrAsmList,location);
                LOC_REFERENCE,
                LOC_CREFERENCE:
                  ;
-{              record regvars are not supported yet
-               LOC_CREGISTER:                        }
+               LOC_REGISTER,
+               LOC_CREGISTER:
+                 begin
+                   if (left.location.loc = LOC_REGISTER) then
+                     location.loc := LOC_SUBSETREG
+                   else
+                     location.loc := LOC_CSUBSETREG;
+                   location.size:=def_cgsize(resulttype.def);
+                   location.subsetreg := left.location.register;
+                   location.subsetregsize := left.location.size;
+                   if (target_info.endian = ENDIAN_BIG) then
+                     location.startbit := (tcgsize2size[location.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                   else
+                     location.startbit := (vs.fieldoffset * 8);
+                 end;
+               LOC_SUBSETREG,
+               LOC_CSUBSETREG:
+                 begin
+                   location.size:=def_cgsize(resulttype.def);
+                   if (target_info.endian = ENDIAN_BIG) then
+                     inc(location.startbit, (left.resulttype.def.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
+                   else
+                     inc(location.startbit, vs.fieldoffset * 8);
+                 end;
                else
                  internalerror(2006031901);
              end;
            end;
 
-         inc(location.reference.offset,vs.fieldoffset);
-{$ifdef SUPPORT_UNALIGNED}
-         { packed? }
-         if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
-           (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
-           location.reference.alignment:=1;
-{$endif SUPPORT_UNALIGNED}
-
-         { also update the size of the location }
-         location.size:=def_cgsize(resulttype.def);
+         if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+           begin
+             inc(location.reference.offset,vs.fieldoffset);
+    {$ifdef SUPPORT_UNALIGNED}
+             { packed? }
+             if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
+               (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
+               location.reference.alignment:=1;
+    {$endif SUPPORT_UNALIGNED}
+    
+             { also update the size of the location }
+             location.size:=def_cgsize(resulttype.def);
+           end;
          paraloc1.done;
       end;
 

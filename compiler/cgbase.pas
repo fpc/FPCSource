@@ -50,7 +50,10 @@ interface
          { multimedia register }
          LOC_MMREGISTER,
          { Constant multimedia reg which shouldn't be modified }
-         LOC_CMMREGISTER
+         LOC_CMMREGISTER,
+         { contiguous subset of bits of an integer register }
+         LOC_SUBSETREG,
+         LOC_CSUBSETREG
        );
 
        { since we have only 16bit offsets, we need to be able to specify the high
@@ -266,7 +269,7 @@ interface
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128);
 
-       tcgloc2str : array[TCGLoc] of string[11] = (
+       tcgloc2str : array[TCGLoc] of string[12] = (
             'LOC_INVALID',
             'LOC_VOID',
             'LOC_CONST',
@@ -281,7 +284,9 @@ interface
             'LOC_MMXREG',
             'LOC_CMMXREG',
             'LOC_MMREG',
-            'LOC_CMMREG');
+            'LOC_CMMREG',
+            'LOC_SSETREG',
+            'LOC_CSSETREG');
 
     var
        mms_movescalar : pmmshuffle;

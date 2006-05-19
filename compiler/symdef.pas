@@ -1148,6 +1148,8 @@ implementation
 
 
    function tstoreddef.is_intregable : boolean;
+     var
+       recsize,recsizep2: longint;
      begin
         is_intregable:=false;
         case deftype of
@@ -1162,6 +1164,13 @@ implementation
             is_intregable:=is_class(self) or is_interface(self);
           setdef:
             is_intregable:=(tsetdef(self).settype=smallset);
+          recorddef:
+            begin
+              recsize:=size;
+              is_intregable:=
+                ispowerof2(recsize,recsizep2) and
+                (recsize <= sizeof(aint));
+            end;
         end;
      end;
 

@@ -214,6 +214,14 @@ unit cgobj;
           procedure a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
+          procedure a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize; startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister); virtual;
+          procedure a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister); virtual;
+          procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetregsize, fromsubsetsize: tcgsize; fromstartbit: byte; tosubsetregsize, tosubsetsize: tcgsize; tostartbit: byte; fromsubsetreg, tosubsetreg: tregister); virtual;
+          procedure a_load_subsetreg_ref(list : TAsmList; subsetregsize, subsetsize: tcgsize; startbit: byte; tosize: tcgsize; subsetreg: tregister; const destref: treference); virtual;
+          procedure a_load_ref_subsetreg(list : TAsmList; fromsize, subsetregsize, subsetsize: tcgsize; startbit: byte; const fromref: treference; subsetreg: tregister); virtual;
+          procedure a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize; startbit: byte; a: aint; subsetreg: tregister); virtual;
+          procedure a_load_subsetreg_loc(list: TAsmlist; subsetregsize, subsetsize: tcgsize; startbit: byte; subsetreg: tregister; const loc: tlocation); virtual;
+
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; size:tcgsize; reg1, reg2: tregister); virtual; abstract;
           procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
@@ -244,10 +252,12 @@ unit cgobj;
           { destination (JM)                                                    }
           procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: Aint; reg: TRegister); virtual; abstract;
           procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: Aint; const ref: TReference); virtual;
+          procedure a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetregsize, subsetsize : TCGSize; startbit: byte; a : aint; subsetreg: TRegister); virtual;
           procedure a_op_const_loc(list : TAsmList; Op: TOpCG; a: Aint; const loc: tlocation);
           procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); virtual; abstract;
           procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); virtual;
           procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); virtual;
+          procedure a_op_reg_subsetreg(list : TAsmList; Op : TOpCG; opsize, subsetregsize, subsetsize : TCGSize; startbit: byte; reg, subsetreg: TRegister); virtual;
           procedure a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
           procedure a_op_ref_loc(list : TAsmList; Op: TOpCG; const ref: TReference; const loc: tlocation);
 
@@ -269,6 +279,8 @@ unit cgobj;
           procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
           procedure a_cmp_ref_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
           procedure a_cmp_reg_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg : tregister; const ref: treference; l : tasmlabel); virtual;
+          procedure a_cmp_subsetreg_reg_label(list : TAsmList; subsetregsize, subsetsize : tcgsize; startbit : byte; cmpsize : tcgsize; cmp_op : topcmp; subsetreg, reg : tregister; l : tasmlabel); virtual;
+
           procedure a_cmp_loc_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; const loc: tlocation; reg : tregister; l : tasmlabel);
           procedure a_cmp_reg_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp; reg: tregister; const loc: tlocation; l : tasmlabel);
           procedure a_cmp_ref_loc_label(list: TAsmList; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
@@ -849,6 +861,112 @@ implementation
                        some generic implementations
 ****************************************************************************}
 
+{$ifopt r+}
+{$define rangeon}
+{$endif}
+
+{$ifopt q+}
+{$define overflowon}
+{$endif}
+
+   procedure tcg.a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize; startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister);
+     var
+       bitmask: aint;
+       tmpreg: tregister;
+       stopbit: byte;
+     begin
+       tmpreg:=getintregister(list,subsetregsize);
+       a_op_const_reg_reg(list,OP_SHR,subsetregsize,startbit,subsetreg,tmpreg);
+       stopbit := startbit+(tcgsize2size[subsetsize] * 8);
+       // on x86(64), 1 shl 32(64) = 1 instead of 0
+       if (stopbit - startbit <> AIntBits) then
+         bitmask := (1 shl (stopbit-startbit)) - 1
+       else
+         bitmask := -1;
+       a_op_const_reg(list,OP_AND,subsetregsize,bitmask,tmpreg);
+       tmpreg := makeregsize(list,tmpreg,subsetsize);
+       a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,tmpreg,tmpreg);
+       a_load_reg_reg(list,subsetsize,tosize,tmpreg,destreg);
+     end;
+
+
+   procedure tcg.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister);
+     var
+       bitmask: aint;
+       tmpreg: tregister;
+       stopbit: byte;
+     begin
+       tmpreg:=getintregister(list,subsetregsize);
+       a_load_reg_reg(list,fromsize,subsetregsize,fromreg,tmpreg);
+       a_op_const_reg(list,OP_SHL,subsetregsize,startbit,tmpreg);
+       stopbit := startbit+(tcgsize2size[subsetsize] * 8);
+       // on x86(64), 1 shl 32(64) = 1 instead of 0
+       if (stopbit <> AIntBits) then
+         bitmask := not(((1 shl stopbit)-1) xor ((1 shl startbit)-1))
+       else
+         bitmask := not(-1 xor ((1 shl startbit)-1));
+       a_op_const_reg(list,OP_AND,subsetregsize,bitmask,subsetreg);
+       a_op_reg_reg(list,OP_OR,subsetregsize,tmpreg,subsetreg);
+     end;
+
+
+  procedure tcg.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetregsize, fromsubsetsize: tcgsize; fromstartbit: byte; tosubsetregsize, tosubsetsize: tcgsize; tostartbit: byte; fromsubsetreg, tosubsetreg: tregister);
+    var
+      tmpreg: tregister;
+    begin
+      tmpreg := getintregister(list,tosubsetsize);
+      a_load_subsetreg_reg(list,fromsubsetregsize,fromsubsetsize,fromstartbit,tosubsetsize,fromsubsetreg,tmpreg);
+      a_load_reg_subsetreg(list,tosubsetsize,tosubsetregsize,tosubsetsize,tostartbit,tmpreg,tosubsetreg);
+    end;
+
+
+   procedure tcg.a_load_subsetreg_ref(list : TAsmList; subsetregsize, subsetsize: tcgsize; startbit: byte; tosize: tcgsize; subsetreg: tregister; const destref: treference);
+     var
+       tmpreg: tregister;
+     begin
+       tmpreg := getintregister(list,tosize);
+       a_load_subsetreg_reg(list,subsetregsize,subsetsize,startbit,tosize,subsetreg,tmpreg);
+       a_load_reg_ref(list,tosize,tosize,tmpreg,destref);
+     end;
+
+
+   procedure tcg.a_load_ref_subsetreg(list : TAsmList; fromsize, subsetregsize, subsetsize: tcgsize; startbit: byte; const fromref: treference; subsetreg: tregister);
+     var
+       tmpreg: tregister;
+     begin
+       tmpreg := getintregister(list,subsetsize);
+       a_load_ref_reg(list,fromsize,subsetsize,fromref,tmpreg);
+       a_load_reg_subsetreg(list,subsetsize,subsetregsize,subsetsize,startbit,tmpreg,subsetreg);
+     end;
+
+
+  procedure tcg.a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize; startbit: byte; a: aint; subsetreg: tregister);
+    var
+      bitmask: aint;
+      stopbit: byte;
+    begin
+       stopbit := startbit+(tcgsize2size[subsetsize] * 8);
+       // on x86(64), 1 shl 32(64) = 1 instead of 0
+       if (stopbit <> AIntBits) then
+         bitmask := not(((1 shl stopbit)-1) xor ((1 shl startbit)-1))
+       else
+         bitmask := (1 shl startbit) - 1;
+       a_op_const_reg(list,OP_AND,subsetregsize,bitmask,subsetreg);
+       a_op_const_reg(list,OP_OR,subsetregsize,a shl startbit,subsetreg);
+    end;
+
+
+{$ifdef rangeon}
+{$r+}
+{$undef rangeon}
+{$endif}
+
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
+
+
     procedure tcg.a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
       var
         tmpreg: tregister;
@@ -879,6 +997,8 @@ implementation
             a_load_const_ref(list,loc.size,a,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
             a_load_const_reg(list,loc.size,a,loc.register);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_const_subsetreg(list,loc.subsetregsize,loc.size,loc.startbit,a,loc.subsetreg);
           else
             internalerror(200203272);
         end;
@@ -892,6 +1012,8 @@ implementation
             a_load_reg_ref(list,fromsize,loc.size,reg,loc.reference);
           LOC_REGISTER,LOC_CREGISTER:
             a_load_reg_reg(list,fromsize,loc.size,reg,loc.register);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_reg_subsetreg(list,fromsize,loc.subsetregsize,loc.size,loc.startbit,reg,loc.subsetreg);
           else
             internalerror(200203271);
         end;
@@ -907,6 +1029,8 @@ implementation
             a_load_reg_reg(list,loc.size,tosize,loc.register,reg);
           LOC_CONSTANT:
             a_load_const_reg(list,tosize,loc.value,reg);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_subsetreg_reg(list,loc.subsetregsize,loc.size,loc.startbit,tosize,loc.subsetreg,reg);
           else
             internalerror(200109092);
         end;
@@ -922,8 +1046,25 @@ implementation
             a_load_reg_ref(list,loc.size,tosize,loc.register,ref);
           LOC_CONSTANT:
             a_load_const_ref(list,tosize,loc.value,ref);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_subsetreg_ref(list,loc.subsetregsize,loc.size,loc.startbit,tosize,loc.subsetreg,ref);
           else
             internalerror(200109302);
+        end;
+      end;
+
+
+    procedure tcg.a_load_subsetreg_loc(list: TAsmlist; subsetregsize, subsetsize: tcgsize; startbit: byte; subsetreg: tregister; const loc: tlocation);
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_load_subsetreg_ref(list,subsetregsize,subsetsize,startbit,loc.size,subsetreg,loc.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_subsetreg_reg(list,subsetregsize,subsetsize,startbit,loc.size,subsetreg,loc.register);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_subsetreg_subsetreg(list,subsetregsize,subsetsize,startbit,loc.subsetregsize,loc.size,loc.startbit,subsetreg,loc.subsetreg);
+          else
+            internalerror(2006051510);
         end;
       end;
 
@@ -1083,6 +1224,17 @@ implementation
       end;
 
 
+    procedure tcg.a_op_const_subsetreg(list : TAsmList; Op : TOpCG; size, subsetregsize, subsetsize : TCGSize; startbit: byte; a : aint; subsetreg: TRegister);
+      var
+        tmpreg: tregister;
+      begin
+        tmpreg := cg.getintregister(list, size);
+        a_load_subsetreg_reg(list,subsetregsize,subsetsize,startbit,size,subsetreg,tmpreg);
+        a_op_const_reg(list,op,size,a,tmpreg);
+        a_load_reg_subsetreg(list,size,subsetregsize,subsetsize,startbit,tmpreg,subsetreg);
+      end;
+
+
     procedure tcg.a_op_const_loc(list : TAsmList; Op: TOpCG; a: aint; const loc: tlocation);
       begin
         case loc.loc of
@@ -1090,6 +1242,8 @@ implementation
             a_op_const_reg(list,op,loc.size,a,loc.register);
           LOC_REFERENCE, LOC_CREFERENCE:
             a_op_const_ref(list,op,loc.size,a,loc.reference);
+          LOC_SUBSETREG, LOC_CSUBSETREG:
+            a_op_const_subsetreg(list,op,loc.size,loc.subsetregsize,loc.size,loc.startbit,a,loc.subsetreg);
           else
             internalerror(200109061);
         end;
@@ -1130,6 +1284,17 @@ implementation
       end;
 
 
+    procedure tcg.a_op_reg_subsetreg(list : TAsmList; Op : TOpCG; opsize, subsetregsize, subsetsize : TCGSize; startbit: byte; reg, subsetreg: TRegister);
+      var
+        tmpreg: tregister;
+      begin
+        tmpreg := cg.getintregister(list, opsize);
+        a_load_subsetreg_reg(list,subsetregsize,subsetsize,startbit,opsize,subsetreg,tmpreg);
+        a_op_reg_reg(list,op,opsize,reg,tmpreg);
+        a_load_reg_subsetreg(list,opsize,subsetregsize,subsetsize,startbit,tmpreg,subsetreg);
+      end;
+
+
     procedure tcg.a_op_reg_loc(list : TAsmList; Op: TOpCG; reg: tregister; const loc: tlocation);
 
       begin
@@ -1138,6 +1303,8 @@ implementation
             a_op_reg_reg(list,op,loc.size,reg,loc.register);
           LOC_REFERENCE, LOC_CREFERENCE:
             a_op_reg_ref(list,op,loc.size,reg,loc.reference);
+          LOC_SUBSETREG, LOC_CSUBSETREG:
+            a_op_reg_subsetreg(list,op,loc.size,loc.subsetregsize,loc.size,loc.startbit,reg,loc.subsetreg);
           else
             internalerror(200109061);
         end;
@@ -1159,10 +1326,18 @@ implementation
               a_load_ref_reg(list,loc.size,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
             end;
+          LOC_SUBSETREG, LOC_CSUBSETREG:
+            begin
+              tmpreg:=getintregister(list,loc.size);
+              a_load_subsetreg_reg(list,loc.subsetregsize,loc.size,loc.startbit,loc.size,loc.subsetreg,tmpreg);
+              a_op_ref_reg(list,op,loc.size,ref,tmpreg);
+              a_load_reg_subsetreg(list,loc.size,loc.subsetregsize,loc.size,loc.startbit,tmpreg,loc.subsetreg);
+            end;
           else
             internalerror(200109061);
         end;
       end;
+
 
     procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                      a:aint;src,dst:Tregister);
@@ -1211,6 +1386,7 @@ implementation
 
       var
         tmpreg: tregister;
+
       begin
         tmpreg:=getintregister(list,size);
         a_load_ref_reg(list,size,size,ref,tmpreg);
@@ -1221,12 +1397,21 @@ implementation
     procedure tcg.a_cmp_const_loc_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;const loc : tlocation;
       l : tasmlabel);
 
+      var
+        tmpreg : tregister;
+
       begin
         case loc.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_cmp_const_reg_label(list,size,cmp_op,a,loc.register,l);
           LOC_REFERENCE,LOC_CREFERENCE:
             a_cmp_const_ref_label(list,size,cmp_op,a,loc.reference,l);
+          LOC_SUBSETREG, LOC_CSUBSETREG:
+            begin
+              tmpreg:=getintregister(list,size);
+              a_load_subsetreg_reg(list,loc.subsetregsize,loc.size,loc.startbit,size,loc.subsetreg,tmpreg);
+              a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
+            end
           else
             internalerror(200109061);
         end;
@@ -1270,9 +1455,22 @@ implementation
             a_cmp_ref_reg_label(list,size,cmp_op,loc.reference,reg,l);
           LOC_CONSTANT:
             a_cmp_const_reg_label(list,size,cmp_op,loc.value,reg,l);
+          LOC_SUBSETREG,
+          LOC_CSUBSETREG:
+            a_cmp_subsetreg_reg_label(list,loc.subsetregsize,loc.size,loc.startbit,size,cmp_op,loc.subsetreg,reg,l);
           else
             internalerror(200203231);
         end;
+      end;
+
+
+    procedure tcg.a_cmp_subsetreg_reg_label(list : TAsmList; subsetregsize, subsetsize : tcgsize; startbit : byte; cmpsize : tcgsize; cmp_op : topcmp; subsetreg, reg : tregister; l : tasmlabel);
+      var
+        tmpreg: tregister;
+      begin
+        tmpreg:=getintregister(list, cmpsize);
+        a_load_subsetreg_reg(list,subsetregsize,subsetsize,startbit,cmpsize,subsetreg,tmpreg);
+        a_cmp_reg_reg_label(list,cmpsize,cmp_op,tmpreg,reg,l);
       end;
 
 
@@ -1289,7 +1487,13 @@ implementation
               tmpreg:=getintregister(list,size);
               a_load_ref_reg(list,size,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
-            end
+            end;
+          LOC_SUBSETREG, LOC_CSUBSETREG:
+            begin
+              tmpreg:=getintregister(list, size);
+              a_load_ref_reg(list,size,size,loc.reference,tmpreg);
+              a_cmp_subsetreg_reg_label(list,loc.subsetregsize,loc.size,loc.startbit,size,swap_opcmp(cmp_op),loc.subsetreg,tmpreg,l);
+            end;
           else
             internalerror(200109061);
         end;

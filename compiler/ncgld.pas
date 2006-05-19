@@ -609,6 +609,9 @@ implementation
                         left.location.size,
                         right.location.reference,
                         left.location.register,mms_movescalar);
+                    LOC_SUBSETREG,
+                    LOC_CSUBSETREG:
+                      cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.subsetregsize,left.location.size,left.location.startbit,right.location.reference,left.location.subsetreg);
                     else
                       internalerror(200203284);
                   end;
@@ -674,6 +677,13 @@ implementation
                     cg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
                         tfloat2tcgsize[fputyp],
                         right.location.register,left.location);
+                end;
+              LOC_SUBSETREG,
+              LOC_CSUBSETREG:
+                begin
+                  cg.a_load_subsetreg_loc(current_asmdata.CurrAsmList,
+                      right.location.subsetregsize,right.location.size,right.location.startbit,
+                      right.location.register,left.location);
                 end;
               LOC_JUMP :
                 begin

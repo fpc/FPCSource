@@ -579,6 +579,11 @@ implementation
         { tp procvar support }
         maybe_call_procvar(left,true);
         resulttype:=vs.vartype;
+
+        // don't put records from which we load fields which aren't regable in integer registers
+        if (left.resulttype.def.deftype = recorddef) and
+           not(tstoreddef(resulttype.def).is_intregable) then
+          make_not_regable(left,vr_addr);
       end;
 
     procedure Tsubscriptnode.mark_write;
@@ -608,9 +613,6 @@ implementation
            end
          else
            begin
-              if (left.expectloc<>LOC_CREFERENCE) and
-                 (left.expectloc<>LOC_REFERENCE) then
-                CGMessage(parser_e_illegal_expression);
               expectloc:=left.expectloc;
            end;
       end;

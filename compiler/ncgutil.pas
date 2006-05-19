@@ -261,6 +261,7 @@ implementation
       var
         opsize : tcgsize;
         storepos : tfileposinfo;
+        tmpreg : tregister;
       begin
          if nf_error in p.flags then
            exit;
@@ -283,12 +284,15 @@ implementation
                 begin
                    opsize:=def_cgsize(p.resulttype.def);
                    case p.location.loc of
+                     LOC_SUBSETREG,LOC_CSUBSETREG:
+                       begin
+                         tmpreg := cg.getintregister(list,OS_INT);
+                         cg.a_load_subsetreg_reg(list,p.location.subsetregsize,p.location.size,p.location.startbit,OS_INT,p.location.subsetreg,tmpreg);
+                         cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
+                         cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
+                       end;
                      LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE :
                        begin
-{$ifdef OLDREGVARS}
-                         if (p.location.loc = LOC_CREGISTER) then
-                           load_regvar_reg(list,p.location.register);
-{$endif OLDREGVARS}
                          cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
@@ -572,7 +576,8 @@ implementation
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
 {$ifdef x86}
-                   l.size:=dst_size;
+                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+                     l.size:=dst_size;
 {$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
@@ -740,6 +745,14 @@ implementation
               else
 {$endif cpu64bit}
                 cg.a_load_loc_ref(list,l.size,l,r);
+              location_reset(l,LOC_REFERENCE,l.size);
+              l.reference:=r;
+            end;
+          LOC_SUBSETREG,
+          LOC_CSUBSETREG:
+            begin
+              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              cg.a_load_subsetreg_ref(list,l.subsetregsize,l.size,l.startbit,l.size,l.subsetreg,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;

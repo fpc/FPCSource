@@ -49,10 +49,17 @@ than 255 characters. That's why using Ansi Strings}
 {$ifdef cpu64bit}
        AWord = qword;
        AInt = Int64;
+
+     Const
+       AIntBits = 64;
 {$else cpu64bit}
        AWord = longword;
        AInt = longint;
+
+     Const
+       AIntBits = 32;
 {$endif cpu64bit}
+     Type
        PAWord = ^AWord;
        PAInt = ^AInt;
 

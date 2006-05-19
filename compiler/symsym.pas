@@ -1283,7 +1283,12 @@ implementation
                 ((refpara and
                   (varregable <> vr_none)) or
                  (not refpara and
-                  not(varregable in [vr_none,vr_addr])));
+                  not(varregable in [vr_none,vr_addr])))
+{$if not defined(powerpc) and not defined(powerpc64)}
+                and ((vartype.def.deftype <> recorddef) or
+                     (varregable = vr_addr) or
+                     not(varstate in [vs_written,vs_readwritten]));
+{$endif}
       end;
 
 

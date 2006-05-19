@@ -93,6 +93,12 @@ unit cgutils;
                 2 : (register64 : tregister64);
 {$endif cpu64bit}
               );
+            LOC_SUBSETREG,
+            LOC_CSUBSETREG : (
+              subsetreg : tregister;
+              startbit: byte;
+              subsetregsize: tcgsize;
+            );
       end;
 
 
