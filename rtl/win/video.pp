@@ -161,8 +161,8 @@ begin
         begin
           Top := 0;
           Left := 0;
-(* First, we need to make sure we reach the minimum window size *)
-(* to always fit in the new buffer after changing buffer size.  *)
+          { First, we need to make sure we reach the minimum window size
+            to always fit in the new buffer after changing buffer size. }
           Right := MI.srWindow.Right - MI.srWindow.Left;
           if VideoMode.Col <= Right then
             Right := Pred (VideoMode.Col);
@@ -171,24 +171,24 @@ begin
             Bottom := Pred (VideoMode.Row);
         end;
       if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
-      if SetConsoleScreenBufferSize (TextRec (Output).Handle, C) then
+        if SetConsoleScreenBufferSize (TextRec (Output).Handle, C) then
           begin
             with SR do
               begin
-(* Now, we can resize the window to the final size. *)
+                { Now, we can resize the window to the final size. }
                 Right := Pred (VideoMode.Col);
                 Bottom := Pred (VideoMode.Row);
               end;
             if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
-          begin
-            SysVideoModeSelector := true;
-            SetCursorType (LastCursorType);
-            ClearScreen;
-          end
-        else
-          begin
-            SysVideoModeSelector := false;
-            SetConsoleScreenBufferSize (TextRec (Output).Handle, MI.dwSize);
+              begin
+                SysVideoModeSelector := true;
+                SetCursorType (LastCursorType);
+                ClearScreen;
+              end
+            else
+              begin
+                SysVideoModeSelector := false;
+                SetConsoleScreenBufferSize (TextRec (Output).Handle, MI.dwSize);
                 SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, MI.srWindow);
                 SetCursorType (LastCursorType);
               end

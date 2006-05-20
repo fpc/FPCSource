@@ -115,11 +115,12 @@ Procedure AssignVideoBuf (OldCols, OldRows : Word);
 
 var NewVideoBuf,NewOldVideoBuf:PVideoBuf;
     old_rowstart,new_rowstart:word;
+    NewVideoBufSize : longint;
 
 begin
-  VideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
-  GetMem(NewVideoBuf,VideoBufSize);
-  GetMem(NewOldVideoBuf,VideoBufSize);
+  NewVideoBufSize:=ScreenWidth*ScreenHeight*sizeof(TVideoCell);
+  GetMem(NewVideoBuf,NewVideoBufSize);
+  GetMem(NewOldVideoBuf,NewVideoBufSize);
   {Move contents of old videobuffers to new if there are any.}
   if VideoBuf<>nil then
     begin
@@ -129,15 +130,18 @@ begin
         OldRows:=ScreenHeight;
       old_rowstart:=0;
       new_rowstart:=0;
-      repeat
-        move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-        move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
-        inc(old_rowstart,OldCols);
-        inc(new_rowstart,ScreenWidth);
-        dec(OldRows);
-      until OldRows=0;
+      while oldrows>0 do
+        begin
+          move(VideoBuf^[old_rowstart],NewVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+          move(OldVideoBuf^[old_rowstart],NewOldVideoBuf^[new_rowstart],OldCols*sizeof(TVideoCell));
+          inc(old_rowstart,OldCols);
+          inc(new_rowstart,ScreenWidth);
+          dec(OldRows);
+        end;
     end;
   FreeVideoBuf;
+  { FreeVideoBuf sets VideoBufSize to 0 }
+  VideoBufSize:=NewVideoBufSize;
   VideoBuf:=NewVideoBuf;
   OldVideoBuf:=NewOldVideoBuf;
 end;
@@ -246,20 +250,20 @@ begin
     exit;
   If VideoInitialized then
     begin
-  OldC:=ScreenWidth;
-  OldR:=ScreenHeight;
-  If Assigned(CurrentVideoDriver.SetVideoMode) then
-    SetVideoMode:=CurrentVideoDriver.SetVideoMode(Mode)
-  else
-    SetVideoMode:=False;
-  // Assign buffer
-  If SetVideoMode then
-    AssignVideoBuf(OldC,Oldr);
+      OldC:=ScreenWidth;
+      OldR:=ScreenHeight;
+      If Assigned(CurrentVideoDriver.SetVideoMode) then
+        SetVideoMode:=CurrentVideoDriver.SetVideoMode(Mode)
+      else
+        SetVideoMode:=False;
+      // Assign buffer
+      If SetVideoMode then
+        AssignVideoBuf(OldC,Oldr);
     end
   else
     begin
-    NextVideoMode:=Mode;
-    NextVideoModeSet:=true;
+      NextVideoMode:=Mode;
+      NextVideoModeSet:=true;
     end;
 end;
 
