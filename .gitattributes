@@ -754,6 +754,7 @@ fcl/image/pscanvas.pp svneol=native#text/plain
 fcl/image/targacmn.pp svneol=native#text/plain
 fcl/inc/avl_tree.pp svneol=native#text/plain
 fcl/inc/base64.pp svneol=native#text/plain
+fcl/inc/blowfish.pp svneol=native#text/plain
 fcl/inc/bufstream.pp svneol=native#text/plain
 fcl/inc/cachecls.pp svneol=native#text/plain
 fcl/inc/cgiapp.pp svneol=native#text/plain
@@ -900,6 +901,7 @@ fcl/tests/socksvr.pp svneol=native#text/plain
 fcl/tests/sstream.pp svneol=native#text/plain
 fcl/tests/stringl.pp svneol=native#text/plain
 fcl/tests/testapp.pp svneol=native#text/plain
+fcl/tests/testbf.pp svneol=native#text/plain
 fcl/tests/testbs.pp svneol=native#text/plain
 fcl/tests/testcgi.html -text
 fcl/tests/testcgi.pp svneol=native#text/plain
