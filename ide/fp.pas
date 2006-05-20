@@ -1,39 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-di{
+{
     This file is part of the Free Pascal Integrated Development Environment
     Copyright (c) 1998-2000 by Berczi Gabor
 
