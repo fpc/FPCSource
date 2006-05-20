@@ -72,6 +72,7 @@ interface
 {$ifdef GDB}
           function  stabstring : pchar;override;
 {$endif GDB}
+          function mangledname:string;
        end;
 
        tunitsym = class(Tstoredsym)
@@ -557,6 +558,16 @@ implementation
       end;
 {$endif GDB}
 
+
+    function tlabelsym.mangledname:string;
+      begin
+        if not(defined) then
+          begin
+            defined:=true;
+            objectlibrary.getlabel(asmblocklabel);
+          end;
+        result:=asmblocklabel.getname;
+      end;
 
 {****************************************************************************
                                   TUNITSYM
