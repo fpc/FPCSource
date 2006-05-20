@@ -22,7 +22,7 @@ packages_emx=netdb
 
 # clean package units
 [clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish
 
 [target]
 dirs=xml image db shedit passrc net fpcunit
