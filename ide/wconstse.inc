@@ -99,7 +99,11 @@
     msg_cutting = 'Cutting';
     { Help system }
 
-    msg_nohelpfilesinstalled = 'No help files installed.';
+    msg_nohelpfilesinstalled1 = 'To keep the size of the FPC download reasonable low, it comes without html formatted docs';
+    msg_nohelpfilesinstalled2 = 'which are necessary for the IDE.';
+    msg_nohelpfilesinstalled3 = 'To get these docs, go to http://www.freepascal.org/down/docs/docs.html and get one';
+    msg_nohelpfilesinstalled4 = 'of the html doc archives and unpack the enclosed contents into your FPC directory.';
+    msg_nohelpfilesinstalled5 = 'Add fpcdoc.html via Help|Files ... to the IDE help file system.';
     msg_helpindex = 'Help index';
     msg_nohelpavailabelforthistopic = 'No help available for this topic.';
     msg_pagenotavailable = 'Page not available';
