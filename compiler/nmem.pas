@@ -613,7 +613,20 @@ implementation
            end
          else
            begin
-              expectloc:=left.expectloc;
+             case left.expectloc of
+               LOC_REGISTER:
+                 // can happen for function results on win32 and darwin/x86
+                 if (left.resulttype.def.size > sizeof(aint)) then
+                   expectloc:=LOC_REFERENCE
+                 else
+                   expectloc:=LOC_SUBSETREG;
+               LOC_CREGISTER:
+                 expectloc:=LOC_CSUBSETREG;
+               LOC_REFERENCE,
+               LOC_CREFERENCE:
+                 expectloc:=left.expectloc;
+               else internalerror(20060521);
+              end;
            end;
       end;
 

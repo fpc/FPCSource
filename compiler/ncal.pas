@@ -2068,7 +2068,7 @@ type
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,not(tabstractvarsym(p).varregable in [vr_none,vr_addr]));
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -2151,6 +2151,7 @@ type
                     { substitute the dereferenced temp in the inlined function }
                     { We can't do this if we can't take the address of the     }
                     { parameter expression, so in that case assign to a temp   }
+                    (para.left.expectloc in [LOC_CSUBSETREG,LOC_SUBSETREG]) or
                     ((paracomplexity > 1) and
                      (not valid_for_addr(para.left,false) or
                       (para.left.nodetype = calln) or
@@ -2205,7 +2206,7 @@ type
                    )
                   ) then
                   begin
-                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr]));
+                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2233,7 +2234,7 @@ type
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,not(tparavarsym(para.parasym).varregable in [vr_none,vr_addr]));
+                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));
@@ -2424,13 +2425,6 @@ type
                  expectloc:=LOC_REFERENCE;
                end
              else
-             { for win32 records returned in EDX:EAX, we
-               move them to memory after ... }
-             if (resulttype.def.deftype=recorddef) then
-              begin
-                expectloc:=LOC_REFERENCE;
-              end
-             else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resulttype.def) or
                  is_widestring(resulttype.def) then
@@ -2477,8 +2471,16 @@ type
                      end;
                    else
                      begin
-                       expectloc:=LOC_REGISTER;
-                       registersint:=1;
+                       expectloc:=procdefinition.funcretloc[callerside].loc;
+                       if (expectloc = LOC_REGISTER) then
+{$ifndef cpu64bit}
+                         if (resulttype.def.size > sizeof(aint)) then
+                           registersint:=2
+                         else
+{$endif cpu64bit}
+                          registersint:=1
+                       else
+                         registersint:=0;
                      end;
                  end;
                end

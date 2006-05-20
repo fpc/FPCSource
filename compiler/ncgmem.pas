@@ -313,17 +313,22 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-                   if (left.location.loc = LOC_REGISTER) then
-                     location.loc := LOC_SUBSETREG
+                   if (left.resulttype.def.size > sizeof(aint)) then
+                     location_force_mem(current_asmdata.CurrAsmList,location)
                    else
-                     location.loc := LOC_CSUBSETREG;
-                   location.size:=def_cgsize(resulttype.def);
-                   location.subsetreg := left.location.register;
-                   location.subsetregsize := left.location.size;
-                   if (target_info.endian = ENDIAN_BIG) then
-                     location.startbit := (tcgsize2size[location.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
-                   else
-                     location.startbit := (vs.fieldoffset * 8);
+                     begin
+                       if (left.location.loc = LOC_REGISTER) then
+                         location.loc := LOC_SUBSETREG
+                       else
+                         location.loc := LOC_CSUBSETREG;
+                       location.size:=def_cgsize(resulttype.def);
+                       location.subsetreg := left.location.register;
+                       location.subsetregsize := left.location.size;
+                       if (target_info.endian = ENDIAN_BIG) then
+                         location.startbit := (tcgsize2size[location.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                       else
+                         location.startbit := (vs.fieldoffset * 8);
+                     end;
                  end;
                LOC_SUBSETREG,
                LOC_CSUBSETREG:
