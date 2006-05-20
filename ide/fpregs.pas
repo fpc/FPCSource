@@ -1499,7 +1499,7 @@ Const
        Desktop^.GetExtent(R);
 {$ifdef cpui386}
        R.A.X:=R.B.X-60;
-       R.B.Y:=R.A.Y+19;
+       R.B.Y:=R.A.Y+20;
 {$endif cpui386}
 {$ifdef cpum68k}
        R.A.X:=R.B.X-60;
