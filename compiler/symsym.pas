@@ -63,6 +63,7 @@ interface
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function mangledname:string;
        end;
 
        tunitsym = class(Tstoredsym)
@@ -473,6 +474,16 @@ implementation
            end;
       end;
 
+
+   function tlabelsym.mangledname:string;
+     begin
+       if not(defined) then
+         begin
+           defined:=true;
+           current_asmdata.getjumplabel(asmblocklabel);
+         end;
+       result:=asmblocklabel.getname;
+     end;
 
 {****************************************************************************
                                   TUNITSYM
