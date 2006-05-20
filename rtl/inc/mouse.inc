@@ -148,7 +148,8 @@ begin
   else
     If Assigned(CurrentMouseDriver.GetMouseEvent) Then
       begin
-      LastMouseEvent:=MouseEvent;
+        LastMouseEvent:=MouseEvent;
+        CurrentMouseDriver.GetMouseEvent(MouseEvent);
       end
     else
       FillChar(MouseEvent,sizeof(TMouseEvent),0);
