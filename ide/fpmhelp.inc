@@ -23,7 +23,7 @@ begin
   if Found then
      Help(FileID,Ctx,false)
   else
-     Help(0,hcContents,false);
+     HelpIndex('');
 end;
 
 procedure TIDEApp.HelpHelpIndex;

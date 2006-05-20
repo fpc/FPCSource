@@ -901,7 +901,11 @@ begin
   if HelpFiles^.Count=0 then
     begin
       AddLine('');
-      AddLine(' '+msg_nohelpfilesinstalled)
+      AddLine(msg_nohelpfilesinstalled1);
+      AddLine(msg_nohelpfilesinstalled2);
+      AddLine(msg_nohelpfilesinstalled3);
+      AddLine(msg_nohelpfilesinstalled4);
+      AddLine(msg_nohelpfilesinstalled5);
     end else
   begin
     AddLine(' '+msg_helpindex);
