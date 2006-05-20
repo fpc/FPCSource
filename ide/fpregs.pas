@@ -1445,12 +1445,12 @@ Const
               end;
 
             SetColor(rs.mxcsr,OldReg.mxcsr);
-            WriteStr(1,i,'mxcsr'+IntToStr(i)+'  '+rs.mxcsr,color);
+            WriteStr(1,8,'mxcsr'+IntToStr(i)+'  '+rs.mxcsr,color);
 
             for i:=0 to 7 do
               begin
                 SetColor(rs.mmx[i],OldReg.mmx[i]);
-                WriteStr(1,i+8,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
+                WriteStr(1,i+9,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
               end;
 {$endif cpui386}
 {$ifdef cpupowerpc}
@@ -1499,7 +1499,7 @@ Const
        Desktop^.GetExtent(R);
 {$ifdef cpui386}
        R.A.X:=R.B.X-60;
-       R.B.Y:=R.A.Y+19;
+       R.B.Y:=R.A.Y+20;
 {$endif cpui386}
 {$ifdef cpum68k}
        R.A.X:=R.B.X-60;
