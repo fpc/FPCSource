@@ -31,6 +31,7 @@ type
       IsRunning : boolean;
       constructor Init;
       procedure   InitDesktop; virtual;
+      procedure   LoadMenuBar;
       procedure   InitMenuBar; virtual;
       procedure   reload_menubar;
       procedure   InitStatusLine; virtual;
@@ -302,7 +303,7 @@ begin
   Desktop:=New(PFPDesktop, Init(R));
 end;
 
-procedure TIDEApp.InitMenuBar;
+procedure TIDEApp.LoadMenuBar;
 
 var R: TRect;
     WinPMI : PMenuItem;
@@ -487,6 +488,12 @@ begin
       NewItem(menu_help_about,'',kbNoKey, cmAbout, hcAbout,
       nil))))))))),
     nil)))))))))))));
+end;
+
+procedure TIDEApp.InitMenuBar;
+
+begin
+  LoadMenuBar;
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
   // Update; Desktop is still nil at that point ...
 end;
@@ -518,7 +525,7 @@ begin
          paste_key:=kbShiftIns;
        end;
    end;
-   initmenubar;
+   loadmenubar;
    insert(menubar);
 end;
 
