@@ -88,6 +88,7 @@ Type
        procedure ParseScript_Order;
        procedure ParseScript_CalcPos;
        procedure PrintLinkerScript;
+       function  RunLinkScript(const outputname:string):boolean;
     protected
        property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
        property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
@@ -95,9 +96,11 @@ Type
        procedure DefaultLinkScript;virtual;abstract;
        linkscript : TStringList;
     public
+       IsSharedLibrary : boolean;
        Constructor Create;override;
        Destructor Destroy;override;
        Function  MakeExecutable:boolean;override;
+       Function  MakeSharedLibrary:boolean;override;
        procedure AddExternalSymbol(const libname,symname:string);override;
      end;
 
@@ -819,6 +822,10 @@ end;
               ExeOutput.Load_Symbol(para)
             else if keyword='ENTRYNAME' then
               ExeOutput.Load_EntryName(para)
+            else if keyword='ISSHAREDLIBRARY' then
+              ExeOutput.Load_IsSharedLibrary
+            else if keyword='IMAGEBASE' then
+              ExeOutput.Load_ImageBase(para)
             else if keyword='READOBJECT' then
               Load_ReadObject(para)
             else if keyword='READUNITOBJECTS' then
@@ -906,15 +913,13 @@ end;
       end;
 
 
-    function TInternalLinker.MakeExecutable:boolean;
+    function TInternalLinker.RunLinkScript(const outputname:string):boolean;
       label
         myexit;
-      var
-        s,s2 : string;
       begin
-        MakeExecutable:=false;
+        result:=false;
 
-        Message1(exec_i_linking,current_module.exefilename^);
+        Message1(exec_i_linking,outputname);
 
 {$warning TODO Load custom linker script}
         DefaultLinkScript;
@@ -951,7 +956,7 @@ end;
         if ErrorCount>0 then
           goto myexit;
 
-        exeoutput.WriteExeFile(current_module.exefilename^);
+        exeoutput.WriteExeFile(outputname);
 
 {$warning TODO fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
@@ -969,7 +974,21 @@ end;
         exeoutput.free;
         exeoutput:=nil;
 
-        MakeExecutable:=true;
+        result:=true;
+      end;
+
+
+    function TInternalLinker.MakeExecutable:boolean;
+      begin
+        IsSharedLibrary:=false;
+        result:=RunLinkScript(current_module.exefilename^);
+      end;
+
+
+    function TInternalLinker.MakeSharedLibrary:boolean;
+      begin
+        IsSharedLibrary:=true;
+        result:=RunLinkScript(current_module.sharedlibfilename^);
       end;
 
 

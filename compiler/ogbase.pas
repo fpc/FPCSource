@@ -362,6 +362,7 @@ interface
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
       public
+        IsSharedLibrary : boolean;
         constructor create;virtual;
         destructor  destroy;override;
         function  FindExeSection(const aname:string):TExeSection;
@@ -369,6 +370,8 @@ interface
         procedure Load_Start;virtual;
         procedure Load_EntryName(const aname:string);virtual;
         procedure Load_Symbol(const aname:string);virtual;
+        procedure Load_IsSharedLibrary;
+        procedure Load_ImageBase(const avalue:string);
         procedure Order_Start;virtual;
         procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
@@ -1331,6 +1334,20 @@ implementation
     procedure TExeOutput.Load_EntryName(const aname:string);
       begin
         EntryName:=aname;
+      end;
+
+
+    procedure TExeOutput.Load_IsSharedLibrary;
+      begin
+        IsSharedLibrary:=true;
+      end;
+
+
+    procedure TExeOutput.Load_ImageBase(const avalue:string);
+      var
+        code : integer;
+      begin
+        val(avalue,ImageBase,code);
       end;
 
 

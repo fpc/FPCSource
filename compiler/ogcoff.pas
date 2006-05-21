@@ -1814,6 +1814,7 @@ const win32stub : array[0..131] of byte=(
                  end;
 {$warning TODO idata keep can maybe replaced with grouping of text and idata}
                if (Copy(secname,1,6)='.idata') or
+                  (Copy(secname,1,6)='.edata') or
                   (Copy(secname,1,6)='.rsrc') then
                  include(secoptions,oso_keep);
                objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
@@ -2063,11 +2064,22 @@ const win32stub : array[0..131] of byte=(
         header      : coffheader;
         djoptheader : coffdjoptheader;
         peoptheader : coffpeoptheader;
-        rsrcexesec,
-        idataexesec,
         textExeSec,
         dataExeSec,
         bssExeSec   : TExeSection;
+
+        procedure UpdateDataDir(const secname:string;idx:longint);
+        var
+          exesec : TExeSection;
+        begin
+          exesec:=FindExeSection(secname);
+          if assigned(exesec) then
+            begin
+              peoptheader.DataDirectory[idx].vaddr:=exesec.mempos;
+              peoptheader.DataDirectory[idx].size:=exesec.Size;
+           end;
+        end;
+
       begin
         result:=false;
         FCoffSyms:=TDynamicArray.Create(symbolresize);
@@ -2096,9 +2108,9 @@ const win32stub : array[0..131] of byte=(
           header.opthdr:=sizeof(coffdjoptheader);
         if win32 then
           begin
-            header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_RELOCS_STRIPPED or
-                         {PE_FILE_BYTES_REVERSED_LO or }
-                         PE_FILE_LINE_NUMS_STRIPPED;
+            header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_RELOCS_STRIPPED or PE_FILE_LINE_NUMS_STRIPPED;
+            if IsSharedLibrary then
+              header.flag:=header.flag or PE_FILE_DLL;
             if FindExeSection('.stab')=nil then
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
             if (cs_link_strip in aktglobalswitches) then
@@ -2151,18 +2163,9 @@ const win32stub : array[0..131] of byte=(
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.LoaderFlags:=0;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
-            idataexesec:=FindExeSection('.idata');
-            if assigned(idataexesec) then
-              begin
-                peoptheader.DataDirectory[PE_DATADIR_IDATA].vaddr:=idataexesec.mempos;
-                peoptheader.DataDirectory[PE_DATADIR_IDATA].size:=idataexesec.Size;
-              end;
-            rsrcexesec:=FindExeSection('.rsrc');
-            if assigned(rsrcexesec) then
-              begin
-                peoptheader.DataDirectory[PE_DATADIR_RSRC].vaddr:=rsrcexesec.mempos;
-                peoptheader.DataDirectory[PE_DATADIR_RSRC].size:=rsrcexesec.Size;
-              end;
+            UpdateDataDir('.idata',PE_DATADIR_IDATA);
+            UpdateDataDir('.edata',PE_DATADIR_EDATA);
+            UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             FWriter.write(peoptheader,sizeof(peoptheader));
           end
         else
@@ -2409,10 +2412,22 @@ const win32stub : array[0..131] of byte=(
         with LinkScript do
           begin
             Concat('READUNITOBJECTS');
-            if apptype=app_gui then
-              Concat('ENTRYNAME _WinMainCRTStartup')
+            if IsSharedLibrary then
+              begin
+                Concat('ISSHAREDLIBRARY');
+                Concat('IMAGEBASE $10000000');
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _DLLMainCRTStartup');
+              end
             else
-              Concat('ENTRYNAME _mainCRTStartup');
+              begin
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _WinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _mainCRTStartup');
+              end;
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  OBJSECTION .text*');
@@ -2437,6 +2452,9 @@ const win32stub : array[0..131] of byte=(
             Concat('  OBJSECTION .idata$5');
             Concat('  OBJSECTION .idata$6');
             Concat('  OBJSECTION .idata$7');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .edata');
+            Concat('  OBJSECTION .edata*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .rsrc');
             Concat('  OBJSECTION .rsrc*');
