@@ -163,6 +163,7 @@ interface
           constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function mangledname:string;override;
       end;
 
       tabstractnormalvarsym = class(tabstractvarsym)
@@ -1413,6 +1414,22 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putaint(fieldoffset);
          ppufile.writeentry(ibfieldvarsym);
+      end;
+
+
+    function tfieldvarsym.mangledname:string;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        if sp_static in symoptions then
+          begin
+            searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable);
+            if assigned(srsym) then
+             result:=srsym.mangledname;
+          end
+        else
+          result:=inherited mangledname;
       end;
 
 
