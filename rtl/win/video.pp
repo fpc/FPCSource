@@ -79,7 +79,7 @@ procedure SysDoneVideo;
 begin
   SetConsoleScreenBufferSize (TextRec (Output).Handle, OrigConsoleInfo.dwSize);
   SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, OrigConsoleInfo.srWindow);
-  GetConsoleCursorInfo(TextRec(Output).Handle, OrigConsoleCursorInfo);
+  SetConsoleCursorInfo(TextRec(Output).Handle, OrigConsoleCursorInfo);
   SetConsoleCP(OrigCP);
 end;
 
