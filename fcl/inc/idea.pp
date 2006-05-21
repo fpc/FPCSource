@@ -351,18 +351,20 @@ begin
   While Count>0 do
     begin
     // Empty existing buffer.
-    If FBufPos<SizeOf(FData) then
+    If (FBufPos>0) then
       begin
-      mvSize:=Sizeof(FData)-FBufPos;
+      mvSize:=FBufPos;
       If MvSize>count then
         mvsize:=Count;
-      Move(PChar(@FData)[FBufPos],PChar(@Buffer)[Result],MVSize);
+      Move(PChar(@FData)[0],PChar(@Buffer)[Result],MVSize);
+      If ((Sizeof(FData)-MvSize)>0) then
+        Move(PChar(@FData)[mvSize],PChar(@FData)[0],Sizeof(FData)-MvSize);
       Dec(Count,mvsize);
       Inc(Result,mvsize);
-      inc(fBufPos,mvsize);
+      FBufPos:=FBufPos-MvSize;
       end;
     // Fill buffer again if needed.
-    If (FBufPos=SizeOf(FData)) and (Count>0) then
+    If (Count>0) then
       begin
       mvsize:=Source.Read(InData,SizeOf(InData));
       If mvsize>0 then
@@ -371,7 +373,7 @@ begin
           // Fill with nulls
           FillChar(PChar(@InData)[mvsize],SizeOf(InData)-mvsize,#0);
         CipherIdea(InData,FData,FKey);
-        FBufPos:=0;
+        FBufPos:=SizeOf(FData);
         end
       else
         Count:=0; // No more data available from stream; st

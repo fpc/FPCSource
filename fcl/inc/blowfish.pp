@@ -22,13 +22,15 @@ unit BlowFish;
 
 interface
 
+uses SysUtils,Classes;
+
 Const
   BFRounds = 16;      { 16 blowfish rounds }
 
 Type
-  PKey448  = ^TKey448;
-  TKey448  = array [0..55] of Byte;
-  TBFBlock = array[0..1] of LongInt;     { BlowFish }
+  PBlowFishKey = ^TBlowFishKey;
+  TBlowFishKey = array[0..55] of Byte;
+  TBFBlock     = array[0..1] of LongInt;     { BlowFish }
 
 type
   TBlowFish = Class(TObject)
@@ -37,13 +39,48 @@ type
     SBox    : array[0..3, 0..255] of LongInt;
     Function F(x : Cardinal)  : Cardinal;{$ifdef fpc}inline;{$endif}
   Public 
-    Constructor Create(Key : TKey448; KeySize : Integer);  
+    Constructor Create(Key : TBlowFishKey; KeySize : Integer);  
     Procedure Encrypt(var Block : TBFBlock);
     Procedure Decrypt(var Block : TBFBlock);
   end;
 
+Type
+  EBlowFishError = Class(EStreamError);
+
+  TBlowFishStream = Class(TOwnerStream)
+  Private
+    FBF     : TBlowFish;
+    FData   : TBFBlock;
+    FBufpos : Byte;
+    FPos    : Int64;
+  Public
+    Constructor Create(AKey : TBlowFishKey; AKeySize : Byte; Dest: TStream);
+    Destructor Destroy; override;
+    Property BlowFish : TBlowFish Read FBF;
+  end;
+
+  TBlowFishEncryptStream = Class(TBlowFishStream)
+  public
+    Destructor Destroy; override;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    procedure Flush;
+  end;
+
+  TBlowFishDeCryptStream = Class(TBlowFishStream)
+  public
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+  end;
+
 Implementation
 
+ResourceString
+  SNoSeekAllowed  = 'Seek not allowed on encryption streams';
+  SNoReadAllowed  = 'Reading from encryption stream not allowed';
+  SNoWriteAllowed = 'Writing to decryption stream not allowed';
 
 { Blowfish lookup tables }
 
@@ -380,7 +417,7 @@ const
 );
 
 
-Constructor TBlowFish.Create(Key : TKey448; KeySize : Integer);
+Constructor TBlowFish.Create(Key : TBlowFishKey; KeySize : Integer);
 
 var
   I     : Integer;
@@ -495,6 +532,168 @@ begin
     Xl := Xl xor Pbox[0];
     Block[0]:=Xl;
     Block[1]:=Xr;
+end;
+
+{ ---------------------------------------------------------------------
+    TBlowFishStream
+  ---------------------------------------------------------------------}
+  
+
+Constructor TBlowFishStream.Create(AKey : TBlowFishkey; AKeySize : Byte; Dest: TStream);
+
+begin
+  inherited Create(Dest);
+  FBF:=TBlowFish.Create(AKey,AKeySize);
+  FBufPos:=0;
+  FPos:=0;
+end;
+
+Destructor TBlowFishStream.Destroy;
+
+begin
+  FreeAndNil(FBF);
+  Inherited;
+end;
+
+{ ---------------------------------------------------------------------
+    TBlowFishEncryptStream
+  ---------------------------------------------------------------------}
+
+Destructor TBlowFishEncryptStream.Destroy;
+
+
+begin
+  Flush;
+  Inherited Destroy;
+end;
+
+Procedure TBlowFishEncryptStream.Flush;
+
+begin
+  If FBufPos>0 then
+    begin
+    // Fill with nulls
+    FillChar(PChar(@FData)[FBufPos],SizeOf(FData)-FBufPos,#0);
+    FBF.EnCrypt(FData);
+    Source.Write(FData,SizeOf(FData));
+    FBufPos := 0;
+    end;
+end;
+
+function TBlowFishEncryptStream.Read(var Buffer; Count: Longint): Longint;
+
+begin
+  Raise EBlowFishError.Create(SNoReadAllowed);
+end;
+
+function TBlowFishEncryptStream.Write(const Buffer; Count: Longint): Longint;
+
+Var
+  mvsize : Longint;
+
+begin
+  Result:=0;
+  While Count>0 do
+    begin
+    MVsize:=Count;
+    If Mvsize>SizeOf(Fdata)-FBufPos then
+      mvsize:=SizeOf(FData)-FBufPos;
+    Move(PChar(@Buffer)[Result],PChar(@FData)[FBufPos],MVSize);
+    If FBufPos+mvSize=Sizeof(FData) then
+      begin
+      // Empty buffer.
+      FBF.Encrypt(FData);
+      // this will raise an exception if needed.
+      Source.Writebuffer(FData,SizeOf(FData));
+      FBufPos:=0;
+      end
+    else
+      inc(FBufPos,mvsize);
+    Dec(Count,MvSize);
+    Inc(Result,mvSize);
+    end;
+  Inc(FPos,Result);
+end;
+
+
+function TBlowFishEncryptStream.Seek(Offset: Longint; Origin: Word): Longint;
+
+begin
+  if (Offset = 0) and (Origin = soFromCurrent) then
+    Result := FPos
+  else
+    Raise EBlowFishError.Create(SNoSeekAllowed);
+end;
+
+
+{ ---------------------------------------------------------------------
+    TBlowFishDecryptStream
+  ---------------------------------------------------------------------}
+
+
+function TBlowFishDeCryptStream.Read(var Buffer; Count: Longint): Longint;
+
+Var
+  mvsize : Longint;
+
+begin
+  Result:=0;
+  While Count>0 do
+    begin
+    // Empty existing buffer.
+    If (FBufPos>0) then
+      begin
+      mvSize:=FBufPos;
+      If MvSize>count then
+        mvsize:=Count;
+      Move(PChar(@FData)[0],PChar(@Buffer)[Result],MVSize);
+      If ((Sizeof(FData)-MvSize)>0) then
+        Move(PChar(@FData)[mvSize],PChar(@FData)[0],Sizeof(FData)-MvSize);
+      Dec(Count,mvsize);
+      Inc(Result,mvsize);
+      FBufPos:=FBufPos-MvSize;
+      end;
+    // Fill buffer again if needed.
+    If  (Count>0) then
+      Begin
+      mvsize:=Source.Read(FData,SizeOf(FData));
+      If mvsize>0 then
+        begin
+        If MvSize<SizeOf(FData) Then
+          // Fill with nulls
+          FillChar(PChar(@FData)[mvsize],SizeOf(FData)-mvsize,#0);
+        FBF.Decrypt(FData);
+        FBufPos:=SizeOf(FData);
+        end
+      else
+        Count:=0; // No more data available from stream; st
+      end;
+    end;
+  Inc(FPos,Result);
+end;
+
+function TBlowFishDeCryptStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  Raise EBlowFishError.Create(SNoWriteAllowed);
+end;
+
+function TBlowFishDeCryptStream.Seek(Offset: Longint; Origin: Word): Longint;
+
+Var Buffer : Array[0..1023] of byte;
+    i : longint;
+
+begin
+  // Fake seek if possible by reading and discarding bytes.
+  If ((Offset>=0) and (Origin = soFromCurrent)) or
+    ((Offset>FPos) and (Origin = soFromBeginning)) then
+      begin
+      For I:=1 to (Offset div SizeOf(Buffer)) do
+        ReadBuffer(Buffer,SizeOf(Buffer));
+      ReadBuffer(Buffer,Offset mod SizeOf(Buffer));
+      Result:=FPos;
+      end
+  else
+    Raise EBlowFishError.Create(SNoSeekAllowed);
 end;
 
 end.
