@@ -184,6 +184,7 @@ interface
 {$ifdef GDB}
           function stabstring : pchar;override;
 {$endif GDB}
+          function mangledname:string;override;
       end;
 
       tabstractnormalvarsym = class(tabstractvarsym)
@@ -1529,6 +1530,22 @@ implementation
       end;
     end;
 {$endif GDB}
+
+
+    function tfieldvarsym.mangledname:string;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        if sp_static in symoptions then
+          begin
+            searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable);
+            if assigned(srsym) then
+             result:=tglobalvarsym(srsym).mangledname;
+          end
+        else
+          result:=inherited mangledname;
+      end;
 
 
 {****************************************************************************
