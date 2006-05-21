@@ -22,7 +22,6 @@ interface
 {$H+}
 
 uses
-  dos,
   windows;
 
 {$DEFINE HAS_SLEEP}
@@ -762,7 +761,6 @@ var
   e : EOSError;
 
 begin
-  DosError := 0;
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
@@ -781,7 +779,7 @@ begin
     CommandLine := CommandLine + #0;
 
   if not CreateProcess(nil, pchar(CommandLine),
-    Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
+    Nil, Nil, False,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;

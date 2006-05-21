@@ -54,7 +54,7 @@ end;
 
 function ExtractFileDrive(const FileName: string): string;
 
-var 
+var
   i,l: longint;
 
 begin
@@ -65,7 +65,7 @@ begin
     If (FileName[2]=':') then
       result:=Copy(FileName,1,2)
     else if (FileName[1] in ['/','\']) and
-            (FileName[2] in ['/','\']) then 
+            (FileName[2] in ['/','\']) then
       begin
       i := 2;
       While (i<L) and Not (Filename[i+1] in ['/', '\']) do
@@ -93,6 +93,13 @@ if (I > 0) and (FileName[I] = '.') then
 else Result := '';
 end;
 
+
+{$ifndef HasUnix}
+  type
+    PathStr=string;
+  {$i fexpand.inc}
+{$endif}
+
 function ExpandFileName (Const FileName : string): String;
 
 Var S : String;
@@ -100,11 +107,7 @@ Var S : String;
 Begin
  S:=FileName;
  DoDirSeparators(S);
-{$ifdef HasUnix}
-  Result:=fexpand(S);
-{$else}
-  Result:=Dos.Fexpand(S);
-{$endif}
+ Result:=Fexpand(S);
 end;
 
 
