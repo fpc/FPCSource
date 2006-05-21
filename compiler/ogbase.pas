@@ -1206,7 +1206,11 @@ implementation
         ObjSectionList.Add(objsec);
         if (SecOptions<>[]) then
           begin
-            if (oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions) then
+            { Only if the section contains (un)initialized data the
+              data flag must match. This check is not needed if the
+              section is empty for a symbol allocation }
+            if (objsec.size>0) and
+               ((oso_Data in SecOptions)<>(oso_Data in objsec.SecOptions)) then
               Comment(V_Error,'Incompatible section options');
           end
         else
@@ -1396,7 +1400,6 @@ implementation
         ObjSection:=internalObjData.findsection('*'+aname);
         if not assigned(ObjSection) then
           internalerror(200603041);
-        ObjSection.SecOptions:=CurrExeSec.SecOptions;
         CurrExeSec.AddObjSection(ObjSection);
       end;
 

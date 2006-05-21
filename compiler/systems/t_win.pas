@@ -42,14 +42,13 @@ interface
      pStr4=^tStr4;
 
     twin32imported_item = class(timported_item)
-       procdef : tprocdef;
     end;
 
     timportlibwin32=class(timportlib)
     private
-      procedure win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
+      procedure win32importproc(const module : string;index : longint;const name : string);
       procedure importvariable_str(const s:string;const name,module:string);
-      procedure importprocedure_str(const func,module:string;index:longint;const name:string);
+      procedure importprocedure_str(const module:string;index:longint;const name:string);
       procedure generateimportlib;
       procedure generateidatasection;
     public
@@ -124,15 +123,12 @@ implementation
       end;
 
 
-    procedure timportlibwin32.win32importproc(aprocdef:tprocdef;const func,module : string;index : longint;const name : string);
+    procedure timportlibwin32.win32importproc(const module : string;index : longint;const name : string);
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
          hs  : string;
       begin
-         { procdef or funcname must be give, not both }
-         if assigned(aprocdef) and (func<>'') then
-           internalerror(200411161);
          { append extension if required }
          hs:=AddExtension(module,target_info.sharedlibext);
          { search for the module }
@@ -150,30 +146,16 @@ implementation
               current_module.imports.concat(hp1);
            end;
          { search for reuse of old import item }
-         if assigned(aprocdef) then
-           begin
-             hp2:=twin32imported_item(hp1.imported_items.first);
-             while assigned(hp2) do
-              begin
-                if (hp2.procdef=aprocdef) then
-                  break;
-                hp2:=twin32imported_item(hp2.next);
-              end;
-           end
-         else
-           begin
-             hp2:=twin32imported_item(hp1.imported_items.first);
-             while assigned(hp2) do
-              begin
-                if (hp2.func^=func) then
-                  break;
-                hp2:=twin32imported_item(hp2.next);
-              end;
-           end;
+         hp2:=twin32imported_item(hp1.imported_items.first);
+         while assigned(hp2) do
+          begin
+            if (hp2.name^=name) then
+              break;
+            hp2:=twin32imported_item(hp2.next);
+          end;
          if not assigned(hp2) then
           begin
-            hp2:=twin32imported_item.create(func,name,index);
-            hp2.procdef:=aprocdef;
+            hp2:=twin32imported_item.create(name,name,index);
             hp1.imported_items.concat(hp2);
           end;
       end;
@@ -181,13 +163,13 @@ implementation
 
     procedure timportlibwin32.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
-        win32importproc(aprocdef,'',module,index,name);
+        win32importproc(module,index,name);
       end;
 
 
-    procedure timportlibwin32.importprocedure_str(const func,module : string;index : longint;const name : string);
+    procedure timportlibwin32.importprocedure_str(const module : string;index : longint;const name : string);
       begin
-        win32importproc(nil,func,module,index,name);
+        win32importproc(module,index,name);
       end;
 
 
@@ -219,7 +201,6 @@ implementation
               current_module.imports.concat(hp1);
            end;
          hp2:=twin32imported_item.create_var(s,name);
-         hp2.procdef:=nil;
          hp1.imported_items.concat(hp2);
       end;
 
@@ -332,7 +313,7 @@ implementation
           objdata.free;
         end;
 
-        procedure AddImport(const afuncname, implabelname:string;ordnr:word;isvar:boolean);
+        procedure AddImport(const afuncname:string;ordnr:word;isvar:boolean);
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
@@ -404,7 +385,7 @@ implementation
           if not isvar then
             begin
               objdata.SetSection(textobjsection);
-              implabel:=objdata.SymbolDefine(implabelname,AB_GLOBAL,AT_FUNCTION);
+              implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_FUNCTION);
               objdata.writebytes(jmpopcode,sizeof(jmpopcode));
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
               objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,sizeof(nopopcodes))-objdata.CurrObjSec.size);
@@ -417,9 +398,6 @@ implementation
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
-{$ifdef arm}
-         mangledstring : string;
-{$endif arm}
       begin
         AsmPrefix:='imp'+Lower(current_module.modulename^);
         idatalabnr:=0;
@@ -435,15 +413,7 @@ implementation
             hp2:=twin32imported_item(hp1.imported_items.first);
             while assigned(hp2) do
               begin
-{$ifdef arm}
-                if assigned(hp2.procdef) then
-                  mangledstring:=hp2.procdef.mangledname
-                else
-                  mangledstring:=hp2.name^;
-                AddImport(hp2.name^,mangledstring,hp2.ordnr,hp2.is_var);
-{$else arm}
-                AddImport(hp2.name^,hp2.name^,hp2.ordnr,hp2.is_var);
-{$endif arm}
+                AddImport(hp2.name^,hp2.ordnr,hp2.is_var);
                 hp2:=twin32imported_item(hp2.next);
               end;
             EndImport;
@@ -459,7 +429,6 @@ implementation
          hp1 : timportList;
          hp2 : twin32imported_item;
          l1,l2,l3,l4 {$ifdef ARM} ,l5 {$endif ARM} : tasmlabel;
-         mangledstring : string;
          importname : string;
          suffix : integer;
          href : treference;
@@ -549,11 +518,7 @@ implementation
                       { create indirect jump and }
                       { place jump in al_procedures }
                       new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
-                      if assigned(hp2.procdef) then
-                        mangledstring:=hp2.procdef.mangledname
-                      else
-                        mangledstring:=hp2.func^;
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(mangledstring,AT_FUNCTION,0));
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(target_info.cprefix+hp2.func^,AT_FUNCTION,0));
                       current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                     {$ifdef ARM}
                       reference_reset_symbol(href,l5,0);
@@ -1642,10 +1607,7 @@ end;
                     current_module.uses_imports:=true;
                     importlib.preparelib(current_module.modulename^);
                   end;
-//                if IsData then
-//                  timportlibwin32(importlib).importvariable_str(funcname,dllname,funcname)
-//                else
-                timportlibwin32(importlib).importprocedure_str(funcname,dllname,0,funcname);
+                timportlibwin32(importlib).importprocedure_str(dllname,0,funcname);
                 importfound:=true;
                 exit;
               end;

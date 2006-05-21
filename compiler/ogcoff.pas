@@ -2005,12 +2005,15 @@ const win32stub : array[0..131] of byte=(
                 for i:=0 to ObjSectionList.Count-1 do
                   begin
                     objsec:=TObjSection(ObjSectionList[i]);
-                    if not assigned(objsec.data) then
-                      internalerror(200603042);
-                    FWriter.writezeros(objsec.dataalignbytes);
-                    if objsec.DataPos<>FWriter.Size then
-                      internalerror(200602251);
-                    FWriter.writearray(objsec.data);
+                    if oso_data in objsec.secoptions then
+                      begin
+                        if not assigned(objsec.data) then
+                          internalerror(200603042);
+                        FWriter.writezeros(objsec.dataalignbytes);
+                        if objsec.DataPos<>FWriter.Size then
+                          internalerror(200602251);
+                        FWriter.writearray(objsec.data);
+                      end;
                   end;
               end;
           end;
@@ -2421,6 +2424,11 @@ const win32stub : array[0..131] of byte=(
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
             Concat('ENDEXESECTION');
+            Concat('EXESECTION .bss');
+            Concat('  SYMBOL __bss_start__');
+            Concat('  OBJSECTION .bss*');
+            Concat('  SYMBOL __bss_end__');
+            Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
             Concat('  OBJSECTION .idata$2');
             Concat('  OBJSECTION .idata$3');
@@ -2429,11 +2437,6 @@ const win32stub : array[0..131] of byte=(
             Concat('  OBJSECTION .idata$5');
             Concat('  OBJSECTION .idata$6');
             Concat('  OBJSECTION .idata$7');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .bss');
-            Concat('  SYMBOL __bss_start__');
-            Concat('  OBJSECTION .bss*');
-            Concat('  SYMBOL __bss_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .rsrc');
             Concat('  OBJSECTION .rsrc*');

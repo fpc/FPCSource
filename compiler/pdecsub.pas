@@ -2094,9 +2094,8 @@ const
                     same DLL function. This is also needed for compatability
                     with Delphi and TP7 }
                   case target_info.system of
-                    system_i386_wdosx,
-                    system_i386_emx,system_i386_os2,
-                    system_arm_wince,system_i386_wince :
+                    system_i386_emx,
+                    system_i386_os2 :
                       begin
                         { keep normal mangledname }
                       end;
