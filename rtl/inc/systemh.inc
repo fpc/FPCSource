@@ -212,7 +212,7 @@ Type
 
   HRESULT             = type Longint;
   TDateTime           = type Double;
-  Error               = type Longint;
+  TError               = type Longint;
 
   PSingle             = ^Single;
   PDouble             = ^Double;
@@ -247,7 +247,7 @@ Type
   PAnsiString         = ^AnsiString;
 
   PDate               = ^TDateTime;
-  PError              = ^Error;
+  PError              = ^TError;
   PVariant            = ^Variant;
   POleVariant         = ^OleVariant;
 
@@ -656,6 +656,28 @@ Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
                           Init / Exit / ExitProc
 *****************************************************************************}
 
+type
+  TRuntimeError = 
+    (reNone, reOutOfMemory, reInvalidPtr, reDivByZero, reRangeError, 
+     reIntOverflow, reInvalidOp, reZeroDivide, reOverflow, reUnderflow, 
+     reInvalidCast, reAccessViolation, rePrivInstruction, reControlBreak, 
+     reStackOverflow, reVarTypeCast, reVarInvalidOp, reVarDispatch, 
+     reVarArrayCreate, reVarNotArray, reVarArrayBounds, reAssertionFailed,
+     reExternalException, reIntfCastError, reSafeCallError, reQuit, 
+     reCodesetConversion);
+
+Const
+  // Please keep locations corresponding to location in array above
+  RuntimeErrorExitCodes : Array[TRuntimeError] of Byte = (
+     0  , 203, 204, 200,  201,
+     215, 207, 200, 205,  206,
+     219, 216, 218, 217,  
+     202, 220, 221, 222,
+     223, 224, 225, 227,
+     0  , 228, 229, 233, 
+     234);    
+
+Procedure Error(RunTimeError : TRunTimeError);
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
 Procedure Dump_Stack(var f : text;bp:pointer);
