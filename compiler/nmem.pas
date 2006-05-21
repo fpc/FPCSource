@@ -614,13 +614,15 @@ implementation
          else
            begin
              case left.expectloc of
-               LOC_REGISTER:
+               LOC_REGISTER,
+               LOC_SUBSETREG:
                  // can happen for function results on win32 and darwin/x86
                  if (left.resulttype.def.size > sizeof(aint)) then
                    expectloc:=LOC_REFERENCE
                  else
                    expectloc:=LOC_SUBSETREG;
-               LOC_CREGISTER:
+               LOC_CREGISTER,
+               LOC_CSUBSETREG:
                  expectloc:=LOC_CSUBSETREG;
                LOC_REFERENCE,
                LOC_CREFERENCE:
