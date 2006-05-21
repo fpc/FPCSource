@@ -754,6 +754,12 @@ Begin
   Halt(0);
 End;
 
+Procedure Error(RunTimeError : TRunTimeError);
+
+begin
+  RunError(RuntimeErrorExitCodes[RunTimeError]);
+end;
+
 
 function do_isdevice(handle:thandle):boolean;forward;
 

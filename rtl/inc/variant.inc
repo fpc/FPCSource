@@ -303,9 +303,9 @@ operator :=(const source : tdatetime) dest : variant;{$ifdef SYSTEMINLINE}inline
   end;
 
 
-operator :=(const source : error) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : terror) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    Variantmanager.varfromInt(Dest,Source,-sizeof(error));
+    Variantmanager.varfromInt(Dest,Source,-sizeof(terror));
   end;
   
 {**********************************************************************
@@ -493,7 +493,7 @@ operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inlin
   end;
 
 
-operator :=(const source : variant) dest : error;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : variant) dest : terror;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartoint(source);
   end;
@@ -785,7 +785,7 @@ operator :=(const source : olevariant) dest : tdatetime;{$ifdef SYSTEMINLINE}inl
   end;
 
 
-operator :=(const source : olevariant) dest : error;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : olevariant) dest : terror;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     dest:=variantmanager.vartoint(variant(tvardata(source)));
   end;
@@ -938,9 +938,9 @@ operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inl
   end;
 
 
-operator :=(const source : error) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    variantmanager.olevarfromint(dest,source,-sizeof(error));
+    variantmanager.olevarfromint(dest,source,-sizeof(terror));
   end;
 {**********************************************************************
                       Variant manager functions
