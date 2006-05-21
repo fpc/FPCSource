@@ -32,7 +32,7 @@ begin
   R:=L;
   For I:=0 to 55 do
     K[i]:=Random(255)+1;
-  With TBlowfish.Create(K,448) do
+  With TBlowfish.Create(K,56) do
     Try
     Encrypt(L);
     Decrypt(L);
