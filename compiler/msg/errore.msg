@@ -2431,7 +2431,9 @@ P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1X_executable options:
 **2Xc_pass --shared to the linker (Unix only)
 **2Xd_don't use standard library search path (needed for cross compile)
+**2Xe_use external linker
 **2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
+**2Xi_use internal linker
 **2Xm_generate link map
 **2XM<x>_set the name of the 'main' program routine (default is 'main')
 **2XP<x>_prepend the binutils names with the prefix <x>
