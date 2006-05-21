@@ -2190,12 +2190,12 @@ begin
      set_target_asm(target_info.assemextern);
    end;
 
-  { disable internal linker if it is not registered or
-    if we skip the linking }
+  { Force use of external linker if there is no
+    internal linker or the linking is skipped }
   if not(cs_link_extern in initglobalswitches) and
      (not assigned(target_info.link) or
       (cs_link_nolink in initglobalswitches)) then
-    exclude(initglobalswitches,cs_link_extern);
+    include(initglobalswitches,cs_link_extern);
 
   { turn off stripping if compiling with debuginfo or profile }
   if (cs_debuginfo in initmoduleswitches) or
@@ -2210,15 +2210,6 @@ begin
   if GenerateImportSection and
      (target_info.system in [system_i386_win32,system_x86_64_win64]) then
     exclude(target_info.flags,tf_smartlink_sections);
-
-  if (cs_link_extern in initglobalswitches) then
-    begin
-      { By default don't create import section if we use the internal linker }
-      if not GenerateImportSectionSetExplicitly then
-        GenerateImportSection:=false;
-      { Enable section smartlinking }
-      include(target_info.flags,tf_smartlink_sections);
-    end;
 
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}
