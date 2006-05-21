@@ -50,7 +50,7 @@
  {$DEFINE FPC_FEXPAND_UPDIR_HELPER}
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
-procedure GetDirIO (DriveNr: byte; var Dir: OpenString);
+procedure GetDirIO (DriveNr: byte; var Dir: String);
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
@@ -442,7 +442,7 @@ begin
     else
         if (Length (Dirs) <> 0) and (Dirs [Length (Dirs)] = '.') and
                         (Dirs [Pred (Length (Dirs))] = DirectorySeparator) then
-            Dec (Dirs [0], 2);
+            Delete (Dirs,length(Dirs)-1,2);
 
     {Finally remove '.\' at the beginning of the string of directories...}
     while (Length (Dirs) >= 2) and (Dirs [1] = '.')
@@ -499,7 +499,7 @@ begin
                     and (Length (Path) <> 0)
                           and (Path [Length (Path)] <> DirectorySeparator)
                                                                            then
-        Dec (Pa [0]);
+        Delete (PA,length(PA),1);
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
     FExpand := Pa;
