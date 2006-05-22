@@ -94,11 +94,21 @@ else Result := '';
 end;
 
 
-{$ifndef HasUnix}
+{$ifdef Unix}
+  Function getenv(name:shortstring):Pchar; external name 'FPC_SYSC_FPGETENV';
+  
+  {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+  {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+{$endif}
+
   type
     PathStr=string;
-  {$i fexpand.inc}
-{$endif}
+{$I fexpand.inc}
+
+{$ifdef Unix}
+  {$UNDEF FPC_FEXPAND_GETENVPCHAR}
+  {$UNDEF FPC_FEXPAND_TILDE}
+{$endif}  
 
 function ExpandFileName (Const FileName : string): String;
 

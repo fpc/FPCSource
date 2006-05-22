@@ -67,7 +67,7 @@ end;
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-procedure GetDirIO (const VolumeName: OpenString; var Dir: OpenString);
+procedure GetDirIO (const VolumeName: OpenString; var Dir: PathStr);
 
 var
   OldInOutRes: word;
