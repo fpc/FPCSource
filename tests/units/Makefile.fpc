@@ -17,7 +17,7 @@ targetdir=$(FULL_TARGET)
 fpcdir=../..
 
 [rules]
-.PHONY: rtl extra all clean cleanrtl clean_ctest
+.PHONY: rtl extra fpcunit all clean cleanrtl clean_ctest
 
 #############################
 # RTL
@@ -28,7 +28,6 @@ INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPIL
 
 rtl-stamp.$(FULL_TARGET):
         $(MAKE) -C ../../rtl all 'OPT=$(OPT) -n'
-        $(DELTREE) $(COMPILER_TARGETDIR)
         $(MAKE) -C ../../rtl install $(INSTALLOPT)
         $(ECHO) Compiled > rtl-stamp.$(FULL_TARGET)
 
@@ -38,6 +37,26 @@ cleanrtl:
         -$(DEL) rtl-stamp.$(FULL_TARGET)
 
 rtl : rtl-stamp.$(FULL_TARGET)
+
+
+#############################
+# RTL
+#
+
+DUMMYINSTALLDIR=$(BASEDIR)/tmp
+INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
+
+fpcunit-stamp.$(FULL_TARGET):
+        $(MAKE) -C ../../fcl/fpcunit all 'OPT=$(OPT) -n'
+        $(MAKE) -C ../../fcl/fpcunit install $(INSTALLOPT)
+        $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
+
+cleanfpcunit:
+        $(DELTREE) $(COMPILER_TARGETDIR)
+        $(DELTREE) $(DUMMYINSTALLDIR)
+        -$(DEL) fpcunit-stamp.$(FULL_TARGET)
+
+fpcunit : fpcunit-stamp.$(FULL_TARGET)
 
 
 #############################
@@ -78,9 +97,9 @@ extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT)
 # Main rules
 #
 
-all : rtl  extra
+all : rtl fpcunit extra
 
-clean : cleanrtl cleanall
+clean : cleanrtl cleanall cleanfpcunit
 
 clean_ctest :
         -$(DEL) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
