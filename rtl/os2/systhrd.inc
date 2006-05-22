@@ -211,8 +211,9 @@ end;
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        SysBeginThread := DosCreateThread (DWord (ThreadID), @ThreadMain, SA,
-                                           CreationFlags, StackSize);
+        if DosCreateThread (DWord (ThreadID), @ThreadMain, SA,
+                                           CreationFlags, StackSize) = 0 then
+        SysBeginThread := ThreadID else SysBeginThread := 0;
       end;
 
 
