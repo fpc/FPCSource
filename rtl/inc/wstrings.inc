@@ -710,7 +710,7 @@ begin
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
 {$ifndef FPC_WINLIKEWIDESTRING}
-      PWideRec(Pointer(S)-FirstOff)^.Len:=l*sizeof(WideChar);
+      PWideRec(Pointer(S)-WideFirstOff)^.Len:=l*sizeof(WideChar);
 {$endif FPC_WINLIKEWIDESTRING}
     end
   else
