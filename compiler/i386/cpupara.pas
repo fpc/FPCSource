@@ -407,7 +407,17 @@ unit cpupara;
             else
               begin
                 paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                paracgsize:=def_cgsize(hp.vartype.def);
+                { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
+                { zero extended to sizeof(aint)                                }
+                if (target_info.system = system_i386_darwin) and
+                   (side = callerside) and
+                   (paralen < sizeof(aint)) then
+                  begin
+                    paralen := sizeof(aint);
+                    paracgsize:=OS_INT;
+                  end
+                else
+                  paracgsize:=def_cgsize(hp.vartype.def);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
