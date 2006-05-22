@@ -235,8 +235,13 @@ implementation
         secnames : array[TAsmSectiontype] of string[17] = ('',
           '.text',
           '.data',
+{ why doesn't .rodata work? (FK) }
 {$warning TODO .rodata not yet working}
+{$ifdef arm}
+          '.rodata',
+{$else arm}
           '.data',
+{$endif arm}
           '.bss',
           '.threadvar',
           '', { stubs }
