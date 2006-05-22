@@ -1187,7 +1187,7 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                if not(is_shifter_const(-tarmprocinfo(current_procinfo).floatregstart,shift)) then
+                if tarmprocinfo(current_procinfo).floatregstart<=-1023 then
                   begin
                     a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
@@ -1228,7 +1228,7 @@ unit cgcpu;
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
-                if not(is_shifter_const(-tarmprocinfo(current_procinfo).floatregstart,shift)) then
+                if tarmprocinfo(current_procinfo).floatregstart<=-1023 then
                   begin
                     a_load_const_reg(list,OS_ADDR,-tarmprocinfo(current_procinfo).floatregstart,NR_R12);
                     list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_R12,NR_FRAME_POINTER_REG,NR_R12));
