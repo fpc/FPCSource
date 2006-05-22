@@ -347,7 +347,7 @@ interface
 
     const
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
-        #9'FIXME128',#9'FIXME64',#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'DDQ'#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
         #9'RVA'#9,#9'FIXMEINDIRECT'#9
       );
