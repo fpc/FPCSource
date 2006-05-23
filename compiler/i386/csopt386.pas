@@ -842,6 +842,7 @@ var
 {$endif replaceregdebug}
     regcounter: tsuperregister;
     oldStartmod: tai;
+    regstoclear: tregset;
 begin
 {$ifdef replaceregdebug}
   l := random(1000);
@@ -850,26 +851,43 @@ begin
   insertllitem(asml,p.previous,p,hp);
 {$endif replaceregdebug}
   ptaiprop(p.optinfo)^.Regs[supreg].typ := con_unknown;
+  regstoclear := [supreg];
   while (p <> endP) do
     begin
       for regcounter := RS_EAX to RS_EDI do
-        if (regcounter <> supreg) and
-           assigned(ptaiprop(p.optinfo)^.regs[supreg].memwrite) and
-           reginref(regcounter,ptaiprop(p.optinfo)^.regs[supreg].memwrite.oper[1]^.ref^) then
-          clearmemwrites(p,regcounter);
-      with ptaiprop(p.optinfo)^.Regs[supreg] do
         begin
-          typ := con_unknown;
-          memwrite := nil;
+          if (regcounter <> supreg) and
+             assigned(ptaiprop(p.optinfo)^.regs[supreg].memwrite) and
+             reginref(regcounter,ptaiprop(p.optinfo)^.regs[supreg].memwrite.oper[1]^.ref^) then
+            clearmemwrites(p,regcounter);
+          { needs double loop to cheack for each dependency combination? }
+          if assigned(ptaiprop(p.optinfo)^.regs[regcounter].startmod) and
+             sequencedependsonreg(ptaiprop(p.optinfo)^.regs[regcounter],regcounter,supreg) then
+            include(regstoclear,regcounter);
+
+          if regcounter in regstoclear then
+            with ptaiprop(p.optinfo)^.Regs[regcounter] do
+              begin
+                typ := con_unknown;
+                memwrite := nil;
+              end;
         end;
       getNextInstruction(p,p);
     end;
   oldStartmod := ptaiprop(p.optinfo)^.Regs[supreg].startmod;
   repeat
-    with ptaiprop(p.optinfo)^.Regs[supreg] do
+    for regcounter := RS_EAX to RS_EDI do
       begin
-        typ := con_unknown;
-        memwrite := nil;
+        { needs double loop to cheack for each dependency combination? }
+        if assigned(ptaiprop(p.optinfo)^.regs[regcounter].startmod) and
+           sequencedependsonreg(ptaiprop(p.optinfo)^.regs[regcounter],regcounter,supreg) then
+          include(regstoclear,regcounter);
+        with ptaiprop(p.optinfo)^.Regs[supreg] do
+          if regcounter in regstoclear then
+            begin
+              typ := con_unknown;
+              memwrite := nil;
+            end;
       end;
   until not getNextInstruction(p,p) or
         (ptaiprop(p.optinfo)^.Regs[supreg].startmod <> oldStartmod);
@@ -889,7 +907,8 @@ var
   l: longint;
 {$endif replaceregdebug}
   hp: tai;
-  dummyregs: tregset;
+  validregs, prevvalidregs: tregset;
+  regcounter: tsuperregister;
   tmpState, newrstate: byte;
   prevcontenttyp: byte;
   memconflict: boolean;
@@ -904,15 +923,49 @@ begin
 {  ptaiprop(p.optinfo)^.Regs[reg] := c;}
   newrstate := c.rstate;
   incstate(newrstate,$7f);
-  while (p <> endP) do
+  memconflict := false;
+  invalsmemwrite := false;
+  validregs := [RS_EAX..RS_EDI];
+  prevvalidregs := validregs;
+  while (p <> endP) and
+        not(memconflict) and
+        not(invalsmemwrite) do
     begin
       if not(ptaiprop(p.optinfo)^.canberemoved) and
          regreadbyinstruction(supreg,p) then
         incstate(newrstate,1);
-      ptaiprop(p.optinfo)^.Regs[supreg] := c;
-      ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
+      // is this a write to memory that destroys the contents we are restoring?
+      memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,validregs,false,invalsmemwrite);
+      if (validregs <> prevvalidregs) then
+        begin
+          prevvalidregs := validregs >< prevvalidregs;
+          for regcounter := RS_EAX to RS_EDI do
+            if regcounter in prevvalidregs then
+              clearRegContentsFrom(asml,regcounter,p,endP);
+        end;
+      prevvalidregs := validregs;
+      if (not memconflict and not invalsmemwrite) then
+        begin
+          ptaiprop(p.optinfo)^.Regs[supreg] := c;
+          ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
+        end
+      else
+        begin
+          clearRegContentsFrom(asml,supreg,p,endP);
+{$ifdef replaceregdebug}
+           if assigned(p) then
+             begin
+               hp := tai_comment.Create(strpnew(
+                 'stopping restoring of '+std_regname(newreg(R_INTREGISTER,supreg,R_SUBWHOLE))+'because memory conflict... '+tostr(l)));
+               insertllitem(asml,p,p.next,hp);
+             end;
+{$endif replaceregdebug}
+          exit
+        end;
+    
       getNextInstruction(p,p);
     end;
+  
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
   if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
     begin
@@ -922,13 +975,20 @@ begin
       if (ptaiprop(hp.optinfo)^.regs[supreg].rstate = ptaiprop(p.optinfo)^.regs[supreg].rstate) then
         internalerror(2004122710);
      end;
-  dummyregs := [supreg];
   repeat
     newrstate := ptaiprop(p.optinfo)^.Regs[supreg].rState;
     prevcontenttyp := ptaiprop(p.optinfo)^.Regs[supreg].typ;
     // is this a write to memory that destroys the contents we are restoring?
-    memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
-    if not memconflict and not invalsmemwrite then
+    memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,validregs,false,invalsmemwrite);
+    if (validregs <> prevvalidregs) then
+      begin
+        prevvalidregs := validregs >< prevvalidregs;
+        for regcounter := RS_EAX to RS_EDI do
+          if regcounter in prevvalidregs then
+            clearRegContentsFrom(asml,regcounter,p,p);
+      end;
+    prevvalidregs := validregs;
+    if (not memconflict and not invalsmemwrite) then
       begin
         ptaiprop(p.optinfo)^.Regs[supreg] := c;
         ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
@@ -1671,59 +1731,45 @@ begin
             (reginfo.new2oldreg[regcounter] <> regcounter) then
           begin
             getLastInstruction(curseqend,hp);
-            if (curprev <> prevseqstart) or
-                {not(regCounter in rg.usableregsint + [RS_EDI,RS_ESI]) or}
-                not(regCounter in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_EDI,RS_ESI]) or
-                not ReplaceReg(asml,reginfo.new2oldreg[regcounter],
-                    regCounter,hp,curseqstart,
-                    ptaiprop(prevseqstart.optinfo)^.Regs[regCounter],true,hp2) then
-              begin
-                opc := A_MOV;
-                insertpos := prevseq_next;
-                if assigned(reguses[regcounter]) then
-                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                    opc := A_XCHG
-                  else
-                    insertpos := tai(reguses[regcounter].next)
-                else
-                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                    insertpos := regloads[reginfo.new2oldreg[regcounter]];
-                hp := Tai_Marker.Create(NoPropInfoStart);
-                InsertLLItem(asml, insertpos.previous,insertpos, hp);
-                hp2 := taicpu.Op_Reg_Reg(opc, S_L,
-                                           {old reg                                        new reg}
-                      newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE), newreg(R_INTREGISTER,regcounter,R_SUBWHOLE));
-                regloads[regcounter] := hp2;
-                reguses[reginfo.new2oldreg[regcounter]] := hp2;
-                new(ptaiprop(hp2.optinfo));
-                ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
-                ptaiprop(hp2.optinfo)^.canBeRemoved := false;
-                InsertLLItem(asml, insertpos.previous, insertpos, hp2);
-                hp := Tai_Marker.Create(NoPropInfoEnd);
-                InsertLLItem(asml, insertpos.previous, insertpos, hp);
-                { adjusts states in previous instruction so that it will  }
-                { definitely be different from the previous or next state }
-                incstate(ptaiprop(hp2.optinfo)^.
-                  regs[reginfo.new2oldreg[regcounter]].rstate,20);
-                incstate(ptaiprop(hp2.optinfo)^.
-                  regs[regCounter].wstate,20);
-                updateState(reginfo.new2oldreg[regcounter],hp2);
-                updateState(regcounter,hp2);
-              end
+            opc := A_MOV;
+            insertpos := prevseq_next;
+            if assigned(reguses[regcounter]) then
+              if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
+                opc := A_XCHG
+              else
+                insertpos := tai(reguses[regcounter].next)
             else
+              if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
+                 insertpos := regloads[reginfo.new2oldreg[regcounter]];
+            hp := Tai_Marker.Create(NoPropInfoStart);
+            InsertLLItem(asml, insertpos.previous,insertpos, hp);
+            hp2 := taicpu.Op_Reg_Reg(opc, S_L,
+                                            {old reg                                        new reg}
+                     newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE), newreg(R_INTREGISTER,regcounter,R_SUBWHOLE));
+            if (opc = A_XCHG) and
+               (taicpu(regloads[reginfo.new2oldreg[regcounter]]).opcode <> A_XCHG) then
               begin
-                // replace the new register with the old register in the
-                // sequence itself as well so later comparisons get the
-                // correct knowledge about which registers are used
-                hp2 := curseqstart;
-                // curseqend = instruction following last instruction of this
-                // sequence
-                while hp2 <> curseqend do
-                  begin
-                    doreplacereg(taicpu(hp2),regcounter,reginfo.new2oldreg[regcounter]);
-                    getnextinstruction(hp2,hp2);
-                  end;
+                asml.remove(regloads[reginfo.new2oldreg[regcounter]]);
+                regloads[reginfo.new2oldreg[regcounter]].free;
+                regloads[reginfo.new2oldreg[regcounter]] := hp2;
+                reguses[regcounter] := hp2;
               end;
+            regloads[regcounter] := hp2;
+            reguses[reginfo.new2oldreg[regcounter]] := hp2;
+            new(ptaiprop(hp2.optinfo));
+            ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
+            ptaiprop(hp2.optinfo)^.canBeRemoved := false;
+            InsertLLItem(asml, insertpos.previous, insertpos, hp2);
+            hp := Tai_Marker.Create(NoPropInfoEnd);
+            InsertLLItem(asml, insertpos.previous, insertpos, hp);
+            { adjusts states in previous instruction so that it will  }
+            { definitely be different from the previous or next state }
+            incstate(ptaiprop(hp2.optinfo)^.
+              regs[reginfo.new2oldreg[regcounter]].rstate,20);
+            incstate(ptaiprop(hp2.optinfo)^.
+              regs[regCounter].wstate,20);
+            updateState(reginfo.new2oldreg[regcounter],hp2);
+            updateState(regcounter,hp2);
           end
         else
   {   imagine the following code:                                            }
