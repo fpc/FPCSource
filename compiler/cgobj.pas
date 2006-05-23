@@ -212,6 +212,7 @@ unit cgobj;
           procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
           procedure a_load_loc_reg(list : TAsmList;tosize: tcgsize; const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
+          procedure a_load_loc_subsetreg(list : TAsmList;subsetregsize,subsetsize: tcgsize; startbit: byte; const loc: tlocation; subsetreg : tregister);
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           procedure a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize; startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister); virtual;
@@ -1050,6 +1051,23 @@ implementation
             a_load_subsetreg_ref(list,loc.subsetregsize,loc.size,loc.startbit,tosize,loc.subsetreg,ref);
           else
             internalerror(200109302);
+        end;
+      end;
+
+
+    procedure tcg.a_load_loc_subsetreg(list : TAsmList;subsetregsize,subsetsize: tcgsize; startbit: byte; const loc: tlocation; subsetreg : tregister);
+      begin
+        case loc.loc of
+          LOC_REFERENCE,LOC_CREFERENCE:
+            a_load_ref_subsetreg(list,loc.size,subsetregsize,subsetsize,startbit,loc.reference,subsetreg);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load_reg_subsetreg(list,loc.size,subsetregsize,subsetsize,startbit,loc.register,subsetreg);
+          LOC_CONSTANT:
+            a_load_const_subsetreg(list,subsetregsize,subsetsize,startbit,loc.value,subsetreg);
+          LOC_SUBSETREG,LOC_CSUBSETREG:
+            a_load_subsetreg_subsetreg(list,loc.subsetregsize,loc.size,loc.startbit,subsetregsize,subsetsize,startbit,loc.subsetreg,subsetreg);
+          else
+            internalerror(2006052310);
         end;
       end;
 
