@@ -5755,6 +5755,7 @@ tests/test/trange4.pp svneol=native#text/plain
 tests/test/trange5.pp svneol=native#text/plain
 tests/test/trangeob.pp svneol=native#text/plain
 tests/test/trecreg.pp -text
+tests/test/trecreg2.pp svneol=native#text/plain
 tests/test/tresstr.pp svneol=native#text/plain
 tests/test/trtti1.pp svneol=native#text/plain
 tests/test/trtti2.pp svneol=native#text/plain

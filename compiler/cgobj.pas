@@ -897,15 +897,16 @@ implementation
        tmpreg: tregister;
        stopbit: byte;
      begin
-       tmpreg:=getintregister(list,subsetregsize);
-       a_load_reg_reg(list,fromsize,subsetregsize,fromreg,tmpreg);
-       a_op_const_reg(list,OP_SHL,subsetregsize,startbit,tmpreg);
        stopbit := startbit+(tcgsize2size[subsetsize] * 8);
        // on x86(64), 1 shl 32(64) = 1 instead of 0
        if (stopbit <> AIntBits) then
          bitmask := not(((1 shl stopbit)-1) xor ((1 shl startbit)-1))
        else
          bitmask := not(-1 xor ((1 shl startbit)-1));
+       tmpreg:=getintregister(list,subsetregsize);
+       a_load_reg_reg(list,fromsize,subsetregsize,fromreg,tmpreg);
+       a_op_const_reg(list,OP_SHL,subsetregsize,startbit,tmpreg);
+       a_op_const_reg(list,OP_AND,subsetregsize,not(bitmask),tmpreg);
        a_op_const_reg(list,OP_AND,subsetregsize,bitmask,subsetreg);
        a_op_reg_reg(list,OP_OR,subsetregsize,tmpreg,subsetreg);
      end;
