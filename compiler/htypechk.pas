@@ -1333,10 +1333,15 @@ implementation
             end;
           arraydef :
             begin
-              if is_open_array(def_to) and
-                 is_dynamic_array(def_from) and
-                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
-                eq:=te_convert_l2;
+              if is_open_array(def_to) then
+                begin
+                  if is_dynamic_array(def_from) and
+                     equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                    eq:=te_convert_l2
+                  else
+                    if equal_defs(def_from,tarraydef(def_to).elementtype.def) then
+                      eq:=te_convert_l2;
+                end;
             end;
           pointerdef :
             begin
