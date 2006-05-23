@@ -953,7 +953,7 @@ implementation
        else
          bitmask := (1 shl startbit) - 1;
        a_op_const_reg(list,OP_AND,subsetregsize,bitmask,subsetreg);
-       a_op_const_reg(list,OP_OR,subsetregsize,a shl startbit,subsetreg);
+       a_op_const_reg(list,OP_OR,subsetregsize,(a shl startbit) and not(bitmask),subsetreg);
     end;
 
 
