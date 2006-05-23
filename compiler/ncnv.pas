@@ -2695,8 +2695,8 @@ implementation
           begin
             { left is a class }
             if not(is_class(left.resulttype.def) or
-                   is_interface(left.resulttype.def)) then
-              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
+                   is_interfacecom(left.resulttype.def)) then
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resulttype.def.typename);
 
             resulttype:=right.resulttype;
 

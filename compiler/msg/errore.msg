@@ -1268,6 +1268,8 @@ type_w_double_c_varargs=04059_W_Converting constant real value to double for C v
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
+type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type expected, but got "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
 #
 # Symtable
