@@ -6066,6 +6066,8 @@ tests/webtbf/tw4893d.pp svneol=native#text/plain
 tests/webtbf/tw4893e.pp svneol=native#text/plain
 tests/webtbf/tw4911.pp svneol=native#text/plain
 tests/webtbf/tw4913.pp -text
+tests/webtbf/tw6686.pp svneol=native#text/plain
+tests/webtbf/tw6796.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
 tests/webtbf/uw0840a.pp svneol=native#text/plain
 tests/webtbf/uw0840b.pp svneol=native#text/plain
