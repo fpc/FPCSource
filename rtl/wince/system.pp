@@ -197,7 +197,7 @@ function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
 procedure memmove(dest, src: pointer; count: longint);
    cdecl; external 'coredll' name 'memmove';
 
-procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   memmove(@dest, @source, count);
 end;
@@ -206,7 +206,7 @@ end;
 function memcmp(buf1, buf2: pointer; count: longint): longint;
    cdecl; external 'coredll' name 'memcmp';
 
-function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt;
+function CompareByte(Const buf1,buf2;len:SizeInt):SizeInt; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   CompareByte := memcmp(@buf1, @buf2, len);
 end;
@@ -220,17 +220,29 @@ begin
 end;
 
 {$define FPC_SYSTEM_HAS_TRUNC}
-function fpc_trunc_real(d : ValReal) : int64;compilerproc;
-   external 'coredll' name '__dtoi64';
+function __dtoi64(d: double) : int64; external 'coredll';
+
+function fpc_trunc_real(d : ValReal) : int64; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+	bl __dtoi64
+end;
 
 {$define FPC_SYSTEM_HAS_ABS}
-function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
-   external 'coredll' name 'fabs';
+function fabs(d: double): double; external 'coredll';
+
+function fpc_abs_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  bl fabs
+end;
 
 {$define FPC_SYSTEM_HAS_SQRT}
-function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
-   external 'coredll' name 'sqrt';
-   
+function coresqrt(d: double): double; external 'coredll' name 'sqrt';
+
+function fpc_sqrt_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+  bl coresqrt
+end;
+
 function adds(s1,s2 : single) : single;
 begin
   adds := addd(s1, s2);
