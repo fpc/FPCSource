@@ -24,11 +24,6 @@
 {   internal functions                                                         }
 {==============================================================================}
 
-const
-   DayTable: array[Boolean, 1..12] of longint =
-      ((0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
-       (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335));
-
 Function DoEncodeDate(Year, Month, Day: Word): longint;
 
 Var
@@ -56,8 +51,8 @@ end;
 
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 begin
-  result.Time := Trunc(Frac(DateTime) * MSecsPerDay);
-  result.Date := DateDelta + Round(System.Int(DateTime));
+  result.Time := Trunc(abs(Frac(DateTime)) * MSecsPerDay);
+  result.Date := DateDelta + trunc(DateTime);
 end ;
 
 {   TimeStampToDateTime converts TimeStamp to a TDateTime value   }
@@ -71,7 +66,7 @@ end ;
 
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
-  result.Date := Round(msecs / msecsperday);
+  result.Date := Trunc(msecs / msecsperday);
   msecs:= comp(msecs-result.date*msecsperday);
   result.Time := Round(MSecs);
 end ;
@@ -102,7 +97,10 @@ begin
       end;
      c:= Year DIV 100;
      ya:= Year - 100*c;
-     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day) - 693900;
+     Date := (146097*c) SHR 2 + (1461*ya) SHR 2 + (153*cardinal(Month)+2) DIV 5 + cardinal(Day);
+     // Note that this line can't be part of the line above, since TDateTime is
+     // signed and c and ya are not
+     Date := Date - 693900;
    end
 end;
 
@@ -144,32 +142,41 @@ procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 var
   ly,ld,lm,j : cardinal;
 begin
-  j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
-  ly:= j DIV 146097;
-  j:= j - 146097 * cardinal(ly);
-  ld := j SHR 2;
-  j:=(ld SHL 2 + 3) DIV 1461;
-  ld:= (cardinal(ld) SHL 2 + 7 - 1461*j) SHR 2;
-  lm:=(5 * ld-3) DIV 153;
-  ld:= (5 * ld +2 - 153*lm) DIV 5;
-  ly:= 100 * cardinal(ly) + j;
-  if lm < 10 then
-   inc(lm,3)
+  if Date <= -datedelta then  // If Date is before 1-1-1 then return 0-0-0
+    begin
+    Year := 0;
+    Month := 0;
+    Day := 0;
+    end
   else
     begin
-      dec(lm,9);
-      inc(ly);
+    j := pred((Trunc(System.Int(Date)) + 693900) SHL 2);
+    ly:= j DIV 146097;
+    j:= j - 146097 * cardinal(ly);
+    ld := j SHR 2;
+    j:=(ld SHL 2 + 3) DIV 1461;
+    ld:= (cardinal(ld) SHL 2 + 7 - 1461*j) SHR 2;
+    lm:=(5 * ld-3) DIV 153;
+    ld:= (5 * ld +2 - 153*lm) DIV 5;
+    ly:= 100 * cardinal(ly) + j;
+    if lm < 10 then
+     inc(lm,3)
+    else
+      begin
+        dec(lm,9);
+        inc(ly);
+      end;
+    year:=ly;
+    month:=lm;
+    day:=ld;
     end;
-  year:=ly;
-  month:=lm;
-  day:=ld;
 end;
 
 
 function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;
 begin
   DecodeDate(DateTime,Year,Month,Day);
-  DOW:=DateTimeToTimeStamp(DateTime).Date mod 7+1;
+  DOW:=DayOfWeek(DateTime);
   Result:=IsLeapYear(Year);
 end;
 
@@ -181,7 +188,7 @@ procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: wor
 Var
   l : cardinal;
 begin
- l := Round(Frac(time) * MSecsPerDay);
+ l := Round(abs(Frac(time)) * MSecsPerDay);
  Hour   := l div 3600000;
  l := l mod 3600000;
  Minute := l div 60000;
@@ -241,9 +248,8 @@ var
   SystemTime: TSystemTime;
 begin
   GetLocalTime(SystemTime);
-  result := DoEncodeDate(SystemTime.Year,SystemTime.Month,SystemTime.Day) +
-            DoEncodeTime(SystemTime.Hour,SystemTime.Minute,SystemTime.Second,SystemTime.MilliSecond);
-end ;
+  result := systemTimeToDateTime(SystemTime);
+end;
 
 {   IncMonth increments DateTime with NumberOfMonths months,
     NumberOfMonths can be less than zero   }
