@@ -1723,59 +1723,45 @@ begin
             (reginfo.new2oldreg[regcounter] <> regcounter) then
           begin
             getLastInstruction(curseqend,hp);
-            if (curprev <> prevseqstart) or
-                {not(regCounter in rg.usableregsint + [RS_EDI,RS_ESI]) or}
-                not(regCounter in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_EDI,RS_ESI]) or
-                not ReplaceReg(asml,reginfo.new2oldreg[regcounter],
-                    regCounter,hp,curseqstart,
-                    ptaiprop(prevseqstart.optinfo)^.Regs[regCounter],true,hp2) then
-              begin
-                opc := A_MOV;
-                insertpos := prevseq_next;
-                if assigned(reguses[regcounter]) then
-                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                    opc := A_XCHG
-                  else
-                    insertpos := tai(reguses[regcounter].next)
-                else
-                  if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                    insertpos := regloads[reginfo.new2oldreg[regcounter]];
-                hp := Tai_Marker.Create(mark_NoPropInfoStart);
-                InsertLLItem(asml, insertpos.previous,insertpos, hp);
-                hp2 := taicpu.Op_Reg_Reg(opc, S_L,
-                                           {old reg                                        new reg}
-                      newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE), newreg(R_INTREGISTER,regcounter,R_SUBWHOLE));
-                regloads[regcounter] := hp2;
-                reguses[reginfo.new2oldreg[regcounter]] := hp2;
-                new(ptaiprop(hp2.optinfo));
-                ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
-                ptaiprop(hp2.optinfo)^.canBeRemoved := false;
-                InsertLLItem(asml, insertpos.previous, insertpos, hp2);
-                hp := Tai_Marker.Create(mark_NoPropInfoEnd);
-                InsertLLItem(asml, insertpos.previous, insertpos, hp);
-                { adjusts states in previous instruction so that it will  }
-                { definitely be different from the previous or next state }
-                incstate(ptaiprop(hp2.optinfo)^.
-                  regs[reginfo.new2oldreg[regcounter]].rstate,20);
-                incstate(ptaiprop(hp2.optinfo)^.
-                  regs[regCounter].wstate,20);
-                updateState(reginfo.new2oldreg[regcounter],hp2);
-                updateState(regcounter,hp2);
-              end
+            opc := A_MOV;
+            insertpos := prevseq_next;
+            if assigned(reguses[regcounter]) then
+              if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
+                opc := A_XCHG
+              else
+                insertpos := tai(reguses[regcounter].next)
             else
+              if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
+                 insertpos := regloads[reginfo.new2oldreg[regcounter]];
+            hp := Tai_Marker.Create(mark_NoPropInfoStart);
+            InsertLLItem(asml, insertpos.previous,insertpos, hp);
+            hp2 := taicpu.Op_Reg_Reg(opc, S_L,
+                                            {old reg                                        new reg}
+                     newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBWHOLE), newreg(R_INTREGISTER,regcounter,R_SUBWHOLE));
+            if (opc = A_XCHG) and
+               (taicpu(regloads[reginfo.new2oldreg[regcounter]]).opcode <> A_XCHG) then
               begin
-                // replace the new register with the old register in the
-                // sequence itself as well so later comparisons get the
-                // correct knowledge about which registers are used
-                hp2 := curseqstart;
-                // curseqend = instruction following last instruction of this
-                // sequence
-                while hp2 <> curseqend do
-                  begin
-                    doreplacereg(taicpu(hp2),regcounter,reginfo.new2oldreg[regcounter]);
-                    getnextinstruction(hp2,hp2);
-                  end;
+                asml.remove(regloads[reginfo.new2oldreg[regcounter]]);
+                regloads[reginfo.new2oldreg[regcounter]].free;
+                regloads[reginfo.new2oldreg[regcounter]] := hp2;
+                reguses[regcounter] := hp2;
               end;
+            regloads[regcounter] := hp2;
+            reguses[reginfo.new2oldreg[regcounter]] := hp2;
+            new(ptaiprop(hp2.optinfo));
+            ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
+            ptaiprop(hp2.optinfo)^.canBeRemoved := false;
+            InsertLLItem(asml, insertpos.previous, insertpos, hp2);
+            hp := Tai_Marker.Create(mark_NoPropInfoEnd);
+            InsertLLItem(asml, insertpos.previous, insertpos, hp);
+            { adjusts states in previous instruction so that it will  }
+            { definitely be different from the previous or next state }
+            incstate(ptaiprop(hp2.optinfo)^.
+              regs[reginfo.new2oldreg[regcounter]].rstate,20);
+            incstate(ptaiprop(hp2.optinfo)^.
+              regs[regCounter].wstate,20);
+            updateState(reginfo.new2oldreg[regcounter],hp2);
+            updateState(regcounter,hp2);
           end
         else
   {   imagine the following code:                                            }
