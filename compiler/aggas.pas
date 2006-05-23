@@ -237,7 +237,7 @@ implementation
           '.data',
 { why doesn't .rodata work? (FK) }
 {$warning TODO .rodata not yet working}
-{$ifdef arm}
+{$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
           '.data',
@@ -1073,6 +1073,11 @@ implementation
               begin
                 result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
                 inc(debugframecount);
+                exit;
+              end;
+            sec_rodata:
+              begin
+                result := '.const';
                 exit;
               end;
           end;
