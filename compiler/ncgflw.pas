@@ -455,8 +455,11 @@ implementation
            LOC_CREFERENCE :
              cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.reference);
            LOC_REGISTER,
-           LOC_CREGISTER :
+           LOC_CREGISTER:
              cg.a_load_loc_reg(current_asmdata.CurrAsmList,left.location.size,right.location,left.location.register);
+           LOC_SUBSETREG,
+           LOC_CSUBSETREG :
+             cg.a_load_loc_subsetreg(current_asmdata.CurrAsmList,left.location.subsetregsize,left.location.size,left.location.startbit,right.location,left.location.subsetreg);
            else
              internalerror(200501311);
          end;
