@@ -1515,7 +1515,7 @@ implementation
                        end;
 
                      if assigned(pd.import_name) then
-                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,pd.import_name^)
+                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,proc_get_importname(pd))
                      else
                        importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,'');
                    end
