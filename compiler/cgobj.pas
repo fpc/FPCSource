@@ -820,9 +820,18 @@ implementation
                  reference_reset(ref);
                  ref.base:=cgpara.location^.reference.index;
                  ref.offset:=cgpara.location^.reference.offset;
-                 { use concatcopy, because it can also be a float which fails when
-                   load_ref_ref is used }
-                 g_concatcopy(list,r,ref,cgpara.intsize);
+                 if (size <> OS_NO) and
+                    (tcgsize2size[size] < sizeof(aint)) then
+                   begin
+                     if (cgpara.size = OS_NO) or
+                        assigned(cgpara.location^.next) then
+                       internalerror(2006052401);
+                     a_load_ref_ref(list,size,cgpara.size,r,ref);
+                   end
+                 else
+                   { use concatcopy, because the parameter can be larger than }
+                   { what the OS_* constants can handle                       }
+                   g_concatcopy(list,r,ref,cgpara.intsize);
               end
             else
               internalerror(2002071004);
