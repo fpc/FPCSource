@@ -381,7 +381,6 @@ unit cpupara;
         paracgsize : tcgsize;
       begin
         paraalign:=get_para_align(p.proccalloption);
-        parasize := 0;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
@@ -412,6 +411,7 @@ unit cpupara;
                 { zero extended to sizeof(aint)                                }
                 if (target_info.system = system_i386_darwin) and
                    (side = callerside) and
+                   (paralen > 0) and
                    (paralen < sizeof(aint)) then
                   begin
                     paralen := sizeof(aint);
