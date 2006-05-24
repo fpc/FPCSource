@@ -34,6 +34,7 @@ type
     procedure TestdeFieldListChange;
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
+    procedure TestSetRecNo;                // bug 6919
   end;
 
   { TSQLTestSetup }
@@ -247,6 +248,48 @@ begin
     FieldByName('id').AsInteger := 1;
     AssertEquals(0,RecNo);
     AssertEquals(1,RecordCount);
+
+    Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestSetRecNo;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    Open;
+    RecNo := 1;
+    AssertEquals(1,fields[0].AsInteger);
+    AssertEquals(1,RecNo);
+
+    RecNo := 2;
+    AssertEquals(2,fields[0].AsInteger);
+    AssertEquals(2,RecNo);
+
+    RecNo := 8;
+    AssertEquals(8,fields[0].AsInteger);
+    AssertEquals(8,RecNo);
+
+    RecNo := 15;
+    AssertEquals(15,fields[0].AsInteger);
+    AssertEquals(15,RecNo);
+
+    RecNo := 3;
+    AssertEquals(3,fields[0].AsInteger);
+    AssertEquals(3,RecNo);
+
+    RecNo := 14;
+    AssertEquals(14,fields[0].AsInteger);
+    AssertEquals(14,RecNo);
+
+    RecNo := 15;
+    AssertEquals(15,fields[0].AsInteger);
+    AssertEquals(15,RecNo);
+
+    // test for exceptions...
+{    RecNo := 16;
+    AssertEquals(15,fields[0].AsInteger);
+    AssertEquals(15,RecNo);}
 
     Close;
     end;

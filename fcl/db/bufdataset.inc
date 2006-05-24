@@ -616,6 +616,7 @@ var recnr        : integer;
     TmpRecBuffer : PBufRecLinkItem;
 
 begin
+  checkbrowsemode;
   if value > RecordCount then
     begin
     repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
@@ -628,7 +629,7 @@ begin
   TmpRecBuffer := FFirstRecBuf;
   for recnr := 1 to value-1 do
     TmpRecBuffer := TmpRecBuffer^.next;
-  GotoBookmark(TmpRecBuffer);
+  GotoBookmark(@TmpRecBuffer);
 end;
 
 function TBufDataset.GetRecNo: Longint;
