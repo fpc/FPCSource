@@ -2100,7 +2100,11 @@ const
                         { keep normal mangledname }
                       end;
                     else
-                      result:=maybe_cprefix(pd.import_name^);
+                      if target_info.system in system_all_windows then
+                        { cprefix is not used in DLL imports under Windows }
+                        result:=pd.import_name^
+                      else
+                        result:=maybe_cprefix(pd.import_name^);
                   end;
                 end
               else
