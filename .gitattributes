@@ -5541,7 +5541,6 @@ tests/test/cg/tcalval2.pp svneol=native#text/plain
 tests/test/cg/tcalval3.pp svneol=native#text/plain
 tests/test/cg/tcalval4.pp svneol=native#text/plain
 tests/test/cg/tcalval5.pp svneol=native#text/plain
-tests/test/cg/tcalval6.pp svneol=native#text/plain
 tests/test/cg/tcalval7.pp svneol=native#text/plain
 tests/test/cg/tcalval8.pp svneol=native#text/plain
 tests/test/cg/tcalval9.pp svneol=native#text/plain
