@@ -821,6 +821,3 @@ implementation
 {$i mmatimp.inc}
 
 end.
-<<<<<<< .mine
-=======
->>>>>>> .r41
