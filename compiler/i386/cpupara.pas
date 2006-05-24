@@ -381,6 +381,7 @@ unit cpupara;
         paracgsize : tcgsize;
       begin
         paraalign:=get_para_align(p.proccalloption);
+        parasize := 0;
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
