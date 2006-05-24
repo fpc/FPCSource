@@ -222,25 +222,25 @@ end;
 {$define FPC_SYSTEM_HAS_TRUNC}
 function __dtoi64(d: double) : int64; external 'coredll';
 
-function fpc_trunc_real(d : ValReal) : int64; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+function fpc_trunc_real(d : ValReal) : int64; assembler; nostackframe; compilerproc;
 asm
-	bl __dtoi64
+	b __dtoi64
 end;
 
 {$define FPC_SYSTEM_HAS_ABS}
 function fabs(d: double): double; external 'coredll';
 
-function fpc_abs_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+function fpc_abs_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc;
 asm
-  bl fabs
+  b fabs
 end;
 
 {$define FPC_SYSTEM_HAS_SQRT}
 function coresqrt(d: double): double; external 'coredll' name 'sqrt';
 
-function fpc_sqrt_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc; {$ifdef SYSTEMINLINE}inline;{$endif}
+function fpc_sqrt_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc;
 asm
-  bl coresqrt
+  b coresqrt
 end;
 
 function adds(s1,s2 : single) : single;
