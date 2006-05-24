@@ -18,7 +18,8 @@
   }
 unit gtk2; // keep unit name lowercase for kylix
 
-{$define GTK2_2}
+// default GTK2_6
+{$define GTK2_6}
 
 { Smartlinking has problems on powerpc-linux because of commandline length, disable
   it for now }

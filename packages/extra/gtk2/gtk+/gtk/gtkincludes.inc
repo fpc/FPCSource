@@ -160,7 +160,9 @@
 {$include gtkfilechooserentry.inc}
 {$include gtkiconview.inc}
 
-{$ENDIF}
+// new GtkCellRendererCombo widget
+{$include gtkcellrenderercombo.inc}
+{$ENDIF HasGTK2_6}
 
 {$include gtkfilechooser.inc}
 

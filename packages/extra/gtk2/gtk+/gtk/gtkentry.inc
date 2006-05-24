@@ -166,6 +166,8 @@ procedure gtk_entry_get_layout_offsets(entry:PGtkEntry; x:Pgint; y:Pgint); cdecl
 {$IFDEF HasGTK2_4}
 function gtk_entry_get_alignment(window:PGtkEntry): GFloat; cdecl; external gtklib;
 procedure gtk_entry_set_alignment(window:PGtkEntry; xalign: GFloat); cdecl; external gtklib;
+function gtk_entry_get_completion(entry:PGtkEntry): PGtkEntryCompletion; cdecl; external gtklib;
+procedure gtk_entry_set_completion(entry:PGtkEntry; entryCompletion: PGtkEntryCompletion); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
 { Deprecated compatibility functions }

@@ -61,6 +61,9 @@ const
   {$endif}
 {$endif}
 
+{$define HasGTK2_4}
+{$define HasGTK2_6}
+
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 {$IFNDEF KYLIX}
   {$PACKRECORDS C}
@@ -72,11 +75,17 @@ const
 
 {$IFNDEF Kylix}
 var
+  {$IFDEF WIN32 }
+  gdk_pixbuf_major_version: guint; external gdkpixbuflib name 'gdk_pixbuf_major_version';
+  gdk_pixbuf_minor_version: guint; external gdkpixbuflib name 'gdk_pixbuf_minor_version';
+  gdk_pixbuf_micro_version: guint; external gdkpixbuflib name 'gdk_pixbuf_micro_version';
+  gdk_pixbuf_version: PChar ; external gdkpixbuflib name 'gdk_pixbuf_version';
+  {$ELSE }
   gdk_pixbuf_major_version: guint;cvar;external;
   gdk_pixbuf_minor_version: guint;cvar;external;
   gdk_pixbuf_micro_version: guint;cvar;external;
-
   gdk_pixbuf_version: PChar;cvar;external;
+  {$ENDIF }
 {$ENDIF}
 
 type
@@ -179,6 +188,13 @@ function gdk_pixbuf_new_from_data(data:Pguchar; colorspace:TGdkColorspace; has_a
            height:longint; rowstride:longint; destroy_fn:TGdkPixbufDestroyNotify; destroy_fn_data:gpointer):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_new_from_xpm_data(data:PPchar):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_new_from_inline(data_length:gint; var data:guint8; copy_pixels:gboolean; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+
+{$IFDEF HasGTK2_4}
+function gdk_pixbuf_new_from_file_at_size(filename:Pchar; width, height: gint;error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+{$ENDIF HasGTK2_4}
+{$IFDEF HasGTK2_6}
+function gdk_pixbuf_new_from_file_at_scale(filename:Pchar; width, height: gint; preserve_aspect_ratio: gboolean; error:PPGError):PGdkPixbuf; cdecl; external gdkpixbuflib;
+{$ENDIF HasGTK2_6}
 
 { Mutations  }
 procedure gdk_pixbuf_fill(pixbuf:PGdkPixbuf; pixel:guint32); cdecl; external gdkpixbuflib;
