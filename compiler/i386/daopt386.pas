@@ -2566,6 +2566,7 @@ begin
                                   DestroyReg(curprop, tmpsupreg, true);
                                   typ := Con_Const;
                                   StartMod := p;
+                                  nrOfMods := 1;
                                 end
                             end;
                           top_ref:
