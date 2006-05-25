@@ -1523,6 +1523,7 @@ type
   protected
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
+    function GetChangeCount: integer; virtual;
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure InternalInitRecord(Buffer: PChar); override;
@@ -1560,6 +1561,7 @@ type
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
   end;

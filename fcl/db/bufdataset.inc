@@ -602,6 +602,13 @@ begin
   result := FRecordSize;
 end;
 
+function TBufDataset.GetChangeCount: integer;
+
+begin
+  result := length(FUpdateBuffer);
+end;
+
+
 procedure TBufDataset.InternalInitRecord(Buffer: PChar);
 
 begin
