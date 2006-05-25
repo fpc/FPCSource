@@ -1845,6 +1845,9 @@ Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
 
+procedure DisposeMem(var Buffer; Size: Integer);
+function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
+
 implementation
 
 uses dbconst,typinfo;
@@ -2128,6 +2131,21 @@ begin
   i := FList.Count - 1;
   while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
+end;
+
+procedure DisposeMem(var Buffer; Size: Integer);
+begin
+  if Pointer(Buffer) <> nil then
+    begin
+    FreeMem(Pointer(Buffer), Size);
+    Pointer(Buffer) := nil;
+    end;
+end;
+
+function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean; 
+
+begin
+  Result:=CompareByte(Buf1,Buf2,Size)=0
 end;
 
 {$i dataset.inc}
