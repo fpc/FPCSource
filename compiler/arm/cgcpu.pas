@@ -1486,7 +1486,6 @@ unit cgcpu;
         end;
 
       begin
-
         if len=0 then
           exit;
         helpsize:=12+maxtmpreg*4;//52 with maxtmpreg=10
@@ -1498,8 +1497,19 @@ unit cgcpu;
           begin
             tmpregi:=0;
             srcreg:=getintregister(list,OS_ADDR);
-            a_loadaddr_ref_reg(list,source,srcreg);
-            reference_reset_base(srcref,srcreg,0);
+
+            { explicit pc relative addressing, could be
+              e.g. a floating point constant }
+            if source.base=NR_PC then
+              begin
+                { ... then we don't need a loadaddr }
+                srcref:=source;
+              end
+            else
+              begin
+                a_loadaddr_ref_reg(list,source,srcreg);
+                reference_reset_base(srcref,srcreg,0);
+              end;
 
             while (len div  4 <> 0) and (tmpregi<=maxtmpreg) do
               begin
