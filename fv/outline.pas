@@ -195,8 +195,12 @@ procedure Toutlineviewer.expandall(node:pointer);
 var i:sw_integer;
 
 begin
-  for i:=0 to getnumchildren-1 do
-    expandall(getchild(i));
+  if haschildren(node) then
+    begin
+      for i:=0 to getnumchildren(node)-1 do
+        expandall(getchild(node,i));
+      adjust(node,true);
+    end;
 end;
 
 function Toutlineviewer.firstthat(test:pointer):pointer;
