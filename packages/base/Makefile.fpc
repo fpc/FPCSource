@@ -7,21 +7,21 @@ dirs=hash paszlib pasjpeg regexpr netdb
 dirs_i386_linux=libc
 dirs_x86_64_linux=libc
 dirs_linux=gdbint libasync mysql ibase postgres oracle odbc \
-            pthreads sqlite graph
-dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle graph
+            pthreads sqlite graph imagemagick
+dirs_win32=gdbint mysql ibase odbc sqlite postgres oracle graph imagemagick 
 dirs_win64=mysql ibase odbc sqlite postgres oracle
 dirs_wince=ibase sqlite postgres
 dirs_go32v2=gdbint graph
 dirs_netbsd=gdbint libasync \
-            mysql ibase postgres oracle odbc 
+            mysql ibase postgres oracle odbc imagemagick
 dirs_openbsd=gdbint libasync \
-            mysql ibase postgres oracle odbc 
+            mysql ibase postgres oracle odbc imagemagick
 dirs_freebsd=gdbint libasync graph \
-             mysql ibase postgres oracle odbc sqlite pthreads
+             mysql ibase postgres oracle odbc sqlite pthreads imagemagick
 dirs_darwin=libasync \
-             mysql ibase postgres oracle odbc sqlite pthreads
+             mysql ibase postgres oracle odbc sqlite pthreads imagemagick
 dirs_solaris=libasync \
-             mysql ibase postgres oracle odbc sqlite pthreads
+             mysql ibase postgres oracle odbc sqlite pthreads imagemagick
 
 [install]
 fpcpackage=y

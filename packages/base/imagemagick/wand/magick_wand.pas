@@ -1,0 +1,71 @@
+{
+  Copyright 1999-2005 ImageMagick Studio LLC, a non-profit organization
+  dedicated to making software imaging solutions freely available.
+  
+  You may not use this file except in compliance with the License.
+  obtain a copy of the License at
+  
+    http://www.imagemagick.org/script/license.php
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  ImageMagick MagickWand API.
+  
+  Converted from c by: Felipe Monteiro de Carvalho Dez/2005
+}
+{Version 0.2}
+unit magick_wand;
+
+{$IFDEF FPC}
+  {$mode objfpc}
+{$ENDIF}
+
+{$PACKRECORDS C}
+{$MINENUMSIZE 1}
+
+interface
+
+uses ImageMagick;
+
+type
+  MagickWand = record
+    id: Cardinal;
+    name: array[0..MaxTextExtent] of Char;
+    exception: ExceptionInfo;
+    image_info: PImageInfo;
+    quantize_info: QuantizeInfo;
+    images: Image;
+    iterator, debug: MagickBooleanType;
+    signature: Cardinal;
+  end;
+
+  PMagickWand = ^MagickWand;
+
+{$include pixel_wand.inc}
+{$include drawing_wand.inc}
+{$include magick_attribute.inc}
+{$include magick_image.inc}
+{$include pixel_iterator.inc}
+
+function IsMagickWand(const wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
+function MagickClearException(wand: PMagickWand): MagickBooleanType; cdecl; external WandExport;
+
+function CloneMagickWand(const wand: PMagickWand): PMagickWand; cdecl; external WandExport;
+function DestroyMagickWand(wand: PMagickWand): PMagickWand; cdecl; external WandExport;
+function NewMagickWand: PMagickWand; cdecl; external WandExport;
+
+procedure ClearMagickWand(wand: PMagickWand); cdecl; external WandExport;
+procedure MagickWandGenesis; cdecl; external WandExport;
+procedure MagickWandTerminus; cdecl; external WandExport;
+function MagickRelinquishMemory(resource: Pointer): Pointer; cdecl; external WandExport;
+procedure MagickResetIterator(wand: PMagickWand); cdecl; external WandExport;
+procedure MagickSetFirstIterator(wand: PMagickWand); cdecl; external WandExport;
+procedure MagickSetLastIterator(wand: PMagickWand); cdecl; external WandExport;
+
+implementation
+
+end.
