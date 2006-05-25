@@ -219,7 +219,7 @@ interface
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
                      ait_const,
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
-                     ait_file,ait_loc
+                     ait_file,ait_loc,ait_symbol
                     ];
 
 
@@ -297,7 +297,7 @@ interface
        end;
 
        { Generates a common label }
-       tai_symbol = class(tailineinfo)
+       tai_symbol = class(tai)
           is_global : boolean;
           sym       : tasmsymbol;
           size      : longint;
