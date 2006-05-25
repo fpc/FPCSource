@@ -683,6 +683,7 @@ implementation
 
     procedure tcgcasenode.pass_2;
       var
+         oldflowcontrol: tflowcontrol;
          i : longint;
          lv,hv,
          max_label: tconstexprint;
@@ -695,6 +696,8 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
+         oldflowcontrol := flowcontrol;
+         include(flowcontrol,fc_inflowcontrol);
          { Allocate labels }
          current_asmdata.getjumplabel(endlabel);
          current_asmdata.getjumplabel(elselabel);
@@ -862,6 +865,7 @@ implementation
          { Reset labels }
          for i:=0 to blocks.count-1 do
            pcaseblock(blocks[i])^.blocklabel:=nil;
+         flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
       end;
 
 

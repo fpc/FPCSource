@@ -557,6 +557,8 @@ implementation
           end
         else
           begin
+            { SSA support }
+            maybechangeloadnodereg(left);
             case right.location.loc of
               LOC_CONSTANT :
                 begin

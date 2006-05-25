@@ -148,6 +148,7 @@ implementation
          oldflowcontrol:=flowcontrol;
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
+         include(flowcontrol,fc_inflowcontrol);
 
          sync_regvars(true);
 {$ifdef OLDREGVARS}
@@ -199,7 +200,7 @@ implementation
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
          { a break/continue in a while/repeat block can't be seen outside }
-         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue]);
+         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue,fc_inflowcontrol]);
       end;
 
 
@@ -211,6 +212,7 @@ implementation
 
       var
          hl,otlabel,oflabel : tasmlabel;
+         oldflowcontrol: tflowcontrol;
 (*
          org_regvar_loaded_other,
          then_regvar_loaded_other,
@@ -226,6 +228,8 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
+         oldflowcontrol := flowcontrol;
+         include(flowcontrol,fc_inflowcontrol);
          otlabel:=current_procinfo.CurrTrueLabel;
          oflabel:=current_procinfo.CurrFalseLabel;
          current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
@@ -359,6 +363,7 @@ implementation
 
          current_procinfo.CurrTrueLabel:=otlabel;
          current_procinfo.CurrFalseLabel:=oflabel;
+         flowcontrol := oldflowcontrol + (flowcontrol - [fc_inflowcontrol]);
       end;
 
 
@@ -416,6 +421,7 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
          oldflowcontrol:=flowcontrol;
+         include(flowcontrol,fc_inflowcontrol);
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
          current_asmdata.getjumplabel(current_procinfo.CurrContinueLabel);
@@ -759,7 +765,7 @@ implementation
          current_procinfo.CurrContinueLabel:=oldclabel;
          current_procinfo.CurrBreakLabel:=oldblabel;
          { a break/continue in a while/repeat block can't be seen outside }
-         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue]);
+         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_break,fc_continue,fc_inflowcontrol]);
       end;
 
 
@@ -830,6 +836,7 @@ implementation
        begin
          location_reset(location,LOC_VOID,OS_NO);
 
+         include(flowcontrol,fc_gotolabel);
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}
@@ -853,6 +860,7 @@ implementation
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
+         include(flowcontrol,fc_gotolabel);
 {$ifdef OLDREGVARS}
          load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}

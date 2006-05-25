@@ -101,6 +101,9 @@ interface
 //    procedure get_used_regvars_common(n: tnode; var rv: tusedregvarscommon);
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
+    { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding }
+    { loadn and change its location to a new register (= SSA)                  }
+    procedure maybechangeloadnodereg(var n: tnode);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -167,6 +170,9 @@ implementation
 {$ifdef powerpc64}
     , cpupi
 {$endif}
+{$ifdef SUPPORT_MMX}
+    , cgx86
+{$endif SUPPORT_MMX}
 ;
 
 
@@ -2237,6 +2243,135 @@ implementation
           cg.a_reg_sync(list,newreg(R_FPUREGISTER,rv.fpuregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.mmregvars.length do
           cg.a_reg_sync(list,newreg(R_MMREGISTER,rv.mmregvars.readidx(count-1),R_SUBWHOLE));
+      end;
+
+
+{*****************************************************************************
+                              SSA support
+*****************************************************************************}
+
+    type
+      preplaceregrec = ^treplaceregrec;
+      treplaceregrec = record
+        old, new: tregister;
+{$ifndef cpu64bit}
+        oldhi, newhi: tregister;    
+{$endif cpu64bit}
+        ressym: tsym;
+      end;
+
+
+    function doreplace(var n: tnode; para: pointer): foreachnoderesult;
+      var
+        rr: preplaceregrec absolute para;
+      begin
+        result := fen_false;
+        case n.nodetype of
+          loadn:
+            begin
+              if (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
+                 not assigned(tloadnode(n).left) and
+                 (((tloadnode(n).symtableentry <> rr^.ressym) and
+                   not(vo_is_funcret in tabstractvarsym(tloadnode(n).symtableentry).varoptions)) or
+                  not(fc_exit in flowcontrol)) and
+                 (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+                 (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
+                begin
+{$ifndef cpu64bit}
+                  { it's possible a 64 bit location was shifted and/xor typecasted }
+                  { in a 32 bit value, so only 1 register was left in the location }
+                  if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.size in [OS_64,OS_S64]) then
+                    if (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi = rr^.oldhi) then
+                      tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register64.reghi := rr^.newhi
+                    else
+                      exit;
+{$endif cpu64bit}
+                  tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register := rr^.new;
+                  result := fen_norecurse_true;
+                end;
+            end;
+          temprefn:
+            begin
+              if (ttemprefnode(n).tempinfo^.valid) and
+                 (ttemprefnode(n).tempinfo^.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
+                 (ttemprefnode(n).tempinfo^.location.register = rr^.old) then
+                begin
+{$ifndef cpu64bit}
+                  { it's possible a 64 bit location was shifted and/xor typecasted }
+                  { in a 32 bit value, so only 1 register was left in the location }
+                  if (ttemprefnode(n).tempinfo^.location.size in [OS_64,OS_S64]) then
+                    if (ttemprefnode(n).tempinfo^.location.register64.reghi = rr^.oldhi) then
+                      ttemprefnode(n).tempinfo^.location.register64.reghi := rr^.newhi
+                    else
+                      exit;
+{$endif cpu64bit}
+                  ttemprefnode(n).tempinfo^.location.register := rr^.new;
+                  result := fen_norecurse_true;
+                end;
+            end;
+        end;  
+      end;
+
+
+    procedure maybechangeloadnodereg(var n: tnode);
+      var
+        rr: treplaceregrec;
+      begin
+        if not (n.location.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) or
+           ([fc_inflowcontrol,fc_gotolabel] * flowcontrol <> []) then
+          exit;
+        rr.old := n.location.register;
+        rr.ressym := nil;
+      {$ifndef cpu64bit}
+        rr.oldhi := NR_NO;
+      {$endif cpu64bit}
+        case n.location.loc of
+          LOC_CREGISTER:
+            begin
+      {$ifndef cpu64bit}
+              if (n.location.size in [OS_64,OS_S64]) then
+                begin
+                  rr.oldhi := n.location.register64.reghi;
+                  rr.new := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  rr.newhi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                end
+              else
+      {$endif cpu64bit}
+                rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
+            end;
+          LOC_CFPUREGISTER:
+            rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);
+      {$ifdef SUPPORT_MMX}
+          LOC_CMMXREGISTER:
+            rr.new := tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
+      {$endif SUPPORT_MMX}
+          LOC_CMMREGISTER:
+            rr.new := cg.getmmregister(current_asmdata.CurrAsmList,n.location.size);
+          else
+            exit;
+        end;
+
+        if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
+           assigned(current_procinfo.procdef.funcretsym) and
+           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
+          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+            rr.ressym:=tsym(current_procinfo.procdef.parast.search('self'))
+         else
+            rr.ressym:=current_procinfo.procdef.funcretsym;
+
+        if not foreachnodestatic(n,@doreplace,@rr) then
+          exit;
+
+        { now that we've change the loadn/temp, also change the node result location }  
+      {$ifndef cpu64bit}
+        if (n.location.size in [OS_64,OS_S64]) then
+          begin
+            n.location.register64.reglo := rr.new;
+            n.location.register64.reghi := rr.newhi;
+          end
+        else
+      {$endif cpu64bit}
+          n.location.register := rr.new;
       end;
 
 

@@ -29,7 +29,7 @@ uses
    node;
 
     type
-       tenumflowcontrol = (fc_exit,fc_break,fc_continue);
+       tenumflowcontrol = (fc_exit,fc_break,fc_continue,fc_inflowcontrol,fc_gotolabel);
        tflowcontrol = set of tenumflowcontrol;
 
     var
