@@ -110,19 +110,12 @@ procedure tppcaddnode.load_left_right(cmpop, load_constants: boolean);
         begin
           location_force_reg(current_asmdata.CurrAsmList, n.location,
             def_cgsize(n.resulttype.def), false);
-          if not cmpop then
-          begin
-            location.register := n.location.register;
-          end;
         end;
       LOC_CONSTANT:
         begin
-          if load_constants then
-          begin
+          if load_constants then begin
             location_force_reg(current_asmdata.CurrAsmList, n.location,
               def_cgsize(n.resulttype.def), false);
-            if not cmpop then
-              location.register := n.location.register;
           end;
         end;
       else
@@ -133,9 +126,7 @@ procedure tppcaddnode.load_left_right(cmpop, load_constants: boolean);
 begin
   load_node(left);
   load_node(right);
-  if not (cmpop) and
-    (location.register = NR_NO) then
-  begin
+  if not (cmpop) then begin
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
   end;
 end;
@@ -429,32 +420,21 @@ begin
   location_force_fpureg(current_asmdata.CurrAsmList, right.location, true);
   location_force_fpureg(current_asmdata.CurrAsmList, left.location, true);
 
-  // initialize de result
-  if not cmpop then
-  begin
+  // initialize the result
+  if not cmpop then begin
     location_reset(location, LOC_FPUREGISTER, def_cgsize(resulttype.def));
-    if left.location.loc = LOC_FPUREGISTER then
-      location.register := left.location.register
-    else if right.location.loc = LOC_FPUREGISTER then
-      location.register := right.location.register
-    else
-      location.register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
-  end
-  else
-  begin
+    location.register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
+  end else begin
     location_reset(location, LOC_FLAGS, OS_NO);
     location.resflags := getresflags;
   end;
 
   // emit the actual operation
-  if not cmpop then
-  begin
+  if not cmpop then begin
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
       location.register, left.location.register,
       right.location.register))
-  end
-  else
-  begin
+  end else begin
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
       newreg(R_SPECIALREGISTER, location.resflags.cr, R_SUBNONE),
         left.location.register, right.location.register))
@@ -495,8 +475,7 @@ begin
 
   load_left_right(cmpop, false);
 
-  if not (cmpop) and
-    (location.register = NR_NO) then
+  if not (cmpop) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
   {$ifdef extdebug}
   astring := 'addsmallset0 ' + inttostr(aword(1) shl aword(right.location.value)) + ' ' + inttostr(right.location.value);
@@ -720,13 +699,11 @@ begin
   load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
     (nodetype in [addn, subn, muln]));
 
-  if (location.register = NR_NO) and
-    not (cmpop) then
+  if not (cmpop) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
   if not (cs_check_overflow in aktlocalswitches) or (cmpop) or
-    (nodetype in [orn, andn, xorn]) then
-  begin
+    (nodetype in [orn, andn, xorn]) then begin
     case nodetype of
       addn, muln, xorn, orn, andn:
         begin

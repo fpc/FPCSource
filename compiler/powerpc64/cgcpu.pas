@@ -743,8 +743,8 @@ begin
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
    required to load the value is greater than 2, store (and later load) the value from there }
-  if (false) {(((cs_opt_peephole in aktoptimizerswitches in aktglobalswitches) or (cs_create_pic in aktmoduleswitches)) and
-    (getInstructionLength(a) > 2))} then
+  if (((cs_opt_peephole in aktoptimizerswitches) or (cs_create_pic in aktmoduleswitches)) and
+    (getInstructionLength(a) > 2)) then
     loadConstantPIC(list, size, a, reg)
   else
     loadConstantNormal(list, size, a, reg);
@@ -2029,6 +2029,10 @@ end;
 
 
 function tcgppc.fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
+  // symbol names must not be larger than this to be able to make a GOT reference out of them,
+  // otherwise they get truncated by the compiler resulting in failing of the assembling stage
+const
+  MAX_GOT_SYMBOL_NAME_LENGTH_HACK = 120;
 var
   tmpreg: tregister;
   name : string;
@@ -2041,7 +2045,9 @@ begin
   {$ENDIF EXTDEBUG}
 
   { if we have to create PIC, add the symbol to the TOC/GOT }
-  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol)) then begin
+  {$WARNING Hack for avoiding too long manglednames enabled!!}
+  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol) and
+    (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
       ref.base := tmpreg

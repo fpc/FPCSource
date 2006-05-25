@@ -91,7 +91,7 @@ begin
   with ref do begin
     if ((offset < -32768) or (offset > 32767)) and
       (refaddr = addr_no) then
-      ; //internalerror(19991);
+      internalerror(2006052501);
     if (refaddr = addr_no) then
       s := ''
     else begin
@@ -128,7 +128,7 @@ begin
       if (offset = 0) then
         s := s + gas_regname(base) + ',' + gas_regname(index)
       else
-        internalerror(19992);
+        internalerror(2006052502);
     end;
   end;
   getreferencestring := s;
