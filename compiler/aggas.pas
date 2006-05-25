@@ -287,6 +287,7 @@ implementation
         if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
            use_smartlink_section and
            (aname<>'') and
+           (atype <> sec_toc) and
            (atype<>sec_bss) then
           result:=secname+'.'+aname
         else
