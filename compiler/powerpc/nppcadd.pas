@@ -111,43 +111,15 @@ interface
       procedure load_node(var n: tnode);
         begin
           case n.location.loc of
+            LOC_REGISTER,
             LOC_CREGISTER:
               ;
-            LOC_REGISTER:
-              if (not cmpop) and
-                 ((nodetype <> muln) or
-                  not is_64bit(resulttype.def)) then
-                begin
-                  location.register := n.location.register;
-                  if is_64bit(n.resulttype.def) then
-                    location.register64.reghi := n.location.register64.reghi;
-                end;
             LOC_REFERENCE,LOC_CREFERENCE:
-              begin
-                location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
-                if (not cmpop) and
-                   ((nodetype <> muln) or
-                    not is_64bit(resulttype.def)) then
-                  begin
-                    location.register := n.location.register;
-                    if is_64bit(n.resulttype.def) then
-                      location.register64.reghi := n.location.register64.reghi;
-                  end;
-              end;
+              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
             LOC_CONSTANT:
               begin
                 if load_constants then
-                  begin
-                    location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
-                    if (not cmpop) and
-                       ((nodetype <> muln) or
-                        not is_64bit(resulttype.def)) then
-                      begin
-                        location.register := n.location.register;
-                        if is_64bit(n.resulttype.def) then
-                          location.register64.reghi := n.location.register64.reghi;
-                      end;
-                  end;
+                  location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
               end;
             else
               location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
@@ -159,10 +131,8 @@ interface
         load_node(right);
         if not(cmpop) then
           begin
-            if (location.register = NR_NO) then
-              location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-            if is_64bit(resulttype.def) and
-               (location.register64.reghi = NR_NO) then
+            location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+            if is_64bit(resulttype.def) then
               location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
          end;
       end;
@@ -468,12 +438,7 @@ interface
         if not cmpop then
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-            if left.location.loc = LOC_FPUREGISTER then
-              location.register := left.location.register
-            else if right.location.loc = LOC_FPUREGISTER then
-              location.register := right.location.register
-            else
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+            location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
           end
         else
          begin
@@ -526,8 +491,7 @@ interface
 
         load_left_right(cmpop,false);
 
-        if not(cmpop) and
-           (location.register = NR_NO) then
+        if not(cmpop) then
           location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
         case nodetype of
@@ -916,11 +880,8 @@ interface
                 end;
               xorn,orn,andn,addn:
                 begin
-                  if (location.register64.reglo = NR_NO) then
-                    begin
-                      location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                      location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                    end;
+                  location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
                   if (left.location.loc = LOC_CONSTANT) then
                     swapleftright;
@@ -933,13 +894,10 @@ interface
                 end;
               subn:
                 begin
+                  location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                   if left.location.loc <> LOC_CONSTANT then
                     begin
-                      if (location.register64.reglo = NR_NO) then
-                        begin
-                         location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                         location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                      end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
                         cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
@@ -953,11 +911,6 @@ interface
                     end
                   else if ((left.location.value64 shr 32) = 0) then
                     begin
-                      if (location.register64.reglo = NR_NO) then
-                        begin
-                         location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                         location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                      end;
                       if (int64(left.location.value64) >= low(smallint)) and
                          (int64(left.location.value64) <= high(smallint)) then
                         begin
@@ -981,11 +934,6 @@ interface
                   else if (aint(left.location.value64) = 0) then
                     begin
                       // (const32 shl 32) - reg64
-                      if (location.register64.reglo = NR_NO) then
-                        begin
-                         location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                         location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                      end;
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.register64.reglo,right.location.register64.reglo,0));
                       left.location.value64 := left.location.value64 shr 32;
@@ -999,13 +947,6 @@ interface
                       // const64 - reg64
                       location_force_reg(current_asmdata.CurrAsmList,left.location,
                         def_cgsize(left.resulttype.def),false);
-                      if (left.location.loc = LOC_REGISTER) then
-                        location.register64 := left.location.register64
-                      else if (location.register64.reglo = NR_NO) then
-                        begin
-                         location.register64.reglo := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                         location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                        end;
                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                         right.location.register64,left.location.register64,
                         location.register64);
@@ -1367,8 +1308,7 @@ interface
          load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn,muln]));
 
-         if (location.register = NR_NO) and
-            not(cmpop) then
+         if not(cmpop) then
            location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 
          if not(cs_check_overflow in aktlocalswitches) or
