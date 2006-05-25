@@ -1,3 +1,4 @@
+{ %cpu=i386}
 { %target=darwin }
 
 type
