@@ -43,6 +43,13 @@ begin
     Result:=0;
 end;
 
+function ComposeDateTime(Date,Time : TDateTime) : TDateTime;
+
+begin
+  if Date < 0 then Result := Date - Time
+  else Result := Date + Time;
+end;
+
 {==============================================================================}
 {   Public functions                                                           }
 {==============================================================================}
@@ -59,8 +66,8 @@ end ;
 
 function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
 begin
-  result := (TimeStamp.Date - DateDelta) + (TimeStamp.Time / MSecsPerDay);
-end ;
+  Result := ComposeDateTime(TimeStamp.Date - DateDelta,TimeStamp.Time / MSecsPerDay)
+end;
 
 {   MSecsToTimeStamp   }
 
@@ -210,8 +217,8 @@ end ;
 
 function SystemTimeToDateTime(const SystemTime: TSystemTime): TDateTime;
 begin
-  result := DoEncodeDate(SystemTime.Year, SystemTime.Month, SystemTime.Day) +
-            DoEncodeTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
+  result := ComposeDateTime(DoEncodeDate(SystemTime.Year, SystemTime.Month, SystemTime.Day),
+                            DoEncodeTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond));
 end ;
 
 {   DayOfWeek returns the Day of the week (sunday is day 1)  }
@@ -481,7 +488,7 @@ function StrToDateTime(const s: string): TDateTime;
 var i: integer;
 begin
 i := pos(' ', s);
-if i > 0 then result := StrToDate(Copy(S, 1, i - 1)) + StrToTime(Copy(S, i + 1, length(S)))
+if i > 0 then result := ComposeDateTime(StrToDate(Copy(S, 1, i - 1)), StrToTime(Copy(S, i + 1, length(S))))
 else result := StrToDate(S);
 end ;
 
@@ -697,9 +704,8 @@ var
    end ;
 
 begin
-  DecodeDate(DateTime, Year, Month, Day);
+  DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
-  DayOfWeek := SysUtils.DayOfWeek(DateTime);
   ResultLen := 0;
   ResultCurrent := @ResultBuffer;
   StoreFormat(FormatStr);
@@ -721,17 +727,16 @@ Var YY,MM,DD,H,m,s,msec : Word;
 
 begin
   Decodedate (DateTime,YY,MM,DD);
+  DecodeTime (DateTime,h,m,s,msec);
 {$ifndef unix}
   If (YY<1980) or (YY>2099) then
     Result:=0
   else
     begin
-    DecodeTime (DateTime,h,m,s,msec);
     Result:=(s shr 1) or (m shl 5) or (h shl 11);
     Result:=Result or DD shl 16 or (MM shl 21) or ((YY-1980) shl 25);
     end;
 {$else unix}
-  Decodetime(DateTime,h,m,s,msec);
   Result:=LocalToEpoch(yy,mm,dd,h,m,s);
 {$endif unix}
 end;
@@ -751,15 +756,15 @@ Var Date,Time : Word;
 begin
   Date:=FileDate shr 16;
   Time:=FileDate and $ffff;
-  Result:=EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31) +
-          EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0);
+  Result:=ComposeDate(EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31),
+          EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0));
 end;
 {$else unix}
 var
   y, mon, d, h, min, s: word;
 begin
   EpochToLocal(FileDate,y,mon,d,h,min,s);
-  Result:=EncodeDate(y,mon,d) + EncodeTime(h,min,s,0);
+  Result:=ComposeDateTime(EncodeDate(y,mon,d),EncodeTime(h,min,s,0));
 end;
 {$endif unix}
 
