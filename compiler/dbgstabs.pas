@@ -89,7 +89,9 @@ implementation
       N_IncludeFile = $84;
       N_BINCL = $82;
       N_EINCL = $A2;
+      N_LBRAC = $C0;
       N_EXCL  = $C2;
+      N_RBRAC = $E0;
 
       tagtypes = [
         recorddef,
@@ -930,19 +932,12 @@ implementation
         if assigned(pd.procstarttai) then
           begin
             templist:=TAsmList.create;
-            { para types }
-            write_def_stabstr(templist,pd);
-            if assigned(pd.parast) then
-              write_symtable_syms(templist,pd.parast);
-            { local type defs and vars should not be written
-              inside the main proc stab }
-            if assigned(pd.localst) and
-               (pd.localst.symtabletype=localsymtable) then
-              write_symtable_syms(templist,pd.localst);
-            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
+
             { end of procedure }
             current_asmdata.getlabel(stabsendlabel,alt_dbgtype);
             templist.concat(tai_label.create(stabsendlabel));
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procendtai,templist);
+
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
               begin
@@ -964,7 +959,7 @@ implementation
               end;
             mangled_length:=length(pd.mangledname);
             getmem(p,2*mangled_length+50);
-            strpcopy(p,'192,0,0,');
+            strpcopy(p,tostr(N_LBRAC)+',0,0,');
             {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
             strpcopy(strend(p),pd.mangledname);
             if (tf_use_function_relative_addresses in target_info.flags) then
@@ -974,7 +969,7 @@ implementation
                 strpcopy(strend(p),pd.mangledname);
               end;
             templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
-            strpcopy(p,'224,0,0,'+stabsendlabel.name);
+            strpcopy(p,tostr(N_RBRAC)+',0,0,'+stabsendlabel.name);
             if (tf_use_function_relative_addresses in target_info.flags) then
               begin
                 strpcopy(strend(p),'-');
@@ -983,7 +978,36 @@ implementation
               end;
             templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
             freemem(p,2*mangled_length+50);
-            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procendtai,templist);
+            current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
+
+            { "The stab representing a procedure is located immediately
+              following the code of the procedure. This stab is in turn
+              directly followed by a group of other stabs describing
+              elements of the procedure. These other stabs describe the
+              procedure's parameters, its block local variables, and its
+              block structure." (stab docs)                               }
+            { this is however incorrect in case "include source" statements }
+            { appear in the block, in that case the procedure stab must     }
+            { appear before this include stabs (and we generate such an     }
+            { stabs for all functions) (JM)                                 }
+
+            { procdef }
+            write_def_stabstr(templist,pd);
+
+            current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
+            
+            { para types }
+            if assigned(pd.parast) then
+              write_symtable_syms(templist,pd.parast);
+            { local type defs and vars should not be written
+              inside the main proc stab }
+            if assigned(pd.localst) and
+               (pd.localst.symtabletype=localsymtable) then
+              write_symtable_syms(templist,pd.localst);
+
+            { after the endtai, because the ".size" must come before it }
+            current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
+
             templist.free;
           end;
       end;
