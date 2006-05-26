@@ -28,9 +28,11 @@ type  Pnode=^Tnode;
         function firstthat(test:pointer):pointer;
         procedure focused(i:sw_integer);virtual;
         procedure foreach(node:pointer);
-        function getgraph(level:integer;lines:longint;flags:word):string;
-        function getnumchildren(node:pointer):sw_integer;virtual;
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
+        function getgraph(level:integer;lines:longint;flags:word):string;
+        function getnode(i:sw_integer):pointer;virtual;
+        function getnumchildren(node:pointer):sw_integer;virtual;
+        function getroot:pointer;virtual;
         function gettext(node:pointer):string;virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
@@ -43,12 +45,15 @@ type  Pnode=^Tnode;
                          AHscrollbar,AVscrollbar:Pscrollbar;
                          Aroot:Pnode);
         procedure adjust(node:pointer;expand:boolean);virtual;
-        function getnumchildren(node:pointer):sw_integer;virtual;
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
+        function getnumchildren(node:pointer):sw_integer;virtual;
+        function getroot:pointer;virtual;
         function gettext(node:pointer):string;virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
-        destructor done;virtual;
+        function isselected(node:pointer):boolean;virtual;
+        procedure selected(i:sw_integer);virtual;
+        procedure setstate(Astate:word;enable:boolean);virtual;
       end;
 
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
@@ -58,6 +63,11 @@ procedure disposenode(node:Pnode);
 {***************************************************************************}
                                 implementation
 {***************************************************************************}
+
+type TMyFunc = function(_EBP: Pointer; Cur: Pointer;
+                        Level, Position: sw_integer; Lines: LongInt;
+                        Flags: Word): Boolean;
+
 
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
 
@@ -81,6 +91,7 @@ begin
         disposenode(childlist);
       if next<>nil then
         disposenode(next)
+      disposestr(text);
     end;
   dispose(node);
 end;
@@ -219,8 +230,19 @@ procedure Toutlineviewer.foreach(action:pointer);
 begin
 end;
 
+function Toutlineviewer.getchild(node:pointer;i:sw_integer):pointer;
+
+begin
+  abstract;
+end;
+
 function Toutlineviewer.getgraph(level:integer;lines:longint;
                                  flags:word):string;
+
+begin
+end;
+
+function Toutlineviewer.getnode(i:sw_integer):pointer;
 
 begin
 end;
@@ -231,7 +253,7 @@ begin
   abstract;
 end;
 
-function Toutlineviewer.getchild(node:pointer;i:sw_integer):pointer;
+function Toutlineviewer.getroot:pointer;
 
 begin
   abstract;
@@ -252,12 +274,29 @@ end;
 function Toutlineviewer.isexpanded(node:pointer):boolean;
 
 begin
+  abstract;
 end;
 
-destructor Toutlineviewer.done;virtual;
+function Toutlineviewer.isexpanded(i:sw_integer):boolean;
 
 begin
+  isexpanded:=foc=i;
 end;
+
+procedure Toutlineviewer.selected(i:sw_integer);
+
+begin
+  {Does nothing by default.}
+end;
+
+procedure Toutlineviewer.setstate(Astate:word;enable:boolean);
+
+begin
+  if Astate and sffocused<>0 then
+    drawview;
+  inherited setstate(Astate);
+end;
+
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          Toutline object methods                          }
@@ -308,6 +347,12 @@ begin
       dec(i);
       get_child:=get_child^.next;
     end;
+end;
+
+function Toutlineviewer.getroot:pointer;
+
+begin
+  getroot:=root;
 end;
 
 function Toutline.gettext(node:pointer):string;
