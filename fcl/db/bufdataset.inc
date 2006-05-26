@@ -676,6 +676,18 @@ begin
   Result := FBRecordCount;
 end;
 
+Function TBufDataSet.UpdateStatus: TUpdateStatus;
+
+begin
+  Result:=usUnmodified;
+  if GetRecordUpdateBuffer then
+    case FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind of
+      ukModify : Result := usModified;
+      ukInsert : Result := usInserted;
+      ukDelete : Result := usDeleted;
+    end;
+end;
+
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
 
 

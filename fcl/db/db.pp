@@ -1561,6 +1561,7 @@ type
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    function UpdateStatus: TUpdateStatus; override;
     property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
