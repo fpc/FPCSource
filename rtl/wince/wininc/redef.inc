@@ -142,22 +142,25 @@ function LOCALE_NEUTRAL: DWORD;                                   //winnt
 function LOCALE_INVARIANT: DWORD;                                 //winnt
 
 
-function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
-procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'GetLocalTime';
-function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
 function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external KernelDLL name 'CreateProcessW';
-function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeProcess';
-function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
-function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WriteFile';
-function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
+procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'DeleteCriticalSection';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'EnterCriticalSection';
+function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeProcess';
+function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeThread';
+procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'GetLocalTime';
+function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
+procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'InitializeCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'LeaveCriticalSection';
-function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external UserDLLCore name 'RegisterClassW';
 //redirected to MsgWaitForMultipleObjectsEx
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
 function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external UserDLLCore name 'PeekMessageW';
-function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeThread';
+function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
+function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external UserDLLCore name 'RegisterClassW';
+function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
+function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
+function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';
+function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WriteFile';
 //end common win32 & wince
 
 {$ifdef WINCE}
@@ -174,9 +177,11 @@ function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, 
 
 {$ifdef WIN32}
 //begin win32 only ie not exist in wince4.2 second release lib imported functions from dlls
-function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
 function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
+function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
+function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
+function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
 //end win32 only
 {$endif WIN32}
 
@@ -220,12 +225,6 @@ function HResultSeverity(hr : HRESULT) : Longint;
 function MakeResult(p1,p2,mask : Longint) : HRESULT;
 function HResultFromWin32(x : Longint) : HRESULT;
 function HResultFromNT(x : Longint) : HRESULT;
-
-procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'InitializeCriticalSection';
-procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
-function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
-function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
-function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external 'kernel32' name 'TryEnterCriticalSection';
 
 //function _lwrite(hFile: HFILE; const lpBuffer: LPCSTR; uBytes: UINT): UINT; external 'kernel32' name '_lwrite';
 //function AccessCheck(pSecurityDescriptor: PSecurityDescriptor; ClientToken: THandle; DesiredAccess: DWORD; const GenericMapping: TGenericMapping; var PrivilegeSet: TPrivilegeSet; var PrivilegeSetLength: DWORD; var GrantedAccess: DWORD;

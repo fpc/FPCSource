@@ -297,7 +297,6 @@
       198 DefWindowProcW
       1B1 DeferWindowPos
        FF DeleteAndRenameFile
-        7 DeleteCriticalSection
       4FD DeleteDC
       535 DeleteEnhMetaFile
        EE DeleteFileW
@@ -340,7 +339,6 @@
       536 EndDoc
       537 EndPage
       196 EndPaint
-        8 EnterCriticalSection
       12D EnumCalendarInfoW
       3E3 EnumClipboardFormats
       12F EnumDateFormatsW
@@ -535,7 +533,6 @@
       558 GetScrollInfo
       16F GetServiceByIndex
       174 GetServiceHandle
-      5CB GetStdioPathW
       505 GetStockObject
       102 GetStoreInformation
       139 GetStringTypeExW
@@ -697,7 +694,6 @@
       4C0 InSendMessage
        A5 InflateRect
         D InitLocale
-        6 InitializeCriticalSection
       38C InputDebugCharW
       4A1 InsertMenuW
       349 Int_CloseHandle
@@ -755,7 +751,6 @@
       4C6 KillTimer
       126 LCMapStringW
       38E LeaveCritSec
-        9 LeaveCriticalSection
       525 LineTo
        A2 LoadAcceleratorsW
       41E LoadAnimatedCursor
@@ -789,7 +784,6 @@
       34F MapCallerPtr
       3F9 MapDialogRect
       350 MapPtrToProcWithSize
-      38F MapPtrToProcess
       390 MapPtrUnsecure
       342 MapViewOfFile
       48C MapVirtualKeyW
@@ -1065,7 +1059,6 @@
       555 SetScrollInfo
       556 SetScrollPos
       557 SetScrollRange
-      5CC SetStdioPathW
       4D7 SetSysColors
       135 SetSystemDefaultLCID
       17D SetSystemMemoryDivision
@@ -1191,7 +1184,6 @@
       4BD TranslateMessage
        BC TransmitCommChar
       4F5 TransparentImage
-      355 TryEnterCriticalSection
       3A6 TurnOffProfiling
       3A5 TurnOnProfiling
       36C U_rclose
@@ -1547,7 +1539,6 @@
       198 __imp_DefWindowProcW
       1B1 __imp_DeferWindowPos
        FF __imp_DeleteAndRenameFile
-        7 __imp_DeleteCriticalSection
       4FD __imp_DeleteDC
       535 __imp_DeleteEnhMetaFile
        EE __imp_DeleteFileW
@@ -1590,7 +1581,6 @@
       536 __imp_EndDoc
       537 __imp_EndPage
       196 __imp_EndPaint
-        8 __imp_EnterCriticalSection
       12D __imp_EnumCalendarInfoW
       3E3 __imp_EnumClipboardFormats
       12F __imp_EnumDateFormatsW
@@ -1785,7 +1775,6 @@
       558 __imp_GetScrollInfo
       16F __imp_GetServiceByIndex
       174 __imp_GetServiceHandle
-      5CB __imp_GetStdioPathW
       505 __imp_GetStockObject
       102 __imp_GetStoreInformation
       139 __imp_GetStringTypeExW
@@ -1947,7 +1936,6 @@
       4C0 __imp_InSendMessage
        A5 __imp_InflateRect
         D __imp_InitLocale
-        6 __imp_InitializeCriticalSection
       38C __imp_InputDebugCharW
       4A1 __imp_InsertMenuW
       349 __imp_Int_CloseHandle
@@ -2005,7 +1993,6 @@
       4C6 __imp_KillTimer
       126 __imp_LCMapStringW
       38E __imp_LeaveCritSec
-        9 __imp_LeaveCriticalSection
       525 __imp_LineTo
        A2 __imp_LoadAcceleratorsW
       41E __imp_LoadAnimatedCursor
@@ -2317,7 +2304,6 @@
       555 __imp_SetScrollInfo
       556 __imp_SetScrollPos
       557 __imp_SetScrollRange
-      5CC __imp_SetStdioPathW
       4D7 __imp_SetSysColors
       135 __imp_SetSystemDefaultLCID
       17D __imp_SetSystemMemoryDivision
@@ -2443,7 +2429,6 @@
       4BD __imp_TranslateMessage
        BC __imp_TransmitCommChar
       4F5 __imp_TransparentImage
-      355 __imp_TryEnterCriticalSection
       3A6 __imp_TurnOffProfiling
       3A5 __imp_TurnOnProfiling
       36C __imp_U_rclose
@@ -3414,8 +3399,9 @@
 
 
 //function ChangeDisplaySettingsEx(lpszDeviceName: LPCTSTR; lpDevMode: LPDEVMODE; hwnd: HWND; dwflags: DWORD ; lParam: LPVOID ): LONG; external KernelDLL name 'ChangeDisplaySettingsEx';
-
-
+function GetStdioPathW(id: DWORD ; pwszBuf:LPWSTR ; lpdwLen:LPDWORD):WINBOOL; external KernelDLL name 'GetStdioPathW';
+function MapPtrToProcess(lpv: LPVOID; hProc: HANDLE ): LPVOID; external KernelDLL name 'MapPtrToProcess';
+function SetStdioPathW(id: DWORD; pwszPath: LPWSTR ):WINBOOL; external KernelDLL name 'SetStdioPathW';
 {$endif read_interface}
 
 
