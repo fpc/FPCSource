@@ -2488,15 +2488,15 @@ const
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
                    if (m_fpc in aktmodeswitches) then
-                     po_comp:=[po_varargs,po_methodpointer,po_interrupt]
+                     po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt]
                    else
                      po_comp:=[po_classmethod,po_methodpointer];
 
                    if ((po_comp * hd.procoptions)<>(po_comp * pd.procoptions)) then
                      begin
                        MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,
-                                   pd.fullprocname(false));
-                       aprocsym.write_parameter_lists(pd);
+                                   hd.fullprocname(false));
+                       aprocsym.write_parameter_lists(hd);
                        { This error is non-fatal, we can recover }
                      end;
 
