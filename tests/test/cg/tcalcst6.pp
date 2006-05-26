@@ -224,18 +224,20 @@ var
   {************************************************************************}
   {                           CONST  PARAMETERS                            }
   {************************************************************************}
-  procedure proc_const_s32bit(const v : longint);safecall;
+  function proc_const_s32bit(const v : longint): longint; safecall;
    begin
      global_s32bit := v;
+     proc_const_s32bit := 0;
    end;
 
 {$ifndef tp}
-  procedure proc_const_s64bit(const v: int64);safecall;
+  function proc_const_s64bit(const v: int64): longint; safecall;
    begin
      global_s64bit:= v;
+     proc_const_s64bit := 0;
    end;
 
-  procedure proc_const_smallarray_const_1(const arr : array of const);safecall;
+  function proc_const_smallarray_const_1(const arr : array of const): longint; safecall;
   var
    i: integer;
   begin
@@ -257,104 +259,117 @@ var
           RunError(255);
        end;
      end; {endfor}
+     proc_const_smallarray_const_1 := 0;
   end;
 
 
-  procedure proc_const_smallarray_const_2(const arr : array of const);safecall;
+  function proc_const_smallarray_const_2(const arr : array of const): longint; safecall;
   var
    i: integer;
   begin
      if high(arr)<0 then
        global_u8bit := RESULT_U8BIT;
+     proc_const_smallarray_const_2 := 0;
   end;
 
 {$endif}
 
 
-  procedure proc_const_smallrecord(const smallrec : tsmallrecord);safecall;
+  function proc_const_smallrecord(const smallrec : tsmallrecord): longint;safecall;
    begin
      if (smallrec.b = RESULT_U8BIT) and (smallrec.w = RESULT_U16BIT) then
        global_u8bit := RESULT_U8BIT;
+     proc_const_smallrecord := 0;
    end;
 
 
-  procedure proc_const_largerecord(const largerec : tlargerecord);safecall;
+  function proc_const_largerecord(const largerec : tlargerecord): longint;safecall;
    begin
      if (largerec.b[1] = RESULT_U8BIT) and (largerec.b[2] = RESULT_U8BIT) then
        global_u8bit := RESULT_U8BIT;
+     proc_const_largerecord := 0;
    end;
 
-  procedure proc_const_smallset(const smallset : tsmallset);safecall;
+  function proc_const_smallset(const smallset : tsmallset): longint;safecall;
    begin
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
+     proc_const_smallset := 0;
    end;
 
 
-  procedure proc_const_largeset(const largeset : tlargeset);safecall;
+  function proc_const_largeset(const largeset : tlargeset): longint;safecall;
    begin
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
+     proc_const_largeset := 0;
    end;
 
 
-  procedure proc_const_smallstring(const s:tsmallstring);safecall;
+  function proc_const_smallstring(const s:tsmallstring): longint;safecall;
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
+     proc_const_smallstring := 0;
    end;
 
 
-  procedure proc_const_bigstring(const s:shortstring);safecall;
+  function proc_const_bigstring(const s:shortstring): longint;safecall;
    begin
      if s = RESULT_BIGSTRING then
        global_u8bit := RESULT_u8BIT;
+     proc_const_bigstring := 0;
    end;
 
 
-  procedure proc_const_smallarray(const arr : tsmallarray);safecall;
+  function proc_const_smallarray(const arr : tsmallarray): longint;safecall;
   begin
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
+    proc_const_smallarray := 0;
   end;
 
-  procedure proc_const_smallarray_open(const arr : array of byte);safecall;
+  function proc_const_smallarray_open(const arr : array of byte): longint;safecall;
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[SMALL_INDEX-1] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
+    proc_const_smallarray_open := 0;
   end;
 
 
 
 
-  procedure proc_const_formaldef_array(const buf);safecall;
+  function proc_const_formaldef_array(const buf): longint;safecall;
   var
    p: pchar;
   begin
     { array is indexed from 1 }
     p := @buf;
     global_u8bit := byte(p[SMALL_INDEX-1]);
+    proc_const_formaldef_array := 0;
   end;
 
 
   {************************************************************************}
   {                   MIXED   CONST  PARAMETERS                            }
   {************************************************************************}
-  procedure proc_const_s32bit_mixed(b1: byte; const v : longint; b2: byte);safecall;
+  function proc_const_s32bit_mixed(b1: byte; const v : longint; b2: byte): longint;safecall;
    begin
      global_s32bit := v;
      value_u8bit := b2;
+     proc_const_s32bit_mixed := 0;
    end;
 
 {$ifndef tp}
-  procedure proc_const_s64bit_mixed(b1 : byte; const v: int64; b2: byte);safecall;
+  function proc_const_s64bit_mixed(b1 : byte; const v: int64; b2: byte): longint;safecall;
    begin
      global_s64bit:= v;
      value_u8bit := b2;
+     proc_const_s64bit_mixed := 0;
    end;
 
-  procedure proc_const_smallarray_const_1_mixed(b1 : byte; const arr : array of const; b2: byte);safecall;
+  function proc_const_smallarray_const_1_mixed(b1 : byte; const arr : array of const; b2: byte): longint;safecall;
   var
    i: integer;
   begin
@@ -377,86 +392,96 @@ var
        end;
      end; {endfor}
      value_u8bit := b2;
+     proc_const_smallarray_const_1_mixed := 0;
   end;
 
 
-  procedure proc_const_smallarray_const_2_mixed(b1: byte; const arr : array of const; b2: byte);safecall;
+  function proc_const_smallarray_const_2_mixed(b1: byte; const arr : array of const; b2: byte): longint;safecall;
   var
    i: integer;
   begin
      if high(arr)<0 then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_smallarray_const_2_mixed := 0;
   end;
 {$endif}
 
 
-  procedure proc_const_smallrecord_mixed(b1 : byte; const smallrec : tsmallrecord; b2: byte);safecall;
+  function proc_const_smallrecord_mixed(b1 : byte; const smallrec : tsmallrecord; b2: byte): longint;safecall;
    begin
      if (smallrec.b = RESULT_U8BIT) and (smallrec.w = RESULT_U16BIT) then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_smallrecord_mixed := 0;
    end;
 
 
-  procedure proc_const_largerecord_mixed(b1: byte; const largerec : tlargerecord; b2: byte);safecall;
+  function proc_const_largerecord_mixed(b1: byte; const largerec : tlargerecord; b2: byte): longint; safecall;
    begin
      if (largerec.b[1] = RESULT_U8BIT) and (largerec.b[2] = RESULT_U8BIT) then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_largerecord_mixed := 0;
    end;
 
-  procedure proc_const_smallset_mixed(b1: byte; const smallset : tsmallset; b2: byte);safecall;
+  function proc_const_smallset_mixed(b1: byte; const smallset : tsmallset; b2: byte): longint; safecall;
    begin
      if A_D in smallset then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_smallset_mixed := 0;
    end;
 
 
-  procedure proc_const_largeset_mixed(b1: byte; const largeset : tlargeset; b2: byte);safecall;
+  function proc_const_largeset_mixed(b1: byte; const largeset : tlargeset; b2: byte): longint; safecall;
    begin
      if 'I' in largeset then
        global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_largeset_mixed := 0;
    end;
 
 
-  procedure proc_const_smallstring_mixed(b1: byte; const s:tsmallstring; b2: byte);safecall;
+  function proc_const_smallstring_mixed(b1: byte; const s:tsmallstring; b2: byte): longint; safecall;
    begin
      if s = RESULT_SMALLSTRING then
        global_u8bit := RESULT_u8BIT;
      value_u8bit := b2;
+     proc_const_smallstring_mixed := 0;
    end;
 
 
-  procedure proc_const_bigstring_mixed(b1: byte; const s:shortstring; b2: byte);safecall;
+  function proc_const_bigstring_mixed(b1: byte; const s:shortstring; b2: byte): longint; safecall;
    begin
      if s = RESULT_BIGSTRING then
        global_u8bit := RESULT_u8BIT;
      value_u8bit := b2;
+     proc_const_bigstring_mixed := 0;
    end;
 
 
-  procedure proc_const_smallarray_mixed(b1: byte; const arr : tsmallarray; b2: byte);safecall;
+  function proc_const_smallarray_mixed(b1: byte; const arr : tsmallarray; b2: byte): longint; safecall;
   begin
     if arr[SMALL_INDEX] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+     proc_const_smallarray_mixed := 0;
   end;
 
-  procedure proc_const_smallarray_open_mixed(b1: byte; const arr : array of byte; b2: byte);safecall;
+  function proc_const_smallarray_open_mixed(b1: byte; const arr : array of byte; b2: byte): longint; safecall;
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[high(arr)] = RESULT_U8BIT then
       global_u8bit := RESULT_U8BIT;
      value_u8bit := b2;
+    proc_const_smallarray_open_mixed := 0;
   end;
 
 
 
 
-  procedure proc_const_formaldef_array_mixed(b1: byte; const buf; b2: byte);safecall;
+  function proc_const_formaldef_array_mixed(b1: byte; const buf; b2: byte): longint; safecall;
   var
    p: pchar;
   begin
@@ -464,6 +489,7 @@ var
     p := @buf;
     global_u8bit := byte(p[SMALL_INDEX-1]);
     value_u8bit := b2;
+    proc_const_formaldef_array_mixed := 0;
   end;
 
 

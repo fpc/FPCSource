@@ -375,7 +375,8 @@ begin
             movelen := lens;
           Move(Pointer(S)^,Temp^,movelen);
           { ref count dropped to zero in the mean time? }
-          If declocked(PAnsiRec(Pointer(S)-FirstOff)^.Ref) then
+          If (PAnsiRec(Pointer(S)-FirstOff)^.Ref > 0) and
+             declocked(PAnsiRec(Pointer(S)-FirstOff)^.Ref) then
             freemem(PAnsiRec(Pointer(s)-FirstOff));
           Pointer(S):=Temp;
        end;

@@ -870,6 +870,8 @@ begin
               begin
                 typ := con_unknown;
                 memwrite := nil;
+                startmod := nil;
+                nrofmods := 0;
               end;
         end;
       getNextInstruction(p,p);
