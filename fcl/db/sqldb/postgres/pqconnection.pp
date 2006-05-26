@@ -511,8 +511,8 @@ begin
 
       if (fieldtype = ftstring) and (size = -1) then
         begin
-        size := pqfmod(res,i)-3;
-        if size = -4 then size := dsMaxStringSize;
+        size := pqfmod(res,i)-4;
+        if size = -5 then size := dsMaxStringSize;
         end;
       if fieldtype = ftdate  then
         size := sizeof(double);
@@ -597,6 +597,10 @@ begin
             pchar(Buffer)[tel-1] := CurrBuff[i-tel];
 
           dbl^ := (dbl^+3.1558464E+009)/86400;  // postgres counts seconds elapsed since 1-1-2000
+          // Now convert the mathematically-correct datetime to the
+          // illogical windows/delphi/fpc TDateTime:
+          if (dbl^ <= 0) and (frac(dbl^)<0) then
+            dbl^ := trunc(dbl^)-2-frac(dbl^);
           end;
         ftBCD:
           begin
