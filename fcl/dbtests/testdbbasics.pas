@@ -62,12 +62,12 @@ begin
 
     AssertEquals(2,FieldCount);
 
-    AssertEquals('ID',fields[0].FieldName);
-    AssertEquals('ID',fields[0].DisplayName); // uitzoeken verschil displaylabel
+    AssertTrue(CompareText('ID',fields[0].FieldName)=0);
+    AssertTrue(CompareText('ID',fields[0].DisplayName)=0); // uitzoeken verschil displaylabel
     AssertTrue('The datatype of the field ''ID'' is incorrect, it should be ftInteger',ftInteger=fields[0].DataType);
 
-    AssertEquals('NAME',fields[1].FieldName);
-    AssertEquals('NAME',fields[1].DisplayName);
+    AssertTrue(CompareText('NAME',fields[1].FieldName)=0);
+    AssertTrue(CompareText('NAME',fields[1].DisplayName)=0); // uitzoeken verschil displaylabel
     AssertTrue(ftString=fields[1].DataType);
 
     AssertEquals(1,fields[0].Value);
