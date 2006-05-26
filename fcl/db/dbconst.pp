@@ -69,6 +69,7 @@ Const
   SDeletedRecord           = 'The record is deleted.';
   SIndexNotFound           = 'Index ''%s'' not found';
   SParameterCountIncorrect = 'The number of parameters is incorrect.';
+  SUnsupportedParameter    = 'Parameters of the type ''%s'' are not (yet) supported.';
   SFieldValueError         = 'Invalid value for field ''%s''';
   SInvalidCalcType         = 'Field ''%s'' cannot be a calculated or lookup field';
   SDuplicateName           = 'Duplicate name ''%s'' in %s';

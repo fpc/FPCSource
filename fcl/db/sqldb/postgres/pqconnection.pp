@@ -401,8 +401,9 @@ begin
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         s := s + '(';
-        for i := 0 to AParams.count-1 do
-          s := s + TypeStrings[AParams[i].DataType] + ',';
+        for i := 0 to AParams.count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
+          s := s + TypeStrings[AParams[i].DataType] + ','
+        else DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,psPostgreSQL);
         end;
@@ -456,7 +457,7 @@ begin
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         setlength(ar,Aparams.count);
-        for i := 0 to AParams.count -1 do
+        for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
             ftdatetime : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
@@ -465,7 +466,9 @@ begin
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
-          end;
+          end
+        else
+          FreeAndNil(ar[i]);
         res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);

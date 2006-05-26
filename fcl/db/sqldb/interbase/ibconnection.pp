@@ -656,7 +656,7 @@ begin
           {$R+}
           end;
       else
-        DatabaseError('Parameters of the type '+ Fieldtypenames[AParams[ParNr].DataType] +' are not (yet) supported.',self);
+        DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
       end;
     end;
