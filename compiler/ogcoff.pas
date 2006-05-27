@@ -808,6 +808,15 @@ const win32stub : array[0..131] of byte=(
                     dec(address,TCoffObjSection(relocsec).orgmempos);
                   inc(address,relocval);
                 end;
+{$ifdef arm}
+              RELOC_RELATIVE_24:
+                begin
+                  relocval:=(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                  address:=address or relocval and $ffffff;
+                end;
+              RELOC_NONE:
+                ;  { nothing to do }
+{$endif arm}
 {$ifdef x86_64}
               { 64 bit coff only }
               RELOC_RELATIVE_1:
@@ -847,6 +856,10 @@ const win32stub : array[0..131] of byte=(
                       if (relocsec.objdata=objdata) then
                         dec(address,TCoffObjSection(relocsec).orgmempos);
                     end;
+{$ifdef arm}
+                  if address <> 0 then
+                    dec(address, relocval-relocsec.MemPos);
+{$endif arm}
                   inc(address,relocval);
                   inc(address,relocsec.objdata.imagebase);
                 end;
@@ -1518,8 +1531,14 @@ const win32stub : array[0..131] of byte=(
            FReader.read(rel,sizeof(rel));
            case rel.reloctype of
 {$ifdef arm}
-             R_IMAGEBASE :
-               ;
+             IMAGE_REL_ARM_ABSOLUTE:
+               rel_type:=RELOC_NONE;
+             IMAGE_REL_ARM_ADDR32:
+               rel_type:=RELOC_ABSOLUTE;
+             IMAGE_REL_ARM_ADDR32NB:
+               rel_type:=RELOC_RVA;
+             IMAGE_REL_ARM_BRANCH24:
+               rel_type:=RELOC_RELATIVE_24;
 {$endif arm}
 {$ifdef i386}
              R_PCRLONG :
@@ -1815,7 +1834,8 @@ const win32stub : array[0..131] of byte=(
 {$warning TODO idata keep can maybe replaced with grouping of text and idata}
                if (Copy(secname,1,6)='.idata') or
                   (Copy(secname,1,6)='.edata') or
-                  (Copy(secname,1,6)='.rsrc') then
+                  (Copy(secname,1,5)='.rsrc') or
+                  (Copy(secname,1,6)='.pdata') then
                  include(secoptions,oso_keep);
                objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
                FSecTbl^[i]:=objsec;
@@ -1933,7 +1953,10 @@ const win32stub : array[0..131] of byte=(
           begin
             exesec:=TExeSection(objsection.exesection);
             if not assigned(exesec) then
-              internalerror(200602255);
+              begin
+                Comment(V_Error, 'Section ' + objsection.FullName + ' does not supported.');
+                exit;
+              end;
             if bind=AB_LOCAL then
               globalval:=3
             else
@@ -1965,13 +1988,15 @@ const win32stub : array[0..131] of byte=(
                 sechdr.rvaofs:=mempos;
                 sechdr.vsize:=mempos;
               end;
-            if oso_data in SecOptions then
-              begin
+            { sechdr.dataSize is size of initilized data. For .bss section it must be zero }
+            if Name <> '.bss' then
+              if oso_data in SecOptions then
+                begin
+                  sechdr.dataSize:=Size;
+                  sechdr.datapos:=datapos;
+                end
+              else
                 sechdr.dataSize:=Size;
-                sechdr.datapos:=datapos;
-              end
-            else
-              sechdr.dataSize:=Size;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
@@ -2166,6 +2191,7 @@ const win32stub : array[0..131] of byte=(
             UpdateDataDir('.idata',PE_DATADIR_IDATA);
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
+            UpdateDataDir('.pdata',PE_DATADIR_PDATA);
             FWriter.write(peoptheader,sizeof(peoptheader));
           end
         else
@@ -2289,9 +2315,16 @@ const win32stub : array[0..131] of byte=(
             $ff,$24,$25
           );
 {$else x86_64}
+  {$ifdef arm}
+          jmpopcode : array[0..7] of byte = (
+            $00,$c0,$9f,$e5,    // ldr ip, [pc, #0]
+            $00,$f0,$9c,$e5     // ldr pc, [ip]
+          );
+  {$else arm}
           jmpopcode : array[0..1] of byte = (
             $ff,$25
           );
+  {$endif arm}
 {$endif x86_64}
           nopopcodes : array[0..1] of byte = (
             $90,$90
@@ -2411,6 +2444,8 @@ const win32stub : array[0..131] of byte=(
       begin
         with LinkScript do
           begin
+            if target_info.system in [system_arm_wince,system_i386_wince] then
+              Concat('READOBJECT ' + FindObjectFile('wprt0','',false));
             Concat('READUNITOBJECTS');
             if IsSharedLibrary then
               begin
@@ -2423,6 +2458,8 @@ const win32stub : array[0..131] of byte=(
               end
             else
               begin
+                if target_info.system in [system_arm_wince] then
+                  Concat('IMAGEBASE $10000');
                 if apptype=app_gui then
                   Concat('ENTRYNAME _WinMainCRTStartup')
                 else
@@ -2438,6 +2475,12 @@ const win32stub : array[0..131] of byte=(
             Concat('  OBJSECTION .data*');
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .rdata');
+            Concat('  OBJSECTION .rodata*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .pdata');
+            Concat('  OBJSECTION .pdata');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .bss');
             Concat('  SYMBOL __bss_start__');

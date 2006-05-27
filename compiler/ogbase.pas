@@ -55,6 +55,10 @@ interface
          RELOC_RELATIVE_4,
          RELOC_RELATIVE_5,
 {$endif x86_64}
+{$ifdef arm}
+         RELOC_RELATIVE_24,
+         RELOC_NONE,
+{$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,
          { PECoff (Windows) RVA relocation }
