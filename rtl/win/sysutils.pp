@@ -82,7 +82,6 @@ begin
 end;
 
 
-
 { UUID generation. }
 
 function CoCreateGuid(out guid: TGUID): HResult; stdcall; external 'ole32.dll' name 'CoCreateGuid';
@@ -131,6 +130,11 @@ end;
 {****************************************************************************
                               File Functions
 ****************************************************************************}
+
+var
+  SetFilePointerEx : function(hFile : THandle;
+    liDistanceToMove : int64;lpNewFilePointer : pint64;
+    dwMoveMethod : DWord) : ByteBool;stdcall;
 
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
@@ -200,8 +204,13 @@ end;
 
 Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
-  {$warning need to add 64bit call }
-  Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
+  if assigned(SetFilePointerEx) then
+    begin
+      if not(SetFilePointerEx(Handle, FOffset, @result, Origin)) then
+        Result:=-1;
+    end
+  else
+    Result:=longint(SetFilePointer(Handle, FOffset, nil, Origin));
 end;
 
 
@@ -1138,13 +1147,27 @@ procedure InitWin32Widestrings;
   end;
 
 
+procedure SetupProcVars;
+  var
+    hinstLib : THandle;
+  begin
+    SetFilePointerEx:=nil;
+    hinstLib:=LoadLibrary(KernelDLL);
+    if hinstLib<>0 then
+      begin
+        pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
+        FreeLibrary(hinstLib);
+      end;
+  end;
+
+
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
-
+  SetupProcVars;
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then
