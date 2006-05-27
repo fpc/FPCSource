@@ -1740,12 +1740,10 @@ begin
 end;
 
 
-function TManWriter.FileNameExtension: String;
+class function TManWriter.FileNameExtension: String;
 begin
   Result:=IntToStr(DefaultManSection);
 end;
-
-
 
 
 procedure TManWriter.WriteClassMethodOverview(ClassDecl: TPasClassType);

@@ -624,7 +624,7 @@ begin
   WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,AName,ADescr]);
 end;
 
-function TLaTeXWriter.FileNameExtension: String;
+class function TLaTeXWriter.FileNameExtension: String;
 begin
   Result:=TexExtension;
 end;
