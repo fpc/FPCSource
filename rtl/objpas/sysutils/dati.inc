@@ -580,7 +580,7 @@ var
       end ;
    token:=#255;
    lastformattoken:=' ';
-   while FormatCurrent < FormatEnd do 
+   while FormatCurrent < FormatEnd do
      begin
       Token := UpCase(FormatCurrent^);
       Count := 1;
@@ -756,7 +756,7 @@ Var Date,Time : Word;
 begin
   Date:=FileDate shr 16;
   Time:=FileDate and $ffff;
-  Result:=ComposeDate(EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31),
+  Result:=ComposeDateTime(EncodeDate((Date shr 9) + 1980,(Date shr 5) and 15, Date and 31),
           EncodeTime(Time shr 11, (Time shr 5) and 63, (Time and 31) shl 1,0));
 end;
 {$else unix}
@@ -779,8 +779,8 @@ function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
         result:=false
     end;
   end;
-  
-  
+
+
 // function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 
@@ -794,8 +794,8 @@ function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
         result:=false
     end;
   end;
-  
-  
+
+
 // function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 
@@ -809,8 +809,8 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
         result:=false
     end;
   end;
-  
-  
+
+
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 
