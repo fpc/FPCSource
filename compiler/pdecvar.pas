@@ -248,7 +248,8 @@ implementation
          { property parameters ? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-              if (sp_published in current_object_option) then
+              if (sp_published in current_object_option) and
+                not (m_delphi in aktmodeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
