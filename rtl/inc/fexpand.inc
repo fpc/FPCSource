@@ -217,7 +217,7 @@ begin
                         begin
                             { remove ending slash if it already exists }
                             if S [Length (S)] = DirectorySeparator then
-                                Dec (S [0]);
+                               SetLength(S,Length(s)-1);
                             Pa := S + DirectorySeparator +
                               Copy (Pa, PathStart, Length (Pa) - PathStart + 1)
                         end
