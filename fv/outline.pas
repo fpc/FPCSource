@@ -79,7 +79,7 @@ type TMyFunc = function(_EBP: Pointer; Cur: Pointer;
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
 
 begin
-  new(newnode);
+  newnode:=new(Pnode);
   with newnode^ do
     begin
       next:=Anext;
@@ -179,19 +179,17 @@ begin
       if EndWidth > 0 then
       begin
         for I := 1 to EndWidth do
-        begin
           Graph[I]:= Chars[StraightOrTee+1];
-        end;
         J := J + EndWidth;
       end;
       Inc(J);
-      if Children <> False then
+      if Children then
         Graph[J] := Chars[StraightOrTee+2]
       else
         Graph[J] := Chars[StraightOrTee+1];
     end;
     Inc(J);
-    if Expanded <> False then
+    if Expanded then
       Graph[J] := Chars[Retracted+2]
     else
       Graph[J] := Chars[Retracted+1];
@@ -203,7 +201,59 @@ end;
 
 procedure Toutlineviewer.draw;
 
+var c_normal,c_normal_x,c_select,c_focus:byte;
+    maxpos:sw_integer;
+    b:Tdrawbuffer;
+
+  function draw_item(cur:pointer;level,position:sw_integer;
+                     lines:longint;flags:word):boolean;
+
+  var c,i:byte;
+      s,t:string;
+
+  begin
+    draw_item:=position>=delta.y+size.y;
+    if (position<delta.y) or draw_item then
+      exit;
+
+    maxpos:=position;
+    s:=getgraph(level,lines,flags);
+    t:=gettext(cur);
+
+    {Determine text colour.}
+    if isselected(position) then
+      c:=c_select
+    else if (foc=position) and (state and sffocused<>0) then
+      c:=c_focus
+    else if flags and ovexpanded<>0 then
+      c:=c_normal_x
+    else
+      c:=c_normal;
+
+    {Fill drawbuffer with graph and text to draw.}
+    for i:=0 to size.x-1 do
+      begin
+        wordrec(b[i]).hi:=c;
+        if i+delta.x<=length(s) then
+          wordrec(b[i]).lo:=byte(s[i+delta.x])
+        else if i+delta.x-length(s)<length(t) then
+          wordrec(b[i]).lo:=byte(s[i+delta.x-length(s)])
+        else
+          wordrec(b[i]).lo:=byte(' ');
+      end;
+
+    {Draw!}
+    writeline(0,position-delta.y,size.x,1,b);
+  end;
+
 begin
+  c_normal:=getcolor(4);
+  c_normal_x:=getcolor(1);
+  c_focus:=getcolor(2);
+  c_select:=getcolor(3);
+  maxpos:=-1;
+  foreach(@draw_item);
+  writeline(0,maxpos+1,size.x,size.y-(maxpos-delta.y),b);
 end;
 
 procedure Toutlineviewer.expandall(node:pointer);
