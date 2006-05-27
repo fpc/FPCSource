@@ -98,19 +98,26 @@ const
 {$endif Unused}
 
 procedure SetRawMode(b:boolean);
-var
-  Tio : Termios;
-Begin
+
+var Tio:Termios;
+
+begin
   TCGetAttr(1,Tio);
   if b then
    begin
+     {Standard output now needs #13#10.}
+     settextlineending(output,#13#10);
      OldIO:=Tio;
      CFMakeRaw(Tio);
    end
   else
-    Tio := OldIO;
-  TCSetAttr(1,TCSANOW,Tio);
-End;
+    begin
+      Tio := OldIO;
+      {Standard output normally needs just a linefeed.}
+      settextlineending(output,#10);
+    end;
+  TCsetattr(1,TCSANOW,Tio);
+end;
 
 {$ifdef linux}
 
