@@ -91,55 +91,30 @@ begin
   ShowUserScreen;
 
   InitKeyBoard;
-  if UseMouse Then
-    InitMouse;
+  { closing the user screen on mouse events makes copy paste impossible }
   repeat
     repeat
       Drivers.GetKeyEvent(Event);
-      if (Event.What and EvKeyboard)=evNothing then
-        Begin
-          If UseMouse Then
-            Begin  
-              Drivers.GetMouseEvent(Event);
-              if (Event.What and evMouse)=evNothing then
-               GiveUpTimeSlice
-              else
-                Event.what:=evMouse;
-            End;
-        End
-      else
-        Event.what:=evkeyboard;
-    until Event.What in [evKeyboard,evmouse];
-    if event.what=evmouse then
+    until Event.What=evKeyboard;
+    Clear:=true;
+    if not UserScreen^.CanScroll then
       Clear:=false
     else
-      begin
-        Clear:=true;
-        if not UserScreen^.CanScroll then
-          Clear:=false
-       else
-        case Event.keycode of
-          kbPgUp : UserScreen^.Scroll(-20);
-          kbPgDn : UserScreen^.Scroll(20);
-          kbUp : UserScreen^.Scroll(-1);
-          kbDown : UserScreen^.Scroll(1);
-          kbHome : UserScreen^.Scroll(-1024);
-          kbEnd : UserScreen^.Scroll(+1024);
-        else
-           Clear:=false;
-        end;
+      case Event.keycode of
+        kbPgUp : UserScreen^.Scroll(-20);
+        kbPgDn : UserScreen^.Scroll(20);
+        kbUp : UserScreen^.Scroll(-1);
+        kbDown : UserScreen^.Scroll(1);
+        kbHome : UserScreen^.Scroll(-1024);
+        kbEnd : UserScreen^.Scroll(+1024);
+      else
+         Clear:=false;
       end;
     if Clear then
       ClearEvent(Event);
-  until Event.what in [evKeyboard,evmouse];
+  until Event.what=evKeyboard;
   while (Keyboard.PollKeyEvent<>0) do
           Keyboard.GetKeyEvent;
-  if UseMouse Then
-    Begin
-     while PollMouseEvent(Ev) do
-       GetMouseEvent(ev);
-     donemouse;
-    End;
   DoneKeyboard;
 
   ShowIDEScreen;
