@@ -758,7 +758,7 @@ parser_e_property_default_value_must_const=03132_E_The default value of a proper
 parser_e_cant_publish_that=03133_E_Symbol can't be published, can be only a class
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=03134_E_That kind of property can't be published
+parser_e_cant_publish_that_property=03134_E_This kind of property can't be published
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
