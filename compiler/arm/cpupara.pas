@@ -132,10 +132,7 @@ unit cpupara;
               else
                 getparaloc:=LOC_REGISTER;
             procvardef:
-              if (po_methodpointer in tprocvardef(p).procoptions) then
-                getparaloc:=LOC_REFERENCE
-              else
-                getparaloc:=LOC_REGISTER;
+              getparaloc:=LOC_REGISTER;
             filedef:
               getparaloc:=LOC_REGISTER;
             arraydef:
@@ -180,8 +177,6 @@ unit cpupara;
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
             result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
-          procvardef :
-            result:=po_methodpointer in tprocvardef(def).procoptions;
         end;
       end;
 
