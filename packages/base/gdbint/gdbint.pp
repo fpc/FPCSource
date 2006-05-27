@@ -30,6 +30,11 @@ interface
   {$define GDB_V6}
 {$endif def GDB_V603}
 
+{$ifdef GDB_V604}
+  {$define GDB_V6}
+{$endif def GDB_V604}
+
+
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
   {$define GDB_SYMTAB_HAS_MACROS}
@@ -2359,8 +2364,10 @@ end;
 var
   version : array[0..0] of char;cvar;external;
 
+{$ifndef GDB_V604}
+// doesn't seem to exist anymore. Seems to work fine without
 procedure error_init;cdecl;external;
-
+{$endif}
 
 function  GDBVersion : string;
 begin
@@ -2414,7 +2421,9 @@ begin
   gdb_stdtarg:=gdb_stderr;
   set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
   set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
+{$ifndef GDB_V604}
   error_init;
+{$endif}
 {$ifdef GDB_V6}
 //  gdb_stdtargin := gdb_stdin;
   gdb_stdtargerr := gdb_stderr;
