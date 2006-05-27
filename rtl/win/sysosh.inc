@@ -41,7 +41,7 @@ type
 {$else WINCE}
   //CE only
   TRTLCriticalSection = packed record
-    LockCount     : uint ;    // Nesting count on critical section
+    LockCount     : DWord ;   // Nesting count on critical section
     OwnerThread   : THandle; 	// Handle of owner thread
     hCrit         : THandle;	// Handle to this critical section
     needtrap      : DWORD;	// Trap in when freeing critical section
