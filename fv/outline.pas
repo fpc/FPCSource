@@ -27,7 +27,7 @@ type  Pnode=^Tnode;
         procedure expandall(node:pointer);
         function firstthat(test:pointer):pointer;
         procedure focused(i:sw_integer);virtual;
-        procedure foreach(node:pointer);
+        procedure foreach(action:pointer);
         function getchild(node:pointer;i:sw_integer):pointer;virtual;
         function getgraph(level:integer;lines:longint;flags:word):string;
         function getnode(i:sw_integer):pointer;virtual;
@@ -36,7 +36,12 @@ type  Pnode=^Tnode;
         function gettext(node:pointer):string;virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
-        destructor done;virtual;
+        function isselected(i:sw_integer):boolean;virtual;
+        procedure selected(i:sw_integer);virtual;
+        procedure setstate(Astate:word;enable:boolean);virtual;
+        procedure update;
+      private
+        procedure set_focus(Afocus:sw_integer);
       end;
 
       Toutline=object(Toutlineviewer)
@@ -51,10 +56,12 @@ type  Pnode=^Tnode;
         function gettext(node:pointer):string;virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
-        function isselected(node:pointer):boolean;virtual;
-        procedure selected(i:sw_integer);virtual;
-        procedure setstate(Astate:word;enable:boolean);virtual;
+        destructor done;virtual;
       end;
+
+const ovExpanded = $1;
+      ovChildren = $2;
+      ovLast     = $4;
 
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
 procedure disposenode(node:Pnode);
@@ -85,15 +92,13 @@ end;
 procedure disposenode(node:Pnode);
 
 begin
-  with node^ do
+  while node<>nil do
     begin
-      if childlist<>nil then
-        disposenode(childlist);
-      if next<>nil then
-        disposenode(next)
-      disposestr(text);
+      disposenode(node^.childlist);
+      disposestr(node^.text);
+      dispose(node);
+      node:=node^.next;
     end;
-  dispose(node);
 end;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -109,7 +114,7 @@ begin
   growmode:=gfGrowHiX+gfGrowHiY;
 end;
 
-procedure Toutlineviewer.adjust(node:pointer;expand:boolean);virtual;
+procedure Toutlineviewer.adjust(node:pointer;expand:boolean);
 
 begin
   abstract;
@@ -277,10 +282,10 @@ begin
   abstract;
 end;
 
-function Toutlineviewer.isexpanded(i:sw_integer):boolean;
+function Toutlineviewer.isselected(i:sw_integer):boolean;
 
 begin
-  isexpanded:=foc=i;
+  isselected:=foc=i;
 end;
 
 procedure Toutlineviewer.selected(i:sw_integer);
@@ -289,14 +294,44 @@ begin
   {Does nothing by default.}
 end;
 
+procedure Toutlineviewer.set_focus(Afocus:sw_integer);
+
+begin
+  {}
+end;
+
 procedure Toutlineviewer.setstate(Astate:word;enable:boolean);
 
 begin
   if Astate and sffocused<>0 then
     drawview;
-  inherited setstate(Astate);
+  inherited setstate(Astate,enable);
 end;
 
+procedure Toutlineviewer.update;
+
+var count:sw_integer;
+    maxwidth:byte;
+
+  procedure check_item(cur:pointer;level,position:sw_integer;
+                       lines:longint;flags:word);
+
+  var width:word;
+
+  begin
+    inc(count);
+    width:=length(gettext(cur))+length(getgraph(level,lines,flags));
+    if width>maxwidth then
+      maxwidth:=width;
+  end;
+
+begin
+  count:=0;
+  maxwidth:=0;
+  foreach(@check_item);
+  setlimit(maxwidth,count);
+  set_focus(foc);
+end;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                          Toutline object methods                          }
@@ -308,7 +343,7 @@ constructor Toutline.init(var bounds:Trect;
 
 begin
   inherited init(bounds,AHscrollbar,AVscrollbar);
-  root:=Pnode;
+  root:=Aroot;
   update;
 end;
 
@@ -318,38 +353,32 @@ begin
   Pnode(node)^.expanded:=expand;
 end;
 
-function Toutline.getroot:pointer;virtual;
-
-begin
-  getroot:=root;
-end;
-
-function Toutline.getnumchildren(node:pointer):sw_integer;virtual;
+function Toutline.getnumchildren(node:pointer):sw_integer;
 
 var p:Pnode;
 
 begin
   p:=Pnode(node)^.childlist;
-  get_num_children:=0;
+  getnumchildren:=0;
   while p<>nil do
     begin
-      inc(get_num_children);
+      inc(getnumchildren);
       p:=p^.next;
     end;
 end;
 
-function Toutline.getchild(node:pointer;i:sw_integer):pointer;virtual;
+function Toutline.getchild(node:pointer;i:sw_integer):pointer;
 
 begin
-  get_child:=Pnode(node)^.childlist;
+  getchild:=Pnode(node)^.childlist;
   while i<>0 do
     begin
       dec(i);
-      get_child:=get_child^.next;
+      getchild:=Pnode(getchild)^.next;
     end;
 end;
 
-function Toutlineviewer.getroot:pointer;
+function Toutline.getroot:pointer;
 
 begin
   getroot:=root;
@@ -358,7 +387,7 @@ end;
 function Toutline.gettext(node:pointer):string;
 
 begin
-  gettext:=Pnode(node)^.text;
+  gettext:=Pnode(node)^.text^;
 end;
 
 function Toutline.haschildren(node:pointer):boolean;
@@ -367,7 +396,7 @@ begin
   haschildren:=Pnode(node)^.childlist<>nil;
 end;
 
-function isexpanded(node:pointer):boolean;
+function Toutline.isexpanded(node:pointer):boolean;
 
 begin
   isexpanded:=Pnode(node)^.expanded;
@@ -376,7 +405,8 @@ end;
 destructor Toutline.done;
 
 begin
-  dispose(root,done);
+  disposenode(root);
+  inherited done;
 end;
 
 end.
