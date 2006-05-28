@@ -4,7 +4,7 @@ unit outline;
                                   interface
 {***************************************************************************}
 
-uses  objects,views;
+uses  drivers,objects,views;
 
 type  Pnode=^Tnode;
       Tnode=record
@@ -32,8 +32,10 @@ type  Pnode=^Tnode;
         function getgraph(level:integer;lines:longint;flags:word):string;
         function getnode(i:sw_integer):pointer;virtual;
         function getnumchildren(node:pointer):sw_integer;virtual;
+        function getpalette:Ppalette;virtual;
         function getroot:pointer;virtual;
         function gettext(node:pointer):string;virtual;
+        procedure handleevent(var event:Tevent);virtual;
         function haschildren(node:pointer):boolean;virtual;
         function isexpanded(node:pointer):boolean;virtual;
         function isselected(i:sw_integer):boolean;virtual;
@@ -46,6 +48,7 @@ type  Pnode=^Tnode;
                             stop_if_found:boolean):pointer;
       end;
 
+      Poutline=^Toutline;
       Toutline=object(Toutlineviewer)
         root:Pnode;
         constructor init(var bounds:Trect;
@@ -64,6 +67,8 @@ type  Pnode=^Tnode;
 const ovExpanded = $1;
       ovChildren = $2;
       ovLast     = $4;
+
+      Coutlineviewer=Cscroller+#8#8;
 
 function newnode(const Atext:string;Achildren,Anext:Pnode):Pnode;
 procedure disposenode(node:Pnode);
@@ -224,9 +229,9 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
       begin
         wordrec(b[i]).hi:=c;
         if i+delta.x<=length(s) then
-          wordrec(b[i]).lo:=byte(s[i+delta.x])
-        else if i+delta.x-length(s)<length(t) then
-          wordrec(b[i]).lo:=byte(s[i+delta.x-length(s)])
+          wordrec(b[i]).lo:=byte(s[1+i+delta.x])
+        else if i+delta.x-length(s)<=length(t) then
+          wordrec(b[i]).lo:=byte(t[i+delta.x-length(s)])
         else
           wordrec(b[i]).lo:=byte(' ');
       end;
@@ -242,6 +247,7 @@ begin
   c_select:=getcolor(3);
   maxpos:=-1;
   foreach(@draw_item);
+  movechar(b,' ',c_normal,size.x);
   writeline(0,maxpos+1,size.x,size.y-(maxpos-delta.y),b);
 end;
 
@@ -299,13 +305,21 @@ function Toutlineviewer.getnode(i:sw_integer):pointer;
   end;
 
 begin
-  foreach(@test_position);
+  getnode:=firstthat(@test_position);
 end;
 
 function Toutlineviewer.getnumchildren(node:pointer):sw_integer;
 
 begin
   abstract;
+end;
+
+function Toutlineviewer.getpalette:Ppalette;
+
+const P:string[length(Coutlineviewer)]=Coutlineviewer;
+
+begin
+  getpalette:=@P;
 end;
 
 function Toutlineviewer.getroot:pointer;
@@ -319,6 +333,140 @@ function Toutlineviewer.gettext(node:pointer):string;
 begin
   abstract;
 end;
+
+procedure Toutlineviewer.handleevent(var event:Tevent);
+
+var mouse:Tpoint;
+    cur:pointer;
+    new_focus:sw_integer;
+    count:byte;
+    m,mouse_drag:boolean;
+    graph:string;
+
+  function graph_of_focus(var graph:string):pointer;
+
+  var _level:sw_integer;
+      _lines:longInt;
+      _flags:word;
+
+    function find_focused(cur:pointer;level,position:sw_integer;
+                          lines:longint;flags:word):boolean;
+
+    begin
+      find_focused:=position=foc;
+      if find_focused then
+        begin
+          _level:=level;
+          _lines:=lines;
+          _flags:=flags;
+        end;
+    end;
+
+  begin
+    graph_of_focus:=firstthat(@find_focused);
+    graph:=getgraph(_level,_lines,_flags);
+  end;
+
+const skip_mouse_events=3;
+
+begin
+  inherited handleevent(event);
+  case event.what of
+    evKeyboard:
+      begin
+        new_focus:=foc;
+        case ctrltoarrow(event.keycode) of
+          kbUp,kbLeft:
+            dec(new_focus);
+          kbDown,kbRight:
+            inc(new_focus);
+          kbPgDn:
+            inc(new_focus,size.y-1);
+          kbPgUp:
+            dec(new_focus,size.y-1);
+          kbCtrlPgUp:
+            new_focus:=0;
+          kbCtrlPgDn:
+            new_focus:=limit.y-1;
+          kbHome:
+            new_focus:=delta.y;
+          kbEnd:
+            new_focus:=delta.y+size.y-1;
+          kbCtrlEnter,kbEnter:
+            selected(new_focus);
+        else
+          case event.charcode of
+            '-','+':
+              begin
+                adjust(getnode(new_focus),event.charcode='+');
+                update;
+              end;
+            '*':
+              begin
+                expandall(getnode(new_focus));
+                update;
+              end;
+          end;
+        end;
+        if new_focus<0 then
+          new_focus:=0;
+        if new_focus>=limit.y then
+          new_focus:=limit.y-1;
+        if foc<>new_focus then
+          begin
+            set_focus(new_focus);
+            drawview;
+          end;
+        clearevent(event);
+      end;
+    evMouseDown:
+      begin
+        count:=1;
+        mouse_drag:=false;
+        repeat
+          makelocal(event.where,mouse);
+          if mouseinview(event.where) then
+            new_focus:=delta.y+mouse.y
+          else
+            begin
+              inc(count,byte(event.what=evMouseAuto));
+              if count and skip_mouse_events=0 then
+                begin
+                  if mouse.y<0 then
+                    dec(new_focus);
+                  if mouse.y>=size.y then
+                    inc(new_focus);
+                end;
+            end;
+          if new_focus<0 then
+            new_focus:=0;
+          if new_focus>=limit.y then
+            new_focus:=limit.y-1;
+          if foc<>new_focus then
+            begin
+              set_focus(new_focus);
+              drawview;
+            end;
+          m:=mouseevent(event,evMouseMove+evMouseAuto);
+          if not m then
+            mouse_drag:=true;
+        until not m;
+        if event.double then
+          selected(foc)
+        else if not mouse_drag then
+          begin
+            cur:=graph_of_focus(graph);
+            if mouse.x<length(graph) then
+              begin
+                adjust(cur,not isexpanded(cur));
+                update;
+                drawview;
+              end;
+          end;
+      end;
+  end;
+end;
+
 
 function Toutlineviewer.haschildren(node:pointer):boolean;
 
@@ -342,6 +490,7 @@ function Toutlineviewer.do_recurse(action,callerframe:pointer;
                                    stop_if_found:boolean):pointer;
 
 var position:sw_integer;
+    r:pointer;
 
   function recurse(cur:pointer;level:integer;lines:longint;lastchild:boolean):pointer;
 
@@ -391,7 +540,11 @@ var position:sw_integer;
 
 begin
   position:=-1;
-  do_recurse:=recurse(getroot,0,0,true);
+  r:=getroot;
+  if r<>nil then
+    do_recurse:=recurse(r,0,0,true)
+  else
+    do_recurse:=nil;
 end;
 
 procedure Toutlineviewer.selected(i:sw_integer);
