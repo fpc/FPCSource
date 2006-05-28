@@ -42,6 +42,8 @@ type  Pnode=^Tnode;
         procedure update;
       private
         procedure set_focus(Afocus:sw_integer);
+        function do_recurse(action,callerframe:pointer;
+                            stop_if_found:boolean):pointer;
       end;
 
       Toutline=object(Toutlineviewer)
@@ -134,16 +136,8 @@ var
   Graph : String;
 
 begin
-  { Break out flags }
-  Expanded := Boolean((Flags and ovExpanded) <> 0);
-  Children := Boolean((Flags and ovChildren) <> 0);
-  Last    := Boolean((Flags and ovLast) <> 0);
-
   { Load registers }
-  J := Level*LevWidth+EndWidth+1;
-  Graph[0] := Char(J);
-  for I := 1 to J do
-    Graph[I] := ' ';
+  graph:=space(Level*LevWidth+EndWidth+1);
 
   { Write bar characters }
   J := 1;
@@ -155,9 +149,7 @@ begin
     else
       Graph[J] := Chars[FillerOrBar+1];
     for I := 1 to LevWidth - 1 do
-    begin
       Graph[I]:= Chars[FillerOrBar+1];
-    end;
     J := J + LevWidth - 1;
     Dec(Level);
     Lines := Lines shr 1;
@@ -168,7 +160,7 @@ begin
   if EndWidth > 0 then
   begin
     Inc(J);
-    if Last <> False then
+    if Flags and ovLast <> 0 then
       Graph[J] := Chars[YorL+2]
     else
       Graph[J] := Chars[YorL+1];
@@ -176,20 +168,17 @@ begin
     if EndWidth > 0 then
     begin
       Dec(EndWidth);
-      if EndWidth > 0 then
-      begin
-        for I := 1 to EndWidth do
-          Graph[I]:= Chars[StraightOrTee+1];
-        J := J + EndWidth;
-      end;
+      for I := 1 to EndWidth do
+        Graph[I]:= Chars[StraightOrTee+1];
+      J := J + EndWidth;
       Inc(J);
-      if Children then
+      if (Flags and ovChildren) <> 0 then
         Graph[J] := Chars[StraightOrTee+2]
       else
         Graph[J] := Chars[StraightOrTee+1];
     end;
     Inc(J);
-    if Expanded then
+    if Flags and ovExpanded <> 0 then
       Graph[J] := Chars[Retracted+2]
     else
       Graph[J] := Chars[Retracted+1];
@@ -272,6 +261,7 @@ end;
 function Toutlineviewer.firstthat(test:pointer):pointer;
 
 begin
+  firstthat:=do_recurse(test,get_caller_frame(get_frame),true);
 end;
 
 procedure Toutlineviewer.focused(i:sw_integer);
@@ -283,6 +273,7 @@ end;
 procedure Toutlineviewer.foreach(action:pointer);
 
 begin
+  do_recurse(action,get_caller_frame(get_frame),false);
 end;
 
 function Toutlineviewer.getchild(node:pointer;i:sw_integer):pointer;
@@ -295,11 +286,20 @@ function Toutlineviewer.getgraph(level:integer;lines:longint;
                                  flags:word):string;
 
 begin
+  getgraph:=creategraph(level,lines,flags,3,3,' ³ÃÀÄÄ+Ä');
 end;
 
 function Toutlineviewer.getnode(i:sw_integer):pointer;
 
+  function test_position(node:pointer;level,position:sw_integer;lines:longInt;
+                         flags:word):boolean;
+
+  begin
+    test_position:=position=i;
+  end;
+
 begin
+  foreach(@test_position);
 end;
 
 function Toutlineviewer.getnumchildren(node:pointer):sw_integer;
@@ -336,6 +336,62 @@ function Toutlineviewer.isselected(i:sw_integer):boolean;
 
 begin
   isselected:=foc=i;
+end;
+
+function Toutlineviewer.do_recurse(action,callerframe:pointer;
+                                   stop_if_found:boolean):pointer;
+
+var position:sw_integer;
+
+  function recurse(cur:pointer;level:integer;lines:longint;lastchild:boolean):pointer;
+
+  var i,childcount:sw_integer;
+      child:pointer;
+      flags:word;
+      children,expanded,found:boolean;
+
+  begin
+    inc(position);
+    recurse:=nil;
+
+    children:=haschildren(cur);
+    expanded:=isexpanded(cur);
+
+    {Determine flags.}
+    flags:=0;
+    if not children or expanded then
+      inc(flags,ovExpanded);
+    if children and expanded then
+      inc(flags,ovChildren);
+    if lastchild then
+      inc(flags,ovLast);
+
+    {Call the function.}
+    found:=TMyFunc(action)(callerframe,cur,level,position,lines,flags);
+
+    if stop_if_found and found then
+      recurse:=cur
+    else if children and expanded then {Recurse children?}
+      begin
+        if not lastchild then
+          lines:=lines or (1 shl level);
+        {Iterate all childs.}
+        childcount:=getnumchildren(cur);
+        for i:=0 to childcount-1 do
+          begin
+            child:=getchild(cur,i);
+            if (child<>nil) and (level<31) then
+              recurse:=recurse(child,level+1,lines,i=childcount-1);
+            {Did we find a node?}
+            if recurse<>nil then
+              break;
+          end;
+      end;
+  end;
+
+begin
+  position:=-1;
+  do_recurse:=recurse(getroot,0,0,true);
 end;
 
 procedure Toutlineviewer.selected(i:sw_integer);
