@@ -43,28 +43,31 @@ begin
 end;
 
 {$define FPC_SYSTEM_HAS_TRUNC}
-function fpc_trunc_real(d : valreal) : int64;compilerproc; assembler;
+function fpc_trunc_real(d : valreal) : int64;compilerproc; assembler; nostackframe;
 { input: d in fr1      }
 { output: result in r3 }
-var
-  temp : int64;
 asm
   fctidz f1, f1
-  stfd f1, temp
-  ld r3, temp
+  stfd f1, -8(r1)
+  ld r3, -8(r1)
+end;
+
+{$define FPC_SYSTEM_HAS_INT}
+function fpc_int_real(d : valreal) : valreal;compilerproc; assembler; nostackframe;
+asm
+  fctidz f2, f1
+  fcfid f1, f2
 end;
 
 {$define FPC_SYSTEM_HAS_ROUND}
-function fpc_round_real(d : valreal) : int64; compilerproc;assembler;
+function fpc_round_real(d : valreal) : int64; compilerproc;assembler; nostackframe;
 { exactly the same as trunc, except that one fctiwz has become fctiw }
 { input: d in fr1      }
 { output: result in r3 }
-var
-  temp: int64;
 asm
   fctid f1, f1
-  stfd  f1, temp
-  ld r3, temp
+  stfd  f1, -8(r1)
+  ld r3, -8(r1)
 end;
 
 {****************************************************************************
