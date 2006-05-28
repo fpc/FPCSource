@@ -635,6 +635,7 @@ end;
 function Toutline.getchild(node:pointer;i:sw_integer):pointer;
 
 begin
+  assert(node<>nil);
   getchild:=Pnode(node)^.childlist;
   while i<>0 do
     begin
@@ -652,18 +653,21 @@ end;
 function Toutline.gettext(node:pointer):string;
 
 begin
+  assert(node<>nil);
   gettext:=Pnode(node)^.text^;
 end;
 
 function Toutline.haschildren(node:pointer):boolean;
 
 begin
+  assert(node<>nil);
   haschildren:=Pnode(node)^.childlist<>nil;
 end;
 
 function Toutline.isexpanded(node:pointer):boolean;
 
 begin
+  assert(node<>nil);
   isexpanded:=Pnode(node)^.expanded;
 end;
 
