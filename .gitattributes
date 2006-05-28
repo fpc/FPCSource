@@ -5495,6 +5495,7 @@ tests/test/cg/obj/linux/m68k/ctest.o -text
 tests/test/cg/obj/linux/powerpc/ctest.o -text
 tests/test/cg/obj/linux/powerpc/tcext3.o -text
 tests/test/cg/obj/linux/powerpc/tcext4.o -text
+tests/test/cg/obj/linux/powerpc/tcext5.o -text
 tests/test/cg/obj/linux/powerpc64/ctest.o -text
 tests/test/cg/obj/linux/powerpc64/tcext3.o -text
 tests/test/cg/obj/linux/powerpc64/tcext4.o -text
