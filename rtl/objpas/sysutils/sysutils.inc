@@ -248,6 +248,7 @@ begin
       for i:=0 to FrameCount-1 do
         Writeln(stdout,BackTraceStrFunc(Frames[i]));
     end;
+  Writeln(stdout,'');
   Halt(217);
 end;
 
