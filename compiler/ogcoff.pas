@@ -857,10 +857,11 @@ const win32stub : array[0..131] of byte=(
                         dec(address,TCoffObjSection(relocsec).orgmempos);
                     end;
 {$ifdef arm}
-                  if address <> 0 then
-                    dec(address, relocval-relocsec.MemPos);
+                  if (relocsec.objdata=objdata) then
+                    inc(address, relocsec.MemPos)
+                  else
 {$endif arm}
-                  inc(address,relocval);
+                    inc(address,relocval);
                   inc(address,relocsec.objdata.imagebase);
                 end;
               else
