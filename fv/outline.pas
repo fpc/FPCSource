@@ -193,6 +193,67 @@ begin
   CreateGraph := Graph;
 end;
 
+function Toutlineviewer.do_recurse(action,callerframe:pointer;
+                                   stop_if_found:boolean):pointer;
+
+var position:sw_integer;
+    r:pointer;
+
+  function recurse(cur:pointer;level:integer;lines:longint;lastchild:boolean):pointer;
+
+  var i,childcount:sw_integer;
+      child:pointer;
+      flags:word;
+      children,expanded,found:boolean;
+
+  begin
+    inc(position);
+    recurse:=nil;
+
+    children:=haschildren(cur);
+    expanded:=isexpanded(cur);
+
+    {Determine flags.}
+    flags:=0;
+    if not children or expanded then
+      inc(flags,ovExpanded);
+    if children and expanded then
+      inc(flags,ovChildren);
+    if lastchild then
+      inc(flags,ovLast);
+
+    {Call the function.}
+    found:=TMyFunc(action)(callerframe,cur,level,position,lines,flags);
+
+    if stop_if_found and found then
+      recurse:=cur
+    else if children and expanded then {Recurse children?}
+      begin
+        if not lastchild then
+          lines:=lines or (1 shl level);
+        {Iterate all childs.}
+        childcount:=getnumchildren(cur);
+        for i:=0 to childcount-1 do
+          begin
+            child:=getchild(cur,i);
+            if (child<>nil) and (level<31) then
+              recurse:=recurse(child,level+1,lines,i=childcount-1);
+            {Did we find a node?}
+            if recurse<>nil then
+              break;
+          end;
+      end;
+  end;
+
+begin
+  position:=-1;
+  r:=getroot;
+  if r<>nil then
+    do_recurse:=recurse(r,0,0,true)
+  else
+    do_recurse:=nil;
+end;
+
 procedure Toutlineviewer.draw;
 
 var c_normal,c_normal_x,c_select,c_focus:byte;
@@ -228,10 +289,10 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
     for i:=0 to size.x-1 do
       begin
         wordrec(b[i]).hi:=c;
-        if i+delta.x<=length(s) then
+        if i+delta.x<length(s) then
           wordrec(b[i]).lo:=byte(s[1+i+delta.x])
-        else if i+delta.x-length(s)<=length(t) then
-          wordrec(b[i]).lo:=byte(t[i+delta.x-length(s)])
+        else if 1+i+delta.x-length(s)<=length(t) then
+          wordrec(b[i]).lo:=byte(t[1+i+delta.x-length(s)])
         else
           wordrec(b[i]).lo:=byte(' ');
       end;
@@ -316,10 +377,10 @@ end;
 
 function Toutlineviewer.getpalette:Ppalette;
 
-const P:string[length(Coutlineviewer)]=Coutlineviewer;
+const p:string[length(Coutlineviewer)]=Coutlineviewer;
 
 begin
-  getpalette:=@P;
+  getpalette:=@p;
 end;
 
 function Toutlineviewer.getroot:pointer;
@@ -340,7 +401,7 @@ var mouse:Tpoint;
     cur:pointer;
     new_focus:sw_integer;
     count:byte;
-    m,mouse_drag:boolean;
+    handled,m,mouse_drag:boolean;
     graph:string;
 
   function graph_of_focus(var graph:string):pointer;
@@ -375,6 +436,7 @@ begin
     evKeyboard:
       begin
         new_focus:=foc;
+        handled:=true;
         case ctrltoarrow(event.keycode) of
           kbUp,kbLeft:
             dec(new_focus);
@@ -406,6 +468,8 @@ begin
                 expandall(getnode(new_focus));
                 update;
               end;
+            else
+              handled:=false;
           end;
         end;
         if new_focus<0 then
@@ -413,11 +477,9 @@ begin
         if new_focus>=limit.y then
           new_focus:=limit.y-1;
         if foc<>new_focus then
-          begin
-            set_focus(new_focus);
-            drawview;
-          end;
-        clearevent(event);
+          set_focus(new_focus);
+        if handled then
+          clearevent(event);
       end;
     evMouseDown:
       begin
@@ -443,10 +505,7 @@ begin
           if new_focus>=limit.y then
             new_focus:=limit.y-1;
           if foc<>new_focus then
-            begin
-              set_focus(new_focus);
-              drawview;
-            end;
+            set_focus(new_focus);
           m:=mouseevent(event,evMouseMove+evMouseAuto);
           if not m then
             mouse_drag:=true;
@@ -486,67 +545,6 @@ begin
   isselected:=foc=i;
 end;
 
-function Toutlineviewer.do_recurse(action,callerframe:pointer;
-                                   stop_if_found:boolean):pointer;
-
-var position:sw_integer;
-    r:pointer;
-
-  function recurse(cur:pointer;level:integer;lines:longint;lastchild:boolean):pointer;
-
-  var i,childcount:sw_integer;
-      child:pointer;
-      flags:word;
-      children,expanded,found:boolean;
-
-  begin
-    inc(position);
-    recurse:=nil;
-
-    children:=haschildren(cur);
-    expanded:=isexpanded(cur);
-
-    {Determine flags.}
-    flags:=0;
-    if not children or expanded then
-      inc(flags,ovExpanded);
-    if children and expanded then
-      inc(flags,ovChildren);
-    if lastchild then
-      inc(flags,ovLast);
-
-    {Call the function.}
-    found:=TMyFunc(action)(callerframe,cur,level,position,lines,flags);
-
-    if stop_if_found and found then
-      recurse:=cur
-    else if children and expanded then {Recurse children?}
-      begin
-        if not lastchild then
-          lines:=lines or (1 shl level);
-        {Iterate all childs.}
-        childcount:=getnumchildren(cur);
-        for i:=0 to childcount-1 do
-          begin
-            child:=getchild(cur,i);
-            if (child<>nil) and (level<31) then
-              recurse:=recurse(child,level+1,lines,i=childcount-1);
-            {Did we find a node?}
-            if recurse<>nil then
-              break;
-          end;
-      end;
-  end;
-
-begin
-  position:=-1;
-  r:=getroot;
-  if r<>nil then
-    do_recurse:=recurse(r,0,0,true)
-  else
-    do_recurse:=nil;
-end;
-
 procedure Toutlineviewer.selected(i:sw_integer);
 
 begin
@@ -556,7 +554,13 @@ end;
 procedure Toutlineviewer.set_focus(Afocus:sw_integer);
 
 begin
-  {}
+  assert((Afocus>=0) and (Afocus<limit.y));
+  focused(Afocus);
+  if Afocus<delta.y then
+    scrollto(delta.x,Afocus)
+  else if Afocus-size.y>=delta.y then
+    scrollto(delta.x,Afocus-size.y+1);
+  drawview;
 end;
 
 procedure Toutlineviewer.setstate(Astate:word;enable:boolean);
@@ -609,6 +613,7 @@ end;
 procedure Toutline.adjust(node:pointer;expand:boolean);
 
 begin
+  assert(node<>nil);
   Pnode(node)^.expanded:=expand;
 end;
 
@@ -617,6 +622,7 @@ function Toutline.getnumchildren(node:pointer):sw_integer;
 var p:Pnode;
 
 begin
+  assert(node<>nil);
   p:=Pnode(node)^.childlist;
   getnumchildren:=0;
   while p<>nil do
