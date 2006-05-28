@@ -57,6 +57,9 @@ implementation
 {$DEFINE FPC_NOGENERICANSIROUTINES}
 {$define HASEXPANDUNCFILENAME}
 
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 

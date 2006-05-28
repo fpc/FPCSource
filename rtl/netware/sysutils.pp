@@ -71,6 +71,10 @@ implementation
   uses
     sysconst;
 
+{$define FPC_FEXPAND_DRIVES}
+{$define FPC_FEXPAND_VOLUMES}
+{$define FPC_FEXPAND_NO_DEFAULT_PATHS}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 

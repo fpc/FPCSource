@@ -33,6 +33,9 @@ implementation
   uses
     sysconst;
 
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 

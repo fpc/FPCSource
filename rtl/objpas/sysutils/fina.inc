@@ -96,92 +96,11 @@ end;
 
 {$ifdef Unix}
   Function getenv(name:shortstring):Pchar; external name 'FPC_SYSC_FPGETENV';
-
-  {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
-  {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 {$endif}
-
-{$if defined(win32) or defined(win64)) or defined(go32v2) or defined(wdosx)}
-  {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-  {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-{$endif}
-
-{$if defined(wince)}
-  {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-  {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-{$endif}
-
-{$if defined(morphos) or defined(amiga)}
-  {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
-  {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
-  {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$endif }
-
-{$if defined(OS2)}
-  {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
-  {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-  {$DEFINE FPC_FEXPAND_GETENV_PCHAR}
-{$endif}
-
-{$if defined(MACOS)}
-  {$DEFINE FPC_FEXPAND_VOLUMES}
-  {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-  {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
-  {$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
-  {$DEFINE FPC_FEXPAND_NO_CURDIR}
-{$endif defined(MACOS)}
-
-{$if defined(NETWARE)}
-  {$DEFINE FPC_FEXPAND_DRIVES}
-  {$DEFINE FPC_FEXPAND_VOLUMES}
-  {$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$endif defined(NETWARE)}
 
   type
     PathStr=string;
 {$I fexpand.inc}
-
-{$ifdef Unix}
-  {$UNDEF FPC_FEXPAND_GETENVPCHAR}
-  {$UNDEF FPC_FEXPAND_TILDE}
-{$endif}
-
-{$if defined(win32) or defined(win64)) or defined(go32v2) or defined(wdosx)}
-  {$UNDEF FPC_FEXPAND_UNC} (* UNC paths are supported *)
-  {$UNDEF FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-{$endif}
-
-{$if defined(wince)}
-  {$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-  {$UNDEF FPC_FEXPAND_UNC} (* UNC paths are supported *)
-{$endif}
-
-{$if defined(morphos) or defined(amiga)}
-  {$UNDEF FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
-  {$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-  {$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$endif }
-
-{$if defined(OS2)}
-  {$UNDEF FPC_FEXPAND_UNC} (* UNC paths are supported *)
-  {$UNDEF FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
-  {$UNDEF FPC_FEXPAND_GETENV_PCHAR}
-{$endif}
-
-{$if defined(MACOS)}
-  {$UNDEF FPC_FEXPAND_VOLUMES}
-  {$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-  {$UNDEF FPC_FEXPAND_DRIVESEP_IS_ROOT}
-  {$UNDEF FPC_FEXPAND_NO_DOTS_UPDIR}
-  {$UNDEF FPC_FEXPAND_NO_CURDIR}
-{$endif defined(MACOS)}
-
-
-{$if defined(NETWARE)}
-  {$UNDEF FPC_FEXPAND_DRIVES}
-  {$UNDEF FPC_FEXPAND_VOLUMES}
-  {$UNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-{$endif defined(NETWARE)}
 
 
 function ExpandFileName (Const FileName : string): String;

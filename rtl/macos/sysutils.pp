@@ -51,6 +51,12 @@ implementation
 uses
   Dos, Sysconst; // For some included files.
 
+{$DEFINE FPC_FEXPAND_VOLUMES}
+{$DEFINE FPC_FEXPAND_NO_DEFAULT_PATHS}
+{$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
+{$DEFINE FPC_FEXPAND_NO_DOTS_UPDIR}
+{$DEFINE FPC_FEXPAND_NO_CURDIR}
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 

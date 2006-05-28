@@ -86,6 +86,9 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
+{$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
+{$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
