@@ -92,7 +92,8 @@ const
     'lvx', 'stvx',
     'mulldo', 'mulldo.', 'mulhdu', 'mulhdu.',
     'mfxer',
-    'fctid', 'fctid.', 'fctidz', 'fctidz.');
+    'fctid', 'fctid.', 'fctidz', 'fctidz.',
+    'extrdi', 'extrdi.', 'insrdi', 'insrdi.');
 
 function gas_regnum_search(const s: string): Tregister;
 function gas_regname(r: Tregister): string;

@@ -163,12 +163,18 @@ var
   op: tasmop;
   tmpreg: tregister;
   useconst: boolean;
+
+  {$IFDEF EXTDEBUG}
+  opsize : TCgSize;
+  {$ENDIF EXTDEBUG}
+
 begin
   // get the constant on the right if there is one
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
 
   {$IFDEF EXTDEBUG}
+  opsize := def_cgsize(left.resulttype.def);
   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
   {$ENDIF EXTDEBUG}
 

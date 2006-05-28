@@ -75,6 +75,13 @@ type
     procedure a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1,
       reg2: tregister); override;
 
+    procedure a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize;
+      startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister); override;
+    procedure a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
+      subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister); override;
+    procedure a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize;
+      startbit: byte; a: aint; subsetreg: tregister); override;
+
     { fpu move instructions }
     procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2:
       tregister); override;
@@ -204,6 +211,16 @@ const
     'OS_MS64', 'OS_MS128');
 begin
   result := cgsize_strings[size];
+end;
+
+function cgop2string(const op : TOpCg) : String;
+const
+  opcg_strings : array[TOpCg] of string[6] = (
+    'None', 'Move', 'Add', 'And', 'Div', 'IDiv', 'IMul', 'Mul',
+    'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor'
+  );
+begin
+  result := opcg_strings[op];
 end;
 
 function is_signed_cgsize(const size : TCgSize) : Boolean;
@@ -736,7 +753,7 @@ var
 
 begin
   {$IFDEF EXTDEBUG}
-  astring := 'a_load_const_reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]);
+  astring := 'a_load_const_reg ' + inttostr(hi(a)) + ' ' + inttostr(lo(a)) + ' ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]) + ' ' + hexstr(a, 16);
   list.concat(tai_comment.create(strpnew(astring)));
   {$ENDIF EXTDEBUG}
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
@@ -852,6 +869,9 @@ var
   instr: taicpu;
   op : tasmop;
 begin
+  {$ifdef extdebug}
+  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize))));
+  {$endif}
   op := movemap[fromsize, tosize];
   case op of
     A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
@@ -861,6 +881,43 @@ begin
   end;
   list.concat(instr);
   rg[R_INTREGISTER].add_move_instruction(instr);
+end;
+
+procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize;
+  startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister);
+var
+  total : byte;
+begin
+  {$ifdef extdebug}
+  list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' tosize = ' + cgsize2string(tosize))));
+  {$endif}
+  total := tcgsize2size[subsetsize]*8 + startbit and 63;
+  if (total <> 64) then begin
+    list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, startbit and 63));
+  end else
+    a_load_reg_reg(list, subsetsize, tosize, subsetreg, destreg);
+
+  // extend sign (actually only required for signed subsets...) and if that subset isn't >= real size
+  a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
+end;
+
+procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
+  subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister);
+begin
+  {$ifdef extdebug}
+  list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg')));
+  {$endif}
+  list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, startbit and 63));
+end;
+
+procedure tcgppc.a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize;
+  startbit: byte; a: aint; subsetreg: tregister);
+begin
+  {$ifdef extdebug}
+  list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' a = ' + intToStr(a))));
+  {$endif}
+  // use the default method because it is optimal anyway
+  inherited;
 end;
 
 procedure tcgppc.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize;
@@ -1055,6 +1112,10 @@ begin
     a_op_const_reg_reg(list, OP_ADD, size, -a, src, dst);
     exit;
   end;
+  {$IFDEF EXTDEBUG}
+  list.concat(tai_comment.create(strpnew('a_op_const_reg_reg ' + cgop2string(op))));
+  {$ENDIF EXTDEBUG}
+
   { This case includes some peephole optimizations for the various operations,
    (e.g. AND, OR, XOR, ..) - can't this be done at some higher level,
    independent of architecture? }
