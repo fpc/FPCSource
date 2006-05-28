@@ -1970,8 +1970,11 @@ implementation
         else
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
+{$ifdef x86}
+        { fix this for other CPUs as well }
         sym:=current_asmdata.RefAsmSymbol(externalname);
         reference_reset_symbol(ref,sym,0);
+
 
         { create pic'ed? }
         if cs_create_pic in aktmoduleswitches then
@@ -1985,6 +1988,9 @@ implementation
         else
           ref.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
+{$else x86}
+        cg.a_jmp_name(list,externalname);
+{$endif x86}
       end;
 
 {****************************************************************************
