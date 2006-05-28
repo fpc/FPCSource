@@ -67,7 +67,7 @@ end;
 
 {$IFDEF FPC_FEXPAND_VOLUMES}
  {$IFNDEF FPC_FEXPAND_NO_DEFAULT_PATHS}
-procedure GetDirIO (const VolumeName: OpenString; var Dir: PathStr);
+procedure GetDirIO (const VolumeName: OpenString; var Dir: string);
 
 var
   OldInOutRes: word;
@@ -91,7 +91,8 @@ function FExpand (const Path: PathStr): PathStr;
    FPC_FEXPAND_NO_DOTS_UPDIR, FPC_FEXPAND_DIRSEP_IS_UPDIR,
    FPC_FEXPAND_DIRSEP_IS_CURDIR and FPC_FEXPAND_MULTIPLE_UPDIR conditionals
    might be defined to specify FExpand behaviour - see end of this file for
-   individual descriptions.
+   individual descriptions. Finally, FPC_FEXPAND_SYSUTILS allows to reuse
+   the same implementation for SysUtils.ExpandFileName.
 *)
 
 {$IFDEF FPC_FEXPAND_DRIVES}
@@ -161,15 +162,15 @@ begin
     if (Length (Pa) >= 1) and (Pa [1] = '~') and
                       ((Pa [2] = DirectorySeparator) or (Length (Pa) = 1)) then
         begin
- {$IFOPT H-}
+ {$IFDEF FPC_FEXPAND_SYSUTILS}
+            S := GetEnvironmentVariable ('HOME');
+ {$ELSE FPC_FEXPAND_SYSUTILS}
   {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
             S := StrPas (GetEnv ('HOME'));
   {$ELSE FPC_FEXPAND_GETENV_PCHAR}
- {$ENDIF H-}
             S := GetEnv ('HOME');
- {$IFOPT H-}
   {$ENDIF FPC_FEXPAND_GETENV_PCHAR}
- {$ENDIF H-}
+ {$ENDIF FPC_FEXPAND_SYSUTILS}
             if (S = '') or (Length (S) = 1)
                                           and (S [1] = DirectorySeparator) then
                 Delete (Pa, 1, 1)
@@ -577,5 +578,8 @@ end;
    FPC_FEXPAND_MULTIPLE_UPDIR - grouping of more characters specifying
    upper directory references higher directory levels. Example: '...'
    (Netware).
+
+   FPC_FEXPAND_SYSUTILS allows to reuse the same implementation for
+   SysUtils.ExpandFileName by avoiding things specific for unit Dos.
 *)
 

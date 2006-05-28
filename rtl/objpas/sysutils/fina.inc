@@ -94,12 +94,11 @@ else Result := '';
 end;
 
 
-{$ifdef Unix}
-  Function getenv(name:shortstring):Pchar; external name 'FPC_SYSC_FPGETENV';
-{$endif}
-
   type
     PathStr=string;
+
+{$DEFINE FPC_FEXPAND_SYSUTILS}
+
 {$I fexpand.inc}
 
 
