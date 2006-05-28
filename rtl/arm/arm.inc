@@ -19,14 +19,14 @@
 
 procedure fpc_cpuinit;
 begin
-{$IFNDEF WINCE}
+{$if not(defined(wince)) and not(defined(gba))}  
   asm
     rfs r0
     and r0,r0,#0xffe0ffff
     orr r0,r0,#0x00020000
     wfs r0
   end;
-{$ENDIF}
+{$endif}
 end;
 
 {****************************************************************************

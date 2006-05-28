@@ -716,6 +716,7 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
+{$ifndef gba}
 function alloc_oschunk(chunkindex, size: ptrint):pointer;
 var
   pmcfirst,
@@ -843,6 +844,15 @@ begin
       result:=pmcv;
     end;
 end;
+{$else gba}
+function alloc_oschunk(chunkindex, size: ptrint):pointer;
+begin
+  alloc_oschunk := nil;
+  if not ReturnNilIfGrowHeapFails then
+    runerror(203);
+
+end;
+{$endif gba}
 
 
 {*****************************************************************************

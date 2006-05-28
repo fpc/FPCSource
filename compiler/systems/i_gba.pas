@@ -32,10 +32,11 @@ unit i_gba;
             system       : system_arm_gba;
             name         : 'GameBoy Advance';
             shortname    : 'gba';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
+	                          tf_smartlink_sections];
             cpu          : cpu_arm;
-            unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            unit_env     : '';
+            extradefines : '';
             exeext       : '.gba';
             defext       : '.def';
             scriptext    : '.sh';
