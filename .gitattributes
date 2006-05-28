@@ -3779,15 +3779,12 @@ rtl/gba/Makefile svneol=native#text/plain
 rtl/gba/Makefile.fpc svneol=native#text/plain
 rtl/gba/classes.pp svneol=native#text/plain
 rtl/gba/dos.pp svneol=native#text/plain
-rtl/gba/fpc4gba.txt svneol=native#text/plain
 rtl/gba/gbabios.inc svneol=native#text/plain
 rtl/gba/gbabiosh.inc svneol=native#text/plain
 rtl/gba/lnkscript -text
-rtl/gba/prt0.as svneol=native#text/plain
 rtl/gba/prt0.s -text
 rtl/gba/sysdir.inc svneol=native#text/plain
 rtl/gba/sysfile.inc svneol=native#text/plain
-rtl/gba/sysgba.pp svneol=native#text/plain
 rtl/gba/sysheap.inc svneol=native#text/plain
 rtl/gba/sysos.inc svneol=native#text/plain
 rtl/gba/sysosh.inc svneol=native#text/plain
@@ -3795,7 +3792,6 @@ rtl/gba/system.pp svneol=native#text/plain
 rtl/gba/systhrd.inc svneol=native#text/plain
 rtl/gba/sysutils.pp svneol=native#text/plain
 rtl/gba/tthread.inc svneol=native#text/plain
-rtl/gba/unix.pp svneol=native#text/plain
 rtl/gba/varutils.pp svneol=native#text/plain
 rtl/go32v2/Makefile svneol=native#text/plain
 rtl/go32v2/Makefile.fpc svneol=native#text/plain

@@ -8,15 +8,15 @@ ENTRY(_start)
 
 
 MEMORY {
-   rom      : ORIGIN = 0x08000000, LENGTH = 32M
+   rom     : ORIGIN = 0x08000000, LENGTH = 32M
    iwram   : ORIGIN = 0x03000000, LENGTH = 32K
    ewram   : ORIGIN = 0x02000000, LENGTH = 256K
 }
 
-__text_start       =   0x8000000;
-__eheap_end         =   0x2040000;
-__iwram_start      =   0x3000000;
-__iwram_end         =   0x3008000;
+__text_start     =   0x8000000;
+__eheap_end      =   0x2040000;
+__iwram_start    =   0x3000000;
+__iwram_end      =   0x3008000;
 
 __sp_irq         =   __iwram_end - 0x100;
 __sp_usr         =   __sp_irq - 0x100;
@@ -59,12 +59,17 @@ SECTIONS
       . = ALIGN(4);  /* REQUIRED. LD is flaky without it. */
    } >rom =0
 
+
+
+
    .rodata :
    {
       *(.rodata)
       *all.rodata*(*)
       *(.roda)
       *(.rodata.*)
+/************************************************************ FL: Attempt n.2 */      
+/*       *(.data.*)  				Moved here from EWRAM because size matters */    
       *(.gnu.linkonce.r*)
       SORT(CONSTRUCTORS)
       . = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
@@ -107,6 +112,26 @@ SECTIONS
       *(.gcc_except_table)
       . = ALIGN(4);   /* REQUIRED. LD is flaky without it. */
    } >rom = 0
+
+
+
+/************************************************************* FL: Attempt n.2
+	__data_lma = . + SIZEOF(.gcc_except_table) ; 
+
+	.data ALIGN(4) : AT (__data_lma) 
+	{ 
+		__data_start = ABSOLUTE(.); 
+		*(.data) 
+		*(.data.*) 
+		*(.gnu.linkonce.d*) 
+		CONSTRUCTORS 
+		. = ALIGN(4); 
+	} >rom = 0xff 
+	
+	__data_end  =  .; 
+*********************************************/
+
+
 
 
 
@@ -171,13 +196,15 @@ SECTIONS
       . = ALIGN(4);  /* REQUIRED. LD is flaky without it. */
    }>ewram = 0xff
 
+
+
    __data_lma = __ewram_lma + SIZEOF(.ewram) ;
 
    .data ALIGN(4) : AT (__data_lma)
    {
       __data_start = ABSOLUTE(.);
-      *(.data)
-      *(.data.*)
+      *(.data)    /****************************************** FL: Attempt n.2 */
+      *(.data.*)  /* Moved to RODATA for size matters */
       *(.gnu.linkonce.d*)
       CONSTRUCTORS
       . = ALIGN(4);
@@ -186,6 +213,8 @@ SECTIONS
    __data_end  =  .;
 
    __ewram_overlay_lma = __data_lma + SIZEOF(.data);
+
+
 
    .sbss ALIGN(4):
     {
