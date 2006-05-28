@@ -1957,6 +1957,9 @@ implementation
 ****************************************************************************}
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
+      var
+        ref : treference;
+        sym : tasmsymbol;
       begin
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
@@ -1966,7 +1969,22 @@ implementation
           list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
         else
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
-        cg.a_jmp_name(list,externalname);
+
+        sym:=current_asmdata.RefAsmSymbol(externalname);
+        reference_reset_symbol(ref,sym,0);
+
+        { create pic'ed? }
+        if cs_create_pic in aktmoduleswitches then
+          begin
+            { it could be that we're called from a procedure not having the
+              got loaded
+            }
+            gen_got_load(list);
+            ref.refaddr:=addr_pic;
+          end
+        else
+          ref.refaddr:=addr_full;
+        list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
       end;
 
 {****************************************************************************
@@ -2255,7 +2273,7 @@ implementation
       treplaceregrec = record
         old, new: tregister;
 {$ifndef cpu64bit}
-        oldhi, newhi: tregister;    
+        oldhi, newhi: tregister;
 {$endif cpu64bit}
         ressym: tsym;
       end;
@@ -2309,7 +2327,7 @@ implementation
                   result := fen_norecurse_true;
                 end;
             end;
-        end;  
+        end;
       end;
 
 
@@ -2362,7 +2380,7 @@ implementation
         if not foreachnodestatic(n,@doreplace,@rr) then
           exit;
 
-        { now that we've change the loadn/temp, also change the node result location }  
+        { now that we've change the loadn/temp, also change the node result location }
       {$ifndef cpu64bit}
         if (n.location.size in [OS_64,OS_S64]) then
           begin
