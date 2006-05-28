@@ -161,11 +161,15 @@ begin
     if (Length (Pa) >= 1) and (Pa [1] = '~') and
                       ((Pa [2] = DirectorySeparator) or (Length (Pa) = 1)) then
         begin
- {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
+ {$IFOPT H-}
+  {$IFDEF FPC_FEXPAND_GETENV_PCHAR}
             S := StrPas (GetEnv ('HOME'));
- {$ELSE FPC_FEXPAND_GETENV_PCHAR}
+  {$ELSE FPC_FEXPAND_GETENV_PCHAR}
+ {$ENDIF H-}
             S := GetEnv ('HOME');
- {$ENDIF FPC_FEXPAND_GETENV_PCHAR}
+ {$IFOPT H-}
+  {$ENDIF FPC_FEXPAND_GETENV_PCHAR}
+ {$ENDIF H-}
             if (S = '') or (Length (S) = 1)
                                           and (S [1] = DirectorySeparator) then
                 Delete (Pa, 1, 1)
