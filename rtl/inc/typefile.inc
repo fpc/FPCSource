@@ -73,7 +73,7 @@ Begin
   end;
 End;
 
-Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ']; compilerproc;
+Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ']; compilerproc;
 var
   Result : Longint;
 Begin
