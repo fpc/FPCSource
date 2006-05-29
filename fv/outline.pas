@@ -519,7 +519,6 @@ begin
               begin
                 adjust(cur,not isexpanded(cur));
                 update;
-                drawview;
               end;
           end;
       end;
