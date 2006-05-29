@@ -1,0 +1,59 @@
+{$ifdef Delphi}
+const fpcfg : array[0..3] of string[240]=(
+{$else Delphi}
+const fpcfg : array[0..3,1..240] of char=(
+{$endif Delphi}
+  '#IFDEF NORMAL'#013#010+
+  ' -T%fpctargetos%'#013#010+
+  ' -Sg'#013#010+
+  ' -O1'#013#010+
+  ' -OG'#013#010+
+  ' -Op3'#013#010+
+  ' -Ratt'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013#010+
+  ' -Cs131072'#013#010+
+  ' -Ch2097152'#013,#010+
+  ' -g-'#013#010+
+  ' -p-'#013#010+
+  ' -b-'#013#010+
+  '#ENDIF'#013#010+
+  #013#010+
+  '#IFDEF DEBUG'#013#010+
+  ' -T%fpctargetos%'#013#010+
+  ' -Sg'#013#010+
+  ' -Cr'#013#010+
+  ' -Ci'#013#010+
+  ' -Co'#013#010+
+  ' -OG'#013#010+
+  ' -Op3'#013#010+
+  ' -Ratt'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fp','ctargetos%\rtl'#013#010+
+  ' -Cs131072'#013#010+
+  ' -Ch2097152'#013#010+
+  ' -g'#013#010+
+  ' -p-'#013#010+
+  ' -b-'#013#010+
+  '#ENDIF'#013#010+
+  #013#010+
+  '#IFDEF RELEASE'#013#010+
+  ' -T%fpctargetos%'#013#010+
+  ' -Sg'#013#010+
+  ' -O1'#013#010+
+  ' -O2'#013#010+
+  ' -OG'#013#010+
+  ' -Op3'#013#010+
+  ' -Ratt'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
+  ' ','-Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013#010+
+  ' -Cs131072'#013#010+
+  ' -Ch2097152'#013#010+
+  ' -g-'#013#010+
+  ' -p-'#013#010+
+  ' -b-'#013#010+
+  '#ENDIF'#013#010
+);

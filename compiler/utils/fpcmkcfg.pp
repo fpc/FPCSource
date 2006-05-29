@@ -26,23 +26,29 @@ uses usubst,SysUtils,Classes;
 }
 
 {$i fpccfg.inc}
+{$i fpini.inc}
+{$i fpcfg.inc}
 
 Const
   BuildVersion={$I %FPCVERSION%};
   BuildTarget={$I %FPCTARGET%};
+  BuildOSTarget={$I %FPCTARGETOS%};
 
 
 Resourcestring
-  SUsage00 = 'Usage: %s [options]';
-  SUsage10 = 'Where options is one or more of';
-  SUSage20 = '  -t filename   Template file name. Default is built-in';
-  SUSage30 = '  -o filename   Set output file. Default is standard output.';
-  SUsage40 = '  -d name=value define name=value pair.';
-  SUsage50 = '  -h            show this help and exit.';
-  SUsage60 = '  -u name       remove name from list of name/value pairs.';
-  SUsage70 = '  -l filename   read name/value pairs from filename';
-  SUsage80 = '  -b            show builtin template and exit.';
-  SUsage90 = '  -v            be verbose.';
+  SUsage00  = 'Usage: %s [options]';
+  SUsage10  = 'Where options is one or more of';
+  SUSage20  = '  -t filename   Template file name. Default is built-in';
+  SUSage30  = '  -o filename   Set output file. Default is standard output.';
+  SUsage40  = '  -d name=value define name=value pair.';
+  SUsage50  = '  -h            show this help and exit.';
+  SUsage60  = '  -u name       remove name from list of name/value pairs.';
+  SUsage70  = '  -l filename   read name/value pairs from filename';
+  SUsage80  = '  -b            show builtin template and exit.';
+  SUsage90  = '  -v            be verbose.';
+  Susage100 = '  -0            use built in fpc.cfg template (default)';
+  Susage110 = '  -1            use built in fp.cfg template';
+  Susage120 = '  -2            use built in fp.ini template';
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
   SErrNoSuchFile      = 'Error: File "%s" does not exist.';
@@ -60,17 +66,18 @@ Var
   List,Cfg : TStringList;
   TemplateFileName,
   OutputFileName : String;
-
-
+  IDEBuildin : Integer;
 
 
 procedure Init;
 
 begin
   Verbose:=False;
+  IDEBuildIn:=0;
   List:=TStringList.Create;
   AddToList(List,'FPCVERSION',BuildVersion);
   AddToList(List,'FPCTARGET',BuildTarget);
+  AddToList(List,'FPCTARGETOS',BuildOSTarget);
   AddToList(List,'PWD',GetCurrentDir);
   AddToList(List,'BUILDDATE',DateToStr(Date));
   AddToList(List,'BUILDTIME',TimeToStr(Time));
@@ -98,6 +105,9 @@ begin
   Writeln(SUsage70);
   Writeln(SUsage80);
   Writeln(SUsage90);
+  Writeln(SUsage100);
+  Writeln(SUsage110);
+  Writeln(SUsage120);
   Halt(1);
 end;
 
@@ -158,6 +168,9 @@ begin
         'u' : AddPair(List,GetOptArg+'=');
         'o' : OutputFileName:=GetoptArg;
         's' : SkipBackup:=True;
+        '0' : IDEBuildin:=0;
+        '1' : IDEBuildin:=1;
+        '2' : IDEBuildin:=2;
       else
         UnknownOption(S);
       end;
@@ -174,7 +187,16 @@ begin
     AddToList(List,'TEMPLATEFILE',TemplateFileName);
     end
   else
-    AddToList(List,'TEMPLATEFILE','builtin');
+    begin
+      case IDEBuildin of
+        1:
+           Cfg.Text:=StrPas(Addr(fpcfg));
+        2:
+           Cfg.Text:=StrPas(Addr(fpini));
+      end;
+
+      AddToList(List,'TEMPLATEFILE','builtin');
+    end;
 end;
 
 
