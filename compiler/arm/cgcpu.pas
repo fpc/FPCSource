@@ -908,7 +908,7 @@ unit cgcpu;
            OS_S32:
              oppostfix:=PF_None;
            else
-             InternalError(200308295);
+             InternalError(2003082910);
          end;
          result:=handle_load_store(list,A_STR,oppostfix,reg,ref);
        end;
