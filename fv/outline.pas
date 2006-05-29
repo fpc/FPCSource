@@ -92,7 +92,7 @@ begin
       next:=Anext;
       text:=newstr(Atext);
       childlist:=Achildren;
-      expanded:=false;
+      expanded:=true;
     end;
 end;
 
@@ -276,10 +276,10 @@ var c_normal,c_normal_x,c_select,c_focus:byte;
     t:=gettext(cur);
 
     {Determine text colour.}
-    if isselected(position) then
-      c:=c_select
-    else if (foc=position) and (state and sffocused<>0) then
+    if (foc=position) and (state and sffocused<>0) then
       c:=c_focus
+    else if isselected(position) then
+      c:=c_select
     else if flags and ovexpanded<>0 then
       c:=c_normal_x
     else
