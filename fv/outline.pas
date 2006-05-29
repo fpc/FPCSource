@@ -507,7 +507,7 @@ begin
           if foc<>new_focus then
             set_focus(new_focus);
           m:=mouseevent(event,evMouseMove+evMouseAuto);
-          if not m then
+          if m then
             mouse_drag:=true;
         until not m;
         if event.double then
