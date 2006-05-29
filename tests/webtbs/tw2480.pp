@@ -12,7 +12,7 @@ Type tSingleton=Class
         Class Function Instance:tSingleton;
      End;
 
-Function tSingleton.Instance:tSingleton;
+class Function tSingleton.Instance:tSingleton;
 Begin
    If _Instance=Nil Then _Instance:=tSingleton.Init;
    Exit(_Instance);

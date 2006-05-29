@@ -57,7 +57,7 @@ begin
     end;
 end;
 
-procedure tbaseclass.virtual_class_method;
+class procedure tbaseclass.virtual_class_method;
 begin
   Writeln('Calling tbase class class method');
   tbasecalled:=true;
@@ -73,7 +73,7 @@ begin
   get_type2:=typeof(self);
 end;
 
-procedure tderivedclass.virtual_class_method;
+class procedure tderivedclass.virtual_class_method;
 begin
   Writeln('Calling tderived class class method');
   tderivedcalled:=true;

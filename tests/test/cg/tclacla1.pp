@@ -18,7 +18,7 @@ const
   tbasecalled : boolean = false;
   tderivedcalled : boolean = false;
   has_error : boolean = false;
-procedure tbaseclass.virtual_class_method;
+class procedure tbaseclass.virtual_class_method;
 
 begin
   Writeln('Calling tbase class class method');
@@ -30,7 +30,7 @@ begin
   virtual_class_method;
 end;
 
-procedure tderivedclass.virtual_class_method;
+class procedure tderivedclass.virtual_class_method;
 
 begin
   Writeln('Calling tderived class class method');
