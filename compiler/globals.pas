@@ -2284,7 +2284,7 @@ end;
 
         { Target specific defaults, these can override previous default options }
 {$ifdef i386}
-        initcputype:=cpu_386;
+        initcputype:=cpu_Pentium;
         initoptimizecputype:=cpu_Pentium3;
         initfputype:=fpu_x87;
 {$endif i386}
