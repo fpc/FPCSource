@@ -321,7 +321,7 @@ procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointe
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
-Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compilerproc;
+Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 
 {$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i: int64): double; compilerproc;
