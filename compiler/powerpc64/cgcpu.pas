@@ -898,7 +898,7 @@ begin
     a_load_reg_reg(list, subsetsize, tosize, subsetreg, destreg);
 
   // extend sign (actually only required for signed subsets...) and if that subset isn't >= real size
-  a_load_reg_reg(list, tcgsize2unsigned[subsetsize], tosize, destreg, destreg);
+  a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
 end;
 
 procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
