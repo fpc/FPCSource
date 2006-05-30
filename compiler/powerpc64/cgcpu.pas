@@ -886,38 +886,44 @@ end;
 procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize;
   startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister);
 var
-  total : byte;
+  extrdi_startbit : byte;
 begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' tosize = ' + cgsize2string(tosize))));
   {$endif}
-  total := tcgsize2size[subsetsize]*8 + startbit and 63;
-  if (total <> 64) then begin
-    list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, startbit and 63));
+  // calculate the correct startbit for the extrdi instruction, do the extraction if required and then
+  // extend the sign correctly. (The latter is actually required only for signed subsets and if that
+  // subset is not >= the tosize.
+  extrdi_startbit := 64 - (tcgsize2size[subsetsize]*8 + startbit);
+  if (startbit <> 0) then begin
+    list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, extrdi_startbit));
+    a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
   end else
     a_load_reg_reg(list, subsetsize, tosize, subsetreg, destreg);
-
-  // extend sign (actually only required for signed subsets...) and if that subset isn't >= real size
-  a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
 end;
 
 procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
   subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister);
 begin
   {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg')));
+  list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(startbit))));
   {$endif}
-  list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, startbit and 63));
+  list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, (64 - (startbit + tcgsize2size[subsetsize]*8)) and 63));
 end;
 
 procedure tcgppc.a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize;
   startbit: byte; a: aint; subsetreg: tregister);
+var
+  tmpreg : TRegister;
 begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' a = ' + intToStr(a))));
   {$endif}
-  // use the default method because it is optimal anyway
-  inherited;
+  // simply loading the constant into the lowest bits of a temp register and then inserting is
+  // better than loading some usually large constants and do some masking and shifting on ppc64
+  tmpreg := getintregister(list,subsetsize);
+  a_load_const_reg(list,subsetsize,a,tmpreg);
+  a_load_reg_subsetreg(list, subsetsize, subsetregsize, subsetsize, startbit, tmpreg, subsetreg);
 end;
 
 procedure tcgppc.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize;
