@@ -220,6 +220,7 @@ interface
          { taddnode }
          nf_is_currency,
          nf_has_pointerdiv,
+         nf_short_bool,
 
          { tassignmentnode }
          nf_concat_string,

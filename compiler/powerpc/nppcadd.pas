@@ -261,7 +261,8 @@ interface
         else
            cgsize:=OS_32;
 
-        if (cs_full_boolean_eval in aktlocalswitches) or
+        if ((cs_full_boolean_eval in aktlocalswitches) and
+            not(nf_short_bool in flags)) or
            (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
           begin
             if left.nodetype in [ordconstn,realconstn] then
