@@ -13,12 +13,10 @@ const fpcfg : array[0..3,1..240] of char=(
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013#010+
-  ' -Cs131072'#013#010+
-  ' -Ch2097152'#013,#010+
   ' -g-'#013#010+
   ' -p-'#013#010+
   ' -b-'#013#010+
-  '#ENDIF'#013#010+
+  '#ENDIF',#013#010+
   #013#010+
   '#IFDEF DEBUG'#013#010+
   ' -T%fpctargetos%'#013#010+
@@ -31,11 +29,9 @@ const fpcfg : array[0..3,1..240] of char=(
   ' -Ratt'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
-  ' -Fu%basepath%\units\%fpctarget%-%fp','ctargetos%\rtl'#013#010+
-  ' -Cs131072'#013#010+
-  ' -Ch2097152'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013#010+
   ' -g'#013#010+
-  ' -p-'#013#010+
+  ' -p-',#013#010+
   ' -b-'#013#010+
   '#ENDIF'#013#010+
   #013#010+
@@ -49,9 +45,7 @@ const fpcfg : array[0..3,1..240] of char=(
   ' -Ratt'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%'#013#010+
   ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\*'#013#010+
-  ' ','-Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013#010+
-  ' -Cs131072'#013#010+
-  ' -Ch2097152'#013#010+
+  ' -Fu%basepath%\units\%fpctarget%-%fpctargetos%\rtl'#013,#010+
   ' -g-'#013#010+
   ' -p-'#013#010+
   ' -b-'#013#010+

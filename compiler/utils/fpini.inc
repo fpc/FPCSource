@@ -6,9 +6,6 @@ const fpini : array[0..2,1..240] of char=(
   '[Compile]'#013#010+
   'CompileMode=DEBUG'#013#010+
   #013#010+
-  '[Help]'#013#010+
-  'Files="%basepath%\doc\fpctoc.htx"'#013#010+
-  #013#010+
   '[Editor]'#013#010+
   'DefaultTabSize=8'#013#010+
   'DefaultFlags=20599'#013#010+
@@ -19,11 +16,11 @@ const fpini : array[0..2,1..240] of char=(
   'Exts="*.pas;*.pp;*.inc"'#013#010+
   'NeedsTabs="make*;make*.*"'#013#010+
   #013#010+
-  '[Sou','rcePath]'#013#010+
+  '[SourcePath]'#013#010+
   'SourceList=""'#013#010+
   #013#010+
   '[Mouse]'#013#010+
-  'DoubleDelay=8'#013#010+
+  'DoubleDel','ay=8'#013#010+
   'ReverseButtons=0'#013#010+
   'AltClickAction=6'#013#010+
   'CtrlClickAction=1'#013#010+
@@ -39,9 +36,9 @@ const fpini : array[0..2,1..240] of char=(
   #013#010+
   '[Preferences]'#013#010+
   'DesktopFileFlags=209'#013#010+
-  'CenterCurrentLineWhile','Debugging=1'#013#010+
+  'CenterCurrentLineWhileDebugging=1'#013#010+
   'AutoSaveFlags=7'#013#010+
-  'MiscOptions=6'#013#010+
+  'MiscOptions=6'#013#010,
   'DesktopLocation=1'#013#010+
   #013#010+
   '[Misc]'#013#010+
