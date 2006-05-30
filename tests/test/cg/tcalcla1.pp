@@ -299,7 +299,7 @@ type
   end;
 
 
- procedure tnovmtclass.method_public_static_none;
+class procedure tnovmtclass.method_public_static_none;
   begin
     global_u8bit := RESULT_U8BIT;
   end;
@@ -311,7 +311,7 @@ type
        method_private_static_none;
    end;
 
- procedure tnovmtclass.method_call_private_static_none;
+class procedure tnovmtclass.method_call_private_static_none;
    begin
      method_private_static_none;
    end;
@@ -323,7 +323,7 @@ type
   end;
 
 
- procedure tnovmtclass.method_private_static_none;
+class procedure tnovmtclass.method_private_static_none;
   begin
     Inc(global_u16bit, RESULT_U8BIT);
   end;
@@ -335,7 +335,7 @@ type
      global_u8bit := x;
    end;
 
-  procedure tnovmtclass.method_public_static_u8(x: byte);
+class  procedure tnovmtclass.method_public_static_u8(x: byte);
    begin
      global_u8bit := x;
    end;
@@ -346,7 +346,7 @@ type
      method_private_u8(x);
    end;
 
-  procedure tnovmtclass. method_call_private_static_u8(x: byte);
+class  procedure tnovmtclass. method_call_private_static_u8(x: byte);
    begin
      method_private_static_u8(x);
    end;
@@ -356,7 +356,7 @@ type
       Inc(global_u16bit,x);
     end;
 
-   procedure tnovmtclass.method_private_static_u8(x: byte);
+class   procedure tnovmtclass.method_private_static_u8(x: byte);
     begin
       Inc(global_u16bit,x);
     end;
@@ -505,7 +505,7 @@ procedure tvmtclass.method_dynamic_params_mixed(u8 :byte; u16: word;
 
 
 { can't access field of instances in static methods }
-procedure tvmtclass.method_static_params_mixed(
+class procedure tvmtclass.method_static_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    global_u8bit := u8;
