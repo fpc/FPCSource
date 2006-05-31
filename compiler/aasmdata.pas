@@ -369,7 +369,7 @@ implementation
       begin
         if not assigned(p.altsymbol) then
          begin
-           p.altsymbol:=tasmsymbol.create(p.name+'_'+tostr(FNextAltNr),p.bind,p.typ);
+           p.altsymbol:=p.getaltcopy(FNextAltNr);
            FAsmSymbolDict.insert(p.altsymbol);
            FAltSymbolList.Add(p);
          end;

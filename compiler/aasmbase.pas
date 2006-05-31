@@ -89,11 +89,13 @@ interface
          { Cached objsymbol }
          cachedobjsymbol : TObject;
          constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+         function getaltcopy(altnr: longint): tasmsymbol; virtual;
          function  is_used:boolean;
          procedure increfs;
          procedure decrefs;
          function getrefs: longint;
        end;
+       TAsmSymbolClass = class of TAsmSymbol;
 
        TAsmLabel = class(TAsmSymbol)
          labelnr   : longint;
@@ -101,6 +103,7 @@ interface
          is_set    : boolean;
          constructor createlocal(nr:longint;ltyp:TAsmLabelType);
          constructor createglobal(const modulename:string;nr:longint;ltyp:TAsmLabelType);
+         function getaltcopy(altnr: longint): tasmsymbol; override;
          function getname:string;override;
        end;
 
@@ -251,6 +254,15 @@ implementation
       end;
 
 
+    function tasmsymbol.getaltcopy(altnr: longint): tasmsymbol;
+      begin
+        result := TAsmSymbol(TAsmSymbolClass(classtype).createname(name+'_'+tostr(altnr)));
+        result.bind:=bind;
+        result.typ:=typ;
+        result.refs:=0;
+      end;
+
+
     function tasmsymbol.is_used:boolean;
       begin
         is_used:=(refs>0);
@@ -282,7 +294,7 @@ implementation
 *****************************************************************************}
 
     constructor tasmlabel.createlocal(nr:longint;ltyp:TAsmLabelType);
-      begin;
+      begin
         inherited create(target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
         labelnr:=nr;
         labeltype:=ltyp;
@@ -291,13 +303,30 @@ implementation
 
 
     constructor tasmlabel.createglobal(const modulename:string;nr:longint;ltyp:TAsmLabelType);
-      begin;
+      begin
         inherited create('_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;
         { write it always }
         increfs;
+      end;
+
+
+    function tasmlabel.getaltcopy(altnr: longint): tasmsymbol;
+      begin;
+        result := inherited getaltcopy(altnr);
+        tasmlabel(result).labelnr:=labelnr;
+        tasmlabel(result).labeltype:=labeltype;
+        tasmlabel(result).is_set:=false;
+        case bind of
+          AB_GLOBAL:
+            result.increfs;
+          AB_LOCAL:
+            ;
+          else
+            internalerror(2006053101);
+        end;
       end;
 
 
