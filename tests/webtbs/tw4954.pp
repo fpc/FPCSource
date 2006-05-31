@@ -1,3 +1,4 @@
+{ %NORUN }
 { %OPT=-Seh }
 
 program aFP211r;  { false hints on varrec }
