@@ -226,7 +226,8 @@ implementation
 {$endif win32}
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
-       ogmap
+       ogmap,
+       version
        ;
 
     const
@@ -2154,6 +2155,8 @@ const win32stub : array[0..131] of byte=(
           begin
             fillchar(peoptheader,sizeof(peoptheader),0);
             peoptheader.magic:=COFF_OPT_MAGIC;
+            peoptheader.MajorLinkerVersion:=ord(version_nr)-ord('0');
+            peoptheader.MinorLinkerVersion:=(ord(release_nr)-ord('0'))*10 + (ord(patch_nr)-ord('0'));
             peoptheader.tsize:=TextExeSec.Size;
             peoptheader.dsize:=DataExeSec.Size;
             peoptheader.bsize:=BSSExeSec.Size;
@@ -2169,7 +2172,10 @@ const win32stub : array[0..131] of byte=(
             peoptheader.MinorOperatingSystemVersion:=0;
             peoptheader.MajorImageVersion:=dllmajor;
             peoptheader.MinorImageVersion:=dllminor;
-            peoptheader.MajorSubsystemVersion:=4;
+            if target_info.system in [system_arm_wince,system_i386_wince] then
+              peoptheader.MajorSubsystemVersion:=3
+            else
+              peoptheader.MajorSubsystemVersion:=4;
             peoptheader.MinorSubsystemVersion:=0;
             peoptheader.Win32Version:=0;
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
@@ -2380,16 +2386,20 @@ const win32stub : array[0..131] of byte=(
             idata5objsection:=nil;
             idata6objsection:=nil;
             idata7objsection:=nil;
-            StartImport(ExtLibrary.Name);
             for j:=0 to ExtLibrary.ExternalSymbolList.Count-1 do
               begin
                 ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList[j]);
                 exesym:=TExeSymbol(ExeSymbolList.Find(ExtSymbol.Name));
                 if assigned(exesym) and
                    not assigned(exesym.objsymbol) then
-                  exesym.objsymbol:=AddProcImport(ExtSymbol.Name);
+                  begin
+                    if not assigned(idata2objsection) then
+                      StartImport(ExtLibrary.Name);
+                    exesym.objsymbol:=AddProcImport(ExtSymbol.Name);
+                  end;
               end;
-            EndImport;
+            if assigned(idata2objsection) then
+              EndImport;
           end;
       end;
 
