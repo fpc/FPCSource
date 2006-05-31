@@ -286,15 +286,15 @@ const
                      (taicpu(next1).opcode = A_RLWINM) and
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
                      // both source and target of next1 must equal target of p
-                     (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) and
-                     (taicpu(next1).oper[2]^.val = 0) then
+                     (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
                     begin
-                      l1 := rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val);
+                      l1 := rlwinm2mask((taicpu(p).oper[3]^.val-taicpu(next1).oper[2]^.val) and 31,(taicpu(p).oper[4]^.val-taicpu(next1).oper[2]^.val) and 31);
                       l2 := rlwinm2mask(taicpu(next1).oper[3]^.val,taicpu(next1).oper[4]^.val);
                       l1 := l1 and l2;
                       case l1 of
                         -1:
                           begin
+                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + taicpu(next1).oper[2]^.val) and 31;
                             asml.remove(next1);
                             next1.free;
                             if (taicpu(p).oper[2]^.val = 0) then
@@ -322,6 +322,7 @@ const
                           end
                         else if tcgppc(cg).get_rlwi_const(l1,l1,l2) then
                           begin
+                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + taicpu(next1).oper[2]^.val) and 31;
                             taicpu(p).oper[3]^.val := l1;
                             taicpu(p).oper[4]^.val := l2;
                             asml.remove(next1);
