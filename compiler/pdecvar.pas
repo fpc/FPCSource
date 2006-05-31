@@ -1127,6 +1127,7 @@ implementation
              }
              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
                 is_first_field and
+                (symtablestack.top.symtabletype = recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment = -1) then
                begin
                  tempdef := tt.def;
