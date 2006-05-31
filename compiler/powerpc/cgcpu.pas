@@ -64,6 +64,13 @@ unit cgcpu;
         procedure a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);override;
 
+        procedure a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize;
+          startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister); override;
+        procedure a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
+          subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister); override;
+       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetregsize, fromsubsetsize: tcgsize; fromstartbit: byte;
+          tosubsetregsize, tosubsetsize: tcgsize; tostartbit: byte; fromsubsetreg, tosubsetreg: tregister); override;
+
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
@@ -546,6 +553,47 @@ const
          list.concat(instr);
          rg[R_INTREGISTER].add_move_instruction(instr);
        end;
+
+
+     procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetregsize, subsetsize: tcgsize;
+       startbit: byte; tosize: tcgsize; subsetreg, destreg: tregister);
+
+       begin
+         if (tcgsize2size[subsetsize] <> sizeof(aint)) then
+           begin
+             list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,destreg,
+               subsetreg,(32-startbit) and 31,32-tcgsize2size[subsetsize]*8,31));
+             a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
+             a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
+           end
+         else
+           a_load_reg_reg(list,subsetsize,tosize,subsetreg,destreg);
+       end;
+
+
+     procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
+       subsetsize: tcgsize; startbit: byte; fromreg, subsetreg: tregister);
+
+       begin
+         if ((tcgsize2size[subsetsize]) <> sizeof(aint)) then
+           list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,subsetreg,fromreg,
+             startbit,32-startbit-tcgsize2size[subsetsize]*8,31-startbit))
+         else
+           a_load_reg_reg(list,fromsize,subsetsize,fromreg,subsetreg);
+       end;
+
+
+       procedure tcgppc.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetregsize, fromsubsetsize: tcgsize; fromstartbit: byte;
+         tosubsetregsize, tosubsetsize: tcgsize; tostartbit: byte; fromsubsetreg, tosubsetreg: tregister);
+
+         begin
+           if (tcgsize2size[fromsubsetsize] >= tcgsize2size[tosubsetsize]) then
+             list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,tosubsetreg, fromsubsetreg,
+                (tostartbit-fromstartbit) and 31,
+                32-tostartbit-tcgsize2size[tosubsetsize]*8,31-tostartbit))
+           else
+             inherited a_load_subsetreg_subsetreg(list,fromsubsetregsize,fromsubsetsize,fromstartbit,tosubsetregsize,tosubsetsize,tostartbit,fromsubsetreg,tosubsetreg);
+         end;
 
 
      procedure tcgppc.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister);
