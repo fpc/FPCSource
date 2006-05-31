@@ -44,7 +44,8 @@ dirs_netwlibc=unzip zlib
 dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
+             univint
 dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
@@ -56,3 +57,4 @@ fpcsubdir=packages/extra
 
 [default]
 fpcdir=../..
+
