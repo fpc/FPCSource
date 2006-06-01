@@ -463,8 +463,6 @@
        F8 GetFileInformationByHandle
        F6 GetFileSize
        FA GetFileTime
-      32D GetFileVersionInfoSizeW
-      32C GetFileVersionInfoW
       3FF GetFocus
       407 GetForegroundInfo
       409 GetForegroundKeyboardLayoutHandle
@@ -1203,7 +1201,6 @@
       19B UpdateWindow
       1A5 ValidateRect
       1BB ValidateRgn
-      32B VerQueryValueW
       3BA VerifyAPIHandle
       31E VirtualAlloc
       35D VirtualCopy
@@ -2448,7 +2445,6 @@
       19B __imp_UpdateWindow
       1A5 __imp_ValidateRect
       1BB __imp_ValidateRgn
-      32B __imp_VerQueryValueW
       3BA __imp_VerifyAPIHandle
       31E __imp_VirtualAlloc
       35D __imp_VirtualCopy

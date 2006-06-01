@@ -133,7 +133,9 @@ function GetDlgItemText(hDlg:HWND; nIDDlgItem:longint; lpString:LPWSTR; nMaxCoun
 function GetFileAttributes(lpFileName:LPCWSTR):DWORD; external KernelDLL name 'GetFileAttributesW';
 function GetFileAttributesEx(lpFileName:LPCWSTR; fInfoLevelId:GET_FILEEX_INFO_LEVELS; lpFileInformation:LPVOID):WINBOOL; external KernelDLL name 'GetFileAttributesExW'; //+winbase
 function GetFileVersionInfoSize(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
+function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfo(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external VersionDLL name 'GetFileVersionInfoW';
+function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external VersionDLL name 'GetFileVersionInfoW';
 function GetKeyboardLayoutName(pwszKLID:LPWSTR):WINBOOL; external UserDLLCore name 'GetKeyboardLayoutNameW';
 function GetLocaleInfo(Locale:LCID; LCType:LCTYPE; lpLCData:LPWSTR; cchData:longint):longint; external KernelDLL name 'GetLocaleInfoW';
 function GetMenuItemInfo(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPMENUITEMINFO):WINBOOL; external UserDLLCore name 'GetMenuItemInfoW';
@@ -220,6 +222,7 @@ function StartDoc(_para1:HDC; _para2:PDOCINFOW):longint; external GdiDLL name 'S
 function TranslateAccelerator(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external UserDLLCore name 'TranslateAcceleratorW';
 function UnregisterClass(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL; external UserDLLCore name 'UnregisterClassW';
 function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external versionDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external versionDLL name 'VerQueryValueW';
 function WNetAddConnection3(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpPassword:LPCWSTR; lpUserName:LPCWSTR; dwFlags:DWORD):DWORD; external MprDLLCore name 'WNetAddConnection3W';
 function WNetCancelConnection2(lpName:LPCWSTR; dwFlags:DWORD; fForce:WINBOOL):DWORD; external MprDLLCore name 'WNetCancelConnection2W';
 function WNetConnectionDialog1(lpConnDlgStruct:LPCONNECTDLGSTRUCTW):DWORD; external MprDLLCore name 'WNetConnectionDialog1W';
@@ -609,12 +612,12 @@ end;
 
 function GetTextExtentPoint(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 begin
-  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, @_para4);
+  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
 end;
 
 function GetTextExtentPoint32(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 begin
-  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, @_para4);
+  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
 end;
 
 //end wince only
