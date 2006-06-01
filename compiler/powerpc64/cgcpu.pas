@@ -875,6 +875,7 @@ begin
   op := movemap[fromsize, tosize];
   case op of
     A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
+    // note: have a look at this ([fromsize] shouldn't that be [tosize]??)
     A_RLDICL : instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[fromsize])*8);
   else
     internalerror(2002090901);
@@ -897,6 +898,7 @@ begin
   extrdi_startbit := 64 - (tcgsize2size[subsetsize]*8 + startbit);
   if (startbit <> 0) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, extrdi_startbit));
+    a_load_reg_reg(list, tcgsize2unsigned[subsetsize], tosize, destreg, destreg);
     a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
   end else
     a_load_reg_reg(list, subsetsize, tosize, subsetreg, destreg);
@@ -908,7 +910,11 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(startbit))));
   {$endif}
-  list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, (64 - (startbit + tcgsize2size[subsetsize]*8)) and 63));
+  // simply use the INSRDI instruction for now
+  if (tcgsize2size[subsetsize] <> sizeof(aint)) then
+    list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, (64 - (startbit + tcgsize2size[subsetsize]*8)) and 63))
+  else
+    a_load_reg_reg(list, fromsize, subsetsize, fromreg, subsetreg);
 end;
 
 procedure tcgppc.a_load_const_subsetreg(list: TAsmlist; subsetregsize, subsetsize: tcgsize;
