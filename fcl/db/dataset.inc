@@ -27,6 +27,15 @@ begin
   FFieldDefs:=TFieldDefs.Create(Self);
   FFieldList:=TFields.Create(Self);
   FDataSources:=TList.Create;
+  
+// FBuffer must be allocated on create, to make Activebuffer return nil
+  ReAllocMem(FBuffers,SizeOf(PChar));
+//  pointer(FBuffers^) := nil;
+  FBuffers[0] := nil;
+  FActiveRecord := 0;
+  FBufferCount := 0;
+  FEOF := True;
+  FBOF := True;
 end;
 
 
@@ -46,12 +55,9 @@ begin
       TDatasource(Items[Count - 1]).DataSet:=Nil;
     Free;
     end;
-  if Assigned(FBuffers) then
-    begin
-    for i := 0 to FBufferCount do
-      FreeRecordBuffer(FBuffers[i]);
-    FreeMem(FBuffers);
-    end;
+  for i := 0 to FBufferCount do
+    FreeRecordBuffer(FBuffers[i]);
+  FreeMem(FBuffers);
   Inherited Destroy;
 end;
 
@@ -392,16 +398,14 @@ begin
     DoAfterOpen;
     DoAfterScroll;
   except
-    DoInternalClose(false);
+    DoInternalClose;
     raise;
   end;
 end;
 
-Procedure TDataset.DoInternalClose(DoCheck : Boolean);
+Procedure TDataset.DoInternalClose;
 
 begin
-  if DoCheck then
-    CheckBrowsemode;
   DoBeforeScroll;
   DoBeforeClose;
   FreeFieldBuffers;
@@ -818,7 +822,7 @@ begin
       DoInternalOpen;
     end
   else if not value and (Fstate <> dsinactive) then
-    DoInternalClose(True);
+    DoInternalClose;
 end;
 
 procedure TDataset.Loaded;
@@ -922,7 +926,7 @@ begin
 {$endif}
     except
       I:=FBufferCount;
-      While (I<(Value+1)) and (FBuffers[i]<>Nil) do
+      While (I<(Value+1)) do
         begin
         FreeRecordBuffer(FBuffers[i]);
         Inc(i);
@@ -946,7 +950,14 @@ begin
       begin
       For I:=Value+1 to FBufferCount do
         FreeRecordBuffer(FBuffers[i]);
-      ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
+      // FBuffer must stay allocated, to make sure that Activebuffer returns nil
+      if Value = -1 then
+        begin
+        ReAllocMem(FBuffers,SizeOf(Pchar));
+        FBuffers[0] := nil;
+        end
+      else
+        ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
     if FRecordcount > Value then FRecordcount := Value;
     end;
@@ -1095,13 +1106,11 @@ end;
 
 Function TDataset.ControlsDisabled: Boolean;
 
-
 begin
   Result := (FDisableControlsCount > 0);
 end;
 
 Function TDataset.ActiveBuffer: PChar;
-
 
 begin
 {$ifdef dsdebug}
@@ -1266,7 +1275,7 @@ end;
 Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
 
-  procedure DoInsert;
+  procedure DoInsert(DoAppend : Boolean);
 
   Var BookBeforeInsert : TBookmarkStr;
       TempBuf : pointer;
@@ -1277,18 +1286,22 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   If FRecordcount > 0 then
     BookBeforeInsert:=Bookmark;
 
-  if FActiveRecord < FRecordCount-1 then
+  if not DoAppend then
     begin
-    TempBuf := FBuffers[FBuffercount];
-    move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
-    FBuffers[FActiveRecord]:=TempBuf;
+    if FRecordCount > 0 then
+      begin
+      TempBuf := FBuffers[FBuffercount];
+      move(FBuffers[FActiveRecord],FBuffers[FActiveRecord+1],(Fbuffercount-FActiveRecord)*sizeof(FBuffers[0]));
+      FBuffers[FActiveRecord]:=TempBuf;
+      end;
     end
   else if FRecordcount=FBuffercount then
     shiftbuffersbackward
-  else begin
+  else
+    begin
     if FRecordCount>0 then
-    inc(FActiveRecord);
-  end;
+      inc(FActiveRecord);
+    end;
 
   // Active buffer is now edit buffer. Initialize.
   InitRecord(FBuffers[FActiveRecord]);
@@ -1330,8 +1343,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('going to insert mode');
 {$endif}
-
-    DoInsert;
+    DoInsert(false);
     end
   else
     begin
@@ -1343,7 +1355,7 @@ begin
     GetPriorRecords;
     if FRecordCount>0 then
       FActiveRecord:=FRecordCount-1;
-    DoInsert;
+    DoInsert(True);
     SetBookmarkFlag(ActiveBuffer,bfEOF);
     FBOF :=False;
     FEOF := true;
@@ -1685,10 +1697,11 @@ Var
 begin
   CheckBrowseMode;
   Result:=0; TheResult:=0;
-  If ((Distance>0) and FEOF) or
+  DoBeforeScroll;
+  If (Distance = 0) or
+     ((Distance>0) and FEOF) or
      ((Distance<0) and FBOF) then
     exit;
-  DoBeforeScroll;
   Try
     Scrolled := 0;
     If Distance>0 then
@@ -1699,11 +1712,7 @@ begin
 {$ifdef dsdebug}
     WriteLn('ActiveRecord=', FActiveRecord,' FEOF=',FEOF,' FBOF=',FBOF);
 {$Endif}
-//    If FRecordCount<>PrevRecordCount then
-    if Scrolled = 0 then
-      DataEvent(deDatasetChange,0)
-    else
-      DataEvent(deDatasetScroll,Scrolled);
+    DataEvent(deDatasetScroll,Scrolled);
     DoAfterScroll;
     Result:=TheResult;
   end;
@@ -1760,7 +1769,9 @@ begin
     writeln ('Post: Browse mode set');
 {$endif}
     DoAfterPost;
-    end;
+    end
+  else
+    DatabaseErrorFmt(SNotInEditState, [Name], Self);
 end;
 
 Procedure TDataset.Prior;
@@ -1914,7 +1925,7 @@ Procedure TDataset.UpdateRecord;
 
 begin
   if not (State in dsEditModes) then
-    DatabaseError(SNotInEditState, Self);
+    DatabaseErrorFmt(SNotInEditState, [Name], Self);
   DataEvent(deUpdateRecord, 0);
 end;
 

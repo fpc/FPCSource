@@ -633,11 +633,14 @@ begin
   If (VT=varError) then
     clear
   else
-    Try
-      FValue:=VarAsType(AValue,VT)
-    except
-      Clear;
-    end;
+    if not VarIsEmpty(FValue) then
+      begin
+      Try
+        FValue:=VarAsType(FValue,VT)
+      except
+        Clear;
+      end { try }
+      end;
 end;
 
 Procedure TParam.SetText(const AValue: string);
@@ -764,8 +767,7 @@ Procedure TParam.AssignFieldValue(Field: TField; const AValue: Variant);
 begin
   If Assigned(Field) then
     begin
-    // Need TField.FixedChar property.
-    if (Field.DataType = ftString) {and TStringField(Field).FixedChar} then
+    if (Field.DataType = ftString) and TStringField(Field).FixedChar then
       DataType:=ftFixedChar
     else if (Field.DataType = ftMemo) and (Field.Size > 255) then
       DataType:=ftString
@@ -972,7 +974,7 @@ begin
      if CopyBound or (not P.Bound) then
        begin
        F:=ADataset.FieldByName(P.Name);
-       P.AssignFromField(F);   
+       P.AssignField(F);
        If Not CopyBound then
          P.Bound:=False;
        end;

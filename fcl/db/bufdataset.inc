@@ -27,7 +27,7 @@ end;
 
 procedure TBufDataset.SetPacketRecords(aValue : integer);
 begin
-  if aValue > 0 then FPacketRecords := aValue
+  if (aValue = -1) or (aValue > 0) then FPacketRecords := aValue
     else DatabaseError(SInvPacketRecordsValue);
 end;
 
@@ -68,6 +68,7 @@ begin
   FLastRecBuf := FFirstRecBuf;
   FCurrentRecBuf := FLastRecBuf;
 
+  FAllPacketsFetched := False;
   FOpen:=True;
 end;
 
@@ -90,13 +91,13 @@ end;
 
 procedure TBufDataset.InternalFirst;
 begin
-  FCurrentRecBuf := FFirstRecBuf;
+  FCurrentRecBuf := nil;
 end;
 
 procedure TBufDataset.InternalLast;
 begin
   repeat
-  until getnextpacket < FPacketRecords;
+  until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
   if FLastRecBuf <> FFirstRecBuf then
     FCurrentRecBuf := FLastRecBuf;
 end;
@@ -138,6 +139,7 @@ begin
         begin
         if getnextpacket = 0 then result := grEOF;
         end
+      else if FCurrentRecBuf = nil then FCurrentRecBuf := FFirstRecBuf
       else if (PBufRecLinkItem(FCurrentRecBuf)^.next = FLastRecBuf) then
         begin
         if getnextpacket > 0 then
@@ -224,9 +226,14 @@ var i : integer;
     pb : pchar;
     
 begin
+  if FAllPacketsFetched then
+    begin
+    result := 0;
+    exit;
+    end;
   i := 0;
   pb := pchar(pointer(FLastRecBuf)+sizeof(TBufRecLinkItem));
-  while (i < FPacketRecords) and (loadbuffer(pb) = grOk) do
+  while ((i < FPacketRecords) or (FPacketRecords = -1)) and (loadbuffer(pb) = grOk) do
     begin
     FLastRecBuf^.next := pointer(IntAllocRecordBuffer);
     FLastRecBuf^.next^.prior := FLastRecBuf;
@@ -267,6 +274,7 @@ begin
   if not Fetch then
     begin
     Result := grEOF;
+    FAllPacketsFetched := True;
     Exit;
     end;
 
@@ -594,6 +602,13 @@ begin
   result := FRecordSize;
 end;
 
+function TBufDataset.GetChangeCount: integer;
+
+begin
+  result := length(FUpdateBuffer);
+end;
+
+
 procedure TBufDataset.InternalInitRecord(Buffer: PChar);
 
 begin
@@ -608,9 +623,10 @@ var recnr        : integer;
     TmpRecBuffer : PBufRecLinkItem;
 
 begin
+  checkbrowsemode;
   if value > RecordCount then
     begin
-    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount);
+    repeat until (getnextpacket < FPacketRecords) or (value <= RecordCount) or (FPacketRecords = -1);
     if value > RecordCount then
       begin
       DatabaseError(SNoSuchRecord,self);
@@ -620,7 +636,7 @@ begin
   TmpRecBuffer := FFirstRecBuf;
   for recnr := 1 to value-1 do
     TmpRecBuffer := TmpRecBuffer^.next;
-  GotoBookmark(TmpRecBuffer);
+  GotoBookmark(@TmpRecBuffer);
 end;
 
 function TBufDataset.GetRecNo: Longint;
@@ -628,17 +644,24 @@ function TBufDataset.GetRecNo: Longint;
 Var SearchRecBuffer : PBufRecLinkItem;
     TmpRecBuffer    : PBufRecLinkItem;
     recnr           : integer;
+    abuf            : PChar;
 
 begin
-  GetBookmarkData(ActiveBuffer,@SearchRecBuffer);
-  TmpRecBuffer := FFirstRecBuf;
-  recnr := 1;
-  while TmpRecBuffer <> SearchRecBuffer do
+  abuf := ActiveBuffer;
+  // If abuf isn't assigned, the recordset probably isn't opened.
+  if assigned(abuf) and (FBRecordCount>0) and (state <> dsInsert) then
     begin
-    inc(recnr);
-    TmpRecBuffer := TmpRecBuffer^.next;
-    end;
-  result := recnr;
+    GetBookmarkData(abuf,@SearchRecBuffer);
+    TmpRecBuffer := FFirstRecBuf;
+    recnr := 1;
+    while TmpRecBuffer <> SearchRecBuffer do
+      begin
+      inc(recnr);
+      TmpRecBuffer := TmpRecBuffer^.next;
+      end;
+    result := recnr;
+    end
+  else result := 0;
 end;
 
 function TBufDataset.IsCursorOpen: Boolean;
@@ -650,8 +673,19 @@ end;
 Function TBufDataset.GetRecordCount: Longint;
 
 begin
-  if state <> dsInsert then Result := FBRecordCount
-    else Result := FBRecordCount+1;
+  Result := FBRecordCount;
+end;
+
+Function TBufDataSet.UpdateStatus: TUpdateStatus;
+
+begin
+  Result:=usUnmodified;
+  if GetRecordUpdateBuffer then
+    case FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind of
+      ukModify : Result := usModified;
+      ukInsert : Result := usInserted;
+      ukDelete : Result := usDeleted;
+    end;
 end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;

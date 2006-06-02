@@ -289,10 +289,6 @@ begin
   C:=Cursor as TCursorName;
   if c.FStatementType=stSelect then
     c.FNeedData:=False;
-  If (C.FRes<>Nil) then
-    begin
-    C.FRes:=Nil;
-    end;
   if (c.FQMySQL <> Nil) then
     begin
     mysql_close(c.FQMySQL);
@@ -487,9 +483,9 @@ begin
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 6, 2));
   ED := StrToInt(Copy(S, 9, 2));
-  EH := StrToInt(Copy(S, 11, 2));
-  EN := StrToInt(Copy(S, 14, 2));
-  ES := StrToInt(Copy(S, 17, 2));
+  EH := StrToInt(Copy(S, 12, 2));
+  EN := StrToInt(Copy(S, 15, 2));
+  ES := StrToInt(Copy(S, 18, 2));
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else
@@ -516,12 +512,21 @@ var
   EH, EN, ES: Word;
 
 begin
+{$IFNDEF mysql40}
+  EY := StrToInt(Copy(S, 1, 4));
+  EM := StrToInt(Copy(S, 6, 2));
+  ED := StrToInt(Copy(S, 9, 2));
+  EH := StrToInt(Copy(S, 12, 2));
+  EN := StrToInt(Copy(S, 15, 2));
+  ES := StrToInt(Copy(S, 18, 2));
+{$ELSE}
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 5, 2));
   ED := StrToInt(Copy(S, 7, 2));
   EH := StrToInt(Copy(S, 9, 2));
   EN := StrToInt(Copy(S, 11, 2));
   ES := StrToInt(Copy(S, 13, 2));
+{$ENDIF}
   if (EY = 0) or (EM = 0) or (ED = 0) then
     Result := 0
   else

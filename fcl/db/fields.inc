@@ -960,6 +960,7 @@ constructor TStringField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDataType(ftString);
+  FFixedChar := False;
   Size:=20;
 end;
 
@@ -2399,7 +2400,7 @@ end;
 Procedure Tfields.Changed;
 
 begin
-  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) then
+  if (FDataSet <> nil) and not (csDestroying in FDataSet.ComponentState) and FDataset.Active then
     FDataSet.DataEvent(deFieldListChange, 0);
   If Assigned(FOnChange) then
     FOnChange(Self);

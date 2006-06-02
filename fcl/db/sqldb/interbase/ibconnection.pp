@@ -609,7 +609,10 @@ begin
     begin
     ParNr := ParamBinding[SQLVarNr];
     if AParams[ParNr].IsNull then
-      in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1
+      begin
+      If Assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then
+        in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := -1;
+      end
     else
       begin
       if assigned(in_sqlda^.SQLvar[SQLVarNr].SQLInd) then in_sqlda^.SQLvar[SQLVarNr].SQLInd^ := 0;
@@ -622,7 +625,7 @@ begin
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           {$R+}
           end;
-        ftString  :
+        ftString,ftFixedChar  :
           begin
           {$R-}
           s := AParams[ParNr].AsString;
@@ -653,9 +656,7 @@ begin
           {$R+}
           end;
       else
-        begin
-        DatabaseError('This kind of parameter in not (yet) supported.',self);
-        end;
+        DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
       end;
     end;

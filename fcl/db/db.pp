@@ -51,7 +51,7 @@ type
   TDataEvent = (deFieldChange, deRecordChange, deDataSetChange,
     deDataSetScroll, deLayoutChange, deUpdateRecord, deUpdateState,
     deCheckBrowseMode, dePropertyChange, deFieldListChange, deFocusControl,
-    deParentScroll);
+    deParentScroll,deConnectChange,deReconcileError,deDisabledStateChange);
 
   TUpdateStatus = (usUnmodified, usModified, usInserted, usDeleted);
   TUpdateStatusSet = SET OF TUpdateStatus;
@@ -386,6 +386,8 @@ type
 { TStringField }
 
   TStringField = class(TField)
+  private
+    FFixedChar : boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBoolean: Boolean; override;
@@ -406,6 +408,7 @@ type
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
+    property FixedChar : Boolean read FFixedChar write FFixedChar;
   published
     property Size default 20;
   end;
@@ -965,7 +968,7 @@ type
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Procedure DoInternalClose(DoCheck : Boolean);
+    Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
@@ -1509,6 +1512,8 @@ type
     FCurrentUpdateBuffer : integer;
 
     FFieldBufPositions : array of longint;
+    
+    FAllPacketsFetched : boolean;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
@@ -1518,6 +1523,7 @@ type
   protected
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
+    function GetChangeCount: integer; virtual;
     function  AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure InternalInitRecord(Buffer: PChar); override;
@@ -1555,6 +1561,8 @@ type
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    function UpdateStatus: TUpdateStatus; override;
+    property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
   end;
@@ -1837,6 +1845,9 @@ Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
+
+procedure DisposeMem(var Buffer; Size: Integer);
+function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
 implementation
 
@@ -2121,6 +2132,21 @@ begin
   i := FList.Count - 1;
   while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
+end;
+
+procedure DisposeMem(var Buffer; Size: Integer);
+begin
+  if Pointer(Buffer) <> nil then
+    begin
+    FreeMem(Pointer(Buffer), Size);
+    Pointer(Buffer) := nil;
+    end;
+end;
+
+function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean; 
+
+begin
+  Result:=CompareByte(Buf1,Buf2,Size)=0
 end;
 
 {$i dataset.inc}

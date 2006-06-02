@@ -31,6 +31,7 @@ type
     FQuery:string;        // last prepared query, with :ParamName converted to ?
     FParamIndex:TParamBinding; // maps the i-th parameter in the query to the TParams passed to PrepareStatement
     FParamBuf:array of pointer; // buffers that can be used to bind the i-th parameter in the query
+    FBlobStreams:TList;   // list of Blob TMemoryStreams stored in field buffers (we need this currently as we can't hook into the freeing of TBufDataset buffers)
   public
     constructor Create(Connection:TODBCConnection);
     destructor Destroy; override;
@@ -101,8 +102,8 @@ type
   public
     property Environment:TODBCEnvironment read FEnvironment;
   published
-    property Driver:string read FDriver write FDriver;                         // will be passed as DRIVER connection parameter
-    property FileDSN:string read FFileDSN write FFileDSN;                      // will be passed as FILEDSN parameter
+    property Driver:string read FDriver write FDriver;    // will be passed as DRIVER connection parameter
+    property FileDSN:string read FFileDSN write FFileDSN; // will be passed as FILEDSN parameter
     // Redeclare properties from TSQLConnection
     property Password;     // will be passed as PWD connection parameter
     property Transaction;
@@ -126,7 +127,7 @@ type
 implementation
 
 uses
-  Math; // for the Min proc
+  Math, DBConst;
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;
@@ -351,7 +352,8 @@ var
   OutConnectionString:string;
   ActualLength:SQLSMALLINT;
 begin
-  inherited DoInternalConnect;
+  // Do not call the inherited method as it checks for a non-empty DatabaseName, and we don't even use DatabaseName!
+  // inherited DoInternalConnect;
 
   // make sure we have an environment
   if not Assigned(FEnvironment) then
@@ -382,7 +384,7 @@ begin
     SQL_HANDLE_DBC,FDBCHandle,Format('Could not connect with connection string "%s".',[ConnectionString])
   );
 
-// commented out as the OutConenctionString is not used further at the moment
+// commented out as the OutConnectionString is not used further at the moment
 //  if ActualLength<BufferLength-1 then
 //    SetLength(OutConnectionString,ActualLength); // fix completed connection string length
 
@@ -520,6 +522,8 @@ begin
 end;
 
 function TODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer): boolean;
+const
+  DEFAULT_BLOB_BUFFER_SIZE = 1024;
 var
   ODBCCursor:TODBCCursor;
   StrLenOrInd:SQLINTEGER;
@@ -527,6 +531,9 @@ var
   ODBCTimeStruct:SQL_TIME_STRUCT;
   ODBCTimeStampStruct:SQL_TIMESTAMP_STRUCT;
   DateTime:TDateTime;
+  BlobBuffer:pointer;
+  BlobBufferSize,BytesRead:SQLINTEGER;
+  BlobMemoryStream:TMemoryStream;
   Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
@@ -578,27 +585,91 @@ begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
     ftVarBytes:           // mapped to TVarBytesField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, FieldDef.Size, @StrLenOrInd);
+    ftBlob, ftMemo:       // BLOBs
+    begin
+      // Try to discover BLOB data length
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, buffer, 0, @StrLenOrInd);
+      ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get field data for field ''%s'' (index %d).',[FieldDef.Name, FieldDef.Index+1]));
+      // Read the data if not NULL
+      if StrLenOrInd<>SQL_NULL_DATA then
+      begin
+        // Determine size of buffer to use
+        if StrLenOrInd<>SQL_NO_TOTAL then
+          BlobBufferSize:=StrLenOrInd
+        else
+          BlobBufferSize:=DEFAULT_BLOB_BUFFER_SIZE;
+        try
+          // init BlobBuffer and BlobMemoryStream to nil pointers
+          BlobBuffer:=nil;
+          BlobMemoryStream:=nil;
+          if BlobBufferSize>0 then // Note: zero-length BLOB is represented as nil pointer in the field buffer to save memory usage
+          begin
+            // Allocate the buffer and memorystream
+            BlobBuffer:=GetMem(BlobBufferSize);
+            BlobMemoryStream:=TMemoryStream.Create;
+            // Retrieve data in parts (or effectively in one part if StrLenOrInd<>SQL_NO_TOTAL above)
+            repeat
+              Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_BINARY, BlobBuffer, BlobBufferSize, @StrLenOrInd);
+              ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get field data for field ''%s'' (index %d).',[FieldDef.Name, FieldDef.Index+1]));
+              // Append data in buffer to memorystream
+              if (StrLenOrInd=SQL_NO_TOTAL) or (StrLenOrInd>BlobBufferSize) then
+                BytesRead:=BlobBufferSize
+              else
+                BytesRead:=StrLenOrInd;
+              BlobMemoryStream.Write(BlobBuffer^, BytesRead);
+            until Res=SQL_SUCCESS;
+          end;
+          // Store memorystream pointer in Field buffer and in the cursor's FBlobStreams list
+          TObject(buffer^):=BlobMemoryStream;
+          if BlobMemoryStream<>nil then
+            ODBCCursor.FBlobStreams.Add(BlobMemoryStream);
+          // Set BlobMemoryStream to nil, so it won't get freed in the finally block below
+          BlobMemoryStream:=nil;
+        finally
+          BlobMemoryStream.Free;
+          if BlobBuffer<>nil then
+            Freemem(BlobBuffer,BlobBufferSize);
+        end;
+      end;
+    end;
     // TODO: Loading of other field types
   else
     raise EODBCException.CreateFmt('Tried to load field of unsupported field type %s',[Fieldtypenames[FieldDef.DataType]]);
   end;
-  ODBCCheckResult(Res,SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get field data for field ''%s'' (index %d).',[FieldDef.Name, FieldDef.Index+1]));
+  ODBCCheckResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get field data for field ''%s'' (index %d).',[FieldDef.Name, FieldDef.Index+1]));
   Result:=StrLenOrInd<>SQL_NULL_DATA; // Result indicates whether the value is non-null
 
 //  writeln(Format('Field.Size: %d; StrLenOrInd: %d',[FieldDef.Size, StrLenOrInd]));
 end;
 
 function TODBCConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+var
+  ODBCCursor: TODBCCursor;
+  BlobMemoryStream, BlobMemoryStreamCopy: TMemoryStream;
 begin
-  // TODO: implement TODBCConnection.CreateBlobStream
-  Result:=nil;
+  if (Mode=bmRead) and not Field.IsNull then
+  begin
+    Field.GetData(@BlobMemoryStream);
+    BlobMemoryStreamCopy:=TMemoryStream.Create;
+    if BlobMemoryStream<>nil then
+      BlobMemoryStreamCopy.LoadFromStream(BlobMemoryStream);
+    Result:=BlobMemoryStreamCopy;
+  end
+  else
+    Result:=nil;
 end;
 
 procedure TODBCConnection.FreeFldBuffers(cursor: TSQLCursor);
 var
   ODBCCursor:TODBCCursor;
+  i: integer;
 begin
   ODBCCursor:=cursor as TODBCCursor;
+  
+  // Free TMemoryStreams in cursor.FBlobStreams and clear it
+  for i:=0 to ODBCCursor.FBlobStreams.Count-1 do
+    TObject(ODBCCursor.FBlobStreams[i]).Free;
+  ODBCCursor.FBlobStreams.Clear;
 
   ODBCCheckResult(
     SQLFreeStmt(ODBCCursor.FSTMTHandle, SQL_CLOSE),
@@ -608,14 +679,15 @@ end;
 
 procedure TODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 const
-  ColNameDefaultLength = 40; // should be > 0, because an ansistring of length 0 is a nil pointer instead of a pointer to a #0
+  ColNameDefaultLength  = 40; // should be > 0, because an ansistring of length 0 is a nil pointer instead of a pointer to a #0
+  TypeNameDefaultLength = 80; // idem
 var
   ODBCCursor:TODBCCursor;
   ColumnCount:SQLSMALLINT;
   i:integer;
-  ColNameLength,DataType,DecimalDigits,Nullable:SQLSMALLINT;
+  ColNameLength,TypeNameLength,DataType,DecimalDigits,Nullable:SQLSMALLINT;
   ColumnSize:SQLUINTEGER;
-  ColName:string;
+  ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
 begin
@@ -668,10 +740,10 @@ begin
     case DataType of
       SQL_CHAR:          begin FieldType:=ftFixedChar;  FieldSize:=ColumnSize+1; end;
       SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize+1; end;
-      SQL_LONGVARCHAR:   begin FieldType:=ftString;     FieldSize:=ColumnSize+1; end; // no fixed maximum length; make ftMemo when blobs are supported
+      SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=sizeof(pointer); end; // is a blob
       SQL_WCHAR:         begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end;
       SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end;
-      SQL_WLONGVARCHAR:  begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end; // no fixed maximum length; make ftMemo when blobs are supported
+      SQL_WLONGVARCHAR:  begin FieldType:=ftMemo;       FieldSize:=sizeof(pointer); end; // is a blob
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_NUMERIC:       begin FieldType:=ftFloat;      FieldSize:=0; end;
       SQL_SMALLINT:      begin FieldType:=ftSmallint;   FieldSize:=0; end;
@@ -684,12 +756,12 @@ begin
       SQL_BIGINT:        begin FieldType:=ftLargeint;   FieldSize:=0; end;
       SQL_BINARY:        begin FieldType:=ftBytes;      FieldSize:=ColumnSize; end;
       SQL_VARBINARY:     begin FieldType:=ftVarBytes;   FieldSize:=ColumnSize; end;
-      SQL_LONGVARBINARY: begin FieldType:=ftBlob;       FieldSize:=ColumnSize; end;
+      SQL_LONGVARBINARY: begin FieldType:=ftBlob;       FieldSize:=sizeof(pointer); end; // is a blob
       SQL_TYPE_DATE:     begin FieldType:=ftDate;       FieldSize:=0; end;
       SQL_TYPE_TIME:     begin FieldType:=ftTime;       FieldSize:=0; end;
       SQL_TYPE_TIMESTAMP:begin FieldType:=ftDateTime;   FieldSize:=0; end;
 {      SQL_TYPE_UTCDATETIME:FieldType:=ftUnknown;}
-{      SQL_TYPE_UTCTIME:   FieldType:=ftUnknown; }
+{      SQL_TYPE_UTCTIME:    FieldType:=ftUnknown;}
 {      SQL_INTERVAL_MONTH:           FieldType:=ftUnknown;}
 {      SQL_INTERVAL_YEAR:            FieldType:=ftUnknown;}
 {      SQL_INTERVAL_YEAR_TO_MONTH:   FieldType:=ftUnknown;}
@@ -707,11 +779,47 @@ begin
     else
       begin FieldType:=ftUnknown; FieldSize:=ColumnSize; end
     end;
-    
+
     if (FieldType in [ftString,ftFixedChar]) and // field types mapped to TStringField
        (FieldSize >= dsMaxStringSize) then
     begin
       FieldSize:=dsMaxStringSize-1;
+    end;
+    
+    if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
+    begin
+      SetLength(TypeName,TypeNameDefaultLength); // also garantuees uniqueness
+      
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle,  // statement handle
+                        i,                       // column number
+                        SQL_DESC_TYPE_NAME,      // FieldIdentifier indicating the datasource dependent data type name (useful for diagnostics)
+                        @(TypeName[1]),          // default buffer
+                        TypeNameDefaultLength+1, // and its length; we include the #0 terminating any ansistring of Length > 0 in the buffer
+                        @TypeNameLength,         // actual type name length
+                        nil                      // no need for a pointer to return a numeric attribute at
+        ),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get datasource dependent type name for column %s.',[ColName])
+      );
+      // truncate buffer or make buffer long enough for entire column name (note: the call is the same for both cases!)
+      SetLength(TypeName,TypeNameLength);
+      // check whether entire column name was returned
+      if TypeNameLength>TypeNameDefaultLength then
+      begin
+        // request column name with buffer that is long enough
+        ODBCCheckResult(
+          SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
+                        i,                        // column number
+                        SQL_DESC_TYPE_NAME,       // FieldIdentifier indicating the datasource dependent data type name (useful for diagnostics)
+                        @(TypeName[1]),           // buffer
+                        TypeNameLength+1,         // buffer size
+                        @TypeNameLength,          // actual length
+                        nil),                     // no need for a pointer to return a numeric attribute at
+          SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, Format('Could not get datasource dependent type name for column %s.',[ColName])
+        );
+      end;
+
+      DatabaseErrorFmt('Column %s has an unknown or unsupported column type. Datasource dependent type name: %s. ODBC SQL data type code: %d.', [ColName, TypeName, DataType]);
     end;
 
     // add FieldDef
@@ -773,6 +881,9 @@ begin
     SQLAllocHandle(SQL_HANDLE_STMT, Connection.FDBCHandle, FSTMTHandle),
     SQL_HANDLE_DBC, Connection.FDBCHandle, 'Could not allocate ODBC Statement handle.'
   );
+  
+  // allocate FBlobStreams
+  FBlobStreams:=TList.Create;
 end;
 
 destructor TODBCCursor.Destroy;
@@ -780,6 +891,8 @@ var
   Res:SQLRETURN;
 begin
   inherited Destroy;
+  
+  FBlobStreams.Free;
 
   if FSTMTHandle<>SQL_INVALID_HANDLE then
   begin
