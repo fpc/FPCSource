@@ -1224,13 +1224,33 @@ begin
   end;
 end;
 
+function SysSetVideoMode(const mode:Tvideomode):boolean;
+
+var winsize:Twinsize;
+
+begin
+  {Due to xterm resize this procedure might get called with the new xterm
+   size. Approve the video mode change if the new size equals that of
+   the terminal window size.}
+  SysSetVideoMode:=false;
+  fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+  if (mode.row=winsize.ws_row) and 
+     (mode.col=winsize.ws_col) then
+    begin
+      screenwidth:=mode.col;
+      screenheight:=mode.row;
+      screencolor:=true;
+      SysSetVideoMode:=true;
+    end;
+end;
+
 Const
   SysVideoDriver : TVideoDriver = (
     InitDriver : @SysInitVideo;
     DoneDriver : @SysDoneVideo;
     UpdateScreen : @SysUpdateScreen;
     ClearScreen : @SysClearScreen;
-    SetVideoMode : Nil;
+    SetVideoMode : @SysSetVideoMode;
     GetVideoModeCount : Nil;
     GetVideoModeData : Nil;
     SetCursorPos : @SysSetCursorPos;
