@@ -6,7 +6,6 @@
 main=rtl
 
 [target]
-loaders= wprt0 #wdllprt0
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       lineinfo heaptrc \
       windows messages dynlibs \
@@ -87,15 +86,6 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS) winres.inc
 
-
-#
-# Loaders
-#
-
-wprt0$(OEXT) : $(CPU_TARGET)/$(PRT0).as
-        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)wprt0$(OEXT) $(CPU_TARGET)/$(PRT0).as
-
-#wdllprt0$(OEXT) : wdllprt0.as
 
 #
 # System Units (System, Objpas, Strings)

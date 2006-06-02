@@ -844,14 +844,6 @@ begin
    end;
 end;
 
-procedure DLLMainStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_FPC_DLLMainStartup';
-begin
-  sysinstance:=_hinstance;
-  dllreason:=_dllreason;
-  dllparam:=_dllparam;
-  DLL_Entry;
-end;
-
 {$ifdef WINCE_EXCEPTION_HANDLING}
 
 //
@@ -1439,6 +1431,37 @@ begin
 {$endif CPUI386}
   { if we pass here there was no error ! }
   system_exit;
+end;
+
+procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+begin
+  IsConsole:=True;
+  Exe_entry;
+end;
+
+procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+begin
+  IsConsole:=False;
+  Exe_entry;
+end;
+
+procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+begin
+  IsConsole:=true;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
+end;
+
+
+procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+begin
+  IsConsole:=false;
+  sysinstance:=_hinstance;
+  dllreason:=_dllreason;
+  dllparam:=_dllparam;
+  DLL_Entry;
 end;
 
 {****************************************************************************

@@ -221,6 +221,19 @@ implementation
          ltvTable.Free;
       end;
 
+{$ifdef arm}
+    procedure InsertPData;
+      begin
+        new_section(current_asmdata.asmlists[al_globals],sec_pdata,'FPC_EH_PROLOG',sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(0));
+        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
+
+        new_section(current_asmdata.asmlists[al_globals],sec_pdata,'',sizeof(aint));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit($cfffff02));
+      end;
+{$endif arm}
 
     Procedure InsertResourceInfo;
 
@@ -1376,6 +1389,13 @@ implementation
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
+         
+{$ifdef arm}
+         { Insert .pdata section for arm-wince.
+           It is needed for exception handling. }
+         if target_info.system in [system_arm_wince] then
+           InsertPData;
+{$endif arm}
 
          { generate debuginfo }
          if (cs_debuginfo in aktmoduleswitches) then

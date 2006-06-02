@@ -360,6 +360,7 @@ interface
           '.rodata',
           '.bss',
           '.tbss',
+          '.pdata',
           '.text',
           '.stab',
           '.stabstr',

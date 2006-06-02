@@ -56,6 +56,8 @@ interface
          sec_rodata,
          sec_bss,
          sec_threadvar,
+         { used for wince exception handling }
+         sec_pdata,
          { used for darwin import stubs }
          sec_stub,
          { stabs }

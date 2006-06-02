@@ -473,6 +473,7 @@ implementation
        coffsecnames : array[TAsmSectiontype] of string[17] = ('',
           '.text','.data','.data','.bss','.tls',
           '.text',
+          '.pdata',
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
@@ -1918,7 +1919,10 @@ const win32stub : array[0..131] of byte=(
         inherited create;
         win32:=awin32;
         if win32 then
-          imagebase:=$400000;
+          if target_info.system in [system_arm_wince] then
+            imagebase:=$10000
+          else
+            imagebase:=$400000;
       end;
 
 
@@ -2455,8 +2459,6 @@ const win32stub : array[0..131] of byte=(
       begin
         with LinkScript do
           begin
-            if target_info.system in [system_arm_wince,system_i386_wince] then
-              Concat('READOBJECT ' + FindObjectFile('wprt0','',false));
             Concat('READUNITOBJECTS');
             if IsSharedLibrary then
               begin
@@ -2469,8 +2471,6 @@ const win32stub : array[0..131] of byte=(
               end
             else
               begin
-                if target_info.system in [system_arm_wince] then
-                  Concat('IMAGEBASE $10000');
                 if apptype=app_gui then
                   Concat('ENTRYNAME _WinMainCRTStartup')
                 else
@@ -2478,6 +2478,9 @@ const win32stub : array[0..131] of byte=(
               end;
             Concat('HEADER');
             Concat('EXESECTION .text');
+{$ifdef arm}
+            Concat('  OBJSECTION .pdata.FPC_EH_PROLOG');
+{$endif arm}
             Concat('  OBJSECTION .text*');
             Concat('  SYMBOL etext');
             Concat('ENDEXESECTION');

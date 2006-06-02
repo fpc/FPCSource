@@ -244,6 +244,7 @@ implementation
 {$endif arm}
           '.bss',
           '.threadvar',
+          '.pdata',
           '', { stubs }
           '.stab',
           '.stabstr',
@@ -259,6 +260,7 @@ implementation
           '.data.rel',
           '.bss',
           '.threadvar',
+          '.pdata',
           '', { stubs }
           '.stab',
           '.stabstr',

@@ -583,6 +583,7 @@ implementation
 {$else userodata}
           '.text','.data','.data','.bss','.threadvar',
 {$endif userodata}
+          '.pdata',
           '.text', { darwin stubs }
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',

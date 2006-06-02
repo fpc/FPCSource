@@ -997,11 +997,6 @@ begin
       if not ObjectFiles.Empty then
         begin
           Add('INPUT(');
-          { For wince external startup file is used and placed first,     }
-          { because ARM prolog structure must be located at the very      }
-          { beginning of code. Otherwise exceptions do not work properly. }
-          if target_info.system in [system_arm_wince,system_i386_wince] then
-            LinkRes.AddFileName(MaybeQuoted(FindObjectFile('wprt0','',false)));
           while not ObjectFiles.Empty do
            begin
              s:=ObjectFiles.GetFirst;
@@ -1054,6 +1049,9 @@ begin
       Add('  . = ALIGN(__section_alignment__);');
       Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
       Add('  {');
+{$ifdef arm}
+      Add('    *(.pdata.FPC_EH_PROLOG)');
+{$endif arm}
       Add('    *(.init)');
       add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
       Add('    *(SORT(.text$*))');
