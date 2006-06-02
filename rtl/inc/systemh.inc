@@ -452,6 +452,13 @@ Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMIN
 Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 
+function SwapEndian(const AValue: SmallInt): SmallInt;
+function SwapEndian(const AValue: Word): Word;
+function SwapEndian(const AValue: LongInt): LongInt;
+function SwapEndian(const AValue: DWord): DWord;
+function SwapEndian(const AValue: Int64): Int64;
+function SwapEndian(const AValue: QWord): QWord;
+
 function BEtoN(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function BEtoN(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 function BEtoN(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -657,13 +664,13 @@ Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
 *****************************************************************************}
 
 type
-  TRuntimeError = 
-    (reNone, reOutOfMemory, reInvalidPtr, reDivByZero, reRangeError, 
-     reIntOverflow, reInvalidOp, reZeroDivide, reOverflow, reUnderflow, 
-     reInvalidCast, reAccessViolation, rePrivInstruction, reControlBreak, 
-     reStackOverflow, reVarTypeCast, reVarInvalidOp, reVarDispatch, 
+  TRuntimeError =
+    (reNone, reOutOfMemory, reInvalidPtr, reDivByZero, reRangeError,
+     reIntOverflow, reInvalidOp, reZeroDivide, reOverflow, reUnderflow,
+     reInvalidCast, reAccessViolation, rePrivInstruction, reControlBreak,
+     reStackOverflow, reVarTypeCast, reVarInvalidOp, reVarDispatch,
      reVarArrayCreate, reVarNotArray, reVarArrayBounds, reAssertionFailed,
-     reExternalException, reIntfCastError, reSafeCallError, reQuit, 
+     reExternalException, reIntfCastError, reSafeCallError, reQuit,
      reCodesetConversion);
 
 Const
@@ -671,11 +678,11 @@ Const
   RuntimeErrorExitCodes : Array[TRuntimeError] of Byte = (
      0  , 203, 204, 200,  201,
      215, 207, 200, 205,  206,
-     219, 216, 218, 217,  
+     219, 216, 218, 217,
      202, 220, 221, 222,
      223, 224, 225, 227,
-     0  , 228, 229, 233, 
-     234);    
+     0  , 228, 229, 233,
+     234);
 
 Procedure Error(RunTimeError : TRunTimeError);
 Function  Paramcount:Longint;
