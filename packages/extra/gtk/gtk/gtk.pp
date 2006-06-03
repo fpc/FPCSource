@@ -49,8 +49,8 @@ uses
   {$else}
     const
     {$ifdef FreeBSD}
-      gtkdll='gtk12';
-      {$linklib gtk12}
+      gtkdll='gtk-12';
+      {$linklib gtk-12}
     {$else}
     {$ifdef darwin}
       {$define gtkdarwin}

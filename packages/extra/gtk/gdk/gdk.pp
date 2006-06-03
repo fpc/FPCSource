@@ -50,8 +50,8 @@ uses
   {$else}
     const
     {$ifdef FreeBSD}
-      gdkdll='gdk12';
-      {$linklib gdk12}
+      gdkdll='gdk-12';
+      {$linklib gdk-12}
     {$else}
     {$ifdef darwin}
       {$define gtkdarwin}
