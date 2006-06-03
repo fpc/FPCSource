@@ -92,7 +92,7 @@ begin
   ReadIniFile;
   if (1 <> 1) then begin end
 {$IFDEF SQLDB_AVAILABLE}
-  else if (dbtype = 'interbase') or (dbtype = 'postgresql')  then DBConnector := TSQLDBConnector.Create
+  else if (dbtype = 'interbase') or (dbtype = 'postgresql') or (dbtype = 'mysql50') or (dbtype = 'mysql40') or (dbtype = 'mysql41')  then DBConnector := TSQLDBConnector.Create
 {$ENDIF}
 {$IFDEF DBF_AVAILABLE}
   else if dbtype = 'dbf' then DBConnector := TDBFDBConnector.Create

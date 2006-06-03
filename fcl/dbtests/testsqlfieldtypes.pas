@@ -26,6 +26,8 @@ type
     procedure TestUnlVarChar;
     procedure TestDate;
     procedure TestDateTime;       // bug 6925
+
+    procedure TestParamQuery;
   end;
 
 implementation
@@ -272,6 +274,82 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestParamQuery;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT, FIELD3 INT, DECOY VARCHAR(30))');
+
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('insert into FPDEV2 (field1) values (:field1)');
+    Params.ParamByName('field1').AsInteger := 1;
+    ExecSQL;
+
+    sql.clear;
+    sql.append('insert into FPDEV2 (field1,field2,decoy) values (:field1,:field2,''decoytest'')');
+    Params.ParamByName('field1').AsInteger := 2;
+    Params.ParamByName('field2').DataType := ftInteger;
+    Params.ParamByName('field2').Value := Null;
+    ExecSQL;
+
+    sql.clear;
+    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field3)');
+    Params.ParamByName('field1').AsInteger := 3;
+    Params.ParamByName('field2').AsInteger := 2;
+    Params.ParamByName('field3').AsInteger := 3;
+    ExecSQL;
+
+    sql.clear;
+    sql.append('insert into FPDEV2 (field1,field2,field3,decoy) values (:field1,:field2,:field3,'':decoy ::test $decoy2 $$2'')');
+    Params.ParamByName('field1').AsInteger := 4;
+    Params.ParamByName('field2').AsInteger := 2;
+    Params.ParamByName('field3').AsInteger := 3;
+    ExecSQL;
+
+    sql.clear;
+    sql.append('insert into FPDEV2 (field1,field2,field3) values (:field1,:field2,:field1)');
+    Params.ParamByName('field1').AsInteger := 5;
+    Params.ParamByName('field2').AsInteger := 2;
+    ExecSQL;
+    
+    sql.clear;
+    sql.append('select * from FPDEV2 order by FIELD1');
+    open;
+    AssertEquals(1,FieldByName('FIELD1').asinteger);
+    AssertTrue(FieldByName('FIELD2').IsNull);
+    AssertTrue(FieldByName('FIELD3').IsNull);
+    AssertTrue(FieldByName('DECOY').IsNull);
+    next;
+    AssertEquals(2,FieldByName('FIELD1').asinteger);
+    AssertTrue(FieldByName('FIELD2').IsNull);
+    AssertTrue(FieldByName('FIELD3').IsNull);
+    AssertEquals('decoytest',FieldByName('DECOY').AsString);
+    next;
+    AssertEquals(3,FieldByName('FIELD1').asinteger);
+    AssertEquals(2,FieldByName('FIELD2').asinteger);
+    AssertEquals(3,FieldByName('FIELD3').asinteger);
+    AssertTrue(FieldByName('DECOY').IsNull);
+    next;
+    AssertEquals(4,FieldByName('FIELD1').asinteger);
+    AssertEquals(2,FieldByName('FIELD2').asinteger);
+    AssertEquals(3,FieldByName('FIELD3').asinteger);
+    AssertEquals(':decoy ::test $decoy2 $$2',FieldByName('DECOY').AsString);
+    next;
+    AssertEquals(5,FieldByName('FIELD1').asinteger);
+    AssertEquals(2,FieldByName('FIELD2').asinteger);
+    AssertEquals(5,FieldByName('FIELD3').asinteger);
+    AssertTrue(FieldByName('DECOY').IsNull);
+    close;
+
+    end;
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+
+end;
+
 procedure TTestFieldTypes.CreateTableWithFieldType(ADatatype: TFieldType;
   ASQLTypeDecl: string);
 begin
@@ -313,6 +391,9 @@ end;
 procedure TTestFieldTypes.RunTest;
 begin
   if (dbtype = 'interbase') or
+     (dbtype = 'mysql50') or
+     (dbtype = 'mysql40') or
+     (dbtype = 'mysql41') or
      (dbtype = 'postgresql') then
     inherited RunTest;
 end;

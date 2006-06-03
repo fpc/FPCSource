@@ -762,6 +762,7 @@ fcl/dbtests/dbftoolsunit.pas -text
 fcl/dbtests/dbtestframework.pas -text
 fcl/dbtests/settings.inc -text
 fcl/dbtests/sqldbtoolsunit.pas -text
+fcl/dbtests/testbasics.pas svneol=native#text/plain
 fcl/dbtests/testdbbasics.pas -text
 fcl/dbtests/testsqlfieldtypes.pas -text
 fcl/dbtests/toolsunit.pas -text
