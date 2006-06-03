@@ -600,6 +600,8 @@ function SafeLoadLibrary(const FileName: AnsiString;
 {$endif}
 {$if defined(windows) or defined(win32)}
       Result:=LoadLibraryA(PChar(Filename));
+{$else}
+      Result:=0;
 {$endif}
       finally
 {$if defined(cpui386) or defined(cpux86_64)}
