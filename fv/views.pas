@@ -859,7 +859,7 @@ procedure DrawScreenBuf(force:boolean);
 begin
   if (GetLockScreenCount=0) then
    begin
-     If MouseUsesVideoBuf then
+{     If MouseUsesVideoBuf then
        begin
          LockScreenUpdate;
          HideMouse;
@@ -867,10 +867,10 @@ begin
          UnlockScreenUpdate;
        end
      else
-       HideMouse;
+       HideMouse;}
      UpdateScreen(force);
-     If not MouseUsesVideoBuf then
-       ShowMouse;
+{     If not MouseUsesVideoBuf then
+       ShowMouse;}
    end;
 end;
 

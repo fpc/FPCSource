@@ -885,11 +885,12 @@ procedure TProgram.SetScreenVideoMode(const Mode: TVideoMode);
 var
   R: TRect;
 begin
-  DoneMouse;
-{  DoneMemory;}
+  hidemouse;
+{  DoneMouse;
+  DoneMemory;}
   ScreenMode:=Mode;
-  InitMouse;
-{  InitMemory;}
+{  InitMouse;
+  InitMemory;}
   InitScreen;
   Video.SetVideoMode(Mode);
   ScreenWidth:=Video.ScreenWidth;

@@ -828,12 +828,12 @@ VAR
 {                         PRIVATE INTERNAL ROUTINES                         }
 {***************************************************************************}
 
-PROCEDURE ShowMouseCursor;
+PROCEDURE ShowMouseCursor;inline;
 BEGIN
   ShowMouse;
 END;
 
-PROCEDURE HideMouseCursor;
+PROCEDURE HideMouseCursor;inline;
 BEGIN
   HideMouse;
 END;
@@ -870,7 +870,7 @@ end;
 
 {---------------------------------------------------------------------------}
 {  DetectMouse -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB       }
-FUNCTION DetectMouse: Byte;
+FUNCTION DetectMouse: Byte;inline;
 begin
   DetectMouse:=Mouse.DetectMouse;
 end;
