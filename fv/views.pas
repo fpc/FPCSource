@@ -2204,7 +2204,7 @@ END;
 PROCEDURE TGroup.Draw;
 BEGIN
    If Buffer=Nil then
-     ReDraw
+     DrawSubViews(First, nil)
    else
      WriteBuf(0,0,Size.X,Size.Y,Buffer);
 END;
