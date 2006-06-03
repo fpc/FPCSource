@@ -153,21 +153,32 @@ end;
 Function TParams.ParseSQL(SQL: String; DoCreate: Boolean): String;
 
 var pb : TParamBinding;
+    rs : string;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,psInterbase, pb);
+  Result := ParseSQL(SQL,DoCreate,psInterbase, pb, rs);
 end;
 
 Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String;
 
 var pb : TParamBinding;
+    rs : string;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,ParameterStyle,pb);
+  Result := ParseSQL(SQL,DoCreate,ParameterStyle,pb, rs);
+end;
+
+Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+
+var pb : TParamBinding;
+    rs : string;
+
+begin
+  Result := ParseSQL(SQL,DoCreate,ParameterStyle,pb, rs);
 end;
 
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
 
 type
   // used for ParamPart
@@ -189,12 +200,16 @@ var
   ParamPart:array of TStringPart; // describe which parts of buf are parameters
   NewQueryLength:integer;
   NewQuery:string;
-  NewQueryIndex,BufIndex,CopyLen,i:integer;                     // Parambinding will have length ParamCount in the end
+  NewQueryIndex,BufIndex,CopyLen,i:integer;    // Parambinding will have length ParamCount in the end
+  SimStrCount,b:integer;                         // in psSimulated mode this is the counter with the amount of repeating '$' signs
+  tmpParam:TParam;
 
 begin
   if DoCreate then Clear;
   // Parse the SQL and build ParamBinding
   ParamCount:=0;
+  SimStrCount := 1;
+  ReplaceString := '';
   NewQueryLength:=Length(SQL);
   SetLength(ParamPart,ParamAllocStepSize);
   SetLength(Parambinding,ParamAllocStepSize);
@@ -286,9 +301,16 @@ begin
               SetLength(ParamBinding,NewLength);
             end;
 
-            // create Parameter and assign ParameterIndex
             if DoCreate then
-              ParameterIndex := CreateParam(ftUnknown, ParamName, ptInput).Index
+              begin
+              // Check if this is the first occurance of the parameter
+              tmpParam := FindParam(ParamName);
+              // If so, create the parameter and assign the Parameterindex
+              if not assigned(tmpParam) then
+                ParameterIndex := CreateParam(ftUnknown, ParamName, ptInput).Index
+              else  // else only assign the ParameterIndex
+                ParameterIndex := tmpParam.Index;
+              end
             // else find ParameterIndex
             else
               begin
@@ -300,6 +322,13 @@ begin
                   Inc(QuestionMarkParamCount);
                 end;
               end;
+            if ParameterStyle in [psPostgreSQL,psSimulated] then
+              begin
+              if ParameterIndex > 8 then
+                inc(NewQueryLength,2)
+              else
+                inc(NewQueryLength,1)
+              end;
 
             // store ParameterIndex in FParamIndex, ParamPart data
             ParamBinding[ParamCount-1]:=ParameterIndex;
@@ -310,6 +339,20 @@ begin
             Dec(NewQueryLength,p-ParamNameStart);
           end;
         end;
+      '$':
+        if ParameterStyle = psSimulated then
+          begin
+          b := 1;
+          while p^='$' do
+            begin
+            inc(p);
+            inc(b);
+            end;
+          if b > SimStrCount then SimStrCount := b;
+          end
+        else
+          Inc(p);
+        
       #0:Break;
     else
       Inc(p);
@@ -321,12 +364,18 @@ begin
 
   if ParamCount>0 then
   begin
-    // replace :ParamName by ? (using ParamPart array and NewQueryLength)
-    if ParameterStyle = psPostgreSQL then
-      if paramcount < 10 then
-        inc(NewQueryLength,paramcount)
+    // replace :ParamName by ? for interbase and by $x for postgresql/psSimulated
+    // (using ParamPart array and NewQueryLength)
+    if (ParameterStyle = psSimulated) then
+      begin
+      if (SimStrCount > 1) then
+        begin
+        inc(NewQueryLength,(paramcount)*(SimStrCount-1));
+        for b := 1 to SimStrCount do ReplaceString := ReplaceString+'$';
+        end
       else
-        inc(NewQueryLength,(paramcount-9)*2+9);
+        ReplaceString := '$';
+      end;
 
     SetLength(NewQuery,NewQueryLength);
     NewQueryIndex:=1;
@@ -338,12 +387,16 @@ begin
       Inc(NewQueryIndex,CopyLen);
       case ParameterStyle of
         psInterbase : NewQuery[NewQueryIndex]:='?';
-        psPostgreSQL: begin
-                        ParamName := IntToStr(i+1);
-                        NewQuery[NewQueryIndex]:='$';
-                        Inc(NewQueryIndex);
+        psPostgreSQL,
+        psSimulated : begin
+                        ParamName := IntToStr(ParamBinding[i]+1);
+                        for b := 1 to SimStrCount do
+                          begin
+                          NewQuery[NewQueryIndex]:='$';
+                          Inc(NewQueryIndex);
+                          end;
                         NewQuery[NewQueryIndex]:= paramname[1];
-                        if i>10 then
+                        if length(paramname)>1 then
                           begin
                           Inc(NewQueryIndex);
                           NewQuery[NewQueryIndex]:= paramname[2]
@@ -358,6 +411,7 @@ begin
   end
   else
     NewQuery:=SQL;
+    
   Result := NewQuery;
 end;
 

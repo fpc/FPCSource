@@ -76,7 +76,8 @@ type
     function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
-    function GetAsSQLText(Field : TField) : string; virtual;
+    function GetAsSQLText(Field : TField) : string; overload; virtual;
+    function GetAsSQLText(Param : TParam) : string; overload; virtual;
     function GetHandle : pointer; virtual; virtual;
 
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
@@ -425,7 +426,7 @@ end;
 function TSQLConnection.GetAsSQLText(Field : TField) : string;
 
 begin
-  if not assigned(field) then Result := 'Null'
+  if (not assigned(field)) or field.IsNull then Result := 'Null'
   else case field.DataType of
     ftString   : Result := '''' + field.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Field.AsDateTime) + '''';
@@ -434,6 +435,20 @@ begin
     Result := field.asstring;
   end; {case}
 end;
+
+function TSQLConnection.GetAsSQLText(Param: TParam) : string;
+
+begin
+  if (not assigned(param)) or param.IsNull then Result := 'Null'
+  else case param.DataType of
+    ftString   : Result := '''' + param.asstring + '''';
+    ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime) + '''';
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + ''''
+  else
+    Result := Param.asstring;
+  end; {case}
+end;
+
 
 function TSQLConnection.GetHandle: pointer;
 begin

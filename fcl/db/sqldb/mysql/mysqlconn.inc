@@ -46,6 +46,8 @@ Type
     Row : MYSQL_ROW;
     RowsAffected : QWord;
     LastInsertID : QWord;
+    ParamBinding : TParamBinding;
+    ParamReplaceString : String;
   end;
 
   TConnectionName = class (TSQLConnection)
@@ -258,11 +260,13 @@ end;
 procedure TConnectionName.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string;AParams : TParams);
 begin
-  if assigned(AParams) and (AParams.count > 0) then
-    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
+//  if assigned(AParams) and (AParams.count > 0) then
+//    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
   With Cursor as TCursorName do
     begin
     FStatement:=Buf;
+    if assigned(AParams) and (AParams.count > 0) then
+      FStatement := AParams.ParseSQL(FStatement,false,psSimulated,paramBinding,ParamReplaceString);
     if FStatementType=stSelect then
       FNeedData:=True;
     ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
@@ -306,11 +310,15 @@ procedure TConnectionName.Execute(cursor: TSQLCursor;
 
 Var
   C : TCursorName;
+  i : integer;
 
 begin
   C:=Cursor as TCursorName;
   If (C.FRes=Nil) then
     begin
+    if Assigned(AParams) and (AParams.count > 0) then
+      for i := 0 to AParams.count -1 do
+        C.FStatement := stringreplace(C.FStatement,C.ParamReplaceString+inttostr(AParams[i].Index+1),GetAsSQLText(AParams[i]),[rfReplaceAll,rfIgnoreCase]);
     if mysql_query(c.FQMySQL,Pchar(C.FStatement))<>0 then
       MySQLError(c.FQMYSQL,Format(SErrExecuting,[StrPas(mysql_error(c.FQMySQL))]),Self)
     else
