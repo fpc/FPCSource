@@ -1064,6 +1064,7 @@ begin
   UpdatePrimaryFile;
   UpdateINIFile;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
+  application^.redraw;
 end;
 
 procedure TIDEApp.SourceWindowClosed;
