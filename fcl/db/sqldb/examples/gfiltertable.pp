@@ -31,7 +31,7 @@ begin
     ReadOnly := True;
 
     SQL.Clear;
-    SQL.Add('select * from fpdev');
+    SQL.Add('select * from FPDEV');
 
     Writeln('Id;Name;Email;birthdate');
 
