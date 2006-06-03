@@ -239,12 +239,9 @@ external 'EMXWRAP' index 404;
 {external 'MONCALLS' index 4;}
 
 function DosMonOpen(DevName:string;var MonHandle:word):word;
-var
-  i : byte;
 begin
     if DevName[0]=#255 then
     begin
-        I:=byte(DevName[0]);
         Move(DevName[1],DevName[0],255);
         DevName[255]:=#0;
         DosMonOpen:=DosMonOpen(@DevName,MonHandle);
