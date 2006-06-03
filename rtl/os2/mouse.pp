@@ -97,7 +97,6 @@ end;
 function SysDetectMouse:byte;
 var
  Buttons: word;
- RC: longint;
  TempHandle: word;
 begin
  MouOpen (nil, TempHandle);
@@ -347,8 +346,6 @@ begin
 end;
 
 procedure SysGetMouseEvent (var MouseEvent: TMouseEvent);
-var
- Event: TMouEventInfo;
 begin
  if (PendingMouseEvents = 0) or
                        (PendingMouseEventOrder [MouseEventOrderHead] <> 0) then
