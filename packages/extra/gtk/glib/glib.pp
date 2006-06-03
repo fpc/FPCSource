@@ -45,8 +45,8 @@ interface
   {$else}
     const
      {$ifdef FreeBSD}
-      glibdll='glib12';
-      {$linklib glib12}
+      glibdll='glib-12';
+      {$linklib glib-12}
      {$else}
      {$ifdef darwin}
       glibdll='glib-1.2.0';
