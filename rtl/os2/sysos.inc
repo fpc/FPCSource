@@ -23,6 +23,21 @@ begin
  GetProcessID := ProcessID;
 end;
 
+
+type
+  TSysDateTime=packed record
+    Hour,
+    Minute,
+    Second,
+    Sec100,
+    Day,
+    Month: byte;
+    Year: word;
+    TimeZone: smallint;
+    WeekDay: byte;
+  end;
+
+
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
@@ -30,6 +45,10 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
                                         var Handle: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 318;
+
+function DosQueryModuleHandle (DLLName: PChar; var Handle: THandle): cardinal;
+                                                                         cdecl;
+external 'DOSCALLS' index 319;
 
 function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
                                         var Address: pointer): cardinal; cdecl;
@@ -102,22 +121,56 @@ function DosQueryModuleName (Handle: THandle; NameLen: cardinal; Name: PChar):
                                                                cardinal; cdecl;
     external 'DOSCALLS' index 320;
 
-
-type
-  TSysDateTime=packed record
-    Hour,
-    Minute,
-    Second,
-    Sec100,
-    Day,
-    Month: byte;
-    Year: word;
-    TimeZone: smallint;
-    WeekDay: byte;
-  end;
-
 function DosGetDateTime(var Buf:TSysDateTime): cardinal; cdecl;
     external 'DOSCALLS' index 230;
+
+
+type
+  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+
+  TDosSetFilePtrL = function (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+
+  TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
+
+
+function DummyDosOpenL (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+begin
+  DummyDosOpenL := DosOpen (FileName, Handle, Action, InitSize, Attrib,
+                                                      OpenFlags, FileMode, EA);
+end;
+
+
+function DummyDosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+var
+  PosAct0: cardinal;
+begin
+  DummyDosSetFilePtrL := DosSetFilePtr (Handle, Pos, Method, PosAct0);
+  PosActual := PosAct0;
+end;
+
+
+function DummyDosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+begin
+  DummyDosSetFileSizeL := DosSetFileSize (Handle, Size);
+end;
+
+
+const
+  DosOpenL: TDosOpenL = @DummyDosOpenL;
+  DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
+  DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
+
+  OrdDosOpenL = 981;
+  OrdDosSetFilePtrL = 988;
+  OrdDosSetFileSizeL = 989;
 
    { converts an OS/2 error code to a TP compatible error }
    { code. Same thing exists under most other supported   }

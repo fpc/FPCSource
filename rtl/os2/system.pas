@@ -134,6 +134,9 @@ var
 (* should be only changed at the beginning of the main thread if needed.   *)
   UseHighMem: boolean;
 
+const
+(* Are file sizes > 2 GB (64-bit) supported on the current system? *)
+  FSApi64: boolean = false;
 
 
 procedure SetDefaultOS2FileType (FType: ShortString);
@@ -696,6 +699,10 @@ var TIB: PThreadInfoBlock;
     RC: cardinal;
     ErrStr: string;
     P: pointer;
+    DosCallsHandle: THandle;
+
+const
+    DosCallsName: array [0..8] of char = 'DOSCALLS'#0;
 
 begin
     IsLibrary := FALSE;
@@ -734,6 +741,25 @@ begin
        listed in the "uses" section) to avoid having preallocated memory
        from the high memory region before changing value of this variable. *)
     InitHeap;
+
+    if DosQueryModuleHandle (@DosCallsName [0], DosCallsHandle) = 0 then
+      begin
+        if DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P) = 0 then
+          begin
+            DosOpenL := TDosOpenL (P);
+            if DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P) = 0
+                                                                           then
+              begin
+                DosSetFilePtrL := TDosSetFilePtrL (P);
+                if DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil,
+                                                                    P) = 0 then
+                  begin
+                    DosSetFileSizeL := TDosSetFileSizeL (P);
+                    FSApi64 := true;
+                  end;
+              end;
+          end;
+      end;
 
     { ... and exceptions }
     SysInitExceptions;
