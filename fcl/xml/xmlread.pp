@@ -32,20 +32,20 @@ type
   EXMLReadError = class(Exception);
 
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String); overload;
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File); overload;
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream); overload;
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
+procedure ReadXMLFile(out ADoc: TXMLDocument; const AFilename: String); overload;
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: File); overload;
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: TStream); overload;
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const AFilename: String); overload;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);  overload;
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File); overload;
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream); overload;
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; const AFilename: String);  overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: File); overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream); overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const AFilename: String); overload;
 
 
 // =======================================================
@@ -1395,7 +1395,7 @@ end;
 
 
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: File);
 var
   reader: TXMLReader;
   buf: PChar;
@@ -1423,7 +1423,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String);
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: TStream; const AFilename: String);
 var
   reader: TXMLReader;
   buf: PChar;
@@ -1450,12 +1450,12 @@ begin
   end;
 end;
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadXMLFile(out ADoc: TXMLDocument; var f: TStream);
 begin
   ReadXMLFile(ADoc, f, '<Stream>');
 end;
 
-procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
+procedure ReadXMLFile(out ADoc: TXMLDocument; const AFilename: String);
 var
   FileStream: TStream;
 begin
@@ -1541,7 +1541,7 @@ begin
 end;
 
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File);
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: File);
 var
   Reader: TXMLReader;
   buf: PChar;
@@ -1568,7 +1568,7 @@ begin
   end;
 end;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream; const AFilename: String);
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const AFilename: String);
 var
   Reader: TXMLReader;
   buf: PChar;
@@ -1593,12 +1593,12 @@ begin
   end;
 end;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
+procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream);
 begin
   ReadDTDFile(ADoc, f, '<Stream>');
 end;
 
-procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
+procedure ReadDTDFile(out ADoc: TXMLDocument; const AFilename: String);
 var
   Stream: TStream;
 begin

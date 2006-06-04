@@ -135,12 +135,9 @@ end;
 
 Procedure TXMLWriter.Writeln(Const Buffer; Count : Longint); 
 
-var
-  eol: byte;
 begin
-  eol:=10;
   Write(buffer,count);
-  Write(eol,sizeof(eol));
+  Wrtstr(slinebreak);
 end;
 
 
@@ -157,7 +154,7 @@ end;
 
 procedure TXMLWriter.wrtLineEnd;
 begin
-  wrtChr(#10);
+  wrtstr(slinebreak);
 end;
 
 procedure TXMLWriter.wrtIndent;
