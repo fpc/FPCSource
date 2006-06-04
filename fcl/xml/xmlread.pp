@@ -209,7 +209,7 @@ end;
 begin
   Enc := enUnknown;
   w := PWord(Buf)^; Inc(Buf, sizeof(Word));
-  {$IFDEF ENDIAN_BIG} Swap(cw); {$ENDIF}   // TODO: Is that correct?
+  {$IFDEF ENDIAN_BIG} Swap(w); {$ENDIF}   // TODO: Is that correct?
 
   // case of no BOM
   if (w = (ord('?') shl 8 + ord('<'))) { $3F3C } then
