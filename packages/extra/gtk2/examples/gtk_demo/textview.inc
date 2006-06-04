@@ -333,9 +333,9 @@ begin
             + 'blah blah blah blah blah blah blah blah blah'#13#10#13#10, -1,
                                             'char_wrap', [NULL]);
 
-  gtk_text_buffer_insert_with_tags_by_name (buffer, @iter,
-            + 'This line has all wrapping turned off, so it makes the horizontal '
-            + 'scrollbar appear.'#13#10#13#10#13#10, -1,
+  gtk_text_buffer_insert_with_tags_by_name (buffer, @iter, PChar(
+              'This line has all wrapping turned off, so it makes the horizontal '
+            + 'scrollbar appear.'#13#10#13#10#13#10), -1,
                                             'no_wrap', [NULL]);
 
   gtk_text_buffer_insert_with_tags_by_name (buffer, @iter, 'Justification. ', -1,
