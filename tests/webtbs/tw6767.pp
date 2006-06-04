@@ -2,6 +2,9 @@
 program t3;
 
 uses
+{$ifdef unix}
+ cthreads,
+{$endif}
  Sysutils,uw6767;
 
 
