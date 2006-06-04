@@ -160,7 +160,7 @@ end;
 
 procedure tppcaddnode.emit_compare(unsigned: boolean);
 const
-  //                  unsigned  useconst  32bit-op
+  {                  unsigned  useconst  32bit-op }
   cmpop_table : array[boolean, boolean, boolean] of TAsmOp = (
     ((A_CMPD, A_CMPW), (A_CMPDI, A_CMPWI)),
     ((A_CMPLD, A_CMPLW), (A_CMPLDI, A_CMPLWI))
@@ -173,7 +173,7 @@ var
 
   opsize : TCgSize;
 begin
-  // get the constant on the right if there is one
+  { get the constant on the right if there is one }
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
 
@@ -183,19 +183,19 @@ begin
   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
   {$ENDIF EXTDEBUG}
 
-  // can we use a signed comparison or not? In case of equal/unequal comparison
-  // we can check whether this is possible because it does not matter.
+  { can we use a signed comparison or not? In case of equal/unequal comparison
+   we can check whether this is possible because it does not matter. }
   if (right.location.loc = LOC_CONSTANT) then
     if (nodetype in [equaln,unequaln]) then
       if (unsigned and (aword(right.location.value) > high(word))) or
         (not unsigned and (aint(right.location.value) < low(smallint)) or
         (aint(right.location.value) > high(smallint))) then
         { we can then maybe use a constant in the 'othersigned' case
-        (the sign doesn't matter for // equal/unequal)}
+        (the sign doesn't matter for equal/unequal) }
         unsigned := not unsigned;
 
-  // calculate the size of the comparison because ppc64 only has 32 and 64
-  // bit comparison opcodes; prefer 32 bits
+  { calculate the size of the comparison because ppc64 only has 32 and 64
+   bit comparison opcodes; prefer 32 bits }
   if (not (opsize in [OS_32, OS_S32, OS_64, OS_S64])) then begin
     if (unsigned) then
       opsize := OS_32
@@ -205,8 +205,8 @@ begin
       left.location.register, left.location.register); 
   end;
 
-  // can we use an immediate, or do we have to load the
-  // constant in a register first?
+  { can we use an immediate, or do we have to load the
+   constant in a register first? }
   if (right.location.loc = LOC_CONSTANT) then begin
     if (unsigned and
       (aword(right.location.value) <= high(word))) or
@@ -226,7 +226,7 @@ begin
 
   op := cmpop_table[unsigned, useconst, opsize in [OS_S32, OS_32]];
 
-  // actually do the operation
+  { actually do the operation }
   if (right.location.loc = LOC_CONSTANT) then begin
     if useconst then
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(op, left.location.register,
@@ -360,7 +360,7 @@ begin
   end
   else
   begin
-    // just to make sure we free the right registers
+    { just to make sure we free the right registers }
     cmpop := true;
     case nodetype of
       andn,
@@ -427,16 +427,16 @@ begin
     internalerror(200403182);
   end;
 
-  // get the operands in the correct order, there are no special cases
-  // here, everything is register-based
+  { get the operands in the correct order, there are no special cases
+   here, everything is register-based }
   if nf_swaped in flags then
     swapleftright;
 
-  // put both operands in a register
+  { put both operands in a register }
   location_force_fpureg(current_asmdata.CurrAsmList, right.location, true);
   location_force_fpureg(current_asmdata.CurrAsmList, left.location, true);
 
-  // initialize the result
+  { initialize the result }
   if not cmpop then begin
     location_reset(location, LOC_FPUREGISTER, def_cgsize(resulttype.def));
     location.register := cg.getfpuregister(current_asmdata.CurrAsmList, location.size);
@@ -445,7 +445,7 @@ begin
     location.resflags := getresflags;
   end;
 
-  // emit the actual operation
+  { emit the actual operation }
   if not cmpop then begin
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,
       location.register, left.location.register,
@@ -586,14 +586,14 @@ begin
           ((nf_swaped in flags) and
           (nodetype = gten)) then
           swapleftright;
-        // now we have to check whether left >= right
+        { now we have to check whether left >= right }
         tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
         if left.location.loc = LOC_CONSTANT then begin
           cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, OS_64,
             not (left.location.value), right.location.register, tmpreg);
           current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPDI, tmpreg, 0));
-          // the two instructions above should be folded together by
-          // the peepholeoptimizer
+          { the two instructions above should be folded together by
+           the peepholeoptimizer }
         end else begin
           if right.location.loc = LOC_CONSTANT then begin
             cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_64,
@@ -613,12 +613,14 @@ begin
   end;
 
   if not opdone then begin
-    // these are all commutative operations
+    { these are all commutative operations }
     if (left.location.loc = LOC_CONSTANT) then
       swapleftright;
     if (right.location.loc = LOC_CONSTANT) then begin
+      {$ifdef extdebug}
       astring := 'addsmallset4 ' + inttostr(right.location.value);
       current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew(astring)));
+      {$endif extdebug}
 
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, cgop, OS_64,
         right.location.value, left.location.register,

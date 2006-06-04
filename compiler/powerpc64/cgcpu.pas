@@ -128,6 +128,8 @@ type
       labelname: string; ioffset: longint); override;
   private
 
+    procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+
     { Make sure ref is a valid reference for the PowerPC and sets the }
     { base to the value of the index if (base = R_NO).                }
     { Returns true if the reference contained a base, index and an    }
@@ -726,7 +728,7 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
       if (extendssign) and (hi(a) = 0) then
         { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic
           sign extension, clear those bits }
-        a_load_reg_reg(list, OS_32, OS_64, reg, reg)
+        list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, reg, reg, 0, 32))
       else if (not
         ((extendssign and (longint(hi(a)) = -1)) or
          ((not extendssign) and (hi(a)=0)))
@@ -848,42 +850,34 @@ end;
 
 procedure tcgppc.a_load_reg_reg(list: TAsmList; fromsize, tosize: tcgsize;
   reg1, reg2: tregister);
-
-const
-  movemap : array[OS_8..OS_S128, OS_8..OS_S128] of tasmop = (
-{     to  -> OS_8      OS_16     OS_32     OS_64     OS_128    OS_S8     OS_S16    OS_S32    OS_S64    OS_S128 }
-{ from }
-{ OS_8    } (A_MR,     A_RLDICL, A_RLDICL, A_RLDICL, A_NONE,   A_RLDICL, A_RLDICL, A_RLDICL, A_RLDICL, A_NOP   ),
-{ OS_16   } (A_RLDICL, A_MR,     A_RLDICL, A_RLDICL, A_NONE,   A_RLDICL, A_RLDICL, A_RLDICL, A_RLDICL, A_NOP   ),
-{ OS_32   } (A_RLDICL, A_RLDICL, A_MR,     A_RLDICL, A_NONE,   A_RLDICL, A_RLDICL, A_RLDICL, A_RLDICL, A_NOP   ),
-{ OS_64   } (A_RLDICL, A_RLDICL, A_RLDICL, A_MR,     A_NONE,   A_RLDICL, A_RLDICL, A_RLDICL, A_RLDICL, A_NOP   ),
-{ OS_128  } (A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NOP   ),
-{ OS_S8   } (A_EXTSB,  A_EXTSB,  A_EXTSB,  A_EXTSB,  A_NONE,   A_MR,     A_EXTSB,  A_EXTSB,  A_EXTSB,  A_NOP   ),
-{ OS_S16  } (A_RLDICL, A_EXTSH,  A_EXTSH,  A_EXTSH,  A_NONE,   A_EXTSB,  A_MR,     A_EXTSH,  A_EXTSH,  A_NOP   ),
-{ OS_S32  } (A_RLDICL, A_RLDICL, A_EXTSW,  A_EXTSW,  A_NONE,   A_EXTSB,  A_EXTSH,  A_MR,     A_EXTSW,  A_NOP   ),
-{ OS_S64  } (A_RLDICL, A_RLDICL, A_RLDICL, A_MR,     A_NONE,   A_EXTSB,  A_EXTSH,  A_EXTSW,  A_MR,     A_NOP   ),
-{ OS_S128 } (A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NONE,   A_NOP   )
-);
-
 var
   instr: TAiCpu;
-  op : TAsmOp;
   bytesize : byte;
 begin
-  op := movemap[fromsize, tosize];
   {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize) + ' ' + inttostr(ord(op)) + ' ' + inttostr(ord(A_RLDICL)))));
+  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize))));
   {$endif}
-  case op of
-    A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
-    A_RLDICL : begin
-      // always use the smaller size, extending to the larger
-      bytesize := min(tcgsize2size[fromsize], tcgsize2size[tosize]);
-      instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-bytesize)*8);
+
+  if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
+    ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and (fromsize <> tosize)) or
+    { do we need to mask out the sign when loading from smaller signed to larger unsigned type? }
+    ( is_signed_cgsize(fromsize) and (not is_signed_cgsize(tosize)) and
+      (tcgsize2size[fromsize] < tcgsize2size[tosize]) and (tcgsize2size[tosize] <> tcgsize2size[OS_INT]) ) then begin
+    case tosize of
+      OS_S8:
+        instr := taicpu.op_reg_reg(A_EXTSB,reg2,reg1);
+      OS_S16:
+        instr := taicpu.op_reg_reg(A_EXTSH,reg2,reg1);
+      OS_S32:
+        instr := taicpu.op_reg_reg(A_EXTSW,reg2,reg1);
+      OS_8, OS_16, OS_32:
+        instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[tosize])*8);
+      OS_S64, OS_64:
+        instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
     end;
-  else
-    internalerror(2002090901);
-  end;
+  end else
+    instr := taicpu.op_reg_reg(A_MR, reg2, reg1);
+
   list.concat(instr);
   rg[R_INTREGISTER].add_move_instruction(instr);
 end;
@@ -896,17 +890,16 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' tosize = ' + cgsize2string(tosize))));
   {$endif}
-  // calculate the correct startbit for the extrdi instruction, do the extraction if required and then
-  // extend the sign correctly. (The latter is actually required only for signed subsets and if that
-  // subset is not >= the tosize).
+  { calculate the correct startbit for the extrdi instruction, do the extraction if required and then
+    extend the sign correctly. (The latter is actually required only for signed subsets and if that
+   subset is not >= the tosize). }
   extrdi_startbit := 64 - (tcgsize2size[subsetsize]*8 + startbit);
   if (startbit <> 0) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, extrdi_startbit));
-    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], tosize, destreg, destreg);
+    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], subsetsize, destreg, destreg);
   end else begin
-    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], tosize, subsetreg, destreg);
+    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], subsetsize, subsetreg, destreg);
   end;
-  a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
 end;
 
 procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
@@ -915,7 +908,7 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(startbit))));
   {$endif}
-  // simply use the INSRDI instruction for now
+  { simply use the INSRDI instruction }
   if (tcgsize2size[subsetsize] <> sizeof(aint)) then
     list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, subsetreg, fromreg, tcgsize2size[subsetsize]*8, (64 - (startbit + tcgsize2size[subsetsize]*8)) and 63))
   else
@@ -930,8 +923,8 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_const_subsetreg subsetregsize = ' + cgsize2string(subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(startbit) + ' a = ' + intToStr(a))));
   {$endif}
-  // simply loading the constant into the lowest bits of a temp register and then inserting is
-  // better than loading some usually large constants and do some masking and shifting on ppc64
+  { loading the constant into the lowest bits of a temp register and then inserting is
+    better than loading some usually large constants and do some masking and shifting on ppc64 }
   tmpreg := getintregister(list,subsetsize);
   a_load_const_reg(list,subsetsize,a,tmpreg);
   a_load_reg_subsetreg(list, subsetsize, subsetregsize, subsetsize, startbit, tmpreg, subsetreg);
@@ -1199,10 +1192,10 @@ begin
           shift := 5;
 
         shiftmask := (1 shl shift)-1;
-        if (a and shiftmask) <> 0 then
+        if (a and shiftmask) <> 0 then begin
           list.concat(taicpu.op_reg_reg_const(
-            TShiftOpCG2AsmOpConst[size in [OS_64, OS_S64], op], dst, src, a and shiftmask))
-        else
+            TShiftOpCG2AsmOpConst[size in [OS_64, OS_S64], op], dst, src, a and shiftmask));
+        end else
           a_load_reg_reg(list, size, size, src, dst);
         if ((a shr shift) <> 0) then
           internalError(68991);
@@ -1216,7 +1209,8 @@ begin
     scratchreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
     a_load_const_reg(list, size, a, scratchreg);
     a_op_reg_reg_reg(list, op, size, scratchreg, src, dst);
-  end;
+  end else
+    maybeadjustresult(list, op, size, dst);
 end;
 
 procedure tcgppc.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
@@ -1244,6 +1238,7 @@ begin
       end else begin
         list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop32[op], dst, src2,
           src1));
+        maybeadjustresult(list, op, size, dst);
       end;
   end;
 end;
@@ -1253,7 +1248,7 @@ end;
 procedure tcgppc.a_cmp_const_reg_label(list: TAsmList; size: tcgsize;
   cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
 const
-  //                  unsigned  useconst  32bit-op
+  {                  unsigned  useconst  32bit-op }
   cmpop_table : array[boolean, boolean, boolean] of TAsmOp = (
     ((A_CMPD, A_CMPW), (A_CMPDI, A_CMPWI)),
     ((A_CMPLD, A_CMPLW), (A_CMPLDI, A_CMPLWI))
@@ -1270,16 +1265,16 @@ begin
   {$ENDIF EXTDEBUG}
 
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
-  // in the following case, we generate more efficient code when
-  // signed is true
+  { in the following case, we generate more efficient code when
+    signed is true }
   if (cmp_op in [OC_EQ, OC_NE]) and
     (aword(a) > $FFFF) then
     signed := true;
 
   opsize := size;
 
-  // do we need to change the operand size because ppc64 only supports 32 and
-  // 64 bit compares?
+  { do we need to change the operand size because ppc64 only supports 32 and
+    64 bit compares? }
   if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then begin
     if (signed) then
       opsize := OS_S32
@@ -1288,7 +1283,7 @@ begin
     a_load_reg_reg(current_asmdata.CurrAsmList, size, opsize, reg, reg); 
   end;
 
-  // can we use immediate compares?
+  { can we use immediate compares? }
   useconst := (signed and ( (a >= low(smallint)) and (a <= high(smallint)))) or
     ((not signed) and (aword(a) <= $FFFF));
 
@@ -1315,8 +1310,10 @@ begin
   {$ENDIF extdebug}
 
   {$note Commented out below check because of compiler weirdness}
-//  if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then
-//    internalerror(200606041);
+  {
+  if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then
+    internalerror(200606041); 
+  }
 
   if cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE] then
     if (size in [OS_64, OS_S64]) then
@@ -1456,7 +1453,7 @@ begin
       a_loadfpu_reg_ref(list, para.paraloc[calleeside].Location^.size, 
         para.paraloc[calleeside].Location^.register, para.localloc.reference);
     LOC_MMREGISTER, LOC_CMMREGISTER:
-      // not supported    
+      { not supported }
       internalerror(2006041801);
   end;
 end;
@@ -1471,7 +1468,7 @@ begin
       a_loadfpu_ref_reg(list, para.paraloc[calleeside].Location^.size, 
         para.localloc.reference, para.paraloc[calleeside].Location^.register);
     LOC_MMREGISTER, LOC_CMMREGISTER:
-      // not supported    
+      { not supported }
       internalerror(2006041802);
   end;
 end;
@@ -1820,7 +1817,6 @@ begin
   end else if (ref2.base <> NR_NO) and
     (r <> ref2.base) then begin
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, ref2.base, r)
-    //list.concat(taicpu.op_reg_reg(A_MR, ref2.base, r));
   end else begin
     list.concat(taicpu.op_reg_const(A_LI, r, 0));
   end;
@@ -2086,6 +2082,18 @@ end;
 
 {***************** This is private property, keep out! :) *****************}
 
+procedure tcgppc.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+const
+  overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+begin
+  {$IFDEF EXTDEBUG}
+  list.concat(tai_comment.create(strpnew('maybeadjustresult op = ' + cgop2string(op) + ' size = ' + cgsize2string(size))));
+  {$ENDIF EXTDEBUG}
+
+  if (op in overflowops) and (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32]) then
+    a_load_reg_reg(list, OS_64, size, dst, dst);
+end;
+
 function tcgppc.issimpleref(const ref: treference): boolean;
 
 begin
@@ -2130,8 +2138,8 @@ end;
 
 
 function tcgppc.fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
-  // symbol names must not be larger than this to be able to make a GOT reference out of them,
-  // otherwise they get truncated by the compiler resulting in failing of the assembling stage
+  { symbol names must not be larger than this to be able to make a GOT reference out of them,
+   otherwise they get truncated by the compiler resulting in failing of the assembling stage }
 const
   MAX_GOT_SYMBOL_NAME_LENGTH_HACK = 120;
 var
@@ -2172,7 +2180,7 @@ begin
     ((ref.offset <> 0) or assigned(ref.symbol)) then begin
       result := true;
       tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      a_op_reg_reg_reg(list, OP_ADD, size, ref.base, ref.index, tmpreg);
+      a_op_reg_reg_reg(list, OP_ADD, OS_ADDR, ref.base, ref.index, tmpreg);
       ref.base := tmpreg;
       ref.index := NR_NO;
   end;

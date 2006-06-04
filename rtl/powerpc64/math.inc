@@ -52,13 +52,6 @@ asm
   ld r3, -8(r1)
 end;
 
-{$define FPC_SYSTEM_HAS_INT}
-function fpc_int_real(d : valreal) : valreal;compilerproc; assembler; nostackframe;
-asm
-  fctidz f2, f1
-  fcfid f1, f2
-end;
-
 {$define FPC_SYSTEM_HAS_ROUND}
 function fpc_round_real(d : valreal) : int64; compilerproc;assembler; nostackframe;
 { exactly the same as trunc, except that one fctiwz has become fctiw }
