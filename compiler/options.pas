@@ -26,9 +26,9 @@ unit options;
 interface
 
 uses
-  globtype,globals,verbose,systems,cpuinfo;
+  CClasses,globtype,globals,verbose,systems,cpuinfo;
 
-type
+Type    
   TOption=class
     FirstPass,
     ParaLogo,
@@ -76,7 +76,7 @@ uses
 {$ENDIF USE_SYSUTILS}
   version,
   cutils,cmsgs,
-  comphook,
+  comphook, 
   symtable,scanner,rabase
 {$ifdef BrowserLog}
   ,browlog
@@ -107,8 +107,6 @@ begin
   initglobalswitches:=initglobalswitches+[cs_link_static];
   initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
 end;
-
-
 
 {****************************************************************************
                                  Toption
@@ -1279,6 +1277,25 @@ begin
                         DefaultReplacements(utilsprefix);
                         More:='';
                       end;
+                    'L' : begin  // -XLO is link order -XLA is link alias
+                            if (j=length(more)) or not ((more[j+1]='O') or (more[j+1]='A')) then
+                              IllegalPara(opt)
+                            else
+                              begin
+                                case more[j+1] of
+                                 'A' : begin
+                                        s:=Copy(more,3,length(More)-2);
+                                        if not LinkLibraryAliases.AddDep(s) Then
+                                           IllegalPara(opt);                                       
+                                       end;
+                                 'O' : begin
+                                        s:=Copy(more,3,length(More)-2);
+                                        if not LinkLibraryAliases.AddWeight(s) Then
+                                           IllegalPara(opt);
+                                       end;
+                                   end;     
+                              end;
+                          end;
                     'S' :
                       begin
                         def_system_macro('FPC_LINK_STATIC');

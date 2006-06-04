@@ -520,6 +520,36 @@ type
        end;
 
 
+Const WeightDefault = 100;  
+
+Type
+  TLinkRec = record 
+    Key   : AnsiString;
+    Value : AnsiString; // key expands to valuelist "value"
+    Weight: longint;
+    end;
+               
+  TLinkStrMap  = class
+    private
+     itemcnt : longint;
+     fmap : Array Of TLinkRec; 
+     function  Lookup(key:Ansistring):longint;
+     function getlinkrec(i:longint):TLinkRec;
+    public
+     procedure Add(key:ansistring;value:AnsiString='';weight:longint=weightdefault);
+     procedure addseries(keys:AnsiString;weight:longint=weightdefault);
+     function  AddDep(keyvalue:String):boolean;
+     function  AddWeight(keyvalue:String):boolean;
+     procedure SetValue(key:AnsiString;Weight:Integer);
+     procedure SortonWeight; 
+     function Find(key:AnsiString):AnsiString; 
+     procedure Expand(src:TStringList;dest: TLinkStrMap);
+     procedure UpdateWeights(Weightmap:TLinkStrMap);
+     constructor Create; 
+    property count : longint read itemcnt;
+    property items[I:longint]:TLinkRec read getlinkrec; default;
+     end;
+
 implementation
 
 {*****************************************************************************
@@ -3274,6 +3304,169 @@ end;
            hp:=hp^.Next;
          end;
       end;
+
+{****************************************************************************
+                                 TLinkStrMap
+****************************************************************************}
+
+Constructor TLinkStrMap.create;
+
+begin
+ inherited;
+ itemcnt:=0;
+end;
+
+procedure TLinkStrMap.Add(key:ansistring;value:AnsiString='';weight:longint=weightdefault);
+
+begin
+  if lookup(key)<>-1 Then 
+    exit;
+  if itemcnt<=length(fmap) Then 
+    setlength(fmap,itemcnt+10);
+  fmap[itemcnt].key:=key;
+  fmap[itemcnt].value:=value;
+  fmap[itemcnt].weight:=weight;
+  inc(itemcnt);
+end;
+
+function  TLinkStrMap.AddDep(keyvalue:String):boolean;
+
+var i : Longint;
+
+begin
+  AddDep:=false;
+  i:=pos('=',keyvalue);
+  if i=0 then 
+    exit;
+  Add(Copy(KeyValue,1,i-1),Copy(KeyValue,i+1,length(KeyValue)-i));
+  AddDep:=True;
+end;
+
+function  TLinkStrMap.AddWeight(keyvalue:String):boolean;
+
+var i    : Longint;
+    Code : Word;
+    s    : AnsiString;
+
+begin
+  AddWeight:=false;
+  i:=pos('=',keyvalue);
+  if i=0 then 
+    exit;
+  s:=Copy(KeyValue,i+1,length(KeyValue)-i);  
+  val(s,i,code);
+  if code<>0 Then
+    begin
+      Add(Copy(KeyValue,1,i-1),'',i);
+      AddWeight:=True;
+    end;  
+end;
+
+procedure TLinkStrMap.addseries(keys:AnsiString;weight:longint);
+
+var    i,j,k : longint;
+begin
+ k:=length(keys);
+ i:=1;
+ while i<=k do
+   begin
+     j:=i;
+     while (i<=k) and (keys[i]<>';') do 
+       inc(i);
+     add(copy(keys,j,i-j),'',weight);  
+     inc(i);
+   end; 
+end;
+
+procedure TLinkStrMap.SetValue(Key:Ansistring;weight:Integer);
+
+var j : longint;
+
+begin
+   j:=lookup(key);
+   if j<>-1 then
+    fmap[j].weight:=weight;
+end;      
+
+function TLinkStrMap.find(key:Ansistring):Ansistring;
+
+var j : longint;
+
+begin
+   find:='';
+   j:=lookup(key);
+   if j<>-1 then
+    find:=fmap[j].value;
+end;
+
+function TLinkStrMap.lookup(key:Ansistring):longint;
+
+var i : longint;
+
+begin
+   lookup:=-1;
+   i:=0;
+   {$B-}
+   while (i<itemcnt) and (fmap[i].key<>key) do inc(i);
+   {$B+}
+   if i<>itemcnt then
+      lookup:=i;
+end;
+
+procedure TLinkStrMap.SortOnWeight;
+
+var i, j : longint;
+    m	 : TLinkRec;
+begin
+  if itemcnt <2 then exit;
+  for i:=0 to itemcnt-1 do 
+    for j:=i+1 to itemcnt-1 do
+      begin
+      if fmap[i].weight>fmap[j].weight Then
+        begin
+          m:=fmap[i];
+          fmap[i]:=fmap[j];
+          fmap[j]:=m;
+        end;  
+     end;   
+end;
+
+function TLinkStrMap.getlinkrec(i:longint):TLinkRec;
+
+begin
+  result:=fmap[i];
+end;
+    	
+procedure TLinkStrMap.Expand(Src:TStringList;Dest:TLinkStrMap);
+// expands every thing in Src to Dest for linkorder purposes.
+
+var l,r  : longint;
+    LibN    : String;
+
+begin
+  while not src.empty do
+    begin
+      LibN:=src.getfirst;
+      r:=lookup (LibN);
+      if r=-1 then
+        dest.add(LibN)
+      else 
+        dest.addseries(fmap[r].value);
+
+    end;
+end;  
+
+procedure TLinkStrMap.UpdateWeights(Weightmap:TLinkStrMap);
+
+var l,r : longint;
+begin
+  for l := 0 to itemcnt-1 do
+    begin
+      r:=weightmap.lookup (fmap[l].key); 
+      if r<>-1 then
+        fmap[l].weight:=weightmap[r].weight;
+    end; 
+end;
 
 
 end.

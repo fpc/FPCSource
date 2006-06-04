@@ -63,6 +63,8 @@ Type
        Function  MakeExecutable:boolean;virtual;
        Function  MakeSharedLibrary:boolean;virtual;
        Function  MakeStaticLibrary:boolean;virtual;
+       procedure ExpandAndApplyOrder(var Src:TStringList);
+       procedure LoadPredefinedLibraryOrder;virtual; 
      end;
 
     TExternalLinker = class(TLinker)
@@ -493,6 +495,36 @@ begin
   Message(exec_e_dll_not_supported);
 end;
 
+Procedure TLinker.ExpandAndApplyOrder(var Src:TStringList);
+
+var p : TLinkStrMap;
+    i : Integer;
+begin
+  // call Virtual TLinker method to initialize
+  LoadPredefinedLibraryOrder;
+
+  // something to do?
+  if (LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then 
+    exit;
+  p:=TLinkStrMap.Create;
+  
+  // expand libaliases, clears src
+  LinkLibraryAliases.expand(src,p);
+  
+  // apply order
+  p.UpdateWeights(LinkLibraryOrder);  
+  p.SortOnWeight;
+  
+  // put back in src
+  for i:=0 to p.count-1 do
+    src.insert(p[i].Key);
+  p.free;
+end;
+
+procedure TLinker.LoadPredefinedLibraryOrder;
+
+begin
+end;
 
 {*****************************************************************************
                               TEXTERNALLINKER
