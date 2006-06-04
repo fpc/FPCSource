@@ -414,9 +414,9 @@ const
                        (taicpu(p).oper[4]^.val < 16) then
                       begin
                         taicpu(p).opcode := A_ANDIS_;
-                        taicpu(p).oper[2]^.val :=
+                        taicpu(p).oper[2]^.val := word(
                           ((1 shl (16-taicpu(p).oper[3]^.val)) - 1) xor
-                          ((1 shl (15-taicpu(p).oper[4]^.val)) - 1);
+                          ((1 shl (15-taicpu(p).oper[4]^.val)) - 1));
                         taicpu(p).clearop(3);
                         taicpu(p).clearop(4);
                         taicpu(p).ops := 3;
@@ -426,7 +426,7 @@ const
                        (taicpu(p).oper[4]^.val >= 16) then
                       begin
                         taicpu(p).opcode := A_ANDI_;
-                        taicpu(p).oper[2]^.val := rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val);
+                        taicpu(p).oper[2]^.val := word(rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val));
                         taicpu(p).clearop(3);
                         taicpu(p).clearop(4);
                         taicpu(p).ops := 3;
