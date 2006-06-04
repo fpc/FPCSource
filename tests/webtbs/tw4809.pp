@@ -11,7 +11,7 @@ Type
     v1,v2: LongInt;
 
    begin
-     longint(mVar) := 100;
+     byte(mVar) := 100;
      v1 := aVar1[mVar];
   end.
 
