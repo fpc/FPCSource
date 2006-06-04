@@ -1086,9 +1086,19 @@ const   faReadOnly      =  1;
         faArchive       = 32;
 
         ilStandard      =  1;
-        ilQueryEAsize   =  2;
+        ilQueryEASize   =  2;
         ilQueryEAs      =  3;
         ilQueryFullName =  5;
+        ilStandardL     = 11;
+        ilQueryEASizeL  = 12;
+        ilQueryEAsL     = 13;
+
+        FIL_Standard    = ilStandard;
+        FIL_QueryEASize = ilQueryEASize;
+        FIL_QueryEAsFromList = ilQueryEAs;
+        FIL_StandardL   = ilStandardL;
+        FIL_QueryEASizeL = ilQueryEASizeL;
+        FIL_QueryEAsFromListL = ilQueryEAsL;
 
 {Format of date records:
 
@@ -1156,12 +1166,50 @@ type
             FileAlloc:cardinal;         {Amount of space the file really
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
-            cbList:longint;             {Size of the file's extended attributes.}
+            cbList:cardinal;            {Size of the file's extended attributes.}
             Name:string;                {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
         PFileFindBuf4=^TFileFindBuf4;
+
+        TFileFindBuf3L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            Name:string;                {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf3L=^TFileFindBuf3L;
+
+        TFileFindBuf4L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            cbList:cardinal;            {Size of the file's extended attributes.}
+            Name:string;                {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf4L=^TFileFindBuf4L;
+
 
 {Find first file matching a filemask. In contradiction to DOS, a search
  handle is returned which should be closed with FindClose when done.
@@ -5281,7 +5329,7 @@ DosReleaseSpinLock    = DOSCALLS.451
 DosFreeSpinLock       = DOSCALLS.452
 DosListIO
 DosListIOL
-DosOpenL
+DosOpenL = DOSCALLS.981
 DosPerfSystemCall
 DosProtectOpenL
 DosProtectSetFileLocksL
@@ -5302,8 +5350,8 @@ external 'DOSCALLS' index 368;
 
 DosQueryThreadAffinity
 DosSetFileLocksL
-DosSetFilePtrL
-DosSetFileSizeL
+DosSetFilePtrL = DOSCALLS.988
+DosSetFileSizeL = DOSCALLS.989
 DosSetThreadAffinity
 Dos16SysTrace
 DosVerifyPidTid
