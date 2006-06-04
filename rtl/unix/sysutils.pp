@@ -647,7 +647,7 @@ begin
   If  FpStat (FileName,Info)<0 then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(Pchar(FileName),Info);
+    Result:=LinuxToWinAttr(Pchar(ExtractFileName(FileName)),Info);
 end;
 
 
