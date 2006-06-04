@@ -5824,35 +5824,41 @@ end;
 {$endif WinClipSupported}
 
 function TCustomCodeEditor.ClipCopy: Boolean;
-var OK,ShowInfo: boolean;
+
+var ShowInfo,CanPaste: boolean;
+
 begin
   Lock;
   {AddGroupedAction(eaCopy);
    can we undo a copy ??
    maybe as an Undo Paste in Clipboard !! }
-  OK:=Clipboard<>nil;
-  if OK then
-    ShowInfo:=SelEnd.Y-SelStart.Y>50
-  else
-    ShowInfo:=false;
-  if ShowInfo then
-    PushInfo(msg_copyingclipboard);
-  if OK then OK:=Clipboard^.InsertFrom(@Self);
-  if ShowInfo then
-    PopInfo;
-  ClipCopy:=OK;
+  clipcopy:=false;
+  showinfo:=false;
+  if (clipboard<>nil) and (clipboard<>@self) then
+    begin
+      ShowInfo:=SelEnd.Y-SelStart.Y>50;
+      if ShowInfo then
+        PushInfo(msg_copyingclipboard);
+      clipcopy:=Clipboard^.InsertFrom(@Self);
+      if ShowInfo then
+        PopInfo;
+      {Enable paste command.}
+      CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
+                (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+      SetCmdState(FromClipCmds,CanPaste);
+    end;
   UnLock;
 end;
 
 procedure TCustomCodeEditor.ClipCut;
 var
-  ShowInfo : boolean;
+  ShowInfo,CanPaste : boolean;
 begin
   if IsReadOnly then Exit;
   Lock;
   AddGroupedAction(eaCut);
   DontConsiderShiftState:=true;
-  if Clipboard<>nil then
+  if (clipboard<>nil) and (clipboard<>@self) then
    begin
      ShowInfo:=SelEnd.Y-SelStart.Y>50;
      if ShowInfo then
@@ -5865,6 +5871,9 @@ begin
       end;
      if ShowInfo then
        PopInfo;
+     CanPaste:=((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
+               (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
+     SetCmdState(FromClipCmds,CanPaste);
    end;
   CloseGroupedAction(eaCut);
   UnLock;
