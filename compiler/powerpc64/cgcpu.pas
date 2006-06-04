@@ -866,17 +866,21 @@ const
 );
 
 var
-  instr: taicpu;
-  op : tasmop;
+  instr: TAiCpu;
+  op : TAsmOp;
+  bytesize : byte;
 begin
-  {$ifdef extdebug}
-  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize))));
-  {$endif}
   op := movemap[fromsize, tosize];
+  {$ifdef extdebug}
+  list.concat(tai_comment.create(strpnew('a_load_reg_reg from : ' + cgsize2string(fromsize) + ' to ' + cgsize2string(tosize) + ' ' + inttostr(ord(op)) + ' ' + inttostr(ord(A_RLDICL)))));
+  {$endif}
   case op of
     A_MR, A_EXTSB, A_EXTSH, A_EXTSW : instr := taicpu.op_reg_reg(op, reg2, reg1);
-    // note: have a look at this ([fromsize] shouldn't that be [tosize]??)
-    A_RLDICL : instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-tcgsize2size[fromsize])*8);
+    A_RLDICL : begin
+      // always use the smaller size, extending to the larger
+      bytesize := min(tcgsize2size[fromsize], tcgsize2size[tosize]);
+      instr := taicpu.op_reg_reg_const_const(A_RLDICL, reg2, reg1, 0, (8-bytesize)*8);
+    end;
   else
     internalerror(2002090901);
   end;
@@ -894,14 +898,15 @@ begin
   {$endif}
   // calculate the correct startbit for the extrdi instruction, do the extraction if required and then
   // extend the sign correctly. (The latter is actually required only for signed subsets and if that
-  // subset is not >= the tosize.
+  // subset is not >= the tosize).
   extrdi_startbit := 64 - (tcgsize2size[subsetsize]*8 + startbit);
   if (startbit <> 0) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, subsetreg, tcgsize2size[subsetsize]*8, extrdi_startbit));
-    a_load_reg_reg(list, tcgsize2unsigned[subsetsize], tosize, destreg, destreg);
-    a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
-  end else
-    a_load_reg_reg(list, subsetsize, tosize, subsetreg, destreg);
+    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], tosize, destreg, destreg);
+  end else begin
+    a_load_reg_reg(list, tcgsize2unsigned[subsetregsize], tosize, subsetreg, destreg);
+  end;
+  a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
 end;
 
 procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize: tcgsize; subsetregsize, 
@@ -1247,37 +1252,56 @@ end;
 
 procedure tcgppc.a_cmp_const_reg_label(list: TAsmList; size: tcgsize;
   cmp_op: topcmp; a: aint; reg: tregister; l: tasmlabel);
-var
-  scratch_register: TRegister;
-  signed: boolean;
-begin
+const
+  //                  unsigned  useconst  32bit-op
+  cmpop_table : array[boolean, boolean, boolean] of TAsmOp = (
+    ((A_CMPD, A_CMPW), (A_CMPDI, A_CMPWI)),
+    ((A_CMPLD, A_CMPLW), (A_CMPLDI, A_CMPLWI))
+   );
 
+var
+  tmpreg : TRegister;
+  signed, useconst : boolean;
+  opsize : TCgSize;
+  op : TAsmOp;
+begin
   {$IFDEF EXTDEBUG}
-  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + inttostr(ord(size)) + ' ' + inttostr(tcgsize2size[size]))));
+  list.concat(tai_comment.create(strpnew('a_cmp_const_reg_label ' + cgsize2string(size) + ' ' + booltostr(cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE]) + ' ' + inttostr(a) )));
   {$ENDIF EXTDEBUG}
 
   signed := cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE];
-  { in the following case, we generate more efficient code when }
-  { signed is true                                              }
+  // in the following case, we generate more efficient code when
+  // signed is true
   if (cmp_op in [OC_EQ, OC_NE]) and
     (aword(a) > $FFFF) then
     signed := true;
-  if signed then
-    if (a >= low(smallint)) and (a <= high(smallint)) then
-      list.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR0, reg, a))
-    else begin
-      scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-      a_load_const_reg(list, OS_INT, a, scratch_register);
-      list.concat(taicpu.op_reg_reg_reg(A_CMPD, NR_CR0, reg, scratch_register));
-    end
-  else if (aword(a) <= $FFFF) then
-    list.concat(taicpu.op_reg_reg_const(A_CMPLDI, NR_CR0, reg, aword(a)))
-  else begin
-    scratch_register := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    a_load_const_reg(list, OS_INT, a, scratch_register);
-    list.concat(taicpu.op_reg_reg_reg(A_CMPLD, NR_CR0, reg,
-      scratch_register));
+
+  opsize := size;
+
+  // do we need to change the operand size because ppc64 only supports 32 and
+  // 64 bit compares?
+  if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then begin
+    if (signed) then
+      opsize := OS_S32
+    else
+      opsize := OS_32;
+    a_load_reg_reg(current_asmdata.CurrAsmList, size, opsize, reg, reg); 
   end;
+
+  // can we use immediate compares?
+  useconst := (signed and ( (a >= low(smallint)) and (a <= high(smallint)))) or
+    ((not signed) and (aword(a) <= $FFFF));
+
+  op := cmpop_table[not signed, useconst, opsize in [OS_32, OS_S32]];
+
+  if (useconst) then begin
+    list.concat(taicpu.op_reg_reg_const(op, NR_CR0, reg, a));
+  end else begin
+    tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+    a_load_const_reg(current_asmdata.CurrAsmList, opsize, a, tmpreg);
+    list.concat(taicpu.op_reg_reg_reg(op, NR_CR0, reg, tmpreg));
+  end;
+
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
@@ -1289,6 +1313,10 @@ begin
   {$IFDEF extdebug}
   list.concat(tai_comment.create(strpnew('a_cmp_reg_reg_label, size ' + cgsize2string(size) + ' op ' + inttostr(ord(cmp_op)))));
   {$ENDIF extdebug}
+
+  {$note Commented out below check because of compiler weirdness}
+//  if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then
+//    internalerror(200606041);
 
   if cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE] then
     if (size in [OS_64, OS_S64]) then

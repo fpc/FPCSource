@@ -159,48 +159,64 @@ begin
 end;
 
 procedure tppcaddnode.emit_compare(unsigned: boolean);
+const
+  //                  unsigned  useconst  32bit-op
+  cmpop_table : array[boolean, boolean, boolean] of TAsmOp = (
+    ((A_CMPD, A_CMPW), (A_CMPDI, A_CMPWI)),
+    ((A_CMPLD, A_CMPLW), (A_CMPLDI, A_CMPLWI))
+   );
+
 var
-  op: tasmop;
-  tmpreg: tregister;
+  op: TAsmOp;
+  tmpreg: TRegister;
   useconst: boolean;
 
-  {$IFDEF EXTDEBUG}
   opsize : TCgSize;
-  {$ENDIF EXTDEBUG}
-
 begin
   // get the constant on the right if there is one
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
 
-  {$IFDEF EXTDEBUG}
   opsize := def_cgsize(left.resulttype.def);
+
+  {$IFDEF EXTDEBUG}
   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
   {$ENDIF EXTDEBUG}
+
+  // can we use a signed comparison or not? In case of equal/unequal comparison
+  // we can check whether this is possible because it does not matter.
+  if (right.location.loc = LOC_CONSTANT) then
+    if (nodetype in [equaln,unequaln]) then
+      if (unsigned and (aword(right.location.value) > high(word))) or
+        (not unsigned and (aint(right.location.value) < low(smallint)) or
+        (aint(right.location.value) > high(smallint))) then
+        { we can then maybe use a constant in the 'othersigned' case
+        (the sign doesn't matter for // equal/unequal)}
+        unsigned := not unsigned;
+
+  // calculate the size of the comparison because ppc64 only has 32 and 64
+  // bit comparison opcodes; prefer 32 bits
+  if (not (opsize in [OS_32, OS_S32, OS_64, OS_S64])) then begin
+    if (unsigned) then
+      opsize := OS_32
+    else
+      opsize := OS_S32;
+    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resulttype.def), opsize, 
+      left.location.register, left.location.register); 
+  end;
 
   // can we use an immediate, or do we have to load the
   // constant in a register first?
   if (right.location.loc = LOC_CONSTANT) then begin
-    if (nodetype in [equaln, unequaln]) then
-      if (unsigned and
-        (aword(right.location.value) > high(word))) or
-        (not unsigned and
-        (aint(right.location.value) < low(smallint)) or
-        (aint(right.location.value) > high(smallint))) then
-        { we can then maybe use a constant in the 'othersigned' case
-         (the sign doesn't matter for // equal/unequal)}
-        unsigned := not unsigned;
-
     if (unsigned and
       (aword(right.location.value) <= high(word))) or
       (not (unsigned) and
-      (aint(right.location.value) >= low(smallint)) and
-      (aint(right.location.value) <= high(smallint))) then
+      (aint(right.location.value) >= low(smallint)) and (aint(right.location.value) <= high(smallint))) then
       useconst := true
     else begin
       useconst := false;
       tmpreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, right.location.value, tmpreg);
+      cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, right.location.value, tmpreg);
     end
   end else
     useconst := false;
@@ -208,16 +224,9 @@ begin
   location.loc := LOC_FLAGS;
   location.resflags := getresflags;
 
-  if not unsigned then
-    if useconst then
-      op := A_CMPDI
-    else
-      op := A_CMPD
-  else if useconst then
-    op := A_CMPLDI
-  else
-    op := A_CMPLD;
+  op := cmpop_table[unsigned, useconst, opsize in [OS_S32, OS_32]];
 
+  // actually do the operation
   if (right.location.loc = LOC_CONSTANT) then begin
     if useconst then
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(op, left.location.register,
@@ -225,8 +234,8 @@ begin
     else
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register, tmpreg));
   end else
-    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
-      left.location.register, right.location.register));
+    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.register,
+      right.location.register));
 end;
 
 {*****************************************************************************
