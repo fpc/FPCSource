@@ -86,11 +86,13 @@ type
     FCurChar: WideChar;
     FLine: Integer;
     FColumn: Integer;
+    FSeenCR: Boolean;
     FEncoding: TEncoding;
     FValue: array of WideChar;
     FValueLength: Integer;
     FPrologParsed: Boolean;
     procedure RaiseExpectedQmark;
+    procedure InternalGetChar;
     function GetChar: WideChar;
     procedure AppendValue(wc: WideChar);
     procedure DetectEncoding;
@@ -223,6 +225,7 @@ begin
   begin
     FEncoding := Enc;
     FCurChar := '?';
+    Inc(FColumn);
     Exit;
   end;
 
@@ -236,7 +239,8 @@ begin
   GetChar;
 end;
 
-function TXMLReader.GetChar: WideChar;
+
+procedure TXMLReader.InternalGetChar;
 var
   ch, ch2, ch3: Byte;
 
@@ -291,8 +295,28 @@ begin
       FCurChar :=
         WideChar((Ord(FCurChar) and $FF) shl 8 + (Ord(FCurChar) shr 8));
   end;
+end;
 
-  // TODO: Linefeed handling according to W3C
+function TXMLReader.GetChar: WideChar;
+begin
+  InternalGetChar;
+  if FSeenCR then
+  begin
+    case FCurChar of
+      #10, #$85: InternalGetChar; // #$85 is xml 1.1 specific
+    end;
+    FSeenCR := False;
+  end;
+
+  if FCurChar = #13 then
+  begin
+    FSeenCR := True;
+    FCurChar := #10;
+  end
+  else // xml 1.1 specific check
+    if (FCurChar = #$85) or (FCurChar = #$2028) then
+      FCurChar := #10;
+
   if FCurChar = #10 then
   begin
     Inc(FLine);
@@ -554,15 +578,14 @@ begin
   ExpectString('--');
   FValueLength := 0;
   repeat
-    FValue[FValueLength] := FCurChar;
+    AppendValue(FCurChar);
     GetChar;
-    if (FValueLength >= 2) and (FValue[FValueLength] = '>') and
-      (FValue[FValueLength-1] = '-') and (FValue[FValueLength-2] = '-') then
+    if (FValueLength >= 3) and (FValue[FValueLength-1] = '>') and
+      (FValue[FValueLength-2] = '-') and (FValue[FValueLength-3] = '-') then
       begin
-        Dec(FValueLength, 2);
+        Dec(FValueLength, 3);
         Break;
       end;
-    Inc(FValueLength);
   until FCurChar = #0;  // should not happen
 
   SetString(comment, PWideChar(@FValue[0]), FValueLength);
@@ -595,15 +618,14 @@ begin
   begin
     FValueLength := 0;
     repeat
-      FValue[FValueLength] := FCurChar;
+      AppendValue(FCurChar);
       GetChar;
-      if (FValueLength >= 1) and (FValue[FValueLength] = '>') and
-        (FValue[FValueLength-1] = '?') then
+      if (FValueLength >= 2) and (FValue[FValueLength-1] = '>') and
+        (FValue[FValueLength-2] = '?') then
         begin
-          Dec(FValueLength);
+          Dec(FValueLength, 2);
           Break;
         end;
-      Inc(FValueLength);
     until FCurChar = #0;  // should not happen
   end;
   
@@ -716,7 +738,7 @@ procedure TXMLReader.ParseMisc(AOwner: TDOMNode);    // [27]
 begin
   repeat
     SkipWhitespace;
-    if (FCurChar = #0) or (FCurChar <> '<') then
+    if FCurChar <> '<' then
       Break;
     GetChar;
     if FCurChar = '!' then
@@ -1017,9 +1039,8 @@ begin
   Result := False;
   repeat
     SkipWhitespace;
-    if (FCurChar = #0) or (FCurChar <> '<') then
+    if FCurChar <> '<' then  // condition is true for #0
       Exit;
-    // '<'
     GetChar;
     if FCurChar = '!' then
     begin
@@ -1094,15 +1115,14 @@ begin
   ExpectString('[CDATA[');
   FValueLength := 0;
   repeat
-    FValue[FValueLength] := FCurChar;
+    AppendValue(FCurChar);
     GetChar;
-    if (FValueLength >= 2) and (FValue[FValueLength] = '>') and
-      (FValue[FValueLength-1] = ']') and (FValue[FValueLength-2] = ']') then
+    if (FValueLength >= 3) and (FValue[FValueLength-1] = '>') and
+      (FValue[FValueLength-2] = ']') and (FValue[FValueLength-3] = ']') then
     begin
-      Dec(FValueLength, 2);
+      Dec(FValueLength, 3);
       Break;
     end;
-    Inc(FValueLength);
   until FCurChar = #0;
 
   SetString(name, PWideChar(@FValue[0]), FValueLength);
@@ -1112,15 +1132,14 @@ end;
 function TXMLReader.ParseElement(AOwner: TDOMNode): Boolean;    // [39] [40] [44]
 var
   NewElem: TDOMElement;
-
-  procedure CreateNameElement;
-  var
-    IsEmpty: Boolean;
-    attr: TDOMAttr;
-    name: WideString;
-    t: WideChar;
+  IsEmpty: Boolean;
+  attr: TDOMAttr;
+  name: WideString;
+begin                 // starting '<' is already consumed at this point
+  Result := CheckName;
+  if Result then
   begin
-    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement A');{$ENDIF}
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement A');{$ENDIF}
     SetString(name, PWideChar(@FValue[0]), FValueLength);
 
     NewElem := doc.CreateElement(name);
@@ -1130,7 +1149,7 @@ var
     IsEmpty := False;
     while True do
     begin
-      {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement E');{$ENDIF}
+      {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement E');{$ENDIF}
       if CheckForChar('>') then
         Break
       else if FCurChar = '/' then
@@ -1143,7 +1162,7 @@ var
         end
            // <-- error: '>' required
       end;
-      
+
       // Get Attribute [41]
       attr := doc.CreateAttribute(ExpectName);
       NewElem.Attributes.SetNamedItem(attr);
@@ -1158,8 +1177,8 @@ var
       SkipWhitespace;
       if FCurChar = '<' then
       begin
-        t := GetChar;
-        if t = '!' then
+        GetChar;
+        if FCurChar = '!' then
         begin
           GetChar;
           if FCurChar = '[' then
@@ -1167,9 +1186,9 @@ var
           else if FCurChar = '-' then
             ParseComment(NewElem);
         end
-        else if t = '?' then
+        else if FCurChar = '?' then
           ParsePI
-        else if t = '/' then       // Get ETag [42]
+        else if FCurChar = '/' then       // Get ETag [42]
         begin
           GetChar; // skip '/'
           if ExpectName <> NewElem.NodeName then
@@ -1186,21 +1205,11 @@ var
       else
         ParseCharData(NewElem);
     until False;
-    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  CreateNameElement END');{$ENDIF}
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement END');{$ENDIF}
     ResolveEntities(NewElem);
   end;
-
-begin                // starting '<' is already consumed at this point
-  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ParseElement A');{$ENDIF}
-  if CheckName then
-  begin
-    CreateNameElement;
-    Result := True;
-  end
-  else
-    Result := False;
-  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLReader.ParseElement END');{$ENDIF}
 end;
+
 
 procedure TXMLReader.ExpectElement(AOwner: TDOMNode);
 begin
