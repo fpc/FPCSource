@@ -26,8 +26,11 @@ type
     procedure TestUnlVarChar;
     procedure TestDate;
     procedure TestDateTime;       // bug 6925
+    procedure TestFloat;
 
+    procedure TestNullValues;
     procedure TestParamQuery;
+    procedure TestAggregates;
   end;
 
 implementation
@@ -103,7 +106,10 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      AssertEquals(testValues[i],fields[0].AsString);
+      if (dbtype='mysql40') or  (dbtype='mysql41') or (dbtype='mysql50') then
+        AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL automatically trims strings
+      else
+        AssertEquals(testValues[i],fields[0].AsString);
       Next;
       end;
     close;
@@ -143,6 +149,7 @@ var
   i             : byte;
 
 begin
+  if dbtype <> 'postgresql' then exit; // Only postgres accept this type-definition
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
 
@@ -222,8 +229,14 @@ const
     '2004-03-01',
     '1991-02-28',
     '1991-03-01',
-    '2040-10-16',
     '1977-09-29',
+    '2000-01-01 10:00:00',
+    '2000-01-01 23:59:59',
+    '1994-03-06 11:54:30',
+    '2040-10-16',                   // MySQL 4.0 doesn't support datetimes before 1970 or after 2038
+    '1400-02-03 12:21:53',
+    '0354-11-20 21:25:15',
+    '1333-02-03 21:44:21',
     '1800-03-30',
     '1650-05-10',
     '1754-06-04',
@@ -238,31 +251,28 @@ const
     '1899-12-30 04:00:51',
     '1899-12-29 04:00:51',
     '1899-12-29 18:00:51',
-    '2000-01-01 10:00:00',
-    '2000-01-01 23:59:59',
-    '2100-01-01 01:01:01',
-    '1400-02-03 12:21:53',
-    '1333-02-03 21:44:21',
-    '1994-03-06 11:54:30',
     '1903-04-02 01:04:02',
     '1815-09-24 03:47:22',
-    '0354-11-20 21:25:15'
+    '2100-01-01 01:01:01'
   );
 
 var
-  i             : byte;
+  i, corrTestValueCount : byte;
 
 begin
   CreateTableWithFieldType(ftDateTime,'TIMESTAMP');
   TestFieldDeclaration(ftDateTime,8);
+  
+  if dbtype='mysql40' then corrTestValueCount := testValuesCount-21
+    else corrTestValueCount := testValuesCount;
 
-  for i := 0 to testValuesCount-1 do
+  for i := 0 to corrTestValueCount-1 do
     TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    for i := 0 to testValuesCount-1 do
+    for i := 0 to corrTestValueCount-1 do
       begin
       if length(testValues[i]) < 12 then
         AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd',fields[0].AsDateTime))
@@ -273,6 +283,53 @@ begin
     close;
     end;
 end;
+
+procedure TTestFieldTypes.TestFloat;
+const
+  testValuesCount = 21;
+  testValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
+
+var
+  i          : byte;
+
+begin
+  CreateTableWithFieldType(ftFloat,'FLOAT');
+  TestFieldDeclaration(ftFloat,sizeof(double));
+
+  for i := 0 to testValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + floattostr(testValues[i]) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      AssertEquals(testValues[i],fields[0].AsFloat);
+      Next;
+      end;
+    close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestNullValues;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FIELD1) values (1)');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('select * from FPDEV2');
+    open;
+    AssertEquals(1,FieldByName('FIELD1').AsInteger);
+    AssertTrue('Null-values test failed',FieldByName('FIELD2').IsNull);
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestParamQuery;
 begin
@@ -347,6 +404,43 @@ begin
     end;
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
+
+end;
+
+procedure TTestFieldTypes.TestAggregates;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (FIELD1 INT, FIELD2 INT)');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (1,1)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (2,3)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (3,4)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 values (4,4)');
+
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('select count(*) from FPDEV2');
+    open;
+    AssertEquals(4,Fields[0].AsInteger);
+    close;
+
+    sql.clear;
+    sql.append('select sum(FIELD1) from FPDEV2');
+    open;
+    AssertEquals(10,Fields[0].AsInteger);
+    close;
+
+    sql.clear;
+    sql.append('select avg(FIELD2) from FPDEV2');
+    open;
+    AssertEquals(3,Fields[0].AsInteger);
+    close;
+
+    end;
 
 end;
 

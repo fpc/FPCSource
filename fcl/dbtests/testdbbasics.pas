@@ -35,6 +35,10 @@ type
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
+
+    procedure TestBufDatasetCancelUpdates; //bug 6938
+    procedure TestBufDatasetCancelUpdates1;
+
   end;
 
   { TSQLTestSetup }
@@ -359,6 +363,61 @@ begin
     close;
     end;
   AParam.Free;
+end;
+
+procedure TTestDBBasics.TestBufDatasetCancelUpdates;
+var i : byte;
+begin
+  with DBConnector.GetNDataset(5) as TBufDataset do
+    begin
+    open;
+    next;
+    next;
+
+    edit;
+    FieldByName('name').AsString := 'changed';
+    post;
+    next;
+    delete;
+    
+    CancelUpdates;
+
+    First;
+
+    for i := 1 to 5 do
+      begin
+      AssertEquals(i,fields[0].AsInteger);
+      AssertEquals('TestName'+inttostr(i),fields[1].AsString);
+      Next;
+      end;
+    end;
+end;
+
+procedure TTestDBBasics.TestBufDatasetCancelUpdates1;
+var i : byte;
+begin
+  with DBConnector.GetNDataset(5) as TBufDataset do
+    begin
+    open;
+    next;
+    next;
+
+    delete;
+    insert;
+    FieldByName('id').AsInteger := 100;
+    post;
+
+    CancelUpdates;
+
+    last;
+
+    for i := 5 downto 1 do
+      begin
+      AssertEquals(i,fields[0].AsInteger);
+      AssertEquals('TestName'+inttostr(i),fields[1].AsString);
+      Prior;
+      end;
+    end;
 end;
 
 { TSQLTestSetup }
