@@ -759,7 +759,7 @@ parser_e_property_default_value_must_const=03132_E_Der Vorgabewert einer Propert
 parser_e_cant_publish_that=03133_E_Symbol darf nicht PUBLISHED sein, dies kann nur eine Klasse sein
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=03134_E_Diese Property-Art kann nicht Published sein
+parser_e_cant_publish_that_property=03134_E_Diese Property-Art kann nicht PUBLISHED sein
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
@@ -1258,6 +1258,8 @@ type_e_cant_choose_overload_function=04057_E_Kann nicht bestimmen, welche der Åb
 type_e_illegal_count_var=04058_E_Loop-Variable muss einen ordinalen Typ haben
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+type_e_class_or_cominterface_type_expected=04060_E_Class oder COM interface Typ erwartet, statt dessen "$1" erhalten
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
 #
 # Symtable
@@ -1333,16 +1335,16 @@ sym_h_para_identifier_not_used=05024_H_Parameter nicht verwendet: $1
 sym_n_local_identifier_not_used=05025_N_Lokale Variable nicht verwendet: $1
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_h_para_identifier_only_set=05026_H_Werte-Parameter "$1" wurde zugewiesen aber nie verwendet
+sym_h_para_identifier_only_set=05026_H_Werte-Parameter "$1" wurde zugewiesen, aber nie verwendet
 % This is a warning. The identifier was declared (locally or globally)
 % set but not used (locally or globally).
-sym_n_local_identifier_only_set=05027_N_Lokale Variable "$1" wurde zugewiesen aber nicht verwendet
+sym_n_local_identifier_only_set=05027_N_Lokale Variable "$1" wurde zugewiesen, aber nicht verwendet
 % The variable in a procedure or function
 % implementation is declared, set but never used.
 sym_h_local_symbol_not_used=05028_H_Lokales $1-Element "$2" wird nicht verwendet
 % A local symbol is never used.
 sym_n_private_identifier_not_used=05029_N_Privates Feld $1.$2 wird nie verwendet
-sym_n_private_identifier_only_set=05030_N_Privates Feld $1.$2 wurde zugewiesen aber nie verwendet
+sym_n_private_identifier_only_set=05030_N_Privates Feld $1.$2 wurde zugewiesen, aber nie verwendet
 sym_n_private_method_not_used=05031_N_Private Methode $1.$2 wird nie verwendet
 sym_e_set_expected=05032_E_Mengentyp erwartet
 % The variable or expression isn't of type \var{set}. This happens in an
@@ -2150,8 +2152,8 @@ option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler Version $FPCVER [$FPCDATE] fÅr $FPCTARGET
-Copyright (c) 1993-2005 Florian KlÑmpfl
+Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] fÅr $FPCTARGET
+Copyright (c) 1993-2006 Florian KlÑmpfl
 ]
 
 #
@@ -2407,7 +2409,9 @@ P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 **1X_Programm-Optionen:
 **2Xc_Åbergebe --shared an den Linker (nur Unix)
 **2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benîtigt fÅr cross compile)
+**2Xe_verwende den externen Linker
 **2XD_versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
+**2Xi_verwende den internen Linker
 **2Xm_erzeuge die "link map"
 **2XM<x>_setze den Namen der 'main' program Routine   (default ist 'main')
 **2XP<x>_stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
