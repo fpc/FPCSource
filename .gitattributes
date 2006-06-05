@@ -1618,6 +1618,7 @@ packages/base/netdb/hsh.inc svneol=native#text/plain
 packages/base/netdb/ip6test.pp svneol=native#text/plain
 packages/base/netdb/netdb.pp svneol=native#text/plain
 packages/base/netdb/testdns.pp svneol=native#text/plain
+packages/base/netdb/testhosts.pp svneol=native#text/plain
 packages/base/netdb/testhst.pp svneol=native#text/plain
 packages/base/netdb/testnet.pp svneol=native#text/plain
 packages/base/netdb/testproto.pp svneol=native#text/plain

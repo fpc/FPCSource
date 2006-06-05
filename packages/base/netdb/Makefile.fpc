@@ -14,12 +14,12 @@ units_openbsd=netdb
 units_netbsd=netdb
 units_darwin=netdb
 units_solaris=netdb
-examples_linux=testdns testhst testsvc testnet
-examples_freebsd=testdns testhst testsvc testnet
-examples_openbsd=testdns testhst testsvc testnet
-examples_netbsd=testdns testhst testsvc testnet
-examples_darwin=testdns testhst testsvc testnet
-examples_solaris=testdns testhst testsvc testnet
+examples_linux=testdns testhst testsvc testnet testhosts
+examples_freebsd=testdns testhst testsvc testnet testhosts
+examples_openbsd=testdns testhst testsvc testnet testhosts
+examples_netbsd=testdns testhst testsvc testnet testhosts
+examples_darwin=testdns testhst testsvc testnet testhosts
+examples_solaris=testdns testhst testsvc testnet testhosts
 examples=testuri
 
 [require]
