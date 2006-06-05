@@ -12,6 +12,10 @@
 
  **********************************************************************}
 Unit UComplex;
+{$ifndef VER2_0}
+{$INLINE ON}
+{$define TEST_INLINE}
+{$endif VER2_0}
 
 { created for FPC by Pierre Muller }
 { inpired from the complex unit from  JD GAYRARD mai 95 }
@@ -347,7 +351,7 @@ Unit UComplex;
   function carg (z : complex): real;
     { argument : 0 / z = p ei0 }
     begin
-       carg := arctan2(z.re, z.im);
+       carg := arctan2(z.im, z.re);
     end;
 
   function cong (z : complex) : complex;
