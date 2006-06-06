@@ -38,7 +38,7 @@ uses
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
-Procedure AddDisk(const path:string);
+Function AddDisk(const path:string) : Byte;
 
 { the following is Kylix compatibility stuff, it should be moved to a
   special compatibilty unit (FK) }
@@ -732,7 +732,7 @@ var
   Drives   : byte;
   DriveStr : array[4..26] of pchar;
 
-Procedure AddDisk(const path:string);
+Function AddDisk(const path:string) : Byte;
 begin
   if not (DriveStr[Drives]=nil) then
    FreeMem(DriveStr[Drives],StrLen(DriveStr[Drives])+1);
@@ -741,6 +741,7 @@ begin
   inc(Drives);
   if Drives>26 then
    Drives:=4;
+  Result:=Drives; 
 end;
 
 

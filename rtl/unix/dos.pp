@@ -51,7 +51,7 @@ Procedure UnixDateToDt(SecsPast: LongInt; Var Dt: DateTime);
 Function  DTToUnixDate(DT: DateTime): LongInt;
 
 {Disk}
-Procedure AddDisk(const path:string);
+Function AddDisk(const path:string) : byte;
 
 Implementation
 
@@ -384,7 +384,7 @@ const
 var
   DriveStr : array[4..26] of pchar;
 
-Procedure AddDisk(const path:string);
+Function AddDisk(const path:string) : byte;
 begin
   if not (DriveStr[Drives]=nil) then
    FreeMem(DriveStr[Drives],StrLen(DriveStr[Drives])+1);
@@ -392,7 +392,8 @@ begin
   StrPCopy(DriveStr[Drives],path);
   inc(Drives);
   if Drives>26 then
-   Drives:=4;
+    Drives:=4;
+  AddDisk:=Drives; 
 end;
 
 
