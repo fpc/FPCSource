@@ -914,6 +914,9 @@ implementation
 
         if assigned(left) then
           resulttypepass(left);
+
+        { disable inline }
+        exclude(current_procinfo.procdef.procoptions,po_inline);
       end;
 
 
