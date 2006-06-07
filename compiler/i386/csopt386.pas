@@ -1687,7 +1687,7 @@ var
   regloads, reguses: array[RS_EAX..RS_EDI] of tai;
   regcounter, substreg: tsuperregister;
   hp, hp2: tai;
-  insertpos, prevseq_next: tai;
+  insertpos, insertoptinfo, prevseq_next: tai;
   i: longint;
   opc: tasmop;
 begin
@@ -1727,14 +1727,22 @@ begin
             getLastInstruction(curseqend,hp);
             opc := A_MOV;
             insertpos := prevseq_next;
+            insertoptinfo := prevseqstart;
             if assigned(reguses[regcounter]) then
               if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
                 opc := A_XCHG
               else
-                insertpos := tai(reguses[regcounter].next)
+                begin
+                  insertoptinfo := reguses[regcounter];
+                  insertpos := tai(insertoptinfo.next)
+                end
             else
               if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                 insertpos := regloads[reginfo.new2oldreg[regcounter]];
+                 begin
+                   insertpos := regloads[reginfo.new2oldreg[regcounter]];
+                   if not getlastinstruction(insertpos,insertoptinfo) then
+                     internalerror(2006060701);
+                 end;
             hp := Tai_Marker.Create(mark_NoPropInfoStart);
             InsertLLItem(asml, insertpos.previous,insertpos, hp);
             hp2 := taicpu.Op_Reg_Reg(opc, S_L,
@@ -1751,7 +1759,7 @@ begin
             regloads[regcounter] := hp2;
             reguses[reginfo.new2oldreg[regcounter]] := hp2;
             new(ptaiprop(hp2.optinfo));
-            ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
+            ptaiprop(hp2.optinfo)^ := ptaiprop(insertoptinfo.optinfo)^;
             ptaiprop(hp2.optinfo)^.canBeRemoved := false;
             InsertLLItem(asml, insertpos.previous, insertpos, hp2);
             hp := Tai_Marker.Create(mark_NoPropInfoEnd);
