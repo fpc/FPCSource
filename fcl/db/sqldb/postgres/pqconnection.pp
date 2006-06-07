@@ -73,6 +73,8 @@ type
 
 implementation
 
+uses math;
+
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
   SErrCommitFailed = 'Commit transaction failed';
@@ -545,13 +547,21 @@ end;
 
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean;
 
-var
-  x,i          : integer;
-  li           : Longint;
-  CurrBuff     : pchar;
-  tel  : byte;
-  dbl  : pdouble;
+type TNumericRecord = record
+       Digits : SmallInt;
+       Weight : SmallInt;
+       Sign   : SmallInt;
+       Scale  : Smallint;
+     end;
 
+var
+  x,i           : integer;
+  li            : Longint;
+  CurrBuff      : pchar;
+  tel           : byte;
+  dbl           : pdouble;
+  cur           : currency;
+  NumericRecord : ^TNumericRecord;
 
 begin
   with cursor as TPQCursor do
@@ -568,6 +578,8 @@ begin
       begin
       i := PQfsize(res, x);
       CurrBuff := pqgetvalue(res,CurTuple,x);
+
+      result := true;
 
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
@@ -607,12 +619,30 @@ begin
           end;
         ftBCD:
           begin
-          // not implemented
+          NumericRecord := pointer(CurrBuff);
+          NumericRecord^.Digits := BEtoN(NumericRecord^.Digits);
+          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
+          NumericRecord^.Weight := BEtoN(NumericRecord^.Weight);
+          inc(pointer(currbuff),sizeof(TNumericRecord));
+          cur := 0;
+          if (NumericRecord^.Digits = 0) and (NumericRecord^.Scale = 0) then // = NaN, which is not supported by Currency-type, so we return NULL
+            result := false
+          else
+            begin
+            for tel := 1 to NumericRecord^.Digits  do
+              begin
+              cur := cur + beton(pword(currbuff)^) * intpower(10000,-(tel-1)+NumericRecord^.weight);
+              inc(pointer(currbuff),2);
+              end;
+            if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
+            Move(Cur, Buffer^, sizeof(currency));
+            end;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]
+        else
+          result := false;
       end;
-      result := true;
       end;
     end;
 end;
