@@ -469,7 +469,9 @@ implementation
                       begin
                         { pc relative symbol? }
                         curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
-                        if assigned(curdatatai) then
+                        if assigned(curdatatai) and
+                          { move only if we're at the first reference of a label }
+                          (taicpu(curtai).oper[curop]^.ref^.offset=0) then
                           begin
                             { if yes, insert till next symbol }
                             repeat

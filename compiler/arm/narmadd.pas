@@ -33,6 +33,7 @@ interface
        private
           function  GetResFlags(unsigned:Boolean):TResFlags;
        protected
+          function pass_1 : tnode;override;
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
           procedure second_cmpordinal;override;
@@ -297,6 +298,21 @@ interface
             cg.a_jmp_flags(exprasmlist,getresflags(true),truelabel);
             cg.a_jmp_always(exprasmlist,falselabel);
           end;
+      end;
+
+
+    function tarmaddnode.pass_1 : tnode;
+      begin
+        result:=inherited pass_1;
+
+        { handling boolean expressions }
+        if not(assigned(result)) and
+           (
+             not(is_boolean(left.resulttype.def)) or
+             not(is_boolean(right.resulttype.def)) or
+             is_dynamic_array(left.resulttype.def)
+           ) then
+          expectloc:=LOC_FLAGS;
       end;
 
 
