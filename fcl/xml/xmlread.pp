@@ -126,7 +126,8 @@ type
     function  ParseMarkupDecl: Boolean;                                 // [29]
     procedure ParseCharData(AOwner: TDOMNode);                          // [14]
     procedure ParseCDSect(AOwner: TDOMNode);                            // [18]
-    function  ParseElement(AOwner: TDOMNode): Boolean;                  // [39]
+    function ParseElementContent(AOwner: TDOMNode): Boolean;
+    procedure ParseElement(AOwner: TDOMNode);                           // [39]
     procedure ExpectElement(AOwner: TDOMNode);
     procedure ParseReference(AOwner: TDOMNode);                         // [67]
     function  ParsePEReference: Boolean;                                // [69]
@@ -444,8 +445,6 @@ begin
 end;
 
 procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar; const AFilename: String);
-var
-  t: WideChar;
 begin
   buf := ABuf;
   Filename := AFilename;
@@ -453,29 +452,9 @@ begin
   FColumn := 0;
   FEncoding := enUTF8; // TODO: Detect it? Not sure for now...
   GetChar;
-  repeat
-    SkipWhitespace;
-    if FCurChar = '<' then
-    begin
-      t := GetChar;
-      if t = '!' then
-      begin
-        GetChar;
-        if FCurChar = '[' then
-          ParseCDSect(AOwner)
-        else if FCurChar = '-' then
-          ParseComment(AOwner);
-      end
-      else if t = '?' then
-        ParsePI
-      else
-        ParseElement(AOwner);
-    end
-    else if FCurChar = '&' then
-      ParseReference(AOwner)
-    else
-      ParseCharData(AOwner);
-  until FCurChar = #0;
+
+  if not ParseElementContent(AOwner) then
+    ;
 end;
 
 function TXMLReader.CheckName: Boolean;        // [5]
@@ -628,7 +607,7 @@ begin
         end;
     until FCurChar = #0;  // should not happen
   end;
-  
+
 end;
 
 // here we come from ParsePI, 'xml' is already consumed
@@ -1074,7 +1053,7 @@ begin
   FEncoding := enUTF8;  // TODO: Detect? Don't know for sure now...
   GetChar;
   doc := TXMLReaderDocument.Create;
-  ParseMarkupDecl;
+  ParseMarkupDecl;      // TODO: PEReferences?
 
   {
   if buf[0] <> #0 then begin
@@ -1129,91 +1108,104 @@ begin
   AOwner.AppendChild(doc.CreateCDATASection(name));
 end;
 
-function TXMLReader.ParseElement(AOwner: TDOMNode): Boolean;    // [39] [40] [44]
+{
+  returns True at end of stream.
+     this is ok for fragments but error for document
+  returns False when '<' is followed by ([^![?] | NameStartChar)
+     this is ok for document (expect ETag then) but error for fragment
+}
+
+function TXMLReader.ParseElementContent(AOwner: TDOMNode): Boolean;
+begin
+  Result := False;
+  repeat
+    SkipWhitespace;
+    if FCurChar = '<' then
+    begin
+      GetChar;
+      if FCurChar = '!' then
+      begin
+        GetChar;
+        if FCurChar = '[' then
+          ParseCDSect(AOwner)
+        else if FCurChar = '-' then
+          ParseComment(AOwner);
+      end
+      else if FCurChar = '?' then
+        ParsePI
+      else if CheckName then
+        ParseElement(AOwner)
+      else
+        Exit;
+    end
+    else if FCurChar = '&' then
+      ParseReference(AOwner)
+    else
+      ParseCharData(AOwner);
+  until FCurChar = #0;
+  Result := True;
+end;
+
+// Element name already in FValueBuffer
+procedure TXMLReader.ParseElement(AOwner: TDOMNode);    // [39] [40] [44]
 var
   NewElem: TDOMElement;
   IsEmpty: Boolean;
   attr: TDOMAttr;
   name: WideString;
-begin                 // starting '<' is already consumed at this point
-  Result := CheckName;
-  if Result then
+begin
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement A');{$ENDIF}
+  SetString(name, PWideChar(@FValue[0]), FValueLength);
+
+  NewElem := doc.CreateElement(name);
+  AOwner.AppendChild(NewElem);
+
+  SkipWhitespace;
+  IsEmpty := False;
+  while not CheckForChar('>') do
   begin
-    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement A');{$ENDIF}
-    SetString(name, PWideChar(@FValue[0]), FValueLength);
-
-    NewElem := doc.CreateElement(name);
-    AOwner.AppendChild(NewElem);
-
-    SkipWhitespace;
-    IsEmpty := False;
-    while True do
+    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement E');{$ENDIF}
+    if CheckForChar('/') then
     begin
-      {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement E');{$ENDIF}
-      if CheckForChar('>') then
-        Break
-      else if FCurChar = '/' then
-      begin
-        GetChar;
-        if CheckForChar('>') then
-        begin
-          IsEmpty := True;
-          Break;
-        end
-           // <-- error: '>' required
-      end;
-
-      // Get Attribute [41]
-      attr := doc.CreateAttribute(ExpectName);
-      NewElem.Attributes.SetNamedItem(attr);
-      ExpectEq;
-      ExpectAttValue(attr);
-
-      SkipWhitespace;
+      ExpectChar('>');  // '>' should follow, otherwise it's fatal error
+      IsEmpty := True;
+      Break;
     end;
 
-    if not IsEmpty then           // Get content
-    repeat
-      SkipWhitespace;
-      if FCurChar = '<' then
-      begin
-        GetChar;
-        if FCurChar = '!' then
-        begin
-          GetChar;
-          if FCurChar = '[' then
-            ParseCDSect(NewElem)
-          else if FCurChar = '-' then
-            ParseComment(NewElem);
-        end
-        else if FCurChar = '?' then
-          ParsePI
-        else if FCurChar = '/' then       // Get ETag [42]
-        begin
-          GetChar; // skip '/'
-          if ExpectName <> NewElem.NodeName then
-            RaiseExc('Unmatching element end tag (expected "</' + NewElem.NodeName + '>")');
-          SkipWhitespace;
-          ExpectChar('>');
-          Break;
-        end
-        else
-          ParseElement(NewElem);
-      end
-      else if FCurChar = '&' then
-        ParseReference(NewElem)
-      else
-        ParseCharData(NewElem);
-    until False;
-    {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement END');{$ENDIF}
-    ResolveEntities(NewElem);
+    // Get Attribute [41]
+    attr := doc.CreateAttribute(ExpectName);
+    NewElem.Attributes.SetNamedItem(attr);
+    ExpectEq;
+    ExpectAttValue(attr);
+
+    SkipWhitespace;
   end;
+
+  if not IsEmpty then
+  begin
+    if not ParseElementContent(NewElem) then
+    begin
+      if CheckForChar('/') then         // Get ETag [42]
+      begin
+        if ExpectName <> NewElem.NodeName then
+          RaiseExc('Unmatching element end tag (expected "</' + NewElem.NodeName + '>")');
+        SkipWhitespace;
+        ExpectChar('>');
+      end
+      else
+        RaiseExc('Invalid name start character');
+    end;
+  end;
+  {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('  ParseElement END');{$ENDIF}
+  ResolveEntities(NewElem);
 end;
 
 
 procedure TXMLReader.ExpectElement(AOwner: TDOMNode);
 begin
-  if not ParseElement(AOwner) then
+  if CheckName then
+    ParseElement(AOwner)
+  else
     RaiseExc('Expected element');
 end;
 
