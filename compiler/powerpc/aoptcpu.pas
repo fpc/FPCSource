@@ -170,7 +170,7 @@ const
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next1, next2: tai;
-      l1, l2: longint;
+      l1, l2, shlcount: longint;
     begin
       result := false;
       case p.typ of
@@ -221,17 +221,14 @@ const
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
                      (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
                     begin
-                      if (taicpu(next1).oper[2]^.val = 0) then
-                        begin
-                          { convert slwi to rlwinm and see if the rlwinm }
-                          { optimization can do something with it        }
-                          taicpu(p).opcode := A_RLWINM;
-                          taicpu(p).ops := 5;
-                          taicpu(p).loadconst(2,taicpu(p).oper[2]^.val);
-                          taicpu(p).loadconst(3,0);
-                          taicpu(p).loadconst(4,31-taicpu(p).oper[2]^.val);
-                          result := true;
-                        end;
+                      { convert slwi to rlwinm and see if the rlwinm }
+                      { optimization can do something with it        }
+                      taicpu(p).opcode := A_RLWINM;
+                      taicpu(p).ops := 5;
+                      taicpu(p).loadconst(2,taicpu(p).oper[2]^.val);
+                      taicpu(p).loadconst(3,0);
+                      taicpu(p).loadconst(4,31-taicpu(p).oper[2]^.val);
+                      result := true;
                     end;
                 end;
               A_SRWI:
@@ -265,17 +262,14 @@ const
                         end;
                       A_RLWINM:
                         begin
-                          if (taicpu(next1).oper[2]^.val = 0) then
-                            begin
-                              { convert srwi to rlwinm and see if the rlwinm }
-                              { optimization can do something with it        }
-                              taicpu(p).opcode := A_RLWINM;
-                              taicpu(p).ops := 5;
-                              taicpu(p).loadconst(3,taicpu(p).oper[2]^.val);
-                              taicpu(p).loadconst(4,31);
-                              taicpu(p).loadconst(2,(32-taicpu(p).oper[2]^.val) and 31);
-                              result := true;
-                            end;
+                          { convert srwi to rlwinm and see if the rlwinm }
+                          { optimization can do something with it        }
+                          taicpu(p).opcode := A_RLWINM;
+                          taicpu(p).ops := 5;
+                          taicpu(p).loadconst(3,taicpu(p).oper[2]^.val);
+                          taicpu(p).loadconst(4,31);
+                          taicpu(p).loadconst(2,(32-taicpu(p).oper[2]^.val) and 31);
+                          result := true;
                         end;
                     end;
                 end;
@@ -283,18 +277,36 @@ const
                 begin
                   if getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
-                     (taicpu(next1).opcode = A_RLWINM) and
+                     ((taicpu(next1).opcode = A_RLWINM) or
+                      (taicpu(next1).opcode = A_SRWI) or
+                      (taicpu(next1).opcode = A_SLWI)) and
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
                      // both source and target of next1 must equal target of p
                      (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
                     begin
-                      l1 := rlwinm2mask((taicpu(p).oper[3]^.val-taicpu(next1).oper[2]^.val) and 31,(taicpu(p).oper[4]^.val-taicpu(next1).oper[2]^.val) and 31);
-                      l2 := rlwinm2mask(taicpu(next1).oper[3]^.val,taicpu(next1).oper[4]^.val);
+                      case taicpu(next1).opcode of
+                        A_RLWINM:
+                          begin
+                            shlcount := taicpu(next1).oper[2]^.val;
+                            l2 := rlwinm2mask(taicpu(next1).oper[3]^.val,taicpu(next1).oper[4]^.val);
+                          end;
+                        A_SLWI:
+                          begin
+                            shlcount := taicpu(next1).oper[2]^.val;
+                            l2 := (-1) shl shlcount;
+                          end;
+                        A_SRWI:
+                          begin
+                            shlcount := 32-taicpu(next1).oper[2]^.val;
+                            l2 := (-1) shr taicpu(next1).oper[2]^.val;
+                          end;
+                      end;
+                      l1 := rlwinm2mask((taicpu(p).oper[3]^.val-shlcount) and 31,(taicpu(p).oper[4]^.val-shlcount) and 31);
                       l1 := l1 and l2;
                       case l1 of
                         -1:
                           begin
-                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + taicpu(next1).oper[2]^.val) and 31;
+                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + shlcount) and 31;
                             asml.remove(next1);
                             next1.free;
                             if (taicpu(p).oper[2]^.val = 0) then
@@ -322,7 +334,7 @@ const
                           end
                         else if tcgppc(cg).get_rlwi_const(l1,l1,l2) then
                           begin
-                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + taicpu(next1).oper[2]^.val) and 31;
+                            taicpu(p).oper[2]^.val := (taicpu(p).oper[2]^.val + shlcount) and 31;
                             taicpu(p).oper[3]^.val := l1;
                             taicpu(p).oper[4]^.val := l2;
                             asml.remove(next1);
