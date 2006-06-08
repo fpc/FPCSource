@@ -405,7 +405,11 @@ begin
         s := s + '(';
         for i := 0 to AParams.count-1 do if TypeStrings[AParams[i].DataType] <> 'Unknown' then
           s := s + TypeStrings[AParams[i].DataType] + ','
-        else DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+        else
+          begin
+          if AParams[i].DataType = ftUnknown then DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+            else DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+          end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,psPostgreSQL);
         end;

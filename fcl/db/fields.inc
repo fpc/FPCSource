@@ -2075,7 +2075,7 @@ end;
 function TBCDField.GetDataSize: Word;
 
 begin
-  result := sizeof(currency);
+  result := sizeof(system.currency);
 end;
 
 function TBCDField.GetDefaultWidth: Longint;
