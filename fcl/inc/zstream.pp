@@ -312,6 +312,8 @@ end;
 
 destructor TDecompressionStream.Destroy;
 begin
+  if FZRec.avail_in <> 0 then
+    Source.Seek(-FZRec.avail_in, soFromCurrent);
   inflateEnd(FZRec);
   inherited Destroy;
 end;
@@ -345,7 +347,11 @@ begin
       FStrmPos := Source.Position;
       Progress(Self);
     end;
-    DeCompressionCheck(inflate(FZRec, 0));
+    if DeCompressionCheck(inflate(FZRec, 0)) = Z_STREAM_END then
+	begin
+	  Result := Count - FZRec.avail_out;
+	  Exit;
+	end;
   end;
   Result := Count;
 end;
