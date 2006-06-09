@@ -57,7 +57,6 @@ interface
 {$endif x86_64}
 {$ifdef arm}
          RELOC_RELATIVE_24,
-         RELOC_NONE,
 {$endif arm}
          { Relative relocation }
          RELOC_RELATIVE,
@@ -65,7 +64,9 @@ interface
          RELOC_RVA,
          { Generate a 0 value at the place of the relocation,
            this is used to remove unused vtable entries }
-         RELOC_ZERO
+         RELOC_ZERO,
+         { dummy reloc }
+         RELOC_NONE
       );
 
 {$ifndef x86_64}
@@ -767,12 +768,11 @@ implementation
           {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
           {stab} [oso_Data,oso_noload,oso_debug],
           {stabstr} [oso_Data,oso_noload,oso_strings,oso_debug],
-{$warning TODO iData keep can maybe replaced with grouping of text and iData}
-          {iData2} [oso_Data,oso_load,oso_write,oso_keep],
-          {iData4} [oso_Data,oso_load,oso_write,oso_keep],
-          {iData5} [oso_Data,oso_load,oso_write,oso_keep],
-          {iData6} [oso_Data,oso_load,oso_write,oso_keep],
-          {iData7} [oso_Data,oso_load,oso_write,oso_keep],
+          {iData2} [oso_Data,oso_load,oso_write],
+          {iData4} [oso_Data,oso_load,oso_write],
+          {iData5} [oso_Data,oso_load,oso_write],
+          {iData6} [oso_Data,oso_load,oso_write],
+          {iData7} [oso_Data,oso_load,oso_write],
           {eData} [oso_Data,oso_load,oso_readonly],
           {eh_frame} [oso_Data,oso_load,oso_readonly],
           {debug_frame} [oso_Data,oso_noload,oso_debug],

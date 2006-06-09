@@ -771,6 +771,8 @@ const win32stub : array[0..131] of byte=(
         for i:=0 to ObjRelocations.Count-1 do
           begin
             objreloc:=TObjRelocation(ObjRelocations[i]);
+            if objreloc.typ=RELOC_NONE then
+              continue;
             if objreloc.typ=RELOC_ZERO then
               begin
                 data.Seek(objreloc.dataoffset);
@@ -824,8 +826,6 @@ const win32stub : array[0..131] of byte=(
                   if (relocval<>$3f) and (relocval<>0) then
                     internalerror(200606085);  { offset overflow }
                 end;
-              RELOC_NONE:
-                ;  { nothing to do }
 {$endif arm}
 {$ifdef x86_64}
               { 64 bit coff only }
@@ -2272,6 +2272,8 @@ const win32stub : array[0..131] of byte=(
         idata5objsection,
         idata6objsection,
         idata7objsection : TObjSection;
+        idata2label : TObjSymbol;
+        basedllname : string;
 
         procedure StartImport(const dllname:string);
         var
@@ -2279,7 +2281,6 @@ const win32stub : array[0..131] of byte=(
           idata5label,
           idata7label : TObjSymbol;
           emptyint    : longint;
-          basedllname : string;
         begin
           if assigned(exemap) then
             begin
@@ -2288,17 +2289,20 @@ const win32stub : array[0..131] of byte=(
             end;
           emptyint:=0;
           basedllname:=splitfilename(dllname);
-          textobjsection:=internalobjdata.createsection(sec_code,'');
-          idata2objsection:=internalobjdata.createsection(sec_idata2,'');
-          idata4objsection:=internalobjdata.createsection(sec_idata4,'');
+          idata2objsection:=internalobjdata.createsection(sec_idata2,basedllname);
+          idata2label:=internalobjdata.SymbolDefine('__imp_dir_'+basedllname,AB_LOCAL,AT_DATA);
+          idata4objsection:=internalobjdata.createsection(sec_idata4,basedllname);
           idata4label:=internalobjdata.SymbolDefine('__imp_names_'+basedllname,AB_LOCAL,AT_DATA);
-          idata5objsection:=internalobjdata.createsection(sec_idata5,'');
+          idata5objsection:=internalobjdata.createsection(sec_idata5,basedllname);
           idata5label:=internalobjdata.SymbolDefine('__imp_fixup_'+basedllname,AB_LOCAL,AT_DATA);
-          idata6objsection:=internalobjdata.createsection(sec_idata6,'');
-          idata7objsection:=internalobjdata.createsection(sec_idata7,'');
+          idata7objsection:=internalobjdata.createsection(sec_idata7,basedllname);
           idata7label:=internalobjdata.SymbolDefine('__imp_dll_'+basedllname,AB_LOCAL,AT_DATA);
           { idata2 }
           internalobjdata.SetSection(idata2objsection);
+          { dummy links to imports finalization }
+          internalobjdata.writereloc(0,0,internalobjdata.SymbolRef('__imp_names_end_'+basedllname),RELOC_NONE);
+          internalobjdata.writereloc(0,0,internalobjdata.SymbolRef('__imp_fixup_end_'+basedllname),RELOC_NONE);
+          { section data }
           internalobjdata.writereloc(0,sizeof(longint),idata4label,RELOC_RVA);
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
@@ -2315,6 +2319,10 @@ const win32stub : array[0..131] of byte=(
           emptyint : longint;
         begin
           emptyint:=0;
+          idata4objsection:=internalobjdata.createsection(sec_idata4, 'end_'+basedllname);
+          internalobjdata.SymbolDefine('__imp_names_end_'+basedllname,AB_LOCAL,AT_DATA);
+          idata5objsection:=internalobjdata.createsection(sec_idata5, 'end_'+basedllname);
+          internalobjdata.SymbolDefine('__imp_fixup_end_'+basedllname,AB_LOCAL,AT_DATA);
           { idata4 }
           internalobjdata.SetSection(idata4objsection);
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
@@ -2349,29 +2357,44 @@ const win32stub : array[0..131] of byte=(
             $90,$90
           );
         var
+          idata4label,
           idata5label,
           idata6label : TObjSymbol;
           emptyint : longint;
+          num : string;
         begin
           result:=nil;
           emptyint:=0;
           if assigned(exemap) then
             exemap.Add(' Importing Function '+afuncname);
+
+          with internalobjdata do
+            textobjsection:=createsection(sectionname(sec_code,'__'+afuncname),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
+          idata4objsection:=internalobjdata.createsection(sec_idata4, afuncname);
+          idata5objsection:=internalobjdata.createsection(sec_idata5, afuncname);
+          idata6objsection:=internalobjdata.createsection(sec_idata6, afuncname);
+
           { idata6, import data (ordnr+name) }
           internalobjdata.SetSection(idata6objsection);
           inc(idatalabnr);
-          idata6label:=internalobjdata.SymbolDefine('__imp_'+tostr(idatalabnr),AB_LOCAL,AT_DATA);
+          num:=tostr(idatalabnr);
+          idata6label:=internalobjdata.SymbolDefine('__imp_'+num,AB_LOCAL,AT_DATA);
           internalobjdata.writebytes(emptyint,2);
           internalobjdata.writebytes(afuncname[1],length(afuncname));
           internalobjdata.writebytes(emptyint,1);
           internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
+          idata4label:=internalobjdata.SymbolDefine('__imp_lookup_'+num,AB_LOCAL,AT_DATA);
           internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
+          { dummy back links }
+          internalobjdata.writereloc(0,0,idata4label,RELOC_NONE);
+          internalobjdata.writereloc(0,0,idata2label,RELOC_NONE);
+          { section data }
           idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
           internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
           if target_info.system=system_x86_64_win64 then
@@ -2519,13 +2542,13 @@ const win32stub : array[0..131] of byte=(
             Concat('  SYMBOL __bss_end__');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .idata');
-            Concat('  OBJSECTION .idata$2');
-            Concat('  OBJSECTION .idata$3');
+            Concat('  OBJSECTION .idata$2*');
+            Concat('  OBJSECTION .idata$3*');
             Concat('  ZEROS 20');
-            Concat('  OBJSECTION .idata$4');
-            Concat('  OBJSECTION .idata$5');
-            Concat('  OBJSECTION .idata$6');
-            Concat('  OBJSECTION .idata$7');
+            Concat('  OBJSECTION .idata$4*');
+            Concat('  OBJSECTION .idata$5*');
+            Concat('  OBJSECTION .idata$6*');
+            Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .edata');
             Concat('  OBJSECTION .edata*');
