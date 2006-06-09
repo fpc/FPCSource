@@ -1557,7 +1557,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
          end;
 {$ifdef cpurequiresproperalignment}
-         current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(4));
+         current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(min));
          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(max));
@@ -1702,7 +1702,7 @@ implementation
 {$endif cpurequiresproperalignment}
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(byte(trans[typ])));
 {$ifdef cpurequiresproperalignment}
-         current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(4));
+         current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(low)));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(high)));
