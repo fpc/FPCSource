@@ -973,7 +973,9 @@ begin
     Prepare;
     Execute;
   finally
-    if (not IsPrepared) and (assigned(database)) then (database as TSQLConnection).UnPrepareStatement(Fcursor);
+    // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
+    // called, so UnPrepareStatement shoudn't be called either
+    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then (database as TSQLConnection).UnPrepareStatement(Fcursor);
   end;
 end;
 
