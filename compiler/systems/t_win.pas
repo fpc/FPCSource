@@ -149,7 +149,7 @@ implementation
          hp2:=twin32imported_item(hp1.imported_items.first);
          while assigned(hp2) do
           begin
-            if (hp2.name^=name) then
+            if (hp2.name^=name) and (hp2.ordnr=index) then
               break;
             hp2:=twin32imported_item(hp2.next);
           end;
@@ -369,9 +369,28 @@ implementation
           objdata.writebytes(emptyint,align(objdata.CurrObjSec.size,2)-objdata.CurrObjSec.size);
           { idata4, import lookup table }
           objdata.SetSection(idata4objsection);
-          objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-          if target_info.system=system_x86_64_win64 then
-            objdata.writebytes(emptyint,sizeof(emptyint));
+          if afuncname<>'' then
+            begin
+              objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+              if target_info.system=system_x86_64_win64 then
+                objdata.writebytes(emptyint,sizeof(emptyint));
+            end
+          else
+            begin
+              emptyint:=ordnr;
+              if target_info.system=system_x86_64_win64 then
+                begin
+                  objdata.writebytes(emptyint,sizeof(emptyint));
+                  emptyint:=$80000000;
+                  objdata.writebytes(emptyint,sizeof(emptyint));
+                end
+              else
+                begin
+                  emptyint:=emptyint or $80000000;
+                  objdata.writebytes(emptyint,sizeof(emptyint));
+                end;
+              emptyint:=0;
+            end;
           { idata5, import address table }
           objdata.SetSection(idata5objsection);
           if isvar then
@@ -385,7 +404,10 @@ implementation
           if not isvar then
             begin
               objdata.SetSection(textobjsection);
-              implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_FUNCTION);
+              if afuncname <> '' then
+                implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_FUNCTION)
+              else
+                implabel:=objdata.SymbolDefine(basedllname+'_index_'+tostr(ordnr),AB_GLOBAL,AT_FUNCTION);
               objdata.writebytes(jmpopcode,sizeof(jmpopcode));
               objdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
               objdata.writebytes(nopopcodes,align(objdata.CurrObjSec.size,sizeof(nopopcodes))-objdata.CurrObjSec.size);
@@ -518,7 +540,10 @@ implementation
                       { create indirect jump and }
                       { place jump in al_procedures }
                       new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(target_info.cprefix+hp2.func^,AT_FUNCTION,0));
+                      if hp2.name^ <> '' then
+                        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0))
+                      else
+                        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(splitfilename(hp1.dllname^)+'_index_'+tostr(hp2.ordnr),AT_FUNCTION,0));
                       current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                     {$ifdef ARM}
                       reference_reset_symbol(href,l5,0);

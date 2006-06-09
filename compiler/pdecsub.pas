@@ -2078,38 +2078,37 @@ const
         result:='';
         if not(po_external in pd.procoptions) then
           internalerror(200412151);
-        { import by number? }
-        if pd.import_nr<>0 then
+        { external name or number is specified }
+        if assigned(pd.import_name) or (pd.import_nr<>0) then
           begin
-            { Nothing to do }
-          end
-        else
-        { external name specified }
-          if assigned(pd.import_name) then
-            begin
-              if assigned(pd.import_dll) then
-                begin
-                  { If we are not using direct dll linking under win32 then imports
-                    need to use the normal name since to functions can refer to the
-                    same DLL function. This is also needed for compatability
-                    with Delphi and TP7 }
-                  case target_info.system of
-                    system_i386_emx,
-                    system_i386_os2 :
+            if assigned(pd.import_dll) then
+              begin
+                { If we are not using direct dll linking under win32 then imports
+                  need to use the normal name since to functions can refer to the
+                  same DLL function. This is also needed for compatability
+                  with Delphi and TP7 }
+                case target_info.system of
+                  system_i386_emx,
+                  system_i386_os2 :
+                    begin
+                      { keep normal mangledname }
+                    end;
+                  else
+                    if assigned(pd.import_name) then
                       begin
-                        { keep normal mangledname }
-                      end;
+                        if target_info.system in system_all_windows then
+                          { cprefix is not used in DLL imports under Windows }
+                          result:=pd.import_name^
+                        else
+                          result:=maybe_cprefix(pd.import_name^);
+                      end
                     else
-                      if target_info.system in system_all_windows then
-                        { cprefix is not used in DLL imports under Windows }
-                        result:=pd.import_name^
-                      else
-                        result:=maybe_cprefix(pd.import_name^);
-                  end;
-                end
-              else
-                result:=maybe_cprefix(pd.import_name^);
-            end
+                      result:=splitfilename(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
+                end;
+              end
+            else
+              result:=maybe_cprefix(pd.import_name^);
+          end
         else
           begin
             { Default names when importing variables }
