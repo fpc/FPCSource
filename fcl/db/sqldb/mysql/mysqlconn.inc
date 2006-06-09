@@ -46,6 +46,8 @@ Type
     Row : MYSQL_ROW;
     RowsAffected : QWord;
     LastInsertID : QWord;
+    ParamBinding : TParamBinding;
+    ParamReplaceString : String;
   end;
 
   TConnectionName = class (TSQLConnection)
@@ -63,7 +65,7 @@ Type
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AType: enum_field_types; ASize: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types; ASize: Integer; Source, Dest: PChar): Integer;
+    function MySQLWriteData(AType: enum_field_types; ASize: Integer; Source, Dest: PChar): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -258,11 +260,13 @@ end;
 procedure TConnectionName.PrepareStatement(cursor: TSQLCursor;
   ATransaction: TSQLTransaction; buf: string;AParams : TParams);
 begin
-  if assigned(AParams) and (AParams.count > 0) then
-    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
+//  if assigned(AParams) and (AParams.count > 0) then
+//    DatabaseError('Parameters (not) yet supported for the MySQL SqlDB connection.',self);
   With Cursor as TCursorName do
     begin
     FStatement:=Buf;
+    if assigned(AParams) and (AParams.count > 0) then
+      FStatement := AParams.ParseSQL(FStatement,false,psSimulated,paramBinding,ParamReplaceString);
     if FStatementType=stSelect then
       FNeedData:=True;
     ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
@@ -306,11 +310,15 @@ procedure TConnectionName.Execute(cursor: TSQLCursor;
 
 Var
   C : TCursorName;
+  i : integer;
 
 begin
   C:=Cursor as TCursorName;
   If (C.FRes=Nil) then
     begin
+    if Assigned(AParams) and (AParams.count > 0) then
+      for i := 0 to AParams.count -1 do
+        C.FStatement := stringreplace(C.FStatement,C.ParamReplaceString+inttostr(AParams[i].Index+1),GetAsSQLText(AParams[i]),[rfReplaceAll,rfIgnoreCase]);
     if mysql_query(c.FQMySQL,Pchar(C.FStatement))<>0 then
       MySQLError(c.FQMYSQL,Format(SErrExecuting,[StrPas(mysql_error(c.FQMySQL))]),Self)
     else
@@ -413,7 +421,7 @@ function TConnectionName.LoadField(cursor : TSQLCursor;
   FieldDef : TfieldDef;buffer : pointer) : boolean;
 
 var
-  I, FC, CT: Integer;
+  I, FC: Integer;
   field: PMYSQL_FIELD;
   row : MYSQL_ROW;
   C : TCursorName;
@@ -435,9 +443,8 @@ begin
     if field^.name=FieldDef.name then break;
     Inc(Row);
     end;
-
-  CT := MySQLWriteData(field^.ftype, field^.length, Row^, Buffer);
-  result := true;
+    
+  Result := MySQLWriteData(field^.ftype, field^.length, Row^, Buffer);
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -534,7 +541,7 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; Source, Dest: PChar): Integer;
+function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; Source, Dest: PChar): Boolean;
 
 var
   VI: Integer;
@@ -543,73 +550,65 @@ var
   Src : String;
 
 begin
-  Result := 0;
-  If (Source<>Nil) Then
-    Src:=StrPas(Source)
-  else
-    Src:='';
+  Result := False;
+  if Source = Nil then
+    exit;
+  Src:=StrPas(Source);
   case AType of
     FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG,
     FIELD_TYPE_INT24:
       begin
-      Result:=SizeOf(Integer);
       if (Src<>'') then
         VI := StrToInt(Src)
       else
         VI := 0;
-      Move(VI, Dest^, Result);
+      Move(VI, Dest^, SizeOf(Integer));
       end;
 {$ifdef mysql50}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
-      Result := SizeOf(Double);
       if Src <> '' then
         VF := InternalStrToFloat(Src)
       else
         VF := 0;
-      Move(VF, Dest^, Result);
+      Move(VF, Dest^, SizeOf(Double));
       end;
     FIELD_TYPE_TIMESTAMP:
       begin
-      Result := SizeOf(TDateTime);
       if Src <> '' then
         VD := InternalStrToTimeStamp(Src)
       else
         VD := 0;
-      Move(VD, Dest^, Result);
+      Move(VD, Dest^, SizeOf(TDateTime));
       end;
     FIELD_TYPE_DATETIME:
       begin
-      Result := SizeOf(TDateTime);
       if Src <> '' then
         VD := InternalStrToDateTime(Src)
       else
         VD := 0;
-      Move(VD, Dest^, Result);
+      Move(VD, Dest^, SizeOf(TDateTime));
       end;
     FIELD_TYPE_DATE:
       begin
-      Result := SizeOf(TDateTime);
       if Src <> '' then
         VD := InternalStrToDate(Src)
       else
         VD := 0;
-      Move(VD, Dest^, Result);
+      Move(VD, Dest^, SizeOf(TDateTime));
       end;
     FIELD_TYPE_TIME:
       begin
-      Result := SizeOf(TDateTime);
       if Src <> '' then
         VD := InternalStrToTime(Src)
       else
         VD := 0;
-      Move(VD, Dest^, Result);
+      Move(VD, Dest^, SizeOf(TDateTime));
       end;
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
-      Result := ASize;
 {      Write('Moving string of size ',asize,' : ');
       P:=Source;
       If (P<>nil) then
@@ -620,11 +619,12 @@ begin
           end;
       Writeln;
 }      if Src<> '' then
-        Move(Source^, Dest^, Result)
+        Move(Source^, Dest^, ASize)
       else
         Dest^ := #0;
       end;
   end;
+  Result := True;
 end;
 
 procedure TConnectionName.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);

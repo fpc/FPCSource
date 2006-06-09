@@ -1576,7 +1576,7 @@ type
   TParamType = (ptUnknown, ptInput, ptOutput, ptInputOutput, ptResult);
   TParamTypes = set of TParamType;
 
-  TParamStyle = (psInterbase,psPostgreSQL);
+  TParamStyle = (psInterbase,psPostgreSQL,psSimulated);
 
   TParams = class;
 
@@ -1694,6 +1694,7 @@ type
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String;
     Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String; overload;
     Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1868,7 +1869,10 @@ end;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent);
 
 begin
-  Raise EDatabaseError.CreateFmt('%s : %s',[Comp.Name,Msg]);
+  if assigned(Comp) then
+    Raise EDatabaseError.CreateFmt('%s : %s',[Comp.Name,Msg])
+  else
+    DatabaseError(Msg);
 end;
 
 Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
@@ -1880,7 +1884,10 @@ end;
 Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
                             Comp : TComponent);
 begin
-  Raise EDatabaseError.CreateFmt(Format('%s : %s',[Comp.Name,Fmt]),Args);
+  if assigned(comp) then
+    Raise EDatabaseError.CreateFmt(Format('%s : %s',[Comp.Name,Fmt]),Args)
+  else
+    DatabaseErrorFmt(Fmt, Args);
 end;
 
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;

@@ -432,14 +432,14 @@ begin
 
   if Length(FUpdateBuffer) > 0 then
     begin
-    r := 0;
-    while r < Length(FUpdateBuffer) do with FUpdateBuffer[r] do
+    r := Length(FUpdateBuffer) -1;
+    while r > -1 do with FUpdateBuffer[r] do
       begin
       if assigned(FUpdateBuffer[r].BookmarkData) then
         begin
         if UpdateKind = ukModify then
           begin
-          move(FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,BookmarkData^,RecordSize+sizeof(TBufRecLinkItem));
+          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem))^,pchar(BookmarkData+sizeof(TBufRecLinkItem))^,RecordSize);
           FreeRecordBuffer(OldValuesBuffer);
           end
         else if UpdateKind = ukDelete then
@@ -464,7 +464,7 @@ begin
           dec(FBRecordCount);
           end;
         end;
-      inc(r);
+      dec(r)
       end;
 
     SetLength(FUpdateBuffer,0);
