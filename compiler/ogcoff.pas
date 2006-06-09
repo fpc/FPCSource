@@ -2464,14 +2464,21 @@ const win32stub : array[0..131] of byte=(
 
 
     procedure TPECoffLinker.DefaultLinkScript;
+      var
+        ibase: string;
       begin
         with LinkScript do
           begin
             Concat('READUNITOBJECTS');
+            if assigned(DLLImageBase) then
+              ibase:=DLLImageBase^
+            else
+              ibase:='';
             if IsSharedLibrary then
               begin
+                if ibase = '' then
+                  ibase:='10000000';
                 Concat('ISSHAREDLIBRARY');
-                Concat('IMAGEBASE $10000000');
                 if apptype=app_gui then
                   Concat('ENTRYNAME _DLLWinMainCRTStartup')
                 else
@@ -2484,6 +2491,8 @@ const win32stub : array[0..131] of byte=(
                 else
                   Concat('ENTRYNAME _mainCRTStartup');
               end;
+            if ibase <> '' then
+              Concat('IMAGEBASE $' + ibase);
             Concat('HEADER');
             Concat('EXESECTION .text');
 {$ifdef arm}
