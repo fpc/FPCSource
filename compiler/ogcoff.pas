@@ -808,13 +808,21 @@ const win32stub : array[0..131] of byte=(
                   { fixup address when the symbol was known in defined object }
                   if (relocsec.objdata=objdata) then
                     dec(address,TCoffObjSection(relocsec).orgmempos);
-                  inc(address,relocval);
+{$ifdef arm}
+                  if (relocsec.objdata=objdata) then
+                    inc(address, relocsec.MemPos)
+                  else
+{$endif arm}
+                    inc(address,relocval);
                 end;
 {$ifdef arm}
               RELOC_RELATIVE_24:
                 begin
                   relocval:=(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
                   address:=address or relocval and $ffffff;
+                  relocval:=relocval shr 24;
+                  if (relocval<>$3f) and (relocval<>0) then
+                    internalerror(200606085);  { offset overflow }
                 end;
               RELOC_NONE:
                 ;  { nothing to do }
