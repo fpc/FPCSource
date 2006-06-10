@@ -1485,7 +1485,9 @@ end;
 
 destructor TEditorLineInfo.Done;
 begin
-  if Format<>nil then DisposeStr(Format); Format:=nil;
+  if Format<>nil then
+    DisposeStr(Format);
+  Format:=nil;
   SetFold(nil);
   inherited Done;
 end;
@@ -1522,8 +1524,7 @@ var B: PEditorBinding;
     Count,I,Idx: sw_integer;
     L: PCustomLine;
 begin
-  if Assigned(AEditor)=false then Exit;
-
+  assert(Aeditor<>nil);
   New(B, Init(AEditor));
   Bindings^.Insert(B);
   Idx:=Bindings^.IndexOf(B);
@@ -1543,6 +1544,7 @@ var B: PEditorBinding;
     Count,I: sw_integer;
     L: PCustomLine;
 begin
+  assert(Aeditor<>nil);
   B:=SearchBinding(AEditor);
   if Assigned(B) then
   begin
@@ -3044,7 +3046,7 @@ begin
       Inc(LineDelta);
       OK:=GetLineCount<MaxLineCount;
     end;
-    if OK=false then EditorDialog(edTooManyLines,nil);
+    if not OK then EditorDialog(edTooManyLines,nil);
     { mainly to force eaMove insertion }
     if not IsClipboard then
       SetCurPtr(EPos.X,EPos.Y);
