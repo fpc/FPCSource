@@ -253,7 +253,7 @@ begin
   Result:=True;
   S:=NextWord(L);
   Addr:=StrToNetAddr(S);
-  Writeln(s,'->',Addr.s_bytes[1],'.',Addr.s_bytes[2],'.',Addr.s_bytes[3],'.',Addr.s_bytes[4]);
+//  Writeln(s,'->',Addr.s_bytes[1],'.',Addr.s_bytes[2],'.',Addr.s_bytes[3],'.',Addr.s_bytes[4]);
   Result:=Addr.s_bytes[1]<>0;
 end;
 
