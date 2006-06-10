@@ -203,7 +203,10 @@ const
       TAB      = #9;
       FindStrSize = 79;
 
+
 type
+    Tcentre = (do_centre,do_not_centre);
+
     PCustomCodeEditor = ^TCustomCodeEditor;
     PEditorLineInfo = ^TEditorLineInfo;
     PFoldCollection = ^TFoldCollection;
@@ -506,7 +509,7 @@ type
       procedure   SetLineFlagExclusive(Flags: longint; LineNo: sw_integer);
       procedure   Update; virtual;
       procedure   ScrollTo(X, Y: sw_Integer);
-      procedure   TrackCursor(Center: boolean); virtual;
+      procedure   TrackCursor(centre:Tcentre); virtual;
       procedure   Lock; virtual;
       procedure   UnLock; virtual;
     public
@@ -966,6 +969,7 @@ begin
    RExpand:=S;
 end;
 
+{
 function upper(const s : string) : string;
 var
   i  : Sw_word;
@@ -977,7 +981,7 @@ begin
     upper[i]:=s[i];
   upper[0]:=s[0];
 end;
-
+}
 type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}int64{$endif};
 
 function PosToOfs(const X,Y: sw_integer): TPosOfs;
@@ -1273,7 +1277,7 @@ end;
 
 function TCustomLine.GetText: string;
 begin
-  Abstract; GetText:='';
+  Abstract;GetText:='';
 end;
 
 procedure TCustomLine.SetText(const AText: string);
@@ -3242,7 +3246,7 @@ begin
   AdjustSelectionPos(CurPos.X,CurPos.Y,DeltaX,DeltaY);
 end;
 
-procedure TCustomCodeEditor.TrackCursor(Center: boolean);
+procedure TCustomCodeEditor.TrackCursor(centre:Tcentre);
 var D,CP: TPoint;
 begin
   D:=Delta;
@@ -3251,7 +3255,7 @@ begin
    if CP.Y>Delta.Y+Size.Y-1 then D.Y:=CP.Y-Size.Y+1;
   if CP.X<Delta.X then D.X:=CP.X else
    if CP.X>Delta.X+Size.X-1 then D.X:=CP.X-Size.X+1;
-  if {((Delta.X<>D.X) or (Delta.Y<>D.Y)) and }Center then
+  if {((Delta.X<>D.X) or (Delta.Y<>D.Y)) and }centre=do_centre then
   begin
      { loose centering for debugger PM }
      while (CP.Y-D.Y)<(Size.Y div 3) do Dec(D.Y);
@@ -3527,7 +3531,7 @@ begin
           cmWindowEnd   : WindowEnd;
           cmNewLine     : begin
                             InsertNewLine;
-                            TrackCursor(false);
+                            TrackCursor(do_not_centre);
                           end;
           cmBreakLine   : BreakLine;
           cmBackSpace   : BackSpace;
@@ -4681,7 +4685,7 @@ begin
   if JumpPos.X<>-1 then
   begin
     SetCurPtr(JumpPos.X,JumpPos.Y);
-    TrackCursor(true);
+    TrackCursor(do_centre);
   end;
 end;
 
@@ -5927,7 +5931,7 @@ begin
     begin
       Lock;
       SetCurPtr(0,StrToInt(LineNo)-1);
-      TrackCursor(true);
+      TrackCursor(do_centre);
       UnLock;
     end;
   end;
@@ -6166,7 +6170,7 @@ begin
    end
   else
    begin
-     IFindStr:=Upper(FindStr);
+     IFindStr:=upcase(FindStr);
      if SForward then
       BMFMakeTable(IFindStr,bt)
      else
@@ -6175,7 +6179,7 @@ begin
 
   inc(X,DX);
   CanExit:=false;
-  if (DoReplace=false) or ((Confirm=false) and (Owner<>nil)) then
+  if not DoReplace or (not Confirm and (Owner<>nil)) then
     Owner^.Lock;
   if InArea(X,Y) then
   repeat
@@ -6219,7 +6223,7 @@ begin
        LeftOK:=(A.X<=0) or (not( (S[A.X] in AlphaChars) or (S[A.X] in NumberChars) ));
        RightOK:=(B.X>=length(S)) or (not( (S[B.X+1] in AlphaChars) or (S[B.X+1] in NumberChars) ));
        Found:=LeftOK and RightOK;
-       if Found=false then
+       if not Found then
          begin
            CurDY:=0;
            X:=B.X+1;
@@ -6227,20 +6231,18 @@ begin
      end;
 
     if Found then
-      Inc(FoundCount);
-
-    if Found then
       begin
+        Inc(FoundCount);
         Lock;
         if SForward then
          SetCurPtr(B.X,B.Y)
         else
          SetCurPtr(A.X,A.Y);
-        TrackCursor(true);
+        TrackCursor(do_centre);
         SetHighlight(A,B);
         UnLock;
         CurDY:=0;
-        if (DoReplace=false) then
+        if not DoReplace then
           begin
             CanExit:=true;
             If SForward then
@@ -6256,7 +6258,9 @@ begin
           end
         else
           begin
-            if Confirm=false then CanReplace:=true else
+            if not confirm then
+              CanReplace:=true
+            else
               begin
                 Re:=EditorDialog(edReplacePrompt,@CurPos);
                 case Re of
@@ -6382,36 +6386,49 @@ begin
   OldSStart:=SelStart;}
   CurPos.X:=X;
   CurPos.Y:=Y;
-  TrackCursor(false);
+  TrackCursor(do_centre);
   if not IsLineVisible(CurPos.Y) then
   begin
     F:=GetLineFold(CurPos.Y);
     if Assigned(F) then
       F^.Collapse(false);
   end;
-  if (NoSelect=false) and (ShouldExtend) then
-  begin
-    CheckSels;
-    Extended:=false;
-    if PointOfs(OldPos)=PointOfs(SelStart) then
-      begin SetSelection(CurPos,SelEnd); Extended:=true; end;
-    CheckSels;
-    if Extended=false then
-     if PointOfs(OldPos)=PointOfs(SelEnd) then
-       begin
-         if ValidBlock=false then
-           SetSelection(CurPos,CurPos);
-         SetSelection(SelStart,CurPos); Extended:=true;
-       end;
-    CheckSels;
-    if (Extended=false) then
-       if PointOfs(OldPos)<=PointOfs(CurPos)
-     then begin SetSelection(OldPos,CurPos); Extended:=true; end
-     else begin SetSelection(CurPos,OldPos); Extended:=true; end;
-    DrawView;
-  end else
-   if not IsFlagSet(efPersistentBlocks) then
-      begin HideSelect; DrawView; end;
+  if not NoSelect and ShouldExtend then
+    begin
+      CheckSels;
+      Extended:=false;
+      if PointOfs(OldPos)=PointOfs(SelStart) then
+        begin
+          SetSelection(CurPos,SelEnd);
+          Extended:=true;
+        end;
+      CheckSels;
+      if Extended=false then
+       if PointOfs(OldPos)=PointOfs(SelEnd) then
+         begin
+           if not ValidBlock then
+             SetSelection(CurPos,CurPos);
+           SetSelection(SelStart,CurPos); Extended:=true;
+         end;
+      CheckSels;
+      if not Extended then
+         if PointOfs(OldPos)<=PointOfs(CurPos) then
+           begin
+             SetSelection(OldPos,CurPos);
+             Extended:=true;
+           end
+         else
+           begin
+             SetSelection(CurPos,OldPos);
+             Extended:=true;
+           end;
+      DrawView;
+    end
+  else if not IsFlagSet(efPersistentBlocks) then
+      begin
+        HideSelect;
+        DrawView;
+      end;
 {  if PointOfs(SelStart)=PointOfs(SelEnd) then
      SetSelection(CurPos,CurPos);}
   if (GetFlags and (efHighlightColumn+efHighlightRow))<>0 then
@@ -6748,6 +6765,7 @@ end;
 destructor TEditorAction.done;
 begin
   DisposeStr(Text);
+  inherited done;
 end;
 
 

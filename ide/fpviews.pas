@@ -1351,7 +1351,7 @@ begin
       if JumpPos.X<>-1 then
       begin
         SetCurPtr(JumpPos.X,JumpPos.Y);
-        TrackCursor(true);
+        TrackCursor(do_centre);
       end;
     end;
 end;
@@ -2581,7 +2581,7 @@ begin
       SetCurPtr(0,DisasLines^.IndexOf(PL));
       PL^.SetFlags(lfDebuggerRow);
       CurL:=PL;
-      TrackCursor(false);
+      TrackCursor(do_centre);
     end;
   GetCurrentLine:=PL;
 end;
@@ -3013,7 +3013,7 @@ begin
   if W<>nil then
     begin
       W^.Select;
-      W^.Editor^.TrackCursor(true);
+      W^.Editor^.TrackCursor(do_centre);
       W^.Editor^.SetLineFlagExclusive(lfHighlightRow,Row);
     end;
   if Assigned(Owner) then
@@ -3762,7 +3762,7 @@ begin
        with W^.Editor^ do
        begin
          SetCurPtr(CurX,CurY);
-         TrackCursor(true);
+         TrackCursor(do_centre);
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
