@@ -98,13 +98,16 @@ end;
 
 procedure disposenode(node:Pnode);
 
+var next:Pnode;
+
 begin
   while node<>nil do
     begin
       disposenode(node^.childlist);
       disposestr(node^.text);
+      next:=node^.next;
       dispose(node);
-      node:=node^.next;
+      node:=next;
     end;
 end;
 
