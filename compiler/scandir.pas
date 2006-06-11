@@ -880,16 +880,13 @@ implementation
         else
           s:= trimspace(current_scanner.readcomment);
 
-        { replace * with current module name.
+        { replace * with the name of the main source.
           This should always be defined. }
         if s[1]='*' then
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              if m_delphi in aktmodeswitches then
-                insert(current_module.realmodulename^,S,1)
-              else
-                insert(lower(current_module.modulename^),S,1);
+              insert(SplitName(current_module.mainsource^),S,1);
             end;
         s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
