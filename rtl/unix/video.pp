@@ -1098,11 +1098,11 @@ begin
 {$endif logging}
      { save new terminal characteristics and possible restore rawness }
      videoInitDone;
+
+     decide_codepages;
    end
   else
    ErrorCode:=errVioInit; { not a TTY }
-
-  decide_codepages;
 end;
 
 procedure SysDoneVideo;
@@ -1234,7 +1234,7 @@ begin
    the terminal window size.}
   SysSetVideoMode:=false;
   fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-  if (mode.row=winsize.ws_row) and 
+  if (mode.row=winsize.ws_row) and
      (mode.col=winsize.ws_col) then
     begin
       screenwidth:=mode.col;
