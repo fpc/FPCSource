@@ -1,4 +1,5 @@
 { Strings }
+sVideoFailed = 0; {Video initialization failed.}
 sButtonDefault = 1; { Button default }
 sButtonDisabled = 2; { Button disabled }
 sButtonNormal = 3; { Button normal }

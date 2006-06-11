@@ -488,7 +488,7 @@ Initializes the video manager, Saves the current screen mode in
 StartupMode, and switches to the mode indicated by ScreenMode.
 19May98 LdB
 ---------------------------------------------------------------------}
-PROCEDURE InitVideo;
+function InitVideo:boolean;
 
 {-DoneVideo---------------------------------------------------------
 Terminates the video manager by restoring the initial screen mode
@@ -1304,10 +1304,12 @@ end;
 {---------------------------------------------------------------------------}
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE InitVideo;
-VAR
-  StoreScreenMode : TVideoMode;
-BEGIN
+function InitVideo:boolean;
+
+var StoreScreenMode : TVideoMode;
+
+begin
+  initvideo:=false;
   if VideoInitialized then
     begin
       StoreScreenMode:=ScreenMode;
@@ -1317,6 +1319,8 @@ BEGIN
     StoreScreenMode.Col:=0;
 
   Video.InitVideo;
+  if video.errorcode<>viook then
+    exit;
   GetVideoMode(StartupScreenMode);
   GetVideoMode(ScreenMode);
 {$ifdef win32}
@@ -1338,7 +1342,8 @@ BEGIN
   ScreenWidth:=Video.ScreenWidth;
   ScreenHeight:=Video.ScreenHeight;
   VideoInitialized:=true;
-END;
+  initvideo:=true;
+end;
 
 {---------------------------------------------------------------------------}
 {  DoneVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB         }

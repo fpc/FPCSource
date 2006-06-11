@@ -3,8 +3,9 @@ type standard_string=record
        text:Pchar;
      end;
 
-const standard_string_count=106;
+const standard_string_count=107;
       standard_strings:array[0..standard_string_count-1] of standard_string=(
+          (nr:sVideoFailed;text:'Video initialization failed.'),
           (nr:sButtonDefault;text:'Button default'),
           (nr:sButtonDisabled;text:'Button disabled'),
           (nr:sButtonNormal;text:'Button normal'),
