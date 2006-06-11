@@ -239,7 +239,7 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
   end;
 
 { alias for internal use }
-Procedure fpc_WideStr_Incr_Ref (S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
 {
