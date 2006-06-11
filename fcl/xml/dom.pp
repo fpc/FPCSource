@@ -959,11 +959,6 @@ function TDOMNodeList.GetCount: LongWord;
 var
   child: TDOMNode;
 begin
-  if not UseFilter then
-    begin
-      Result := Count;
-      exit;
-    end;
   Result := 0;
   child := node.FirstChild;
   while Assigned(child) do
