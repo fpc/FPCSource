@@ -160,6 +160,7 @@ begin
       If P<>Nil then
         begin
          PWideRec(P)^.Len:=Len*2;     { Initial length }
+         PWideRec(P)^.Ref:=1;         { Initial Refcount }
          PWideRec(P)^.First:=#0;      { Terminating #0 }
          inc(p,WideFirstOff);         { Points to string now }
         end
@@ -239,7 +240,7 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
   end;
 
 { alias for internal use }
-Procedure fpc_WideStr_Incr_Ref (var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
+Procedure fpc_WideStr_Incr_Ref (Var S : Pointer);[external name 'FPC_WIDESTR_INCR_REF'];
 
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  compilerproc;
 {
@@ -249,16 +250,15 @@ Var
   Size : SizeInt;
   temp : ansistring;
 begin
-  if S2='' then
-   fpc_WideStr_To_ShortStr:=''
-  else
-   begin
-     Size:=Length(S2);
-     If Size>high_of_res then
-       Size:=high_of_res;
-     widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
-     fpc_WideStr_To_ShortStr:=temp;
-   end;
+  result:='';
+  Size:=Length(S2);
+  if Size>0 then
+    begin
+      If Size>high_of_res then
+        Size:=high_of_res;
+      widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
+      result:=temp;
+    end;
 end;
 
 
@@ -269,10 +269,11 @@ Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;compilerpr
 Var
   Size : SizeInt;
 begin
+  result:='';
   Size:=Length(S2);
   if Size>0 then
     begin
-      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),fpc_ShortStr_To_WideStr,Size);
+      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),result,Size);
       { Terminating Zero }
       PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
     end;
@@ -286,11 +287,10 @@ Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerpro
 Var
   Size : SizeInt;
 begin
-  if s2='' then
-    exit;
-  Size:=Length(WideString(S2));
+  result:='';
+  Size:=Length(S2);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),fpc_WideStr_To_AnsiStr,Size);
+    widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),result,Size);
 end;
 
 
@@ -301,24 +301,20 @@ Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerpro
 Var
   Size : SizeInt;
 begin
-   if s2='' then
-     exit;
-   Size:=Length(S2);
-   if Size>0 then
-    begin
-      widestringmanager.Ansi2WideMoveProc(PChar(S2),result,Size);
-      { Terminating Zero }
-    //  PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
-    end;
+  result:='';
+  Size:=Length(S2);
+  if Size>0 then
+    widestringmanager.Ansi2WideMoveProc(PChar(S2),result,Size);
 end;
 
-{ compilers with widestrings should have compiler procs }
+
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
 var
   Size : SizeInt;
 begin
+  result:='';
   if p=nil then
-   exit;
+    exit;
   Size := IndexWord(p^, -1, 0);
   if Size>0 then
     widestringmanager.Wide2AnsiMoveProc(P,result,Size);
@@ -329,8 +325,9 @@ Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc
 var
   Size : SizeInt;
 begin
+  result:='';
   if p=nil then
-   exit;
+    exit;
   Size := IndexWord(p^, -1, 0);
   Setlength(result,Size);
   if Size>0 then
@@ -347,15 +344,15 @@ var
   Size : SizeInt;
   temp: ansistring;
 begin
+  result:='';
   if p=nil then
-   begin
-     fpc_PWideChar_To_ShortStr:='';
-     exit;
-   end;
+    exit;
   Size := IndexWord(p^, $7fffffff, 0);
   if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
-  result := temp
+    begin
+      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
+      result:=temp;
+    end;
 end;
 
 
@@ -366,19 +363,19 @@ Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
 begin
-{$ifndef FPC_WINLIKEWIDESTRING}
+{$ifdef FPC_WINLIKEWIDESTRING}
+  { Decrease the reference count on the old S1 }
+  fpc_widestr_decr_ref (S1);
+  S1:=S2;
+{$else FPC_WINLIKEWIDESTRING}
   If S2<>nil then
     If PWideRec(S2-WideFirstOff)^.Ref>0 then
       inclocked(PWideRec(S2-WideFirstOff)^.ref);
-{$endif FPC_WINLIKEWIDESTRING}
   { Decrease the reference count on the old S1 }
   fpc_widestr_decr_ref (S1);
   { And finally, have S1 pointing to S2 (or its copy) }
-{$ifdef FPC_WINLIKEWIDESTRING}
   fpc_WideStr_SetLength(WideString(s1),length(WideString(s2)));
   move(s2^,s1^,length(WideString(s1))*sizeof(widechar));
-{$else FPC_WINLIKEWIDESTRING}
-  S1:=S2;
 {$endif FPC_WINLIKEWIDESTRING}
 end;
 
@@ -424,8 +421,7 @@ begin
   NewSize:=0;
   for i:=low(sarr) to high(sarr) do
     inc(Newsize,length(sarr[i]));
-  SetLength
-  (result,NewSize);
+  SetLength(result,NewSize);
   pc:=pwidechar(result);
   for i:=low(sarr) to high(sarr) do
     begin
@@ -705,8 +701,7 @@ begin
             end;
           fpc_widestr_decr_ref(Pointer(S));
           Pointer(S):=Temp;
-        end
-        ;
+        end;
       { Force nil termination in case it gets shorter }
       PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
 {$ifndef FPC_WINLIKEWIDESTRING}
