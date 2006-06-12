@@ -35,6 +35,7 @@ resourcestring
   SPasTreeClassOfType = '"class of" type';
   SPasTreeRangeType = 'range type';
   SPasTreeArrayType = 'array type';
+  SPasTreeFileType = 'file type';
   SPasTreeEnumValue = 'enumeration value';
   SPasTreeEnumType = 'enumeration type';
   SPasTreeSetType = 'set type';
@@ -175,6 +176,14 @@ type
     function GetDeclaration(full : boolean) : string; override;
     IndexRange : string;
     IsPacked : Boolean;          // 12/04/04 - Dave - Added
+    ElType: TPasType;
+  end;
+
+  TPasFileType = class(TPasType)
+  public
+    destructor Destroy; override;
+    function ElementTypeName: string; override;
+    function GetDeclaration(full : boolean) : string; override;
     ElType: TPasType;
   end;
 
@@ -474,6 +483,7 @@ function TPasTypeAliasType.ElementTypeName: string; begin Result := SPasTreeType
 function TPasClassOfType.ElementTypeName: string; begin Result := SPasTreeClassOfType end;
 function TPasRangeType.ElementTypeName: string; begin Result := SPasTreeRangeType end;
 function TPasArrayType.ElementTypeName: string; begin Result := SPasTreeArrayType end;
+function TPasFileType.ElementTypeName: string; begin Result := SPasTreeFileType end;
 function TPasEnumValue.ElementTypeName: string; begin Result := SPasTreeEnumValue end;
 function TPasEnumType.ElementTypeName: string; begin Result := SPasTreeEnumType end;
 function TPasSetType.ElementTypeName: string; begin Result := SPasTreeSetType end;
@@ -672,6 +682,13 @@ end;
 
 
 destructor TPasArrayType.Destroy;
+begin
+  if Assigned(ElType) then
+    ElType.Release;
+  inherited Destroy;
+end;
+
+destructor TPasFileType.Destroy;
 begin
   if Assigned(ElType) then
     ElType.Release;
@@ -1104,7 +1121,15 @@ begin
     Result:=Result+ElType.Name
   else
     Result:=Result+'const';
-    If Assigned(ELtype) then
+  If Full Then
+    Result:=Name+' = '+Result;
+end;
+
+function TPasFileType.GetDeclaration (full : boolean) : string;
+begin
+  Result:='File of ';
+  If Assigned(Eltype) then
+    Result:=Result+ElType.Name;
   If Full Then
     Result:=Name+' = '+Result;
 end;
