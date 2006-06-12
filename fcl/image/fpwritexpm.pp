@@ -76,6 +76,7 @@ end;
 procedure TFPWriterXPM.InternalWrite (Str:TStream; Img:TFPCustomImage);
 var p, l : TStringList;
     c, len, r, t : integer;
+    TmpPalette, Palette: TFPPalette;
   procedure BuildPaletteStrings;
   var r,c,e : integer;
     procedure MakeCodes (const head:string; charplace:integer);
@@ -85,12 +86,13 @@ var p, l : TStringList;
       dec (charplace);
       while (r <= e) and (c >= 0) do
         begin
-        if Charplace = 1 then
+        if Charplace > 0 then
           MakeCodes (head+PalChars[r],charplace)
-        else
+        else begin
           p.Add (head+PalChars[r]);
+          dec(c);
+        end;
         inc (r);
-        dec(c);
         end;
     end;
   begin
@@ -98,7 +100,7 @@ var p, l : TStringList;
     len := 1;
     e := length(PalChars);
     r := e;
-    c := img.palette.count;
+    c := Palette.count;
     while (r <= c) do
       begin
       inc (len);
@@ -123,25 +125,35 @@ var s : string;
 begin
   l := TStringList.Create;
   p := TStringList.Create;
+  TmpPalette := nil;
   try
     l.Add ('/* XPM */');
     l.Add ('static char *graphic[] = {');
-    c := img.palette.count;
+    Palette := img.palette;
+    if not Assigned(Palette) then begin
+      TmpPalette := TFPPalette.Create(0);
+      TmpPalette.Build(Img);
+      Palette := TmpPalette;
+    end;
+    c := Palette.count;
     BuildPaletteStrings;
     l.add (format('"%d %d %d %d",',[img.width,img.height,c,len]));
     InitConsts;
     for r := 0 to c-1 do
       begin
-      if img.palette[r] <> colTransparent then
-        l.Add (format('"%s c #%s",',[p[r],ColorToHex(img.palette.color[r])]))
+      if Palette[r] <> colTransparent then
+        l.Add (format('"%s c #%s",',[p[r],ColorToHex(Palette.color[r])]))
       else
         l.Add (format('"%s c None",',[p[r]]));
       end;
     for r := 0 to img.Height-1 do
       begin
-      s := p[img.pixels[0,r]];
-      for t := 1 to img.Width-1 do
-        s := s + p[img.pixels[t,r]];
+      s := '';
+      for t := 0 to img.Width-1 do
+        if Assigned(TmpPalette) then
+          s := s + p[TmpPalette.IndexOf(img.Colors[t,r])]
+        else
+          s := s + p[img.pixels[t,r]];
       s := '"'+s+'"';
       if r < img.Height-1 then
         s := s + ',';
@@ -149,6 +161,7 @@ begin
       end;
     l.Add ('};');
   finally
+    TmpPalette.Free;
     l.SaveToStream (Str);
     p.Free;
     l.Free;

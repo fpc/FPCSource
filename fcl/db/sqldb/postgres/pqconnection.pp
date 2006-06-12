@@ -17,13 +17,14 @@ uses
 type
   TPQTrans = Class(TSQLHandle)
     protected
-    TransactionHandle   : PPGConn;
+    PGConn        : PPGConn;
+    ErrorOccured  : boolean;
   end;
 
   TPQCursor = Class(TSQLCursor)
     protected
     Statement : string;
-    tr        : Pointer;
+    tr        : TPQTrans;
     res       : PPGresult;
     CurTuple  : integer;
     Nr        : string;
@@ -73,6 +74,8 @@ type
 
 implementation
 
+uses math;
+
 ResourceString
   SErrRollbackFailed = 'Rollback transaction failed';
   SErrCommitFailed = 'Commit transaction failed';
@@ -110,7 +113,7 @@ end;
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
-  Result := (trans as TPQtrans).TransactionHandle;
+  Result := trans;
 end;
 
 function TPQConnection.RollBack(trans : TSQLHandle) : boolean;
@@ -122,17 +125,17 @@ begin
 
   tr := trans as TPQTrans;
 
-  res := PQexec(tr.TransactionHandle, 'ROLLBACK');
+  res := PQexec(tr.PGConn, 'ROLLBACK');
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     PQclear(res);
     result := false;
-    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
     end
   else
     begin
     PQclear(res);
-    PQFinish(tr.TransactionHandle);
+    PQFinish(tr.PGConn);
     result := true;
     end;
 end;
@@ -146,17 +149,17 @@ begin
 
   tr := trans as TPQTrans;
 
-  res := PQexec(tr.TransactionHandle, 'COMMIT');
+  res := PQexec(tr.PGConn, 'COMMIT');
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     PQclear(res);
     result := false;
-    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
     end
   else
     begin
     PQclear(res);
-    PQFinish(tr.TransactionHandle);
+    PQFinish(tr.PGConn);
     result := true;
     end;
 end;
@@ -171,23 +174,24 @@ begin
 
   tr := trans as TPQTrans;
 
-  tr.TransactionHandle := PQconnectdb(pchar(FConnectString));
+  tr.PGConn := PQconnectdb(pchar(FConnectString));
 
-  if (PQstatus(tr.TransactionHandle) = CONNECTION_BAD) then
+  if (PQstatus(tr.PGConn) = CONNECTION_BAD) then
     begin
     result := false;
-    PQFinish(tr.TransactionHandle);
-    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    PQFinish(tr.PGConn);
+    DatabaseError(SErrConnectionFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
     end
   else
     begin
-    res := PQexec(tr.TransactionHandle, 'BEGIN');
+    tr.ErrorOccured := False;
+    res := PQexec(tr.PGConn, 'BEGIN');
     if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
       begin
       result := false;
       PQclear(res);
-      msg := PQerrorMessage(tr.transactionhandle);
-      PQFinish(tr.TransactionHandle);
+      msg := PQerrorMessage(tr.PGConn);
+      PQFinish(tr.PGConn);
       DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
       end
     else
@@ -205,21 +209,21 @@ var
   msg : string;
 begin
   tr := trans as TPQTrans;
-  res := PQexec(tr.TransactionHandle, 'ROLLBACK');
+  res := PQexec(tr.PGConn, 'ROLLBACK');
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     PQclear(res);
-    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    DatabaseError(SErrRollbackFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
     end
   else
     begin
     PQclear(res);
-    res := PQexec(tr.TransactionHandle, 'BEGIN');
+    res := PQexec(tr.PGConn, 'BEGIN');
     if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
       begin
       PQclear(res);
-      msg := PQerrorMessage(tr.transactionhandle);
-      PQFinish(tr.TransactionHandle);
+      msg := PQerrorMessage(tr.PGConn);
+      PQFinish(tr.PGConn);
       DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
       end
     else
@@ -234,21 +238,21 @@ var
   msg : string;
 begin
   tr := trans as TPQTrans;
-  res := PQexec(tr.TransactionHandle, 'COMMIT');
+  res := PQexec(tr.PGConn, 'COMMIT');
   if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
     begin
     PQclear(res);
-    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.transactionhandle) + ')',self);
+    DatabaseError(SErrCommitFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self);
     end
   else
     begin
     PQclear(res);
-    res := PQexec(tr.TransactionHandle, 'BEGIN');
+    res := PQexec(tr.PGConn, 'BEGIN');
     if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
       begin
       PQclear(res);
-      msg := PQerrorMessage(tr.transactionhandle);
-      PQFinish(tr.TransactionHandle);
+      msg := PQerrorMessage(tr.PGConn);
+      PQFinish(tr.PGConn);
       DatabaseError(sErrTransactionFailed + ' (PostgreSQL: ' + msg + ')',self);
       end
     else
@@ -394,7 +398,7 @@ begin
     // So that's not supported.
     if FStatementType in [stInsert,stUpdate,stDelete, stSelect] then
       begin
-      tr := aTransaction.Handle;
+      tr := TPQTrans(aTransaction.Handle);
       // Only available for pq 8.0, so don't use it...
       // Res := pqprepare(tr,'prepst'+name+nr,pchar(buf),params.Count,pchar(''));
       s := 'prepare prepst'+nr+' ';
@@ -412,11 +416,11 @@ begin
         buf := AParams.ParseSQL(buf,false,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
-      res := pqexec(tr,pchar(s));
+      res := pqexec(tr.PGConn,pchar(s));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
         pqclear(res);
-        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
+        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
         end;
       FPrepared := True;
       end
@@ -430,13 +434,16 @@ procedure TPQConnection.UnPrepareStatement(cursor : TSQLCursor);
 begin
   with (cursor as TPQCursor) do if FPrepared then
     begin
-    res := pqexec(tr,pchar('deallocate prepst'+nr));
-    if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    if not tr.ErrorOccured then
       begin
+      res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
+      if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+        begin
+        pqclear(res);
+        DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr.PGConn) + ')',self)
+        end;
       pqclear(res);
-      DatabaseError(SErrPrepareFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self)
       end;
-    pqclear(res);
     FPrepared := False;
     end;
 end;
@@ -473,27 +480,31 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0);
+        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);
         end
       else
-        res := PQexecPrepared(tr,pchar('prepst'+nr),0,nil,nil,nil,1);
+        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),0,nil,nil,nil,1);
       end
     else
       begin
-      tr := aTransaction.Handle;
+      tr := TPQTrans(aTransaction.Handle);
 
       s := statement;
       //Should be altered, just like in TSQLQuery.ApplyRecUpdate
       if assigned(AParams) then for i := 0 to AParams.count-1 do
         s := stringreplace(s,':'+AParams[i].Name,AParams[i].asstring,[rfReplaceAll,rfIgnoreCase]);
-      res := pqexec(tr,pchar(s));
+      res := pqexec(tr.PGConn,pchar(s));
       end;
     if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
+      s := PQerrorMessage(tr.PGConn);
       pqclear(res);
-      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + PQerrorMessage(tr) + ')',self);
+
+      tr.ErrorOccured := True;
+      atransaction.Rollback;
+      DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + s + ')',self);
       end;
     end;
 end;
@@ -549,13 +560,21 @@ end;
 
 function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean;
 
-var
-  x,i          : integer;
-  li           : Longint;
-  CurrBuff     : pchar;
-  tel  : byte;
-  dbl  : pdouble;
+type TNumericRecord = record
+       Digits : SmallInt;
+       Weight : SmallInt;
+       Sign   : SmallInt;
+       Scale  : Smallint;
+     end;
 
+var
+  x,i           : integer;
+  li            : Longint;
+  CurrBuff      : pchar;
+  tel           : byte;
+  dbl           : pdouble;
+  cur           : currency;
+  NumericRecord : ^TNumericRecord;
 
 begin
   with cursor as TPQCursor do
@@ -572,6 +591,8 @@ begin
       begin
       i := PQfsize(res, x);
       CurrBuff := pqgetvalue(res,CurTuple,x);
+
+      result := true;
 
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
@@ -611,12 +632,30 @@ begin
           end;
         ftBCD:
           begin
-          // not implemented
+          NumericRecord := pointer(CurrBuff);
+          NumericRecord^.Digits := BEtoN(NumericRecord^.Digits);
+          NumericRecord^.Scale := BEtoN(NumericRecord^.Scale);
+          NumericRecord^.Weight := BEtoN(NumericRecord^.Weight);
+          inc(pointer(currbuff),sizeof(TNumericRecord));
+          cur := 0;
+          if (NumericRecord^.Digits = 0) and (NumericRecord^.Scale = 0) then // = NaN, which is not supported by Currency-type, so we return NULL
+            result := false
+          else
+            begin
+            for tel := 1 to NumericRecord^.Digits  do
+              begin
+              cur := cur + beton(pword(currbuff)^) * intpower(10000,-(tel-1)+NumericRecord^.weight);
+              inc(pointer(currbuff),2);
+              end;
+            if BEtoN(NumericRecord^.Sign) <> 0 then cur := -cur;
+            Move(Cur, Buffer^, sizeof(currency));
+            end;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]
+        else
+          result := false;
       end;
-      result := true;
       end;
     end;
 end;

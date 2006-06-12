@@ -2025,11 +2025,9 @@ end;
 
 function TBCDField.GetAsCurrency: Currency;
 
-Var C : system.Currency;
-
 begin
-  if GetData(@C) then
-    result := C;
+  if not GetData(@Result) then
+    result := 0;
 end;
 
 function TBCDField.GetAsVariant: Variant;

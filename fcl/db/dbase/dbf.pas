@@ -170,7 +170,6 @@ type
     FTableLevel: Integer;
     FExclusive: Boolean;
     FShowDeleted: Boolean;
-    FUseFloatFields: Boolean;
     FPosting: Boolean;
     FDisableResyncOnPost: Boolean;
     FTempExclusive: Boolean;
@@ -354,7 +353,7 @@ type
 
 {$ifdef SUPPORT_VARIANTS}
     function  Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
-    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC_VERSION}override;{$endif}
+    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC}override;{$endif}
 {$endif}
 
     function  IsDeleted: Boolean;
@@ -403,8 +402,6 @@ type
     property StoreDefs: Boolean read FStoreDefs write FStoreDefs default False;
     property TableName: string read FTableName write SetTableName;
     property TableLevel: Integer read FTableLevel write SetTableLevel;
-    property UseFloatFields: Boolean read FUseFloatFields write FUseFloatFields;
-      (* default {$ifdef SUPPORT_INT64} false {$else} true {$endif}; *)
     property Version: string read GetVersion write SetVersion stored false;
     property BeforeAutoCreate: TBeforeAutoCreateEvent read FBeforeAutoCreate write FBeforeAutoCreate;
     property OnCompareRecord: TNotifyEvent read FOnCompareRecord write FOnCompareRecord;
@@ -626,8 +623,6 @@ begin
   FPosting := false;
   FReadOnly := false;
   FExclusive := false;
-  FUseFloatFields := true;
-  //FUseFloatFields := {$ifdef SUPPORT_INT64} false {$else} true {$endif};
   FDisableResyncOnPost := false;
   FTempExclusive := false;
   FCopyDateTimeAsString := false;
@@ -1042,7 +1037,6 @@ begin
     FDbfFile.Mode := FileOpenMode;
   end;
   FDbfFile.AutoCreate := false;
-  FDbfFile.UseFloatFields := FUseFloatFields;
   FDbfFile.DateTimeHandling := FDateTimeHandling;
   FDbfFile.OnLocaleError := FOnLocaleError;
   FDbfFile.OnIndexMissing := FOnIndexMissing;
@@ -1401,7 +1395,6 @@ begin
       begin
         ADbfFieldDefs := TDbfFieldDefs.Create(Self);
         ADbfFieldDefs.DbfVersion := TableLevelToDbfVersion(FTableLevel);
-        ADbfFieldDefs.UseFloatFields := FUseFloatFields;
 
         // get fields -> fielddefs if no fielddefs
 {$ifndef FPC_VERSION}
@@ -2139,11 +2132,15 @@ function TDbf.GetRecNo: Integer; {override virtual}
 var
   pBuffer: pointer;
 begin
-  if State = dsCalcFields then
-    pBuffer := CalcBuffer
-  else
-    pBuffer := ActiveBuffer;
-  Result := pDbfRecord(pBuffer)^.SequentialRecNo;
+  if FCursor <> nil then
+  begin
+    if State = dsCalcFields then
+      pBuffer := CalcBuffer
+    else
+      pBuffer := ActiveBuffer;
+    Result := pDbfRecord(pBuffer)^.SequentialRecNo;
+  end else
+    Result := 0;
 end;
 
 procedure TDbf.SetRecNo(Value: Integer); {override virtual}

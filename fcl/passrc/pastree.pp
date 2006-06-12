@@ -804,7 +804,7 @@ begin
   inherited Destroy;
 end;
 
-function TPasProcedureType.TypeName: string;
+class function TPasProcedureType.TypeName: string;
 begin
   Result := 'procedure';
 end;
@@ -833,7 +833,8 @@ begin
   inherited Destroy;
 end;
 
-function TPasFunctionType.TypeName: string;
+
+class function TPasFunctionType.TypeName: string;
 begin
   Result := 'function';
 end;

@@ -102,7 +102,7 @@ type
     CurOutputNode: TDOMNode;
     InsideHeadRow, DoPasHighlighting: Boolean;
     HighlighterFlags: Byte;
-    
+
     FooterFile: string;
 
     function ResolveLinkID(const Name: String): DOMString;
@@ -2282,11 +2282,11 @@ begin
   AppendText(CodeEl, AType.Name);
   AppendSym(CodeEl, ' = ');
 
-  If Assigned(DocNode) and 
-     Assigned(DocNode.Node) and 
+  If Assigned(DocNode) and
+     Assigned(DocNode.Node) and
      (Docnode.Node['opaque']='1') then
     AppendText(CodeEl,SDocOpaque)
-  else 
+  else
     begin
     // Alias
     if AType.ClassType = TPasAliasType then
@@ -2967,7 +2967,7 @@ begin
    WriteHTMLPages;
 end;
 
-procedure THTMLWriter.Usage(List: TStrings);
+class procedure THTMLWriter.Usage(List: TStrings);
 begin
   List.add('--footer');
   List.Add(SHTMLUsageFooter);

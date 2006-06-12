@@ -1223,7 +1223,7 @@ begin
   inherited Destroy;
 end;
 
-function TXPathNodeSetVariable.TypeName: String;
+class function TXPathNodeSetVariable.TypeName: String;
 begin
   Result := SNodeSet;
 end;
@@ -1248,7 +1248,7 @@ begin
   FValue := AValue;
 end;
 
-function TXPathBooleanVariable.TypeName: String;
+class function TXPathBooleanVariable.TypeName: String;
 begin
   Result := SBoolean;
 end;
@@ -1281,7 +1281,7 @@ begin
   FValue := AValue;
 end;
 
-function TXPathNumberVariable.TypeName: String;
+class function TXPathNumberVariable.TypeName: String;
 begin
   Result := SNumber;
 end;
@@ -1312,7 +1312,7 @@ begin
   FValue := AValue;
 end;
 
-function TXPathStringVariable.TypeName: String;
+class function TXPathStringVariable.TypeName: String;
 begin
   Result := SString;
 end;

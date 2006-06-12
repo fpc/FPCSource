@@ -74,8 +74,6 @@ type
 
     function GetLanguageId: Integer;
     function GetLanguageStr: string;
-    function GetUseFloatFields: Boolean;
-    procedure SetUseFloatFields(NewUse: Boolean);
     
   protected
     procedure ConstructFieldDefs;
@@ -134,7 +132,6 @@ type
     property PrevBuffer: PChar read FPrevBuffer;
     property ForceClose: Boolean read FForceClose;
     property CopyDateTimeAsString: Boolean read FCopyDateTimeAsString write FCopyDateTimeAsString;
-    property UseFloatFields: Boolean read GetUseFloatFields write SetUseFloatFields;
     property DateTimeHandling: TDateTimeHandling read FDateTimeHandling write FDateTimeHandling;
 
     property OnIndexMissing: TDbfIndexMissingEvent read FOnIndexMissing write FOnIndexMissing;
@@ -318,16 +315,6 @@ begin
 
   // call ancestor
   inherited;
-end;
-
-function TDbfFile.GetUseFloatFields: Boolean;
-begin
-  Result := FFieldDefs.UseFloatFields;
-end;
-
-procedure TDbfFile.SetUseFloatFields(NewUse: Boolean);
-begin
-  FFieldDefs.UseFloatFields := NewUse;
 end;
 
 procedure TDbfFile.Open;
@@ -875,7 +862,7 @@ begin
 
       // apply field transformation tricks
       if (lNativeFieldType = 'C') 
-{$ifdef USE_LONG_CHAR_FIELDS}
+{$ifndef USE_LONG_CHAR_FIELDS}
           and (FDbfVersion = xFoxPro) 
 {$endif}
                 then
@@ -1182,7 +1169,6 @@ begin
   DestDbfFile.FileName := NewBaseName;
   DestDbfFile.AutoCreate := true;
   DestDbfFile.Mode := pfExclusiveCreate;
-  DestDbfFile.UseFloatFields := UseFloatFields;
   DestDbfFile.OnIndexMissing := FOnIndexMissing;
   DestDbfFile.OnLocaleError := FOnLocaleError;
   DestDbfFile.DbfVersion := FDbfVersion;

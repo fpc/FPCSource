@@ -498,7 +498,7 @@ begin
   LineWidth:=DefaultLineWidth;
 end;
 
-procedure TTXTWriter.Usage(List: TStrings);
+class procedure TTXTWriter.Usage(List: TStrings);
 begin
   inherited Usage(List);
 end;
@@ -649,7 +649,7 @@ begin
   WriteLnF('%.30s %s ',[AName,ADescr]);
 end;
 
-function TTxtWriter.FileNameExtension: String;
+class function TTxtWriter.FileNameExtension: String;
 begin
   Result:=TxtExtension;
 end;

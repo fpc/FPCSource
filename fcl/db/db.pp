@@ -900,7 +900,7 @@ type
 
   TDataSetNotifyEvent = procedure(DataSet: TDataSet) of object;
   TDataSetErrorEvent = procedure(DataSet: TDataSet; E: EDatabaseError;
-    var Action: TDataAction) of object;
+    var DataAction: TDataAction) of object;
 
   TFilterOption = (foCaseInsensitive, foNoPartialCompare);
   TFilterOptions = set of TFilterOption;

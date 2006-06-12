@@ -84,7 +84,6 @@ type
   private
     FOwner: TPersistent;
     FDbfVersion: TXBaseVersion;
-    FUseFloatFields: Boolean;
 
     function GetItem(Idx: Integer): TDbfFieldDef;
   protected
@@ -101,7 +100,6 @@ type
 
     property Items[Idx: Integer]: TDbfFieldDef read GetItem;
     property DbfVersion: TXBaseVersion read FDbfVersion write FDbfVersion;
-    property UseFloatFields: Boolean read FUseFloatFields write FUseFloatFields;
   end;
 
 implementation
@@ -350,16 +348,13 @@ begin
           if FSize <= DIGITS_SMALLINT then
             FFieldType := ftSmallInt
           else
-          if TDbfFieldDefs(Collection).UseFloatFields then
-            FFieldType := ftFloat
-          else
-{$ifdef SUPPORT_INT64}
           if FSize <= DIGITS_INTEGER then
             FFieldType := ftInteger
           else
+{$ifdef SUPPORT_INT64}
             FFieldType := ftLargeInt;
 {$else}
-            FFieldType := ftInteger;
+            FFieldType := ftFloat;
 {$endif}
         end else begin
           FFieldType := ftFloat;
