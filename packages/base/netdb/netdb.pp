@@ -63,24 +63,35 @@ Type
     Addr : THostAddr;
     Aliases : String;
   end;  
+  PHostEntry = ^THostEntry;
+  THostEntryArray = Array of THostEntry;
   
   TNetworkEntry = Record
     Name : String;
     Addr : TNetAddr;
     Aliases : String;
   end;  
+  PNetworkEntry = ^TNetworkEntry;
 
   TProtocolEntry = Record
     Name : String;
     Number : integer;
     Aliases : String;
   end;  
+  PProtocolEntry = ^TProtocolEntry;
+
+  PHostListEntry = ^THostListEntry;
+  THostListEntry = Record
+    Entry : THostEntry;
+    Next : PHostListEntry;
+  end;
 
 Var  
   DNSServers            : TDNSServerArray;
   DNSServerCount        : Integer;
   DefaultDomainList     : String;
   CheckResolveFileAge   : Boolean; 
+  CheckHostsFileAge     : Boolean; 
   TimeOutS,TimeOutMS    : Longint;
   
   
@@ -110,6 +121,11 @@ Function GetServiceByPort(Port : Word;Const Proto : String; Var E : TServiceEntr
 Function GetProtocolByName(ProtoName: String;  Var H : TProtocolEntry) : boolean;
 Function GetProtocolByNumber(proto: Integer;  Var H : TProtocolEntry) : boolean;
 
+
+
+Function ProcessHosts(FileName : String) : PHostListEntry;
+Function FreeHostsList(var List : PHostListEntry) : Integer;
+Procedure HostsListToArray(var List : PHostListEntry; Var Hosts : THostEntryArray; FreeList : Boolean);
 
 Implementation
 
@@ -162,13 +178,250 @@ Type
     RDLength : Word;
   end;
 
+{ ---------------------------------------------------------------------
+    Some Parsing routines
+  ---------------------------------------------------------------------}
+
+Const 
+  Whitespace = [' ',#9];
+
+Function NextWord(Var Line : String) : String;
+
+Var 
+  I,J : Integer;
+
+begin
+  I:=1;
+  While (I<=Length(Line)) and (Line[i] in Whitespace) do
+    inc(I);
+  J:=I;
+  While (J<=Length(Line)) and Not (Line[J] in WhiteSpace) do
+    inc(j);
+  Result:=Copy(Line,I,J-I);  
+  Delete(Line,1,J);  
+end;
+  
+Function StripComment(var L : String) : Boolean;
+
 Var
-  ResolveFileAge  : Longint;
-  ResolveFileName : String;
+  i : Integer;
+
+begin
+  I:=Pos('#',L);
+  If (I<>0) then
+    L:=Copy(L,1,I-1)
+  else
+    begin
+      I:=Pos(';',L);
+      If (I<>0) then
+        L:=Copy(L,1,I-1)
+    end;
+  Result:=Length(L)>0;
+end;
+
+Function MatchNameOrAlias(Const Entry,Name: String; Aliases : String) : Boolean;
+
+Var
+  P : Integer;
+  A : String;
+
+begin
+  Result:=CompareText(Entry,Name)=0;
+  If Not Result then
+    While (Not Result) and (Length(Aliases)>0) do
+      begin
+      P:=Pos(',',Aliases);
+      If (P=0) then
+        P:=Length(Aliases)+1;
+      A:=Copy(Aliases,1,P-1);
+      Delete(Aliases,1,P);
+      Result:=CompareText(A,Entry)=0;
+      end;
+end;
+
+{ ---------------------------------------------------------------------
+    hosts processing
+  ---------------------------------------------------------------------}
+
+Function GetAddr(Var L : String; Var Addr : THostAddr) : Boolean;
+
+Var
+  S : String;
+  i,p,a : Integer;
+  
+begin
+  Result:=True;
+  S:=NextWord(L);
+  Addr:=StrToNetAddr(S);
+//  Writeln(s,'->',Addr.s_bytes[1],'.',Addr.s_bytes[2],'.',Addr.s_bytes[3],'.',Addr.s_bytes[4]);
+  Result:=Addr.s_bytes[1]<>0;
+end;
+
+
+Function FillHostEntry (Var Entry : THostEntry; L: String) : boolean;
+
+Var
+  H : String;
+
+begin
+  Repeat
+  H:=NextWord(L);
+  If (H<>'') then
+    if (Entry.Name='') then
+      Entry.Name:=H
+    else  
+      begin
+      If (Entry.Aliases<>'') then
+        Entry.Aliases:=Entry.Aliases+',';
+      Entry.Aliases:=Entry.Aliases+H;
+      end;
+  until (H='');
+end;
+
+Function ProcessHosts(FileName : String) : PHostListEntry;
+
+Var
+  F : Text;
+  L : String;
+  A : THostAddr;
+  T : PHostListEntry;
+  
+begin
+  Result:=Nil;
+  Assign(F,FileName);
+  {$I-}
+  Reset(F);
+  {$I+};
+  If (IOResult<>0) then
+    Exit;
+  Try  
+    While Not EOF(F) do
+      begin
+      Readln(F,L);
+      If StripComment(L) then
+        begin
+        If GetAddr(L,A) then
+          begin
+          T:=New(PHostListEntry);
+          T^.Entry.Addr:=A;
+          FillHostEntry(T^.Entry,L);
+          T^.Next:=Result;
+          Result:=T;
+          end;
+        end;
+      end;
+  Finally  
+    Close(F);
+  end;
+end;
+
+{ Internal lookup, used in GetHostByName and friends. }
+
+Var
+  HostsList : PHostListEntry = Nil;  
+  HostsFileAge  : Longint;
+  HostsFileName : String;
+
+Function FreeHostsList(var List : PHostListEntry) : Integer;
+
+Var
+  P : PHostListEntry;
+
+begin
+  Result:=0;
+  While (List<>Nil) do
+    begin
+    Inc(Result);
+    P:=List^.Next;
+    FreeMem(List);
+    List:=P;
+    end;
+end;
+
+Procedure HostsListToArray(var List : PHostListEntry; Var Hosts : THostEntryArray; FreeList : Boolean);
+
+Var
+  P : PHostListEntry;
+  Len : Integer;
+
+begin
+  Len:=0;
+  P:=List;
+  While P<> Nil do
+    begin
+    Inc(Len);
+    P:=P^.Next;
+    end;
+  SetLength(Hosts,Len);
+  If (Len>0) then
+    begin
+    Len:=0;
+    P:=List;
+    While (P<>Nil) do
+      begin
+      Hosts[Len]:=P^.Entry;
+      P:=P^.Next;
+      Inc(Len);
+      end;
+    end;
+  If FreeList then
+    FreeHostsList(List);
+end;
+
+Procedure CheckHostsFile;
+
+Var
+  F : Integer;
+
+begin
+  If CheckHostsFileAge then
+    begin
+    F:=FileAge(SHostsFile);
+    If HostsFileAge<F then
+      begin
+      // Rescan.
+      FreeHostsList(HostsList);
+      HostsList:=ProcessHosts(SHostsFile);
+      HostsFileAge:=F;
+      end;
+    end;  
+end;
+
+Function FindHostEntryInHostsFile(N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
+
+Var
+  F : Text;
+  HE : THostEntry;
+  P : PHostListEntry;
+  
+begin
+  Result:=False;
+  CheckHostsFile;
+  P:=HostsList;
+  While (Not Result) and (P<>Nil) do
+    begin
+    HE:=P^.Entry;
+    If (N<>'') then
+      Result:=MatchNameOrAlias(N,HE.Name,HE.Aliases)
+    else
+      Result:=Cardinal(hosttonet(Addr))=Cardinal(HE.Addr);
+    P:=P^.Next;  
+    end; 
+ If Result then
+   begin
+   H.Name:=HE.Name;
+   H.Addr:=nettohost(HE.Addr);
+   H.Aliases:=HE.Aliases;
+   end;
+end;
 
 { ---------------------------------------------------------------------
    Resolve.conf handling
   ---------------------------------------------------------------------}
+
+Var
+  ResolveFileAge  : Longint;
+  ResolveFileName : String;
   
 Function GetDNSServers(Fn : String) : Integer;
 
@@ -177,7 +430,8 @@ Var
   L : String;
   I : Integer;
   H : THostAddr;
-
+  E : THostEntry;
+  
   Function CheckDirective(Dir : String) : Boolean;
   
   Var
@@ -207,28 +461,25 @@ begin
     While not EOF(R) do
       begin
       Readln(R,L);
-      I:=Pos('#',L);
-      If (I<>0) then
-        L:=Copy(L,1,I-1)
-      else
-        begin
-          I:=Pos(';',L);
-          If (I<>0) then
-            L:=Copy(L,1,I-1)
-	end;
-      If CheckDirective('nameserver') then
-        begin
-        H:=HostToNet(StrToHostAddr(L));
-        If H.s_bytes[1]<>0 then
+      if StripComment(L) then
+        If CheckDirective('nameserver') then
           begin
-          Inc(Result);
-          DNSServers[Result]:=H;
-          end;
-        end
-      else if CheckDirective('domain') then
-        DefaultDomainList:=L
-      else if CheckDirective('search') then
-        DefaultDomainList:=L;
+          H:=HostToNet(StrToHostAddr(L));
+          If (H.s_bytes[1]<>0) then
+            begin
+            Inc(Result);
+            DNSServers[Result]:=H;
+            end
+          else if FindHostEntryInHostsFile(L,H,E) then
+            begin
+            Inc(Result);
+            DNSServers[Result]:=E.Addr;
+            end;
+          end
+        else if CheckDirective('domain') then
+          DefaultDomainList:=L
+        else if CheckDirective('search') then
+          DefaultDomainList:=L;
       end;
   Finally
     Close(R);
@@ -794,133 +1045,6 @@ begin
     end;
 end;
 
-{ ---------------------------------------------------------------------
-    Some Parsing routines
-  ---------------------------------------------------------------------}
-
-Const 
-  Whitespace = [' ',#9];
-
-Function NextWord(Var Line : String) : String;
-
-Var 
-  I,J : Integer;
-
-begin
-  I:=1;
-  While (I<=Length(Line)) and (Line[i] in Whitespace) do
-    inc(I);
-  J:=I;
-  While (J<=Length(Line)) and Not (Line[J] in WhiteSpace) do
-    inc(j);
-  Result:=Copy(Line,I,J-I);  
-  Delete(Line,1,J);  
-end;
-  
-Procedure StripComment(Var line : String);
-
-Var
-  P : Integer;
-
-begin
-  P:=Pos('#',Line);
-  If (P<>0) then
-    Line:=Trim(Copy(Line,1,P-1));
-end;
-
-Function MatchNameOrAlias(Const Entry,Name: String; Aliases : String) : Boolean;
-
-Var
-  P : Integer;
-  A : String;
-
-begin
-  Result:=CompareText(Entry,Name)=0;
-  If Not Result then
-    While (Not Result) and (Length(Aliases)>0) do
-      begin
-      P:=Pos(',',Aliases);
-      If (P=0) then
-        P:=Length(Aliases)+1;
-      A:=Copy(Aliases,1,P-1);
-      Delete(Aliases,1,P);
-      Result:=CompareText(A,Entry)=0;
-      end;
-end;
-
-{ ---------------------------------------------------------------------
-    /etc/hosts handling.
-  ---------------------------------------------------------------------}
-
-Function GetNextHostEntry(var F : Text; Var H : THostEntry): boolean;
-
-Var
-  Line,S : String;
-  
-begin
-  Result:=False;
-  Repeat
-    ReadLn(F,Line);
-    StripComment(Line);
-    S:=NextWord(Line);
-    If (S<>'') then
-      begin
-      H.Addr:=StrTonetAddr(S);		// endianness problem here. (fixed)
-      if (H.Addr.s_bytes[1]<>0) then
-        begin
-        S:=NextWord(Line);
-        If (S<>'') then
-          begin
-          H.Name:=S;
-          Result:=True;
-          H.Aliases:='';
-          Repeat
-            S:=NextWord(line);
-            If (S<>'') then
-              If (H.Aliases='') then
-                H.Aliases:=S
-              else
-                H.Aliases:=H.Aliases+','+S;  
-          until (S='');
-          end;
-        end;      
-      end;
-  until Result or EOF(F);
-end;  
-
-Function FindHostEntryInHostsFile(N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
-
-Var
-  F : Text;
-  HE : THostEntry;
-  
-begin
-  Result:=False;
-  If FileExists(SHostsFile) then
-    begin
-    Assign(F,SHostsFile);
-    {$i-}
-    Reset(F);
-    {$i+}
-    If (IOResult=0) then
-      begin
-      While Not Result and GetNextHostEntry(F,HE) do
-        begin
-        If (N<>'') then
-          Result:=MatchNameOrAlias(N,HE.Name,HE.Aliases)
-        else
-          Result:=Cardinal(hosttonet(Addr))=Cardinal(HE.Addr);
-        end; 
-      Close(f);
-      If Result then
-        begin
-        H.Name:=HE.Name;
-        H.Addr:=nettohost(HE.Addr);
-        H.Aliases:=HE.Aliases;
-        end;
-      end;  
-    end;
-end;
 
 //const NoAddress : in_addr = (s_addr: 0);
 
@@ -936,6 +1060,7 @@ Function GetHostByAddr(Addr: THostAddr;  Var H : THostEntry) : boolean;
 begin
   Result:=FindHostEntryInHostsFile('',Addr,H);
 end;
+
 
 { ---------------------------------------------------------------------
     /etc/protocols handling.
@@ -1232,11 +1357,23 @@ Var
 begin
   TimeOutS :=5;
   TimeOutMS:=0;
+  CheckHostsFileAge:=False;
+  If FileExists(SHostsFile) then
+    HostsList:=ProcessHosts(SHostsFile);
   CheckResolveFileAge:=False;
   If FileExists(SResolveFile) then
     GetDNsservers(SResolveFile);
 end;
 
+Procedure DoneResolver;
+
 begin
+  FreeHostsList(HostsList);
+end;
+
+
+Initialization
   InitResolver;
+Finalization
+  DoneResolver;  
 end.

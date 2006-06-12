@@ -46,7 +46,7 @@ function GDK_IS_DISPLAY_CLASS(klass : pointer) : boolean;
 function GDK_DISPLAY_GET_CLASS(obj : pointer) : PGdkDisplayClass;
 
 //function gdk_display_get_type:GType; cdecl; external gdklib;
-function gdk_open_display(display_name:Pgchar):PGdkDisplay; cdecl; external gdklib;
+function gdk_display_open(display_name:Pgchar):PGdkDisplay; cdecl; external gdklib;
 function gdk_display_get_name(display:PGdkDisplay):Pgchar; cdecl; external gdklib;
 function gdk_display_get_n_screens(display:PGdkDisplay):gint; cdecl; external gdklib;
 function gdk_display_get_screen(display:PGdkDisplay; screen_num:gint):PGdkScreen; cdecl; external gdklib;

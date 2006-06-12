@@ -26,6 +26,7 @@ const
    GTK_STOCK_DIALOG_QUESTION = 'gtk-dialog-question';
    GTK_STOCK_DND = 'gtk-dnd';
    GTK_STOCK_DND_MULTIPLE = 'gtk-dnd-multiple';
+	 GTK_STOCK_ABOUT = 'gtk-about';
    GTK_STOCK_ADD_name = 'gtk-add';
    GTK_STOCK_APPLY = 'gtk-apply';
    GTK_STOCK_BOLD = 'gtk-bold';
@@ -33,7 +34,9 @@ const
    GTK_STOCK_CDROM = 'gtk-cdrom';
    GTK_STOCK_CLEAR = 'gtk-clear';
    GTK_STOCK_CLOSE = 'gtk-close';
+	 GTK_STOCK_COLOR_PICKER = 'gtk-color-picker';
    GTK_STOCK_CONVERT = 'gtk-convert';
+	 GTK_STOCK_CONNECT = 'gtk-connect';
    GTK_STOCK_COPY = 'gtk-copy';
    GTK_STOCK_CUT = 'gtk-cut';
    GTK_STOCK_DELETE = 'gtk-delete';
@@ -58,6 +61,14 @@ const
    GTK_STOCK_JUSTIFY_FILL = 'gtk-justify-fill';
    GTK_STOCK_JUSTIFY_LEFT = 'gtk-justify-left';
    GTK_STOCK_JUSTIFY_RIGHT = 'gtk-justify-right';
+	 GTK_STOCK_MEDIA_FORWARD = 'gtk-media-forward';
+	 GTK_STOCK_MEDIA_NEXT = 'gtk-media-next';
+	 GTK_STOCK_MEDIA_PAUSE = 'gtk-media-pause';
+	 GTK_STOCK_MEDIA_PLAY = 'gtk-media-play';
+	 GTK_STOCK_MEDIA_PREVIOUS = 'gtk-media-previous';
+	 GTK_STOCK_MEDIA_RECORD = 'gtk-media-record';
+	 GTK_STOCK_MEDIA_REWIND = 'gtk-media-rewind';
+	 GTK_STOCK_MEDIA_STOP = 'gtk-media-stop';
    GTK_STOCK_MISSING_IMAGE = 'gtk-missing-image';
    GTK_STOCK_NEW = 'gtk-new';
    GTK_STOCK_NO = 'gtk-no';

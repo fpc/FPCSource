@@ -279,11 +279,11 @@ begin
                               TGDestroyNotify (@g_object_unref));
 
     (* create menu items *)
-    menu_items[2].extra_data:=Pointer(GTK_STOCK_NEW);
-    menu_items[3].extra_data:=Pointer(GTK_STOCK_OPEN);
-    menu_items[4].extra_data:=Pointer(GTK_STOCK_SAVE);
-    menu_items[5].extra_data:=Pointer(GTK_STOCK_SAVE_AS);
-    menu_items[7].extra_data:=Pointer(GTK_STOCK_QUIT);
+    menu_items[2].extra_data:=PChar(GTK_STOCK_NEW);
+    menu_items[3].extra_data:=PChar(GTK_STOCK_OPEN);
+    menu_items[4].extra_data:=PChar(GTK_STOCK_SAVE);
+    menu_items[5].extra_data:=PChar(GTK_STOCK_SAVE_AS);
+    menu_items[7].extra_data:=PChar(GTK_STOCK_QUIT);
 
     gtk_item_factory_create_items (item_factory, high (menu_items),
                                    @menu_items[1], application_window );

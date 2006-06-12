@@ -1,4 +1,10 @@
 {$mode objfpc}
+
+{$ifdef BSD}
+  {$linklib c}
+  {$linklib pthread}
+{$endif}
+
 unit sqlite3;
 
 interface

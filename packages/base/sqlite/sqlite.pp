@@ -1,5 +1,11 @@
 {$mode objfpc}
+
+{$ifdef bsd}
+  {$linklib c}
+{$endif}
+
 unit sqlite;
+
 interface
 
 {
