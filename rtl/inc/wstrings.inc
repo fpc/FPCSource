@@ -160,7 +160,9 @@ begin
       If P<>Nil then
         begin
          PWideRec(P)^.Len:=Len*2;     { Initial length }
+{$ifndef FPC_WINLIKEWIDESTRING}
          PWideRec(P)^.Ref:=1;         { Initial Refcount }
+{$endif FPC_WINLIKEWIDESTRING}
          PWideRec(P)^.First:=#0;      { Terminating #0 }
          inc(p,WideFirstOff);         { Points to string now }
         end
