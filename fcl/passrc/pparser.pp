@@ -546,10 +546,7 @@ procedure TPasParser.ParseFileType(Element: TPasFileType);
 begin
   NextToken;
   If CurToken=tkOf then
-    begin
-    NextToken;
     Element.ElType := ParseType(nil);
-    end;
 end;
 
 function TPasParser.ParseExpression: String;
