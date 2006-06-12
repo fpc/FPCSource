@@ -123,6 +123,7 @@ type
     function ParseType(Parent: TPasElement): TPasType;
     function ParseComplexType: TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
+    procedure ParseFileType(Element: TPasFileType);
     function ParseExpression: String;
     procedure AddProcOrFunction(ASection: TPasSection; AProc: TPasProcedure);
     function CheckIfOverloaded(AOwner: TPasClassType;
@@ -385,6 +386,10 @@ begin
         Result := TPasPointerType(CreateElement(TPasPointerType, '', Parent));
         TPasPointerType(Result).DestType := ParseType(nil);
       end;
+    tkFile:
+      begin
+        Result := TPasFileType(CreateElement(TPasFileType, '', Parent));
+      end;  
     tkArray:
       begin
         Result := TPasArrayType(CreateElement(TPasArrayType, '', Parent));
@@ -533,6 +538,15 @@ begin
     else
       ParseExc(SParserArrayTypeSyntaxError);
   end;
+end;
+
+procedure TPasParser.ParseFileType(Element: TPasFileType);
+
+
+begin
+  NextToken;
+  If CurToken=tkOf then
+    Element.ElType := ParseType(nil);
 end;
 
 function TPasParser.ParseExpression: String;
@@ -988,13 +1002,17 @@ begin
           ParseRange;
         end;
       end;
-{    _STRING, _FILE:
+    tkFile:
       begin
-        Result := TPasAliasType(CreateElement(TPasAliasType, TypeName, Parent));
-        UngetToken;
-        TPasAliasType(Result).DestType := ParseType(nil);
-        ExpectToken(tkSemicolon);
-      end;}
+        Result := TPasFileType(CreateElement(TPasFileType, TypeName, Parent));
+        Try
+          ParseFileType(TPasFileType(Result));
+          ExpectToken(tkSemicolon);
+        Except
+          Result.free;
+          Raise;
+        end;
+      end;
     tkArray:
       begin
         Result := TPasArrayType(CreateElement(TPasArrayType, TypeName, Parent));
