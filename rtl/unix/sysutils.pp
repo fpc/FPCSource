@@ -200,16 +200,8 @@ end;
 
 Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
 
-Var LinuxFlags : longint;
-
 BEGIN
-  LinuxFlags:=0;
-  Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or O_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or O_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or O_RdWr;
-  end;
-  FileCreate:=fpOpen(FileName,LinuxFlags or O_Creat or O_Trunc);
+  FileCreate:=fpOpen(FileName,O_RdWr or O_Creat or O_Trunc,Mode);
 end;
 
 
