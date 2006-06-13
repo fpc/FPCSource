@@ -158,6 +158,7 @@ begin
   result := CreateFile(@FN[1], dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
+  //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
 
 

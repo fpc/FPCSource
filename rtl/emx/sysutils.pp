@@ -410,6 +410,7 @@ asm
  mov eax, 7F2Bh
  call syscall
  pop ebx
+ //check me, should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 

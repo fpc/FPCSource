@@ -68,6 +68,9 @@ Const
   fsFromCurrent   = 1;
   fsFromEnd       = 2;
 
+  { File errors }
+  feInvalidHandle : THandle = -1;  //return value on FileOpen error
+
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : String) : THandle;
 Function FileCreate (Const FileName : String; Mode : Integer) : THandle;

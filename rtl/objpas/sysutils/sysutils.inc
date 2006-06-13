@@ -65,7 +65,7 @@
 
   begin
     fd:=FileOpen(FileName,fmOpenRead);
-    If (Fd>=0) then
+    If (Fd<>feInvalidHandle) then
       try
         Result:=FileSetDate(fd,Age);
       finally
