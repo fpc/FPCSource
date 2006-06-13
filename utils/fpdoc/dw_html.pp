@@ -1193,103 +1193,83 @@ end;
 
 function THTMLWriter.AppendPasSHFragment(Parent: TDOMNode;
   const AText: String; AShFlags: Byte): Byte;
+  
+  
 var
-  CurParent: TDOMNode;
   Line, Last, p: PChar;
   IsInSpecial: Boolean;
+  lastwasasm : boolean;
   El: TDOMElement;
+
+  Procedure MaybeOutput;
+  
+  Var
+    CurParent: TDomNode;
+  
+  begin
+    If (Last<>Nil) then
+      begin
+      If (el<>Nil) then
+        CurParent:=El
+      else
+        CurParent:=Parent;  
+      AppendText(CurParent,Last);
+      El:=Nil;
+      Last:=Nil;
+      end;
+  end;
+
+  Function NewEl(Const ElType,Attr,AttrVal : String) : TDomElement; 
+  
+  begin
+    Result:=CreateEl(Parent,ElType);
+    Result[Attr]:=AttrVal;
+  end;
+  
+  Function NewSpan(Const AttrVal : String) : TDomElement; 
+  
+  begin
+    Result:=CreateEl(Parent,'span');
+    Result['class']:=AttrVal;
+  end;
+  
 begin
   GetMem(Line, Length(AText) * 3 + 4);
+  Try
   DoPascalHighlighting(AShFlags, PChar(AText), Line);
   Result := AShFlags;
-
-  CurParent := Parent;
   IsInSpecial := False;
-  Last := Line;
+  Last := Nil;
   p := Line;
+  el:=nil;
   while p[0] <> #0 do
   begin
     if p[0] = LF_ESCAPE then
-    begin
+      begin
       p[0] := #0;
-      AppendText(CurParent, Last);
-
-      if IsInSpecial then
-        CurParent := Parent;
+      MaybeOutput;
       case Ord(p[1]) of
-        shDefault:
-          IsInSpecial := False;
-        shInvalid:
-          begin
-            El := CreateEl(CurParent, 'font');
-            El['color'] := 'red';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shSymbol:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'sym';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shKeyword:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'kw';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shComment:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'cmt';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shDirective:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'dir';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shNumbers:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'num';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shCharacters:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'chr';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shStrings:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'str';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
-        shAssembler:
-          begin
-            El := CreateEl(CurParent, 'span');
-            El['class'] := 'asm';
-            CurParent := El;
-            IsInSpecial := True;
-          end;
+        shDefault:    El:=Nil;
+        shInvalid:    El:=newel('font','color','red');
+        shSymbol :    El:=newspan('sym');
+        shKeyword:    El:=newspan('kw');
+        shComment:    El:=newspan('cmt');
+        shDirective:  El:=newspan('dir');
+        shNumbers:    El:=newspan('num');
+        shCharacters: El:=newspan('chr');
+        shStrings:    El:=newspan('str');
+        shAssembler:  El:=newspan('asm');
       end;
-      Last := p + 2;
-    end;
+      Inc(P);
+      end
+    else If (Last=Nil) then
+      Last:=P;
     Inc(p);
   end;
-  if Last <> p then
-    AppendText(CurParent, Last);
-  FreeMem(Line);
+  MaybeOutput;
+  Finally
+    FreeMem(Line);
+  end;
 end;
 
 Procedure THTMLWriter.AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode : TDocNode);
