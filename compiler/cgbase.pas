@@ -656,7 +656,7 @@ implementation
         if shuffle.len=0 then
           exit;
         for i:=1 to shuffle.len do
-          shuffle.shuffles[i]:=(shuffle.shuffles[i] and $f0) or ((shuffle.shuffles[i] and $f0) shr 4);
+          shuffle.shuffles[i]:=(shuffle.shuffles[i] and $f) or ((shuffle.shuffles[i] and $f0) shr 4);
       end;
 
 
