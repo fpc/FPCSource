@@ -1869,7 +1869,17 @@ begin
          end
        else
          NewEl := CreateLink(ParaEl,s);
-       AppendText(NewEl,El['id']);
+        if Not IsDescrNodeEmpty(El) then
+          begin
+          PushOutputNode(NewEl);
+          Try
+            ConvertBaseShortList(AElement, El, True)
+          Finally
+            PopOutputNode;
+          end;  
+          end
+        else
+          AppendText(NewEl,El['id']);
        l:=El['id'];
        DescrEl := Engine.FindShortDescr(AElement.GetModule,L);
        if Assigned(DescrEl) then
