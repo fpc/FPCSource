@@ -524,7 +524,10 @@ implementation
                       exclude(p.propoptions,ppo_stored);
                     end;
                   _TRUE:
+                    begin
+                    p.default:=longint($80000000);
                     consume(_TRUE);
+                    end;
                 end;
               end;
            end;
@@ -578,7 +581,7 @@ implementation
            end
          else if try_to_consume(_NODEFAULT) then
            begin
-              p.default:=0;
+              p.default:=longint($80000000);
            end;
          { remove temporary procvardefs }
          readprocdef.free;
