@@ -228,24 +228,25 @@
      EM_STREAMOUT = 1098;
      EM_UNDO = 199;
   { Edit control  }
-     EN_CHANGE = 768;
+     EN_SETFOCUS     =$0100;
+     EN_KILLFOCUS    =$0200;
+     EN_CHANGE       =$0300;
+     EN_UPDATE       =$0400;
+     EN_ERRSPACE     =$0500;
+     EN_MAXTEXT      =$0501;
+     EN_HSCROLL      =$0601;
+     EN_VSCROLL      =$0602;
+
      EN_CORRECTTEXT = 1797;
      EN_DROPFILES = 1795;
-     EN_ERRSPACE = 1280;
-     EN_HSCROLL = 1537;
      EN_IMECHANGE = 1799;
-     EN_KILLFOCUS = 512;
-     EN_MAXTEXT = 1281;
      EN_MSGFILTER = 1792;
      EN_OLEOPFAILED = 1801;
      EN_PROTECTED = 1796;
      EN_REQUESTRESIZE = 1793;
      EN_SAVECLIPBOARD = 1800;
      EN_SELCHANGE = 1794;
-     EN_SETFOCUS = 256;
      EN_STOPNOUNDO = 1798;
-     EN_UPDATE = 1024;
-     EN_VSCROLL = 1538;
   { File Manager extensions  }
   { File Manager extensions DLL events  }
   { Header control  }
@@ -1218,7 +1219,7 @@ Type
 
 
      PMessage = ^TMessage;
-     TMessage = packed record       {fields according to ICS}
+     TMessage = record       {fields according to ICS}
         msg      : UINT;
         case longint of
           0: (
@@ -1236,7 +1237,7 @@ Type
              );
        end;
 
-    TWMSize = packed record
+    TWMSize = record
       Msg: Cardinal;
       SizeType : LongInt;
       Width : Word;
@@ -1244,7 +1245,7 @@ Type
       Result : LongInt;
     End;
 
-    TWMNoParams = packed record
+    TWMNoParams = record
       Msg : Cardinal;
       Unused : array[0..3] of Word;
       Result : Longint;
@@ -1265,7 +1266,7 @@ Type
     TWMHScroll = TWMScroll;
     TWMVScroll = TWMScroll;
 
-    TWMGetText = packed record
+    TWMGetText = record
       Msg : Cardinal;
       TextMax : LongInt;
       Text : PChar;
@@ -1274,14 +1275,14 @@ Type
 
     TWMGetTextLength = TWMNoParams;
 
-    TWMKillFocus = packed record
+    TWMKillFocus = record
        Msg : Cardinal;
        FocusedWnd : HWND;
        UnUsed : LongInt;
        Result : LongInt;
     End;
 
-    TWMSetCursor = packed record
+    TWMSetCursor = record
       Msg : Cardinal;
       CursorWnd : HWND;
       HitTest : Word;
@@ -1289,14 +1290,14 @@ Type
       Result : LongInt;
     end;
 
-    TWMSetFocus = packed record
+    TWMSetFocus = record
       Msg : Cardinal;
       FocusedWnd : HWND;
       Unused : LongInt;
       Result : LongInt;
     end;
 
-    TWMSetFont = packed record
+    TWMSetFont = record
       Msg : Cardinal;
       Font : HFONT;
       Redraw : WordBool;
@@ -1304,14 +1305,14 @@ Type
       Result : LongInt;
     end;
 
-    TWMShowWindow = packed record
+    TWMShowWindow = record
       Msg : Cardinal;
       Show : BOOL;
       Status : LongInt;
       Result : LongInt;
     end;
 
-    TWMEraseBkgnd = packed record
+    TWMEraseBkgnd = record
       Msg: Cardinal;
       DC: HDC;
       Unused: Longint;

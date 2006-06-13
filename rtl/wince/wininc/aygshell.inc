@@ -397,28 +397,28 @@ const
 
 type
   //Struct sent through WM_NOTIFY when SHRG_NOTIFYPARENT is used
-  NMRGINFO = packed record
+  NMRGINFO = record
     hdr : NMHDR;
     ptAction : POINT;
     dwItemSpec : DWORD;
   end;
   PNMRGINFO=^NMRGINFO;
 
-  SHACTIVATEINFO = packed record
+  SHACTIVATEINFO = record
     cbSize : DWORD;
     hwndLastFocus : HWND ;
     bits : Longint ;
   end;
   PSHACTIVATEINFO=^SHACTIVATEINFO;
 
-  SHINITDLGINFO = packed record
+  SHINITDLGINFO = record
     dwMask: DWORD;
     hDlg: HWND;
     dwFlags : DWORD ;
    end;
   PSHINITDLGINFO=^SHINITDLGINFO;
 
-  SHMENUBARINFO = packed record
+  SHMENUBARINFO = record
     cbSize : DWORD;        // IN  - Indicates which members of struct are valid
     hwndParent : HWND ;    // IN
     dwFlags : DWORD ;      // IN  - Some features we want
@@ -432,7 +432,7 @@ type
   PSHMENUBARINFO=^SHMENUBARINFO;
 
   {SHRecognizeGesture}
-  SHRGI = packed record
+  SHRGI = record
     cbSize     : DWORD;
     hwndClient : HWND ;
     ptDown     : POINT;
@@ -442,7 +442,7 @@ type
   PSHRGINFO=^SHRGI;
 
   {Sip info}
-  SIPINFO = packed record
+  SIPINFO = record
     cbSize           : DWORD;
     fdwFlags         : DWORD;
     rcVisibleDesktop : RECT;
