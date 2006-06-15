@@ -139,6 +139,18 @@ implementation
                  { recover }
                  rv:=1;
                end;
+
+             if (rv = 1) then
+               begin
+                 case nodetype of
+                   modn:
+                     result := cordconstnode.create(0,left.resulttype,true);
+                   divn:
+                     result := left.getcopy;
+                 end;
+                 exit;
+               end;
+
              if is_constintnode(left) then
                begin
                  lv:=tordconstnode(left).value;
