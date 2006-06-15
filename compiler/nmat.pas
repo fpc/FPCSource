@@ -110,13 +110,15 @@ implementation
         if is_constintnode(right) then
           begin
             if tordconstnode(right).value = 1 then
-              case nodetype of
-                modn:
-                  result := cordconstnode.create(0,left.resulttype,true);
-                divn:
-                  result := left.getcopy;
+              begin
+                case nodetype of
+                  modn:
+                    result := cordconstnode.create(0,left.resulttype,true);
+                  divn:
+                    result := left.getcopy;
+                end;
+                exit;
               end;
-              exit;
           end;
 
         if is_constintnode(right) and is_constintnode(left) then
