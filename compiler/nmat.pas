@@ -107,6 +107,18 @@ implementation
       begin
         result:=nil;
 
+        if is_constintnode(right) then
+          begin
+            if tordconstnode(right).value = 1 then
+              case nodetype of
+                modn:
+                  result := cordconstnode.create(0,left.resulttype,true);
+                divn:
+                  result := left.getcopy;
+              end;
+              exit;
+          end;
+
         if is_constintnode(right) and is_constintnode(left) then
           begin
             rd:=torddef(right.resulttype.def);

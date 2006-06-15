@@ -5933,6 +5933,7 @@ tests/test/cg/tloadvmt.pp svneol=native#text/plain
 tests/test/cg/tlohi.pp svneol=native#text/plain
 tests/test/cg/tmanypar.pp svneol=native#text/plain
 tests/test/cg/tmoddiv.pp svneol=native#text/plain
+tests/test/cg/tmoddiv1.pp svneol=native#text/plain
 tests/test/cg/tmoddiv2.pp svneol=native#text/plain
 tests/test/cg/tmul3264.pp svneol=native#text/plain
 tests/test/cg/tneg.pp svneol=native#text/plain
