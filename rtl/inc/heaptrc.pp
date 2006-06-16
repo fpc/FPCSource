@@ -15,6 +15,7 @@
 unit heaptrc;
 interface
 
+{$checkpointer off}
 {$goto on}
 
 Procedure DumpHeap;
