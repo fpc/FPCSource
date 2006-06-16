@@ -409,8 +409,8 @@ asm
 @FOpen1:
  mov eax, 7F2Bh
  call syscall
+(* syscall __open() returns -1 in case of error, i.e. exactly what we need *)
  pop ebx
- //check me, should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end {['eax', 'ebx', 'ecx', 'edx']};
 
 
