@@ -40,7 +40,7 @@ type
 
      { if true the current debugger raw will stay in middle of
        editor window when debugging PM }
-     CenterDebuggerRow : boolean;
+     CenterDebuggerRow : TCentre;
      Disableallinvalidbreakpoints : boolean;
      OrigPwd,  { pwd at startup }
      LastFileName : string;
@@ -2070,7 +2070,7 @@ begin
   if W<>nil then
     begin
       W^.Select;
-      W^.Editor^.TrackCursor(true);
+      W^.Editor^.TrackCursor(do_centre);
       W^.Editor^.SetLineFlagExclusive(lfHighlightRow,P^.Breakpoint^.Line);
     end;
   if Assigned(Owner) then

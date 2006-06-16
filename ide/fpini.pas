@@ -499,7 +499,7 @@ begin
   { Desktop }
   DesktopFileFlags:=INIFile^.GetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
   { Debugger }
-  IniCenterDebuggerRow:=INIFile^.GetIntEntry(secPreferences,ieCenterDebuggerRow,1)<>0;
+  IniCenterDebuggerRow:=tcentre(INIFile^.GetIntEntry(secPreferences,ieCenterDebuggerRow,1));
   { Preferences }
   AutoSaveOptions:=INIFile^.GetIntEntry(secPreferences,ieAutoSave,AutoSaveOptions);
   MiscOptions:=INIFile^.GetIntEntry(secPreferences,ieMiscOptions,MiscOptions);
