@@ -1570,6 +1570,7 @@ end;
 {$UNDEF AMIGASHELL}
 
 {$ifdef CPUI386}
+{$asmmode att}
   {$define HASSETFPUEXCEPTIONMASK}
       { later, this should be replaced by the math unit }
       const
