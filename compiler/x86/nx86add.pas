@@ -725,6 +725,10 @@ unit nx86add;
           end
         else
           begin
+            if not(nf_swaped in flags) then
+              if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+                location_force_mem(exprasmlist,right.location);
+
             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
             location.register:=left.location.register;
             { force floating point reg. location to be written to memory,
