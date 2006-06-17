@@ -215,28 +215,16 @@ unit nx86add;
       begin
         if (right.location.loc<>LOC_FPUREGISTER) then
          begin
-           cg.a_loadfpu_loc_reg(exprasmlist,right.location,NR_ST);
-           if (right.location.loc <> LOC_CFPUREGISTER) then
-             location_freetemp(exprasmlist,left.location);
+           location_force_fpureg(exprasmlist,right.location,false);
            if (left.location.loc<>LOC_FPUREGISTER) then
-            begin
-              cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-              if (left.location.loc <> LOC_CFPUREGISTER) then
-                location_freetemp(exprasmlist,left.location);
-            end
+             location_force_fpureg(exprasmlist,left.location,false)
            else
-            begin
-              { left was on the stack => swap }
-              toggleflag(nf_swaped);
-            end;
+             { left was on the stack => swap }
+             toggleflag(nf_swaped);
          end
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
-         begin
-           cg.a_loadfpu_loc_reg(exprasmlist,left.location,NR_ST);
-           if (left.location.loc <> LOC_CFPUREGISTER) then
-             location_freetemp(exprasmlist,left.location);
-         end
+          location_force_fpureg(exprasmlist,left.location,false)
         else
          begin
            { fpu operands are always in the wrong order on the stack }
