@@ -2581,7 +2581,7 @@ begin
       SetCurPtr(0,DisasLines^.IndexOf(PL));
       PL^.SetFlags(lfDebuggerRow);
       CurL:=PL;
-      TrackCursor(do_centre);
+      TrackCursor(do_not_centre);
     end;
   GetCurrentLine:=PL;
 end;

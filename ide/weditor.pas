@@ -205,7 +205,7 @@ const
 
 
 type
-    Tcentre = (do_centre,do_not_centre);
+    Tcentre = (do_not_centre,do_centre);
 
     PCustomCodeEditor = ^TCustomCodeEditor;
     PEditorLineInfo = ^TEditorLineInfo;
@@ -6386,7 +6386,7 @@ begin
   OldSStart:=SelStart;}
   CurPos.X:=X;
   CurPos.Y:=Y;
-  TrackCursor(do_centre);
+  TrackCursor(do_not_centre);
   if not IsLineVisible(CurPos.Y) then
   begin
     F:=GetLineFold(CurPos.Y);
