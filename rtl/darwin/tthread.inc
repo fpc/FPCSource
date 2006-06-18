@@ -175,9 +175,10 @@ begin
     WRITE_DEBUG('Thread should be freed');
     LThread.Free;
     WRITE_DEBUG('Thread freed');
+//    tthread.destroy already frees all things and terminates the thread
+//    WRITE_DEBUG('thread func calling EndThread');
+//    EndThread(Result);
   end;
-  WRITE_DEBUG('thread func calling EndThread');
-  EndThread(Result);
 end;
 
 { TThread }
@@ -207,18 +208,18 @@ begin
   // if someone calls .Free on a thread with
   // FreeOnTerminate, then don't crash!
   FFreeOnTerminate := false;
-  if not FFinished and not FSuspended then begin
-    Terminate;
-    WaitFor;
-  end;
-  if (FInitialSuspended) then begin
+  if (FInitialSuspended) then
     // thread was created suspended but never woken up.
-    SemaphorePost(FSem);
-    WaitFor;
-  end;
+    Resume;
+  if not FFinished and not FSuspended then
+    begin
+      Terminate;
+      WaitFor;
+    end;
   FFatalException.Free;
   FFatalException := nil;
   SemaphoreDestroy(FSem);
+  { threadvars have been released by cthreads.ThreadMain -> DoneThread }
   inherited Destroy;
 end;
 
