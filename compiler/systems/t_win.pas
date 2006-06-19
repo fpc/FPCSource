@@ -381,12 +381,12 @@ implementation
               if target_info.system=system_x86_64_win64 then
                 begin
                   objdata.writebytes(emptyint,sizeof(emptyint));
-                  emptyint:=$80000000;
+                  emptyint:=longint($80000000);
                   objdata.writebytes(emptyint,sizeof(emptyint));
                 end
               else
                 begin
-                  emptyint:=emptyint or $80000000;
+                  emptyint:=emptyint or longint($80000000);
                   objdata.writebytes(emptyint,sizeof(emptyint));
                 end;
               emptyint:=0;
