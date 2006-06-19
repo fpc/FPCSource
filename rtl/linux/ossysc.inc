@@ -189,7 +189,7 @@ end;
 procedure Fpexit(status : cint); [public, alias : 'FPC_SYSC_EXIT'];
 
 begin
-  do_syscall(syscall_nr_exit,status);
+  do_syscall(syscall_nr_exit_group,status);
 end;
 
 {
