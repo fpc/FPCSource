@@ -520,7 +520,7 @@ type
        end;
 
 
-Const WeightDefault = 100;  
+Const WeightDefault = 1000;  
 
 Type
   TLinkRec = record 
@@ -3344,7 +3344,7 @@ end;
 
 function  TLinkStrMap.AddWeight(keyvalue:String):boolean;
 
-var i    : Longint;
+var i,j    : Longint;
     Code : Word;
     s    : AnsiString;
 
@@ -3354,10 +3354,10 @@ begin
   if i=0 then 
     exit;
   s:=Copy(KeyValue,i+1,length(KeyValue)-i);  
-  val(s,i,code);
-  if code<>0 Then
+  val(s,j,code);
+  if code=0 Then
     begin
-      Add(Copy(KeyValue,1,i-1),'',i);
+      Add(Copy(KeyValue,1,i-1),'',j);
       AddWeight:=True;
     end;  
 end;
@@ -3371,7 +3371,7 @@ begin
  while i<=k do
    begin
      j:=i;
-     while (i<=k) and (keys[i]<>';') do 
+     while (i<=k) and (keys[i]<>',') do 
        inc(i);
      add(copy(keys,j,i-j),'',weight);  
      inc(i);
@@ -3407,7 +3407,8 @@ begin
    lookup:=-1;
    i:=0;
    {$B-}
-   while (i<itemcnt) and (fmap[i].key<>key) do inc(i);
+   while (i<itemcnt) and (fmap[i].key<>key) do 
+     inc(i);
    {$B+}
    if i<>itemcnt then
       lookup:=i;
@@ -3452,7 +3453,6 @@ begin
         dest.add(LibN)
       else 
         dest.addseries(fmap[r].value);
-
     end;
 end;  
 
@@ -3470,3 +3470,4 @@ end;
 
 
 end.
+ 
