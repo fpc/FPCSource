@@ -71,7 +71,7 @@ end;
 function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   // Dubious construct, this should be checked. (IPV6 fails ?)
-  fpSendTo:=WinSock2.SendTo(S,msg,Len,Flags,Winsock2.TSockAddr(tox^),toLen);
+  fpSendTo:=WinSock2.SendTo(S,msg,Len,Flags,Winsock2.PSockAddr(tox),toLen);
   if fpSendTo<0 then
     SocketError:=WSAGetLastError
   else
@@ -90,7 +90,7 @@ end;
 function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
-  fpRecvFrom:=WinSock2.RecvFrom(S,Buf,Len,Flags,Winsock2.TSockAddr(from^),FromLen^);
+  fpRecvFrom:=WinSock2.RecvFrom(S,Buf,Len,Flags,WinSock2.PSockAddr(From),FromLen);
   if fpRecvFrom<0 then
     SocketError:=WSAGetLastError
   else
@@ -100,7 +100,7 @@ end;
 function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 
 begin
-  fpConnect:=Winsock2.Connect(S,Winsock2.TSockAddr(name^),nameLen);
+  fpConnect:=Winsock2.Connect(S,WinSock2.PSockAddr(name),nameLen);
   if fpConnect<0 then
     SocketError:=WSAGetLastError
   else
@@ -165,7 +165,7 @@ end;
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
-  fpAccept:=Winsock2.Accept(S,Winsock2.PSockAddr(Addrx),plongint(@AddrLen));
+  fpAccept:=Winsock2.Accept(S,Winsock2.PSockAddr(Addrx), AddrLen);
   if fpAccept<0 then
     SocketError:=WSAGetLastError
   else
