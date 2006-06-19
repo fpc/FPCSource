@@ -146,17 +146,24 @@ begin
   LThread := TThread(parameter);
   WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
   try
-    if LThread.FInitialSuspended then begin
-      SemaphoreWait(LThread.FSem);
-      if not LThread.FSuspended then begin
-        LThread.FInitialSuspended := false;
-        WRITE_DEBUG('going into LThread.Execute');
-        LThread.Execute;
-      end;
-    end else begin
-      WRITE_DEBUG('going into LThread.Execute');
-      LThread.Execute;
-    end;
+    if LThread.FInitialSuspended then
+      begin
+        SemaphoreWait(LThread.FSem);
+        if not(LThread.FTerminated) then
+          begin
+            if not LThread.FSuspended then
+              begin
+                LThread.FInitialSuspended := false;
+                WRITE_DEBUG('going into LThread.Execute');
+                LThread.Execute;
+              end;
+          end;
+      end
+     else
+       begin
+         WRITE_DEBUG('going into LThread.Execute');
+         LThread.Execute;
+       end;
   except
     on e: exception do begin
       WRITE_DEBUG('got exception: ',e.message);
