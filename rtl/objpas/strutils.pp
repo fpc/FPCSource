@@ -1231,7 +1231,7 @@ end;
 function RomanToint(const S: string): Longint;
 
 const
-  RomanChars  = ['C','D','i','L','M','V','X'];
+  RomanChars  = ['C','D','I','L','M','V','X'];
   RomanValues : array['C'..'X'] of Word
               = (100,500,0,0,0,0,1,0,0,50,1000,0,0,0,0,0,0,0,0,5,0,10);
 
