@@ -1774,7 +1774,6 @@ implementation
 
                     rex:=rex or $40;
                   end;
-
 {$endif x86_64}
                 inc(codes);
                 inc(len);
@@ -1843,6 +1842,7 @@ implementation
             200,
             201,
             202,
+            211,
             213,
             215,
             217,218: ;
@@ -1950,6 +1950,7 @@ implementation
        * \312          - indicates fixed 64-bit address size, i.e. optional 0x48.
        * \320,\321,\322 - might be an 0x66 or 0x48 byte, depending on the operand
        *                 size of operand x.
+       * \323          - insert x86_64 REX at this position.
        * \324          - indicates fixed 16-bit operand size, i.e. optional 0x66.
        * \325          - indicates fixed 32-bit operand size, i.e. optional 0x66.
        * \326          - indicates fixed 64-bit operand size, i.e. optional 0x48.
@@ -2032,9 +2033,6 @@ implementation
               break;
             1,2,3 :
               begin
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
               end;
@@ -2073,9 +2071,6 @@ implementation
               end;
             8,9,10 :
               begin
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
                 objdata.writebytes(bytes,1);
@@ -2088,9 +2083,6 @@ implementation
               end;
             15 :
               begin
-{$ifdef x86_64}
-                maybewriterex;
-{$endif x86_64}
                 bytes[0]:=0;
                 objdata.writebytes(bytes,1);
               end;
@@ -2212,15 +2204,30 @@ implementation
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
+              end;
+            211,
+            213 :
+              begin
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
               end;
             212 :
               begin
                 bytes[0]:=$66;
                 objdata.writebytes(bytes,1);
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
               end;
             214 :
               begin
-{$ifndef x86_64}
+{$ifdef x86_64}
+                maybewriterex;
+{$else x86_64}
                 Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
               end;
@@ -2238,7 +2245,6 @@ implementation
               ;
             201,
             202,
-            213,
             215,
             217,218 :
               begin
