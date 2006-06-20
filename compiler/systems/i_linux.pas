@@ -431,7 +431,7 @@ unit i_linux;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas; { as_x86_64_elf64; }
+            assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
