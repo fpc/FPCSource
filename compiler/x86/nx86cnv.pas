@@ -204,6 +204,14 @@ implementation
 {$ifdef x86_64}
         if use_sse(resulttype.def) then
           begin
+            { We can only directly convert s32bit and s64bit,u64bit values, for other
+              values convert first to s64bit }
+            if not(torddef(left.resulttype.def).typ in [s32bit,s64bit,u64bit]) then
+              begin
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
+                location_force_reg(current_asmdata.CurrAsmList,left.location,OS_S64,false);
+              end;
+
             if is_double(resulttype.def) then
               op:=A_CVTSI2SD
             else if is_single(resulttype.def) then
@@ -213,17 +221,6 @@ implementation
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
-            if (left.location.loc=LOC_REGISTER) and (torddef(left.resulttype.def).typ=u64bit) then
-              begin
-{$ifdef cpu64bit}
-                emit_const_reg(A_BT,S_Q,63,left.location.register);
-{$else cpu64bit}
-                emit_const_reg(A_BT,S_L,31,left.location.register64.reghi);
-{$endif cpu64bit}
-                signtested:=true;
-              end
-            else
-              signtested:=false;
 
             case torddef(left.resulttype.def).typ of
               u64bit:
@@ -235,7 +232,10 @@ implementation
                    current_asmdata.getdatalabel(l1);
                    current_asmdata.getjumplabel(l2);
 
-                   if not(signtested) then
+                   { Get sign bit }
+                   if (left.location.loc=LOC_REGISTER) then
+                     emit_const_reg(A_BT,S_Q,63,left.location.register)
+                   else
                      begin
                        inc(left.location.reference.offset,4);
                        emit_const_ref(A_BT,S_L,31,left.location.reference);
@@ -272,38 +272,18 @@ implementation
                 end
               else
                 begin
-                  if (left.resulttype.def.size=4) and not(torddef(left.resulttype.def).typ=u32bit) then
-                    begin
-                      case left.location.loc of
-                        LOC_CREFERENCE,
-                        LOC_REFERENCE :
-                          current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,S_L,left.location.reference,location.register));
-                        LOC_CREGISTER,
-                        LOC_REGISTER :
-                          current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,S_L,left.location.register,location.register));
-                        else
-                          internalerror(200506072);
-                      end;
-                    end
-                  else if left.resulttype.def.size=8 then
-                    begin
-                      case left.location.loc of
-                        LOC_CREFERENCE,
-                        LOC_REFERENCE :
-                          current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
-                        LOC_CREGISTER,
-                        LOC_REGISTER :
-                          current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
-                        else
-                          internalerror(200506073);
-                      end;
-                    end
-                  else
-                    begin
-                      hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_64);
-                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_64,left.location,hreg);
-                      current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(op,S_NO,hreg,location.register));
-                    end
+                  if not(left.location.size in [OS_S32,OS_S64]) then
+                    internalerror(200506073);
+                  case left.location.loc of
+                    LOC_CREFERENCE,
+                    LOC_REFERENCE :
+                      current_asmdata.CurrAsmList.concat(Taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],left.location.reference,location.register));
+                    LOC_CREGISTER,
+                    LOC_REGISTER :
+                      current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(op,tcgsize2opsize[left.location.size],left.location.register,location.register));
+                    else
+                      internalerror(200506072);
+                  end;
                 end;
             end;
           end
