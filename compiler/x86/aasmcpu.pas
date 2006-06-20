@@ -1962,6 +1962,9 @@ implementation
       var
         currval : aint;
         currsym : tobjsymbol;
+{$ifdef x86_64}
+        rexwritten : boolean;
+{$endif x86_64}
 
         procedure getvalsym(opidx:longint);
           begin
@@ -1981,6 +1984,17 @@ implementation
             end;
           end;
 
+{$ifdef x86_64}
+       procedure maybewriterex;
+       begin
+          if rex<>0 then
+            begin
+              rexwritten:=true;
+              objdata.writebytes(rex,1);
+            end;
+        end;
+{$endif x86_64}
+
       const
         CondVal:array[TAsmCond] of byte=($0,
          $7, $3, $2, $6, $2, $4, $F, $D, $C, $E, $6, $2,
@@ -1994,18 +2008,15 @@ implementation
         rfield,
         data,s,opidx : longint;
         ea_data : ea;
-{$ifdef extdebug}
-        rexwritten : boolean;
-{$endif extdebug}
       begin
-{$ifdef extdebug}
-        rexwritten:=false;
-{$endif extdebug}
         { safety check }
         if objdata.currobjsec.size<>insoffset then
            internalerror(200130121);
         { load data to write }
         codes:=insentry^.code;
+{$ifdef x86_64}
+        rexwritten:=false;
+{$endif x86_64}
         { Force word push/pop for registers }
         if (opsize=S_W) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
@@ -2022,14 +2033,7 @@ implementation
             1,2,3 :
               begin
 {$ifdef x86_64}
-                if rex<>0 then
-                  begin
-                    bytes[0]:=rex;
-{$ifdef extdebug}
-                    rexwritten:=true;
-{$endif extdebug}
-                    objdata.writebytes(bytes,1);
-                  end;
+                maybewriterex;
 {$endif x86_64}
                 objdata.writebytes(codes^,c);
                 inc(codes,c);
@@ -2069,24 +2073,8 @@ implementation
               end;
             8,9,10 :
               begin
-                { rex should be written at this point }
-(*
 {$ifdef x86_64}
-{$ifdef extdebug}
-                if (rex<>0) and not(rexwritten) then
-                  internalerror(200603192);
-{$endif extdebug}
-{$endif x86_64}
-*)
-{$ifdef x86_64}
-                if rex<>0 then
-                  begin
-                    bytes[0]:=rex;
-{$ifdef extdebug}
-                    rexwritten:=true;
-{$endif extdebug}
-                    objdata.writebytes(bytes,1);
-                  end;
+                maybewriterex;
 {$endif x86_64}
                 bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
@@ -2100,6 +2088,9 @@ implementation
               end;
             15 :
               begin
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
                 bytes[0]:=0;
                 objdata.writebytes(bytes,1);
               end;
@@ -2221,18 +2212,6 @@ implementation
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
-(*
-{$ifdef x86_64}
-                if rex<>0 then
-                  begin
-                    bytes[0]:=rex;
-{$ifdef extdebug}
-                    rexwritten:=true;
-{$endif extdebug}
-                    objdata.writebytes(bytes,1);
-                  end;
-{$endif x86_64}
-*)
               end;
             212 :
               begin
@@ -2275,10 +2254,8 @@ implementation
               begin
                 { rex should be written at this point }
 {$ifdef x86_64}
-{$ifdef extdebug}
                 if (rex<>0) and not(rexwritten) then
                   internalerror(200603191);
-{$endif extdebug}
 {$endif x86_64}
                 if (c>=64) and (c<=191) then
                  begin
