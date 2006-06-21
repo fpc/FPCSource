@@ -128,7 +128,7 @@ interface
 {$else x86_64}
       instabentries = {$i i386nop.inc}
 {$endif x86_64}
-      maxinfolen    = 8;
+      maxinfolen    = 11;
       MaxInsChanges = 3; { Max things a instruction can change }
 
     type
