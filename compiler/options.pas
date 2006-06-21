@@ -1188,8 +1188,9 @@ begin
                              DefaultReplacements(rlinkpath);
                              More:='';
                           end;
-                    'L' : begin  // -XLO is link order -XLA is link alias
-                            if (j=length(more)) or not ((more[j+1]='O') or (more[j+1]='A')) then
+                    'L' : begin  // -XLO is link order -XLA is link alias. -XLD avoids load defaults.
+                                 // these are not aggregable.
+                            if (j=length(more)) or not (more[j+1] in ['O','A','D']) then
                               IllegalPara(opt)
                             else
                               begin
@@ -1201,11 +1202,15 @@ begin
                                        end;
                                  'O' : begin
                                         s:=Copy(more,3,length(More)-2);
-                                        if not LinkLibraryAliases.AddWeight(s) Then
+                                        if not LinkLibraryOrder.AddWeight(s) Then
                                            IllegalPara(opt);
                                        end;
-                                   end;     
-                              end;
+                                 'D' : include(initglobalswitches,cs_link_no_default_lib_order)
+                                else
+                                  IllegalPara(opt);
+                                 end; {case}
+                                j:=length(more);    
+                              end; {else begin}
                           end;
                     'S' :
                       begin

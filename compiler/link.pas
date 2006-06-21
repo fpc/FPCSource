@@ -59,6 +59,7 @@ Type
        Function  MakeStaticLibrary:boolean;virtual;
        procedure ExpandAndApplyOrder(var Src:TStringList);
        procedure LoadPredefinedLibraryOrder;virtual; 
+       function  ReOrderEntries : boolean;
      end;
 
     TExternalLinker = class(TLinker)
@@ -458,10 +459,11 @@ begin
   if (LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then 
     exit;
   p:=TLinkStrMap.Create;
-  
+    
   // expand libaliases, clears src
   LinkLibraryAliases.expand(src,p);
   
+  // writeln(src.count,' ',p.count,' ',linklibraryorder.count,' ',linklibraryaliases.count);
   // apply order
   p.UpdateWeights(LinkLibraryOrder);  
   p.SortOnWeight;
@@ -475,6 +477,12 @@ end;
 procedure TLinker.LoadPredefinedLibraryOrder;
 
 begin
+end;
+
+function  TLinker.ReOrderEntries : boolean;
+
+begin
+  result:=(LinkLibraryOrder.count>0) or (LinkLibraryAliases.count>0);
 end;
 
 {*****************************************************************************

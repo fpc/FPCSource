@@ -128,7 +128,7 @@ than 255 characters. That's why using Ansi Strings}
          { linking }
          cs_link_extern,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_internal,
-         cs_link_map,cs_link_pthread
+         cs_link_map,cs_link_pthread,cs_link_no_default_lib_order
        );
        tglobalswitches = set of tglobalswitch;
 
