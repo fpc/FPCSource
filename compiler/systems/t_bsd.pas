@@ -83,6 +83,7 @@ implementation
       procedure SetDefaultInfo;override;
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
+      procedure LoadPredefinedLibraryOrder; override;
     end;
 
 
@@ -292,27 +293,30 @@ begin
        DllCmd[2]:='strip --strip-unneeded $EXE'
      else
        DllCmd[2]:='strip -x $EXE';
-     { first try glibc2 }
-{$ifdef GLIBC2} {Keep linux code in place. FBSD might go to a different
-                                glibc too once}
-     DynamicLinker:='/lib/ld-linux.so.2';
-     if FileExists(DynamicLinker) then
-      begin
-        Glibc2:=true;
-        { Check for 2.0 files, else use the glibc 2.1 stub }
-        if FileExists('/lib/ld-2.0.*') then
-         Glibc21:=false
-        else
-         Glibc21:=true;
-      end
-     else
-      DynamicLinker:='/lib/ld-linux.so.1';
-{$else}
       DynamicLinker:='';
-{$endif}
    end;
 end;
 
+procedure TLinkerBSD.LoadPredefinedLibraryOrder;
+// put your linkorder/linkalias overrides here. 
+// Note: assumes only called when reordering/aliasing is used.
+Begin
+  if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+    begin
+      if (target_info.system =system_i386_freebsd) and 
+             not (cs_link_no_default_lib_order in  aktglobalswitches) Then   
+        Begin
+          LinkLibraryOrder.add('gcc','',15);		
+          LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?	
+          LinkLibraryOrder.add('c_p','',55);			
+          LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
+          LinkLibraryOrder.add('c_r','',76);		 		
+          LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
+          if (cs_link_pthread in aktglobalswitches) Then     // convert libpthread to libc_r.
+            LinkLibraryAliases.add('pthread','c_r');
+        end;
+    end;
+End;
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
 Var
@@ -327,27 +331,29 @@ Var
   linkdynamic,
   linklibc     : boolean;
   Fl1,Fl2      : Boolean;
-
+  IsDarwin     : Boolean;
+  ReOrder      : Boolean;
+  
 begin
   WriteResponseFile:=False;
+  ReOrder:=False;
+  IsDarwin:=target_info.system in [system_powerpc_darwin,system_i386_darwin];
 { set special options for some targets }
-  if target_info.system <> system_powerpc_darwin then
+  if not IsDarwin Then
     begin
-      linkdynamic:=not(SharedLibFiles.empty);
-      linklibc:=(SharedLibFiles.Find('c')<>nil);
-      linkpthread:=(SharedLibFiles.Find('pthread')<>nil);
-      if (target_info.system =system_i386_freebsd) and linkpthread Then
-        Begin
-          if not (cs_link_pthread in aktglobalswitches) Then
-            begin
-              {delete pthreads from list, in this case it is in libc_r}
-              SharedLibFiles.Remove(SharedLibFiles.Find('pthread').str);
-              LibrarySuffix:='r';
-            end;
-        End;
       prtobj:='prt0';
       cprtobj:='cprt0';
       gprtobj:='gprt0';
+      linkdynamic:=not(SharedLibFiles.empty);
+      linklibc:=(SharedLibFiles.Find('c')<>nil);
+      // this one is a bit complex.
+      // Only reorder for now if -XL or -XO params are given
+      // or when -Xf.
+      reorder:= linklibc and
+                ( 
+                  ReorderEntries
+                   or
+                  (cs_link_pthread in aktglobalswitches));
       if cs_profile in aktmoduleswitches then
        begin
          prtobj:=gprtobj;
@@ -360,6 +366,9 @@ begin
          if linklibc then
           prtobj:=cprtobj;
        end;
+      if reorder Then
+        ExpandAndApplyOrder(SharedLibFiles);
+      // after this point addition of shared libs not allowed.  
     end
   else
     begin
@@ -419,7 +428,7 @@ begin
    LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
   { try to add crti and crtbegin if linking to C }
   if linklibc and
-     (target_info.system <> system_powerpc_darwin) then
+     not IsDarwin Then
    begin
      if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);
@@ -459,7 +468,7 @@ begin
      While not SharedLibFiles.Empty do
       begin
         S:=SharedLibFiles.GetFirst;
-        if s<>'c' then
+        if (s<>'c') or reorder then
          begin
            i:=Pos(target_info.sharedlibext,S);
            if i>0 then
@@ -473,7 +482,7 @@ begin
          end;
       end;
      { be sure that libc is the last lib }
-     if linklibc then
+     if linklibc and not reorder then
        Begin
          If LibrarySuffix=' ' Then
           LinkRes.Add('-lc')
@@ -492,7 +501,7 @@ begin
    end;
   { objects which must be at the end }
   if linklibc and
-     (target_info.system <> system_powerpc_darwin) then
+     not IsDarwin Then
    begin
      Fl1:=librarysearchpath.FindFile('crtend.o',s1);
      Fl2:=librarysearchpath.FindFile('crtn.o',s2);
@@ -508,8 +517,7 @@ begin
    end;
   { ignore the fact that our relocations are in non-writable sections, }
   { will be fixed once we have pic support                             }
-  if isdll and
-     (target_info.system = system_powerpc_darwin) then
+  if isdll and IsDarwin Then
     LinkRes.Add('-read_only_relocs suppress');
 { Write and Close response }
   linkres.writetodisk;
