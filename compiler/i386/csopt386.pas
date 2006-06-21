@@ -556,17 +556,23 @@ a) movl  -4(%ebp),%edx
 b) tests/webtbs/tw4266.pp
 }
 
+      { hp2 = instruction after previous sequence, pprev = instruction before }
+      { current sequence, prev = instruction where the loads of the registers }
+      { will be inserted                                                      }
       for regCounter2 := RS_EAX to RS_EDI do
         if (reginfo.new2OldReg[regCounter2] <> RS_INVALID) and
-           (regCounter2 in ptaiprop(hp3.optinfo)^.usedRegs) and
            { case a) above }
-           ((not regLoadedWithNewValue(regCounter2,false,hp3) and
-             lastregloadremoved[regcounter2]) or
+           (((regCounter2 in ptaiprop(hp3.optinfo)^.usedRegs) and
+             (not regLoadedWithNewValue(regCounter2,false,hp3) and
+              lastregloadremoved[regcounter2])) or
            { case b) above }
-            ((ptaiprop(pprev.optinfo)^.regs[regcounter2].wstate <>
-              ptaiprop(hp2.optinfo)^.regs[regcounter2].wstate))) then
+            ((ptaiprop(hp2.optinfo)^.regs[regCounter2].wstate <>
+              ptaiprop(pprev.optinfo)^.regs[regcounter2].wstate)) or
+            ((ptaiprop(hp2.optinfo)^.regs[reginfo.new2OldReg[regCounter2]].wstate <>
+              ptaiprop(prev.optinfo)^.regs[reginfo.new2OldReg[regCounter2]].wstate))) then
           begin
             found := 0;
+            break;
           end;
 
       if checkingPrevSequences then
@@ -1687,7 +1693,7 @@ var
   regloads, reguses: array[RS_EAX..RS_EDI] of tai;
   regcounter, substreg: tsuperregister;
   hp, hp2: tai;
-  insertpos, prevseq_next: tai;
+  insertpos, insertoptinfo, prevseq_next: tai;
   i: longint;
   opc: tasmop;
 begin
@@ -1727,14 +1733,22 @@ begin
             getLastInstruction(curseqend,hp);
             opc := A_MOV;
             insertpos := prevseq_next;
+            insertoptinfo := prevseqstart;
             if assigned(reguses[regcounter]) then
               if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
                 opc := A_XCHG
               else
-                insertpos := tai(reguses[regcounter].next)
+                begin
+                  insertoptinfo := reguses[regcounter];
+                  insertpos := tai(insertoptinfo.next)
+                end
             else
               if assigned(regloads[reginfo.new2oldreg[regcounter]]) then
-                 insertpos := regloads[reginfo.new2oldreg[regcounter]];
+                 begin
+                   insertpos := regloads[reginfo.new2oldreg[regcounter]];
+                   if not getlastinstruction(insertpos,insertoptinfo) then
+                     internalerror(2006060701);
+                 end;
             hp := Tai_Marker.Create(mark_NoPropInfoStart);
             InsertLLItem(asml, insertpos.previous,insertpos, hp);
             hp2 := taicpu.Op_Reg_Reg(opc, S_L,
@@ -1751,7 +1765,7 @@ begin
             regloads[regcounter] := hp2;
             reguses[reginfo.new2oldreg[regcounter]] := hp2;
             new(ptaiprop(hp2.optinfo));
-            ptaiprop(hp2.optinfo)^ := ptaiprop(insertpos.optinfo)^;
+            ptaiprop(hp2.optinfo)^ := ptaiprop(insertoptinfo.optinfo)^;
             ptaiprop(hp2.optinfo)^.canBeRemoved := false;
             InsertLLItem(asml, insertpos.previous, insertpos, hp2);
             hp := Tai_Marker.Create(mark_NoPropInfoEnd);
