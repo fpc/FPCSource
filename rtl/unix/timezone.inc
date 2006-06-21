@@ -139,13 +139,55 @@ procedure ReadTimezoneFile(fn:shortstring);
     l:=k;
   end;
 
+const
+  bufsize = 2048;
 var
+  buf    : array[0..bufsize-1] of byte;
+  bufptr : pbyte;
   f      : longint;
+
+  procedure readfilebuf;
+  begin
+    bufptr := @buf[0];
+    fpread(f, buf, bufsize);
+  end;
+  
+  function readbufbyte: byte;
+  begin
+    if bufptr >= @buf[bufsize] then
+      readfilebuf;
+    readbufbyte := bufptr^;
+    inc(bufptr);
+  end;
+  
+  function readbuf(var dest; count: integer): integer;
+  var
+    numbytes: integer;
+  begin
+    readbuf := 0;
+    repeat
+      numbytes := @buf[bufsize] - bufptr;
+      if numbytes > count then
+        numbytes := count;
+      if numbytes > 0 then
+      begin
+        move(bufptr^, dest, numbytes);
+        inc(bufptr, numbytes);
+        dec(count, numbytes);
+        inc(readbuf, numbytes);
+      end;
+      if count > 0 then
+        readfilebuf
+      else 
+        break;
+    until false;
+  end;
+
+var
   tzdir  : shortstring;
   tzhead : ttzhead;
   i      : longint;
   chars  : longint;
-  buf    : pbyte;
 begin
   if fn='' then
    fn:='localtime';
@@ -161,7 +203,8 @@ begin
   f:=fpopen(fn,Open_RdOnly);
   if f<0 then
    exit;
-  i:=fpread(f,tzhead,sizeof(tzhead));
+  bufptr := @buf[bufsize];
+  i:=readbuf(tzhead,sizeof(tzhead));
   if i<>sizeof(tzhead) then
    exit;
   decode(tzhead.tzh_timecnt);
@@ -181,43 +224,38 @@ begin
   reallocmem(zone_names,chars);
   reallocmem(leaps,num_leaps*sizeof(tleap));
 
-  fpread(f,transitions^,num_transitions*4);
-  fpread(f,type_idxs^,num_transitions);
+  readbuf(transitions^,num_transitions*4);
+  readbuf(type_idxs^,num_transitions);
 
   for i:=0 to num_transitions-1 do
    decode(transitions[i]);
 
   for i:=0 to num_types-1 do
    begin
-     fpread(f,types[i].offset,4);
-     fpread(f,types[i].isdst,1);
-     fpread(f,types[i].idx,1);
+     readbuf(types[i].offset,4);
+     readbuf(types[i].isdst,1);
+     readbuf(types[i].idx,1);
      decode(types[i].offset);
      types[i].isstd:=0;
      types[i].isgmt:=0;
    end;
 
-  fpread(f,zone_names^,chars);
+  readbuf(zone_names^,chars);
 
   for i:=0 to num_leaps-1 do
    begin
-     fpread(f,leaps[i].transition,4);
-     fpread(f,leaps[i].change,4);
+     readbuf(leaps[i].transition,4);
+     readbuf(leaps[i].change,4);
      decode(leaps[i].transition);
      decode(leaps[i].change);
    end;
 
-  getmem(buf,tzhead.tzh_ttisstdcnt);
-  fpread(f,buf^,tzhead.tzh_ttisstdcnt);
   for i:=0 to tzhead.tzh_ttisstdcnt-1 do
-   types[i].isstd:=byte(buf[i]<>0);
-  freemem(buf);
+   types[i].isstd:=byte(readbufbyte<>0);
 
-  getmem(buf,tzhead.tzh_ttisgmtcnt);
-  fpread(f,buf^,tzhead.tzh_ttisgmtcnt);
   for i:=0 to tzhead.tzh_ttisgmtcnt-1 do
-   types[i].isgmt:=byte(buf[i]<>0);
-  freemem(buf);
+   types[i].isgmt:=byte(readbufbyte<>0);
+
   fpclose(f);
 end;
 
