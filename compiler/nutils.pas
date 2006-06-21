@@ -27,7 +27,7 @@ interface
 
   uses
     globals,
-    symsym,node;
+    symtype,symsym,node;
 
   const
     NODE_COMPLEXITY_INF = 255;
@@ -57,6 +57,7 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
+    function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
     function load_high_value_node(vs:tparavarsym):tnode;
     function load_self_node:tnode;
     function load_result_node:tnode;
@@ -79,7 +80,7 @@ implementation
 
     uses
       globtype,verbose,
-      symconst,symbase,symtype,symdef,symtable,
+      symconst,symbase,symdef,symtable,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
       cgbase,procinfo,
@@ -275,12 +276,18 @@ implementation
       end;
 
 
+    function get_high_value_sym(vs: tparavarsym):tsym;
+      begin
+        result := tsym(vs.owner.search('high'+vs.name));
+      end;
+
+
     function load_high_value_node(vs:tparavarsym):tnode;
       var
         srsym : tsym;
       begin
         result:=nil;
-        srsym:=tsym(vs.owner.search('high'+vs.name));
+        srsym:=get_high_value_sym(vs);
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,vs.owner);

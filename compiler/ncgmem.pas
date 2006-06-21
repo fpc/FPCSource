@@ -646,6 +646,7 @@ implementation
                          st_shortstring:
                            begin
                               {!!!!!!!!!!!!!!!!!}
+                              { if this one is implemented making use of the high parameter for openshortstrings, update ncgutils.do_get_used_regvars() too (JM) }
                            end;
 
                          st_longstring:

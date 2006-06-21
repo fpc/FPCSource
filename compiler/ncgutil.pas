@@ -162,7 +162,7 @@ implementation
     procinfo,paramgr,fmodule,
     regvars,dbgbase,
     pass_1,pass_2,
-    nbas,ncon,nld,nutils,
+    nbas,ncon,nld,nmem,nutils,
     tgobj,cgobj
 {$ifdef powerpc}
     , cpupi
@@ -2207,6 +2207,14 @@ implementation
           loadn:
             if (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
+          vecn:
+            { range checks sometimes need the high parameter }
+            if (cs_check_range in aktlocalswitches) and
+               (is_open_array(tvecnode(n).left.resulttype.def) or
+                is_array_of_const(tvecnode(n).left.resulttype.def)) and
+               not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+              add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
+
         end;
         result := fen_true;
       end;
