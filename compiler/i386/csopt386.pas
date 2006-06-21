@@ -2254,10 +2254,10 @@ end;
 
 function CSE(asml: TAsmList; First, Last: tai; pass: longint): boolean;
 begin
-  doCSE(asml, First, Last, not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 2),
-        not(cs_opt_asmcse in aktoptimizerswitches) or (pass >= 1));
+  doCSE(asml, First, Last, not(cs_opt_level3 in aktoptimizerswitches) or (pass >= 2),
+        not(cs_opt_level3 in aktoptimizerswitches) or (pass >= 1));
  { register renaming }
-  if not(cs_opt_asmcse in aktoptimizerswitches) or (pass > 0) then
+  if not(cs_opt_level3 in aktoptimizerswitches) or (pass > 0) then
     doRenaming(asml, first, last);
   cse := removeInstructs(asml, first, last);
 end;

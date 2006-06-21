@@ -46,7 +46,7 @@ Var
   pass: longint;
   slowopt, changed, lastLoop: boolean;
 Begin
-  slowopt := (cs_opt_asmcse in aktoptimizerswitches);
+  slowopt := (cs_opt_level3 in aktoptimizerswitches);
   pass := 0;
   changed := false;
   dfa := TDFAObj.create(asml);
@@ -72,7 +72,7 @@ Begin
          if pass = 0 then
            PeepHoleOptPass1(AsmL, BlockStart, BlockEnd);
         { Data flow analyzer }
-         If (cs_opt_peephole in aktoptimizerswitches) Then
+         If (cs_opt_asmcse in aktoptimizerswitches) Then
            begin
              if dfa.pass_2 then
               { common subexpression elimination }
