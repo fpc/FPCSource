@@ -201,6 +201,9 @@ interface
        inlining_procedure : boolean;     { are we inlining a procedure }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
+       LinkLibraryAliases : TLinkStrMap;
+       LinkLibraryOrder   : TLinkStrMap;
+             
 
      { commandline values }
        initglobalswitches : tglobalswitches;
@@ -2269,6 +2272,10 @@ end;
         jmp_buf_size:=-1;
 
         apptype:=app_cui;
+          
+        LinkLibraryAliases :=TLinkStrMap.Create;
+        LinkLibraryOrder   :=TLinkStrMap.Create;
+              
      end;
 
 end.
