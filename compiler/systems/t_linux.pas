@@ -55,6 +55,7 @@ interface
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
       function  postprocessexecutable(const fn : string;isdll:boolean):boolean;
+      procedure LoadPredefinedLibraryOrder; override;
     end;
 
 
@@ -310,6 +311,20 @@ begin
 end;
 
 
+procedure TLinkerLinux.LoadPredefinedLibraryOrder;
+// put your linkorder/linkalias overrides here.
+// Note: assumes only called when reordering/aliasing is used.
+Begin
+   if not (cs_link_no_default_lib_order in  aktglobalswitches) Then
+        Begin
+          LinkLibraryOrder.add('gcc','',15);
+          LinkLibraryOrder.add('c','',100);                 
+          LinkLibraryOrder.add('gmon','',120);
+          LinkLibraryOrder.add('dl','',140);             
+          LinkLibraryOrder.add('pthread','',160);             
+         end;
+End;
+
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
@@ -321,11 +336,13 @@ Var
   s,s1,s2      : string;
   found1,
   found2,
+  Reorder,
   linklibc     : boolean;
 begin
   result:=False;
 { set special options for some targets }
   linklibc:=(SharedLibFiles.Find('c')<>nil);
+  reorder := linklibc and ReOrderEntries;
   if isdll then
    begin
      prtobj:='dllprt0';
@@ -416,15 +433,22 @@ begin
          Add(')');
        end;
 
+      // we must reorder here because the result could empty sharedlibfiles
+      if reorder Then
+        ExpandAndApplyOrder(SharedLibFiles);
+      // after this point addition of shared libs not allowed.
+      
       { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
         here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+          
       if not SharedLibFiles.Empty then
        begin
+                      
          Add('INPUT(');
          While not SharedLibFiles.Empty do
           begin
             S:=SharedLibFiles.GetFirst;
-            if s<>'c' then
+            if (s<>'c') or reorder then
              begin
                i:=Pos(target_info.sharedlibext,S);
                if i>0 then
@@ -437,7 +461,7 @@ begin
              end;
           end;
          { be sure that libc is the last lib }
-         if linklibc then
+         if linklibc and not reorder then
           Add('-lc');
          { when we have -static for the linker the we also need libgcc }
          if (cs_link_staticflag in aktglobalswitches) then
