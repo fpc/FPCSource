@@ -53,7 +53,6 @@ type
       notsupmsg : boolean;
       procedure NotSupported;
    public
-      edatalabel : tasmlabel;
       constructor Create;virtual;
       destructor Destroy;override;
       procedure preparelib(const s : string);virtual;
@@ -106,7 +105,6 @@ end;
 constructor texportlib.Create;
 begin
   notsupmsg:=false;
-  edatalabel:=nil;
 end;
 
 

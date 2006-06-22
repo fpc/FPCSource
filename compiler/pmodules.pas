@@ -1333,7 +1333,7 @@ implementation
          if assigned(exportlib) and
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             ((current_module.flags and uf_has_exports)<>0) then
-           current_asmdata.asmlists[al_procedures].concat(tai_const.create_sym(exportlib.edatalabel));
+           current_asmdata.asmlists[al_procedures].concat(tai_const.createname(make_mangledname('EDATA',current_module.localsymtable,''),0));
 
          { finalize? }
          if token=_FINALIZATION then
@@ -1389,7 +1389,7 @@ implementation
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
-         
+
 {$ifdef arm}
          { Insert .pdata section for arm-wince.
            It is needed for exception handling. }

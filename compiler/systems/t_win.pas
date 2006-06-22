@@ -642,7 +642,6 @@ implementation
            current_asmdata.asmlists[al_exports]:=TAsmList.create;
          EList_indexed:=tFPList.Create;
          EList_nonindexed:=tFPList.Create;
-         current_asmdata.getdatalabel(edatalabel);
       end;
 
 
@@ -805,7 +804,7 @@ implementation
          new_section(current_asmdata.asmlists[al_exports],sec_edata,'',0);
          { create label to reference from main so smartlink will include
            the .edata section }
-         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Create_global(edatalabel,0));
+         current_asmdata.asmlists[al_exports].concat(Tai_symbol.Createname_global(make_mangledname('EDATA',current_module.localsymtable,''),AT_DATA,0));
          { export flags }
          current_asmdata.asmlists[al_exports].concat(Tai_const.Create_32bit(0));
          { date/time stamp }
