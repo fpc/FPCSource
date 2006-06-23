@@ -387,7 +387,8 @@ type
 
   TStringField = class(TField)
   private
-    FFixedChar : boolean;
+    FFixedChar     : boolean;
+    FTransliterate : Boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBoolean: Boolean; override;
@@ -409,6 +410,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     property FixedChar : Boolean read FFixedChar write FFixedChar;
+    property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
     property Size default 20;
   end;

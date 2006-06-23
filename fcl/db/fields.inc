@@ -961,6 +961,7 @@ begin
   Inherited Create(AOwner);
   SetDataType(ftString);
   FFixedChar := False;
+  FTransliterate := False;
   Size:=20;
 end;
 
@@ -1037,12 +1038,20 @@ end;
 
 function TStringField.GetValue(var AValue: string): Boolean;
 
-Var Buf : TStringFieldBuffer;
+Var Buf, TBuf : TStringFieldBuffer;
 
 begin
   Result:=GetData(@Buf);
   If Result then
-    AValue:=Buf;
+    begin
+    if transliterate then
+      begin
+      DataSet.Translate(Buf,TBuf,False);
+      AValue:=TBuf;
+      end
+    else
+      AValue:=Buf
+    end
 end;
 
 procedure TStringField.SetAsBoolean(AValue: Boolean);
@@ -1076,9 +1085,16 @@ procedure TStringField.SetAsString(const AValue: string);
 
 Const NullByte : char = #0;
 
+var Buf      : TStringFieldBuffer;
+
 begin
   IF Length(AValue)=0 then
     SetData(@NullByte)
+  else if FTransliterate then
+    begin
+    DataSet.Translate(@AValue[1],Buf,True);
+    SetData(@buf);
+    end
   else
     SetData(@AValue[1]);
 end;
