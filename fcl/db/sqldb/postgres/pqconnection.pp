@@ -503,7 +503,9 @@ begin
       pqclear(res);
 
       tr.ErrorOccured := True;
-      atransaction.Rollback;
+// Don't perform the rollback, only make it possible to do a rollback.
+// The other databases also don't do this.
+//      atransaction.Rollback;
       DatabaseError(SErrExecuteFailed + ' (PostgreSQL: ' + s + ')',self);
       end;
     end;
@@ -597,8 +599,14 @@ begin
       case FieldDef.DataType of
         ftInteger, ftSmallint, ftLargeInt,ftfloat :
           begin
-          for tel := 1 to i do   // postgres returns big-endian numbers
-            pchar(Buffer)[tel-1] := CurrBuff[i-tel];
+          case i of               // postgres returns big-endian numbers
+            sizeof(int64) : pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
+            sizeof(integer) : pinteger(buffer)^ := BEtoN(pinteger(CurrBuff)^);
+            sizeof(smallint) : psmallint(buffer)^ := BEtoN(psmallint(CurrBuff)^);
+          else
+            for tel := 1 to i do
+              pchar(Buffer)[tel-1] := CurrBuff[i-tel];
+          end; {case}
           end;
         ftString  :
           begin
@@ -609,21 +617,14 @@ begin
           end;
         ftdate :
           begin
-          li := 0;
-          for tel := 1 to i do   // postgres returns big-endian numbers
-            pchar(@li)[tel-1] := CurrBuff[i-tel];
-//          double(buffer^) := x + 36526; This doesn't work, please tell me what is wrong with it?
           dbl := pointer(buffer);
-          dbl^ := li + 36526;
+          dbl^ := BEtoN(plongint(CurrBuff)^) + 36526;
           i := sizeof(double);
           end;
         ftDateTime, fttime :
           begin
+          pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
           dbl := pointer(buffer);
-          dbl^ := 0;
-          for tel := 1 to i do   // postgres returns big-endian numbers
-            pchar(Buffer)[tel-1] := CurrBuff[i-tel];
-
           dbl^ := (dbl^+3.1558464E+009)/86400;  // postgres counts seconds elapsed since 1-1-2000
           // Now convert the mathematically-correct datetime to the
           // illogical windows/delphi/fpc TDateTime:
