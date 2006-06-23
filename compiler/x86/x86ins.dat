@@ -2869,8 +2869,8 @@ xmmreg,mem,imm          \301\331\1\x66\323\2\x0F\xC2\110\26   WILLAMETTE,SSE2,SM
 
 [COMISD]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,xmmreg           \331\3\x66\2\x0F\x2F\110        WILLAMETTE,SSE2
-xmmreg,mem              \301\331\3\x66\x0F\x2F\110      WILLAMETTE,SSE2
+xmmreg,xmmreg           \331\3\x66\x0F\x2F\110          WILLAMETTE,SSE2
+xmmreg,mem              \301\331\1\x66\323\2\x0F\x2F\110  WILLAMETTE,SSE2
 
 [CVTDQ2PD]
 (Ch_Wop2, Ch_Rop1, Ch_None)
