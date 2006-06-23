@@ -314,7 +314,8 @@ type
 
 	CMMultichannel5ColorPtr = ^CMMultichannel5Color;
 	CMMultichannel5Color = record
-		components:				packed array [0..5] of UInt8;			{  0..255  }{one extra pad byte}
+		components:				packed array [0..4] of UInt8;			{  0..255  }
+		pad: UInt8; {pad byte so record size equals Apple gcc struct size}
 	end;
 
 	CMMultichannel6ColorPtr = ^CMMultichannel6Color;
@@ -324,7 +325,8 @@ type
 
 	CMMultichannel7ColorPtr = ^CMMultichannel7Color;
 	CMMultichannel7Color = record
-		components:				packed array [0..7] of UInt8;			{  0..255  }{one extra pad byte}
+		components:				packed array [0..6] of UInt8;			{  0..255  }
+		pad: UInt8; {pad byte so record size equals Apple gcc struct size}
 	end;
 
 	CMMultichannel8ColorPtr = ^CMMultichannel8Color;
