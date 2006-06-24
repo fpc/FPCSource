@@ -169,8 +169,8 @@ type
     comtail   : realptr;
     firstFCB  : realptr;
     secondFCB : realptr;
-    iniStack  : realptr;
-    iniCSIP   : realptr;
+{    iniStack  : realptr;
+    iniCSIP   : realptr;}
   end;
 var
   current_dos_buffer_pos,
