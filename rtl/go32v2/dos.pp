@@ -181,27 +181,36 @@ var
   execblock       : texecblock;
   c,p             : string;
 
-  function paste_to_dos(src : string) : boolean;
+  function paste_to_dos(src : string;cr : boolean) : boolean;
   var
-    c : array[0..255] of char;
+    c : pchar;
+    CLen : cardinal;
   begin
      paste_to_dos:=false;
-     if current_dos_buffer_pos+length(src)+1>transfer_buffer+tb_size then
+     if current_dos_buffer_pos+length(src)+3>transfer_buffer+tb_size then
       RunError(217);
-     move(src[1],c[0],length(src));
-     c[length(src)]:=#0;
-     seg_move(get_ds,longint(@c),dosmemselector,current_dos_buffer_pos,length(src)+1);
-     current_dos_buffer_pos:=current_dos_buffer_pos+length(src)+1;
+     getmem(c,length(src)+3);
+     move(src[0],c^,length(src)+1);
+     if cr then
+      begin 
+        c[length(src)+1]:=#13;
+        c[length(src)+2]:=#0;
+      end
+     else
+      c[length(src)+1]:=#0;
+     CLen := StrLen (C) + 1;
+     seg_move(get_ds,longint(c),dosmemselector,current_dos_buffer_pos,CLen);
+     current_dos_buffer_pos:=current_dos_buffer_pos+CLen;
+     freemem(c,length(src)+3);
      paste_to_dos:=true;
   end;
 
 begin
 { create command line }
-  move(comline[0],c[1],length(comline)+1);
-  c[length(comline)+2]:=#13;
-  c[0]:=char(length(comline)+2);
+  c:=comline;
 { create path }
   p:=path;
+{ allow slash as backslash }
   for i:=1 to length(p) do
    if p[i]='/' then
     p[i]:='\';
@@ -214,13 +223,13 @@ begin
   current_dos_buffer_pos:=la_env;
 { copy environment }
   for i:=1 to envcount do
-   paste_to_dos(envstr(i));
-  paste_to_dos(''); { adds a double zero at the end }
+   paste_to_dos(envstr(i),false);
+  paste_to_dos(chr(0),false); { adds a double zero at the end }
 { allow slash as backslash }
   la_p:=current_dos_buffer_pos;
-  paste_to_dos(p);
+  paste_to_dos(p,false);
   la_c:=current_dos_buffer_pos;
-  paste_to_dos(c);
+  paste_to_dos(c,true);
   la_e:=current_dos_buffer_pos;
   fcb1_la:=la_e;
   la_e:=la_e+16;
@@ -228,8 +237,9 @@ begin
   la_e:=la_e+16;
 { allocate FCB see dosexec code }
   arg_ofs:=1;
-  while (c[arg_ofs] in [' ',#9]) do
-   inc(arg_ofs);
+  while (c[arg_ofs] in [' ',#9]) and
+   (arg_ofs<length(c)) do
+    inc(arg_ofs);
   dosregs.ax:=$2901;
   dosregs.ds:=(la_c+arg_ofs) shr 4;
   dosregs.esi:=(la_c+arg_ofs) and 15;
@@ -237,20 +247,11 @@ begin
   dosregs.edi:=fcb1_la and 15;
   msdos(dosregs);
 { allocate second FCB see dosexec code }
-  repeat
-    inc(arg_ofs);
-  until (c[arg_ofs] in [' ',#9,#13]);
-  if c[arg_ofs]<>#13 then
-   begin
-     repeat
-       inc(arg_ofs);
-     until not (c[arg_ofs] in [' ',#9]);
-   end;
   dosregs.ax:=$2901;
   dosregs.ds:=(la_c+arg_ofs) shr 4;
-  dosregs.si:=(la_c+arg_ofs) and 15;
+  dosregs.esi:=(la_c+arg_ofs) and 15;
   dosregs.es:=fcb2_la shr 4;
-  dosregs.di:=fcb2_la and 15;
+  dosregs.edi:=fcb2_la and 15;
   msdos(dosregs);
   with execblock do
    begin
@@ -263,14 +264,14 @@ begin
      secondFCB.ofs:=fcb2_la and 15;
    end;
   seg_move(get_ds,longint(@execblock),dosmemselector,la_e,sizeof(texecblock));
-  dosregs.edx:=la_p and 15;
+  dosregs.edx:=la_p and 15+1;
   dosregs.ds:=la_p shr 4;
-  dosregs.ebx:=la_e and 15;
-  dosregs.es:=la_e shr 4;
+  dosregs.ebx:=la_p and 15+la_e-la_p;
+  dosregs.es:=la_p shr 4;
   dosregs.ax:=$4b00;
   msdos(dosregs);
   LoadDosError;
-  if DosError=0 then
+  if DosError<>0 then
    begin
      dosregs.ax:=$4d00;
      msdos(dosregs);
@@ -686,7 +687,7 @@ begin
   LoadDosError;
   if DosError=0 then
    begin
-     copyfromdos(c,255);
+     copyfromdos(c,256);
      move(c[0],p[1],strlen(c));
      p[0]:=char(strlen(c));
      GetShortName:=true;
@@ -714,7 +715,7 @@ begin
   LoadDosError;
   if DosError=0 then
    begin
-     copyfromdos(c,255);
+     copyfromdos(c,256);
      move(c[0],p[1],strlen(c));
      p[0]:=char(strlen(c));
      GetLongName:=true;
@@ -806,17 +807,15 @@ end;
 function envstr (Index: longint): string;
 begin
   if (index<=0) or (index>envcount) then
-   begin
-     envstr:='';
-     exit;
-   end;
-  envstr:=strpas(ppchar(pointer(envp)+4*(index-1))^);
+    envstr:=''
+  else
+    envstr:=strpas(ppchar(pointer(envp)+SizeOf(PChar)*(index-1))^);
 end;
 
 
 Function  GetEnv(envvar: string): string;
 var
-  hp      : ppchar;
+  hp    : ppchar;
   hs    : string;
   eqpos : longint;
 begin
@@ -829,8 +828,8 @@ begin
      eqpos:=pos('=',hs);
      if upcase(copy(hs,1,eqpos-1))=envvar then
       begin
-        getenv:=copy(hs,eqpos+1,255);
-        exit;
+        getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
+        break;
       end;
      inc(hp);
    end;
