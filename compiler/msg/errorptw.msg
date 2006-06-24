@@ -1,9 +1,50 @@
-%%% Reordering of errorptw.new respective to errore.msg
-%%% Contains all comments from errorptw.new
-%%% Reordering of errorptw.msg respective to errore.msg
-%%% Contains all comments from errorptw.msg
-%%% Reordering of msg/errorptw.msg respective to msg/errore.msg
-%%% Contains all comments from msg/errorptw.msg
+#
+#   This file is part of the Free Pascal Compiler
+#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#
+#   Portuguese (Windows encoding) language file for Free Pascal Compiler
+#   Contributed by Ari Ricardo Ody <ari.ody at japinfo.com.br>
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+#
+# The constants are build in the following order:
+# <part>_<type>_<txtidentifier>
+#
+# <part> is the part of the compiler the message is used
+#   asmr_     assembler parsing
+#   asmw_     assembler writing/binary writers
+
+#   unit_     unit handling
+#   scan_     scanner
+#   parser_   parser
+#   type_     type checking
+#   general_  general info
+#   exec_     calls to assembler, linker, binder
+#
+# <type> the type of the message it should normally used for
+#   f_   fatal error
+#   e_   error
+#   w_   warning
+#   n_   note
+#   h_   hint
+#   i_   info
+#   l_   add linenumber
+#   u_   used
+#   t_   tried
+#   c_   conditional
+#   d_   debug message
+#   x_   executable informations
+#
+
+#
+# General
+#
 general_t_compilername=01000_T_Compilador usado: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.

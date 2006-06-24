@@ -1,5 +1,7 @@
 #
 #   German (alternative) Language File for Free Pascal
+#   Latest updates contributed by Karl-Michael Schindler aka mischi
+#   <karl-michael.schindler at physik.uni-hale.de>
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
