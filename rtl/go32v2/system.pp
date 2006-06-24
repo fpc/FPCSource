@@ -454,7 +454,7 @@ begin
     inc(longint(cp)); { skip to next character }
     end;
   envp := sysgetmem((env_count+1) * sizeof(pchar));
-  if (envp = nil) then exit;
+  if (envp = nil) then HandleError (203);
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do
@@ -472,7 +472,7 @@ begin
   envp[env_count]:=nil;
   longint(cp):=longint(cp)+3;
   dos_argv0 := sysgetmem(strlen(cp)+1);
-  if (dos_argv0 = nil) then halt;
+  if (dos_argv0 = nil) then HandleError (203);
   strcopy(dos_argv0, cp);
   { update ___dos_argv0 also }
   ___dos_argv0:=dos_argv0
