@@ -121,9 +121,7 @@ Procedure CloseFile(Var f:File);
 
 begin
   { Catch Runtime error/Exception }
-  {$I+}
   System.Close(f);
-  {$I-}
 end;
 
 { Text file support }
@@ -150,12 +148,10 @@ Procedure CloseFile(Var t:Text);
 
 begin
   { Catch Runtime error/Exception }
-  {$I+}
   System.Close(T);
-  {$I-}
 end;
 
-{ Typed file supoort }
+{ Typed file support }
 
 Procedure AssignFile(Var f:TypedFile;const Name:string);
 
