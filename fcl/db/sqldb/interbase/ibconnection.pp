@@ -51,6 +51,7 @@ type
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
+    procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
@@ -655,6 +656,10 @@ begin
           Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           {$R+}
           end;
+        ftFloat:
+          {$R-}
+          SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          {$R+}
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
@@ -910,6 +915,30 @@ begin
     end;
   qry.close;
   qry.free;
+end;
+
+procedure TIBConnection.SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
+
+var
+  Ext : extended;
+  Sin : single;
+begin
+  case Size of
+    4 :
+      begin
+        Sin := Dbl;
+        Move(Sin, CurrBuff^, 4);
+      end;
+    8 :
+      begin
+        Move(Dbl, CurrBuff^, 8);
+      end;
+    10:
+      begin
+        Ext := Dbl;
+        Move(Ext, CurrBuff^, 10);
+      end;
+  end;
 end;
 
 procedure TIBConnection.GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
