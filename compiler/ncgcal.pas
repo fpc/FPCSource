@@ -894,6 +894,7 @@ implementation
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
                    cg.g_maybe_testvmt(current_asmdata.CurrAsmList,vmtreg,tprocdef(procdefinition)._class);
 
+{$ifdef vtentry}
                  { Call through VMT, generate a VTREF symbol to notify the linker }
                  vmtoffset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
                  if not is_interface(tprocdef(procdefinition)._class) then
@@ -901,6 +902,7 @@ implementation
                      inc(current_asmdata.NextVTEntryNr);
                      current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(aint)),AT_FUNCTION,0));
                    end;
+{$endif vtentry}
 
                  reference_reset_base(href,vmtreg,vmtoffset);
 

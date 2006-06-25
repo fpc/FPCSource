@@ -1234,8 +1234,10 @@ implementation
                             else
                               procname:=procdefcoll^.data.mangledname;
                             List.concat(Tai_const.createname(procname,0));
+{$ifdef vtentry}			    
                             hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
                             current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+{$endif vtentry}			    
                             break;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1358,6 +1360,7 @@ implementation
          current_asmdata.asmlists[al_globals].concat(Tai_const.create(aitconst_ptr,0));
          { write the size of the VMT }
          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
+{$ifdef vtentry}	 
          { write vtinherit symbol to notify the linker of the class inheritance tree }
          hs:='VTINHERIT'+'_'+_class.vmt_mangledname+'$$';
          if assigned(_class.childof) then
@@ -1365,6 +1368,7 @@ implementation
          else
            hs:=hs+_class.vmt_mangledname;
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+{$endif vtentry}	 
       end;
 
 
