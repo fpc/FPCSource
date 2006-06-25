@@ -82,41 +82,35 @@ implementation
                 (po_syscall_sysvbase in tprocdef(procdefinition).procoptions) then
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R31);
+                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 
                   reference_reset(tmpref);
                   tmpref.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname);
                   tmpref.refaddr:=addr_hi;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R31,tmpref));
-                  tmpref.base:=NR_R31;
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
+                  tmpref.base:=NR_R12;
                   tmpref.refaddr:=addr_lo;
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R31,tmpref));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R12,tmpref));
 
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R31,-tprocdef(procdefinition).extnumber));
-                  reference_reset_base(tmpref,NR_R31,0);
+                  reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
 
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R31);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R12);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
                 end
               else if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) or
                 (po_syscall_r12base in tprocdef(procdefinition).procoptions) then
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-                  cg.getcpuregister(current_asmdata.CurrAsmList,NR_R31);
-
                   if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R3,-tprocdef(procdefinition).extnumber))
+                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber)
                   else
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R12,-tprocdef(procdefinition).extnumber));
-                  reference_reset_base(tmpref,NR_R31,0);
+                    reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
-
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R31);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
                 end
               else if po_syscall_legacy in tprocdef(procdefinition).procoptions then
@@ -133,8 +127,8 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTLR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BLRL));
 
-                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
                   cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R3);
+                  cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
                 end
               else
                 internalerror(2005010403);
