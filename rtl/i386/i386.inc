@@ -1176,13 +1176,14 @@ end;
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler;
 asm
 {$ifdef REGCALL}
-        xchgl   %eax,%edx
+        xchgl   %eax,%ecx
 {$else}
-        movl    Target,%edx
-        movl    NewValue,%eax
+        movl    Target,%ecx
+        movl    NewValue,%edx
+        movl    Comparand,%eax
 {$endif}
         lock
-        cmpxchgl   %eax, (%edx)
+        cmpxchgl   %edx, (%ecx)
 end;
 
 
