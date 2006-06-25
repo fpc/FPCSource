@@ -339,7 +339,7 @@ VAR
   S    : String;
   Rec  : ExtendedFat32FreeSpaceRec;
 BEGIN
- if (swap(dosversion)>=$070A) AND LFNSupport then
+ if {(swap(dosversion)>=$070A) AND} LFNSupport then
   begin
    S:='C:\'#0;
    if Drive=0 then
