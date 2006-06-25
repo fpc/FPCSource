@@ -1556,8 +1556,9 @@ implementation
            else
             exit;
            end;
+           { If rbp or r13 is used we must always include an offset }
            if (br=NR_NO) or
-              ((br<>NR_RBP) and (o=0) and (sym=nil)) then
+              ((br<>NR_RBP) and (br<>NR_R13) and (o=0) and (sym=nil)) then
             md:=0
            else
             if ((o>=-128) and (o<=127) and (sym=nil)) then
