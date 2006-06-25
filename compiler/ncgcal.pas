@@ -894,9 +894,9 @@ implementation
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
                    cg.g_maybe_testvmt(current_asmdata.CurrAsmList,vmtreg,tprocdef(procdefinition)._class);
 
-{$ifdef vtentry}
                  { Call through VMT, generate a VTREF symbol to notify the linker }
                  vmtoffset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
+{$ifdef vtentry}
                  if not is_interface(tprocdef(procdefinition)._class) then
                    begin
                      inc(current_asmdata.NextVTEntryNr);
