@@ -215,7 +215,7 @@ type
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
     function  GetCanModify: Boolean; override;
-    function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; override;
+    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     Function IsPrepared : Boolean; virtual;
     Procedure SetActive (Value : Boolean); override;
     procedure SetFiltered(Value: Boolean); override;
@@ -1061,7 +1061,7 @@ begin
     (DataBase as TSQLConnection).UpdateIndexDefs(FIndexDefs,FTableName);
 end;
 
-function TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean;
+Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
 var
     s : string;
@@ -1141,7 +1141,6 @@ var qry : tsqlquery;
     Fld : TField;
     
 begin
-  Result := True;
     case UpdateKind of
       ukModify : begin
                  qry := FUpdateQry;
@@ -1156,7 +1155,6 @@ begin
                  if trim(qry.sql.Text) = '' then qry.SQL.Add(DeleteRecQuery);
                  end;
     end;
-  try
   with qry do
     begin
     for x := 0 to Params.Count-1 do with params[x] do if leftstr(name,4)='OLD_' then
@@ -1171,11 +1169,6 @@ begin
       end;
     execsql;
     end;
-  except
-    on EDatabaseError do Result := False
-  else
-    raise;
-  end;
 end;
 
 

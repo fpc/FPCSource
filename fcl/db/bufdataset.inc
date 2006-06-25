@@ -417,10 +417,10 @@ begin
 end;
 
 
-function TBufDataset.ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean;
+procedure TBufDataset.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
 begin
-  Result := False;
+  raise EDatabaseError.Create(SApplyRecNotSupported);
 end;
 
 procedure TBufDataset.CancelUpdates;
@@ -472,11 +472,25 @@ begin
     end;
 end;
 
-procedure TBufDataset.ApplyUpdates;
+procedure TBufDataset.SetOnUpdateError(const AValue: TResolverErrorEvent);
+
+begin
+  FOnUpdateError := AValue;
+end;
+
+procedure TBufDataset.ApplyUpdates; // For backwards-compatibility
+
+begin
+  ApplyUpdates(0);
+end;
+
+procedure TBufDataset.ApplyUpdates(MaxErrors: Integer);
 
 var SaveBookmark : pchar;
     r            : Integer;
     FailedCount  : integer;
+    EUpdErr      : EUpdateError;
+    Response     : TResolverResponse;
 
 begin
   CheckBrowseMode;
@@ -487,19 +501,34 @@ begin
 
   r := 0;
   FailedCount := 0;
-  while r < Length(FUpdateBuffer) do
+  Response := rrApply;
+  while (r < Length(FUpdateBuffer)) and (Response <> rrAbort) do
     begin
     if assigned(FUpdateBuffer[r].BookmarkData) then
       begin
       InternalGotoBookmark(@FUpdateBuffer[r].BookmarkData);
       Resync([rmExact,rmCenter]);
-      if ApplyRecUpdate(FUpdateBuffer[r].UpdateKind) then
+      Response := rrApply;
+      try
+        ApplyRecUpdate(FUpdateBuffer[r].UpdateKind);
+      except
+        on E: EDatabaseError do
+          begin
+          Inc(FailedCount);
+          if failedcount > word(MaxErrors) then Response := rrAbort
+          else Response := rrSkip;
+          EUpdErr := EUpdateError.Create(SOnUpdateError,E.Message,0,0,E);
+          if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdErr,FUpdateBuffer[r].UpdateKind,Response)
+          else if Response = rrAbort then Raise EUpdErr
+          end
+        else
+          raise;
+      end;
+      if response = rrApply then
         begin
         FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
         FUpdateBuffer[r].BookmarkData := nil;
         end
-      else
-        Inc(FailedCount);
       end;
     inc(r);
     end;
