@@ -1147,7 +1147,7 @@ asm
 end;
 
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 { input:  address of target in r3 }
 { output: target-1 in r3          }
 { side-effect: target := target-1 }
@@ -1161,7 +1161,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 { input:  address of target in r3 }
 { output: target+1 in r3          }
 { side-effect: target := target+1 }
@@ -1175,7 +1175,7 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 { input:  address of target in r3, source in r4 }
 { output: target in r3                          }
 { side-effect: target := source                 }
@@ -1188,10 +1188,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
-{ input:  address of target in r3, source in r4 }
-{ output: target in r3                          }
-{ side-effect: target := target+source          }
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
 .LInterLockedXchgAddLoop:
         lwarx   r10,0,r3
@@ -1201,6 +1198,24 @@ asm
         sub     r3,r10,r4
 end;
 
+
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+{ input:  address of target in r3, newvalue in r4, comparand in r5 }
+{ output: value stored in target before entry of the function      }
+{ side-effect: NewValue stored in target if (target = comparand)   }
+asm
+.LInterlockedCompareExchangeLoop:
+  lwarx  r10,0,r3
+  sub    r9,r10,r5
+  addic  r9,r9,-1
+  subfe  r9,r9,r9
+  and    r8,r4,r9
+  andc   r7,r5,r9
+  or     r6,r7,r8
+  stwcx. r6,0,r3
+  bne .LInterlockedCompareExchangeLoop
+  mr     r3, r6
+end;
 
 {$IFDEF MORPHOS}
 { this is only required for MorphOS }
