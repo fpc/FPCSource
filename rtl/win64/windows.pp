@@ -20,6 +20,7 @@ unit windows;
 
 { stuff like array of const is used }
 {$mode objfpc}
+{$inline on}
 {$calling stdcall}
 
 interface

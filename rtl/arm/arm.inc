@@ -19,7 +19,7 @@
 
 procedure fpc_cpuinit;
 begin
-{$if not(defined(wince)) and not(defined(gba))}  
+{$if not(defined(wince)) and not(defined(gba))}
   asm
     rfs r0
     and r0,r0,#0xffe0ffff
@@ -183,3 +183,31 @@ end;
 *)
 
 
+{ the ARM doesn't know multiprocessor system which would require locking }
+
+function InterLockedDecrement (var Target: longint) : longint;
+  begin
+    dec(Target);
+    result:=target;
+  end;
+
+
+function InterLockedIncrement (var Target: longint) : longint;
+  begin
+    inc(Target);
+    result:=target;
+  end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint;
+  begin
+    Result:=Target;
+    Target:=Source;
+  end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+  begin
+    Result:=Target;
+    inc(Target,Source);
+  end;

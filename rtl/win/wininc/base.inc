@@ -69,14 +69,15 @@
 
      PINTEGER = ^longint;
      PBOOL    = ^BOOL;
-                        
+
      LONGLONG  = int64;
      PLONGLONG = ^LONGLONG;
+     LPLONGLONG = ^LONGLONG;
      ULONGLONG  = qword;      // used in AMD64 CONTEXT
      PULONGLONG = ^ULONGLONG; //
      DWORD64 = qword;         //
      PDWORD64 = ^DWORD64;     //
-     
+
      INT_PTR = PtrInt;
      UINT_PTR = PtrUInt;
      LONG_PTR = PtrInt;

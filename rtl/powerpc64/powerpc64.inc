@@ -472,8 +472,8 @@ end;
 (*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 function fpc_shortstr_compare(const dstr, sstr:shortstring): SizeInt; [public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
-assembler; 
-{ TODO: improve, because the main compare loop does an unaligned access everytime.. :( 
+assembler;
+{ TODO: improve, because the main compare loop does an unaligned access everytime.. :(
   TODO: needs some additional opcodes not yet known to the compiler :( }
 asm
   { load length sstr }
@@ -687,5 +687,59 @@ asm
     addi    r10,r10,1
     stdcx.  r10,0,r3
     bne-    .LIncLockedLoop
+end;
+
+function InterLockedDecrement (var Target: longint) : longint; assembler;
+{ input:  address of target in r3 }
+{ output: target-1 in r3          }
+{ side-effect: target := target-1 }
+asm
+.LInterLockedDecLoop:
+        lwarx   r10,0,r3
+        subi    r10,r10,1
+        stwcx.  r10,0,r3
+        bne     .LInterLockedDecLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedIncrement (var Target: longint) : longint; assembler;
+{ input:  address of target in r3 }
+{ output: target+1 in r3          }
+{ side-effect: target := target+1 }
+asm
+.LInterLockedIncLoop:
+        lwarx   r10,0,r3
+        addi    r10,r10,1
+        stwcx.  r10,0,r3
+        bne     .LInterLockedIncLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+{ input:  address of target in r3, source in r4 }
+{ output: target in r3                          }
+{ side-effect: target := source                 }
+asm
+.LInterLockedXchgLoop:
+        lwarx   r10,0,r3
+        stwcx.  r4,0,r3
+        bne     .LInterLockedXchgLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+{ input:  address of target in r3, source in r4 }
+{ output: target in r3                          }
+{ side-effect: target := target+source          }
+asm
+.LInterLockedXchgAddLoop:
+        lwarx   r10,0,r3
+        add     r10,r10,r4
+        stwcx.  r10,0,r3
+        bne     .LInterLockedXchgAddLoop
+        sub     r3,r10,r4
 end;
 

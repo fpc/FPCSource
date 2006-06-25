@@ -420,6 +420,150 @@ procedure inclocked(var l : int64);assembler;
   end;
 
 
+function InterLockedDecrement (var Target: longint) : longint; assembler;
+asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
+        movq    %rdi,%rax
+{$endif win64}
+        movl    $-1,%edx
+        xchgq   %rdx,%rax
+        lock
+        xaddl   %eax, (%rdx)
+        decl    %eax
+end;
+
+
+function InterLockedIncrement (var Target: longint) : longint; assembler;
+asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
+        movq    %rdi,%rax
+{$endif win64}
+        movl    $1,%edx
+        xchgq   %rdx,%rax
+        lock
+        xaddl   %eax, (%rdx)
+        incl    %eax
+end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+asm
+{$ifdef win64}
+        xchgl   (%rcx),%edx
+        movl    %edx,%eax
+{$else win64}
+        xchgl   (%rdi),%esi
+        movl    %esi,%eax
+{$endif win64}
+end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+asm
+{$ifdef win64}
+        xchgq   %rcx,%rdx
+        lock
+        xaddl   %ecx, (%rdx)
+        movl    %ecx,%eax
+{$else win64}
+        xchgq   %rdi,%rsi
+        lock
+        xaddl   %edi, (%rsi)
+        movl    %edi,%eax
+{$endif win64}
+end;
+
+
+function InterLockedCompareExchange(var Target: longint; NewValue, Comperand : longint): longint; assembler;
+asm
+{$ifdef win64}
+        movl            %edx,%eax
+        lock
+        cmpxchgl        %r8d,(%rcx)
+{$else win64}
+        movl            %esi,%eax
+        lock
+        cmpxchgl        %edx,(%rdi)
+{$endif win64}
+end;
+
+
+function InterLockedDecrement64 (var Target: int64) : int64; assembler;
+asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
+        movq    %rdi,%rax
+{$endif win64}
+        movq    $-1,%rdx
+        xchgq   %rdx,%rax
+        lock
+        xaddq   %rax, (%rdx)
+        decq    %rax
+end;
+
+
+function InterLockedIncrement64 (var Target: int64) : int64; assembler;
+asm
+{$ifdef win64}
+        movq    %rcx,%rax
+{$else win64}
+        movq    %rdi,%rax
+{$endif win64}
+        movq    $1,%rdx
+        xchgq   %rdx,%rax
+        lock
+        xaddq   %rax, (%rdx)
+        incq    %rax
+end;
+
+
+function InterLockedExchange64 (var Target: int64;Source : int64) : int64; assembler;
+asm
+{$ifdef win64}
+        xchgq   (%rcx),%rdx
+        movq    %rdx,%rax
+{$else win64}
+        xchgq   (%rdi),%rsi
+        movq    %rsi,%rax
+{$endif win64}
+end;
+
+
+function InterLockedExchangeAdd64 (var Target: int64;Source : int64) : int64; assembler;
+asm
+{$ifdef win64}
+        xchgq   %rcx,%rdx
+        lock
+        xaddq   %rcx, (%rdx)
+        movq    %rcx,%rax
+{$else win64}
+        xchgq   %rdi,%rsi
+        lock
+        xaddq   %rdi, (%rsi)
+        movq    %rdi,%rax
+{$endif win64}
+end;
+
+
+function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : int64): int64; assembler;
+asm
+{$ifdef win64}
+        movq            %rdx,%rax
+        lock
+        cmpxchgq        %r8d,(%rcx)
+{$else win64}
+        movq            %rsi,%rax
+        lock
+        cmpxchgq        %rdx,(%rdi)
+{$endif win64}
+end;
+
+
 {****************************************************************************
                                   FPU
 ****************************************************************************}

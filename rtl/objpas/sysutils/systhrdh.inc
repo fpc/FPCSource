@@ -33,8 +33,3 @@ type
       procedure Endread;
    end;
 
-function InterLockedIncrement (var Target: longint) : longint;
-function InterLockedDecrement (var Target: longint) : longint;
-function InterLockedExchange (var Target: longint;Source : longint) : longint;
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
-

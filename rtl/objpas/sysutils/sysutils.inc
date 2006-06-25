@@ -97,9 +97,6 @@
   { threading stuff }
   {$i sysuthrd.inc}
 
-  { CPU Specific code }
-  {$i sysutilp.inc}
-
   { OS utility code }
   {$i osutil.inc}
 

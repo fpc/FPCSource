@@ -3958,7 +3958,6 @@ rtl/arm/setjump.inc svneol=native#text/plain
 rtl/arm/setjumph.inc svneol=native#text/plain
 rtl/arm/strings.inc svneol=native#text/plain
 rtl/arm/stringss.inc svneol=native#text/plain
-rtl/arm/sysutilp.inc svneol=native#text/plain
 rtl/atari/os.inc svneol=native#text/plain
 rtl/atari/prt0.as -text
 rtl/atari/readme -text
@@ -4154,7 +4153,6 @@ rtl/i386/strings.inc svneol=native#text/plain
 rtl/i386/stringss.inc svneol=native#text/plain
 rtl/i386/strlen.inc svneol=native#text/plain
 rtl/i386/strpas.inc svneol=native#text/plain
-rtl/i386/sysutilp.inc svneol=native#text/plain
 rtl/inc/aliases.inc svneol=native#text/plain
 rtl/inc/astrings.inc svneol=native#text/plain
 rtl/inc/cgeneric.inc svneol=native#text/plain
@@ -4742,7 +4740,6 @@ rtl/powerpc/strings.inc svneol=native#text/plain
 rtl/powerpc/stringss.inc svneol=native#text/plain
 rtl/powerpc/strlen.inc svneol=native#text/plain
 rtl/powerpc/strpas.inc svneol=native#text/plain
-rtl/powerpc/sysutilp.inc svneol=native#text/plain
 rtl/powerpc64/int64p.inc svneol=native#text/plain
 rtl/powerpc64/makefile.cpu -text
 rtl/powerpc64/math.inc svneol=native#text/plain
@@ -4756,7 +4753,6 @@ rtl/powerpc64/strings.inc svneol=native#text/plain
 rtl/powerpc64/stringss.inc svneol=native#text/plain
 rtl/powerpc64/strlen.inc svneol=native#text/plain
 rtl/powerpc64/strpas.inc svneol=native#text/plain
-rtl/powerpc64/sysutilp.inc svneol=native#text/plain
 rtl/solaris/Makefile svneol=native#text/plain
 rtl/solaris/Makefile.fpc svneol=native#text/plain
 rtl/solaris/errno.inc svneol=native#text/plain
@@ -4995,7 +4991,6 @@ rtl/x86_64/setjumph.inc svneol=native#text/plain
 rtl/x86_64/strings.inc svneol=native#text/plain
 rtl/x86_64/stringss.inc svneol=native#text/plain
 rtl/x86_64/strlen.inc svneol=native#text/plain
-rtl/x86_64/sysutilp.inc svneol=native#text/plain
 rtl/x86_64/x86_64.inc svneol=native#text/plain
 tests/MPWMake -text
 tests/Makefile svneol=native#text/plain

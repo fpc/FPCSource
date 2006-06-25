@@ -49,9 +49,6 @@
 function GetRandomRgn(aHDC: HDC; aHRGN: HRGN; iNum: WINT): WINT; stdcall; external 'gdi32';
 function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET;PrivilegeSetLength:LPDWORD;
   GrantedAccess:LPDWORD; AccessStatus:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheck';
-function InterlockedIncrement(lpAddend:LPLONG):LONG; external 'kernel32' name 'InterlockedIncrement';
-function InterlockedDecrement(lpAddend:LPLONG):LONG; external 'kernel32' name 'InterlockedDecrement';
-function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external 'kernel32' name 'InterlockedExchange';
 function FreeResource(hResData:HGLOBAL):WINBOOL; external 'kernel32' name 'FreeResource';
 function LockResource(hResData:HGLOBAL):LPVOID; external 'kernel32' name 'LockResource';
 {$ifdef Unknown_functions}

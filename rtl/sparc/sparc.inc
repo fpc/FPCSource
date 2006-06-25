@@ -359,3 +359,105 @@ asm
 end;
 
 
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedDecrement1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedDecrement1
+  nop
+
+  ld [%o0],%g1
+  sub %g1,1,%g1
+  st %g1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
+
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedIncrement1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedIncrement1
+  nop
+
+  ld [%o0],%g1
+  add %g1,1,%g1
+  st %g1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedExchange1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedExchange1
+  nop
+
+  ld [%o0],%g1
+  st %o1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedExchangeAdd1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedExchangeAdd1
+  nop
+
+  ld [%o0],%g1
+  add %g1,%o1,%o1
+  st %o1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
+
+
