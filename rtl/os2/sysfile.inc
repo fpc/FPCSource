@@ -80,7 +80,6 @@ begin
 {$endif}
 end;
 
-{$IFDEF FPC_FS64}
 function Do_FilePos (Handle: THandle): int64;
 var
   PosActual: int64;
@@ -127,53 +126,6 @@ begin
   InOutRes := DosSetFileSizeL (Handle, Pos);
   Do_SeekEnd (Handle);
 end;
-{$ELSE FPC_FS64}
-function do_filepos(handle:thandle): longint;
-var
-  PosActual: cardinal;
-begin
-  InOutRes:=DosSetFilePtr(Handle, 0, 1, PosActual);
-  do_filepos:=longint (PosActual);
-{$ifdef IODEBUG}
-  writeln('do_filepos: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
-{$endif}
-end;
-
-procedure do_seek(handle:thandle;pos:longint);
-var
-  PosActual: cardinal;
-begin
-  InOutRes:=DosSetFilePtr(Handle, Pos, 0 {ZeroBased}, PosActual);
-{$ifdef IODEBUG}
-  writeln('do_seek: handle=', Handle, ', pos=', pos, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
-{$endif}
-end;
-
-function do_seekend(handle:thandle):longint;
-var
-  PosActual: cardinal;
-begin
-  InOutRes:=DosSetFilePtr(Handle, 0, 2 {EndBased}, PosActual);
-  do_seekend:=longint (PosActual);
-{$ifdef IODEBUG}
-  writeln('do_seekend: handle=', Handle, ', actual_pos=', PosActual, ', InOutRes=', InOutRes);
-{$endif}
-end;
-
-function do_filesize(handle:thandle):longint;
-var aktfilepos: cardinal;
-begin
-  aktfilepos:=do_filepos(handle);
-  do_filesize:=do_seekend(handle);
-  do_seek(handle,aktfilepos);
-end;
-
-procedure do_truncate(handle:thandle;pos:longint);
-begin
-  InOutRes:=DosSetFileSize(Handle, Pos);
-  do_seekend(handle);
-end;
-{$ENDIF FPC_FS64}
 
 
 const
@@ -269,20 +221,12 @@ begin
 
   Attrib:=32 {faArchive};
 
-{$IFDEF FPC_FS64}
   InOutRes:=DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
-{$ELSE FPC_FS64}
-  InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
-{$ENDIF FPC_FS64}
 
   // If too many open files try to set more file handles and open again
   if (InOutRes = 4) then
     if Increase_File_Handle_Count then
-{$IFDEF FPC_FS64}
       InOutRes:=DosOpenL(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
-{$ELSE FPC_FS64}
-      InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
-{$ENDIF FPC_FS64}
 
   If InOutRes<>0 then FileRec(F).Handle:=UnusedHandle;
 
