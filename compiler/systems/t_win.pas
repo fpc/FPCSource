@@ -1416,59 +1416,6 @@ type
      e_res2 : array[0..9] of word;
      e_lfanew : longint;
   end;
-  tpeheader = packed record
-     PEMagic : array[0..3] of char;
-     Machine : word;
-     NumberOfSections : word;
-     TimeDateStamp : longint;
-     PointerToSymbolTable : longint;
-     NumberOfSymbols : longint;
-     SizeOfOptionalHeader : word;
-     Characteristics : word;
-     Magic : word;
-     MajorLinkerVersion : byte;
-     MinorLinkerVersion : byte;
-     SizeOfCode : longint;
-     SizeOfInitializedData : longint;
-     SizeOfUninitializedData : longint;
-     AddressOfEntryPoint : longint;
-     BaseOfCode : longint;
-     BaseOfData : longint;
-     ImageBase : longint;
-     SectionAlignment : longint;
-     FileAlignment : longint;
-     MajorOperatingSystemVersion : word;
-     MinorOperatingSystemVersion : word;
-     MajorImageVersion : word;
-     MinorImageVersion : word;
-     MajorSubsystemVersion : word;
-     MinorSubsystemVersion : word;
-     Reserved1 : longint;
-     SizeOfImage : longint;
-     SizeOfHeaders : longint;
-     CheckSum : longint;
-     Subsystem : word;
-     DllCharacteristics : word;
-     SizeOfStackReserve : longint;
-     SizeOfStackCommit : longint;
-     SizeOfHeapReserve : longint;
-     SizeOfHeapCommit : longint;
-     LoaderFlags : longint;
-     NumberOfRvaAndSizes : longint;
-     DataDirectory : array[1..$80] of byte;
-  end;
-  tcoffsechdr=packed record
-    name     : array[0..7] of char;
-    vsize    : longint;
-    rvaofs   : longint;
-    datalen  : longint;
-    datapos  : longint;
-    relocpos : longint;
-    lineno1  : longint;
-    nrelocs  : word;
-    lineno2  : word;
-    flags    : longint;
-  end;
   psecfill=^TSecfill;
   TSecfill=record
     fillpos,
@@ -1479,7 +1426,8 @@ var
   f : file;
   cmdstr : string;
   dosheader : tdosheader;
-  peheader : tpeheader;
+  peheader : tcoffheader;
+  peoptheader : tcoffpeoptheader;
   firstsecpos,
   maxfillsize,
   l,peheaderpos : longint;
@@ -1516,53 +1464,68 @@ begin
   { read headers }
   blockread(f,dosheader,sizeof(tdosheader));
   peheaderpos:=dosheader.e_lfanew;
-  seek(f,peheaderpos);
-  blockread(f,peheader,sizeof(tpeheader));
+  { skip to headerpos and skip pe magic }
+  seek(f,peheaderpos+4);
+  blockread(f,peheader,sizeof(tcoffheader));
+  blockread(f,peoptheader,sizeof(tcoffpeoptheader));
   { write info }
-  Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
-  Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
-  Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
+  Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
+  Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
+  Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
   { change stack size (PM) }
   { I am not sure that the default value is adequate !! }
-  peheader.SizeOfStackReserve:=stacksize;
+  peoptheader.SizeOfStackReserve:=stacksize;
+  if SetPEFlagsSetExplicity then
+    peoptheader.LoaderFlags:=peflags;
+  if ImageBaseSetExplicity then
+    peoptheader.ImageBase:=imagebase;
+  if MinStackSizeSetExplicity then
+    peoptheader.SizeOfStackCommit:=minstacksize;
+  if MaxStackSizeSetExplicity then
+    peoptheader.SizeOfStackReserve:=maxstacksize;
   { change the header }
   { sub system }
   { gui=2 }
   { cui=3 }
   { wincegui=9 }
   if target_info.system in [system_arm_wince,system_i386_wince] then
-    peheader.Subsystem:=9
+    peoptheader.Subsystem:=9
   else
     case apptype of
       app_native :
-        peheader.Subsystem:=1;
+        peoptheader.Subsystem:=1;
       app_gui :
-        peheader.Subsystem:=2;
+        peoptheader.Subsystem:=2;
       app_cui :
-        peheader.Subsystem:=3;
+        peoptheader.Subsystem:=3;
     end;
   if dllversion<>'' then
     begin
-     peheader.MajorImageVersion:=dllmajor;
-     peheader.MinorImageVersion:=dllminor;
+     peoptheader.MajorImageVersion:=dllmajor;
+     peoptheader.MinorImageVersion:=dllminor;
     end;
   { reset timestamp }
-  peheader.TimeDateStamp:=0;
-  { write header back }
-  seek(f,peheaderpos);
-  blockwrite(f,peheader,sizeof(tpeheader));
+  peheader.time:=0;
+  { write header back, skip pe magic }
+  seek(f,peheaderpos+4);
+  blockwrite(f,peheader,sizeof(tcoffheader));
   if ioresult<>0 then
     Message1(execinfo_f_cant_process_executable,fn);
-  seek(f,peheaderpos);
-  blockread(f,peheader,sizeof(tpeheader));
+  blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_process_executable,fn);
+  { skip to headerpos and skip pe magic }
+  seek(f,peheaderpos+4);
+  blockread(f,peheader,sizeof(tcoffheader));
+  blockread(f,peoptheader,sizeof(tcoffpeoptheader));
   { write the value after the change }
-  Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
-  Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+  Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
+  Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
   { read section info }
   maxfillsize:=0;
   firstsecpos:=0;
   secroot:=nil;
-  for l:=1 to peheader.NumberOfSections do
+  for l:=1 to peheader.nsects do
    begin
      blockread(f,coffsec,sizeof(tcoffsechdr));
      if coffsec.datapos>0 then
@@ -1571,7 +1534,7 @@ begin
          firstsecpos:=coffsec.datapos;
         new(hsecroot);
         hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
-        hsecroot^.fillsize:=coffsec.datalen-coffsec.vsize;
+        hsecroot^.fillsize:=coffsec.datasize-coffsec.vsize;
         hsecroot^.next:=secroot;
         secroot:=hsecroot;
         if secroot^.fillsize>maxfillsize then

@@ -36,7 +36,71 @@ interface
        ogbase,
        owbase;
 
+    const
+       PE_DATADIR_ENTRIES = 16;
+
     type
+       tcoffpedatadir = packed record
+         vaddr : longint;
+         size  : longint;
+       end;
+       tcoffheader = packed record
+         mach   : word;
+         nsects : smallint;
+         time   : longint;
+         sympos : longint;
+         syms   : longint;
+         opthdr : word;
+         flag   : word;
+       end;
+       tcoffpeoptheader = packed record
+         Magic : word;
+         MajorLinkerVersion : byte;
+         MinorLinkerVersion : byte;
+         tsize : longint;
+         dsize : longint;
+         bsize : longint;
+         entry : longint;
+         text_start : longint;
+{$ifndef x86_64}
+         data_start : longint;
+{$endif x86_64}
+         ImageBase : aint;
+         SectionAlignment : longint;
+         FileAlignment : longint;
+         MajorOperatingSystemVersion : word;
+         MinorOperatingSystemVersion : word;
+         MajorImageVersion : word;
+         MinorImageVersion : word;
+         MajorSubsystemVersion : word;
+         MinorSubsystemVersion : word;
+         Win32Version : longint;
+         SizeOfImage : longint;
+         SizeOfHeaders : longint;
+         CheckSum : longint;
+         Subsystem : word;
+         DllCharacteristics : word;
+         SizeOfStackReserve : aint;
+         SizeOfStackCommit : aint;
+         SizeOfHeapReserve : aint;
+         SizeOfHeapCommit : aint;
+         LoaderFlags : longint;
+         NumberOfRvaAndSizes : longint;
+         DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
+       end;
+       tcoffsechdr = packed record
+         name     : array[0..7] of char;
+         vsize    : longint;
+         rvaofs   : longint;
+         datasize : longint;
+         datapos  : longint;
+         relocpos : longint;
+         lineno1  : longint;
+         nrelocs  : word;
+         lineno2  : word;
+         flags    : longword;
+       end;
+
        TCoffObjSection = class(TObjSection)
        private
          orgmempos,
@@ -320,7 +384,6 @@ implementation
        PE_SCN_MEM_READ               = $40000000;
        PE_SCN_MEM_WRITE              = $80000000;
 
-       PE_DATADIR_ENTRIES = 16;
        PE_DATADIR_EDATA = 0;
        PE_DATADIR_IDATA = 1;
        PE_DATADIR_RSRC = 2;
@@ -375,16 +438,6 @@ implementation
        R_PCRLONG = 20;
 
     type
-       { Structures which are written directly to the output file }
-       coffheader=packed record
-         mach   : word;
-         nsects : smallint;
-         time   : longint;
-         sympos : longint;
-         syms   : longint;
-         opthdr : word;
-         flag   : word;
-       end;
        coffdjoptheader=packed record
          magic  : word;
          vstamp : word;
@@ -394,57 +447,6 @@ implementation
          entry  : longint;
          text_start : longint;
          data_start : longint;
-       end;
-       coffpedatadir=packed record
-         vaddr : longint;
-         size  : longint;
-       end;
-       coffpeoptheader=packed record
-         Magic : word;
-         MajorLinkerVersion : byte;
-         MinorLinkerVersion : byte;
-         tsize : longint;
-         dsize : longint;
-         bsize : longint;
-         entry : longint;
-         text_start : longint;
-{$ifndef x86_64}
-         data_start : longint;
-{$endif x86_64}
-         ImageBase : aint;
-         SectionAlignment : longint;
-         FileAlignment : longint;
-         MajorOperatingSystemVersion : word;
-         MinorOperatingSystemVersion : word;
-         MajorImageVersion : word;
-         MinorImageVersion : word;
-         MajorSubsystemVersion : word;
-         MinorSubsystemVersion : word;
-         Win32Version : longint;
-         SizeOfImage : longint;
-         SizeOfHeaders : longint;
-         CheckSum : longint;
-         Subsystem : word;
-         DllCharacteristics : word;
-         SizeOfStackReserve : aint;
-         SizeOfStackCommit : aint;
-         SizeOfHeapReserve : aint;
-         SizeOfHeapCommit : aint;
-         LoaderFlags : longint;
-         NumberOfRvaAndSizes : longint;
-         DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of coffpedatadir;
-       end;
-       coffsechdr=packed record
-         name     : array[0..7] of char;
-         vsize    : longint;
-         rvaofs   : longint;
-         datasize : longint;
-         datapos  : longint;
-         relocpos : longint;
-         lineno1  : longint;
-         nrelocs  : word;
-         lineno2  : word;
-         flags    : longword;
        end;
        coffsectionrec=packed record
          len     : longint;
@@ -621,7 +623,7 @@ const go32v2stub : array[0..2047] of byte=(
   $90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,$90,
   $90,$90,$90,$90,$90,$90,$90,$90);
 
-const win32stub : array[0..131] of byte=(
+const win32stub : array[0..127] of byte=(
   $4D,$5A,$90,$00,$03,$00,$00,$00,$04,$00,$00,$00,$FF,$FF,$00,$00,
   $B8,$00,$00,$00,$00,$00,$00,$00,$40,$00,$00,$00,$00,$00,$00,$00,
   $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,
@@ -629,7 +631,9 @@ const win32stub : array[0..131] of byte=(
   $0E,$1F,$BA,$0E,$00,$B4,$09,$CD,$21,$B8,$01,$4C,$CD,$21,$54,$68,
   $69,$73,$20,$70,$72,$6F,$67,$72,$61,$6D,$20,$63,$61,$6E,$6E,$6F,
   $74,$20,$62,$65,$20,$72,$75,$6E,$20,$69,$6E,$20,$44,$4F,$53,$20,
-  $6D,$6F,$64,$65,$2E,$0D,$0D,$0A,$24,$00,$00,$00,$00,$00,$00,$00,
+  $6D,$6F,$64,$65,$2E,$0D,$0D,$0A,$24,$00,$00,$00,$00,$00,$00,$00);
+
+const pemagic : array[0..3] of byte = (
   $50,$45,$00,$00);
 
 {****************************************************************************
@@ -1335,7 +1339,7 @@ const win32stub : array[0..131] of byte=(
 
     procedure TCoffObjOutput.section_write_header(p:TObject;arg:pointer);
       var
-        sechdr   : coffsechdr;
+        sechdr   : tcoffsechdr;
         s        : string;
         strpos   : Aint;
       begin
@@ -1398,7 +1402,7 @@ const win32stub : array[0..131] of byte=(
         sympos   : aint;
         i        : longint;
         gotreloc : boolean;
-        header   : coffheader;
+        header   : tcoffheader;
       begin
         result:=false;
         FCoffSyms:=TDynamicArray.Create(symbolresize);
@@ -1409,7 +1413,7 @@ const win32stub : array[0..131] of byte=(
            create_symbols(data);
 
            { Calculate the filepositions }
-           datapos:=sizeof(coffheader)+sizeof(coffsechdr)*ObjSectionList.Count;
+           datapos:=sizeof(tcoffheader)+sizeof(tcoffsechdr)*ObjSectionList.Count;
            { Sections first }
            ObjSectionList.ForEachCall(@section_set_datapos,@datapos);
            { relocs }
@@ -1420,7 +1424,7 @@ const win32stub : array[0..131] of byte=(
            sympos:=datapos;
 
            { Generate COFF header }
-           fillchar(header,sizeof(coffheader),0);
+           fillchar(header,sizeof(tcoffheader),0);
            header.mach:=COFF_MAGIC;
            header.nsects:=ObjSectionList.Count;
            header.sympos:=sympos;
@@ -1770,8 +1774,8 @@ const win32stub : array[0..131] of byte=(
         code     : longint;
         objsec   : TCoffObjSection;
         secoptions : TObjSectionOptions;
-        header   : coffheader;
-        sechdr   : coffsechdr;
+        header   : tcoffheader;
+        sechdr   : tcoffsechdr;
         secname  : string;
         secnamebuf : array[0..15] of char;
       begin
@@ -1781,7 +1785,7 @@ const win32stub : array[0..131] of byte=(
         with TCoffObjData(objdata) do
          begin
            { Read COFF header }
-           if not reader.read(header,sizeof(coffheader)) then
+           if not reader.read(header,sizeof(tcoffheader)) then
              begin
                Comment(V_Error,'Error reading coff file, can''t read header: '+reader.filename);
                exit;
@@ -1813,7 +1817,7 @@ const win32stub : array[0..131] of byte=(
            FSecCount:=header.nsects;
            GetMem(FSecTbl,(header.nsects+1)*sizeof(TObjSection));
            FillChar(FSecTbl^,(header.nsects+1)*sizeof(TObjSection),0);
-           reader.Seek(sizeof(coffheader)+header.opthdr);
+           reader.Seek(sizeof(tcoffheader)+header.opthdr);
            for i:=1 to header.nsects do
              begin
                if not reader.read(sechdr,sizeof(sechdr)) then
@@ -1984,7 +1988,7 @@ const win32stub : array[0..131] of byte=(
 
     procedure TCoffexeoutput.ExeSections_write_header(p:TObject;arg:pointer);
       var
-        sechdr    : coffsechdr;
+        sechdr    : tcoffsechdr;
       begin
         with tExeSection(p) do
           begin
@@ -2067,8 +2071,8 @@ const win32stub : array[0..131] of byte=(
       begin
         if win32 then
           begin
-            stubsize:=sizeof(win32stub);
-            optheadersize:=sizeof(coffpeoptheader);
+            stubsize:=sizeof(win32stub)+sizeof(pemagic);
+            optheadersize:=sizeof(tcoffpeoptheader);
           end
         else
           begin
@@ -2079,8 +2083,8 @@ const win32stub : array[0..131] of byte=(
         nsects:=0;
         ExeSections.ForEachCall(@ExeSections_pass2_header,@nsects);
         { calculate start positions after the headers }
-        currdatapos:=stubsize+optheadersize+sizeof(coffsechdr)*nsects;
-        currmempos:=stubsize+optheadersize+sizeof(coffsechdr)*nsects;
+        currdatapos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
+        currmempos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
       end;
 
 
@@ -2100,9 +2104,9 @@ const win32stub : array[0..131] of byte=(
     function TCoffexeoutput.writedata:boolean;
       var
         i           : longint;
-        header      : coffheader;
+        header      : tcoffheader;
         djoptheader : coffdjoptheader;
-        peoptheader : coffpeoptheader;
+        peoptheader : tcoffpeoptheader;
         textExeSec,
         dataExeSec,
         bssExeSec   : TExeSection;
@@ -2132,7 +2136,10 @@ const win32stub : array[0..131] of byte=(
           internalerror(200602231);
         { Stub }
         if win32 then
-          FWriter.write(win32stub,sizeof(win32stub))
+          begin
+            FWriter.write(win32stub,sizeof(win32stub));
+            FWriter.write(pemagic,sizeof(pemagic));
+          end
         else
           FWriter.write(go32v2stub,sizeof(go32v2stub));
         { COFF header }
@@ -2142,7 +2149,7 @@ const win32stub : array[0..131] of byte=(
         header.sympos:=sympos;
         header.syms:=nsyms;
         if win32 then
-          header.opthdr:=sizeof(coffpeoptheader)
+          header.opthdr:=sizeof(tcoffpeoptheader)
         else
           header.opthdr:=sizeof(coffdjoptheader);
         if win32 then
@@ -2597,15 +2604,15 @@ const win32stub : array[0..131] of byte=(
         DLLReader : TObjectReader;
         DosHeader : array[0..$7f] of byte;
         PEMagic   : array[0..3] of byte;
-        Header    : CoffHeader;
-        peheader  : coffpeoptheader;
+        Header    : TCoffHeader;
+        peheader  : tcoffpeoptheader;
         NameOfs,
         newheaderofs : longint;
         FuncName  : string;
         expdir    : TPECoffExpDir;
         i         : longint;
         found     : boolean;
-        sechdr    : CoffSecHdr;
+        sechdr    : tCoffSecHdr;
 {$ifdef win32}
         p : pointer;
 {$endif win32}
@@ -2637,15 +2644,15 @@ const win32stub : array[0..131] of byte=(
             Comment(V_Error,'Invalid DLL '+dllname+': invalid magic code');
             exit;
           end;
-        if not DLLReader.Read(Header,sizeof(CoffHeader)) or
+        if not DLLReader.Read(Header,sizeof(TCoffHeader)) or
            (Header.mach<>COFF_MAGIC) or
-           (Header.opthdr<>sizeof(coffpeoptheader)) then
+           (Header.opthdr<>sizeof(tcoffpeoptheader)) then
           begin
             Comment(V_Error,'Invalid DLL '+dllname+', invalid header size');
             exit;
           end;
         { Read optheader }
-        DLLreader.Read(peheader,sizeof(coffpeoptheader));
+        DLLreader.Read(peheader,sizeof(tcoffpeoptheader));
         { Section headers }
         found:=false;
         for i:=1 to header.nsects do

@@ -171,11 +171,20 @@ interface
        { linking }
        usewindowapi  : boolean;
        description   : string;
+       SetPEFlagsSetExplicity,
+       ImageBaseSetExplicity,
+       MinStackSizeSetExplicity,
+       MaxStackSizeSetExplicity,
        DescriptionSetExplicity : boolean;
        dllversion    : string;
        dllmajor,
        dllminor,
        dllrevision   : word;  { revision only for netware }
+       { win pe  }
+       peflags : longint;
+       minstacksize,
+       maxstacksize,
+       imagebase : aword;
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
@@ -205,7 +214,7 @@ interface
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
-             
+
 
      { commandline values }
        initglobalswitches : tglobalswitches;
@@ -2246,6 +2255,11 @@ end;
         usewindowapi:=false;
         description:='Compiled by FPC '+version_string+' - '+target_cpu_string;
         DescriptionSetExplicity:=false;
+        SetPEFlagsSetExplicity:=false;
+        ImageBaseSetExplicity:=false;
+        MinStackSizeSetExplicity:=false;
+        MaxStackSizeSetExplicity:=false;
+
         dllversion:='';
         dllmajor:=1;
         dllminor:=0;
@@ -2318,10 +2332,10 @@ end;
 {$endif x86_64}
         if initoptimizecputype=cpu_none then
           initoptimizecputype:=initcputype;
-          
+
         LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;
-              
+
      end;
 
 end.

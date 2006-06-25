@@ -398,6 +398,15 @@ implementation
         do_setverbose('H');
       end;
 
+    procedure dir_imagebase;
+      begin
+        if not (target_info.system in (system_windows+system_wince)) then
+          Message(scan_w_imagebase_not_support);
+        current_scanner.skipspace;
+        imagebase:=current_scanner.readval;
+        ImageBaseSetExplicity:=true
+      end;
+
     procedure dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
@@ -589,6 +598,15 @@ implementation
            end;
       end;
 
+    procedure dir_maxstacksize;
+      begin
+        if not (target_info.system in (system_windows+system_wince)) then
+          Message(scan_w_maxstacksize_not_support);
+        current_scanner.skipspace;
+        maxstacksize:=current_scanner.readval;
+        MaxStackSizeSetExplicity:=true;
+      end;
+
     procedure dir_memory;
       var
         l : longint;
@@ -650,6 +668,16 @@ implementation
           end
         else
           current_scanner.readcomment;
+      end;
+
+
+    procedure dir_minstacksize;
+      begin
+        if not (target_info.system in (system_windows+system_wince)) then
+          Message(scan_w_minstacksize_not_support);
+        current_scanner.skipspace;
+        minstacksize:=current_scanner.readval;
+        MinStackSizeSetExplicity:=true;
       end;
 
 
@@ -905,6 +933,15 @@ implementation
     procedure dir_saturation;
       begin
         do_localswitch(cs_mmx_saturation);
+      end;
+
+    procedure dir_setpeflags;
+      begin
+        if not (target_info.system in (system_windows+system_wince)) then
+          Message(scan_w_setpeflags_not_support);
+        current_scanner.skipspace;
+        peflags:=current_scanner.readval;
+        SetPEFlagsSetExplicity:=true;
       end;
 
     procedure dir_smartlink;
@@ -1193,6 +1230,7 @@ implementation
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
+        AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
@@ -1208,9 +1246,11 @@ implementation
         AddDirective('M',directive_all, @dir_memory);
         AddDirective('MACRO',directive_all, @dir_macro);
         AddDirective('MAXFPUREGISTERS',directive_all, @dir_maxfpuregisters);
+        AddDirective('MAXSTACKSIZE',directive_all, @dir_maxstacksize);
         AddDirective('MEMORY',directive_all, @dir_memory);
         AddDirective('MESSAGE',directive_all, @dir_message);
         AddDirective('MINENUMSIZE',directive_all, @dir_packenum);
+        AddDirective('MINSTACKSIZE',directive_all, @dir_minstacksize);
         AddDirective('MMX',directive_all, @dir_mmx);
         AddDirective('MODE',directive_all, @dir_mode);
         AddDirective('NODEFINE',directive_all, @dir_nodefine);
@@ -1235,6 +1275,7 @@ implementation
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
         AddDirective('RESOURCE',directive_all, @dir_resource);
         AddDirective('SATURATION',directive_all, @dir_saturation);
+        AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);

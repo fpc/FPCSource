@@ -95,6 +95,10 @@ const
   scan_e_compile_time_typeerror=02072;
   scan_n_app_type_not_support=02073;
   scan_e_illegal_optimization_specifier=02074;
+  scan_w_setpeflags_not_support=02075;
+  scan_w_imagebase_not_support=02076;
+  scan_w_minstacksize_not_support=02077;
+  scan_w_maxstacksize_not_support=02078;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -680,9 +684,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 39997;
+  MsgTxtSize = 40212;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,75,220,61,62,47,100,22,135,60,
+    24,79,220,61,62,47,100,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

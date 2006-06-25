@@ -334,6 +334,14 @@ scan_n_app_type_not_support=02073_N_APPTYPE is not supported by the target OS
 scan_e_illegal_optimization_specifier=02074_E_Illegal optimization specified "$1"
 % When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
 % the compiler didn't recognize the optimization you specified.
+scan_w_setpeflags_not_support=02075_W_SETPEFLAGS is not supported by the target OS
+% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
+scan_w_imagebase_not_support=02076_W_IMAGEBASE is not supported by the target OS
+% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
+scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE is not supported by the target OS
+% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
+scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE is not supported by the target OS
+% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 % \end{description}
 #
 # Parser
