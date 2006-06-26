@@ -885,11 +885,12 @@ procedure TProgram.SetScreenVideoMode(const Mode: TVideoMode);
 var
   R: TRect;
 begin
-  DoneMouse;
-{  DoneMemory;}
+  hidemouse;
+{  DoneMouse;
+  DoneMemory;}
   ScreenMode:=Mode;
-  InitMouse;
-{  InitMemory;}
+{  InitMouse;
+  InitMemory;}
   InitScreen;
   Video.SetVideoMode(Mode);
   ScreenWidth:=Video.ScreenWidth;
@@ -970,16 +971,24 @@ END;
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TApplication.Init;
+
 BEGIN
 {   InitMemory;}                                              { Start memory up }
+   InitResource;
    initkeyboard;
-   Drivers.InitVideo;                                         { Start video up }
+   if not Drivers.InitVideo then                              { Start video up }
+     begin
+       donekeyboard;
+       {Initresource might have failed.}
+       if strings<>nil then
+         writeln(strings^.get(sVideoFailed));
+       halt(1);
+     end;
    Drivers.InitEvents;                                        { Start event drive }
    Drivers.InitSysError;                                      { Start system error }
    InitHistory;                                               { Start history up }
-   InitResource;
-   InitMsgBox;
    Inherited Init;                                            { Call ancestor }
+   InitMsgBox;
    { init mouse and cursor }
    Video.SetCursorType(crHidden);
    Mouse.SetMouseXY(1,1);
@@ -992,12 +1001,12 @@ DESTRUCTOR TApplication.Done;
 BEGIN
    Inherited Done;                                    { Call ancestor }
    DoneHistory;                                       { Close history }
-   DoneResource;
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
    drivers.donevideo;
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
+   DoneResource;
 END;
 
 {--TApplication-------------------------------------------------------------}

@@ -403,7 +403,7 @@ procedure RegisterEditors;
 implementation
 
 uses
-  Memory, Dos, App, StdDlg, MsgBox, Resource;
+  Dos, App, StdDlg, MsgBox, Resource;
 
 type
   pword = ^word;
@@ -1222,6 +1222,7 @@ end;
 destructor TLineInfo.Done;
 begin
   FreeMem(Info,MaxPos*sizeof(TLineInfoRec));
+  Info := nil;
 end;
 
 
@@ -1598,11 +1599,7 @@ end; { TEditor.DeleteSelect }
 
 procedure TEditor.DoneBuffer;
 begin
-  if assigned(Buffer) then
-  begin
-    FreeMem (Buffer, BufSize);
-    Buffer := nil;
-  end;
+  ReAllocMem(Buffer, 0);
 end; { TEditor.DoneBuffer }
 
 
@@ -2156,7 +2153,8 @@ end; { TEditor.HideSelect }
 
 procedure TEditor.InitBuffer;
 begin
-  Buffer := MemAlloc (BufSize);
+  Assert(Buffer = nil, 'TEditor.InitBuffer: Buffer is not nil');
+  ReAllocMem(Buffer, BufSize);
 end; { TEditor.InitBuffer }
 
 
@@ -2951,8 +2949,9 @@ end; { TEditor.SetBufLen }
 
 function TEditor.SetBufSize (NewSize : Sw_Word) : Boolean;
 begin
-//  SetBufSize := NewSize <= BufSize;
-  SetBufSize := SetBufferSize(Buffer, NewSize);
+  ReAllocMem(Buffer, NewSize);
+  BufSize := NewSize;
+  SetBufSize := True;
 end; { TEditor.SetBufSize }
 
 
@@ -3441,8 +3440,7 @@ end; { TFileEditor.Load }
 
 procedure TFileEditor.DoneBuffer;
 begin
-  if assigned(Buffer) then
-    DisposeBuffer (Buffer);
+  ReAllocMem(Buffer, 0);
 end; { TFileEditor.DoneBuffer }
 
 
@@ -3468,7 +3466,9 @@ end; { TFileEditor.HandleEvent }
 
 procedure TFileEditor.InitBuffer;
 begin
-  NewBuffer(Pointer(Buffer), MinBufLength);
+  Assert(Buffer = nil, 'TFileEditor.InitBuffer: Buffer is not nil');
+  ReAllocMem(Buffer, MinBufLength);
+  BufSize := MinBufLength;
 end; { TFileEditor.InitBuffer }
 
 
@@ -3584,13 +3584,10 @@ begin
       NewSize := (NewSize + (MinBufLength-1)) and (MaxBufLength and (not (MinBufLength-1)));
   if NewSize <> BufSize then
    begin
-     if NewSize > BufSize then
-      if not SetBufferSize(pointer(Buffer), NewSize) then
-       Exit;
+     if NewSize > BufSize then ReAllocMem(Buffer, NewSize);
      N := BufLen - CurPtr + DelCount;
      Move(Buffer^[BufSize - N], Buffer^[NewSize - N], N);
-     if NewSize < BufSize then
-       SetBufferSize(pointer(Buffer), NewSize);
+     if NewSize < BufSize then ReAllocMem(Buffer, NewSize);
      BufSize := NewSize;
      GapLen := BufSize - BufLen;
    end;

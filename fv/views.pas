@@ -27,6 +27,8 @@
 
 UNIT Views;
 
+{$CODEPAGE cp437}
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                   INTERFACE
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -855,11 +857,11 @@ const
   MouseUsesVideoBuf = false;
 {$endif not UNIX}
 
-procedure DrawScreenBuf;
+procedure DrawScreenBuf(force:boolean);
 begin
   if (GetLockScreenCount=0) then
    begin
-     If MouseUsesVideoBuf then
+{     If MouseUsesVideoBuf then
        begin
          LockScreenUpdate;
          HideMouse;
@@ -867,10 +869,10 @@ begin
          UnlockScreenUpdate;
        end
      else
-       HideMouse;
-     UpdateScreen(false);
-     If not MouseUsesVideoBuf then
-       ShowMouse;
+       HideMouse;}
+     UpdateScreen(force);
+{     If not MouseUsesVideoBuf then
+       ShowMouse;}
    end;
 end;
 
@@ -1430,7 +1432,7 @@ begin
      LockScreenUpdate; { don't update the screen yet }
      Draw;
      UnLockScreenUpdate;
-     DrawScreenBuf;
+     DrawScreenBuf(false);
      TView.DrawCursor;
    end;
 end;
@@ -2164,11 +2166,16 @@ end;
 
 
 {--TGroup-------------------------------------------------------------------}
-{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
+{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 2Jun06 DM              }
 {---------------------------------------------------------------------------}
 procedure TGroup.Redraw;
 begin
+  {Lock to prevent screen update.}
+  lockscreenupdate;
   DrawSubViews(First, nil);
+  unlockscreenupdate;
+  {Draw all views at once, forced update.}
+  drawscreenbuf(true);
 end;
 
 
@@ -2199,7 +2206,7 @@ END;
 PROCEDURE TGroup.Draw;
 BEGIN
    If Buffer=Nil then
-     ReDraw
+     DrawSubViews(First, nil)
    else
      WriteBuf(0,0,Size.X,Size.Y,Buffer);
 END;
@@ -4341,7 +4348,7 @@ begin
       B[i]:=myChar;
      do_writeView(X,X+Count,Y,B);
    end;
-  DrawScreenBuf;
+  DrawScreenBuf(false);
 end;
 
 
@@ -4352,7 +4359,7 @@ begin
   if h>0 then
    for i:=0 to h-1 do
     do_writeView(x,x+w,y+i,buf);
-  DrawScreenBuf;
+  DrawScreenBuf(false);
 end;
 
 
@@ -4370,10 +4377,10 @@ begin
      MyColor:=MapColor(Color);
      MyColor:=MyColor shl 8;
      for i:=0 to l-1 do
-      B[i]:=MyColor+ord(Str[i+1]);
+       B[i]:=MyColor+ord(Str[i+1]);
      do_writeView(x,x+l,y,b);
    end;
-  DrawScreenBuf;
+  DrawScreenBuf(false);
 end;
 
 

@@ -992,6 +992,7 @@ fv/inplong.pas svneol=native#text/plain
 fv/memory.pas svneol=native#text/plain
 fv/menus.pas svneol=native#text/plain
 fv/msgbox.pas svneol=native#text/plain
+fv/outline.pas -text
 fv/platform.inc svneol=native#text/plain
 fv/resource.pas svneol=native#text/plain
 fv/statuses.pas svneol=native#text/plain
