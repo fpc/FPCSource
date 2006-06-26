@@ -117,7 +117,7 @@ begin
   System.Assign (F,C);
 end;
 
-Procedure CloseFile(Var f:File);
+Procedure CloseFile(Var f:File); [IOCheck];
 
 begin
   { Catch Runtime error/Exception }
@@ -144,7 +144,7 @@ begin
   System.Assign (T,C);
 end;
 
-Procedure CloseFile(Var t:Text);
+Procedure CloseFile(Var t:Text); [IOCheck];
 
 begin
   { Catch Runtime error/Exception }
