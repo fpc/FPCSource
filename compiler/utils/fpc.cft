@@ -22,14 +22,14 @@
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -OG2p3
+  -O2p3
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
 
 # For a debug version compile with debuginfo and all codegeneration checks on
 #IFDEF DEBUG
-  -g
+  -glh
   -Crtoi
   #WRITE Compiling Debug Version
 #ENDIF
@@ -97,20 +97,16 @@
 #-Ct
 
 # Optimizer switches for i386 compiler
-# -Og        generate smaller code
-# -OG        generate faster code (default)
-# -Or        keep certain variables in registers (still BUGGY!!!)
-# -Ou        enable uncertain optimizations (see docs)
+# -Os        generate smaller code
 # -O1        level 1 optimizations (quick optimizations)
 # -O2        level 2 optimizations (-O1 + slower optimizations)
 # -O3        level 3 optimizations (same as -O2u)
-# -Op        target processor
-#     -Op1  set target processor to 386/486
-#     -Op2  set target processor to Pentium/PentiumMMX (tm)
-#     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
-
-# Optimize always for Size and PII
-#-OG2p3
+# -Oa=N      set alignment to N
+# -OoX       switch on optimalization X. 
+# -OoNOX     switch off optimalization X.
+#               X is one of REGVAR UNCERTAIN STACKFRAME PEEPHOLE ASMCSE LOOPUNROLL
+# -OpCPU     set target processor.
+#             CPU is one of 386, PENTIUM, PENTIUM2, PENTIUM3, PENTIUM4, PENTIUMM 
 
 
 # -----------------------
