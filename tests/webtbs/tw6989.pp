@@ -1,6 +1,7 @@
 unit tw6989;
 
 {$mode objfpc}{$H+}
+{$inline on}
 
 interface
 
