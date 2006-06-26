@@ -102,7 +102,6 @@ function SysGetShiftState: Byte;
 
 var
  K: TKbdInfo;
- L: cardinal;
 begin
  KbdGetFocus (IO_NoWait, Handle);
  K.cb := SizeOf (K);

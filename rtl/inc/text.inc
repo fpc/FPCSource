@@ -893,8 +893,17 @@ End;
 Function ReadPCharLen(var f:Text;s:pchar;maxlen:longint):longint;
 var
   sPos,len : Longint;
-  p,startp,maxp : pchar;
+  p,q,startp,maxp : pchar;
+  stop_chars:array[0..3] of char;
+  end_of_string:boolean;
 Begin
+  {Avoid use of ctrlZmarkseof in the inner loop.}
+  stop_chars[0]:=#13;
+  stop_chars[1]:=#10;
+  stop_chars[2]:=#0;
+  if ctrlZmarkseof then
+    stop_chars[2]:=#26;
+  stop_chars[3]:=#0;
   ReadPCharLen:=0;
 { Check error and if file is open }
   If (InOutRes<>0) then
@@ -911,6 +920,7 @@ Begin
    end;
 { Read maximal until Maxlen is reached }
   sPos:=0;
+  end_of_string:=false;
   repeat
     If TextRec(f).BufPos>=TextRec(f).BufEnd Then
      begin
@@ -924,19 +934,27 @@ Begin
     else
      maxp:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
     startp:=p;
-  { search linefeed }
-    while (p<maxp) and not(P^ in [#10,#13]) do
-     inc(p);
+  { find stop character }
+{    while (p<maxp) and not(P^ in [#10,#13]) do
+     inc(p);}
+    while p<maxp do
+      begin
+        q:=@stop_chars;
+        while (q^<>#0) and (p^<>q^) do
+          inc(q);
+        if p^=q^ then 
+          begin
+            end_of_string:=true;
+            break;
+          end;
+        inc(p);
+      end;
   { calculate read bytes }
     len:=p-startp;
     inc(TextRec(f).BufPos,Len);
     Move(startp^,s[sPos],Len);
     inc(sPos,Len);
-  { was it a LF or CR? then leave }
-    if (spos=MaxLen) or
-       ((p<maxp) and (p^ in [#10,#13])) then
-      break;
-  until false;
+  until (spos=MaxLen) or end_of_string;
   ReadPCharLen:=spos;
 End;
 

@@ -149,16 +149,19 @@ end;
 Procedure InitVideo;
 
 begin
-  If Not VideoInitialized then
+  if not VideoInitialized then
     begin
-    If Assigned(CurrentVideoDriver.InitDriver) then
-      CurrentVideoDriver.InitDriver;
-    VideoInitialized:=True;
-    if NextVideoModeSet then
-      SetVideoMode(NextVideoMode)
-    else
-    AssignVideoBuf(0,0);
-    ClearScreen;
+      if Assigned(CurrentVideoDriver.InitDriver) then
+        CurrentVideoDriver.InitDriver;
+      if errorcode=viook then
+        begin
+          VideoInitialized:=true;
+          if NextVideoModeSet then
+            SetVideoMode(NextVideoMode)
+          else
+            AssignVideoBuf(0,0);
+          ClearScreen;
+        end;
     end;
 end;
 

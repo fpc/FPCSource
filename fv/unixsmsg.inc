@@ -112,8 +112,8 @@ begin
         ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
        begin
          SystemEvent.typ:=SysResize;
-         SystemEvent.x:=WinSize.ws_row;
-         SystemEvent.y:=WinSize.ws_col;
+         SystemEvent.x:=WinSize.ws_col;
+         SystemEvent.y:=WinSize.ws_row;
          PutSystemEvent(SystemEvent);
          LastXSize:=WinSize.ws_row;
          LastYSize:=WinSize.ws_col;

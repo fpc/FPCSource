@@ -892,6 +892,8 @@ begin
 {  InitMemory;}
   InitScreen;
   Video.SetVideoMode(Mode);
+  ScreenWidth:=Video.ScreenWidth;
+  ScreenHeight:=Video.ScreenHeight;
   Buffer := Views.PVideoBuf(VideoBuf);
   R.Assign(0, 0, ScreenWidth, ScreenHeight);
   ChangeBounds(R);

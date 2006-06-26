@@ -1307,6 +1307,7 @@ end;
 procedure SysDoneKeyboard;
 begin
 {$ifdef linux}
+  if is_console then
   unpatchkeyboard;
 {$endif linux}
 
