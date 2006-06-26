@@ -34,6 +34,9 @@ implementation
   uses
     sysconst;
 
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -463,7 +466,8 @@ begin
   If Rc=0 then
     FileOpen:=Handle
   else
-    FileOpen:=-RC;
+    FileOpen:=feInvalidHandle; //FileOpen:=-RC;
+    //should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end;
 
 function FileCreate (const FileName: string): longint;

@@ -86,23 +86,8 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
-Function getenv(name:shortstring):Pchar; external name 'FPC_SYSC_FPGETENV';
-
-Type
-  ComStr  = String[255];
-  PathStr = String[255];
-  DirStr  = String[255];
-  NameStr = String[255];
-  ExtStr  = String[255];
-
-
 {$DEFINE FPC_FEXPAND_TILDE} { Tilde is expanded to home }
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
-
-{$I fexpand.inc}
-
-{$UNDEF FPC_FEXPAND_GETENVPCHAR}
-{$UNDEF FPC_FEXPAND_TILDE}
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -333,7 +318,7 @@ Function Dirname(Const path:pathstr):pathstr;
   a slash.
 }
 var
-  Dir  : PathStr;
+  Dir  : DirStr;
   Name : NameStr;
   Ext  : ExtStr;
 begin
@@ -350,7 +335,7 @@ Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
   supplied, it is cut off the filename.
 }
 var
-  Dir  : PathStr;
+  Dir  : DirStr;
   Name : NameStr;
   Ext  : ExtStr;
 begin
@@ -1083,14 +1068,14 @@ begin
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
 
-{ Follows base-dir spec, 
+{ Follows base-dir spec,
   see [http://freedesktop.org/Standards/basedir-spec].
   Always ends with PathDelim. }
 Function XdgConfigHome : String;
 begin
   Result:=GetEnvironmentVariable('XDG_CONFIG_HOME');
   if (Result='') then
-    Result:=GetHomeDir + '.config/' 
+    Result:=GetHomeDir + '.config/'
   else
     Result:=IncludeTrailingPathDelimiter(Result);
 end;

@@ -33,6 +33,8 @@ implementation
   uses
     sysconst;
 
+(* Potentially needed FPC_FEXPAND_* defines should be defined here. *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 

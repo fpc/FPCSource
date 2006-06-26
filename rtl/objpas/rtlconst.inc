@@ -101,7 +101,7 @@ ResourceString
   SDuplicateClass               = 'A class named "%s" already exists';
   SDuplicateItem                = 'Duplicates not allowed in this list ($0%x)';
   SDuplicateMenus               = 'Menu "%s" is used by another form';
-  SDuplicateName                = 'Duplcate name: A component named "%s" already exists';
+  SDuplicateName                = 'Duplicate name: A component named "%s" already exists';
   SDuplicateReference           = 'WriteObject was called twice for one instance';
   SDuplicateString              = 'String list does not allow duplicates';
   SEmptyStreamIllegalReader     = 'Illegal Nil stream for TReader constructor';

@@ -65,7 +65,7 @@
 
   begin
     fd:=FileOpen(FileName,fmOpenRead);
-    If (Fd>=0) then
+    If (Fd<>feInvalidHandle) then
       try
         Result:=FileSetDate(fd,Age);
       finally
@@ -248,6 +248,7 @@ begin
       for i:=0 to FrameCount-1 do
         Writeln(stdout,BackTraceStrFunc(Frames[i]));
     end;
+  Writeln(stdout,'');
   Halt(217);
 end;
 
@@ -576,3 +577,34 @@ begin
     end;
 end;
 
+
+function SafeLoadLibrary(const FileName: AnsiString;
+  ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
+  var
+    mode : DWord;
+{$if defined(cpui386) or defined(cpux86_64)}
+    fpucw : Word;
+    ssecw : DWord;
+{$endif}
+  begin
+{$if defined(win64) or defined(win32)}
+    mode:=SetErrorMode(ErrorMode);
+{$endif}
+    try
+{$if defined(cpui386) or defined(cpux86_64)}
+      fpucw:=Get8087CW;
+{$endif}      
+{$if defined(windows) or defined(win32)}
+      Result:=LoadLibraryA(PChar(Filename));
+{$else}
+      Result:=0;
+{$endif}
+      finally
+{$if defined(cpui386) or defined(cpux86_64)}
+      Set8087CW(fpucw);
+{$endif}
+{$if defined(win64) or defined(win32)}
+      SetErrorMode(mode);
+{$endif}
+    end;
+  end;

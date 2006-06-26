@@ -34,6 +34,9 @@ implementation
   uses
     sysconst;
 
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -406,6 +409,7 @@ asm
 @FOpen1:
  mov eax, 7F2Bh
  call syscall
+(* syscall __open() returns -1 in case of error, i.e. exactly what we need *)
  pop ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
