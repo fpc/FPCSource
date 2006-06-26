@@ -1,5 +1,3 @@
-{$mode objfpc}
-{$h+}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
@@ -16,14 +14,28 @@
  **********************************************************************}
 unit fpcunit;
 
+{$mode objfpc}
+{$h+}
+
 interface
-{$define SHOWLINEINFO}
+{$DEFINE SHOWLINEINFO}
+{ Uncomment this define to remove the DUnit compatibility interface. }
+{$DEFINE DUnit}
 
 uses
   {$ifdef SHOWLINEINFO}
   LineInfo,
   {$endif}
-  SysUtils, Classes;
+  SysUtils
+  ,Classes
+  ;
+
+
+{ This lets us use a single include file for both the Interface and
+  Implementation sections. }
+{$define read_interface}
+{$undef read_implementation}
+
 
 type
 
@@ -55,6 +67,7 @@ type
     property LastStep: TTestStep read FLastStep;
   end;
   {$M-}
+
 
   TAssert = class(TTest)
   public
@@ -103,6 +116,10 @@ type
     class procedure AssertNotNull(const AString: string); overload;
     class procedure AssertException(const AMessage: string; AExceptionClass: ExceptClass; AMethod: TRunMethod); overload;
     class procedure AssertException(AExceptionClass: ExceptClass; AMethod: TRunMethod); overload;
+
+    {$IFDEF DUnit}
+      {$I DUnitCompatibleInterface.inc}
+    {$ENDIF DUnit}
   end;
 
   TTestFailure = class(TObject)
@@ -254,6 +271,13 @@ implementation
 uses
   testutils;
 
+
+{ This lets us use a single include file for both the Interface and
+  Implementation sections. }
+{$undef read_interface}
+{$define read_implementation}
+
+
 type
 
   TTestWarning = class(TTestCase)
@@ -263,25 +287,30 @@ type
     procedure RunTest; override;
   end;
 
+
 procedure TTestWarning.RunTest;
 begin
   Fail(FMessage);
 end;
+
 
 function ComparisonMsg(const aExpected: string; const aActual: string): string;
 begin
   Result := format(SCompare, [aExpected, aActual]);
 end;
 
+
 constructor EAssertionFailedError.Create;
 begin
   inherited Create('');
 end;
 
+
 constructor EAssertionFailedError.Create(const msg: string);
 begin
   inherited Create(msg);
 end;
+
 
 constructor TTestFailure.CreateFailure(ATest: TTest; E: Exception; LastStep: TTestStep);
 begin
@@ -292,6 +321,7 @@ begin
   FRaisedExceptionMessage := E.Message;
   FTestLastStep := LastStep;
 end;
+
 
 function TTestFailure.GetAsString: string;
 var
@@ -304,10 +334,12 @@ begin
   Result := s + FTestName + ': ' + FRaisedExceptionMessage;
 end;
 
+
 function TTestFailure.GetExceptionClassName: string;
 begin
   Result := FRaisedExceptionClass.ClassName;
 end;
+
 
 function TTestFailure.GetExceptionMessage: string;
 begin
@@ -318,15 +350,18 @@ begin
     Result := '[TEARDOWN] ' + Result;
 end;
 
+
 function TTestFailure.GetIsFailure: boolean;
 begin
   Result := FRaisedExceptionClass.InheritsFrom(EAssertionFailedError);
 end;
 
+
 procedure TTestFailure.SetTestLastStep(const Value: TTestStep);
 begin
   FTestLastStep := Value;
 end;
+
 
 { TTest}
 
@@ -335,19 +370,24 @@ begin
   Result := 'TTest';
 end;
 
+
 function TTest.GetTestSuiteName: string;
 begin
   Result := 'TTest';
 end;
+
 
 function TTest.CountTestCases: integer;
 begin
   Result := 0;
 end;
 
+
 procedure TTest.Run(AResult: TTestResult);
 begin
+  { do nothing }
 end;
+
 
 { TAssert }
 
@@ -356,56 +396,67 @@ begin
   raise EAssertionFailedError.Create(AMessage);
 end;
 
+
 class procedure TAssert.AssertTrue(const AMessage: String; ACondition: Boolean);
 begin
   if (not ACondition) then
     Fail(AMessage);
 end;
 
+
 class procedure TAssert.AssertTrue(ACondition: Boolean);
 begin
   AssertTrue('', ACondition);
 end;
+
 
 class procedure TAssert.AssertFalse(const AMessage: String; ACondition: Boolean);
 begin
   AssertTrue(AMessage, not ACondition);
 end;
 
+
 class procedure TAssert.AssertFalse(ACondition: Boolean);
 begin
   AssertFalse('', ACondition);
 end;
+
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: string);
 begin
   AssertTrue(AMessage + ComparisonMsg(Expected, Actual), AnsiCompareStr(Expected, Actual) = 0);
 end;
 
+
 class procedure TAssert.AssertEquals(Expected, Actual: string);
 begin
   AssertEquals('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertNotNull(const AString: string);
 begin
   AssertNotNull('', AString);
 end;
 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: integer);
 begin
   AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
+
 
 class procedure TAssert.AssertEquals(Expected, Actual: integer);
 begin
   AssertEquals('', Expected, Actual);
 end;
 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: int64);
 begin
   AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
+
 
 class procedure TAssert.AssertEquals(Expected, Actual: int64);
 begin
@@ -418,10 +469,12 @@ begin
   AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected), FloatToStr(Actual)), Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertEquals(Expected, Actual: currency);
 begin
    AssertEquals('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual, Delta: double);
 begin
@@ -429,45 +482,54 @@ begin
     (Abs(Expected - Actual) <= Delta));
 end;
 
+
 class procedure TAssert.AssertEquals(Expected, Actual, Delta: double);
 begin
   AssertEquals('', Expected, Actual, Delta);
 end;
+
 
 class procedure TAssert.AssertNotNull(const AMessage, AString: string);
 begin
   AssertTrue(AMessage, AString <> '');
 end;
 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: boolean);
 begin
   AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected), BoolToStr(Actual)), Expected = Actual);
 end;
+
 
 class procedure TAssert.AssertEquals(Expected, Actual: boolean);
 begin
   AssertEquals('', Expected, Actual);
 end;
 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: char);
 begin
   AssertTrue(AMessage + ComparisonMsg(Expected, Actual), Expected = Actual);
 end;
+
 
 class procedure TAssert.AssertEquals(Expected, Actual: char);
 begin
   AssertEquals('', Expected, Actual);
 end;
 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: TClass);
 begin
   AssertTrue(AMessage + ComparisonMsg(Expected.ClassName, Actual.ClassName), Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertEquals(Expected, Actual: TClass);
 begin
   AssertEquals('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: TObject);
 begin
@@ -475,10 +537,12 @@ begin
     Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertSame(Expected, Actual: TObject);
 begin
   AssertSame('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: Pointer);
 begin
@@ -486,90 +550,108 @@ begin
     Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertSame(Expected, Actual: Pointer);
 begin
   AssertSame('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertNotSame(const AMessage: string; Expected, Actual: TObject);
 begin
   AssertFalse(SExpectedNotSame, Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertNotSame(Expected, Actual: TObject);
 begin
   AssertNotSame('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertNotSame(const AMessage: string; Expected, Actual: Pointer);
 begin
   AssertFalse(SExpectedNotSame, Expected = Actual);
 end;
 
+
 class procedure TAssert.AssertNotSame(Expected, Actual: Pointer);
 begin
   AssertNotSame('', Expected, Actual);
 end;
+
 
 class procedure TAssert.AssertNotNull(const AMessage: string; AObject: TObject);
 begin
   AssertTrue(AMessage, (AObject <> nil));
 end;
 
+
 class procedure TAssert.AssertNotNull(AObject: TObject);
 begin
   AssertNotNull('', AObject);
 end;
+
 
 class procedure TAssert.AssertNotNullIntf(const AMessage: string; AInterface: IInterface);
 begin
   AssertTrue(AMessage, (AInterface <> nil));
 end;
 
+
 class procedure TAssert.AssertNotNullIntf(AInterface: IInterface);
 begin
   AssertNotNull('', AInterface);
 end;
+
 
 class procedure TAssert.AssertNotNull(const AMessage: string; APointer: Pointer);
 begin
   AssertTrue(AMessage, (APointer <> nil));
 end;
 
+
 class procedure TAssert.AssertNotNull(APointer: Pointer);
 begin
   AssertNotNull('', APointer);
 end;
+
 
 class procedure TAssert.AssertNull(const AMessage: string; AObject: TObject);
 begin
   AssertTrue(AMessage, (AObject = nil));
 end;
 
+
 class procedure TAssert.AssertNull(AObject: TObject);
 begin
   AssertNull('', AObject);
 end;
+
 
 class procedure TAssert.AssertNullIntf(const AMessage: string; AInterface: IInterface);
 begin
   AssertTrue(AMessage, (AInterface = nil));
 end;
 
+
 class procedure TAssert.AssertNullINtf(AInterface: IInterface);
 begin
   AssertNull('', AInterface);
 end;
+
 
 class procedure TAssert.AssertNull(const AMessage: string; APointer: Pointer);
 begin
   AssertTrue(AMessage, (APointer = nil));
 end;
 
+
 class procedure TAssert.AssertNull(APointer: Pointer);
 begin
   AssertNull('', APointer);
 end;
+
 
 class procedure TAssert.AssertException(const AMessage: string; AExceptionClass: ExceptClass;
   AMethod: TRunMethod);
@@ -593,22 +675,32 @@ begin
   AssertTrue(Format(SExceptionCompare, [AExceptionClass.ClassName, ExceptionName])+ ': ' + AMessage, Passed);
 end;
 
+
 class procedure TAssert.AssertException(AExceptionClass: ExceptClass;
   AMethod: TRunMethod);
 begin
   AssertException('', AExceptionClass, AMethod);
 end;
 
+
+{ DUnit compatibility interface }
+{$IFDEF DUnit}
+  {$I DUnitCompatibleInterface.inc}
+{$ENDIF DUnit}
+
+
 constructor TTestCase.Create;
 begin
   inherited Create;
 end;
+
 
 constructor TTestCase.CreateWithName(const AName: string);
 begin
   Create;
   FName := AName;
 end;
+
 
 constructor TTestCase.CreateWith(const ATestName: string; const ATestSuiteName: string);
 begin
@@ -617,15 +709,18 @@ begin
   FTestSuiteName := ATestSuiteName;
 end;
 
+
 function TTestCase.AsString: string;
 begin
   Result := TestName + '(' + ClassName + ')';
 end;
 
+
 function TTestCase.CountTestCases: integer;
 begin
   Result := 1;
 end;
+
 
 function TTestCase.CreateResult: TTestResult;
 begin
@@ -638,10 +733,12 @@ begin
   Result := FName;
 end;
 
+
 function TTestCase.GetTestSuiteName: string;
 begin
   Result := FTestSuiteName;
 end;
+
 
 procedure TTestCase.SetTestSuiteName(const aName: string);
 begin
@@ -649,10 +746,12 @@ begin
     FTestSuiteName := aName;
 end;
 
+
 procedure TTestCase.SetTestName(const Value: string);
 begin
   FName := Value;
 end;
+
 
 function TTestCase.CreateResultAndRun: TTestResult;
 begin
@@ -660,10 +759,12 @@ begin
   Run(Result);
 end;
 
+
 procedure TTestCase.Run(AResult: TTestResult);
 begin
   (AResult).Run(Self);
 end;
+
 
 procedure TTestCase.RunBare;
 begin
@@ -678,6 +779,7 @@ begin
   end;
   FLastStep := stNothing;
 end;
+
 
 procedure TTestCase.RunTest;
 var
@@ -700,21 +802,25 @@ begin
     end;
 end;
 
+
 procedure TTestCase.SetUp;
 begin
-
+  { do nothing }
 end;
+
 
 procedure TTestCase.TearDown;
 begin
-
+  { do nothing }
 end;
+
 
 constructor TTestSuite.Create(AClass: TClass; AName: string);
 begin
   Create(AClass);
   FName := AName;
 end;
+
 
 constructor TTestSuite.Create(AClass: TClass);
 var
@@ -743,6 +849,7 @@ begin
     AddTest(Warning(SNoValidTests + AClass.ClassName));
 end;
 
+
 constructor TTestSuite.Create(AClassArray: Array of TClass);
 var
   i: integer;
@@ -753,17 +860,20 @@ begin
       AddTest(TTestSuite.Create(AClassArray[i]));
 end;
 
+
 constructor TTestSuite.Create(AName: string);
 begin
   Create();
   FName := AName;
 end;
 
+
 constructor TTestSuite.Create;
 begin
   inherited Create;
   FTests := TFPList.Create;
 end;
+
 
 destructor TTestSuite.Destroy;
 begin
@@ -772,31 +882,37 @@ begin
   inherited Destroy;
 end;
 
+
 function TTestSuite.GetTest(Index: integer): TTest;
 begin
   Result := TTest(FTests[Index]);
 end;
+
 
 function TTestSuite.GetTestName: string;
 begin
   Result := FName;
 end;
 
+
 function TTestSuite.GetTestSuiteName: string;
 begin
   Result := FTestSuiteName;
 end;
+
 
 procedure TTestSuite.SetTestName(const Value: string);
 begin
   FName := Value;
 end;
 
+
 procedure TTestSuite.SetTestSuiteName(const aName: string);
 begin
   if FTestSuiteName <> aName then
     FTestSuiteName := aName;
 end;
+
 
 function TTestSuite.CountTestCases: integer;
 var
@@ -809,6 +925,7 @@ begin
   end;
 end;
 
+
 procedure TTestSuite.Run(AResult: TTestResult);
 var
   i: integer;
@@ -817,10 +934,12 @@ begin
     RunTest(TTest(FTests[i]), AResult);
 end;
 
+
 procedure TTestSuite.RunTest(ATest: TTest; AResult: TTestResult);
 begin
   ATest.Run(AResult);
 end;
+
 
 procedure TTestSuite.AddTest(ATest: TTest);
 begin
@@ -829,10 +948,12 @@ begin
     ATest.TestSuiteName := Self.TestName;
 end;
 
+
 procedure TTestSuite.AddTestSuiteFromClass(ATestClass: TClass);
 begin
   AddTest(TTestSuite.Create(ATestClass));
 end;
+
 
 class function TTestSuite.Warning(const aMessage: string): TTestCase;
 var
@@ -843,6 +964,7 @@ begin
   Result := w;
 end;
 
+
 constructor TTestResult.Create;
 begin
   inherited Create;
@@ -850,6 +972,7 @@ begin
   FErrors := TFPList.Create;
   FListeners := TFPList.Create;
 end;
+
 
 destructor TTestResult.Destroy;
 begin
@@ -860,6 +983,7 @@ begin
   FListeners.Free;
 end;
 
+
 procedure TTestResult.ClearErrorLists;
 begin
   FreeObjects(FFailures);
@@ -868,25 +992,30 @@ begin
   FErrors.Clear;
 end;
 
+
 function TTestResult.GetNumErrors: integer;
 begin
   Result := FErrors.Count;
 end;
+
 
 function TTestResult.GetNumFailures: integer;
 begin
   Result := FFailures.Count;
 end;
 
+
 procedure TTestResult.AddListener(AListener: ITestListener);
 begin
   FListeners.Add(pointer(AListener));
 end;
 
+
 procedure TTestResult.RemoveListener(AListener: ITestListener);
 begin
   FListeners.Remove(pointer(AListener));
 end;
+
 
 procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError);
 var
@@ -900,6 +1029,7 @@ begin
     ITestListener(FListeners[i]).AddFailure(ATest, f);
   //unlock mutex
 end;
+
 
 procedure TTestResult.AddError(ATest: TTest; E: Exception;
   AUnitName: string; AFailedMethodName: string; ALineNumber: longint);
@@ -918,6 +1048,7 @@ begin
   //unlock mutex
 end;
 
+
 procedure TTestResult.EndTest(ATest: TTest);
 var
   i: integer;
@@ -926,10 +1057,12 @@ begin
     ITestListener(FListeners[i]).EndTest(ATest);
 end;
 
+
 procedure ProtectTest(aTest: TTest; aResult: TTestResult);
 begin
   TTestCase(aTest).RunBare;
 end;
+
 
 procedure TTestResult.Run(ATestCase: TTestCase);
 begin
@@ -937,6 +1070,7 @@ begin
   RunProtected(ATestCase, @ProtectTest);
   EndTest(ATestCase);
 end;
+
 
 procedure TTestResult.RunProtected(ATestCase: TTest; protect: TProtect);
 var
@@ -961,6 +1095,7 @@ begin
   end;
 end;
 
+
 procedure TTestResult.StartTest(ATest: TTest);
 var
   count: integer;
@@ -974,6 +1109,7 @@ begin
   //unlock mutex
 end;
 
+
 function TTestResult.WasSuccessful: boolean;
 begin
 //lock mutex
@@ -982,3 +1118,4 @@ begin
 end;
 
 end.
+
