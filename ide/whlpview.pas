@@ -936,7 +936,7 @@ begin
   begin
     GetLinkBounds(Link,R);
     SetCurPtr(R.A.X,R.A.Y);
-    TrackCursor(true);
+    TrackCursor(do_centre);
     {St:=GetLinkTarget(Link);
     If St<>'' then
       SetTitle('Help '+St);}
@@ -999,7 +999,7 @@ begin
       ISwitchToTopic(FileID_,Context_,false);
       ScrollTo(Delta_.X,Delta_.Y);
       SetCurPtr(CurPos_.X,CurPos_.Y);
-      TrackCursor(false);
+      TrackCursor(do_not_centre);
       if CurLink<>CurLink_ then SetCurLink(CurLink_);
     end;
     DrawView;
@@ -1026,8 +1026,10 @@ begin
           IndexHelpTopic:=HelpTopic;
      end;
  end;
-  if Owner<>nil then Owner^.Lock;
-  SetCurPtr(0,0); TrackCursor(false);
+  if Owner<>nil then
+    Owner^.Lock;
+  SetCurPtr(0,0);
+  TrackCursor(do_not_centre);
   RenderTopic;
   BuildTopicWordList;
   Lookup('');
@@ -1105,7 +1107,7 @@ begin
       GetLinkBounds(P^.Index,R);
       SetCurPtr(R.A.X+(I-1)+length(Lookupword),R.A.Y);
       CurLink:=P^.Index; DrawView;
-      TrackCursor(true);
+      TrackCursor(do_centre);
       if Owner<>nil then Owner^.UnLock;
     end;
   end;
@@ -1160,7 +1162,7 @@ begin
             PrevTopic;
         else DontClear:=true;
         end;
-        if DontClear=false then ClearEvent(Event);
+        if not DontClear then ClearEvent(Event);
       end;
     evKeyDown :
       begin
@@ -1169,7 +1171,11 @@ begin
           kbTab :
             SelectNextLink(true);
           kbShiftTab :
-            begin NoSelect:=true; SelectNextLink(false); NoSelect:=false; end;
+            begin
+              NoSelect:=true;
+              SelectNextLink(false);
+              NoSelect:=false;
+            end;
           kbEnter :
             if CurLink<>-1 then
               SelectLink(CurLink);
@@ -1179,12 +1185,18 @@ begin
         else
           case Event.CharCode of
              #32..#255 :
-               begin NoSelect:=true; Lookup(LookupWord+Event.CharCode); NoSelect:=false; end;
-          else DontClear:=true;
+               begin
+                 NoSelect:=true;
+                 Lookup(LookupWord+Event.CharCode);
+                 NoSelect:=false;
+               end;
+          else
+            DontClear:=true;
           end;
         end;
-        TrackCursor(false);
-        if DontClear=false then ClearEvent(Event);
+        TrackCursor(do_not_centre);
+        if not DontClear then
+          ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);

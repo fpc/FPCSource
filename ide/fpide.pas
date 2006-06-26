@@ -288,9 +288,9 @@ begin
   if (StartupOptions and soHeapMonitor)=0 then HeapView^.Hide;
   Insert(HeapView);
   Drivers.ShowMouse;
-{$ifdef win32}
-  // Win32ShowMouse;
-{$endif win32}
+{$ifdef Windows}
+  // WindowsShowMouse;
+{$endif Windows}
 end;
 
 procedure TIDEApp.InitDesktop;
@@ -913,35 +913,35 @@ begin
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
-{$ifdef win32}
+{$ifdef Windows}
   { write the empty screen to dummy console handle }
   UpdateScreen(true);
-{$endif ndef win32}
+{$endif ndef Windows}
   InitEvents;
   InitSysError;
   CurDirChanged;
-{$ifndef win32}
+{$ifndef Windows}
   Message(Application,evBroadcast,cmUpdate,nil);
-{$endif win32}
-{$ifdef win32}
-  // Win32ShowMouse;
-{$endif win32}
+{$endif Windows}
+{$ifdef Windows}
+  // WindowsShowMouse;
+{$endif Windows}
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
-{$ifdef win32}
+{$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
   Message(Application,evBroadcast,cmUpdate,nil);
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
   SetKnownKeys;
 {$endif Unix}
-{$ifndef win32}
+{$ifndef Windows}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
-{$endif win32}
+{$endif Windows}
 end;
 
 function TIDEApp.AutoSave: boolean;
@@ -1064,6 +1064,7 @@ begin
   UpdatePrimaryFile;
   UpdateINIFile;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
+  application^.redraw;
 end;
 
 procedure TIDEApp.SourceWindowClosed;

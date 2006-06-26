@@ -18,11 +18,11 @@ unit WHelp;
 interface
 
 uses
-{$ifdef Win32}
+{$ifdef Windows}
    { placed here to avoid TRect to be found in windows unit
-     for win32 target whereas its found in objects unit for other targets PM }
+     for Windows target whereas its found in objects unit for other targets PM }
      windows,
-{$endif Win32}
+{$endif Windows}
      Objects,
      WUtils;
 
@@ -318,11 +318,11 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     {$endif}
   end;
 {$endif Unix}
-{$ifdef Win32}
+{$ifdef Windows}
   begin
     GetDosTicks:=(Windows.GetTickCount*5484) div 100;
   end;
-{$endif Win32}
+{$endif Windows}
 {$ifdef go32v2}
   begin
     GetDosTicks:=MemL[$40:$6c];

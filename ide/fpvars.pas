@@ -108,7 +108,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
-      IniCenterDebuggerRow : boolean = true;
+      IniCenterDebuggerRow : tcentre = do_centre;
       SleepTimeOut     : longint = trunc(10*18.2);
 {$ifdef USE_EXTERNAL_COMPILER}
       UseExternalCompiler : boolean = true;

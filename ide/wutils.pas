@@ -20,9 +20,9 @@ interface
 
 
 uses
-{$ifdef win32}
+{$ifdef Windows}
   windows,
-{$endif win32}
+{$endif Windows}
 {$ifdef netwlibc}
   libc,
 {$else}
@@ -563,7 +563,7 @@ begin
 end;
 
 function GetShortName(const n:string):string;
-{$ifdef win32}
+{$ifdef Windows}
 var
   hs,hs2 : string;
   i : longint;
@@ -574,7 +574,7 @@ var
 {$endif}
 begin
   GetShortName:=n;
-{$ifdef win32}
+{$ifdef Windows}
   hs:=n+#0;
   i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
   if (i>0) and (i<=high(hs2)) then
@@ -591,7 +591,7 @@ begin
 end;
 
 function GetLongName(const n:string):string;
-{$ifdef win32}
+{$ifdef Windows}
 var
   hs : string;
   hs2 : Array [0..255] of char;
@@ -604,7 +604,7 @@ var
 {$endif}
 begin
   GetLongName:=n;
-{$ifdef win32}
+{$ifdef Windows}
   hs:=n+#0;
   i:=Windows.GetFullPathName(@hs[1],256,hs2,j);
   if (i>0) and (i<=high(hs)) then

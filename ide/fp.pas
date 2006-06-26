@@ -15,10 +15,10 @@
 program FP;
 
 {$ifdef IncRes}
-{$ifdef win32}
+{$ifdef Windows}
 {$R fpw32t.rc}
 {$R fpw32ico.rc}
-{$endif win32}
+{$endif Windows}
 {$endif IncRes}
 
 {$I globdir.inc}
@@ -31,9 +31,9 @@ program FP;
 
 uses
 {$ifndef NODEBUG}
-{$ifdef win32}
+{$ifdef Windows}
   fpcygwin,
-{$endif win32}
+{$endif Windows}
 {$endif NODEBUG}
 {$ifdef IDEHeapTrc}
   PPheap,
@@ -176,9 +176,9 @@ begin
                  ButtonCount:=0;
                end;
 {$ifdef fpc}
-          'F' :
+{          'F' :
              if Length(Param)=1 then
-               NoExtendedFrame:=true;
+               NoExtendedFrame:=true;}
 {$ifdef Unix}
           'T' :  DebuggeeTTY:=Copy(Param,2,High(Param));
 {$endif Unix}
@@ -308,10 +308,10 @@ BEGIN
   writeln(bullet+' Compiler Version '+Version_String);
 {$ifndef NODEBUG}
   writeln(bullet+' GBD Version '+GDBVersion);
- {$ifdef win32}
+ {$ifdef Windows}
    writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
- {$endif win32}
+ {$endif Windows}
 {$endif NODEBUG}
 
   ProcessParams(true);

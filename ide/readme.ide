@@ -105,9 +105,9 @@
  switches into Linux console mode and makes use of the
  /dev/vcsa* devices to display the full character set. To
  make use of this mode, you must use a VGA console font in
- codepage 437, 850, 852 etc. encoding. If your distrib-
- ution uses /etc/sysconfig/console, these are good values
- to put into that file:
+ codepage 437, 850, 852 etc. encoding. If your distribution
+ uses /etc/sysconfig/console, these are good values to put
+ into that file:
 
  CONSOLE_FONT="cp850-8x16"
  CONSOLE_SCREENMAP="8859-1_to_uni.trans"

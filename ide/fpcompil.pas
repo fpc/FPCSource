@@ -121,8 +121,10 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif}
-{$ifdef win32}
-  signals,
+{$ifdef Windows}
+  {$ifdef HasSignal}
+    signals,
+  {$endif}
 {$endif}
 { $ifdef HasSignal}
   fpcatch,

@@ -30,9 +30,13 @@ uses
 uses
   dpmiexcp;
 {$endif}
-{$ifdef win32}
+{$ifdef Windows}
 uses
-  windows, signals;
+  windows
+  {$ifdef HasSignal}
+    ,signals
+  {$endif}
+  ;
 {$endif}
 
 {$ifdef HasSignal}
@@ -204,16 +208,16 @@ Const
   CatchSignalsEnabled : boolean = false;
 
 Procedure EnableCatchSignals;
-{$ifdef win32}
+{$ifdef Windows}
   var Mode: DWORD;
-{$endif win32}
+{$endif Windows}
 begin
   if CatchSignalsEnabled then
     exit;
-{$ifdef win32}
+{$ifdef Windows}
   if GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @Mode) then
     SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
-{$endif win32}
+{$endif Windows}
 {$ifdef go32v2}
   djgpp_set_ctrl_c(false);
 {$endif go32v2}

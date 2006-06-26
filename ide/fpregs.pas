@@ -20,9 +20,9 @@ end.
 {$else NODEBUG}
 interface
 uses
-{$ifdef win32}
+{$ifdef Windows}
   Windows,
-{$endif win32}
+{$endif Windows}
   Objects,Dialogs,Drivers,Views,
   FPViews;
 
@@ -342,7 +342,7 @@ Const
                         rs.esp:=v
                       else if reg='ebp' then
                         rs.ebp:=v
-                      { under win32 flags are on a register named ps !! PM }
+                      { under Windows flags are on a register named ps !! PM }
                       else if (reg='eflags') or (reg='ps') then
                         rs.eflags:=v
                       else if reg='cs' then

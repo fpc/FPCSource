@@ -33,7 +33,7 @@ Interface
 {$ifdef OS2}
 {$define shell_implemented}
 {$endif}
-{$ifdef Win32}
+{$ifdef Windows}
 {$define implemented}
 {$endif}
 {$ifdef linux}
@@ -96,9 +96,9 @@ Uses
 {$ifdef netware_clib}
   nwserv,
 {$endif netware_clib}
-{$ifdef win32}
+{$ifdef Windows}
   windows,
-{$endif win32}
+{$endif Windows}
 {$ifdef unix}
   {$ifdef ver1_0}
     linux,
@@ -188,13 +188,13 @@ end;
 
 {$ifdef TP}
 
-{$ifndef win32}
+{$ifndef Windows}
 const
   UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
-{$endif win32}
+{$endif Windows}
 
 Type
   PtrRec = packed record
@@ -280,7 +280,7 @@ end;
 
 {$endif def go32v2}
 
-{$ifdef win32}
+{$ifdef Windows}
 Function fpclose(Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
@@ -391,14 +391,14 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
     ChangeRedirOut:=True;
     OutRedirDisabled:=False;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     if SetStdHandle(Std_Output_Handle,FileRec(FOUT^).Handle) then
-{$else not win32}
+{$else not Windows}
     TempHOut:=fpdup(StdOutputHandle);
     fpdup2(FileRec(FOUT^).Handle,StdOutputHandle);
     if (TempHOut<>UnusedHandle) and
        (StdOutputHandle<>UnusedHandle) then
-{$endif not win32}
+{$endif not Windows}
       begin
          ChangeRedirOut:=True;
          OutRedirDisabled:=False;
@@ -424,14 +424,14 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
     ChangeRedirIn:=True;
     InRedirDisabled:=False;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     if SetStdHandle(Std_Input_Handle,FileRec(FIN^).Handle) then
-{$else not win32}
+{$else not Windows}
     TempHIn:=fpdup(StdInputHandle);
     fpdup2(FileRec(FIn^).Handle,StdInputHandle);
     if (TempHIn<>UnusedHandle) and
        (StdInputHandle<>UnusedHandle) then
-{$endif not win32}
+{$endif not Windows}
       begin
          ChangeRedirIn:=True;
          InRedirDisabled:=False;
@@ -461,14 +461,14 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     ChangeRedirError:=True;
     ErrorRedirDisabled:=False;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     if SetStdHandle(Std_Error_Handle,FileRec(FERR^).Handle) then
-{$else not win32}
+{$else not Windows}
     TempHError:=fpdup(StdErrorHandle);
     fpdup2(FileRec(FERR^).Handle,StdErrorHandle);
     if (TempHError<>UnusedHandle) and
        (StdErrorHandle<>UnusedHandle) then
-{$endif not win32}
+{$endif not Windows}
       begin
          ChangeRedirError:=True;
          ErrorRedirDisabled:=False;
@@ -520,11 +520,11 @@ end;
     Handles^[StdOutputHandle]:=OldHandleOut;
     OldHandleOut:=StdOutputHandle;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
-{$else not win32}
+{$else not Windows}
     fpdup2(TempHOut,StdOutputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif FPC}
     Close (FOUT^);
     fpclose(TempHOut);
@@ -541,11 +541,11 @@ end;
     Handles^[StdInputHandle]:=OldHandleIn;
     OldHandleIn:=StdInputHandle;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
-{$else not win32}
+{$else not Windows}
     fpdup2(TempHIn,StdInputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     Close (FIn^);
     fpclose(TempHIn);
@@ -562,11 +562,11 @@ end;
 {$ifndef FPC}
     Handles^[StdInputHandle]:=OldHandleIn;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
-{$else not win32}
+{$else not Windows}
     fpdup2(TempHIn,StdInputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     InRedirDisabled:=True;
   end;
@@ -582,11 +582,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdInputHandle]:=Handles^[FileRec (FIn^).Handle];
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Input_Handle,FileRec(FIn^).Handle);
-{$else not win32}
+{$else not Windows}
     fpdup2(FileRec(FIn^).Handle,StdInputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     InRedirDisabled:=False;
   end;
@@ -601,11 +601,11 @@ end;
 {$ifndef FPC}
     Handles^[StdOutputHandle]:=OldHandleOut;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
-{$else not win32}
+{$else not Windows}
     fpdup2(TempHOut,StdOutputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     OutRedirDisabled:=True;
   end;
@@ -621,11 +621,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdOutputHandle]:=Handles^[FileRec (FOut^).Handle];
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Output_Handle,FileRec(FOut^).Handle);
-{$else not win32}
+{$else not Windows}
     fpdup2(FileRec(FOut^).Handle,StdOutputHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     OutRedirDisabled:=False;
   end;
@@ -640,11 +640,11 @@ end;
     Handles^[StdErrorHandle]:=OldHandleError;
     OldHandleError:=StdErrorHandle;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
-{$else not win32}
+{$else not Windows}
     fpdup2(TempHError,StdErrorHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     Close (FERR^);
     fpclose(TempHError);
@@ -661,11 +661,11 @@ end;
 {$ifndef FPC}
     Handles^[StdErrorHandle]:=OldHandleError;
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
-{$else not win32}
+{$else not Windows}
     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     ErrorRedirDisabled:=True;
   end;
@@ -681,11 +681,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdErrorHandle]:=Handles^[FileRec (FErr^).Handle];
 {$else}
-{$ifdef win32}
+{$ifdef Windows}
     SetStdHandle(Std_Error_Handle,FileRec(FErr^).Handle);
-{$else not win32}
+{$else not Windows}
     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FERR^).Handle,StdErrorHandle);
-{$endif not win32}
+{$endif not Windows}
 {$endif}
     ErrorRedirDisabled:=False;
   end;
@@ -693,10 +693,10 @@ end;
 {............................................................................}
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
-{$ifdef win32}
+{$ifdef Windows}
 var
   mode : word;
-{$endif win32}
+{$endif Windows}
 Begin
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
   ExecuteResult:=0;
@@ -714,12 +714,12 @@ Begin
   ExecuteRedir:=(IOStatus=0) and (RedirErrorOut=0) and
                 (RedirErrorIn=0) and (RedirErrorError=0) and
                 (ExecuteResult=0);
-{$ifdef win32}
+{$ifdef Windows}
   // reenable mouse events
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @mode);
   mode:=mode or ENABLE_MOUSE_INPUT;
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), mode);
-{$endif win32}
+{$endif Windows}
 End;
 
 {............................................................................}
@@ -930,10 +930,10 @@ end;
 {............................................................................}
 
   procedure DosExecute(ProgName, ComLine : String);
-{$ifdef win32}
+{$ifdef Windows}
     var
       StoreInherit : BOOL;
-{$endif win32}
+{$endif Windows}
 
   Begin
 {$IfDef MsDos}
@@ -950,10 +950,10 @@ end;
         ExecuteResult:=((-ExecuteResult) and $ff00) shr 8;
       end;
 {$else}
-  {$ifdef win32}
+  {$ifdef Windows}
     StoreInherit:=ExecInheritsHandles;
     ExecInheritsHandles:=true;
-  {$endif win32}
+  {$endif Windows}
     DosError:=0;
     If UseComSpec then
       Dos.Exec (Getenv('COMSPEC'),'/C '+MaybeQuoted(FixPath(progname))+' '+Comline)
@@ -964,9 +964,9 @@ end;
         else
           DosError:=2;
       end;
-  {$ifdef win32}
+  {$ifdef Windows}
     ExecInheritsHandles:=StoreInherit;
-  {$endif win32}
+  {$endif Windows}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
 {$endif}

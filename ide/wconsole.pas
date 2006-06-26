@@ -32,9 +32,9 @@ interface
 {$ifdef UNIX}
       TermIos
 {$endif UNIX}
-{$ifdef Win32}
+{$ifdef Windows}
       dword
-{$endif Win32}
+{$endif Windows}
 {$ifdef go32v2}
       longint
 {$endif go32v2}
@@ -46,19 +46,19 @@ Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
 
 implementation
-{$ifdef Win32}
+{$ifdef Windows}
   uses
     windows;
-{$endif Win32}
+{$endif Windows}
 
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Begin
 {$ifdef UNIX}
   TCGetAttr(1,ConsoleMode);
 {$endif UNIX}
-{$ifdef Win32}
+{$ifdef Windows}
   GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
-{$endif Win32}
+{$endif Windows}
 {$ifdef go32v2}
   ConsoleMode:=0;
 {$endif go32v2}
@@ -72,9 +72,9 @@ Begin
 {$ifdef UNIX}
   TCSetAttr(1,TCSANOW,ConsoleMode);
 {$endif UNIX}
-{$ifdef Win32}
+{$ifdef Windows}
   SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
-{$endif Win32}
+{$endif Windows}
 {$ifdef go32v2}
 {$endif go32v2}
 End;

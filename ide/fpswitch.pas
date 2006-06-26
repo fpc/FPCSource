@@ -1011,6 +1011,7 @@ begin
      AddBooleanItem(opt_overflowchecking,'o',idOverflowChecks);
      AddBooleanItem(opt_objmethcallvalid,'R',idObjMethCallChecks);
      AddBooleanItem(opt_pic,'g',idNone);
+     AddBooleanItem(opt_smart,'X',idNone);
    end;
   New(OptimizingGoalSwitches,InitSelect('O'));
   with OptimizingGoalSwitches^ do
@@ -1188,7 +1189,11 @@ begin
        { 2 MB heap }
        MemorySwitches^.SetLongintItem(1,1024*1024*2);
        { goto/lable allowed }
+       SyntaxSwitches^.SetBooleanItem(1,true);
+       { inline allowed }
        SyntaxSwitches^.SetBooleanItem(3,true);
+       { Exe size complaints are louder than speed complaints: Optimize for size by default. }
+       OptimizingGoalSwitches^.SetCurrSel(1);
        case i of
           om_debug:
             begin
@@ -1200,15 +1205,29 @@ begin
                CodegenSwitches^.SetBooleanItem(2,true);
                { overflow checking }
                CodegenSwitches^.SetBooleanItem(3,true);
+               { method call checking }
+               CodegenSwitches^.SetBooleanItem(4,true);
+               { assertions on }
+               SyntaxSwitches^.SetBooleanItem(4,true);
             end;
           om_normal:
             begin
+               {Register variables.}
+               OptimizationSwitches^.SetBooleanItem(0,true);
+               {Level 1 optimizations.}
                OptimizationSwitches^.SetBooleanItem(2,true);
             end;
           om_release:
             begin
-               OptimizationSwitches^.SetBooleanItem(2,true);
+               {Register variables.}
+               OptimizationSwitches^.SetBooleanItem(0,true);
+               {Level 2 optimizations.}
                OptimizationSwitches^.SetBooleanItem(3,true);
+               {Smart linking.}
+               LibLinkerSwitches^.SetCurrSel(3);
+               CodegenSwitches^.SetBooleanItem(6,true);
+               {Strip debug info}
+               OtherLinkerSwitches^.SetBooleanItem(0,true);
             end;
        end;
        { set appriopriate default target }

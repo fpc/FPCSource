@@ -111,9 +111,11 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif}
-{$ifdef win32}
-  signals,
-{$endif}
+{$ifdef windows}
+ {$ifdef HasSignal}
+    signals,
+  {$endif}
+{$endif windows}
   FPString,FPUtils,FPConst,WUtils;
 
 const

@@ -459,7 +459,7 @@ begin
     LibLinkerSwitches^.SetCurrSel(RB2^.Value);
     OtherLinkerSwitches^.SetBooleanItem(1,CB2^.Mark(0));
     if LibLinkerSwitches^.GetCurrSelParam='X' then
-     if CompareText(TargetSwitches^.GetCurrSelParam,'win32')=0 then
+     if CompareText(TargetSwitches^.GetCurrSelParam,'Windows')=0 then
       if CompareText(AsmOutputSwitches^.GetCurrSelParam,'pecoff')<>0 then
         if ConfirmBox(
           FormatStrStr3(msg_xmustbesettoyforz_doyouwanttochangethis,
@@ -477,24 +477,24 @@ var R,R2,R3: TRect;
     D: PCenterDialog;
     RB,RB2 : PRadioButtons;
     CBStrip: PCheckBoxes;
-{$ifdef win32}
+{$ifdef Windows}
     CB2: PCheckBoxes;
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
     IL: PEditorInputLine;
 {$endif Unix}
     L,I: longint;
     Items: PSItem;
 const
-{$ifdef win32}
+{$ifdef Windows}
   OtherFieldLines = 3;
-{$else not win32}
+{$else not Windows}
 {$ifdef Unix}
   OtherFieldLines = 3;
 {$else not Unix}
   OtherFieldLines = 0;
 {$endif Unix}
-{$endif win32}
+{$endif Windows}
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+1+2
       +ProfileInfoSwitches^.ItemCount+2+OtherFieldLines);
@@ -534,7 +534,7 @@ begin
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, label_debugger_profileswitches, RB2)));
 
-{$ifdef win32}
+{$ifdef Windows}
     R2.Move(0,ProfileInfoSwitches^.ItemCount+3);
     New(CB2,Init(R2,NewSItem(label_debugger_useanotherconsole, nil)));
     Insert(CB2);
@@ -545,7 +545,7 @@ begin
     CB2^.SetData(L);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
     R2.Move(0,ProfileInfoSwitches^.ItemCount+3);
     New(IL, Init(R2, 255));
@@ -553,7 +553,7 @@ begin
     Insert(IL);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
-{$endif win32}
+{$endif Windows}
   end;
   InsertButtons(D);
   RB^.Select;
@@ -562,12 +562,12 @@ begin
     DebugInfoSwitches^.SetCurrSel(RB^.Value);
     ProfileInfoSwitches^.SetCurrSel(RB2^.Value);
     OtherLinkerSwitches^.SetBooleanItem(0,CBStrip^.Mark(0));
-{$ifdef win32}
+{$ifdef Windows}
     if CB2^.value<>0 then
       DebuggeeTTY:='on'
     else
       DebuggeeTTY:='';
-{$endif win32}
+{$endif Windows}
 {$ifdef Unix}
     DebuggeeTTY:=IL^.Data^;
 {$endif Unix}
@@ -1340,7 +1340,7 @@ begin
     HelpCtx:=hcMouse;
     GetExtent(R); R.Grow(-3,-2); inc(R.A.Y); R.B.Y:=R.A.Y+2;
     New(RBkb, Init(R,
-      NewSItem('~B~orland convention (Shift+Del,Ctrl+Ins,Shift+Ins)',
+      NewSItem('~C~UA-91 convention (Shift+Del,Ctrl+Ins,Shift+Ins)',
       NewSItem('~M~icrosoft convention (Ctrl+X,Ctrl+C,Ctrl+V)',
       nil))));
     RBkb^.Press(integer(EditKeys));

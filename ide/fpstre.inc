@@ -810,6 +810,7 @@ const
       opt_objmethcallvalid = 'Object ~m~ethod call checking';
       { Code generation }
       opt_pic = '~P~osition independend code';
+      opt_smart = '~C~reate smartlinkable units';
       { Code options }
       opt_generatefastercode = 'Generate ~f~aster code';
       opt_generatesmallercode = 'Generate s~m~aller code';
