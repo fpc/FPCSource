@@ -57,6 +57,7 @@ type
   TUpdateStatusSet = SET OF TUpdateStatus;
 
   TUpdateMode = (upWhereAll, upWhereChanged, upWhereKeyOnly);
+  TResolverResponse = (rrSkip, rrAbort, rrMerge, rrApply, rrIgnore);
 
   TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
   TProviderFlags = set of TProviderFlag;
@@ -68,6 +69,7 @@ type
   TField = class;
   TFields = Class;
   TDataSet = class;
+  TBufDataSet = class;
   TDataBase = Class;
   TDatasource = Class;
   TDatalink = Class;
@@ -76,6 +78,22 @@ type
 { Exception classes }
 
   EDatabaseError = class(Exception);
+  EUpdateError   = class(EDatabaseError)
+  private
+    FContext           : String;
+    FErrorCode         : integer;
+    FOriginalException : Exception;
+    FPreviousError     : Integer;
+  public
+    constructor Create(NativeError, Context : String;
+      ErrCode, PrevError : integer; E: Exception);
+    Destructor Destroy;
+    property Context : String read FContext;
+    property ErrorCode : integer read FErrorcode;
+    property OriginalExcaption : Exception read FOriginalException;
+    property PreviousError : Integer read FPreviousError;
+  end;
+  
 
 { TFieldDef }
 
@@ -387,7 +405,8 @@ type
 
   TStringField = class(TField)
   private
-    FFixedChar : boolean;
+    FFixedChar     : boolean;
+    FTransliterate : Boolean;
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsBoolean: Boolean; override;
@@ -409,6 +428,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     property FixedChar : Boolean read FFixedChar write FFixedChar;
+    property Transliterate: Boolean read FTransliterate write FTransliterate;
   published
     property Size default 20;
   end;
@@ -901,6 +921,8 @@ type
   TDataSetNotifyEvent = procedure(DataSet: TDataSet) of object;
   TDataSetErrorEvent = procedure(DataSet: TDataSet; E: EDatabaseError;
     var DataAction: TDataAction) of object;
+  TResolverErrorEvent = procedure(Sender: TObject; DataSet: TBufDataset; E: EUpdateError;
+    UpdateKind: TUpdateKind; var Response: TResolverResponse) of object;
 
   TFilterOption = (foCaseInsensitive, foNoPartialCompare);
   TFilterOptions = set of TFilterOption;
@@ -1514,6 +1536,7 @@ type
     FFieldBufPositions : array of longint;
     
     FAllPacketsFetched : boolean;
+    FOnUpdateError  : TResolverErrorEvent;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
@@ -1551,13 +1574,15 @@ type
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;
     function IsCursorOpen: Boolean; override;
     function  GetRecordCount: Longint; override;
-    function ApplyRecUpdate(UpdateKind : TUpdateKind) : boolean; virtual;
+    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); virtual;
+    procedure SetOnUpdateError(const aValue: TResolverErrorEvent);
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure ApplyUpdates; virtual;
+    procedure ApplyUpdates; virtual; overload;
+    procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
     procedure CancelUpdates; virtual;
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
@@ -1565,6 +1590,7 @@ type
     property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
+    property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
   end;
 
   { TParam }
@@ -1904,6 +1930,24 @@ begin
   end;
   Result := Copy(Fields, Pos, Length(Fields));
   Pos := Length(Fields) + 1;
+end;
+
+{ EUpdateError }
+constructor EUpdateError.Create(NativeError, Context : String;
+                                ErrCode, PrevError : integer; E: Exception);
+                                
+begin
+  Inherited CreateFmt(NativeError,[Context]);
+  FContext := Context;
+  FErrorCode := ErrCode;
+  FPreviousError := PrevError;
+  FOriginalException := E;
+end;
+
+Destructor EUpdateError.Destroy;
+
+begin
+  FOriginalException.Free;
 end;
 
 { TIndexDef }

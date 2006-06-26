@@ -1870,7 +1870,7 @@ end;
 Function TDataset.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
 
 begin
-  //!! To be implemented
+  strcopy(dest,src);
 end;
 
 Function Tdataset.TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;

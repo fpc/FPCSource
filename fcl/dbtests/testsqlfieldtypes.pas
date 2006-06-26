@@ -22,6 +22,7 @@ type
     procedure RunTest; override;
   published
     procedure TestInt;
+    procedure TestNumeric;
     procedure TestString;
     procedure TestUnlVarChar;
     procedure TestDate;
@@ -30,6 +31,7 @@ type
 
     procedure TestNullValues;
     procedure TestParamQuery;
+    procedure TestStringParamQuery;
     procedure TestAggregates;
   end;
 
@@ -64,6 +66,35 @@ begin
     close;
     end;
 end;
+
+procedure TTestFieldTypes.TestNumeric;
+
+const
+  testValuesCount = 13;
+  testValues : Array[0..testValuesCount-1] of currency = (-123456.789,-10200,-10000,-1875.25,-10,-0.5,0,0.5,10,1875.25,10000,10200,123456.789);
+
+var
+  i          : byte;
+
+begin
+  CreateTableWithFieldType(ftBCD,'NUMERIC(10,4)');
+  TestFieldDeclaration(ftBCD,sizeof(Currency));
+
+  for i := 0 to testValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + CurrToStrF(testValues[i],ffFixed,3) + ')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    for i := 0 to testValuesCount-1 do
+      begin
+      AssertEquals(testValues[i],fields[0].AsCurrency);
+      Next;
+      end;
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestString;
 
@@ -405,6 +436,69 @@ begin
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
 
+end;
+
+procedure TTestFieldTypes.TestStringParamQuery;
+
+const
+  testValuesCount = 20;
+  testValues : Array[0..testValuesCount-1] of string = (
+    '',
+    'a',
+    'ab',
+    'abc',
+    'abcd',
+    'abcde',
+    'abcdef',
+    'abcdefg',
+    'abcdefgh',
+    'abcdefghi',
+    'abcdefghij',
+    'lMnOpQrStU',
+    '1234567890',
+    '_!@#$%^&*(',
+    ' ''quotes'' ',
+    ')-;:/?.<>',
+    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
+    '  WRaP  ',
+    'wRaP  ',
+    ' wRAP'
+  );
+
+var i : integer;
+
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 VARCHAR(10))');
+
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
+    
+    for i := 0 to testValuesCount -1 do
+      begin
+      Params.ParamByName('id').AsInteger := i;
+      Params.ParamByName('field1').AsString := testValues[i];
+      ExecSQL;
+      end;
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+    sql.clear;
+    sql.append('select * from FPDEV2 order by ID');
+    open;
+
+    for i := 0 to testValuesCount -1 do
+      begin
+      AssertEquals(i,FieldByName('ID').AsInteger);
+      AssertEquals(testValues[i],FieldByName('FIELD1').AsString);
+      Next;
+      end;
+    close;
+    end;
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 end;
 
 procedure TTestFieldTypes.TestAggregates;

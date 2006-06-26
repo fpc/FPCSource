@@ -112,6 +112,7 @@ begin
         RecordChanged(TField(Info));
     deDataSetChange: begin
       SetActive(DataSource.DataSet.Active);
+      CalcRange;
       CalcFirstRecord(Info);
       DatasetChanged;
     end;

@@ -79,6 +79,8 @@ Const
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
+  SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
+  SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
 
 Implementation
 
