@@ -1,3 +1,4 @@
+{ %maxversion=2.0.99 }
 { %opt=-gh }
 { Source provided for Free Pascal Bug Report 4098 }
 { Submitted by "Vincent Snijders" on  2005-06-19 }
