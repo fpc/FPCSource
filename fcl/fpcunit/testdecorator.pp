@@ -1,5 +1,3 @@
-{$mode objfpc}
-{$h+}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2005 by Dean Zobec
@@ -16,6 +14,9 @@
  **********************************************************************}
 
 unit testdecorator; 
+
+{$mode objfpc}
+{$h+}
 
 interface
 

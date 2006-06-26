@@ -766,6 +766,7 @@ fcl/dbtests/testbasics.pas svneol=native#text/plain
 fcl/dbtests/testdbbasics.pas -text
 fcl/dbtests/testsqlfieldtypes.pas -text
 fcl/dbtests/toolsunit.pas -text
+fcl/fpcunit/DUnitCompatibleInterface.inc svneol=native#text/plain
 fcl/fpcunit/Makefile svneol=native#text/plain
 fcl/fpcunit/Makefile.fpc svneol=native#text/plain
 fcl/fpcunit/README.txt svneol=native#text/plain

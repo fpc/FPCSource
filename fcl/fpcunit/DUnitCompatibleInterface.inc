@@ -1,0 +1,138 @@
+{%MainUnit fpcunit.pp}
+
+{$IFDEF read_interface}
+
+{
+    function  GetName: string; virtual;
+    property  Name: string read GetName;
+}
+
+    class procedure Check(pValue: boolean; pMessage: string = '');
+    class procedure CheckEquals(expected, actual: extended; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: string; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: extended; delta: extended; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: integer; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: boolean; msg: string = ''); overload;
+    class procedure CheckEquals(expected, actual: TClass; msg: string = ''); overload;
+    class procedure CheckNotEquals(expected, actual: string; msg: string = ''); overload;
+    class procedure CheckNull(obj: IUnknown; msg: string = ''); overload;
+    class procedure CheckNull(obj: TObject; msg: string = ''); overload;
+    class procedure CheckNotNull(obj: TObject; msg: string = ''); overload;
+    class procedure CheckIs(obj :TObject; pClass: TClass; msg: string = ''); overload;
+    class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
+    {
+    *** TODO  ***
+    procedure CheckEqualsBin(expected, actual: longword; msg: string = ''; digits: integer=32); virtual;
+    procedure CheckEqualsHex(expected, actual: longword; msg: string = ''; digits: integer=8); virtual;
+
+    procedure CheckNotEquals(expected, actual: integer; msg: string = ''); overload; virtual;
+    procedure CheckNotEquals(expected: extended; actual: extended; delta: extended = 0; msg: string = ''); overload; virtual;
+    procedure CheckNotEquals(expected, actual: boolean; msg: string = ''); overload; virtual;
+    procedure CheckNotEqualsBin(expected, actual: longword; msg: string = ''; digits: integer=32); virtual;
+    procedure CheckNotEqualsHex(expected, actual: longword; msg: string = ''; digits: integer=8); virtual;
+
+    procedure CheckNotNull(obj :IUnknown; msg :string = ''); overload; virtual;
+    procedure CheckSame(expected, actual: IUnknown; msg: string = ''); overload; virtual;
+
+
+    procedure CheckException(AMethod: TTestMethod; AExceptionClass: TClass; msg :string = '');
+    procedure CheckInherits(expected, actual: TClass; msg: string = ''); overload; virtual;
+    }
+
+{$ENDIF read_interface}
+
+
+{$IFDEF read_implementation}
+
+{
+function TAssert.GetName: string;
+begin
+  Result := TestName;
+end;
+}
+
+class procedure TAssert.Check(pValue: boolean; pMessage: string);
+begin
+  AssertTrue(pMessage, pValue);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: extended; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: string; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: extended;
+  delta: extended; msg: string);
+begin
+  AssertEquals(msg, expected, actual, delta);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: integer; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: boolean; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+
+class procedure TAssert.CheckEquals(expected, actual: TClass; msg: string);
+begin
+  AssertEquals(msg, expected, actual);
+end;
+
+
+class procedure TAssert.CheckNotEquals(expected, actual: string; msg: string);
+begin
+  if AnsiCompareStr(Expected, Actual) = 0 then
+    Fail(msg + ComparisonMsg(Expected, Actual));
+end;
+
+
+class procedure TAssert.CheckNull(obj: IUnknown; msg: string);
+begin
+  AssertNullIntf(msg, obj);
+end;
+
+
+class procedure TAssert.CheckNull(obj: TObject; msg: string);
+begin
+  AssertNull(msg, obj);
+end;
+
+
+class procedure TAssert.CheckNotNull(obj: TObject; msg: string);
+begin
+  AssertNotNull(msg, obj);
+end;
+
+
+class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; msg: string);
+begin
+  Assert(pClass <> nil);
+  if obj = nil then
+    Fail(ComparisonMsg(pClass.ClassName, 'nil'))
+  else if not obj.ClassType.InheritsFrom(pClass) then
+    Fail(ComparisonMsg(pClass.ClassName, obj.ClassName));
+end;
+
+
+class procedure TAssert.CheckSame(expected, actual: TObject; msg: string);
+begin
+   AssertSame(msg, expected, actual);
+end;
+
+{$ENDIF read_implementation}
+
