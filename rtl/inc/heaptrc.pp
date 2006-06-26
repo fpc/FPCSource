@@ -119,7 +119,7 @@ type
   end;
 
 var
-  ptext : ^text;
+  useownfile : boolean;
   ownfile : text;
 {$ifdef EXTRA}
   error_file : text;
@@ -318,7 +318,10 @@ begin
         ((pp^.sig<>calculate_sig(pp)) or not usecrc) and
         (pp^.sig <>$AAAAAAAA) then
       begin
-        writeln(ptext^,'error in linked list of heap_mem_info');
+        if useownfile then
+          writeln(ownfile,'error in linked list of heap_mem_info')
+        else
+          writeln(stderr,'error in linked list of heap_mem_info');
         RunError(204);
       end;
      if pp=p then
@@ -326,7 +329,10 @@ begin
      pp:=pp^.previous;
      inc(i);
      if i>getmem_cnt-freemem_cnt then
-      writeln(ptext^,'error in linked list of heap_mem_info');
+       if useownfile then
+         writeln(ownfile,'error in linked list of heap_mem_info')
+       else
+         writeln(stderr,'error in linked list of heap_mem_info');
    end;
 end;
 
@@ -432,7 +438,12 @@ var
   pp2 : pheap_mem_info;
 {$endif}
   extra_size : ptrint;
+  ptext : ^text;
 begin
+  if useownfile then
+    ptext:=@ownfile
+  else
+    ptext:=@stderr;
   if p=nil then
     begin
       TraceFreeMemSize:=0;
@@ -572,7 +583,11 @@ begin
   { this can never happend normaly }
   if pp^.size>l then
    begin
-     dump_wrong_size(pp,l,ptext^);
+     if useownfile then
+       dump_wrong_size(pp,l,ownfile)
+     else
+       dump_wrong_size(pp,l,stderr);
+
 {$ifdef EXTRA}
      dump_wrong_size(pp,l,error_file);
 {$endif EXTRA}
@@ -623,7 +638,10 @@ begin
      ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
    begin
      error_in_heap:=true;
-     dump_error(pp,ptext^);
+     if useownfile then
+       dump_error(pp,ownfile)
+     else
+       dump_error(pp,stderr);
 {$ifdef EXTRA}
      dump_error(pp,error_file);
 {$endif EXTRA}
@@ -760,6 +778,7 @@ var
   get_ebp,stack_top : longword;
   data_end : longword;
 {$endif go32v2}
+  ptext : ^text;
 label
   _exit;
 begin
@@ -767,6 +786,11 @@ begin
     runerror(204);
 
   i:=0;
+
+  if useownfile then
+    ptext:=@ownfile
+  else
+    ptext:=@stderr;
 
 {$ifdef go32v2}
   if ptruint(p)<$1000 then
@@ -896,7 +920,12 @@ var
   i : ptrint;
   ExpectedHeapFree : ptrint;
   status : TFPCHeapStatus;
+  ptext : ^text;
 begin
+  if useownfile then
+    ptext:=@ownfile
+  else
+    ptext:=@stderr;
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
@@ -984,10 +1013,10 @@ end;
 Procedure SetHeapTraceOutput(const name : string);
 var i : ptrint;
 begin
-   if ptext<>@stderr then
+   if useownfile then
      begin
-        ptext:=@stderr;
-        close(ownfile);
+       useownfile:=false;
+       close(ownfile);
      end;
    assign(ownfile,name);
 {$I-}
@@ -995,10 +1024,10 @@ begin
    if IOResult<>0 then
      Rewrite(ownfile);
 {$I+}
-   ptext:=@ownfile;
+   useownfile:=true;
    for i:=0 to Paramcount do
-     write(ptext^,paramstr(i),' ');
-   writeln(ptext^);
+     write(ownfile,paramstr(i),' ');
+   writeln(ownfile);
 end;
 
 procedure SetHeapExtraInfo( size : ptrint;fillproc : tfillextrainfoproc;displayproc : tdisplayextrainfoproc);
@@ -1038,7 +1067,7 @@ begin
   EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
-  ptext:=@stderr;
+  useownfile:=false;
   if outputstr <> '' then
      SetHeapTraceOutput(outputstr);
 {$ifdef EXTRA}
@@ -1056,12 +1085,20 @@ begin
   ioresult;
   if (exitcode<>0) and (erroraddr<>nil) then
     begin
-       Writeln(ptext^,'No heap dump by heaptrc unit');
-       Writeln(ptext^,'Exitcode = ',exitcode);
-       if ptext<>@stderr then
+       if useownfile then
          begin
-            ptext:=@stderr;
-            close(ownfile);
+           Writeln(ownfile,'No heap dump by heaptrc unit');
+           Writeln(ownfile,'Exitcode = ',exitcode);
+         end
+       else
+         begin
+           Writeln(stderr,'No heap dump by heaptrc unit');
+           Writeln(stderr,'Exitcode = ',exitcode);
+         end;
+       if useownfile then
+         begin
+           useownfile:=false;
+           close(ownfile);
          end;
        exit;
     end;
@@ -1072,10 +1109,10 @@ begin
 {$ifdef EXTRA}
   Close(error_file);
 {$endif EXTRA}
-   if ptext<>@stderr then
+   if useownfile then
      begin
-        ptext:=@stderr;
-        close(ownfile);
+       useownfile:=false;
+       close(ownfile);
      end;
 end;
 
