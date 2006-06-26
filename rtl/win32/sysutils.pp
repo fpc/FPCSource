@@ -22,7 +22,6 @@ interface
 {$H+}
 
 uses
-  dos,
   windows;
 
 {$DEFINE HAS_SLEEP}
@@ -71,6 +70,9 @@ end;
 
 {$DEFINE FPC_NOGENERICANSIROUTINES}
 
+{$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
+{$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -81,7 +83,6 @@ function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar)
 begin
   Result:=SysGetTempFileName(Dir,Prefix,uUnique,TempFileName);
 end;
-
 
 
 { UUID generation. }
@@ -133,7 +134,12 @@ end;
                               File Functions
 ****************************************************************************}
 
-Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
+var
+  SetFilePointerEx : function(hFile : THandle;
+    liDistanceToMove : int64;lpNewFilePointer : pint64;
+    dwMoveMethod : DWord) : ByteBool;stdcall;
+
+Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
     GENERIC_READ,
@@ -152,10 +158,11 @@ begin
   result := CreateFile(@FN[1], dword(AccessMode[Mode and 3]),
                        dword(ShareMode[(Mode and $F0) shr 4]), nil, OPEN_EXISTING,
                        FILE_ATTRIBUTE_NORMAL, 0);
+  //if fail api return feInvalidHandle (INVALIDE_HANDLE=feInvalidHandle=-1)
 end;
 
 
-Function FileCreate (Const FileName : String) : Longint;
+Function FileCreate (Const FileName : String) : THandle;
 Var
   FN : string;
 begin
@@ -165,13 +172,13 @@ begin
 end;
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : SizeInt;
+Function FileCreate (Const FileName : String; Mode:longint) : THandle;
 begin
   FileCreate:=FileCreate(FileName);
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
 Var
   res : dword;
 begin
@@ -182,7 +189,7 @@ begin
 end;
 
 
-Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
+Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Var
   Res : dword;
 begin
@@ -193,20 +200,25 @@ begin
 end;
 
 
-Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : THandle;FOffset,Origin : Longint) : Longint;
 begin
   Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
-  {$warning need to add 64bit call }
-  Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
+  if assigned(SetFilePointerEx) then
+    begin
+      if not(SetFilePointerEx(Handle, FOffset, @result, Origin)) then
+        Result:=-1;
+    end
+  else
+    Result:=longint(SetFilePointer(Handle, FOffset, nil, Origin));
 end;
 
 
-Procedure FileClose (Handle : Longint);
+Procedure FileClose (Handle : THandle);
 begin
   if Handle<=4 then
    exit;
@@ -214,7 +226,7 @@ begin
 end;
 
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle;Size: Longint) : boolean;
 begin
   Result:=longint(SetFilePointer(handle,Size,nil,FILE_BEGIN))<>-1;
   If Result then
@@ -334,7 +346,7 @@ begin
 end;
 
 
-Function FileGetDate (Handle : Longint) : Longint;
+Function FileGetDate (Handle : THandle) : Longint;
 Var
   FT : TFileTime;
 begin
@@ -345,7 +357,7 @@ begin
 end;
 
 
-Function FileSetDate (Handle,Age : Longint) : Longint;
+Function FileSetDate (Handle : THandle;Age : Longint) : Longint;
 Var
   FT: TFileTime;
 begin
@@ -756,13 +768,12 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integ
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
-  Proc : TWin32Handle;
+  Proc : THandle;
   l    : DWord;
   CommandLine : ansistring;
   e : EOSError;
 
 begin
-  DosError := 0;
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
   SI.wShowWindow:=1;
@@ -781,18 +792,18 @@ begin
     CommandLine := CommandLine + #0;
 
   if not CreateProcess(nil, pchar(CommandLine),
-    Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
+    Nil, Nil, False,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
       raise e;
     end;
   Proc:=PI.hProcess;
-  CloseHandle(PI.hThread);
   if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
     begin
       GetExitCodeProcess(Proc,l);
       CloseHandle(Proc);
+      CloseHandle(PI.hThread);
       result:=l;
     end
   else
@@ -800,6 +811,7 @@ begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
       CloseHandle(Proc);
+      CloseHandle(PI.hThread);
       raise e;
     end;
 end;
@@ -1139,13 +1151,27 @@ procedure InitWin32Widestrings;
   end;
 
 
+procedure SetupProcVars;
+  var
+    hinstLib : THandle;
+  begin
+    SetFilePointerEx:=nil;
+    hinstLib:=LoadLibrary('kernel32.dll');
+    if hinstLib<>0 then
+      begin
+        pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
+        FreeLibrary(hinstLib);
+      end;
+  end;
+
+
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
-
+  SetupProcVars;
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then
