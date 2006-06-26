@@ -455,7 +455,7 @@ unit nx86add;
                       mmxu8bit:
                         op:=A_PADDUSB;
                       mmxs16bit,mmxfixed16:
-                        op:=A_PADDSB;
+                        op:=A_PADDSW;
                       mmxu16bit:
                         op:=A_PADDUSW;
                    end;
