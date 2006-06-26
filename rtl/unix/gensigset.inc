@@ -52,7 +52,7 @@ function fpsigfillset(var nset : tsigset):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinsigset-1 DO nset[i]:=NOT 0;
+  for i:=0 to wordsinsigset-1 DO nset[i]:=high(nset[i]);
   fpsigfillset:=0;
 End;
 
