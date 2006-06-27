@@ -91,7 +91,8 @@ interface
        and false is returned.
     }
     function DePascalQuote(var s: string): Boolean;
-    function CompareText(S1, S2: string): longint;
+    function CompareStr(const S1, S2: string): Integer;
+    function CompareText(S1, S2: string): integer;
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -861,17 +862,28 @@ uses
       end;
 
 
-    function CompareText(S1, S2: string): longint;
+    function CompareStr(const S1, S2: string): Integer;
+      var
+        count, count1, count2: integer;
+      begin
+        result := 0;
+        Count1 := Length(S1);
+        Count2 := Length(S2);
+        if Count1>Count2 then
+          Count:=Count2
+        else
+          Count:=Count1;
+        result := CompareChar(S1[1],S2[1], Count);
+        if result=0 then
+          result:=Count1-Count2;
+      end;
+
+
+    function CompareText(S1, S2: string): integer;
       begin
         UpperVar(S1);
         UpperVar(S2);
-        if S1<S2 then
-         CompareText:=-1
-        else
-         if S1>S2 then
-          CompareText:= 1
-        else
-         CompareText:=0;
+        Result:=CompareStr(S1,S2);
       end;
 
 
