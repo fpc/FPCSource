@@ -2119,7 +2119,7 @@ Aquest programa ve sota la Llicència Pública General de GNU
 Per a més informació llegiu COPYING.FPC
 
 Comuniqueu les errades, suggeriments, etc a:
-  bugrep@freepascal.org
+  bugs@freepascal.org
 ]
 
 #
