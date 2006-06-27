@@ -2208,7 +2208,7 @@ Program ini berdasarkan GNU General Public Licence
 Untuk informasi lebih jauh baca COPYING.FPC
 
 Laporkan kesalahan, saran dll ke:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #

@@ -1,5 +1,4 @@
 #
-#   $Id: errorf.msg,v 1.6 2004/09/04 21:18:47 armin Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
 #
@@ -1730,7 +1729,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
 Report bugs,suggestions etc to:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #

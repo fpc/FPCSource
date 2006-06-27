@@ -1,7 +1,6 @@
 %%% Reordering of msg/errorn.msg respective to msg/errore.msg
 %%% Contains all comments from msg/errorn.msg
 #
-#   $Id: errorn.msg,v 1.6 2004/01/22 21:19:36 florian Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
 #
@@ -2287,7 +2286,7 @@ Dit programma wordt verspreid onder de GNU General Public Licence
 Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
 
-                bugrep@freepascal.org
+                bugs@freepascal.org
 ]
 
 #

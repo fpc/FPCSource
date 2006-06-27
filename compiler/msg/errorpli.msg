@@ -1,5 +1,4 @@
 #
-#   $Id: errorpli.msg,v 1.4 2003/11/03 08:11:28 michael Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
@@ -2142,7 +2141,7 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.FPC aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #
