@@ -1062,6 +1062,7 @@ fcl/xml/fpmake.inc svneol=native#text/plain
 fcl/xml/fpmake.pp svneol=native#text/plain
 fcl/xml/htmldefs.pp svneol=native#text/plain
 fcl/xml/htmwrite.pp svneol=native#text/plain
+fcl/xml/names.inc svneol=native#text/plain
 fcl/xml/sax.pp svneol=native#text/plain
 fcl/xml/sax_html.pp svneol=native#text/plain
 fcl/xml/xhtml.pp svneol=native#text/plain

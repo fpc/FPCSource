@@ -19,8 +19,9 @@ unit XMLWrite;
 
 {$ifdef fpc}
 {$MODE objfpc}
-{$INLINE ON}
 {$H+}
+{/$DEFINE HAS_INLINE}
+{$INLINE OFF}
 {$endif}
 
 interface
@@ -42,33 +43,31 @@ implementation
 
 uses SysUtils;
 
-// -------------------------------------------------------------------
-//   Text file and TStream support
-// -------------------------------------------------------------------
-
 type
-  TOutputProc = procedure(const Buffer; Count: Longint) of object;
   TCharacters = set of Char;
-  TSpecialCharCallback = procedure(c: Char) of object;
+  TSpecialCharCallback = procedure(c: WideChar) of object;
 
   TXMLWriter = class(TObject)  // (TAbstractDOMVisitor)?
   private
     FInsideTextNode: Boolean;
-    FIndent: string;
+    FIndent: WideString;
     FIndentCount: Integer;
-    procedure IncIndent; {$IFDEF FPC} inline; {$ENDIF}
-    procedure DecIndent; {$IFDEF FPC} inline; {$ENDIF}
-    procedure wrtStr(const s: string);
-    procedure wrtChr(c: char);
-    procedure wrtLineEnd; {$IFDEF FPC} inline; {$ENDIF}
-    procedure wrtIndent;
-    procedure ConvWrite(const s: String; const SpecialChars: TCharacters;
+    FBuffer: PChar;
+    FBufPos: PChar;
+    FCapacity: Integer;
+    procedure wrtChars(Buf: PWideChar; Length: Integer);
+    procedure IncIndent;
+    procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtLineEnd; {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure ConvWrite(const s: WideString; const SpecialChars: TCharacters;
       const SpecialCharCallback: TSpecialCharCallback);
-    procedure AttrSpecialCharCallback(c: Char);
-    procedure TextNodeSpecialCharCallback(c: Char);
+    procedure AttrSpecialCharCallback(c: WideChar);
+    procedure TextNodeSpecialCharCallback(c: WideChar);
   protected
-    Procedure Write(Const Buffer; Count : Longint); virtual;Abstract;
-    Procedure Writeln(Const Buffer; Count : Longint); virtual;
+    procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
     procedure VisitDocument(Node: TDOMNode);  // override;
     procedure VisitElement(Node: TDOMNode);
@@ -82,45 +81,61 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
     procedure VisitNotation(Node: TDOMNode);
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
 
   TTextXMLWriter = Class(TXMLWriter)
   Private
     F : ^Text;
-  Protected  
+  Protected
     Procedure Write(Const Buffer; Count : Longint);override;
-  Public  
-    procedure WriteXML(Root: TDomNode; var AFile: Text); overload;
+  Public
+    constructor Create(var AFile: Text);
   end;
-  
+
   TStreamXMLWriter = Class(TXMLWriter)
   Private
     F : TStream;
-  Protected  
+  Protected
     Procedure Write(Const Buffer; Count : Longint);override;
-  Public  
-    procedure WriteXML(Root: TDomNode; AStream : TStream); overload;
+  Public
+    constructor Create(AStream: TStream);
   end;
 
 { ---------------------------------------------------------------------
     TTextXMLWriter
   ---------------------------------------------------------------------}
-  
+
+
+constructor TTextXMLWriter.Create(var AFile: Text);
+begin
+  inherited Create;
+  f := @AFile;
+end;
 
 procedure TTextXMLWriter.Write(const Buffer; Count: Longint);
 var
   s: string;
 begin
   if Count>0 then
-    begin
-    SetString(s, PChar(Buffer), Count);
+  begin
+    SetString(s, PChar(@Buffer), Count);
     system.Write(f^, s);
-    end;
+  end;
 end;
 
 { ---------------------------------------------------------------------
     TStreamXMLWriter
   ---------------------------------------------------------------------}
+
+constructor TStreamXMLWriter.Create(AStream: TStream);
+begin
+  inherited Create;
+  F := AStream;
+end;
+
 
 procedure TStreamXMLWriter.Write(const Buffer; Count: Longint);
 begin
@@ -133,44 +148,103 @@ end;
     TXMLWriter
   ---------------------------------------------------------------------}
 
-Procedure TXMLWriter.Writeln(Const Buffer; Count : Longint); 
-
-begin
-  Write(buffer,count);
-  Wrtstr(slinebreak);
-end;
-
-
-procedure TXMLWriter.wrtStr(const s: string);
-begin
-  if s<>'' then
-    write(s[1],length(s));
-end;
-
-procedure TXMLWriter.wrtChr(c: char);
-begin
-  write(c,1);
-end;
-
-procedure TXMLWriter.wrtLineEnd;
-begin
-  wrtstr(slinebreak);
-end;
-
-procedure TXMLWriter.wrtIndent;
+constructor TXMLWriter.Create;
 var
   I: Integer;
 begin
-  for I:=1 to FIndentCount do
-    wrtStr(FIndent);
+  inherited Create;
+  // some overhead - always be able to write at least one extra UCS4
+  FBuffer := AllocMem(512+32);
+  FBufPos := FBuffer;
+  FCapacity := 512;
+  // Initialize Indent string
+  SetLength(FIndent, 100);
+  for I := 1 to 100 do FIndent[I] := ' ';
+  FIndentCount := 0;
+end;
+
+destructor TXMLWriter.Destroy;
+begin
+  if FBufPos > FBuffer then
+    write(FBuffer^, FBufPos-FBuffer);
+
+  FreeMem(FBuffer);
+  inherited Destroy;
+end;
+
+procedure TXMLWriter.wrtChars(Buf: PWideChar; Length: Integer);
+var
+  pb: PChar;
+  wc: Cardinal;
+  I: Integer;
+begin
+  pb := FBufPos;
+  for I := 0 to Length-1 do
+  begin
+    if pb >= @FBuffer[FCapacity] then
+    begin
+      write(FBuffer^, FCapacity);
+      Dec(pb, FCapacity);
+      if pb > FBuffer then
+        Move(FBuffer[FCapacity], FBuffer^, pb - FBuffer);
+    end;
+
+    wc := Cardinal(Buf^);  Inc(Buf);
+    if wc <= $7F then
+    begin
+      pb^ := char(wc); Inc(pb);
+    end
+    else if wc > $7FF then
+    begin
+      pb^ := Char($E0 or (wc shr 12));          Inc(pb);
+      pb^ := Char($80 or ((wc shr 6) and $3F)); Inc(pb);
+      pb^ := Char($80 or (wc and $3F));         Inc(pb);
+    end
+    else  // $7f < wc <= $7FF
+    begin
+      pb^ := Char($C0 or (wc shr 6));   Inc(pb);
+      pb^ := Char($80 or (wc and $3F)); Inc(pb);
+    end;
+  end;
+  FBufPos := pb;
+end;
+
+procedure TXMLWriter.wrtStr(const ws: WideString); { inline }
+begin
+  wrtChars(PWideChar(ws), Length(ws));
+end;
+
+procedure TXMLWriter.wrtChr(c: WideChar); { inline }
+begin
+  wrtChars(@c,1);
+end;
+
+procedure TXMLWriter.wrtLineEnd; { inline }
+begin
+  wrtStr(slinebreak);
+end;
+
+procedure TXMLWriter.wrtIndent; { inline }
+begin
+  wrtChars(PWideChar(FIndent), FIndentCount*2);
 end;
 
 procedure TXMLWriter.IncIndent;
+var
+  I, NewLen, OldLen: Integer;
 begin
   Inc(FIndentCount);
+  if Length(FIndent) < 2 * FIndentCount then
+  begin
+    OldLen := Length(FIndent);
+    NewLen := 4 * FIndentCount;
+    SetLength(FIndent, NewLen);
+    for I := OldLen to NewLen do
+      FIndent[I] := ' ';
+  end;
 end;
 
-procedure TXMLWriter.DecIndent;
+procedure TXMLWriter.DecIndent; { inline }
 begin
   if FIndentCount>0 then dec(FIndentCount);
 end;
@@ -179,7 +253,7 @@ const
   AttrSpecialChars = ['<', '>', '"', '&'];
   TextSpecialChars = ['<', '>', '&'];
 
-procedure TXMLWriter.ConvWrite(const s: String; const SpecialChars: TCharacters;
+procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TCharacters;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;
@@ -188,19 +262,19 @@ begin
   EndPos := 1;
   while EndPos <= Length(s) do
   begin
-    if s[EndPos] in SpecialChars then
+    if (s[EndPos] < #255) and (Char(s[EndPos]) in SpecialChars) then
     begin
-      write(s[StartPos],EndPos - StartPos);
+      wrtChars(@s[StartPos], EndPos - StartPos);
       SpecialCharCallback(s[EndPos]);
       StartPos := EndPos + 1;
     end;
     Inc(EndPos);
   end;
   if StartPos <= length(s) then
-    write(s[StartPos], EndPos - StartPos);
+    wrtChars(@s[StartPos], EndPos - StartPos);
 end;
 
-procedure TXMLWriter.AttrSpecialCharCallback(c: Char);
+procedure TXMLWriter.AttrSpecialCharCallback(c: WideChar);
 const
   QuotStr = '&quot;';
   AmpStr = '&amp;';
@@ -213,10 +287,10 @@ begin
   else if c = '<' then
     wrtStr(ltStr)
   else
-    write(c,1);
+    wrtChr(c);
 end;
 
-procedure TXMLWriter.TextnodeSpecialCharCallback(c: Char);
+procedure TXMLWriter.TextnodeSpecialCharCallback(c: WideChar);
 const
   ltStr = '&lt;';
   gtStr = '&gt;';
@@ -229,7 +303,7 @@ begin
   else if c = '&' then
     wrtStr(AmpStr)
   else
-    write(c,1);
+    wrtChr(c);
 end;
 
 procedure TXMLWriter.WriteNode(node: TDOMNode);
@@ -257,77 +331,78 @@ var
   i: Integer;
   attr, child: TDOMNode;
   SavedInsideTextNode: Boolean;
-  s: DOMString;
+  IsLeaf: Boolean;
+  MixedContent: Boolean;
 begin
   if not FInsideTextNode then
     wrtIndent;
   wrtChr('<');
-  wrtStr(UTF8Encode(node.NodeName));
-  for i := 0 to node.Attributes.Length - 1 do
-  begin
-    attr := node.Attributes.Item[i];
-    wrtChr(' ');
-    wrtStr(UTF8Encode(attr.NodeName));
-    wrtChr('=');
-    s := attr.NodeValue;
-    // !!!: Replace special characters in "s" such as '&', '<', '>'
-    wrtChr('"');
-    ConvWrite(UTF8Encode(s), AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
-    wrtChr('"');
-  end;
+  wrtStr(node.NodeName);
+  // FIX: Accessing Attributes was causing them to be created for every element :(
+  if node.HasAttributes then
+    for i := 0 to node.Attributes.Length - 1 do
+    begin
+      attr := node.Attributes.Item[i];
+      VisitAttribute(attr);
+    end;
   Child := node.FirstChild;
-  if Child = nil then begin
-    wrtChr('/');
-    wrtChr('>');
-    if not FInsideTextNode then wrtLineEnd;
-  end else
+  if Child = nil then
+    wrtStr('/>')
+  else
   begin
     SavedInsideTextNode := FInsideTextNode;
     wrtChr('>');
-    if not (FInsideTextNode or Child.InheritsFrom(TDOMText)) then
+    MixedContent := False;
+    repeat
+      if Assigned(Child.PreviousSibling) and
+        (Child.PreviousSibling.InheritsFrom(TDOMText) <> Child.InheritsFrom(TDOMText)) then
+        MixedContent := True;
+      Child := Child.NextSibling;
+    until Child = nil;
+    Child := node.FirstChild; // restore
+
+    IsLeaf := (Child = node.LastChild) and (Child.FirstChild = nil);
+    if not (FInsideTextNode or MixedContent or IsLeaf) then
       wrtLineEnd;
+
+    FInsideTextNode := {FInsideTextNode or} MixedContent or IsLeaf;
     IncIndent;
     repeat
-      if Child.InheritsFrom(TDOMText) then
-        FInsideTextNode := True
-      else                      // <-- fix case when CDATA is first child
-        FInsideTextNode := False;
       WriteNode(Child);
       Child := Child.NextSibling;
-    until child = nil;
+    until Child = nil;
     DecIndent;
     if not FInsideTextNode then
       wrtIndent;
     FInsideTextNode := SavedInsideTextNode;
-    wrtChr('<');
-    wrtChr('/');
-    wrtStr(UTF8Encode(node.NodeName));
+    wrtStr('</');
+    wrtStr(Node.NodeName);
     wrtChr('>');
-    if not FInsideTextNode then
-      wrtLineEnd;
   end;
+  if not FInsideTextNode then
+    wrtLineEnd;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
 begin
-  ConvWrite(UTF8Encode(node.NodeValue), TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
+  ConvWrite(node.NodeValue, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
 end;
 
 procedure TXMLWriter.VisitCDATA(node: TDOMNode);
 begin
   if not FInsideTextNode then
-    wrtStr('<![CDATA[' + UTF8Encode(node.NodeValue) + ']]>')
-  else begin
     wrtIndent;
-    wrtStr('<![CDATA[' + UTF8Encode(node.NodeValue) + ']]>');
+  wrtStr('<![CDATA[');
+  wrtStr(node.NodeValue);
+  wrtStr(']]>');
+  if not FInsideTextNode then
     wrtLineEnd;
-  end;
 end;
 
 procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
 begin
   wrtChr('&');
-  wrtStr(UTF8Encode(node.NodeName));
+  wrtStr(node.NodeName);
   wrtChr(';');
 end;
 
@@ -339,11 +414,11 @@ end;
 procedure TXMLWriter.VisitPI(node: TDOMNode);
 begin
   if not FInsideTextNode then wrtIndent;
-  wrtChr('<'); wrtChr('?');
-  wrtStr(UTF8Encode(TDOMProcessingInstruction(node).Target));
+  wrtStr('<?');
+  wrtStr(TDOMProcessingInstruction(node).Target);
   wrtChr(' ');
-  wrtStr(UTF8Encode(TDOMProcessingInstruction(node).Data));
-  wrtChr('?'); wrtChr('>');
+  wrtStr(TDOMProcessingInstruction(node).Data);
+  wrtStr('?>');
   if not FInsideTextNode then wrtLineEnd;
 end;
 
@@ -351,7 +426,7 @@ procedure TXMLWriter.VisitComment(node: TDOMNode);
 begin
   if not FInsideTextNode then wrtIndent;
   wrtStr('<!--');
-  wrtStr(UTF8Encode(node.NodeValue));
+  wrtStr(node.NodeValue);
   wrtStr('-->');
   if not FInsideTextNode then wrtLineEnd;
 end;
@@ -370,7 +445,7 @@ begin
   begin
     wrtStr(' encoding="');
     ConvWrite(TXMLDocument(node).Encoding, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
-    wrtStr('"');
+    wrtChr('"');
   end;
   wrtStr('?>');
   wrtLineEnd;
@@ -385,22 +460,31 @@ begin
     wrtLineEnd;
   end;
 
-  FIndent := '  ';
-  FIndentCount := 0;
-
   child := node.FirstChild;
   while Assigned(Child) do
   begin
     WriteNode(Child);
     Child := Child.NextSibling;
   end;
-
-  if node=nil then ;
 end;
 
 procedure TXMLWriter.VisitAttribute(Node: TDOMNode);
+var
+  Child: TDOMNode;
 begin
-
+  wrtChr(' ');
+  wrtStr(Node.NodeName);
+  wrtStr('="');
+  Child := Node.FirstChild;
+  while Assigned(Child) do
+  begin
+    if Child.NodeType = ENTITY_REFERENCE_NODE then
+      VisitEntityRef(Child)
+    else
+      ConvWrite(Child.NodeValue, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    Child := Child.NextSibling;
+  end;
+  wrtChr('"');
 end;
 
 procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
@@ -409,8 +493,16 @@ begin
 end;
 
 procedure TXMLWriter.VisitFragment(Node: TDOMNode);
+var
+  Child: TDOMNode;
 begin
-  VisitElement(Node);
+  // Fragment itself should not be written, only its children should...
+  Child := Node.FirstChild;
+  while Assigned(Child) do
+  begin
+    WriteNode(Child);
+    Child := Child.NextSibling;
+  end;
 end;
 
 procedure TXMLWriter.VisitNotation(Node: TDOMNode);
@@ -419,31 +511,17 @@ begin
 end;
 
 
-procedure TStreamXMLWriter.WriteXML(Root: TDOMNode; AStream: TStream);
-begin
-  F:=AStream;
-  WriteNode(Root);
-end;
-
-procedure TTextXMLWriter.WriteXML(Root: TDOMNode; var AFile: Text);
-begin
-  f := @AFile;
-  WriteNode(Root);
-end;
-
 // -------------------------------------------------------------------
 //   Interface implementation
 // -------------------------------------------------------------------
 
 procedure WriteXMLFile(doc: TXMLDocument; const AFileName: String);
-
 var
   fs: TFileStream;
-  
 begin
   fs := TFileStream.Create(AFileName, fmCreate);
   try
-     WriteXMLFile(doc, fs);
+    WriteXMLFile(doc, fs);
   finally
     fs.Free;
   end;
@@ -451,9 +529,9 @@ end;
 
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
 begin
-  with TTextXMLWriter.Create do
+  with TTextXMLWriter.Create(AFile) do
   try
-    WriteXML(doc, AFile);
+    WriteNode(doc);
   finally
     Free;
   end;
@@ -461,9 +539,9 @@ end;
 
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
 begin
-  with TStreamXMLWriter.Create do
+  with TStreamXMLWriter.Create(AStream) do
   try
-    WriteXML(doc, AStream);
+    WriteNode(doc);
   finally
     Free;
   end;
@@ -471,17 +549,17 @@ end;
 
 procedure WriteXML(Element: TDOMNode; const AFileName: String);
 begin
-  WriteXML(TXMLDocument(Element), AFileName);
+  WriteXMLFile(TXMLDocument(Element), AFileName);
 end;
 
 procedure WriteXML(Element: TDOMNode; var AFile: Text);
 begin
-  WriteXML(TXMLDocument(Element), AFile);
+  WriteXMLFile(TXMLDocument(Element), AFile);
 end;
 
 procedure WriteXML(Element: TDOMNode; AStream: TStream);
 begin
-  WriteXML(TXMLDocument(Element), AStream);
+  WriteXMLFile(TXMLDocument(Element), AStream);
 end;
 
 
