@@ -229,8 +229,10 @@ type
     FFailures: TFPList;
     FErrors: TFPList;
     FListeners: TFPList;
+    FSkippedTests: TFPList;
     function GetNumErrors: integer;
     function GetNumFailures: integer;
+    function GetNumSkipped: integer;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -246,12 +248,16 @@ type
     procedure Run(ATestCase: TTestCase);
     procedure RunProtected(ATestCase: TTest; protect: TProtect);
     function WasSuccessful: boolean;
+    function SkipTest(ATestCase: TTestCase): boolean;
+    procedure AddToSkipList(ATestCase: TTestCase);
+    procedure RemoveFromSkipList(ATestCase: TTestCase);
   published
     property Failures: TFPList read FFailures;
     property Errors: TFPList read FErrors;
     property RunTests: integer read FRunTests;
     property NumberOfErrors: integer read GetNumErrors;
     property NumberOfFailures: integer read GetNumFailures;
+    property NumberOfSkippedTests: integer read GetNumSkipped;
   end;
 
   function ComparisonMsg(const aExpected: string; const aActual: string): string;
@@ -971,6 +977,7 @@ begin
   FFailures := TFPList.Create;
   FErrors := TFPList.Create;
   FListeners := TFPList.Create;
+  FSkippedTests := TFPList.Create;
 end;
 
 
@@ -981,6 +988,7 @@ begin
   FreeObjects(FErrors);
   FErrors.Free;
   FListeners.Free;
+  FSkippedTests.Free;
 end;
 
 
@@ -1002,6 +1010,12 @@ end;
 function TTestResult.GetNumFailures: integer;
 begin
   Result := FFailures.Count;
+end;
+
+
+function TTestResult.GetNumSkipped: integer;
+begin
+  Result := FSkippedTests.Count;
 end;
 
 
@@ -1066,9 +1080,12 @@ end;
 
 procedure TTestResult.Run(ATestCase: TTestCase);
 begin
-  StartTest(ATestCase);
-  RunProtected(ATestCase, @ProtectTest);
-  EndTest(ATestCase);
+  if not SkipTest(ATestCase) then
+  begin
+    StartTest(ATestCase);
+    RunProtected(ATestCase, @ProtectTest);
+    EndTest(ATestCase);
+  end;
 end;
 
 
@@ -1115,6 +1132,38 @@ begin
 //lock mutex
   Result := (FErrors.Count = 0) and (FFailures.Count = 0);
 //unlock mutex
+end;
+
+function TTestResult.SkipTest(ATestCase: TTestCase): Boolean;
+var
+  i: integer;
+begin
+  Result := false;
+  if FSkippedTests.Count = 0 then
+  begin
+    result := false;
+    Exit;
+  end
+  else
+    for i := 0 to FSkippedTests.Count - 1 do
+    begin
+      if PtrInt(FSkippedTests[i]) = PtrInt(ATestCase) then
+      begin
+        Result := true;
+        Exit;
+      end;
+    end;
+end;
+
+
+procedure TTestResult.AddToSkipList(ATestCase: TTestCase);
+begin
+  FSkippedTests.Add(ATestCase);
+end;
+
+procedure TTestResult.RemoveFromSkipList(ATestCase: TTestCase);
+begin
+  FSkippedTests.Remove(ATestCase);
 end;
 
 end.
