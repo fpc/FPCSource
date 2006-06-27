@@ -45,6 +45,17 @@
 #
 # General
 #
+#
+# 01023 is the last used one
+#
+general_text_bytes_code=01019_bytes de código
+general_text_bytes_data=01020_bytes de dados
+# BeginOfTeX
+% \section{General compiler messages}
+% This section gives the compiler messages which are not fatal, but which
+% display useful information. The number of such messages can be
+% controlled with the various verbosity level \var{-v} switches.
+% \begin{description}
 general_t_compilername=01000_T_Compilador usado: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
@@ -71,7 +82,7 @@ general_t_objectpath=01007_T_Caminho para módulos objeto: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 Linhas compiladas, $2 seg
+general_i_abslines_compiled=01008_I_$1 Linhas compiladas, $2 seg$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -105,6 +116,13 @@ general_i_hint=01016_I_Sugestão:
 general_e_path_does_not_exist=01017_E_Caminho "$1" não existe
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilação abortada
+% Compilation was aborted.
+general_i_number_of_warnings=01021_I_Ocorreram $1 warning(s)
+% Total number of warnings issued during compilation.
+general_i_number_of_hints=01022_I_Feitas $1 sugestões
+% Total number of hints issued during compilation.
+general_i_number_of_notes=01023_I_Feitos $1 comentários 
+% Total number of notes issued during compilation.
 % \end{description}
 #
 # Scanner
@@ -159,12 +177,14 @@ scan_f_cannot_open_input=02012_F_Arquivo "$1" não encontrado
 scan_f_cannot_open_includefile=02013_F_Includefile "$1" não encontrado
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-scan_w_only_pack_records=02015_W_Campos de "record" podem ser alinhados somente em 1, 2, 4, 8, 16 ou 32 bytes
-% You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
-% \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
-scan_w_only_pack_enum=02016_W_Variáveis do tipo "enumerated" podem ser salvas somente em 1, 2 ou 4 bytes
+scan_e_illegal_pack_records=02015_E_Especificador de alinhamento de registro inválido "$1"
+% You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
+% with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
+% NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
+% OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
+scan_e_illegal_pack_enum=02016_E_Especificador de tamanho mínimo de variável tipo enum inválido "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
-% \var{n}. Only 1,2 or 4 are valid in this case.
+% \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
 scan_e_endif_expected=02017_E_$ENDIF esperado para $1 $2 definidos em $3 na linha $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Erro de sintaxe na interpretação(parse) de uma expressão de compilação condicional
@@ -308,6 +328,32 @@ scan_e_utf8_malformed=02070_E_String UTF-8 com caracteres inválidos
 scan_c_switching_to_utf8=02071_C_Encontrada assinatura UTF-8, conteúdo do arquivo será tratado como sendo UTF-8
 % The compiler found an UTF-8 encoding signature (\$ef, \$bb, \$bf) at the beginning of a file,
 % so it interprets it as an UTF-8 file
+scan_e_compile_time_typeerror=02072_E_Expressão em tempo de compilação: Esperado $1 mas encontrado $2 em $3
+% Type check of a compile time expression failed.
+scan_n_app_type_not_support=02073_N_Diretiva APPTYPE não suportada pelo sistema operacional de destino
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
+scan_e_illegal_optimization_specifier=02074_E_Especificada otimizacao ilegal "$1"
+% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
+% the compiler didn't recognize the optimization you specified.
+scan_w_setpeflags_not_support=02075_W_Diretiva SETPEFLAGS não suportada pelo sistema operacional de destino
+% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
+scan_w_imagebase_not_support=02076_W_Diretiva IMAGEBASE não suportada pelo sistema operacional de destino
+% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
+scan_w_minstacksize_not_support=02077_W_Diretiva MINSTACKSIZE não suportada pelo sistema operacional de destino
+% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
+scan_w_maxstacksize_not_support=02078_W_Diretiva MAXSTACKSIZE não suportada pelo sistema operacional de destino
+% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
+% \end{description}
+#
+# Parser
+#
+# 03192 is the last used one
+#
+% \section{Parser messages}
+% This section lists all parser messages. The parser takes care of the
+% semantics of you language, i.e. it determines if your pascal constructs
+% are correct.
+% \begin{description}
 parser_e_syntax_error=03000_E_Parser - Erro de sintaxe
 % An error against the Turbo Pascal language was encountered. This happens
 % typically when an illegal character is found in the sources file.
@@ -991,6 +1037,19 @@ parser_e_arithmetic_operation_overflow=03213_E_Overflow em operação aritmética
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_Protected ou private esperados
 % \var{strict} can be only used together with \var{protected} or \var{private}.
+parser_e_illegal_slice=03215_E_SLICE não pode ser usado fora de uma lista de parâmetros
+% \var{slice} can be used only for arguments accepting an open array parameter
+parser_e_dispinterface_cant_have_parent=03216_E_Uma DISPINTERFACE não pode ter classe pai
+% A DISPINMTERFACE is a special type of interface which can't have a parent class
+parser_e_dispinterface_needs_a_guid=03217_E_Uma DISPINTERFACE precisa de uma identificação
+% A DISPINMTERFACE always needs an interface identification
+parser_w_overridden_methods_not_same_ret=03218_W_Metodos que fazem override em outros devem ter tipos de retorno relacionados ("$2" sofre override de "$1" que tem outro tipo de retorno))
+% If you declare overridden methods in a class definition, they must
+% have the same return type. Some versions of Delphi allow you to change the
+% return type of interface methods, and even to change procedures into
+% functions, but the resulting code may crash depending on the types used
+% and the way the methods are called.
+parser_e_dispid_must_be_ord_const=03219_E_Identificadores de prioridade de seleção devem ser constantes ordinais
 % \end{description}
 #
 # Type Checking
@@ -1220,6 +1279,13 @@ type_e_cant_choose_overload_function=04057_E_Não foi possível determinar qual da
 type_e_illegal_count_var=04058_E_Variável usada como contador é de tipo inválido
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+type_w_double_c_varargs=04059_W_Convertendo constante tipo real p/tipo double p/ser usada como variável de C, adicione typecast explícito p/evitar isto
+% In C, constant real values are double by default. For this reason, if you
+% pass a constant real value to a variable argument part of a C function, FPC
+% by default converts this constant to double as well. If you want to prevent
+% this from happening, add an explicit typecast around the constant.
+type_e_class_or_cominterface_type_expected=04060_E_Esperada classe ou interface tipo COM, mas encontrado "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
 #
 # Symtable
@@ -1368,6 +1434,20 @@ sym_h_uninitialized_variable=05058_H_Variável "$1" não parece ter sido inicializ
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
+sym_w_function_result_uninitialized=05059_W_Variável resultado de uma function não parece estar sendo inicializada
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_function_result_uninitialized=05060_H_Variável resultado de uma function não parece estar sendo inicializada
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_w_identifier_only_read=05061_W_Variavel "$1" usada em um read mas não sofre assinalamento em lugar algum
+% You have read the value of a variable, but nowhere assigned a value to
+% it.
+
 % \end{description}
 #
 # Codegenerator
@@ -1481,6 +1561,19 @@ cg_e_break_not_allowed=06044_E_BREAK não permitido neste ponto
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE não permitido neste ponto
 % You're trying to use \var{continue} outside a loop construction.
+cg_f_unknown_compilerproc=06046_F_Procedure de compilador "$1" inválida. Verifique se usou a library de run time correta
+% The compiler expects that the runtime library contains some subrountines. If you see this error
+% and you didn't mess with the runtime library, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a subroutine which the compiler needs for internal use.
+% \end{description}
+# EndOfTeX
+
+#
+# Assembler reader
+#
+# 07097 is the last used one
+#
 asmr_d_start_reading=07000_DL_Iniciando a montagem do bloco assembly $1
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=07001_DL_Montagem do bloco assembly $1 finalizada
@@ -1724,6 +1817,8 @@ asmw_e_duplicate_label=08016_E_Assembler: Label duplicado $1
 asmw_e_redefined_label=08017_E_Assembler: Label redefinido $1
 asmw_e_first_defined_label=08018_E_Assembler: Definido a primeira vez aqui
 asmw_e_invalid_register=08019_E_Assembler: Registrador inválido $1
+asmw_e_16bit_32bit_not_supported=08020_E_Asm: Referencias em 16 e 32 bits não suportadas
+asmw_e_64bit_not_supported=08021_E_Asm: Operandos de 64 bits não suportados
 
 #
 # Executing linker/assembler
@@ -1778,19 +1873,20 @@ exec_t_unit_not_smart_linkable_switch_to_static=09024_T_A "unit" $1 não pode ser
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_A "unit" $1 nao pode ser link-editada em modo "shared linking", mudando para link-edicao estática
 exec_e_unit_not_smart_or_static_linkable=09026_E_A "unit" $1 não pode ser link-editada nem no modo "smart linking" nem em link-edição estática
 exec_e_unit_not_shared_or_static_linkable=09027_E_A "unit" $1 não pode ser link-editada nem no modo "shared linking" nem em link-edição estática
+exec_d_resbin_params=09028_D_Chamando o compilador "$1" com a linha de comando "$2"
 %\end{description}
 # EndOfTeX
 
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Não pode pós-processar o executável $1
-execinfo_f_cant_open_executable=09029_F_Não pode abrir o executável $1
-execinfo_x_codesize=09030_X_Tamanho do código: $1 bytes
-execinfo_x_initdatasize=09031_X_Tamanho da área de dados inicializados: $1 bytes
-execinfo_x_uninitdatasize=09032_X_Tamanho da área de dados não-inicializados: $1 bytes
-execinfo_x_stackreserve=09033_X_Espaço reservado para o stack: $1 bytes
-execinfo_x_stackcommit=09034_X_Espaço realmente usado pelo stack: $1 bytes
+execinfo_f_cant_process_executable=09128_F_Não pode pós-processar o executável $1
+execinfo_f_cant_open_executable=09129_F_Não pode abrir o executável $1
+execinfo_x_codesize=09130_X_Tamanho do código: $1 bytes
+execinfo_x_initdatasize=09131_X_Tamanho da área de dados inicializados: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Tamanho da área de dados não-inicializados: $1 bytes
+execinfo_x_stackreserve=09133_X_Espaço reservado para o stack: $1 bytes
+execinfo_x_stackcommit=09134_X_Espaço realmente usado pelo stack: $1 bytes
 
 #
 # Unit loading
@@ -2044,11 +2140,11 @@ option_no_debug_support_recompile_fpc=11017_H_Tente recompilar com -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_E_Voce está usando uma diretiva obsoleta $1
+option_obsolete_switch=11018_W_Voce está usando uma diretiva obsoleta $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_E_Voce está usando a diretiva obsoleta $1, por favor use $2
+option_obsolete_switch_use_new=11019_W_Voce está usando a diretiva obsoleta $1, por favor use $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2080,7 +2176,14 @@ option_found_file=11035_D_Encontrado o arquivo fonte "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Página de código desconhecida
-# Logo
+option_config_is_dir=11040_F_Arquivo de configuração $1 é um diretório
+% Directories can not be used as configuration files.
+%\end{description}
+# EndOfTeX
+
+#
+# Logo (option -l)
+#
 option_logo=11023_[
 Free Pascal Compiler versão $FPCVERSION [$FPCDATE] para $FPCCPU
 Copyright (c) 1993-2005 por Florian Klaempfl
@@ -2108,7 +2211,7 @@ Este programa vem sob a licença GNU General Public Licence
 Para mais informações leia COPYING.FPC
 
 Informações de erros detectados, sugestões, etc para:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 # Help pages
 option_help_pages=11025_[
