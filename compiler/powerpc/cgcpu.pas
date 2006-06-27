@@ -2141,8 +2141,10 @@ const
           end
         { case 0 }
         else
-          list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)));
-
+          if not(target_info.system = system_powerpc_darwin) then
+            list.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION)))
+          else
+            list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname)));
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
