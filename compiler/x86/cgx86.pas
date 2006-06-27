@@ -115,6 +115,8 @@ unit cgx86;
         procedure check_register_size(size:tcgsize;reg:tregister);
 
         procedure opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
+
+        function get_darwin_call_stub(const s: string): tasmsymbol;
       private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
@@ -123,7 +125,6 @@ unit cgx86;
         procedure floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
 
-        function get_darwin_call_stub(const s: string): tasmsymbol;
       end;
 
    const

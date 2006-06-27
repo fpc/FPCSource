@@ -641,8 +641,13 @@ unit cgcpu;
         { case 0 }
         else
           begin
-            lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
+            if (target_info.system <> system_i386_darwin) then
+              begin
+                lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+                list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
+              end
+            else
+              list.concat(taicpu.op_sym(A_JMP,S_NO,get_darwin_call_stub(procdef.mangledname)))
           end;
 
         List.concat(Tai_symbol_end.Createname(labelname));
