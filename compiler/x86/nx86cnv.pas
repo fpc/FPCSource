@@ -272,8 +272,6 @@ implementation
                 end
               else
                 begin
-                  if not(left.location.size in [OS_S32,OS_S64]) then
-                    internalerror(200506073);
                   case left.location.loc of
                     LOC_CREFERENCE,
                     LOC_REFERENCE :
