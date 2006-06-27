@@ -103,7 +103,7 @@ implementation
                   cg.getcpuregister(exprasmlist,NR_R0);
 
                   if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
-                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber);
+                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber)
                   else
                     reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);
                   exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
