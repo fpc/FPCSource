@@ -1,5 +1,7 @@
 #
 #   German (alternative) Language File for Free Pascal
+#   Latest updates contributed by Karl-Michael Schindler aka mischi
+#   <karl-michael.schindler at physik.uni-halle.de>
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -55,7 +57,7 @@
 general_t_compilername=01000_T_Compiler: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
-general_d_sourceos=01001_D_Hostbetriebssystem: $1
+general_d_sourceos=01001_D_Quellbetriebssystem: $1
 % When the \var{-vd} switch is used, this line tells you what the source
 % operating system is.
 general_i_targetos=01002_I_Zielbetriebssystem: $1
@@ -322,6 +324,17 @@ scan_e_compile_time_typeerror=02072_E_Compile time Ausdruck: Erwartete $1 aber e
 % Type check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE wird vom Zielbetriebssystem nicht unterstÅtzt
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
+scan_e_illegal_optimization_specifier=02074_E_"$1" ist eine ungÅltige Optimierung
+% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
+% the compiler didn't recognize the optimization you specified.
+scan_w_setpeflags_not_support=02075_W_SETPEFLAGS wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
+scan_w_imagebase_not_support=02076_W_IMAGEBASE wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
+scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
+scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE wird vom Zielbetriebssystem nicht unterstÅtzt
+% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 % \end{description}
 #
 # Parser
@@ -1023,7 +1036,8 @@ parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elt
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
 parser_e_dispinterface_needs_a_guid=03217_E_Ein DISPINTERFACE benîtigt einen GUID
 % A DISPINMTERFACE needs always an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen RÅckgabetyp hat).
+parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen
+RÅckgabetyp hat).
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
@@ -1798,7 +1812,7 @@ asmw_e_invalid_register=08019_E_Asm: UngÅltiges Register $1
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-exec_w_source_os_redefined=09000_W_Quell-Betriebssystem wurde neu definiert
+exec_w_source_os_redefined=09000_W_Quellbetriebssystem wurde neu definiert
 exec_i_assembling_pipe=09001_I_Assembliere (pipe) $1
 exec_d_cant_create_asmfile=09002_E_Kann Assemblerdatei nicht erzeugen: $1
 % The mentioned file can't be create. Check if you've
@@ -2165,7 +2179,7 @@ Free Pascal Compiler Version $FPCVER
 Compiler Datum:      $FPCDATE
 Compiler Zielsystem: $FPCCPU
 
-UnterstÅtzte Zielsysteme:
+UnterstÅtzte Zielbetriebssysteme:
   $OSTARGETS
 
 UnterstÅtzte CPU Instruktionen:
@@ -2281,9 +2295,9 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **1i_zeige alle Information Åber den Compiler
 **2iD_zeige Compilerdatum
 **2iV_zeige Compilerversion
-**2iSO_zeige Compiler-Betriebssystem
+**2iSO_zeige Compilerbetriebssystem
 **2iSP_zeige Compilerprozessor
-**2iTO_zeige Ziel-Betriebssystem
+**2iTO_zeige Zielbetriebssystem
 **2iTP_zeige Zielprozessor
 **1I<x>_ergÑnze <x> zum Include-Pfad
 **1k<x>_Åbergebe <x> an den Linker
@@ -2349,7 +2363,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2sh_erzeuge Script um auf dem Host zu linken
 **2st_erzeuge Script um auf dem Zielsystem zu linken
 **2sr_Åberspringe die Phase der "register allocation" (mit -alr benutzen)
-**1T<x>_Ziel-Betriebssystem::
+**1T<x>_Zielbetriebssystem::
 3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
