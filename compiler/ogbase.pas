@@ -27,6 +27,7 @@ interface
 
     uses
       { common }
+      cutils,
       cclasses,
       { targets }
       systems,globtype,
@@ -142,6 +143,7 @@ interface
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
+       FCachedFullName : pstring;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
      public
        ObjData    : TObjData;
@@ -158,7 +160,7 @@ interface
        ObjSymbolDefines : TFPObjectList;
        { executable linking }
        ExeSection  : TExeSection;
-       Used       : boolean;
+       USed        : Boolean;
        VTRefList : TFPObjectList;
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
@@ -262,15 +264,14 @@ interface
         FCObjData : TObjDataClass;
       protected
         { reader }
-        FReader    : TObjectreader;
-        function  readObjData(Data:TObjData):boolean;virtual;abstract;
+        FReader    : TObjectReader;
+        InputFileName : string;
         property CObjData : TObjDataClass read FCObjData write FCObjData;
       public
         constructor create;virtual;
         destructor  destroy;override;
         function  newObjData(const n:string):TObjData;
-        function  readobjectfile(const fn:string;Data:TObjData):boolean;virtual;
-        property Reader:TObjectReader read FReader;
+        function  ReadObjData(AReader:TObjectreader;Data:TObjData):boolean;virtual;abstract;
         procedure inputerror(const s : string);
       end;
       TObjInputClass=class of TObjInput;
@@ -300,9 +301,12 @@ interface
         function  VTableRef(VTableIdx:Longint):TObjRelocation;
       end;
 
+      TSymbolState = (symstate_undefined,symstate_defined,symstate_common);
+
       TExeSymbol = class(TFPHashObject)
         ObjSymbol  : TObjSymbol;
         ExeSection : TExeSection;
+        State      : TSymbolState;
         { Used for vmt references optimization }
         VTable     : TExeVTable;
       end;
@@ -325,11 +329,22 @@ interface
       end;
       TExeSectionClass=class of TExeSection;
 
+      TStaticLibrary = class(TFPHashObject)
+      private
+        FArReader : TObjectReader;
+        FObjInputClass : TObjInputClass;
+      public
+        constructor create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+        destructor  destroy;override;
+        property ArReader:TObjectReader read FArReader;
+        property ObjInputClass:TObjInputClass read FObjInputClass;
+      end;
+
       TExternalLibrary = class(TFPHashObject)
       private
         FExternalSymbolList : TFPHashObjectList;
       public
-        constructor create(AList:TFPHashObjectList;const AName:string);virtual;
+        constructor create(AList:TFPHashObjectList;const AName:string);
         destructor  destroy;override;
         property ExternalSymbolList:TFPHashObjectList read FExternalSymbolList;
       end;
@@ -391,7 +406,8 @@ interface
         procedure CalcPos_Start;virtual;
         procedure CalcPos_Symbols;virtual;
         procedure BuildVTableTree(VTInheritList,VTEntryList:TFPObjectList);
-        procedure ResolveSymbols;
+        procedure PackUnresolvedExeSymbols(const s:string);
+        procedure ResolveSymbols(StaticLibraryList:TFPHashObjectList);
         procedure PrintMemoryMap;
         procedure FixupSymbols;
         procedure FixupRelocations;
@@ -423,7 +439,7 @@ interface
 implementation
 
     uses
-      cutils,globals,verbose,fmodule,ogmap;
+      globals,verbose,fmodule,ogmap;
 
     const
       sectionDatagrowsize = 256-sizeof(ptrint);
@@ -669,15 +685,24 @@ implementation
         ObjRelocations:=nil;
         ObjSymbolDefines.Free;
         ObjSymbolDefines:=nil;
+        if assigned(FCachedFullName) then
+          begin
+            stringdispose(FCachedFullName);
+            FCachedFullName:=nil;
+          end;
       end;
 
 
     function  TObjSection.FullName:string;
       begin
-        if assigned(ObjData) then
-          result:=ObjData.Name+'('+Name+')'
-        else
-          result:=Name;
+        if not assigned(FCachedFullName) then
+          begin
+            if assigned(ObjData) then
+              FCachedFullName:=stringdup(ObjData.Name+'('+Name+')')
+            else
+              FCachedFullName:=stringdup(Name);
+          end;
+        result:=FCachedFullName^;
       end;
 
 
@@ -1104,7 +1129,7 @@ implementation
     constructor TExeVTable.Create(AExeSymbol:TExeSymbol);
       begin
         ExeSymbol:=AExeSymbol;
-        if not assigned(ExeSymbol.ObjSymbol) then
+        if ExeSymbol.State=symstate_undefined then
           internalerror(200604012);
         ChildList:=TFPObjectList.Create(false);
       end;
@@ -1235,6 +1260,25 @@ implementation
 
 
 {****************************************************************************
+                                TStaticLibrary
+****************************************************************************}
+
+    constructor TStaticLibrary.create(AList:TFPHashObjectList;const AName:string;AReader:TObjectReader;AObjInputClass:TObjInputClass);
+      begin
+        inherited create(AList,AName);
+        FArReader:=AReader;
+        FObjInputClass:=AObjInputClass;
+      end;
+
+
+    destructor TStaticLibrary.destroy;
+      begin
+        ArReader.Free;
+        inherited destroy;
+      end;
+
+
+{****************************************************************************
                                 TExternalLibrary
 ****************************************************************************}
 
@@ -1352,8 +1396,18 @@ implementation
     procedure TExeOutput.Load_ImageBase(const avalue:string);
       var
         code : integer;
+        objsec : TObjSection;
+        objsym : TObjSymbol;
+        exesym : TExeSymbol;
       begin
         val(avalue,ImageBase,code);
+        { Create __image_base__ symbol, create the symbol
+          in a section with adress 0 and at offset 0 }
+        objsec:=internalObjData.createsection('*__image_base__',0,[]);
+        internalObjData.setsection(objsec);
+        objsym:=internalObjData.SymbolDefine('__image_base__',AB_GLOBAL,AT_FUNCTION);
+        exesym:=texesymbol.Create(FExeSymbolList,objsym.name);
+        exesym.ObjSymbol:=objsym;
       end;
 
 
@@ -1395,23 +1449,44 @@ implementation
       end;
 
 
+    function ObjSectionNameCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : TObjSection absolute Item1;
+        I2 : TObjSection absolute Item2;
+      begin
+//writeln(I1.FullName);
+        Result:=CompareStr(I1.FullName,I2.FullName);
+      end;
+
+
     procedure TExeOutput.Order_ObjSection(const aname:string);
       var
         i,j     : longint;
         ObjData : TObjData;
         objsec  : TObjSection;
+        TmpObjSectionList : TFPObjectList;
       begin
         if not assigned(CurrExeSec) then
           internalerror(200602181);
+        TmpObjSectionList:=TFPObjectList.Create(false);
         for i:=0 to ObjDataList.Count-1 do
           begin
             ObjData:=TObjData(ObjDataList[i]);
             for j:=0 to ObjData.ObjSectionList.Count-1 do
               begin
                 objsec:=TObjSection(ObjData.ObjSectionList[j]);
-                if MatchPattern(aname,objsec.name) then
-                  CurrExeSec.AddObjSection(objsec);
+                if (not objsec.Used) and
+                   MatchPattern(aname,objsec.name) then
+                  TmpObjSectionList.Add(objsec);
               end;
+          end;
+        { Sort list if needed }
+        TmpObjSectionList.Sort(@ObjSectionNameCompare);
+        { Add the (sorted) list to the current ExeSection }
+        for i:=0 to TmpObjSectionList.Count-1 do
+          begin
+            objsec:=TObjSection(TmpObjSectionList[i]);
+            CurrExeSec.AddObjSection(objsec);
           end;
       end;
 
@@ -1591,92 +1666,180 @@ implementation
       end;
 
 
-    procedure TExeOutput.ResolveSymbols;
+    procedure TExeOutput.PackUnresolvedExeSymbols(const s:string);
+      var
+        i : longint;
+        exesym : TExeSymbol;
+      begin
+        { Generate a list of Unresolved External symbols }
+        for i:=0 to UnresolvedExeSymbols.count-1 do
+          begin
+            exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
+            if exesym.State<>symstate_undefined then
+              UnresolvedExeSymbols[i]:=nil;
+          end;
+        UnresolvedExeSymbols.Pack;
+        Comment(V_Debug,'Number of unresolved externals '+s+' '+tostr(UnresolvedExeSymbols.Count));
+      end;
+
+
+    procedure TExeOutput.ResolveSymbols(StaticLibraryList:TFPHashObjectList);
       var
         ObjData   : TObjData;
         exesym    : TExeSymbol;
         objsym,
         commonsym : TObjSymbol;
+        objinput : TObjInput;
+        StaticLibrary : TStaticLibrary;
+        firstarchive,
         firstcommon : boolean;
         i,j       : longint;
-        hs        : string;
         VTEntryList,
         VTInheritList : TFPObjectList;
+
+        procedure LoadObjDataSymbols(ObjData:TObjData);
+        var
+          j      : longint;
+          hs     : string;
+          exesym : TExeSymbol;
+          objsym : TObjSymbol;
+        begin
+          for j:=0 to ObjData.ObjSymbolList.Count-1 do
+            begin
+              objsym:=TObjSymbol(ObjData.ObjSymbolList[j]);
+              { From the local symbols we are only interressed in the
+                VTENTRY and VTINHERIT symbols }
+              if objsym.bind=AB_LOCAL then
+                begin
+                  if cs_link_opt_vtable in aktglobalswitches then
+                    begin
+                      hs:=objsym.name;
+                      if (hs[1]='V') then
+                        begin
+                          if Copy(hs,1,5)='VTREF' then
+                            begin
+                              if not assigned(objsym.ObjSection.VTRefList) then
+                                objsym.ObjSection.VTRefList:=TFPObjectList.Create(false);
+                              objsym.ObjSection.VTRefList.Add(objsym);
+                            end
+                          else if Copy(hs,1,7)='VTENTRY' then
+                            VTEntryList.Add(objsym)
+                          else if Copy(hs,1,9)='VTINHERIT' then
+                            VTInheritList.Add(objsym);
+                        end;
+                    end;
+                  continue;
+                end;
+              { Search for existing exesymbol }
+              exesym:=texesymbol(FExeSymbolList.Find(objsym.name));
+              if not assigned(exesym) then
+                begin
+                  exesym:=texesymbol.Create(FExeSymbolList,objsym.name);
+                  exesym.ObjSymbol:=objsym;
+                end;
+              objsym.ExeSymbol:=exesym;
+              case objsym.bind of
+                AB_GLOBAL :
+                  begin
+                    if exesym.State<>symstate_defined then
+                      begin
+                        exesym.ObjSymbol:=objsym;
+                        exesym.State:=symstate_defined;
+                      end
+                    else
+                      Comment(V_Error,'Multiple defined symbol '+objsym.name);
+                  end;
+                AB_EXTERNAL :
+                  begin
+                    ExternalObjSymbols.add(objsym);
+                    { Register unresolved symbols only the first time they
+                      are registered }
+                    if exesym.ObjSymbol=objsym then
+                      UnresolvedExeSymbols.Add(exesym);
+                  end;
+                AB_COMMON :
+                  begin
+                    if exesym.State=symstate_undefined then
+                      begin
+                        exesym.ObjSymbol:=objsym;
+                        exesym.State:=symstate_common;
+                      end;
+                    CommonObjSymbols.add(objsym);
+                  end;
+              end;
+            end;
+        end;
+
       begin
         VTEntryList:=TFPObjectList.Create(false);
         VTInheritList:=TFPObjectList.Create(false);
 
         {
-          The symbol calculation is done in 3 steps:
-           1. register globals
-              register externals
-              register commons
-           2. try to find commons, if not found then
-              add to the globals (so externals can be resolved)
-           3. try to find externals
+          The symbol resolving is done in 3 steps:
+           1. Register symbols from objects
+           2. Find symbols in static libraries
+           3. Define stil undefined common symbols
         }
 
-        { Step 1, Register symbols }
+        { Step 1, Register symbols from objects }
         for i:=0 to ObjDataList.Count-1 do
           begin
             ObjData:=TObjData(ObjDataList[i]);
-            for j:=0 to ObjData.ObjSymbolList.Count-1 do
+            LoadObjDataSymbols(ObjData);
+          end;
+        PackUnresolvedExeSymbols('in objects');
+
+        { Step 2, Find unresolved symbols in the libraries }
+        firstarchive:=true;
+        for i:=0 to StaticLibraryList.Count-1 do
+          begin
+            StaticLibrary:=TStaticLibrary(StaticLibraryList[i]);
+            { Process list of Unresolved External symbols, we need
+              to use a while loop because the list can be extended when
+              we load members from the library. }
+            j:=0;
+            while (j<UnresolvedExeSymbols.count) do
               begin
-                objsym:=TObjSymbol(ObjData.ObjSymbolList[j]);
-                { From the local symbols we are only interressed in the
-                  VTENTRY and VTINHERIT symbols }
-                if objsym.bind=AB_LOCAL then
+                exesym:=TExeSymbol(UnresolvedExeSymbols[j]);
+                { Check first if the symbol is still undefined }
+                if exesym.State=symstate_undefined then
                   begin
-                    if cs_link_opt_vtable in aktglobalswitches then
+                    if StaticLibrary.ArReader.OpenFile(exesym.name) then
                       begin
-                        hs:=objsym.name;
-                        if (hs[1]='V') then
+                        if assigned(exemap) then
                           begin
-                            if Copy(hs,1,5)='VTREF' then
+                            if firstarchive then
                               begin
-                                if not assigned(objsym.ObjSection.VTRefList) then
-                                  objsym.ObjSection.VTRefList:=TFPObjectList.Create(false);
-                                objsym.ObjSection.VTRefList.Add(objsym);
-                              end
-                            else if Copy(hs,1,7)='VTENTRY' then
-                              VTEntryList.Add(objsym)
-                            else if Copy(hs,1,9)='VTINHERIT' then
-                              VTInheritList.Add(objsym);
+                                exemap.Add('');
+                                exemap.Add('Archive member included because of file (symbol)');
+                                exemap.Add('');
+                                firstarchive:=false;
+                              end;
+                            exemap.Add(StaticLibrary.ArReader.FileName+' - '+{exesym.ObjSymbol.ObjSection.FullName+}'('+exesym.Name+')');
                           end;
+                        objinput:=StaticLibrary.ObjInputClass.Create;
+                        objdata:=objinput.newObjData(StaticLibrary.ArReader.FileName);
+                        objinput.ReadObjData(StaticLibrary.ArReader,objdata);
+                        objinput.free;
+                        AddObjData(objdata);
+                        LoadObjDataSymbols(objdata);
+                        StaticLibrary.ArReader.CloseFile;
                       end;
-                    continue;
-                  end;
-                { Search for existing exesymbol }
-                exesym:=texesymbol(FExeSymbolList.Find(objsym.name));
-                if not assigned(exesym) then
-                  exesym:=texesymbol.Create(FExeSymbolList,objsym.name);
-                { Defining the symbol? }
-                if objsym.bind=AB_GLOBAL then
-                  begin
-                    if not assigned(exesym.ObjSymbol) then
-                      exesym.ObjSymbol:=objsym
-                    else
-                      Comment(V_Error,'Multiple defined symbol '+objsym.name);
-                  end;
-                objsym.exesymbol:=exesym;
-                case objsym.bind of
-                  AB_EXTERNAL :
-                    ExternalObjSymbols.add(objsym);
-                  AB_COMMON :
-                    CommonObjSymbols.add(objsym);
-                end;
+                   end;
+                inc(j);
               end;
           end;
+        PackUnresolvedExeSymbols('after static libraries');
 
-        { Step 2, Match common symbols or add to the globals }
+        { Step 3, Match common symbols or add to the globals }
         firstcommon:=true;
         for i:=0 to CommonObjSymbols.count-1 do
           begin
             objsym:=TObjSymbol(CommonObjSymbols[i]);
-            if assigned(objsym.exesymbol.objsymbol) then
+            if objsym.exesymbol.State=symstate_defined then
               begin
                 if objsym.exesymbol.ObjSymbol.size<>objsym.size then
-                  internalerror(200206301);
+                  Comment(V_Debug,'Size of common symbol '+objsym.name+' is different, expected '+tostr(objsym.size)+' got '+tostr(objsym.exesymbol.ObjSymbol.size));
               end
             else
               begin
@@ -1695,18 +1858,11 @@ implementation
                 if assigned(exemap) then
                   exemap.AddCommonSymbol(commonsym);
                 { Assign to the exesymbol }
-                objsym.exesymbol.objsymbol:=commonsym
+                objsym.exesymbol.objsymbol:=commonsym;
+                objsym.exesymbol.state:=symstate_defined;
               end;
           end;
-
-        { Generate a list of Unresolved External symbols }
-        for i:=0 to ExeSymbolList.count-1 do
-          begin
-            exesym:=TExeSymbol(ExeSymbolList[i]);
-            if exesym.objsymbol=nil then
-              UnresolvedExeSymbols.Add(exesym);
-          end;
-        Comment(V_Debug,'Number of unresolved externals in objects '+tostr(UnresolvedExeSymbols.Count));
+        PackUnresolvedExeSymbols('after defining COMMON symbols');
 
         { Find entry symbol and print in map }
         exesym:=texesymbol(ExeSymbolList.Find(EntryName));
@@ -1764,10 +1920,29 @@ implementation
 
 
     procedure TExeOutput.FixupSymbols;
+
+        procedure UpdateSymbol(objsym:TObjSymbol);
+        begin
+          objsym.bind:=objsym.ExeSymbol.ObjSymbol.bind;
+          objsym.offset:=objsym.ExeSymbol.ObjSymbol.offset;
+          objsym.size:=objsym.ExeSymbol.ObjSymbol.size;
+          objsym.typ:=objsym.ExeSymbol.ObjSymbol.typ;
+          objsym.ObjSection:=objsym.ExeSymbol.ObjSymbol.ObjSection;
+        end;
+
       var
-        i   : longint;
-        sym : TObjSymbol;
+        i      : longint;
+        objsym : TObjSymbol;
+        exesym : TExeSymbol;
       begin
+        { Print list of Unresolved External symbols }
+        for i:=0 to UnresolvedExeSymbols.count-1 do
+          begin
+            exesym:=TExeSymbol(UnresolvedExeSymbols[i]);
+            if exesym.State<>symstate_defined then
+              Comment(V_Error,'Undefined symbol: '+exesym.name);
+          end;
+
         { Update ImageBase to ObjData so it can access from ObjSymbols }
         for i:=0 to ObjDataList.Count-1 do
           TObjData(ObjDataList[i]).imagebase:=imagebase;
@@ -1781,36 +1956,19 @@ implementation
         { Step 1, Update commons }
         for i:=0 to CommonObjSymbols.count-1 do
           begin
-            sym:=TObjSymbol(CommonObjSymbols[i]);
-            if sym.bind=AB_COMMON then
-              begin
-                { update this symbol }
-                sym.bind:=sym.exesymbol.ObjSymbol.bind;
-                sym.offset:=sym.exesymbol.ObjSymbol.offset;
-                sym.size:=sym.exesymbol.ObjSymbol.size;
-                sym.typ:=sym.exesymbol.ObjSymbol.typ;
-                sym.ObjSection:=sym.exesymbol.ObjSymbol.ObjSection;
-              end;
+            objsym:=TObjSymbol(CommonObjSymbols[i]);
+            if objsym.bind<>AB_COMMON then
+              internalerror(200606241);
+            UpdateSymbol(objsym);
           end;
 
         { Step 2, Update externals }
         for i:=0 to ExternalObjSymbols.count-1 do
           begin
-            sym:=TObjSymbol(ExternalObjSymbols[i]);
-            if sym.bind=AB_EXTERNAL then
-              begin
-                if assigned(sym.exesymbol.ObjSymbol) then
-                  begin
-                    { update this symbol }
-                    sym.bind:=sym.exesymbol.ObjSymbol.bind;
-                    sym.offset:=sym.exesymbol.ObjSymbol.offset;
-                    sym.size:=sym.exesymbol.ObjSymbol.size;
-                    sym.typ:=sym.exesymbol.ObjSymbol.typ;
-                    sym.ObjSection:=sym.exesymbol.ObjSymbol.ObjSection;
-                  end
-                else
-                  Comment(V_Error,'Undefined symbol: '+sym.name);
-              end;
+            objsym:=TObjSymbol(ExternalObjSymbols[i]);
+            if objsym.bind<>AB_EXTERNAL then
+              internalerror(200606242);
+            UpdateSymbol(objsym);
           end;
       end;
 
@@ -2024,7 +2182,7 @@ implementation
               if objsym.bind<>AB_LOCAL then
                 begin
                   if not(assigned(objsym.exesymbol) and
-                        assigned(objsym.exesymbol.objsymbol)) then
+                         (objsym.exesymbol.State=symstate_defined)) then
                     internalerror(200603063);
                   objsym:=objsym.exesymbol.objsymbol;
                 end;
@@ -2185,14 +2343,11 @@ implementation
 
     constructor TObjInput.create;
       begin
-        { init reader }
-        FReader:=TObjectreader.create;
       end;
 
 
     destructor TObjInput.destroy;
       begin
-        FReader.free;
         inherited destroy;
       end;
 
@@ -2203,20 +2358,9 @@ implementation
       end;
 
 
-    function TObjInput.readobjectfile(const fn:string;Data:TObjData):boolean;
-      begin
-        result:=false;
-        { start the reader }
-        if FReader.openfile(fn) then
-         begin
-           result:=readObjData(Data);
-           FReader.closefile;
-         end;
-      end;
-
     procedure TObjInput.inputerror(const s : string);
       begin
-        Comment(V_Error,s+' while reading '+reader.filename);
+        Comment(V_Error,s+' while reading '+InputFileName);
       end;
 
 

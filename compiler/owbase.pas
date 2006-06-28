@@ -60,13 +60,14 @@ type
     bufidx,
     bufmax : longint;
     function readbuf:boolean;
-    function getfilename : string;
+  protected
+    function getfilename : string;virtual;
   public
     constructor create;
     destructor  destroy;override;
     function  openfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
-    procedure seek(len:longint);
+    procedure seek(len:longint);virtual;
     function  read(out b;len:longint):boolean;virtual;
     function  readarray(a:TDynamicArray;len:longint):boolean;
     property filename : string read getfilename;
@@ -317,7 +318,7 @@ begin
    if not readbuf then
     exit;
   orglen:=len;
-  idx:=0;
+      idx:=0;
   while len>0 do
    begin
      bufleft:=bufmax-bufidx;

@@ -64,7 +64,7 @@ Type
        Function  MakeSharedLibrary:boolean;virtual;
        Function  MakeStaticLibrary:boolean;virtual;
        procedure ExpandAndApplyOrder(var Src:TStringList);
-       procedure LoadPredefinedLibraryOrder;virtual; 
+       procedure LoadPredefinedLibraryOrder;virtual;
        function  ReOrderEntries : boolean;
      end;
 
@@ -84,9 +84,10 @@ Type
        FCExeOutput : TExeOutputClass;
        FCObjInput  : TObjInputClass;
        { Libraries }
+       FStaticLibraryList : TFPHashObjectList;
        FExternalLibraryList : TFPHashObjectList;
        procedure Load_ReadObject(const para:string);
-       procedure Load_ReadUnitObjects;
+       procedure Load_ReadStaticLibrary(const para:string);
        procedure ParseScript_Load;
        procedure ParseScript_Order;
        procedure ParseScript_CalcPos;
@@ -95,6 +96,7 @@ Type
     protected
        property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
        property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
+       property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
        property ExternalLibraryList:TFPHashObjectList read FExternalLibraryList;
        procedure DefaultLinkScript;virtual;abstract;
        linkscript : TStringList;
@@ -131,7 +133,7 @@ uses
   script,globals,verbose,comphook,ppu,
   aasmbase,aasmtai,aasmdata,aasmcpu,
   symbase,symdef,symtype,symconst,
-  ogmap;
+  owbase,owar,ogmap;
 
 type
  TLinkerClass = class of Tlinker;
@@ -505,18 +507,18 @@ begin
   LoadPredefinedLibraryOrder;
 
   // something to do?
-  if (LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then 
+  if (LinkLibraryAliases.count=0) and (LinkLibraryOrder.Count=0) Then
     exit;
   p:=TLinkStrMap.Create;
-    
+
   // expand libaliases, clears src
   LinkLibraryAliases.expand(src,p);
-  
+
   // writeln(src.count,' ',p.count,' ',linklibraryorder.count,' ',linklibraryaliases.count);
   // apply order
-  p.UpdateWeights(LinkLibraryOrder);  
+  p.UpdateWeights(LinkLibraryOrder);
   p.SortOnWeight;
-  
+
   // put back in src
   for i:=0 to p.count-1 do
     src.insert(p[i].Key);
@@ -773,6 +775,7 @@ end;
       begin
         inherited Create;
         linkscript:=TStringList.Create;
+        FStaticLibraryList:=TFPHashObjectList.Create(true);
         FExternalLibraryList:=TFPHashObjectList.Create(true);
         exemap:=nil;
         exeoutput:=nil;
@@ -783,6 +786,7 @@ end;
     Destructor TInternalLinker.Destroy;
       begin
         linkscript.free;
+        StaticLibraryList.Free;
         ExternalLibraryList.Free;
         if assigned(exeoutput) then
           begin
@@ -814,31 +818,38 @@ end;
 
     procedure TInternalLinker.Load_ReadObject(const para:string);
       var
-        objdata  : TObjData;
-        objinput : TObjinput;
-        fn       : string;
+        objdata   : TObjData;
+        objinput  : TObjinput;
+        objreader : TObjectReader;
+        fn        : string;
       begin
         fn:=FindObjectFile(para,'',false);
         Comment(V_Tried,'Reading object '+fn);
         objinput:=CObjInput.Create;
         objdata:=objinput.newObjData(para);
-        if objinput.readobjectfile(fn,objdata) then
-          exeoutput.addobjdata(objdata);
+        objreader:=TObjectreader.create;
+        if objreader.openfile(fn) then
+          begin
+            if objinput.ReadObjData(objreader,objdata) then
+              exeoutput.addobjdata(objdata);
+          end;
         { release input object }
         objinput.free;
+        objreader.free;
       end;
 
 
-    procedure TInternalLinker.Load_ReadUnitObjects;
+    procedure TInternalLinker.Load_ReadStaticLibrary(const para:string);
       var
-        s : string;
+        objreader : TObjectReader;
       begin
-        while not ObjectFiles.Empty do
-          begin
-            s:=ObjectFiles.GetFirst;
-            if s<>'' then
-              Load_ReadObject(s);
-          end;
+{$warning TODO Cleanup ignoring of   FPC generated libimp*.a files}
+        { Don't load import libraries }
+        if copy(splitfilename(para),1,6)='libimp' then
+          exit;
+        Comment(V_Tried,'Opening library '+para);
+        objreader:=TArObjectreader.create(para);
+        TStaticLibrary.Create(StaticLibraryList,para,objreader,CObjInput);
       end;
 
 
@@ -868,8 +879,8 @@ end;
               ExeOutput.Load_ImageBase(para)
             else if keyword='READOBJECT' then
               Load_ReadObject(para)
-            else if keyword='READUNITOBJECTS' then
-              Load_ReadUnitObjects;
+            else if keyword='READSTATICLIBRARY' then
+              Load_ReadStaticLibrary(para);
             hp:=tstringlistitem(hp.next);
           end;
       end;
@@ -973,7 +984,7 @@ end;
 
         { Load .o files and resolve symbols }
         ParseScript_Load;
-        exeoutput.ResolveSymbols;
+        exeoutput.ResolveSymbols(StaticLibraryList);
         { Generate symbols and code to do the importing }
         exeoutput.GenerateLibraryImports(ExternalLibraryList);
         { Fill external symbols data }

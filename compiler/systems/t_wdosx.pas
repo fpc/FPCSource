@@ -34,17 +34,17 @@ implementation
        import,export,link,t_win,i_wdosx;
 
   type
-    timportlibwdosx=class(timportlibwin32)
+    timportlibwdosx=class(TImportLibWin)
     end;
 
-    texportlibwdosx=texportlibwin32;
+    texportlibwdosx=TExportLibWin;
 
-    tlinkerwdosx=class(tlinkerwin32)
+    TExternalLinkerwdosx=class(TExternalLinkerWin)
     public
        function  MakeExecutable:boolean;override;
     end;
 
-    tDLLScannerWdosx=class(tDLLScannerWin32)
+    tDLLScannerWdosx=class(TDLLScannerWin)
     end;
 
 
@@ -53,9 +53,9 @@ implementation
 *****************************************************************************}
 
 {*****************************************************************************
-                             TLINKERWDOSX
+                             TExternalLinkerWDOSX
 *****************************************************************************}
-function TLinkerWdosx.MakeExecutable:boolean;
+function TExternalLinkerWdosx.MakeExecutable:boolean;
 var
  b: boolean;
 begin
@@ -74,7 +74,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_wdosx_info,TLinkerWdosx);
+  RegisterExternalLinker(system_i386_wdosx_info,TExternalLinkerWdosx);
   RegisterImport(system_i386_wdosx,TImportLibWdosx);
   RegisterExport(system_i386_wdosx,TExportLibWdosx);
   RegisterDLLScanner(system_i386_wdosx,TDLLScannerWdosx);

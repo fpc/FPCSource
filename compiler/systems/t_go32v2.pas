@@ -34,23 +34,45 @@ implementation
        cutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_go32v2,ogcoff;
 
-  type
-    tlinkergo32v2=class(texternallinker)
-    private
-       Function  WriteResponseFile(isdll:boolean) : Boolean;
-       Function  WriteScript(isdll:boolean) : Boolean;
-    public
-       constructor Create;override;
-       procedure SetDefaultInfo;override;
-       function  MakeExecutable:boolean;override;
-    end;
+    type
+      TInternalLinkerGo32v2=class(TInternallinker)
+        constructor create;override;
+        procedure DefaultLinkScript;override;
+      end;
+
+      TExternalLinkerGo32v2=class(texternallinker)
+      private
+         Function  WriteResponseFile(isdll:boolean) : Boolean;
+         Function  WriteScript(isdll:boolean) : Boolean;
+      public
+         constructor Create;override;
+         procedure SetDefaultInfo;override;
+         function  MakeExecutable:boolean;override;
+      end;
 
 
 {****************************************************************************
-                               TLinkerGo32v2
+                                  TCoffLinker
 ****************************************************************************}
 
-Constructor TLinkerGo32v2.Create;
+    constructor TInternalLinkerGo32v2.Create;
+      begin
+        inherited Create;
+        CExeoutput:=TDJCoffexeoutput;
+        CObjInput:=TDJCoffObjInput;
+      end;
+
+
+    procedure TInternalLinkerGo32v2.DefaultLinkScript;
+      begin
+      end;
+
+
+{****************************************************************************
+                               TExternalLinkerGo32v2
+****************************************************************************}
+
+Constructor TExternalLinkerGo32v2.Create;
 begin
   Inherited Create;
   { allow duplicated libs (PM) }
@@ -59,7 +81,7 @@ begin
 end;
 
 
-procedure TLinkerGo32v2.SetDefaultInfo;
+procedure TExternalLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
@@ -68,7 +90,7 @@ begin
 end;
 
 
-Function TLinkerGo32v2.WriteResponseFile(isdll:boolean) : Boolean;
+Function TExternalLinkerGo32v2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
@@ -126,7 +148,7 @@ begin
 end;
 
 
-Function TLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
+Function TExternalLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
 Var
   scriptres  : TLinkRes;
   HPath    : TStringListItem;
@@ -208,7 +230,7 @@ end;
 
 
 
-function TLinkerGo32v2.MakeExecutable:boolean;
+function TExternalLinkerGo32v2.MakeExecutable:boolean;
 var
   binstr : String;
   cmdstr  : TCmdStr;
@@ -249,7 +271,7 @@ end;
 
 
 {$ifdef notnecessary}
-procedure tlinkergo32v2.postprocessexecutable(const n : string);
+procedure TExternalLinkerGo32v2.postprocessexecutable(const n : string);
 type
   tcoffheader=packed record
     mach   : word;
@@ -356,7 +378,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterExternalLinker(system_i386_go32v2_info,TLinkerGo32v2);
-  RegisterInternalLinker(system_i386_go32v2_info,TDJCoffLinker);
+  RegisterExternalLinker(system_i386_go32v2_info,TExternalLinkerGo32v2);
+  RegisterInternalLinker(system_i386_go32v2_info,TInternalLinkerGo32v2);
   RegisterTarget(system_i386_go32v2_info);
 end.

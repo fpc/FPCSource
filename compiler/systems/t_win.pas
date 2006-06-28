@@ -34,60 +34,65 @@ interface
        import,export,link,cgobj,i_win;
 
 
-  const
-     MAX_DEFAULT_EXTENSIONS = 3;
+    const
+       MAX_DEFAULT_EXTENSIONS = 3;
 
-  type
-     tStr4=array[1..MAX_DEFAULT_EXTENSIONS] of string[4];
-     pStr4=^tStr4;
+    type
+       tStr4=array[1..MAX_DEFAULT_EXTENSIONS] of string[4];
+       pStr4=^tStr4;
 
-    twin32imported_item = class(timported_item)
-    end;
+      twin32imported_item = class(timported_item)
+      end;
 
-    timportlibwin32=class(timportlib)
-    private
-      procedure win32importproc(const module : string;index : longint;const name : string);
-      procedure importvariable_str(const s:string;const name,module:string);
-      procedure importprocedure_str(const module:string;index:longint;const name:string);
-      procedure generateimportlib;
-      procedure generateidatasection;
-    public
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
-      procedure generatelib;override;
-    end;
+      TImportLibWin=class(timportlib)
+      private
+        procedure win32importproc(const module : string;index : longint;const name : string);
+        procedure importvariable_str(const s:string;const name,module:string);
+        procedure importprocedure_str(const module:string;index:longint;const name:string);
+        procedure generateimportlib;
+        procedure generateidatasection;
+      public
+        procedure preparelib(const s:string);override;
+        procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
+        procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
+        procedure generatelib;override;
+      end;
 
-    texportlibwin32=class(texportlib)
-      st : string;
-      EList_indexed:TFPList;
-      EList_nonindexed:TFPList;
-      procedure preparelib(const s:string);override;
-      procedure exportprocedure(hp : texported_item);override;
-      procedure exportvar(hp : texported_item);override;
-      procedure exportfromlist(hp : texported_item);
-      procedure generatelib;override;
-      procedure generatenasmlib;virtual;
-    end;
+      TExportLibWin=class(texportlib)
+        st : string;
+        EList_indexed:TFPList;
+        EList_nonindexed:TFPList;
+        procedure preparelib(const s:string);override;
+        procedure exportprocedure(hp : texported_item);override;
+        procedure exportvar(hp : texported_item);override;
+        procedure exportfromlist(hp : texported_item);
+        procedure generatelib;override;
+        procedure generatenasmlib;virtual;
+      end;
 
-    tlinkerwin32=class(texternallinker)
-    private
-       Function  WriteResponseFile(isdll:boolean) : Boolean;
-       Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
-    public
-       Constructor Create;override;
-       Procedure SetDefaultInfo;override;
-       function  MakeExecutable:boolean;override;
-       function  MakeSharedLibrary:boolean;override;
-    end;
+      TInternalLinkerWin = class(tinternallinker)
+        constructor create;override;
+        procedure DefaultLinkScript;override;
+      end;
 
-    tDLLScannerWin32=class(tDLLScanner)
-    private
-      importfound : boolean;
-      procedure CheckDLLFunc(const dllname,funcname:string);
-    public
-      function Scan(const binname:string):boolean;override;
-    end;
+      TExternalLinkerWin=class(texternallinker)
+      private
+         Function  WriteResponseFile(isdll:boolean) : Boolean;
+         Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
+      public
+         Constructor Create;override;
+         Procedure SetDefaultInfo;override;
+         function  MakeExecutable:boolean;override;
+         function  MakeSharedLibrary:boolean;override;
+      end;
+
+      TDLLScannerWin=class(tDLLScanner)
+      private
+        importfound : boolean;
+        procedure CheckDLLFunc(const dllname,funcname:string);
+      public
+        function Scan(const binname:string):boolean;override;
+      end;
 
 
 implementation
@@ -113,17 +118,17 @@ implementation
         );
 
 {*****************************************************************************
-                             TIMPORTLIBWIN32
+                             TImportLibWin
 *****************************************************************************}
 
-    procedure timportlibwin32.preparelib(const s : string);
+    procedure TImportLibWin.preparelib(const s : string);
       begin
          if current_asmdata.asmlists[al_imports]=nil then
            current_asmdata.asmlists[al_imports]:=TAsmList.create;
       end;
 
 
-    procedure timportlibwin32.win32importproc(const module : string;index : longint;const name : string);
+    procedure TImportLibWin.win32importproc(const module : string;index : longint;const name : string);
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
@@ -161,25 +166,25 @@ implementation
       end;
 
 
-    procedure timportlibwin32.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
+    procedure TImportLibWin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
       begin
         win32importproc(module,index,name);
       end;
 
 
-    procedure timportlibwin32.importprocedure_str(const module : string;index : longint;const name : string);
+    procedure TImportLibWin.importprocedure_str(const module : string;index : longint;const name : string);
       begin
         win32importproc(module,index,name);
       end;
 
 
-    procedure timportlibwin32.importvariable(vs:tglobalvarsym;const name,module:string);
+    procedure TImportLibWin.importvariable(vs:tglobalvarsym;const name,module:string);
       begin
         importvariable_str(vs.mangledname,name,module);
       end;
 
 
-    procedure timportlibwin32.importvariable_str(const s:string;const name,module:string);
+    procedure TImportLibWin.importvariable_str(const s:string;const name,module:string);
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
@@ -205,7 +210,7 @@ implementation
       end;
 
 
-    procedure timportlibwin32.generateimportlib;
+    procedure TImportLibWin.generateimportlib;
       var
         ObjWriter        : tarobjectwriter;
         ObjOutput        : TPECoffObjOutput;
@@ -446,7 +451,7 @@ implementation
       end;
 
 
-    procedure timportlibwin32.generateidatasection;
+    procedure TImportLibWin.generateidatasection;
       var
          hp1 : timportList;
          hp2 : twin32imported_item;
@@ -623,7 +628,7 @@ implementation
       end;
 
 
-    procedure timportlibwin32.generatelib;
+    procedure TImportLibWin.generatelib;
       begin
         if GenerateImportSection then
           generateidatasection
@@ -633,10 +638,10 @@ implementation
 
 
 {*****************************************************************************
-                             TEXPORTLIBWIN32
+                             TExportLibWin
 *****************************************************************************}
 
-    procedure texportlibwin32.preparelib(const s:string);
+    procedure TExportLibWin.preparelib(const s:string);
       begin
          if current_asmdata.asmlists[al_exports]=nil then
            current_asmdata.asmlists[al_exports]:=TAsmList.create;
@@ -645,7 +650,7 @@ implementation
       end;
 
 
-    procedure texportlibwin32.exportvar(hp : texported_item);
+    procedure TExportLibWin.exportvar(hp : texported_item);
       begin
          { same code used !! PM }
          exportprocedure(hp);
@@ -669,7 +674,7 @@ implementation
       end;
 
 
-    procedure texportlibwin32.exportprocedure(hp : texported_item);
+    procedure TExportLibWin.exportprocedure(hp : texported_item);
       begin
         if ((hp.options and eo_index)<>0)and((hp.index<=0) or (hp.index>$ffff)) then
           begin
@@ -683,8 +688,8 @@ implementation
       end;
 
 
-    procedure texportlibwin32.exportfromlist(hp : texported_item);
-      //formerly texportlibwin32.exportprocedure
+    procedure TExportLibWin.exportfromlist(hp : texported_item);
+      //formerly TExportLibWin.exportprocedure
       { must be ordered at least for win32 !! }
       var
         hp2 : texported_item;
@@ -709,7 +714,7 @@ implementation
       end;
 
 
-    procedure texportlibwin32.generatelib;
+    procedure TExportLibWin.generatelib;
       var
          ordinal_base,ordinal_max,ordinal_min : longint;
          current_index : longint;
@@ -913,7 +918,7 @@ implementation
       end;
 
 
-    procedure texportlibwin32.generatenasmlib;
+    procedure TExportLibWin.generatenasmlib;
       var
          hp : texported_item;
          p  : pchar;
@@ -941,641 +946,777 @@ implementation
 
 
 {****************************************************************************
-                              TLINKERWIN32
+                            TInternalLinkerWin
 ****************************************************************************}
 
-
-Constructor TLinkerWin32.Create;
-begin
-  Inherited Create;
-  { allow duplicated libs (PM) }
-  SharedLibFiles.doubles:=true;
-  StaticLibFiles.doubles:=true;  if not Dontlinkstdlibpath Then
-end;
+    constructor TInternalLinkerWin.Create;
+      begin
+        inherited Create;
+        CExeoutput:=TPECoffexeoutput;
+        CObjInput:=TPECoffObjInput;
+      end;
 
 
-Procedure TLinkerWin32.SetDefaultInfo;
-var
-  targetopts: string;
-begin
-  with Info do
-   begin
-     {$ifdef ARM}
-       targetopts:='-m armpe';
-     {$else ARM}
-       targetopts:='-b pe-i386 -m i386pe';
-     {$endif ARM}
-     ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
-     DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
-     { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
-       use short forms to avoid 128 char limitation problem }
-     ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $ENTRY $IMAGEBASE -o $EXE $RES exp.$$$';
-     { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
-     DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
-     DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE -o $EXE $RES exp.$$$';
-   end;
-end;
-
-
-
-Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
-Var
-  linkres : TLinkRes;
-  HPath   : TStringListItem;
-  s,s2    : string;
-  i       : integer;
-  linklibcygwin : boolean;
-begin
-  WriteResponseFile:=False;
-  linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
-
-  if (cs_profile in aktmoduleswitches) then
-    begin
-      SharedLibFiles.Concat('gmon');
-      SharedLibFiles.Concat('c');
-      SharedLibFiles.Concat('gcc');
-      SharedLibFiles.Concat('kernel32');
-    end;
-
-  { Open link.res file }
-  LinkRes:=TLinkres.Create(outputexedir+Info.ResName);
-  with linkres do
-    begin
-      { Write path to search libraries }
-      HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-      while assigned(HPath) do
-       begin
-         Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-         HPath:=TStringListItem(HPath.Next);
-       end;
-      HPath:=TStringListItem(LibrarySearchPath.First);
-      while assigned(HPath) do
-       begin
-         Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-         HPath:=TStringListItem(HPath.Next);
-       end;
-
-      { add objectfiles, start with prt0 always                  }
-      { profiling of shared libraries is currently not supported }
-      if not ObjectFiles.Empty then
-        begin
-          Add('INPUT(');
-          while not ObjectFiles.Empty do
-           begin
-             s:=ObjectFiles.GetFirst;
-             if s<>'' then
-              AddFileName(MaybeQuoted(s));
-           end;
-          Add(')');
-        end;
-
-      { Write staticlibraries }
-      if (not StaticLibFiles.Empty) then
-       begin
-         Add('GROUP(');
-         While not StaticLibFiles.Empty do
+    procedure TInternalLinkerWin.DefaultLinkScript;
+      var
+        s,s2,
+        ibase : string;
+      begin
+        with LinkScript do
           begin
-            S:=StaticLibFiles.GetFirst;
-            AddFileName(MaybeQuoted(s));
-          end;
-         Add(')');
-       end;
-
-      { Write sharedlibraries (=import libraries) }
-      if not SharedLibFiles.Empty then
-       begin
-         Add('INPUT(') ;
-         While not SharedLibFiles.Empty do
-          begin
-            S:=SharedLibFiles.GetFirst;
-            if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+            while not ObjectFiles.Empty do
               begin
-                Add(MaybeQuoted(s2));
-                continue;
+                s:=ObjectFiles.GetFirst;
+                if s<>'' then
+                  Concat('READOBJECT '+s);
               end;
-            if pos(target_info.sharedlibprefix,s)=1 then
-              s:=copy(s,length(target_info.sharedlibprefix)+1,255);
-            i:=Pos(target_info.sharedlibext,S);
-            if i>0 then
-             Delete(S,i,255);
-            Add('-l'+s);
+            while not StaticLibFiles.Empty do
+              begin
+                s:=StaticLibFiles.GetFirst;
+                if s<>'' then
+                  Concat('READSTATICLIBRARY '+s);
+              end;
+            While not SharedLibFiles.Empty do
+              begin
+                S:=SharedLibFiles.GetFirst;
+                if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+                  Concat('READSTATICLIBRARY '+s2)
+                else
+                  Comment(V_Error,'Import library not found for '+S);
+              end;
+            if IsSharedLibrary then
+              begin
+                Concat('ISSHAREDLIBRARY');
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _DLLMainCRTStartup');
+              end
+            else
+              begin
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _WinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _mainCRTStartup');
+              end;
+            ibase:='';
+            if assigned(DLLImageBase) then
+              ibase:=DLLImageBase^
+            else
+              begin
+                if target_info.system in [system_arm_wince] then
+                  ibase:='10000'
+                else
+                  begin
+                    if IsSharedLibrary then
+                      ibase:='10000000'
+                    else
+                      ibase:='400000';
+                  end;
+              end;
+            Concat('IMAGEBASE $' + ibase);
+            Concat('HEADER');
+            Concat('EXESECTION .text');
+            if target_info.system=system_arm_wince then
+              Concat('  OBJSECTION .pdata.FPC_EH_PROLOG');
+            Concat('  OBJSECTION .text*');
+            Concat('  SYMBOL ___CTOR_LIST__');
+            Concat('  SYMBOL __CTOR_LIST__');
+            Concat('  LONG -1');
+            Concat('  OBJSECTION .ctor*');
+            Concat('  LONG 0');
+            Concat('  SYMBOL ___DTOR_LIST__');
+            Concat('  SYMBOL __DTOR_LIST__');
+            Concat('  LONG -1');
+            Concat('  OBJSECTION .dtor*');
+            Concat('  LONG 0');
+            Concat('  SYMBOL etext');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .data');
+            Concat('  SYMBOL __data_start__');
+            Concat('  OBJSECTION .data*');
+            Concat('  SYMBOL edata');
+            Concat('  SYMBOL __data_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .rdata');
+            Concat('  SYMBOL ___RUNTIME_PSEUDO_RELOC_LIST__');
+            Concat('  SYMBOL __RUNTIME_PSEUDO_RELOC_LIST__');
+            Concat('  OBJSECTION .rdata_runtime_pseudo_reloc');
+            Concat('  SYMBOL ___RUNTIME_PSEUDO_RELOC_LIST_END__');
+            Concat('  SYMBOL __RUNTIME_PSEUDO_RELOC_LIST_END__');
+            Concat('  OBJSECTION .rdata*');
+            Concat('  OBJSECTION .rodata*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .pdata');
+            Concat('  OBJSECTION .pdata');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .bss');
+            Concat('  SYMBOL __bss_start__');
+            Concat('  OBJSECTION .bss*');
+            Concat('  SYMBOL __bss_end__');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .idata');
+            Concat('  OBJSECTION .idata$2*');
+            Concat('  OBJSECTION .idata$3*');
+            Concat('  ZEROS 20');
+            Concat('  OBJSECTION .idata$4*');
+            Concat('  OBJSECTION .idata$5*');
+            Concat('  OBJSECTION .idata$6*');
+            Concat('  OBJSECTION .idata$7*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .edata');
+            Concat('  OBJSECTION .edata*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .rsrc');
+            Concat('  OBJSECTION .rsrc*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .stab');
+            Concat('  OBJSECTION .stab');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .stabstr');
+            Concat('  OBJSECTION .stabstr');
+            Concat('ENDEXESECTION');
+            Concat('STABS');
+            Concat('SYMBOLS');
           end;
-         Add(')');
-       end;
-
-      Add('SEARCH_DIR("/usr/i686-pc-cygwin/lib"); SEARCH_DIR("/usr/lib"); SEARCH_DIR("/usr/lib/w32api");');
-      Add('OUTPUT_FORMAT(pei-i386)');
-      Add('ENTRY(_mainCRTStartup)');
-      Add('SECTIONS');
-      Add('{');
-      Add('  . = SIZEOF_HEADERS;');
-      Add('  . = ALIGN(__section_alignment__);');
-      Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
-      Add('  {');
-{$ifdef arm}
-      Add('    *(.pdata.FPC_EH_PROLOG)');
-{$endif arm}
-      Add('    *(.init)');
-      add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
-      Add('    *(SORT(.text$*))');
-      Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
-      Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
-      Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
-      Add('			LONG (-1); *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
-      Add('     *(.fini)');
-      Add('    PROVIDE (etext = .);');
-      Add('    *(.gcc_except_table)');
-      Add('  }');
-      Add('  .data BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    __data_start__ = . ;');
-      add('    *(.data .data.* .gnu.linkonce.d.*)');
-      Add('    *(.data2)');
-      Add('    *(SORT(.data$*))');
-      Add('    __data_end__ = . ;');
-      Add('    *(.data_cygwin_nocopy)');
-      Add('  }');
-      Add('  .rdata BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    *(.rdata)');
-      add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
-      Add('    *(SORT(.rdata$*))');
-      Add('    *(.eh_frame)');
-      Add('    ___RUNTIME_PSEUDO_RELOC_LIST__ = .;');
-      Add('    __RUNTIME_PSEUDO_RELOC_LIST__ = .;');
-      Add('    *(.rdata_runtime_pseudo_reloc)');
-      Add('    ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
-      Add('    __RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
-      Add('  }');
-      Add('  .pdata BLOCK(__section_alignment__) : { *(.pdata) }');
-      Add('  .bss BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    __bss_start__ = . ;');
-      Add('    *(.bss .bss.* .gnu.linkonce.b.*)');
-      Add('    *(SORT(.bss$*))');
-      Add('    *(COMMON)');
-      Add('    __bss_end__ = . ;');
-      Add('  }');
-      Add('  .edata BLOCK(__section_alignment__) : { *(.edata) }');
-      Add('  .idata BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    SORT(*)(.idata$2)');
-      Add('    SORT(*)(.idata$3)');
-      Add('    /* These zeroes mark the end of the import list.  */');
-      Add('    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);');
-      Add('    SORT(*)(.idata$4)');
-      Add('    SORT(*)(.idata$5)');
-      Add('    SORT(*)(.idata$6)');
-      Add('    SORT(*)(.idata$7)');
-      Add('  }');
-      Add('  .CRT BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    ___crt_xc_start__ = . ;');
-      Add('    *(SORT(.CRT$XC*))  /* C initialization */');
-      Add('    ___crt_xc_end__ = . ;');
-      Add('    ___crt_xi_start__ = . ;');
-      Add('    *(SORT(.CRT$XI*))  /* C++ initialization */');
-      Add('    ___crt_xi_end__ = . ;');
-      Add('    ___crt_xl_start__ = . ;');
-      Add('    *(SORT(.CRT$XL*))  /* TLS callbacks */');
-      Add('    /* ___crt_xl_end__ is defined in the TLS Directory support code */');
-      Add('    ___crt_xp_start__ = . ;');
-      Add('    *(SORT(.CRT$XP*))  /* Pre-termination */');
-      Add('    ___crt_xp_end__ = . ;');
-      Add('    ___crt_xt_start__ = . ;');
-      Add('    *(SORT(.CRT$XT*))  /* Termination */');
-      Add('    ___crt_xt_end__ = . ;');
-      Add('  }');
-      Add('  .tls BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    ___tls_start__ = . ;');
-      Add('    *(.tls .tls.*)');
-      Add('    *(.tls$)');
-      Add('    *(SORT(.tls$*))');
-      Add('    ___tls_end__ = . ;');
-      Add('  }');
-      Add('  .rsrc BLOCK(__section_alignment__) :');
-      Add('  {');
-      Add('    *(.rsrc)');
-      Add('    *(SORT(.rsrc$*))');
-      Add('  }');
-      Add('  .reloc BLOCK(__section_alignment__) : { *(.reloc) }');
-      Add('  .stab BLOCK(__section_alignment__) (NOLOAD) : { *(.stab) }');
-      Add('  .stabstr BLOCK(__section_alignment__) (NOLOAD) : { *(.stabstr) }');
-      Add('  .debug_aranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_aranges) }');
-      Add('  .debug_pubnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_pubnames) }');
-      Add('  .debug_info BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_info) *(.gnu.linkonce.wi.*) }');
-      Add('  .debug_abbrev BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_abbrev) }');
-      Add('  .debug_line BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_line) }');
-      Add('  .debug_frame BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_frame) }');
-      Add('  .debug_str BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_str) }');
-      Add('  .debug_loc BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_loc) }');
-      Add('  .debug_macinfo BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_macinfo) }');
-      Add('  .debug_weaknames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_weaknames) }');
-      Add('  .debug_funcnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_funcnames) }');
-      Add('  .debug_typenames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_typenames) }');
-      Add('  .debug_varnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_varnames) }');
-      Add('  .debug_ranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_ranges) }');
-      Add('}');
-
-      { Write and Close response }
-      writetodisk;
-      Free;
-    end;
-
-  WriteResponseFile:=True;
-end;
-
-
-function TLinkerWin32.MakeExecutable:boolean;
-var
-  MapStr,
-  binstr : String;
-  cmdstr  : TCmdStr;
-  success : boolean;
-  cmds,i       : longint;
-  AsBinStr     : string[80];
-  GCSectionsStr,
-  StripStr,
-  RelocStr,
-  AppTypeStr,
-  EntryStr,
-  ImageBaseStr : string[40];
-begin
-  if not(cs_link_nolink in aktglobalswitches) then
-   Message1(exec_i_linking,current_module.exefilename^);
-
-{ Create some replacements }
-  RelocStr:='';
-  AppTypeStr:='';
-  EntryStr:='';
-  ImageBaseStr:='';
-  StripStr:='';
-  MapStr:='';
-  GCSectionsStr:='';
-  AsBinStr:=FindUtil(utilsprefix+'as');
-  if RelocSection then
-    RelocStr:='--base-file base.$$$';
-  if use_smartlink_section then
-    GCSectionsStr:='--gc-sections';
-  if target_info.system in [system_arm_wince,system_i386_wince] then
-    AppTypeStr:='--subsystem wince'
-  else
-    begin
-      if apptype=app_gui then
-        AppTypeStr:='--subsystem windows';
-    end;
-  if apptype=app_gui then
-    EntryStr:='--entry=_WinMainCRTStartup'
-  else
-    EntryStr:='--entry=_mainCRTStartup';
-  if assigned(DLLImageBase) then
-    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
-  if (cs_link_strip in aktglobalswitches) then
-    StripStr:='-s';
-  if (cs_link_map in aktglobalswitches) then
-    MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
-
-{ Write used files and libraries }
-  WriteResponseFile(false);
-
-{ Call linker }
-  success:=false;
-  if RelocSection or (not Deffile.empty) then
-    cmds:=3
-  else
-    cmds:=1;
-  for i:=1 to cmds do
-   begin
-     SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
-     if binstr<>'' then
-      begin
-        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
-        Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-        Replace(cmdstr,'$APPTYPE',AppTypeStr);
-        Replace(cmdstr,'$ENTRY',EntryStr);
-        Replace(cmdstr,'$ASBIN',AsbinStr);
-        Replace(cmdstr,'$RELOC',RelocStr);
-        Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
-        Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-        Replace(cmdstr,'$STRIP',StripStr);
-        Replace(cmdstr,'$MAP',MapStr);
-        if not DefFile.Empty then
-          begin
-            DefFile.WriteFile;
-            Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
-          end
-        else
-          Replace(cmdstr,'$DEF','');
-        success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
-        if not success then
-         break;
       end;
-   end;
 
-{ Post process }
-  if success then
-   success:=PostProcessExecutable(current_module.exefilename^,false);
-
-{ Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
-   begin
-     RemoveFile(outputexedir+Info.ResName);
-     RemoveFile('base.$$$');
-     RemoveFile('exp.$$$');
-     RemoveFile('deffile.$$$');
-   end;
-
-  MakeExecutable:=success;   { otherwise a recursive call to link method }
-end;
-
-
-Function TLinkerWin32.MakeSharedLibrary:boolean;
-var
-  MapStr,
-  binstr : String;
-  cmdstr  : TCmdStr;
-  success : boolean;
-  cmds,
-  i       : longint;
-  AsBinStr     : string[80];
-  StripStr,
-  GCSectionsStr,
-  RelocStr,
-  AppTypeStr,
-  EntryStr,
-  ImageBaseStr : string[40];
-begin
-  MakeSharedLibrary:=false;
-  if not(cs_link_nolink in aktglobalswitches) then
-   Message1(exec_i_linking,current_module.sharedlibfilename^);
-
-{ Create some replacements }
-  RelocStr:='';
-  AppTypeStr:='';
-  EntryStr:='';
-  ImageBaseStr:='';
-  StripStr:='';
-  MapStr:='';
-  GCSectionsStr:='';
-  AsBinStr:=FindUtil(utilsprefix+'as');
-  if RelocSection then
-   RelocStr:='--base-file base.$$$';
-  if use_smartlink_section then
-   GCSectionsStr:='--gc-sections';
-  if apptype=app_gui then
-    begin
-      AppTypeStr:='--subsystem windows';
-      EntryStr:='--entry _DLLWinMainCRTStartup'
-    end
-  else
-    EntryStr:='--entry _DLLMainCRTStartup';
-  if assigned(DLLImageBase) then
-    ImageBaseStr:='--image-base=0x'+DLLImageBase^;
-  if (cs_link_strip in aktglobalswitches) then
-    StripStr:='-s';
-  if (cs_link_map in aktglobalswitches) then
-    MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
-
-{ Write used files and libraries }
-  WriteResponseFile(true);
-
-{ Call linker }
-  success:=false;
-  if RelocSection or (not Deffile.empty) then
-    cmds:=3
-  else
-    cmds:=1;
-  for i:=1 to cmds do
-   begin
-     SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
-     if binstr<>'' then
-      begin
-        Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
-        Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-        Replace(cmdstr,'$APPTYPE',AppTypeStr);
-        Replace(cmdstr,'$ENTRY',EntryStr);
-        Replace(cmdstr,'$ASBIN',AsbinStr);
-        Replace(cmdstr,'$RELOC',RelocStr);
-        Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
-        Replace(cmdstr,'$STRIP',StripStr);
-        Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-        Replace(cmdstr,'$MAP',MapStr);
-        if not DefFile.Empty then
-          begin
-            DefFile.WriteFile;
-            Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
-          end
-        else
-          Replace(cmdstr,'$DEF','');
-        success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
-        if not success then
-         break;
-      end;
-   end;
-
-{ Post process }
-  if success then
-   success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
-
-{ Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
-   begin
-     RemoveFile(outputexedir+Info.ResName);
-     RemoveFile('base.$$$');
-     RemoveFile('exp.$$$');
-     RemoveFile('deffile.$$$');
-   end;
-  MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
-end;
-
-
-function tlinkerwin32.postprocessexecutable(const fn : string;isdll:boolean):boolean;
-type
-  tdosheader = packed record
-     e_magic : word;
-     e_cblp : word;
-     e_cp : word;
-     e_crlc : word;
-     e_cparhdr : word;
-     e_minalloc : word;
-     e_maxalloc : word;
-     e_ss : word;
-     e_sp : word;
-     e_csum : word;
-     e_ip : word;
-     e_cs : word;
-     e_lfarlc : word;
-     e_ovno : word;
-     e_res : array[0..3] of word;
-     e_oemid : word;
-     e_oeminfo : word;
-     e_res2 : array[0..9] of word;
-     e_lfanew : longint;
-  end;
-  psecfill=^TSecfill;
-  TSecfill=record
-    fillpos,
-    fillsize : longint;
-    next : psecfill;
-  end;
-var
-  f : file;
-  cmdstr : string;
-  dosheader : tdosheader;
-  peheader : tcoffheader;
-  peoptheader : tcoffpeoptheader;
-  firstsecpos,
-  maxfillsize,
-  l,peheaderpos : longint;
-  coffsec : tcoffsechdr;
-  secroot,hsecroot : psecfill;
-  zerobuf : pointer;
-begin
-  postprocessexecutable:=false;
-  { when -s is used or it's a dll then quit }
-  if (cs_link_nolink in aktglobalswitches) then
-   begin
-     case apptype of
-       app_native :
-         cmdstr:='--subsystem native';
-       app_gui :
-         cmdstr:='--subsystem gui';
-       app_cui :
-         cmdstr:='--subsystem console';
-     end;
-     if dllversion<>'' then
-       cmdstr:=cmdstr+' --version '+dllversion;
-     cmdstr:=cmdstr+' --input '+maybequoted(fn);
-     cmdstr:=cmdstr+' --stack '+tostr(stacksize);
-     DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
-     postprocessexecutable:=true;
-     exit;
-   end;
-  { open file }
-  assign(f,fn);
-  {$I-}
-   reset(f,1);
-  if ioresult<>0 then
-    Message1(execinfo_f_cant_open_executable,fn);
-  { read headers }
-  blockread(f,dosheader,sizeof(tdosheader));
-  peheaderpos:=dosheader.e_lfanew;
-  { skip to headerpos and skip pe magic }
-  seek(f,peheaderpos+4);
-  blockread(f,peheader,sizeof(tcoffheader));
-  blockread(f,peoptheader,sizeof(tcoffpeoptheader));
-  { write info }
-  Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
-  Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
-  Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
-  { change stack size (PM) }
-  { I am not sure that the default value is adequate !! }
-  peoptheader.SizeOfStackReserve:=stacksize;
-  if SetPEFlagsSetExplicity then
-    peoptheader.LoaderFlags:=peflags;
-  if ImageBaseSetExplicity then
-    peoptheader.ImageBase:=imagebase;
-  if MinStackSizeSetExplicity then
-    peoptheader.SizeOfStackCommit:=minstacksize;
-  if MaxStackSizeSetExplicity then
-    peoptheader.SizeOfStackReserve:=maxstacksize;
-  { change the header }
-  { sub system }
-  { gui=2 }
-  { cui=3 }
-  { wincegui=9 }
-  if target_info.system in [system_arm_wince,system_i386_wince] then
-    peoptheader.Subsystem:=9
-  else
-    case apptype of
-      app_native :
-        peoptheader.Subsystem:=1;
-      app_gui :
-        peoptheader.Subsystem:=2;
-      app_cui :
-        peoptheader.Subsystem:=3;
-    end;
-  if dllversion<>'' then
-    begin
-     peoptheader.MajorImageVersion:=dllmajor;
-     peoptheader.MinorImageVersion:=dllminor;
-    end;
-  { reset timestamp }
-  peheader.time:=0;
-  { write header back, skip pe magic }
-  seek(f,peheaderpos+4);
-  blockwrite(f,peheader,sizeof(tcoffheader));
-  if ioresult<>0 then
-    Message1(execinfo_f_cant_process_executable,fn);
-  blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
-  if ioresult<>0 then
-    Message1(execinfo_f_cant_process_executable,fn);
-  { skip to headerpos and skip pe magic }
-  seek(f,peheaderpos+4);
-  blockread(f,peheader,sizeof(tcoffheader));
-  blockread(f,peoptheader,sizeof(tcoffpeoptheader));
-  { write the value after the change }
-  Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
-  Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
-  { read section info }
-  maxfillsize:=0;
-  firstsecpos:=0;
-  secroot:=nil;
-  for l:=1 to peheader.nsects do
-   begin
-     blockread(f,coffsec,sizeof(tcoffsechdr));
-     if coffsec.datapos>0 then
-      begin
-        if secroot=nil then
-         firstsecpos:=coffsec.datapos;
-        new(hsecroot);
-        hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
-        hsecroot^.fillsize:=coffsec.datasize-coffsec.vsize;
-        hsecroot^.next:=secroot;
-        secroot:=hsecroot;
-        if secroot^.fillsize>maxfillsize then
-         maxfillsize:=secroot^.fillsize;
-      end;
-   end;
-  if firstsecpos>0 then
-   begin
-     l:=firstsecpos-filepos(f);
-     if l>maxfillsize then
-      maxfillsize:=l;
-   end
-  else
-   l:=0;
-  { get zero buffer }
-  getmem(zerobuf,maxfillsize);
-  fillchar(zerobuf^,maxfillsize,0);
-  { zero from sectioninfo until first section }
-  blockwrite(f,zerobuf^,l);
-  { zero section alignments }
-  while assigned(secroot) do
-   begin
-     seek(f,secroot^.fillpos);
-     blockwrite(f,zerobuf^,secroot^.fillsize);
-     hsecroot:=secroot;
-     secroot:=secroot^.next;
-     dispose(hsecroot);
-   end;
-  freemem(zerobuf,maxfillsize);
-  close(f);
-  {$I+}
-  if ioresult<>0 then;
-  postprocessexecutable:=true;
-end;
 
 
 {****************************************************************************
-                            TDLLScannerWin32
+                              TExternalLinkerWin
 ****************************************************************************}
 
-    procedure tDLLScannerWin32.CheckDLLFunc(const dllname,funcname:string);
+    Constructor TExternalLinkerWin.Create;
+      begin
+        Inherited Create;
+        { allow duplicated libs (PM) }
+        SharedLibFiles.doubles:=true;
+        StaticLibFiles.doubles:=true;
+      end;
+
+
+    Procedure TExternalLinkerWin.SetDefaultInfo;
+      var
+        targetopts: string;
+      begin
+        with Info do
+         begin
+           if target_info.system=system_arm_wince then
+             targetopts:='-m armpe'
+           else
+             targetopts:='-b pe-i386 -m i386pe';
+           ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+           DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
+           { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+             use short forms to avoid 128 char limitation problem }
+           ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
+           ExeCmd[3]:='ld '+targetopts+' $OPT $STRIP $APPTYPE $ENTRY $IMAGEBASE -o $EXE $RES exp.$$$';
+           { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
+           DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
+           DllCmd[3]:='ld '+targetopts+' $OPT $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE -o $EXE $RES exp.$$$';
+         end;
+      end;
+
+
+
+    Function TExternalLinkerWin.WriteResponseFile(isdll:boolean) : Boolean;
+      Var
+        linkres : TLinkRes;
+        HPath   : TStringListItem;
+        s,s2    : string;
+        i       : integer;
+        linklibcygwin : boolean;
+      begin
+        WriteResponseFile:=False;
+        linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
+
+        if (cs_profile in aktmoduleswitches) then
+          begin
+            SharedLibFiles.Concat('gmon');
+            SharedLibFiles.Concat('c');
+            SharedLibFiles.Concat('gcc');
+            SharedLibFiles.Concat('kernel32');
+          end;
+
+        { Open link.res file }
+        LinkRes:=TLinkres.Create(outputexedir+Info.ResName);
+        with linkres do
+          begin
+            { Write path to search libraries }
+            HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+            while assigned(HPath) do
+             begin
+               Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+               HPath:=TStringListItem(HPath.Next);
+             end;
+            HPath:=TStringListItem(LibrarySearchPath.First);
+            while assigned(HPath) do
+             begin
+               Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
+               HPath:=TStringListItem(HPath.Next);
+             end;
+
+            { add objectfiles, start with prt0 always                  }
+            { profiling of shared libraries is currently not supported }
+            if not ObjectFiles.Empty then
+              begin
+                Add('INPUT(');
+                while not ObjectFiles.Empty do
+                 begin
+                   s:=ObjectFiles.GetFirst;
+                   if s<>'' then
+                    AddFileName(MaybeQuoted(s));
+                 end;
+                Add(')');
+              end;
+
+            { Write staticlibraries }
+            if (not StaticLibFiles.Empty) then
+             begin
+               Add('GROUP(');
+               While not StaticLibFiles.Empty do
+                begin
+                  S:=StaticLibFiles.GetFirst;
+                  AddFileName(MaybeQuoted(s));
+                end;
+               Add(')');
+             end;
+
+            { Write sharedlibraries (=import libraries) }
+            if not SharedLibFiles.Empty then
+             begin
+               Add('INPUT(') ;
+               While not SharedLibFiles.Empty do
+                begin
+                  S:=SharedLibFiles.GetFirst;
+                  if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
+                    begin
+                      Add(MaybeQuoted(s2));
+                      continue;
+                    end;
+                  if pos(target_info.sharedlibprefix,s)=1 then
+                    s:=copy(s,length(target_info.sharedlibprefix)+1,255);
+                  i:=Pos(target_info.sharedlibext,S);
+                  if i>0 then
+                   Delete(S,i,255);
+                  Add('-l'+s);
+                end;
+               Add(')');
+             end;
+
+            Add('SEARCH_DIR("/usr/i686-pc-cygwin/lib"); SEARCH_DIR("/usr/lib"); SEARCH_DIR("/usr/lib/w32api");');
+            Add('OUTPUT_FORMAT(pei-i386)');
+            Add('ENTRY(_mainCRTStartup)');
+            Add('SECTIONS');
+            Add('{');
+            Add('  . = SIZEOF_HEADERS;');
+            Add('  . = ALIGN(__section_alignment__);');
+            Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
+            Add('  {');
+{$ifdef arm}
+            Add('    *(.pdata.FPC_EH_PROLOG)');
+{$endif arm}
+            Add('    *(.init)');
+            add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+            Add('    *(SORT(.text$*))');
+            Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
+            Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
+            Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
+            Add('			LONG (-1); *(.dtors); *(.dtor); *(SORT(.dtors.*));  LONG (0);');
+            Add('     *(.fini)');
+            Add('    PROVIDE (etext = .);');
+            Add('    *(.gcc_except_table)');
+            Add('  }');
+            Add('  .data BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    __data_start__ = . ;');
+            add('    *(.data .data.* .gnu.linkonce.d.*)');
+            Add('    *(.data2)');
+            Add('    *(SORT(.data$*))');
+            Add('    __data_end__ = . ;');
+            Add('    *(.data_cygwin_nocopy)');
+            Add('  }');
+            Add('  .rdata BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    *(.rdata)');
+            add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
+            Add('    *(SORT(.rdata$*))');
+            Add('    *(.eh_frame)');
+            Add('    ___RUNTIME_PSEUDO_RELOC_LIST__ = .;');
+            Add('    __RUNTIME_PSEUDO_RELOC_LIST__ = .;');
+            Add('    *(.rdata_runtime_pseudo_reloc)');
+            Add('    ___RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
+            Add('    __RUNTIME_PSEUDO_RELOC_LIST_END__ = .;');
+            Add('  }');
+            Add('  .pdata BLOCK(__section_alignment__) : { *(.pdata) }');
+            Add('  .bss BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    __bss_start__ = . ;');
+            Add('    *(.bss .bss.* .gnu.linkonce.b.*)');
+            Add('    *(SORT(.bss$*))');
+            Add('    *(COMMON)');
+            Add('    __bss_end__ = . ;');
+            Add('  }');
+            Add('  .edata BLOCK(__section_alignment__) : { *(.edata) }');
+            Add('  .idata BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    SORT(*)(.idata$2)');
+            Add('    SORT(*)(.idata$3)');
+            Add('    /* These zeroes mark the end of the import list.  */');
+            Add('    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);');
+            Add('    SORT(*)(.idata$4)');
+            Add('    SORT(*)(.idata$5)');
+            Add('    SORT(*)(.idata$6)');
+            Add('    SORT(*)(.idata$7)');
+            Add('  }');
+            Add('  .CRT BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    ___crt_xc_start__ = . ;');
+            Add('    *(SORT(.CRT$XC*))  /* C initialization */');
+            Add('    ___crt_xc_end__ = . ;');
+            Add('    ___crt_xi_start__ = . ;');
+            Add('    *(SORT(.CRT$XI*))  /* C++ initialization */');
+            Add('    ___crt_xi_end__ = . ;');
+            Add('    ___crt_xl_start__ = . ;');
+            Add('    *(SORT(.CRT$XL*))  /* TLS callbacks */');
+            Add('    /* ___crt_xl_end__ is defined in the TLS Directory support code */');
+            Add('    ___crt_xp_start__ = . ;');
+            Add('    *(SORT(.CRT$XP*))  /* Pre-termination */');
+            Add('    ___crt_xp_end__ = . ;');
+            Add('    ___crt_xt_start__ = . ;');
+            Add('    *(SORT(.CRT$XT*))  /* Termination */');
+            Add('    ___crt_xt_end__ = . ;');
+            Add('  }');
+            Add('  .tls BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    ___tls_start__ = . ;');
+            Add('    *(.tls .tls.*)');
+            Add('    *(.tls$)');
+            Add('    *(SORT(.tls$*))');
+            Add('    ___tls_end__ = . ;');
+            Add('  }');
+            Add('  .rsrc BLOCK(__section_alignment__) :');
+            Add('  {');
+            Add('    *(.rsrc)');
+            Add('    *(SORT(.rsrc$*))');
+            Add('  }');
+            Add('  .reloc BLOCK(__section_alignment__) : { *(.reloc) }');
+            Add('  .stab BLOCK(__section_alignment__) (NOLOAD) : { *(.stab) }');
+            Add('  .stabstr BLOCK(__section_alignment__) (NOLOAD) : { *(.stabstr) }');
+            Add('  .debug_aranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_aranges) }');
+            Add('  .debug_pubnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_pubnames) }');
+            Add('  .debug_info BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_info) *(.gnu.linkonce.wi.*) }');
+            Add('  .debug_abbrev BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_abbrev) }');
+            Add('  .debug_line BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_line) }');
+            Add('  .debug_frame BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_frame) }');
+            Add('  .debug_str BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_str) }');
+            Add('  .debug_loc BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_loc) }');
+            Add('  .debug_macinfo BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_macinfo) }');
+            Add('  .debug_weaknames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_weaknames) }');
+            Add('  .debug_funcnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_funcnames) }');
+            Add('  .debug_typenames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_typenames) }');
+            Add('  .debug_varnames BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_varnames) }');
+            Add('  .debug_ranges BLOCK(__section_alignment__) (NOLOAD) : { *(.debug_ranges) }');
+            Add('}');
+
+            { Write and Close response }
+            writetodisk;
+            Free;
+          end;
+
+        WriteResponseFile:=True;
+      end;
+
+
+    function TExternalLinkerWin.MakeExecutable:boolean;
+      var
+        MapStr,
+        binstr : String;
+        cmdstr  : TCmdStr;
+        success : boolean;
+        cmds,i       : longint;
+        AsBinStr     : string[80];
+        GCSectionsStr,
+        StripStr,
+        RelocStr,
+        AppTypeStr,
+        EntryStr,
+        ImageBaseStr : string[40];
+      begin
+        if not(cs_link_nolink in aktglobalswitches) then
+         Message1(exec_i_linking,current_module.exefilename^);
+
+        { Create some replacements }
+        RelocStr:='';
+        AppTypeStr:='';
+        EntryStr:='';
+        ImageBaseStr:='';
+        StripStr:='';
+        MapStr:='';
+        GCSectionsStr:='';
+        AsBinStr:=FindUtil(utilsprefix+'as');
+        if RelocSection then
+          RelocStr:='--base-file base.$$$';
+        if use_smartlink_section then
+          GCSectionsStr:='--gc-sections';
+        if target_info.system in [system_arm_wince,system_i386_wince] then
+          AppTypeStr:='--subsystem wince'
+        else
+          begin
+            if apptype=app_gui then
+              AppTypeStr:='--subsystem windows';
+          end;
+        if apptype=app_gui then
+          EntryStr:='--entry=_WinMainCRTStartup'
+        else
+          EntryStr:='--entry=_mainCRTStartup';
+        if assigned(DLLImageBase) then
+          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if (cs_link_strip in aktglobalswitches) then
+          StripStr:='-s';
+        if (cs_link_map in aktglobalswitches) then
+          MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+
+      { Write used files and libraries }
+        WriteResponseFile(false);
+
+      { Call linker }
+        success:=false;
+        if RelocSection or (not Deffile.empty) then
+          cmds:=3
+        else
+          cmds:=1;
+        for i:=1 to cmds do
+         begin
+           SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
+           if binstr<>'' then
+            begin
+              Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+              Replace(cmdstr,'$OPT',Info.ExtraOptions);
+              Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+              Replace(cmdstr,'$APPTYPE',AppTypeStr);
+              Replace(cmdstr,'$ENTRY',EntryStr);
+              Replace(cmdstr,'$ASBIN',AsbinStr);
+              Replace(cmdstr,'$RELOC',RelocStr);
+              Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
+              Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+              Replace(cmdstr,'$STRIP',StripStr);
+              Replace(cmdstr,'$MAP',MapStr);
+              if not DefFile.Empty then
+                begin
+                  DefFile.WriteFile;
+                  Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
+                end
+              else
+                Replace(cmdstr,'$DEF','');
+              success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
+              if not success then
+               break;
+            end;
+         end;
+
+      { Post process }
+        if success then
+         success:=PostProcessExecutable(current_module.exefilename^,false);
+
+      { Remove ReponseFile }
+        if (success) and not(cs_link_nolink in aktglobalswitches) then
+         begin
+           RemoveFile(outputexedir+Info.ResName);
+           RemoveFile('base.$$$');
+           RemoveFile('exp.$$$');
+           RemoveFile('deffile.$$$');
+         end;
+
+        MakeExecutable:=success;   { otherwise a recursive call to link method }
+      end;
+
+
+    Function TExternalLinkerWin.MakeSharedLibrary:boolean;
+      var
+        MapStr,
+        binstr : String;
+        cmdstr  : TCmdStr;
+        success : boolean;
+        cmds,
+        i       : longint;
+        AsBinStr     : string[80];
+        StripStr,
+        GCSectionsStr,
+        RelocStr,
+        AppTypeStr,
+        EntryStr,
+        ImageBaseStr : string[40];
+      begin
+        MakeSharedLibrary:=false;
+        if not(cs_link_nolink in aktglobalswitches) then
+         Message1(exec_i_linking,current_module.sharedlibfilename^);
+
+      { Create some replacements }
+        RelocStr:='';
+        AppTypeStr:='';
+        EntryStr:='';
+        ImageBaseStr:='';
+        StripStr:='';
+        MapStr:='';
+        GCSectionsStr:='';
+        AsBinStr:=FindUtil(utilsprefix+'as');
+        if RelocSection then
+         RelocStr:='--base-file base.$$$';
+        if use_smartlink_section then
+         GCSectionsStr:='--gc-sections';
+        if apptype=app_gui then
+          begin
+            AppTypeStr:='--subsystem windows';
+            EntryStr:='--entry _DLLWinMainCRTStartup'
+          end
+        else
+          EntryStr:='--entry _DLLMainCRTStartup';
+        if assigned(DLLImageBase) then
+          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if (cs_link_strip in aktglobalswitches) then
+          StripStr:='-s';
+        if (cs_link_map in aktglobalswitches) then
+          MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+
+      { Write used files and libraries }
+        WriteResponseFile(true);
+
+      { Call linker }
+        success:=false;
+        if RelocSection or (not Deffile.empty) then
+          cmds:=3
+        else
+          cmds:=1;
+        for i:=1 to cmds do
+         begin
+           SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
+           if binstr<>'' then
+            begin
+              Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
+              Replace(cmdstr,'$OPT',Info.ExtraOptions);
+              Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+              Replace(cmdstr,'$APPTYPE',AppTypeStr);
+              Replace(cmdstr,'$ENTRY',EntryStr);
+              Replace(cmdstr,'$ASBIN',AsbinStr);
+              Replace(cmdstr,'$RELOC',RelocStr);
+              Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
+              Replace(cmdstr,'$STRIP',StripStr);
+              Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+              Replace(cmdstr,'$MAP',MapStr);
+              if not DefFile.Empty then
+                begin
+                  DefFile.WriteFile;
+                  Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
+                end
+              else
+                Replace(cmdstr,'$DEF','');
+              success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false);
+              if not success then
+               break;
+            end;
+         end;
+
+      { Post process }
+        if success then
+         success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
+
+      { Remove ReponseFile }
+        if (success) and not(cs_link_nolink in aktglobalswitches) then
+         begin
+           RemoveFile(outputexedir+Info.ResName);
+           RemoveFile('base.$$$');
+           RemoveFile('exp.$$$');
+           RemoveFile('deffile.$$$');
+         end;
+        MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
+      end;
+
+
+    function TExternalLinkerWin.postprocessexecutable(const fn : string;isdll:boolean):boolean;
+      type
+        tdosheader = packed record
+           e_magic : word;
+           e_cblp : word;
+           e_cp : word;
+           e_crlc : word;
+           e_cparhdr : word;
+           e_minalloc : word;
+           e_maxalloc : word;
+           e_ss : word;
+           e_sp : word;
+           e_csum : word;
+           e_ip : word;
+           e_cs : word;
+           e_lfarlc : word;
+           e_ovno : word;
+           e_res : array[0..3] of word;
+           e_oemid : word;
+           e_oeminfo : word;
+           e_res2 : array[0..9] of word;
+           e_lfanew : longint;
+        end;
+        psecfill=^TSecfill;
+        TSecfill=record
+          fillpos,
+          fillsize : longint;
+          next : psecfill;
+        end;
+      var
+        f : file;
+        cmdstr : string;
+        dosheader : tdosheader;
+        peheader : tcoffheader;
+        peoptheader : tcoffpeoptheader;
+        firstsecpos,
+        maxfillsize,
+        l,peheaderpos : longint;
+        coffsec : tcoffsechdr;
+        secroot,hsecroot : psecfill;
+        zerobuf : pointer;
+      begin
+        postprocessexecutable:=false;
+        { when -s is used or it's a dll then quit }
+        if (cs_link_nolink in aktglobalswitches) then
+         begin
+           case apptype of
+             app_native :
+               cmdstr:='--subsystem native';
+             app_gui :
+               cmdstr:='--subsystem gui';
+             app_cui :
+               cmdstr:='--subsystem console';
+           end;
+           if dllversion<>'' then
+             cmdstr:=cmdstr+' --version '+dllversion;
+           cmdstr:=cmdstr+' --input '+maybequoted(fn);
+           cmdstr:=cmdstr+' --stack '+tostr(stacksize);
+           DoExec(FindUtil(utilsprefix+'postw32'),cmdstr,false,false);
+           postprocessexecutable:=true;
+           exit;
+         end;
+        { open file }
+        assign(f,fn);
+        {$I-}
+         reset(f,1);
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_open_executable,fn);
+        { read headers }
+        blockread(f,dosheader,sizeof(tdosheader));
+        peheaderpos:=dosheader.e_lfanew;
+        { skip to headerpos and skip pe magic }
+        seek(f,peheaderpos+4);
+        blockread(f,peheader,sizeof(tcoffheader));
+        blockread(f,peoptheader,sizeof(tcoffpeoptheader));
+        { write info }
+        Message1(execinfo_x_codesize,tostr(peoptheader.tsize));
+        Message1(execinfo_x_initdatasize,tostr(peoptheader.dsize));
+        Message1(execinfo_x_uninitdatasize,tostr(peoptheader.bsize));
+        { change stack size (PM) }
+        { I am not sure that the default value is adequate !! }
+        peoptheader.SizeOfStackReserve:=stacksize;
+        if SetPEFlagsSetExplicity then
+          peoptheader.LoaderFlags:=peflags;
+        if ImageBaseSetExplicity then
+          peoptheader.ImageBase:=imagebase;
+        if MinStackSizeSetExplicity then
+          peoptheader.SizeOfStackCommit:=minstacksize;
+        if MaxStackSizeSetExplicity then
+          peoptheader.SizeOfStackReserve:=maxstacksize;
+        { change the header }
+        { sub system }
+        { gui=2 }
+        { cui=3 }
+        { wincegui=9 }
+        if target_info.system in [system_arm_wince,system_i386_wince] then
+          peoptheader.Subsystem:=9
+        else
+          case apptype of
+            app_native :
+              peoptheader.Subsystem:=1;
+            app_gui :
+              peoptheader.Subsystem:=2;
+            app_cui :
+              peoptheader.Subsystem:=3;
+          end;
+        if dllversion<>'' then
+          begin
+           peoptheader.MajorImageVersion:=dllmajor;
+           peoptheader.MinorImageVersion:=dllminor;
+          end;
+        { reset timestamp }
+        peheader.time:=0;
+        { write header back, skip pe magic }
+        seek(f,peheaderpos+4);
+        blockwrite(f,peheader,sizeof(tcoffheader));
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_process_executable,fn);
+        blockwrite(f,peoptheader,sizeof(tcoffpeoptheader));
+        if ioresult<>0 then
+          Message1(execinfo_f_cant_process_executable,fn);
+        { skip to headerpos and skip pe magic }
+        seek(f,peheaderpos+4);
+        blockread(f,peheader,sizeof(tcoffheader));
+        blockread(f,peoptheader,sizeof(tcoffpeoptheader));
+        { write the value after the change }
+        Message1(execinfo_x_stackreserve,tostr(peoptheader.SizeOfStackReserve));
+        Message1(execinfo_x_stackcommit,tostr(peoptheader.SizeOfStackCommit));
+        { read section info }
+        maxfillsize:=0;
+        firstsecpos:=0;
+        secroot:=nil;
+        for l:=1 to peheader.nsects do
+         begin
+           blockread(f,coffsec,sizeof(tcoffsechdr));
+           if coffsec.datapos>0 then
+            begin
+              if secroot=nil then
+               firstsecpos:=coffsec.datapos;
+              new(hsecroot);
+              hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
+              hsecroot^.fillsize:=coffsec.datasize-coffsec.vsize;
+              hsecroot^.next:=secroot;
+              secroot:=hsecroot;
+              if secroot^.fillsize>maxfillsize then
+               maxfillsize:=secroot^.fillsize;
+            end;
+         end;
+        if firstsecpos>0 then
+         begin
+           l:=firstsecpos-filepos(f);
+           if l>maxfillsize then
+            maxfillsize:=l;
+         end
+        else
+         l:=0;
+        { get zero buffer }
+        getmem(zerobuf,maxfillsize);
+        fillchar(zerobuf^,maxfillsize,0);
+        { zero from sectioninfo until first section }
+        blockwrite(f,zerobuf^,l);
+        { zero section alignments }
+        while assigned(secroot) do
+         begin
+           seek(f,secroot^.fillpos);
+           blockwrite(f,zerobuf^,secroot^.fillsize);
+           hsecroot:=secroot;
+           secroot:=secroot^.next;
+           dispose(hsecroot);
+         end;
+        freemem(zerobuf,maxfillsize);
+        close(f);
+        {$I+}
+        if ioresult<>0 then;
+        postprocessexecutable:=true;
+      end;
+
+
+{****************************************************************************
+                            TDLLScannerWin
+****************************************************************************}
+
+    procedure TDLLScannerWin.CheckDLLFunc(const dllname,funcname:string);
       var
         hp : tExternalsItem;
       begin
@@ -1592,7 +1733,7 @@ end;
                     current_module.uses_imports:=true;
                     importlib.preparelib(current_module.modulename^);
                   end;
-                timportlibwin32(importlib).importprocedure_str(dllname,0,funcname);
+                TImportLibWin(importlib).importprocedure_str(dllname,0,funcname);
                 importfound:=true;
                 exit;
               end;
@@ -1601,7 +1742,7 @@ end;
       end;
 
 
-    function tDLLScannerWin32.scan(const binname:string):boolean;
+    function TDLLScannerWin.scan(const binname:string):boolean;
       var
         hs,
         dllname : string;
@@ -1626,33 +1767,34 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_win32_info,TLinkerWin32);
-  RegisterInternalLinker(system_i386_win32_info,TPECoffLinker);
-  RegisterImport(system_i386_win32,TImportLibWin32);
-  RegisterExport(system_i386_win32,TExportLibWin32);
-  RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
+  { Win32 }
+  RegisterExternalLinker(system_i386_win32_info,TExternalLinkerWin);
+  RegisterInternalLinker(system_i386_win32_info,TInternalLinkerWin);
+  RegisterImport(system_i386_win32,TImportLibWin);
+  RegisterExport(system_i386_win32,TExportLibWin);
+  RegisterDLLScanner(system_i386_win32,TDLLScannerWin);
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_i386_win32_info);
-
-  RegisterExternalLinker(system_i386_wince_info,TLinkerWin32);
-  RegisterImport(system_i386_wince,TImportLibWin32);
-  RegisterExport(system_i386_wince,TExportLibWin32);
-  RegisterDLLScanner(system_i386_wince,TDLLScannerWin32);
+  { WinCE }
+  RegisterExternalLinker(system_i386_wince_info,TExternalLinkerWin);
+  RegisterImport(system_i386_wince,TImportLibWin);
+  RegisterExport(system_i386_wince,TExportLibWin);
+  RegisterDLLScanner(system_i386_wince,TDLLScannerWin);
   RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
   RegisterInternalLinker(system_x64_win64_info,TPECoffLinker);
-  RegisterImport(system_x86_64_win64,TImportLibWin32);
-  RegisterExport(system_x86_64_win64,TExportLibWin32);
-  RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin32);
+  RegisterImport(system_x86_64_win64,TImportLibWin);
+  RegisterExport(system_x86_64_win64,TExportLibWin);
+  RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
   RegisterRes(res_gnu_windres_info);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
 {$ifdef arm}
-  RegisterExternalLinker(system_arm_wince_info,TLinkerWin32);
+  RegisterExternalLinker(system_arm_wince_info,TExternalLinkerWin);
   RegisterInternalLinker(system_arm_wince_info,TPECoffLinker);
-  RegisterImport(system_arm_wince,TImportLibWin32);
-  RegisterExport(system_arm_wince,TExportLibWin32);
+  RegisterImport(system_arm_wince,TImportLibWin);
+  RegisterExport(system_arm_wince,TExportLibWin);
   RegisterRes(res_gnu_wince_windres_info);
   RegisterTarget(system_arm_wince_info);
 {$endif arm}

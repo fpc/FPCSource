@@ -188,11 +188,10 @@ interface
          procedure read_symbols(objdata:TObjData);
          procedure ObjSections_read_data(p:TObject;arg:pointer);
          procedure ObjSections_read_relocs(p:TObject;arg:pointer);
-       protected
-         function  readObjData(objdata:TObjData):boolean;override;
        public
          constructor createcoff(awin32:boolean);
          destructor destroy;override;
+         function  ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;override;
        end;
 
        TDJCoffObjInput = class(TCoffObjInput)
@@ -264,16 +263,6 @@ interface
 
        TPECoffassembler = class(tinternalassembler)
          constructor create(smart:boolean);override;
-       end;
-
-       TDJCofflinker = class(tinternallinker)
-         constructor create;override;
-         procedure DefaultLinkScript;override;
-       end;
-
-       TPECofflinker = class(tinternallinker)
-         constructor create;override;
-         procedure DefaultLinkScript;override;
        end;
 
 
@@ -1736,8 +1725,8 @@ const pemagic : array[0..3] of byte = (
 
             if assigned(data) then
               begin
-                Reader.Seek(datapos);
-                if not Reader.ReadArray(data,Size) then
+                FReader.Seek(datapos);
+                if not FReader.ReadArray(data,Size) then
                   begin
                     Comment(V_Error,'Error reading coff file, can''t read object data');
                     exit;
@@ -1758,14 +1747,14 @@ const pemagic : array[0..3] of byte = (
 
             if coffrelocs>0 then
               begin
-                Reader.Seek(coffrelocpos);
+                FReader.Seek(coffrelocpos);
                 read_relocs(TCoffObjSection(p));
               end;
           end;
       end;
 
 
-    function  TCoffObjInput.readObjData(objdata:TObjData):boolean;
+    function  TCoffObjInput.ReadObjData(AReader:TObjectreader;objdata:TObjData):boolean;
       var
         secalign : shortint;
         strsize,
@@ -1779,37 +1768,39 @@ const pemagic : array[0..3] of byte = (
         secname  : string;
         secnamebuf : array[0..15] of char;
       begin
+        FReader:=AReader;
+        InputFileName:=AReader.FileName;
         result:=false;
         FCoffSyms:=TDynamicArray.Create(symbolresize);
         FCoffStrs:=TDynamicArray.Create(strsresize);
         with TCoffObjData(objdata) do
          begin
            { Read COFF header }
-           if not reader.read(header,sizeof(tcoffheader)) then
+           if not AReader.read(header,sizeof(tcoffheader)) then
              begin
-               Comment(V_Error,'Error reading coff file, can''t read header: '+reader.filename);
+               InputError('Can''t read COFF Header');
                exit;
              end;
            if header.mach<>COFF_MAGIC then
              begin
-               Comment(V_Error,'Not a coff file, illegal magic: '+reader.filename);
+               InputError('Illegal COFF Magic');
                exit;
              end;
            { Strings }
-           Reader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
-           if not Reader.Read(strsize,4) then
+           AReader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
+           if not AReader.Read(strsize,4) then
              begin
-               Comment(V_Error,'Error reading coff file');
+               InputError('Error reading COFF Symtable');
                exit;
              end;
            if strsize<4 then
              begin
-               Comment(V_Error,'Error reading coff file');
+               InputError('Error reading COFF Symtable');
                exit;
              end;
-           if not Reader.ReadArray(FCoffStrs,Strsize-4) then
+           if not AReader.ReadArray(FCoffStrs,Strsize-4) then
              begin
-               Comment(V_Error,'Error reading coff file: '+reader.filename);
+               InputError('Error reading COFF Symtable');
                exit;
              end;
            { Section headers }
@@ -1817,12 +1808,12 @@ const pemagic : array[0..3] of byte = (
            FSecCount:=header.nsects;
            GetMem(FSecTbl,(header.nsects+1)*sizeof(TObjSection));
            FillChar(FSecTbl^,(header.nsects+1)*sizeof(TObjSection),0);
-           reader.Seek(sizeof(tcoffheader)+header.opthdr);
+           AReader.Seek(sizeof(tcoffheader)+header.opthdr);
            for i:=1 to header.nsects do
              begin
-               if not reader.read(sechdr,sizeof(sechdr)) then
+               if not AReader.read(sechdr,sizeof(sechdr)) then
                 begin
-                  Comment(V_Error,'Error reading coff file, can''t read section header: '+reader.filename);
+                  InputError('Error reading COFF Section Headers');
                   exit;
                 end;
                move(sechdr.name,secnamebuf,8);
@@ -1835,7 +1826,7 @@ const pemagic : array[0..3] of byte = (
                      secname:=Read_str(strpos)
                    else
                      begin
-                       Comment(V_Error,'Error reading section headers coff file');
+                       InputError('Error reading COFF Section Headers');
                        secname:='error';
                      end;
                  end;
@@ -1863,8 +1854,8 @@ const pemagic : array[0..3] of byte = (
                objsec.Size:=sechdr.dataSize;
              end;
            { ObjSymbols }
-           Reader.Seek(header.sympos);
-           if not Reader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
+           AReader.Seek(header.sympos);
+           if not AReader.ReadArray(FCoffSyms,header.syms*sizeof(CoffSymbol)) then
              begin
                Comment(V_Error,'Error reading coff file');
                exit;
@@ -1930,11 +1921,6 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
-        if win32 then
-          if target_info.system in [system_arm_wince] then
-            imagebase:=$10000
-          else
-            imagebase:=$400000;
       end;
 
 
@@ -1961,6 +1947,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffexeoutput.globalsyms_write_symbol(p:TObject;arg:pointer);
       var
+        secval,
         value  : aint;
         globalval : byte;
         exesec : TExeSection;
@@ -1970,18 +1957,24 @@ const pemagic : array[0..3] of byte = (
         with texesymbol(p).objsymbol do
           begin
             exesec:=TExeSection(objsection.exesection);
-            if not assigned(exesec) then
+            { There is no exesection defined for special internal symbols
+              like __image_base__ }
+            if assigned(exesec) then
               begin
-                Comment(V_Error, 'Section ' + objsection.FullName + ' does not supported.');
-                exit;
+                secval:=exesec.secsymidx;
+                value:=address-exesec.mempos;
+              end
+            else
+              begin
+                secval:=-1;
+                value:=address;
               end;
             if bind=AB_LOCAL then
               globalval:=3
             else
               globalval:=2;
             { reloctype address to the section in the executable }
-            value:=address-exesec.mempos;
-            write_symbol(name,value,exesec.secsymidx,globalval,0);
+            write_symbol(name,value,secval,globalval,0);
           end;
       end;
 
@@ -2326,9 +2319,9 @@ const pemagic : array[0..3] of byte = (
           emptyint : longint;
         begin
           emptyint:=0;
-          idata4objsection:=internalobjdata.createsection(sec_idata4, 'end_'+basedllname);
+          idata4objsection:=internalobjdata.createsection(sec_idata4, basedllname+'_z_');
           internalobjdata.SymbolDefine('__imp_names_end_'+basedllname,AB_LOCAL,AT_DATA);
-          idata5objsection:=internalobjdata.createsection(sec_idata5, 'end_'+basedllname);
+          idata5objsection:=internalobjdata.createsection(sec_idata5, basedllname+'_z_');
           internalobjdata.SymbolDefine('__imp_fixup_end_'+basedllname,AB_LOCAL,AT_DATA);
           { idata4 }
           internalobjdata.SetSection(idata4objsection);
@@ -2368,6 +2361,7 @@ const pemagic : array[0..3] of byte = (
           idata5label,
           idata6label : TObjSymbol;
           emptyint : longint;
+          secname,
           num : string;
         begin
           result:=nil;
@@ -2376,10 +2370,13 @@ const pemagic : array[0..3] of byte = (
             exemap.Add(' Importing Function '+afuncname);
 
           with internalobjdata do
-            textobjsection:=createsection(sectionname(sec_code,'__'+afuncname),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
-          idata4objsection:=internalobjdata.createsection(sec_idata4, afuncname);
-          idata5objsection:=internalobjdata.createsection(sec_idata5, afuncname);
-          idata6objsection:=internalobjdata.createsection(sec_idata6, afuncname);
+            begin
+              secname:=basedllname+'_i_'+afuncname;
+              textobjsection:=createsection(sectionname(sec_code,secname),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
+              idata4objsection:=createsection(sec_idata4, secname);
+              idata5objsection:=createsection(sec_idata5, secname);
+              idata6objsection:=createsection(sec_idata6, secname);
+            end;
 
           { idata6, import data (ordnr+name) }
           internalobjdata.SetSection(idata6objsection);
@@ -2433,16 +2430,18 @@ const pemagic : array[0..3] of byte = (
                 ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList[j]);
                 exesym:=TExeSymbol(ExeSymbolList.Find(ExtSymbol.Name));
                 if assigned(exesym) and
-                   not assigned(exesym.objsymbol) then
+                   (exesym.State<>symstate_defined) then
                   begin
                     if not assigned(idata2objsection) then
                       StartImport(ExtLibrary.Name);
                     exesym.objsymbol:=AddProcImport(ExtSymbol.Name);
+                    exesym.State:=symstate_defined;
                   end;
               end;
             if assigned(idata2objsection) then
               EndImport;
           end;
+        PackUnresolvedExeSymbols('after DLL imports');
       end;
 
 
@@ -2465,113 +2464,6 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited Create(smart);
         CObjOutput:=TPECoffObjOutput;
-      end;
-
-
-{****************************************************************************
-                                  TCoffLinker
-****************************************************************************}
-
-    constructor TDJCoffLinker.Create;
-      begin
-        inherited Create;
-        CExeoutput:=TDJCoffexeoutput;
-        CObjInput:=TDJCoffObjInput;
-      end;
-
-
-    procedure TDJCoffLinker.DefaultLinkScript;
-      begin
-      end;
-
-
-    constructor TPECoffLinker.Create;
-      begin
-        inherited Create;
-        CExeoutput:=TPECoffexeoutput;
-        CObjInput:=TPECoffObjInput;
-      end;
-
-
-    procedure TPECoffLinker.DefaultLinkScript;
-      var
-        ibase: string;
-      begin
-        with LinkScript do
-          begin
-            Concat('READUNITOBJECTS');
-            if assigned(DLLImageBase) then
-              ibase:=DLLImageBase^
-            else
-              ibase:='';
-            if IsSharedLibrary then
-              begin
-                if ibase = '' then
-                  ibase:='10000000';
-                Concat('ISSHAREDLIBRARY');
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _DLLMainCRTStartup');
-              end
-            else
-              begin
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _WinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _mainCRTStartup');
-              end;
-            if ibase <> '' then
-              Concat('IMAGEBASE $' + ibase);
-            Concat('HEADER');
-            Concat('EXESECTION .text');
-{$ifdef arm}
-            Concat('  OBJSECTION .pdata.FPC_EH_PROLOG');
-{$endif arm}
-            Concat('  OBJSECTION .text*');
-            Concat('  SYMBOL etext');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .data');
-            Concat('  SYMBOL __data_start__');
-            Concat('  OBJSECTION .data*');
-            Concat('  SYMBOL edata');
-            Concat('  SYMBOL __data_end__');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .rdata');
-            Concat('  OBJSECTION .rodata*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .pdata');
-            Concat('  OBJSECTION .pdata');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .bss');
-            Concat('  SYMBOL __bss_start__');
-            Concat('  OBJSECTION .bss*');
-            Concat('  SYMBOL __bss_end__');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .idata');
-            Concat('  OBJSECTION .idata$2*');
-            Concat('  OBJSECTION .idata$3*');
-            Concat('  ZEROS 20');
-            Concat('  OBJSECTION .idata$4*');
-            Concat('  OBJSECTION .idata$5*');
-            Concat('  OBJSECTION .idata$6*');
-            Concat('  OBJSECTION .idata$7*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .edata');
-            Concat('  OBJSECTION .edata*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .rsrc');
-            Concat('  OBJSECTION .rsrc*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .stab');
-            Concat('  OBJSECTION .stab');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .stabstr');
-            Concat('  OBJSECTION .stabstr');
-            Concat('ENDEXESECTION');
-            Concat('STABS');
-            Concat('SYMBOLS');
-          end;
       end;
 
 
