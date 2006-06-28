@@ -1481,6 +1481,13 @@ implementation
                  else
                    linker.MakeExecutable;
                end;
+
+             { Give Fatal with error count for linker errors }
+             if (Errorcount>0) and not status.skip_error then
+              begin
+                Message1(unit_f_errors_in_unit,tostr(Errorcount));
+                status.skip_error:=true;
+              end;
           end;
       end;
 
