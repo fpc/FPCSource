@@ -420,7 +420,7 @@ const
      pocall_cdecl,pocall_cppdecl,pocall_syscall
    ];
 
-   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal,pocall_mwpascal];
+   pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
