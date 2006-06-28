@@ -231,7 +231,8 @@ type
   TFPHashObject = class
   private
     FOwner : TFPHashObjectList;
-    FStrIndex : Integer;
+    FCachedStr : pstring;
+    FStrIndex  : Integer;
   protected
     function GetName:string;
   public
@@ -520,19 +521,19 @@ type
        end;
 
 
-Const WeightDefault = 1000;  
+Const WeightDefault = 1000;
 
 Type
-  TLinkRec = record 
+  TLinkRec = record
     Key   : AnsiString;
     Value : AnsiString; // key expands to valuelist "value"
     Weight: longint;
     end;
-               
+
   TLinkStrMap  = class
     private
      itemcnt : longint;
-     fmap : Array Of TLinkRec; 
+     fmap : Array Of TLinkRec;
      function  Lookup(key:Ansistring):longint;
      function getlinkrec(i:longint):TLinkRec;
     public
@@ -541,11 +542,11 @@ Type
      function  AddDep(keyvalue:String):boolean;
      function  AddWeight(keyvalue:String):boolean;
      procedure SetValue(key:AnsiString;Weight:Integer);
-     procedure SortonWeight; 
-     function Find(key:AnsiString):AnsiString; 
+     procedure SortonWeight;
+     function Find(key:AnsiString):AnsiString;
      procedure Expand(src:TStringList;dest: TLinkStrMap);
      procedure UpdateWeights(Weightmap:TLinkStrMap);
-     constructor Create; 
+     constructor Create;
     property count : longint read itemcnt;
     property items[I:longint]:TLinkRec read getlinkrec; default;
      end;
@@ -1492,12 +1493,14 @@ begin
   FOwner:=HashObjectList;
   Index:=HashObjectList.Add(s,Self);
   FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
+  FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
 end;
 
 
 function TFPHashObject.GetName:string;
 begin
-  Result:=PShortString(@FOwner.List.Strs[FStrIndex])^;
+  FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
+  Result:=FCachedStr^;
 end;
 
 
@@ -3319,9 +3322,9 @@ end;
 procedure TLinkStrMap.Add(key:ansistring;value:AnsiString='';weight:longint=weightdefault);
 
 begin
-  if lookup(key)<>-1 Then 
+  if lookup(key)<>-1 Then
     exit;
-  if itemcnt<=length(fmap) Then 
+  if itemcnt<=length(fmap) Then
     setlength(fmap,itemcnt+10);
   fmap[itemcnt].key:=key;
   fmap[itemcnt].value:=value;
@@ -3336,7 +3339,7 @@ var i : Longint;
 begin
   AddDep:=false;
   i:=pos('=',keyvalue);
-  if i=0 then 
+  if i=0 then
     exit;
   Add(Copy(KeyValue,1,i-1),Copy(KeyValue,i+1,length(KeyValue)-i));
   AddDep:=True;
@@ -3351,15 +3354,15 @@ var i,j    : Longint;
 begin
   AddWeight:=false;
   i:=pos('=',keyvalue);
-  if i=0 then 
+  if i=0 then
     exit;
-  s:=Copy(KeyValue,i+1,length(KeyValue)-i);  
+  s:=Copy(KeyValue,i+1,length(KeyValue)-i);
   val(s,j,code);
   if code=0 Then
     begin
       Add(Copy(KeyValue,1,i-1),'',j);
       AddWeight:=True;
-    end;  
+    end;
 end;
 
 procedure TLinkStrMap.addseries(keys:AnsiString;weight:longint);
@@ -3371,11 +3374,11 @@ begin
  while i<=k do
    begin
      j:=i;
-     while (i<=k) and (keys[i]<>',') do 
+     while (i<=k) and (keys[i]<>',') do
        inc(i);
-     add(copy(keys,j,i-j),'',weight);  
+     add(copy(keys,j,i-j),'',weight);
      inc(i);
-   end; 
+   end;
 end;
 
 procedure TLinkStrMap.SetValue(Key:Ansistring;weight:Integer);
@@ -3386,7 +3389,7 @@ begin
    j:=lookup(key);
    if j<>-1 then
     fmap[j].weight:=weight;
-end;      
+end;
 
 function TLinkStrMap.find(key:Ansistring):Ansistring;
 
@@ -3407,7 +3410,7 @@ begin
    lookup:=-1;
    i:=0;
    {$B-}
-   while (i<itemcnt) and (fmap[i].key<>key) do 
+   while (i<itemcnt) and (fmap[i].key<>key) do
      inc(i);
    {$B+}
    if i<>itemcnt then
@@ -3417,10 +3420,10 @@ end;
 procedure TLinkStrMap.SortOnWeight;
 
 var i, j : longint;
-    m	 : TLinkRec;
+    m    : TLinkRec;
 begin
   if itemcnt <2 then exit;
-  for i:=0 to itemcnt-1 do 
+  for i:=0 to itemcnt-1 do
     for j:=i+1 to itemcnt-1 do
       begin
       if fmap[i].weight>fmap[j].weight Then
@@ -3428,8 +3431,8 @@ begin
           m:=fmap[i];
           fmap[i]:=fmap[j];
           fmap[j]:=m;
-        end;  
-     end;   
+        end;
+     end;
 end;
 
 function TLinkStrMap.getlinkrec(i:longint):TLinkRec;
@@ -3437,7 +3440,7 @@ function TLinkStrMap.getlinkrec(i:longint):TLinkRec;
 begin
   result:=fmap[i];
 end;
-    	
+
 procedure TLinkStrMap.Expand(Src:TStringList;Dest:TLinkStrMap);
 // expands every thing in Src to Dest for linkorder purposes.
 
@@ -3451,10 +3454,10 @@ begin
       r:=lookup (LibN);
       if r=-1 then
         dest.add(LibN)
-      else 
+      else
         dest.addseries(fmap[r].value);
     end;
-end;  
+end;
 
 procedure TLinkStrMap.UpdateWeights(Weightmap:TLinkStrMap);
 
@@ -3462,12 +3465,11 @@ var l,r : longint;
 begin
   for l := 0 to itemcnt-1 do
     begin
-      r:=weightmap.lookup (fmap[l].key); 
+      r:=weightmap.lookup (fmap[l].key);
       if r<>-1 then
         fmap[l].weight:=weightmap[r].weight;
-    end; 
+    end;
 end;
 
 
 end.
- 
