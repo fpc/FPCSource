@@ -1685,14 +1685,17 @@ const pemagic : array[0..3] of byte = (
                     if sym.section=0 then
                       InputError('Failed reading coff file, illegal section');
                     objsec:=GetSection(sym.section);
-                    if sym.value>=objsec.mempos then
-                      address:=sym.value-objsec.mempos;
-                    objsym:=CreateSymbol(strname);
-                    objsym.bind:=AB_LOCAL;
-                    objsym.typ:=AT_FUNCTION;
-                    objsym.objsection:=objsec;
-                    objsym.offset:=address;
-                    objsym.size:=size;
+                    if assigned(objsec) then
+                      begin
+                        if sym.value>=objsec.mempos then
+                          address:=sym.value-objsec.mempos;
+                        objsym:=CreateSymbol(strname);
+                        objsym.bind:=AB_LOCAL;
+                        objsym.typ:=AT_FUNCTION;
+                        objsym.objsection:=objsec;
+                        objsym.offset:=address;
+                        objsym.size:=size;
+                      end;
                   end;
                 COFF_SYM_FUNCTION,
                 COFF_SYM_FILE :
