@@ -455,14 +455,22 @@ implementation
 
     function tai_align.calculatefillbuf(var buf : tfillbuffer):pchar;
       const
+{$ifdef x86_64}
+        alignarray:array[0..3] of string[4]=(
+          #$66#$66#$66#$90,
+          #$66#$66#$90,
+          #$66#$90,
+          #$90
+        );
+{$else x86_64}
         alignarray:array[0..5] of string[8]=(
           #$8D#$B4#$26#$00#$00#$00#$00,
           #$8D#$B6#$00#$00#$00#$00,
           #$8D#$74#$26#$00,
           #$8D#$76#$00,
           #$89#$F6,
-          #$90
-        );
+          #$90);
+{$endif x86_64}
       var
         bufptr : pchar;
         j : longint;
@@ -473,7 +481,7 @@ implementation
            bufptr:=pchar(@buf);
            while (fillsize>0) do
             begin
-              for j:=0 to 5 do
+              for j:=low(alignarray) to high(alignarray) do
                if (fillsize>=length(alignarray[j])) then
                 break;
               move(alignarray[j][1],bufptr^,length(alignarray[j]));
