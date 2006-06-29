@@ -296,8 +296,8 @@ implementation
           begin
             If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
               begin
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),0));
-                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),0));
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'_1_START'),0));
+                ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'_3_END'),0));
                 inc(count);
               end;
             hp:=tmodule(hp.next);
