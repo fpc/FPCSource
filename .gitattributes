@@ -791,6 +791,7 @@ fcl/fpcunit/tests/frameworktest.pp svneol=native#text/plain
 fcl/fpcunit/tests/suitetest.pp svneol=native#text/plain
 fcl/fpcunit/testutils.pp svneol=native#text/plain
 fcl/fpcunit/ubmockobject.pp svneol=native#text/plain
+fcl/fpcunit/xmlreporter.pas svneol=native#text/plain
 fcl/fpmake.pp svneol=native#text/plain
 fcl/freebsd/syncobjs.pp svneol=native#text/plain
 fcl/go32v2/custapp.inc svneol=native#text/plain
