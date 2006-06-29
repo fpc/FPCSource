@@ -837,6 +837,10 @@ implementation
                cg.a_load_const_reg(taasmoutput(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
                    tglobalvarsym(p).localloc.register);
              LOC_REFERENCE : ;
+             LOC_CMMREGISTER :
+               ;
+             LOC_CFPUREGISTER :
+               ;
              else
                internalerror(200410124);
            end;
@@ -1206,6 +1210,9 @@ implementation
                       cg.getcpuregister(list,funcretloc.register);
                       cg.ungetcpuregister(list,funcretloc.register);
                     end;
+                  { we can't do direct moves between fpu and mm registers }
+                  if restmploc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
+                    location_force_fpureg(list,restmploc,false);
                   cg.a_loadfpu_loc_reg(list,restmploc,funcretloc.register);
                 end;
               LOC_MMREGISTER:
@@ -1484,8 +1491,11 @@ implementation
                 begin
                   unget_para(paraloc^);
                   gen_load_reg(paraloc^,currpara.localloc.register);
+                  { data could come in two memory locations, for now
+                    we simply ignore the sanity check (FK)
                   if assigned(paraloc^.next) then
                     internalerror(200410108);
+                  }
                 end;
             end;
           end;
