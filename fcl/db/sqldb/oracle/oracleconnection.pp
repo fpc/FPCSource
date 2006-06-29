@@ -346,7 +346,7 @@ begin
                                   OFieldType := SQLT_INT;
                                   OFieldSize:= sizeof(integer);
                                   end
-                                else if (oscale = -127) and (OPrecision=0) then
+                                else if (oscale = -127) {and (OPrecision=0)} then
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
@@ -367,7 +367,10 @@ begin
         OCI_TYPECODE_DATE     : FieldType := ftDate;
         OCI_TYPECODE_TIMESTAMP,
         OCI_TYPECODE_TIMESTAMP_LTZ,
-        OCI_TYPECODE_TIMESTAMP_TZ  : FieldType := ftDateTime;
+        OCI_TYPECODE_TIMESTAMP_TZ  : begin
+                                     FieldType := ftDateTime;
+                                     OFieldType := SQLT_ODT;
+                                     end;
       else
         FieldType := ftUnknown;
       end;
@@ -412,9 +415,7 @@ var dt        : TDateTime;
     size,i    :  byte;
     exp       : shortint;
     cur       : Currency;
-    ts        : TTimeStamp;
-    dattim    : ^TDateTime;
-    
+    odt       : POCIdateTime;
 
 begin
   with cursor as TOracleCursor do if fieldbuffers[FieldDef.FieldNo-1].ind = -1 then
@@ -451,10 +452,8 @@ begin
                 move(dt,buffer^,sizeof(dt));
                 end;
       ftDateTime : begin
-                   dattim := fieldbuffers[FieldDef.FieldNo-1].buffer;
-                   
-//              dt := EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]);
-//                   dt := ComposeDateTime(EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]), EncodeTime(b[4],b[5],b[6],0));
+                   odt := fieldbuffers[FieldDef.FieldNo-1].buffer;
+                   dt := ComposeDateTime(EncodeDate(odt^.year,odt^.month,odt^.day), EncodeTime(odt^.hour,odt^.min,odt^.sec,0));
                    move(dt,buffer^,sizeof(dt));
                    end;
     else
