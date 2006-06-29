@@ -154,9 +154,9 @@ uses
 	  the data sections }
         maybe_new_object_file(current_asmdata.asmlists[al_const]);
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
-        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+current_module.localsymtable.name^+'_start',sizeof(aint));
+        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(aint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'_1_START'),AT_DATA,0));
+          make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
 
         { Write unitname entry }
         namelab:=WriteValueString(@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^));
@@ -172,7 +172,7 @@ uses
         R:=TResourceStringItem(List.First);
         while assigned(R) do
           begin
-            new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'_2_'+r.name),sizeof(aint));
+            new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(aint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
               valuelab:=WriteValueString(R.Value,R.Len)
@@ -190,7 +190,7 @@ uses
                      HashValue    : LongWord;
                    end;
             }
-            new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'_i_'+r.name),sizeof(aint));
+            new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'2_'+r.name),sizeof(aint));
             resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
@@ -203,9 +203,9 @@ uses
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol_end.create(resstrlab));
             R:=TResourceStringItem(R.Next);
           end;
-        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,'resstridx_'+current_module.localsymtable.name^+'_end',sizeof(aint));
+        new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(aint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'_3_END'),AT_DATA,0));
+          make_mangledname('RESSTR',current_module.localsymtable,'END'),AT_DATA,0));
       end;
 
 
