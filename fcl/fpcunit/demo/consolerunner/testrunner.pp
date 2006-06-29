@@ -1,5 +1,3 @@
-{$mode objfpc}
-{$h+}
 {
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
@@ -12,28 +10,33 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
+}
 program testrunner;
+
+{$mode objfpc}
+{$h+}
+
 uses
-  custapp, classes, SysUtils, fpcunit, suiteconfig, testreport, testregistry;
+  custapp, Classes, SysUtils, fpcunit, suiteconfig, xmlreporter, testregistry;
 
-Const
+
+const
   ShortOpts = 'alh';
-  Longopts : Array[1..5] of String = (
+  Longopts: Array[1..5] of String = (
     'all','list','format:','suite:','help');
-  Version = 'Version 0.1';
+  Version = 'Version 0.2';
 
-Type
+
+type
   TTestRunner = Class(TCustomApplication)
   private
     FXMLResultsWriter: TXMLResultsWriter;
   protected
-    procedure DoRun ; Override;
-    procedure doTestRun(aTest: TTest); virtual;
+    procedure   DoRun ; Override;
+    procedure   doTestRun(aTest: TTest); virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
+    destructor  Destroy; override;
   end;
 
 
@@ -43,10 +46,12 @@ begin
   FXMLResultsWriter := TXMLResultsWriter.Create;
 end;
 
+
 destructor TTestRunner.Destroy;
 begin
   FXMLResultsWriter.Free;
 end;
+
 
 procedure TTestRunner.doTestRun(aTest: TTest);
 var
@@ -55,13 +60,13 @@ begin
   testResult := TTestResult.Create;
   try
     testResult.AddListener(FXMLResultsWriter);
-    FXMLResultsWriter.WriteHeader;
     aTest.Run(testResult);
     FXMLResultsWriter.WriteResult(testResult);
   finally
     testResult.Free;
   end;
 end;
+
 
 procedure TTestRunner.DoRun;
 var
@@ -119,13 +124,15 @@ begin
 end;
 
 
-Var
-  App : TTestRunner;
+var
+  App: TTestRunner;
+
 
 begin
-  App:=TTestRunner.Create(Nil);
+  App := TTestRunner.Create(nil);
   App.Initialize;
   App.Title := 'FPCUnit Console Test Case runner.';
   App.Run;
   App.Free;
 end.
+
