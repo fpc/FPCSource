@@ -101,6 +101,7 @@ function TryEncodeDate(Year, Month, Day: Word; var Date: TDateTime): Boolean;
 function TryEncodeTime(Hour, Min, Sec, MSec: Word; var Time: TDateTime): Boolean;
 function EncodeDate(Year, Month, Day :word): TDateTime;
 function EncodeTime(Hour, Minute, Second, MilliSecond:word): TDateTime;
+function ComposeDateTime(Date,Time : TDateTime) : TDateTime;
 procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
 function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;
 procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);

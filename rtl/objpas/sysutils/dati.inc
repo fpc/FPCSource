@@ -43,16 +43,17 @@ begin
     Result:=0;
 end;
 
-function ComposeDateTime(Date,Time : TDateTime) : TDateTime;
-
-begin
-  if Date < 0 then Result := Date - Time
-  else Result := Date + Time;
-end;
-
 {==============================================================================}
 {   Public functions                                                           }
 {==============================================================================}
+
+{   ComposeDateTime converts a Date and a Time into one TDateTime   }
+function ComposeDateTime(Date,Time : TDateTime) : TDateTime;
+
+begin
+  if Date < 0 then Result := trunc(Date) - frac(Time)
+  else Result := trunc(Date) + frac(Time);
+end;
 
 {   DateTimeToTimeStamp converts DateTime to a TTimeStamp   }
 
