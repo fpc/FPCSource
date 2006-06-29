@@ -1783,7 +1783,7 @@ initialization
   RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
-  RegisterInternalLinker(system_x64_win64_info,TPECoffLinker);
+  RegisterInternalLinker(system_x64_win64_info,TInternalLinker);
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
