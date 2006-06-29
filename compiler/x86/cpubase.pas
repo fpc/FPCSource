@@ -314,7 +314,7 @@ implementation
 
     function reg_cgsize(const reg: tregister): tcgsize;
       const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO);
+            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_F32,OS_F64);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
@@ -324,7 +324,7 @@ implementation
           R_MMXREGISTER:
             reg_cgsize:=OS_M64;
           R_MMREGISTER:
-            reg_cgsize:=OS_M128;
+            reg_cgsize:=subreg2cgsize[getsubreg(reg)];
           R_SPECIALREGISTER :
             case reg of
               NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
@@ -341,7 +341,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO,S_NO,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -418,8 +418,16 @@ implementation
 
 
     function findreg_by_number(r:Tregister):tregisterindex;
+      var
+        hr : tregister;
       begin
-        result:=findreg_by_number_table(r,regnumber_index);
+        { for the name the sub reg doesn't matter }
+        hr:=r;
+        case getsubreg(hr) of
+          R_SUBMMS,R_SUBMMD:
+            setsubreg(hr,R_SUBNONE);
+        end;
+        result:=findreg_by_number_table(hr,regnumber_index);
       end;
 
 

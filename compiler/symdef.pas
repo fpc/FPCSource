@@ -848,6 +848,10 @@ interface
     function is_class_or_interface(def: tdef): boolean;
 
 
+{$ifdef x86}
+    function use_sse(def : tdef) : boolean;
+{$endif x86}
+
 implementation
 
     uses
@@ -1336,7 +1340,7 @@ implementation
    function tstoreddef.is_fpuregable : boolean;
      begin
 {$ifdef x86}
-       result:=false;
+       result:=use_sse(self);
 {$else x86}
        result:=(deftype=floatdef);
 {$endif x86}
@@ -6596,5 +6600,14 @@ implementation
           (def.deftype=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
       end;
+
+
+{$ifdef x86}
+    function use_sse(def : tdef) : boolean;
+      begin
+        use_sse:=(is_single(def) and (aktfputype in sse_singlescalar)) or
+          (is_double(def) and (aktfputype in sse_doublescalar));
+      end;
+{$endif x86}
 
 end.

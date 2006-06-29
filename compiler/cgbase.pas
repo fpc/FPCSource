@@ -129,7 +129,9 @@ interface
         { For Sparc floats that use F0:F1 to store doubles }
         R_SUBFS,   { = 6; Float that allocates 1 FPU register }
         R_SUBFD,   { = 7; Float that allocates 2 FPU registers }
-        R_SUBFQ    { = 8; Float that allocates 4 FPU registers }
+        R_SUBFQ,   { = 8; Float that allocates 4 FPU registers }
+        R_SUBMMS,  { = 9; single scalar in multi media register }
+        R_SUBMMD   { = 10; double scalar in multi media register }
       );
 
       TSuperRegister = type word;
@@ -501,6 +503,10 @@ implementation
             result:=result+'fs';
           R_SUBFD:
             result:=result+'fd';
+          R_SUBMMD:
+            result:=result+'md';
+          R_SUBMMS:
+            result:=result+'ms';
           else
             internalerror(200308252);
         end;

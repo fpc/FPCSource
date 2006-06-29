@@ -50,7 +50,7 @@ interface
       globtype,
       systems,
       cutils,verbose,globals,
-      symconst,aasmbase,aasmtai,defutil,
+      symconst,symdef,aasmbase,aasmtai,defutil,
       cgbase,pass_1,pass_2,
       ncon,
       cpubase,
