@@ -211,3 +211,10 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
     Result:=Target;
     inc(Target,Source);
   end;
+  
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+  begin
+   Result:=Target; //return initial value
+   if (Target=Comperand)
+   then Target:=NewValue;
+  end;

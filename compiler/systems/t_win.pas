@@ -1792,7 +1792,7 @@ initialization
 {$endif x86_64}
 {$ifdef arm}
   RegisterExternalLinker(system_arm_wince_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_arm_wince_info,TPECoffLinker);
+  RegisterInternalLinker(system_arm_wince_info,TInternalLinkerWin);
   RegisterImport(system_arm_wince,TImportLibWin);
   RegisterExport(system_arm_wince,TExportLibWin);
   RegisterRes(res_gnu_wince_windres_info);
