@@ -1804,8 +1804,9 @@ implementation
             def:=tdef(classh.symtable.defindex.first);
             while assigned(def) do
               begin
+                { Find also all hidden private methods to
+                  be compatible with delphi, see tw6203 (PFV) }
                 if (def.deftype=procdef) and
-                   tprocdef(def).is_visible_for_object(topclassh) and
                    (po_msgint in tprocdef(def).procoptions) and
                    (tprocdef(def).messageinf.i=i) then
                   begin
@@ -1850,8 +1851,9 @@ implementation
             def:=tdef(classh.symtable.defindex.first);
             while assigned(def) do
               begin
+                { Find also all hidden private methods to
+                  be compatible with delphi, see tw6203 (PFV) }
                 if (def.deftype=procdef) and
-                   tprocdef(def).is_visible_for_object(topclassh) and
                    (po_msgstr in tprocdef(def).procoptions) and
                    (tprocdef(def).messageinf.str=s) then
                   begin
