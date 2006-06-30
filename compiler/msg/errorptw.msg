@@ -4,6 +4,7 @@
 #
 #   Portuguese (Windows encoding) language file for Free Pascal Compiler
 #   Contributed by Ari Ricardo Ody <ari.ody at japinfo.com.br>
+#   Based on errore.msg of SVN revision 3935
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
