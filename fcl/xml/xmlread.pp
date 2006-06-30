@@ -261,7 +261,7 @@ begin
     Inc(buf, 2);
     FSource := TUCS2CharSource.Create(Self, buf);
     {$IFDEF ENDIAN_BIG}
-    TUCS2CharSource(FReader.FSource).FSwapEndian := True;
+    TUCS2CharSource(FSource).FSwapEndian := True;
     {$ENDIF}
   end
   else
