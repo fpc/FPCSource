@@ -64,8 +64,8 @@ Type
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
-    function MySQLDataType(AType: enum_field_types; ASize: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types; ASize: Integer; Source, Dest: PChar): Boolean;
+    function MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
+    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType;Source, Dest: PChar): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -331,7 +331,7 @@ begin
     end;
 end;
 
-function TConnectionName.MySQLDataType(AType: enum_field_types; ASize: Integer;
+function TConnectionName.MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer;
    var NewType: TFieldType; var NewSize: Integer): Boolean;
 begin
   Result := True;
@@ -345,7 +345,17 @@ begin
 {$ifdef mysql50}
     FIELD_TYPE_NEWDECIMAL,
 {$endif}
-    FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
+    FIELD_TYPE_DECIMAL: if ADecimals < 5 then
+                          begin
+                          NewType := ftBCD;
+                          NewSize := 0;
+                          end
+                        else
+                          begin
+                          NewType := ftFloat;
+                          NewSize := 0;
+                          end;
+    FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
       begin
       NewType := ftFloat;
       NewSize := 0;
@@ -400,7 +410,7 @@ begin
     field := mysql_fetch_field_direct(C.FRES, I);
 //    Writeln('MySQL: creating fielddef ',I+1);
 
-    if MySQLDataType(field^.ftype, field^.length, DFT, DFS) then
+    if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
       TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
     end;
 //  Writeln('MySQL: Finished adding fielddefs');
@@ -444,7 +454,7 @@ begin
     Inc(Row);
     end;
     
-  Result := MySQLWriteData(field^.ftype, field^.length, Row^, Buffer);
+  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer);
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -463,6 +473,24 @@ begin
       Tmp := Tmp + S[I];
     end;
   Result := StrToFloat(Tmp);
+end;
+
+function InternalStrToCurrency(S: string): Extended;
+
+var
+  I: Integer;
+  Tmp: string;
+
+begin
+  Tmp := '';
+  for I := 1 to Length(S) do
+    begin
+    if not (S[I] in ['0'..'9', '+', '-', 'E', 'e']) then
+      Tmp := Tmp + DecimalSeparator
+    else
+      Tmp := Tmp + S[I];
+    end;
+  Result := StrToCurr(Tmp);
 end;
 
 function InternalStrToDate(S: string): TDateTime;
@@ -541,11 +569,12 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; Source, Dest: PChar): Boolean;
+function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType;Source, Dest: PChar): Boolean;
 
 var
   VI: Integer;
   VF: Double;
+  VC: Currency;
   VD: TDateTime;
   Src : String;
 
@@ -568,13 +597,19 @@ begin
     FIELD_TYPE_NEWDECIMAL,
 {$endif}      
     FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-      begin
-      if Src <> '' then
-        VF := InternalStrToFloat(Src)
+      if AFieldType = ftBCD then
+        begin
+        VC := InternalStrToCurrency(Src);
+        Move(VC, Dest^, SizeOf(Currency));
+        end
       else
-        VF := 0;
-      Move(VF, Dest^, SizeOf(Double));
-      end;
+        begin
+        if Src <> '' then
+          VF := InternalStrToFloat(Src)
+        else
+          VF := 0;
+        Move(VF, Dest^, SizeOf(Double));
+        end;
     FIELD_TYPE_TIMESTAMP:
       begin
       if Src <> '' then
