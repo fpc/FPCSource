@@ -93,6 +93,9 @@ begin
 end;
 
 procedure TOracleConnection.DoInternalConnect;
+
+var ConnectString : string;
+
 begin
 {$IfDef LinkDynamically}
   InitialiseOCI;
@@ -106,7 +109,10 @@ begin
   if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
     DatabaseError(SErrHandleAllocFailed,self);
 
-  if OCILogon2(FOciEnvironment,FOciError,FOciSvcCtx,@username[1],length(username),@password[1],length(password),@databasename[1],length(databasename),OCI_DEFAULT) = OCI_ERROR then
+  if hostname='' then connectstring := databasename
+  else connectstring := '//'+hostname+'/'+databasename;
+
+  if OCILogon2(FOciEnvironment,FOciError,FOciSvcCtx,@username[1],length(username),@password[1],length(password),@connectstring[1],length(connectstring),OCI_DEFAULT) = OCI_ERROR then
     HandleError;
 end;
 
