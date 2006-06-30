@@ -22,12 +22,12 @@ type
     procedure RunTest; override;
   published
     procedure TestInt;
+    procedure TestFloat;
+    procedure TestDateTime;       // bug 6925
     procedure TestNumeric;
     procedure TestString;
     procedure TestUnlVarChar;
     procedure TestDate;
-    procedure TestDateTime;       // bug 6925
-    procedure TestFloat;
 
     procedure TestNullValues;
     procedure TestParamQuery;
@@ -137,7 +137,7 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      if (dbtype='mysql40') or  (dbtype='mysql41') or (dbtype='mysql50') then
+      if (dbtype in MySQLdbTypes) then
         AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL automatically trims strings
       else
         AssertEquals(testValues[i],fields[0].AsString);
@@ -180,7 +180,7 @@ var
   i             : byte;
 
 begin
-  if dbtype <> 'postgresql' then exit; // Only postgres accept this type-definition
+  AssertTrue(SIgnoreAssertion,dbtype = postgresql); // Only postgres accept this type-definition
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
 
@@ -232,7 +232,10 @@ begin
   TestFieldDeclaration(ftDate,8);
 
   for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
+    if dbtype=oracle then
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD''))')
+    else
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
 
 //  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
 
@@ -294,11 +297,14 @@ begin
   CreateTableWithFieldType(ftDateTime,'TIMESTAMP');
   TestFieldDeclaration(ftDateTime,8);
   
-  if dbtype='mysql40' then corrTestValueCount := testValuesCount-21
+  if dbtype=mysql40 then corrTestValueCount := testValuesCount-21
     else corrTestValueCount := testValuesCount;
 
   for i := 0 to corrTestValueCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
+    if dbtype=oracle then
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
+    else
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -578,15 +584,11 @@ end;
 
 procedure TTestFieldTypes.RunTest;
 begin
-  if (dbtype = 'interbase') or
-     (dbtype = 'mysql50') or
-     (dbtype = 'mysql40') or
-     (dbtype = 'mysql41') or
-     (dbtype = 'postgresql') then
+  if (dbtype in SQLDBdbTypes) then
     inherited RunTest;
 end;
 
 initialization
-  RegisterTest(TTestFieldTypes);
+  if dbtype in SQLDBdbTypes then RegisterTest(TTestFieldTypes);
 end.
 

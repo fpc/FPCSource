@@ -21,8 +21,9 @@ type
   protected
     procedure SetUp; override;
     procedure TearDown; override;
-    procedure RunTest; override;
   published
+    procedure TestBufDatasetCancelUpdates; //bug 6938
+    procedure TestBufDatasetCancelUpdates1;
     procedure TestDoubleClose;
     procedure TestAssignFieldftString;
     procedure TestAssignFieldftFixedChar;
@@ -31,14 +32,12 @@ type
     procedure TestMove;                    // bug 5048
     procedure TestActiveBufferWhenClosed;
     procedure TestEOFBOFClosedDataset;
+    procedure TestDataEventsResync;
+    procedure TestBug7007;
     procedure TestdeFieldListChange;
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
-
-    procedure TestBufDatasetCancelUpdates; //bug 6938
-    procedure TestBufDatasetCancelUpdates1;
-
   end;
 
   { TSQLTestSetup }
@@ -185,6 +184,37 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestDataEventsResync;
+var i,count     : integer;
+    aDatasource : TDataSource;
+    aDatalink   : TDataLink;
+    ds          : tdataset;
+
+begin
+  aDatasource := TDataSource.Create(nil);
+  aDatalink := TTestDataLink.Create;
+  aDatalink.DataSource := aDatasource;
+  ds := DBConnector.GetNDataset(6);
+  ds.BeforeScroll := @DBConnector.DataEvent;
+  with ds do
+    begin
+    aDatasource.DataSet := ds;
+    open;
+//    first;
+    DataEvents := '';
+    Resync([rmExact]);
+    AssertEquals('deDataSetChange:0;',DataEvents);
+    DataEvents := '';
+    next;
+    AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;',DataEvents);
+    close;
+    end;
+  aDatasource.Free;
+  aDatalink.Free;
+end;
+
+
+
 procedure TTestDBBasics.TestLastAppendCancel;
 
 var count : integer;
@@ -311,13 +341,6 @@ begin
   DBConnector.FreeDatasets;
 end;
 
-procedure TTestDBBasics.RunTest;
-begin
-  inherited RunTest;
-//  inherited RunTest;
-//  inherited RunTest;
-end;
-
 procedure TTestDBBasics.TestDoubleClose;
 begin
   with DBConnector.GetNDataset(1) do
@@ -368,6 +391,7 @@ end;
 procedure TTestDBBasics.TestBufDatasetCancelUpdates;
 var i : byte;
 begin
+  AssertTrue(SIgnoreAssertion,DBConnector.GetNDataset(5) is TBufDataset);
   with DBConnector.GetNDataset(5) as TBufDataset do
     begin
     open;
@@ -393,9 +417,57 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.Testbug7007;
+
+var
+ datalink1: tdatalink;
+ datasource1: tdatasource;
+ query1: TDataSet;
+
+begin
+ query1:= DBConnector.GetNDataset(6);
+ datalink1:= TTestDataLink.create;
+ datasource1:= tdatasource.create(nil);
+ try
+  datalink1.datasource:= datasource1;
+  datasource1.dataset:= query1;
+  datalink1.datasource:= datasource1;
+
+  DataEvents := '';
+  query1.open;
+  datalink1.buffercount:= query1.recordcount;
+  AssertEquals('deUpdateState:0;',DataEvents);
+  AssertEquals(0, datalink1.ActiveRecord);
+  AssertEquals(6, datalink1.RecordCount);
+  AssertEquals(6, query1.RecordCount);
+  AssertEquals(1, query1.RecNo);
+
+  DataEvents := '';
+  query1.append;
+  AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+  AssertEquals(5, datalink1.ActiveRecord);
+  AssertEquals(6, datalink1.RecordCount);
+  AssertEquals(6, query1.RecordCount);
+  AssertEquals(0, query1.RecNo);
+
+
+  DataEvents := '';
+  query1.cancel;
+  AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+  AssertEquals(5, datalink1.ActiveRecord);
+  AssertEquals(6, datalink1.RecordCount);
+  AssertEquals(6, query1.RecordCount);
+  AssertEquals(6, query1.RecNo);
+  finally
+  datalink1.free;
+  datasource1.free;
+ end;
+end;
+
 procedure TTestDBBasics.TestBufDatasetCancelUpdates1;
 var i : byte;
 begin
+  AssertTrue(SIgnoreAssertion,DBConnector.GetNDataset(5) is TBufDataset);
   with DBConnector.GetNDataset(5) as TBufDataset do
     begin
     open;

@@ -9,6 +9,8 @@ uses
   db,
   sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, pqconnection,odbcconn,oracleconnection;
 
+const SQLDBdbTypes = [mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle];
+      MySQLdbTypes = [mysql40,mysql41,mysql50];
 
 type
 
@@ -38,13 +40,13 @@ implementation
 procedure TSQLDBConnector.CreateFConnection;
 
 begin
-  if dbtype = 'mysql40' then Fconnection := tMySQL40Connection.Create(nil);
-  if dbtype = 'mysql41' then Fconnection := tMySQL41Connection.Create(nil);
-  if dbtype = 'mysql50' then Fconnection := tMySQL50Connection.Create(nil);
-  if dbtype = 'postgresql' then Fconnection := tpqConnection.Create(nil);
-  if dbtype = 'interbase' then Fconnection := tIBConnection.Create(nil);
-  if dbtype = 'odbc' then Fconnection := tODBCConnection.Create(nil);
-  if dbtype = 'oracle' then Fconnection := TOracleConnection.Create(nil);
+  if dbtype = mysql40 then Fconnection := tMySQL40Connection.Create(nil);
+  if dbtype = mysql41 then Fconnection := tMySQL41Connection.Create(nil);
+  if dbtype = mysql50 then Fconnection := tMySQL50Connection.Create(nil);
+  if dbtype = postgresql then Fconnection := tpqConnection.Create(nil);
+  if dbtype = interbase then Fconnection := tIBConnection.Create(nil);
+  if dbtype = odbc then Fconnection := tODBCConnection.Create(nil);
+  if dbtype = oracle then Fconnection := TOracleConnection.Create(nil);
 
   if not assigned(Fconnection) then writeln('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 

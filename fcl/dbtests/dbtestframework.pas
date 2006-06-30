@@ -11,7 +11,7 @@ program dbtestframework;
 uses
   SysUtils,
   fpcunit,testregistry,
-  testbasics,
+  testbasics, toolsunit,
 {$ifdef SQLDB_AVAILABLE}
   testsqlfieldtypes,
 {$ENDIF}

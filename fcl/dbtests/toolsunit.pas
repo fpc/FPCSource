@@ -24,6 +24,7 @@ type
        Procedure FreeNDataset(var ds : TDataset); virtual; abstract;
        Function CreateNDataset(n : integer) : TDataset; virtual; abstract;
      public
+       procedure DataEvent(dataset :TDataset);
        Function GetNDataset(n : integer) : TDataset; virtual;
        procedure InitialiseDatasets; virtual;
        procedure FreeDatasets; virtual;
@@ -39,10 +40,14 @@ type
 {$ELSE}
        procedure DataEvent(Event: TDataEvent; Info: longint); override;
 {$ENDIF}
-
      end;
 
+type TDBTypes=(mysql40,mysql41,mysql50,interbase,postgresql,odbc,oracle,dbf);
+
 const
+  DBTypesNames : Array [TDBTypes] of String[19] =
+     ('mysql40','mysql41','mysql50','interbase','postgresql','odbc','oracle','dbf');
+
   DataEventnames : Array [TDataEvent] of String[19] =
     ('deFieldChange', 'deRecordChange', 'deDataSetChange', 'deDataSetScroll',
      'deLayoutChange', 'deUpdateRecord', 'deUpdateState', 'deCheckBrowseMode',
@@ -50,7 +55,7 @@ const
 {$IFNDEF VER2_0_2}, 'deConnectChange','deReconcileError','deDisabledStateChange'{$ENDIF}
     );
 
-var dbtype,
+var dbtype          : TDBTypes;
     dbname,
     dbuser,
     dbhostname,
@@ -61,6 +66,9 @@ var dbtype,
     DataEvents      : string;
 
 procedure InitialiseDBConnector;
+
+resourcestring
+  SIgnoreAssertion = 'You can safely ignore this failure. This function is just not supported by the selected database';
 
 implementation
 
@@ -73,29 +81,40 @@ uses
 {$ENDIF}
   inifiles;
 
+procedure TDBConnector.DataEvent(dataset : tdataset);
+
+begin
+  DataEvents := DataEvents + 'DataEvent' + ';';
+end;
+
 procedure ReadIniFile;
 
 var IniFile : TIniFile;
+    s       : string;
+    i       : TDBTypes;
 begin
   IniFile := TIniFile.Create(getcurrentdir + PathDelim + 'database.ini');
-  dbtype := IniFile.ReadString('Database','Type','');
-  dbname := IniFile.ReadString('Database','Name','');
-  dbuser := IniFile.ReadString('Database','User','');
-  dbhostname := IniFile.ReadString('Database','Hostname','');
-  dbpassword := IniFile.ReadString('Database','Password','');
+  s := IniFile.ReadString('Database','Type','');
+  for i := low(DBTypesNames) to high(DBTypesNames) do
+    if s = DBTypesNames[i] then dbtype := i;
+
+  dbname := IniFile.ReadString(s,'Name','');
+  dbuser := IniFile.ReadString(s,'User','');
+  dbhostname := IniFile.ReadString(s,'Hostname','');
+  dbpassword := IniFile.ReadString(s,'Password','');
   IniFile.Free;
 end;
 
 procedure InitialiseDBConnector;
 
 begin
-  ReadIniFile;
+//  ReadIniFile;
   if (1 <> 1) then begin end
 {$IFDEF SQLDB_AVAILABLE}
-  else if (dbtype = 'interbase') or (dbtype = 'postgresql') or (dbtype = 'mysql50') or (dbtype = 'mysql40') or (dbtype = 'mysql41')  then DBConnector := TSQLDBConnector.Create
+  else if (dbtype in SQLDBdbTypes)  then DBConnector := TSQLDBConnector.Create
 {$ENDIF}
 {$IFDEF DBF_AVAILABLE}
-  else if dbtype = 'dbf' then DBConnector := TDBFDBConnector.Create
+  else if dbtype = dbf then DBConnector := TDBFDBConnector.Create
 {$ENDIF}
   else Raise Exception.Create('Invalid database-type specified');
 end;
@@ -133,5 +152,7 @@ begin
     FreeNDataset(FDatasets[count]);
 end;
 
+initialization
+  ReadIniFile;
 end.
 
