@@ -295,6 +295,7 @@ type
     procedure FreeBuffers; virtual;
     function GetAsBoolean: Boolean; virtual;
     function GetAsCurrency: Currency; virtual;
+    function GetAsLargeInt: LargeInt; virtual;
     function GetAsDateTime: TDateTime; virtual;
     function GetAsFloat: Double; virtual;
     function GetAsLongint: Longint; virtual;
@@ -321,6 +322,7 @@ type
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
     procedure SetAsInteger(AValue: Integer); virtual;
+    procedure SetAsLargeint(AValue: Largeint); virtual;
     procedure SetAsVariant(AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetDataType(AValue: TFieldType);
@@ -350,6 +352,7 @@ type
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsLongint: Longint read GetAsLongint write SetAsLongint;
+    property AsLargeInt: LargeInt read GetAsLargeInt write SetAsLargeInt;
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
     property AsVariant: variant read GetAsVariant write SetAsVariant;
@@ -494,7 +497,7 @@ type
   protected
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
-    function GetAsLargeint: Largeint; virtual;
+    function GetAsLargeint: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
     function GetDataSize: Word; override;
@@ -502,14 +505,13 @@ type
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
-    procedure SetAsLargeint(AValue: Largeint); virtual;
+    procedure SetAsLargeint(AValue: Largeint); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : largeint) : Boolean;
     property Value: Longint read GetAsLongint write SetAsLongint;
-    property AsLargeInt: LargeInt read GetAsLargeint write SetAsLargeint;
   published
     property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
     property MinValue: Largeint read FMinValue write SetMinValue default 0;

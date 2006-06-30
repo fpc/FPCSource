@@ -269,6 +269,32 @@ in define line 272 *)
 //    const
 //       MINSIZE_TMAXVAL:size_t = 4294967295;
 
+type
+    POCITime = ^OCITime;
+    OCITime = packed record
+      OCITimeHH      : ub1;
+      OCITimeMM      : ub1;
+      OCITimeSS      : ub1;
+    end;
+
+    POCIDate = ^OCIDate;
+    OCIDate = packed record
+      OCIDateYYYY    : sb2;
+      OCIDateMM      : ub1;
+      OCIDateDD      : ub1;
+      OCIDateTime    : OCITime;
+    end;
+
+    POCIDateTime = ^TOCIDate;
+    TOCIDate = packed record
+      Year           : sb2;
+      Month          : ub1;
+      Day            : ub1;
+      Hour           : ub1;
+      Min            : ub1;
+      Sec            : ub1;
+    end;
+
 implementation
 
   function UB1MASK : longint;

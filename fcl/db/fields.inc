@@ -308,6 +308,7 @@ Const
   SDateTime = 'TDateTime';
   SFloat = 'Float';
   SInteger = 'Integer';
+  SLargeInt = 'LargeInt';
   SVariant = 'Variant';
   SString = 'String';
 
@@ -617,6 +618,11 @@ begin
     Result:=-1;
 end;
 
+function TField.GetAsLargeInt: LargeInt;
+begin
+  AccessError(SLargeInt);
+end;
+
 function TField.GetAsCurrency: Currency;
 begin
   Result := GetAsFloat;
@@ -769,6 +775,11 @@ procedure TField.SetAsInteger(AValue: Integer);
 
 begin
   SetAsLongint(AValue);
+end;
+
+procedure TField.SetAsLargeint(AValue: Largeint);
+begin
+  AccessError(SLargeInt);
 end;
 
 procedure TField.SetAsString(const AValue: string);

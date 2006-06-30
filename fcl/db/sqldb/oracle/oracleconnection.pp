@@ -75,6 +75,8 @@ type
 
 implementation
 
+uses math;
+
 ResourceString
   SErrEnvCreateFailed = 'The creation of an Oracle environment failed.';
   SErrHandleAllocFailed = 'The allocation of the error handle failed.';
@@ -91,6 +93,9 @@ begin
 end;
 
 procedure TOracleConnection.DoInternalConnect;
+
+var ConnectString : string;
+
 begin
 {$IfDef LinkDynamically}
   InitialiseOCI;
@@ -104,7 +109,10 @@ begin
   if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
     DatabaseError(SErrHandleAllocFailed,self);
 
-  if OCILogon2(FOciEnvironment,FOciError,FOciSvcCtx,@username[1],length(username),@password[1],length(password),@databasename[1],length(databasename),OCI_DEFAULT) = OCI_ERROR then
+  if hostname='' then connectstring := databasename
+  else connectstring := '//'+hostname+'/'+databasename;
+
+  if OCILogon2(FOciEnvironment,FOciError,FOciSvcCtx,@username[1],length(username),@password[1],length(password),@connectstring[1],length(connectstring),OCI_DEFAULT) = OCI_ERROR then
     HandleError;
 end;
 
@@ -344,17 +352,31 @@ begin
                                   OFieldType := SQLT_INT;
                                   OFieldSize:= sizeof(integer);
                                   end
-                                else if (oscale = -127) and (OPrecision=0) then
+                                else if (oscale = -127) {and (OPrecision=0)} then
                                   begin
                                   FieldType := ftFloat;
                                   OFieldType := SQLT_FLT;
                                   OFieldSize:=sizeof(double);
-                                  end;
+                                  end
+                                else if (oscale <=4) and (OPrecision<=12) then
+                                  begin
+                                  FieldType := ftBCD;
+                                  FieldSize := sizeof(Currency);
+                                  OFieldType := SQLT_VNU;
+                                  OFieldSize:= 22;
+                                  end
+                                else FieldType := ftUnknown;
                                 end;
         OCI_TYPECODE_CHAR,
         OCI_TYPECODE_VARCHAR,
-        OCI_TYPECODE_VARCHAR2 : begin FieldType := ftString; inc(OFieldsize) ;FieldSize := OFieldSize; OFieldType:=SQLT_STR end;
+        OCI_TYPECODE_VARCHAR2 : begin FieldType := ftString; FieldSize := OFieldSize; inc(OFieldsize) ;OFieldType:=SQLT_STR end;
         OCI_TYPECODE_DATE     : FieldType := ftDate;
+        OCI_TYPECODE_TIMESTAMP,
+        OCI_TYPECODE_TIMESTAMP_LTZ,
+        OCI_TYPECODE_TIMESTAMP_TZ  : begin
+                                     FieldType := ftDateTime;
+                                     OFieldType := SQLT_ODT;
+                                     end;
       else
         FieldType := ftUnknown;
       end;
@@ -394,8 +416,12 @@ end;
 
 function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer): boolean;
 
-var dt  : TDateTime;
-    b   : pbyte;
+var dt        : TDateTime;
+    b         : pbyte;
+    size,i    :  byte;
+    exp       : shortint;
+    cur       : Currency;
+    odt       : POCIdateTime;
 
 begin
   with cursor as TOracleCursor do if fieldbuffers[FieldDef.FieldNo-1].ind = -1 then
@@ -405,6 +431,25 @@ begin
     result := True;
     case FieldDef.DataType of
       ftString          : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,FieldDef.Size);
+      ftBCD             :  begin
+                           b := fieldbuffers[FieldDef.FieldNo-1].buffer;
+                           size := b[0];
+                           cur := 0;
+                           if (b[1] and $80)=$80 then // then the number is positive
+                             begin
+                             exp := (b[1] and $7f)-65;
+                             for i := 2 to size do
+                               cur := cur + (b[i]-1) * intpower(100,-(i-2)+exp);
+                             end
+                           else
+                             begin
+                             exp := (not(b[1]) and $7f)-65;
+                             for i := 2 to size-1 do
+                               cur := cur + (101-b[i]) * intpower(100,-(i-2)+exp);
+                             cur := -cur;
+                             end;
+                           move(cur,buffer^,FieldDef.Size);
+                           end;
       ftFloat           : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
       ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
       ftDate  : begin
@@ -412,6 +457,11 @@ begin
                 dt := EncodeDate((b[0]-100)*100+(b[1]-100),b[2],b[3]);
                 move(dt,buffer^,sizeof(dt));
                 end;
+      ftDateTime : begin
+                   odt := fieldbuffers[FieldDef.FieldNo-1].buffer;
+                   dt := ComposeDateTime(EncodeDate(odt^.year,odt^.month,odt^.day), EncodeTime(odt^.hour,odt^.min,odt^.sec,0));
+                   move(dt,buffer^,sizeof(dt));
+                   end;
     else
       Result := False;
 

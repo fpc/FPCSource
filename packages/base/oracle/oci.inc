@@ -2917,7 +2917,7 @@ uses ctypes,
     POCIParam = pointer;          // OCI PARameter descriptor
     POCIComplexObjectComp = pointer; // OCI COR descriptor
     POCIROWID = pointer;          // OCI ROWID descriptor
-    POCIDateTime = pointer;       // OCI DateTime descriptor
+//    POCIDateTime = pointer;       // OCI DateTime descriptor
     POCIInterval = pointer;       // OCI Interval descriptor
     POCIUcb = pointer;            // OCI User Callback descriptor
     POCIServerDNs = pointer;      // OCI server DN descriptor

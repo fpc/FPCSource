@@ -257,6 +257,7 @@ begin
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
     ftFloat      : result := sizeof(double);
+    ftLargeInt   : result := sizeof(largeint);
     ftTime,
       ftDate,
       ftDateTime : result := sizeof(TDateTime)
