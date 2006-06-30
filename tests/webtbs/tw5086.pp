@@ -20,7 +20,7 @@ var
 
 procedure readInput;
 begin
-        assign(input,'tw5086.in');
+        assign(input,'tw5086.tmp');
         reset(input);
 	readln(v, k);
 	readln(a1, a2, b1, b2, c1, c2);
@@ -203,7 +203,14 @@ begin
           halt(1);
 end;
 
+var
+  t : text;
 begin
+assign(t,'tw5086.tmp');
+rewrite(t);
+writeln(t,'180 6');
+writeln(t,'37 78 59 100 64 128');
+close(t);
 	readInput;
 	Solve;
 end.
