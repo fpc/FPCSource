@@ -182,39 +182,103 @@ asm
 end;
 *)
 
+var
+  fpc_system_lock: longint; export name 'fpc_system_lock';
 
-{ the ARM doesn't know multiprocessor system which would require locking }
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+// lock
+  ldr r3, .Lfpc_system_lock
+  mov r1, #1
+.Lloop:
+  swp r2, r1, [r3]
+  cmp r2, #0
+  bne .Lloop
+// do the job
+  ldr r1, [r0]
+  sub r1, r1, #1
+  str r1, [r0]
+  mov r0, r1
+// unlock and return
+  str r2, [r3]
+  mov pc, lr
 
-function InterLockedDecrement (var Target: longint) : longint;
-  begin
-    dec(Target);
-    result:=target;
-  end;
+.Lfpc_system_lock:
+  .long fpc_system_lock
+end;
 
 
-function InterLockedIncrement (var Target: longint) : longint;
-  begin
-    inc(Target);
-    result:=target;
-  end;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
+asm
+// lock
+  ldr r3, .Lfpc_system_lock
+  mov r1, #1
+.Lloop:
+  swp r2, r1, [r3]
+  cmp r2, #0
+  bne .Lloop
+// do the job
+  ldr r1, [r0]
+  add r1, r1, #1
+  str r1, [r0]
+  mov r0, r1
+// unlock and return
+  str r2, [r3]
+  mov pc, lr
+
+.Lfpc_system_lock:
+  .long fpc_system_lock
+end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint;
-  begin
-    Result:=Target;
-    Target:=Source;
-  end;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+  swp r0, r1, [r0]
+end;
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
+asm
+// lock
+  ldr r3, .Lfpc_system_lock
+  mov r2, #1
+.Lloop:
+  swp r2, r2, [r3]
+  cmp r2, #0
+  bne .Lloop
+// do the job
+  ldr r2, [r0]
+  add r1, r1, r2
+  str r1, [r0]
+  mov r0, r2
+// unlock and return
+  mov r2, #0
+  str r2, [r3]
+  mov pc, lr
+
+.Lfpc_system_lock:
+  .long fpc_system_lock
+end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
-  begin
-    Result:=Target;
-    inc(Target,Source);
-  end;
-  
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
-  begin
-   Result:=Target; //return initial value
-   if (Target=Comperand)
-   then Target:=NewValue;
-  end;
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+asm
+// lock
+  ldr r12, .Lfpc_system_lock
+  mov r3, #1
+.Lloop:
+  swp r3, r3, [r12]
+  cmp r3, #0
+  bne .Lloop
+// do the job
+  ldr r3, [r0]
+  cmp r3, r2
+  streq r1, [r0]
+  mov r0, r3
+// unlock and return
+  mov r3, #0
+  str r3, [r12]
+  mov pc, lr
+
+.Lfpc_system_lock:
+  .long fpc_system_lock
+end;
