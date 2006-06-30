@@ -315,7 +315,12 @@ Begin
           if (cs_link_pthread in aktglobalswitches) Then     // convert libpthread to libc_r.
             LinkLibraryAliases.add('pthread','c_r');
         end;
-    end;
+    end
+else
+    begin
+          LinkLibraryOrder.add('gcc','',15);		
+          LinkLibraryOrder.add('c','',50);
+   end;
 End;
 
 Function TLinkerBSD.WriteResponseFile(isdll:boolean) : Boolean;
@@ -366,14 +371,13 @@ begin
          if linklibc then
           prtobj:=cprtobj;
        end;
-      if reorder Then
-        ExpandAndApplyOrder(SharedLibFiles);
       // after this point addition of shared libs not allowed.  
     end
   else
     begin
       { for darwin: always link dynamically against libc }
       linklibc := true;
+      reorder:=reorderentries;
       if not(isdll) then
         if not(cs_profile in aktmoduleswitches) then
           begin
@@ -388,6 +392,8 @@ begin
         prtobj:='';
     end;
 
+  if reorder Then
+     ExpandAndApplyOrder(SharedLibFiles);
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
