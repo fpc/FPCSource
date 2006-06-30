@@ -3,7 +3,8 @@
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
 #   Hebrew language file for Free Pascal Compiler
-#   Contributed by <idokan at gmail.com>
+#   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
+#   Based on errore.msg of SVN revision 3982
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -45,8 +46,10 @@
 #
 # General
 #
-# 01016 is the last used one
+# 01023 is the last used one
 #
+general_text_bytes_code=01019_bytes code
+general_text_bytes_data=01020_bytes data
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -112,7 +115,14 @@ general_i_hint=01016_I_רמז:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_הנתיב "$1" אינו קיים
 % The specified path does not exist.
-general_e_compilation_aborted=01018_E_ההידור בוטל
+general_f_compilation_aborted=01018_F_ההידור בוטל
+% Compilation was aborted.
+general_i_number_of_warnings=01021_I_אזהרות $1 הונפקו
+% Total number of warnings issued during compilation.
+general_i_number_of_hints=01022_I_הונפקו  $1 רמזים
+% Total number of hints issued during compilation.
+general_i_number_of_notes=01023_I_הונפקו $1 הערות
+% Total number of notes issued during compilation.
 % \end{description}
 #
 # Scanner
@@ -167,12 +177,14 @@ scan_f_cannot_open_input=02012_F_לא ניתן לפתוח את קובץ "$1"
 scan_f_cannot_open_includefile=02013_F_לא ניתן לפתוח את קובץ התוספות "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
-scan_w_only_pack_records=02015_W_ניתן ליישר שדות רשומה רק ל1,2,4,8,16 ו32 בתים בלבד 
-% You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
-% \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
-scan_w_only_pack_enum=02016_W_ניתן לשמור מניה רק ב1,2 או 4 בתים בלבד
+scan_e_illegal_pack_records=02015_E_יישור רשומה לא חוקי מייצג "$1"
+% You are specifying the \var{\{\$PACKRECORDS n\} } or \var{\{\$ALIGN n\} }
+% with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
+% NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
+% OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
+scan_e_illegal_pack_enum=02016_E_מספר מינימלי של מנייה המייצג "$1" אינו חוקי
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
-% \var{n}. Only 1,2 or 4 are valid in this case.
+% \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
 scan_e_endif_expected=02017_E_מצפה ל$ENDIF בהגדרה $1 $2 הנמצאת ב$3 שורה $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_שגיאת תחביר בעת ניתוח משפט תנאי
@@ -201,7 +213,7 @@ scan_e_keyword_cant_be_a_macro=02028_E_מילת מפתח המוגדרת מחדש כמקרו אינה מכילה ה
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_גלישת מאגר מקרו בעת קריאה או הרחבה של מקרו
 % Your macro or its result was too long for the compiler.
-scan_w_macro_deep_ten=02030_W_הרחבת מקרו גולשת מעומק של 16.
+scan_w_macro_too_deep=02030_W_הרחבת מקרו גולשת מעומק של 16.
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
@@ -265,7 +277,7 @@ scan_e_illegal_asmmode_specifier=02050_E_סגנון האסמבלר שצויין "$1" אינו חוקי
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_מתג קורא הASM אינו אפשרי בתוך משפט אסמבלי. "$1" יהיה ישפיע רק בהכרזה הבאה/
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
+% inside an assembler block. The new reader will be used for next
 % assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_שימוש שגוי במתג. השתמש בON/OFF או ב +/-
 % You need to use ON or OFF or a + or - to toggle the switch
@@ -282,7 +294,7 @@ scan_w_only_one_resourcefile_supported=02056_W_רק קובץ משאבים אחד נתמך ביעד זה
 scan_w_macro_support_turned_off=02057_W_התמיכה במקרו כובה
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
-% -Sm on the commandline or add {$MACRO ON} in the source
+% -Sm on the commandline or add \{\$MACRO ON\} in the source
 scan_e_invalid_interface_type=02058_E_הוכרז סוג ממשק לא חוקי. הגדרות חוקיות הם COM, CORBA או DEFAULT
 % The interface type that was specified is not supported
 scan_w_appid_not_support=02059_W_APPID נתמך רק בPALMOS
@@ -301,14 +313,36 @@ scan_e_too_many_push=02063_F_יותר מידי שכבות PUSH
 scan_e_too_many_pop=02064_E_POP ללא שחרור של PUSH
 % This error occurs only in mode MacPas.
 scan_e_error_macro_lacks_value=02065_E_מקרו "$1" לא מכיל ערכים
-% Thus the conditional compiling expression cannot be evaluated.
+% Thus the conditional compile time expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_שימוש במתג שגוי, השתמש ב ON/OFF/DEFAULT או ב+/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 scan_e_mode_switch_not_allowed=02067_E_מצב מתג "$1" לא מורשה
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
 scan_e_error_macro_undefined=02068_E_משתנה זמן הידור "$1" לא הוגדר.
-% Thus the conditional compile time expression cannot be evaluated.
+% Thus the conditional compile time expression cannot be evaluated. Only in mode MacPas.
+scan_e_utf8_bigger_than_65535=02069_E_נמצא קוד UTF-8 גבוהה יותר מ65535
+% \fpc handles utf-8 strings internally as widestrings e.g. the char codes are limited to 65535
+scan_e_utf8_malformed=02070_E_מחרוזת UTF-8 תקולה
+% The given string isn't a valid UTF-8 string
+scan_c_switching_to_utf8=02071_C_UTF-8 signature found, using UTF-8 encoding
+% The compiler found an UTF-8 encoding signature (\$ef, \$bb, \$bf) at the beginning of a file,
+% so it interprets it as an UTF-8 file
+scan_e_compile_time_typeerror=02072_E_ביטוי בזמן הידור: נדרש $1 אבל התקבל $2 ב$3
+% Type check of a compile time expression failed.
+scan_n_app_type_not_support=02073_N_APPTYPE לא נתמך במערכת ההפעלה המבוקשת
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
+scan_e_illegal_optimization_specifier=02074_E_סופק מיטוב לא חוקי "$1"
+% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
+% the compiler didn't recognize the optimization you specified.
+scan_w_setpeflags_not_support=02075_W_SETPEFLAGS אינו נתמך במערכת ההפעלה המבוקשת
+% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
+scan_w_imagebase_not_support=02076_W_IMAGEBASE אינו נתמך על ידי מערכת ההפעלה המבוקשת
+% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
+scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE אינו נתמך על ידי מערכת ההפעלה המבוקשת
+% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
+scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE אינו נתמך על ידי מערכת ההפעלה המבוקשת
+% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 % \end{description}
 #
 # Parser
@@ -326,7 +360,7 @@ parser_e_syntax_error=03000_E_מפרש - שגיאה תחבירית
 parser_e_dont_nest_interrupt=03004_E_פרוצדורת פסיקה אינה יכולה להיות מקוננת
 % An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_מתעלם מסוג פרוצדורה "$1"
-% The specified is ignored by FPC programs.
+% The specified procedure directive is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_לא כל ההכזרות של "$1" בעלות הכרזת OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
@@ -505,7 +539,7 @@ parser_w_stored_not_implemented=03060_W_מאפיין שמור אינו מבוצע עדיין
 parser_e_ill_property_access_sym=03061_E_סימן לא חוקי לגישת המאפיין
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
-% procedures and functions. The following code woud cause such an error.
+% procedures and functions. The following code would cause such an error.
 % \begin{verbatim}
 % tmyobject = class
 %   i : integer;
@@ -593,26 +627,26 @@ parser_e_no_new_or_dispose_for_classes=03086_E_התחביר המורחב של NEW או DISPOSE ל
 parser_e_procedure_overloading_is_off=03088_E_האפשרות לפרוצדורות מרובות שימוש כבוי
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
-parser_e_overload_operator_failed=03089_E_It is not possible to overload this operator (overload = instead)
+parser_e_overload_operator_failed=03089_E_לא ניתן להעמיס על סוג האופרטור הנוכחי
 % You are trying to overload an operator which cannot be overloaded.
 % The following operators can be overloaded :
 % \begin{verbatim}
 %    +, -, *, /, =, >, <, <=, >=, is, as, in, **, :=
 % \end{verbatim}
-parser_e_comparative_operator_return_boolean=03090_E_Comparative operator must return a boolean value
+parser_e_comparative_operator_return_boolean=03090_E_אופרטור השוואתי חייב להחזיר ערך בוליאני
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
-parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstract
+parser_e_only_virtual_methods_abstract=03091_E_רק שיטה ווירטואלית יכולה להיות מופשט
 % You are declaring a method as abstract, when it is not declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Use of unsupported feature!
+parser_f_unsupported_feature=03092_F_שימוש באופציה לא נתמכת!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, etc) isn't allowed
+parser_e_mix_of_classes_and_objects=03093_E_הערבוב של עצמים שונים (מחלקות, עצם, ממשק וכו') אינו מורשה
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
-parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
+parser_w_unknown_proc_directive_ignored=03094_W_מתעלם מהנחית השגרה: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one variable
+parser_e_absolute_only_one_var=03095_E_absolute ניתן לשימוש רק עם משתנה אחת
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
 % \begin{verbatim}
@@ -628,7 +662,7 @@ parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one va
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated with a var or const
+parser_e_absolute_only_to_var_or_const=03096_E_ניתן להשתמש בabsolute רק עם משתנה או קבוע
 % The address of a \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -637,57 +671,57 @@ parser_e_absolute_only_to_var_or_const=03096_E_absolute can only be associated w
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_initialized_only_one_var=03097_E_Only one variable can be initialized
+parser_e_initialized_only_one_var=03097_E_ניתן לאתחל רק משתנה אחד
 % You cannot specify more than one variable with a initial value
 % in Delphi mode.
-parser_e_abstract_no_definition=03098_E_Abstract methods shouldn't have any definition (with function body)
+parser_e_abstract_no_definition=03098_E_מתודה מופשטת אינה זקוקה להגדרה (עם גוף של פונקציה)
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
-parser_e_overloaded_must_be_all_global=03099_E_This overloaded function can't be local (must be exported)
+parser_e_overloaded_must_be_all_global=03099_E_העמסת היתר של הפונקציה אינה יכולה להיות מקומית (חייבת להיות מיוצאת)
 % You are defining a overloaded function in the implementation part of a unit,
 % but there is no corresponding declaration in the interface part of the unit.
-parser_w_virtual_without_constructor=03100_W_Virtual methods are used without a constructor in "$1"
+parser_w_virtual_without_constructor=03100_W_שימוש במתודות ווירטואליות ללא יוצר ב "$1"
 % If you declare objects or classes that contain virtual methods, you need
 % to have a constructor and destructor to initialize them. The compiler
 % encountered an object or class with virtual methods that doesn't have
 % a constructor/destructor pair.
-parser_c_macro_defined=03101_CL_Macro defined: $1
+parser_c_macro_defined=03101_CL_הגדרת מאקרו: $1
 % When \var{-vc} is used, the compiler tells you when it defines macros.
-parser_c_macro_undefined=03102_CL_Macro undefined: $1
+parser_c_macro_undefined=03102_CL_מאקרו לא מוגדר: $1
 % When \var{-vc} is used, the compiler tells you when it undefines macros.
-parser_c_macro_set_to=03103_CL_Macro $1 set to $2
+parser_c_macro_set_to=03103_CL_מאקרו $1 מוגדר כ $2
 % When \var{-vc} is used, the compiler tells you what values macros get.
-parser_i_compiling=03104_I_Compiling $1
+parser_i_compiling=03104_I_מהדר $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
-parser_u_parsing_interface=03105_UL_Parsing interface of unit $1
+parser_u_parsing_interface=03105_UL_מפרש את הממשק של היחידה $1
 % This tells you that the reading of the interface
 % of the current unit starts
-parser_u_parsing_implementation=03106_UL_Parsing implementation of $1
+parser_u_parsing_implementation=03106_UL_מפרש את הביצוע של $1
 % This tells you that the code reading of the implementation
 % of the current unit, library or program starts
-parser_d_compiling_second_time=03107_DL_Compiling $1 for the second time
+parser_d_compiling_second_time=03107_DL_מהדר את $1 בפעם השנייה
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
-parser_e_no_property_found_to_override=03109_E_No property found to override
-% You want to overrride a property of a parent class, when there is, in fact,
+parser_e_no_property_found_to_override=03109_E_לא נמצאה תכונה לעקיפה
+% You want to override a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Only one default property is allowed
+parser_e_only_one_default_property=03110_E_רק תכונה אחת עם ברירת מחדל מורשת
 % You specified a property as \var{Default}, but the class already has a
 % default property, and a class can have only one default property.
-parser_e_property_need_paras=03111_E_The default property must be an array property
+parser_e_property_need_paras=03111_E_התונה עם ברירת מחדל חייבת להיות תכונה של מערך
 % Only array properties of classes can be made \var{default} properties.
-parser_e_constructor_cannot_be_not_virtual=03112_E_Virtual constructors are only supported in class object model
+parser_e_constructor_cannot_be_not_virtual=03112_E_יוצרים ווירטואלים נתמכים רק במחלקה
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
-parser_e_no_default_property_available=03113_E_No default property available
+parser_e_no_default_property_available=03113_E_ערך ברירת מחדל אינו קיים לתכונה
 % You are trying to access a default property of a class, but this class (or one of
 % its ancestors) doesn't have a default property.
-parser_e_cant_have_published=03114_E_The class can't have a published section, use the {$M+} switch
+parser_e_cant_have_published=03114_E_המחלקה אינה יכולה להכיל את חתך published, השתמש במתג {$M+}
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=03115_E_Forward declaration of class "$1" must be resolved here to use the class as ancestor
+parser_e_forward_declaration_must_be_resolved=03115_E_נדרשת הגדרה ראשונית של המחלקה "$1" לפני השימוש בה כמחלקה יורשת
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -697,135 +731,138 @@ parser_e_forward_declaration_must_be_resolved=03115_E_Forward declaration of cla
 %       end;
 % \end{verbatim}
 % Where \var{ParentClass} is declared but not defined.
-parser_e_no_local_operator=03116_E_Local operators not supported
+parser_e_no_local_operator=03116_E_השימוש באופריטור מקומי אינו נתמך
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive "$1" not allowed in interface section
+parser_e_proc_dir_not_allowed_in_interface=03117_E_מקדם שיגרה "$1" אינו מורשה בשימוש בתוך הממשק
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive "$1" not allowed in implementation section
+parser_e_proc_dir_not_allowed_in_implementation=03118_E_מקדם שיגרה "$1" אינו מורשה בחלק הביצועי
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure directive "$1" not allowed in procvar declaration
+parser_e_proc_dir_not_allowed_in_procvar=03119_E_מקדם שיגרה "$1" אינו מורשה כחלק מהגדרת השיגרה
 % This procedure directive cannot be part of a procedural or function
 % type declaration.
-parser_e_function_already_declared_public_forward=03120_E_Function is already declared Public/Forward "$1"
+parser_e_function_already_declared_public_forward=03120_E_הגדרת הפונקציה "$1" כבר בוצעה
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
-parser_e_not_external_and_export=03121_E_Can't use both EXPORT and EXTERNAL
+parser_e_not_external_and_export=03121_E_לא ניתן להשתמש גם ב EXPORT וגם EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_"$1" not yet supported inside inline procedure/function
+parser_w_not_supported_for_inline=03123_W_"$1" אינו נתמך עדיין בתוך פונקצית/שגרת inline
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining disabled
+parser_w_inlining_disabled=03124_W_השימוש הישיר מבוטל
 % Inlining of procedures is disabled.
-parser_i_writing_browser_log=03125_I_Writing Browser log $1
+parser_i_writing_browser_log=03125_I_כותב יומן דפדפן $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=03126_H_may be pointer dereference is missing
+parser_h_maybe_deref_caret_missing=03126_H_ייתכן כי חסר תוכן למצביע
 % The compiler thinks that a pointer may need a dereference.
-parser_f_assembler_reader_not_supported=03127_F_Selected assembler reader not supported
+parser_f_assembler_reader_not_supported=03127_F_אין תמיכה במאסף הנבחר
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=03128_E_Procedure directive "$1" has conflicts with other directives
+parser_e_proc_dir_conflict=03128_E_מקדם השיגרה "$1" מתנגש עם מקדמים אחרים
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=03129_E_Calling convention doesn't match forward
+parser_e_call_convention_dont_match_forward=03129_E_השימוש בהגדרה הנוכחית אינו זהה להגדרה הראשונית
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_property_cant_have_a_default_value=03131_E_Property can't have a default value
+parser_e_property_cant_have_a_default_value=03131_E_תכונות אינן יכולות להכיל ערך ברירת מחדל
 % Set properties or indexed properties cannot have a default value.
-parser_e_property_default_value_must_const=03132_E_The default value of a property must be constant
+parser_e_property_default_value_must_const=03132_E_ערך ברירת המחדלק שת התכונה חייב להיות קבוע
 % The value of a \var{default} declared property must be known at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
-parser_e_cant_publish_that=03133_E_Symbol can't be published, can be only a class
+parser_e_cant_publish_that=03133_E_הסמל אינו יכול להיות בשימוש בתוך מחלקה ללא הגדרתו בתוך המחלקה
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=03134_E_That kind of property can't be published
+parser_e_cant_publish_that_property=03134_E_סוג זה של תכונה אינו יכול להיות בשימוש
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_e_empty_import_name=03136_E_An import name is required
+parser_e_empty_import_name=03136_E_נדרש שם ייבוא
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
-parser_e_division_by_zero=03138_E_Division by zero
-% There is a divsion by zero encounted
-parser_e_invalid_float_operation=03139_E_Invalid floating point operation
+parser_e_division_by_zero=03138_E_חלוק באפס
+% There is a division by zero encounted
+parser_e_invalid_float_operation=03139_E_פעולת עשרונית לא חוקית
 % An operation on two real type values produced an overflow or a division
 % by zero.
-parser_e_array_lower_less_than_upper_bound=03140_E_Upper bound of range is less than lower bound
+parser_e_array_lower_less_than_upper_bound=03140_E_הגבול העליון נמוך יותר מהגבול התחתון
 % The upper bound of a an array declaration is less than the lower bound and this
 % is not possible
-parser_w_string_too_long=03141_W_string "$1" is longer than "$2"
+parser_w_string_too_long=03141_W_אורך המחרוזת של "$1" ארוך יותר מ "$1"
 % The size of the constant string is larger than the size you specified in
 % string type definition
-parser_e_string_larger_array=03142_E_string length is larger than array of char length
+parser_e_string_larger_array=03142_E_אורך המחרוזת ארוך יותר מאורך מערך התווים
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition
-parser_e_ill_msg_expr=03143_E_Illegal expression after message directive
+parser_e_ill_msg_expr=03143_E_התוכן של הביטוי לאחר ההודעה אינו חוקי
 % \fpc supports only integer or string values as message constants
-parser_e_ill_msg_param=03144_E_Message handlers can take only one call by ref. parameter
+parser_e_ill_msg_param=03144_E_טיפול בהודעות חייב להיות במבנה קבוע של פרמטרים
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=03145_E_Duplicate message label: "$1"
+parser_e_duplicate_message_label=03145_E_תווית הודעה כפולה: "$1"
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=03146_E_Self can only be an explicit parameter in methods which are message handlers
+parser_e_self_in_non_message_handler=03146_E_Self חייב להיות פרמטר במתודה של מטפל ההודעות
 % The self parameter can only be passed explicitly to a method which
 % is declared as message handler.
-parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
+parser_e_threadvars_only_sg=03147_E_Threadvars חייבים להיות סטטיים או גלובליים
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has its own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
+parser_f_direct_assembler_not_allowed=03148_F_השימוש במאסף הנוכחי אינו תומך בוסג התוצאה הבינארית
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
+parser_w_no_objpas_use_mode=03149_W_אסור לקרוא ליחידת OBJPAS ישירות, יש להשתמש ב \{\$mode objfpc\} או ב \{\$mode delphi\} במקום
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
 % directives which load the unit automatically
-parser_e_no_object_override=03150_E_OVERRIDE can't be used in objects
+parser_e_no_object_override=03150_E_OVERRIDE אינו יכול להיות בשימוש באובייקטים
 % Override is not supported for objects, use \var{virtual} instead to override
 % a method of a parent object
-parser_e_cant_use_inittable_here=03151_E_Data types which require initialization/finalization can't be used in variant records
+parser_e_cant_use_inittable_here=03151_E_טיפוסי נתונים אשר דורשים אתחול או סיכום אינם יכולים להיות ברשומות variant
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
-parser_e_resourcestring_only_sg=03152_E_Resourcestrings can be only static or global
+parser_e_resourcestring_only_sg=03152_E_לא ניתן להגדיר Resourcestring בתור הגדרה מקומית, רק הגדרה גלובלית או סטטית
 % Resourcestring can not be declared local, only global or using the static
 % directive.
-parser_e_exit_with_argument_not__possible=03153_E_Exit with argument can't be used here
+parser_e_exit_with_argument_not__possible=03153_E_השימוש בשיגרה exit אינו יכול להתבצע במיקום הנוכחי
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
-parser_e_stored_property_must_be_boolean=03154_E_The type of the storage symbol must be boolean
+parser_e_stored_property_must_be_boolean=03154_E_טיפוס הנתונים בסימול האחסון חייב להיות בוליאני
 % If you specify a storage symbol in a property declaration, it must be of
 % the type boolean
-parser_e_ill_property_storage_sym=03155_E_This symbol isn't allowed as storage symbol
+parser_e_ill_property_storage_sym=03155_E_הסימול אינו יכול להשמש כסימול לאחסון
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=03156_E_Only class which are compiled in $M+ mode can be published
+parser_e_only_publishable_classes_can__be_published=03156_E_רק מחלקה המהודרת במצב $M+ יכולה להיות איזור ה published
 % In the published section of a class can be only class as fields used which
 % are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
-parser_e_proc_directive_expected=03157_E_Procedure directive expected
-% When declaring a procedure in a const block you used a ; after the
-% procedure declaration after which a procedure directive must follow.
+parser_e_proc_directive_expected=03157_E_מצפה להנחיית שיגרה
+% This error is triggered when you have a \var{\{\$Calling\}} directive without
+% a calling convention specified.
+% It also happens when declaring a procedure in a const block and you
+% used a ; after a procedure declaration which must be followed by a
+% procedure directive.
 % Correct declarations are:
 % \begin{verbatim}
 % const
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=03158_E_The value for a property index must be of an ordinal type
+parser_e_invalid_property_index_value=03158_E_הערך האינדקס של התכונה חייב להיות טיפוס מסודר
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=03159_E_Procedure name to short to be exported
+parser_e_procname_to_short_for_export=03159_E_שם השגרה קצר מידי לייצוא
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
@@ -985,7 +1022,10 @@ parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of th
 % Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
-% Loop variables cannot be reals or strings.
+% Loop variables cannot be reals or strings. You can also not assign values to
+% loop variables inside the loop (except in Delphi and TP modes). Use a while or
+% repeat loop instead if you need to do something like that, since those
+% constructs were built for that.
 parser_e_no_local_var_external=03209_E_Can't declare local variable as EXTERNAL
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
@@ -1001,6 +1041,21 @@ parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't b
 % because all methods of an interfaces must be public.
 parser_e_arithmetic_operation_overflow=03213_E_גלישה בפעולה מתמטית
 % An operation on two integers values produced an overflow
+parser_e_protected_or_private_expected=03214_E_Protected or private expected
+% \var{strict} can be only used together with \var{protected} or \var{private}.
+parser_e_illegal_slice=03215_E_SLICE can't be used outside of parameter list
+% \var{slice} can be used only for arguments accepting an open array parameter
+parser_e_dispinterface_cant_have_parent=03216_E_A DISPINTERFACE can't have a parent class
+% A DISPINMTERFACE is a special type of interface which can't have a parent class
+parser_e_dispinterface_needs_a_guid=03217_E_A DISPINTERFACE needs a guid
+% A DISPINMTERFACE always needs an interface identification
+parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overriden by "$1" which has another return type)
+% If you declare overridden methods in a class definition, they must
+% have the same return type. Some versions of Delphi allow you to change the
+% return type of interface methods, and even to change procedures into
+% functions, but the resulting code may crash depending on the types used
+% and the way the methods are called.
+parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs must be ordinal constants
 % \end{description}
 #
 # Type Checking
@@ -1230,11 +1285,18 @@ type_e_cant_choose_overload_function=04057_E_Can't determine which overloaded fu
 type_e_illegal_count_var=04058_E_Illegal counter variable
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+type_w_double_c_varargs=04059_W_Converting constant real value to double for C variable argument, add explicit typecast to prevent this.
+% In C, constant real values are double by default. For this reason, if you
+% pass a constant real value to a variable argument part of a C function, FPC
+% by default converts this constant to double as well. If you want to prevent
+% this from happening, add an explicit typecast around the constant.
+type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type expected, but got "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
 #
 # Symtable
 #
-# 05055 is the last used one
+# 05060 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1368,7 +1430,6 @@ sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
 sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
-% \end{description}
 sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
@@ -1379,6 +1440,21 @@ sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initializ
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
+sym_w_function_result_uninitialized=05059_W_Function result variable does not seem to initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_function_result_uninitialized=05060_H_Function result variable does not seem to be initialized
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
+% You have read the value of a variable, but nowhere assigned a value to
+% it.
+
+% \end{description}
 #
 # Codegenerator
 #
@@ -1482,15 +1558,20 @@ cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
 cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu's
-% This indicates that you are declaring more than 32K of lcoal variables, which
+% This indicates that you are declaring more than 32K of local variables, which
 % might not be supported on other processor targets.
 cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
-% This indicates that you are declaring more than 32K of lcoal variables, which
+% This indicates that you are declaring more than 32K of local variables, which
 % is not supported by this processor.
 cg_e_break_not_allowed=06044_E_BREAK not allowed
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
+cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
+% The compiler expects that the runtime library contains some subrountines. If you see this error
+% and you didn't mess with the runtime library, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a subroutine which the compiler needs for internal use.
 % \end{description}
 # EndOfTeX
 
@@ -1536,8 +1617,8 @@ asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol is not allowed
 asmr_e_invalid_reference_syntax=07014_E_Invalid reference syntax
 % There is an error in the reference.
 asmr_e_local_para_unreachable=07015_E_You can not reach $1 from that code
-% You can not read directly the value of local or para
-% of a higher level in assembler code (except for
+% You can not read directly the value of a local variable or parameter
+% of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=07016_E_Local symbols/labels aren't allowed as references
 % You can't use local symbols/labels as references
@@ -1742,6 +1823,8 @@ asmw_e_duplicate_label=08016_E_Asm: Duplicate label $1
 asmw_e_redefined_label=08017_E_Asm: Redefined label $1
 asmw_e_first_defined_label=08018_E_Asm: First defined here
 asmw_e_invalid_register=08019_E_Asm: Invalid register $1
+asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 Bit references not supported
+asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 
 #
 # Executing linker/assembler
@@ -1756,7 +1839,7 @@ asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Source operating system redefined
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
-exec_d_cant_create_asmfile=09002_E_Can't create assember file: $1
+exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
 exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
@@ -1796,19 +1879,20 @@ exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart l
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
 exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
 exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
+exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command line
 %\end{description}
 # EndOfTeX
 
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Can't post process executable $1
-execinfo_f_cant_open_executable=09029_F_Can't open executable $1
-execinfo_x_codesize=09030_X_Size of Code: $1 bytes
-execinfo_x_initdatasize=09031_X_Size of initialized data: $1 bytes
-execinfo_x_uninitdatasize=09032_X_Size of uninitialized data: $1 bytes
-execinfo_x_stackreserve=09033_X_Stack space reserved: $1 bytes
-execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
+execinfo_f_cant_open_executable=09129_F_Can't open executable $1
+execinfo_x_codesize=09130_X_Size of Code: $1 bytes
+execinfo_x_initdatasize=09131_X_Size of initialized data: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
+execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
+execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 
 #
 # Unit loading
@@ -1849,7 +1933,7 @@ unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
 % This unit file was compiled for a different target, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Source: $1
-% When you use the \var{-vu} flag, the unit CRC check is shown.
+% When you use the \var{-vu} flag, the unit source file name is shown.
 unit_u_ppu_write=10012_U_Writing $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
@@ -2062,11 +2146,11 @@ option_no_debug_support_recompile_fpc=11017_H_Try recompiling with -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_E_You are using the obsolete switch $1
+option_obsolete_switch=11018_W_You are using the obsolete switch $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_E_You are using the obsolete switch $1, please use $2
+option_obsolete_switch_use_new=11019_W_You are using the obsolete switch $1, please use $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2098,6 +2182,8 @@ option_found_file=11035_D_found source file name "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page
+option_config_is_dir=11040_F_Config file $1 is a directory
+% Directories can not be used as configuration files.
 %\end{description}
 # EndOfTeX
 
@@ -2105,8 +2191,8 @@ option_code_page_not_available=11039_E_Unknown code page
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2005 by Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
+Copyright (c) 1993-2006 by Florian Klaempfl
 ]
 
 #
@@ -2120,6 +2206,15 @@ Compiler CPU Target: $FPCCPU
 
 Supported targets:
   $OSTARGETS
+
+Supported CPU instruction sets:
+  $INSTRUCTIONSETS
+
+Supported FPU instruction sets:
+  $FPUINSTRUCTIONSETS
+
+Supported Optimizations:
+  $OPTIMIZATIONS
 
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
@@ -2185,12 +2280,13 @@ S*2Aas_assemble using GNU AS
 **2Cc<x>_set default calling convention to <x>
 **2CD_create also dynamic library (not supported)
 **2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use to <x>
+**2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
 **2Cg_Generate PIC code
 **2Ch<n>_<n> bytes heap (between 1023 and 67107840)
 **2Ci_IO-checking
 **2Cn_omit linking stage
 **2Co_check overflow of integer operations
+**2Cp<x>_select instruction set, see fpc -i for possible values
 **2Cr_range checking
 **2CR_verify object method call validity
 **2Cs<n>_set stack size to <n>
@@ -2222,7 +2318,7 @@ S*2Aas_assemble using GNU AS
 *g2gg_use gsym
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
-*g2gv_generates programs tracable with valgrind
+*g2gv_generates programs traceable with valgrind
 *g2gw_generate dwarf debugging info
 **1i_information
 **2iD_return compiler date
@@ -2242,24 +2338,18 @@ S*2Aas_assemble using GNU AS
 **2Mgpc_tries to be gpc compatible
 **2Mmacpas_tries to be compatible to the macintosh pascal dialects
 **1n_don't read the default config file
+**1N<x>_node tree optimizations
+**2Nu_unroll loops
 **1o<x>_change the name of the executable produced to <x>
 **1O<x>_optimizations:
-3*2Og_generate smaller code
-3*2OG_generate faster code (default)
-**2Or_keep certain variables in registers
-3*2Ou_enable uncertain optimizations (see docs)
-3*2O1_level 1 optimizations (quick optimizations)
-3*2O2_level 2 optimizations (-O1 + slower optimizations)
-3*2O3_level 3 optimizations (-O2 repeatedly, max 5 times)
-3*2Op<x>_target processor:
-3*3Op1_set target processor to 386/486
-3*3Op2_set target processor to Pentium/PentiumMMX (tm)
-3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)
-6*2Og_generate smaller code
-6*2OG_generate faster code (default)
-6*2Ox_optimize maximum (still BUGGY!!!)
-6*2O0_set target processor to a MC68000
-6*2O2_set target processor to a MC68020+ (default)
+**2O-_disable optimizations
+**2O1_level 1 optimizations (quick and debugger friendly)
+**2O2_level 2 optimizations (-O1 + quick optimizations)
+**2O3_level 3 optimizations (-O2 + slow optimizations)
+**2Oa<x>=<y>_set alignment
+**2Oo[NO]<x>_enable or disable optimizations, see fpc -i for possible values
+**2Op<x>_set target cpu for optimizing, see fpc -i for possible values
+**2Os_generate smaller code
 **1pg_generate profile code for gprof (defines FPC_PROFILE)
 **1R<x>_assembler reading style:
 **2Rdefault_use default assembler
@@ -2279,6 +2369,7 @@ S*2Aas_assemble using GNU AS
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
+**2Sk_load fpcylix unit
 **2SI<x>_set interface style to <x>
 **3SIcom_COM compatible interface (default)
 **3SIcorba_CORBA compatible interface
@@ -2305,13 +2396,16 @@ S*2Aas_assemble using GNU AS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
+3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux-68k
+6*2Tlinux_Linux/m68k
 6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
+A*2Twince_Windows CE
+P*2Tamiga_AmigaOS on PowerPC
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
@@ -2330,9 +2424,11 @@ S*2Tlinux_Linux
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
 **2*_a : Show everything             x : Executable info (Win32 only)
+**2*_b : Write file names messages with full path
 **2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
 **2*_    lots of debugging info
 3*1W<x>_Win32-like target options
+3*2WB_Create a relocatable image
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
 3*2WD_Use DEFFILE to export functions of DLL or EXE
@@ -2346,7 +2442,11 @@ P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1X_executable options:
 **2Xc_pass --shared to the linker (Unix only)
 **2Xd_don't use standard library search path (needed for cross compile)
+**2Xe_use external linker
 **2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
+**2Xi_use internal linker
+**2Xm_generate link map
+**2XM<x>_set the name of the 'main' program routine (default is 'main')
 **2XP<x>_prepend the binutils names with the prefix <x>
 **2Xr<x>_set library search path to <x> (needed for cross compile)
 **2Xs_strip all symbols from executable
