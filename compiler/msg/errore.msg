@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -860,7 +860,7 @@ parser_e_proc_directive_expected=03157_E_Procedure directive expected
 parser_e_invalid_property_index_value=03158_E_The value for a property index must be of an ordinal type
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=03159_E_Procedure name to short to be exported
+parser_e_procname_to_short_for_export=03159_E_Procedure name too short to be exported
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
