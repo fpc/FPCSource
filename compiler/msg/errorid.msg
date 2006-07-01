@@ -1,9 +1,10 @@
-#
-#   $Id: errorid.msg,v 1.124 2006/05/05 14:52:50 zaenal Exp $
+#   $Id: errorid.msg,v 1.124 2006/06/29 02:52:50 zaenal Exp $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
 #   Indonesian Language File for Free Pascal
+#   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
+#   Based on errore.msg of SVN revision 3982
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -47,8 +48,6 @@
 #
 # 01023 adalah yang terakhir digunakan
 #
-general_text_bytes_code=01019_byte kode
-general_text_bytes_data=01020_byte data
 # BeginOfTeX
 % \section{Pesan kompilator Umum}
 % Bagian ini memberikan pesan kompilator yang tidak fatal, tetapi 
@@ -59,9 +58,9 @@ general_t_compilername=01000_T_Kompilator: $1
 % Ketika saklar \var{-vt} digunakan, baris ini memberitahu kompilator apa
 % yang digunakan.
 general_d_sourceos=01001_D_Kompilator OS: $1
-% When the \var{-vd} switch is used, this line tells you what the source
-% operating system is.
-general_i_targetos=01002_I_Sasaran OS: $1
+% Ketika saklar \var{-vd} digunakan, baris ini memberitahu anda sistem
+% operasi apa sebagai sumbernya.
+general_i_targetos=01002_I_Target OS: $1
 % When the \var{-vd} switch is used, this line tells you what the target
 % operating system is.
 general_t_exepath=01003_T_Menggunakan path eksekutabel: $1
@@ -74,14 +73,14 @@ general_t_includepath=01005_T_Menggunakan path include: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for its include files (files used in \var{\{\$I xxx\}} statements).
 % You can set this path with the \var{-I} option.
-general_t_librarypath=01006_T_Menggunakan path pustaka: $1
+general_t_librarypath=01006_T_Menggunakan path librari: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for the libraries. You can set this path with the \var{-Fl} option.
 general_t_objectpath=01007_T_Menggunakan path obyek: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 baris dikompilasi, $2 det$3
+general_i_abslines_compiled=01008_I_$1 baris dikompilasi, $2 det
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -116,12 +115,6 @@ general_e_path_does_not_exist=01017_E_Path "$1" tidak ada
 % Path yang ditetapkan tidak ada.
 general_f_compilation_aborted=01018_F_Kompilasi dibatalkan
 % Kompilasi dibatalkan.
-general_i_number_of_warnings=01021_I_$1 perhatian ditemukan
-% Jumlah peringatan dimunculkan selama kompilasi.
-general_i_number_of_hints=01022_I_$1 petujuk ditemukan
-% Total number of hints issued during compilation.
-general_i_number_of_notes=01023_I_$1 catatan ditemukan
-% Total number of notes issued during compilation.
 % \end{description}
 #
 # Scanner
@@ -331,9 +324,6 @@ scan_e_compile_time_typeerror=02072_E_Ekspresi waktu kompilasi: Diinginkan $1 ta
 % Type check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE tidak didukung oleh target OS
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_e_illegal_optimization_specifier=02074_E_Optimasi yang ditetapkan "$1" tidak benar
-% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
-% the compiler didn't recognize the optimization you specified.
 % \end{description}
 #
 # Parser
@@ -512,7 +502,7 @@ parser_e_only_class_methods=03054_E_Hanya metode kelas bisa diakses dalam metode
 % method.
 parser_e_case_mismatch=03055_E_Konstan dan tipe CASE tidak sama
 % One of the labels is not of the same type as the case variable.
-parser_e_illegal_symbol_exported=03056_E_Simbol tidak bisa diekspor dari sebuah pustaka
+parser_e_illegal_symbol_exported=03056_E_Simbol tidak bisa diekspor dari sebuah librari
 % You can only export procedures and functions when you write a library. You
 % cannot export variables or constants.
 parser_w_should_use_override=03057_W_An metode yang diturunkan tidak terlihat oleh "$1"
@@ -1280,6 +1270,8 @@ type_w_double_c_varargs=04059_W_Pengubahan nilai konstan real ke double untuk ar
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
+type_e_class_or_cominterface_type_expected=04058_E_Antarmuka class atau type diharapkan, tetapi didapat "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces
 % \end{description}
 #
 # Symtable
@@ -1555,7 +1547,7 @@ cg_e_break_not_allowed=06044_E_BREAK tidak dibolehkan
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE tidak dibolehkan
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_Compilerproc "$1" tidak dikenal. Periksa apakah anda menggunakan pustaka run time yang benar.
+cg_f_unknown_compiler=06046_F_Compilerproc "$1" tidak dikenal. Periksa apakah anda menggunakan librari run time yang benar.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
@@ -1811,8 +1803,6 @@ asmw_e_duplicate_label=08016_E_Asm: Duplikasi label $1
 asmw_e_redefined_label=08017_E_Asm: label $1 didefinisikan ulang
 asmw_e_first_defined_label=08018_E_Asm: Definisi pertama disini
 asmw_e_invalid_register=08019_E_Asm: register $1 tidak benar
-asmw_e_16bit_32bit_not_supported=08020_E_Asm: rujukan 16 atau 32 Bit tidak didukung
-asmw_e_64bit_not_supported=08021_E_Asm: operan 64 Bit tidak didukung
 
 #
 # Executing linker/assembler
@@ -1848,7 +1838,7 @@ exec_i_assembling_smart=09010_I_Perakitan dengan smartlinking $1
 exec_w_objfile_not_found=09011_W_Obyek $1 tidak ditemukan, Penggabungan bisa gagal !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
-exec_w_libfile_not_found=09012_W_Pustaka $1 tidak ditemukan, Penggabungan bisa gagal !
+exec_w_libfile_not_found=09012_W_Librari $1 tidak ditemukan, Penggabungan bisa gagal !
 % One of the library file is missing, and linking will probably fail.
 % Check your paths.
 exec_e_error_while_linking=09013_E_Kesalahan saat penggabungan
@@ -1858,7 +1848,7 @@ exec_i_linking=09015_I_Penggabungan $1
 exec_e_util_not_found=09016_E_Util $1 tidak ditemukan, beralih ke penggabungan eksternal
 exec_t_using_util=09017_T_Menggunakan util $1
 exec_e_exe_not_supported=09018_E_Pembuatan Eksekutable tidak didukung
-exec_e_dll_not_supported=09019_E_Pembuatan Pustaka Dinamis/Berbagi tidak didukung
+exec_e_dll_not_supported=09019_E_Pembuatan librari Dinamis/Berbagi tidak didukung
 exec_i_closing_script=09020_I_Penutupan skrip $1
 exec_e_res_not_found=09021_E_resource kompilator tidak ditemukan, beralih ke mode eksternal
 exec_i_compilingresource=09022_I_Mengkompilasi resource $1
@@ -2114,7 +2104,7 @@ option_reading_further_from=11010_D_Pembacaan opsi selanjutnya dari $1
 % to another options file.
 option_target_is_already_set=11011_W_Target sudah diset ke: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=11012_W_Pustakan berbagi tidak didukung pada platform DOS, kembali ke statik
+option_no_shared_lib_under_dos=11012_W_Librari berbagi tidak didukung pada platform DOS, kembali ke statik
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
 option_too_many_ifdef=11013_F_terlalu banyak IF(N)DEFs
@@ -2134,11 +2124,11 @@ option_no_debug_support_recompile_fpc=11017_H_Coba rekompilasi dengan -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_W_Anda menggunakan saklar tidak terpakai $1
+option_obsolete_switch=11018_E_Anda menggunakan saklar tidak terpakai $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_W_Anda menggunakan saklar $1 tidak terpakai, silahkan gunakan $2
+option_obsolete_switch_use_new=11019_E_Anda menggunakan saklar $1 tidak terpakai, silahkan gunakan $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2180,7 +2170,7 @@ option_config_is_dir=11040_F_File konfigurasi $1 adalah sebuah direktori
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2005 oleh Florian Klaempfl
+Hak Cipta (c) 1993-2006 oleh Florian Klaempfl
 ]
 
 #
@@ -2201,14 +2191,11 @@ Set instruksi CPU yang Didukung:
 Set instruksi FPU yang Didukung:
   $FPUINSTRUCTIONSETS
 
-Optimasi yang Didukung:
-  $OPTIMIZATIONS
-
 Program ini berdasarkan GNU General Public Licence
 Untuk informasi lebih jauh baca COPYING.FPC
 
 Laporkan kesalahan, saran dll ke:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #
@@ -2256,7 +2243,7 @@ option_help_pages=11025_[
 4*2Aas_himpun menggunakan GNU AS
 6*2Aas_Unix o-file menggunakan GNU AS
 6*2Agas_GNU Motorola assembler
-6*2Amit_MIT Syntaks (GAS lama)
+6*2Amit_Sintaks MIT (GAS lama)
 6*2Amot_Standar Motorola assembler
 A*2Aas_himpun menggunakan GNU AS
 P*2Aas_himpun menggunakan GNU AS
@@ -2266,7 +2253,7 @@ S*2Aas_himpun menggunakan GNU AS
 **1B_bangun semua modul
 **1C<x>_opsi pembuatan kode:
 **2Cc<x>_set konvensi pemanggilan default ke <x>
-**2CD_buat juga pustaka dinamis (tidak didukung)
+**2CD_buat juga librari dinamis (tidak didukung)
 **2Ce_Kompiilasi dengan opkode emulasi floating point
 **2Cf<x>_Pilih set instruksi fpu yang digunakan, lihat fpc -i untuk nilai yang mungkin
 **2Cg_Hasilkan kode PIC
@@ -2279,7 +2266,7 @@ S*2Aas_himpun menggunakan GNU AS
 **2CR_verifikasi keabsahan pemanggilan metode object
 **2Cs<n>_set besar stack ke <n>
 **2Ct_pemeriksaan stack
-**2CX_buat juga pustaka smartlinked
+**2CX_buat juga librari smartlinked
 **1d<x>_definisikan simbol <x>
 **1D_hasilkan file DEF
 **2Dd<x>_set deskripsi ke <x>
@@ -2294,7 +2281,7 @@ S*2Aas_himpun menggunakan GNU AS
 **2Fe<x>_alihkan output kesalahan ke <x>
 **2FE<x>_set path output exe/unit ke <x>
 **2Fi<x>_tambahkan <x> ke path include
-**2Fl<x>_tambahkan <x> ke path pustaka
+**2Fl<x>_tambahkan <x> ke path librari
 **2FL<x>_gunakan <x> sebagai linker dinamis
 **2Fo<x>_tambahkan <x> ke path object
 **2Fr<x>_ambil file pesan kesalahan <x>
@@ -2326,10 +2313,8 @@ S*2Aas_himpun menggunakan GNU AS
 **2Mgpc_mencoba untuk kompatibel gpc
 **2Mmacpas_mencoba untuk kompatibel dengan dialek pascal macintosh
 **1n_jangan baca file konfigurasi default
-**1N<x>_optimasi susunan node
-**2Nu_jangan gulung perulangan
 **1o<x>_ubah nama dari eksekutabel yang dihasilkan ke <x>
-**1O<x>_optimizations:
+**1O<x>_optimasi:
 **2O-_matikan optimasi
 **2O1_tingkat 1 optimasi (cepat dan akrab debugger)
 **2O2_tingkat 2 optimasi (-O1 + optimasi cepat)
@@ -2359,8 +2344,8 @@ S*2Aas_himpun menggunakan GNU AS
 **2Si_dukung gaya C++ INLINE
 **2Sk_ambil unit fpcylix
 **2SI<x>_set gaya antar muka ke <x>
-**3SIcom_Antar muka kompatibel COM (default)
-**3SIcorba_Antar muka kompatibel CORBA
+**3SIcom_Antarmuka kompatibel COM (default)
+**3SIcorba_Antarmuka kompatibel CORBA
 **2Sm_dukung makro seperti C (global)
 **2So_sama dengan -Mtp
 **2Sp_sama dengan -Mgpc
@@ -2384,7 +2369,6 @@ S*2Aas_himpun menggunakan GNU AS
 3*2Twatcom_Kompatibel Watcom DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
-3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
@@ -2392,8 +2376,6 @@ S*2Aas_himpun menggunakan GNU AS
 6*2Tmacos_Macintosh m68k (tidak didukung)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
-A*2Twince_Windows CE
-P*2Tamiga_AmigaOS pada PowerPC
 P*2Tdarwin_Darwin dan MacOS X pada PowerPC
 P*2Tlinux_Linux pada PowerPC
 P*2Tmacos_MacOS (Klasik) pada PowerPC
@@ -2404,41 +2386,41 @@ S*2Tlinux_Linux
 **2Un_jangan periksa nama unit
 **2Ur_hasilkan file unit rilis
 **2Us_kompilasi unit sistem
-**1v<x>_Ditampilkan. <x> adalah kombinasi dari huruf berikut:
-**2*_e : tampilkan kesalahan (default) 0 : Jangan tampilkan apapun (kecuali kesalahan)
-**2*_w : tampilkan perhatian           u : Tampilkan info unit
-**2*_n : tampilkan catatan             t : Tampilkan file yang dicoba/digunakan
-**2*_h : tampilkan petunjuk            c : Tampilkan kondisional
-**2*_i : tampilkan  info umum					 d : Tampilkan info debug
-**2*_l : tampilkan nomor baris				 r : Mode kompatibilitas Rhide/GCC
-**2*_a : tampilkan semuanya						 x : Info eksxecutabel (hanya Win32)
-**2*_b : tulis pesan nama file dengan path penuh
-**2*_v : tulis fpcdebug.txt dengan     p : Tulis tree.log dengan memindai tree
-**2*_    info debug sebanyaknya
-3*1W<x>_Mirip-Win32 opsi sasaran
-3*2WB_Buat image yang bisa direlokasi
-3*2WB<x>_Set basis Image ke nilai Hexadecimal <x>
+**1v<x>_Tampilkan. <x> adalah kombinasi dari huruf berikut:
+**2*_e : Tampilkan kesalahan (default) 0 : Jangan tampilkan apapun (kecuali kesalahan)
+**2*_w : Tampilkan peringatan          u : Tampilkan info unit
+**2*_n : Tampilkan catatan             t : Tampilkan file yg dicoba/digunakan
+**2*_h : Tampilkan petunjuk            c : Tampilkan kondisional
+**2*_i : Tampilkan info umum           d : Tampilkan info debug
+**2*_l : Tampilkan nomor baris         r : Mode kompatibilitas Rhide/GCC
+**2*_a : Tampilkan semua               x : Info executable (hanya Win32)
+**2*_b : Tulis pesan nama file dengan path lengkap
+**2*_v : tulis fpcdebug.txt dengan     p : Tulis tree.log dengan pemindaian susunan
+**2*_    banya info debugging
+3*1W<x>_Opsi target mirip-Win32
+3*2WB_Buat image bisa direlokasi
+3*2WB<x>_Set basis Image ke nilai Heksadesimal <x>
 3*2WC_Tetapkan tipe aplikasi konsol
 3*2WD_Gunakan DEFFILE untuk mengekspor fungsi dari DLL atau EXE
-3*2WF_Tetapkan tipe aplikasi layar-penuh (hany OS/2)
-3*2WG_Tetapkan tipe aplikasi grafik
-3*2WN_Jangan buat kode relokasi (perlu untuk debugging)
-3*2WR_Buat kode relokasi
+3*2WF_Tetapkan tipe aplikasi layar-penuh (hanya OS/2)
+3*2WG_Tetapkan tipe aplikasi grafis
+3*2WN_Jangan hasilkan kode relokasi (perlu untuk debugging)
+3*2WR_Hasilkan kode relokasi
 P*2WC_Tetapkan tipe aplikasi konsol (hanya MacOS)
-P*2WG_Tetapkan tipe aplikasi grafik (hanya MacOS)
-P*2WT_Tetapkan piranti tipe aplikasi (piranti MPW, hanya MacOS)
-**1X_Opsi eksekutabel:
-**2Xc_operan --berbagi dengan linker (hanya Unix)
-**2Xd_jangan gunakan pencarian path pustaka standar (diperlukan untuk kompilasi silang)
-**2XD_coba untuk me-link unit dinamis          (tetapkan FPC_LINK_DYNAMIC)
+P*2WG_Tetapkan tipe aplikasi grafis (hnya MacOS)
+P*2WT_Tetapkan tipe aplikasi piranti (piranti MPW, hanya MacOS)
+**1X_opsi eksecutabel:
+**2Xc_pass --berbagi dengan linker (hanya Unix)
+**2Xd_jangan gunakan path pencarian librari standar (perlu untuk kompilasi silang)
+**2XD_coba me-link units dinamis          (definisikan FPC_LINK_DYNAMIC)
 **2Xm_hasilkan peta link
-**2XM<x>_set nama dari rutin program 'main' (default adalah 'main')
-**2XP<x>_gunakan nama binutils dengan prefiks <x>
-**2Xr<x>_set path pencarian pustaka ke <x> (diperlukan untuk kompilasi silang)
-**2Xs_strip all symbols from executable
-**2XS_try to link units static (default) (tetapkan FPC_LINK_STATIC)
-**2Xt_link dengan pustaka statik (-statik dilangsukan ke linker)
-**2XX_coba me-link units smart            (tetapkan FPC_LINK_SMART)
+**2XM<x>_set nama dari rutin program 'main' (standarnya 'main')
+**2XP<x>_biarkan nama binutils dengan prefiks <x>
+**2Xr<x>_set path pencarian librari ke <x> (diperlukan untuk kompilasi silang)
+**2Xs_hapus semua simbol dari eksecutabel
+**2XS_coba me-link unit statik (default) (tetapkan FPC_LINK_STATIC)
+**2Xt_link dengan librari statik (-statik dilangsukan ke linker)
+**2XX_coba me-link units smart            (definisikan FPC_LINK_SMART)
 **1*_
 **1?_tampilkan panduan ini
 **1h_tampilkan panduan ini tanpa menunggu
