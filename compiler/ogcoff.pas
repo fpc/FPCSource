@@ -245,9 +245,12 @@ interface
        TPECoffexeoutput = class(TCoffexeoutput)
        private
          idatalabnr : longint;
+         procedure GenerateRelocs;
        public
          constructor create;override;
          procedure GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);override;
+         procedure Order_End;override;
+         procedure CalcPos_ExeSection(const aname:string);override;
        end;
 
        TObjSymbolrec = record
@@ -425,6 +428,10 @@ implementation
        R_DIR32 = 6;
        R_IMAGEBASE = 7;
        R_PCRLONG = 20;
+       
+       { .reloc section fixup types }
+       IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
+       IMAGE_REL_BASED_DIR64       = 10; { Applies the delta to the 64-bit field at Offset. }
 
     type
        coffdjoptheader=packed record
@@ -2150,9 +2157,11 @@ const pemagic : array[0..3] of byte = (
           header.opthdr:=sizeof(coffdjoptheader);
         if win32 then
           begin
-            header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_RELOCS_STRIPPED or PE_FILE_LINE_NUMS_STRIPPED;
+            header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
             if IsSharedLibrary then
               header.flag:=header.flag or PE_FILE_DLL;
+            if FindExeSection('.reloc')=nil then
+              header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
             if FindExeSection('.stab')=nil then
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
             if (cs_link_strip in aktglobalswitches) then
@@ -2201,8 +2210,8 @@ const pemagic : array[0..3] of byte = (
             else
               if apptype=app_gui then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
-            else
-              peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
+              else
+                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
             peoptheader.DllCharacteristics:=0;
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
@@ -2214,6 +2223,7 @@ const pemagic : array[0..3] of byte = (
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
             UpdateDataDir('.rsrc',PE_DATADIR_RSRC);
             UpdateDataDir('.pdata',PE_DATADIR_PDATA);
+            UpdateDataDir('.reloc',PE_DATADIR_RELOC);
             FWriter.write(peoptheader,sizeof(peoptheader));
           end
         else
@@ -2468,6 +2478,95 @@ const pemagic : array[0..3] of byte = (
           end;
         PackUnresolvedExeSymbols('after DLL imports');
       end;
+
+
+    procedure TPECoffexeoutput.GenerateRelocs;
+      var
+        pgaddr, hdrpos : longint;
+    
+      procedure FinishBlock;
+      var
+        p,len : longint;
+      begin
+        if hdrpos = -1 then
+          exit;
+        p:=0;
+        internalobjdata.writebytes(p,align(internalobjdata.CurrObjSec.size,4)-internalobjdata.CurrObjSec.size);
+        p:=internalObjData.CurrObjSec.Data.Pos;
+        internalObjData.CurrObjSec.Data.seek(hdrpos+4);
+        len:=p-hdrpos;
+        internalObjData.CurrObjSec.Data.write(len,4);
+        internalObjData.CurrObjSec.Data.seek(p);
+        hdrpos:=-1;
+      end;
+    
+      var
+        exesec : TExeSection;
+        objsec : TObjSection;
+        objreloc : TObjRelocation;
+        i,j,k,offset : longint;
+        w: word;
+      begin
+        if not IsSharedLibrary then
+          exit;
+        exesec:=FindExeSection('.reloc');
+        if exesec=nil then
+          exit;
+        objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions);
+        exesec.AddObjSection(objsec);
+        pgaddr:=-1;
+        hdrpos:=-1;
+        for i:=0 to ExeSections.Count-1 do
+          begin
+            exesec:=TExeSection(ExeSections[i]);
+            for j:=0 to exesec.ObjSectionList.count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[j]);
+                for k:=0 to objsec.ObjRelocations.Count-1 do
+                  begin
+                    objreloc:=TObjRelocation(objsec.ObjRelocations[k]);
+                    if not (objreloc.typ in [{$ifdef x86_64}RELOC_ABSOLUTE32,{$endif x86_64}RELOC_ABSOLUTE]) then
+                      continue;
+                    offset:=objsec.MemPos+objreloc.dataoffset;
+                    if (offset-pgaddr>=4096) or (pgaddr=-1) then
+                      begin
+                        FinishBlock;
+                        pgaddr:=(offset div 4096)*4096;
+                        hdrpos:=internalObjData.CurrObjSec.Data.Pos;
+                        internalObjData.writebytes(pgaddr,4);
+                        { Reserving space for block size. The size will be written later in FinishBlock }
+                        internalObjData.writebytes(k,4);
+                      end;
+                    w:=(IMAGE_REL_BASED_HIGHLOW shl 12) or (offset-pgaddr);
+                    internalObjData.writebytes(w,2);
+                  end;
+              end;
+          end;
+        FinishBlock;
+      end;
+      
+
+    procedure TPECoffexeoutput.Order_End;
+      var
+        exesec : TExeSection;
+      begin
+        inherited;
+        if not IsSharedLibrary then
+          exit;
+        exesec:=FindExeSection('.reloc');
+        if exesec=nil then
+          exit;
+        exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep];
+      end;
+      
+      
+      procedure TPECoffexeoutput.CalcPos_ExeSection(const aname:string);
+        begin
+          if aname='.reloc' then
+            GenerateRelocs;
+          inherited;
+        end;
+
 
 
 {****************************************************************************

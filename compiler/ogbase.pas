@@ -66,7 +66,9 @@ interface
          { Generate a 0 value at the place of the relocation,
            this is used to remove unused vtable entries }
          RELOC_ZERO,
-         { dummy reloc }
+         { No relocation is needed. It is used in ARM object files.
+           Also internal linker use this reloc to make virtual (not real)
+           links to some sections }
          RELOC_NONE
       );
 

@@ -1004,15 +1004,13 @@ implementation
               ibase:=DLLImageBase^
             else
               begin
-                if target_info.system in [system_arm_wince] then
-                  ibase:='10000'
+                if IsSharedLibrary then
+                  ibase:='10000000'
                 else
-                  begin
-                    if IsSharedLibrary then
-                      ibase:='10000000'
-                    else
-                      ibase:='400000';
-                  end;
+                  if target_info.system in [system_arm_wince] then
+                    ibase:='10000'
+                  else
+                    ibase:='400000';
               end;
             Concat('IMAGEBASE $' + ibase);
             Concat('HEADER');
@@ -1069,6 +1067,9 @@ implementation
             Concat('ENDEXESECTION');
             Concat('EXESECTION .rsrc');
             Concat('  OBJSECTION .rsrc*');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .reloc');
+            Concat('  OBJSECTION .reloc');
             Concat('ENDEXESECTION');
             Concat('EXESECTION .stab');
             Concat('  OBJSECTION .stab');
