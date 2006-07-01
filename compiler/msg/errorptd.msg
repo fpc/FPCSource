@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
 #   Portuguese (DOS encoding) language file for Free Pascal Compiler
 #   Contributed by Ari Ricardo Ody <ari.ody at japinfo.com.br>
@@ -2186,8 +2186,8 @@ option_config_is_dir=11040_F_Arquivo de configuracao $1 e um diretorio
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler versao $FPCVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2005 por Florian Klaempfl
+Free Pascal Compiler versao $FPCFULLVERSION [$FPCDATE] para $FPCCPU
+Copyright (c) 1993-2006 por Florian Klaempfl
 ]
 
 #
@@ -2265,7 +2265,7 @@ S*2Aas_Montagem feita usando o GNU AS
 **2Ct_stack checking(verifica estouros da capacidade do stack)
 **2CX_criar tambem a smartlinked library
 **1d<x>_define o simbolo <x>
-1D_gera um DEF file
+**1D_gera um DEF file
 **2Dd<x>_seta a descricao para <x>
 **2Dv<x>_set a versao das DLL para <x>
 *O2Dw_PM application(usa o Presentation manager do OS/2)
@@ -2377,14 +2377,14 @@ S*2Aas_Montagem feita usando o GNU AS
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux-68k
+6*2Tlinux_Linux/m68k
 6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
 P*2Tdarwin_Darwin and MacOS X on PowerPC
 P*2Tlinux_Linux on PowerPC
 P*2Tmacos_MacOS (classic) on PowerPC
-2Tmorphos_MorphOS
+P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_excluir definicao do simbolo <x>
 **1U_opcoes de "unit":
