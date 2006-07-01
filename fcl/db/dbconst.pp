@@ -18,7 +18,7 @@ unit dbconst;
 
 Interface
 
-Const
+Resourcestring
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
   SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
