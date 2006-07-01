@@ -150,6 +150,11 @@
 # searchpath for tools
 -FD%basepath%/bin/$FPCTARGET
 
+# binutils prefix for cross compiling
+#IFDEF FPC_CROSSCOMPILING
+  -XP$FPCTARGET-
+#ENDIF
+
 
 # -------------
 # Linking

@@ -163,30 +163,34 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# searchpath for tools'#010+
   '-FD%basepath%/bin/$FPCTARGET'#010+
   #010+
+  '# binutils prefix for cross compiling'#010+
+  '#IFDEF FPC_CROSSCOMPILING'#010+
+  '  -XP$FPCTARGET-'#010+
+  '#ENDIF'#010+
+  #010+
   #010+
   '# -------------'#010+
-  '# Linking'#010+
+  '# Linking',#010+
   '# -------------'#010+
   #010+
   '# generate always debugging information for GDB (slows down the compil'+
-  'i','ng'#010+
+  'ing'#010+
   '# process)'#010+
   '#      -gc        generate checks for pointers'#010+
   '#      -gd        use dbx'#010+
   '#      -gg        use gsym'#010+
-  '#      -gh        use heap trace unit (for memory leak debugging)'#010+
-  '#      -gl        use line info unit to show more info for b','acktrace'+
-  's'#010+
+  '#      -gh        use heap trace unit',' (for memory leak debugging)'#010+
+  '#      -gl        use line info unit to show more info for backtraces'#010+
   '#      -gv        generates programs tracable with valgrind'#010+
   '#      -gw        generate dwarf debugging info'#010+
   '#'#010+
-  '# Enable debuginfo and use the line info unit by default'#010+
+  '# Enable debuginfo and use the ','line info unit by default'#010+
   '#-gl'#010+
   #010+
   '# always pass an option to the linker'#010+
   '#-k-s'#010+
   #010+
-  '# Always str','ip debuginfo from the executable'#010+
+  '# Always strip debuginfo from the executable'#010+
   '-Xs'#010+
   #010+
   #010+
@@ -198,18 +202,18 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '-l'#010+
   #010+
   '# Verbosity'#010+
-  '#      e : Show errors (default)       d : Show debug info'#010+
-  '#      w : Show warnings               u : ','Show unit info'#010+
+  '#      e : Sh','ow errors (default)       d : Show debug info'#010+
+  '#      w : Show warnings               u : Show unit info'#010+
   '#      n : Show notes                  t : Show tried/used files'#010+
   '#      h : Show hints                  m : Show defined macros'#010+
-  '#      i : Show general info           p : Show compiled procedures'#010+
-  '#      l : Show linenumbers  ','          c : Show conditionals'#010+
+  '#      i',' : Show general info           p : Show compiled procedures'#010+
+  '#      l : Show linenumbers            c : Show conditionals'#010+
   '#      a : Show everything             0 : Show nothing (except errors'+
   ')'#010+
-  '#      b : Show all procedure          r : Rhide/GCC compatibility mod'+
-  'e'#010+
-  '#          declarations if an error    x : Executable info (Win3','2 on'+
-  'ly)'#010+
+  '#      b : Show all procedure          r : Rhid','e/GCC compatibility m'+
+  'ode'#010+
+  '#          declarations if an error    x : Executable info (Win32 only'+
+  ')'#010+
   '#          occurs'#010+
   '#'#010+
   '# Display Info, Warnings, Notes and Hints'#010+
