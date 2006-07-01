@@ -401,7 +401,7 @@ parser_f_no_anonym_objects=03022_F_Anonieme klassedefinities zijn niet toegestaa
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_n_object_has_no_vmt=03023_N_Het object "$1Ã" heeft geen VMT
+parser_n_object_has_no_vmt=03023_N_Het object "$1" heeft geen VMT
 % This is a note indicating that the declared object has no
 % virtual method table.
 parser_e_illegal_parameter_list=03024_E_Foutieve parameterlijst
@@ -552,7 +552,7 @@ parser_e_cant_access_private_member=03063_E_Kan niet in prive-veld van een objec
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_Overridden methodes moeten dezelfde resultaat type hebben: "$2" wordt overridden door Ã"1$1" met een ander type
+parser_e_overridden_methods_not_same_ret=03066_E_Overridden methodes moeten dezelfde resultaat type hebben: "$2" wordt overridden door "$1" met een ander type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_Als EXPORT gedeclareerde procedures kunnen niet genest worden
@@ -877,7 +877,7 @@ parser_e_no_export_with_index_for_target=03163_E_Kan niet exporteren met indexen
 parser_e_no_export_of_variables_for_target=03164_E_Exporteren van variabelen is niet ondersteund op $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Ongeldige GUID aanduiding
-parser_w_interface_mapping_notfound=03168_W_PGeen procedure genaamd "$1Ã" om "$2.$3" te implementeren gevonden
+parser_w_interface_mapping_notfound=03168_W_PGeen procedure genaamd "$1" om "$2.$3" te implementeren gevonden
 parser_e_interface_id_expected=03169_E_Interface aanduiding verwacht
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -904,7 +904,7 @@ parser_e_no_vars_in_interfaces=03173_E_Een interface definitie kan geen velden b
 parser_e_no_local_proc_external=03174_E_Can lokale procedure niet als EXTERNAL definieren
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
-parser_w_skipped_fields_before=03175_W_Sommige velden voor "$1Ã" zijn niet geinitialiseerd
+parser_w_skipped_fields_before=03175_W_Sommige velden voor "$1" zijn niet geinitialiseerd
 % In Delphi mode, not all fields of a typed constant record have to be
 % initialized, but the compiler warns you when it detects such situations.
 parser_e_skipped_fields_before=03176_E_Sommige velden voor "$1" zijn niet geinitialiseerd
@@ -924,9 +924,9 @@ parser_e_self_call_by_value=03179_E_SELF moet een normale waarde parameter zijn
 parser_e_interface_has_no_guid=03180_E_Interface "$1" heeft geen interface definitie
 % When you want to assign an interface to a constant, then the interface
 % must have a GUID value set.
-parser_e_illegal_field_or_method=03181_E_Ongekend klasse-veld of methode aanduiding "$1Ã"
+parser_e_illegal_field_or_method=03181_E_Ongekend klasse-veld of methode aanduiding "$1"
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_Aanroep-modus "$1Ã" vervangen door "$2"
+parser_w_proc_overriding_calling=03182_W_Aanroep-modus "$1" vervangen door "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
 parser_e_no_procvarobj_const=03183_E_Getypeerde constanten van  type "procedure of object" kunnen alleen met NIL geinitialiseerd worden
@@ -945,7 +945,7 @@ parser_e_C_array_of_const_must_be_last=03188_E_"C array of const" moet het laats
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
-parser_h_type_redef=03189_H_Type "$1Ã" herdefinitie
+parser_h_type_redef=03189_H_Type "$1" herdefinitie
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
@@ -1221,14 +1221,14 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enumeratie typen met v
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
-type_e_classes_not_related=04039_E_Klasse of object types "$1Ã" en "$2" zijn niet verwant
+type_e_classes_not_related=04039_E_Klasse of object types "$1" en "$2" zijn niet verwant
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Klasse types "$1" en "$2" zijn niet verwant
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_e_class_or_interface_type_expected=04041_E_Klasse of interface type verwacht, maar kreeg Ã"$1Ã"
-type_e_type_is_not_completly_defined=04042_E_Type "$1Ã" is niet volledig gedefinieerd
+type_e_class_or_interface_type_expected=04041_E_Klasse of interface type verwacht, maar kreeg "$1"
+type_e_type_is_not_completly_defined=04042_E_Type "$1" is niet volledig gedefinieerd
 type_w_string_too_long=04043_W_String constante heeft meer karakters dan de lengte van een shortstring
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1411,7 +1411,7 @@ sym_e_segment_too_large=05040_E_Data segment te groot (max. 2GB)
 sym_e_no_matching_implementation_found=05042_E_Geen overeenstemmende implementatie voor interface methode "$1" gevonden
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
-sym_w_deprecated_symbol=05043_W_Symbool "$1Ã" is afgeraden
+sym_w_deprecated_symbol=05043_W_Symbool "$1" is afgeraden
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
@@ -1757,7 +1757,7 @@ asmr_e_unable_to_determine_reference_size=07083_E_Geen grootte aangegegeven en k
 asmr_e_cannot_use_RESULT_here=07084_E_Kan RESULT aanduiding niet gebruiken in deze functie
 % Some functions which return complex types cannot use the \var{result}
 % keyword.
-asmr_w_adding_explicit_args_fXX=07086_W_"$1Ã" zonder operand vertaald naar "$1 %st,%st(1)"
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" zonder operand vertaald naar "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" vertaald naar "$1 %st,%st(n)"
 asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)"  vertaald naar  "$1 %st(n),%st"
 asmr_e_invalid_char_smaller=07089_E_Karakter < hier niet toegestaan
