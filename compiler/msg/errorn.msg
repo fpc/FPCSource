@@ -2,7 +2,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
-#   Dutch Language File for Free Pascal
+#   Dutch Language File for Free Pascal in CP850 (just one line in help affected)
 #   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
 #   Based on errore.msg of SVN revision 3982
 #
