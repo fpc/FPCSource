@@ -402,7 +402,11 @@ Var
 
 begin
   S:=TStringStream.Create(Msg);
-  SendMessage(mtString,S);
+  try
+    SendMessage(mtString,S);
+  finally
+    s.free;
+  end;
 end;
 
 procedure TSimpleIPCClient.SendStringmessageFmt(Msg: String;

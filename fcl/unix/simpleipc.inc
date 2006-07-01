@@ -157,8 +157,13 @@ Var
 begin
   FStream.ReadBuffer(Hdr,SizeOf(Hdr));
   Count:=Hdr.MsgLen;
-  Owner.FMsgData.Seek(0,soFrombeginning);
-  Owner.FMsgData.CopyFrom(FStream,Count);
+  if count > 0 then
+    begin
+    Owner.FMsgData.Seek(0,soFrombeginning);
+    Owner.FMsgData.CopyFrom(FStream,Count);
+    end
+  else
+    Owner.FMsgData.Size := 0;
 end;
 
 function TPipeServerComm.GetInstanceID: String;
