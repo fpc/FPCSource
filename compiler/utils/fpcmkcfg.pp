@@ -19,9 +19,9 @@ program fpcmkcfg;
 uses usubst,SysUtils,Classes;
 
 {
-  The fpccfg.inc file must be built from a template with the bin2obj
+  The fpccfg.inc file must be built from a template with the data2inc
   command.  it needs options:
-  bin2obj -a -o fpccfg.inc -c DefaultConfig fpc.cft
+  data2inc -b -s fpc.cft fpccfg.inc DefaultConfig
   where fpc.cft is the template file.
 }
 
