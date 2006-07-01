@@ -661,9 +661,14 @@ begin
   {Should return value load loaddoserror?}
 
   ret:=GetShortPathName(@buffer,@buffer,255);
-  if ret=0 then
-   p:=strpas(buffer);
-  GetShortName:=ret<>0;
+  if (Ret > 0) and (Ret <= 255) then
+   begin
+    Move (Buffer, P [1], Ret);
+    byte (P [0]) := Ret;
+    GetShortName := true;
+   end
+  else
+   GetShortName := false;
 end;
 
 { change to long filename if successful DOS call PM }
@@ -686,9 +691,18 @@ begin
   {Should return value load loaddoserror?}
 
   ret:=GetFullPathName(@sfn,255,@lfn,filename);
-  if ret=0 then
-   p:=strpas(lfn);              {lfn here returns full path, filename only fn}
-  GetLongName:=ret<>0;
+  {lfn here returns full path, filename only fn}
+  { If successful, Ret contains length of the long file name,
+    0 is general error, return value larger than size of buffer (255) means
+    that the buffer size was not sufficient. }
+  if (Ret > 0) and (Ret <= 255) then
+   begin
+    Move (LFN, P [1], Ret);
+    byte (P [0]) := Ret;
+    GetLongName := true;
+   end
+  else
+   GetLongName := false;
 end;
 
 {******************************************************************************
