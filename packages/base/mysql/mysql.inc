@@ -1568,7 +1568,7 @@ begin
     pointer(mysql_ping) := GetProcedureAddress(MysqlLibraryHandle,'mysql_ping');
     pointer(mysql_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_query');
     pointer(mysql_real_connect) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_connect');
-    pointer(mysql_real_escape_string) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_String');
+    pointer(mysql_real_escape_string) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_escape_string');
     pointer(mysql_real_query) := GetProcedureAddress(MysqlLibraryHandle,'mysql_real_query');
     pointer(mysql_refresh) := GetProcedureAddress(MysqlLibraryHandle,'mysql_refresh');
 //    pointer(mysql_reload) := GetProcedureAddress(MysqlLibraryHandle,'mysql_reload');

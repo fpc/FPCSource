@@ -71,6 +71,9 @@ Type
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
 
+    function GetAsSQLText(Field : TField) : string; overload; virtual;
+    function GetAsSQLText(Param : TParam) : string; overload; virtual;
+
     Function AllocateCursorHandle : TSQLCursor; override;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
     Function AllocateTransactionHandle : TSQLHandle; override;
@@ -183,6 +186,39 @@ begin
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
 end;
+
+function TConnectionName.GetAsSQLText(Field : TField) : string;
+
+var esc_str : pchar;
+
+begin
+  if (not assigned(field)) or field.IsNull then Result := 'Null'
+  else if field.DataType = ftString then
+    begin
+    Getmem(esc_str,sizeof(field.asstring)*2+1);
+    mysql_real_escape_string(FMySQL,esc_str,pchar(field.asstring),length(field.asstring));
+    Result := '''' + esc_str + '''';
+    Freemem(esc_str);
+    end
+  else Result := inherited GetAsSqlText(field);
+end;
+
+function TConnectionName.GetAsSQLText(Param: TParam) : string;
+
+var esc_str : pchar;
+
+begin
+  if (not assigned(param)) or param.IsNull then Result := 'Null'
+  else if param.DataType =  ftString then
+    begin
+    Getmem(esc_str,sizeof(param.asstring)*2+1);
+    mysql_real_escape_string(FMySQL,esc_str,pchar(param.asstring),length(param.asstring));
+    Result := '''' + esc_str + '''';
+    Freemem(esc_str);
+    end
+  else Result := inherited GetAsSqlText(Param);
+end;
+
 
 procedure TConnectionName.ConnectToServer;
 
