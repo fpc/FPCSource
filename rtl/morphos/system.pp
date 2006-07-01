@@ -43,7 +43,7 @@ const
   StdErrorHandle  : LongInt = 0;
 
   FileNameCaseSensitive : Boolean = False;
-  CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
+  CtrlZMarksEOF: boolean = false; { #26 not considered as end of file }
 
   sLineBreak : string[1] = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
@@ -104,9 +104,19 @@ begin
     CurrentDir(MOS_origDir);
   end;
 
+  { Closing CON: when in Ambient mode }
+  if MOS_ConHandle<>0 then dosClose(MOS_ConHandle);
+
   if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
   if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
   if MOS_heapPool<>nil then DeletePool(MOS_heapPool);
+
+  { If in Ambient mode, replying WBMsg }
+  if MOS_ambMsg<>nil then begin
+    Forbid;
+    ReplyMsg(MOS_ambMsg);
+  end;
+
   haltproc(ExitCode);
 end;
 
@@ -148,11 +158,10 @@ begin
   argv[0][length(temp)]:=#0;
 
   { check if we're started from Ambient }
-  if MOS_ambMsg<>nil then
-    begin
-      argc:=0;
-      exit;
-    end;
+  if MOS_ambMsg<>nil then begin
+    argc:=0;
+    exit;
+  end;
 
   { Handle the other args }
   count:=0;
@@ -218,6 +227,66 @@ begin
   end;
 end;
 
+function GetArgv0Ambient: String;
+{ Returns program full path+name, when in Ambient mode }
+{ Required for paramstr(0) support in Ambient mode }
+type
+  pWBArg = ^tWBArg;
+  tWBArg = record
+    wa_Lock: longint;
+    wa_Name: PChar;
+  end;
+
+  pWBStartup = ^tWBStartup;
+  tWBStartup = packed record
+    sm_Message   : tMessage;
+    sm_Process   : pMsgPort;
+    sm_Segment   : longint;
+    sm_NumArgs   : longint;
+    sm_ToolWindow: PChar;
+    sm_ArgList   : pWBArg;
+  end;
+
+var
+  tmpbuf  : String;
+  counter : longint;
+  progname: PChar;
+  dlock   : longint;
+
+begin
+  GetArgv0Ambient:='';
+
+  if MOS_ambMsg<>nil then begin
+    dlock:=pWBStartup(MOS_ambMsg)^.sm_argList^.wa_Lock;
+    if dlock<>0 then begin
+      FillDWord(tmpbuf,256 div 4,0);
+      if NameFromLock(dlock,@tmpbuf[1],255) then begin
+        counter:=1;
+        while tmpbuf[counter]<>#0 do counter+=1;
+        tmpbuf[0]:=Char(counter-1);
+        GetArgv0Ambient:=tmpbuf;
+        { Append slash,if we're not in root directory of a volume }            
+        if tmpbuf[counter-1]<>':' then GetArgv0Ambient+='/';
+      end;
+    end;
+
+    { Fetch the progname, and copy it to the buffer }
+    progname:=pWBStartup(MOS_ambMsg)^.sm_argList^.wa_Name;
+    if progname<>nil then begin
+      FillDWord(tmpbuf,256 div 4,0);
+      counter:=0;
+      while (progname[counter]<>#0) do begin 
+        tmpbuf[counter+1]:=progname[counter]; 
+        counter+=1; 
+      end;
+      tmpbuf[0]:=Char(counter);
+      GetArgv0Ambient+=tmpbuf;
+    end;
+  end;
+end;
+
+
+
 
 {*****************************************************************************
                              ParamStr/Randomize
@@ -238,7 +307,13 @@ var
   s1: String;
 begin
   paramstr:='';
-  if MOS_ambMsg<>nil then exit;
+  if MOS_ambMsg<>nil then begin
+    if l=0 then begin 
+      paramstr:=GetArgv0Ambient; 
+      exit; 
+    end else 
+      exit; 
+  end;
 
   if l=0 then begin
     s1:=GetProgDir;
@@ -279,6 +354,7 @@ begin
  if MOS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
+   MOS_ConHandle:=0;
    StdInputHandle:=dosInput;
    StdOutputHandle:=dosOutput;
  end else begin
