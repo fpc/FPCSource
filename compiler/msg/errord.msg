@@ -48,6 +48,8 @@
 #
 # General
 #
+# 01023 is the last used one
+#
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -80,7 +82,6 @@ general_t_objectpath=01007_T_Der Objektdateienpfad: $1
 % When the \var{-vt} switch is used, this line tells you where the compiler
 % looks for object files you link in (files used in \var{\{\$L xxx\}} statements).
 % You can set this path with the \var{-Fo} option.
-general_i_abslines_compiled=01008_I_$1 Zeilen kompiliert, $2 Sekunden$3
 % When the \var{-vi} switch is used, the compiler reports the number
 % of lines compiled, and the time it took to compile them (real time,
 % not program time).
@@ -114,7 +115,7 @@ general_i_hint=01016_I_Hinweis:
 general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Kompilieren abgebrochen
-% \end{description}
+\end{description}
 #
 # Scanner
 #
@@ -324,17 +325,6 @@ scan_e_compile_time_typeerror=02072_E_Compile time Ausdruck: Erwartete $1 aber e
 % Type check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE wird vom Zielbetriebssystem nicht unterstÅtzt
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_e_illegal_optimization_specifier=02074_E_"$1" ist eine ungÅltige Optimierung
-% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
-% the compiler didn't recognize the optimization you specified.
-scan_w_setpeflags_not_support=02075_W_SETPEFLAGS wird vom Zielbetriebssystem nicht unterstÅtzt
-% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
-scan_w_imagebase_not_support=02076_W_IMAGEBASE wird vom Zielbetriebssystem nicht unterstÅtzt
-% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
-scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE wird vom Zielbetriebssystem nicht unterstÅtzt
-% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
-scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE wird vom Zielbetriebssystem nicht unterstÅtzt
-% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 % \end{description}
 #
 # Parser
@@ -352,8 +342,7 @@ parser_e_syntax_error=03000_E_Parser - Syntaxfehler
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT-Prozeduren dÅrfen nicht verschachtelt sein
 % An \VAR{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Prozedurtyp $1 wird ignoriert
-% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
-% This is introduced first for Delphi compatibility.
+% The specified procedure directive is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_Nicht alle Deklarationen von "$1" sind mit OVERLOAD deklariert
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
@@ -841,8 +830,11 @@ parser_e_only_publishable_classes_can__be_published=03156_E_Nur Klassen, die im 
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
 parser_e_proc_directive_expected=03157_E_Prozedurdirektive erwartet
-% When declaring a procedure in a const block you used a ; after the
-% procedure declaration after which a procedure directive must follow.
+% This error is triggered when you have a \var{\{\$Calling\}} directive without
+% a calling convention specified.
+% It also happens when declaring a procedure in a const block and you
+% used a ; after a procedure declaration which must be followed by a
+% procedure directive.
 % Correct declarations are:
 % \begin{verbatim}
 % const
@@ -1012,7 +1004,10 @@ parser_e_macpas_exit_wrong_param=03207_E_Exits Parameter muss der Name der Proze
 % Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_UngÅltige Zuweisung zur for-loop Variable "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
-% Loop variables cannot be reals or strings.
+% Loop variables cannot be reals or strings. You can also not assign values to
+% loop variables inside the loop (except in Delphi and TP modes). Use a while or
+% repeat loop instead if you need to do something like that, since those
+% constructs were built for that.
 parser_e_no_local_var_external=03209_E_Lokale Variable kann nicht als EXTERNAL deklariert werden
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
@@ -1036,8 +1031,7 @@ parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elt
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
 parser_e_dispinterface_needs_a_guid=03217_E_Ein DISPINTERFACE benîtigt einen GUID
 % A DISPINMTERFACE needs always an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen
-RÅckgabetyp hat).
+parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen einen entsprechenden RÅckgabetyp haben. Dieser Code kann abstÅrzen, weil er von einem Delphi Parser Bug abhÑngt (Methode "$2" wird durch "$1" Åberschrieben, die einen anderen RÅckgabetyp hat).
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
@@ -1088,7 +1082,7 @@ type_e_integer_expr_expected=04005_E_Integer-Ausdruck erwartet, aber "$1" erhalt
 type_e_boolean_expr_expected=04006_E_Booleschen Ausdruck erwartet, aber "$1" erhalten
 % The expression must be a boolean type, it should be return true or
 % false.
-type_e_ordinal_expr_expected=04007_E_Ganzahligen Ausdruck erwartet
+type_e_ordinal_expr_expected=04007_E_Ganzzahliger Ausdruck erwartet
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
@@ -1272,6 +1266,11 @@ type_e_cant_choose_overload_function=04057_E_Kann nicht bestimmen, welche der Åb
 type_e_illegal_count_var=04058_E_Loop-Variable muss einen ordinalen Typ haben
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
+type_w_double_c_varargs=04059_W_Der konstante Wert vom Typ real wird fÅr ein C Variablen-Argument zu double konvertiert. ErgÑnze eine explizite Typ-Konversion (typecast), um das zu verhindern
+% In C, constant real values are double by default. For this reason, if you
+% pass a constant real value to a variable argument part of a C function, FPC
+% by default converts this constant to double as well. If you want to prevent
+% this from happening, add an explicit typecast around the constant.
 type_e_class_or_cominterface_type_expected=04060_E_Class oder COM interface Typ erwartet, statt dessen "$1" erhalten
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
@@ -1432,6 +1431,10 @@ sym_h_function_result_uninitialized=05060_H_Die Ergebnisvariable der Funktion sc
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
+sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr aber noch kein Wert zugewiesen wurde
+% You have read the value of a variable, but nowhere assigned a value to
+% it.
+
 % \end{description}
 #
 # Codegenerator
@@ -1545,7 +1548,7 @@ cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE nicht zulÑssig
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_Unbekannte Compiler-Prozedur "$1". öberprÅfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
+cg_f_unknown_compiler=06046_F_Unbekannte Compiler-Prozedur "$1". öberprÅfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
@@ -2121,11 +2124,11 @@ option_no_debug_support_recompile_fpc=11017_H_Versuchen Sie mit -dGDB erneut zu 
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_W_Sie verwenden den nun Åberholten Schalter $1
+option_obsolete_switch=11018_E_Sie verwenden den nun Åberholten Schalter $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_W_Sie benutzen den nun Åberholten Schalter $1, bitte benutzen Sie $2
+option_obsolete_switch_use_new=11019_E_Sie benutzen den nun Åberholten Schalter $1, bitte benutzen Sie $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2166,7 +2169,7 @@ option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] fÅr $FPCTARGET
+Free Pascal Compiler Version $FPCVERSION [$FPCDATE] fÅr $FPCTARGET
 Copyright (c) 1993-2006 Florian KlÑmpfl
 ]
 
@@ -2192,7 +2195,7 @@ Dieses Programm unterliegt der GNU General Public Licence
 Weitere Informationen sind in COPYING.FPC zu finden
 
 Fehlerberichte, VorschlÑge usw. bitte senden an:
-             bugrep@freepascal.org
+             bugs@freepascal.org
 ]
 
 #
@@ -2310,28 +2313,17 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Mgpc_versuche zu gpc kompatibel zu sein
 **2Mmacpas_versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
 **1n_Standard-Konfigurationsdatei ignorieren
-**1N<x>_node tree Optimierung
-**2Nu_unroll loops
 **1o<x>_die erzeugte, ausfÅhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
-3*2Oa_<type>=<values> Ausrichtung (alignment) von Mengen
+3*2Oa<Typ>=<Wert>_Ausrichtung (alignment) von Mengen
 3*2Og_erzeuge kÅrzeren Code
-3*2OG_erzeuge schnelleren Code (Voreinstellung)
-**2Or_halte bestimmte Variablen in den Registern
-3*2Ou_schalte unsichere Optimierung ein (siehe Dokumentation)
-3*2O1_level 1 Optimierung (schnelle Optimierung)
-3*2O2_level 2 Optimierung (-O1 + langsamere Optimierung)
-3*2O3_level 3 Optimierung (-O2 mehrfach, maximal 5-mal)
-3*2Op<x>_Zielprozessor:
-3*3Op1_setze Zielprozessor zu 386/486
-3*3Op2_setze Zielprozessor zu Pentium/PentiumMMX (tm)
-3*3Op3_setze Zielprozessor zu PPro/PII/c6x86/K6 (tm)
-6*2Og_erzeuge kÅrzeren Code
-6*2OG_erzeuge schnelleren Code (Voreinstellung)
-6*2Ox_optimiere maximal (noch BUGGY!!!)
-6*2O0_setze Zielprozessor zu MC68000
-6*2O2_setze Zielprozessor zu MC68020+ (Voreinstellung)
-**1pg_erzeuge Profiler-Code fÅr gprof
+3*2Og_erzeuge schnelleren Code (default)
+**2O-_Optimierungen ausschalten
+**2O1_level 1 Optimierung (schnelle Optimierungen)
+**2O2_level 2 Optimierung (-O1 + langsame Optimierungen)
+**2O3_level 3 Optimierung (-O2 + wiederholen, max 5-mal)
+**2Op<x>_setze Zielprozessor fÅr die Optimierung, siehe fpc -i fÅr mîgliche Werte
+**1pg_erzeuge Profiler-Code fÅr gprof (FPC_PROFILE wird definiert)
 **1R<x>_Assembler Code Format:
 **2Rdefault_benutze den default Assembler
 3*2Ratt_lese Assembler Code im AT&T Format
@@ -2377,7 +2369,6 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
-3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
@@ -2385,8 +2376,6 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 6*2Tmacos_Macintosh m68k (nicht unterstÅtzt)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
-A*2Twince_Windows CE
-P*2Tamiga_AmigaOS on PowerPC
 P*2Tdarwin_Darwin und MacOS X on PowerPC
 P*2Tlinux_Linux auf PowerPC
 P*2Tmacos_MacOS (classic) auf PowerPC
@@ -2423,9 +2412,7 @@ P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
 **1X_Programm-Optionen:
 **2Xc_Åbergebe --shared an den Linker (nur Unix)
 **2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benîtigt fÅr cross compile)
-**2Xe_verwende den externen Linker
 **2XD_versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
-**2Xi_verwende den internen Linker
 **2Xm_erzeuge die "link map"
 **2XM<x>_setze den Namen der 'main' program Routine   (default ist 'main')
 **2XP<x>_stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
