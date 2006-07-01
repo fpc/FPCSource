@@ -949,8 +949,12 @@ implementation
                end
              { and,or,xor work on bit patterns and don't care
                about the sign of integers }
-             else if (nodetype in [andn,orn,xorn]) and
-                     is_integer(ld) and is_integer(rd) then
+             { compares don't need extension to native int size either }
+             { as long as both values are signed or unsigned           }
+             else if is_integer(ld) and is_integer(rd) and
+                     ((nodetype in [andn,orn,xorn]) or
+                      ((nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+                       not(is_signed(ld) xor is_signed(rd)))) then
                begin
                  if rd.size>ld.size then
                    inserttypeconv_internal(left,right.resulttype)
