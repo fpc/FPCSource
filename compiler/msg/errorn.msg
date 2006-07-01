@@ -2037,7 +2037,7 @@ unit_u_implementation_crc_changed=10046_U_Implementatie CRC voor unit $1 is gewi
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_Klaar met compileren van unit Â$1
+unit_u_finished_compiling=10047_U_Klaar met compileren van unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
 unit_u_add_depend_to=10048_U_Afhankelijkheid van $1 toegevoegd aan $2
