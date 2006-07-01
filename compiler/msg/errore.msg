@@ -1,7 +1,6 @@
 #
-#   $Id: errore.msg,v 1.124 2005/05/05 14:52:50 florian Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -841,7 +840,7 @@ parser_e_proc_directive_expected=03157_E_Procedure directive expected
 parser_e_invalid_property_index_value=03158_E_The value for a property index must be of an ordinal type
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
-parser_e_procname_to_short_for_export=03159_E_Procedure name to short to be exported
+parser_e_procname_to_short_for_export=03159_E_Procedure name too short to be exported
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
@@ -2168,7 +2167,7 @@ option_config_is_dir=11040_F_Config file $1 is a directory
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2005 by Florian Klaempfl
+Copyright (c) 1993-2006 by Florian Klaempfl
 ]
 
 #
@@ -2193,7 +2192,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
 Report bugs,suggestions etc to:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #
@@ -2381,7 +2380,7 @@ S*2Aas_assemble using GNU AS
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux-68k
+6*2Tlinux_Linux/m68k
 6*2Tmacos_Macintosh m68k (not supported)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
