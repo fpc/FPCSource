@@ -2182,14 +2182,14 @@ option_config_is_dir=11040_F_Config bestand $1 is een directorie
 % Directories can not be used as configuration files.
 %\end{description}
 option_logo=11023_[
-Free Pascal Compiler versie $FPCVER [$FPCDATE] voor $FPCTARGET
+Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
 Copyright (c) 1998-2006 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler versie $FPCVER
+Free Pascal Compiler versie $FPCVERSION
 Compiler datum:       $FPCDATE
 Compiler doelsysteem: $FPCTARGET
 Dit programma wordt verspreid onder de GNU General Public Licence
