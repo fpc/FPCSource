@@ -1,11 +1,10 @@
-%%% Reordering of msg/errorn.msg respective to msg/errore.msg
-%%% Contains all comments from msg/errorn.msg
 #
-#   $Id: errorn.msg,v 1.6 2004/01/22 21:19:36 florian Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
-#   Dutch Language File for Free Pascal
+#   Dutch Language File for Free Pascal in CP850 (just one line in help affected)
+#   Latest updates contributed by Matthijs Willemstein <matthijs at willemstein.net>
+#   Based on errore.msg of SVN revision 3982
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -35,17 +34,12 @@
 #   n_   note
 #   h_   hint
 #   i_   info
-#   l_   linenumber
+#   l_   add linenumber
 #   u_   used
 #   t_   tried
-#   m_   macro
-#   p_   procedure
 #   c_   conditional
 #   d_   debug message
-#   b_   display overloaded procedures
 #   x_   executable informations
-#
-
 #
 # Enkele punten om bij het vertalen in het achterhoofd te houden:
 #
@@ -67,9 +61,10 @@
 #   is het beter om de engelse term te laten staan. Wat improvisatie helpt
 #   soms ook, "symbool" is niet precies hetzelfde maar kan in dit geval
 #   prima als vertaling gebruikt worden.
-
 #
 # General
+#
+# 01023 is the last used one
 #
 # BeginOfTeX
 % \section{General compiler messages}
@@ -118,32 +113,12 @@ general_f_no_memory_left=01009_F_Geen geheugen meer vrij
 % \item If the previous two don't work, recompile the compiler with a bigger
 % heap (you can use the \var{-Ch} option for this, \seeo{Ch})
 % \end{itemize}
-% \end{description}
-#
-# Scanner
-#
-% \section{Scanner messages.}
-% This section lists the messages that the scanner emits. The scanner takes
-% care of the lexical structure of the pascal file, i.e. it tries to find
-% reserved words, strings, etc. It also takes care of directives and
-% conditional compiling handling.
-% \begin{description}
 general_i_writingresourcefile=01010_I_Schrijven van resource string tabel bestand: $1
 % This message is shown when the compiler writes the Resource String Table
 % file containing all the resource strings for a program.
 general_e_errorwritingresourcefile=01011_E_Schrijven van resource string tabel bestand: $1
 % This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
-% \end{description}
-#
-# Scanner
-#
-% \section{Scanner messages.}
-% This section lists the messages that the scanner emits. The scanner takes
-% care of the lexical structure of the pascal file, i.e. it tries to find
-% reserved words, strings, etc. It also takes care of directives and
-% conditional compiling handling.
-% \begin{description}
 general_i_fatal=01012_I_Fatale fout:
 % Prefix for Fatal Errors
 general_i_error=01013_I_Fout:
@@ -157,12 +132,14 @@ general_i_hint=01016_I_Tip:
 general_e_path_does_not_exist=01017_E_Pad "$1" bestaat niet
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilatie afgebroken
-% \end{description}
+% Compilation was aborted.
 #
 # Scanner
 #
 # 02063 is the last used one
 #
+% Total number of notes issued during compilation.
+% \end{description}
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
 % care of the lexical structure of the pascal file, i.e. it tries to find
@@ -176,10 +153,10 @@ scan_f_end_of_file=02000_F_Onverwacht einde van bestand
 % happens mostly when the \var{begin} and \var{end} statements aren't
 % balanced;
 % \item An include file ends in the middle of a statement.
-% \item A comment wasn't closed.
+% \item A comment was not closed
 % \end{itemize}
 scan_f_string_exceeds_line=02001_F_String langer dan regel
-% You forgot probably to include the closing ' in a string, so it occupies
+% There is a missing closing ' in a string, so it occupies
 % multiple lines.
 scan_f_illegal_char=02002_F_ongeldig teken "$1" ($2)
 % An illegal character was encountered in the input file.
@@ -198,13 +175,13 @@ scan_n_ignored_switch=02008_N_Genegeerde compileroptie $1
 % With \var{-vn} on, the compiler warns if it ignores a switch
 scan_w_illegal_switch=02009_W_Foutieve compileroptie $1
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
-% doesn't know.
+% does not recognise
 scan_w_switch_is_global=02010_W_Deze compileroptie heeft ook een globaal effect
-% When \var{-vw} is used, the compiler warns if a switch is global.
+% The compiler switch is misplaced, and should be located at
+% the start of the unit or program.
 scan_e_illegal_char_const=02011_E_Foutieve constante voor een karakter
 % This happens when you specify a character with its ASCII code, as in
-% \var{\#96}, but the number is either illegal, or out of range. The range
-% is 1-255.
+% \var{\#96}, but the number is either illegal, or out of range.
 scan_f_cannot_open_input=02012_F_Kan bestand "$1" niet openen
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
@@ -222,15 +199,13 @@ scan_e_illegal_pack_enum=02016_E_Ongeldige enumeratie grootte aanduiding "$1"
 scan_e_endif_expected=02017_E_$ENDIF verwacht voor $1 op $2 $3 lijn $4
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=02018_E_Taalfout bij het compileren van een conditionele compilatie uitdrukking
-% There is an error in the expression following the \var{\{\$if ..\}} compiler
-% directive.
+% There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
+% directives.
 scan_e_error_in_preproc_expr=02019_E_Evalueren van een conditionele compilatie uitdrukking
-% There is an error in the expression following the \var{\{\$if ..\}} compiler
-% directive.
+% There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
+% directives.
 scan_w_macro_cut_after_255_chars=02020_W_Macro inhoud is afgekapt op 255 karakters voor evaluatie
-% The contents of macros cannot be longer than 255 characters. This is a
-% safety in the compiler, to prevent buffer overflows. This is shown as a
-% warning, i.e. when the \var{-vw} switch is used.
+% The contents of macros cannot be longer than 255 characters.
 scan_e_endif_without_if=02021_E_ENDIF zonder IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_f_user_defined=02022_F_Gebruiker definitie: $1
@@ -285,7 +260,7 @@ scan_i_press_enter=02040_I_Druk <return> om verder te gaan
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
 scan_w_unsupported_switch=02041_W_Niet ondersteunde optie $1
-% When warings are turned on (\var{-vw}) the compiler warns you about
+% When warnings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
 scan_w_illegal_directive=02042_W_Ongeldige compiler optie $1
@@ -294,73 +269,39 @@ scan_w_illegal_directive=02042_W_Ongeldige compiler optie $1
 scan_t_back_in=02043_TL_Terug in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-%
-%
-%
 scan_w_unsupported_app_type=02044_W_Niet ondersteund programmatype: $1
-% It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
-% assembler statement only.
+% You get this warning, if you specify an unknown application type
+% with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=02045_W_$APPTYPE niet ondersteund op doelsysteem
-% The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
 scan_w_description_not_support=02046_W_DESCRIPTIION is niet ondersteund op het geselecteerde OS
 % The \var{\{\$DESCRIPTION\}} directive is not supported on this target OS
 scan_n_version_not_support=02047_N_VERSION is niet ondersteund door het doel OS.
-% The \var{\{\$VERSION\}} directive is only supported by win32 target.
+% The \var{\{\$VERSION\}} directive is not supported on this target OS
 scan_n_only_exe_version=02048_N_VERSION kan alleen voor executables of bibliotheken
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
 scan_w_wrong_version_ignored=02049_W_verkeerd formaat voor VERSION directive $1
-% The \var{\{\$VERSION\}} directive format is major_version.minor_version
-% where major_version and minor_version are words.
+% The \var{\{\$VERSION\}} directive format is majorversion.minorversion
+% where majorversion and minorversion are words.
 scan_e_illegal_asmmode_specifier=02050_E_Ongeldige assembler-stijl opgegeven: "$1"
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
 scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM lezer-optie is niet mogelijk in een asm instructie, $1 ingesteld voor volgende blok
 % It is not possible to switch from one assembler reader to another
-% inside an assmebler block. The new reader will be used for next
-% assembler statement only.
+% inside an assembler block. The new reader will be used for next
+% assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_Verkeerde optiewaarde, gebruik ON/OFF of +/-
 % You need to use ON or OFF or a + or - to toggle the switch
 scan_e_resourcefiles_not_supported=02053_E_Resource bestanden worden niet ondersteund op doel OS
-% The target you are compiling for doesn't support Resource files. The
-% only target which can use resource files is Win32
-%
-% \end{description}
-#
-# Parser
-#
-% \section{Parser messages}
-% This section lists all parser messages. The parser takes care of the
-% semantics of you language, i.e. it determines if your pascal constructs
-% are correct.
-% \begin{description}
+% The target you are compiling for doesn't support resource files.
 scan_w_include_env_not_found=02054_W_Include omgevingsvariabele $1 niet gevonden in omgeving
-% The included environment variable can't be found in the environment, it'll
+% The included environment variable can't be found in the environment, it will
 % be replaced by an empty string instead.
 scan_e_invalid_maxfpureg_value=02055_E_Ongeldige waarde voor FPU register limiet
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
-% \end{description}
-#
-# Parser
-#
-% \section{Parser messages}
-% This section lists all parser messages. The parser takes care of the
-% semantics of you language, i.e. it determines if your pascal constructs
-% are correct.
-% \begin{description}
 scan_w_only_one_resourcefile_supported=02056_W_Slechts 1 resource bestand ondersteund voor dit operating systeem.
-% The target you are compiling for supports only one resource file. This is the
-% case of OS/2 (EMX) currently. The first resource file found is used, the
-% others are discarded.
-% \end{description}
-#
-# Parser
-#
-% \section{Parser messages}
-% This section lists all parser messages. The parser takes care of the
-% semantics of you language, i.e. it determines if your pascal constructs
-% are correct.
-% \begin{description}
+% The target you are compiling for supports only one resource file.
+% The first resource file found is used, the others are discarded.
 scan_w_macro_support_turned_off=02057_W_Macro ondersteuning is uitgeschakeld
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
@@ -400,12 +341,15 @@ scan_c_switching_to_utf8=02071_C_UTF-8 handtekening gevonden, gebruik UTF-8 code
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Compilatie-expressie: "$1" gevraagd, maar kreeg "$2" op "$3"
 % Type check of a compile time expression failed.
-% \end{description}
+scan_n_app_type_not_support=02073_N_APPTYPE wordt niet ondersteund door het doel OS
+% The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
 #
 # Parser
 #
 # 03192 is the last used one
 #
+% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
+% \end{description}
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
 % semantics of you language, i.e. it determines if your pascal constructs
@@ -415,10 +359,9 @@ parser_e_syntax_error=03000_E_Parser - Taalfout
 % An error against the Turbo Pascal language was encountered. This happens
 % typically when an illegal character is found in the sources file.
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedures kunnen niet genest worden
-% An \VAR{INTERRUPT} procedure must be global.
+% An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Procedure type $1 ignored
-% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
-% This is introduced first for Delphi compatibility.
+% The specified procedure directive is ignored by FPC programs.
 parser_e_no_overload_for_all_procs=03006_E_Not all declarations of $1 are declared with OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
@@ -433,10 +376,10 @@ parser_w_parser_win32_debug_needs_WN=03012_W_Om win32 code te debuggen moet relo
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
 parser_e_constructorname_must_be_init=03013_E_Constructornaam moet INIT zijn
-% You are declaring a constructor with a name which isn't \var{init}, and the
+% You are declaring an object constructor with a name which is not \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_destructorname_must_be_done=03014_E_Destructornaam moet DONE zijn
-% You are declaring a constructor with a name which isn't \var{done}, and the
+% You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
 parser_e_proc_inline_not_supported=03016_E_Procedure type INLINE wordt niet ondersteund
 % You tried to compile a program with C++ style inlining, and forgot to
@@ -461,7 +404,7 @@ parser_f_no_anonym_objects=03022_F_Anonieme klassedefinities zijn niet toegestaa
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_n_object_has_no_vmt=03023_N_Het object "$1Ã" heeft geen VMT
+parser_n_object_has_no_vmt=03023_N_Het object "$1" heeft geen VMT
 % This is a note indicating that the declared object has no
 % virtual method table.
 parser_e_illegal_parameter_list=03024_E_Foutieve parameterlijst
@@ -472,14 +415,14 @@ parser_e_wrong_parameter_size=03026_E_Onjuist aantal parameters meegegeven
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_Overladen symbool "$1" is geen procedure of functie
 % The compiler encountered a symbol with the same name as an overloaded
-% function, but it isn't a function it can overload.
+% function, but it is not a function it can overload.
 parser_e_overloaded_have_same_parameters=03028_E_Overroepen procedures hebben identieke parameterlijst
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
 parser_e_header_dont_match_forward=03029_E_Declaratie komt niet overeen met eerdere declaratie: $1
 % You declared a function with same parameters but
-% different result type or function specifiers.
+% different result type or function modifiers.
 parser_e_header_different_var_names=03030_E_Procedurehoofding $1 komt niet overeen met eerdere declaratie: variabelenaam veranderd $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
@@ -510,17 +453,16 @@ parser_e_type_const_not_possible=03039_E_Getypeerde constanten van klassen zijn 
 % You cannot declare a constant of type class or object.
 parser_e_no_overloaded_procvars=03040_E_Procedurele variabelen van overroepen procedures zijn niet toegestaan
 % You are trying to assign an overloaded function to a procedural variable.
-% This isn't allowed.
+% This is not allowed
 parser_e_invalid_string_size=03041_E_Stringlengte moet tussen 1 en 255 liggen
-% The length of a string in Pascal is limited to 255 characters. You are
+% The length of a shortstring in Pascal is limited to 255 characters. You are
 % trying to declare a string with length lower than 1 or greater than 255
-% (This is not true for \var{Longstrings} and \var{AnsiStrings}.
 parser_w_use_extended_syntax_for_objects=03042_W_Gebruik de uitgebreide syntax van DISPOSE en NEW om nieuwe instanties van klassen te genereren
 % If you have a pointer \var{a} to a class type, then the statement
 % \var{new(a)} will not initialize the class (i.e. the constructor isn't
 % called), although space will be allocated. you should issue the
 % \var{new(a,init)} statement. This will allocate space, and call the
-% constructor of the class.
+% constructor of the object
 parser_w_no_new_dispose_on_void_pointers=03043_W_Het gebruik van NEW of DISPOSE voor pointers zonder type is zinloos
 parser_e_no_new_dispose_on_void_pointers=03044_E_Het gebruik van NEW of DISPOSE is niet mogelijk voor pointers zonder type
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
@@ -549,7 +491,7 @@ parser_d_procedure_start=03049_DL_procedure/functie $1
 parser_e_error_in_real=03050_E_Foutieve vlottende-komma constante
 % The compiler expects a floating point expression, and gets something else.
 parser_e_fail_only_in_constructor=03051_E_FAIL mag alleen in constructors gebruikt worden
-% You are using the \var{FAIL} instruction outside a constructor method.
+% You are using the \var{fail} keyword outside a constructor method.
 parser_e_no_paras_for_destructor=03052_E_Destructors hebben geen parameters
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
@@ -589,8 +531,8 @@ parser_w_should_use_override=03057_W_Een virtuele methode moet met OVERRIDE over
 % don't specify the \var{override} directive, you will hide the parent method;
 % you will not override it.
 parser_e_nothing_to_be_overridden=03058_E_Er is geen geerfde methode die overroepen kan worden: $1
-% You try to \var{override} a virtual method of a parent class that doesn't
-% exist.
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
 parser_e_no_procedure_to_access_property=03059_E_Er is geen lid om de eigenschap te bereiken
 % You specified no \var{read} directive for a property.
 parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet implemented
@@ -598,7 +540,7 @@ parser_w_stored_not_implemented=03060_W_Stored prorperty directive is not yet im
 parser_e_ill_property_access_sym=03061_E_Ongeldig symbool voor eigenschaptoegang
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
-% procedures and functions. The following code woud cause such an error.
+% procedures and functions. The following code would cause such an error.
 % \begin{verbatim}
 % tmyobject = class
 %   i : integer;
@@ -607,13 +549,13 @@ parser_e_ill_property_access_sym=03061_E_Ongeldig symbool voor eigenschaptoegang
 %
 parser_e_cant_access_protected_member=03062_E_Kan niet in beschermd veld van een object schrijven
 % Fields that are declared in a \var{protected} section of an object or class
-% declaration cannot be accessed outside the module wher the object is
+% declaration cannot be accessed outside the module where the object is
 % defined, or outside descendent object methods.
 parser_e_cant_access_private_member=03063_E_Kan niet in prive-veld van een object schrijven
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_Overridden methodes moeten dezelfde resultaat type hebben: "$2" wordt overridden door Ã"1$1" met een ander type
+parser_e_overridden_methods_not_same_ret=03066_E_Overridden methodes moeten dezelfde resultaat type hebben: "$2" wordt overridden door "$1" met een ander type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_Als EXPORT gedeclareerde procedures kunnen niet genest worden
@@ -621,13 +563,13 @@ parser_e_dont_nest_export=03067_E_Als EXPORT gedeclareerde procedures kunnen nie
 % that was declared as an export procedure.
 parser_e_methods_dont_be_export=03068_E_Methoden kunnen niet geexporteerd worden.
 % You cannot declare a procedure that is a method for an object as
-% \var{export}ed. That is, your methods cannot be called from a C program.
+% \var{export}ed.
 parser_e_call_by_ref_without_typeconv=03069_E_Typen van referentieparameters moeten exact overeenkomen. "$1" gekregen, "$2" verwacht.
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
 parser_e_no_super_class=03070_E_Deze klasse is geen ouderklasse van de huidige klasse
-% When calling inherited methods, you are trying to call a method of a strange
+% When calling inherited methods, you are trying to call a method of a non-related
 % class. You can only call an inherited method of a parent class.
 parser_e_self_not_in_method=03071_E_SELF is alleen toegelaten in methoden.
 % You are trying to use the \var{self} parameter outside an object's method.
@@ -642,8 +584,8 @@ parser_e_illegal_set_expr=03074_E_Bereikfout in setconstructor of dubbel setelem
 % outside the range of the set type, either two of the elements are in fact
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Pointer naar klasse verwacht
-% You specified an illegal type in a \var{New} statement.
-% The extended synax of \var{New} needs an object as a parameter.
+% You specified an illegal type in a \var{new} statement.
+% The extended syntax of \var{new} needs an object as a parameter.
 parser_e_expr_have_to_be_constructor_call=03076_E_Uitdrukking moet een constructoraanroep zijn.
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
@@ -667,7 +609,7 @@ parser_e_constructors_always_objects=03081_E_Constructors en destructors moeten 
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operator is niet hergedefineerd
-% You're trying to use an overloaded operator when it isn't overloaded for
+% You're trying to use an overloaded operator when it is not overloaded for
 % this type.
 parser_e_no_such_assignment=03083_E_Het is niet toegestaan de toewijzingsoperator te overroepen voor gelijke typen
 % You can not overload assignment for types
@@ -676,12 +618,12 @@ parser_e_overload_impossible=03084_E_Het overroepen van deze operator is onmogel
 % The combination of operator, arguments and return type are
 % incompatible.
 parser_e_no_reraise_possible=03085_E_Re-raise is hier niet mogelijk
-% You are trying to raise an exception where it isn't allowed. You can only
+% You are trying to raise an exception where it is not allowed. You can only
 % raise exceptions in an \var{except} block.
 parser_e_no_new_or_dispose_for_classes=03086_E_De uitgebreide syntax van NEW of DISPOSE is niet toegestaan voor klassen
 % You cannot generate an instance of a class with the extended syntax of
 % \var{new}. The constructor must be used for that. For the same reason, you
-% cannot call \var{Dispose} to de-allocate an instance of a class, the
+% cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
 parser_e_procedure_overloading_is_off=03088_E_Procedure overroepen is afgezet
 % When using the \var{-So} switch, procedure overloading is switched off.
@@ -696,17 +638,15 @@ parser_e_comparative_operator_return_boolean=03090_E_Vergelijkingsoperator moet 
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
 parser_e_only_virtual_methods_abstract=03091_E_Enkel virtuele methoden kunnen abstract zijn
-% You are declaring a method as abstract, when it isn't declared to be
+% You are declaring a method as abstract, when it is not declared to be
 % virtual.
 parser_f_unsupported_feature=03092_F_Gebruik van niet ondersteunde functionaliteit!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_CLASSES and OBJECTS kunnen niet gemengd worden.
-% You cannot derive \var{objects} and \var{classes} intertwined . That is,
+% You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Onbekende proceduredirective is genegeerd: $1
-% The procedure direcive you secified is unknown. Recognised procedure
-% directives are \var{cdecl}, \var{stdcall}, \var{popstack}, \var{pascal}
-% \var{register}, \var{export}.
+% The procedure directive you specified is unknown.
 parser_e_absolute_only_one_var=03095_E_Absolute kan maar aan een variabele verbonden worden.
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
@@ -715,8 +655,8 @@ parser_e_absolute_only_one_var=03095_E_Absolute kan maar aan een variabele verbo
 %     X,Y : Longint absolute Z;
 % \end{verbatim}
 % \item [ absolute can only be associated a var or const ]
-% The address of a \var{absolute} directive can only point to a variable or
-% constant. Therefore, the following code will produce this error:
+% The address of a \var{absolute} directive can only point to a variable or a
+% typed constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
 %   Procedure X;
 %
@@ -734,7 +674,7 @@ parser_e_absolute_only_to_var_or_const=03096_E_Absolute kan slechts aan variabel
 %
 parser_e_initialized_only_one_var=03097_E_Slechts 1 variabele kan geinitialiseerd worden.
 % You cannot specify more than one variable with a initial value
-% in Delphi syntax.
+% in Delphi mode.
 parser_e_abstract_no_definition=03098_E_Abtracte methoden kunnen niet gedefineerd worden
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
@@ -765,10 +705,10 @@ parser_d_compiling_second_time=03107_DL_Compilatie van $1 voor de tweede keer.
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
 parser_e_no_property_found_to_override=03109_E_Geen eigenschap gevonden om te herdefinieren
-% You want to overrride a property of a parent class, when there is, in fact,
+% You want to override a property of a parent class, when there is, in fact,
 % no such property in the parent class.
 parser_e_only_one_default_property=03110_E_Slechts 1 standaardeigenschap is toegestaan, geerfde standaardeigenschap in kind gevonden.
-% You specified a property as \var{Default}, but a parent class already has a
+% You specified a property as \var{Default}, but the class already has a
 % default property, and a class can have only one default property.
 parser_e_property_need_paras=03111_E_Standaardeigenschappen moeten van type array zijn.
 % Only array properties of classes can be made \var{default} properties.
@@ -776,7 +716,7 @@ parser_e_constructor_cannot_be_not_virtual=03112_E_Virtuele constructors worden 
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
 parser_e_no_default_property_available=03113_E_Geen standaardeigenschap gevonden
-% You try to access a default property of a class, but this class (or one of
+% You are trying to access a default property of a class, but this class (or one of
 % its ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_De klasse kan geen gepubliceerde sectie hebben, gebruik {$M+}
 % If you want a \var{published} section in a class definition, you must
@@ -802,7 +742,7 @@ parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive $1 n
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
 parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure directive $1 niet toegestaan in procvar declaratie
-% This procedure directive cannot be part of a procedural of function
+% This procedure directive cannot be part of a procedural or function
 % type declaration.
 parser_e_function_already_declared_public_forward=03120_E_Functie is al publiek/forward gedeclareerd $1
 % You will get this error if a function is defined as \var{forward} twice.
@@ -834,7 +774,7 @@ parser_e_call_convention_dont_match_forward=03129_E_Aanroep conventie klopt niet
 parser_e_property_cant_have_a_default_value=03131_E_Eigenschap kan geen standaard waarde hebben
 % Set properties or indexed properties cannot have a default value.
 parser_e_property_default_value_must_const=03132_E_De standaard waarde van een eigenschap moet een constante zijn
-% The value of a \var{default} declared property must be knwon at compile
+% The value of a \var{default} declared property must be known at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
 parser_e_cant_publish_that=03133_E_Symbool kan niet worden gepubliceerd, alleen mogelijk voor een klasse
@@ -845,14 +785,14 @@ parser_e_cant_publish_that_property=03134_E_Dit soort eigenschappen kunnen niet 
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
 parser_e_empty_import_name=03136_E_Lege importnaam opgegeven
-% Some targets need a name for the imported procedure or a cdecl specifier
+% Some targets need a name for the imported procedure or a \var{cdecl} specifier
 parser_e_division_by_zero=03138_E_Deling door nul
-% There is a divsion by zero encounted
+% There is a division by zero encounted
 parser_e_invalid_float_operation=03139_E_Ongeldige vlottende-komma bewerking.
 % An operation on two real type values produced an overflow or a division
 % by zero.
 parser_e_array_lower_less_than_upper_bound=03140_E_Bovengrens van bereik is lager dan ondergrens
-% The upper bound of a \var{case} label is less than the lower bound and this
+% The upper bound of a an array declaration is less than the lower bound and this
 % is not possible
 parser_w_string_too_long=03141_W_string "$1" is langer dan $2
 % The size of the constant string is larger than the size you specified in
@@ -869,8 +809,8 @@ parser_e_ill_msg_param=03144_E_Message handlers aanvaarden slechts 1 variabele p
 parser_e_duplicate_message_label=03145_E_Dubbel message label: $1
 % A label for a message is used twice in one object/class
 parser_e_self_in_non_message_handler=03146_E_Self kan alleen een explicite parameter zijn bij string message handlers
-% The self parameter can be passed only explicit if it is a method which
-% is declared as message method handler
+% The self parameter can only be passed explicitly to a method which
+% is declared as message handler.
 parser_e_threadvars_only_sg=03147_E_Threadvariabelen kunnen alleen globaal of statisch zijn
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
@@ -880,25 +820,17 @@ parser_f_direct_assembler_not_allowed=03148_F_Directe assemblercode wordt niet o
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
 parser_w_no_objpas_use_mode=03149_W_Laad de OBJPAS unit niet manueel, gebruik {$mode objfpc} of {$mode delphi}.
-% You're trying to load the ObjPas unit manual from a uses clause. This is
-% not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
+% You are trying to load the ObjPas unit manually from a uses clause. This is
+% not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
-% directives which load the unit automaticly
+% directives which load the unit automatically
 parser_e_no_object_override=03150_E_OVERRIDE kan niet gebruikt worden in objecten
-% Override isn't support for objects, use VIRTUAL instead to override
-% a method of an anchestor object
+% Override is not supported for objects, use \var{virtual} instead to override
+% a method of a parent object
 parser_e_cant_use_inittable_here=03151_E_Datatypen die initializatie/finalizatie vereisen zijn niet toegestaan in variabele records.
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
-% \end{description}
-#
-# Type Checking
-#
-% \section{Type checking errors}
-% This section lists all errors that can occur when type checking is
-% performed.
-% \begin{description}
 parser_e_resourcestring_only_sg=03152_E_Resourcestrings kunnen alleen statisch of globaal zijn.
 % Resourcestring can not be declared local, only global or using the static
 % directive.
@@ -914,11 +846,14 @@ parser_e_ill_property_storage_sym=03155_E_Dit symbool is niet toegestaan achter 
 % boolean class fields or boolean constants
 parser_e_only_publishable_classes_can__be_published=03156_E_Alleen klassen gecompileerd in $M+ modus kunnen een published sectie hebben.
 % In the published section of a class can be only class as fields used which
-% are compiled in $M+ or which are derived from such a class. Normally
+% are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
 parser_e_proc_directive_expected=03157_E_Proceduredirective verwacht.
-% When declaring a procedure in a const block you used a ; after the
-% procedure declaration after which a procedure directive must follow.
+% This error is triggered when you have a \var{\{\$Calling\}} directive without
+% a calling convention specified.
+% It also happens when declaring a procedure in a const block and you
+% used a ; after a procedure declaration which must be followed by a
+% procedure directive.
 % Correct declarations are:
 % \begin{verbatim}
 % const
@@ -934,14 +869,8 @@ parser_e_procname_to_short_for_export=03159_E_Procedurenaam te kort om te export
 % file correct with a name of length 1.
 parser_e_dlltool_unit_var_problem=03160_E_Kan geen DEFFILE item genereren voor globale variabelen.
 parser_e_dlltool_unit_var_problem2=03161_E_Compileer zonder -WD optie
-% \end{description}
-#
-# Type Checking
-#
-% \section{Type checking errors}
-% This section lists all errors that can occur when type checking is
-% performed.
-% \begin{description}
+% You need to compile this file without the -WD switch on the
+% commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_U moet OBJFPC (-S2) of DELPHI (-Sd) mode gebruiken om deze code te compileren
 % You need to use \{\$mode objfpc\} or \{\$mode delphi\} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
@@ -951,7 +880,7 @@ parser_e_no_export_with_index_for_target=03163_E_Kan niet exporteren met indexen
 parser_e_no_export_of_variables_for_target=03164_E_Exporteren van variabelen is niet ondersteund op $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Ongeldige GUID aanduiding
-parser_w_interface_mapping_notfound=03168_W_PGeen procedure genaamd "$1Ã" om "$2.$3" te implementeren gevonden
+parser_w_interface_mapping_notfound=03168_W_PGeen procedure genaamd "$1" om "$2.$3" te implementeren gevonden
 parser_e_interface_id_expected=03169_E_Interface aanduiding verwacht
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -978,7 +907,7 @@ parser_e_no_vars_in_interfaces=03173_E_Een interface definitie kan geen velden b
 parser_e_no_local_proc_external=03174_E_Can lokale procedure niet als EXTERNAL definieren
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
-parser_w_skipped_fields_before=03175_W_Sommige velden voor "$1Ã" zijn niet geinitialiseerd
+parser_w_skipped_fields_before=03175_W_Sommige velden voor "$1" zijn niet geinitialiseerd
 % In Delphi mode, not all fields of a typed constant record have to be
 % initialized, but the compiler warns you when it detects such situations.
 parser_e_skipped_fields_before=03176_E_Sommige velden voor "$1" zijn niet geinitialiseerd
@@ -998,12 +927,12 @@ parser_e_self_call_by_value=03179_E_SELF moet een normale waarde parameter zijn
 parser_e_interface_has_no_guid=03180_E_Interface "$1" heeft geen interface definitie
 % When you want to assign an interface to a constant, then the interface
 % must have a GUID value set.
-parser_e_illegal_field_or_method=03181_E_Ongekend klasse-veld of methode aanduiding "$1Ã"
+parser_e_illegal_field_or_method=03181_E_Ongekend klasse-veld of methode aanduiding "$1"
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_Aanroep-modus "$1Ã" vervangen door "$2"
+parser_w_proc_overriding_calling=03182_W_Aanroep-modus "$1" vervangen door "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
-parser_e_no_procvarobj_const=03183_E_Getypeerde constanten van type "procedure of object" kunnen alleen met NIL geinitialiseerd worden
+parser_e_no_procvarobj_const=03183_E_Getypeerde constanten van  type "procedure of object" kunnen alleen met NIL geinitialiseerd worden
 % You can't assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
@@ -1019,7 +948,7 @@ parser_e_C_array_of_const_must_be_last=03188_E_"C array of const" moet het laats
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
-parser_h_type_redef=03189_H_Type "$1Ã" herdefinitie
+parser_h_type_redef=03189_H_Type "$1" herdefinitie
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
@@ -1087,14 +1016,17 @@ parser_e_invalid_qualifier=03205_E_Ongeldige aanduiding
 % \item You're indexing a variable that is not an array.
 % \item You're dereferencing a variable that is not a pointer.
 % \end{itemize}
-parser_e_upper_lower_than_lower=03206_E_Bovengrens kleiner dan ondergrens 
+parser_e_upper_lower_than_lower=03206_E_Bovengrens kleiner dan ondergrens
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
 parser_e_macpas_exit_wrong_param=03207_E_Exit parameter moet de naam zijn van de procedure waarin het gebruikt wordt
 % Non local exit is not allowed. This error occurs only in mode MacPas.
 parser_e_illegal_assignment_to_count_var=03208_E_Ongeldige toekenning aan lus-variabele "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
-% Loop variables cannot be reals or strings.
+% Loop variables cannot be reals or strings. You can also not assign values to
+% loop variables inside the loop (except in Delphi and TP modes). Use a while or
+% repeat loop instead if you need to do something like that, since those
+% constructs were built for that.
 parser_e_no_local_var_external=03209_E_Kan een locale variabele niet als EXTERNAL aanduiden
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
@@ -1112,12 +1044,24 @@ parser_e_arithmetic_operation_overflow=03213_E_Overflow in wiskundige berekening
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_Protected of Private verwacht
 % \var{strict} can be only used together with \var{protected} or \var{private}.
-% \end{description}
+parser_e_illegal_slice=03215_E_SLICE kan niet buiten de parameter lijst gebruikt worden
+% \var{slice} can be used only for arguments accepting an open array parameter
+parser_e_dispinterface_cant_have_parent=03216_E_Een DISPINTERFACE kan geen ouderklasse hebben.
+% A DISPINMTERFACE is a special type of interface which can't have a parent class
+parser_e_dispinterface_needs_a_guid=03217_E_Een DISPINTERFACE moet een GUID hebben
+% A DISPINMTERFACE always needs an interface identification
+parser_w_overridden_methods_not_same_ret=03218_W_Methodes die worden override-n moeten een soortgelijke return type hebben. Deze code kan crahsen omdat het afhankelijk is van een Delphi parser bug. (&quot;$2&quot; wordt override-n door &quot;$1&quot;, deze heeft een andere return type)
+% If you declare overridden methods in a class definition, they must
+% have the same return type. Some versions of Delphi allow you to change the
+% return type of interface methods, and even to change procedures into
+% functions, but the resulting code may crash depending on the types used
+% and the way the methods are called.
 #
 # Type Checking
 #
 # 04049 is the last used one
 #
+% \end{description}
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
 % performed.
@@ -1149,8 +1093,8 @@ type_e_not_equal_types=04002_E_Typen komen niet overeen $1 en $2
 type_e_type_id_expected=04003_E_Typesymbool verwacht
 % The identifier is not a type, or you forgot to supply a type identifier.
 type_e_variable_id_expected=04004_E_Variabelesymbool verwacht
-% This happens when you pass a constant to a \var{Inc} var or \var{Dec}
-% procedure. You can only pass variables as arguments to these functions.
+% This happens when you pass a constant to a routine (such as \var{Inc} var or \var{Dec})
+% when it expects a variable. You can only pass variables as arguments to these functions.
 type_e_integer_expr_expected=04005_E_Gehele uitdrukking verwacht, $1 gekregen
 % The compiler expects an expression of type integer, but gets a different
 % type.
@@ -1174,7 +1118,8 @@ type_e_class_type_expected=04009_E_Klasse type verwacht, "$1" gekregen
 % isn't a class.
 % \end{enumerate}
 type_e_cant_eval_constant_expr=04011_E_Kan constante expressie niet evalueren
-% No longer in use.
+% This error can occur when the bounds of an array you declared does
+% not evaluate to ordinal constants
 type_e_set_element_are_not_comp=04012_E_Elementen van set zijn niet compatible
 % You are trying to make an operation on two sets, when the set element types
 % are not the same. The base type of a set must be the same when taking the
@@ -1184,7 +1129,7 @@ type_e_set_operation_unknown=04013_E_Bewerking niet ondersteund voor sets
 % like div mod ** (also >= <= for now)
 type_w_convert_real_2_comp=04014_W_Typeconversie van vlottende-komma type naar COMP, wat een integer type is.
 % An implicit type conversion from a real type to a \var{comp} is
-% encountered. Since \var{Comp} is a 64 bit integer type, this may indicate
+% encountered. Since \var{comp} is a 64 bit integer type, this may indicate
 % an error.
 type_h_use_div_for_int=04015_H_Gebruik DIV voor gehele getallen om geheel resultaat te krijgen
 % When hints are on, then an integer division with the '/' operator will
@@ -1202,7 +1147,8 @@ type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_SUCC of PRED op enum
 type_e_cant_read_write_type=04018_E_Kan dit type variabelen niet lezen of schrijven
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
-% booleans, reals, pchars and strings can be read from/written to a text file.
+% reals, pchars and strings can be read from/written to a text file.
+% Booleans can only be written to text files.
 type_e_no_readln_writeln_for_typed_file=04019_E_Kan geen readln of writeln op getypeerde bestanden doen.
 % \var{readln} and \var{writeln} are only allowed for text files.
 type_e_no_read_write_for_untyped_file=04020_E_Kan geen read of write doen op ongetypeerde bestanden.
@@ -1211,11 +1157,11 @@ type_e_typeconflict_in_set=04021_E_Typeconflict tussen setelementen.
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
 type_w_maybe_wrong_hi_lo=04022_W_lo/hi(longint/dword) geeft hoog/laag (ipv byte) woord terug.
-% \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword}
-% which returns the lower/upper word of the argument. TP always uses
+% \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword/int64/qword}
+% which returns the lower/upper word/dword of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have
-% to type case the argument to \var{word/integer}
+% to type cast the argument to \var{word/integer}
 type_e_integer_or_real_expr_expected=04023_E_Integer of vlottende-komma uitdrukking verwacht
 % The first argument to \var{str} must a real or integer type.
 type_e_wrong_type_in_array_constructor=04024_E_Verkeerd type "$1" in array constructor
@@ -1230,41 +1176,25 @@ type_e_wrong_math_argument=04027_E_Ongeldige constante opgegeven aan interne wis
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
 type_e_no_addr_of_constant=04028_E_Een constante heeft geen adres
-% It's not possible to get the address of a constant, because they
+% It is not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
-% \end{description}
-#
-# Symtable
-#
-% \section{Symbol handling}
-% This section lists all the messages that concern the handling of symbols.
-% This means all things that have to do with procedure and variable names.
-% \begin{description}
 type_e_argument_cant_be_assigned=04029_E_Kan geen waarde toekennen aan argument
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
-% used on the left side of an assignment, but they can't be used as arguments
+% used on the left side of an assignment, but they cannot be used as arguments
 type_e_cannot_local_proc_to_procvar=04030_E_Kan geen lokale procedure toekennen aan procedure variabele
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
 type_e_no_assign_to_addr=04031_E_Kan geen waarde toekennen aan een adres
-% It's not allowed to assign a value to an address of a variable,constant,
+% It is not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
 type_e_no_assign_to_const=04032_E_Kan geen waarde toekennen aan constante
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
-% changing make the parameter value or var.
-% \end{description}
-#
-# Symtable
-#
-% \section{Symbol handling}
-% This section lists all the messages that concern the handling of symbols.
-% This means all things that have to do with procedure and variable names.
-% \begin{description}
+% changing the value make the parameter as a value parameter or a var.
 type_e_array_required=04033_E_ARRAY type verwacht
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
@@ -1293,14 +1223,14 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enumeratie typen met v
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
-type_e_classes_not_related=04039_E_Klasse of object types "$1Ã" en "$2" zijn niet verwant
+type_e_classes_not_related=04039_E_Klasse of object types "$1" en "$2" zijn niet verwant
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Klasse types "$1" en "$2" zijn niet verwant
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_e_class_or_interface_type_expected=04041_E_Klasse of interface type verwacht, maar kreeg Ã"$1Ã"
-type_e_type_is_not_completly_defined=04042_E_Type "$1Ã" is niet volledig gedefinieerd
+type_e_class_or_interface_type_expected=04041_E_Klasse of interface type verwacht, maar kreeg "$1"
+type_e_type_is_not_completly_defined=04042_E_Type "$1" is niet volledig gedefinieerd
 type_w_string_too_long=04043_W_String constante heeft meer karakters dan de lengte van een shortstring
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1308,7 +1238,7 @@ type_w_signed_unsigned_always_false=04044_W_De vergelijking is steeds onwaar omw
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % false. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_e vergelijking is steeds waar omwille van de interval waarden
+type_w_signed_unsigned_always_true=04045_W_e vergelijking is steeds  waar omwille van de interval waarden
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
@@ -1355,12 +1285,19 @@ type_e_cant_choose_overload_function=04057_E_Kan niet beslissen welke overladen 
 type_e_illegal_count_var=04058_E_Ongeldige lus variabele
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
-% \end{description}
+type_w_double_c_varargs=04059_W_Converteer een real constante waarde naar een double voor C compatbiliteit, doe een expliciete type cast om dit te voorkomen.
+% In C, constant real values are double by default. For this reason, if you
+% pass a constant real value to a variable argument part of a C function, FPC
+% by default converts this constant to double as well. If you want to prevent
+% this from happening, add an explicit typecast around the constant.
+type_e_class_or_cominterface_type_expected=04060_E_Verwachtte een classe- of COM-interface, maar kreeg "$1"
 #
 # Symtable
 #
-# 05055 is the last used one
+# 05060 is the last used one
 #
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
+% \end{description}
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
@@ -1378,8 +1315,8 @@ sym_e_duplicate_id=05002_E_Dubbel symbool $1
 sym_h_duplicate_id_where=05003_H_Symbool reeds gedefinieerd in $1 op lijn $2
 % The identifier was already declared in a previous scope.
 sym_e_unknown_id=05004_E_Onbekende symbool $1
-% The identifier encountered hasn't been declared, or is used outside the
-% scope where it's defined.
+% The identifier encountered has not been declared, or is used outside the
+% scope where it is defined.
 sym_e_forward_not_resolved=05005_E_Voorwaartse declaratie niet opgelost $1
 % This can happen in two cases:
 % \begin{itemize}
@@ -1393,7 +1330,7 @@ sym_e_error_in_type_def=05007_E_Fout in type definitie
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
 sym_e_forward_type_not_resolved=05009_E_Forward declaratie niet opgelost $1
-% The compiler encountered an unknown type.
+% A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Alleen statische variabelen kunnen gebruikt worden in statische methoden
 % A static method of an object can only access static variables.
 sym_f_type_must_be_rec_or_class=05012_F_Record- of klassetype verwacht
@@ -1421,17 +1358,17 @@ sym_e_label_already_defined=05020_E_Label is al gedefineerd
 sym_e_ill_type_decl_set=05021_E_Type declaratie van set elementen is foutief
 % The declaration of a set contains an invalid type definition.
 sym_e_class_forward_not_resolved=05022_E_Voorwaartse definitie van klasse niet opgelost $1
-% You declared a class, but you didn't implement it.
+% You declared a class, but you did not implement it.
 sym_n_unit_not_used=05023_H_Unit $1 wordt niet gebruikt in $2
 % The unit referenced in the \var{uses} clause is not used.
 sym_h_para_identifier_not_used=05024_H_Parameter niet gebruikt $1
-% This is a warning. The identifier was declared (locally or globally) but
-% wasn't used (locally or globally).
+% The identifier was declared (locally or globally) but
+% was not used (locally or globally).
 sym_n_local_identifier_not_used=05025_N_Lokale variabele niet gebruikt $1
 % You have declared, but not used a variable in a procedure or function
 % implementation.
 sym_h_para_identifier_only_set=05026_H_Waarde parameter $1 is gedeclareerd maar niet gebruikt.
-% This is a warning. The identifier was declared (locally or globally)
+% The identifier was declared (locally or globally)
 % set but not used (locally or globally).
 sym_n_local_identifier_only_set=05027_N_Lokale variabele $1 gedeclareerd maar niet gebruikt.
 % The variable in a procedure or function
@@ -1441,10 +1378,8 @@ sym_h_local_symbol_not_used=05028_H_Lokaal $1 $2 is niet gebruikt
 sym_n_private_identifier_not_used=05029_N_Privaat veld $1.$2 wordt niet gebruikt
 sym_n_private_identifier_only_set=05030_N_Privaat veld $1.$2 gedeclareerd maar niet gebruikt.
 sym_n_private_method_not_used=05031_N_Private methode $1.$2 wordt nooit gebruikt.
-
-
 sym_e_set_expected=05032_E_Set type verwacht
-% The variable or expression isn't of type \var{set}. This happens in an
+% The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
 sym_w_function_result_not_set=05033_W_Resultaat van functie lijkt niet te zijn toegekend
 % You can get this warning if the compiler thinks that a function return
@@ -1454,7 +1389,7 @@ sym_w_wrong_C_pack=05034_W_Type $1 is not aligned correctly in current record fo
 % Arrays with sizes not multiples of 4 will be wrongly aligned
 % for C structures.
 sym_e_illegal_field=05035_E_Onbekend record lid $1
-% The field doesn't exist in the record definition.
+% The field doesn't exist in the record/object definition.
 sym_w_uninitialized_local_variable=05036_W_Lokale variabele "$1" lijkt niet geinitialiseerd
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
@@ -1466,27 +1401,19 @@ sym_w_uninitialized_variable=05037_W_okale variabele "$1" lijkt niet geinitialis
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
 sym_e_id_no_member=05038_E_Geen lid met de naam $1
-% When using the extended syntax of \var{new}, you must specify the constructor
-% method of the class you are trying to create. The procedure you specified
-% does not exist.
+% This error is generated when an identifier of a record,
+% field, or method is accessed while it is not defined.
 sym_h_param_list=05039_H_NDeclaratie "$1" gevonden
 % You get this when you use the \var{-vh} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data segment te groot (max. 2GB)
-% You get this when you declare an array whose size exceeds the 2GB limit.
-% \end{description}
-#
-# Codegenerator
-#
-% \section{Code generator messages}
-% This section lists all messages that can be displayed if the code
-% generator encounters an error condition.
-% \begin{description}
+% You get this when you declare a data element whose size exceeds the
+% prescribed limit (2 Gb on 80386+/68020+ processors)
 sym_e_no_matching_implementation_found=05042_E_Geen overeenstemmende implementatie voor interface methode "$1" gevonden
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
-sym_w_deprecated_symbol=05043_W_Symbool "$1Ã" is afgeraden
+sym_w_deprecated_symbol=05043_W_Symbool "$1" is afgeraden
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
@@ -1513,12 +1440,25 @@ sym_h_uninitialized_variable=05058_H_Lokale variabele "$1" lijkt niet geinitiali
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-% \end{description}
+sym_w_function_result_uninitialized=05059_W_Het resultaat van de Functie lijkt niet geinitialiseerd.
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_h_function_result_uninitialized=05060_H_Het resultaat van de functie lijkt niet geinitialiseerd te zijn.
+% This message is displayed if the compiler thinks that the function result
+% variable will be used (i.e. appears in the right-hand-side of an expression)
+% before it is initialized (i.e. appeared in the left-hand side of an
+% assigment)
+sym_w_identifier_only_read=05061_W_Variabele &quot;$1&quot; wordt gelezen, maar krijgt nergens een waarde
 #
 # Codegenerator
 #
 # 06040 is the last used one
 #
+% You have read the value of a variable, but nowhere assigned a value to
+% it.
+% \end{description}
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
@@ -1542,11 +1482,13 @@ cg_e_cant_use_far_pointer_there=06013_E_U kunt daar geen far pointer gebruiken
 cg_e_dont_call_exported_direct=06015_E_Procedures die als EXPORT gedeclareerd staan kunnen niet aangeroepen worden
 % No longer in use.
 cg_w_member_cd_call_from_method=06016_W_Mogelijke ongeldige aanroep van constructor of destructor
-% No longer in use.
+% The compiler detected that a constructor or destructor is called within a
+% a method. This will probably lead to problems, since constructors / destructors
+% require parameters on entry.
 cg_n_inefficient_code=06017_N_Inefficiente code
-% You construction seems dubious to the compiler.
+% Your statement seems dubious to the compiler.
 cg_w_unreachable_code=06018_W_Deze code wordt nooit uitgevoerd
-% You specified a loop which will never be executed. Example:
+% You specified a construct which will never be executed. Example:
 % \begin{verbatim}
 % while false do
 %   begin
@@ -1570,20 +1512,15 @@ cg_e_no_code_for_inline_stored=06033_E_Geen code voor inline procedure opgeslage
 % The compiler couldn't store code for the inline procedure.
 cg_e_can_access_element_zero=06035_E_Element nul van een ansi/wide- of longstring is niet toegankelijk, gebruik (set)length.
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
-% and \var{length} to get the length of such kinf of string
+% and \var{length} to get the length of such a string types
 cg_e_cannot_call_cons_dest_inside_with=06037_E_Constructors of destructors kunnen niet aangeroepen worden binnen een 'with' clausule
-% Inside a \var{With} clause you cannot call a constructor or destructor for the
+% Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
 cg_e_cannot_call_message_direct=06038_E_Een message handler methode kan niet direct aangeroepen worden.
-% A message method handler method can't be called directly if it contains an
+% A message method handler method cannot be called directly if it contains an
 % explicit self argument
-% \end{description}
-# EndOfTeX
-#
-# Assembler reader
-#
 cg_e_goto_inout_of_exception_block=06039_E_Sprong in of uit een exception blok
-% It isn't allowed to jump in or outside of an exception block like \var{try..finally..end;}:
+% It is not allowed to jump in or outside of an exception block like \var{try..finally..end;}:
 % \begin{verbatim}
 % label 1;
 %
@@ -1598,7 +1535,6 @@ cg_e_goto_inout_of_exception_block=06039_E_Sprong in of uit een exception blok
 % 1:
 % ...
 % \end{verbatim}
-% \end{description}
 cg_e_control_flow_outside_finally=06040_E_Control flow statements niet toegestaan in een finally blok
 % It isn't allowed to use the control flow statements \var{break},
 % \var{continue} and \var{exit}
@@ -1617,7 +1553,6 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements niet toegestaa
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-# EndOfTeX
 cg_w_parasize_too_big=06041_W_Grootte van de parameters is te groot voor bepaalde CPUs
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
@@ -1631,19 +1566,18 @@ cg_e_break_not_allowed=06044_E_BREAK niet toegelaten
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE niet toegelaten
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_Ongekende schakel-aanduiding "$1". Kijk na of u de correcte looptijd bibliotheek gebruikt
-% The compiler expects that the runtime library contains some subrountines. If you see this error
-% and you didn't mess with the runtime library, it's very likely that the runtime library
-% you're using doesn't match the used compiler. If you changed the runtime library this error means
-% that you removed a subroutine which the compiler needs for internal use.
-% \end{description}
+cg_f_unknown_compiler=06046_F_Ongekende schakel-aanduiding "$1". Kijk na of u de correcte looptijd bibliotheek gebruikt
 # EndOfTeX
-
 #
 # Assembler reader
 #
 # 07097 is the last used one
 #
+% The compiler expects that the runtime library contains some subrountines. If you see this error
+% and you didn't mess with the runtime library, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a subroutine which the compiler needs for internal use.
+% \end{description}
 asmr_d_start_reading=07000_DL_Begonnen met verwerken van $1 assembler
 % This informs you that an assembler block is being parsed
 asmr_d_finish_reading=07001_DL_Gedaan met verwerken van $1 assembler
@@ -1662,8 +1596,8 @@ asmr_e_type_without_identifier=07006_E_TYPE gebruikt zonder symbool
 % supported
 asmr_e_no_local_or_para_allowed=07007_E_Kan hier geen lokale variabele of parameter gebruiken
 % You can't use a local variable or parameter here, mostly because the
-% addressing of locals and parameters is done using the %ebp register so the
-% address can't be get directly.
+% addressing of locals and parameters is done using the frame pointer register so the
+% address can't be obtained directly.
 asmr_e_need_offset=07008_E_OFFSET moet hier gebruikt worden
 % You need to use OFFSET <id> here to get the address of the identifier.
 asmr_e_need_dollar=07009_E_Gebruik van $ is hier verplicht
@@ -1681,13 +1615,14 @@ asmr_e_relocatable_symbol_not_allowed=07013_E_Verplaatsbaar symbool niet toegela
 asmr_e_invalid_reference_syntax=07014_E_Ongeldige geheugenlocatie schrijfwijze
 % There is an error in the reference.
 asmr_e_local_para_unreachable=07015_E_$1 niet bereikbaar vanuit deze code
-% You can not read directly the value of local or para
-% of a higher level in assembler code (except for
+% You can not read directly the value of a local variable or parameter
+% of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=07016_E_Lokale symbolen/labels niet toegestaan als referenties
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=07017_E_Ongeldig gebruik van basis en index register
-% There is an error with the base and index register
+% There is an error with the base and index register, they are
+% probably incorrect
 asmr_w_possible_object_field_bug=07018_W_Mogelijke fout in behandeling velden van object.
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
@@ -1801,10 +1736,6 @@ asmr_w_assembler_code_not_returned_to_text=07075_E_De assembler code stopt niet 
 asmr_e_not_directive_or_local_symbol=07076_E_Geen aanwijzing of lokaal symbool $1
 % This symbol is unknown.
 asmr_w_using_defined_as_local=07077_E_Een gedfinieerde naam wordt gebruikt als assembler label
-
-#
-# Assembler/binary writers
-#
 asmr_e_dollar_without_identifier=07078_E_Dollar teken gebruikt zonder identifier
 % A constant expression has an identifier which does not start with
 % the $ symbol.
@@ -1821,9 +1752,6 @@ asmr_e_cannot_access_object_field_directly=07082_E_Kan velden van objecten/klass
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-#
-# Assembler/binary writers
-#
 asmr_e_unable_to_determine_reference_size=07083_E_Geen grootte aangegegeven en kan de grootte van de operanden niet bepalen
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
@@ -1831,9 +1759,9 @@ asmr_e_unable_to_determine_reference_size=07083_E_Geen grootte aangegegeven en k
 asmr_e_cannot_use_RESULT_here=07084_E_Kan RESULT aanduiding niet gebruiken in deze functie
 % Some functions which return complex types cannot use the \var{result}
 % keyword.
-asmr_w_adding_explicit_args_fXX=07086_W_"$1Ã" zonder operand vertaald naar "$1 %st,%st(1)"
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" zonder operand vertaald naar "$1 %st,%st(1)"
 asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" vertaald naar "$1 %st,%st(n)"
-asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" vertaald naar "$1 %st(n),%st"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)"  vertaald naar  "$1 %st(n),%st"
 asmr_e_invalid_char_smaller=07089_E_Karakter < hier niet toegestaan
 % The shift operator requires the << characters. Only one
 % of those characters was found.
@@ -1858,6 +1786,11 @@ asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Grootte niet opgeg
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
 asmr_e_illegal_shifterop_syntax=07099_E_Syntax fout bij het bepalen van een shift operand
+#
+# Assembler/binary writers
+#
+# 08018 is the last used one
+#
 % ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
 % a valid shifter operand. Example for an operation with shifter operand:
 % \begin{verbatim}
@@ -1865,11 +1798,6 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntax fout bij het bepalen van een shif
 %   orr     r2,r2,r2,lsl #8
 % end;
 % \end{verbatim}
-#
-# Assembler/binary writers
-#
-# 08018 is the last used one
-#
 asmw_f_too_many_asm_files=08000_F_Te veel assemblerbestanden
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
@@ -1886,29 +1814,13 @@ asmw_e_invalid_effective_address=08009_E_Asm: Ongeldig direct adres
 asmw_e_immediate_or_reference_expected=08010_E_Asm: Constante of geheugenadres verwacht
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 waarde overschrijdt grenzen van $2
 asmw_e_short_jmp_out_of_range=08012_E_Asm: Korte spronginstructie gaat te ver $1
-
-#
-# Executing linker/assembler
-#
 asmw_e_undefined_label=08013_E_Asm: Ongedefinieerd label $1
-
-
-#
-# Executing linker/assembler
-#
-# BeginOfTeX
-%
-% \section{Errors of assembling/linking stage}
-% This section lists errors that occur when the compiler is processing the
-% command line or handling the configuration files.
-% \begin{description}
 asmw_e_comp_not_supported=08014_E_Asm: COMP type niet ondersteund voor dit platfirl
 asmw_e_extended_not_supported=08015_E_Asm: EXTENDED type niet ondersteund voor dit platform
 asmw_e_duplicate_label=08016_E_Asm: Label dubbel gebruikt: $1
 asmw_e_redefined_label=08017_E_Asm: Label opnieuw gedefinieerd: $1
 asmw_e_first_defined_label=08018_E_Asm: eerste definitie hier
 asmw_e_invalid_register=08019_E_Asm: ongeldig register $1
-
 #
 # Executing linker/assembler
 #
@@ -1923,14 +1835,14 @@ asmw_e_invalid_register=08019_E_Asm: ongeldig register $1
 exec_w_source_os_redefined=09000_W_Bronbesturingssysteem geherdefinieerd
 exec_i_assembling_pipe=09001_I_Assembleren (pijp) van $1
 exec_d_cant_create_asmfile=09002_E_Kan geen assembler bestand $1 niet maken
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you have got
+% access permissions to create this file
 exec_e_cant_create_objectfile=09003_E_Kan geen object bestand openen: $1
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you've
+% got access permissions to create this file
 exec_e_cant_create_archivefile=09004_E_kan geen archief bestand openen: $1
-% The mentioned file can't be create. Check if you've
-% permission to create this file
+% The mentioned file can't be created. Check if you've
+% access permissions to create this file
 exec_e_assembler_not_found=09005_E_Assembler $1 niet gevonden. Schakel over op externe assemblage
 exec_t_using_assembler=09006_T_Gebruikte assembler: $1
 exec_e_error_while_assembling=09007_E_Fout bij het assembleren, exit code $1
@@ -1957,21 +1869,17 @@ exec_e_dll_not_supported=09019_E_Dynamische bibliotheken niet ondersteund
 exec_i_closing_script=09020_I_Afsluiten batch $1
 exec_e_res_not_found=09021_E_Resource compiler niet gevonde, schakel over op externe modus
 exec_i_compilingresource=09022_I_Compileer resource $1
-#
-# Executable information
-#
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_Unit $1 kan niet statisch gelinkt worden. Schakel over op slim linken
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_Unit $1 kan niet slim gelinkt worden. Schakel over op statisch linken
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_Unit $1 kan niet gedeeld gelinkt worden, Schakel over op statisch linken
 exec_e_unit_not_smart_or_static_linkable=09026_E_Unit $1 kan niet slim of statisch gelinkt worden
 exec_e_unit_not_shared_or_static_linkable=09027_E_Unit $1 kan niet gedeeld of statisch gelinkt worden
 exec_d_resbin_params=09028_D_Oproep resource compiler "$1" met "$2" als commando-lijn opties
-%\end{description}
 # EndOfTeX
-
 #
 # Executable information
 #
+%\end{description}
 execinfo_f_cant_process_executable=09128_F_Kan applicatie niet nabehandelen $1
 execinfo_f_cant_open_executable=09129_F_Kan applicatie niet openen $1
 execinfo_x_codesize=09130_X_Grootte van de code: $1 bytes
@@ -1979,12 +1887,15 @@ execinfo_x_initdatasize=09131_X_Grootte van geinitialiseerde data: $1 bytes
 execinfo_x_uninitdatasize=09132_X_Grootte van niet-geinitialiseerde data: $1 bytes
 execinfo_x_stackreserve=09133_X_Gereserveerde stackruimte: $1 bytes
 execinfo_x_stackcommit=09134_X_Toegewezen stackruimte: $1 bytes
+#
 # Unit loading
+#
+# 10041 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
 % This section lists all messages that can occur when the compiler is
-% loading a unit from disk into memory. Many of these mesages are
+% loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
 unit_t_unitsearch=10000_T_Unit zoeken: $1
@@ -2000,9 +1911,9 @@ unit_u_ppu_flags=10003_U_PPU Vlaggen: $1
 unit_u_ppu_crc=10004_U_PPU CRC: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
 unit_u_ppu_time=10005_U_PPU Tijd: $1
-% When you use the \var{-vu} flag, the unit time is shown.
+% When you use the \var{-vu} flag, the time the unit was compiled is shown.
 unit_u_ppu_file_too_short=10006_U_PPU bestand te kort
-% When you use the \var{-vu} flag, the unit time is shown.
+% The ppufile is too short, not all declarations are present.
 unit_u_ppu_invalid_header=10007_U_PPU Ongeldige kop (geen PPU aan het begin)
 % A unit file contains as the first three bytes the ascii codes of \var{PPU}
 unit_u_ppu_invalid_version=10008_U_PPU Ongeldige versie $1
@@ -2012,30 +1923,31 @@ unit_u_ppu_invalid_processor=10009_U_PPU is gecompileerd voor een andere process
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_invalid_target=10010_U_PPU is gecompileerd voor een ander doelsysteem
-% This unit file was compiled for a different processor type, and
+% This unit file was compiled for a different target, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU bron: $1
-% When you use the \var{-vu} flag, the unit CRC check is shown.
+% When you use the \var{-vu} flag, the unit source file name is shown.
 unit_u_ppu_write=10012_U_Schrijven van $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
 unit_f_ppu_cannot_write=10013_F_Kan PPU bestand niet schrijven
-% An err
+% An error occurred when writing the unit file.
 unit_f_ppu_read_error=10014_F_Lezen van PPU bestand
-% Unexpected end of file
-unit_f_ppu_read_unexpected_end=10015_F_Onverwacht einde van PPU-bestand
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
+unit_f_ppu_read_unexpected_end=10015_F_Onverwacht einde van PPU-bestand
+% Unexpected end of file. This may mean that the PPU file is
+% corrupted.
 unit_f_ppu_invalid_entry=10016_F_Ongeldig PPU bestand post: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
 unit_f_ppu_dbx_count_problem=10017_F_PPU Dbx aantal probleem
 % There is an inconsistency in the debugging information of the unit.
 unit_e_illegal_unit_name=10018_E_Ongeldige unitnaam: $1
-% The name of the unit doesn't match the file name.
+% The name of the unit does not match the file name.
 unit_f_too_much_units=10019_F_Te veel units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
-% by changing the \var{maxunits} constant in the \file{files.pas} file of the
+% by changing the \var{maxunits} constant in the \file{fmodule.pas} file of the
 % compiler, and recompiling the compiler.
 unit_f_circular_unit_reference=10020_F_Uses statement veroorzaakt vicieuze cirkel tussen $1 en $2
 % Two units are using each other in the interface part. This is only allowed
@@ -2046,7 +1958,7 @@ unit_f_cant_compile_unit=10021_F_Kan unit $1 niet compileren, geen broncode besc
 % available.
 unit_f_cant_find_ppu=10022_F_Kan unit $1 niet vinden
 % You tried to use a unit of which the PPU file isn't found by the
-% compiler. Check your config files for the unit pathes
+% compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 niet gevonden maar $2 bestaat
 unit_f_unit_name_error=10024_F_Unit $1 gezocht maar $2 gevonden
 % Dos truncation of 8 letters for unit PPU files
@@ -2071,7 +1983,7 @@ unit_u_recompile_sharedlib_is_older=10031_U_Hercompileer unit, dynamische biblio
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
 unit_u_recompile_obj_and_asm_older=10032_U_Hercompileer unit, object en asm zijn ouder dan ppu-bestand
-% When you use the \var{-vu} flag, the compiler warns if the assembler of
+% When you use the \var{-vu} flag, the compiler warns if the assembler or
 % object file of the unit are older than the unit file itself.
 unit_u_recompile_obj_older_than_asm=10033_U_Hercompileer unit, object is ouder dan assembler
 % When you use the \var{-vu} flag, the compiler warns if the assembler
@@ -2087,17 +1999,23 @@ unit_u_second_load_unit=10036_U_Tweede maal unit $1 laden
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
 unit_u_check_time=10037_U_PPU Controleren van bestand $1 tijd $2
+### The following two error msgs is currently disabled.
+#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that currently is defined, but was not used the last
+#% time the unit was compiled.
+#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that was used the last time the unit was compiled, but
+#% the conditional is currently not defined.
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
-% \end{description}
-# EndOfTeX
-#
-#  Options
-#
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kan unit $1 niet hercompileren, maar vond gewijzigde include bestanden
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_Bestand $1 is nieuwer dan release PPU bestand $2
+unit_h_source_modified=10041_H_Bestand $1 is nieuwer dan release  PPU bestand $2
 % A modified source file for a unit was found that was compiled with the
 % release flag (-Ur). The unit will not implicitly be recompiled because
 % this release flag is set.
@@ -2119,7 +2037,7 @@ unit_u_implementation_crc_changed=10046_U_Implementatie CRC voor unit $1 is gewi
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_Klaar met compileren van unit Â$1
+unit_u_finished_compiling=10047_U_Klaar met compileren van unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
 unit_u_add_depend_to=10048_U_Afhankelijkheid van $1 toegevoegd aan $2
@@ -2158,17 +2076,16 @@ unit_u_reresolving_unit=10058_U_Opnieuw oplossen van unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to recalculate the internal data of the unit
 unit_u_skipping_reresolving_unit=10059_U_Oplossen van unit $1 wordt overgeslagen, gebruikte units worden nog geladen
-% When you use the \var{-vu} flag, the compiler warns that it
-% skips to recalculate the internal data of the unit because there
-% is no data to recalculate
-% \end{description}
 # EndOfTeX
-
 #
 #  Options
 #
 # 11039 is the last used one
 #
+% When you use the \var{-vu} flag, the compiler warns that it
+% skips to recalculate the internal data of the unit because there
+% is no data to recalculate
+% \end{description}
 option_usage=11000_O_$1 [opties] <bestand> [opties]
 # BeginOfTeX
 %
@@ -2238,12 +2155,6 @@ option_asm_forced=11022_W_Gebruik van "$1" assembler opgelegd
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-%\end{description}
-# EndOfTeX
-
-#
-# Logo (option -l)
-#
 option_using_file=11026_T_Opties worden gelezen van bestand $1
 % Options are also read from this file
 option_using_env=11027_T_Opties worden gelezen van omgevingsvariabelen $1
@@ -2263,35 +2174,48 @@ option_found_file=11035_D_Bronbestand "$1" gevonden
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Ongekende coderingspagina
-%\end{description}
+option_config_is_dir=11040_F_Config bestand $1 is een directorie
 # EndOfTeX
-
 #
 # Logo (option -l)
 #
+% Directories can not be used as configuration files.
+%\end{description}
 option_logo=11023_[
-Free Pascal Compiler versie $FPCVER [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1998-2004 door Florian Klaempfl en anderen
+Free Pascal Compiler versie $FPCVERSION [$FPCDATE] voor $FPCTARGET
+Copyright (c) 1998-2006 door Florian Klaempfl en anderen
 ]
-
 #
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler versie $FPCVER
-
+Free Pascal Compiler versie $FPCVERSION
 Compiler datum:       $FPCDATE
 Compiler doelsysteem: $FPCTARGET
-
 Dit programma wordt verspreid onder de GNU General Public Licence
 Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
-
-                bugrep@freepascal.org
+                bugs@freepascal.org
 ]
-
 #
 # Help pages (option -? and -h)
+#
+# The first character on the line indicates who will display this
+# line, the current possibilities are :
+#    * = every target
+#    3 = 80x86 targets
+#    6 = 680x0 targets
+#    e = in extended debug mode only
+#    P = PowerPC targets
+#    S = Sparc targets
+#    V = Virtual machine targets
+# The second character also indicates who will display this line,
+# (if the above character was TRUE) the current possibilities are :
+#    * = everyone
+#    g = with GDB info supported by the compiler
+#    O = OS/2
+#    L = UNIX systems
+#  The third character represents the indentation level.
 #
 option_help_pages=11025_[
 **0*_+ schakelt optie aan, - af
@@ -2380,7 +2304,7 @@ option_help_pages=11025_[
 **2*_l : Toon regelnummers           c : Toon voorwaardelijken
 **2*_a : Toon alles                  0 : Toon alleen fouten
 **2*_b : Toon alle procedures        r : Rhide/GCC compatibiliteit modus
-**2*_    declaraties indien een      x : Executable informatie (alleen Win32)
+**2*_    declaraties indien een     x : Executable informatie (alleen Win32)
 **2*_    fout optreedt
 **1X_applicatie instellingen
 *L2Xc_link met de C bibliotheek
@@ -2449,6 +2373,3 @@ option_help_pages=11025_[
 **1?_Toont deze hulp
 **1h_Toont deze hulp zonder wachten
 ]
-
-#
-# The End...
