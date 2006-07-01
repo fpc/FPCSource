@@ -2338,7 +2338,7 @@ const pemagic : array[0..3] of byte = (
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
         end;
 
-        function AddProcImport(const afuncname:string):TObjSymbol;
+        function AddProcImport(const afuncname:string; ordnumber:longint):TObjSymbol;
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
@@ -2366,6 +2366,7 @@ const pemagic : array[0..3] of byte = (
           emptyint : longint;
           secname,
           num : string;
+          ordnr: word;
         begin
           result:=nil;
           emptyint:=0;
@@ -2386,16 +2387,37 @@ const pemagic : array[0..3] of byte = (
           inc(idatalabnr);
           num:=tostr(idatalabnr);
           idata6label:=internalobjdata.SymbolDefine('__imp_'+num,AB_LOCAL,AT_DATA);
-          internalobjdata.writebytes(emptyint,2);
-          internalobjdata.writebytes(afuncname[1],length(afuncname));
+          ordnr:=Abs(ordnumber);
+          internalobjdata.writebytes(ordnr,2);
+          if ordnumber <= 0 then
+            internalobjdata.writebytes(afuncname[1],length(afuncname));
           internalobjdata.writebytes(emptyint,1);
           internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
           idata4label:=internalobjdata.SymbolDefine('__imp_lookup_'+num,AB_LOCAL,AT_DATA);
-          internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
-          if target_info.system=system_x86_64_win64 then
-            internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          if ordnumber <= 0 then
+            begin
+              internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
+              if target_info.system=system_x86_64_win64 then
+                internalobjdata.writebytes(emptyint,sizeof(emptyint));
+            end
+          else
+            begin
+              emptyint:=ordnumber;
+              if target_info.system=system_x86_64_win64 then
+                begin
+                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                  emptyint:=longint($80000000);
+                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                end
+              else
+                begin
+                  emptyint:=emptyint or longint($80000000);
+                  internalobjdata.writebytes(emptyint,sizeof(emptyint));
+                end;
+              emptyint:=0;
+            end;
           { idata5, import address table }
           internalobjdata.SetSection(idata5objsection);
           { dummy back links }
@@ -2417,7 +2439,7 @@ const pemagic : array[0..3] of byte = (
       var
         i,j : longint;
         ExtLibrary : TExternalLibrary;
-        ExtSymbol  : TFPHashObject;
+        ExtSymbol  : TExternalSymbol;
         exesym     : TExeSymbol;
       begin
         for i:=0 to ExternalLibraryList.Count-1 do
@@ -2430,14 +2452,14 @@ const pemagic : array[0..3] of byte = (
             idata7objsection:=nil;
             for j:=0 to ExtLibrary.ExternalSymbolList.Count-1 do
               begin
-                ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList[j]);
+                ExtSymbol:=TExternalSymbol(ExtLibrary.ExternalSymbolList[j]);
                 exesym:=TExeSymbol(ExeSymbolList.Find(ExtSymbol.Name));
                 if assigned(exesym) and
                    (exesym.State<>symstate_defined) then
                   begin
                     if not assigned(idata2objsection) then
                       StartImport(ExtLibrary.Name);
-                    exesym.objsymbol:=AddProcImport(ExtSymbol.Name);
+                    exesym.objsymbol:=AddProcImport(ExtSymbol.Name, ExtSymbol.OrdNumber);
                     exesym.State:=symstate_defined;
                   end;
               end;

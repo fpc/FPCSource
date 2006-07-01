@@ -54,7 +54,7 @@ Type
        Constructor Create;virtual;
        Destructor Destroy;override;
        procedure AddModuleFiles(hp:tmodule);
-       procedure AddExternalSymbol(const libname,symname:string);virtual;
+       procedure AddExternalSymbol(const libname,symname:string;ordnumber: longint);virtual;
        Procedure AddObject(const S,unitpath : String;isunit:boolean);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
@@ -106,7 +106,7 @@ Type
        Destructor Destroy;override;
        Function  MakeExecutable:boolean;override;
        Function  MakeSharedLibrary:boolean;override;
-       procedure AddExternalSymbol(const libname,symname:string);override;
+       procedure AddExternalSymbol(const libname,symname:string;ordnumber: longint);override;
      end;
 
 
@@ -312,9 +312,13 @@ procedure TLinker.AddProcdefImports(p:tnamedindexitem;arg:pointer);
 begin
   if tdef(p).deftype<>procdef then
     exit;
-  if assigned(tprocdef(p).import_dll) and
-     assigned(tprocdef(p).import_name) then
-    AddExternalSymbol(tprocdef(p).import_dll^,tprocdef(p).import_name^);
+  with tprocdef(p) do
+    if assigned(import_dll) then
+      if assigned(import_name) then
+        AddExternalSymbol(import_dll^,import_name^,-import_nr)
+      else
+        if import_nr<>0 then
+          AddExternalSymbol(import_dll^,import_dll^+'_index_'+tostr(import_nr),import_nr);
 end;
 
 
@@ -409,7 +413,7 @@ begin
 end;
 
 
-    procedure TLinker.AddExternalSymbol(const libname,symname:string);
+    procedure TLinker.AddExternalSymbol(const libname,symname:string;ordnumber: longint);
       begin
       end;
 
@@ -802,7 +806,7 @@ end;
       end;
 
 
-    procedure TInternalLinker.AddExternalSymbol(const libname,symname:string);
+    procedure TInternalLinker.AddExternalSymbol(const libname,symname:string;ordnumber: longint);
       var
         ExtLibrary : TExternalLibrary;
         ExtSymbol : TFPHashObject;
@@ -812,7 +816,7 @@ end;
           ExtLibrary:=TExternalLibrary.Create(ExternalLibraryList,libname);
         ExtSymbol:=TFPHashObject(ExtLibrary.ExternalSymbolList.Find(symname));
         if not assigned(ExtSymbol) then
-          ExtSymbol:=TFPHashObject.Create(ExtLibrary.ExternalSymbolList,symname);
+          ExtSymbol:=TExternalSymbol.Create(ExtLibrary.ExternalSymbolList,symname,ordnumber);
       end;
 
 

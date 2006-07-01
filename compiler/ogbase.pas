@@ -348,6 +348,14 @@ interface
         destructor  destroy;override;
         property ExternalSymbolList:TFPHashObjectList read FExternalSymbolList;
       end;
+      
+      TExternalSymbol = class(TFPHashObject)
+      private
+        FOrdNumber: longint;
+      public
+        constructor create(AList: TFPHashObjectList; const AName: string; AOrdNumber: longint);
+        property OrdNumber: longint read FOrdNumber;
+      end;
 
       TExeOutput = class
       private
@@ -1294,6 +1302,17 @@ implementation
         ExternalSymbolList.Free;
         inherited destroy;
       end;
+
+
+{****************************************************************************
+                                TExternalSymbol
+****************************************************************************}
+
+constructor TExternalSymbol.create(AList: TFPHashObjectList; const AName: string; AOrdNumber: longint);
+begin
+  inherited Create(AList, AName);
+  FOrdNumber:=AOrdNumber;
+end;
 
 
 {****************************************************************************
