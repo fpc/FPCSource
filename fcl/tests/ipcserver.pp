@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 program ipccerver;
 
 {$APPTYPE CONSOLE}
