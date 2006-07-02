@@ -93,8 +93,8 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='1.0.8';
-     installercopyright='Copyright (c) 1993-2004 Florian Klaempfl';
+     installerversion='2.0.4';
+     installercopyright='Copyright (c) 1993-2006 Florian Klaempfl';
 
 
      maxpacks=30;
