@@ -1,6 +1,0 @@
-{$IFDEF fpc}
-  {$define SQLDB_AVAILABLE}
-  {$define DBF_AVAILABLE}
-{$ELSE}
-  {$DEFINE DBF_AVAILABLE}
-{$ENDIF}

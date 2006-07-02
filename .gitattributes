@@ -683,17 +683,6 @@ fcl/db/unmaintained/odbc/testtl.pp svneol=native#text/plain
 fcl/db/unmaintained/sqlite/Makefile -text
 fcl/db/unmaintained/sqlite/Makefile.fpc -text
 fcl/db/unmaintained/sqlite/sqlitedataset.pas svneol=native#text/plain
-fcl/dbtests/Makefile -text
-fcl/dbtests/Makefile.fpc -text
-fcl/dbtests/database.ini -text
-fcl/dbtests/dbftoolsunit.pas -text
-fcl/dbtests/dbtestframework.pas -text
-fcl/dbtests/settings.inc -text
-fcl/dbtests/sqldbtoolsunit.pas -text
-fcl/dbtests/testbasics.pas svneol=native#text/plain
-fcl/dbtests/testdbbasics.pas -text
-fcl/dbtests/testsqlfieldtypes.pas -text
-fcl/dbtests/toolsunit.pas -text
 fcl/fpcunit/DUnitCompatibleInterface.inc svneol=native#text/plain
 fcl/fpcunit/Makefile svneol=native#text/plain
 fcl/fpcunit/Makefile.fpc svneol=native#text/plain
