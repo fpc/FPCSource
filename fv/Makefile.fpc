@@ -4,7 +4,7 @@
 
 [package]
 name=fv
-version=2.0.3
+version=2.0.4
 
 [target]
 units=buildfv
@@ -16,7 +16,7 @@ exampledirs=test
 
 [libs]
 libname=libfpfv.so
-libversion=2.0.3
+libversion=2.0.4
 
 [compiler]
 targetdir=.

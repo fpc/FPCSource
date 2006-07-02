@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=rexx
-override PACKAGE_VERSION=2.0.3
+override PACKAGE_VERSION=2.0.4
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=rexxsaa
 endif

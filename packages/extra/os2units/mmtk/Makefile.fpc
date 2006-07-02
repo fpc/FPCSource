@@ -4,7 +4,7 @@
 
 [package]
 name=mmtk
-version=2.0.3
+version=2.0.4
 
 [target]
 units=mmbase sw dive mci mciapi mcidrv mmio

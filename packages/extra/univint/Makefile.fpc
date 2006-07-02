@@ -4,7 +4,7 @@
 
 [package]
 name=univint
-version=2.0.0
+version=2.0.4
 
 [target]
 units=FPCMacOSAll MacOS GPCStrings
@@ -78,7 +78,7 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   fenv fp vBLAS vDSP
 
 [libs]
-libversion=2.0.0
+libversion=2.0.4
 
 # FPCMacOSAll is not a build unit, but directly includes the code of
 # most other units

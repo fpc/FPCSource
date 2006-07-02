@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=pasjpeg
-override PACKAGE_VERSION=2.0.3
+override PACKAGE_VERSION=2.0.4
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=jcapimin jcapistd jccoefct jccolor jcdctmgr jchuff jcinit jcmainct jcmarker jcmaster jcomapi jcparam jcphuff jcprepct jcsample jdapimin jdapistd jdatadst jdatasrc jdcoefct jdcolor jdct jddctmgr jdeferr jdhuff jdinput jdmainct jdmarker jdmaster jdmerge jdphuff jdpostct jdsample jerror jfdctflt jfdctfst jfdctint jidctflt jidctfst jidctint jidctred jinclude jmemmgr jmemnobs jmorecfg jpeglib jquant1 jquant2 jutils
 endif

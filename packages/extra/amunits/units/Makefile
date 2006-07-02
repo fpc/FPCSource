@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=amunits
-override PACKAGE_VERSION=2.0.3
+override PACKAGE_VERSION=2.0.4
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=amigados amigaguide amigalib amigaprinter asl audio bootblock bullet cd clipboard colorwheel commodities configregs configvars console conunit datatypes diskfont expansion expansionbase gadtools gameport gradientslider graphics hardblocks hardware icon iffparse input inputevent intuition keyboard keymap layers locale lowlevel nonvolatile parallel prefs prtbase prtgfx realtime rexx romboot_base scsidisk serial tapedeck timer trackdisk translator utility workbench exec
 endif
