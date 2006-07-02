@@ -1,5 +1,9 @@
 #include <stdint.h>
 
+#ifdef __SOFTFP__
+  #define NO_FLOAT
+#endif
+
 struct struct_arr1 {
   int8_t v[1];
   };
@@ -287,12 +291,16 @@ int64_t pass313(struct struct31 s, struct struct3 s3, char c) {
 }
 
 int64_t pass11db10db(struct struct11 s11, double d1, uint8_t b1, struct struct10 s10, double d2, uint8_t b2) {
+#ifdef NO_FLOAT
+  return 0;
+#else
   if ((b1 != 35) ||
       (b2 != 36) ||
       ((d1 - 12345.678) > 0.001) ||
       ((d2 - 98765.453) > 0.001))
     return -1;
   return s10.v1 + s10.v2;
+#endif
 }
 
 

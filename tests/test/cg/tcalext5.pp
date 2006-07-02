@@ -9,6 +9,10 @@
 program calext3;
 {$MODE DELPHI}
 
+{$ifdef UNDER_CE}
+  {$define NO_FLOAT}
+{$endif}
+
 type
   int8_t = shortint;
   pint8_t = ^int8_t;
@@ -599,7 +603,9 @@ begin
   verify(pass311(s31,s1,32), check1(s1), 32);
   verify(pass312(s31,s2,33), check2(s2), 33);
   verify(pass313(s31,s3,34), check3(s3), 34);
+{$ifndef NO_FLOAT}
   verify(pass11db10db(s11,12345.678,35,s10,98745.453,36), check10(s10), 35);
+{$endif}
 
   verify(pass_arr1(sa1,101), check_arr1(sa1), 101);
   verify(pass_arr2(sa2,102), check_arr2(sa2), 102);

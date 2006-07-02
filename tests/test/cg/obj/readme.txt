@@ -19,4 +19,4 @@ NetBSD-m68k : GCC 2.95.3 on NetBSD elf 1.6
 Macos-powerpc : MrC C Compiler 4.1.0f1c1 for MPW (dont know yet if it
     can be used with FPC, but at least ctest.c compiles)
 
-wince 4.21 : GCC 3.3.1 (can't use eVC, LONG LONG not supported)
+wince 4.21 : GCC 3.3.3

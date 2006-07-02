@@ -5830,6 +5830,7 @@ tests/test/cg/obj/win64/x86_64/tcext5.o -text
 tests/test/cg/obj/wince/arm/ctest.o -text
 tests/test/cg/obj/wince/arm/tcext3.o -text
 tests/test/cg/obj/wince/arm/tcext4.o -text
+tests/test/cg/obj/wince/arm/tcext5.o -text
 tests/test/cg/ptest.pp svneol=native#text/plain
 tests/test/cg/taddbool.pp svneol=native#text/plain
 tests/test/cg/taddcard.pp svneol=native#text/plain
