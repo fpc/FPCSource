@@ -795,11 +795,16 @@ begin
 end;
 
 
-function TryStrQWord(const s: string; var i: QWord): boolean;
+function TryStrQWord(const s: string; var Q: QWord): boolean;
+begin
+  Result:=TryStrToQWord(S,Q);
+end;
+
+function TryStrToQWord(const s: string; var Q: QWord): boolean;
 var Error : word;
 begin
-  Val(s, i, Error);
-  TryStrQWord:=Error=0
+  Val(s, Q, Error);
+  TryStrToQWord:=Error=0
 end;
 
 {   StrToIntDef converts the string S to an integer value,
