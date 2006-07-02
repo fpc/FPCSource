@@ -1,5 +1,4 @@
 * text=auto !eol
-/.test -text
 /Makefile svneol=native#text/plain
 /Makefile.fpc svneol=native#text/plain
 compiler/COPYING -text
