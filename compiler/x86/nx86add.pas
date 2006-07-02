@@ -239,6 +239,8 @@ unit nx86add;
         tmpreg : tregister;
 {$endif x86_64}
       begin
+        if (right.location.loc in [LOC_CSUBSETREG,LOC_SUBSETREG]) then
+          location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
         { left must be a register }
         case right.location.loc of
           LOC_REGISTER,
