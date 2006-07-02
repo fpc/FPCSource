@@ -54,9 +54,11 @@ package=unetdbdos.zip[undbdos.zip],NetDB units
 # Dos 13
 package=upasjpegdos.zip[upjpdos.zip],Pas~J~PEG units
 # Dos 14
-package=umd5dos.zip,Unit for MD~5~ processing
+package=uhashdos.zip,Hash calculation units
 # Dos 15
 package=ufvdos.zip,Free ~V~ision (FV)
+# Dos 16
+package=ugraphdos.zip[ugrphdos.zip],Unit Graph
 
 
 #
@@ -94,10 +96,15 @@ package=units-cdrom.i386-win32.zip,CD-ROM interface units
 # Win32 11
 package=units-odbc.i386-win32.zip,ODBC interface units
 # Win32 12
-package=units-winver.i386-win32.zip,Windows version detection unit
+package=units-winunits.i386-win32.zip,Extended Windows API interface units
 # Win32 13
 package=units-tcl.i386-win32.zip,TCL interface units
-
+# Win32 14
+package=units-graph.i386-win32.zip,Unit Graph
+# Win32 15
+package=units-fftw.i386-win32.zip,FFTW interface unit
+# Win32 16
+package=units-postgres.i386-win32.zip,PostGreSQL interface units
 
 #
 # Win32 packages 2nd part
@@ -113,26 +120,25 @@ package=units-ibase.i386-win32.zip,Interbase interface units
 # Win32-2 5
 package=units-mysql.i386-win32.zip,MySQL interface units
 # Win32-2 6
-package=units-mmsystem.i386-win32.zip,MMSystem interface units
-# Win32-2 7
 package=units-gdbint.i386-win32.zip,GDB Interfacing units
-# Win32-2 8
+# Win32-2 7
 package=units-paszlib.i386-win32.zip,PasZLib units
-# Win32-2 9
+# Win32-2 8
 package=units-regexpr.i386-win32.zip,Regular expression units
-# Win32-2 10
+# Win32-2 9
 package=units-unzip.i386-win32.zip,Unzip units
-# Win32-2 11
+# Win32-2 10
 package=units-zlib.i386-win32.zip,ZLib interface units
-# Win32-2 12
+# Win32-2 11
 package=units-netdb.i386-win32.zip,NetDB units
-# Win32-2 14
+# Win32-2 12
 package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
-# Win32-2 15
-package=units-md5.i386-win32.zip,Unit for MD~5~ processing
-# Win32-2 16
+# Win32-2 13
+package=units-hash.i386-win32.zip,Hash calculation units
+# Win32-2 14
 package=units-fv.i386-win32.zip,Free ~V~ision (FV)
-
+# Win32-2 15
+package=units-oracle.i386-win32.zip,Oracle interface units
 
 #
 # OS/2 packages
@@ -168,7 +174,7 @@ package=ulvmos2.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # OS/2 12
 package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
 # OS/2 13
-package=umd5os2.zip,Unit for MD~5~ processing
+package=uhashos2.zip,Hash calculation units
 
 
 #
@@ -244,7 +250,7 @@ package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
 # EMX 12
 package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
 # EMX 13
-package=umd5emx.zip,Unit for MD~5~ processing
+package=uhashemx.zip,Hash calculation units
 
 
 #
@@ -332,9 +338,9 @@ package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
 package=units-netdb.source.zip[undbsrc.zip],NetDB units
 # Source 15
-package=units-mmsystem.source.zip,Win32 MMSystem interface units
-# Source 16
 package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
+# Source 16
+package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface units
 
 #
 # Source packages 2nd part
@@ -380,10 +386,17 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 pack=Sources 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
-package=units-winver.source.zip[uwversrc.zip],Windows version detection unit
+package=units-winunits.source.zip[uwinsrc.zip],Extended Windows API interface units
 # Source-3 2
 package=units-tcl.source.zip[utclsrc.zip],TCL interface units
-
+# Source-3 3
+package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
+# Source-3 4
+package=units-hash.source.zip[uhashsrc.zip],Hash calculation units
+# Source-3 5
+package=units-fftw.source.zip[ufftwsrc.zip],FFTW interface unit
+# Source-3 6
+package=units-oracle.source.zip[uorasrc.zip],Oracle interface units
 
 defaultcfg=
 #
