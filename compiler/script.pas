@@ -329,13 +329,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : String);
 begin
- Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
+ Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' Quiet');
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : String);
 begin
- Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))));
+ Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
 end;
 
 

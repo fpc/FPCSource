@@ -765,7 +765,7 @@ begin
       AsmRes.AddDeleteCommand(FixFileName(smartpath+current_module.asmprefix^+'*'+target_info.objext));
       if scripted_ar then
         AsmRes.AddDeleteCommand(scriptfile);
-      AsmRes.Add('rmdir '+smartpath);
+      AsmRes.AddDeleteDirCommand(smartpath);
     end;
   MakeStaticLibrary:=success;
 end;
