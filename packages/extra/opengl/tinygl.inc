@@ -488,7 +488,7 @@ end;
 procedure glMateriali(face, pname: GLenum; param: GLint); inline;
 begin
   // WTF?! 
-  _GLMaterialf(tglContext, face, pname, GLfloat(param));
+  _GLMaterialf(tglContext, face, pname, param);
 end;
 
 procedure glMaterialiv(face, pname: GLenum; const params: PGLint); inline;
@@ -626,7 +626,7 @@ end;
 procedure glFogi(pname: GLenum; param: GLint); inline;
 begin
   // WTF!? And it actually works!
-  _GLFogf(tglContext, pname, GLfloat(param));
+  _GLFogf(tglContext, pname, param);
 end;
 
 procedure glOrtho(left, right, bottom, top, zNear, zFar: GLdouble); inline;
