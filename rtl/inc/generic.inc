@@ -990,7 +990,7 @@ procedure inclocked(var l:int64);
 
 
 
-function align(addr : PtrInt;alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function align(addr : PtrUInt;alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if addr mod alignment<>0 then
       result:=addr+(alignment-(addr mod alignment))
@@ -999,10 +999,10 @@ function align(addr : PtrInt;alignment : PtrInt) : PtrInt;{$ifdef SYSTEMINLINE}i
   end;
 
 
-function align(addr : Pointer;alignment : PtrInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function align(addr : Pointer;alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-    if PtrInt(addr) mod alignment<>0 then
-      result:=pointer(addr+(alignment-(PtrInt(addr) mod alignment)))
+    if PtrUInt(addr) mod alignment<>0 then
+      result:=pointer(addr+(alignment-(PtrUInt(addr) mod alignment)))
     else
       result:=addr;
   end;
