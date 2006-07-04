@@ -237,7 +237,7 @@ end;
 
 function epoll_create(size: cint): cint;
 begin
-  epoll_create := do_syscall(syscall_nr_epoll_create);
+  epoll_create := do_syscall(syscall_nr_epoll_create,tsysparam(size));
 end;
 
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
