@@ -214,9 +214,18 @@ end;
 {$ifdef CPUARM}
 
 {$define FPC_SYSTEM_HAS_INT}
+function floor(d : double) : double; 
+   cdecl;external 'coredll' name 'floor';
+
+function ceil(d : double) : double; 
+   cdecl;external 'coredll' name 'ceil';
+
 function fpc_int_real(d: ValReal): ValReal;compilerproc;
 begin
-  fpc_int_real := i64tod(trunc(d));
+  if d > 0 then
+    fpc_int_real:=floor(d)
+  else  
+    fpc_int_real:=ceil(d);
 end;
 
 {$define FPC_SYSTEM_HAS_TRUNC}
