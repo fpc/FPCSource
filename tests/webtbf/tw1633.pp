@@ -1,4 +1,5 @@
 { %fail }
+{ %cpu=i386 }
 
 {$ifdef fpc}
   {$mode delphi}

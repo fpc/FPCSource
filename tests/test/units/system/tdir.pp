@@ -6,6 +6,9 @@
 { Creates the following directory, and sets it as the     }
 { current directory.                                      }
 {    ../testdir                                           }
+
+{ %skiptarget=wince }
+
 Program tdir;
 {$I-}
 
