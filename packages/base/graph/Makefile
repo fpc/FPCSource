@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=graph
-override PACKAGE_VERSION=2.1
+override PACKAGE_VERSION=2.0.4
 GRAPHDIR=inc
 UNIXINC=unix
 ifndef USELIBGGI
