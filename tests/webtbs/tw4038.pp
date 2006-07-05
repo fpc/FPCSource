@@ -1,6 +1,9 @@
 { Source provided for Free Pascal Bug Report 4038 }
 { Submitted by "Antonio Marti" on  2005-06-01 }
 { e-mail: windowze2000@yahoo.es }
+
+{ %skiptarget=wince }
+
 uses sysutils;
 var b: byte;
     s : string;
