@@ -11,3 +11,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{$ifdef wince}
+
+type
+  TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
+  TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
+  TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                   exOverflow, exUnderflow, exPrecision);
+  TFPUExceptionMask = set of TFPUException;
+
+function GetRoundMode: TFPURoundingMode;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+function GetPrecisionMode: TFPUPrecisionMode;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+function GetExceptionMask: TFPUExceptionMask;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+procedure ClearExceptions(RaisePending: Boolean =true);
+
+{$endif}
