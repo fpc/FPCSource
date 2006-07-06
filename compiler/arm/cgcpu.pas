@@ -1663,8 +1663,7 @@ unit cgcpu;
           LOC_FLAGS:
             begin
               hflags:=ovloc.resflags;
-              if not (hflags in [F_CS,F_CC]) then
-                inverse_flags(hflags);
+              inverse_flags(hflags);
               cg.a_jmp_flags(list,hflags,hl);
             end;
           else
@@ -1963,9 +1962,9 @@ unit cgcpu;
                 ovloc.loc:=LOC_FLAGS;
                 case op of
                   OP_ADD:
-                    ovloc.resflags:=F_CC;
-                  OP_SUB:
                     ovloc.resflags:=F_CS;
+                  OP_SUB:
+                    ovloc.resflags:=F_CC;
                 end;
               end;
           end
