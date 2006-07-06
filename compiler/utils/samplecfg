@@ -47,8 +47,7 @@ if [ -z "$GCCSPEC" ] ; then
   GCCSPEC=`gcc -print-libgcc-file-name`
 fi
 GCCDIR=`dirname $GCCSPEC`
-echo $GCCDIR
-if [ -f $GCCDIR ]; then
+
 # include ports tree dir for FreeBSDers.
 case $HOSTOS in
  freebsd)
@@ -60,11 +59,14 @@ case $HOSTOS in
  netbsd)
    GCCDIR=-Fl/usr/pkg/lib
      ;;
+ linux)
+   if [ -d $GCCDIR ]; then	
+      echo Found libgcc.a in $GCCDIR
+    GCCDIR=-Fl$GCCDIR
+   fi
+    ;;
+   
 esac
-else
-  echo Found libgcc.a in $GCCDIR
-  GCCDIR=-Fl$GCCDIR
-fi
 
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
