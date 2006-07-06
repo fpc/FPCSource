@@ -1,6 +1,8 @@
 { Old file: tbs0125.pp }
 { wrong colors with DOS CRT unit                        OK 0.99.6 (PFV) }
 
+{ %skiptarget=wince }
+
 uses
 crt;
 var

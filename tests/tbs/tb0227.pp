@@ -1,6 +1,8 @@
 { Old file: tbs0266.pp }
 { linux crt write cuts 256 char                        OK 0.99.13 (PFV) }
 
+{ %skiptarget=wince }
+
 PROGRAM t10;
 
 USES CRT;

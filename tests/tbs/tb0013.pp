@@ -1,6 +1,8 @@
 { Old file: tbs0016.pp }
 {  }
 
+{ %skiptarget=wince }
+
   uses
      crt;
 

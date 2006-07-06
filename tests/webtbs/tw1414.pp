@@ -1,3 +1,4 @@
+{ %skiptarget=wince }
 uses
   dos;
  var

@@ -1,3 +1,5 @@
+{ %skiptarget=wince }
+
 unit {vidutil}tu2002;
  Interface
  uses
