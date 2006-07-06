@@ -1653,14 +1653,18 @@ unit cgcpu;
                      (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
                  ai.SetCondition(C_VC)
               else
-                 ai.SetCondition(C_CS);
+                if TAiCpu(List.Last).opcode in [A_RSB,A_RSC,A_SBC,A_SUB] then
+                  ai.SetCondition(C_CS)
+                else
+                  ai.SetCondition(C_CC);
 
               list.concat(ai);
             end;
           LOC_FLAGS:
             begin
               hflags:=ovloc.resflags;
-              inverse_flags(hflags);
+              if not (hflags in [F_CS,F_CC]) then
+                inverse_flags(hflags);
               cg.a_jmp_flags(list,hflags,hl);
             end;
           else
