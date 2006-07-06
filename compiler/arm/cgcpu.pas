@@ -1653,7 +1653,7 @@ unit cgcpu;
                      (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
                  ai.SetCondition(C_VC)
               else
-                 ai.SetCondition(C_CC);
+                 ai.SetCondition(C_CS);
 
               list.concat(ai);
             end;
