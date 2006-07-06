@@ -42,7 +42,7 @@ begin
   { this constant has been verified and is correct (FK) }
   { doubles have slightly different precision on processors <> x86, because }
   { intermediate calculations are not performed in 80 bit there (JM)        }
-  if s<>'-6531422287566170215' then
+  if Copy(s,1,Length(s)-1)<>'-653142228756617021' then
 {$endif cpui386}
     begin
       writeln(s);
