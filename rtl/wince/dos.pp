@@ -347,6 +347,11 @@ procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
+  if path = ''then
+    begin
+      DosError:=3;
+      exit;
+    end;
   fillchar(f,sizeof(f),0);
   { no error }
   doserror:=0;
@@ -479,19 +484,27 @@ end;
 
 procedure getfattr(var f;var attr : word);
 var
-  l : longint;
+  l : cardinal;
   buf: array[0..MaxPathLen] of WideChar;
 begin
-  doserror:=0;
-  AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
-  l:=GetFileAttributes(buf);
-  if l=longint($ffffffff) then
-   begin
-     doserror:=Last2DosError(GetLastError);
-     attr:=0;
-   end
+  if filerec(f).name[1] = #0 then 
+    begin
+      doserror:=3;
+      attr:=0;
+    end
   else
-   attr:=l and $ffff;
+    begin  
+      doserror:=0;
+      AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
+      l:=GetFileAttributes(buf);
+      if l = $ffffffff then
+       begin
+         doserror:=Last2DosError(GetLastError);
+         attr:=0;
+       end
+      else
+       attr:=l and $ffff;
+    end;   
 end;
 
 
@@ -503,11 +516,13 @@ begin
   if (attr and VolumeID)<>0 then
     doserror:=5
   else
-   AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
-   if SetFileAttributes(buf,attr) then
-    doserror:=0
-  else
-    doserror:=Last2DosError(GetLastError);
+    begin
+      AnsiToWideBuf(@filerec(f).name, -1, buf, SizeOf(buf));
+      if SetFileAttributes(buf,attr) then
+        doserror:=0
+      else
+        doserror:=Last2DosError(GetLastError);
+    end;  
 end;
 
 {******************************************************************************
