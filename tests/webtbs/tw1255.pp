@@ -22,6 +22,10 @@ begin
 {$ifdef UNIX}
   testff('/etc/host*');
 {$else}
-  testff('c:\autoexec.*');
+  {$ifdef wince}
+    testff('\windows\calc.*');
+  {$else}
+    testff('c:\autoexec.*');
+  {$endif wince}
 {$endif}
 end.

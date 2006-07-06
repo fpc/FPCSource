@@ -33,6 +33,16 @@ end;
        or      %i0,%lo(stacksize),%i0
 end;
 {$endif cpusparc}
+{$ifdef cpuarm}
+       ldr r0,.Lpstacksize
+       ldr r0,[r0]
+       b .Lend
+.Lpstacksize:
+       .long stacksize
+.Lend:
+end;
+{$endif cpuarm}
+
 begin
   writeln(getstacksize);
 end.

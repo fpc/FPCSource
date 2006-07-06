@@ -28,15 +28,21 @@ uses dos;
 {$IFDEF ATARI}
         {$DEFINE EXTATTR}
 {$ENDIF}
+{$IFDEF WINCE}
+        {$DEFINE EXTATTR}
+{$ENDIF}
 
 
 CONST
 { what is the root path }
-{$IFDEF EXTATTR}
-  RootPath = 'C:\';
-{$ENDIF}
-{$IFDEF UNIX}
+{$ifdef UNIX}
   RootPath = '/';
+{$else UNIX}
+  {$ifdef WINCE}
+    RootPath = '\';
+  {$else WINCE}
+    RootPath = 'C:\';
+  {$endif WINCE}
 {$ENDIF}
  Week:Array[0..6] of String =
  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
@@ -99,6 +105,7 @@ Begin
  WriteLn('Trying to open a valid file...Success!');
  GetFAttr(f,Attr);
  CheckDosError(0);
+{$ifndef wince}
  Write('Trying to open the current directory file...');
  Assign(f,'.');
  GetFAttr(f,Attr);
@@ -115,6 +122,7 @@ Begin
  else
    WriteLn('Success!');
  CheckDosError(0);
+{$endif wince}
 { This is completely platform dependent
  Write('Trying to open the parent directory file when in root...');
  Getdir(0,s);
@@ -136,7 +144,11 @@ Begin
 {$endif}
 
  Write('Trying to open a directory file...');
+{$ifdef wince}
+ s:='\windows';
+{$else}
  GetDir(0,s);
+{$endif wince}
  Assign(f,s);
  GetFAttr(f, Attr);
  if (attr and Directory) = 0 then

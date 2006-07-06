@@ -7,7 +7,11 @@ const
 
   procedure test_const(const s : string;const x);
     begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+      writeln(s,' is ',longint(unaligned(x)));
+{$else}
       writeln(s,' is ',longint(x));
+{$endif}
     end;
 
   procedure change(var x);

@@ -6,10 +6,17 @@
 uses
   strings;
 
-{$ifdef win32}
+{$if defined(win32) or defined(wince)}
+const
+{$ifdef wince}
+  CrtLib = 'coredll.dll';
+{$else}
+  CrtLib = 'coredll.dll';
+{$endif}
+
 { $linklib msvcrt}
-procedure printf(const formatstr : pchar; const args : array of const);cdecl; external 'msvcrt.dll' name 'printf';
-procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external 'msvcrt.dll' name 'sprintf';
+procedure printf(const formatstr : pchar; const args : array of const);cdecl; external CrtLib name 'printf';
+procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external CrtLib name 'sprintf';
 const
   int64prefix='I64';
 {$else}

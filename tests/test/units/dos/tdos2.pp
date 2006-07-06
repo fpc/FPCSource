@@ -39,6 +39,9 @@ Uses Dos;
 {$IFDEF ATARI}
         {$DEFINE EXTATTR}
 {$ENDIF}
+{$IFDEF WINCE}
+        {$DEFINE EXTATTR}
+{$ENDIF}
 
 
 
@@ -65,11 +68,14 @@ Uses Dos;
 
 CONST
 { what is the root path }
-{$IFDEF EXTATTR}
-  RootPath = 'C:\';
-{$ENDIF}
-{$IFDEF UNIX}
+{$ifdef UNIX}
   RootPath = '/';
+{$else UNIX}
+  {$ifdef WINCE}
+    RootPath = '\';
+  {$else WINCE}
+    RootPath = 'C:\';
+  {$endif WINCE}
 {$ENDIF}
  Week:Array[0..6] of String =
  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
@@ -527,12 +533,14 @@ Begin
  if not FoundDir then
    WriteLn(s+'FAILURE. Did not find '+TestDir+' directory')
  else
+{$ifndef wince}
  if not FoundDot then
    WriteLn(s+'FAILURE. Did not find special ''''.'''' directory')
  else
  if not FoundDotDot then
    WriteLn(s+'FAILURE. Did not find special ''''..'''' directory')
  else
+{$endif wince}
  if Failure then
    WriteLn(s+'FAILURE. Did not find special '+TestFName1+' directory')
  else
