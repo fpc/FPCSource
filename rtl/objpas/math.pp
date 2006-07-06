@@ -116,7 +116,7 @@ interface
 {$define OverflowCheckWasOn}
 {$Q-}
 {$endif opt Q+}
-{$ifdef CPUARM}
+{$if defined(CPUARM) and defined(unix)}
        { the ARM linux emulator doesn't like 0.0/0.0 }
        NaN = ln(-1.0);
 {$else CPUARM}
