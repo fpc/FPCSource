@@ -10,6 +10,7 @@ var
  e: extended;
  r: double;
 begin
+ DecimalSeparator:='.';
  e := 234.502;
  Result := FloatToStrF(e, ffGeneral, 15, 0);
 // Memo1.Lines.Add(Result);      { prints 234.502  }
