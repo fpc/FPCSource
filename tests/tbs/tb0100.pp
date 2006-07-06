@@ -2,7 +2,6 @@
 { problem with methods                                  OK 0.99.6 (FK) }
 
 program ObjTest;
-   uses crt;
 
    type
      ObjectA = object
