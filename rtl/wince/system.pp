@@ -199,7 +199,8 @@ procedure memmove(dest, src: pointer; count: longint);
 
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE']; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  memmove(@dest, @source, count);
+  if count > 0 then
+    memmove(@dest, @source, count);
 end;
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
@@ -1400,18 +1401,18 @@ end;
 {$endif WINCE_EXCEPTION_HANDLING}
 
 procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
+var
+  st: pointer;
 begin
   IsLibrary:=false;
 {$ifdef CPUARM}
   asm
+    str sp,st
+  end;
+  StackTop:=st;
+  asm
     mov fp,#0
-    ldr r12,.LPStackTop
-    str sp,[r12]
     bl PASCALMAIN;
-    b .Lend
-.LPStackTop:
-    .long StackTop
-.Lend:
   end;
 {$endif CPUARM}
 
@@ -1423,16 +1424,19 @@ begin
     mov %esp,%fs:(0)
   {$endif WINCE_EXCEPTION_HANDLING}
     pushl %ebp
-    xorl %ebp,%ebp
     movl %esp,%eax
-    movl %eax,StackTop
-    movw %ss,%bp
-    movl %ebp,_SS
+    movl %eax,st
+  end;
+  StackTop:=st;
+  asm
+    xorl %eax,%eax
+    movw %ss,%ax
+    movl %eax,_SS
     call SysResetFPU
     xorl %ebp,%ebp
     call PASCALMAIN
     popl %ebp
-  {$ifdef WINCE_EXCEPTION_HANDLING}
+ {$ifdef WINCE_EXCEPTION_HANDLING}
     popl %fs:(0)
     addl $4, %esp
   {$endif WINCE_EXCEPTION_HANDLING}
