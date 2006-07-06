@@ -112,6 +112,7 @@ general_i_hint=01016_I_Hint:
 general_e_path_does_not_exist=01017_E_Path "$1" does not exist
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilation aborted
+% Compilation was aborted.
 % \end{description}
 #
 # Scanner
