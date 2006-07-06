@@ -28,7 +28,6 @@ begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
-  writeln(buffer);
   if not aFunc(@buffer) then
     begin
       errno:=GetLastError;
@@ -52,6 +51,10 @@ procedure rmdir(const s:string);[IOCHECK];
 begin
   if (s ='.') then
     InOutRes := 16;
+{$ifdef WINCE}
+  if (s ='..') then
+    InOutRes := 5;
+{$endif WINCE}
   If (s='') or (InOutRes <> 0) then
    exit;
   dirfn(TDirFnType(@RemoveDirectory),s);
@@ -66,7 +69,7 @@ begin
   if Inoutres=2 then
    Inoutres:=3;
 {$else WINCE}
-  InOutRes:=1;
+  InOutRes:=3;
 {$endif WINCE}
 end;
 
