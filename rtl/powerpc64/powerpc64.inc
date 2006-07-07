@@ -60,7 +60,7 @@ var
 begin
   if count <= 0 then exit;
   Dec(count);
-  if @source<@dest then
+  if (@dest > @source) then
     begin
       for i:=count downto 0 do
         bytearray(dest)[i]:=bytearray(source)[i];
@@ -689,7 +689,7 @@ asm
     bne-    .LIncLockedLoop
 end;
 
-function InterLockedDecrement (var Target: longint) : longint; assembler;
+function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 { input:  address of target in r3 }
 { output: target-1 in r3          }
 { side-effect: target := target-1 }
@@ -703,7 +703,7 @@ asm
 end;
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 { input:  address of target in r3 }
 { output: target+1 in r3          }
 { side-effect: target := target+1 }
@@ -717,7 +717,7 @@ asm
 end;
 
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 { input:  address of target in r3, source in r4 }
 { output: target in r3                          }
 { side-effect: target := source                 }
@@ -730,7 +730,7 @@ asm
 end;
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 { input:  address of target in r3, source in r4 }
 { output: target in r3                          }
 { side-effect: target := target+source          }
@@ -743,3 +743,92 @@ asm
         sub     r3,r10,r4
 end;
 
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+{ input:  address of target in r3, newvalue in r4, comparand in r5 }
+{ output: value stored in target before entry of the function      }
+{ side-effect: NewValue stored in target if (target = comparand)   }
+asm
+.LInterlockedCompareExchangeLoop:
+  lwarx  r10,0,r3
+  sub    r9,r10,r5
+  addic  r9,r9,-1
+  subfe  r9,r9,r9
+  and    r8,r4,r9
+  andc   r7,r5,r9
+  or     r6,r7,r8
+  stwcx. r6,0,r3
+  bne .LInterlockedCompareExchangeLoop
+  mr     r3, r6
+end;
+
+function InterLockedDecrement64(var Target: Int64) : Int64; assembler; nostackframe;
+{ input:  address of target in r3 }
+{ output: target-1 in r3          }
+{ side-effect: target := target-1 }
+asm
+.LInterLockedDecLoop:
+        ldarx   r10,0,r3
+        subi    r10,r10,1
+        stdcx.  r10,0,r3
+        bne     .LInterLockedDecLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedIncrement64(var Target: Int64) : Int64; assembler; nostackframe;
+{ input:  address of target in r3 }
+{ output: target+1 in r3          }
+{ side-effect: target := target+1 }
+asm
+.LInterLockedIncLoop:
+        ldarx   r10,0,r3
+        addi    r10,r10,1
+        stdcx.  r10,0,r3
+        bne     .LInterLockedIncLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedExchange64(var Target: Int64; Source : Int64) : Int64; assembler; nostackframe;
+{ input:  address of target in r3, source in r4 }
+{ output: target in r3                          }
+{ side-effect: target := source                 }
+asm
+.LInterLockedXchgLoop:
+        ldarx   r10,0,r3
+        stdcx.  r4,0,r3
+        bne     .LInterLockedXchgLoop
+        mr      r3,r10
+end;
+
+
+function InterLockedExchangeAdd64(var Target: Int64; Source : Int64) : Int64; assembler; nostackframe;
+{ input:  address of target in r3, source in r4 }
+{ output: target in r3                          }
+{ side-effect: target := target+source          }
+asm
+.LInterLockedXchgAddLoop:
+        ldarx   r10,0,r3
+        add     r10,r10,r4
+        stdcx.  r10,0,r3
+        bne     .LInterLockedXchgAddLoop
+        sub     r3,r10,r4
+end;
+
+function InterlockedCompareExchange64(var Target: Int64; NewValue: Int64; Comperand: Int64): Int64; assembler; nostackframe;
+{ input:  address of target in r3, newvalue in r4, comparand in r5 }
+{ output: value stored in target before entry of the function      }
+{ side-effect: NewValue stored in target if (target = comparand)   }
+asm
+.LInterlockedCompareExchangeLoop:
+  ldarx  r10,0,r3
+  sub    r9,r10,r5
+  addic  r9,r9,-1
+  subfe  r9,r9,r9
+  and    r8,r4,r9
+  andc   r7,r5,r9
+  or     r6,r7,r8
+  stdcx. r6,0,r3
+  bne .LInterlockedCompareExchangeLoop
+  mr     r3, r6
+end;
