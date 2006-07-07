@@ -59,7 +59,7 @@ case $HOSTOS in
  netbsd)
    GCCDIR=-Fl/usr/pkg/lib
      ;;
- linux)
+ *)
    if [ -d $GCCDIR ]; then	
       echo Found libgcc.a in $GCCDIR
     GCCDIR=-Fl$GCCDIR
