@@ -2099,8 +2099,8 @@ option_code_page_not_available=11039_E_La pàgina del codi no està disponible
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler versió $FPCVERSION [$FPCDATE] per $FPCCPU
-Copyright (c) 1993-2005 per Florian Klaempfl
+Free Pascal Compiler versió $FPCFULLVERSION [$FPCDATE] per $FPCCPU
+Copyright (c) 1993-2006 per Florian Klaempfl
 ]
 
 #

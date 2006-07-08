@@ -2104,8 +2104,8 @@ option_code_page_not_available=11039_E_Código de página desconocido
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2005 by Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
+Copyright (c) 1993-2006 by Florian Klaempfl
 ]
 
 #

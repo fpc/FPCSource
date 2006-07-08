@@ -2201,7 +2201,7 @@ Copyright (c) 1993-2006 Florian Kl„mpfl
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler Version $FPCVER
+Free Pascal Compiler Version $FPCVERSION
 
 Compiler Datum:      $FPCDATE
 Compiler Zielsystem: $FPCCPU

@@ -2206,15 +2206,15 @@ option_config_is_dir=11040_F_Konfigurationsfilen $1 er et directory
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVER [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2004 Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
+Copyright (c) 1993-2006 Florian Klaempfl
 ]
 
 #
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler version $FPCVER
+Free Pascal Compiler version $FPCVERSION
 
 Compilerdato     : $FPCDATE
 Compilerplatform : $FPCTARGET
