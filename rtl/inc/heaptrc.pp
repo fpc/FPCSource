@@ -778,6 +778,9 @@ var
   get_ebp,stack_top : longword;
   data_end : longword;
 {$endif go32v2}
+{$ifdef morphos}
+  stack_top: longword;
+{$endif morphos}
   ptext : ^text;
 label
   _exit;
@@ -844,6 +847,15 @@ begin
   if (ptruint(p)>=ptruint(@etext)) and (ptruint(p)<ptruint(@eend)) then
     goto _exit;
 {$endif linux}
+
+{$ifdef morphos}
+  { inside stack ? }
+  stack_top:=ptruint(StackBottom)+StackLength;
+  if (ptruint(p)<stack_top) and (ptruint(p)>ptruint(StackBottom)) then
+    goto _exit;
+  { inside data or bss ? }
+  {$WARNING data and bss checking missing }
+{$endif morphos}
 
   { first try valid list faster }
 
