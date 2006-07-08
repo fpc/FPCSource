@@ -2169,7 +2169,7 @@ option_config_is_dir=11040_F_File konfigurasi $1 adalah sebuah direktori
 # Logo (opsi -l)
 #
 option_logo=11023_[
-Free Pascal Compiler versi $FPCVERSION [$FPCDATE] untuk $FPCCPU
+Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
 Hak Cipta (c) 1993-2006 oleh Florian Klaempfl
 ]
 

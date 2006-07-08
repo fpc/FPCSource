@@ -2164,7 +2164,7 @@ option_config_is_dir=11040_F_Arquivo de configuração $1 é um diretório
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler versão $FPCVERSION [$FPCDATE] para $FPCCPU
+Free Pascal Compiler versão $FPCFULLVERSION [$FPCDATE] para $FPCCPU
 Copyright (c) 1993-2006 por Florian Klaempfl
 ]
 
