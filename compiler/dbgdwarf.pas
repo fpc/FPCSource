@@ -1357,6 +1357,9 @@ implementation
             end;
           procdef :
             insertdef(list,tprocdef(def).rettype.def);
+          enumdef :
+            if assigned(tenumdef(def).basedef) then
+              insertdef(list,tenumdef(def).basedef);
           arraydef :
             begin
               insertdef(list,tarraydef(def).rangetype.def);

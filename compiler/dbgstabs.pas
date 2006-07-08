@@ -832,6 +832,9 @@ implementation
             end;
           recorddef :
             trecorddef(def).symtable.foreach(@field_write_defs,list);
+          enumdef :
+            if assigned(tenumdef(def).basedef) then
+              insertdef(list,tenumdef(def).basedef);
           objectdef :
             begin
               insertdef(list,vmtarraytype.def);
@@ -995,7 +998,7 @@ implementation
             write_def_stabstr(templist,pd);
 
             current_asmdata.asmlists[al_procedures].insertlistbefore(pd.procstarttai,templist);
-            
+
             { para types }
             if assigned(pd.parast) then
               write_symtable_syms(templist,pd.parast);
