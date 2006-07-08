@@ -1072,6 +1072,7 @@ packages/extra/fpgtk/pgtk/*.s
 packages/extra/fpgtk/pgtk/fpcmade.*
 packages/extra/fpgtk/pgtk/units
 packages/extra/fpgtk/units
+packages/extra/gbaunits/*.bat
 packages/extra/gdbm/*.bak
 packages/extra/gdbm/*.exe
 packages/extra/gdbm/*.o
