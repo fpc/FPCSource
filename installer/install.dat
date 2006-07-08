@@ -297,10 +297,12 @@ package=unetdbemx.zip[undbemx.zip],NetDB units
 #
 pack=Commo~n~
 # Common 1
-package=docs-pdf.zip,Documentation (~P~DF)
+package=doc-pdf.zip,Documentation (~P~DF)
 # Common 2
 package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 3
+package=doc-txt.zip,Documentation (~T~XT)
+# Common 4
 package=demo.zip,D~e~mos
 
 
