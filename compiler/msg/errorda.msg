@@ -1,5 +1,3 @@
-%%% Reordering of /home/chrivers/patches/fpc/errorda.msg respective to ../msg/errore.msg
-%%% Contains all comments from /home/chrivers/patches/fpc/errorda.msg
 #
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers $
 #   This file is part of the Free Pascal Compiler
@@ -7,7 +5,9 @@
 #
 #   Danish Language File for Free Pascal
 #
-#   Translation by Christian Iversen
+#   Translation by Christian Iversen <chrivers@iversen-net.dk>
+#
+#   This file is encoded in UTF-8, and based on r4084 of errore.eng
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -57,10 +57,10 @@
 % display useful information. The number of such messages can be
 % controlled with the various verbosity level \var{-v} switches.
 % \begin{description}
-general_t_compilername=01000_T_Oversætter: $1
+general_t_compilername=01000_T_OversÃ¦tter: $1
 % When the \var{-vt} switch is used, this line tells you what compiler
 % is used.
-general_d_sourceos=01001_D_Oversætter OS: $1
+general_d_sourceos=01001_D_OversÃ¦tter OS: $1
 % When the \var{-vd} switch is used, this line tells you what the source
 % operating system is.
 general_i_targetos=01002_I_Compilerer til OS: $1
@@ -110,7 +110,7 @@ general_i_error=01013_I_Fejl:
 % Prefix for Errors
 general_i_warning=01014_I_Advarsel:
 % Prefix for Warnings
-general_i_note=01015_I_Bemærkning:
+general_i_note=01015_I_BemÃ¦rkning:
 % Prefix for Notes
 general_i_hint=01016_I_Hint:
 % Prefix for Hints
@@ -147,7 +147,7 @@ scan_f_syn_expected=02003_F_Syntaxfejl, "$1" forventet men "$2" fundet
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
-scan_t_start_include_file=02004_TL_Læser includefil $1
+scan_t_start_include_file=02004_TL_LÃ¦ser includefil $1
 % When you provide the \var{-vt} switch, the compiler tells you
 % when it starts reading an included file.
 scan_w_comment_level=02005_W_Kommentarniveau $1 fundet
@@ -165,10 +165,10 @@ scan_w_switch_is_global=02010_W_Fejlplaceret global compilerindstilling
 scan_e_illegal_char_const=02011_E_Ugyldig karakterkonstant
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
-scan_f_cannot_open_input=02012_F_Kan ikke åbne filen "$1"
+scan_f_cannot_open_input=02012_F_Kan ikke Ã¥bne filen "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=02013_F_Kan ikke åbne includefilen "$1"
+scan_f_cannot_open_includefile=02013_F_Kan ikke Ã¥bne includefilen "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
 scan_e_illegal_pack_records=02015_E_Ugyldig strukturopstillingsspecifikation "$1"
@@ -176,18 +176,18 @@ scan_e_illegal_pack_records=02015_E_Ugyldig strukturopstillingsspecifikation "$1
 % with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
 % NORMAL, DEFAULT, and for \$ALIGN valid alignment are 1, 2, 4, 8, 16, 32, ON,
 % OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
-scan_e_illegal_pack_enum=02016_E_Ugyldig enumerations-minimumsstørrelsespecifikation "$1"
+scan_e_illegal_pack_enum=02016_E_Ugyldig enumerations-minimumsstÃ¸rrelsespecifikation "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2,4, NORMAL or DEFAULT are valid here.
 scan_e_endif_expected=02017_E_$ENDIF forventet til $1 $2 defineret i $3 linie $4
 % Your conditional compilation statements are unbalanced.
-scan_e_preproc_syntax_error=02018_E_Syntaxfejl under læsning af betinget kompileret udtryk
+scan_e_preproc_syntax_error=02018_E_Syntaxfejl under lÃ¦sning af betinget kompileret udtryk
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
 % directives.
 scan_e_error_in_preproc_expr=02019_E_Evaluerer betinget kompileret udtryk
 % There is an error in the expression following the \var{\{\$if ..\}}, $ifc or $setc compiler
 % directives.
-scan_w_macro_cut_after_255_chars=02020_W_Makroindhold er begrænset til 255 tegns længde
+scan_w_macro_cut_after_255_chars=02020_W_Makroindhold er begrÃ¦nset til 255 tegns lÃ¦ngde
 % The contents of macros cannot be longer than 255 characters.
 scan_e_endif_without_if=02021_E_ENDIF uden IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
@@ -203,17 +203,17 @@ scan_h_user_defined=02026_H_Brugerdefineret: $1
 % A user defined hint was encountered. see also the \progref
 scan_i_user_defined=02027_I_Brugerdefineret: $1
 % User defined information was encountered. see also the \progref
-scan_e_keyword_cant_be_a_macro=02028_E_Makroer kan ikke omdefinere nøgleord
+scan_e_keyword_cant_be_a_macro=02028_E_Makroer kan ikke omdefinere nÃ¸gleord
 % You cannot redefine keywords with macros.
-scan_f_macro_buffer_overflow=02029_F_Overløb under læsning eller udvidelse af makro
+scan_f_macro_buffer_overflow=02029_F_OverlÃ¸b under lÃ¦sning eller udvidelse af makro
 % Your macro or it's result  was too long for the compiler.
 scan_w_macro_too_deep=02030_W_Makroudfoldning har oversteget 16 niveauer
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_w_wrong_styled_switch=02031_W_Compilerindstillinger understøttes ikke i // denne slags kommentarer
+scan_w_wrong_styled_switch=02031_W_Compilerindstillinger understÃ¸ttes ikke i // denne slags kommentarer
 % Compiler switches should be in normal pascal style comments.
-scan_d_handling_switch=02032_DL_Håndterer indstilling "$1"
+scan_d_handling_switch=02032_DL_HÃ¥ndterer indstilling "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
 scan_c_endif_found=02033_CL_ENDIF $1 fundet
@@ -238,7 +238,7 @@ scan_c_skipping_until=02039_CL_Springer over indtil...
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements, and whether it is skipping or
 % compiling parts.
-scan_i_press_enter=02040_I_Tryk <return> for at fortsætte
+scan_i_press_enter=02040_I_Tryk <return> for at fortsÃ¦tte
 % When the \var{-vi} switch is used, the compiler stops compilation
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
@@ -255,11 +255,11 @@ scan_t_back_in=02043_TL_Tilbage i $1
 scan_w_unsupported_app_type=02044_W_Ugyldig programtype: "$1"
 % You get this warning, ff you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
-scan_w_app_type_not_support=02045_W_APPTYPE understøttes ikke af det OS der kompileres til
+scan_w_app_type_not_support=02045_W_APPTYPE understÃ¸ttes ikke af det OS der kompileres til
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_w_description_not_support=02046_W_DESCRIPTION understøttes ikke af det OS der kompileres til
+scan_w_description_not_support=02046_W_DESCRIPTION understÃ¸ttes ikke af det OS der kompileres til
 % The \var{\{\$DESCRIPTION\}} directive is not supported on this target OS
-scan_n_version_not_support=02047_N_VERSION understøttes ikke af det OS der kompileres til
+scan_n_version_not_support=02047_N_VERSION understÃ¸ttes ikke af det OS der kompileres til
 % The \var{\{\$VERSION\}} directive is not supported on this target OS
 scan_n_only_exe_version=02048_N_VERSION er kun til programmer og DLL-filer
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
@@ -269,44 +269,44 @@ scan_w_wrong_version_ignored=02049_W_Direktivet VERSION har forkert format "$1"
 scan_e_illegal_asmmode_specifier=02050_E_Ugyldig assemblerstil angivet "$1"
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
-scan_w_no_asm_reader_switch_inside_asm=02051_W_Kan ikke skifte assemblerlæser midt i en assemblerblok. Skifter til "$1" i næste blok
+scan_w_no_asm_reader_switch_inside_asm=02051_W_Kan ikke skifte assemblerlÃ¦ser midt i en assemblerblok. Skifter til "$1" i nÃ¦ste blok
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
 % assembler statements only.
 scan_e_wrong_switch_toggle=02052_E_Forkert indstillingsparameter. Brug ON/OFF eller +/-
 % You need to use ON or OFF or a + or - to toggle the switch
-scan_e_resourcefiles_not_supported=02053_E_Resourcefiler understøttes ikke af mål-operativsystemet
+scan_e_resourcefiles_not_supported=02053_E_Resourcefiler understÃ¸ttes ikke af mÃ¥l-operativsystemet
 % The target you are compiling for doesn't support resource files.
-scan_w_include_env_not_found=02054_W_Environment-værdien "$1" er ikke defineret
+scan_w_include_env_not_found=02054_W_Environment-vÃ¦rdien "$1" er ikke defineret
 % The included environment variable cannot be found in the environment, it will
 % be replaced by an empty string instead.
-scan_e_invalid_maxfpureg_value=02055_E_Ugyldig værdi for FPU-registergrænse
+scan_e_invalid_maxfpureg_value=02055_E_Ugyldig vÃ¦rdi for FPU-registergrÃ¦nse
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
-scan_w_only_one_resourcefile_supported=02056_W_Mål-systemet understøtter kun én resourcefil
+scan_w_only_one_resourcefile_supported=02056_W_MÃ¥l-systemet understÃ¸tter kun Ã©n resourcefil
 % The target you are compiling for supports only one resource file.
 % The first resource file found is used, the others are discarded.
-scan_w_macro_support_turned_off=02057_W_Makrosupport er slået fra
+scan_w_macro_support_turned_off=02057_W_Makrosupport er slÃ¥et fra
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add {$MACRO ON} in the source
-scan_e_invalid_interface_type=02058_E_Ugyldig interface-type angivet. Gyldige værdier er COM, CORBA eller DEFAULT.
+scan_e_invalid_interface_type=02058_E_Ugyldig interface-type angivet. Gyldige vÃ¦rdier er COM, CORBA eller DEFAULT.
 % The interface type that was specified is not supported
-scan_w_appid_not_support=02059_W_APPID understøttes kun til PalmOS
+scan_w_appid_not_support=02059_W_APPID understÃ¸ttes kun til PalmOS
 % The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
-scan_w_appname_not_support=02060_W_APPNAME understøttes kun til PalmOS
+scan_w_appname_not_support=02060_W_APPNAME understÃ¸ttes kun til PalmOS
 % The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
-scan_e_string_exceeds_255_chars=02061_E_Strengkonstanter kan ikke være længere end 255 tegn
+scan_e_string_exceeds_255_chars=02061_E_Strengkonstanter kan ikke vÃ¦re lÃ¦ngere end 255 tegn
 % A single string constant can contain at most 255 chars. Try splitting up the
 % string in multiple smaller parts and concatenate them with a + operator.
-scan_f_include_deep_ten=02062_F_Include-filer overskrider dypdegrænsen på 16 niveauer
+scan_f_include_deep_ten=02062_F_Include-filer overskrider dypdegrÃ¦nsen pÃ¥ 16 niveauer
 % When including include files the files have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
 scan_e_too_many_push=02063_F_For mange niveauer af PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
-scan_e_too_many_pop=02064_E_POP uden forudgående PUSH
+scan_e_too_many_pop=02064_E_POP uden forudgÃ¥ende PUSH
 % This error occur only in mode MacPas.
-scan_e_error_macro_lacks_value=02065_E_Makro "$1" har ingen værdi
+scan_e_error_macro_lacks_value=02065_E_Makro "$1" har ingen vÃ¦rdi
 % Thus the conditional compiling expression cannot be evaluated.
 % \end{description}
 #
@@ -319,14 +319,14 @@ scan_e_error_macro_lacks_value=02065_E_Makro "$1" har ingen værdi
 % semantics of you language, i.e. it determines if your pascal constructs
 % are correct.
 % \begin{description}
-scan_e_wrong_switch_toggle_default=02066_E_Forkert indstillingsværdi, brug ON/OFF/DEFAULT eller +/-/*
+scan_e_wrong_switch_toggle_default=02066_E_Forkert indstillingsvÃ¦rdi, brug ON/OFF/DEFAULT eller +/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 scan_e_mode_switch_not_allowed=02067_E_Tilstandstypeindstilling "$1" ikke tilladt her
 % A mode switch has already been encountered, or, in case of option -Mmacpas,
 % a mode switch occur after UNIT.
 scan_e_error_macro_undefined=02068_E_Kompileringstidsvariablen eller makroen "$1" er ikke defineret
 % Thus the conditional compile time expression cannot be evaluated. Only in mode MacPas.
-scan_e_utf8_bigger_than_65535=02069_E_UTF-8 kode større end 65535 fundet
+scan_e_utf8_bigger_than_65535=02069_E_UTF-8 kode stÃ¸rre end 65535 fundet
 % \fpc handles utf-8 strings internally as widestrings e.g. the char codes are limited to 65535
 scan_e_utf8_malformed=02070_E_Ugyldig UTF-8-streng
 % The given string isn't a valid UTF-8 string
@@ -335,7 +335,7 @@ scan_c_switching_to_utf8=02071_C_UTF-8-signatur fundet, benytter UTF-8-kodning
 % so it interprets it as an UTF-8 file
 scan_e_compile_time_typeerror=02072_E_Kompileringstidsudtryk: Forventede $1, men fik $2 ved $3
 % Type check of a compile time expression failed.
-scan_n_app_type_not_support=02073_N_APPTYPE understøttes ikke af mål-operativsystemet
+scan_n_app_type_not_support=02073_N_APPTYPE understÃ¸ttes ikke af mÃ¥l-operativsystemet
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
 % \end{description}
 #
@@ -355,34 +355,34 @@ parser_e_dont_nest_interrupt=03004_E_INTERRUPT-procedure kan ikke indlejres
 % An \var{INTERRUPT} procedure must be global.
 parser_w_proc_directive_ignored=03005_W_Proceduretype "$1" ignoreret
 % The specified is ignored by FPC programs.
-parser_e_no_overload_for_all_procs=03006_E_Ikke alle erklæringer af "$1" er angivet med OVERLOAD
+parser_e_no_overload_for_all_procs=03006_E_Ikke alle erklÃ¦ringer af "$1" er angivet med OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
-parser_e_export_name_double=03008_E_Funktionsnavnet "$1" er angivet flere gange i en EXPORT-erklæring
+parser_e_export_name_double=03008_E_Funktionsnavnet "$1" er angivet flere gange i en EXPORT-erklÃ¦ring
 % Exported function names inside a specific DLL must all be different
-parser_e_export_ordinal_double=03009_E_Funktionsindex $1 er angivet flere gange i en EXPORT-erklæring
+parser_e_export_ordinal_double=03009_E_Funktionsindex $1 er angivet flere gange i en EXPORT-erklÃ¦ring
 % Exported function names inside a specific DLL must all be different
 parser_e_export_invalid_index=03010_E_Ugyldigt index for eksporteret funktion
 % DLL function index must be in the range \var{1..\$FFFF}
-parser_w_parser_reloc_no_debug=03011_W_Relokérbar DLL eller program $1 har ikke-fungerende debug-info. Slået fra.
-parser_w_parser_win32_debug_needs_WN=03012_W_For at tillade debugging i win32-kode, skal relokérbarhed slås fra med -WN
+parser_w_parser_reloc_no_debug=03011_W_RelokÃ©rbar DLL eller program $1 har ikke-fungerende debug-info. SlÃ¥et fra.
+parser_w_parser_win32_debug_needs_WN=03012_W_For at tillade debugging i win32-kode, skal relokÃ©rbarhed slÃ¥s fra med -WN
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
-parser_e_constructorname_must_be_init=03013_E_Constructor-navnet skal være INIT
+parser_e_constructorname_must_be_init=03013_E_Constructor-navnet skal vÃ¦re INIT
 % You are declaring an object constructor with a name which is not \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_destructorname_must_be_done=03014_E_Destructor-navnet skal være DONE
+parser_e_destructorname_must_be_done=03014_E_Destructor-navnet skal vÃ¦re DONE
 % You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_proc_inline_not_supported=03016_E_Proceduretypen INLINE er ikke understøttet
+parser_e_proc_inline_not_supported=03016_E_Proceduretypen INLINE er ikke understÃ¸ttet
 % You tried to compile a program with C++ style inlining, and forgot to
 % specify the \var{-Si} option (\seeo{Si}). The compiler does not support C++
 % styled inlining by default.
-parser_w_constructor_should_be_public=03018_W_Constructor bør være public
+parser_w_constructor_should_be_public=03018_W_Constructor bÃ¸r vÃ¦re public
 % Constructors must be in the 'public' part of an object (class) declaration.
-parser_w_destructor_should_be_public=03019_W_Destructor bør være public
+parser_w_destructor_should_be_public=03019_W_Destructor bÃ¸r vÃ¦re public
 % Destructors must be in the 'public' part of an object (class) declaration.
-parser_n_only_one_destructor=03020_N_En klasse skal kun have én destructor
+parser_n_only_one_destructor=03020_N_En klasse skal kun have Ã©n destructor
 % You can declare only one destructor for a class.
 parser_e_no_local_objects=03021_E_Lokale klassedefinitioner er ikke tilladt
 % Classes must be defined globally. They cannot be defined inside a
@@ -413,13 +413,13 @@ parser_e_overloaded_have_same_parameters=03028_E_Overloadede funktioner har samm
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_Functionserklæring passer ikke med forward-erklæringen $1
+parser_e_header_dont_match_forward=03029_E_FunctionserklÃ¦ring passer ikke med forward-erklÃ¦ringen $1
 % You declared a function with same parameters but
 % different result type or function modifiers.
-parser_e_header_different_var_names=03030_E_Funktionserklæringen "$1" passer ikke med forward - var-navn ændrer $2 => $3
+parser_e_header_different_var_names=03030_E_FunktionserklÃ¦ringen "$1" passer ikke med forward - var-navn Ã¦ndrer $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
-parser_n_duplicate_enum=03031_N_Værdier i enumerate-typer skal være stigende
+parser_n_duplicate_enum=03031_N_VÃ¦rdier i enumerate-typer skal vÃ¦re stigende
 % \fpc allows enumeration constructions as in C. Given the following
 % declaration two declarations:
 % \begin{verbatim}
@@ -433,13 +433,13 @@ parser_e_no_with_for_variable_in_other_segments=03033_E_"With" kan ikke bruges t
 % but this is not possible if the variable belongs to another segment.
 parser_e_too_much_lexlevel=03034_E_Funktionsindlejring over 31 niveauer
 % You can nest function definitions only 31 times.
-parser_e_range_check_error=03035_E_Værdiområdefejl under evaluering af konstanter
+parser_e_range_check_error=03035_E_VÃ¦rdiomrÃ¥defejl under evaluering af konstanter
 % The constants are out of their allowed range.
-parser_w_range_check_error=03036_W_Værdiområdefejl under evaluering af konstanter
+parser_w_range_check_error=03036_W_VÃ¦rdiomrÃ¥defejl under evaluering af konstanter
 % The constants are out of their allowed range.
-parser_e_double_caselabel=03037_E_Gentaget case-værdi
+parser_e_double_caselabel=03037_E_Gentaget case-vÃ¦rdi
 % You are specifying the same label 2 times in a \var{case} statement.
-parser_e_case_lower_less_than_upper_bound=03038_E_Øvre grænse for case-værdiområde er mindre end den nedre grænse
+parser_e_case_lower_less_than_upper_bound=03038_E_Ã˜vre grÃ¦nse for case-vÃ¦rdiomrÃ¥de er mindre end den nedre grÃ¦nse
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
 parser_e_type_const_not_possible=03039_E_Typegivne konstanter er ikke tilladt i klasser
@@ -447,7 +447,7 @@ parser_e_type_const_not_possible=03039_E_Typegivne konstanter er ikke tilladt i 
 parser_e_no_overloaded_procvars=03040_E_Tildeling af overloaded funktion til procedurel variabel ikke tilladt
 % You are trying to assign an overloaded function to a procedural variable.
 % This is not allowed
-parser_e_invalid_string_size=03041_E_Strenglængdegrænse skal være mellem 1 og 255
+parser_e_invalid_string_size=03041_E_StrenglÃ¦ngdegrÃ¦nse skal vÃ¦re mellem 1 og 255
 % The length of a shortstring in Pascal is limited to 255 characters. You are
 % trying to declare a string with length lower than 1 or greater than 255
 parser_w_use_extended_syntax_for_objects=03042_W_Brug udvidet syntax NEW og DISPOSE til instantiering af objekter
@@ -456,8 +456,8 @@ parser_w_use_extended_syntax_for_objects=03042_W_Brug udvidet syntax NEW og DISP
 % called), although space will be allocated. you should issue the
 % \var{new(a,init)} statement. This will allocate space, and call the
 % constructor of the object
-parser_w_no_new_dispose_on_void_pointers=03043_W_Brug af NEW eller DISPOSE på typeløse pointere er meningsløst
-parser_e_no_new_dispose_on_void_pointers=03044_E_Brug af NEW eller DISPOSE på typeløse pointere ikke muligt
+parser_w_no_new_dispose_on_void_pointers=03043_W_Brug af NEW eller DISPOSE pÃ¥ typelÃ¸se pointere er meningslÃ¸st
+parser_e_no_new_dispose_on_void_pointers=03044_E_Brug af NEW eller DISPOSE pÃ¥ typelÃ¸se pointere ikke muligt
 % You cannot use \var{new(p)} or \var{dispose(p)} if \var{p} is an untyped pointer
 % because no size is associated to an untyped pointer.
 % Accepted for compatibility in \var{tp} and \var{delphi} modes.
@@ -473,7 +473,7 @@ parser_e_methode_id_expected=03047_E_Metodenavn forventet
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_Funktionserklæring passer ikke med nogen metoder i klassen "$1"
+parser_e_header_dont_match_any_member=03048_E_FunktionserklÃ¦ring passer ikke med nogen metoder i klassen "$1"
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
@@ -502,7 +502,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_Kun klassemetoder kan referere
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_Kun klassemetoder kan tilgås i klassemetoder
+parser_e_only_class_methods=03054_E_Kun klassemetoder kan tilgÃ¥s i klassemetoder
 % This is related to the previous error. You cannot call a method of an object
 % from a inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -526,11 +526,11 @@ parser_w_should_use_override=03057_W_En nedarvet metode skjules af "$1"
 parser_e_nothing_to_be_overridden=03058_E_Der er ingen metode i super-klassen at override: "$1"
 % You are trying to \var{override} a virtual method of a parent class that does
 % not exist.
-parser_e_no_procedure_to_access_property=03059_E_Ingen læseadgang til egenskaben
+parser_e_no_procedure_to_access_property=03059_E_Ingen lÃ¦seadgang til egenskaben
 % You specified no \var{read} directive for a property.
 parser_w_stored_not_implemented=03060_W_Gemte egenskaber er endnu ikke implementeret
 % The \var{stored} directive is not yet implemented
-parser_e_ill_property_access_sym=03061_E_Ugyldig værdi for egenskabsadgang
+parser_e_ill_property_access_sym=03061_E_Ugyldig vÃ¦rdi for egenskabsadgang
 % There is an error in the \var{read} or \var{write} directives for an array
 % property. When you declare an array property, you can only access it with
 % procedures and functions. The following code woud cause such an error.
@@ -540,24 +540,24 @@ parser_e_ill_property_access_sym=03061_E_Ugyldig værdi for egenskabsadgang
 %   property x [i : integer]: integer read I write i;
 % \end{verbatim}
 %
-parser_e_cant_access_protected_member=03062_E_Kan ikke tilgå et protected felt i et objekt her
+parser_e_cant_access_protected_member=03062_E_Kan ikke tilgÃ¥ et protected felt i et objekt her
 % Fields that are declared in a \var{protected} section of an object or class
 % declaration cannot be accessed outside the module wher the object is
 % defined, or outside descendent object methods.
-parser_e_cant_access_private_member=03063_E_Kan ikke tilgå et private felt i et objekt her
+parser_e_cant_access_private_member=03063_E_Kan ikke tilgÃ¥ et private felt i et objekt her
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
 parser_e_overridden_methods_not_same_ret=03066_E_Metoder med "override" skal have samme retur-type: "$2" er overridet af "$1" der har en anden retur-type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
-parser_e_dont_nest_export=03067_E_EXPORT-erklærede funktioner kan ikke indlejres
+parser_e_dont_nest_export=03067_E_EXPORT-erklÃ¦rede funktioner kan ikke indlejres
 % You cannot declare a function or procedure within a function or procedure
 % that was declared as an export procedure.
 parser_e_methods_dont_be_export=03068_E_Metoder kan ikke EXPORT'es
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed.
-parser_e_call_by_ref_without_typeconv=03069_E_Kald med var-parametre skal passe præcist: Fandt "$1", "$2" forventet
+parser_e_call_by_ref_without_typeconv=03069_E_Kald med var-parametre skal passe prÃ¦cist: Fandt "$1", "$2" forventet
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -572,33 +572,33 @@ parser_e_generic_methods_only_in_methods=03072_E_methods can be only in other me
 parser_e_illegal_colon_qualifier=03073_E_Ugyldig brug af ':'
 % You are using the format \var{:} (colon) 2 times on an expression that
 % is not a real expression.
-parser_e_illegal_set_expr=03074_E_Værdigrænsefejl i set-constructor, eller genanvendt element-værdi
+parser_e_illegal_set_expr=03074_E_VÃ¦rdigrÃ¦nsefejl i set-constructor, eller genanvendt element-vÃ¦rdi
 % The declaration of a set contains an error. Either one of the elements is
 % outside the range of the set type, either two of the elements are in fact
 % the same.
 parser_e_pointer_to_class_expected=03075_E_Pointer til objekt forventet
 % You specified an illegal type in a \var{new} statement.
 % The extended syntax of \var{new} needs an  object as a parameter.
-parser_e_expr_have_to_be_constructor_call=03076_E_Udtryk skal være constructor-kald
+parser_e_expr_have_to_be_constructor_call=03076_E_Udtryk skal vÃ¦re constructor-kald
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the object you are trying to create. The procedure you specified
 % is not a constructor.
-parser_e_expr_have_to_be_destructor_call=03077_E_Udtryk skal være destructor-kald
+parser_e_expr_have_to_be_destructor_call=03077_E_Udtryk skal vÃ¦re destructor-kald
 % When using the extended syntax of \var{dispose}, you must specify the
 % destructor method of the object you are trying to dispose of.
 % The procedure you specified is not a destructor.
-parser_e_invalid_record_const=03078_E_Ugyldig rækkefølge af strukturelementer
+parser_e_invalid_record_const=03078_E_Ugyldig rÃ¦kkefÃ¸lge af strukturelementer
 % When declaring a constant record, you specified the fields in the wrong
 % order.
-parser_e_false_with_expr=03079_E_Udtrykket skal være en klasse eller struktur
+parser_e_false_with_expr=03079_E_Udtrykket skal vÃ¦re en klasse eller struktur
 % A \var{with} statement needs an argument that is of the type \var{record}
 % or \var{class}. You are using \var{with} on an expression that is not of
 % this type.
-parser_e_void_function=03080_E_Procedurer kan ikke returnere værdier
+parser_e_void_function=03080_E_Procedurer kan ikke returnere vÃ¦rdier
 % In \fpc, you can specify a return value for a function when using
 % the \var{exit} statement. This error occurs when you try to do this with a
 % procedure. Procedures  cannot return a value.
-parser_e_constructors_always_objects=03081_E_constructors og destructors skal være metoder
+parser_e_constructors_always_objects=03081_E_constructors og destructors skal vÃ¦re metoder
 % You're declaring a procedure as destructor or constructor, when the
 % procedure isn't a class method.
 parser_e_operator_not_overloaded=03082_E_Operatoren er ikke overloaded
@@ -618,7 +618,7 @@ parser_e_no_new_or_dispose_for_classes=03086_E_Den udvidede syntax af new og dis
 % \var{new}. The constructor must be used for that. For the same reason, you
 % cannot call \var{dispose} to de-allocate an instance of a class, the
 % destructor must be used for that.
-parser_e_procedure_overloading_is_off=03088_E_Procedure overloading er slået fra
+parser_e_procedure_overloading_is_off=03088_E_Procedure overloading er slÃ¥et fra
 % When using the \var{-So} switch, procedure overloading is switched off.
 % Turbo Pascal does not support function overloading.
 parser_e_overload_operator_failed=03089_E_Det er ikke muligt at overloade denne operator (overload "=" i stedet)
@@ -627,20 +627,20 @@ parser_e_overload_operator_failed=03089_E_Det er ikke muligt at overloade denne 
 % \begin{verbatim}
 %    +, -, *, /, =, >, <, <=, >=, is, as, in, **, :=
 % \end{verbatim}
-parser_e_comparative_operator_return_boolean=03090_E_Sammenligningsoperationer skal returnere en sandhedsværdi
+parser_e_comparative_operator_return_boolean=03090_E_Sammenligningsoperationer skal returnere en sandhedsvÃ¦rdi
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
-parser_e_only_virtual_methods_abstract=03091_E_Kun virtuelle metoder kan være abstrakte
+parser_e_only_virtual_methods_abstract=03091_E_Kun virtuelle metoder kan vÃ¦re abstrakte
 % You are declaring a method as abstract, when it is not declared to be
 % virtual.
-parser_f_unsupported_feature=03092_F_Ikke-understøttet konstruktion
+parser_f_unsupported_feature=03092_F_Ikke-understÃ¸ttet konstruktion
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_Det er ikke gyldigt at blande forskellige typer objekter (class, object, interface, etc)
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Ukendt procedure-direktev blev ignoreret: "$1"
 % The procedure directive you specified is unknown.
-parser_e_absolute_only_one_var=03095_E_Absolute kan kun associere én variabel
+parser_e_absolute_only_one_var=03095_E_Absolute kan kun associere Ã©n variabel
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
 % \begin{verbatim}
@@ -656,7 +656,7 @@ parser_e_absolute_only_one_var=03095_E_Absolute kan kun associere én variabel
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_absolute_only_to_var_or_const=03096_E_Absolute kan kun associeres med én variabel eller konstant
+parser_e_absolute_only_to_var_or_const=03096_E_Absolute kan kun associeres med Ã©n variabel eller konstant
 % The address of a \var{absolute} directive can only point to a variable or
 % constant. Therefore, the following code will produce this error:
 % \begin{verbatim}
@@ -665,13 +665,13 @@ parser_e_absolute_only_to_var_or_const=03096_E_Absolute kan kun associeres med é
 %  var p : longint absolute x;
 % \end{verbatim}
 %
-parser_e_initialized_only_one_var=03097_E_Kun én variabel kan initialiseres
+parser_e_initialized_only_one_var=03097_E_Kun Ã©n variabel kan initialiseres
 % You cannot specify more than one variable with a initial value
 % in Delphi mode.
-parser_e_abstract_no_definition=03098_E_Abstrakte metoder må ikke implementeres
+parser_e_abstract_no_definition=03098_E_Abstrakte metoder mÃ¥ ikke implementeres
 % Abstract methods can only be declared, you cannot implement them. They
 % should be overridden by a descendant class.
-parser_e_overloaded_must_be_all_global=03099_E_Denne overloadede funktion kan ikke være lokal (skal eksporteres)
+parser_e_overloaded_must_be_all_global=03099_E_Denne overloadede funktion kan ikke vÃ¦re lokal (skal eksporteres)
 % You are defining a overloaded function in the implementation part of a unit,
 % but there is no corresponding declaration in the interface part of the unit.
 parser_w_virtual_without_constructor=03100_W_Virtuelle metoder er brugt uden at have en constructor: "$1"
@@ -700,22 +700,22 @@ parser_d_compiling_second_time=03107_DL_Compilerer $1 for anden gang
 parser_e_no_property_found_to_override=03109_E_Ingen egenskab at override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Kun én default-egenskab tilladt
+parser_e_only_one_default_property=03110_E_Kun Ã©n default-egenskab tilladt
 % You specified a property as \var{Default}, but the class already has a
 % default property, and a class can have only one default property.
-parser_e_property_need_paras=03111_E_Default-egenskaben skal være et array
+parser_e_property_need_paras=03111_E_Default-egenskaben skal vÃ¦re et array
 % Only array properties of classes can be made \var{default} properties.
 parser_e_constructor_cannot_be_not_virtual=03112_E_Virtuelle constructors er kun tilladt i klassemodellen
 % You cannot have virtual constructors in objects. You can only have them
 % in classes.
-parser_e_no_default_property_available=03113_E_Ingen default-egenskab tilgængelig
+parser_e_no_default_property_available=03113_E_Ingen default-egenskab tilgÃ¦ngelig
 % You are trying to access a default property of a class, but this class (or one of
 % it's ancestors) doesn't have a default property.
 parser_e_cant_have_published=03114_E_Klassen kan ikke have en published-sektion, brug {$M+}-indstillingen
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=03115_E_Forward-erklæring af klasse "$1" skal løses her, for at bruge klassen som super-klasse
+parser_e_forward_declaration_must_be_resolved=03115_E_Forward-erklÃ¦ring af klasse "$1" skal lÃ¸ses her, for at bruge klassen som super-klasse
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -725,7 +725,7 @@ parser_e_forward_declaration_must_be_resolved=03115_E_Forward-erklæring af klass
 %       end;
 % \end{verbatim}
 % Where \var{ParentClass} is declared but not defined.
-parser_e_no_local_operator=03116_E_Lokale operatorer ikke understøttet
+parser_e_no_local_operator=03116_E_Lokale operatorer ikke understÃ¸ttet
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
 parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure-direktivet "$1" er ikke tilladt i interface-sektionen
@@ -734,85 +734,85 @@ parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure-direktivet "$1" er 
 parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure-direktivet "$1" er ikke tilladt i implementation-sektionen
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure-direktivet "$1" er ikke tilladt i procvar-erklæring
+parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure-direktivet "$1" er ikke tilladt i procvar-erklÃ¦ring
 % This procedure directive cannot be part of a procedural or function
 % type declaration.
-parser_e_function_already_declared_public_forward=03120_E_Funktionen "$1" er allerede erklæret Public/Forward
+parser_e_function_already_declared_public_forward=03120_E_Funktionen "$1" er allerede erklÃ¦ret Public/Forward
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
-parser_e_not_external_and_export=03121_E_Kan ikke bruge både EXPORT og EXTERNAL
+parser_e_not_external_and_export=03121_E_Kan ikke bruge bÃ¥de EXPORT og EXTERNAL
 % These two procedure directives are mutually exclusive
-parser_w_not_supported_for_inline=03123_W_Deklarationen "$1" er endnu ikke understøttet i inline procedurer/funktioner
+parser_w_not_supported_for_inline=03123_W_Deklarationen "$1" er endnu ikke understÃ¸ttet i inline procedurer/funktioner
 % Inline procedures don't support this declaration.
-parser_w_inlining_disabled=03124_W_Inlining slået fra
+parser_w_inlining_disabled=03124_W_Inlining slÃ¥et fra
 % Inlining of procedures is disabled.
 parser_i_writing_browser_log=03125_I_Skriver browser-log $1
 % When information messages are on, the compiler warns you when it
 % writes the browser log (generated with the \var{\{\$Y+ \}} switch).
-parser_h_maybe_deref_caret_missing=03126_H_Måske mangler en pointer-dereference
+parser_h_maybe_deref_caret_missing=03126_H_MÃ¥ske mangler en pointer-dereference
 % The compiler thinks that a pointer may need a dereference.
-parser_f_assembler_reader_not_supported=03127_F_Valgt assembler-læser er ikke understøttet
+parser_f_assembler_reader_not_supported=03127_F_Valgt assembler-lÃ¦ser er ikke understÃ¸ttet
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
 parser_e_proc_dir_conflict=03128_E_Procedure-direktivet "$1" er i konflikt med andre direktiver
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
-parser_e_call_convention_dont_match_forward=03129_E_Kaldkonvention passer ikke med forward-erklæring
+parser_e_call_convention_dont_match_forward=03129_E_Kaldkonvention passer ikke med forward-erklÃ¦ring
 % This error happens when you declare a function or procedure with
 % e.g. \var{cdecl;} but omit this directive in the implementation, or vice
 % versa. The calling convention is part of the function declaration, and
 % must be repeated in the function definition.
-parser_e_property_cant_have_a_default_value=03131_E_Egenskaben kan ikke have default-værdi
+parser_e_property_cant_have_a_default_value=03131_E_Egenskaben kan ikke have default-vÃ¦rdi
 % Set properties or indexed properties cannot have a default value.
-parser_e_property_default_value_must_const=03132_E_Default-værdien for en egenskab skal være konstant
+parser_e_property_default_value_must_const=03132_E_Default-vÃ¦rdien for en egenskab skal vÃ¦re konstant
 % The value of a \var{default} declared property must be known at compile
 % time. The value you specified is only known at run time. This happens
 % .e.g. if you specify a variable name as a default value.
-parser_e_cant_publish_that=03133_E_Variabler kan ikke være published, med mindre de er klasser
+parser_e_cant_publish_that=03133_E_Variabler kan ikke vÃ¦re published, med mindre de er klasser
 % Only class type variables can be in a \var{published} section of a class
 % if they are not declared as a property.
-parser_e_cant_publish_that_property=03134_E_Egenskabs-typen er ikke understøttet i published
+parser_e_cant_publish_that_property=03134_E_Egenskabs-typen er ikke understÃ¸ttet i published
 % Properties in a \var{published} section cannot be array properties.
 % they must be moved to public sections. Properties in a \var{published}
 % section must be an ordinal type, a real type, strings or sets.
-parser_e_empty_import_name=03136_E_Et import-navn er krævet
+parser_e_empty_import_name=03136_E_Et import-navn er krÃ¦vet
 % Some targets need a name for the imported procedure or a \var{cdecl} specifier
 parser_e_division_by_zero=03138_E_Division med nul
 % There is a divsion by zero encounted
 parser_e_invalid_float_operation=03139_E_Ugyldig floating-point operation
 % An operation on two real type values produced an overflow or a division
 % by zero.
-parser_e_array_lower_less_than_upper_bound=03140_E_Øvre grænse er mindre end nedre grænse
+parser_e_array_lower_less_than_upper_bound=03140_E_Ã˜vre grÃ¦nse er mindre end nedre grÃ¦nse
 % The upper bound of a an array declaration is less than the lower bound and this
 % is not possible
-parser_w_string_too_long=03141_W_Strengen "$1" er længere end "$2"
+parser_w_string_too_long=03141_W_Strengen "$1" er lÃ¦ngere end "$2"
 % The size of the constant string is larger than the size you specified in
 % string type definition
-parser_e_string_larger_array=03142_E_Strenglængde er større end længden af karakter-arrayet
+parser_e_string_larger_array=03142_E_StrenglÃ¦ngde er stÃ¸rre end lÃ¦ngden af karakter-arrayet
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition
 parser_e_ill_msg_expr=03143_E_Ugyldigt udtryk efter beskedddirektiv
 % \fpc supports only integer or string values as message constants
-parser_e_ill_msg_param=03144_E_Procedurerer til beskedhåndtering kan kun tage én parameter, der skal være en reference (var)
+parser_e_ill_msg_param=03144_E_Procedurerer til beskedhÃ¥ndtering kan kun tage Ã©n parameter, der skal vÃ¦re en reference (var)
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=03145_E_Gentaget besked-værdi: "$1"
+parser_e_duplicate_message_label=03145_E_Gentaget besked-vÃ¦rdi: "$1"
 % A label for a message is used twice in one object/class
-parser_e_self_in_non_message_handler=03146_E_"Self" kan kun være en eksplicit parameter i metoder der er beskedhandlere
+parser_e_self_in_non_message_handler=03146_E_"Self" kan kun vÃ¦re en eksplicit parameter i metoder der er beskedhandlere
 % The self parameter can only be passed explicitly to a method which
 % is declared as message handler.
-parser_e_threadvars_only_sg=03147_E_Trådvariabler kan kun erklæres static eller globalt
+parser_e_threadvars_only_sg=03147_E_TrÃ¥dvariabler kan kun erklÃ¦res static eller globalt
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
 % because every thread has it's own stack and local variables
 % are stored on the stack
-parser_f_direct_assembler_not_allowed=03148_F_Direkte assembler er ikke understøttet i det binære udformat
+parser_f_direct_assembler_not_allowed=03148_F_Direkte assembler er ikke understÃ¸ttet i det binÃ¦re udformat
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=03149_W_Inkludér ikke unit'en OBJPAS manuelt, brug i stedet {$mode objfpc} eller {$mode delphi}
+parser_w_no_objpas_use_mode=03149_W_InkludÃ©r ikke unit'en OBJPAS manuelt, brug i stedet {$mode objfpc} eller {$mode delphi}
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
@@ -820,17 +820,17 @@ parser_w_no_objpas_use_mode=03149_W_Inkludér ikke unit'en OBJPAS manuelt, brug i
 parser_e_no_object_override=03150_E_OVERRIDE kan ikke bruges i objekter
 % Override is not supported for objects, use \var{virtual} instead to override
 % a method of a parent object
-parser_e_cant_use_inittable_here=03151_E_Datatyper der kræver initialisering/afslutning kan ikke bruges i en variantstruktur
+parser_e_cant_use_inittable_here=03151_E_Datatyper der krÃ¦ver initialisering/afslutning kan ikke bruges i en variantstruktur
 % Some data type (e.g. \var{ansistring}) needs initialization/finalization
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
-parser_e_resourcestring_only_sg=03152_E_Strengresourcer kan kun være statiske eller globale
+parser_e_resourcestring_only_sg=03152_E_Strengresourcer kan kun vÃ¦re statiske eller globale
 % Resourcestring can not be declared local, only global or using the static
 % directive.
 parser_e_exit_with_argument_not__possible=03153_E_Exit med parametre kan ikke bruges her
 % an exit statement with an argument for the return value can't be used here, this
 % can happen e.g. in \var{try..except} or \var{try..finally} blocks
-parser_e_stored_property_must_be_boolean=03154_E_Storage-symbolet skal være en sandhedsværdi
+parser_e_stored_property_must_be_boolean=03154_E_Storage-symbolet skal vÃ¦re en sandhedsvÃ¦rdi
 % If you specify a storage symbol in a property declaration, it must be of
 % the type boolean
 parser_e_ill_property_storage_sym=03155_E_Dette symbol er ikke tilladt som storage-symbol
@@ -850,7 +850,7 @@ parser_e_proc_directive_expected=03157_E_Procedure-direktiv forventet
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=03158_E_Værdien for egenskabs-indexet skal være en ordinal-type
+parser_e_invalid_property_index_value=03158_E_VÃ¦rdien for egenskabs-indexet skal vÃ¦re en ordinal-type
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
 parser_e_procname_to_short_for_export=03159_E_Procedurenavn for kort til at eksportere
@@ -858,7 +858,7 @@ parser_e_procname_to_short_for_export=03159_E_Procedurenavn for kort til at eksp
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
 parser_e_dlltool_unit_var_problem=03160_E_Intet DEFFILE-opslag kan genereres for variabler der er globale i en unit
-parser_e_dlltool_unit_var_problem2=03161_E_Kompilér uden -WD indstillingen
+parser_e_dlltool_unit_var_problem2=03161_E_KompilÃ©r uden -WD indstillingen
 % You need to compile this file without the -WD switch on the
 % commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_Du skal bruge ObjFpc (-S2) eller Delphi (-Sd)-mode for at kompilere denne fil
@@ -867,11 +867,11 @@ parser_f_need_objfpc_or_delphi_mode=03162_F_Du skal bruge ObjFpc (-S2) eller Del
 parser_e_no_export_with_index_for_target=03163_E_Kan ikke eksportere med index under $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
-parser_e_no_export_of_variables_for_target=03164_E_Eksport af variabler ikke understøttet af målsystemet $1
+parser_e_no_export_of_variables_for_target=03164_E_Eksport af variabler ikke understÃ¸ttet af mÃ¥lsystemet $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Ugyldig GUID-syntax
 parser_w_interface_mapping_notfound=03168_W_En procedure kaldet $1 der kan implementere $2 blev ikke fundet. $3
-parser_e_interface_id_expected=03169_E_Interface-navn krævet
+parser_e_interface_id_expected=03169_E_Interface-navn krÃ¦vet
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
 % \begin{verbatim}
@@ -887,14 +887,14 @@ parser_e_no_con_des_in_interfaces=03171_E_Con- og destructors er ikke tilladt i 
 % Constructor and destructor declarations aren't allowed in interface
 % In the most cases the method \var{QueryInterface} of \var{IUnknown} can
 % be used to create a new interface.
-parser_e_no_access_specifier_in_interfaces=03172_E_Adgangskrav kan ikke sættes i et interface
+parser_e_no_access_specifier_in_interfaces=03172_E_Adgangskrav kan ikke sÃ¦ttes i et interface
 % The access specifiers \var{public}, \var{private}, \var{protected} and
 % \var{pusblished} can't be used in interfaces because all methods
 % of an interfaces must be public.
 parser_e_no_vars_in_interfaces=03173_E_Et interface kan ikke indeholde felter
 % Declarations of fields aren't allowed in interfaces. An interface
 % can contain only methods
-parser_e_no_local_proc_external=03174_E_Kan ikke erklære en lokal procedure som ekstern
+parser_e_no_local_proc_external=03174_E_Kan ikke erklÃ¦re en lokal procedure som ekstern
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
 parser_w_skipped_fields_before=03175_W_Visse felter i "$1" blev ikke initialiseret
@@ -911,7 +911,7 @@ parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs-direktiv uden CDecl og 
 % The varargs directive can only be used with procedures or functions
 % that are declared with \var{cdecl} and \var{external} directives. The varargs directive
 % is only meant to provide a compatible interface to C functions like printf.
-parser_e_self_call_by_value=03179_E_Self skal være en almindelig (værdioverført) parameter
+parser_e_self_call_by_value=03179_E_Self skal vÃ¦re en almindelig (vÃ¦rdioverfÃ¸rt) parameter
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
 parser_e_interface_has_no_guid=03180_E_Interfacet "$1" har intet GUID
@@ -927,14 +927,14 @@ parser_e_no_procvarobj_const=03183_E_Konstanter af typen "procedure of object" k
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
-parser_e_default_value_only_one_para=03184_E_Default-værdi kan kun tildeles én parameter
-parser_e_default_value_expected_for_para=03185_E_Default-værdi krævet for parameter "$1"
-parser_w_unsupported_feature=03186_W_Feature ikke understøttet
+parser_e_default_value_only_one_para=03184_E_Default-vÃ¦rdi kan kun tildeles Ã©n parameter
+parser_e_default_value_expected_for_para=03185_E_Default-vÃ¦rdi krÃ¦vet for parameter "$1"
+parser_w_unsupported_feature=03186_W_Feature ikke understÃ¸ttet
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_C-arrays videregives som reference
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
-parser_e_C_array_of_const_must_be_last=03188_E_C-arrays af konstanter skal være det sidste element
+parser_e_C_array_of_const_must_be_last=03188_E_C-arrays af konstanter skal vÃ¦re det sidste element
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
@@ -944,9 +944,9 @@ parser_h_type_redef=03189_H_Type "$1" redefineret
 % be, a cause for errors.
 parser_w_cdecl_has_no_high=03190_W_cdecl'arerede funktioner har ingen "high"-parameter
 % Functions declared with cdecl modifier do not pass an extra implicit parameter.
-parser_w_cdecl_no_openstring=03191_W_cdecl'arerede funktioner understøtter ikke åbne strenge
+parser_w_cdecl_no_openstring=03191_W_cdecl'arerede funktioner understÃ¸tter ikke Ã¥bne strenge
 % Openstring is not supported for cdecl'ared functions.
-parser_e_initialized_not_for_threadvar=03192_E_Kan ikke initialisere variabler der er erklæret som threadvar
+parser_e_initialized_not_for_threadvar=03192_E_Kan ikke initialisere variabler der er erklÃ¦ret som threadvar
 % Variables declared as threadvar can not be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
 parser_e_msg_only_for_classes=03193_E_Message-direktivet kun gyldigt i klasser
@@ -969,7 +969,7 @@ parser_e_illegal_explicit_paraloc=03199_E_Ukendt pladsspecifikation parameter
 % The location specified for an argument isn't recognized by the compiler
 parser_e_32bitint_or_pointer_variable_expected=03200_E_32-bit heltal eller pointer forventet
 % The libbase for MorphOS/AmigaOS can be give only as \var{longint}, \var{dword} or any pointer variable.
-parser_e_goto_outside_proc=03201_E_Goto-erklæring ikke tilladt mellem forskellige procedurer
+parser_e_goto_outside_proc=03201_E_Goto-erklÃ¦ring ikke tilladt mellem forskellige procedurer
 % It isn't allowed to use the \var{goto} statements referencing labels outside the
 % current procedure. The following example shows the problem:
 % \begin{verbatim}
@@ -990,7 +990,7 @@ parser_e_goto_outside_proc=03201_E_Goto-erklæring ikke tilladt mellem forskellig
 % ...
 %
 % \end{verbatim}
-parser_f_too_complex_proc=03202_F_Procedure for kompleks, den kræver for mange registre
+parser_f_too_complex_proc=03202_F_Procedure for kompleks, den krÃ¦ver for mange registre
 % Your procedure body is too long for the compiler. You should split the
 % procedure into multiple smaller procedures.
 parser_e_illegal_expression=03203_E_Ugyldigt udtryk
@@ -1006,10 +1006,10 @@ parser_e_invalid_qualifier=03205_E_Ugyldigt udtryk
 % \item You're indexing a variable that is not an array.
 % \item You're dereferencing a variable that is not a pointer.
 % \end{itemize}
-parser_e_upper_lower_than_lower=03206_E_Øvre grænse er mindre end nedre grænse
+parser_e_upper_lower_than_lower=03206_E_Ã˜vre grÃ¦nse er mindre end nedre grÃ¦nse
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
-parser_e_macpas_exit_wrong_param=03207_E_Parametren til Exit skal være navnet på den kaldende procedure
+parser_e_macpas_exit_wrong_param=03207_E_Parametren til Exit skal vÃ¦re navnet pÃ¥ den kaldende procedure
 % Non local exit is not allowed. This error occur only in mode MacPas.
 % \end{description}
 #
@@ -1021,16 +1021,16 @@ parser_e_macpas_exit_wrong_param=03207_E_Parametren til Exit skal være navnet på
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-parser_e_illegal_assignment_to_count_var=03208_E_Ugyldig tildeling til for-løkkevariablen "$1"
+parser_e_illegal_assignment_to_count_var=03208_E_Ugyldig tildeling til for-lÃ¸kkevariablen "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings. You can also not assign values to
 % loop variables inside the loop (except in Delphi and TP modes). Use a while or
 % repeat loop instead if you need to do something like that, since those
 % constructs were built for that.
-parser_e_no_local_var_external=03209_E_Kan ikke erklære en lokal variabel som ekstern
+parser_e_no_local_var_external=03209_E_Kan ikke erklÃ¦re en lokal variabel som ekstern
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
-parser_e_proc_already_external=03210_E_Proceduren er allerede erklæret ekstern
+parser_e_proc_already_external=03210_E_Proceduren er allerede erklÃ¦ret ekstern
 % The procedure is already declared with the EXTERNAL directive in an interface or
 % forward declaration.
 parser_w_implicit_uses_of_variants_unit=03211_W_Implicit brug af Variants-modulet.
@@ -1040,7 +1040,7 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implicit brug af Variants-module
 parser_e_no_static_method_in_interfaces=03212_E_Klasse- og statiske metoder kan ikke benyttes i interfaces
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
-parser_e_arithmetic_operation_overflow=03213_E_Overløb i aritmetisk operation
+parser_e_arithmetic_operation_overflow=03213_E_OverlÃ¸b i aritmetisk operation
 % An operation on two integers values produced an overflow
 parser_e_protected_or_private_expected=03214_E_"Protected" eller "private" forventet
 % \var{strict} can be only used together with \var{protected} or \var{private}.
@@ -1048,9 +1048,9 @@ parser_e_illegal_slice=03215_E_"Slice" kan kun bruges med parameterlister
 % \var{slice} can be used only for arguments accepting an open array parameter
 parser_e_dispinterface_cant_have_parent=03216_E_Et DispInterface kan ikke nedarve fra en anden klasse
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
-parser_e_dispinterface_needs_a_guid=03217_E_Et DispInterface kræver et GUID
+parser_e_dispinterface_needs_a_guid=03217_E_Et DispInterface krÃ¦ver et GUID
 % A DISPINMTERFACE always needs an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_Metoder med "override" skal have relaterede returtyper. Denne kode kan fejle, da den afhænger af en fejl i Delphis parser ("$2" overrides af "$1", der har en anden returtype)
+parser_w_overridden_methods_not_same_ret=03218_W_Metoder med "override" skal have relaterede returtyper. Denne kode kan fejle, da den afhÃ¦nger af en fejl i Delphis parser ("$2" overrides af "$1", der har en anden returtype)
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
@@ -1131,32 +1131,32 @@ type_w_convert_real_2_comp=04014_W_Automatisk typekonversion fra kommatal til CO
 % An implicit type conversion from a real type to a \var{comp} is
 % encountered. Since \var{comp} is a 64 bit integer type, this may indicate
 % an error.
-type_h_use_div_for_int=04015_H_Brug DIV i stedet, for at få et heltalsresultat
+type_h_use_div_for_int=04015_H_Brug DIV i stedet, for at fÃ¥ et heltalsresultat
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
-type_e_strict_var_string_violation=04016_E_Strengtyper passer ikke sammen, på grund af {$V+}-indstilling
+type_e_strict_var_string_violation=04016_E_Strengtyper passer ikke sammen, pÃ¥ grund af {$V+}-indstilling
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
-type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ() eller pred() på enumerate-typer med tildelte værdier er ikke gyldigt
+type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ() eller pred() pÃ¥ enumerate-typer med tildelte vÃ¦rdier er ikke gyldigt
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use the \var{Succ} or \var{Pred} functions on them.
-type_e_cant_read_write_type=04018_E_Kan ikke læse eller skrive variabler af denne type
+type_e_cant_read_write_type=04018_E_Kan ikke lÃ¦se eller skrive variabler af denne type
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % reals, pchars and strings can be read from/written to a text file.
 % Booleans can only be written to text files.
-type_e_no_readln_writeln_for_typed_file=04019_E_Kan ikke bruge readln og writeln på typede filer
+type_e_no_readln_writeln_for_typed_file=04019_E_Kan ikke bruge readln og writeln pÃ¥ typede filer
 % \var{readln} and \var{writeln} are only allowed for text files.
-type_e_no_read_write_for_untyped_file=04020_E_Kan ikke bruge read eller write på utypede filer
+type_e_no_read_write_for_untyped_file=04020_E_Kan ikke bruge read eller write pÃ¥ utypede filer
 % \var{read} and \var{write} are only allowed for text or typed files.
 type_e_typeconflict_in_set=04021_E_Typekonflikt mellem setelementer
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
-type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) returnerer det øvre word/dword
+type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) returnerer det Ã¸vre word/dword
 % \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword/int64/qword}
 % which returns the lower/upper word/dword of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
@@ -1187,15 +1187,15 @@ type_e_cannot_local_proc_to_procvar=04030_E_Kan ikke tildele lokal procedure/fun
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
-type_e_no_assign_to_addr=04031_E_Kan ikke tildele værdi til en adresse
+type_e_no_assign_to_addr=04031_E_Kan ikke tildele vÃ¦rdi til en adresse
 % It is not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
-type_e_no_assign_to_const=04032_E_Kan ikke tildele til konstant-erklæret variabel
+type_e_no_assign_to_const=04032_E_Kan ikke tildele til konstant-erklÃ¦ret variabel
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
 % changing the value make the parameter as a value parameter or a var.
-type_e_array_required=04033_E_Array-type krævet
+type_e_array_required=04033_E_Array-type krÃ¦vet
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_interface-type forventet, men "$1" fundet
@@ -1206,14 +1206,14 @@ type_w_mixed_signed_unsigned=04035_W_Blanding af fortegnsudtryk og fortegnsfri u
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the resulttype of the other one.
-type_w_mixed_signed_unsigned2=04036_W_Blanding af fortegnsudtryk og fortegnsfri udtryk her kan give værdiområdefejl
+type_w_mixed_signed_unsigned2=04036_W_Blanding af fortegnsudtryk og fortegnsfri udtryk her kan give vÃ¦rdiomrÃ¥defejl
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the resulttype of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_Typecast har forskellig størrelse ($1 -> $2) i tildeling
+type_e_typecast_wrong_size_for_assignment=04037_E_Typecast har forskellig stÃ¸rrelse ($1 -> $2) i tildeling
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
 type_e_array_index_enums_with_assign_not_possible=04038_E_Enumerate-typer med tildelinger kan ikke bruges som index i arrays
@@ -1231,14 +1231,14 @@ type_w_classes_not_related=04040_W_Klasse- eller objekt-typerne "$1" og "$2" er 
 %  are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Klasse eller interface-type forventet, men "$1" fundet
 type_e_type_is_not_completly_defined=04042_E_Typen "$1" er ikke fuldt ud defineret
-type_w_string_too_long=04043_W_Strengkonstant har flere karakterer end længden af en kort streng
+type_w_string_too_long=04043_W_Strengkonstant har flere karakterer end lÃ¦ngden af en kort streng
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
-type_w_signed_unsigned_always_false=04044_W_Sammenligning er altid falsk, grundet værdiernes rækkevidde
+type_w_signed_unsigned_always_false=04044_W_Sammenligning er altid falsk, grundet vÃ¦rdiernes rÃ¦kkevidde
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % false. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_Sammenligning er altid sand, grundet værdiernes rækkevidde
+type_w_signed_unsigned_always_true=04045_W_Sammenligning er altid sand, grundet vÃ¦rdiernes rÃ¦kkevidde
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
@@ -1246,34 +1246,34 @@ type_w_instance_with_abstract=04046_W_Konstruerer klassen "$1" med abstrakte met
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
-type_h_in_range_check=04047_H_Den venstre operand til IN-operatoren skal være én byte stor
+type_h_in_range_check=04047_H_Den venstre operand til IN-operatoren skal vÃ¦re Ã©n byte stor
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The  \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
-type_w_smaller_possible_range_check=04048_W_Forskel i typestørrelser. Muligt datatab eller værdigrænsefejl
+type_w_smaller_possible_range_check=04048_W_Forskel i typestÃ¸rrelser. Muligt datatab eller vÃ¦rdigrÃ¦nsefejl
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_h_smaller_possible_range_check=04049_H_Forskel i typestørrelser. Muligt datatab eller værdigrænsefejl
+type_h_smaller_possible_range_check=04049_H_Forskel i typestÃ¸rrelser. Muligt datatab eller vÃ¦rdigrÃ¦nsefejl
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_Kan ikke beregne adressen af en abstrakt metode
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_Operatoren kan ikke bruges på denne operand-type
+type_e_operator_not_allowed=04051_E_Operatoren kan ikke bruges pÃ¥ denne operand-type
 % You are trying an operator that is not available for the type of the
 % operands
 type_e_constant_expr_expected=04052_E_Konstant udtryk forventet
 % The compiler expects an constant expression, but gets a variable expression.
-type_e_operator_not_supported_for_types=04053_E_Operationen "$1" ikke understøttet for typerne "$2" og "$3"
+type_e_operator_not_supported_for_types=04053_E_Operationen "$1" ikke understÃ¸ttet for typerne "$2" og "$3"
 % The operation is not allowed for the supplied types
 type_e_illegal_type_conversion=04054_E_Ugyldig typekonvertering: "$1" til "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-type_h_pointer_to_longint_conv_not_portable=04055_H_Konvertering mellem ordinaltyper og pointere virker ikke på alle platforme
+type_h_pointer_to_longint_conv_not_portable=04055_H_Konvertering mellem ordinaltyper og pointere virker ikke pÃ¥ alle platforme
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
 % on a machine using 64-bit for pointer storage.
-type_w_pointer_to_longint_conv_not_portable=04056_W_Konvertering mellem ordinaltyper og pointere virker ikke på alle platforme
+type_w_pointer_to_longint_conv_not_portable=04056_W_Konvertering mellem ordinaltyper og pointere virker ikke pÃ¥ alle platforme
 % If you typecast a pointer to a ordinal type of a different size (or vice-versa), this can
 % cause problems. This is a warning to help finding the 32bit specific code where cardinal/longint is used
 % to typecast pointers to ordinals. A solution is to use the ptrint/ptruint types instead.
@@ -1282,7 +1282,7 @@ type_e_cant_choose_overload_function=04057_E_Kan ikke bestemme hvilken overloade
 % to any of the declared function parameter lists. e.g. when you have declared
 % a function with parameters \var{word} and \var{longint}, and then you call
 % it with a parameter which is of type \var{integer}.
-type_e_illegal_count_var=04058_E_Ugyldig tællevariabel
+type_e_illegal_count_var=04058_E_Ugyldig tÃ¦llevariabel
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
 % \end{description}
@@ -1303,14 +1303,14 @@ sym_f_internal_error_in_symtablestack=05001_F_Intern fejl i SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-sym_e_duplicate_id=05002_E_Generklæret navn "$1"
+sym_e_duplicate_id=05002_E_GenerklÃ¦ret navn "$1"
 % The identifier was already declared in the current scope.
 sym_h_duplicate_id_where=05003_H_Navnet er allerede brugt in $1, linie $2
 % The identifier was already declared in a previous scope.
 sym_e_unknown_id=05004_E_Ukendt navn: "$1"
 % The identifier encountered has not been declared, or is used outside the
 % scope where it is defined.
-sym_e_forward_not_resolved=05005_E_Forward-erklæring ikke løst: "$1"
+sym_e_forward_not_resolved=05005_E_Forward-erklÃ¦ring ikke lÃ¸st: "$1"
 % This can happen in two cases:
 % \begin{itemize}
 % \item This happens when you declare a function (in the \var{interface} part, or
@@ -1318,11 +1318,11 @@ sym_e_forward_not_resolved=05005_E_Forward-erklæring ikke løst: "$1"
 % \item You reference a type which isn't declared in the current \var{type}
 % block.
 % \end{itemize}
-sym_e_error_in_type_def=05007_E_Fejl i typeerklæring
+sym_e_error_in_type_def=05007_E_Fejl i typeerklÃ¦ring
 % There is an error in your definition of a new array type:
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
-sym_e_forward_type_not_resolved=05009_E_Forward-type ikke erklæret: "$1"
+sym_e_forward_type_not_resolved=05009_E_Forward-type ikke erklÃ¦ret: "$1"
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Kun statiske variabler kan bruges i statiske metoder, eller uden for metoder
 % A static method of an object can only access static variables.
@@ -1335,10 +1335,10 @@ sym_w_label_not_defined=05014_W_Label er ikke defineret "$1"
 % A label was declared, but not defined.
 sym_e_label_used_and_not_defined=05015_E_Label brugt men ikke defineret "$1"
 % A label was declared and used, but not defined.
-sym_e_ill_label_decl=05016_E_Ugyldig label-erklæring
+sym_e_ill_label_decl=05016_E_Ugyldig label-erklÃ¦ring
 % This error should never happen; it occurs if a label is defined outside a
 % procedure or function.
-sym_e_goto_and_label_not_supported=05017_E_GOTO og LABEL er ikke understøttet (brug -Sg)
+sym_e_goto_and_label_not_supported=05017_E_GOTO og LABEL er ikke understÃ¸ttet (brug -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
 % with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
@@ -1348,9 +1348,9 @@ sym_e_id_is_no_label_id=05019_E_Navnet er ikke en label
 % The identifier specified after the \var{goto} isn't of type label.
 sym_e_label_already_defined=05020_E_Label er allerede defineret
 % You are defining a label twice. You can define a label only once.
-sym_e_ill_type_decl_set=05021_E_Ugyldig typeerklæring af setelementer
+sym_e_ill_type_decl_set=05021_E_Ugyldig typeerklÃ¦ring af setelementer
 % The declaration of a set contains an invalid type definition.
-sym_e_class_forward_not_resolved=05022_E_Forward-erklæring af klassen "$1" ikke løst
+sym_e_class_forward_not_resolved=05022_E_Forward-erklÃ¦ring af klassen "$1" ikke lÃ¸st
 % You declared a class, but you did not implement it.
 sym_n_unit_not_used=05023_H_Unit "$1" ikke brugt i "$2"
 % The unit referenced in the \var{uses} clause is not used.
@@ -1360,7 +1360,7 @@ sym_h_para_identifier_not_used=05024_H_Parameter "$1" ikke brugt
 sym_n_local_identifier_not_used=05025_N_Lokal variabel "$1" ikke brugt
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_h_para_identifier_only_set=05026_H_Værdiparameter "$1" er tildelt, men aldrig brugt
+sym_h_para_identifier_only_set=05026_H_VÃ¦rdiparameter "$1" er tildelt, men aldrig brugt
 % The identifier was declared (locally or globally)
 % set but not used (locally or globally).
 sym_n_local_identifier_only_set=05027_N_Lokal variabel "$1" er tildelt, men aldrig brugt
@@ -1374,7 +1374,7 @@ sym_n_private_method_not_used=05031_N_Private-metoden "$1.$2" aldrig brugt
 sym_e_set_expected=05032_E_Set-type forventet
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=05033_W_Funktionsresultat ser ikke ud til at være sat
+sym_w_function_result_not_set=05033_W_Funktionsresultat ser ikke ud til at vÃ¦re sat
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
@@ -1396,7 +1396,7 @@ sym_w_uninitialized_variable=05037_W_Variablen "$1" er ikke initialiseret
 sym_e_id_no_member=05038_E_Strukturen har intet felt ved navn "$1"
 % This error is generated when an identifier of a record,
 % field, or method is accessed while it is not defined.
-sym_h_param_list=05039_H_Fandt erklæring: $1
+sym_h_param_list=05039_H_Fandt erklÃ¦ring: $1
 % You get this when you use the \var{-vh} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
@@ -1406,7 +1406,7 @@ sym_e_segment_too_large=05040_E_Dataelement for stort
 sym_e_no_matching_implementation_found=05042_E_Ingen passende implementation for interface-metoden "$1" fundet
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
-sym_w_deprecated_symbol=05043_W_Symbolet "$1" er markeret forældet, og bør ikke anvendes
+sym_w_deprecated_symbol=05043_W_Symbolet "$1" er markeret forÃ¦ldet, og bÃ¸r ikke anvendes
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
@@ -1453,7 +1453,7 @@ sym_h_function_result_uninitialized=05060_H_Funktionsresultatet er ikke initiali
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_identifier_only_read=05061_W_Variablen "$1" bliver læst men aldrig tildelt
+sym_w_identifier_only_read=05061_W_Variablen "$1" bliver lÃ¦st men aldrig tildelt
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
 
@@ -1467,10 +1467,10 @@ sym_w_identifier_only_read=05061_W_Variablen "$1" bliver læst men aldrig tildelt
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_parasize_too_big=06009_E_Den samlede parameterstørrelse overstiger 64KB
+cg_e_parasize_too_big=06009_E_Den samlede parameterstÃ¸rrelse overstiger 64KB
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_file_must_call_by_reference=06012_E_File-typer skal være var-parametre
+cg_e_file_must_call_by_reference=06012_E_File-typer skal vÃ¦re var-parametre
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
 cg_e_cant_use_far_pointer_there=06013_E_Brugen af FAR-pointere er ikke tilladt her
@@ -1483,15 +1483,15 @@ cg_e_cant_use_far_pointer_there=06013_E_Brugen af FAR-pointere er ikke tilladt h
 % ...
 % p:=@mem[a000:000];
 % \end{verbatim}
-cg_e_dont_call_exported_direct=06015_E_EXPORT-erklæringer kan ikke kaldes
+cg_e_dont_call_exported_direct=06015_E_EXPORT-erklÃ¦ringer kan ikke kaldes
 % No longer in use.
 cg_w_member_cd_call_from_method=06016_W_Mulig ugyldigt kald af constructor eller destructor
 % The compiler detected that a constructor or destructor is called within a
 % a method. This will probably lead to problems, since constructors / destructors
 % require parameters on entry.
-cg_n_inefficient_code=06017_N_Utilstrækkelig kode
+cg_n_inefficient_code=06017_N_UtilstrÃ¦kkelig kode
 % Your statement seems dubious to the compiler.
-cg_w_unreachable_code=06018_W_Koden vil aldrig blive kørt
+cg_w_unreachable_code=06018_W_Koden vil aldrig blive kÃ¸rt
 % You specified a construct which will never be executed. Example:
 % \begin{verbatim}
 % while false do
@@ -1502,25 +1502,25 @@ cg_w_unreachable_code=06018_W_Koden vil aldrig blive kørt
 cg_e_cant_call_abstract_method=06020_E_Abstrakte metoder kan ikke kaldes direkte
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_d_register_weight=06027_DL_Register $1 vægt $2 $3
+cg_d_register_weight=06027_DL_Register $1 vÃ¦gt $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
 cg_d_stackframe_omited=06029_DL_Stakramme er udeladt
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_e_unable_inline_object_methods=06031_E_Objekt eller klassemetode kan ikke være inline
+cg_e_unable_inline_object_methods=06031_E_Objekt eller klassemetode kan ikke vÃ¦re inline
 % You cannot have inlined object methods.
-cg_e_unable_inline_procvar=06032_E_Procvar kald kan ikke være inline
+cg_e_unable_inline_procvar=06032_E_Procvar kald kan ikke vÃ¦re inline
 % A procedure with a procedural variable call cannot be inlined.
 cg_e_no_code_for_inline_stored=06033_E_Koden til inline-procedure ikke gemt
 % The compiler couldn't store code for the inline procedure.
-cg_e_can_access_element_zero=06035_E_Element nul af en ansi/wide/lang-strengtype kan ikke tilgås. Brug i stedet (set)length
+cg_e_can_access_element_zero=06035_E_Element nul af en ansi/wide/lang-strengtype kan ikke tilgÃ¥s. Brug i stedet (set)length
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such a string types
-cg_e_cannot_call_cons_dest_inside_with=06037_E_En constructor eller destructor kan ikke kaldes i en "with"-erklæring
+cg_e_cannot_call_cons_dest_inside_with=06037_E_En constructor eller destructor kan ikke kaldes i en "with"-erklÃ¦ring
 % Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
-cg_e_cannot_call_message_direct=06038_E_Kan ikke kalde beskedhåndteringsprocedure direkte
+cg_e_cannot_call_message_direct=06038_E_Kan ikke kalde beskedhÃ¥ndteringsprocedure direkte
 % A message method handler method cannot be called directly if it contains an
 % explicit self argument
 cg_e_goto_inout_of_exception_block=06039_E_Jump ind eller ud af en untagelsesblok
@@ -1539,7 +1539,7 @@ cg_e_goto_inout_of_exception_block=06039_E_Jump ind eller ud af en untagelsesblo
 % 1:
 % ...
 % \end{verbatim}
-cg_e_control_flow_outside_finally=06040_E_Forløbs-ændrende erklæringer er ikke tilladt i en finally-blok
+cg_e_control_flow_outside_finally=06040_E_ForlÃ¸bs-Ã¦ndrende erklÃ¦ringer er ikke tilladt i en finally-blok
 % It isn't allowed to use the control flow statements \var{break},
 % \var{continue} and \var{exit}
 % inside a finally statement. The following example shows the problem:
@@ -1558,18 +1558,18 @@ cg_e_control_flow_outside_finally=06040_E_Forløbs-ændrende erklæringer er ikke t
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
 % \end{description}
-cg_w_parasize_too_big=06041_W_Parameterstørrelsen overstiger grænsen for visse CPUer
+cg_w_parasize_too_big=06041_W_ParameterstÃ¸rrelsen overstiger grÃ¦nsen for visse CPUer
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_W_Størrelsen af lokale variabler overstiger grænsen for visse CPUer
+cg_w_localsize_too_big=06042_W_StÃ¸rrelsen af lokale variabler overstiger grÃ¦nsen for visse CPUer
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % might not be supported on other processor targets.
-cg_e_localsize_too_big=06043_E_Størrelsen af lokale variabler overstiger understøttet størrelse
+cg_e_localsize_too_big=06043_E_StÃ¸rrelsen af lokale variabler overstiger understÃ¸ttet stÃ¸rrelse
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % is not supported by this processor.
-cg_e_break_not_allowed=06044_E_BREAK ikke tilladt uden for løkke-erklæringer
+cg_e_break_not_allowed=06044_E_BREAK ikke tilladt uden for lÃ¸kke-erklÃ¦ringer
 % You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=06045_E_CONTINUE ikke tilladt uden for løkke-erklæringer
+cg_e_continue_not_allowed=06045_E_CONTINUE ikke tilladt uden for lÃ¸kke-erklÃ¦ringer
 % You're trying to use \var{continue} outside a loop construction.
 # EndOfTeX
 
@@ -1578,7 +1578,7 @@ cg_e_continue_not_allowed=06045_E_CONTINUE ikke tilladt uden for løkke-erklæring
 #
 # 07097 is the last used one
 #
-cg_f_unknown_compilerproc=06046_F_Ukendt compilerfunktion "$1". Undersøg om du bruger det korrekt køretidsbibliotek.
+cg_f_unknown_compilerproc=06046_F_Ukendt compilerfunktion "$1". UndersÃ¸g om du bruger det korrekt kÃ¸retidsbibliotek.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
@@ -1611,23 +1611,23 @@ asmr_e_no_local_or_para_allowed=07007_E_Kan ikke bruge lokale variabler eller pa
 % You can't use a local variable or parameter here, mostly because the
 % addressing of locals and parameters is done using the frame pointer register so the
 % address can't be obtained directly.
-asmr_e_need_offset=07008_E_Nødvendigt at bruge OFFSET her
+asmr_e_need_offset=07008_E_NÃ¸dvendigt at bruge OFFSET her
 % You need to use OFFSET <id> here to get the address of the identifier.
-asmr_e_need_dollar=07009_E_Nødvendigt at bruge $ her
+asmr_e_need_dollar=07009_E_NÃ¸dvendigt at bruge $ her
 % You need to use $<id> here to get the address of the identifier.
-asmr_e_cant_have_multiple_relocatable_symbols=07010_E_Kan ikke bruge flere samtidige relokérbare symboler
+asmr_e_cant_have_multiple_relocatable_symbols=07010_E_Kan ikke bruge flere samtidige relokÃ©rbare symboler
 % You can't have more than one relocatable symbol (variable/typed constant)
 % in one argument.
-asmr_e_only_add_relocatable_symbol=07011_E_Relokérbare symboler kan kun adderes
+asmr_e_only_add_relocatable_symbol=07011_E_RelokÃ©rbare symboler kan kun adderes
 % Relocatable symbols (variable/typed constant) can't be used with other
 % operators. Only addition is allowed.
 asmr_e_invalid_constant_expression=07012_E_Ugyldigt konstantudtryk
 % There is an error in the constant expression.
-asmr_e_relocatable_symbol_not_allowed=07013_E_Relokérbart symbol ikke tilladt her
+asmr_e_relocatable_symbol_not_allowed=07013_E_RelokÃ©rbart symbol ikke tilladt her
 % You can't use a relocatable symbol (variable/typed constant) here.
 asmr_e_invalid_reference_syntax=07014_E_Ugyldig referencesyntax
 % There is an error in the reference.
-asmr_e_local_para_unreachable=07015_E_Kan ikke tilgå $1 fra denne position
+asmr_e_local_para_unreachable=07015_E_Kan ikke tilgÃ¥ $1 fra denne position
 % You can not read directly the value of local or para
 % of a higher level in assembler code (except for
 % local assembler code without parameter nor locals).
@@ -1636,18 +1636,18 @@ asmr_e_local_label_not_allowed_as_ref=07016_E_Lokale symboler/labels er ikke gyl
 asmr_e_wrong_base_index=07017_E_Ugyldigt base- eller indexregister
 % There is an error with the base and index register, they are
 % probably incorrect
-asmr_w_possible_object_field_bug=07018_W_Mulig fejl i objektfelthåndtering
+asmr_w_possible_object_field_bug=07018_W_Mulig fejl i objektfelthÃ¥ndtering
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
 asmr_e_wrong_scale_factor=07019_E_Forkert skaleringsfaktor angivet
 % The scale factor given is wrong, only 1,2,4 and 8 are allowed
-asmr_e_multiple_index=07020_E_Mere end ét indexregister angivet
+asmr_e_multiple_index=07020_E_Mere end Ã©t indexregister angivet
 % You are trying to use more than one index register
 asmr_e_invalid_operand_type=07021_E_Ugyldig operandtype
 % The operand type doesn't match with the opcode used
 asmr_e_invalid_string_as_opcode_operand=07022_E_Ugyldig streng som operand: $1
 % The string specified as operand is not correct with this opcode
-asmr_w_CODE_and_DATA_not_supported=07023_W_@CODE og @DATA ikke understøttet
+asmr_w_CODE_and_DATA_not_supported=07023_W_@CODE og @DATA ikke understÃ¸ttet
 % @CODE and @DATA are unsupported and are ignored.
 asmr_e_null_label_ref_not_allowed=07024_E_Tomme labelreferencer er ikke tilladt
 asmr_e_expr_zero_divide=07025_E_Division med nul i assembler-evaluatoren
@@ -1658,40 +1658,40 @@ asmr_e_escape_seq_ignored=07027_E_Escape-sekvens ignoreret: $1
 % There is a C-styled string, but the escape sequence in the string
 % is unknown, and is therefore ignored
 asmr_e_invalid_symbol_ref=07028_E_Ugyldig symbolreference
-asmr_w_fwait_emu_prob=07029_W_FWAIT kan føre til emulationsproblemer med emu387
+asmr_w_fwait_emu_prob=07029_W_FWAIT kan fÃ¸re til emulationsproblemer med emu387
 asmr_w_fadd_to_faddp=07030_W_$1 uden operand oversat til $1P
-asmr_w_enter_not_supported_by_linux=07031_W_ENTER-instruktionen er ikke understøttet af Linux-kernen
+asmr_w_enter_not_supported_by_linux=07031_W_ENTER-instruktionen er ikke understÃ¸ttet af Linux-kernen
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
 asmr_w_calling_overload_func=07032_W_Kald til overloaded funktion i assembler
 % There is a call to an overloaded method in the assembler block,
 % this might be the sign there is a problem
-asmr_e_unsupported_symbol_type=07033_E_Operandens symboltype er ikke understøttet
-asmr_e_constant_out_of_bounds=07034_E_Konstantværdi overskrider værdigrænse
+asmr_e_unsupported_symbol_type=07033_E_Operandens symboltype er ikke understÃ¸ttet
+asmr_e_constant_out_of_bounds=07034_E_KonstantvÃ¦rdi overskrider vÃ¦rdigrÃ¦nse
 asmr_e_error_converting_decimal=07035_E_Fejl under konvertering af decimal $1
 % A constant decimal value does not have the correct syntax
 asmr_e_error_converting_octal=07036_E_Fejl under konvertering af octal $1
 % A constant octal value does not have the correct syntax
-asmr_e_error_converting_binary=07037_E_Fejl under konvertering af binær $1
+asmr_e_error_converting_binary=07037_E_Fejl under konvertering af binÃ¦r $1
 % A constant binary value does not have the correct syntax
 asmr_e_error_converting_hexadecimal=07038_E_Fejl under konvertering af hexadecimal $1
 % A constant hexadecimal value does not have the correct syntax
 asmr_h_direct_global_to_mangled=07039_H_$1 oversat til $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 er associeret med en overloadet funktion
-asmr_e_cannot_use_SELF_outside_a_method=07041_E_Kan ikke tilgå SELF uden for en metode
+asmr_e_cannot_use_SELF_outside_a_method=07041_E_Kan ikke tilgÃ¥ SELF uden for en metode
 % There is a reference to the \var{self} symbol while it is not
 % allowed. \var{self} can only be referenced inside methods
-asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Kan ikke tilgå OLDEBP uden for en indlejret procedure
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Kan ikke tilgÃ¥ OLDEBP uden for en indlejret procedure
 % There is a reference to the \var{oldebp} symbol while it is not
 % allowed. \var{oldebp} can only be referenced inside nested routines
-asmr_e_void_function=07043_W_En procedure kan ikke returnere en værdi i assembler-kode
+asmr_e_void_function=07043_W_En procedure kan ikke returnere en vÃ¦rdi i assembler-kode
 % Trying to return a value while in a procedure. A procedure
 % does not have any return value
-asmr_e_SEG_not_supported=07044_E_SEG er ikke understøttet
-asmr_e_size_suffix_and_dest_dont_match=07045_E_Størrelses-suffix og destination- eller kildestørrelse stemmer ikke overens
+asmr_e_SEG_not_supported=07044_E_SEG er ikke understÃ¸ttet
+asmr_e_size_suffix_and_dest_dont_match=07045_E_StÃ¸rrelses-suffix og destination- eller kildestÃ¸rrelse stemmer ikke overens
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_w_size_suffix_and_dest_dont_match=07046_W_Størrelses-suffix og destination- eller kildestørrelse stemmer ikke overens
+asmr_w_size_suffix_and_dest_dont_match=07046_W_StÃ¸rrelses-suffix og destination- eller kildestÃ¸rrelse stemmer ikke overens
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
 asmr_e_syntax_error=07047_E_Syntaxfejl i assemblerkode
@@ -1709,7 +1709,7 @@ asmr_e_unknown_opcode=07053_E_Ukendt operationskode $1
 asmr_e_invalid_or_missing_opcode=07054_E_Ugyldig eller manglende operationskode
 asmr_e_invalid_prefix_and_opcode=07055_E_Ugyldig kombination af prefix og operationskode: $1
 asmr_e_invalid_override_and_opcode=07056_E_Ugyldig kombination af override og operationskode: $1
-asmr_e_too_many_operands=07057_E_For mange operander på linien
+asmr_e_too_many_operands=07057_E_For mange operander pÃ¥ linien
 % There are too many operands for this opcode. Check your
 % assembler syntax
 asmr_w_near_ignored=07058_W_NEAR ignoreret
@@ -1721,7 +1721,7 @@ asmr_e_invalid_register=07063_E_Ugyldigt registernavn
 % There is an unknown register name used as operand.
 asmr_e_invalid_fpu_register=07064_E_Ugyldigt kommatalsregister-navn
 % There is an unknown register name used as operand.
-asmr_w_modulo_not_supported=07066_W_Modulo ikke understøttet
+asmr_w_modulo_not_supported=07066_W_Modulo ikke understÃ¸ttet
 asmr_e_invalid_float_const=07067_E_Ugyldig kommatalskonstant $1
 % The floating point constant declared in an assembler block is
 % invalid.
@@ -1733,7 +1733,7 @@ asmr_e_cannot_index_relative_var=07070_E_Kan ikke indexere en lokal variabel ell
 % Trying to index using a base register a symbol which is already relative
 % to a register. This is not possible, and will probably lead to crashes.
 asmr_e_invalid_seg_override=07071_E_Ugyldigt segment-override-udtryk
-asmr_w_id_supposed_external=07072_W_Navnet $1 antages at være eksternt
+asmr_w_id_supposed_external=07072_W_Navnet $1 antages at vÃ¦re eksternt
 % There is a reference to an undefined symbol. This will not result
 % in an error, since the symbol might be external, but may cause
 % problems at link time if the symbol is not defined anywhere.
@@ -1755,17 +1755,17 @@ asmr_e_dollar_without_identifier=07078_E_Dollar-token brugt uden navn
 asmr_w_32bit_const_for_address=07079_W_32-bit konstant brugt som adresse
 % A constant was used as an address. This is probably an error,
 % since using absolute addresses will probably not work.
-asmr_n_align_is_target_specific=07080_N_.align er mål-specifikt. Brug  .balign eller .p2align
+asmr_n_align_is_target_specific=07080_N_.align er mÃ¥l-specifikt. Brug  .balign eller .p2align
 % Using the .align directive is platform specific, and its meaning will vary
 % from one platform to another.
-asmr_e_cannot_access_field_directly_for_parameters=07081_E_Kan ikke tilgå felter fra parametre direkte
+asmr_e_cannot_access_field_directly_for_parameters=07081_E_Kan ikke tilgÃ¥ felter fra parametre direkte
 % You should load the parameter first into a register and then access the
 % fields using that register.
-asmr_e_cannot_access_object_field_directly=07082_E_Kan ikke tilgå felter fra objekter/klasser direkte
+asmr_e_cannot_access_object_field_directly=07082_E_Kan ikke tilgÃ¥ felter fra objekter/klasser direkte
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-asmr_e_unable_to_determine_reference_size=07083_E_Ingen størrelse angivet, og det var ikke muligt at fastslå størrelsen af operanderne
+asmr_e_unable_to_determine_reference_size=07083_E_Ingen stÃ¸rrelse angivet, og det var ikke muligt at fastslÃ¥ stÃ¸rrelsen af operanderne
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
@@ -1781,7 +1781,7 @@ asmr_e_invalid_char_smaller=07089_E_Karakter "<" ikke tilladt her (brug "<<" for
 asmr_e_invalid_char_greater=07090_E_Karakter ">" ikke tilladt her (brug ">>" for logisk skift)
 % The shift operator requires the >> characters. Only one
 % of those characters was found.
-asmr_w_align_not_supported=07093_W_ALIGN ikke understøttet
+asmr_w_align_not_supported=07093_W_ALIGN ikke understÃ¸ttet
 asmr_e_no_inc_and_dec_together=07094_E_Inc og Dec kan ikke bruges sammen
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
@@ -1789,11 +1789,11 @@ asmr_e_invalid_reg_list_in_movem=07095_E_Ugyldig registerliste til movem
 % Trying to use the \var{movem} opcode with invalid registers
 % to save or restore.
 asmr_e_invalid_reg_list_for_opcode=07096_E_Registerliste ikke gyldig for denne operationskode
-asmr_e_higher_cpu_mode_required=07097_E_Højere cpu-mode krævet ($1)
+asmr_e_higher_cpu_mode_required=07097_E_HÃ¸jere cpu-mode krÃ¦vet ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Ingen størrelse angivet, og det var ikke muligt at fastslå størrelsen af operanderne. Bruger DWORD. 
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Ingen stÃ¸rrelse angivet, og det var ikke muligt at fastslÃ¥ stÃ¸rrelsen af operanderne. Bruger DWORD. 
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
@@ -1816,28 +1816,28 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntaxfejl under parsning af skifteroper
 #
 # 08018 is the last used one
 #
-asmw_f_too_many_asm_files=08000_F_For mange assemblerfiler (forsøg uden smartlinking)
+asmw_f_too_many_asm_files=08000_F_For mange assemblerfiler (forsÃ¸g uden smartlinking)
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
-asmw_f_assembler_output_not_supported=08001_F_Den valgte assemblerform understøttes ikke
-asmw_f_comp_not_supported=08002_F_Typen "Comp" er ikke understøttet
-asmw_f_direct_not_supported=08003_F_Direkte assembler-tilstand ikke understøttet for indbyggede filskrivere
+asmw_f_assembler_output_not_supported=08001_F_Den valgte assemblerform understÃ¸ttes ikke
+asmw_f_comp_not_supported=08002_F_Typen "Comp" er ikke understÃ¸ttet
+asmw_f_direct_not_supported=08003_F_Direkte assembler-tilstand ikke understÃ¸ttet for indbyggede filskrivere
 % Direct assembler mode is not supported for binary writers.
 asmw_e_alloc_data_only_in_bss=08004_E_Allokering af data kun tilladt i bss-sektionen
-asmw_f_no_binary_writer_selected=08005_F_Ingen binær filskriver valgt
+asmw_f_no_binary_writer_selected=08005_F_Ingen binÃ¦r filskriver valgt
 asmw_e_opcode_not_in_table=08006_E_Asm: Operationskode $1 ikke fundet i tabellen
 asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 ugyldig kombination af register og operationskode
-asmw_e_16bit_not_supported=08008_E_Asm: 16-bit referencer ikke understøttet
+asmw_e_16bit_not_supported=08008_E_Asm: 16-bit referencer ikke understÃ¸ttet
 asmw_e_invalid_effective_address=08009_E_Asm: Ugyldig effektiv adressering
 asmw_e_immediate_or_reference_expected=08010_E_Asm: Konstant eller reference forventet
-asmw_e_value_exceeds_bounds=08011_E_Asm: $1 værdi overstiger grænse $2
-asmw_e_short_jmp_out_of_range=08012_E_Asm: Kort hop er uden for rækkevidde $1
+asmw_e_value_exceeds_bounds=08011_E_Asm: $1 vÃ¦rdi overstiger grÃ¦nse $2
+asmw_e_short_jmp_out_of_range=08012_E_Asm: Kort hop er uden for rÃ¦kkevidde $1
 asmw_e_undefined_label=08013_E_Asm: Ukendt labelnavn $1
-asmw_e_comp_not_supported=08014_E_Asm: Typen "Comp" er ikke understøttet på dette målsystem
-asmw_e_extended_not_supported=08015_E_Asm: Typen "Extended" er ikke understøttet på dette målsystem
+asmw_e_comp_not_supported=08014_E_Asm: Typen "Comp" er ikke understÃ¸ttet pÃ¥ dette mÃ¥lsystem
+asmw_e_extended_not_supported=08015_E_Asm: Typen "Extended" er ikke understÃ¸ttet pÃ¥ dette mÃ¥lsystem
 asmw_e_duplicate_label=08016_E_Asm: Genbrugt labelnavn $1
 asmw_e_redefined_label=08017_E_Asm: Redefineret labelnavn $1
-asmw_e_first_defined_label=08018_E_Asm: Først defineret her
+asmw_e_first_defined_label=08018_E_Asm: FÃ¸rst defineret her
 asmw_e_invalid_register=08019_E_Asm: Ugyldigt register $1
 
 #
@@ -1881,10 +1881,10 @@ exec_e_error_while_linking=09013_E_Fejl under linkning
 % Generic error while linking.
 exec_e_cant_call_linker=09014_E_Kan ikke starte linkeren, skifter til ekstern linker
 exec_i_linking=09015_I_Linker $1
-exec_e_util_not_found=09016_E_Hjælpeprogram $1 ikke fundet, skifter til ekstern linker
-exec_t_using_util=09017_T_Bruger hjælpeprogram $1
-exec_e_exe_not_supported=09018_E_Programbygning ikke understøttet
-exec_e_dll_not_supported=09019_E_Dynamisk/Delt bibliotek-bygning ikke understøttet
+exec_e_util_not_found=09016_E_HjÃ¦lpeprogram $1 ikke fundet, skifter til ekstern linker
+exec_t_using_util=09017_T_Bruger hjÃ¦lpeprogram $1
+exec_e_exe_not_supported=09018_E_Programbygning ikke understÃ¸ttet
+exec_e_dll_not_supported=09019_E_Dynamisk/Delt bibliotek-bygning ikke understÃ¸ttet
 exec_i_closing_script=09020_I_Lukker script $1
 exec_e_res_not_found=09021_E_resourcecompiler ikke fundet, skifter til ekstern
 exec_i_compilingresource=09022_I_Compilerer resourcen $1
@@ -1907,12 +1907,12 @@ exec_d_resbin_params=09028_D_Kalder resourcecompiler "$1" med "$2" som kommandol
 # Executable information
 #
 execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
-execinfo_f_cant_open_executable=09129_F_Kan ikke åbne programmet $1
-execinfo_x_codesize=09130_X_Størrelsen af koden: $1 bytes
-execinfo_x_initdatasize=09131_X_Størrelse af initialiseret data: $1 bytes
-execinfo_x_uninitdatasize=09132_X_Størrelse af uinitialiseret data: $1 bytes
-execinfo_x_stackreserve=09133_X_Reserveret stakstørrelse: $1 bytes
-execinfo_x_stackcommit=09134_X_Brugt stakstørrelse: $1 bytes
+execinfo_f_cant_open_executable=09129_F_Kan ikke Ã¥bne programmet $1
+execinfo_x_codesize=09130_X_StÃ¸rrelsen af koden: $1 bytes
+execinfo_x_initdatasize=09131_X_StÃ¸rrelse af initialiseret data: $1 bytes
+execinfo_x_uninitdatasize=09132_X_StÃ¸rrelse af uinitialiseret data: $1 bytes
+execinfo_x_stackreserve=09133_X_Reserveret stakstÃ¸rrelse: $1 bytes
+execinfo_x_stackcommit=09134_X_Brugt stakstÃ¸rrelse: $1 bytes
 
 #
 # Unit loading
@@ -1928,7 +1928,7 @@ execinfo_x_stackcommit=09134_X_Brugt stakstørrelse: $1 bytes
 unit_t_unitsearch=10000_T_Leder efter unit: $1
 % When you use the \var{-vt}, the compiler tells you where it tries to find
 % unit files.
-unit_t_ppu_loading=10001_T_Indlæser PPU $1
+unit_t_ppu_loading=10001_T_IndlÃ¦ser PPU $1
 % When the \var{-vt} switch is used, the compiler tells you
 % what units it loads.
 unit_u_ppu_name=10002_U_PPU Navn: $1
@@ -1949,7 +1949,7 @@ unit_u_ppu_invalid_version=10008_U_PPU ugyldig version $1
 unit_u_ppu_invalid_processor=10009_U_PPU er kompileret til en anden processor
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=10010_U_PPU er kompileret til et andet mål
+unit_u_ppu_invalid_target=10010_U_PPU er kompileret til et andet mÃ¥l
 % This unit file was compiled for a different target, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Kilde: $1
@@ -1959,7 +1959,7 @@ unit_u_ppu_write=10012_U_Skriver $1
 % writes the unit file.
 unit_f_ppu_cannot_write=10013_F_Kan ikke skrive PPU-fil
 % An error occurred when writing the unit file.
-unit_f_ppu_read_error=10014_F_Fejl under læsning af PPU-fil
+unit_f_ppu_read_error=10014_F_Fejl under lÃ¦sning af PPU-fil
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
 unit_f_ppu_read_unexpected_end=10015_F_PPU-filen sluttede uventet
@@ -1968,7 +1968,7 @@ unit_f_ppu_read_unexpected_end=10015_F_PPU-filen sluttede uventet
 unit_f_ppu_invalid_entry=10016_F_Ugyldigt element $1 i PPU-fil
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
-unit_f_ppu_dbx_count_problem=10017_F_Problem med størrelsen af Dbx i PPU-filen
+unit_f_ppu_dbx_count_problem=10017_F_Problem med stÃ¸rrelsen af Dbx i PPU-filen
 % There is an inconsistency in the debugging information of the unit.
 unit_e_illegal_unit_name=10018_E_Ugyldigt unitnavn: $1
 % The name of the unit does not match the file name.
@@ -1976,43 +1976,43 @@ unit_f_too_much_units=10019_F_For mange units
 % \fpc has a limit of 1024 units in a program. You can change this behavior
 % by changing the \var{maxunits} constant in the \file{fmodule.pas} file of the
 % compiler, and recompiling the compiler.
-unit_f_circular_unit_reference=10020_F_Cirkulær unit-reference mellem $1 og $2
+unit_f_circular_unit_reference=10020_F_CirkulÃ¦r unit-reference mellem $1 og $2
 % Two units are using each other in the interface part. This is only allowed
 % in the \var{implementation} part. At least one unit must contain the other one
 % in the \var{implementation} section.
-unit_f_cant_compile_unit=10021_F_Kan ikke gencompilere $1, ingen kildekode tilgængelig
+unit_f_cant_compile_unit=10021_F_Kan ikke gencompilere $1, ingen kildekode tilgÃ¦ngelig
 % A unit was found that needs to be recompiled, but no sources are
 % available.
 unit_f_cant_find_ppu=10022_F_Kan ikke finde unit'en $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 blev ikke fundet, men $2 findes
-unit_f_unit_name_error=10024_F_Unit $1 blev eftersøgt, men $2 fundet
+unit_f_unit_name_error=10024_F_Unit $1 blev eftersÃ¸gt, men $2 fundet
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
-unit_w_switch_us_missed=10025_W_Compilering af systemunit'en kræver -Us indstillingen
+unit_w_switch_us_missed=10025_W_Compilering af systemunit'en krÃ¦ver -Us indstillingen
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.
 unit_f_errors_in_unit=10026_F_Der var $1 fejl under compileringen af modulet, stopper
 % When the compiler encounters a fatal error or too many errors in a module
 % then it stops with this message.
-unit_u_load_unit=10027_U_Indlæser fra $1 ($2) unit $3
+unit_u_load_unit=10027_U_IndlÃ¦ser fra $1 ($2) unit $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
-unit_u_recompile_crc_change=10028_U_Gencompilerer $1, checksum ændret for $2
+unit_u_recompile_crc_change=10028_U_Gencompilerer $1, checksum Ã¦ndret for $2
 unit_u_recompile_source_found_alone=10029_U_Gencompilerer $1, kun kilden fundet
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
-unit_u_recompile_staticlib_is_older=10030_U_Gencompilerer unit, statisk bibliotek er ældre end PPU-fil
+unit_u_recompile_staticlib_is_older=10030_U_Gencompilerer unit, statisk bibliotek er Ã¦ldre end PPU-fil
 % When you use the \var{-vu} flag, the compiler warns if the static library
 % of the unit are older than the unit file itself.
-unit_u_recompile_sharedlib_is_older=10031_U_Gencompilerer unit, delt bibliotek er ældre end PPU-fil
+unit_u_recompile_sharedlib_is_older=10031_U_Gencompilerer unit, delt bibliotek er Ã¦ldre end PPU-fil
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
-unit_u_recompile_obj_and_asm_older=10032_U_Gencompilerer unit, objekt- og assemblerfil er ældre end PPU-fil
+unit_u_recompile_obj_and_asm_older=10032_U_Gencompilerer unit, objekt- og assemblerfil er Ã¦ldre end PPU-fil
 % When you use the \var{-vu} flag, the compiler warns if the assembler or
 % object file of the unit are older than the unit file itself.
-unit_u_recompile_obj_older_than_asm=10033_U_Gencompilerer unit, objekt-filen er ældre end assemblerfilen
+unit_u_recompile_obj_older_than_asm=10033_U_Gencompilerer unit, objekt-filen er Ã¦ldre end assemblerfilen
 % When you use the \var{-vu} flag, the compiler warns if the assembler
 % file of the unit is older than the object file of the unit.
 unit_u_parsing_interface=10034_U_Parser interfacet af $1
@@ -2021,14 +2021,14 @@ unit_u_parsing_interface=10034_U_Parser interfacet af $1
 unit_u_parsing_implementation=10035_U_Parser implementationen af $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the implementation part of the unit
-unit_u_second_load_unit=10036_U_Anden indlæsning for unit $1
+unit_u_second_load_unit=10036_U_Anden indlÃ¦sning for unit $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
 unit_u_check_time=10037_U_PPU Check filen $1 tid $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kan ikke gencompilere unit $1, men der blev fundet ændrede includefiler
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kan ikke gencompilere unit $1, men der blev fundet Ã¦ndrede includefiler
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
 unit_h_source_modified=10041_H_Filen $1 er nyere end PPU-filen $2 (Release-udgave)
@@ -2039,37 +2039,37 @@ unit_u_ppu_invalid_fpumode=10042_U_Bruger en unit der der ikke er compileret i d
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_Indlæser interface-units fra $1
+unit_u_loading_interface_units=10043_U_IndlÃ¦ser interface-units fra $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the interface part of the unit.
-unit_u_loading_implementation_units=10044_U_Indlæser implementation-units fra $1
+unit_u_loading_implementation_units=10044_U_IndlÃ¦ser implementation-units fra $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the implementation part of the unit.
-unit_u_interface_crc_changed=10045_U_Interface-CRC ændret for unit $1
+unit_u_interface_crc_changed=10045_U_Interface-CRC Ã¦ndret for unit $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated for the interface has been changed after the implementation
 % has been parsed.
-unit_u_implementation_crc_changed=10046_U_Implementation-CRC ændret for unit $1
+unit_u_implementation_crc_changed=10046_U_Implementation-CRC Ã¦ndret for unit $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_Færdiggjorde compileringen af unit $1
+unit_u_finished_compiling=10047_U_FÃ¦rdiggjorde compileringen af unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_Tilføjede afhængighed af $1 til $2
+unit_u_add_depend_to=10048_U_TilfÃ¸jede afhÃ¦ngighed af $1 til $2
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
-unit_u_no_reload_is_caller=10049_U_Ingen genindlæsning, $1 er kalder
+unit_u_no_reload_is_caller=10049_U_Ingen genindlÃ¦sning, $1 er kalder
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is the unit that wants
 % to load this unit
-unit_u_no_reload_in_second_compile=10050_U_Ingen genindlæsning, allerede anden kompilering: $1
+unit_u_no_reload_in_second_compile=10050_U_Ingen genindlÃ¦sning, allerede anden kompilering: $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is already in a second recompile
-unit_u_flag_for_reload=10051_U_Indstillinger for genindlæsning: $1
+unit_u_flag_for_reload=10051_U_Indstillinger for genindlÃ¦sning: $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to reload the unit
-unit_u_forced_reload=10052_U_Tvungen genindlæsning
+unit_u_forced_reload=10052_U_Tvungen genindlÃ¦sning
 % When you use the \var{-vu} flag, the compiler warns that it
 % has is reloading the unit because it was required
 unit_u_previous_state=10053_U_Tidligere tilstand af $1: $2
@@ -2079,10 +2079,10 @@ unit_u_second_compile_unit=10054_U_Compilerer allerede $1, starter anden compile
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_loading_unit=10055_U_Indlæser unit $1
+unit_u_loading_unit=10055_U_IndlÃ¦ser unit $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the unit.
-unit_u_finished_loading_unit=10056_U_Indlæsning af unit $1 færdig
+unit_u_finished_loading_unit=10056_U_IndlÃ¦sning af unit $1 fÃ¦rdig
 % When you use the \var{-vu} flag, the compiler warns that it finished
 % loading the unit.
 unit_u_registering_new_unit=10057_U_Registrering af unit $1
@@ -2091,7 +2091,7 @@ unit_u_registering_new_unit=10057_U_Registrering af unit $1
 unit_u_reresolving_unit=10058_U_Genberegner unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to recalculate the internal data of the unit
-unit_u_skipping_reresolving_unit=10059_U_Springer genberegning over for unit $1, indlæser stadig brugte units
+unit_u_skipping_reresolving_unit=10059_U_Springer genberegning over for unit $1, indlÃ¦ser stadig brugte units
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate
@@ -2110,32 +2110,32 @@ option_usage=11000_O_$1 [indstillinger] <inputfil> [indstillinger]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_Kun én kildefil understøttet
+option_only_one_source_support=11001_W_Kun Ã©n kildefil understÃ¸ttet
 % You can specify only one source file on the command line. The first
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
-option_def_only_for_os2=11002_W_DEF-fil kan kun laves på OS/2
+option_def_only_for_os2=11002_W_DEF-fil kan kun laves pÃ¥ OS/2
 % This option can only be specified when you're compiling for OS/2
-option_no_nested_response_file=11003_E_indlejrede svarfiler ikke understøttet
+option_no_nested_response_file=11003_E_indlejrede svarfiler ikke understÃ¸ttet
 % you cannot nest response files with the \var{@file} command-line option.
-option_no_source_found=11004_F_Ingen kildefil angivet på kommandolinien
+option_no_source_found=11004_F_Ingen kildefil angivet pÃ¥ kommandolinien
 % The compiler expects a source file name on the command line.
 option_no_option_found=11005_N_Ingen indstillinger i konfigurationsfilen $1
 % The compiler didn't find any option in that config file.
 option_illegal_para=11006_E_Ugyldig parameter: $1
 % You specified an unknown option.
-option_help_pages_para=11007_H_-? udskriver hjælpe-beskeder
+option_help_pages_para=11007_H_-? udskriver hjÃ¦lpe-beskeder
 % When an unknown option is given, this message is diplayed.
 option_too_many_cfg_files=11008_F_for mange indlejrede niveauer af konfigurationsfiler
 % You can only nest up to 16 config files.
-option_unable_open_file=11009_F_Kan ikke åbne filen $1
+option_unable_open_file=11009_F_Kan ikke Ã¥bne filen $1
 % The option file cannot be found.
-option_reading_further_from=11010_D_Læser yderligere indstillinger fra $1
+option_reading_further_from=11010_D_LÃ¦ser yderligere indstillinger fra $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
-option_target_is_already_set=11011_W_Mål er allerede sat til: $1
+option_target_is_already_set=11011_W_MÃ¥l er allerede sat til: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=11012_W_Delte biblioteker er ikke understøttet på DOS-platformen, går tilbage til statisk
+option_no_shared_lib_under_dos=11012_W_Delte biblioteker er ikke understÃ¸ttet pÃ¥ DOS-platformen, gÃ¥r tilbage til statisk
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
 option_too_many_ifdef=11013_F_for mange IF(N)DEF
@@ -2144,22 +2144,22 @@ option_too_many_ifdef=11013_F_for mange IF(N)DEF
 option_too_many_endif=11014_F_for mange ENDIFs
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_åbne betingelser i slutningen af filen
+option_too_less_endif=11015_F_Ã¥bne betingelser i slutningen af filen
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_no_debug_support=11016_W_generering af debug-information understøttes ikke at dette programformat
+option_no_debug_support=11016_W_generering af debug-information understÃ¸ttes ikke at dette programformat
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_no_debug_support_recompile_fpc=11017_H_Prøv at gencompilere med -dGDB
+option_no_debug_support_recompile_fpc=11017_H_PrÃ¸v at gencompilere med -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_E_Du bruger $1 der er en forældet indstilling
+option_obsolete_switch=11018_E_Du bruger $1 der er en forÃ¦ldet indstilling
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_E_Du bruger $1 der er en forældet indstilling. Vær venlig at bruge $2
+option_obsolete_switch_use_new=11019_E_Du bruger $1 der er en forÃ¦ldet indstilling. VÃ¦r venlig at bruge $2
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2172,25 +2172,25 @@ option_asm_forced=11022_W_brug af "$1" assembler gennemtvunget
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_using_file=11026_T_Læser indstillinger fra filen $1
+option_using_file=11026_T_LÃ¦ser indstillinger fra filen $1
 % Options are also read from this file
-option_using_env=11027_T_Læser indstillinger fra environment $1
+option_using_env=11027_T_LÃ¦ser indstillinger fra environment $1
 % Options are also read from this environment string
-option_handling_option=11028_D_Håndterer indstilling "$1"
+option_handling_option=11028_D_HÃ¥ndterer indstilling "$1"
 % Debug info that an option is found and will be handled
 option_help_press_enter=11029__*** tryk enter ***
-option_start_reading_configfile=11030_H_Begynder at læse konfigurationsfil $1
+option_start_reading_configfile=11030_H_Begynder at lÃ¦se konfigurationsfil $1
 % Starting of config file parsing.
-option_end_reading_configfile=11031_H_Er færdig med at læse konfigurationsfil $1
+option_end_reading_configfile=11031_H_Er fÃ¦rdig med at lÃ¦se konfigurationsfil $1
 % End of config file parsing.
 option_interpreting_option=11032_D_fortolker indstilling "$1"
-option_interpreting_firstpass_option=11036_D_fortolker indstilling til første gennemløb "$1" 
+option_interpreting_firstpass_option=11036_D_fortolker indstilling til fÃ¸rste gennemlÃ¸b "$1" 
 option_interpreting_file_option=11033_D_fortolker filindstilling "$1"
-option_read_config_file=11034_D_Læser konfigurationsfil "$1"
+option_read_config_file=11034_D_LÃ¦ser konfigurationsfil "$1"
 option_found_file=11035_D_fandt kildefilen "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
-option_code_page_not_available=11039_E_Ukendt tegnsæt
+option_code_page_not_available=11039_E_Ukendt tegnsÃ¦t
 %\end{description}
 # EndOfTeX
 
@@ -2206,29 +2206,29 @@ option_config_is_dir=11040_F_Konfigurationsfilen $1 er et directory
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCVER [$FPCDATE] til $FPCTARGET
-Copyright (c) 1993-2004 Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] til $FPCTARGET
+Copyright (c) 1993-2006 Florian Klaempfl
 ]
 
 #
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler version $FPCVER
+Free Pascal Compiler version $FPCVERSION
 
 Compilerdato     : $FPCDATE
 Compilerplatform : $FPCTARGET
 
-Understøttede platforme:
+UnderstÃ¸ttede platforme:
   $OSTARGETS
 
-Dette program dækkes af reglerne for GNU General Public License
-Læs COPYING.FPC for mere information
+Dette program dÃ¦kkes af reglerne for GNU General Public License
+LÃ¦s COPYING.FPC for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
                  bugrep@freepascal.org
 
-For kommentarer vedrørende den danske oversættelse, skriv til
+For kommentarer vedrÃ¸rende den danske oversÃ¦ttelse, skriv til
                  chrivers@iversen-net.dk
 ]
 
@@ -2253,115 +2253,115 @@ For kommentarer vedrørende den danske oversættelse, skriv til
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_sæt + efter en indstilling for at slå den til, - for at slå den fra
+**0*_sÃ¦t + efter en indstilling for at slÃ¥ den til, - for at slÃ¥ den fra
 **1a_compileren sletter ikke den genererede assemblerfil
 **2al_lav en liste over linienummer fra kildekoden i assemblerfilen
-**2ar_indsæt information om register(de)allokering i assemblerfilen
-**2at_indsæt information om midlertidige allokeringer i assemblerfilen
-**1b_generér browser-information
-**2bl_generér information om lokale symboler
+**2ar_indsÃ¦t information om register(de)allokering i assemblerfilen
+**2at_indsÃ¦t information om midlertidige allokeringer i assemblerfilen
+**1b_generÃ©r browser-information
+**2bl_generÃ©r information om lokale symboler
 **1B_byg alle moduler
 **1C<x>_Indstillinger for kodegenerering
-**2CD_Byg også et dynamisk bibliotek (ikke understøttet)
-**2Ce_Compilér med emulerede kommatalsoperationer
-**2Cf_Vælg hvilket fpu-instruktionssæt der skal bruges
-**2Cg_Generér PIC-kode
-**2Ch<n>_Sæt heapstørrelsen til <n> bytes (mellem 1023 og 67107840)
+**2CD_Byg ogsÃ¥ et dynamisk bibliotek (ikke understÃ¸ttet)
+**2Ce_CompilÃ©r med emulerede kommatalsoperationer
+**2Cf_VÃ¦lg hvilket fpu-instruktionssÃ¦t der skal bruges
+**2Cg_GenerÃ©r PIC-kode
+**2Ch<n>_SÃ¦t heapstÃ¸rrelsen til <n> bytes (mellem 1023 og 67107840)
 **2Ci_IO-checking
 **2Cn_spring link-stadiet over
 **2Co_check overflow af heltalsoperationer
-**2Cr_værdiområdecheck
-**2CR_verificér gyldigheden af objekters metodekald
-**2Cs<n>_set stakstørrelsen til <n>
+**2Cr_vÃ¦rdiomrÃ¥decheck
+**2CR_verificÃ©r gyldigheden af objekters metodekald
+**2Cs<n>_set stakstÃ¸rrelsen til <n>
 **2Ct_stakchecking
-**2CX_byg også et smartlinket bibliotek
+**2CX_byg ogsÃ¥ et smartlinket bibliotek
 **1d<x>_definerer symbolet <x>
 *O1D_genererer en DEF-fil
-*O2Dd<x>_sætter beskrivelsen til <x>
-*O2Dw_PM-program FIXME
-**1e<x>_sæt stien til programmet
+*O2Dd<x>_sÃ¦tter beskrivelsen til <x>
+*O2Dw_PM-applikation
+**1e<x>_sÃ¦t stien til programmet
 **1E_samme som -Cn
-**1F<x>_sæt filnavne og stier:
-**2FD<x>_sætter mappen hvor der søges efter hjælpeprogrammer til compileren
+**1F<x>_sÃ¦t filnavne og stier:
+**2FD<x>_sÃ¦tter mappen hvor der sÃ¸ges efter hjÃ¦lpeprogrammer til compileren
 **2Fe<x>_videresend fejlbeskeder til <x>
-**2FE<x>_sæt exe/unit sti til <x>
-**2Fi<x>_tilføjer <x> til include-stien
-**2Fl<x>_tilføjer <x> til library-stien
+**2FE<x>_sÃ¦t exe/unit sti til <x>
+**2Fi<x>_tilfÃ¸jer <x> til include-stien
+**2Fl<x>_tilfÃ¸jer <x> til library-stien
 *L2FL<x>_bruger <x> som dynamisk linker
-**2Fo<x>_tilføjer <x> til object-stien
-**2Fr<x>_indlæser beskedfilen <x>
-**2Fu<x>_tilføjer <x> til unit-stien
-**2FU<x>_sæt unit-output-stien til <x>, overskriver -FE
-*g1g_Generér debug-information:
+**2Fo<x>_tilfÃ¸jer <x> til object-stien
+**2Fr<x>_indlÃ¦ser beskedfilen <x>
+**2Fu<x>_tilfÃ¸jer <x> til unit-stien
+**2FU<x>_sÃ¦t unit-output-stien til <x>, overskriver -FE
+*g1g_GenerÃ©r debug-information:
 *g2gg_brug gsym
 *g2gd_brug dbx
 *g2gh_brug heap-sporingsunit (til at finde memory leaks)
 *g2gl_brug line-infounit for at vise backtraces
-*g2gc_generér checks for pointere
-*g2gv_generér programmer der kan spores med valgrind
-*g2gw_generér dwarf debug-information
+*g2gc_generÃ©r checks for pointere
+*g2gv_generÃ©r programmer der kan spores med valgrind
+*g2gw_generÃ©r dwarf debug-information
 **1i_information:
 **2iD_returnerer compilerdato
 **2iV_returnerer compilerversion
 **2iSO_returnerer compiler-OS
 **2iSP_returnerer compiler-processor
-**2iTO_returnerer mål-system
-**2iTP_returnerer mål-processor
-**1I<x>_tilføjer <x> til include-stien
+**2iTO_returnerer mÃ¥l-system
+**2iTP_returnerer mÃ¥l-processor
+**1I<x>_tilfÃ¸jer <x> til include-stien
 **1k<x>_videregiv <x> til linkeren
-**1l_skriv logo under kørsel
-**1M<x>_sæt sprogtilstand til <x>
+**1l_skriv logo under kÃ¸rsel
+**1M<x>_sÃ¦t sprogtilstand til <x>
 **2Mfpc_free pascal dialekt (standard)
-**2Mobjfpc_slå visse udvidelser fra Delphi 2 til
-**2Mdelphi_forsøg at være Delphi-kompatibel
-**2Mtp_forsøg at være Turbo/Borland Pascal 7.0-kompatibel
-**2Mgpc_forsøg at være GNU-Pascal-kompatibel
-**2Mmacpas_forsøg at være kompatibel med pascal-dialekter fra macintosh 
-**1n_spring læsning af standardkonfigurationsfil over
-**1o<x>_ændr navnet af det producerede program til <x>
-**1pg_generér profileringskode til gprof (definerer FPC_PROFILE)
+**2Mobjfpc_slÃ¥ visse udvidelser fra Delphi 2 til
+**2Mdelphi_forsÃ¸g at vÃ¦re Delphi-kompatibel
+**2Mtp_forsÃ¸g at vÃ¦re Turbo/Borland Pascal 7.0-kompatibel
+**2Mgpc_forsÃ¸g at vÃ¦re GNU-Pascal-kompatibel
+**2Mmacpas_forsÃ¸g at vÃ¦re kompatibel med pascal-dialekter fra macintosh 
+**1n_spring lÃ¦sning af standardkonfigurationsfil over
+**1o<x>_Ã¦ndr navnet af det producerede program til <x>
+**1pg_generÃ©r profileringskode til gprof (definerer FPC_PROFILE)
 *L1P_brug pipes i stedet for midlertidige assembler-filer
 **1S<x>_Syntaxindstillinger:
 **2S2_samme som -Mobjfpc
-**2Sc_understøttet operatorer som i C (*=,+=,/= and -=)
+**2Sc_understÃ¸ttet operatorer som i C (*=,+=,/= and -=)
 **2Sa_bruger assertion-kode
 **2Sd_samme som -Mdelphi
-**2Se<x>_compileren stopper efter den <x>te fejl (standard er efter første fejl)
+**2Se<x>_compileren stopper efter den <x>te fejl (standard er efter fÃ¸rste fejl)
 **2Sg_tillad LABEL og GOTO
 **2Sh_brug ansistrenge
 **2Si_brug C++-lignende INLINE
-**2Sm_understøt makroer som I C (globalt)
+**2Sm_understÃ¸t makroer som I C (globalt)
 **2So_samme som -Mtp
 **2Sp_samme som -Mgpc
-**2Ss_constructor-navn skal være "init" (destructor-navn skal være "done")
-**2St_tillad nøgleordet static i objekter
-**1s_kør hverken assembler eller linker
-**2sh_generér script til linkning på værtscomputeren
-**2st_generér script til linkning på mål-computeren
-**2sr_spring registerallokerings-fasen over (optimeringer vil være slået fra)
+**2Ss_constructor-navn skal vÃ¦re "init" (destructor-navn skal vÃ¦re "done")
+**2St_tillad nÃ¸gleordet static i objekter
+**1s_kÃ¸r hverken assembler eller linker
+**2sh_generÃ©r script til linkning pÃ¥ vÃ¦rtscomputeren
+**2st_generÃ©r script til linkning pÃ¥ mÃ¥l-computeren
+**2sr_spring registerallokerings-fasen over (optimeringer vil vÃ¦re slÃ¥et fra)
 **1u<x>_fjerner definitionen af symbolet <x>
 **1U_Unit-indstillinger:
-**2Un_undersøg ikke om unit-navnet er korrekt
-**2Ur_generér release-unit-filer
-**2Us_compilér en system-enhed
-**1v<x>_Ekstra information. <x> er en kombination af følgende bogstaver:
+**2Un_undersÃ¸g ikke om unit-navnet er korrekt
+**2Ur_generÃ©r release-unit-filer
+**2Us_compilÃ©r en system-enhed
+**1v<x>_Ekstra information. <x> er en kombination af fÃ¸lgende bogstaver:
 **2*_e : Vis fejl (standard)         d : Vis debug-information
 **2*_w : Vis advarsler               u : Vis unit-information
-**2*_n : Vis bemærkninger            t : Vis forsøgte/benyttede filer
+**2*_n : Vis bemÃ¦rkninger            t : Vis forsÃ¸gte/benyttede filer
 **2*_h : Vis hints                   m : Vis definerede makroer
 **2*_i : Vis generel information     p : Vis kompilerede procedurer
 **2*_l : Vis linienumre              c : Vis betingelser
 **2*_a : Vis alt                     0 : Vis intet (bortset fra fejl)
 **2*_b : Vis alle procedure-         r : Rhide/GCC kompatabilitetstilstand
-**2*_    erklæringer hvis der        x : Programinformation (kun på windows)
-**2*_    opstår en fejl
-**1V_skriv filen fpcdebug.txt med store mængder debug-information
+**2*_    erklÃ¦ringer hvis der        x : Programinformation (kun pÃ¥ windows)
+**2*_    opstÃ¥r en fejl
+**1V_skriv filen fpcdebug.txt med store mÃ¦ngder debug-information
 *L2Xc_link med c-biblioteket
 **2Xs_fjern alle symboler fra programfilen
-**2XP<x>_sæt <x> foran binutils-filnavnene
-**2XD_forsøg at linke dynamisk           (definerer FPC_LINK_DYNAMIC)
-**2XS_forsøg at linke statisk (standard) (definerer FPC_LINK_STATIC)
-**2XX_forsøg at linke intelligent        (definerer FPC_LINK_SMART)
+**2XP<x>_sÃ¦t <x> foran binutils-filnavnene
+**2XD_forsÃ¸g at linke dynamisk           (definerer FPC_LINK_DYNAMIC)
+**2XS_forsÃ¸g at linke statisk (standard) (definerer FPC_LINK_STATIC)
+**2XX_forsÃ¸g at linke intelligent        (definerer FPC_LINK_SMART)
 **0*_Processor-specifikke indstillinger:
 3*1A<x>_Udfilformat:
 3*2Aas_brug GNU AS som assembler
@@ -2373,23 +2373,23 @@ option_help_pages=11025_[
 3*2Atasm_brug Tasm til at lave en obj-fil (Borland)
 3*2Acoff_brug intern filgenerator til at lave coff-fil (Go32v2)
 3*2Apecoff_brug intern filgenerator til at lave pecoff-fil (Win32)
-3*1R<x>_Læsestil for assembler:
-3*2Ratt_Læs assemblerkode i AT&T-stil
-3*2Rintel_Læs assemblerkode i Intel-stil
+3*1R<x>_LÃ¦sestil for assembler:
+3*2Ratt_LÃ¦s assemblerkode i AT&T-stil
+3*2Rintel_LÃ¦s assemblerkode i Intel-stil
 3*2Rdirect_Kopier assemblerkoden direkte ind i assemblerkildefilen
 3*1O<x>_Optimeringer:
-3*2Og_generér lille kode
-3*2OG_generér hurtig kode (standard)
+3*2Og_generÃ©r lille kode
+3*2OG_generÃ©r hurtig kode (standard)
 3*2Or_gem visse variabler i registre
-3*2Ou_slå usikre optimeringer til (se dokumentation)
+3*2Ou_slÃ¥ usikre optimeringer til (se dokumentation)
 3*2O1_niveau-1 optimeringer (hurtige optimeringer)
 3*2O2_niveau-2 optimeringer (-O1 + langsommere optimeringer)
-3*2O3_niveau-3 optimeringer (-O2 gentaget, højst 5 gange)
-3*2Op<x>_Målprocessor:
-3*3Op1_sæt målprocessor til 386/486
-3*3Op2_sæt målprocessor til Pentium/PentiumMMX (tm)
-3*3Op3_sæt målprocessor til PPro/PII/c6x86/K6 (tm)
-3*1T<x>_Mål-operativsystem:
+3*2O3_niveau-3 optimeringer (-O2 gentaget, hÃ¸jst 5 gange)
+3*2Op<x>_MÃ¥lprocessor:
+3*3Op1_sÃ¦t mÃ¥lprocessor til 386/486
+3*3Op2_sÃ¦t mÃ¥lprocessor til Pentium/PentiumMMX (tm)
+3*3Op3_sÃ¦t mÃ¥lprocessor til PPro/PII/c6x86/K6 (tm)
+3*1T<x>_MÃ¥l-operativsystem:
 3*2Temx_OS/2 via EMX (bruger EMX/RSX extender)
 3*2Tgo32v2_Version 2 af DJ Delorie DOS extender
 3*2Tlinux_Linux
@@ -2400,45 +2400,45 @@ option_help_pages=11025_[
 3*2Twatcom_Watcom kompatibel DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
-3*1W<x>_Indstillinger for Win32-lignende mål:
-3*2WB<x>_sæt image base til <x> (hexadecimal)
-3*2WC_specificér konsolprogram
+3*1W<x>_Indstillinger for Win32-lignende mÃ¥l:
+3*2WB<x>_sÃ¦t image base til <x> (hexadecimal)
+3*2WC_specificÃ©r konsolprogram
 3*2WD_brug DEFFILE til at eksportere funktioner fra DLL eller EXE
-3*2WF_specificér grafisk fuldskærmsprogram (kun OS/2)
-3*2WG_specificér grafisk programtype
-3*2WN_lav ikke-relokérbar kode (nødvendig til debugging)
-3*2WR_lav relokérbar kode
+3*2WF_specificÃ©r grafisk fuldskÃ¦rmsprogram (kun OS/2)
+3*2WG_specificÃ©r grafisk programtype
+3*2WN_lav ikke-relokÃ©rbar kode (nÃ¸dvendig til debugging)
+3*2WR_lav relokÃ©rbar kode
 6*1A<x>_Udfilformat
 6*2Aas_Brug GNU AS til at lave Unix o-filer
 6*2Agas_GNU Motorola assembler
 6*2Amit_MIT Syntax (old GAS)
 6*2Amot_Standard Motorola assembler
 6*1O_Optimeringer:
-6*2Oa_slå optimeringer til
-6*2Og_generér lille kode
-6*2OG_generér hurtig kode (standard)
+6*2Oa_slÃ¥ optimeringer til
+6*2Og_generÃ©r lille kode
+6*2OG_generÃ©r hurtig kode (standard)
 6*2Ox_optimer maksimalt (stadig ikke fejlfri!!)
-6*2O0_sæt målprocessor til MC68000
-6*2O2_sæt målprocessor til MC68020+ (standard)
-6*1R<x>_Læsestil for assembleren:
-6*2RMOT_Læs assemblerkode i motorola-stil
-6*1T<x>_Mål-operativsystem:
+6*2O0_sÃ¦t mÃ¥lprocessor til MC68000
+6*2O2_sÃ¦t mÃ¥lprocessor til MC68020+ (standard)
+6*1R<x>_LÃ¦sestil for assembleren:
+6*2RMOT_LÃ¦s assemblerkode i motorola-stil
+6*1T<x>_MÃ¥l-operativsystem:
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux-68k
-6*2Tmacos_Macintosh m68k (ikke understøttet)
+6*2Tmacos_Macintosh m68k (ikke understÃ¸ttet)
 6*2Tpalmos_PalmOS
-P*1T<x>_Mål-operativsystem:
-P*2Tdarwin_Darwin og MacOS X på PowerPC
-P*2Tlinux_Linux på PowerPC
-P*2Tmacos_MacOS (klassisk) på PowerPC
+P*1T<x>_MÃ¥l-operativsystem:
+P*2Tdarwin_Darwin og MacOS X pÃ¥ PowerPC
+P*2Tlinux_Linux pÃ¥ PowerPC
+P*2Tmacos_MacOS (klassisk) pÃ¥ PowerPC
 P*2Tmorphos_MorphOS
-P*2WC_Vælg konsoleapplikation (MacOS only)
-P*2WG_Vælg grafisk applikation (MacOS only)
-P*2WT_Vælg værktøjsapplikation (MPW tool, MacOS only)
+P*2WC_VÃ¦lg konsoleapplikation (MacOS only)
+P*2WG_VÃ¦lg grafisk applikation (MacOS only)
+P*2WT_VÃ¦lg vÃ¦rktÃ¸jsapplikation (MPW tool, MacOS only)
 **1*_
-**1?_vis denne hjælp
-**1h_vis denne hjælp uden at vente på tastetryk
+**1?_vis denne hjÃ¦lp
+**1h_vis denne hjÃ¦lp uden at vente pÃ¥ tastetryk
 ]
 
 #
@@ -2458,38 +2458,38 @@ P*2WT_Vælg værktøjsapplikation (MPW tool, MacOS only)
 % reserved words, strings, etc. It also takes care of directives and
 % conditional compiling handling.
 % \begin{description}
-%%% scan_w_only_pack_records=02015_W_Strukturfelter kan kun opstilles på 1,2,4,8,16 eller 32 bytes
+%%% scan_w_only_pack_records=02015_W_Strukturfelter kan kun opstilles pÃ¥ 1,2,4,8,16 eller 32 bytes
 % You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
 % \var{n}. Only 1, 2, 4, 8, 16 and 32 are valid in this case.
 %%% scan_w_only_pack_enum=02016_W_Enumerate-typer kan kun gemmes i 1,2 eller 4 bytes
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
-%%% scan_w_macro_deep_ten=02030_W_Makroudvidelse har en dybdegrænse på 16 niveauer
+%%% scan_w_macro_deep_ten=02030_W_Makroudvidelse har en dybdegrÃ¦nse pÃ¥ 16 niveauer
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-%%% parser_e_no_local_external=03174_E_Kan ikke erklære lokal procedure som EXTERNAL
+%%% parser_e_no_local_external=03174_E_Kan ikke erklÃ¦re lokal procedure som EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
-%%% parser_e_too_complex_expr=03202_E_Udtryk for komplekst - stakoverløb på FPU
+%%% parser_e_too_complex_expr=03202_E_Udtryk for komplekst - stakoverlÃ¸b pÃ¥ FPU
 % Your expression is too long for the compiler. You should try dividing the
 % construct over multiple assignments.
-%%% sym_n_uninitialized_local_variable=05036_W_Lokal variabel "$1" ser ikke ud til at være initialiseret
+%%% sym_n_uninitialized_local_variable=05036_W_Lokal variabel "$1" ser ikke ud til at vÃ¦re initialiseret
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-%%% sym_n_uninitialized_variable=05037_W_Variablen "$1" ser ikke ud til at være initialiseret
+%%% sym_n_uninitialized_variable=05037_W_Variablen "$1" ser ikke ud til at vÃ¦re initialiseret
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-%%% unit_h_cond_not_set_in_last_compile=10038_H_Betingelsen $1 var slået fra ved sidste compilering af $2
+%%% unit_h_cond_not_set_in_last_compile=10038_H_Betingelsen $1 var slÃ¥et fra ved sidste compilering af $2
 % when recompilation of an unit is required the compiler will check that
 % the same conditionals are set for the recompiliation. The compiler has
 % found a conditional that currently is defined, but was not used the last
 % time the unit was compiled.
-%%% unit_h_cond_set_in_last_compile=10039_H_Betingelsen $1 var slået til ved sidste compilering af $2
+%%% unit_h_cond_set_in_last_compile=10039_H_Betingelsen $1 var slÃ¥et til ved sidste compilering af $2
 % when recompilation of an unit is required the compiler will check that
 % the same conditionals are set for the recompiliation. The compiler has
 % found a conditional that was used the last time the unit was compiled, but
