@@ -2278,7 +2278,7 @@ option_help_pages=11025_[
 **1d<x>_definerer symbolet <x>
 *O1D_genererer en DEF-fil
 *O2Dd<x>_sætter beskrivelsen til <x>
-*O2Dw_PM-program FIXME
+*O2Dw_PM-applikation
 **1e<x>_sæt stien til programmet
 **1E_samme som -Cn
 **1F<x>_sæt filnavne og stier:
