@@ -1492,10 +1492,27 @@ begin
         begin
         ExpectToken(tkSemicolon);
         end 
-      else if (UpperCase(CurTokenString) = 'EXTERNAL') then  
+      else if (tok = 'EXTERNAL') then  
         repeat
           NextToken;
         until CurToken = tkSemicolon
+      else if (tok = 'PUBLIC') then  
+        begin
+          NextToken; 
+          { Should be token Name, 
+            if not we're in a class and the public section starts }
+          If (Uppercase(CurTokenString)<>'NAME') then
+            begin
+            UngetToken;
+            UngetToken;
+            Break;
+            end
+          else
+            begin  
+            NextToken;  // Should be export name string.
+            ExpectToken(tkSemicolon);
+            end;
+        end
       else
         begin
         UnGetToken;
