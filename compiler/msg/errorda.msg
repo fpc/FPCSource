@@ -7,7 +7,7 @@
 #
 #   Translation by Christian Iversen <chrivers@iversen-net.dk>
 #
-#   This file is encoded in UTF-8
+#   This file is encoded in UTF-8, and based on r4084 of errore.eng
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
