@@ -275,6 +275,8 @@ type
     odt_class,
     odt_object,
     odt_interfacecom,
+    odt_interfacecom_property,
+    odt_interfacecom_function,
     odt_interfacecorba,
     odt_cppclass,
     odt_dispinterface
@@ -314,7 +316,8 @@ type
     ppo_defaultproperty,
     ppo_stored,
     ppo_hasparameters,
-    ppo_is_override
+    ppo_is_override,
+    ppo_implements
   );
   tpropertyoptions=set of tpropertyoption;
 
