@@ -109,7 +109,8 @@ unit mmx;
          _edx : longint;
 
       begin
-         if cpuid_support then
+         { are there third party cpus supporting amd 3d instructions? }
+         if cpuid_support and (getdevel=10) then
            begin
               asm
                  movl $0x80000001,%eax
@@ -129,7 +130,8 @@ unit mmx;
          _edx : longint;
 
       begin
-         if cpuid_support then
+         { are there third party cpus supporting amd dsp instructions? }
+         if cpuid_support and (getdevel=10) then
            begin
               asm
                  movl $0x80000001,%eax
@@ -149,7 +151,8 @@ unit mmx;
          _edx : longint;
 
       begin
-         if cpuid_support then
+         { are there third party cpus supporting amd mmx instructions? }
+         if cpuid_support and (getdevel=10) then
            begin
               asm
                  movl $0x80000001,%eax
@@ -212,8 +215,8 @@ unit mmx;
     procedure femms;assembler;
 
       asm
-          .byte 0x0f, 0x0e
-{         femms instruction not supported with older as versions }
+        { femms instruction not supported with older as versions }
+        .byte 0x0f, 0x0e
       end;
 
 
