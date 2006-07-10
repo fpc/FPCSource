@@ -583,6 +583,15 @@ implementation
            begin
               p.default:=longint($80000000);
            end;
+         { Parse possible "implements" keyword }
+         if try_to_consume(_IMPLEMENTS) then
+         begin
+           consume(_ID);
+           writeln('Implements [', pattern, ']');
+           if not is_interface(p.proptype.def) then
+             writeln('Implements property must have interface type'); //FIXME: will be converted to proper message()
+         end;
+                  
          { remove temporary procvardefs }
          readprocdef.free;
          writeprocdef.free;
