@@ -1345,7 +1345,8 @@ implementation
           pointerdef :
             insertdef(list,tpointerdef(def).pointertype.def);
           setdef :
-            insertdef(list,tsetdef(def).elementtype.def);
+            if assigned(tsetdef(def).elementtype.def) then
+              insertdef(list,tsetdef(def).elementtype.def);
           procvardef:
             begin
               insertdef(list,tprocvardef(def).rettype.def);
