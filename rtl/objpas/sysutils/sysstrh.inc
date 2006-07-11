@@ -108,7 +108,6 @@ function TryStrToInt(const s: string; var i : integer) : boolean;
 function StrToInt64(const s: string): int64;
 function TryStrToInt64(const s: string; var i : int64) : boolean;
 function StrToQWord(const s: string): QWord;
-function TryStrQWord(const s: string; var Q : QWord) : boolean;
 function TryStrToQWord(const s: string; var Q : QWord) : boolean;
 function StrToIntDef(const S: string; Default: integer): integer;
 function StrToInt64Def(const S: string; Default: int64): int64;
