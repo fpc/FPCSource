@@ -795,11 +795,6 @@ begin
 end;
 
 
-function TryStrQWord(const s: string; var Q: QWord): boolean;
-begin
-  Result:=TryStrToQWord(S,Q);
-end;
-
 function TryStrToQWord(const s: string; var Q: QWord): boolean;
 var Error : word;
 begin
