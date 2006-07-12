@@ -46,7 +46,7 @@ const
   CPUTarget: String = {$I %FPCTARGETCPU%};
 
 var
-  InputFiles, DescrFiles: TStringList;
+  EmittedList,InputFiles, DescrFiles: TStringList;
   DocLang: String;
   Engine: TSkelEngine;
   UpdateMode,
@@ -56,7 +56,7 @@ var
   DisableProtected,
   DisablePrivate,
   DisableFunctionResults: Boolean;
-
+ 
   EmitClassSeparator: Boolean;
   PackageName, OutputName: String;
   f: Text;
@@ -73,7 +73,8 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
             (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
             (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement)) and
             (not DisablePrivate or (AVisibility<>visPrivate)) and
-            (not DisableProtected or (AVisibility<>visProtected));
+            (not DisableProtected or (AVisibility<>visProtected)) and
+            (Not Assigned(EmittedList) or (EmittedList.IndexOf(APasElement.FullName)=-1));
     If Result and updateMode then
       begin
       Result:=FindDocNode(APasElement)=Nil;
@@ -123,6 +124,7 @@ begin
     end
   else if WriteThisNode(Result) then
     begin
+    EmittedList.Add(Result.FullName); // So we don't emit again.
     WriteLn(f);
     if EmitClassSeparator and (Result.ClassType = TPasClassType) then
       begin
@@ -160,6 +162,8 @@ procedure InitOptions;
 begin
   InputFiles := TStringList.Create;
   DescrFiles := TStringList.Create;
+  EmittedList:=TStringList.Create;
+  EmittedList.Sorted:=True;
 end;
 
 procedure FreeOptions;
@@ -236,7 +240,7 @@ begin
     DisableProtected := True;
     DisablePrivate :=True;
     end
-  else if s = '--emitclassseparator' then
+  else if (s = '--emitclassseparator') or (s='--emit-class-separator') then
     EmitClassSeparator := True
   else
   begin
@@ -344,7 +348,9 @@ begin
            For J:=0 to DescrFiles.Count-1 do
              Engine.AddDocFile(DescrFiles[J]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
+         WriteLn(f, '');
          WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
+         WriteLn(f, '');
        except
         on e:EFileNotFoundError do
            begin
