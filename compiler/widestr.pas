@@ -154,8 +154,13 @@ unit widestr;
       var
          m : punicodemap;
       begin
-         m:=getmap(aktsourcecodepage);
-         asciichar2unicode:=getunicode(c,m);
+         if (aktsourcecodepage <> 'utf8') then
+           begin
+             m:=getmap(aktsourcecodepage);
+             asciichar2unicode:=getunicode(c,m);
+           end
+         else
+           result:=tcompilerwidechar(c);
       end;
 
     function unicode2asciichar(c : tcompilerwidechar) : char;
@@ -177,11 +182,23 @@ unit widestr;
          source:=p;
          r^.len:=l;
          dest:=tcompilerwidecharptr(r^.data);
-         for i:=1 to l do
+         if (aktsourcecodepage <> 'utf8') then
            begin
-              dest^:=getunicode(source^,m);
-              inc(dest);
-              inc(source);
+             for i:=1 to l do
+                begin
+                  dest^:=getunicode(source^,m);
+                  inc(dest);
+                  inc(source);
+                end;
+           end
+         else
+           begin
+             for i:=1 to l do
+                begin
+                  dest^:=tcompilerwidechar(source^);
+                  inc(dest);
+                  inc(source);
+                end;
            end;
       end;
 
