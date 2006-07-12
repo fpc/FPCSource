@@ -788,8 +788,25 @@ implementation
                  exit;
                end;
 
+              { set for & and | operations in macpas mode: they only work on }
+              { booleans, and always short circuit evaluation                }
+              if (nf_short_bool in flags) then
+                begin
+                  if not is_boolean(ld) then
+                    begin
+                      inserttypeconv(left,booltype);
+                      ld := left.resulttype.def;
+                    end;
+                  if not is_boolean(rd) then
+                    begin
+                      inserttypeconv(right,booltype);
+                      rd := right.resulttype.def;
+                    end;
+                end;
+
              { 2 booleans? Make them equal to the largest boolean }
-             if is_boolean(ld) and is_boolean(rd) then
+             if (is_boolean(ld) and is_boolean(rd)) or
+                (nf_short_bool in flags) then
               begin
                 if torddef(left.resulttype.def).size>torddef(right.resulttype.def).size then
                  begin
@@ -816,7 +833,8 @@ implementation
                   unequaln,
                   equaln:
                     begin
-                      if not(cs_full_boolean_eval in aktlocalswitches) then
+                      if not(cs_full_boolean_eval in aktlocalswitches) or
+                         (nf_short_bool in flags) then
                        begin
                          { Remove any compares with constants }
                          if (left.nodetype=ordconstn) then
@@ -1893,7 +1911,8 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                if not(cs_full_boolean_eval in aktlocalswitches) and
+                if (not(cs_full_boolean_eval in aktlocalswitches) or
+                    (nf_short_bool in flags)) and
                    (nodetype in [andn,orn]) then
                  begin
                    expectloc:=LOC_JUMP;

@@ -2545,10 +2545,18 @@ implementation
                  p1:=cisnode.create(p1,p2);
                _OP_OR,
                _PIPE {macpas only} :
-                 p1:=caddnode.create(orn,p1,p2);
+                 begin
+                   p1:=caddnode.create(orn,p1,p2);
+                   if (oldt = _PIPE) then
+                     include(p1.flags,nf_short_bool);
+                 end;
                _OP_AND,
                _AMPERSAND {macpas only} :
-                 p1:=caddnode.create(andn,p1,p2);
+                 begin
+                   p1:=caddnode.create(andn,p1,p2);
+                   if (oldt = _AMPERSAND) then
+                     include(p1.flags,nf_short_bool);
+                 end;
                _OP_DIV :
                  p1:=cmoddivnode.create(divn,p1,p2);
                _OP_NOT :

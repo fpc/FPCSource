@@ -379,7 +379,8 @@ interface
         { And,Or will only evaluate from left to right only the
           needed nodes unless full boolean evaluation is enabled }
         if (nodetype in [orn,andn]) and
-           not(cs_full_boolean_eval in aktlocalswitches) then
+           (not(cs_full_boolean_eval in aktlocalswitches) or
+            (nf_short_bool in flags)) then
           begin
             location_reset(location,LOC_JUMP,OS_NO);
             case nodetype of
