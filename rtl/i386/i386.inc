@@ -55,9 +55,11 @@ function sse_support : boolean;
     if cpuid_support then
      begin
         asm
+          pushl %ebx
           movl $1,%eax
           cpuid
           movl %edx,_edx
+          popl %ebx          
         end;
         sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
      end
@@ -77,9 +79,11 @@ function mmx_support : boolean;
      if cpuid_support then
        begin
           asm
+             pushl %ebx
              movl $1,%eax
              cpuid
              movl %edx,_edx
+             popl %ebx            
           end;
           mmx_support:=(_edx and $800000)<>0;
        end
