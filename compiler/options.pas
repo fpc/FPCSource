@@ -1711,6 +1711,8 @@ begin
         end;
       'V' :
         AddInfo(version_string);
+      'W' :
+        AddInfo(full_version_string);
       'D' :
         AddInfo(date_string);
       '_' :
