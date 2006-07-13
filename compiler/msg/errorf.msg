@@ -1730,7 +1730,7 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
 Report bugs,suggestions etc to:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #

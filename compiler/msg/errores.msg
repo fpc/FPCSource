@@ -2136,7 +2136,7 @@ Este programa esta bajo la licencia GNU General Public Licence
 Para mas informació lea COPYING.FPC
 
 Para informar de errores, sugerencias, etc:
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #

@@ -2142,7 +2142,7 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.FPC aby dowiedzie† si© wi©cej
 
 Zgˆaszanie bˆ©d¢w, sugestii itp.
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 ]
 
 #
