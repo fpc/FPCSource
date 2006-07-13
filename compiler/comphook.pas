@@ -158,7 +158,7 @@ implementation
 {$IFNDEF USE_SYSUTILS}
    dos,
 {$ENDIF USE_SYSUTILS}
-   cutils
+   cutils, systems
    ;
 
 {****************************************************************************
@@ -173,7 +173,11 @@ begin
    begin
      case s[i] of
       '\' : gccfilename[i]:='/';
- 'A'..'Z' : gccfilename[i]:=chr(ord(s[i])+32);
+ 'A'..'Z' : if not (tf_files_case_aware in source_info.flags) and
+               not (tf_files_case_sensitive in source_info.flags) then
+              gccfilename[i]:=chr(ord(s[i])+32)
+            else
+              gccfilename[i]:=s[i];
      else
       gccfilename[i]:=s[i];
      end;
@@ -307,9 +311,9 @@ begin
           begin
             hs:=status.currentsource+'('+tostr(status.currentline)+
               ','+tostr(status.currentcolumn)+') '+hs+' '+s;
-            if status.print_source_path then
-              hs:=status.currentsourcepath+hs;
           end;
+        if status.print_source_path then
+          hs:=status.currentsourcepath+hs;
       end
      else
       begin
