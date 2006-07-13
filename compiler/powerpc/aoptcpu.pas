@@ -97,8 +97,8 @@ const
 
   function TCpuAsmOptimizer.cmpi_mfcr_opt(p, next1, next2: taicpu): boolean;
     var
-      next3: tai;
-      inverse: boolean;  
+      next3, prev: tai;
+      inverse, prevrlwinm: boolean;
     begin
       result := true;
       inverse :=
@@ -106,7 +106,8 @@ const
         (next3.typ = ait_instruction) and
         (taicpu(next3).opcode = A_XORI) and
         (taicpu(next3).oper[0]^.reg = taicpu(next3).oper[1]^.reg) and
-        (taicpu(next3).oper[0]^.reg = taicpu(next2).oper[0]^.reg);
+        (taicpu(next3).oper[0]^.reg = taicpu(next2).oper[0]^.reg) and
+        (taicpu(next3).oper[2]^.val = 1);
       case taicpu(next2).oper[2]^.val of
         1:
          begin
@@ -136,18 +137,65 @@ const
 }
         3:
          begin
-           // equal/not equal to zero (the xori remains in the latter case;
-           // there's a more optimal sequence without it, but needs extra
-           // register)
-           p.opcode := A_CNTLZW;
-           p.loadreg(1,p.oper[0]^.reg);
-           p.loadreg(0,next1.oper[0]^.reg);
-           next1.ops := 3;
-           next1.opcode := A_SRWI;
-           next1.loadreg(1,next1.oper[0]^.reg);
-           next1.loadconst(2,5);
-           asml.remove(next2);
-           next2.free;
+           prevrlwinm :=
+             getlastinstruction(p,prev) and
+             (prev.typ = ait_instruction) and
+             ((taicpu(prev).opcode = A_RLWINM) or
+              (taicpu(prev).opcode = A_RLWINM_)) and
+             (taicpu(prev).oper[0]^.reg = p.oper[0]^.reg) and
+             (taicpu(prev).oper[3]^.val = taicpu(prev).oper[4]^.val);
+
+           if (prevrlwinm) then
+             begin
+               // isolate the bit we need
+               if (taicpu(prev).oper[3]^.val <> 31) then
+                 begin
+                   p.opcode := A_RLWINM;
+                   p.ops := 5;
+                   p.loadreg(1,p.oper[0]^.reg);
+                   p.loadreg(0,next1.oper[0]^.reg);
+                   p.loadconst(2,taicpu(prev).oper[3]^.val + 1);
+                   p.loadconst(3,31);
+                   p.loadconst(4,31);
+                 end
+               else { if (taicpu(prev).oper[0]^.reg <> next1.oper[0]^.reg) then }
+                 begin
+                   p.opcode := A_MR;
+                   p.loadreg(1,p.oper[0]^.reg);
+                   p.loadreg(0,next1.oper[0]^.reg);
+                 end;
+               if not inverse then
+                 begin
+                   next1.ops := 3;
+                   next1.opcode := A_XORI;
+                   next1.loadreg(1,next1.oper[0]^.reg);
+                   next1.loadconst(2,1);
+                 end
+               else
+                 begin
+                   asml.remove(next1);
+                   next1.free;
+                   asml.remove(next3);
+                   next3.free;
+                 end;
+               asml.remove(next2);
+               next2.free;
+             end
+           else
+             begin
+                // equal/not equal to zero (the xori remains in the latter case;
+                // there's a more optimal sequence without it, but needs extra
+                // register)
+                p.opcode := A_CNTLZW;
+                p.loadreg(1,p.oper[0]^.reg);
+                p.loadreg(0,next1.oper[0]^.reg);
+                next1.ops := 3;
+                next1.opcode := A_SRWI;
+                next1.loadreg(1,next1.oper[0]^.reg);
+                next1.loadconst(2,5);
+                asml.remove(next2);
+                next2.free;
+              end;
          end;
         else
           result := false;
@@ -217,7 +265,9 @@ const
                 begin
                   if getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
-                     (taicpu(next1).opcode = A_RLWINM) and
+                     ((taicpu(next1).opcode = A_RLWINM) or
+                      (taicpu(next1).opcode = A_SLWI) or
+                      (taicpu(next1).opcode = A_SRWI)) and
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
                      (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
                     begin
@@ -236,7 +286,8 @@ const
                   if getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
                      ((taicpu(next1).opcode = A_SLWI) or
-                      (taicpu(next1).opcode = A_RLWINM)) and
+                      (taicpu(next1).opcode = A_RLWINM) or
+                      (taicpu(next1).opcode = A_SRWI)) and
                      (taicpu(next1).oper[0]^.reg = taicpu(p).oper[0]^.reg) and
                      (taicpu(next1).oper[1]^.reg = taicpu(p).oper[0]^.reg) then
                     case taicpu(next1).opcode of
