@@ -225,8 +225,9 @@ interface
 
        parinfo = ^tarinfo;
        tarinfo = record
-          id      : tar;
-          arcmd   : string[50];
+          id          : tar;
+          arcmd       : string[50];
+          arfinishcmd : string[10];
        end;
 
        presinfo = ^tresinfo;

@@ -596,7 +596,13 @@ Implementation
 {$ifdef hasunix}
         if DoPipe then
          begin
-           Message1(exec_i_assembling_pipe,asmfile);
+           if SmartAsm then
+            begin
+              if (SmartFilesCount<=1) then
+               Message1(exec_i_assembling_smart,name);
+            end
+           else
+             Message1(exec_i_assembling_pipe,asmfile);
            POpen(outfile,FindAssembler+' '+MakeCmdLine,'W');
          end
         else
