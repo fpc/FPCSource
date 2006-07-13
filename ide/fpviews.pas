@@ -4094,7 +4094,7 @@ begin
   Insert(New(PStaticText, Init(R2, ^C'With Graphic Support')));
   R2.Move(0,1);
 {$endif USE_GRAPH_SWITCH}
-  Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_compilerversion,Version_String))));
+  Insert(New(PStaticText, Init(R2, FormatStrStr2(^C'(%s %s)',label_about_compilerversion,Full_Version_String))));
 {$ifndef NODEBUG}
   if pos('Fake',GDBVersion)=0 then
     begin
@@ -4105,7 +4105,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2005 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2006 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);
