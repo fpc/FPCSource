@@ -46,6 +46,46 @@ function ord4(l: longint): longint; {$ifdef systeminline}inline;{$endif}
 function ord4(c: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
 function ord4(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
 
+function BAnd(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+function BAnd(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BAnd(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+function BAnd(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+
+function BOr(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+function BOr(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BOr(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+function BOr(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+
+function BXor(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+function BXor(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BXor(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+function BXor(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+
+function Bsr(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+function Bsr(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function Bsr(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+function Bsr(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+
+function Bsl(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+function Bsl(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function Bsl(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+function Bsl(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+
+function BTst(i: longint; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+function BTst(i,j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+function BTst(i: int64; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+function BTst(i: qword; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+
+procedure BSet(var i: longint; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BSet(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BSet(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BSet(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
+
+procedure BClr(var i: longint; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BClr(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BClr(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
+procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
+
 
 implementation
 
@@ -92,6 +132,175 @@ end;
 function ord4(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
 begin
   result := ptrint(p);
+end;
+
+
+
+function BAnd(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i and j;
+end;
+
+function BAnd(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i and j;
+end;
+
+function BAnd(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i and j;
+end;
+
+function BAnd(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i and j;
+end;
+
+
+function BOr(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i or j;
+end;
+
+function BOr(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i or j;
+end;
+
+function BOr(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i or j;
+end;
+
+function BOr(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i or j;
+end;
+
+
+function BXor(i,j: longint): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i xor j;
+end;
+
+function BXor(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i xor j;
+end;
+
+function BXor(i,j: int64): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i xor j;
+end;
+
+function BXor(i,j: qword): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i xor j;
+end;
+
+
+function Bsr(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shr j;
+end;
+
+function Bsr(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shr j;
+end;
+
+function Bsr(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shr j;
+end;
+
+function Bsr(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shr j;
+end;
+
+
+function Bsl(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shl j;
+end;
+
+function Bsl(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shl j;
+end;
+
+function Bsl(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shl j;
+end;
+
+function Bsl(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := i shl j;
+end;
+
+
+function BTst(i: longint; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+begin
+  result := ((i shr j) and 1) <> 0;
+end;
+
+function BTst(i,j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+begin
+  result := ((i shr j) and 1) <> 0;
+end;
+
+function BTst(i: int64; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (cardinal(i shr j) and 1) <> 0;
+end;
+
+function BTst(i: qword; j: cardinal): boolean; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (cardinal(i shr j) and 1) <> 0;
+end;
+
+
+procedure BSet(var i: longint; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i or (1 shl j);
+end;
+
+procedure BSet(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i or (1 shl j);
+end;
+
+procedure BSet(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i or (int64(1) shl j);
+end;
+
+procedure BSet(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i or (qword(1) shl j);
+end;
+
+
+procedure BClr(var i: longint; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i and not (1 shl j);
+end;
+
+procedure BClr(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i and not (1 shl j);
+end;
+
+procedure BClr(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i and not (int64(1) shl j);
+end;
+
+procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
+begin
+  i := i and not (qword(1) shl j);
 end;
 
 
