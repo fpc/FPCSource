@@ -316,7 +316,7 @@ package=base.source.zip[basesrc.zip],~B~asic Makefiles for the sources
 # Source 2
 package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
-package=rtl.source.zip[rtlsrc.zip],~R~un time library sources
+package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
 package=fcl.source.zip[fclsrc.zip],~F~ree component library (FCL) sources
 # Source 5
@@ -385,7 +385,7 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 #
 # Source packages 3rd part
 #
-pack=Sources 3
+pack=Sou~r~ces 3
 filecheck=*.source.zip[*src.zip]
 # Source-3 1
 package=units-winunits.source.zip[uwinsrc.zip],Extended Windows API interface units
