@@ -152,7 +152,7 @@ implementation
 {$IFNDEF USE_SYSUTILS}
    dos,
 {$ENDIF USE_SYSUTILS}
-   cutils
+   cutils, systems
    ;
 
 {****************************************************************************
@@ -167,7 +167,10 @@ begin
    begin
      case s[i] of
       '\' : gccfilename[i]:='/';
- 'A'..'Z' : gccfilename[i]:=chr(ord(s[i])+32);
+ 'A'..'Z' : if (target_info.system in [obsolete_system_i386_GO32V1,system_i386_GO32V2,system_m68k_PalmOS,system_i386_Netware,system_i386_wdosx,system_i386_EMX,system_i386_watcom,system_i386_netwlibc,system_arm_palmos]) then
+              gccfilename[i]:=chr(ord(s[i])+32)
+            else
+              gccfilename[i]:=s[i];
      else
       gccfilename[i]:=s[i];
      end;
@@ -301,9 +304,9 @@ begin
           begin
             hs:=status.currentsource+'('+tostr(status.currentline)+
               ','+tostr(status.currentcolumn)+') '+hs+' '+s;
-            if status.print_source_path then
-              hs:=status.currentsourcepath+hs;
           end;
+        if status.print_source_path then
+          hs:=status.currentsourcepath+hs;
       end
      else
       begin
