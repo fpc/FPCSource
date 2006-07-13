@@ -535,60 +535,30 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-        movl    %ebx,saveebx
         cld
 {$ifdef REGCALL}
         movl    %eax,%edi
         movl    %edx,%esi
-        movl    %ecx,%eax
 {$else}
-        movl    len,%eax
+        movl    len,%ecx
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
 {$endif}
-        testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
+        testl   %ecx,%ecx 
         je      .LCmpDwordExit
-        cmpl    $3,%eax         {<3 (3 bytes align + 4 bytes cmpsl) = 2 DWords}
-        jl      .LCmpDword2      { not worth aligning and go through all trouble}
-        movl    (%edi),%ebx     // Compare alignment bytes.
-        cmpl    (%esi),%ebx
-        jne     .LCmpDword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
-        shll    $2,%eax         {Convert word count to bytes}
-        movl    %edi,%edx       { Align comparing is already done, so simply add}
-        negl    %edx            { calc bytes to align  -%edi and 3}
-        andl    $3,%edx
-        addl    %edx,%esi       { Skip max 3 bytes alignment}
-        addl    %edx,%edi
-        subl    %edx,%eax       { Subtract from number of bytes to go}
-        movl    %eax,%ecx       { Make copy of bytes to go}
-        andl    $3,%eax         { Calc remainder (mod 4) }
-        shrl    $2,%ecx         { divide bytes to go by 4, DWords to go}
-        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp}
+        xorl    %eax,%eax
         rep                     { Compare entire DWords}
         cmpsl
-        je      .LCmpDword2a     { All equal? then to the left over bytes}
-        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
-        subl    %eax,%esi       { Go back one DWord}
-        subl    %eax,%edi
-        addl    $3,%eax         {if align<>0 this causes repcount to be 2}
-.LCmpDword2a:
-        subl    %edx,%esi       { Subtract alignment}
-        subl    %edx,%edi
-        addl    %edx,%eax
-        shrl    $2,%eax
-.LCmpDword2:
-        movl    %eax,%ecx       {words still to (re)scan}
-        orl     %eax,%eax       {prevent disaster in case %eax=0}
-        rep
-        cmpsl
-.LCmpDword3:
-        movzwl  -4(%esi),%ecx
-        movzwl  -4(%edi),%eax    // Compare failing (or equal) position
-        subl    %ecx,%eax        // calculate end result.
+        movl    -4(%edi),%edi        // Compare failing (or equal) position
+        subl    -4(%esi),%edi        // calculate end result.
+        setb    %dl
+        seta    %cl
+        addb    %cl,%al
+        subb    %dl,%al
+        movsbl  %al,%eax
 .LCmpDwordExit:
         movl    saveedi,%edi
         movl    saveesi,%esi
-        movl    saveebx,%ebx
 end;
 {$endif FPC_SYSTEM_HAS_COMPAREDWORD}
 
