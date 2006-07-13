@@ -52,6 +52,7 @@ interface
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
        public
+        function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         destructor destroy; override;
@@ -224,6 +225,14 @@ implementation
       end;
 
 
+    function TGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+        if paratargetdbg = dbg_dwarf then 
+          result := result + ' --gdwarf-2';
+      end;
+    
+    
     function TGNUAssembler.NextSetLabel: string;
       begin
         inc(setcount);

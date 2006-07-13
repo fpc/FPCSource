@@ -125,7 +125,7 @@ interface
         procedure WriteAsmList;virtual;
 
         {# Constructs the command line for calling the assembler }
-        function MakeCmdLine: TCmdStr;
+        function MakeCmdLine: TCmdStr; virtual;
       public
         Constructor Create(smart:boolean);override;
         procedure MakeObject;override;
@@ -569,7 +569,7 @@ Implementation
 {$endif}
              Replace(result,'$ASM',maybequoted(AsmFileName));
            Replace(result,'$OBJ',maybequoted(ObjFileName));
-         end;
+         end; 
       end;
 
 
