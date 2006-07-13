@@ -29,14 +29,14 @@ type
 
 {FourCharCode coercion
 This routine coreces string literals to a FourCharCode.}
-function FCC(literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
+function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 
 {Same as FCC, to be compatible with GPC}
-function FOUR_CHAR_CODE(literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
+function FOUR_CHAR_CODE(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 
 {This makes casts from ShortString to FourCharCode automatically,
  to emulate the behaviour of mac pascal compilers}
-operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
+operator := (const s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 
 { Same as the "is" operator }
 Function Member (Instance : TObject; AClass : TClass) : boolean; {$ifdef systeminline}inline;{$endif}
@@ -90,17 +90,17 @@ procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
 implementation
 
 
-function FCC(literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
+function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 begin
   FCC := PLongWord(@literal[1])^;
 end;
 
-function FOUR_CHAR_CODE(literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
+function FOUR_CHAR_CODE(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 begin
   FOUR_CHAR_CODE := PLongWord(@literal[1])^;
 end;
 
-operator := (s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
+operator := (const s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 begin
   res := PLongWord(@s[1])^;
 end;
