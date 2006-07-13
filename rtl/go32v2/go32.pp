@@ -433,7 +433,7 @@ interface
               popw %es
               popl %edi
               popl %esi
-           end ['ESI','EDI','ECX'];
+           end ['ECX','EAX'];
       end;
 
     procedure outportb(port : word;data : byte);
