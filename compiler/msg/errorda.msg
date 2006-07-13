@@ -2226,7 +2226,7 @@ Dette program dækkes af reglerne for GNU General Public License
 Læs COPYING.FPC for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
-                 bugrep@freepascal.org
+                 bugs@freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til
                  chrivers@iversen-net.dk
