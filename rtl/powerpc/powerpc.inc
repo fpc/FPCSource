@@ -1,7 +1,7 @@
 {
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2000-2001 by the Free Pascal development team.
+    Copyright (c) 2000-2006 by the Free Pascal development team.
 
     Portions Copyright (c) 2000 by Casey Duncan (casey.duncan@state.co.us)
 
@@ -17,6 +17,9 @@
 
  **********************************************************************}
 
+{$IFNDEF LINUX}
+    {$DEFINE USE_DCBZ}
+{$ENDIF LINUX}
 
 {****************************************************************************
                            PowerPC specific stuff
@@ -341,7 +344,7 @@ asm
           add     r4,r4,r6
 
           slwi    r6,r6,1
-
+{$IFDEF USE_DCBZ}
           { the dcbz offset must give a 32 byte aligned address when added   }
           { to the current dest address and its address must point to the    }
           { bytes that will be overwritten in the current iteration. In case }
@@ -355,15 +358,17 @@ asm
           add     r7,r7,r6
           neg     r7,r7
           subi    r7,r7,32
-
+{$ENDIF USE_DCBZ}
 .LMove32ByteDcbz:
           lfdux   f0,r3,r10
           lfdux   f1,r3,r10
           lfdux   f2,r3,r10
           lfdux   f3,r3,r10
+{$IFDEF USE_DCBZ}
           { must be done only now, in case source and dest are less than }
           { 32 bytes apart!                                              }
           dcbz    r4,r7
+{$ENDIF USE_DCBZ}
           stfdux  f0,r4,r10
           stfdux  f1,r4,r10
           stfdux  f2,r4,r10
@@ -476,10 +481,12 @@ asm
         { decrease count with number of bytes already stored }
         sub       r4,r4,r10
         blt       cr1,.LFillCharSmall
+{$IFDEF USE_DCBZ}
         { if we have to fill with 0 (which happens a lot), we can simply use }
         { dcbz for the most part, which is very fast, so make a special case }
         { for that                                                           }
         cmplwi    cr1,r5,0
+{$ENDIF}
         { align to a multiple of 32 (and immediately check whether we aren't }
         { already 32 byte aligned)                                           }
         rlwinm.   r10,r3,0,31-5+1,31
@@ -507,6 +514,7 @@ asm
         { check how many rest there is (to decide whether we'll use }
         { FillCharSmall or FillCharVerySmall)                       }
         cmplwi    cr7,r4,11
+{$IFDEF USE_DCBZ}
         { if filling with zero, only use dcbz }
         bne       cr1, .LFillCharNoZero
         { make r3 point again to the actual store position }
@@ -518,6 +526,7 @@ asm
         { if there was no rest, we're finished }
         beq       .LFillCharDone
         b         .LFillCharVerySmall
+{$ENDIF USE_DCBZ}
 .LFillCharNoZero:
 {$ifdef FPC_ABI_AIX}
         stw       r5,-4(r1)
@@ -531,10 +540,14 @@ asm
         { make r3 point to address-8, so we're able to use fp double stores }
         { with update (it's already -4 now)                                 }
         subi      r3,r3,4
+{$IFDEF USE_DCBZ}
         { load r10 with 8, so that dcbz uses the correct address }
         li        r10, 8
+{$ENDIF}
 .LFillChar32ByteLoop:
+{$IFDEF USE_DCBZ}
         dcbz      r3,r10
+{$ENDIF USE_DCBZ}
         stfdu     f0,8(r3)
         stfdu     f0,8(r3)
         stfdu     f0,8(r3)
