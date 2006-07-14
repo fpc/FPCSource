@@ -37,6 +37,7 @@ unit cpu;
         Tested under go32v1 and Linux on c6x86 with CpuID enabled and disabled (PFV)
       }
       asm
+         push    ebx
          pushf
          pushf
          pop     eax
@@ -51,6 +52,7 @@ unit cpu;
          and     ebx,200000h
          cmp     eax,ebx
          setnz   al
+         pop     ebx
       end;
 
 
