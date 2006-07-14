@@ -32,6 +32,7 @@ procedure SetPrimaryFile(const fn:string);
 function LinkAfter : boolean;
 {$ifdef USE_EXTERNAL_COMPILER}
 function version_string : string;
+function full_version_string : string;
 {$endif USE_EXTERNAL_COMPILER}
 
 
@@ -227,12 +228,32 @@ end;
 function version_string : string;
   begin
     if not ExecuteRedir(ExternalCompilerExe,'-iV','','ppc___.out','ppc___.err') then
-      version_string:=version.version_string;
-    Assign(CompilerOut,'ppc___.out');
-    Reset(CompilerOut);
-    Readln(CompilerOut,s);
-    Close(CompilerOut);
-    version_string:=s;
+      version_string:=version.version_string
+    else
+     begin
+      Assign(CompilerOut,'ppc___.out');
+      Reset(CompilerOut);
+      Readln(CompilerOut,s);
+      Close(CompilerOut);
+      version_string:=s;
+     end;
+  end;
+
+function full_version_string : string;
+  begin
+    if not ExecuteRedir(ExternalCompilerExe,'-iW','','ppc___.out','ppc___.err') then
+      full_version_string:=version.full_version_string
+    else
+     begin
+      Assign(CompilerOut,'ppc___.out');
+      Reset(CompilerOut);
+      Readln(CompilerOut,s);
+      Close(CompilerOut);
+      if Pos ('-iW', S) <> 0 then
+(* Unknown option - full version not supported! *)
+       S := Version_String;
+      full_version_string:=s;
+     end;
   end;
 {$endif USE_EXTERNAL_COMPILER}
 
