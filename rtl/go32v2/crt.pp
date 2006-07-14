@@ -451,8 +451,8 @@ begin
         outb    %al,$0x42
         movb    %ch,%al
         outb    %al,$0x42
-  end ['EAX','ECX','EDX'];
-end ['EAX','ECX'];
+  end ['EAX','ECX'];
+end;
 
 
 procedure nosound;
