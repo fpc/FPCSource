@@ -2296,6 +2296,7 @@ S*2Aas_assemble using GNU AS
 **1i_information
 **2iD_return compiler date
 **2iV_return compiler version
+**2iW_return full compiler version
 **2iSO_return compiler OS
 **2iSP_return compiler processor
 **2iTO_return target OS
