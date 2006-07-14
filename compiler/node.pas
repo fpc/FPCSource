@@ -544,6 +544,8 @@ implementation
       begin
         { reading of node references isn't implemented yet (FK) }
         internalerror(200506182);
+        { avoid warning }
+        result := nil;
       end;
 
 
