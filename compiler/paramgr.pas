@@ -322,12 +322,13 @@ implementation
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
 {$warning maybe release this optimization for all targets?}
-{$ifdef sparc}
+{$if defined(sparc) or defined(powerpc) or defined(powerpc64)}
             { Does it fit a register? }
-            if len<=sizeof(aint) then
+            if (len<=sizeof(aint)) and
+               (cgpara.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else
-{$endif sparc}
+{$endif defined(sparc) or defined(powerpc) or defined(powerpc64) }
               newparaloc^.loc:=paraloc^.loc;
             case newparaloc^.loc of
               LOC_REGISTER :
