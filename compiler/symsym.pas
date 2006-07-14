@@ -72,7 +72,7 @@ interface
 {$ifdef GDB}
           function  stabstring : pchar;override;
 {$endif GDB}
-          function mangledname:string;
+          function mangledname:string;override;
        end;
 
        tunitsym = class(Tstoredsym)
