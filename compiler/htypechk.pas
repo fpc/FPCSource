@@ -790,7 +790,11 @@ implementation
                  p:=tunarynode(p).left;
                end;
              subscriptn :
-               p:=tunarynode(p).left;
+               begin
+                 if is_class_or_interface(tunarynode(p).left.resulttype.def) then
+                   newstate := vs_read;
+                 p:=tunarynode(p).left;
+               end;
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
