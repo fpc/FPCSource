@@ -1779,25 +1779,9 @@ implementation
 
     function searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srsym:tsym;out srsymtable:tsymtable):boolean;
       var
-        topclassh  : tobjectdef;
         def        : tdef;
       begin
         result:=false;
-        { when the class passed is defined in this unit we
-          need to use the scope of that class. This is a trick
-          that can be used to access protected members in other
-          units. At least kylix supports it this way (PFV) }
-        if assigned(classh) and
-           (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           classh.owner.iscurrentunit then
-          topclassh:=classh
-        else
-          begin
-            if assigned(current_procinfo) then
-              topclassh:=current_procinfo.procdef._class
-            else
-              topclassh:=nil;
-          end;
         def:=nil;
         while assigned(classh) do
           begin
@@ -1826,25 +1810,9 @@ implementation
 
     function searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:tsymtable):boolean;
       var
-        topclassh  : tobjectdef;
         def        : tdef;
       begin
         result:=false;
-        { when the class passed is defined in this unit we
-          need to use the scope of that class. This is a trick
-          that can be used to access protected members in other
-          units. At least kylix supports it this way (PFV) }
-        if assigned(classh) and
-           (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           classh.owner.iscurrentunit then
-          topclassh:=classh
-        else
-          begin
-            if assigned(current_procinfo) then
-              topclassh:=current_procinfo.procdef._class
-            else
-              topclassh:=nil;
-          end;
         def:=nil;
         while assigned(classh) do
           begin
