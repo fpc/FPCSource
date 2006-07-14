@@ -316,7 +316,6 @@ end;
 
 Function SafeArrayCopyDataSpace(psa, psaOut: PVarArray): HRESULT;
 var
-  vVargSrc, vTarget: Pointer;
   vat: TVariantArrayType;
 begin
   try

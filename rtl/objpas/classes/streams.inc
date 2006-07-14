@@ -534,8 +534,6 @@ end;
 
 function TMemoryStream.Realloc(var NewCapacity: Longint): Pointer;
 
-Var MoveSize : Longint;
-
 begin
   // round off to block size.
   If NewCapacity<0 Then

@@ -1049,7 +1049,6 @@ end;
 function ReadKey(var IsAlt : boolean):char;
 var
   ch       : char;
-  is_delay : boolean;
   fdsin    : tfdSet;
   store    : array [0..8] of char;
   arrayind : byte;

@@ -577,9 +577,9 @@ end;
 
 function SafeLoadLibrary(const FileName: AnsiString;
   ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
+{$if defined(cpui386) or defined(cpux86_64)}
   var
     mode : DWord;
-{$if defined(cpui386) or defined(cpux86_64)}
     fpucw : Word;
     ssecw : DWord;
 {$endif}

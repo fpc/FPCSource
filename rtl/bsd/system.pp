@@ -80,8 +80,8 @@ end;
 
  { variable where full path and filename and executable is stored }
  { is setup by the startup of the system unit.                    }
-var
- execpathstr : shortstring;
+//var
+// execpathstr : shortstring;
 
 function paramstr(l: longint) : string;
  begin

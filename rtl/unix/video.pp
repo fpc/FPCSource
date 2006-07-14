@@ -200,7 +200,9 @@ const convert:Tconversion=cv_none;
 
 var
   LastCursorType : byte;
+{$ifdef linux}
   TtyFd: Longint;
+{$endif linux}
   Console: Tconsole_type;
   cur_term_strings:Ptermcodes;
 {$ifdef logging}
@@ -960,7 +962,9 @@ end;
 
 procedure SysInitVideo;
 var
+{$ifdef linux}
   FName: String;
+{$endif linux}
   WS: packed record
     ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
   end;
@@ -984,8 +988,10 @@ begin
    begin
      { save current terminal characteristics and remove rawness }
      prepareInitVideo;
+{$ifdef linux}
      { running on a tty, find out whether locally or remotely }
      TTyfd:=-1;
+{$endif linux}
      Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
      cur_term_strings:=@term_codes_vt100; {Default: vt100}
      external_codepage:=iso01;            {Default: ISO-8859-1}
@@ -1159,10 +1165,6 @@ end;
 
 
 procedure SysUpdateScreen(Force: Boolean);
-var
-  DoUpdate : boolean;
-  i : longint;
-  p1,p2 : plongint;
 begin
 {$ifdef linux}
   if console=ttylinux then
@@ -1182,8 +1184,10 @@ end;
 
 
 procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
+{$ifdef linux}
 var
   Pos : array [1..2] of Byte;
+{$endif linux}
 begin
  if (CursorX=NewCursorX) and (CursorY=NewCursorY) then
     exit;
