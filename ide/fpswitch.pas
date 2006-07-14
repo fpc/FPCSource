@@ -1184,10 +1184,13 @@ begin
 {$endif i386}
        { FPC mode}
        CompilerModeSwitches^.SetCurrSel(0);
+(* Use platform defaults for memory switches. *)
        { 128k stack }
-       MemorySwitches^.SetLongintItem(0,65536*2);
+{       MemorySwitches^.SetLongintItem(0,65536*2);}
+       MemorySwitches^.SetLongintItem(0,0);
        { 2 MB heap }
-       MemorySwitches^.SetLongintItem(1,1024*1024*2);
+{       MemorySwitches^.SetLongintItem(1,1024*1024*2);}
+       MemorySwitches^.SetLongintItem(1,0);
        { goto/lable allowed }
        SyntaxSwitches^.SetBooleanItem(1,true);
        { inline allowed }
