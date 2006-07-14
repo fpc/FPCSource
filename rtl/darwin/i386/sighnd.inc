@@ -24,13 +24,14 @@ begin
     SIGFPE :
       begin
         Case Info.si_code Of
-          FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
-          FPE_FLTOVF : Res:=205;  {Overflow trap}
-          FPE_FLTUND : Res:=206;  {Stack over/underflow}
-          FPE_FLTRES : Res:=208;  {Device not available}
-          FPE_FLTINV : Res:=207;  {Invalid floating point operation}
+          FPE_INTDIV,             { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
+          FPE_FLTDIV : Res:=200;  { floating point divide by zero }
+          FPE_FLTOVF : Res:=205;  { floating point overflow }
+          FPE_FLTUND : Res:=206;  { floating point underflow }
+          FPE_FLTRES : Res:=208;  { floating point inexact result }
+          FPE_FLTINV : Res:=207;  { invalid floating point operation }
           Else
-            Res:=207; {coprocessor error}
+            Res:=207; { coprocessor error }
         end;
         { the following is true on ppc, hopefully not on x86 as well }
         { FPU exceptions are completely disabled by the kernel if one occurred, it  }

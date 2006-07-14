@@ -258,13 +258,15 @@ const
      SV_INTERRUPT = SA_RESTART;
 
 { Codes for SIGFPE }
-     FPE_NOOP      =  0;       { if only I knew... }
-     FPE_FLTDIV    =  1;       { floating point divide by zero }
-     FPE_INTDIV    =  FPE_FLTDIV;
-     FPE_FLTOVF    =  2;       { floating point overflow }
-     FPE_FLTUND    =  3;       { floating point underflow }
-     FPE_FLTRES    =  4;       { floating point inexact result }
-     FPE_FLTINV    =  5;       { invalid floating point operation }
+     FPE_NOOP      =  0;  { if only I knew... }
+     FPE_FLTDIV    =  1;  { floating point divide by zero }
+     FPE_FLTOVF    =  2;  { floating point overflow }
+     FPE_FLTUND    =  3;  { floating point underflow }
+     FPE_FLTRES    =  4;  { floating point inexact result }
+     FPE_FLTINV    =  5;  { invalid floating point operation }
+     FPE_FLTSUB    =  6;  { subscript out of range -NOTIMP on Mac OS X 10.4.7 }
+     FPE_INTDIV    =  7;  { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
+     FPE_INTOVF    =  8;  { integer overflow -NOTIMP on Mac OS X 10.4.7 }
 
 
 
