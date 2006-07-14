@@ -1094,21 +1094,27 @@ implementation
           status.verbosity:=status.verbosity and (not V_Info);
       end;
 
+    { delphi compatible warn directive:
+      $warn <identifier> on
+      $warn <identifier> off
+      not implemented yet
+    }
     procedure dir_warn;
       var
         warning_string,state : string;
       begin
         current_scanner.skipspace;
         warning_string:=current_scanner.readid;
-        if (upper(warning_string)='ON') then
+        current_scanner.skipspace;
+        state:=current_scanner.readid;
+        if (upper(state)='ON') then
           begin
           end
-        else if (upper(warning_string)='ON') then
-          else
-            begin
-              current_scanner.skipspace;
-              state:=current_scanner.readid;
-            end;
+        else if (upper(state)='OFF') then
+          begin
+          end
+        else
+          Message1(scanner_e_illegal_warn_state,state);
       end;
 
     procedure dir_warning;

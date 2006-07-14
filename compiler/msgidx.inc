@@ -99,6 +99,7 @@ const
   scan_w_imagebase_not_support=02076;
   scan_w_minstacksize_not_support=02077;
   scan_w_maxstacksize_not_support=02078;
+  scanner_e_illegal_warn_state=02079;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -684,9 +685,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 40246;
+  MsgTxtSize = 40288;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,79,220,61,62,47,100,22,135,60,
+    24,80,220,61,62,47,100,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );
