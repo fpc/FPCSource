@@ -158,8 +158,10 @@ end;
 procedure texportliblinux.generatelib;
 var
   hp2 : texported_item;
+{$ifdef x86}
   sym : tasmsymbol;
   r : treference;
+{$endif x86}
 begin
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);

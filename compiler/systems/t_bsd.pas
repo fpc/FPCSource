@@ -203,8 +203,10 @@ end;
 procedure texportlibbsd.generatelib;  // straight t_linux copy for now.
 var
   hp2 : texported_item;
+{$ifdef x86}
   sym : tasmsymbol;
   r : treference;
+{$endif x86}
 begin
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
@@ -332,7 +334,6 @@ Var
   prtobj       : string[80];
   HPath        : TStringListItem;
   s,s1,s2      : string;
-  linkpthread,
   linkdynamic,
   linklibc     : boolean;
   Fl1,Fl2      : Boolean;
