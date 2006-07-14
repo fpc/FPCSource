@@ -589,8 +589,6 @@ defaultidecfg=
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
  -Fu%basepath%\units\%fpctargetmacro%\rtl
- -Cs131072
- -Ch2097152
  -g-
  -p-
  -b-
@@ -608,8 +606,6 @@ defaultidecfg=
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
  -Fu%basepath%\units\%fpctargetmacro%\rtl
- -Cs131072
- -Ch2097152
  -g
  -p-
  -b-
@@ -626,8 +622,6 @@ defaultidecfg=
  -Fu%basepath%\units\%fpctargetmacro%
  -Fu%basepath%\units\%fpctargetmacro%\*
  -Fu%basepath%\units\%fpctargetmacro%\rtl
- -Cs131072
- -Ch2097152
  -g-
  -p-
  -b-
