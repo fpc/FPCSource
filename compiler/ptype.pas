@@ -590,7 +590,7 @@ implementation
         p  : tnode;
         pd : tabstractprocdef;
         is_func,
-        enumdupmsg : boolean;
+        enumdupmsg, first : boolean;
         newtype    : ttypesym;
         oldlocalswitches : tlocalswitches;
       begin
@@ -603,6 +603,7 @@ implementation
            _LKLAMMER:
               begin
                 consume(_LKLAMMER);
+                first := true;
                 { allow negativ value_str }
                 l:=-1;
                 enumdupmsg:=false;
@@ -641,7 +642,7 @@ implementation
                        p.free;
                        { please leave that a note, allows type save }
                        { declarations in the win32 units ! }
-                       if (v<=l) and (not enumdupmsg) then
+                       if (not first) and (v<=l) and (not enumdupmsg) then
                         begin
                           Message(parser_n_duplicate_enum);
                           enumdupmsg:=true;
@@ -650,6 +651,7 @@ implementation
                     end
                   else
                     inc(l);
+                  first := false;
                   storepos:=akttokenpos;
                   akttokenpos:=defpos;
                   tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l));
