@@ -677,8 +677,6 @@ implementation
 
     procedure Tcginlinenode.second_get_frame;
 
-    var frame_ref:Treference;
-
     begin
       if current_procinfo.framepointer=NR_STACK_POINTER_REG then
         begin

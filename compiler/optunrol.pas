@@ -78,7 +78,6 @@ unit optunrol;
         counts : qword;
         unrollstatement : tstatementnode;
         unrollblock : tblocknode;
-        entrylabel : tlabelnode;
       begin
         result:=nil;
         if (cs_opt_size in aktoptimizerswitches) then

@@ -813,7 +813,9 @@ implementation
         pvreg,
         vmtreg : tregister;
         oldaktcallnode : tcallnode;
+{$ifdef vtentry}
         sym : tasmsymbol;
+{$endif vtentry}
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then

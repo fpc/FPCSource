@@ -1059,9 +1059,7 @@ Implementation
 {$ifdef x86}
         co : comp;
 {$endif x86}
-        hs : string;
         objsym,
-        objsymparent,
         objsymend : TObjSymbol;
         leblen : byte;
         lebbuf : array[0..63] of byte;

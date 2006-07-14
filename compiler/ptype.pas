@@ -336,7 +336,6 @@ implementation
         var
            pt1,pt2 : tnode;
            lv,hv   : TConstExprInt;
-           ispecialization : boolean;
            old_block_type : tblock_type;
         begin
            old_block_type:=block_type;

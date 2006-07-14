@@ -1209,8 +1209,11 @@ implementation
          vmtentry : pvmtentry;
          procdefcoll : pprocdefcoll;
          i : longint;
-         procname,
-         hs : string;
+         procname
+{$ifdef vtentry}
+         , hs
+{$endif vtentry}
+                     : string;
       begin
          { walk trough all numbers for virtual methods and search }
          { the method                                             }
@@ -1258,7 +1261,9 @@ implementation
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
          interfacetable : tasmlabel;
-         hs : string;
+{$ifdef vtentry}
+         hs: string;
+{$endif vtentry}
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;

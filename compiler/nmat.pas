@@ -663,7 +663,6 @@ implementation
     function tunaryminusnode.pass_1 : tnode;
       var
         procname: string[31];
-        temp: tnode;
       begin
         result:=nil;
         firstpass(left);

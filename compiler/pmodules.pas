@@ -823,7 +823,9 @@ implementation
          pd : tprocdef;
          unitname8 : string[8];
          has_impl,ag: boolean;
+{$ifdef i386}
          globalvarsym : tglobalvarsym;
+{$endif i386}
       begin
          if m_mac in aktmodeswitches then
            current_module.mode_switch_allowed:= false;

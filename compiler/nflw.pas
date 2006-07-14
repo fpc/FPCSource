@@ -1117,7 +1117,7 @@ implementation
    function tgotonode._getcopy : tnode;
      var
        p : tgotonode;
-       i : aint;
+{       i : longint; }
      begin
         p:=tgotonode(inherited _getcopy);
         {

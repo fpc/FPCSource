@@ -2679,8 +2679,6 @@ implementation
 
 
    procedure tabstractrecorddef.derefimpl;
-     var
-       storesymtable : tsymtable;
      begin
        inherited derefimpl;
        tstoredsymtable(symtable).derefimpl;
