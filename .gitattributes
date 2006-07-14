@@ -7208,6 +7208,8 @@ tests/webtbs/tw5036.pp svneol=native#text/plain
 tests/webtbs/tw5082.pp -text svneol=unset#text/plain
 tests/webtbs/tw5086.pp -text
 tests/webtbs/tw5094.pp -text
+tests/webtbs/tw5100.pp svneol=native#text/plain
+tests/webtbs/tw5100a.pp svneol=native#text/plain
 tests/webtbs/tw6203.pp svneol=native#text/plain
 tests/webtbs/tw6435.pp svneol=native#text/plain
 tests/webtbs/tw6491.pp svneol=native#text/plain

@@ -89,11 +89,15 @@ implementation
                   case sym.typ of
                     fieldvarsym :
                       begin
+                        if not(sp_private in current_object_option) then
+                          addsymref(sym);
                         pl.addsym(sl_load,sym);
                         def:=tfieldvarsym(sym).vartype.def;
                       end;
                     procsym :
                       begin
+                        if not(sp_private in current_object_option) then
+                          addsymref(sym);
                         pl.addsym(sl_call,sym);
                       end;
                     else
