@@ -63,7 +63,7 @@ interface
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function mangledname:string;
+          function mangledname:string;override;
        end;
 
        tunitsym = class(Tstoredsym)
