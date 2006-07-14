@@ -910,6 +910,10 @@ implementation
                  if resulttype.def.needs_inittable then
                    freetemp:=false;
                  case hp.left.location.loc of
+                   LOC_MMREGISTER,
+                   LOC_CMMREGISTER:
+                     cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,
+                       hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
                      cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.register,href);
