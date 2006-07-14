@@ -305,7 +305,7 @@ BEGIN
 
   { Startup info }
   writeln(bullet+' Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
-  writeln(bullet+' Compiler Version '+Version_String);
+  writeln(bullet+' Compiler Version '+Full_Version_String);
 {$ifndef NODEBUG}
   writeln(bullet+' GBD Version '+GDBVersion);
  {$ifdef Windows}
