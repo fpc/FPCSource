@@ -333,7 +333,7 @@ unit cpubase;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
-    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg(r:tregister):shortint;
 
 implementation
 
@@ -504,7 +504,7 @@ implementation
       end;
 
 
-    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg(r:tregister):shortint;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then

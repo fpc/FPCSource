@@ -338,7 +338,7 @@ uses
     function std_regname(r:Tregister):string;
     function std_regnum_search(const s:string):Tregister;
     function findreg_by_number(r:Tregister):tregisterindex;
-    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg(r:tregister):shortint;
 
 
 implementation
@@ -480,7 +480,7 @@ implementation
         result := c1 = c2;
       end;
 
-    function dwarf_reg(r:tregister):byte;
+    function dwarf_reg(r:tregister):shortint;
       begin
         result:=regdwarf_table[findreg_by_number(r)];
         if result=-1 then
