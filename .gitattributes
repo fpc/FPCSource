@@ -216,6 +216,7 @@ compiler/msg/errorda.msg -text
 compiler/msg/errore.msg svneol=native#text/plain
 compiler/msg/errores.msg svneol=native#text/plain
 compiler/msg/errorf.msg svneol=native#text/plain
+compiler/msg/errorfi.msg -text
 compiler/msg/errorhe.msg svneol=native#text/plain
 compiler/msg/errorid.msg -text
 compiler/msg/errorn.msg svneol=native#text/plain
