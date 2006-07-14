@@ -215,9 +215,9 @@ begin
 
 { Create some replacements }
   StripStr:='';
-(*
   StaticStr:='';
   DynLinkStr:='';
+(*
   if (cs_link_staticflag in aktglobalswitches) then
    StaticStr:='-static';
   if (cs_link_strip in aktglobalswitches) then
