@@ -498,11 +498,11 @@ unit i_bsd;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 16;
                 localalignmin   : 0;
-                localalignmax   : 4;
+                localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
                 maxCrecordalign : 16
