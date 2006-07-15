@@ -242,6 +242,7 @@ end;
 destructor TSimpleIPCServer.destroy;
 begin
   Active:=False;
+  FreeAndNil(FMsgData);
   inherited destroy;
 end;
 
@@ -268,17 +269,23 @@ end;
 
 procedure TSimpleIPCServer.StartServer;
 begin
-  If (FServerID='') then
-    FServerID:=ApplicationName;
-  FIPCComm:=CommClass.Create(Self);
-  FIPCComm.StartServer;
+  if Not Assigned(FIPCComm) then
+    begin
+    If (FServerID='') then
+      FServerID:=ApplicationName;
+    FIPCComm:=CommClass.Create(Self);
+    FIPCComm.StartServer;
+    end;
   FActive:=True;
 end;
 
 procedure TSimpleIPCServer.StopServer;
 begin
-  FIPCComm.StopServer;
-  FreeAndNil(FIPCComm);
+  If Assigned(FIPCComm) then
+    begin
+    FIPCComm.StopServer;
+    FreeAndNil(FIPCComm);
+    end;
   FActive:=False;
 end;
 
