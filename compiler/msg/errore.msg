@@ -1909,7 +1909,7 @@ exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external lin
 exec_i_linking=09015_I_Linking $1
 % An informational message, showing which program or library is being linked.
 exec_e_util_not_found=09016_E_Util $1 not found, switching to external linking
-% An eternal tool was not found, the compiler will produce a script that
+% An external tool was not found, the compiler will produce a script that
 % can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Using util $1
 % An informational message, showing which external program (usually a postprocessor) is being used.
@@ -1922,7 +1922,7 @@ exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not suppor
 exec_i_closing_script=09020_I_Closing script $1
 % Informational message showing when the external assembling an linking script is finished.
 exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
-% An eternal resource compiler was not found, the compiler will produce a script that
+% An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Compiling resource $1
 % An informational message, showing which resource is being compiled.
