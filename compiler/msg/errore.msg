@@ -858,7 +858,14 @@ parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $
 parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
+% The GUID indication does not have the proper syntax. It should be of the form
+% \begin{verbatim}
+% {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+% \end{verbatim}
+% Where each \var{X} represents a hexadecimal digit.
 parser_w_interface_mapping_notfound=03168_W_Procedure named "$1" not found that is suitable for implementing the $2.$3
+% The compiler cannot find a suitable procedure which implements the given method of an interface.
+% A procedure with the same name is found, but the arguments do not match.
 parser_e_interface_id_expected=03169_E_interface identifier expected
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -916,7 +923,17 @@ parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of o
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
+% It is not possible to specify a default value for several parameters at once. 
+% The following is invalid:
+% \begin{verbatim}
+% Procedure MyProcedure (A,B : Integer = 0);
+% \end{verbatim}
+% Instead, this should be declared as
+% \begin{verbatim}
+% Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
+% \end{verbatim}
 parser_e_default_value_expected_for_para=03185_E_Default parameter required for "$1"
+% The specified parameter requires a default value.
 parser_w_unsupported_feature=03186_W_Use of unsupported feature!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_C arrays are passed by reference
@@ -1177,6 +1194,12 @@ type_e_array_required=04033_E_Array type required
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
+% The compiler expected to encounter an interface type name, but got something else.
+% The following code would provoke this error:
+% \begin{verbatim}
+% Type
+%   TMyStream = Class(TStream,Integer)
+% \end{verbatim}
 type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
@@ -1208,7 +1231,10 @@ type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
+% The compiler expected a class or interface name, but got another type or identifier.
 type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
+% This error occurs when a type is not complete: i.e. a pointer type which points to
+% an undefined type.
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1354,8 +1380,11 @@ sym_n_local_identifier_only_set=05027_N_Local variable "$1" is assigned but neve
 sym_h_local_symbol_not_used=05028_H_Local $1 "$2" is not used
 % A local symbol is never used.
 sym_n_private_identifier_not_used=05029_N_Private field "$1.$2" is never used
+% The indicated private field is defined, but is never used in the code.
 sym_n_private_identifier_only_set=05030_N_Private field "$1.$2" is assigned but never used
+% The indicated private field is declared, assigned but never read.
 sym_n_private_method_not_used=05031_N_Private method "$1.$2" never used
+% The indicated private method is declared but is never used in the code.
 sym_e_set_expected=05032_E_Set type expected
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1814,7 +1843,9 @@ asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 % command line or handling the configuration files.
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Source operating system redefined
+% The source operating system is redefine.
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
+% Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
@@ -1825,14 +1856,21 @@ exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
 exec_e_assembler_not_found=09005_E_Assembler $1 not found, switching to external assembling
+% The assembler program was not found. The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_t_using_assembler=09006_T_Using assembler: $1
+% Information message saying which assembler is being used.
 exec_e_error_while_assembling=09007_E_Error while assembling exitcode $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
 exec_e_cant_call_assembler=09008_E_Can't call the assembler, error $1 switching to external assembling
+% An error occurred when calling an external assembler, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_assembling=09009_I_Assembling $1
+% An informational message stating which file is being assembled.
 exec_i_assembling_smart=09010_I_Assembling with smartlinking $1
+% An informational message stating which file is being assembled using smartlinking.
 exec_w_objfile_not_found=09011_W_Object $1 not found, Linking may fail !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
@@ -1842,33 +1880,67 @@ exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
 exec_e_error_while_linking=09013_E_Error while linking
 % Generic error while linking.
 exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking
+% An error occurred when calling an external linker, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_linking=09015_I_Linking $1
+% An informational message, showing which program or library is being linked.
 exec_e_util_not_found=09016_E_Util $1 not found, switching to external linking
+% An external tool was not found, the compiler will produce a script that
+% can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Using util $1
+% An informational message, showing which external program (usually a postprocessor) is being used.
 exec_e_exe_not_supported=09018_E_Creation of Executables not supported
+% Creating executable programs is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not supported
+% Creating dynamically loadable libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Closing script $1
+% Informational message showing when the external assembling an linking script is finished.
 exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
+% An external resource compiler was not found, the compiler will produce a script that
+% can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Compiling resource $1
+% An informational message, showing which resource is being compiled.
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be statically linked, switching to smart linking
+% Statical linking was requested, but a unit which is not statically linkable was used.
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
+% Smart linking was requested, but a unit which is not smart-linkable was used.
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
+% Shared linking was requested, but a unit which is not shared-linkable  was used.
 exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
+% Smart or static linking was requested, but a unit which cannot be used for either  was used.
 exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
+% Shared or static linking was requested, but a unit which cannot be used for either  was used.
 exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command line
+% An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
 
 #
 # Executable information
 #
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
+% Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Can't open executable $1
+% Fatal error when the compiler cannot open the file for the executable.
 execinfo_x_codesize=09130_X_Size of Code: $1 bytes
+% Informational message showing the size of the produced code section.
 execinfo_x_initdatasize=09131_X_Size of initialized data: $1 bytes
+% Informational message showing the size of the initialized data section.
 execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
+% Informational message showing the size of the uninitialized data section.
 execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
+% Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
+% Informational message showing the stack size that the compiler committes for the executable.
+%\end{description}
+# EndOfTeX
 
 #
 # Unit loading
@@ -1943,6 +2015,7 @@ unit_f_cant_find_ppu=10022_F_Can't find unit $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 was not found but $2 exists
+% This error message is no longer used.
 unit_f_unit_name_error=10024_F_Unit $1 searched but $2 found
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
@@ -1956,6 +2029,8 @@ unit_u_load_unit=10027_U_Load from $1 ($2) unit $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_Recompiling $1, checksum changed for $2
+% The unit is recompiled because the checksum of a unit it depends on has 
+% changed.
 unit_u_recompile_source_found_alone=10029_U_Recompiling $1, source found only
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
