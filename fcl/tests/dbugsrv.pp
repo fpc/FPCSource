@@ -1,5 +1,7 @@
 program dbugsrv;
 
+{$MODE OBJFPC}
+{$H+}
 {$APPTYPE CONSOLE}
 
 uses
