@@ -867,7 +867,7 @@ implementation
                  case hp.left.location.loc of
                    LOC_MMREGISTER,
                    LOC_CMMREGISTER:
-                     cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,
+                     cg.a_loadmm_reg_ref(exprasmlist,hp.left.location.size,hp.left.location.size,
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
