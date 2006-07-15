@@ -104,7 +104,7 @@ type
       Val : array[TSwitchMode] of longint;
       constructor Init(const n,p:string; AID: TParamID);
       function  NeedParam:boolean;virtual;
-      function  ParamValue:string;virtual;
+      function  ParamValue(nr:sw_integer):string;virtual;
       function  GetNumberStr(SM: TSwitchMode): string; virtual;
       procedure Reset;virtual;
     end;
@@ -415,7 +415,7 @@ begin
 end;
 
 
-function TLongintItem.ParamValue:string;
+function TLongintItem.ParamValue(nr:sw_integer):string;
 var
   s : string;
 begin
