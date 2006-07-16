@@ -68,10 +68,33 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 
   Function WriteThisNode(APasElement : TPasElement)  : Boolean;
 
+  Var
+    ParentVisible:Boolean;
+    PT,PP : TPasElement;
   begin
+    ParentVisible:=True;
+    If (APasElement is TPasArgument) or (APasElement is TPasResultElement) then
+      begin
+      PT:=AParent;
+      // Skip ProcedureType or PasFunctionType
+      If (PT<>Nil) then
+        begin
+        if (PT is TPasProcedureType) or (PT is TPasFunctionType) then
+          PT:=PT.Parent;
+        If (PT<>Nil) and ((PT is TPasProcedure) or (PT is TPasProcedure))   then
+          PP:=PT.Parent
+        else
+          PP:=Nil;  
+        If (PP<>Nil) and (PP is TPasClassType) then
+          begin
+          ParentVisible:=((not DisablePrivate or (PT.Visibility<>visPrivate)) and
+                         (not DisableProtected or (PT.Visibility<>visProtected)));
+          end;
+        end;  
+      end;         
     Result:=Assigned(AParent) and (Length(AName) > 0) and
-            (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
-            (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement)) and
+            (ParentVisible and (not DisableArguments or (APasElement.ClassType <> TPasArgument))) and
+            (ParentVisible and (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement))) and
             (not DisablePrivate or (AVisibility<>visPrivate)) and
             (not DisableProtected or (AVisibility<>visProtected)) and
             (Not Assigned(EmittedList) or (EmittedList.IndexOf(APasElement.FullName)=-1));
@@ -103,6 +126,7 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
 
 begin
   Result := AClass.Create(AName, AParent);
+  Result.Visibility:=AVisibility;
   if AClass.InheritsFrom(TPasModule) then
     CurModule := TPasModule(Result);
   if Result.ClassType = TPasModule then
