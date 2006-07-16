@@ -31,41 +31,54 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr  r0,r3
+  mr r0, r3
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  std   r3,retaddress
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  ld	r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+  std r3, retaddress
+
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+  // restore old TOC value
+  ld r2, 40(r1)
+  
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -78,43 +91,55 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
+  mr r0, r3
+  mr r3, r4
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  mtctr r10
-  ld	r10, 0(r10)
+  std r3, temp
+  mflr r3
 
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld	r3,(errno)@l(r4)
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+  // restore old TOC value
+  ld r2, 40(r1)
+
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -127,43 +152,55 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
-  mr	r4,r5
+  mr r0, r3
+  mr r3, r4
+  mr r4, r5
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld	r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+  // restore old TOC value
+  ld r2, 40(r1)
+
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -177,44 +214,57 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
-  mr	r4,r5
-  mr	r5,r6
+  mr r0, r3
+  mr r3, r4
+  mr r4, r5
+  mr r5, r6
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld    r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+
+  // restore old TOC value
+  ld r2, 40(r1)
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -228,45 +278,58 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
-  mr	r4,r5
-  mr	r5,r6
-  mr	r6,r7
+  mr r0, r3
+  mr r3, r4
+  mr r4, r5
+  mr r5, r6
+  mr r6, r7
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld    r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+
+  // restore old TOC value
+  ld r2, 40(r1)
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -280,46 +343,59 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
-  mr	r4,r5
-  mr	r5,r6
-  mr	r6,r7
-  mr	r7,r8
+  mr r0, r3
+  mr r3, r4
+  mr r4, r5
+  mr r5, r6
+  mr r6, r7
+  mr r7, r8
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne  .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld    r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+  // restore old TOC value
+  ld r2, 40(r1)
+
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
 
@@ -333,46 +409,59 @@ var
   temp : qword;
   retaddress: ptruint;
 asm
-  mr	r0,r3
-  mr	r3,r4
-  mr	r4,r5
-  mr	r5,r6
-  mr	r6,r7
-  mr	r7,r8
-  mr	r8,r9
+  mr r0, r3
+  mr r3, r4
+  mr r4, r5
+  mr r5, r6
+  mr r6, r7
+  mr r7, r8
+  mr r8, r9
   sc
-  bns   .LDone
-  lis	r10,(fpc_threadvar_relocate_proc)@highesta
-  ori	r10, r10, (fpc_threadvar_relocate_proc)@highera
-  sldi	r10, r10, 32
-  oris	r10, r10, (fpc_threadvar_relocate_proc)@ha
-  ld	r10,(fpc_threadvar_relocate_proc)@l(r10)
+  bns .LDone
+  lis r10, (fpc_threadvar_relocate_proc)@highesta
+  ori r10, r10, (fpc_threadvar_relocate_proc)@highera
+  sldi r10, r10, 32
+  oris r10, r10, (fpc_threadvar_relocate_proc)@ha
+  ld r10, (fpc_threadvar_relocate_proc)@l(r10)
   
-  cmpdi r10,0
-  bne   .LThreaded
-  lis	r4, (Errno+8)@highesta
-  ori	r4, r4, (Errno+8)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (Errno+8)@ha
-  stw	r3,(Errno+8)@l(r4)
-  b 	.LFailed
+  cmpdi r10, 0
+  bne .LThreaded
+  lis r4, (Errno+8)@highesta
+  ori r4, r4, (Errno+8)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (Errno+8)@ha
+  stw r3, (Errno+8)@l(r4)
+  b .LFailed
 .LThreaded:
-  std   r3,temp
-  mflr  r3
-  ld	r10, 0(r10)
-  mtctr r10
-  lis   r4, (errno)@highesta
-  ori	r4, r4, (errno)@highera
-  sldi	r4, r4, 32
-  oris	r4, r4, (errno)@ha
-  std   r3,retaddress
-  ld    r3,(errno)@l(r4)
+  std r3, temp
+  mflr r3
+
+  // load actual function entry into r9
+  ld r9, 0(r10)
+  // save old TOC value
+  std r2, 40(r1)
+  // move function entry into ctr
+  mtctr r9
+  // load new TOC value
+  ld r2, 8(r10)
+  // load environment pointer from TOC
+  ld r11, 16(r10)
+  // load parameters
+  lis r4, (errno)@highesta
+  ori r4, r4, (errno)@highera
+  sldi r4, r4, 32
+  oris r4, r4, (errno)@ha
+  std r3, retaddress
+  lwz r3, (errno)@l(r4)
   bctrl
-  ld	r4,temp
-  ld	r5,retaddress
-  std	r4,0(r3)
-  mtlr  r5
+  // restore old TOC value
+  ld r2, 40(r1)
+
+  ld r4, temp
+  ld r5, retaddress
+  std r4, 0(r3)
+  mtlr r5
 .LFailed:
-  li	r3, -1
+  li r3, -1
 .LDone:
 end;
