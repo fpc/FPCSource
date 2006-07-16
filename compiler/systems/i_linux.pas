@@ -437,7 +437,7 @@ unit i_linux;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
