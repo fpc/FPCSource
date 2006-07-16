@@ -300,57 +300,57 @@ function ldexp(x : float; const p : Integer) : float;
 
 { statistical functions }
 
-function mean(const data : array of float) : float;
-function sum(const data : array of float) : float;
-function mean(const data : PFloat; Const N : longint) : float;
-function sum(const data : PFloat; Const N : Longint) : float;
+function mean(const data : array of double) : float;
+function sum(const data : array of double) : float;
+function mean(const data : PDouble; Const N : longint) : float;
+function sum(const data : PDouble; Const N : Longint) : float;
 function sumInt(const data : PInt64;Const N : longint) : Int64;
 function sumInt(const data : array of Int64) : Int64;
-function sumofsquares(const data : array of float) : float;
-function sumofsquares(const data : PFloat; Const N : Integer) : float;
+function sumofsquares(const data : array of double) : float;
+function sumofsquares(const data : PDouble; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
-procedure sumsandsquares(const data : array of float;
+procedure sumsandsquares(const data : array of Double;
   var sum,sumofsquares : float);
-procedure sumsandsquares(const data : PFloat; Const N : Integer;
+procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
-function minvalue(const data : array of float) : float;
+function minvalue(const data : array of Double) : Double;
 function minvalue(const data : array of integer) : Integer;
-function minvalue(const data : PFloat; Const N : Integer) : float;
+function minvalue(const data : PDouble; Const N : Integer) : Double;
 function MinValue(const Data : PInteger; Const N : Integer): Integer;
-function maxvalue(const data : array of float) : float;
+function maxvalue(const data : array of Double) : Double;
 function maxvalue(const data : array of integer) : Integer;
-function maxvalue(const data : PFloat; Const N : Integer) : float;
+function maxvalue(const data : PDouble; Const N : Integer) : Double;
 function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 { calculates the standard deviation }
-function stddev(const data : array of float) : float;
-function stddev(const data : PFloat; Const N : Integer) : float;
+function stddev(const data : array of Double) : float;
+function stddev(const data : PDouble; Const N : Integer) : float;
 { calculates the mean and stddev }
-procedure meanandstddev(const data : array of float;
+procedure meanandstddev(const data : array of Double;
   var mean,stddev : float);
-procedure meanandstddev(const data : PFloat;
+procedure meanandstddev(const data : PDouble;
   Const N : Longint;var mean,stddev : float);
-function variance(const data : array of float) : float;
-function totalvariance(const data : array of float) : float;
-function variance(const data : PFloat; Const N : Integer) : float;
-function totalvariance(const data : PFloat; Const N : Integer) : float;
+function variance(const data : array of Double) : float;
+function totalvariance(const data : array of Double) : float;
+function variance(const data : PDouble; Const N : Integer) : float;
+function totalvariance(const data : PDouble; Const N : Integer) : float;
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
 
 { I don't know what the following functions do: }
-function popnstddev(const data : array of float) : float;
-function popnstddev(const data : PFloat; Const N : Integer) : float;
-function popnvariance(const data : PFloat; Const N : Integer) : float;
-function popnvariance(const data : array of float) : float;
-procedure momentskewkurtosis(const data : array of float;
+function popnstddev(const data : array of Double) : float;
+function popnstddev(const data : PDouble; Const N : Integer) : float;
+function popnvariance(const data : PDouble; Const N : Integer) : float;
+function popnvariance(const data : array of Double) : float;
+procedure momentskewkurtosis(const data : array of Double;
   var m1,m2,m3,m4,skew,kurtosis : float);
-procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
+procedure momentskewkurtosis(const data : PDouble; Const N : Integer;
   var m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
 { returns the euclidean L2 norm }
-function norm(const data : array of float) : float;
-function norm(const data : PFloat; Const N : Integer) : float;
+function norm(const data : array of double) : float;
+function norm(const data : PDouble; Const N : Integer) : float;
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; {$ifdef MATHINLINE}inline; {$endif}
 function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   {$ifdef MATHINLINE}inline; {$endif}
@@ -724,26 +724,26 @@ function ldexp(x : float;const p : Integer) : float;
      ldexp:=x*intpower(2.0,p);
   end;
 
-function mean(const data : array of float) : float;
+function mean(const data : array of Double) : float;
 
   begin
      Result:=Mean(@data[0],High(Data)+1);
   end;
 
-function mean(const data : PFloat; Const N : longint) : float;
+function mean(const data : PDouble; Const N : longint) : float;
 
   begin
      mean:=sum(Data,N);
      mean:=mean/N;
   end;
 
-function sum(const data : array of float) : float;
+function sum(const data : array of Double) : float;
 
   begin
      Result:=Sum(@Data[0],High(Data)+1);
   end;
 
-function sum(const data : PFloat;Const N : longint) : float;
+function sum(const data : PDouble;Const N : longint) : float;
 
   var
      i : longint;
@@ -771,13 +771,13 @@ function sumInt(const data : array of Int64) : Int64;
      Result:=SumInt(@Data[0],High(Data)+1);
   end;
 
- function sumofsquares(const data : array of float) : float;
+ function sumofsquares(const data : array of Double) : float;
 
  begin
    Result:=sumofsquares(@data[0],High(Data)+1);
  end;
 
- function sumofsquares(const data : PFloat; Const N : Integer) : float;
+ function sumofsquares(const data : PDouble; Const N : Integer) : float;
 
   var
      i : longint;
@@ -788,14 +788,14 @@ function sumInt(const data : array of Int64) : Int64;
        sumofsquares:=sumofsquares+sqr(data[i]);
   end;
 
-procedure sumsandsquares(const data : array of float;
+procedure sumsandsquares(const data : array of Double;
   var sum,sumofsquares : float);
 
 begin
   sumsandsquares (@Data[0],High(Data)+1,Sum,sumofsquares);
 end;
 
-procedure sumsandsquares(const data : PFloat; Const N : Integer;
+procedure sumsandsquares(const data : PDouble; Const N : Integer;
   var sum,sumofsquares : float);
 
   var
@@ -815,26 +815,26 @@ procedure sumsandsquares(const data : PFloat; Const N : Integer;
 
 
 
-function stddev(const data : array of float) : float;
+function stddev(const data : array of Double) : float;
 
 begin
   Result:=Stddev(@Data[0],High(Data)+1)
 end;
 
-function stddev(const data : PFloat; Const N : Integer) : float;
+function stddev(const data : PDouble; Const N : Integer) : float;
 
   begin
      StdDev:=Sqrt(Variance(Data,N));
   end;
 
-procedure meanandstddev(const data : array of float;
+procedure meanandstddev(const data : array of Double;
   var mean,stddev : float);
 
 begin
   Meanandstddev(@Data[0],High(Data)+1,Mean,stddev);
 end;
 
-procedure meanandstddev(const data : PFloat;
+procedure meanandstddev(const data : PDouble;
   Const N : Longint;var mean,stddev : float);
 
 Var I : longint;
@@ -855,13 +855,13 @@ begin
     StdDev:=0;
 end;
 
-function variance(const data : array of float) : float;
+function variance(const data : array of Double) : float;
 
   begin
      Variance:=Variance(@Data[0],High(Data)+1);
   end;
 
-function variance(const data : PFloat; Const N : Integer) : float;
+function variance(const data : PDouble; Const N : Integer) : float;
 
   begin
      If N=1 then
@@ -870,13 +870,13 @@ function variance(const data : PFloat; Const N : Integer) : float;
        Result:=TotalVariance(Data,N)/(N-1);
   end;
 
-function totalvariance(const data : array of float) : float;
+function totalvariance(const data : array of Double) : float;
 
 begin
   Result:=TotalVariance(@Data[0],High(Data)+1);
 end;
 
-function totalvariance(const data : Pfloat;Const N : Integer) : float;
+function totalvariance(const data : PDouble;Const N : Integer) : float;
 
    var S,SS : Float;
 
@@ -902,38 +902,38 @@ function randg(mean,stddev : float) : float;
      randg:=Sqrt(-2*ln(S2)/S2)*u1*stddev+Mean;
   end;
 
-function popnstddev(const data : array of float) : float;
+function popnstddev(const data : array of Double) : float;
 
   begin
      PopnStdDev:=Sqrt(PopnVariance(@Data[0],High(Data)+1));
   end;
 
-function popnstddev(const data : PFloat; Const N : Integer) : float;
+function popnstddev(const data : PDouble; Const N : Integer) : float;
 
   begin
      PopnStdDev:=Sqrt(PopnVariance(Data,N));
   end;
 
-function popnvariance(const data : array of float) : float;
+function popnvariance(const data : array of Double) : float;
 
 begin
   popnvariance:=popnvariance(@data[0],high(Data)+1);
 end;
 
-function popnvariance(const data : PFloat; Const N : Integer) : float;
+function popnvariance(const data : PDouble; Const N : Integer) : float;
 
   begin
      PopnVariance:=TotalVariance(Data,N)/N;
   end;
 
-procedure momentskewkurtosis(const data : array of float;
+procedure momentskewkurtosis(const data : array of Double;
   var m1,m2,m3,m4,skew,kurtosis : float);
 
 begin
   momentskewkurtosis(@Data[0],High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
 end;
 
-procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
+procedure momentskewkurtosis(const data : PDouble; Const N : Integer;
   var m1,m2,m3,m4,skew,kurtosis : float);
 
   Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
@@ -967,13 +967,13 @@ procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
      Kurtosis:=M4 / Sqr(M2);
   end;
 
-function norm(const data : array of float) : float;
+function norm(const data : array of Double) : float;
 
   begin
      norm:=Norm(@data[0],High(Data)+1);
   end;
 
-function norm(const data : PFloat; Const N : Integer) : float;
+function norm(const data : PDouble; Const N : Integer) : float;
 
   begin
      norm:=sqrt(sumofsquares(data,N));
@@ -1005,13 +1005,13 @@ begin
 end;
 
 
-function minvalue(const data : array of float) : float;
+function minvalue(const data : array of Double) : Double;
 
 begin
-   Result:=minvalue(PFloat(@data[0]),High(Data)+1);
+   Result:=minvalue(PDouble(@data[0]),High(Data)+1);
 end;
 
-function minvalue(const data : PFloat; Const N : Integer) : float;
+function minvalue(const data : PDouble; Const N : Integer) : Double;
 
 var
    i : longint;
@@ -1033,13 +1033,13 @@ begin
     If Data[I] > Result Then Result := Data[I];
 end;
 
-function maxvalue(const data : array of float) : float;
+function maxvalue(const data : array of Double) : Double;
 
 begin
-   Result:=maxvalue(PFloat(@data[0]),High(Data)+1);
+   Result:=maxvalue(PDouble(@data[0]),High(Data)+1);
 end;
 
-function maxvalue(const data : PFloat; Const N : Integer) : float;
+function maxvalue(const data : PDouble; Const N : Integer) : Double;
 
 var
    i : longint;
