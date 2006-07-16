@@ -669,34 +669,67 @@ end;
 function GetLongName(var p : String) : boolean;
 
 var
-  lfn,sfn   : array[0..255] of char;
-  filename  : pchar;
-  ret       : longint;
+  SR: SearchRec;
+  FullFN, FinalFN, TestFN: string;
+  Found: boolean;
+  SPos: byte;
 begin
-  {contrary to shortname, SDK does not mention input buffer can be equal
-   to output.}
-
-  if Length(p)>0 then                   {copy p to array of char}
-   move(p[1],sfn[0],length(p));
-  sfn[length(p)]:=chr(0);
-  fillchar(lfn,sizeof(lfn),#0);
-  filename:=nil;
-
-  {Should return value load loaddoserror?}
-
-  ret:=GetFullPathName(@sfn,255,@lfn,filename);
-  {lfn here returns full path, filename only fn}
-  { If successful, Ret contains length of the long file name,
-    0 is general error, return value larger than size of buffer (255) means
-    that the buffer size was not sufficient. }
-  if (Ret > 0) and (Ret <= 255) then
-   begin
-    Move (LFN, P [1], Ret);
-    byte (P [0]) := Ret;
-    GetLongName := true;
-   end
+  if Length (P) = 0 then
+    GetLongName := false
   else
-   GetLongName := false;
+   begin
+    FullFN := FExpand (P); (* Needed to be done at the beginning to get proper case for all parts *)
+    SPos := 1;
+    if (Length (FullFN) > 2) then
+     if (FullFN [2] = DriveSeparator) then
+      SPos := 4
+     else
+      if (FullFN [1] = DirectorySeparator) and (FullFN [2] = DirectorySeparator) then
+       begin
+        SPos := 3;
+        while (Length (FullFN) > SPos) and (FullFN [SPos] <> DirectorySeparator) do
+         Inc (SPos);
+        if SPos >= Length (FullFN) then
+         SPos := 1
+        else
+         begin
+          Inc (SPos);
+          while (Length (FullFN) >= SPos) and (FullFN [SPos] <> DirectorySeparator) do
+           Inc (SPos);
+          if SPos <= Length (FullFN) then
+           Inc (SPos);
+         end;
+       end;
+    FinalFN := Copy (FullFN, 1, Pred (SPos));
+    Delete (FullFN, 1, Pred (SPos));
+    Found := true;
+    while (FullFN <> '') and Found do
+     begin
+      SPos := Pos (DirectorySeparator, FullFN);
+      TestFN := Copy (FullFN, 1, Pred (SPos));
+      Delete (FullFN, 1, Pred (SPos));
+      FindFirst (FinalFN + TestFN, AnyFile, SR);
+      if DosError <> 0 then
+       Found := false
+      else
+       begin
+        FinalFN := FinalFN + SR.Name;
+        if (FullFN <> '') and (FullFN [1] = DirectorySeparator) then
+         begin
+          FinalFN := FinalFN + DirectorySeparator;
+          Delete (FullFN, 1, 1);
+         end;
+       end;
+      FindClose (SR);
+     end;
+    if Found then
+     begin
+      GetLongName := true;
+      P := FinalFN;
+     end
+    else
+     GetLongName := false
+   end;
 end;
 
 {******************************************************************************
