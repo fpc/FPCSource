@@ -342,7 +342,7 @@ scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE is not supported by the tar
 scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE is not supported by the target OS
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
-% Only ON and OFF can be used as state with a $warn compiler directive
+% Only ON and OFF can be used as state with a \$warn compiler directive
 % \end{description}
 #
 # Parser
