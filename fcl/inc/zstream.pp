@@ -30,7 +30,7 @@ interface
 uses
   Sysutils, Classes
 {$ifdef usepaszlib}
-  ,paszlib
+  ,paszlib,zbase
 {$else}
   ,zlib
 {$endif}
@@ -66,7 +66,7 @@ type
     procedure CompressBuf(const InBuf: Pointer; InBytes: Integer;
                           var OutBuf: Pointer; var OutBytes: Integer);
   public
-    constructor Create(CompressionLevel: TCompressionLevel; Dest: TStream);
+    constructor Create(CompressionLevel: TCompressionLevel; Dest: TStream; ASkipHeader : Boolean = False);
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -212,7 +212,7 @@ end;
 // TCompressionStream
 
 constructor TCompressionStream.Create(CompressionLevel: TCompressionLevel;
-  Dest: TStream);
+  Dest: TStream; ASkipHeader : Boolean = False);
 const
   Levels: array [TCompressionLevel] of ShortInt =
     (Z_NO_COMPRESSION, Z_BEST_SPEED, Z_DEFAULT_COMPRESSION, Z_BEST_COMPRESSION);
@@ -220,7 +220,10 @@ begin
   inherited Create(Dest);
   FZRec.next_out := @FBuffer;
   FZRec.avail_out := sizeof(FBuffer);
-  CompressionCheck(deflateInit(FZRec, Levels[CompressionLevel]));
+  If ASkipHeader then
+    CompressionCheck(deflateInit2(FZRec, Levels[CompressionLevel],Z_DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0))
+  else
+    CompressionCheck(deflateInit(FZRec, Levels[CompressionLevel]));
 end;
 
 destructor TCompressionStream.Destroy;
