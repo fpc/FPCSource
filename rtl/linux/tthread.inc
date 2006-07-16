@@ -148,7 +148,7 @@ begin
   // the LinuxThreads implementation is used
   LThread.FPid := fpgetpid();
   {$ENDIF}
-  WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
+  WRITE_DEBUG('thread initing, parameter = ', PtrInt(LThread));
   try
     if LThread.FInitialSuspended then begin
       SemaphoreWait(LThread.FSem);
