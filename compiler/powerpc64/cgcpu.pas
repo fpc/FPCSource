@@ -477,11 +477,7 @@ begin
           if (size <> OS_NO) then
             a_load_ref_reg(list, size, location^.size, tmpref,
               location^.register)
-          else
-          {$IFDEF extdebug}
-          list.concat(tai_comment.create(strpnew('a_param_ref with OS_NO, sizeleft ' + inttostr(sizeleft))));
-          {$ENDIF extdebug}
-
+          else begin
             { load non-integral sized memory location into register. This
              memory location be 1-sizeleft byte sized.
              Always assume that this memory area is properly aligned, eg. start
@@ -529,19 +525,20 @@ begin
                 a_reg_dealloc(list, NR_R0);
                 a_reg_dealloc(list, NR_R12);
               end;
-              else
+              else begin
                 { still > 8 bytes to load, so load data single register now }
                 a_load_ref_reg(list, location^.size, location^.size, tmpref,
                   location^.register);
                 { the block is > 8 bytes, so we have to store any bytes not
                  a multiple of the register size beginning with the MSB }
                 adjusttail := true;
+              end;
             end;
             if (adjusttail) and (sizeleft < tcgsize2size[OS_INT]) then
               a_op_const_reg(list, OP_SHL, OS_INT,
                 (tcgsize2size[OS_INT] - sizeleft) * tcgsize2size[OS_INT],
                 location^.register);
-
+          end;
         end;
       LOC_REFERENCE:
         begin
