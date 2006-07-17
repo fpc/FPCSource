@@ -837,6 +837,13 @@ begin
          (supreg in [RS_EAX,RS_EDX])
     else
       begin
+        for opcount := 0 to p.ops-1 do
+          if (p.oper[opCount]^.typ = top_ref) and
+             reginref(supreg,p.oper[opcount]^.ref^) then
+            begin
+              regInInstruction := true;
+              exit
+            end;
         for opcount := 1 to maxinschanges do
           case insprop[p.opcode].Ch[opCount] of
             CH_REAX..CH_MEDI:
