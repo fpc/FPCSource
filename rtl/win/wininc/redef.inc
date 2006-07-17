@@ -537,6 +537,7 @@ function GetScrollRange(hWnd: HWND; nBar: Integer; var lpMinPos, lpMaxPos: Integ
 //function GetSecurityDescriptorGroup(pSecurityDescriptor: PSecurityDescriptor; var pGroup: PSID; var lpbGroupDefaulted: BOOL): BOOL; external 'advapi32' name 'GetSecurityDescriptorGroup';
 //function GetSecurityDescriptorOwner(pSecurityDescriptor: PSecurityDescriptor; var pOwner: PSID; var lpbOwnerDefaulted: BOOL): BOOL; external 'advapi32' name 'GetSecurityDescriptorOwner';
 //function GetSecurityDescriptorSacl(pSecurityDescriptor: PSecurityDescriptor; var lpbSaclPresent: BOOL; var pSacl: PACL; var lpbSaclDefaulted: BOOL): BOOL; external 'advapi32' name 'GetSecurityDescriptorSacl';
+procedure GetStartupInfo(var lpStartupInfo:TSTARTUPINFO); external 'kernel32' name 'GetStartupInfoA';
 function GetStringTypeA(Locale: LCID; dwInfoType: DWORD; const lpSrcStr: LPCSTR; cchSrc: BOOL; var lpCharType: Word): BOOL;external 'kernel32' name 'GetStringTypeA';
 function GetStringTypeEx(Locale: LCID; dwInfoType: DWORD; lpSrcStr: PChar; cchSrc: Integer; var lpCharType): BOOL;external 'kernel32' name 'GetStringTypeExA';
 function GetStringTypeExA(Locale: LCID; dwInfoType: DWORD; lpSrcStr: LPCSTR; cchSrc: Integer; var lpCharType): BOOL; external 'kernel32' name 'GetStringTypeExA';
