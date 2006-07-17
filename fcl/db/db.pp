@@ -2206,7 +2206,7 @@ end;
 {$i fields.inc}
 {$i datasource.inc}
 {$i database.inc}
-{$i BufDataset.inc}
+{$i bufdataset.inc}
 {$i dsparams.inc}
 
 end.
