@@ -109,7 +109,25 @@ var
   iconv_ucs42ansi,
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
+  
+  lock_ansi2ucs4 : integer = -1;
+  lock_ucs42ansi : integer = -1;
+  lock_ansi2wide : integer = -1;
+  lock_wide2ansi : integer = -1;
 
+procedure lockiconv(var lockcount: integer);
+begin
+ while interlockedincrement(lockcount) <> 0 do begin
+  interlockeddecrement(lockcount);
+  sleep(0);
+ end;
+end;
+
+procedure unlockiconv(var lockcount: integer);
+begin
+ interlockeddecrement(lockcount);
+end;
+  
 procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
     outlength,
@@ -120,13 +138,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
-    conv : iconv_t;
   begin
-    { conversion descriptors aren't thread safe }
-    if IsMultithread then
-      conv:=iconv_open(nl_langinfo(CODESET),unicode_encoding)
-    else
-      conv:=iconv_wide2ansi;
     mynil:=nil;
     my0:=0;
     { rought estimation }
@@ -136,7 +148,8 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength;
-    while iconv(conv,@srcpos,@srclen,@destpos,@outleft)=size_t(-1) do
+    lockiconv(lock_wide2ansi);
+    while iconv(iconv_wide2ansi,@srcpos,@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
           ESysEILSEQ:
@@ -148,7 +161,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               inc(destpos);
               dec(outleft);
               { reset }
-              iconv(conv,@mynil,@my0,@mynil,@my0);
+              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
             end;
           ESysE2BIG:
             begin
@@ -161,13 +174,15 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            begin
+              unlockiconv(lock_wide2ansi);
+              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            end;
         end;
       end;
+    unlockiconv(lock_wide2ansi);
     // truncate string
     setlength(dest,length(dest)-outleft);
-    if IsMultithread then
-      iconv_close(conv);
   end;
 
 
@@ -180,13 +195,7 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
-    conv : iconv_t;
   begin
-    { conversion descriptors aren't thread safe }
-    if IsMultithread then
-      conv:=iconv_open(unicode_encoding,nl_langinfo(CODESET))
-    else
-      conv:=iconv_ansi2wide;
     mynil:=nil;
     my0:=0;
     // extra space
@@ -196,7 +205,8 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
-    while iconv(conv,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
+    lockiconv(lock_ansi2wide);
+    while iconv(iconv_ansi2wide,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
          ESysEILSEQ:
@@ -207,7 +217,7 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               inc(destpos,2);
               dec(outleft,2);
               { reset }
-              iconv(conv,@mynil,@my0,@mynil,@my0);
+              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
             end;
           ESysE2BIG:
             begin
@@ -220,13 +230,15 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            begin
+              unlockiconv(lock_ansi2wide);
+              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            end;
         end;
       end;
+    unlockiconv(lock_ansi2wide);
     // truncate string
     setlength(dest,length(dest)-outleft div 2);
-    if IsMultithread then
-      iconv_close(conv);
   end;
 
 
@@ -259,13 +271,7 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
     destpos: pchar;
     mynil : pchar;
     my0 : size_t;
-    conv : iconv_t;
   begin
-    { conversion descriptors aren't thread safe }
-    if IsMultithread then
-      conv:=iconv_open('UCS4',nl_langinfo(CODESET))
-    else
-      conv:=iconv_ansi2ucs4;
     mynil:=nil;
     my0:=0;
     // extra space
@@ -275,7 +281,8 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*4;
-    while iconv(conv,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
+    lockiconv(lock_ansi2ucs4);
+    while iconv(iconv_ansi2ucs4,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
           ESysE2BIG:
@@ -289,13 +296,15 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            begin
+              unlockiconv(lock_ansi2ucs4);
+              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
+            end;
         end;
       end;
+    unlockiconv(lock_ansi2ucs4);
     // truncate string
     setlength(dest,length(dest)-outleft div 4);
-    if IsMultithread then
-      iconv_close(conv);
   end;
 
 
