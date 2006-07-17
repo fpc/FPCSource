@@ -77,6 +77,7 @@ procedure TBufDataset.InternalClose;
 var pc : pchar;
 
 begin
+ if fopen then begin
   FOpen:=False;
   FCurrentRecBuf := FFirstRecBuf;
   SetLength(FUpdateBuffer,0);
@@ -87,6 +88,7 @@ begin
     FreeRecordBuffer(pc);
     end;
   SetLength(FFieldBufPositions,0);
+ end;
 end;
 
 procedure TBufDataset.InternalFirst;
@@ -160,12 +162,12 @@ begin
   if Result = grOK then
     begin
 
-    with PBufBookmark(Buffer + FRecordSize)^ do
+    with PBufBookmark(Buffer + RecordSize)^ do
       begin
       BookmarkData := FCurrentRecBuf;
       BookmarkFlag := bfCurrent;
       end;
-    move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,FRecordSize);
+    move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,RecordSize);
     end
   else if (Result = grError) and doCheck then
     DatabaseError('No record');
@@ -190,27 +192,27 @@ end;
 
 procedure TBufDataset.InternalSetToRecord(Buffer: PChar);
 begin
-  FCurrentRecBuf := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
+  FCurrentRecBuf := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
 end;
 
 procedure TBufDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  PBufBookmark(Buffer + FRecordSize)^.BookmarkData := pointer(Data^);
+  PBufBookmark(Buffer + RecordSize)^.BookmarkData := pointer(Data^);
 end;
 
 procedure TBufDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
 begin
-  PBufBookmark(Buffer + FRecordSize)^.BookmarkFlag := Value;
+  PBufBookmark(Buffer + RecordSize)^.BookmarkFlag := Value;
 end;
 
 procedure TBufDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  pointer(Data^) := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
+  pointer(Data^) := PBufBookmark(Buffer + RecordSize)^.BookmarkData;
 end;
 
 function TBufDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
 begin
-  Result := PBufBookmark(Buffer + FRecordSize)^.BookmarkFlag;
+  Result := PBufBookmark(Buffer + RecordSize)^.BookmarkFlag;
 end;
 
 procedure TBufDataset.InternalGotoBookmark(ABookmark: Pointer);
@@ -440,7 +442,7 @@ begin
         begin
         if UpdateKind = ukModify then
           begin
-          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem))^,pchar(BookmarkData+sizeof(TBufRecLinkItem))^,FRecordSize);
+          move(pchar(OldValuesBuffer+sizeof(TBufRecLinkItem))^,pchar(BookmarkData+sizeof(TBufRecLinkItem))^,RecordSize);
           FreeRecordBuffer(OldValuesBuffer);
           end
         else if UpdateKind = ukDelete then
@@ -577,7 +579,7 @@ begin
       FFirstRecBuf := FCurrentRecBuf;
 
     // Link the newly created record buffer to the newly created TDataset record
-    with PBufBookmark(ActiveBuffer + FRecordSize)^ do
+    with PBufBookmark(ActiveBuffer + RecordSize)^ do
       begin
       BookmarkData := FCurrentRecBuf;
       BookmarkFlag := bfInserted;
@@ -599,7 +601,7 @@ begin
       begin
       // Update the oldvalues-buffer
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := intAllocRecordBuffer;
-      move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,FRecordSize+sizeof(TBufRecLinkItem));
+      move(FCurrentRecBuf^,FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer^,RecordSize+sizeof(TBufRecLinkItem));
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukModify;
       end
     else
@@ -608,7 +610,7 @@ begin
 
   CurrBuff := pchar(FCurrentRecBuf);
   inc(Currbuff,sizeof(TBufRecLinkItem));
-  move(ActiveBuffer^,CurrBuff^,FRecordSize);
+  move(ActiveBuffer^,CurrBuff^,RecordSize);
 end;
 
 procedure TBufDataset.CalcRecordSize;
