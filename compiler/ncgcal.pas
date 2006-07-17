@@ -829,7 +829,10 @@ implementation
             not assigned(funcretnode) then
            begin
              tg.gettemptyped(current_asmdata.CurrAsmList,resulttype.def,tt_normal,refcountedtemp);
-             cg.g_decrrefcount(current_asmdata.CurrAsmList,resulttype.def,refcountedtemp);
+             { finalize instead of only decrref,  because if the called }
+             { function throws an exception this temp will be decrref'd }
+             { again (tw7100)                                           }
+             cg.g_finalize(current_asmdata.CurrAsmList,resulttype.def,refcountedtemp);
            end;
 
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
