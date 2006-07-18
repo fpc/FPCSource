@@ -399,8 +399,6 @@ unit cpubase;
 
 
     function reg_cgsize(const reg: tregister): tcgsize;
-      const subreg2cgsize:array[Tsubregister] of Tcgsize =
-            (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO,OS_NO,OS_NO,OS_NO,OS_NO);
       begin
         case getregtype(reg) of
           R_INTREGISTER :
