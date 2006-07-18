@@ -77,10 +77,10 @@ procedure GetDir (DriveNr: byte; var Dir: ShortString);
 {$ifndef WINCE}
 const
   Drive:array[0..3]of char=(#0,':',#0,#0);
-{$endif WINCE}
 var
   defaultdrive:boolean;
   DirBuf,SaveBuf:array[0..259] of Char;
+{$endif WINCE}
 begin
 {$ifndef WINCE}
   defaultdrive:=drivenr=0;

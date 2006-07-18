@@ -22,6 +22,7 @@ interface
 {$endif SYSTEMDEBUG}
 
 {$define WINCE_EXCEPTION_HANDLING}
+{$define DISABLE_NO_THREAD_MANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -796,10 +797,12 @@ begin
   ExitThread(exitcode);
 end;
 
+{$ifdef cpu386}
 var
   { value of the stack segment
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
+{$endif cpu386}
 
 Const
   { DllEntryPoint  }
@@ -807,8 +810,6 @@ Const
      DLL_THREAD_ATTACH = 2;
      DLL_PROCESS_DETACH = 0;
      DLL_THREAD_DETACH = 3;
-Var
-     DLLBuf : Jmp_buf;
 Const
      DLLExitOK : boolean = true;
 

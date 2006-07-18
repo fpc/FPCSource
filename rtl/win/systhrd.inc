@@ -411,7 +411,7 @@ end;
 
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
 const
-  INFINITE=-1;
+  INFINITE=dword(-1);
 begin
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
 end;

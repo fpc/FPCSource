@@ -554,7 +554,7 @@ end;
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);compilerproc;
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
-  s1l, s2l : byte;
+  s1l, s2l : integer;
 begin
   s1l:=length(s1);
   s2l:=length(s2);

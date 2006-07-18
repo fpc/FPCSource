@@ -221,7 +221,7 @@ begin
 end;
 
 
-{
+(*
 Procedure fpc_Copy (Src, Dest, TypeInfo : Pointer);[Public,alias : 'FPC_COPY'];  compilerproc;
 var
   Temp : pbyte;
@@ -290,7 +290,7 @@ begin
       VarCopyProc(pvardata(dest)^,pvardata(src)^);
   end;
 end;
-}
+*)
 
 
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;

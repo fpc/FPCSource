@@ -344,7 +344,7 @@ procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; 
     i : SizeInt;
     p : PSizeInt;
   begin
-    if dimCnt<=length(preallocated) then
+    if dimCnt<=high(preallocated)+1 then
       p:=@preallocated
     else
       getmem(p,sizeof(SizeInt)*dimCnt);

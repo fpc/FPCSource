@@ -36,7 +36,7 @@
       runerror(207);
       result:=0;
     end;
-    { atn isn't supported by the linux fpe it seems
+    (* atn isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : extended) : extended;compilerproc;
     begin
@@ -44,8 +44,8 @@
       runerror(207);
       result:=0;
     end;
-    }
-    { lgn isn't supported by the linux fpe it seems
+    *)
+    (* lgn isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_LN}
     function fpc_ln_real(d : extended) : extended;compilerproc;
     begin
@@ -53,8 +53,8 @@
       runerror(207);
       result:=0;
     end;
-    }
-    { sind isn't supported by the linux fpe it seems
+    *)
+    (* sind isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_SIN}
     function fpc_sin_real(d : extended) : extended;compilerproc;
     begin
@@ -62,8 +62,8 @@
       runerror(207);
       result:=0;
     end;
-    }
-    { cos isn't supported by the linux fpe it seems
+    *)
+    (* cos isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_COS}
     function fpc_cos_real(d : extended) : extended;compilerproc;
     begin
@@ -71,5 +71,5 @@
       runerror(207);
       result:=0;
     end;
-    }
+    *)
 {$endif WINCE}

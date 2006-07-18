@@ -1383,7 +1383,7 @@ procedure unimplementedwidestring;
     HandleErrorFrame(215,get_frame);
   end;
 
-
+{$warnings off}
 function GenericWideCase(const s : WideString) : WideString;
   begin
     unimplementedwidestring;
@@ -1406,6 +1406,7 @@ function CharLengthPChar(const Str: PChar): PtrInt;
   begin
     unimplementedwidestring;
   end;
+{$warnings on}
 
 procedure initwidestringmanager;
   begin

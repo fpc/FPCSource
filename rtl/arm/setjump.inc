@@ -15,7 +15,6 @@
  **********************************************************************}
 
 function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;
-  label FPC_SETJMP;
   asm
     stmia   r0,{v1-v6, sl, fp, sp, lr}
     mov     r0,#0
