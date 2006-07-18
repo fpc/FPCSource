@@ -19,7 +19,7 @@ interface
 {$H+}
 {$mode objfpc}
 
-uses OraOCI, Classes, SysUtils;
+uses OCI, oratypes,Classes, SysUtils;
 
 { all pos parameters are indexed from 1..x! }
 
@@ -35,7 +35,7 @@ uses OraOCI, Classes, SysUtils;
     function OraGetFieldName(pos : integer) : string;
     function OraGetFieldType(pos : integer) : longint;
     function IsFieldDate(Pos : integer): boolean;
-    procedure OraError(errcode: integer; err: OCIError; msg : string);
+    procedure OraError(errcode: integer; err: POCIError; msg : string);
 
 const
     cDescribeBuf = 1024;
@@ -66,10 +66,10 @@ type
   end;
 
 var
-    Env : OCIEnv;
-    Err : OCIError;
-    Svc : OCISvcCtx;
-    Stmt: OCIStmt;
+    Env : POCIEnv;
+    Err : POCIError;
+    Svc : POCISvcCtx;
+    Stmt: POCIStmt;
     FieldList : TList;
 
     ecode : integer;
@@ -135,7 +135,7 @@ implementation
        procedure Describe;
        var
         fldc    : longint;
-        paramd  : OCIParam;
+        paramd  : POCIParam;
         colname : PChar;
         colsize : ub4;
         Rec     : PDescribeRec;
@@ -143,14 +143,14 @@ implementation
         fldc := 1;
 
         FieldListClear;
-        ecode := OCIParamGet(Stmt, OCI_HTYPE_STMT, Err, @paramd, fldc);
+        ecode := OCIParamGet(Stmt, OCI_HTYPE_STMT, Err, paramd, fldc);
         if ecode <> OCI_SUCCESS then
             ORAError(ecode, Err, 'OCIParamGetError');
         while ecode = OCI_SUCCESS do
         begin
             New(Rec);
             FillChar(Rec^.buf, sizeof(Rec^.buf), #0);
-            ecode := OCIAttrGet(paramd, OCI_DTYPE_PARAM, @Rec^.dbtype, 0,
+            ecode := OCIAttrGet(paramd, OCI_DTYPE_PARAM, @Rec^.dbtype, nil,
                 OCI_ATTR_DATA_TYPE, Err);
             if ecode <> 0 then
             begin
@@ -170,14 +170,14 @@ implementation
             inc(fldc);
 
             FieldList.Add(Rec);
-            ecode := OCIParamGet(Stmt, OCI_HTYPE_STMT, Err, @paramd, fldc);
+            ecode := OCIParamGet(Stmt, OCI_HTYPE_STMT, Err, paramd, fldc);
         end;
     end;
 
     procedure Define;
     var
         x : longint;
-        def: OCIDefine;
+        def: POCIDefine;
         PDesc : PDescribeRec;
         defptr: pointer;
         deflen: sword;
@@ -188,13 +188,13 @@ implementation
         begin
             PDesc := FieldList[x];
             case PDesc^.dbtype of
-                NUMBER_TYPE: begin
+                SQLT_NUM: begin
                     if PDesc^.scale <> 0 then
                     begin
                         defptr := @PDesc^.flt_buf;
                         deflen := SizeOf(PDesc^.flt_buf);
-                        deftyp := FLOAT_TYPE;
-                        PDesc^.dbtype := FLOAT_TYPE;
+                        deftyp := SQLT_FLT;
+                        PDesc^.dbtype := SQLT_FLT;
                     end
                     else begin
               if PDesc^.dbsize > 4 then
@@ -202,14 +202,14 @@ implementation
                 // WriteLn('BIG FAT WARNING!!!! dbsize int > 4 (',PDesc^.dbsize,')');
                 defptr := @PDesc^.int64_buf;
                 deflen := SizeOf(PDesc^.int64_buf);
-                deftyp := INT_TYPE;
-                PDesc^.dbtype := INT_TYPE;
+                deftyp := SQLT_INT;
+                PDesc^.dbtype := SQLT_INT;
               end
               else begin
                 defptr := @PDesc^.int_buf;
                             deflen := SizeOf(PDesc^.int_buf);
-                            deftyp := INT_TYPE;
-                            PDesc^.dbtype := INT_TYPE;
+                            deftyp := SQLT_INT;
+                            PDesc^.dbtype := SQLT_INT;
               end;
                     end;
                 end;
@@ -219,7 +219,7 @@ implementation
                     deftyp := PDesc^.dbtype;
                 end;
             end;
-            ecode := OCIDefineByPos(Stmt, @def, Err, x + 1, defptr,
+            ecode := OCIDefineByPos(Stmt, def, Err, x + 1, defptr,
                 deflen, deftyp, @PDesc^.indp, @PDesc^.col_retlen,
                 @PDesc^.col_retcode, OCI_DEFAULT);
             if ecode <> 0 then
@@ -229,18 +229,17 @@ implementation
         end;
     end;
 
-    procedure OraError( errcode : integer; err: OCIError; msg : string );
+    procedure OraError( errcode : integer; err: POCIError; msg : string );
     var
         buff : array [0..1024] of char;
-        xp : PLongint;
+
     begin
         if err <> nil then
         begin
             case errcode of
                 OCI_INVALID_HANDLE: Msg := Msg + ' OCI_INVALID_HANDLE';
             end;
-            xp := @errcode;
-            OCIErrorGet( err, 1, nil, xp, @buff[0], 1024, OCI_HTYPE_ERROR);
+            OCIErrorGet( err, 1, nil, errcode, @buff[0], 1024, OCI_HTYPE_ERROR);
             writeln(stderr, msg, ' ', buff);
         end
         else begin
@@ -304,7 +303,7 @@ implementation
         end;
 
         dtype := 0;
-        ecode := OCIAttrGet(Stmt, OCI_HTYPE_STMT, @dtype, 4,
+        ecode := OCIAttrGet(Stmt, OCI_HTYPE_STMT, @dtype, nil,
             OCI_ATTR_STMT_TYPE, Err);
         if ecode <> 0 then
         begin
@@ -342,7 +341,7 @@ implementation
       if (Pos > FieldList.Count) or (Pos < 1) then
         Exit;
       Desc := TDescribeRec(FieldList[Pos-1]^);
-      Result := (Desc.dbtype = DATE_TYPE);
+      Result := (Desc.dbtype = SQLT_DAT);
     end;
 
     function OraGetFieldAsString(pos : integer) : string;
@@ -358,23 +357,23 @@ implementation
       OraGetFieldAsString := 'null';
       Exit;
     end;
-        if Desc.dbtype = STRING_TYPE then
+        if Desc.dbtype = SQLT_STR then
         begin
             Desc.valbuf[Desc.col_retlen] := #0;
-            OraGetFieldAsString := Desc.valbuf;
+            OraGetFieldAsString := strpas(Desc.valbuf);
         end
-        else if Desc.dbtype = VARCHAR2_TYPE then
+        else if Desc.dbtype = SQLT_CHR then
         begin
             Desc.valbuf[Desc.col_retlen] := #0;
-            OraGetFieldAsString := Desc.valbuf;
+            OraGetFieldAsString := strpas(Desc.valbuf);
         end
-        else if Desc.dbtype = INT_TYPE then
+        else if Desc.dbtype = SQLT_INT then
     begin
             OraGetFieldAsString := IntToStr(Desc.int_buf);
     end
-        else if Desc.dbtype = FLOAT_TYPE then
+        else if Desc.dbtype = SQLT_FLT then
             OraGetFieldAsString := FloatToStr(Desc.flt_buf)
-        else if Desc.dbtype = DATE_TYPE then
+        else if Desc.dbtype = SQLT_DAT then
     begin
         Move(Desc.valbuf,Date,SizeOf(Date));
             OraGetFieldAsString :=
@@ -387,7 +386,7 @@ implementation
         else if Desc.dbtype = SQLT_AFC then
         begin
             Desc.valbuf[Desc.col_retlen] := #0;
-            OraGetFieldAsString := Desc.valbuf;
+            OraGetFieldAsString := strpas(Desc.valbuf);
         end
         else OraGetFieldAsString := 'dbtype not implemented ' + IntToStr(Desc.dbtype);
     end;
@@ -423,7 +422,7 @@ implementation
     begin
         if (Pos > FieldList.Count) or (Pos < 1) then
             Exit;
-        OraGetFieldName := TDescribeRec(FieldList[pos-1]^).buf;
+        OraGetFieldName := strpas(TDescribeRec(FieldList[pos-1]^).buf);
     end;
 
 initialization

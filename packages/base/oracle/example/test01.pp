@@ -16,7 +16,7 @@ program test01;
 
 uses
   oraclew,
-  oraoci;
+  oci,oratypes;
 
 {$H+}
 
