@@ -117,7 +117,7 @@ function TryEncodeTime(Hour, Min, Sec, MSec:word; Var Time : TDateTime) : boolea
 begin
   Result:=(Hour<24) and (Min<60) and (Sec<60) and (MSec<1000);
   If Result then
-    Time:=(Hour*3600000+Min*60000+Sec*1000+MSec)/MSecsPerDay;
+    Time:=(cardinal(Hour)*3600000+cardinal(Min)*60000+cardinal(Sec)*1000+MSec)/MSecsPerDay;
 end;
 
 {   EncodeDate packs three variables Year, Month and Day into a
