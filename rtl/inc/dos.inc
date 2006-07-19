@@ -214,6 +214,7 @@ end;
 ****************************************************************************}
 
 {$IFNDEF HAS_FSPLIT}
+{$warnings off}
 Procedure FSplit (Path: PathStr; var Dir: DirStr; var Name: NameStr; var Ext: ExtStr);
 var
   DirEnd, ExtStart: Longint;
@@ -266,6 +267,7 @@ begin
   Name := Copy (Path, DirEnd + 1, ExtStart - DirEnd - 1);
   Ext := Copy (Path, ExtStart, Length (Path) - ExtStart + 1);
 end;
+{$warnings on}
 {$ENDIF HAS_FSPLIT}
 
 

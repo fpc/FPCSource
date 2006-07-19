@@ -101,7 +101,7 @@ var
   s    : ansistring;
   size : dword;
   rc   : dword;
-  p,buf : pchar;
+  buf : pchar;
 begin
   s := ExpandFileName (filename);
 
@@ -852,8 +852,6 @@ Procedure LoadVersionInfo;
 // and getfreespaceex
 Var
    versioninfo : TOSVERSIONINFO;
-   i          : Integer;
-
 begin
    kernel32dll:=0;
   GetDiskFreeSpaceEx:=nil;

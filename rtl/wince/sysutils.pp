@@ -199,8 +199,7 @@ end;
 
 Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
 begin
-  {$warning need to add 64bit call }
-  Result := longint(SetFilePointer(Handle, longint(FOffset), nil, longint(Origin)));
+  Result := SetFilePointer(Handle, longint(FOffset), nil, longint(Origin));
 end;
 
 

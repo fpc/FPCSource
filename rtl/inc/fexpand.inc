@@ -126,6 +126,7 @@ begin
 
 (* Allow both '/' and '\' as directory separators *)
 (* by converting all to the native one.           *)
+{$warnings off}
     if DirectorySeparator = '\' then
     {Allow slash as backslash}
       begin
@@ -141,6 +142,7 @@ begin
             if Pa [I] = '\' then
               Pa [I] := '/';
         end;
+{$warnings on}
 
 (* PathStart is amount of characters to strip to get beginning *)
 (* of path without volume/drive specification.                 *)

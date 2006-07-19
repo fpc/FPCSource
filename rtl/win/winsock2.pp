@@ -1290,7 +1290,7 @@ end;
 
 procedure FD_CLR(Socket: TSocket; var FDSet: TFDSet);
 var
-  I: Longint;
+  I: cardinal;
 begin
   I := 0;
   while I < FDSet.fd_count do

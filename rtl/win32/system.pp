@@ -24,6 +24,8 @@ interface
   {$define Set_i386_Exception_handler}
 {$endif cpui386}
 
+{$define DISABLE_NO_THREAD_MANAGER}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 
@@ -741,7 +743,7 @@ type
 type
   PExceptionRecord = ^TExceptionRecord;
   TExceptionRecord = packed record
-          ExceptionCode   : Longint;
+          ExceptionCode   : cardinal;
           ExceptionFlags  : Longint;
           ExceptionRecord : PExceptionRecord;
           ExceptionAddress : Pointer;
@@ -851,7 +853,7 @@ begin
     if IsConsole then Writeln(stderr,'Exception  ',
             hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
   {$endif SYSTEMEXCEPTIONDEBUG}
-    case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
+    case excep^.ExceptionRecord^.ExceptionCode of
       STATUS_INTEGER_DIVIDE_BY_ZERO,
       STATUS_FLOAT_DIVIDE_BY_ZERO :
         err := 200;

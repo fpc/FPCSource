@@ -297,8 +297,8 @@
 
      _RASCONNSTATE = RASCONNSTATE;
 
-     RASPROJECTION = (RASP_Amb := $10000,RASP_PppNbf := $803F,RASP_PppIpx := $802B,
-       RASP_PppIp := $8021);
+     RASPROJECTION = (RASP_PppIp := $8021, RASP_PppIpx := $802B, RASP_PppNbf := $803F,
+       RASP_Amb := $10000);
 
      _RASPROJECTION = RASPROJECTION;
 

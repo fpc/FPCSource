@@ -199,8 +199,10 @@ Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR
 }
 Type
   pSizeInt = ^SizeInt;
+{$ifndef FPC_WINLIKEWIDESTRING}
 Var
   l : pSizeInt;
+{$endif FPC_WINLIKEWIDESTRING}
 Begin
   { Zero string }
   if S=Nil then
@@ -765,6 +767,7 @@ procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
 Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; compilerproc;
 {$ifdef FPC_WINLIKEWIDESTRING}
   begin
+    pointer(result) := pointer(s);
   end;
 {$else FPC_WINLIKEWIDESTRING}
 {
