@@ -2,7 +2,7 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #
-#   Hebrew language file for Free Pascal Compiler
+#   Hebrew (CP1255) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
 #   Based on errore.msg of SVN revision 4237
 #
@@ -868,28 +868,28 @@ parser_e_procname_to_short_for_export=03159_E_שם השגרה קצר מידי לייצוא
 % The length of the procedure/function name must be at least 2 characters
 % long. This is because of a bug in dlltool which doesn't parse the .def
 % file correct with a name of length 1.
-parser_e_dlltool_unit_var_problem=03160_E_No DEFFILE entry can be generated for unit global vars
-parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
+parser_e_dlltool_unit_var_problem=03160_E_לא ניתן לייצר חלק DEFFILE למשתנים גלובליים ביחידה
+parser_e_dlltool_unit_var_problem2=03161_E_הדר ללא שימוש ב -WD
 % You need to compile this file without the -WD switch on the
 % commandline
-parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
+parser_f_need_objfpc_or_delphi_mode=03162_F_יש להשתמש במצב ObjFpc (-S2) או במצב Delphi (-Sd) להדר את המודול
 % You need to use \{\$mode objfpc\} or \{\$mode delphi\} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
-parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
+parser_e_no_export_with_index_for_target=03163_E_אי אפשר לייצא עם אינדקס תחת $1
 % Exporting of functions or procedures with a specified index is not
 % supported on this target.
-parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not supported under $1
+parser_e_no_export_of_variables_for_target=03164_E_ייצוא של משתמש אינו נתמך ב$1
 % Exporting of variables is not supported on this target.
-parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
+parser_e_improper_guid_syntax=03165_E_תחביר GUID אינו חוקי
 % The GUID indication does not have the proper syntax. It should be of the form
 % \begin{verbatim}
 % {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
 % \end{verbatim}
 % Where each \var{X} represents a hexadecimal digit.
-parser_w_interface_mapping_notfound=03168_W_Procedure named "$1" not found that is suitable for implementing the $2.$3
+parser_w_interface_mapping_notfound=03168_W_השגרה "$1" נמצאה אך ללא הפרמטרים המבוקשים של $2.$3
 % The compiler cannot find a suitable procedure which implements the given method of an interface.
 % A procedure with the same name is found, but the arguments do not match.
-parser_e_interface_id_expected=03169_E_interface identifier expected
+parser_e_interface_id_expected=03169_E_מצפה למזהה ממשק
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
 % \begin{verbatim}
@@ -899,53 +899,53 @@ parser_e_interface_id_expected=03169_E_interface identifier expected
 %     ....
 % \end{verbatim}
 % and the \var{interface} before the dot not listed in the inheritance list.
-parser_e_type_cant_be_used_in_array_index=03170_E_Type "$1" can't be used as array index type
+parser_e_type_cant_be_used_in_array_index=03170_E_הסוג "$1" אינו יכול להיות בשימוש בתור סוג אינדקס למערך
 % Types like \var{qword} or \var{int64} aren't allowed as array index type
-parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in interfaces
+parser_e_no_con_des_in_interfaces=03171_E_יוצר והורס אינם מורשים בממשקים
 % Constructor and destructor declarations aren't allowed in interface
 % In the most cases the method \var{QueryInterface} of \var{IUnknown} can
 % be used to create a new interface.
-parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACES
+parser_e_no_access_specifier_in_interfaces=03172_E_מזהה כניסה אינו יכול להיות בשימוש עם ממשקים
 % The access specifiers \var{public}, \var{private}, \var{protected} and
 % \var{pusblished} can't be used in interfaces because all methods
 % of an interfaces must be public.
-parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
+parser_e_no_vars_in_interfaces=03173_E_ממשק אינו יכול להכיל שדות
 % Declarations of fields aren't allowed in interfaces. An interface
 % can contain only methods
-parser_e_no_local_proc_external=03174_E_Can't declare local procedure as EXTERNAL
+parser_e_no_local_proc_external=03174_E_לא ניתן להגדיר שגרה מקומית כחיצונית
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high
-parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't initialized
+parser_w_skipped_fields_before=03175_W_חלק מהשדות הבאים לפני "$1" לא אותחלו
 % In Delphi mode, not all fields of a typed constant record have to be
 % initialized, but the compiler warns you when it detects such situations.
-parser_e_skipped_fields_before=03176_E_Some fields coming before "$1" weren't initialized
+parser_e_skipped_fields_before=03176_E_חלק מהשדות הבאים לפני "$1" לא אותחלו
 % In all syntax modes but Delphi mode, you can't leave some fields uninitialized
 % in the middle of a typed constant record
-parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't initialized
+parser_w_skipped_fields_after=03177_W_חלק מהשדות הבאים אחרי "$1" לא אותחלו
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl and External
+parser_e_varargs_need_cdecl_and_external=03178_E_השימוש בVarArgs חייב להיות בשימוש עם CDecl ו External
 % The varargs directive can only be used with procedures or functions
 % that are declared with \var{cdecl} and \var{external} directives. The varargs directive
 % is only meant to provide a compatible interface to C functions like printf.
-parser_e_self_call_by_value=03179_E_Self must be a normal (call-by-value) parameter
+parser_e_self_call_by_value=03179_E_Self חייב להיות פרמטר רגיל (call-by-value)
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
-parser_e_interface_has_no_guid=03180_E_Interface "$1" has no interface identification
+parser_e_interface_has_no_guid=03180_E_הממשק "$1" אינו מכיל מזהה GUID
 % When you want to assign an interface to a constant, then the interface
 % must have a GUID value set.
-parser_e_illegal_field_or_method=03181_E_Unknown class field or method identifier "$1"
+parser_e_illegal_field_or_method=03181_E_המזהה של שדה או מתודה של מחלקה "$1" אינם ידועים
 % Properties must refer to a field or method in the same class.
-parser_w_proc_overriding_calling=03182_W_Overriding calling convention "$1" with "$2"
+parser_w_proc_overriding_calling=03182_W_עולה על מוסכמות הפעלה "$1" עם "$2"
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used
-parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of object" can only be initialized with NIL
+parser_e_no_procvarobj_const=03183_E_ניתן לאתחל טיפוס קבוע של "procedure of object" רק עם NIL
 % You can't assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
-parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
+parser_e_default_value_only_one_para=03184_E_ערך ברירת מחדל יכול להיות בשימוש רק עם פרמטר אחד
 % It is not possible to specify a default value for several parameters at once. 
 % The following is invalid:
 % \begin{verbatim}
@@ -955,49 +955,49 @@ parser_e_default_value_only_one_para=03184_E_Default value can only be assigned 
 % \begin{verbatim}
 % Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
 % \end{verbatim}
-parser_e_default_value_expected_for_para=03185_E_Default parameter required for "$1"
+parser_e_default_value_expected_for_para=03185_E_פרמטר ברירת מחדל דרוש עבור "$1"
 % The specified parameter requires a default value.
-parser_w_unsupported_feature=03186_W_Use of unsupported feature!
+parser_w_unsupported_feature=03186_W_שימוש במאפיין לא נתמך !
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_h_c_arrays_are_references=03187_H_C arrays are passed by reference
+parser_h_c_arrays_are_references=03187_H_מערכים של C מועברים כהפניה
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
-parser_e_C_array_of_const_must_be_last=03188_E_C array of const must be the last argument
+parser_e_C_array_of_const_must_be_last=03188_E_מערך C של קבוע חייב להיות הארגומנט האחרון
 % You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
-parser_h_type_redef=03189_H_Type "$1" redefinition
+parser_h_type_redef=03189_H_הגדרה מחודשת של הטיפוס "$1"
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
-parser_w_cdecl_has_no_high=03190_W_cdecl'ared functions have no high parameter
+parser_w_cdecl_has_no_high=03190_W_אין לפונקציות cdecl פרמטר גבוהה
 % Functions declared with cdecl modifier do not pass an extra implicit parameter.
-parser_w_cdecl_no_openstring=03191_W_cdecl'ared functions do not support open strings
+parser_w_cdecl_no_openstring=03191_W_פונקציות cdecel אינן תומכות ב open string
 % Openstring is not supported for cdecl'ared functions.
-parser_e_initialized_not_for_threadvar=03192_E_Cannot initialize variables declared as threadvar
+parser_e_initialized_not_for_threadvar=03192_E_אין אפשרות לאתחל משתנה המוגדר כthreadvar
 % Variables declared as threadvar can not be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
-parser_e_msg_only_for_classes=03193_E_Message directive is only allowed in Classes
+parser_e_msg_only_for_classes=03193_E_ניתן להשתמש בהנחיית message רק בתוך מחלקה
 % The message directive is only supported for Class types.
-parser_e_procedure_or_function_expected=03194_E_Procedure or Function expected
+parser_e_procedure_or_function_expected=03194_E_מצפה לשיגרה או פונקציה
 % A class method can only be specified for procedures and functions.
-parser_e_illegal_calling_convention=03195_W_Calling convention directive ignored: "$1"
+parser_e_illegal_calling_convention=03195_W_מתעלם ממוסכמת ההפעלה: "$1"
 % Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
 % only the standard ABI calling convention of the CPU.
-parser_e_no_object_reintroduce=03196_E_REINTRODUCE can't be used in objects
+parser_e_no_object_reintroduce=03196_E_לא ניתן להשתמש בREINTRODUCE בתוך אובייקט
 % \var{reintroduce} is not supported for objects.
-parser_e_paraloc_only_one_para=03197_E_Each argument must have its own location
+parser_e_paraloc_only_one_para=03197_E_כל ארגומנט חייב להכיל מיקום עצמאי.
 % If locations for arguments are specified explicitly as it is required by
 % some syscall conventions, each argument must have it's only location, things
 % like \var{procedure p(i,j : longint 'r1');} aren't allowed
-parser_e_paraloc_all_paras=03198_E_Each argument must have an explicit location
+parser_e_paraloc_all_paras=03198_E_כל ארגומנט חייב להכיל מיקום מוגדר
 % If one argument has an explicit argument location, all arguments of a procedure
 % must have one.
-parser_e_illegal_explicit_paraloc=03199_E_Unknown argument location
+parser_e_illegal_explicit_paraloc=03199_E_מיקום ארגומנט לא ידוע
 % The location specified for an argument isn't recognized by the compiler
-parser_e_32bitint_or_pointer_variable_expected=03200_E_32 Bit-Integer or pointer variable expected
+parser_e_32bitint_or_pointer_variable_expected=03200_E_מצפה לסוג משתנה של מספר שלם 32-Bit או מצביע
 % The libbase for MorphOS/AmigaOS can be give only as \var{longint}, \var{dword} or any pointer variable.
-parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between different procedures
+parser_e_goto_outside_proc=03201_E_לא ניתן להשמש בgoto בין שני שיגרות
 % It isn't allowed to use the \var{goto} statements referencing labels outside the
 % current procedure. The following example shows the problem:
 % \begin{verbatim}
@@ -1018,63 +1018,63 @@ parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between differ
 % ...
 %
 % \end{verbatim}
-parser_f_too_complex_proc=03202_F_Procedure too complex, it requires too much registers
+parser_f_too_complex_proc=03202_F_השיגרה מסובכת מידי ודרשת שימוש של יותר מידי אוגרים
 % Your procedure body is too long for the compiler. You should split the
 % procedure into multiple smaller procedures.
-parser_e_illegal_expression=03203_E_Illegal expression
+parser_e_illegal_expression=03203_E_ביטוי לא חוקי
 % This can occur under many circumstances. Mostly when trying to evaluate
 % constant expressions.
-parser_e_invalid_integer=03204_E_Invalid integer expression
+parser_e_invalid_integer=03204_E_הביטוי של המספר השלם אינו חוקי
 % You made an expression which isn't an integer, and the compiler expects the
 % result to be an integer.
-parser_e_invalid_qualifier=03205_E_Illegal qualifier
+parser_e_invalid_qualifier=03205_E_שימוש לא חוקי במבחין
 % One of the following is happening :
 % \begin{itemize}
 % \item You're trying to access a field of a variable that is not a record.
 % \item You're indexing a variable that is not an array.
 % \item You're dereferencing a variable that is not a pointer.
 % \end{itemize}
-parser_e_upper_lower_than_lower=03206_E_High range limit < low range limit
+parser_e_upper_lower_than_lower=03206_E_טווח ההגבלה הגבוהה קטן מטווח ההגבלה הנמוכה
 % You are declaring a subrange, and the lower limit is higher than the high
 % limit of the range.
-parser_e_macpas_exit_wrong_param=03207_E_Exit's parameter must be the name of the procedure it is used in
+parser_e_macpas_exit_wrong_param=03207_E_הפרמטר של Exit חייב להיות שם השיגרה תחתיו הוא נמצא
 % Non local exit is not allowed. This error occurs only in mode MacPas.
-parser_e_illegal_assignment_to_count_var=03208_E_Illegal assignment to for-loop variable "$1"
+parser_e_illegal_assignment_to_count_var=03208_E_הצבה לא חוקית של המשתנה בלולאת ה for "$1"
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings. You can also not assign values to
 % loop variables inside the loop (except in Delphi and TP modes). Use a while or
 % repeat loop instead if you need to do something like that, since those
 % constructs were built for that.
-parser_e_no_local_var_external=03209_E_Can't declare local variable as EXTERNAL
+parser_e_no_local_var_external=03209_E_לא ניתן להגדיר משתנים מקומיים כחיצוניים
 % Declaring local variables as external is not allowed. Only global variables can reference
 % to external variables.
-parser_e_proc_already_external=03210_E_Procedure is already declared EXTERNAL
+parser_e_proc_already_external=03210_E_השיגרה כבר מוגדרת כחיצונית
 % The procedure is already declared with the EXTERNAL directive in an interface or
 % forward declaration.
-parser_w_implicit_uses_of_variants_unit=03211_W_Implicit uses of Variants unit
+parser_w_implicit_uses_of_variants_unit=03211_W_שימוש משתמע ביחידת Variants
 % The Variant type is used in the unit without any used unit using the Variants unit. The
 % compiler has implicitly added the Variants unit to the uses list. To remove this warning
 % the Variants unit needs to be added to the uses statement.
-parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't be used in INTERFACES
+parser_e_no_static_method_in_interfaces=03212_E_השימוש במחלקה ומתודות סטטיים אינם יכוליות להיות בשימוש בממשק
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
 parser_e_arithmetic_operation_overflow=03213_E_גלישה בפעולה מתמטית
 % An operation on two integers values produced an overflow
-parser_e_protected_or_private_expected=03214_E_Protected or private expected
+parser_e_protected_or_private_expected=03214_E_מצפה לאיזור Protected או Private
 % \var{strict} can be only used together with \var{protected} or \var{private}.
-parser_e_illegal_slice=03215_E_SLICE can't be used outside of parameter list
+parser_e_illegal_slice=03215_E_SLICE אינ יכול להיות בשימוש מחוץ לרשימת פרמטרים
 % \var{slice} can be used only for arguments accepting an open array parameter
-parser_e_dispinterface_cant_have_parent=03216_E_A DISPINTERFACE can't have a parent class
+parser_e_dispinterface_cant_have_parent=03216_E_מחלקת DISPINTERFACE אינה יכולה להכיל הורה
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
-parser_e_dispinterface_needs_a_guid=03217_E_A DISPINTERFACE needs a guid
+parser_e_dispinterface_needs_a_guid=03217_E_DISPINTERFACE חייב GUID
 % A DISPINMTERFACE always needs an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overriden by "$1" which has another return type)
+parser_w_overridden_methods_not_same_ret=03218_W_המתודות החדשות חייבות להחזיר את אותו טיפוס נתונים. הקוד הנוכחי יכול לגרום לקריסה בעקבות באג של המפרש של דלפי (“$2” עולה על “$1” אשר מכיל טיפוס נתונים אחר בהחזרה)
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
-parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs must be ordinal constants
+parser_e_dispid_must_be_ord_const=03219_E_מזהה Dispatch חייב להיות קבוע בעל ערך סידורי
 % \end{description}
 #
 # Type Checking
@@ -1085,7 +1085,7 @@ parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs must be ordinal constants
 % This section lists all errors that can occur when type checking is
 % performed.
 % \begin{description}
-type_e_mismatch=04000_E_Type mismatch
+type_e_mismatch=04000_E_טיפוס נתונים לא חופף
 % This can happen in many cases:
 % \begin{itemize}
 % \item The variable you're assigning to is of a different type than the
@@ -1093,7 +1093,7 @@ type_e_mismatch=04000_E_Type mismatch
 % \item You are calling a function or procedure with parameters that are
 % incompatible with the parameters in the function or procedure definition.
 % \end{itemize}
-type_e_incompatible_types=04001_E_Incompatible types: got "$1" expected "$2"
+type_e_incompatible_types=04001_E_טיפוס נתונים לא תואם: נעשה שימוש ב "$1" מצפה ל"$2"
 % There is no conversion possible between the two types
 % Another possiblity is that they are declared in different
 % declarations:
@@ -1107,28 +1107,28 @@ type_e_incompatible_types=04001_E_Incompatible types: got "$1" expected "$2"
 %              is due the strict type checking of pascal }
 % End.
 % \end{verbatim}
-type_e_not_equal_types=04002_E_Type mismatch between "$1" and "$2"
+type_e_not_equal_types=04002_E_אי התאמה בין טיפוסי הנתונים "$1" ו "$2"
 % The types are not equal
-type_e_type_id_expected=04003_E_Type identifier expected
+type_e_type_id_expected=04003_E_מצפה לטיפוס נתונים
 % The identifier is not a type, or you forgot to supply a type identifier.
-type_e_variable_id_expected=04004_E_Variable identifier expected
+type_e_variable_id_expected=04004_E_מצפה למזהה של משתנה
 % This happens when you pass a constant to a routine (such as \var{Inc} var or \var{Dec})
 % when it expects a variable. You can only pass variables as arguments to these functions.
-type_e_integer_expr_expected=04005_E_Integer expression expected, but got "$1"
+type_e_integer_expr_expected=04005_E_מצפה למספר שלם, אך התקבל "$1"
 % The compiler expects an expression of type integer, but gets a different
 % type.
-type_e_boolean_expr_expected=04006_E_Boolean expression expected, but got "$1"
+type_e_boolean_expr_expected=04006_E_מצפה לביטוי בוליאני, אך התקבל "$1"
 % The expression must be a boolean type, it should be return true or
 % false.
-type_e_ordinal_expr_expected=04007_E_Ordinal expression expected
+type_e_ordinal_expr_expected=04007_E_מצפה לטיפוס סודר
 % The expression must be of ordinal type, i.e., maximum a \var{Longint}.
 % This happens, for instance, when you specify a second argument
 % to \var{Inc} or \var{Dec} that doesn't evaluate to an ordinal value.
-type_e_pointer_type_expected=04008_E_pointer type expected, but got "$1"
+type_e_pointer_type_expected=04008_E_מצפה למצביע, אך התקבל "$1"
 % The variable or expression isn't of the type \var{pointer}. This
 % happens when you pass a variable that isn't a pointer to \var{New}
 % or \var{Dispose}.
-type_e_class_type_expected=04009_E_class type expected, but got "$1"
+type_e_class_type_expected=04009_E_מצפה למחלקה, אך התקבל "$1"
 % The variable of expression isn't of the type \var{class}. This happens
 % typically when
 % \begin{enumerate}
@@ -1136,88 +1136,88 @@ type_e_class_type_expected=04009_E_class type expected, but got "$1"
 % \item An exception handler (\var{On}) contains a type identifier that
 % isn't a class.
 % \end{enumerate}
-type_e_cant_eval_constant_expr=04011_E_Can't evaluate constant expression
+type_e_cant_eval_constant_expr=04011_E_לא ניתן לנתח את הביטוי הקבוע
 % This error can occur when the bounds of an array you declared does
 % not evaluate to ordinal constants
-type_e_set_element_are_not_comp=04012_E_Set elements are not compatible
+type_e_set_element_are_not_comp=04012_E_האלמנטים של הקבוצה אינם תואמים
 % You are trying to make an operation on two sets, when the set element types
 % are not the same. The base type of a set must be the same when taking the
 % union
-type_e_set_operation_unknown=04013_E_Operation not implemented for sets
+type_e_set_operation_unknown=04013_E_הפעולה אינה בשימוש עם קבוצות
 % several binary operations are not defined for sets
 % like div mod ** (also >= <= for now)
-type_w_convert_real_2_comp=04014_W_Automatic type conversion from floating type to COMP which is an integer type
+type_w_convert_real_2_comp=04014_W_המרה אוטומטית של טיפוס עשרוני ל COMP אשר הוא מספר שלם
 % An implicit type conversion from a real type to a \var{comp} is
 % encountered. Since \var{comp} is a 64 bit integer type, this may indicate
 % an error.
-type_h_use_div_for_int=04015_H_use DIV instead to get an integer result
+type_h_use_div_for_int=04015_H_השתמש בDIV במקום על מנת לקבל תוצאה של מספר שלם
 % When hints are on, then an integer division with the '/' operator will
 % procuce this message, because the result will then be of type real
-type_e_strict_var_string_violation=04016_E_string types doesn't match, because of $V+ mode
+type_e_strict_var_string_violation=04016_E_טיפוס המחרוזת אינם תואם בגלל השימוש במתג $V+
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
-type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ or pred on enums with assignments not possible
+type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_לא ניתן להציב ערכים למניות תוך שימוש בsucc או pred
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use the \var{Succ} or \var{Pred} functions on them.
-type_e_cant_read_write_type=04018_E_Can't read or write variables of this type
+type_e_cant_read_write_type=04018_E_לא ניתן לקרוא או לכתוב משתנים מהסוג הנוכחי
 % You are trying to \var{read} or \var{write} a variable from or to a
 % file of type text, which doesn't support that. Only integer types,
 % reals, pchars and strings can be read from/written to a text file.
 % Booleans can only be written to text files.
-type_e_no_readln_writeln_for_typed_file=04019_E_Can't use readln or writeln on typed file
+type_e_no_readln_writeln_for_typed_file=04019_E_לא ניתן להשתמש בreadln וwriteln על טיפוס נתונים מסוג file
 % \var{readln} and \var{writeln} are only allowed for text files.
-type_e_no_read_write_for_untyped_file=04020_E_Can't use read or write on untyped file.
+type_e_no_read_write_for_untyped_file=04020_E_לא ניתן לקרוא או לכתוב טיפוס לא מוגר של קבצים
 % \var{read} and \var{write} are only allowed for text or typed files.
-type_e_typeconflict_in_set=04021_E_Type conflict between set elements
+type_e_typeconflict_in_set=04021_E_התנגשות של טיפוס נתונים בתוך איברים של קבוצה
 % There is at least one set element which is of the wrong type, i.e. not of
 % the set type.
-type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) returns the upper/lower word/dword
+type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) מחזיר את הערך העליון/תחתון של word/dword
 % \fpc supports an overloaded version of \var{lo/hi} for \var{longint/dword/int64/qword}
 % which returns the lower/upper word/dword of the argument. TP always uses
 % a 16 bit \var{lo/hi} which returns always bits 0..7 for \var{lo} and the
 % bits 8..15 for \var{hi}. If you want the TP behavior you have
 % to type cast the argument to \var{word/integer}
-type_e_integer_or_real_expr_expected=04023_E_Integer or real expression expected
+type_e_integer_or_real_expr_expected=04023_E_מצפה לביטוי של מספר שלם או מספר ממשי
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=04024_E_Wrong type "$1" in array constructor
+type_e_wrong_type_in_array_constructor=04024_E_שימוש שגוי בטיפוס "$1" בתוך יוצר המערך
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=04025_E_Incompatible type for arg no. $1: Got "$2", expected "$3"
+type_e_wrong_parameter_type=04025_E_טיפוס לא מתאים לארגומנט מספר $1: התקבל "$2", מצפה ל"$3"
 % You are trying to pass an invalid type for the specified parameter.
-type_e_no_method_and_procedure_not_compatible=04026_E_Method (variable) and Procedure (variable) are not compatible
+type_e_no_method_and_procedure_not_compatible=04026_E_המשתנה של המתודה והשגרה אינם תואמים
 % You can't assign a method to a procedure variable or a procedure to a
 % method pointer.
-type_e_wrong_math_argument=04027_E_Illegal constant passed to internal math function
+type_e_wrong_math_argument=04027_E_ביטוי קבוע לא חוקי הוזן לפונקציה מתמטית פנימית
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
-type_e_no_addr_of_constant=04028_E_Can't get the address of constants
+type_e_no_addr_of_constant=04028_E_לא ניתן לקבל את הכתובת של הקבוע
 % It is not possible to get the address of a constant, because they
 % aren't stored in memory, you can try making it a typed constant.
-type_e_argument_cant_be_assigned=04029_E_Argument can't be assigned to
+type_e_argument_cant_be_assigned=04029_E_לא ניתן להשים את הארגומנט
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
 % Remark: Properties can be only
 % used on the left side of an assignment, but they cannot be used as arguments
-type_e_cannot_local_proc_to_procvar=04030_E_Can't assign local procedure/function to procedure variable
+type_e_cannot_local_proc_to_procvar=04030_E_לא ניתן לשייך פונקציה/שיגרה מקומית למשתנה מסוג שיגרה
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
-type_e_no_assign_to_addr=04031_E_Can't assign values to an address
+type_e_no_assign_to_addr=04031_E_לא ניתן לשייך ערך לכתובת
 % It is not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
-type_e_no_assign_to_const=04032_E_Can't assign values to const variable
+type_e_no_assign_to_const=04032_E_לא ניתן לשייך ערך למשתנה קבוע
 % It's not allowed to assign a value to a variable which is declared
 % as a const. This is normally a parameter declared as const, to allow
 % changing the value make the parameter as a value parameter or a var.
-type_e_array_required=04033_E_Array type required
+type_e_array_required=04033_E_נדרש משתנה מסוג מערך
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
-type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
+type_e_interface_type_expected=04034_E_מצפה לטיפוס מסוג ממשק, אבל התקבל "$1"
 % The compiler expected to encounter an interface type name, but got something else.
 % The following code would provoke this error:
 % \begin{verbatim}
