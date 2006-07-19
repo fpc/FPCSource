@@ -1045,7 +1045,7 @@ parser_e_dispinterface_cant_have_parent=03216_E_A DISPINTERFACE can't have a par
 % A DISPINMTERFACE is a special type of interface which can't have a parent class
 parser_e_dispinterface_needs_a_guid=03217_E_A DISPINTERFACE needs a guid
 % A DISPINMTERFACE always needs an interface identification
-parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overriden by "$1" which has another return type)
+parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a related return type. This code may crash, it depends on a Delphi parser bug ("$2" is overridden by "$1" which has another return type)
 % If you declare overridden methods in a class definition, they must
 % have the same return type. Some versions of Delphi allow you to change the
 % return type of interface methods, and even to change procedures into
