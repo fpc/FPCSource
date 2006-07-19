@@ -351,7 +351,7 @@ Const
 Function SafeArrayCreate(VarType, Dim: DWord; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
   var
     res : HRESULT;
-    I   : SizeInt;
+    I   : DWord;
   begin
     Result:=nil;
     if Not (VarType in Supportedpsas) Then

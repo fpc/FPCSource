@@ -1972,7 +1972,7 @@ end;
     Julian and Modified Julian Date conversion support
   ---------------------------------------------------------------------}
 
-
+{$warnings off}
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 begin
   NotYetImplemented('DateTimeToJulianDate');
@@ -2009,6 +2009,7 @@ Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TD
 begin
   NotYetImplemented('TryModifiedJulianDateToDateTime');
 end;
+{$warnings on}
 
 { ---------------------------------------------------------------------
     Unix timestamp support.

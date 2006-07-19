@@ -61,7 +61,7 @@
   Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
 
   Var
-    fd : longint;
+    fd : THandle;
 
   begin
     fd:=FileOpen(FileName,fmOpenRead);

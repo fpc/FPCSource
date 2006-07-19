@@ -121,16 +121,19 @@ end;
 
 function ActivateClassGroup(AClass: TPersistentClass): TPersistentClass;
 begin
+  Result:=nil;
 end;
 
 
 function ClassGroupOf(AClass: TPersistentClass): TPersistentClass;
 begin
+  Result:=nil;
 end;
 
 
 function ClassGroupOf(Instance: TPersistent): TPersistentClass;
 begin
+  Result:=nil;
 end;
 
 

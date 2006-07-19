@@ -928,6 +928,7 @@ var
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
   CharLowerBuff(buf, len);
+  Result:=Str;
   WideToAnsiBuf(buf, -1, Result, len + 1);
   FreeMem(buf);
 end;
@@ -940,6 +941,7 @@ var
 begin
   buf:=PCharToPWideChar(Str, -1, @len);
   CharUpperBuff(buf, len);
+  Result:=Str;
   WideToAnsiBuf(buf, -1, Result, len + 1);
   FreeMem(buf);
 end;

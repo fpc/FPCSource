@@ -212,6 +212,8 @@ end;
 
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
+  fpsocketpair:=-1;
+  SocketError:=EOPNOTSUPP;
 end;
 
 Function CloseSocket(Sock:Longint):Longint;
@@ -282,7 +284,7 @@ end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  // SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);a
+  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair);
 end;
 
 {$ifdef unix}

@@ -114,6 +114,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 var
   c: dword;
 begin
+  c:=0;
   if exInvalidOp in Mask then
     c:=c or _EM_INVALID;
   if exDenormalized in Mask then

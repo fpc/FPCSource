@@ -385,7 +385,7 @@ const macheps=1E-9;
 
 Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFloat):TConvType;
 
-var i,l1 : Longint;
+var l1 : Longint;
 
 begin
   If NOT CheckFamily(Fam) Then exit(-1); // family not registered.
@@ -401,7 +401,7 @@ end;
 
 function SearchConvert(TheType:TConvType; var r:ResourceData):Boolean;
 
-var i,j,l1,l2 : longint;
+var l1 : longint;
 
 begin
   l1:=length(TheUnits);

@@ -591,14 +591,14 @@ end;
 //begin wince only
 function CreateDialogParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND;
 begin
-  CreateDialogIndirectParam(hInstance,
+  CreateDialogParam:=CreateDialogIndirectParam(hInstance,
         LPCDLGTEMPLATEW(LoadResource(hInstance, FindResource(hInstance, lpTemplateName, RT_DIALOG))),
         hWndParent, lpDialogFunc, dwInitParam);
 end;
 
 function CreateDialog(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
 begin
-  CreateDialogParam(hInstance, lpName, hWndParent, lpDialogFunc, 0);
+  CreateDialog:=CreateDialogParam(hInstance, lpName, hWndParent, lpDialogFunc, 0);
 end;
 
 function DialogBoxParam(hInstance:HINST; lpTemplateName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint;
@@ -612,12 +612,12 @@ end;
 
 function GetTextExtentPoint(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 begin
-  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
+  GetTextExtentPoint:=GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
 end;
 
 function GetTextExtentPoint32(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4:LPSIZE):WINBOOL;
 begin
-  GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
+  GetTextExtentPoint32:=GetTextExtentExPoint(_para1, _para2, _para3, 0, nil, nil, _para4);
 end;
 
 //end wince only
