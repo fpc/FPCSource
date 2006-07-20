@@ -756,11 +756,12 @@ destructor TResourceStream.Destroy;
     inherited destroy;
   end;
 
-
+{$warnings off}
 function TResourceStream.Write(const Buffer; Count: Longint): Longint;
   begin
     raise EStreamError.Create(SCantWriteResourceStreamError);
   end;
+{$warnings on}
 
 {****************************************************************************}
 {*                             TOwnerStream                                 *}

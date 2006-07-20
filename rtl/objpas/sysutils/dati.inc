@@ -433,8 +433,7 @@ var
 
    function GetElement: integer;
    var
-     j: integer;
-     c: word;
+     j, c: integer;
    begin
    result := -1;
    Inc(Current);
