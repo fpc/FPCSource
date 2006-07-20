@@ -882,6 +882,76 @@ implementation
       end;
 
 
+    { trash contents of local variables }
+    procedure trash_variable(p : tnamedindexitem;arg:pointer);
+      const
+{$ifdef cpu64bit}
+        trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
+{$else cpu64bit}
+        trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
+{$endif cpu64bit}
+      var
+        tmpref: treference;
+        countreg, valuereg: tregister;
+        hl: tasmlabel;
+        trashintval: aint;
+      begin
+        trashintval := trashintvalues[localvartrashing];
+        if (tsym(p).typ=localvarsym) then
+         begin
+           case tlocalvarsym(p).localloc.loc of
+             LOC_CREGISTER :
+{$ifopt q+}
+{$define overflowon}
+{$q-}
+{$endif}
+               cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tlocalvarsym(p).localloc.register),
+                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tlocalvarsym(p).localloc.register)] * 8) - 1),
+                   tglobalvarsym(p).localloc.register);
+{$ifdef overflowon}
+{$undef overflowon}
+{$q+}
+{$endif}
+             LOC_REFERENCE :
+               begin
+                 case tlocalvarsym(p).getsize of
+                   0: ; { empty record }
+                   1: cg.a_load_const_ref(TAsmList(arg),OS_8,byte(trashintval),
+                        tlocalvarsym(p).localloc.reference);
+                   2: cg.a_load_const_ref(TAsmList(arg),OS_16,word(trashintval),
+                        tlocalvarsym(p).localloc.reference);
+                   4: cg.a_load_const_ref(TAsmList(arg),OS_32,longint(trashintval),
+                        tlocalvarsym(p).localloc.reference);
+                   else
+                     begin
+                       countreg := cg.getintregister(TAsmList(arg),OS_ADDR);
+                       valuereg := cg.getintregister(TAsmList(arg),OS_8);
+                       cg.a_load_const_reg(TAsmList(arg),OS_INT,tlocalvarsym(p).getsize,countreg);
+                       cg.a_load_const_reg(TAsmList(arg),OS_8,byte(trashintval),valuereg);
+                       current_asmdata.getjumplabel(hl);
+                       tmpref := tlocalvarsym(p).localloc.reference;
+                       if (tmpref.index <> NR_NO) then
+                         internalerror(200607201);
+                       tmpref.index := countreg;
+                       dec(tmpref.offset);
+                       cg.a_label(TAsmList(arg),hl);
+                       cg.a_load_reg_ref(TAsmList(arg),OS_8,OS_8,valuereg,tmpref);
+                       cg.a_op_const_reg(TAsmList(arg),OP_SUB,OS_INT,1,countreg);
+                       cg.a_cmp_const_reg_label(TAsmList(arg),OS_INT,OC_NE,0,countreg,hl);
+                     end;
+                 end;
+               end;
+             LOC_CMMREGISTER :
+               ;
+             LOC_CFPUREGISTER :
+               ;
+             else
+               internalerror(200410124);
+           end;
+         end;
+      end;
+
+
     { initializes the regvars from staticsymtable with 0 }
     procedure initialize_regvars(p : tnamedindexitem;arg:pointer);
       begin
@@ -1645,7 +1715,12 @@ implementation
                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
              end;
            else
-             current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+             begin
+               if (localvartrashing <> -1) and
+                  not(po_assembler in current_procinfo.procdef.procoptions) then
+                 current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}trash_variable,list);
+               current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+             end;
         end;
 
         { initialisizes temp. ansi/wide string data }

@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000167] of string[240]=(
+const msgtxt : array[0..000168] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000167,1..240] of char=(
+const msgtxt : array[0..000168,1..240] of char=(
 {$endif Delphi}
   '01019_bytes code'#000+
   '01020_bytes data'#000+
@@ -837,149 +837,149 @@ const msgtxt : array[0..000167,1..240] of char=(
   '*g2gg_use gsym'#010+
   '*g2gh_use heap trace unit (for memory leak debuggin','g)'#010+
   '*g2gl_use line info unit to show more info for backtraces'#010+
+  '*g2gt_trash local variables (to detect uninitialized uses)'#010+
   '*g2gv_generates programs traceable with valgrind'#010+
   '*g2gw_generate dwarf debugging info'#010+
   '**1i_information'#010+
-  '**2iD_return compiler date'#010+
+  '**2iD_return compi','ler date'#010+
   '**2iV_return compiler version'#010+
-  '**2iW_return full co','mpiler version'#010+
+  '**2iW_return full compiler version'#010+
   '**2iSO_return compiler OS'#010+
   '**2iSP_return compiler processor'#010+
   '**2iTO_return target OS'#010+
   '**2iTP_return target processor'#010+
   '**1I<x>_adds <x> to include path'#010+
-  '**1k<x>_Pass <x> to the linker'#010+
+  '**1k<x>_Pass <x> to',' the linker'#010+
   '**1l_write logo'#010+
-  '**1M<x>_set language mode to <x','>'#010+
+  '**1M<x>_set language mode to <x>'#010+
   '**2Mfpc_free pascal dialect (default)'#010+
   '**2Mobjfpc_switch some Delphi 2 extensions on'#010+
   '**2Mdelphi_tries to be Delphi compatible'#010+
   '**2Mtp_tries to be TP/BP 7.0 compatible'#010+
-  '**2Mgpc_tries to be gpc compatible'#010+
-  '**2Mmacpas_tries to be compatible to t','he macintosh pascal dialects'#010+
+  '**2Mgpc_tries ','to be gpc compatible'#010+
+  '**2Mmacpas_tries to be compatible to the macintosh pascal dialects'#010+
   '**1n_don'#039't read the default config file'#010+
   '**1N<x>_node tree optimizations'#010+
   '**2Nu_unroll loops'#010+
   '**1o<x>_change the name of the executable produced to <x>'#010+
-  '**1O<x>_optimizations:'#010+
+  '**1','O<x>_optimizations:'#010+
   '**2O-_disable optimizations'#010+
-  '**2O1_level',' 1 optimizations (quick and debugger friendly)'#010+
+  '**2O1_level 1 optimizations (quick and debugger friendly)'#010+
   '**2O2_level 2 optimizations (-O1 + quick optimizations)'#010+
   '**2O3_level 3 optimizations (-O2 + slow optimizations)'#010+
-  '**2Oa<x>=<y>_set alignment'#010+
-  '**2Oo[NO]<x>_enable or disable optimizations, see fpc -','i for possibl'+
-  'e values'#010+
+  '**2Oa<x>=<y>_set alignm','ent'#010+
+  '**2Oo[NO]<x>_enable or disable optimizations, see fpc -i for possible '+
+  'values'#010+
   '**2Op<x>_set target cpu for optimizing, see fpc -i for possible values'+
   #010+
   '**2Os_generate smaller code'#010+
-  '**1pg_generate profile code for gprof (defines FPC_PROFILE)'#010+
+  '**1pg_generate profile code for gprof (defines FPC_PROFILE)'#010,
   '**1R<x>_assembler reading style:'#010+
-  '**2Rdefault_use default as','sembler'#010+
+  '**2Rdefault_use default assembler'#010+
   '3*2Ratt_read AT&T style assembler'#010+
   '3*2Rintel_read Intel style assembler'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '**1S<x>_syntax options:'#010+
   '**2S2_same as -Mobjfpc'#010+
-  '**2Sc_supports operators like C (*=,+=,/= and -=)'#010+
-  '**2Sa_include assertion co','de.'#010+
+  '**2Sc_supports op','erators like C (*=,+=,/= and -=)'#010+
+  '**2Sa_include assertion code.'#010+
   '**2Sd_same as -Mdelphi'#010+
   '**2Se<x>_error options. <x> is a combination of the following:'#010+
   '**3*_<n> : compiler stops after the <n> errors (default is 1)'#010+
-  '**3*_w : compiler stops also after warnings'#010+
+  '**3*_w : compiler stops also ','after warnings'#010+
   '**3*_n : compiler stops also after notes'#010+
-  '**3','*_h : compiler stops also after hints'#010+
+  '**3*_h : compiler stops also after hints'#010+
   '**2Sg_allow LABEL and GOTO'#010+
   '**2Sh_Use ansistrings'#010+
   '**2Si_support C++ styled INLINE'#010+
   '**2Sk_load fpcylix unit'#010+
   '**2SI<x>_set interface style to <x>'#010+
-  '**3SIcom_COM compatible interface (default)'#010+
-  '**3SIcorba_CORBA ','compatible interface'#010+
+  '**','3SIcom_COM compatible interface (default)'#010+
+  '**3SIcorba_CORBA compatible interface'#010+
   '**2Sm_support macros like C (global)'#010+
   '**2So_same as -Mtp'#010+
   '**2Sp_same as -Mgpc'#010+
   '**2Ss_constructor name must be init (destructor must be done)'#010+
-  '**2St_allow static keyword in objects'#010+
+  '**2St_allow static key','word in objects'#010+
   '**1s_don'#039't call assembler and linker'#010+
-  '**2sh_','Generate script to link on host'#010+
+  '**2sh_Generate script to link on host'#010+
   '**2st_Generate script to link on target'#010+
   '**2sr_Skip register allocation phase (use with -alr)'#010+
   '**1T<x>_Target operating system:'#010+
-  '3*2Temx_OS/2 via EMX (including EMX/RSX extender)'#010+
+  '3*2Temx_OS/2 via EMX (i','ncluding EMX/RSX extender)'#010+
   '3*2Tfreebsd_FreeBSD'#010+
-  '3*2Tgo32v2_V','ersion 2 of DJ Delorie DOS extender'#010+
+  '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tlinux_Linux'#010+
   '3*2Tnetbsd_NetBSD'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
   '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Topenbsd_OpenBSD'#010+
-  '3*2Tos2_OS/2 / eComStation'#010+
+  '3*2Tos2_','OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
-  '3*2Twatcom_Watco','m compatible DOS extender'#010+
+  '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
   '3*2Twince_Windows CE'#010+
   '4*2Tlinux_Linux'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
-  '6*2Tlinux_Linux/m68k'#010+
+  '6*2Tlinux_Li','nux/m68k'#010+
   '6*2Tmacos_Macintosh m68k (not supported)'#010+
-  '6*2Tpalmo','s_PalmOS'#010+
+  '6*2Tpalmos_PalmOS'#010+
   'A*2Tlinux_Linux'#010+
   'A*2Twince_Windows CE'#010+
   'P*2Tamiga_AmigaOS on PowerPC'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
-  'P*2Tmorphos_MorphOS'#010+
+  'P','*2Tmorphos_MorphOS'#010+
   'S*2Tlinux_Linux'#010+
-  '**1u<x>_undefines the sy','mbol <x>'#010+
+  '**1u<x>_undefines the symbol <x>'#010+
   '**1U_unit options:'#010+
   '**2Un_don'#039't check the unit name'#010+
   '**2Ur_generate release unit files'#010+
   '**2Us_compile a system unit'#010+
-  '**1v<x>_Be verbose. <x> is a combination of the following letters:'#010+
-  '**2*_e : Show errors (default)       0 : Show nothi','ng (except errors'+
-  ')'#010+
+  '**1v<x>_Be verbose. <x> is a combination of the following l','etters:'#010+
+  '**2*_e : Show errors (default)       0 : Show nothing (except errors)'#010+
   '**2*_w : Show warnings               u : Show unit info'#010+
   '**2*_n : Show notes                  t : Show tried/used files'#010+
-  '**2*_h : Show hints                  c : Show conditionals'#010+
-  '**2*_i : Show general info           d : Sh','ow debug info'#010+
+  '**2*_h : Show hints                  c : Sh','ow conditionals'#010+
+  '**2*_i : Show general info           d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
   '**2*_a : Show everything             x : Executable info (Win32 only)'#010+
-  '**2*_b : Write file names messages with full path'#010+
-  '**2*_v : write fpcdebug.txt with    ',' p : Write tree.log with parse t'+
-  'ree'#010+
+  '**2*_b : Write file names m','essages with full path'#010+
+  '**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tre'+
+  'e'#010+
   '**2*_    lots of debugging info'#010+
   '3*1W<x>_Win32-like target options'#010+
   '3*2WB_Create a relocatable image'#010+
-  '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
+  '3*2WB<x>_Set Image base to Hexadecimal <x> val','ue'#010+
   '3*2WC_Specify console type application'#010+
-  '3*2WD_Use DEFFILE',' to export functions of DLL or EXE'#010+
+  '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
   '3*2WG_Specify graphic type application'#010+
-  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
+  '3*2WN_Do not generate relocation code (necessary for',' debugging)'#010+
   '3*2WR_Generate relocation code'#010+
-  'P*2WC_Specify co','nsole type application (MacOS only)'#010+
+  'P*2WC_Specify console type application (MacOS only)'#010+
   'P*2WG_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1X_executable options:'#010+
-  '**2Xc_pass --shared to the linker (Unix only)'#010+
-  '**2Xd_don'#039't use standa','rd library search path (needed for cross c'+
-  'ompile)'#010+
+  '**2Xc_pas','s --shared to the linker (Unix only)'#010+
+  '**2Xd_don'#039't use standard library search path (needed for cross com'+
+  'pile)'#010+
   '**2Xe_use external linker'#010+
   '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_use internal linker'#010+
-  '**2Xm_generate link map'#010+
-  '**2XM<x>_set the name of the '#039'main'#039' program ro','utine (default'+
-  ' is '#039'main'#039')'#010+
+  '**2Xm_gener','ate link map'#010+
+  '**2XM<x>_set the name of the '#039'main'#039' program routine (default i'+
+  's '#039'main'#039')'#010+
   '**2XP<x>_prepend the binutils names with the prefix <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
-  '**2Xs_strip all symbols from executable'#010+
-  '**2XS_try to link units static (default) (defines F','PC_LINK_STATIC)'#010+
+  '**2Xs_strip all symbols from exe','cutable'#010+
+  '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
   '**2Xt_link with static libraries (-static is passed to linker)'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+
-  '**1h_shows this help without waiting'#000
+  '**1h_show','s this help without waiting'#000
 );

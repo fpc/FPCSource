@@ -304,6 +304,11 @@ interface
        { (this will be prefixed with the target_info.cprefix)                }
        mainaliasname : string = 'main';
 
+       { by default no local variable trashing }
+       localvartrashing: longint = -1;
+       { actual values are defined in ncgutil.pas }
+       nroftrashvalues = 4;
+
     procedure abstract;
 
     function bstoslash(const s : string) : string;

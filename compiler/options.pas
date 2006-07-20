@@ -739,6 +739,7 @@ begin
                   exclude(initglobalswitches,cs_use_heaptrc);
                   exclude(initglobalswitches,cs_use_lineinfo);
                   exclude(initlocalswitches,cs_checkpointer);
+                  localvartrashing := -1;
                 end
                else
                 begin
@@ -778,6 +779,13 @@ begin
                      's' :
                        begin
                          paratargetdbg:=dbg_stabs;
+                       end;
+                     't' :
+                       begin
+                         if UnsetBool(More, j) then
+                            localvartrashing := -1
+                         else
+                           localvartrashing := (localvartrashing + 1) mod nroftrashvalues;
                        end;
                      'v' :
                        begin
