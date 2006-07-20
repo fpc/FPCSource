@@ -76,7 +76,7 @@ const
     a_mullwo_, a_nand, a_nand_, a_neg, a_neg_, a_nego, a_nego_, a_nor, a_nor_,
     a_or, a_or_, a_orc, a_orc_, a_ori, a_oris, a_rfi, a_rlwimi, a_rlwimi_,
     a_rlwinm, a_rlwinm_, a_rlwnm, a_rlwnm_, a_none, a_slw, a_slw_, a_sraw, a_sraw_,
-    a_srawi, a_srawi_,a_srw, a_srw_, a_stb, a_none, a_none, a_none, a_none,
+    a_srawi, a_srawi_,a_srw, a_srw_, a_none, a_none, a_none, a_none, a_none,
     a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
     a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none, a_none,
     a_none, a_none, a_none, a_none, a_none, a_subf, a_subf_, a_subfo,
