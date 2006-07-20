@@ -726,7 +726,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..239] of key_sequence=(
+const key_sequences:array[0..278] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -797,39 +797,78 @@ const key_sequences:array[0..239] of key_sequence=(
        (char:0;scan:kbF3;st:#27'[[C'),           {linux,konsole,xterm}
        (char:0;scan:kbF4;st:#27'[[D'),           {linux,konsole,xterm}
        (char:0;scan:kbF5;st:#27'[[E'),           {linux,konsole}
+       (char:0;scan:kbF1;st:#27'[11~'),          {Eterm,rxvt}
+       (char:0;scan:kbF2;st:#27'[12~'),          {Eterm,rxvt}
+       (char:0;scan:kbF3;st:#27'[13~'),          {Eterm,rxvt}
+       (char:0;scan:kbF4;st:#27'[14~'),          {Eterm,rxvt}
+       (char:0;scan:kbF5;st:#27'[15~'),          {xterm,Eterm,gnome,rxvt}
+       (char:0;scan:kbF6;st:#27'[17~'),          {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF7;st:#27'[18~'),          {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF8;st:#27'[19~'),          {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF9;st:#27'[20~'),          {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF10;st:#27'[21~'),         {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF11;st:#27'[23~'),         {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF12;st:#27'[24~'),         {linux,xterm,Eterm,konsole,gnome,rxvt}
+       (char:0;scan:kbF1;st:#27'[M'),            {FreeBSD}
+       (char:0;scan:kbF2;st:#27'[N'),            {FreeBSD}
+       (char:0;scan:kbF3;st:#27'[O'),            {FreeBSD}
+       (char:0;scan:kbF4;st:#27'[P'),            {FreeBSD}
+       (char:0;scan:kbF5;st:#27'[Q'),            {FreeBSD}
+       (char:0;scan:kbF6;st:#27'[R'),            {FreeBSD}
+       (char:0;scan:kbF7;st:#27'[S'),            {FreeBSD}
+       (char:0;scan:kbF8;st:#27'[T'),            {FreeBSD}
+       (char:0;scan:kbF9;st:#27'[U'),            {FreeBSD}
+       (char:0;scan:kbF10;st:#27'[V'),           {FreeBSD}
+       (char:0;scan:kbF11;st:#27'[W'),           {FreeBSD}
+       (char:0;scan:kbF12;st:#27'[X'),           {FreeBSD}
+       (char:0;scan:kbF1;st:#27'OP'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF2;st:#27'OQ'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF3;st:#27'OR'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF4;st:#27'OS'),            {vt100,gnome,konsole}
+       (char:0;scan:kbF5;st:#27'Ot'),            {vt100}
+       (char:0;scan:kbF6;st:#27'Ou'),            {vt100}
+       (char:0;scan:kbF7;st:#27'Ov'),            {vt100}
+       (char:0;scan:kbF8;st:#27'Ol'),            {vt100}
+       (char:0;scan:kbF9;st:#27'Ow'),            {vt100}
+       (char:0;scan:kbF10;st:#27'Ox'),           {vt100}
+       (char:0;scan:kbF11;st:#27'Oy'),           {vt100}
+       (char:0;scan:kbF12;st:#27'Oz'),           {vt100}
        (char:0;scan:kbEsc;st:#27'[0~'),          {if linux keyboard patched, escape
                                                   returns this}
+       (char:0;scan:kbIns;st:#27'[2~'),          {linux,Eterm,rxvt}
+       (char:0;scan:kbDel;st:#27'[3~'),          {linux,Eterm,rxvt}
        (char:0;scan:kbHome;st:#27'[1~'),         {linux}
-       (char:0;scan:kbIns;st:#27'[2~'),          {linux,Eterm}
-       (char:0;scan:kbDel;st:#27'[3~'),          {linux,Eterm}
+       (char:0;scan:kbHome;st:#27'[7~'),         {Eterm,rxvt}
+       (char:0;scan:kbHome;st:#27'[H'),          {FreeBSD}
+       (char:0;scan:kbHome;st:#27'OF'),          {some xterm configurations}
        (char:0;scan:kbEnd;st:#27'[4~'),          {linux,Eterm}
-       (char:0;scan:kbPgUp;st:#27'[5~'),         {linux,Eterm}
-       (char:0;scan:kbPgDn;st:#27'[6~'),         {linux,Eterm}
-       (char:0;scan:kbHome;st:#27'[7~'),         {Eterm}
-       (char:0;scan:kbF1;st:#27'[11~'),          {Eterm}
-       (char:0;scan:kbF2;st:#27'[12~'),          {Eterm}
-       (char:0;scan:kbF3;st:#27'[13~'),          {Eterm}
-       (char:0;scan:kbF4;st:#27'[14~'),          {Eterm}
-       (char:0;scan:kbF5;st:#27'[15~'),          {xterm,Eterm,gnome}
-       (char:0;scan:kbF6;st:#27'[17~'),          {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF7;st:#27'[18~'),          {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF8;st:#27'[19~'),          {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF9;st:#27'[20~'),          {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF10;st:#27'[21~'),         {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF11;st:#27'[23~'),         {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbF12;st:#27'[24~'),         {linux,xterm,Eterm,konsole,gnome}
-       (char:0;scan:kbShiftF3;st:#27'[25~'),     {linux}
-       (char:0;scan:kbShiftF4;st:#27'[26~'),     {linux}
-       (char:0;scan:kbShiftF5;st:#27'[28~'),     {linux}
-       (char:0;scan:kbShiftF6;st:#27'[29~'),     {linux}
-       (char:0;scan:kbShiftF7;st:#27'[31~'),     {linux}
-       (char:0;scan:kbShiftF8;st:#27'[32~'),     {linux}
-       (char:0;scan:kbShiftF9;st:#27'[33~'),     {linux}
-       (char:0;scan:kbShiftF10;st:#27'[34~'),    {linux}
-       (char:0;scan:kbShiftIns;st:#27'[2;2~'),   {should be the code, but shift+ins
-                                                  is paste X clipboard in many
-                                                  terminal emulators :(}
-       (char:0;scan:kbShiftDel;st:#27'[3;2~'),   {xterm,konsole}
+       (char:0;scan:kbEnd;st:#27'[8~'),          {rxvt}
+       (char:0;scan:kbEnd;st:#27'[F'),           {FreeBSD}
+       (char:0;scan:kbEnd;st:#27'OH'),           {some xterm configurations}
+       (char:0;scan:kbPgUp;st:#27'[5~'),         {linux,Eterm,rxvt}
+       (char:0;scan:kbPgUp;st:#27'[I'),          {FreeBSD}
+       (char:0;scan:kbPgDn;st:#27'[6~'),         {linux,Eterm,rxvt}
+       (char:0;scan:kbPgDn;st:#27'[G'),          {FreeBSD}
+       (char:0;scan:kbUp;st:#27'[A'),            {linux,FreeBSD,rxvt}
+       (char:0;scan:kbDown;st:#27'[B'),          {linux,FreeBSD,rxvt}
+       (char:0;scan:kbRight;st:#27'[C'),         {linux,FreeBSD,rxvt}
+       (char:0;scan:kbLeft;st:#27'[D'),          {linux,FreeBSD,rxvt}
+       (char:0;scan:kbUp;st:#27'OA'),            {xterm}
+       (char:0;scan:kbDown;st:#27'OB'),          {xterm}
+       (char:0;scan:kbRight;st:#27'OC'),         {xterm}
+       (char:0;scan:kbLeft;st:#27'OD'),          {xterm}
+       (char:0;scan:kbShiftF1;st:#27'[23~'),     {rxvt}
+       (char:0;scan:kbShiftF2;st:#27'[24~'),     {rxvt}
+       (char:0;scan:kbShiftF3;st:#27'[25~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF4;st:#27'[26~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF5;st:#27'[28~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF6;st:#27'[29~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF7;st:#27'[31~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF8;st:#27'[32~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF9;st:#27'[33~'),     {linux,rxvt}
+       (char:0;scan:kbShiftF10;st:#27'[34~'),    {linux,rxvt}
+       (char:0;scan:kbShiftF11;st:#27'[23$'),    {rxvt}
+       (char:0;scan:kbShiftF12;st:#27'[24$'),    {rxvt}
        (char:0;scan:kbShiftF1;st:#27'[11;2~'),   {konsole in vt420pc mode}
        (char:0;scan:kbShiftF2;st:#27'[12;2~'),   {konsole in vt420pc mode}
        (char:0;scan:kbShiftF3;st:#27'[13;2~'),   {konsole in vt420pc mode}
@@ -846,6 +885,10 @@ const key_sequences:array[0..239] of key_sequence=(
        (char:0;scan:kbShiftF2;st:#27'O5Q'),      {xterm}
        (char:0;scan:kbShiftF3;st:#27'O5R'),      {xterm}
        (char:0;scan:kbShiftF4;st:#27'O5S'),      {xterm}
+       (char:0;scan:kbShiftF1;st:#27'O2P'),      {konsole,xterm}
+       (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
+       (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
+       (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
        (char:0;scan:kbCtrlF1;st:#27'[11;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF2;st:#27'[12;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF3;st:#27'[13;5~'),    {none, but expected}
@@ -858,87 +901,44 @@ const key_sequences:array[0..239] of key_sequence=(
        (char:0;scan:kbCtrlF10;st:#27'[21;5~'),   {xterm}
        (char:0;scan:kbCtrlF11;st:#27'[23;5~'),   {xterm}
        (char:0;scan:kbCtrlF12;st:#27'[24;5~'),   {xterm}
+       (char:0;scan:kbCtrlF1;st:#27'[11^'),      {rxvt}
+       (char:0;scan:kbCtrlF2;st:#27'[12^'),      {rxvt}
+       (char:0;scan:kbCtrlF3;st:#27'[13^'),      {rxvt}
+       (char:0;scan:kbCtrlF4;st:#27'[14^'),      {rxvt}
+       (char:0;scan:kbCtrlF5;st:#27'[15^'),      {rxvt}
+       (char:0;scan:kbCtrlF6;st:#27'[17^'),      {rxvt}
+       (char:0;scan:kbCtrlF7;st:#27'[18^'),      {rxvt}
+       (char:0;scan:kbCtrlF8;st:#27'[19^'),      {rxvt}
+       (char:0;scan:kbCtrlF9;st:#27'[20^'),      {rxvt}
+       (char:0;scan:kbCtrlF10;st:#27'[21^'),     {rxvt}
+       (char:0;scan:kbCtrlF11;st:#27'[23^'),     {rxvt}
+       (char:0;scan:kbCtrlF12;st:#27'[24^'),     {rxvt}
+       (char:0;scan:kbShiftIns;st:#27'[2;2~'),   {should be the code, but shift+ins
+                                                  is paste X clipboard in many
+                                                  terminal emulators :(}
+       (char:0;scan:kbShiftDel;st:#27'[3;2~'),   {xterm,konsole}
        (char:0;scan:kbCtrlIns;st:#27'[2;5~'),    {xterm}
        (char:0;scan:kbCtrlDel;st:#27'[3;5~'),    {xterm}
+       (char:0;scan:kbShiftDel;st:#27'[3$'),     {rxvt}
+       (char:0;scan:kbCtrlIns;st:#27'[2^'),      {rxvt}
+       (char:0;scan:kbCtrlDel;st:#27'[3^'),      {rxvt}
        (char:0;scan:kbAltF1;st:#27#27'[[A'),
        (char:0;scan:kbAltF2;st:#27#27'[[B'),
        (char:0;scan:kbAltF3;st:#27#27'[[C'),
        (char:0;scan:kbAltF4;st:#27#27'[[D'),
        (char:0;scan:kbAltF5;st:#27#27'[[E'),
-       (char:0;scan:kbAltF6;st:#27#27'[17~'),
-       (char:0;scan:kbAltF7;st:#27#27'[18~'),
-       (char:0;scan:kbAltF8;st:#27#27'[19~'),
-       (char:0;scan:kbAltF9;st:#27#27'[20~'),
-       (char:0;scan:kbAltF10;st:#27#27'[21~'),
-       (char:0;scan:kbAltF11;st:#27#27'[23~'),
-       (char:0;scan:kbAltF12;st:#27#27'[24~'),
-       (char:0;scan:kbUp;st:#27'[A'),            {linux,FreeBSD}
-       (char:0;scan:kbDown;st:#27'[B'),          {linux,FreeBSD}
-       (char:0;scan:kbRight;st:#27'[C'),         {linux,FreeBSD}
-       (char:0;scan:kbLeft;st:#27'[D'),          {linux,FreeBSD}
-       (char:0;scan:kbEnd;st:#27'[F'),           {FreeBSD}
-       (char:0;scan:kbPgdn;st:#27'[G'),          {FreeBSD}
-       (char:0;scan:kbHome;st:#27'[H'),          {FreeBSD}
-       (char:0;scan:kbPgup;st:#27'[I'),          {FreeBSD}
-       (char:0;scan:kbF1;st:#27'[M'),            {FreeBSD}
-       (char:0;scan:kbF2;st:#27'[N'),            {FreeBSD}
-       (char:0;scan:kbF3;st:#27'[O'),            {FreeBSD}
-       (char:0;scan:kbF4;st:#27'[P'),            {FreeBSD}
-       (char:0;scan:kbF5;st:#27'[Q'),            {FreeBSD}
-       (char:0;scan:kbF6;st:#27'[R'),            {FreeBSD}
-       (char:0;scan:kbF7;st:#27'[S'),            {FreeBSD}
-       (char:0;scan:kbF8;st:#27'[T'),            {FreeBSD}
-       (char:0;scan:kbF9;st:#27'[U'),            {FreeBSD}
-       (char:0;scan:kbF10;st:#27'[V'),           {FreeBSD}
-       (char:0;scan:kbF11;st:#27'[W'),           {FreeBSD}
-       (char:0;scan:kbF12;st:#27'[X'),           {FreeBSD}
-       (char:0;scan:kbShiftTab;st:#27'[Z'),
-
-       (char:0;scan:kbShiftUp;st:#27'[1;2A'),    {xterm}
-       (char:0;scan:kbShiftDown;st:#27'[1;2B'),  {xterm}
-       (char:0;scan:kbShiftRight;st:#27'[1;2C'), {xterm}
-       (char:0;scan:kbShiftLeft;st:#27'[1;2D'),  {xterm}
-       (char:0;scan:kbShiftEnd;st:#27'[1;2F'),   {xterm}
-       (char:0;scan:kbShiftHome;st:#27'[1;2H'),  {xterm}
-
-       (char:0;scan:kbCtrlUp;st:#27'[1;5A'),     {xterm}
-       (char:0;scan:kbCtrlDown;st:#27'[1;5B'),   {xterm}
-       (char:0;scan:kbCtrlRight;st:#27'[1;5C'),  {xterm}
-       (char:0;scan:kbCtrlLeft;st:#27'[1;5D'),   {xterm}
-       (char:0;scan:kbCtrlEnd;st:#27'[1;5F'),    {xterm}
-       (char:0;scan:kbCtrlHome;st:#27'[1;5H'),   {xterm}
-       (char:0;scan:kbAltUp;st:#27#27'[A'),
-       (char:0;scan:kbAltDown;st:#27#27'[B'),
-       (char:0;scan:kbAltLeft;st:#27#27'[D'),
-       (char:0;scan:kbAltRight;st:#27#27'[C'),
-       (char:0;scan:kbAltPgUp;st:#27#27'[5~'),
-       (char:0;scan:kbAltPgDn;st:#27#27'[6~'),
-       (char:0;scan:kbAltEnd;st:#27#27'[4~'),
-       (char:0;scan:kbAltHome;st:#27#27'[1~'),
-       (char:0;scan:kbAltIns;st:#27#27'[2~'),
-       (char:0;scan:kbAltDel;st:#27#27'[3~'),
-       (char:0;scan:kbUp;st:#27'OA'),            {xterm}
-       (char:0;scan:kbDown;st:#27'OB'),          {xterm}
-       (char:0;scan:kbRight;st:#27'OC'),         {xterm}
-       (char:0;scan:kbLeft;st:#27'OD'),          {xterm}
-       (char:0;scan:kbHome;st:#27'OF'),          {some xterm configurations}
-       (char:0;scan:kbEnd;st:#27'OH'),           {some xterm configurations}
-       (char:0;scan:kbF1;st:#27'OP'),            {vt100,gnome,konsole}
-       (char:0;scan:kbF2;st:#27'OQ'),            {vt100,gnome,konsole}
-       (char:0;scan:kbF3;st:#27'OR'),            {vt100,gnome,konsole}
-       (char:0;scan:kbF4;st:#27'OS'),            {vt100,gnome,konsole}
-       (char:0;scan:kbF5;st:#27'Ot'),            {vt100}
-       (char:0;scan:kbF6;st:#27'Ou'),            {vt100}
-       (char:0;scan:kbF7;st:#27'Ov'),            {vt100}
-       (char:0;scan:kbF8;st:#27'Ol'),            {vt100}
-       (char:0;scan:kbF9;st:#27'Ow'),            {vt100}
-       (char:0;scan:kbF10;st:#27'Ox'),           {vt100}
-       (char:0;scan:kbF11;st:#27'Oy'),           {vt100}
-       (char:0;scan:kbF12;st:#27'Oz'),           {vt100}
-       (char:0;scan:kbShiftF1;st:#27'O2P'),      {konsole,xterm}
-       (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
-       (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
-       (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
+       (char:0;scan:kbAltF1;st:#27#27'[11~'),    {rxvt}
+       (char:0;scan:kbAltF2;st:#27#27'[12~'),    {rxvt}
+       (char:0;scan:kbAltF3;st:#27#27'[13~'),    {rxvt}
+       (char:0;scan:kbAltF4;st:#27#27'[14~'),    {rxvt}
+       (char:0;scan:kbAltF5;st:#27#27'[15~'),    {rxvt}
+       (char:0;scan:kbAltF6;st:#27#27'[17~'),    {rxvt}
+       (char:0;scan:kbAltF7;st:#27#27'[18~'),    {rxvt}
+       (char:0;scan:kbAltF8;st:#27#27'[19~'),    {rxvt}
+       (char:0;scan:kbAltF9;st:#27#27'[20~'),    {rxvt}
+       (char:0;scan:kbAltF10;st:#27#27'[21~'),   {rxvt}
+       (char:0;scan:kbAltF11;st:#27#27'[23~'),   {rxvt}
+       (char:0;scan:kbAltF12;st:#27#27'[24~'),   {rxvt}
        (char:0;scan:kbAltF1;st:#27#27'OP'),      {xterm}
        (char:0;scan:kbAltF2;st:#27#27'OQ'),      {xterm}
        (char:0;scan:kbAltF3;st:#27#27'OR'),      {xterm}
@@ -963,10 +963,51 @@ const key_sequences:array[0..239] of key_sequence=(
        (char:0;scan:kbAltF10;st:#27'[21;3~'),    {xterm on FreeBSD}
        (char:0;scan:kbAltF11;st:#27'[23;3~'),    {xterm on FreeBSD}
        (char:0;scan:kbAltF12;st:#27'[24;3~'),    {xterm on FreeBSD}
+
+       (char:0;scan:kbShiftTab;st:#27'[Z'),
+       (char:0;scan:kbShiftUp;st:#27'[1;2A'),    {xterm}
+       (char:0;scan:kbShiftDown;st:#27'[1;2B'),  {xterm}
+       (char:0;scan:kbShiftRight;st:#27'[1;2C'), {xterm}
+       (char:0;scan:kbShiftLeft;st:#27'[1;2D'),  {xterm}
+       (char:0;scan:kbShiftUp;st:#27'[a'),       {rxvt}
+       (char:0;scan:kbShiftDown;st:#27'[b'),     {rxvt}
+       (char:0;scan:kbShiftRight;st:#27'[c'),    {rxvt}
+       (char:0;scan:kbShiftLeft;st:#27'[d'),     {rxvt}
+       (char:0;scan:kbShiftEnd;st:#27'[1;2F'),   {xterm}
+       (char:0;scan:kbShiftEnd;st:#27'[8$'),     {rxvt}
+       (char:0;scan:kbShiftHome;st:#27'[1;2H'),  {xterm}
+       (char:0;scan:kbShiftHome;st:#27'[7$'),    {rxvt}
+
+       (char:0;scan:kbCtrlUp;st:#27'[1;5A'),     {xterm}
+       (char:0;scan:kbCtrlDown;st:#27'[1;5B'),   {xterm}
+       (char:0;scan:kbCtrlRight;st:#27'[1;5C'),  {xterm}
+       (char:0;scan:kbCtrlLeft;st:#27'[1;5D'),   {xterm}
+       (char:0;scan:kbCtrlUp;st:#27'[Oa'),       {rxvt}
+       (char:0;scan:kbCtrlDown;st:#27'[Ob'),     {rxvt}
+       (char:0;scan:kbCtrlRight;st:#27'[Oc'),    {rxvt}
+       (char:0;scan:kbCtrlLeft;st:#27'[Od'),     {rxvt}
+       (char:0;scan:kbCtrlEnd;st:#27'[1;5F'),    {xterm}
+       (char:0;scan:kbCtrlEnd;st:#27'[8^'),      {rxvt}
+       (char:0;scan:kbCtrlHome;st:#27'[1;5H'),   {xterm}
+       (char:0;scan:kbCtrlHome;st:#27'[7^'),     {rxvt}
+
+       (char:0;scan:kbAltUp;st:#27#27'[A'),      {rxvt}
+       (char:0;scan:kbAltDown;st:#27#27'[B'),    {rxvt}
+       (char:0;scan:kbAltLeft;st:#27#27'[D'),    {rxvt}
+       (char:0;scan:kbAltRight;st:#27#27'[C'),   {rxvt}
        (char:0;scan:kbAltUp;st:#27'OA'),
        (char:0;scan:kbAltDown;st:#27'OB'),
        (char:0;scan:kbAltRight;st:#27'OC'),
        (char:0;scan:kbAltLeft;st:#27#27'OD'),
+       (char:0;scan:kbAltPgUp;st:#27#27'[5~'),   {rxvt}
+       (char:0;scan:kbAltPgDn;st:#27#27'[6~'),   {rxvt}
+       (char:0;scan:kbAltEnd;st:#27#27'[4~'),
+       (char:0;scan:kbAltEnd;st:#27#27'[8~'),    {rxvt}
+       (char:0;scan:kbAltHome;st:#27#27'[1~'),
+       (char:0;scan:kbAltHome;st:#27#27'[7~'),   {rxvt}
+       (char:0;scan:kbAltIns;st:#27#27'[2~'),    {rxvt}
+       (char:0;scan:kbAltDel;st:#27#27'[3~'),    {rxvt}
+
   { xterm default values }
   { xterm alternate default values }
   { ignored sequences }
