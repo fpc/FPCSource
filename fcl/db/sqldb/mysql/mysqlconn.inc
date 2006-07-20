@@ -426,7 +426,7 @@ procedure TConnectionName.AddFieldDefs(cursor: TSQLCursor;
 
 var
   C : TCursorName;
-  I, FC: Integer;
+  I, TF, FC: Integer;
   field: PMYSQL_FIELD;
   DFT: TFieldType;
   DFS: Integer;
@@ -441,13 +441,17 @@ begin
     end;
 //  Writeln('MySQL: have result');
   FC:=mysql_num_fields(C.FRes);
+  TF := 1;
   For I:= 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(C.FRES, I);
 //    Writeln('MySQL: creating fielddef ',I+1);
 
     if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
-      TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
+      begin
+      TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, TF);
+      inc(TF);
+      end
     end;
 //  Writeln('MySQL: Finished adding fielddefs');
 end;
