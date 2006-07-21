@@ -372,7 +372,7 @@ package=units-lvm.source.zip[ulvmsrc.zip],OS/2 LVM interface unit
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
-package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
+package=units-fv.source.zip[fvsrc.zip],Free ~V~ision (FV)
 # Source-2 13
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
 # Source-2 14
