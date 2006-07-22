@@ -322,7 +322,9 @@ const
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
   Filemode : byte = 2;
+{$ifndef HAS_CMDLINE}
   CmdLine : PChar = nil;
+{$endif HAS_CMDLINE}
 (* Value should be changed during system initialization as appropriate. *)
 
   { assume that this program will not spawn other threads, when the

@@ -23,6 +23,7 @@ interface
 
 {$define WINCE_EXCEPTION_HANDLING}
 {$define DISABLE_NO_THREAD_MANAGER}
+{$define HAS_CMDLINE}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -54,9 +55,6 @@ const
   Thread_count : longint = 0;
 
 var
-{ C compatible arguments }
-  argc : longint;
-  argv : ppchar;
 { WinCE Info }
   hprevinst,
   MainInstance,
@@ -180,6 +178,11 @@ function subs(s1,s2 : single) : single; compilerproc;
 function muls(s1,s2 : single) : single; compilerproc;
 function divs(s1,s2 : single) : single; compilerproc;
 {$endif CPUARM}
+
+function CmdLine: PChar;
+{ C compatible arguments }
+function argc: longint;
+function argv: ppchar;
 
 implementation
 
@@ -556,6 +559,11 @@ begin
   GetCommandFile:=@ModuleName;
 end;
 
+var
+  Fargc: longint;
+  Fargv: ppchar;
+  FCmdLine: PChar;
+  
 procedure setup_arguments;
 var
   arglen,
@@ -573,38 +581,38 @@ var
        begin
          oldargvlen:=argvlen;
          argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
+         sysreallocmem(Fargv,argvlen*sizeof(pointer));
+         fillchar(Fargv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
        end;
       { use realloc to reuse already existing memory }
       { always allocate, even if length is zero, since }
       { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
+      sysreallocmem(Fargv[idx],len+1);
     end;
 
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
   { WinCE passes the command NOT via the args, but via getmodulefilename}
-  argv:=nil;
+  if FCmdLine <> nil then exit;
   argvlen:=0;
   pc:=getcommandfile;
   Arglen:=0;
   while pc[Arglen] <> #0 do
     Inc(Arglen);
   allocarg(0,arglen);
-  move(pc^,argv[0]^,arglen+1);
-  { Setup cmdline variable }
+  move(pc^,Fargv[0]^,arglen+1);
+  { Setup FCmdLine variable }
   arg:=PChar(GetCommandLine);
   count:=WideToAnsiBuf(PWideChar(arg), -1, nil, 0);
-  cmdline:=SysGetMem(arglen + count + 3);
-  cmdline^:='"';
-  move(pc^, (cmdline + 1)^, arglen);
-  (cmdline + arglen + 1)^:='"';
-  (cmdline + arglen + 2)^:=' ';
-  WideToAnsiBuf(PWideChar(arg), -1, cmdline + arglen + 3, count);
+  FCmdLine:=SysGetMem(arglen + count + 3);
+  FCmdLine^:='"';
+  move(pc^, (FCmdLine + 1)^, arglen);
+  (FCmdLine + arglen + 1)^:='"';
+  (FCmdLine + arglen + 2)^:=' ';
+  WideToAnsiBuf(PWideChar(arg), -1, FCmdLine + arglen + 3, count);
   { process arguments }
   count:=0;
-  pc:=cmdline;
+  pc:=FCmdLine;
 {$IfDef SYSTEM_DEBUG_STARTUP}
   Writeln(stderr,'WinCE GetCommandLine is #',pc,'#');
 {$EndIf }
@@ -675,7 +683,7 @@ begin
         allocarg(count,arglen);
         quote:=' ';
         pc:=argstart;
-        arg:=argv[count];
+        arg:=Fargv[count];
         while (pc^<>#0) do
          begin
            case pc^ of
@@ -740,17 +748,34 @@ begin
         arg^:=#0;
       end;
  {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
+     Writeln(stderr,'dos arg ',count,' #',arglen,'#',Fargv[count],'#');
  {$EndIf SYSTEM_DEBUG_STARTUP}
      inc(count);
    end;
   { get argc and create an nil entry }
-  argc:=count;
+  Fargc:=count;
   allocarg(argc,0);
   { free unused memory }
-  sysreallocmem(argv,(argc+1)*sizeof(pointer));
+  sysreallocmem(Fargv,(argc+1)*sizeof(pointer));
 end;
 
+function CmdLine: PChar;
+begin
+  setup_arguments;
+  Result:=FCmdLine;
+end;
+
+function argc: longint;
+begin
+  setup_arguments;
+  Result:=Fargc;
+end;
+
+function argv: ppchar;
+begin
+  setup_arguments;
+  Result:=Fargv;
+end;
 
 function paramcount : longint;
 begin
@@ -759,18 +784,17 @@ end;
 
 function paramstr(l : longint) : string;
 begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
+  setup_arguments;
+  if (l>=0) and (l<Fargc) then
+    paramstr:=strpas(Fargv[l])
   else
     paramstr:='';
 end;
-
 
 procedure randomize;
 begin
   randseed:=GetTickCount;
 end;
-
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -782,7 +806,7 @@ procedure ExitThread(Exitcode : longint); external 'coredll';
 
 Procedure system_exit;
 begin
-  SysFreeMem(cmdline);
+  SysFreeMem(FCmdLine);
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
@@ -1694,8 +1718,6 @@ begin
   if not IsLibrary then
     begin
       SysInitStdIO;
-      { Arguments }
-      setup_arguments;
     end;
   { Reset IO Error }
   InOutRes:=0;
