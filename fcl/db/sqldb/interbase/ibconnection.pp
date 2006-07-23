@@ -1018,15 +1018,17 @@ var
   blobSegLen : smallint;
   maxBlobSize : longInt;
   TransactionHandle : pointer;
-  blobId : ISC_QUAD;
+  BlobBuf : TBufBlobField;
+  blobId : PISC_QUAD;
 begin
-  if not field.getData(@blobId) then
+  if not field.getData(@BlobBuf) then
     exit;
+  blobId := @BlobBuf;
 
   TransactionHandle := Atransaction.Handle;
   blobHandle := nil;
 
-  if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+  if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
 
   maxBlobSize := getMaxBlobSize(blobHandle);

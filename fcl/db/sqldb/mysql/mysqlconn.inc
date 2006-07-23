@@ -37,6 +37,8 @@ Type
   protected
   end;
 
+  { TCursorName }
+
   TCursorName = Class(TSQLCursor)
   protected
     FQMySQL : PMySQL;
@@ -49,6 +51,10 @@ Type
     ParamBinding : TParamBinding;
     ParamReplaceString : String;
     MapDSRowToMSQLRow  : array of integer;
+    FBlobStrings:TStringList;   // list of strings in which the blob-fields are stored
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
 
   TConnectionName = class (TSQLConnection)
@@ -66,7 +72,7 @@ Type
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType;Source, Dest: PChar): Boolean;
+    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; BlobStrings: TStringList ;Source, Dest: PChar): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -93,7 +99,7 @@ Type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
-
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   Public
     Property ServerInfo : String Read FServerInfo;
     Property HostInfo : String Read FHostInfo;
@@ -341,6 +347,7 @@ begin
     C.FRes:=Nil;
     end;
   SetLength(c.MapDSRowToMSQLRow,0);
+  c.FBlobStrings.Clear;
 end;
 
 procedure TConnectionName.Execute(cursor: TSQLCursor;
@@ -418,6 +425,11 @@ begin
       NewType := ftString;
       NewSize := ASize;
       end;
+    FIELD_TYPE_BLOB:
+      begin
+      NewType := ftBlob;
+      NewSize := 0;
+      end
   else
     Result := False;
   end;
@@ -493,7 +505,7 @@ begin
   inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
   field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer);
+  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, c.FBlobStrings, Row^, Buffer);
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -608,7 +620,7 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType;Source, Dest: PChar): Boolean;
+function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; BlobStrings: TStringList; Source, Dest: PChar): Boolean;
 
 var
   VI: Integer;
@@ -697,6 +709,13 @@ begin
       else
         Dest^ := #0;
       end;
+    FIELD_TYPE_BLOB:
+      begin
+      // The data is stored in the TStringlist BlobStrings and it's index is
+      // stored in the record-buffer.
+      vi := BlobStrings.Add(Src);
+      Move(VI, Dest^, SizeOf(Integer));
+      end
   end;
   Result := True;
 end;
@@ -737,6 +756,24 @@ begin
   qry.free;
 end;
 
+procedure TConnectionName.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
+
+var blobId : pinteger;
+    BlobBuf : TBufBlobField;
+    s      : string;
+
+begin
+  if not field.getData(@BlobBuf) then
+    exit;
+  blobId := @BlobBuf;
+
+  s := (cursor as TCursorName).FBlobStrings.Strings[blobid^];
+
+  AStream.WriteBuffer(s[1],length(s));
+
+  AStream.seek(0,soFromBeginning);
+end;
+
 
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
@@ -766,6 +803,20 @@ end;
 procedure TConnectionName.RollBackRetaining(trans: TSQLHandle);
 begin
   // Do nothing
+end;
+
+{ TCursorName }
+
+constructor TCursorName.Create;
+begin
+  FBlobStrings := TStringList.Create;
+  inherited;
+end;
+
+destructor TCursorName.Destroy;
+begin
+  FBlobStrings.Free;
+  inherited Destroy;
 end;
 
 end.
