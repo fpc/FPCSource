@@ -4715,7 +4715,7 @@ implementation
         begin
            if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,1));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,0));
                 typvalue:=3;
              end
            else if proc.firstsym^.sym.typ=fieldvarsym then
