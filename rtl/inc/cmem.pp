@@ -21,6 +21,8 @@ Const
 
 {$if defined(win32)}
   LibName = 'msvcrt';
+{$elseif defined(wince)}
+  LibName = 'coredll';
 {$elseif defined(netware)}
   LibName = 'clib';
 {$elseif defined(netwlibc)}
