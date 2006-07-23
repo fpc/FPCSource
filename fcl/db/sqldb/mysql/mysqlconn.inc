@@ -48,6 +48,7 @@ Type
     LastInsertID : QWord;
     ParamBinding : TParamBinding;
     ParamReplaceString : String;
+    MapDSRowToMSQLRow  : array of integer;
   end;
 
   TConnectionName = class (TSQLConnection)
@@ -339,6 +340,7 @@ begin
     Mysql_free_result(C.FRes);
     C.FRes:=Nil;
     end;
+  SetLength(c.MapDSRowToMSQLRow,0);
 end;
 
 procedure TConnectionName.Execute(cursor: TSQLCursor;
@@ -441,6 +443,8 @@ begin
     end;
 //  Writeln('MySQL: have result');
   FC:=mysql_num_fields(C.FRes);
+  SetLength(c.MapDSRowToMSQLRow,FC);
+
   TF := 1;
   For I:= 0 to FC-1 do
     begin
@@ -450,6 +454,7 @@ begin
     if MySQLDataType(field^.ftype, field^.length, field^.decimals, DFT, DFS) then
       begin
       TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, TF);
+      c.MapDSRowToMSQLRow[TF-1] := I;
       inc(TF);
       end
     end;
@@ -471,7 +476,6 @@ function TConnectionName.LoadField(cursor : TSQLCursor;
   FieldDef : TfieldDef;buffer : pointer) : boolean;
 
 var
-  I, FC: Integer;
   field: PMYSQL_FIELD;
   row : MYSQL_ROW;
   C : TCursorName;
@@ -485,15 +489,10 @@ begin
      MySQLError(c.FQMySQL,SErrFetchingData,Self);
      end;
   Row:=C.Row;
-  FC := mysql_num_fields(C.FRES);
+  
+  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
+  field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  for I := 0 to FC-1 do
-    begin
-    field := mysql_fetch_field_direct(C.FRES, I);
-    if field^.name=FieldDef.name then break;
-    Inc(Row);
-    end;
-    
   Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer);
 end;
 
