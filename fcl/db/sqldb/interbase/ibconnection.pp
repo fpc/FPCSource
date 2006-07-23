@@ -42,6 +42,7 @@ type
     FSQLDatabaseHandle   : pointer;
     FStatus              : array [0..19] of ISC_STATUS;
     FDialect             : integer;
+    FBLobSegmentSize     : word;
 
     procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
@@ -83,6 +84,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
   public
     constructor Create(AOwner : TComponent); override;
+    property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
   published
     property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
@@ -137,6 +139,7 @@ constructor TIBConnection.Create(AOwner : TComponent);
 begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams];
+  FBLobSegmentSize := 80;
 end;
 
 
@@ -604,6 +607,12 @@ var ParNr,SQLVarNr : integer;
     currbuff        : pchar;
     w               : word;
 
+    TransactionHandle : pointer;
+    blobId            : ISC_QUAD;
+    blobHandle        : Isc_blob_Handle;
+    BlobSize,
+    BlobBytesWritten  : longint;
+
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
@@ -630,7 +639,7 @@ begin
           begin
           {$R-}
           s := AParams[ParNr].AsString;
-          w := length(s);
+          w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_VARYING) then
             begin
             in_sqlda^.SQLvar[SQLVarNr].SQLLen := w;
@@ -642,7 +651,7 @@ begin
           else
             CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
 
-          Move(s[1], CurrBuff^, length(s));
+          Move(s[1], CurrBuff^, w);
           {$R+}
           end;
         ftDate, ftTime, ftDateTime:
@@ -660,6 +669,33 @@ begin
           {$R-}
           SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           {$R+}
+        ftBlob:
+          begin
+          TransactionHandle := transaction.Handle;
+          blobhandle := nil;
+          if isc_create_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+           CheckError('TIBConnection.CreateBlobStream', FStatus);
+
+          s := AParams[ParNr].AsString;
+          BlobSize := length(s);
+
+          BlobBytesWritten := 0;
+          i := 0;
+
+          while BlobBytesWritten < (BlobSize-BlobSegmentSize) do
+            begin
+            isc_put_segment(@FStatus, @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
+            inc(BlobBytesWritten,BlobSegmentSize);
+            inc(i);
+            end;
+          if BlobBytesWritten <> BlobSize then
+            isc_put_segment(@FStatus, @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
+            
+          if isc_close_blob(@FStatus, @blobHandle) <> 0 then
+            CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
+
+          Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
+          end;
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
