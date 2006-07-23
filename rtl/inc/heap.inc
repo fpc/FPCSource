@@ -15,11 +15,23 @@
 
 {****************************************************************************}
 
+{ Do not use standard memory manager }
+{ Custom memory manager is Multi Threaded and does not require locking }
+{ define HAS_MT_MEMORYMANAGER}
+
+{ Do not use standard memory manager }
+{ Custom memory manager requires locking when threading is used }
+{ define HAS_MEMORYMANAGER}
+
 { Try to find the best matching block in general freelist }
 { define BESTMATCH}
 
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
+
+{$ifdef HAS_MT_MEMORYMANAGER}
+  {$define HAS_MEMORYMANAGER}
+{$endif HAS_MT_MEMORYMANAGER}
 
 const
 {$ifdef CPU64}
@@ -58,7 +70,11 @@ procedure SysHeapMutexUnlock;forward;
 { Memory manager }
 const
   MemoryManager: TMemoryManager = (
+{$ifdef HAS_MT_MEMORYMANAGER}
+    NeedLock: false;
+{$else HAS_MT_MEMORYMANAGER}
     NeedLock: true;
+{$endif HAS_MT_MEMORYMANAGER}
     GetMem: @SysGetMem;
     FreeMem: @SysFreeMem;
     FreeMemSize: @SysFreeMemSize;
@@ -76,6 +92,7 @@ const
     MutexUnlock: @SysHeapMutexUnlock;
   );
 
+{$ifndef HAS_MEMORYMANAGER}
 type
   poschunk = ^toschunk;
   { keep size of this record dividable by 16 }
@@ -135,6 +152,7 @@ var
   freeoslist         : poschunk;
   freeoslistcount    : dword;
 
+{$endif HAS_MEMORYMANAGER}
 
 {*****************************************************************************
                              Memory Manager
@@ -436,7 +454,7 @@ begin
    end;
 end;
 
-
+{$ifndef HAS_MEMORYMANAGER}
 {*****************************************************************************
                                GetHeapStatus
 *****************************************************************************}
@@ -1244,6 +1262,7 @@ begin
   SysReAllocMem := p;
 end;
 
+{$endif HAS_MEMORYMANAGER}
 
 {*****************************************************************************
                        MemoryMutexManager default hooks
@@ -1273,6 +1292,7 @@ begin
   runerror(244);
 end;
 
+{$ifndef HAS_MEMORYMANAGER}
 
 {*****************************************************************************
                                  InitHeap
@@ -1289,3 +1309,5 @@ begin
   freeoslistcount := 0;
   fillchar(internal_status,sizeof(internal_status),0);
 end;
+
+{$endif HAS_MEMORYMANAGER}

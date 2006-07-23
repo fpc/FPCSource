@@ -289,6 +289,7 @@ end;
                            Heap Mutex Protection
 *****************************************************************************}
 
+{$ifndef HAS_MT_MEMORYMANAGER}
     var
       HeapMutex : TRTLCriticalSection;
 
@@ -324,6 +325,8 @@ end;
       begin
         SetMemoryMutexManager(Win32MemoryMutexManager);
       end;
+      
+{$endif HAS_MT_MEMORYMANAGER}
 
 Const
         wrSignaled = 0;
@@ -463,6 +466,8 @@ begin
     RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
   SetThreadManager(WinThreadManager);
+{$ifndef HAS_MT_MEMORYMANAGER}
   InitHeapMutexes;
+{$endif HAS_MT_MEMORYMANAGER}
   ThreadID := GetCurrentThreadID;
 end;

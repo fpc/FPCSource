@@ -24,6 +24,7 @@ interface
 {$define WINCE_EXCEPTION_HANDLING}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_CMDLINE}
+{$define HAS_MT_MEMORYMANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -1576,7 +1577,77 @@ procedure InitWinCEWidestrings;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
   end;
 
+{****************************************************************************
+                    Memory manager
+****************************************************************************}
 
+function malloc(Size : ptrint) : Pointer; external 'coredll';
+procedure free(P : pointer); external 'coredll';
+function realloc(P : Pointer; Size : ptrint) : pointer; external 'coredll';
+function _msize(P : pointer): ptrint; external 'coredll';
+
+function SysGetMem (Size : ptrint) : Pointer;
+begin
+  Result:=malloc(Size);
+end;
+
+Function SysFreeMem (P : pointer) : ptrint;
+begin
+  free(P);
+  Result:=0;
+end;
+
+Function SysFreeMemSize(p:pointer;Size:ptrint):ptrint;
+begin
+  Result:=0;
+  if size < 0 then
+    runerror(204)
+  else
+    if (size > 0) and (p <> nil) then
+      begin
+        if (size <> _msize(p)) then
+          runerror(204);
+        Result:=SysFreeMem(P);
+      end;
+end;
+
+Function SysAllocMem(Size : ptrint) : Pointer;
+begin
+  Result:=SysGetMem(Size);
+  if Result <> nil then
+    FillChar(Result^, Size, 0);
+end;
+
+Function SysReAllocMem (var p:pointer;Size:ptrint):Pointer;
+begin
+  Result:=realloc(p, Size);
+  p:=Result;
+end;
+
+function SysTryResizeMem(var p:pointer;size : ptrint):boolean;
+var
+  res: pointer;
+begin
+  res:=realloc(p, Size);
+  Result:=(res <> nil) or (Size = 0);
+  if Result then
+    p:=res;
+end;
+
+function SysMemSize(P : pointer): ptrint;
+begin
+  Result:=_msize(P);
+end;
+
+function SysGetHeapStatus:THeapStatus;
+begin
+  fillchar(Result,sizeof(Result),0);
+end;
+
+function SysGetFPCHeapStatus:TFPCHeapStatus;
+begin
+  fillchar(Result,sizeof(Result),0);
+end;
 
 {****************************************************************************
                     Error Message writing using messageboxes
@@ -1712,8 +1783,6 @@ begin
   if not IsLibrary then
     SysInstance:=GetModuleHandle(nil);
   MainInstance:=SysInstance;
-  { Setup heap }
-  InitHeap;
   SysInitExceptions;
   if not IsLibrary then
     begin
