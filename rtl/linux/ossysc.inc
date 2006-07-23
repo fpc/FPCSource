@@ -218,35 +218,41 @@ end;
 {$ifdef NEED_USER_TRAMPOLINE}
 
 procedure linux_restore; cdecl; nostackframe; assembler;
-asm
 {$ifdef cpuarm}
-  swi __NR_sigreturn;
+asm
+  swi syscall_nr_sigreturn
+end;
 {$endif}
 {$ifdef cpui386}
+asm
   popl %eax
   movl $syscall_nr_sigreturn, %eax
   int $0x80
+end;
 {$endif}
 {$ifdef cpux86_64}
+asm
   movq $syscall_nr_rt_sigreturn, %rax
   syscall
-{$endif}
 end;
+{$endif}
 
 {$endif}
 
 {$ifdef NEED_USER_TRAMPOLINE_RT_DIFFERENT}
 
 procedure linux_restore_rt; cdecl; nostackframe; assembler;
+{$ifdef cpuarm}
 asm
-{$ifdef cpuarm}                                                                                             
-  swi syscall_nr_rt_sigreturn                                                                               
+  swi syscall_nr_rt_sigreturn
+end;
 {$endif}
 {$ifdef cpui386}
+asm
   movl $syscall_nr_rt_sigreturn, %eax
   int $0x80
-{$endif}
 end;
+{$endif}
 
 {$endif}
 
@@ -275,8 +281,8 @@ begin
       else
 {$endif}
         new_action^.sa_restorer := @linux_restore;
-    end;                                                                                                    
-  end;                                                                                                      
+    end;
+  end;
 {$endif}
   Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(8));
 {$endif cpusparc}
@@ -547,7 +553,7 @@ end;
 
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
-  FpGetRLimit := do_syscall(syscall_nr_getrlimit, 
+  FpGetRLimit := do_syscall(syscall_nr_getrlimit,
     TSysParam(resource), TSysParam(rlim));
 end;
 
