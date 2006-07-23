@@ -426,14 +426,12 @@ begin
 end; {ipffsn}
 
 procedure ortpol(m, n: ArbInt; var x, alfa, beta: ArbFloat);
-
+// this function used to use mark/release.
 var
                              i, j, ms : ArbInt;
     xppn1, ppn1, ppn, p, alfaj, betaj : ArbFloat;
                px, pal, pbe, pn, pn1 : ^arfloat1;
-                                 temp : pointer;
 begin
-  mark(temp);
   px:=@x; pal:=@alfa; pbe:=@beta; ms:=m*sizeof(ArbFloat);
   getmem(pn, ms); getmem(pn1, ms);
   xppn1:=0; ppn1:=m;
@@ -454,18 +452,17 @@ begin
         end; {i}
       pal^[j]:=xppn1/ppn1; pbe^[j]:=ppn1/ppn
     end; {j}
-  release(temp)
+    freemem(pn); freemem(pn1);
 end; {ortpol}
 
 procedure ortcoe(m, n: ArbInt; var x, y, alfa, beta, a: ArbFloat);
-
+// this function used to use mark/release.
 var                        i, j, mr : ArbInt;
          fpn, ppn, p, alphaj, betaj : ArbFloat;
     px, py, pal, pbe, pa, pn, pn1 : ^arfloat1;
-                               temp : pointer;
 
 begin
-  mark(temp); mr:=m*sizeof(ArbFloat);
+  mr:=m*sizeof(ArbFloat);
   px:=@x; py:=@y; pal:=@alfa; pbe:=@beta; pa:=@a;
   getmem(pn, mr); getmem(pn1, mr);
   fpn:=0;
@@ -485,7 +482,7 @@ begin
         end; {i}
       pa^[j+1]:=fpn/ppn
     end; {j}
-  release(temp)
+    freemem(pn); freemem(pn1);  
 end; {ortcoe}
 
 procedure polcoe(n:ArbInt; var alfa, beta, a, b: ArbFloat);
