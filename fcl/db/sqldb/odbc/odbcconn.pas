@@ -90,7 +90,7 @@ type
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer):boolean; override;
-    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     // - UpdateIndexDefs
     procedure UpdateIndexDefs(var IndexDefs:TIndexDefs; TableName:string); override;
@@ -642,21 +642,15 @@ begin
 //  writeln(Format('Field.Size: %d; StrLenOrInd: %d',[FieldDef.Size, StrLenOrInd]));
 end;
 
-function TODBCConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+procedure TODBCConnection.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
+
 var
   ODBCCursor: TODBCCursor;
-  BlobMemoryStream, BlobMemoryStreamCopy: TMemoryStream;
+  BlobMemoryStream: TMemoryStream;
 begin
-  if (Mode=bmRead) and not Field.IsNull then
-  begin
-    Field.GetData(@BlobMemoryStream);
-    BlobMemoryStreamCopy:=TMemoryStream.Create;
-    if BlobMemoryStream<>nil then
-      BlobMemoryStreamCopy.LoadFromStream(BlobMemoryStream);
-    Result:=BlobMemoryStreamCopy;
-  end
-  else
-    Result:=nil;
+  Field.GetData(@BlobMemoryStream);
+  if BlobMemoryStream<>nil then
+    AStream.LoadFromStream(BlobMemoryStream);
 end;
 
 procedure TODBCConnection.FreeFldBuffers(cursor: TSQLCursor);

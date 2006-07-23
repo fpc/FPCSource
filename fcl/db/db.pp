@@ -730,6 +730,7 @@ type
     procedure AssignTo(Dest: TPersistent); override;
     procedure FreeBuffers; override;
     function GetAsString: string; override;
+    function GetAsVariant: Variant; override;
     function GetBlobSize: Longint; virtual;
     function GetIsNull: Boolean; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
@@ -1518,6 +1519,17 @@ type
     BookmarkData       : pointer;
     OldValuesBuffer    : pchar;
   end;
+  
+  PBufBlobField = ^TBufBlobField;
+  TBufBlobField = record
+    ConnBlobBuffer : array[0..11] of byte; // It's here where the db-specific data is stored
+    BufBlobId      : Integer;
+  end;
+  
+  TTempBlobStream = record
+    Id      : integer;
+    AStream : TMemoryStream;
+  end;
 
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
@@ -1539,6 +1551,9 @@ type
     
     FAllPacketsFetched : boolean;
     FOnUpdateError  : TResolverErrorEvent;
+    
+    FNonPostedStreams : array of TTempBlobStream;
+    FPostedStreams    : array of TMemoryStream;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
@@ -1581,6 +1596,7 @@ type
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     procedure ApplyUpdates; virtual; overload;
@@ -1589,6 +1605,7 @@ type
     destructor Destroy; override;
     function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
     function UpdateStatus: TUpdateStatus; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     property ChangeCount : Integer read GetChangeCount;
   published
     property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;

@@ -100,7 +100,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); virtual;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -220,8 +220,9 @@ type
     Procedure SetActive (Value : Boolean); override;
     procedure SetFiltered(Value: Boolean); override;
     procedure SetFilterText(const Value: string); override;
-    Function GetDataSource : TDatasource;
+    Function GetDataSource : TDatasource; override;
     Procedure SetDataSource(AValue : TDatasource); 
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -229,7 +230,6 @@ type
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   published
@@ -461,7 +461,7 @@ begin
   DatabaseError(SMetadataUnavailable);
 end;
 
-function TSQLConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+procedure TSQLConnection.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream; cursor: TSQLCursor;ATransaction : TSQLTransaction);
 
 begin
   DatabaseErrorFmt(SUnsupportedFieldType,['Blob']);
@@ -565,8 +565,6 @@ end;
 
 { TSQLQuery }
 procedure TSQLQuery.OnChangeSQL(Sender : TObject);
-
-var ParamName : String;
 
 begin
   UnPrepare;
@@ -1063,9 +1061,6 @@ end;
 
 Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
-var
-    s : string;
-
   procedure UpdateWherePart(var sql_where : string;x : integer);
 
   begin
@@ -1093,6 +1088,7 @@ var
       end;
 
     setlength(sql_set,length(sql_set)-1);
+    if length(sql_where) = 0 then DatabaseError(sNoWhereFields,self);
     setlength(sql_where,length(sql_where)-5);
     result := 'update ' + FTableName + ' set ' + sql_set + ' where ' + sql_where;
 
@@ -1131,6 +1127,7 @@ var
     for x := 0 to Fields.Count -1 do
       UpdateWherePart(sql_where,x);
 
+    if length(sql_where) = 0 then DatabaseError(sNoWhereFields,self);
     setlength(sql_where,length(sql_where)-5);
 
     result := 'delete from ' + FTableName + ' where ' + sql_where;
@@ -1207,9 +1204,10 @@ begin
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
 
-function TSQLQuery.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+procedure TSQLQuery.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream);
+
 begin
-  result := (DataBase as tsqlconnection).CreateBlobStream(Field, Mode);
+  (DataBase as tsqlconnection).LoadBlobIntoStream(Field, AStream, FCursor,(Transaction as tsqltransaction));
 end;
 
 function TSQLQuery.GetStatementType : TStatementType;

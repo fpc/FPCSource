@@ -81,6 +81,7 @@ Resourcestring
   SDatasetEmpty            = 'The dataset is empty';
   SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
+  SNoWhereFields           = 'There are no fields found to generate the where-clause';
 
 Implementation
 

@@ -66,7 +66,7 @@ type
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer):boolean; override;
-    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
+//    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
 
   public
@@ -469,10 +469,10 @@ begin
     end;
 end;
 
-function TOracleConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+{function TOracleConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
 begin
 //  Result:=inherited CreateBlobStream(Field, Mode);
-end;
+end;}
 
 procedure TOracleConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin

@@ -472,6 +472,7 @@ begin
           begin
           case AParams[i].DataType of
             ftdatetime : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
+            ftdate     : s := formatdatetime('YYYY-MM-DD',AParams[i].AsDateTime);
           else
             s := AParams[i].asstring;
           end; {case}

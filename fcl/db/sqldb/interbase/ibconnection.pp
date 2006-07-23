@@ -81,7 +81,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
@@ -631,13 +631,10 @@ begin
         ftInteger :
           begin
           i := AParams[ParNr].AsInteger;
-          {$R-}
           Move(i, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-          {$R+}
           end;
         ftString,ftFixedChar  :
           begin
-          {$R-}
           s := AParams[ParNr].AsString;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
           if ((in_sqlda^.SQLvar[SQLVarNr].SQLType and not 1) = SQL_VARYING) then
@@ -652,23 +649,16 @@ begin
             CurrBuff := in_sqlda^.SQLvar[SQLVarNr].SQLData;
 
           Move(s[1], CurrBuff^, w);
-          {$R+}
           end;
         ftDate, ftTime, ftDateTime:
-          {$R-}
           SetDateTime(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsDateTime, in_SQLDA^.SQLVar[SQLVarNr].SQLType);
-          {$R+}
         ftLargeInt:
           begin
           li := AParams[ParNr].AsLargeInt;
-          {$R-}
           Move(li, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-          {$R+}
           end;
         ftFloat:
-          {$R-}
           SetFloat(in_sqlda^.SQLvar[SQLVarNr].SQLData, AParams[ParNr].AsFloat, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
-          {$R+}
         ftBlob:
           begin
           TransactionHandle := transaction.Handle;
@@ -693,7 +683,6 @@ begin
             
           if isc_close_blob(@FStatus, @blobHandle) <> 0 then
             CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
-
           Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
       else
@@ -769,7 +758,7 @@ begin
         ftFloat   :
           GetFloat(CurrBuff, Buffer, FieldDef);
         ftBlob : begin  // load the BlobIb in field's buffer
-            FillByte(buffer^,sizeof(LargeInt),0);
+            FillByte(buffer^,sizeof(TBufBlobField),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
          end
 
@@ -1019,12 +1008,11 @@ begin
      CheckError('isc_blob_info', FStatus);
 end;
 
-function TIBConnection.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+procedure TIBConnection.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
 
 var
-  mStream : TMemoryStream;
   blobHandle : Isc_blob_Handle;
   blobSegment : pointer;
   blobSegLen : smallint;
@@ -1032,44 +1020,34 @@ var
   TransactionHandle : pointer;
   blobId : ISC_QUAD;
 begin
+  if not field.getData(@blobId) then
+    exit;
 
-  result := nil;
-  if mode = bmRead then begin
+  TransactionHandle := Atransaction.Handle;
+  blobHandle := nil;
 
-    if not field.getData(@blobId) then
-      exit;
+  if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+    CheckError('TIBConnection.CreateBlobStream', FStatus);
 
-    if not assigned(Transaction) then
-      DatabaseError(SErrConnTransactionnSet);
+  maxBlobSize := getMaxBlobSize(blobHandle);
 
-    TransactionHandle := transaction.Handle;
-    blobHandle := nil;
+  blobSegment := AllocMem(maxBlobSize);
 
-    if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
-      CheckError('TIBConnection.CreateBlobStream', FStatus);
-
-    maxBlobSize := getMaxBlobSize(blobHandle);
-
-    blobSegment := AllocMem(maxBlobSize);
-    mStream := TMemoryStream.create;
-
-    while (isc_get_segment(@FStatus, @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
-        mStream.writeBuffer(blobSegment^, blobSegLen);
-    end;
-    freemem(blobSegment);
-    mStream.seek(0,soFromBeginning);
-
-    if FStatus[1] = isc_segstr_eof then
-      begin
-        if isc_close_blob(@FStatus, @blobHandle) <> 0 then
-          CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
-      end
-    else
-      CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
-
-    result := mStream;
-
+  while (isc_get_segment(@FStatus, @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
+      AStream.writeBuffer(blobSegment^, blobSegLen);
   end;
+  freemem(blobSegment);
+  AStream.seek(0,soFromBeginning);
+
+  if FStatus[1] = isc_segstr_eof then
+    begin
+      if isc_close_blob(@FStatus, @blobHandle) <> 0 then
+        CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
+    end
+  else
+    CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
 end;
+
+
 
 end.

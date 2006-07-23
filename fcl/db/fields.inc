@@ -212,7 +212,7 @@ end;
 function TFieldDefs.GetItem(Index: Longint): TFieldDef;
 
 begin
-  Result := TFieldDef(inherited Items[Index]);;
+  Result := TFieldDef(inherited Items[Index]);
 end;
 
 function TFieldDefs.GetDataset: TDataset;
@@ -437,31 +437,31 @@ end;
 function TField.GetAsBoolean: Boolean;
 
 begin
-  AccessError(SBoolean);
+  raise AccessError(SBoolean);
 end;
 
 function TField.GetAsDateTime: TDateTime;
 
 begin
-  AccessError(SdateTime);
+  raise AccessError(SdateTime);
 end;
 
 function TField.GetAsFloat: Double;
 
 begin
-  AccessError(SDateTime);
+  raise AccessError(SDateTime);
 end;
 
 function TField.GetAsLongint: Longint;
 
 begin
-  AccessError(SInteger);
+  raise AccessError(SInteger);
 end;
 
 function TField.GetAsVariant: Variant;
 
 begin
-  AccessError(SVariant);
+  raise AccessError(SVariant);
 end;
 
 
@@ -2226,6 +2226,19 @@ begin
       end
   else
     Result := '(blob)';
+end;
+
+function TBlobField.GetAsVariant: Variant;
+
+Var s : string;
+
+begin
+  if not GetIsNull then
+    begin
+    s := GetAsString;
+    result := s;
+    end
+  else result := Null;
 end;
 
 

@@ -21,6 +21,8 @@ constructor TBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
+  SetLength(FNonPostedStreams,0);
+  SetLength(FPostedStreams,0);
   BookmarkSize := sizeof(TBufBookmark);
   FPacketRecords := 10;
 end;
@@ -262,7 +264,8 @@ begin
     ftLargeInt   : result := sizeof(largeint);
     ftTime,
       ftDate,
-      ftDateTime : result := sizeof(TDateTime)
+      ftDateTime : result := sizeof(TDateTime);
+    ftBlob       : result := sizeof(TBufBlobField)
   else Result := 10
   end;
 
@@ -551,8 +554,28 @@ procedure TBufDataset.InternalPost;
 
 Var tmpRecBuffer : PBufRecLinkItem;
     CurrBuff     : PChar;
+    i ,sid       : integer;
+    blobbuf      : tbufblobfield;
 
 begin
+// First, if there are changed blob-field, make copies of their streams and
+// set the stream-id's in the activebuffer
+  if assigned(FNonPostedStreams) then for i:=0 to length(FNonPostedStreams)-1 do
+    begin
+    sid := length(FPostedStreams);
+    SetLength(FPostedStreams,sid+1);
+
+    FPostedStreams[sid] := TMemoryStream.Create;
+    
+    FPostedStreams[sid].loadfromstream(FNonPostedStreams[i].AStream);
+
+    fillbyte(blobbuf,sizeof(TBufBlobField),0);
+    blobbuf.BufBlobId := sid+1;
+
+    SetFieldData(FieldByNumber(FNonPostedStreams[i].Id),@blobbuf);
+    end;
+  setlength(FNonPostedStreams,0);
+
   if state = dsInsert then
     begin
     if GetBookmarkFlag(ActiveBuffer) = bfEOF then
@@ -717,6 +740,45 @@ begin
       ukModify : Result := usModified;
       ukInsert : Result := usInserted;
       ukDelete : Result := usDeleted;
+    end;
+end;
+
+function TBufDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+
+var mStream : TmemoryStream;
+    bufblob : TBufBlobField;
+
+begin
+  result := nil;
+  if mode=bmread then
+    begin
+    if not field.getData(@bufblob) then
+      exit;
+
+    mStream := TMemoryStream.Create;
+    if bufblob.BufBlobId>0 then
+      mStream.LoadFromStream(FPostedStreams[bufblob.BufBlobId-1])
+    else
+      LoadBlobIntoStream(field,mStream);
+
+    result := mStream;
+    end
+  else if mode=bmWrite then
+    begin
+
+    if not (state in [dsEdit, dsInsert, dsFilter]) then
+      begin
+      DatabaseErrorFmt(SNotInEditState,[Name],self);
+      exit;
+      end;
+
+    setlength(FNonPostedStreams,length(FNonPostedStreams)+1);
+    with FNonPostedStreams[high(FNonPostedStreams)] do
+      begin
+      id := field.fieldno;
+      astream := TMemoryStream.Create;
+      result := AStream;
+      end;
     end;
 end;
 
