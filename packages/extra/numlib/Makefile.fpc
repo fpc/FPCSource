@@ -7,7 +7,8 @@ name=numlib
 version=2.0.0
 
 [target]
-units=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib tpnumlib
+# warning, tpnumlib is a library, not a unit.
+units=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib 
 
 [install]
 fpcpackage=y
