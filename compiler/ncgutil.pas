@@ -882,19 +882,54 @@ implementation
       end;
 
 
-    { trash contents of local variables }
-    procedure trash_variable(p : tnamedindexitem;arg:pointer);
-      const
+    const
 {$ifdef cpu64bit}
-        trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($5555555555555555,aint($AAAAAAAAAAAAAAAA),aint($EFEFEFEFEFEFEFEF),0);
 {$else cpu64bit}
-        trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
+      trashintvalues: array[0..nroftrashvalues-1] of aint = ($55555555,aint($AAAAAAAA),aint($EFEFEFEF),0);
 {$endif cpu64bit}
+
+    procedure trash_reference(list: TAsmList; const ref: treference; size: aint);
       var
-        tmpref: treference;
         countreg, valuereg: tregister;
         hl: tasmlabel;
         trashintval: aint;
+        tmpref: treference;
+      begin
+        trashintval := trashintvalues[localvartrashing];
+        case size of
+          0: ; { empty record }
+          1: cg.a_load_const_ref(list,OS_8,byte(trashintval),ref);
+          2: cg.a_load_const_ref(list,OS_16,word(trashintval),ref);
+          4: cg.a_load_const_ref(list,OS_32,longint(trashintval),ref);
+          else
+            begin
+              countreg := cg.getintregister(list,OS_ADDR);
+              valuereg := cg.getintregister(list,OS_8);
+              cg.a_load_const_reg(list,OS_INT,size,countreg);
+              cg.a_load_const_reg(list,OS_8,byte(trashintval),valuereg);
+              current_asmdata.getjumplabel(hl);
+              tmpref := ref;
+              if (tmpref.index <> NR_NO) then
+                internalerror(200607201);
+              tmpref.index := countreg;
+              dec(tmpref.offset);
+              cg.a_label(list,hl);
+              cg.a_load_reg_ref(list,OS_8,OS_8,valuereg,tmpref);
+              cg.a_op_const_reg(list,OP_SUB,OS_INT,1,countreg);
+              cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,countreg,hl);
+              cg.a_reg_sync(list,tmpref.base);
+              cg.a_reg_sync(list,valuereg);
+            end;
+        end;
+      end;
+
+
+    { trash contents of local variables }
+    procedure trash_variable(p : tnamedindexitem;arg:pointer);
+      var
+        trashintval: aint;
+        list: TAsmList absolute arg;
       begin
         trashintval := trashintvalues[localvartrashing];
         if (tsym(p).typ=localvarsym) then
@@ -905,7 +940,7 @@ implementation
 {$define overflowon}
 {$q-}
 {$endif}
-               cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tlocalvarsym(p).localloc.register),
+               cg.a_load_const_reg(list,reg_cgsize(tlocalvarsym(p).localloc.register),
                  trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tlocalvarsym(p).localloc.register)] * 8) - 1),
                    tglobalvarsym(p).localloc.register);
 {$ifdef overflowon}
@@ -914,32 +949,8 @@ implementation
 {$endif}
              LOC_REFERENCE :
                begin
-                 case tlocalvarsym(p).getsize of
-                   0: ; { empty record }
-                   1: cg.a_load_const_ref(TAsmList(arg),OS_8,byte(trashintval),
-                        tlocalvarsym(p).localloc.reference);
-                   2: cg.a_load_const_ref(TAsmList(arg),OS_16,word(trashintval),
-                        tlocalvarsym(p).localloc.reference);
-                   4: cg.a_load_const_ref(TAsmList(arg),OS_32,longint(trashintval),
-                        tlocalvarsym(p).localloc.reference);
-                   else
-                     begin
-                       countreg := cg.getintregister(TAsmList(arg),OS_ADDR);
-                       valuereg := cg.getintregister(TAsmList(arg),OS_8);
-                       cg.a_load_const_reg(TAsmList(arg),OS_INT,tlocalvarsym(p).getsize,countreg);
-                       cg.a_load_const_reg(TAsmList(arg),OS_8,byte(trashintval),valuereg);
-                       current_asmdata.getjumplabel(hl);
-                       tmpref := tlocalvarsym(p).localloc.reference;
-                       if (tmpref.index <> NR_NO) then
-                         internalerror(200607201);
-                       tmpref.index := countreg;
-                       dec(tmpref.offset);
-                       cg.a_label(TAsmList(arg),hl);
-                       cg.a_load_reg_ref(TAsmList(arg),OS_8,OS_8,valuereg,tmpref);
-                       cg.a_op_const_reg(TAsmList(arg),OP_SUB,OS_INT,1,countreg);
-                       cg.a_cmp_const_reg_label(TAsmList(arg),OS_INT,OC_NE,0,countreg,hl);
-                     end;
-                 end;
+                 trash_reference(list,tlocalvarsym(p).localloc.reference,
+                   tlocalvarsym(p).getsize);
                end;
              LOC_CMMREGISTER :
                ;
@@ -1102,24 +1113,37 @@ implementation
         href : treference;
         tmpreg : tregister;
         list : TAsmList;
+        needs_inittable: boolean;
       begin
         list:=TAsmList(arg);
-        if (tsym(p).typ=paravarsym) and
-           not is_class_or_interface(tparavarsym(p).vartype.def) and
-           tparavarsym(p).vartype.def.needs_inittable then
+        if (tsym(p).typ=paravarsym) then
          begin
+           needs_inittable := 
+             not is_class_or_interface(tparavarsym(p).vartype.def) and
+             tparavarsym(p).vartype.def.needs_inittable;
            case tparavarsym(p).varspez of
              vs_value :
-               begin
-                 location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
-                 cg.g_incrrefcount(list,tparavarsym(p).vartype.def,href);
-               end;
+               if needs_inittable then
+                 begin
+                   location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
+                   cg.g_incrrefcount(list,tparavarsym(p).vartype.def,href);
+                 end;
              vs_out :
                begin
-                 tmpreg:=cg.getaddressregister(list);
-                 cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
-                 reference_reset_base(href,tmpreg,0);
-                 cg.g_initialize(list,tparavarsym(p).vartype.def,href);
+                 if (needs_inittable) or
+                    (localvartrashing <> -1) then
+                   begin
+                     tmpreg:=cg.getaddressregister(list);
+                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
+                     reference_reset_base(href,tmpreg,0);
+                     if (localvartrashing <> -1) and
+                        { needs separate implementation to trash open arrays }
+                        { since their size is only known at run time         }
+                        not is_special_array(tparavarsym(p).vartype.def) then
+                       trash_reference(list,href,tparavarsym(p).vartype.def.size);
+                     if needs_inittable then
+                       cg.g_initialize(list,tparavarsym(p).vartype.def,href);
+                   end;
                end;
            end;
          end;
