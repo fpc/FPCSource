@@ -127,7 +127,7 @@ type
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
-  EPoll_Event = record
+  EPoll_Event = {$ifdef cpu64} packed {$endif} record
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
