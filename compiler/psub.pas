@@ -792,7 +792,11 @@ implementation
             assign_regvars(code);
 {$endif oldreg}
             aktfilepos:=entrypos;
+            { record which registers are allocated here, since all code }
+            { allocating registers comes after it                       }
+            cg.set_regalloc_extend_backwards(true);
             gen_load_para_value(templist);
+            cg.set_regalloc_extend_backwards(false);
 
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }

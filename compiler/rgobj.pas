@@ -371,6 +371,7 @@ unit rgobj;
          if high(Ausable)=0 then
            internalerror(200210181);
          extend_live_range_backwards := false;
+         supregset_reset(extended_backwards,false,high(tsuperregister));
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
@@ -682,7 +683,6 @@ unit rgobj;
         if (b) then
           begin
             { new registers may be allocated }
-            supregset_reset(extended_backwards,false,high(tsuperregister));
             supregset_reset(backwards_was_first,false,high(tsuperregister));
             do_extend_live_range_backwards := true;
           end
