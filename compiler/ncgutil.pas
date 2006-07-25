@@ -902,6 +902,9 @@ implementation
           1: cg.a_load_const_ref(list,OS_8,byte(trashintval),ref);
           2: cg.a_load_const_ref(list,OS_16,word(trashintval),ref);
           4: cg.a_load_const_ref(list,OS_32,longint(trashintval),ref);
+          {$ifdef cpu64bit}
+          8: cg.a_load_const_ref(list,OS_64,int64(trashintval),ref);
+          {$endif cpu64bit}
           else
             begin
               countreg := cg.getintregister(list,OS_ADDR);
