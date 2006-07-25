@@ -147,7 +147,7 @@
 
 
 {$ifdef HasGTK2_4}
-// new GTK 2.4 + 2.6 code
+// new GTK 2.4 + 2.6 + 2.8 code
 
 // GtkFileSystem Code for FileChooser
 {$include gtkfilefilter.inc}
@@ -155,14 +155,20 @@
 
 // new GtkFileChooser Widget
 {$IFDEF HasGTK2_6}
+{$IFNDEF HasGTK2_8} // These functions are removed from GTK-2.8
 {$include gtkfilechooserdefault.inc}
 {$include gtkfilechooserembed.inc}
 {$include gtkfilechooserentry.inc}
 {$include gtkiconview.inc}
+{$ENDIF HasGTK2_8}
 
 // new GtkCellRendererCombo widget
 {$include gtkcellrenderercombo.inc}
 {$ENDIF HasGTK2_6}
+
+{$IFDEF HasGTK2_8}
+// Put new GTK-2.8 functions here
+{$ENDIF HasGTK2_8}
 
 {$include gtkfilechooser.inc}
 

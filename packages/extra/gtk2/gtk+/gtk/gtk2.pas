@@ -18,8 +18,8 @@
   }
 unit gtk2; // keep unit name lowercase for kylix
 
-// default GTK2_6
-{$define GTK2_6}
+// default GTK2_8
+{$define GTK2_8}
 
 { Smartlinking has problems on powerpc-linux because of commandline length, disable
   it for now }
@@ -53,6 +53,14 @@ unit gtk2; // keep unit name lowercase for kylix
 {$DEFINE HasGTK2_2}
 {$DEFINE HasGTK2_4}
 {$DEFINE HasGTK2_6}
+{$ENDIF}
+
+{$IFDEF GTK2_8}
+{$DEFINE HasGTK2_0}
+{$DEFINE HasGTK2_2}
+{$DEFINE HasGTK2_4}
+{$DEFINE HasGTK2_6}
+{$DEFINE HasGTK2_8}
 {$ENDIF}
 
 interface
