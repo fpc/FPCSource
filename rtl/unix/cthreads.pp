@@ -550,10 +550,18 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
     p : pintrtlevent;
     errres : cint;
     timespec : ttimespec;
+    tnow : timeval;
+
   begin
     p:=pintrtlevent(aevent);
-    timespec.tv_sec:=timeout div 1000;
-    timespec.tv_nsec:=(timeout mod 1000)*1000000;
+    fpgettimeofday(@tnow,nil);
+    timespec.tv_sec:=tnow.tv_sec+(timeout div 1000);
+    timespec.tv_nsec:=(timeout mod 1000)*1000000 + tnow.tv_usec*1000;
+    if timespec.tv_nsec >= 1000000000 then
+    begin
+      inc(timespec.tv_sec);
+      dec(timespec.tv_nsec, 1000000000);
+    end;
     errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
     if (errres=0) or (errres=ESysETIMEDOUT) then
       pthread_mutex_unlock(@p^.mutex);
