@@ -408,12 +408,9 @@ Unit UComplex;
   function cln (z : complex) : complex;
     { natural logarithm : r := ln(z) }
     { ln( p exp(i0)) = ln(p) + i0 + 2kpi }
-    var modz : real;
     begin
-       with z do
-         modz := (re * re) + (im * im);
-       cln.re := ln(modz);
-       cln.im := arctan2(z.re, z.im);
+       cln.re := ln(cmod(z));
+       cln.im := arctan2(z.im, z.re);
     end;
 
   function csqrt (z : complex) : complex;
