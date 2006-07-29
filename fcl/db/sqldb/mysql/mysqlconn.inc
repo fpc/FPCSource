@@ -635,7 +635,7 @@ begin
     exit;
   Src:=StrPas(Source);
   case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG,
+    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG,
     FIELD_TYPE_INT24:
       begin
       if (Src<>'') then
@@ -643,6 +643,14 @@ begin
       else
         VI := 0;
       Move(VI, Dest^, SizeOf(Integer));
+      end;
+    FIELD_TYPE_LONGLONG:
+      begin
+      if (Src<>'') then
+        VI := StrToInt64(Src)
+      else
+        VI := 0;
+      Move(VI, Dest^, SizeOf(LargeInt));
       end;
 {$ifdef mysql50}
     FIELD_TYPE_NEWDECIMAL,
