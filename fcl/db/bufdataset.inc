@@ -827,6 +827,8 @@ begin
 // For now it is only possible to search in one field at the same time
   result := False;
 
+  if IsEmpty then exit;
+
   keyfield := FieldByName(keyfields);
   CheckNull := VarIsNull(KeyValues);
 
