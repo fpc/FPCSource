@@ -2460,7 +2460,7 @@ begin
 end;
 
 {$ifdef GDB_HAS_SYSROOT}
-var gdb_sysroot  : pchar; external name 'gdb_sysroot';
+var gdb_sysroot  : pchar; {$ifdef powerpc}external{$else}export{$endif} name 'gdb_sysroot';
     gdb_sysrootc : char;
 {$endif}
 
