@@ -1,5 +1,7 @@
 Program TestList;
 
+{$mode objfpc}{$h+}
+
 Uses classes;
 
 const a1 : pchar = '0';

@@ -2,10 +2,6 @@
 {$H+}
 {$apptype gui}
 
-{$ifdef win32}
-{$R fclel.res}
-{$endif}
-
 program tstelgtk;
 
 uses gdk,gtk,fpgtk,fpgtkext,classes,sysutils,eventlog;

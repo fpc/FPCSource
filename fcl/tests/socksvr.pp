@@ -18,6 +18,10 @@ Program server;
   'sockcli' programs in another terminal.
 }
 
+{$ifndef unix}
+  {$fatal This test is only for Unix platforms}
+{$endif}
+
 {$mode objfpc}{$h+}
 uses ssockets;
 

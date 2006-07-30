@@ -1,8 +1,5 @@
 {$mode objfpc}
 {$h+}
-{$ifdef win32}
-{$r fclel.res}
-{$endif}
 
 program testelcmd;
 

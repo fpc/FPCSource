@@ -9,6 +9,11 @@ Var version : TFileVersionInfo;
     I : longint;
 
 begin
+  if Paramcount<1 then
+    begin
+      Writeln('Usage: showver <exefile>');
+      halt(1);
+    end;
   Version:=TFileVErsionInfo.create(Nil);
   Version.FileName:=paramstr(1);
   With Version do

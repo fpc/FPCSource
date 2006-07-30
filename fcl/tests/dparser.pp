@@ -1,5 +1,7 @@
 Program DParser;
 
+{$mode objfpc}{$h+}
+
 uses Classes;
 
 var

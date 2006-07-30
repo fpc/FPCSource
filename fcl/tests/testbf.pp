@@ -24,8 +24,8 @@ uses blowfish;
 Var
   i : integer;
   L,R : TBFBlock;
-  K : TKey448;
-  
+  K : TBlowFishKey;
+
 begin
   L[0]:=$DEAD;
   L[1]:=$BEEF;
@@ -38,7 +38,7 @@ begin
     Decrypt(L);
     If (L[0]<>R[0]) or (L[1]<>R[1]) then
       Writeln('Error');
-    finally 
+    finally
       Free;
     end;
 end.

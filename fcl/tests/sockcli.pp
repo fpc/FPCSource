@@ -18,6 +18,10 @@ Program Client;
   or in the  background.
 }
 
+{$ifndef unix}
+  {$fatal This test is only for Unix platforms}
+{$endif}
+
 {$mode objfpc}{$H+}
 uses ssockets;
 
