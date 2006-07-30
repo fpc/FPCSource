@@ -28,7 +28,7 @@ interface
 uses
   CClasses,globtype,globals,verbose,systems,cpuinfo;
 
-Type    
+Type
   TOption=class
     FirstPass,
     ParaLogo,
@@ -76,7 +76,7 @@ uses
 {$ENDIF USE_SYSUTILS}
   version,
   cutils,cmsgs,
-  comphook, 
+  comphook,
   symtable,scanner,rabase
 {$ifdef BrowserLog}
   ,browlog
@@ -861,15 +861,16 @@ begin
              begin
                if More<>'' then
                  begin
+                   DefaultReplacements(More);
 {$IFDEF USE_SYSUTILS}
-                 D:=SplitPath(More);
-                 OutputFile:=SplitFileName(More);
-                 OutputExtension:=SplitExtension(More);
+                   D:=SplitPath(More);
+                   OutputFile:=SplitFileName(More);
+                   OutputExtension:=SplitExtension(More);
 {$ELSE USE_SYSUTILS}
-                 FSplit(More,D,OutputFile,OutputExtension);
+                   FSplit(More,D,OutputFile,OutputExtension);
 {$ENDIF USE_SYSUTILS}
-                 if (D<>'') then
-                   OutputExeDir:=FixPath(D,True);
+                   if (D<>'') then
+                     OutputExeDir:=FixPath(D,True);
                  end
                else
                  IllegalPara(opt);
@@ -1295,7 +1296,7 @@ begin
                                  'A' : begin
                                         s:=Copy(more,3,length(More)-2);
                                         if not LinkLibraryAliases.AddDep(s) Then
-                                           IllegalPara(opt);                                       
+                                           IllegalPara(opt);
                                        end;
                                  'O' : begin
                                         s:=Copy(more,3,length(More)-2);
@@ -1306,7 +1307,7 @@ begin
                                 else
                                   IllegalPara(opt);
                                  end; {case}
-                                j:=length(more);    
+                                j:=length(more);
                               end; {else begin}
                           end;
                     'S' :
