@@ -73,11 +73,11 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
-  {$LINKLIB ncurses}
+  {     $LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
   {$LINKLIB c}
-  { don't link explicitly against (FK) $LINKLIB gcc}
+  {$LINKLIB gcc}
 {$endif linux}
 
 {$ifdef freebsd}
@@ -2460,7 +2460,7 @@ begin
 end;
 
 {$ifdef GDB_HAS_SYSROOT}
-var gdb_sysroot  : pchar; export name 'gdb_sysroot';
+var gdb_sysroot  : pchar; external name 'gdb_sysroot';
     gdb_sysrootc : char;
 {$endif}
 
