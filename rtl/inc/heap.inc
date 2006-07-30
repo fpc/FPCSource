@@ -1156,10 +1156,13 @@ begin
     begin
       currsize := chunksize and fixedsizemask;
 
-      { first check if the size fits in the fixed block range to prevent
-        "truncating" the size by the fixedsizemask }
-      if (size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr))) and
-         ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask =currsize ) then
+      { 1. Resizing to smaller sizes will never allocate a new block. We just keep the current block. This
+           is needed for the expectations that resizing to a small block will not move the contents of
+           a memory block
+        2. For resizing to greater size first check if the size fits in the fixed block range to prevent
+           "truncating" the size by the fixedsizemask }
+      if ((size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr))) and
+          ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask<=currsize )) then
         begin
           systryresizemem:=true;
           exit;
