@@ -6467,7 +6467,7 @@
 
 {$IFNDEF LinkDynamically}
 
-  function OCIInitialize(mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:tralocfp;mfreefp:tmfreefp ):sword;cdecl;external ocilib name 'OCIInitialise';
+  function OCIInitialize(mode:ub4; ctxp:Pdvoid; malocfp:tmalocfp; ralocfp:tralocfp;mfreefp:tmfreefp ):sword;cdecl;external ocilib name 'OCIInitialize';
 
   function OCITerminate(mode:ub4):sword;cdecl;external ocilib name 'OCITerminate';
 
