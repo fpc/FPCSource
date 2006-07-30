@@ -231,11 +231,7 @@ begin
   WriteLn ('This library could not be found on your system, however.');
   WriteLn ('Please, download the library, either from the location where you found');
   WriteLn ('this package, or from any FTP archive carrying InfoZip programs.');
-{$IFDEF OS2}
-  WriteLn ('If you already have this DLL, please, check your configuration (' + LIBPATH + ').');
-{$ELSE}
-  WriteLn ('If you already have this DLL, please, check your configuration (' + PATH + ').');
-{$ENDIF}
+  WriteLn ('If you already have this DLL, please, check your configuration (' + LibPath + ').');
   WriteLn (#13#10'If you want to try unpacking the files with internal unpacking routine,');
   WriteLn ('answer the following question with Y. However, this might not work correctly');
   WriteLn ('under some conditions (e.g. for long names and drives not supporting them).');
