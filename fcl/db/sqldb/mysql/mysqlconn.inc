@@ -218,7 +218,7 @@ begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else if param.DataType =  ftString then
     begin
-    Getmem(esc_str,sizeof(param.asstring)*2+1);
+    Getmem(esc_str,length(param.asstring)*2+1);
     mysql_real_escape_string(FMySQL,esc_str,pchar(param.asstring),length(param.asstring));
     Result := '''' + esc_str + '''';
     Freemem(esc_str);
