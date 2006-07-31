@@ -2,6 +2,10 @@
 // AsyncIO test  by Sebastian Guenther, sg@freepascal.org
 // This file is in the public domain
 
+{$ifndef unix}
+  {$fatal This test is only for Unix platforms}
+{$endif}
+
 {$MODE objfpc}
 program asiotest;
 uses SysUtils, Classes, Crt, FPAsync;

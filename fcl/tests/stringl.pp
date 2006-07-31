@@ -1,5 +1,7 @@
 program teststrings;
 
+{$mode objfpc}{$h+}
+
 Uses classes,sysutils;
 
 Procedure DoRef (P : Pointer);

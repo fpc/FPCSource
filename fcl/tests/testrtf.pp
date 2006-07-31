@@ -15,6 +15,8 @@
  **********************************************************************}
 Program testrtf;
 
+{$mode objfpc}{$h+}
+
 uses rtfpars,classes;
 
 type
@@ -26,7 +28,7 @@ type
     procedure doctrl;
     Procedure Dowrite;
     Procedure Start;
-    procedure handleerror ( s : string);
+    procedure handleerror ( s : shortstring);
   end;
 
 Var
@@ -82,7 +84,7 @@ begin
   Thestream.free;
 end;
 
-procedure TRTFDemo.handleerror ( s : string);
+procedure TRTFDemo.handleerror ( s : shortstring);
 
 begin
   Writeln (stderr,s);

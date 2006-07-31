@@ -13,10 +13,11 @@
  **********************************************************************}
 {
   Unit implementing simple blowfish algorithm
-} 
+}
 {$ifdef fpc}
 {$mode objfpc}
 {$h+}
+{$inline on}
 {$endif}
 unit BlowFish;
 
@@ -38,8 +39,8 @@ type
     PBox    : array[0..(BFRounds+1)] of LongInt;
     SBox    : array[0..3, 0..255] of LongInt;
     Function F(x : Cardinal)  : Cardinal;{$ifdef fpc}inline;{$endif}
-  Public 
-    Constructor Create(Key : TBlowFishKey; KeySize : Integer);  
+  Public
+    Constructor Create(Key : TBlowFishKey; KeySize : Integer);
     Procedure Encrypt(var Block : TBFBlock);
     Procedure Decrypt(var Block : TBFBlock);
   end;
@@ -85,7 +86,7 @@ ResourceString
 { Blowfish lookup tables }
 
 const
- bf_P: array[0..(BFRounds + 1)] of DWord = (                           
+ bf_P: array[0..(BFRounds + 1)] of DWord = (
   $243F6A88, $85A308D3, $13198A2E, $03707344,
   $A4093822, $299F31D0, $082EFA98, $EC4E6C89,
   $452821E6, $38D01377, $BE5466CF, $34E90C6C,
@@ -425,7 +426,7 @@ var
   K     : Integer;
   Data  : Cardinal;
   Block : TBFBlock;
-  
+
 begin
   Move(bf_P, PBox, SizeOf(PBox));
   Move(bf_S, SBox, SizeOf(SBox));
@@ -453,7 +454,7 @@ begin
     PBox[I+1] := Block[1];
     Inc(I, 2);
   until I > BFRounds+1;
-  
+
   { Now continue with rest }
   for J := 0 to 3 do begin
     I := 0;
@@ -471,7 +472,7 @@ Function TBlowFish.F(x : Cardinal)  : Cardinal;{$ifdef fpc}inline;{$endif}
 var
   a, b, c, d : Byte;
   y : cardinal;
-  
+
 begin
   d:=x and $FF;
   x:=x shr 8;
@@ -483,7 +484,7 @@ begin
   Result:=Sbox[0][a]+Sbox[1][b];
   Result:=Result xor Sbox[2][c];
   Result:=Result + Sbox[3][d];
-end;    
+end;
 
 procedure TBlowFish.Encrypt(var Block : TBFBlock);
 var
@@ -537,7 +538,7 @@ end;
 { ---------------------------------------------------------------------
     TBlowFishStream
   ---------------------------------------------------------------------}
-  
+
 
 Constructor TBlowFishStream.Create(AKey : TBlowFishkey; AKeySize : Byte; Dest: TStream);
 
