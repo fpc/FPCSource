@@ -353,7 +353,7 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
-        $(ECHO) "'$(REVSTR)'" > revision.inc
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
 endif
         $(COMPILER) pp.pas
         $(EXECPPAS)
