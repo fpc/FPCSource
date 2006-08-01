@@ -17,7 +17,10 @@ procedure deltree(const dirname : string);
                    deltree(dirname+'/'+rec.name)
               end
             else
-              deletefile(dirname+'/'+rec.name);
+              begin
+                FileSetAttr(dirname+'/'+rec.name,faArchive);
+                deletefile(dirname+'/'+rec.name);
+              end;
           until findnext(rec)<>0;
           findclose(rec);
        end;
@@ -38,6 +41,8 @@ procedure searchcvsdir(const dirname : string);
               begin
                  if rec.name='CVS' then
                    deltree(dirname+'/CVS')
+                 else if rec.name='.svn' then
+                   deltree(dirname+'/.svn')
                  else
                    if (rec.name<>'.') and (rec.name<>'..') then
                      searchcvsdir(dirname+'/'+rec.name)
@@ -47,6 +52,12 @@ procedure searchcvsdir(const dirname : string);
        end;
   end;
 
+var
+  para : string;
 begin
-   searchcvsdir('.');
+  if paramcount=0 then
+    para:='.'
+  else
+    para:=paramstr(1);
+  searchcvsdir(para);
 end.
