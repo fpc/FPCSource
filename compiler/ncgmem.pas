@@ -322,12 +322,13 @@ implementation
                        else
                          location.loc := LOC_CSUBSETREG;
                        location.size:=def_cgsize(resulttype.def);
-                       location.subsetreg := left.location.register;
-                       location.subsetregsize := left.location.size;
+                       location.sreg.subsetreg := left.location.register;
+                       location.sreg.subsetregsize := left.location.size;
                        if (target_info.endian = ENDIAN_BIG) then
-                         location.startbit := (tcgsize2size[location.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                         location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
                        else
-                         location.startbit := (vs.fieldoffset * 8);
+                         location.sreg.startbit := (vs.fieldoffset * 8);
+                       location.sreg.bitlen := tcgsize2size[location.size] * 8;
                      end;
                  end;
                LOC_SUBSETREG,
@@ -335,9 +336,10 @@ implementation
                  begin
                    location.size:=def_cgsize(resulttype.def);
                    if (target_info.endian = ENDIAN_BIG) then
-                     inc(location.startbit, (left.resulttype.def.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
+                     inc(location.sreg.startbit, (left.resulttype.def.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
                    else
-                     inc(location.startbit, vs.fieldoffset * 8);
+                     inc(location.sreg.startbit, vs.fieldoffset * 8);
+                   location.sreg.bitlen := tcgsize2size[location.size] * 8;
                  end;
                else
                  internalerror(2006031901);

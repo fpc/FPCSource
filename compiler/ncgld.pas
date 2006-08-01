@@ -613,7 +613,7 @@ implementation
                         left.location.register,mms_movescalar);
                     LOC_SUBSETREG,
                     LOC_CSUBSETREG:
-                      cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.subsetregsize,left.location.size,left.location.startbit,right.location.reference,left.location.subsetreg);
+                      cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sreg);
                     else
                       internalerror(200203284);
                   end;
@@ -684,8 +684,7 @@ implementation
               LOC_CSUBSETREG:
                 begin
                   cg.a_load_subsetreg_loc(current_asmdata.CurrAsmList,
-                      right.location.subsetregsize,right.location.size,right.location.startbit,
-                      right.location.register,left.location);
+                      right.location.size,right.location.sreg,left.location);
                 end;
               LOC_JUMP :
                 begin

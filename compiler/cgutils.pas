@@ -61,6 +61,12 @@ unit cgutils;
 {$endif SUPPORT_UNALIGNED}
       end;
 
+      tsubsetregister = record
+        subsetreg : tregister;
+        startbit, bitlen: byte;
+        subsetregsize: tcgsize;
+      end;
+
       tlocation = record
          loc  : TCGLoc;
          size : TCGSize;
@@ -95,9 +101,7 @@ unit cgutils;
               );
             LOC_SUBSETREG,
             LOC_CSUBSETREG : (
-              subsetreg : tregister;
-              startbit: byte;
-              subsetregsize: tcgsize;
+              sreg: tsubsetregister;
             );
       end;
 

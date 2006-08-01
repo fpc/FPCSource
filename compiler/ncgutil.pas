@@ -293,7 +293,7 @@ implementation
                      LOC_SUBSETREG,LOC_CSUBSETREG:
                        begin
                          tmpreg := cg.getintregister(list,OS_INT);
-                         cg.a_load_subsetreg_reg(list,p.location.subsetregsize,p.location.size,p.location.startbit,OS_INT,p.location.subsetreg,tmpreg);
+                         cg.a_load_subsetreg_reg(list,p.location.size,OS_INT,p.location.sreg,tmpreg);
                          cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
@@ -758,7 +758,7 @@ implementation
           LOC_CSUBSETREG:
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
-              cg.a_load_subsetreg_ref(list,l.subsetregsize,l.size,l.startbit,l.size,l.subsetreg,r);
+              cg.a_load_subsetreg_ref(list,l.size,l.size,l.sreg,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
