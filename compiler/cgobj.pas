@@ -68,8 +68,6 @@ unit cgobj;
           procedure init_register_allocators;virtual;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;virtual;
-          {# Set the spill location of a register }
-          procedure set_spill_temp(reg: tregister; const ref: treference);
           {# Set whether live_start or live_end should be updated when allocating registers, needed when e.g. generating initcode after the rest of the code. }
           procedure set_regalloc_extend_backwards(b: boolean);
 
@@ -700,18 +698,6 @@ implementation
           rg[rt].add_move_instruction(instr)
         else
           internalerror(200310095);
-      end;
-
-
-    procedure tcg.set_spill_temp(reg: tregister; const ref: treference);
-      var
-        rt : tregistertype;
-      begin
-        rt:=getregtype(reg);
-        if assigned(rg[rt]) then
-          rg[rt].set_spill_temp(getsupreg(reg),ref)
-        else
-          internalerror(2006072702);
       end;
 
 
