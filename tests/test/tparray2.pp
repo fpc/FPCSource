@@ -8,6 +8,7 @@ type
 
 var
   p: pointer;
+  km: tkeymap;
 begin
   p := @km[2];
 end.

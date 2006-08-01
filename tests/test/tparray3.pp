@@ -1,5 +1,3 @@
-{ %fail }
-
 {$mode macpas}
 
 type
