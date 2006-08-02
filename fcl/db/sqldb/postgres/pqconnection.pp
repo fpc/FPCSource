@@ -481,7 +481,7 @@ begin
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,0);
+        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,1);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);
         end
