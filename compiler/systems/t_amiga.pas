@@ -39,10 +39,10 @@ implementation
 *****************************************************************************}
 
 initialization
-{$ifdef m68k}
+{$ifdef cpu68}
   RegisterTarget(system_m68k_Amiga_info);
-{$endif m68k}
-{$ifdef powerpc}
+{$endif cpu68}
+{$ifdef cpupowerpc}
   RegisterTarget(system_powerpc_Amiga_info);
-{$endif powerpc}
+{$endif cpupowerpc}
 end.

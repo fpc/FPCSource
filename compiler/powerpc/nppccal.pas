@@ -71,10 +71,13 @@ implementation
           system_powerpc_amiga:
             begin
               // one syscall convention for Amiga/PowerPC
-              // which is quite standard
-              extra_call_code;
-              cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname);
-              extra_post_call_code;
+              // which is very similar to basesysv on MorphOS
+              cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
+              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber);
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
+              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
+              cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_R0);
             end;
           system_powerpc_morphos:
             begin
