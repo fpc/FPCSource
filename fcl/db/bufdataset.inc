@@ -88,6 +88,7 @@ begin
     FCurrentRecBuf := FCurrentRecBuf^.next;
     FreeRecordBuffer(pc);
     end;
+  FFirstRecBuf:= nil;
   SetLength(FFieldBufPositions,0);
 end;
 
