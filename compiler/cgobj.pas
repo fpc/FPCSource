@@ -1464,6 +1464,8 @@ implementation
             alloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             a_call_name(list,incrfunc);
             dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
+            dealloccpuregisters(list,R_MMREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end
          else
           begin
