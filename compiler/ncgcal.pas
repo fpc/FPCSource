@@ -909,7 +909,13 @@ implementation
                    end;
 {$endif vtentry}
 
+{$ifndef x86}
+                 pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+{$endif not x86}
                  reference_reset_base(href,vmtreg,vmtoffset);
+{$ifndef x86}
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,pvreg);
+{$endif not x86}
 
                  { Load parameters that are in temporary registers in the
                    correct parameter register }
@@ -928,7 +934,11 @@ implementation
 
                  { call method }
                  extra_call_code;
+{$ifdef x86}
                  cg.a_call_ref(current_asmdata.CurrAsmList,href);
+{$else x86}
+                 cg.a_call_reg(current_asmdata.CurrAsmList,pvreg);
+{$endif x86}
                  extra_post_call_code;
                end
              else
