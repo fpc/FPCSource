@@ -4820,7 +4820,6 @@ rtl/sparc/setjumph.inc svneol=native#text/plain
 rtl/sparc/sparc.inc svneol=native#text/plain
 rtl/sparc/strings.inc svneol=native#text/plain
 rtl/sparc/stringss.inc svneol=native#text/plain
-rtl/sparc/sysutilp.inc svneol=native#text/plain
 rtl/ucmaps/8859-1.txt svneol=native#text/plain
 rtl/ucmaps/8859-10.txt svneol=native#text/plain
 rtl/ucmaps/8859-13.txt svneol=native#text/plain

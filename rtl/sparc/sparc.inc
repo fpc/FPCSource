@@ -461,3 +461,32 @@ asm
 end;
 
 
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+{ input:  address of target in o0, newvalue in o1, comparand in o2 }
+{ output: value stored in target before entry of the function      }
+{ side-effect: NewValue stored in target if (target = comparand)   }
+.LInterlockedCompareExchange1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterlockedCompareExchange1
+  nop
+
+  ld [%o0],%g1
+  cmp %g1,%o2
+  bne  .LInterlockedCompareExchange2
+  nop
+  st %o1,[%o0]
+.LInterlockedCompareExchange2:
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
