@@ -86,7 +86,7 @@ begin
   result := TimeStamp.Time + comp(timestamp.date)*msecsperday;
 end ;
 
-Function TryEncodeDate(Year,Month,Day : Word; Var Date : TDateTime) : Boolean;
+Function TryEncodeDate(Year,Month,Day : Word; Out Date : TDateTime) : Boolean;
 
 var
   c, ya: cardinal;
@@ -112,7 +112,7 @@ begin
    end
 end;
 
-function TryEncodeTime(Hour, Min, Sec, MSec:word; Var Time : TDateTime) : boolean;
+function TryEncodeTime(Hour, Min, Sec, MSec:word; Out Time : TDateTime) : boolean;
 
 begin
   Result:=(Hour<24) and (Min<60) and (Sec<60) and (MSec<1000);
@@ -146,7 +146,7 @@ end;
 {   DecodeDate unpacks the value Date into three values:
     Year, Month and Day   }
 
-procedure DecodeDate(Date: TDateTime; var Year, Month, Day: word);
+procedure DecodeDate(Date: TDateTime; out Year, Month, Day: word);
 var
   ly,ld,lm,j : cardinal;
 begin
@@ -181,7 +181,7 @@ begin
 end;
 
 
-function DecodeDateFully(const DateTime: TDateTime; var Year, Month, Day, DOW: Word): Boolean;
+function DecodeDateFully(const DateTime: TDateTime; out Year, Month, Day, DOW: Word): Boolean;
 begin
   DecodeDate(DateTime,Year,Month,Day);
   DOW:=DayOfWeek(DateTime);
@@ -192,7 +192,7 @@ end;
 {   DecodeTime unpacks Time into four values:
     Hour, Minute, Second and MilliSecond    }
 
-procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
+procedure DecodeTime(Time: TDateTime; out Hour, Minute, Second, MilliSecond: word);
 Var
   l : cardinal;
 begin
@@ -208,7 +208,7 @@ end;
 
 {   DateTimeToSystemTime converts DateTime value to SystemTime   }
 
-procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
+procedure DateTimeToSystemTime(DateTime: TDateTime; out SystemTime: TSystemTime);
 begin
   DecodeDate(DateTime, SystemTime.Year, SystemTime.Month, SystemTime.Day);
   DecodeTime(DateTime, SystemTime.Hour, SystemTime.Minute, SystemTime.Second, SystemTime.MilliSecond);
@@ -715,7 +715,7 @@ end ;
 
 {   DateTimeToString formats DateTime to the given format in FormatStr   }
 
-procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
 begin
   Result := FormatDateTime(FormatStr, DateTime);
 end ;
