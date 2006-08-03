@@ -363,7 +363,7 @@ unit rgobj;
          i : Tsuperregister;
        begin
          { empty super register sets can cause very strange problems }
-         if high(Ausable)=0 then
+         if high(Ausable)=-1 then
            internalerror(200210181);
          extend_live_range_backwards := false;
          first_imaginary:=Afirst_imaginary;
