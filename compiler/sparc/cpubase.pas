@@ -73,7 +73,7 @@ uses
 
       { MM Super register first and last }
       first_mm_supreg    = 0;
-      first_mm_imreg     = 0;
+      first_mm_imreg     = 1;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 128;
