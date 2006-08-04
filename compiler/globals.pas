@@ -30,11 +30,7 @@ interface
       windows,
 {$endif}
 {$ifdef hasunix}
-  {$ifdef havelinuxrtl10}
-      linux,
-  {$else}
       Baseunix,unix,
-  {$endif}
 {$endif}
       { comphook pulls in sysutils anyways }
       SysUtils,
@@ -1346,13 +1342,8 @@ implementation
        L : longint;
      begin
      {$ifdef hasunix}
-       {$IFDEF havelinuxrtl10}
-        FStat (F,Info);
-        L:=Info.Mtime;
-       {$ELSE}
-        FPFStat (F,Info);
-        L:=Info.st_Mtime;
-       {$ENDIF}
+      FPFStat (F,Info);
+      L:=Info.st_Mtime;
      {$else}
        GetFTime(f,l);
      {$endif}
@@ -1509,7 +1500,7 @@ end;
       {$endif}
       begin
       {$ifdef hasunix}
-        GetEnvPchar:={$ifdef havelinuxrtl10}Linux.getenv{$else}BaseUnix.fpGetEnv{$endif}(envname);
+        GetEnvPchar:=BaseUnix.fpGetEnv(envname);
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}
@@ -1567,7 +1558,7 @@ end;
         expansion under linux }
       {$ifdef hasunix}
       begin
-        result := {$ifdef havelinuxrtl10}Linux{$else}Unix{$endif}.Shell(command);
+        result := Unix.Shell(command);
       end;
       {$else}
       {$ifdef amigashell}

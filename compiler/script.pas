@@ -102,11 +102,7 @@ implementation
 
 uses
 {$ifdef hasUnix}
-  {$ifdef havelinuxrtl10}
-    Linux,
-  {$else}
-    BaseUnix,
-  {$endif}
+  BaseUnix,
 {$endif}
   cutils,
   globtype,globals,systems,verbose;
@@ -200,7 +196,7 @@ begin
   i:=ioresult;
 {$ifdef hasUnix}
   if executable then
-   {$ifdef havelinuxrtl10}ChMod{$else}fpchmod{$endif}(fn,493);
+   fpchmod(fn,493);
 {$endif}
 end;
 
