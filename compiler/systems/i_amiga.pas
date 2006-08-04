@@ -94,7 +94,7 @@ unit i_amiga;
             flags        : [tf_files_case_aware,tf_use_function_relative_addresses];
             cpu          : cpu_powerpc;
             unit_env     : '';
-            extradefines : '';
+            extradefines : 'PPC603';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';

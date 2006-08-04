@@ -1,8 +1,8 @@
 {
-    Copyright (c) 2001-2002 by Peter Vreman
+    Copyright (c) 2004-2006 by Free Pascal Development Team
 
     This unit implements support import, export, link routines
-    for the (m68k/powerpc) Amiga target
+    for the Amiga targets (AmigaOS/m68k, AmigaOS/PPC)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,13 +26,213 @@ unit t_amiga;
 
 interface
 
+uses
+  link,
+  cutils,cclasses,
+  globtype,globals,systems,verbose,script,fmodule,i_amiga;
+
+
+type
+  PLinkerAmiga = ^TLinkerAmiga;
+  TLinkerAmiga = class(texternallinker)
+    private
+      function WriteResponseFile(isdll: boolean): boolean;
+//      procedure SetAmiga68kInfo;
+      procedure SetAmigaPPCInfo;
+//      function MakeAmiga68kExe: boolean;
+      function MakeAmigaPPCExe: boolean;
+    public
+      constructor Create; override;
+      procedure SetDefaultInfo; override;
+      function  MakeExecutable: boolean; override;      
+  end;
+
 
 implementation
 
-    uses
-       link,
-       cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_amiga;
+{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{ * PathConv is implemented in the system unit! * }
+function PathConv(path: string): string; external name 'PATHCONV';
+{$ELSE}
+function PathConv(path: string): string;
+begin
+  PathConv:=path;
+end;
+{$ENDIF}
+
+
+{****************************************************************************
+                               TLinkerAmiga
+****************************************************************************}
+
+constructor TLinkerAmiga.Create;
+begin
+  Inherited Create;
+  { allow duplicated libs (PM) }
+  SharedLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;
+end;
+
+procedure TLinkerAmiga.SetAmigaPPCInfo;
+begin
+  with Info do begin
+    ExeCmd[1]:='ld $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+  end;
+end;
+
+procedure TLinkerAmiga.SetDefaultInfo;
+begin
+  case (target_info.system) of
+    system_m68k_amiga:      begin end;
+    system_powerpc_amiga:   SetAmigaPPCInfo;
+  end;
+end;
+
+
+function TLinkerAmiga.WriteResponseFile(isdll: boolean): boolean;
+var
+  linkres  : TLinkRes;
+  i        : longint;
+  HPath    : TStringListItem;
+  s        : string;
+  linklibc : boolean;
+begin
+  WriteResponseFile:=False;
+
+  { Open link.res file }
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+
+  { Write path to search libraries }
+  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  while assigned(HPath) do
+   begin
+    s:=HPath.Str;
+    if (cs_link_on_target in aktglobalswitches) then
+     s:=ScriptFixFileName(s);
+    LinkRes.Add('-L'+s);
+    HPath:=TStringListItem(HPath.Next);
+   end;
+  HPath:=TStringListItem(LibrarySearchPath.First);
+  while assigned(HPath) do
+   begin
+    s:=HPath.Str;
+    if s<>'' then
+     LinkRes.Add('SEARCH_DIR('+PathConv(maybequoted(s))+')');
+    HPath:=TStringListItem(HPath.Next);
+   end;
+
+  LinkRes.Add('INPUT (');
+  { add objectfiles, start with prt0 always }
+  s:=FindObjectFile('prt0','',false);
+  LinkRes.AddFileName(s);
+  while not ObjectFiles.Empty do
+   begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+     begin
+      LinkRes.AddFileName(PathConv(maybequoted(s)));
+     end;
+   end;
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+    LinkRes.Add(')');
+    LinkRes.Add('GROUP(');
+    while not StaticLibFiles.Empty do
+     begin
+      S:=StaticLibFiles.GetFirst;
+      LinkRes.AddFileName(PathConv(maybequoted(s)));
+     end;
+   end;
+  
+  if (cs_link_on_target in aktglobalswitches) then 
+   begin
+    LinkRes.Add(')');
+
+    { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+      here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+    linklibc:=false;
+    while not SharedLibFiles.Empty do
+     begin
+      S:=SharedLibFiles.GetFirst;
+      if s<>'c' then
+       begin
+        i:=Pos(target_info.sharedlibext,S);
+        if i>0 then
+         Delete(S,i,255);
+        LinkRes.Add('-l'+s);
+       end
+      else
+       begin
+        LinkRes.Add('-l'+s);
+        linklibc:=true;
+       end;
+     end;
+    { be sure that libc&libgcc is the last lib }
+    if linklibc then
+     begin
+      LinkRes.Add('-lc');
+      LinkRes.Add('-lgcc');
+     end;
+   end
+  else
+   begin
+    while not SharedLibFiles.Empty do
+     begin
+      S:=SharedLibFiles.GetFirst;
+      LinkRes.Add('lib'+s+target_info.staticlibext);
+     end;
+    LinkRes.Add(')');    
+   end;
+
+{ Write and Close response }
+  linkres.writetodisk;
+  linkres.free;
+
+  WriteResponseFile:=True;
+end;
+
+function TLinkerAmiga.MakeAmigaPPCExe: boolean;
+var
+  BinStr  : string;
+  CmdStr  : TCmdStr;
+  StripStr: string[40];
+begin
+  StripStr:='';
+  if (cs_link_strip in aktglobalswitches) then StripStr:='-s';
+
+  { Call linker }
+  SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
+  Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$STRIP',StripStr);
+  MakeAmigaPPCExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+end;
+
+function TLinkerAmiga.MakeExecutable:boolean;
+var
+  success : boolean;
+begin
+  if not(cs_link_nolink in aktglobalswitches) then
+    Message1(exec_i_linking,current_module.exefilename^);
+
+  { Write used files and libraries }
+  WriteResponseFile(false);
+  
+  case (target_info.system) of
+    system_m68k_amiga:      begin end;
+    system_powerpc_amiga:   success:=MakeAmigaPPCExe;
+  end;
+
+  { Remove ReponseFile }
+  if (success) and not(cs_link_nolink in aktglobalswitches) then
+    RemoveFile(outputexedir+Info.ResName);
+
+  MakeExecutable:=success;   { otherwise a recursive call to link method }
+end;
+
 
 {*****************************************************************************
                                      Initialize
@@ -40,9 +240,11 @@ implementation
 
 initialization
 {$ifdef cpu68}
+{$warning No executable creation support for m68k yet!}
   RegisterTarget(system_m68k_Amiga_info);
 {$endif cpu68}
 {$ifdef cpupowerpc}
+  RegisterExternalLinker(system_powerpc_Amiga_info,TLinkerAmiga);
   RegisterTarget(system_powerpc_Amiga_info);
 {$endif cpupowerpc}
 end.
