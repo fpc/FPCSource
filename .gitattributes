@@ -5844,6 +5844,7 @@ tests/test/cg/obj/readme.txt svneol=native#text/plain
 tests/test/cg/obj/solaris/sparc/ctest.o -text
 tests/test/cg/obj/solaris/sparc/tcext3.o -text
 tests/test/cg/obj/solaris/sparc/tcext4.o -text
+tests/test/cg/obj/solaris/sparc/tcext5.o -text
 tests/test/cg/obj/tcext3.c -text
 tests/test/cg/obj/tcext4.c -text
 tests/test/cg/obj/tcext5.c -text
