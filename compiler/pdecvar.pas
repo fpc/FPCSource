@@ -591,9 +591,17 @@ implementation
          if try_to_consume(_IMPLEMENTS) then
          begin
            consume(_ID);
-           writeln('Implements [', pattern, ']');
+           {$message warn unlocalized string}
            if not is_interface(p.proptype.def) then
-             writeln('Implements property must have interface type'); //FIXME: will be converted to proper message()
+           begin
+             writeln('Implements property must have interface type');
+             Message1(sym_e_illegal_field, pattern);
+           end;
+           if pattern <> p.proptype.def.mangledparaname() then
+           begin
+             writeln('Implements-property must implement interface of same type');
+             Message1(sym_e_illegal_field, pattern);
+           end;
          end;
                   
          { remove temporary procvardefs }
