@@ -282,6 +282,15 @@ type
     odt_dispinterface
   );
 
+  { Variations in interfaces implementation }
+  { Beware, this data is duplicated in the compiler and rtl. }
+  { Do not change the order of the fields. }
+  tinterfaceentrytype = (etStandard,
+    etVirtualMethodResult,
+    etStaticMethodResult,
+    etFieldValue
+  );
+
   { options for objects and classes }
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
