@@ -63,8 +63,7 @@
          D:=S;
       end;
 
-    function fpc_intf_as(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_INTF_AS']; compilerproc;
-
+    function fpc_intf_as(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_AS']; compilerproc;
       var
         tmpi: pointer; // _AddRef before _Release
       begin
@@ -72,14 +71,14 @@
           begin
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
-             fpc_intf_as:=tmpi;
+             pointer(fpc_intf_as):=tmpi;
           end
         else
           fpc_intf_as:=nil;
       end;
 
 
-    function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
+    function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
 
       var
         tmpi: pointer; // _AddRef before _Release
@@ -88,7 +87,7 @@
           begin
              if not TObject(S).GetInterface(iid,tmpi) then
                handleerror(219);
-             fpc_class_as_intf:=tmpi;
+             pointer(fpc_class_as_intf):=tmpi;
           end
         else
           fpc_class_as_intf:=nil;

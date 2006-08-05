@@ -251,8 +251,8 @@ function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
 procedure fpc_intf_incr_ref(i: pointer); compilerproc;
 procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
-function  fpc_intf_as(const S: pointer; const iid: TGUID): pointer; compilerproc;
-function fpc_class_as_intf(const S: pointer; const iid: TGUID): pointer; compilerproc;
+function  fpc_intf_as(const S: pointer; const iid: TGUID): IInterface; compilerproc;
+function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
