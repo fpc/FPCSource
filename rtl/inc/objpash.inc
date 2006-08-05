@@ -107,12 +107,16 @@
                  );
        end;
 
+       // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
+       tinterfaceentrytype = (etStandard, etVirtualMethodResult, etStaticMethodResult, etFieldValue);
+
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
-         IID     : pguid; { if assigned(IID) then Com else Corba}
-         VTable  : Pointer;
-         IOffset : PtrInt;
-         IIDStr  : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+         IID       : pguid; { if assigned(IID) then Com else Corba}
+         VTable    : Pointer;
+         IOffset   : PtrInt;
+         IIDStr    : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+         EntryType : tinterfaceentrytype;
        end;
 
        pinterfacetable = ^tinterfacetable;
