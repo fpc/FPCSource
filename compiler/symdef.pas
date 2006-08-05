@@ -1149,7 +1149,7 @@ implementation
 
    function tstoreddef.is_intregable : boolean;
      var
-       recsize,recsizep2: longint;
+       recsize,temp: longint;
      begin
         is_intregable:=false;
         case deftype of
@@ -1168,7 +1168,7 @@ implementation
             begin
               recsize:=size;
               is_intregable:=
-                ispowerof2(recsize,recsizep2) and
+                ispowerof2(recsize,temp) and
                 (recsize <= sizeof(aint));
             end;
         end;
@@ -5191,15 +5191,11 @@ implementation
       end;
 
     function  timplementedinterfaces.searchintf(def: tdef): longint;
-      var
-        i: longint;
       begin
-        i:=1;
-        while (i<=count) and (tdef(interfaces(i))<>def) do inc(i);
-        if i<=count then
-          searchintf:=i
-        else
-          searchintf:=-1;
+        for result := 1 to count do
+          if tdef(interfaces(result)) = def then
+            exit;
+        result := -1;
       end;
 
 
