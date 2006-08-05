@@ -247,6 +247,7 @@ interface
           objecttype : tobjectdeftype;
           iidguid: pguid;
           iidstr: pstring;
+          iitype: tinterfaceentrytype;
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
           implementedinterfaces: timplementedinterfaces;
