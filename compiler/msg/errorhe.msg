@@ -4,7 +4,7 @@
 #
 #   Hebrew (CP1255) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 4237
+#   Based on errore.msg of SVN revision 4364
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -1224,101 +1224,101 @@ type_e_interface_type_expected=04034_E_מצפה לטיפוס מסוג ממשק, אבל התקבל "$1"
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
+type_w_mixed_signed_unsigned=04035_W_עירבוב ביטויי סימנים וlongwords מספקים תוצאה של 64bit
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
 % 32bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals here may cause a range check error
+type_w_mixed_signed_unsigned2=04036_W_ערבוב ביטויי סימנים ומספרים שלמים גבוהים עלול לגרום לשגיאת טווח מספרים
 % If you use a binary operator (and, or, xor) and one of
 % the operands is a longword while the other one is a signed expression, then,
 % if range checking is turned on, you may get a range check error because in
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_Typecast has different size ($1 -> $2) in assignment
+type_e_typecast_wrong_size_for_assignment=04037_E_ישנו הבדל בגודל בהצבה של typecast ($1-> $2) 
 % Type casting to a type with a different size is not allowed when the variable is
 % used for assigning.
-type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments can't be used as array index
+type_e_array_index_enums_with_assign_not_possible=04038_E_מניות עם תוכן של הצבה אינם יכולים לשמש בתור אינדקס למערך
 % When you declared an enumeration type which has assignments in it, as in C,
 % like in the following:
 % \begin{verbatim}
 %   Tenum = (a,b,e:=5);
 % \end{verbatim}
 % you cannot use it as index of an array.
-type_e_classes_not_related=04039_E_Class or Object types "$1" and "$2" are not related
+type_e_classes_not_related=04039_E_אין קירבה בין טיפוסי מחלקות או אובייקטים של "$1" ו "$2"
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
+type_w_classes_not_related=04040_W_אין קירבה בין טיפוסי המחלקות של "$1" ו "$2"
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
+type_e_class_or_interface_type_expected=04041_E_מצפה לטיפוסי מחלקות או ממשקים, אבל "$1" התקבל
 % The compiler expected a class or interface name, but got another type or identifier.
-type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completely defined
+type_e_type_is_not_completly_defined=04042_E_הטיפוס "$1" לא הוגדר במלואו
 % This error occurs when a type is not complete: i.e. a pointer type which points to
 % an undefined type.
-type_w_string_too_long=04043_W_String literal has more characters than short string length
+type_w_string_too_long=04043_W_התוכן של המחרוזת מכיל יותר תווים ממה שניתן להכיל באורך של מחרוזת קצרה
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
-type_w_signed_unsigned_always_false=04044_W_Comparison is always false due to range of values
+type_w_signed_unsigned_always_false=04044_W_ההשוואה תמיד תחזיר ערך של false בגלל טווח הערכים
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % false. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to range of values
+type_w_signed_unsigned_always_true=04045_W_ההשוואה תמיד תחזיר ערך של true  בגלל טווח הערכים
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
-type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract methods
+type_w_instance_with_abstract=04046_W_מאתחל את המחלקה "$1" עם מתודות לא ממומשות
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
-type_h_in_range_check=04047_H_The left operand of the IN operator should be byte sized
+type_h_in_range_check=04047_H_הערך השמאלי של האופרנד IN צריך להיות בגודל של בית
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
-type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of data / range check error
+type_w_smaller_possible_range_check=04048_W_גודל הטיפוס אינו מתאים, ישנה אפשרות לאיבוד מידע או שגיאה בבדיקת הטווח
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of data / range check error
+type_h_smaller_possible_range_check=04049_H_גודל הטיפוס אינו מתאים, ישנה אפשרות לאיבוד מידע או שגיאה בבדיקת הטווח
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_e_cant_take_address_of_abstract_method=04050_E_The address of an abstract method can't be taken
+type_e_cant_take_address_of_abstract_method=04050_E_לא ניתן לספק את כתובת המתודה המוגדרת כ abstract
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_The operator is not applicable for the operand type
+type_e_operator_not_allowed=04051_E_לא ניתן להשתמש באורפנד עם האופריטור הנוכחי
 % You are trying an operator that is not available for the type of the
 % operands
-type_e_constant_expr_expected=04052_E_Constant Expression expected
+type_e_constant_expr_expected=04052_E_מצפה לביטוי קבוע
 % The compiler expects an constant expression, but gets a variable expression.
-type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported for types "$2" and "$3"
+type_e_operator_not_supported_for_types=04053_E_הפעולה "$1" אינה נתמכת לטיפוסים "$1" ו "$3"
 % The operation is not allowed for the supplied types
-type_e_illegal_type_conversion=04054_E_Illegal type conversion: "$1" to "$2"
+type_e_illegal_type_conversion=04054_E_המרה לא חוקית של הטיפוס של "$1" ל "$2"
 % When doing a type-cast, you must take care that the sizes of the variable and
 % the destination type are the same.
-type_h_pointer_to_longint_conv_not_portable=04055_H_Conversion between ordinals and pointers is not portable
+type_h_pointer_to_longint_conv_not_portable=04055_H_ההמרה בין מספר למצביע אינה אפשרית בכל המערכות
 % If you typecast a pointer to a longint (or vice-versa), this code will not compile
 % on a machine using 64-bit for pointer storage.
-type_w_pointer_to_longint_conv_not_portable=04056_W_Conversion between ordinals and pointers is not portable
+type_w_pointer_to_longint_conv_not_portable=04056_W_ההמרה בין מספר למצביע אינה אפשרית בכל המערכות
 % If you typecast a pointer to a ordinal type of a different size (or vice-versa), this can
 % cause problems. This is a warning to help finding the 32bit specific code where cardinal/longint is used
 % to typecast pointers to ordinals. A solution is to use the ptrint/ptruint types instead.
-type_e_cant_choose_overload_function=04057_E_Can't determine which overloaded function to call
+type_e_cant_choose_overload_function=04057_E_לא ניתן להחליט באיזו פונקצית עמוסת יתר להשתמש
 % You're calling overloaded functions with a parameter that doesn't correspond
 % to any of the declared function parameter lists. e.g. when you have declared
 % a function with parameters \var{word} and \var{longint}, and then you call
 % it with a parameter which is of type \var{integer}.
-type_e_illegal_count_var=04058_E_Illegal counter variable
+type_e_illegal_count_var=04058_E_משתנה ספירה לא חוקי
 % The type of a \var{for} loop variable must be an ordinal type.
 % Loop variables cannot be reals or strings.
-type_w_double_c_varargs=04059_W_Converting constant real value to double for C variable argument, add explicit typecast to prevent this.
+type_w_double_c_varargs=04059_W_ממיר את הטיפוס real לטיפוס double למשתנה C. הוסף typecast ספציפי למנוע את המצב.
 % In C, constant real values are double by default. For this reason, if you
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
-type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type expected, but got "$1"
+type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחלקה או ממשק COM, אבל התקבל "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
 % \end{description}
 #
@@ -1330,22 +1330,22 @@ type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type e
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
-sym_e_id_not_found=05000_E_Identifier not found "$1"
+sym_e_id_not_found=05000_E_המזהה לא נמצא "$1"
 % The compiler doesn't know this symbol. Usually happens when you misspel
 % the name of a variable or procedure, or when you forgot to declare a
 % variable.
-sym_f_internal_error_in_symtablestack=05001_F_Internal Error in SymTableStack()
+sym_f_internal_error_in_symtablestack=05001_F_שגיאה פנימית בSymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide an exact description of
 % the circumstances in which the error occurs.
-sym_e_duplicate_id=05002_E_Duplicate identifier "$1"
+sym_e_duplicate_id=05002_E_מזהה כפול "$1"
 % The identifier was already declared in the current scope.
-sym_h_duplicate_id_where=05003_H_Identifier already defined in $1 at line $2
+sym_h_duplicate_id_where=05003_H_המזהה כבר מוגדר ב$1 בשורה $2
 % The identifier was already declared in a previous scope.
-sym_e_unknown_id=05004_E_Unknown identifier "$1"
+sym_e_unknown_id=05004_E_מזהה לא מוכר "$1"
 % The identifier encountered has not been declared, or is used outside the
 % scope where it is defined.
-sym_e_forward_not_resolved=05005_E_Forward declaration not solved "$1"
+sym_e_forward_not_resolved=05005_E_הגדרת Forward לא ממומשת
 % This can happen in two cases:
 % \begin{itemize}
 % \item This happens when you declare a function (in the \var{interface} part, or
@@ -1353,135 +1353,135 @@ sym_e_forward_not_resolved=05005_E_Forward declaration not solved "$1"
 % \item You reference a type which isn't declared in the current \var{type}
 % block.
 % \end{itemize}
-sym_e_error_in_type_def=05007_E_Error in type definition
+sym_e_error_in_type_def=05007_E_שגיאה בהגדרת טיפוס
 % There is an error in your definition of a new array type:
 % \item One of the range delimiters in an array declaration is erroneous.
 % For example, \var{Array [1..1.25]} will trigger this error.
-sym_e_forward_type_not_resolved=05009_E_Forward type not resolved "$1"
+sym_e_forward_type_not_resolved=05009_E_הגדרת הטיפוס לא הושלה "$1"
 % A symbol was forward defined, but no declaration was encountered.
-sym_e_only_static_in_static=05010_E_Only static variables can be used in static methods or outside methods
+sym_e_only_static_in_static=05010_E_רק משתנים סטטיים יכולים להיות בשימוש עם מתודות סטטיות או מחוץ למטודות
 % A static method of an object can only access static variables.
-sym_f_type_must_be_rec_or_class=05012_F_record or class type expected
+sym_f_type_must_be_rec_or_class=05012_F_מצפה לטיפוס של רשומה או טיפוס של מחלקה
 % The variable or expression isn't of the type \var{record} or \var{class}.
-sym_e_no_instance_of_abstract_object=05013_E_Instances of classes or objects with an abstract method are not allowed
+sym_e_no_instance_of_abstract_object=05013_E_אדגם של מחלקות או אובייקטים עם מתודות abstract אינם מורשים
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
-sym_w_label_not_defined=05014_W_Label not defined "$1"
+sym_w_label_not_defined=05014_W_התווית "$1" אינה מוגדרת
 % A label was declared, but not defined.
-sym_e_label_used_and_not_defined=05015_E_Label used but not defined "$1"
+sym_e_label_used_and_not_defined=05015_E_התווית "$1" בשימוש, אבל לא מגדרת
 % A label was declared and used, but not defined.
-sym_e_ill_label_decl=05016_E_Illegal label declaration
+sym_e_ill_label_decl=05016_E_הגדרת תווית לא חוקית
 % This error should never happen; it occurs if a label is defined outside a
 % procedure or function.
-sym_e_goto_and_label_not_supported=05017_E_GOTO and LABEL are not supported (use switch -Sg)
+sym_e_goto_and_label_not_supported=05017_E_GOTO ו LABEL אינם נתמכים (השתמש במתג -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
 % with the \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
 % supported.
-sym_e_label_not_found=05018_E_Label not found
+sym_e_label_not_found=05018_E_התווית לא נמצאה
 % A \var{goto label} was encountered, but the label isn't declared.
-sym_e_id_is_no_label_id=05019_E_identifier isn't a label
+sym_e_id_is_no_label_id=05019_E_המזהה אינו תווית
 % The identifier specified after the \var{goto} isn't of type label.
-sym_e_label_already_defined=05020_E_label already defined
+sym_e_label_already_defined=05020_E_התווית כבר הוגדרה
 % You are defining a label twice. You can define a label only once.
-sym_e_ill_type_decl_set=05021_E_illegal type declaration of set elements
+sym_e_ill_type_decl_set=05021_E_הגדרת טיפוס סידרה לא חוקית
 % The declaration of a set contains an invalid type definition.
-sym_e_class_forward_not_resolved=05022_E_Forward class definition not resolved "$1"
+sym_e_class_forward_not_resolved=05022_E_הגדרה מקדימה של מחלקה "$1" לא ממומשת
 % You declared a class, but you did not implement it.
-sym_n_unit_not_used=05023_H_Unit "$1" not used in $2
+sym_n_unit_not_used=05023_H_היחידה "$1" אינה בשימוש ב $2
 % The unit referenced in the \var{uses} clause is not used.
-sym_h_para_identifier_not_used=05024_H_Parameter "$1" not used
+sym_h_para_identifier_not_used=05024_H_הפרמטר "$1" אינו בשימוש
 % The identifier was declared (locally or globally) but
 % was not used (locally or globally).
-sym_n_local_identifier_not_used=05025_N_Local variable "$1" not used
+sym_n_local_identifier_not_used=05025_N_המשתנה המקומי "$1" אינו בשימוש
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_h_para_identifier_only_set=05026_H_Value parameter "$1" is assigned but never used
+sym_h_para_identifier_only_set=05026_H_הערך של הפרמטר "$1" הוזן אך הוא לא בשימוש
 % The identifier was declared (locally or globally)
 % set but not used (locally or globally).
-sym_n_local_identifier_only_set=05027_N_Local variable "$1" is assigned but never used
+sym_n_local_identifier_only_set=05027_N_הערך של הפרמטר "$1" הוזן אך הוא לא בשימוש
 % The variable in a procedure or function
 % implementation is declared, set but never used.
-sym_h_local_symbol_not_used=05028_H_Local $1 "$2" is not used
+sym_h_local_symbol_not_used=05028_H_$1 "$2" מקומי לא בשימוש
 % A local symbol is never used.
-sym_n_private_identifier_not_used=05029_N_Private field "$1.$2" is never used
+sym_n_private_identifier_not_used=05029_N_שדה פרטי "$1.$2" לא בשימוש
 % The indicated private field is defined, but is never used in the code.
-sym_n_private_identifier_only_set=05030_N_Private field "$1.$2" is assigned but never used
+sym_n_private_identifier_only_set=05030_N_השדה הפרטי "$1.$2" בעל ערך, אך לא בשימוש
 % The indicated private field is declared, assigned but never read.
-sym_n_private_method_not_used=05031_N_Private method "$1.$2" never used
+sym_n_private_method_not_used=05031_N_המתודה הפרטית "$1.$2" אינה בשימוש
 % The indicated private method is declared but is never used in the code.
-sym_e_set_expected=05032_E_Set type expected
+sym_e_set_expected=05032_E_מצפה לטיפוס סדרה
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=05033_W_Function result does not seem to be set
+sym_w_function_result_not_set=05033_W_הפונקציה כנראה לא מחזירה ערך
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
-sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record for C
+sym_w_wrong_C_pack=05034_W_הטיפוס "$1" אינו מייושר נכון לרשומה של שפת C
 % Arrays with sizes not multiples of 4 will be wrongly aligned
 % for C structures.
-sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
+sym_e_illegal_field=05035_E_שדה של רשומה לא חוקי "$1"
 % The field doesn't exist in the record/object definition.
-sym_w_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
+sym_w_uninitialized_local_variable=05036_W_המשתנה המקומי "$1" אינו נראה מאותחל
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
+sym_w_uninitialized_variable=05037_W_המשתנה "$1" אינו נראה מאותחל
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_e_id_no_member=05038_E_identifier idents no member "$1"
+sym_e_id_no_member=05038_E_המזהה בשימוש אינו חבר ב"$1"
 % This error is generated when an identifier of a record,
 % field, or method is accessed while it is not defined.
-sym_h_param_list=05039_H_Found declaration: $1
+sym_h_param_list=05039_H_נמצאה ההכרזה: $1
 % You get this when you use the \var{-vh} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
-sym_e_segment_too_large=05040_E_Data element too large
+sym_e_segment_too_large=05040_E_גודל המידע של האלמנט גדול מידי
 % You get this when you declare a data element whose size exceeds the
 % prescribed limit (2 Gb on 80386+/68020+ processors)
-sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
+sym_e_no_matching_implementation_found=05042_E_לא נמצא ביצוע למתודה "$1" של הממשק
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
-sym_w_deprecated_symbol=05043_W_Symbol "$1" is deprecated
+sym_w_deprecated_symbol=05043_W_הסימול "$1" מיושן
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
 % should be avoided as much as possible.
-sym_w_non_portable_symbol=05044_W_Symbol "$1" is not portable
+sym_w_non_portable_symbol=05044_W_הסימול "$1" אינו נייד
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{platform} is used. This symbol's value, usage
 % and availability is platform specific and should not be used
 % if the source code must be portable.
-sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
+sym_w_non_implemented_symbol=05055_W_הסימול "$1" אינו מבוצע
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{unimplemented} is used. This symbol is defined,
 % but is not yet implemented on this specific platform.
-sym_e_cant_create_unique_type=05056_E_Can't create unique type from this type
+sym_e_cant_create_unique_type=05056_E_לא ניתן ליצור טיפוס ייחודי מהטיפוס הנוכחי
 % Only simple types like ordinal, float and string types are supported when
 % redefining a type with \var{type newtype = type oldtype;}.
-sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to be initialized
+sym_h_uninitialized_local_variable=05057_H_המשתנה המקומי "$1" אינו נראה מאותחל
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
+sym_h_uninitialized_variable=05058_H_המשתנה "$1" אינו נראה מאותחל
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_function_result_uninitialized=05059_W_Function result variable does not seem to initialized
+sym_w_function_result_uninitialized=05059_W_הערך המוחזר מהפונקציה אינו נראה כמאותחל
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
-sym_h_function_result_uninitialized=05060_H_Function result variable does not seem to be initialized
+sym_h_function_result_uninitialized=05060_H_הערך המוחזר מהפונקציה אינו נראה כמאותחל
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. appears in the right-hand-side of an expression)
 % before it is initialized (i.e. appeared in the left-hand side of an
 % assigment)
-sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
+sym_w_identifier_only_read=05061_W_המשתנה "$1" נקרא, אך מעולם לא קיבל תוכן
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
 
@@ -1495,13 +1495,13 @@ sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_parasize_too_big=06009_E_Parameter list size exceeds 65535 bytes
+cg_e_parasize_too_big=06009_E_הגודר של רשימת פרמטרים גדולה מ 65535 בתים
 % The I386 processor limits the parameter list to 65535 bytes (the \var{RET}
 % instruction causes this)
-cg_e_file_must_call_by_reference=06012_E_File types must be var parameters
+cg_e_file_must_call_by_reference=06012_E_טיפוס של קובץ חייב להיות משתנה מוגדר
 % You cannot specify files as value parameters, i.e. they must always be
 % declared \var{var} parameters.
-cg_e_cant_use_far_pointer_there=06013_E_The use of a far pointer isn't allowed there
+cg_e_cant_use_far_pointer_there=06013_E_השימוש במצביע far אינו מורשה במיקום הנוכחי
 % Free Pascal doesn't support far pointers, so you cannot take the address of
 % an expression which has a far reference as a result. The \var{mem} construct
 % has a far reference as a result, so the following code will produce this
@@ -1511,15 +1511,15 @@ cg_e_cant_use_far_pointer_there=06013_E_The use of a far pointer isn't allowed t
 % ...
 % p:=@mem[a000:000];
 % \end{verbatim}
-cg_e_dont_call_exported_direct=06015_E_EXPORT declared functions can't be called
+cg_e_dont_call_exported_direct=06015_E_לא ניתן לקרוא לפונקציות עם הגדרת EXPORT
 % No longer in use.
-cg_w_member_cd_call_from_method=06016_W_Possible illegal call of constructor or destructor
+cg_w_member_cd_call_from_method=06016_W_כנראה קריאה לא חוקית של יוצר או הורס
 % The compiler detected that a constructor or destructor is called within a
 % a method. This will probably lead to problems, since constructors / destructors
 % require parameters on entry.
-cg_n_inefficient_code=06017_N_Inefficient code
+cg_n_inefficient_code=06017_N_חסר קוד
 % Your statement seems dubious to the compiler.
-cg_w_unreachable_code=06018_W_unreachable code
+cg_w_unreachable_code=06018_W_לא ניתן להריץ את קטע הקוד
 % You specified a construct which will never be executed. Example:
 % \begin{verbatim}
 % while false do
@@ -1527,31 +1527,32 @@ cg_w_unreachable_code=06018_W_unreachable code
 %   {.. code ...}
 %   end;
 % \end{verbatim}
-cg_e_cant_call_abstract_method=06020_E_Abstract methods can't be called directly
+cg_e_cant_call_abstract_method=06020_E_לא ניתן לקרוא למתודות Abstract בצורה ישירה
+Abstract methods can't be called directly
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_d_register_weight=06027_DL_Register $1 weight $2 $3
+cg_d_register_weight=06027_DL_Register $1 משקל $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_d_stackframe_omited=06029_DL_Stack frame is omitted
+cg_d_stackframe_omited=06029_DL_משמיט את מסגרת המחסנית
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
-cg_e_unable_inline_object_methods=06031_E_Object or class methods can't be inline.
+cg_e_unable_inline_object_methods=06031_E_מתודות של אובייקט או מחלקה אינם יכולים להיות inline
 % You cannot have inlined object methods.
-cg_e_unable_inline_procvar=06032_E_Procvar calls cannot be inline.
+cg_e_unable_inline_procvar=06032_E_קריאות Procvar אינם יכולים להיות inline
 % A procedure with a procedural variable call cannot be inlined.
-cg_e_no_code_for_inline_stored=06033_E_No code for inline procedure stored
+cg_e_no_code_for_inline_stored=06033_E_אין קוד לפרוצדורות inline
 % The compiler couldn't store code for the inline procedure.
-cg_e_can_access_element_zero=06035_E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
+cg_e_can_access_element_zero=06035_E_אלמנט האפס של ansi/wide- או longstring לא נגיש, השתמש ב (set)length במקום
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
 % and \var{length} to get the length of such a string types
-cg_e_cannot_call_cons_dest_inside_with=06037_E_Constructors or destructors can not be called inside a 'with' clause
+cg_e_cannot_call_cons_dest_inside_with=06037_E_לא ניתן לקרוא ליוצרים או הורסים בתוך חלק של 'with'
 % Inside a \var{with} clause you cannot call a constructor or destructor for the
 % object you have in the \var{with} clause.
-cg_e_cannot_call_message_direct=06038_E_Cannot call message handler methods directly
+cg_e_cannot_call_message_direct=06038_E_לא ניתן לקרוא למתודות של מטפל הודאות בצורה ישירה
 % A message method handler method cannot be called directly if it contains an
 % explicit self argument
-cg_e_goto_inout_of_exception_block=06039_E_Jump in or outside of an exception block
+cg_e_goto_inout_of_exception_block=06039_E_קפיצה אל תוך או מחוץ לבלוק של exception
 % It is not allowed to jump in or outside of an exception block like \var{try..finally..end;}:
 % \begin{verbatim}
 % label 1;
@@ -1567,7 +1568,7 @@ cg_e_goto_inout_of_exception_block=06039_E_Jump in or outside of an exception bl
 % 1:
 % ...
 % \end{verbatim}
-cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed in a finally block
+cg_e_control_flow_outside_finally=06040_E_השימוש בביטויים השולטים בזרימת הקוד אינם מורשים בחלק ה finally
 % It isn't allowed to use the control flow statements \var{break},
 % \var{continue} and \var{exit}
 % inside a finally statement. The following example shows the problem:
@@ -1585,20 +1586,20 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
+cg_w_parasize_too_big=06041_W_גודל הפרמטים גולש את ההגבלות של חלק מהמעבדים
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu's
+cg_w_localsize_too_big=06042_W_הגודל של המשתנה המקומי גולש מהגבלות של חלק מהמעבדים
 % This indicates that you are declaring more than 32K of local variables, which
 % might not be supported on other processor targets.
-cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
+cg_e_localsize_too_big=06043_E_גודל משתנים מקומיים גולש מהגבלות הנתמכות
 % This indicates that you are declaring more than 32K of local variables, which
 % is not supported by this processor.
-cg_e_break_not_allowed=06044_E_BREAK not allowed
+cg_e_break_not_allowed=06044_E_BREAK אינו מורשה
 % You're trying to use \var{break} outside a loop construction.
-cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
+cg_e_continue_not_allowed=06045_E_CONTINUE אינו מורשה
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
+cg_f_unknown_compilerproc=06046_F_compilerproc "$1" לא ידוע. בדוק אם השתמש בספריית זמן הריצה הנכונה.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
@@ -1611,49 +1612,49 @@ cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use th
 #
 # 07097 is the last used one
 #
-asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
+asmr_d_start_reading=07000_DL_מתחיל בסגנון מפרש אסמבלר $1
 % This informs you that an assembler block is being parsed
-asmr_d_finish_reading=07001_DL_Finished $1 styled assembler parsing
+asmr_d_finish_reading=07001_DL_הסתיים ניתוח סגנון אסמבלר $1
 % This informs you that an assembler block has finished.
-asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
+asmr_e_none_label_contain_at=07002_E_תבנית ללא תווית מכילה את התו @
 % A identifier which isn't a label can't contain a @.
-asmr_e_building_record_offset=07004_E_Error building record offset
+asmr_e_building_record_offset=07004_E_שגיאה בבניית היסט הרשומה
 % There has an error occured while building the offset of a record/object
 % structure, this can happend when there is no field specified at all or
 % an unknown field identifier is used.
-asmr_e_offset_without_identifier=07005_E_OFFSET used without identifier
+asmr_e_offset_without_identifier=07005_E_נעשה שימוש בOFFSET ללא מזהה
 % You can only use OFFSET with an identifier. Other syntaxes aren't
 % supported
-asmr_e_type_without_identifier=07006_E_TYPE used without identifier
+asmr_e_type_without_identifier=07006_E_נעשה שימוש בTYPE ללא מזהה
 % You can only use TYPE with an identifier. Other syntaxes aren't
 % supported
-asmr_e_no_local_or_para_allowed=07007_E_Cannot use local variable or parameters here
+asmr_e_no_local_or_para_allowed=07007_E_לא ניתן להשתמש במשתמה מקומי או פרמטר במיקום הנוכחי
 % You can't use a local variable or parameter here, mostly because the
 % addressing of locals and parameters is done using the frame pointer register so the
 % address can't be obtained directly.
-asmr_e_need_offset=07008_E_need to use OFFSET here
+asmr_e_need_offset=07008_E_יש צורך להשתמש ב OFFSET
 % You need to use OFFSET <id> here to get the address of the identifier.
-asmr_e_need_dollar=07009_E_need to use $ here
+asmr_e_need_dollar=07009_E_יש צורך להשתמש ב$
 % You need to use $<id> here to get the address of the identifier.
-asmr_e_cant_have_multiple_relocatable_symbols=07010_E_Cannot use multiple relocatable symbols
+asmr_e_cant_have_multiple_relocatable_symbols=07010_E_לא ניתן להשתמש ב relocatable symbols מרובים
 % You can't have more than one relocatable symbol (variable/typed constant)
 % in one argument.
-asmr_e_only_add_relocatable_symbol=07011_E_Relocatable symbol can only be added
+asmr_e_only_add_relocatable_symbol=07011_E_ניתן להוסיף רק relocatable symbol
 % Relocatable symbols (variable/typed constant) can't be used with other
 % operators. Only addition is allowed.
-asmr_e_invalid_constant_expression=07012_E_Invalid constant expression
+asmr_e_invalid_constant_expression=07012_E_ביטוי קבוע לא חוקי
 % There is an error in the constant expression.
-asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol is not allowed
+asmr_e_relocatable_symbol_not_allowed=07013_E_Relocatable symbol אינו מורשה
 % You can't use a relocatable symbol (variable/typed constant) here.
-asmr_e_invalid_reference_syntax=07014_E_Invalid reference syntax
+asmr_e_invalid_reference_syntax=07014_E_תחביר הפניות לא חוקי
 % There is an error in the reference.
-asmr_e_local_para_unreachable=07015_E_You can not reach $1 from that code
+asmr_e_local_para_unreachable=07015_E_לא ניתן לגשת ל $1 מהקוד
 % You can not read directly the value of a local variable or parameter
 % of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
-asmr_e_local_label_not_allowed_as_ref=07016_E_Local symbols/labels aren't allowed as references
+asmr_e_local_label_not_allowed_as_ref=07016_E_סימולים/תוויות מקומיות אינם מורשים כהפניות
 % You can't use local symbols/labels as references
-asmr_e_wrong_base_index=07017_E_Invalid base and index register usage
+asmr_e_wrong_base_index=07017_E_שימוש שגוי בבסיס ואינדקס של אוגר
 % There is an error with the base and index register, they are
 % probably incorrect
 asmr_w_possible_object_field_bug=07018_W_Possible error in object field handling
@@ -1869,7 +1870,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 % command line or handling the configuration files.
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Source operating system redefined
-% The source operating system is redefine.
+% The source operating system is redefined.
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
 % Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
@@ -2395,6 +2396,7 @@ S*2Aas_assemble using GNU AS
 *g2gg_use gsym
 *g2gh_use heap trace unit (for memory leak debugging)
 *g2gl_use line info unit to show more info for backtraces
+*g2gt_trash local variables (to detect uninitialized uses)
 *g2gv_generates programs traceable with valgrind
 *g2gw_generate dwarf debugging info
 **1i_information
