@@ -2221,61 +2221,61 @@ option_help_pages=11025_[
 **0*_mettre + après un booléen pour activer l'option, - pour la désactiver
 **1a_conserve les fichiers assembleurs créés pendant la compilation
 **2al_liste le code source dans les fichiers assembleur
-XXX **2an_list node info in assembler file
-XXX *L2ap_use pipes instead of creating temporary assembler files
+**2an_liste les infos de noeud dans le fichier assembleur
+*L2ap_utilise des pipes au lieu de fichiers assembleur temporaires
 **2ar_liste les allocations de registres dans les fichiers assembleur
 **2at_liste les allocations de données temporaire dans la pile
 **1A<x>_format de sortie :
-XXX **2Adefault_use default assembler
+**2Adefault_utilise l'assembleur défini par défaut
 3*2Aas_fichier objet généré par GNU AS
 3*2Anasmcoff_fichier COFF (Go32v2) avec Nasm
 3*2Anasmelf_fichier ELF32 (Linux) avec Nasm
-XXX 3*2Anasmwin32_Win32 object file using Nasm
-XXX 3*2Anasmwdosx_Win32/WDOSX object file using Nasm
-XXX 3*2Awasm_obj file using Wasm (Watcom)
+3*2Anasmwin32_fichier objet Win32 utilisant Nasm
+3*2Anasmwdosx_fichier objet Win32/WDOSX utilisant Nasm
+3*2Awasm_fichier objet utilisant Wasm (Watcom)
 3*2Anasmobj_fichier OBJ avec Nasm
 3*2Amasm_fichier OBJ avec Masm (Microsoft)
 3*2Atasm_fichier OBJ avec Tasm (Borland)
-XXX 3*2Aelf_elf32 (Linux) using internal writer
+3*2Aelf_elf32 (Linux) utilisant le writer interne
 3*2Acoff_coff (Go32v2) using internal writer
 3*2Apecoff_pecoff (Win32) using internal writer
 4*2Aas_fichier objet généré par GNU AS
-XXX 6*2Aas_Unix o-file using GNU AS
-XXX 6*2Agas_GNU Motorola assembler
-XXX 6*2Amit_MIT Syntax (old GAS)
-XXX 6*2Amot_Standard Motorola assembler
-XXX A*2Aas_assemble using GNU AS
-XXX P*2Aas_assemble using GNU AS
-XXX S*2Aas_assemble using GNU AS
+6*2Aas_fichier .o Unix utilisant GNU AS
+6*2Agas_assembleur GNU Motorola
+6*2Amit_syntaxe MIT (anciennement GAS)
+6*2Amot_assembleur Motorola standard
+A*2Aas_assembler avec GNU AS
+P*2Aas_assembler avec GNU AS
+S*2Aas_assembler avec GNU AS
 **1b_génère les informations pour le browser
 **2bl_génère les informations locales également
 **1B_recompile toutes les unités
 **1C<x>_options de génération de code :
-XXX **2Cc<x>_set default calling convention to <x>
-**2CD_créer une librairie dynamique
-XXX **2Ce_Compilation with emulated floating point opcodes
-XXX **2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
-XXX **2Cg_Generate PIC code
+**2Cc<x>_définir les convention d'appel <x> par défaut
+**2CD_créer une bibliothèque dynamique
+**2Ce_compilation avec émulation des opérations à virgule flottante
+**2Cf<x>_sélectionner le jeu d'instructions FPU à utiliser, voir fpc -i pour les valeurs possibles
+**2Cg_Générer du code PIC
 **2Ch<n>_<n> taille du tas en bytes (entre 1023 et 67107840)
 **2Ci_IO-checking
 **2Cn_pas de linking
 **2Co_génère des tests d'overflow pour les opérations sur les entiers
-XXX **2Cp<x>_select instruction set, see fpc -i for possible values
-**2Cr_Controle d'intervalles
-XXX **2CR_verify object method call validity
+**2Cp<x>_sélectionner le jeu d'instructions, voir fpc -i pour les valeurs possibles
+**2Cr_controle d'intervalles
+**2CR_vérifier la validité de l'appel à la méthode d'objet
 **2Cs<n>_spécifie <n> comme taille de la pile
 **2Ct_test de débordement de pile
-XXX **2CX_create also smartlinked library
+**2CX_créer également une bibliothèque avec liens optimisés
 **1d<x>_définit le symbole <x>
 **1D_génère un fichier DEF
 **2Dd<x>_assigne la description à <x>
-XXX **2Dv<x>_set DLL version to <x>
+**2Dv<x>_affecter la version <x> à la DLL
 *O2Dw_application en mode protégé
 **1e<x>_définit le chemin vers l'exécutable
 **1E_comme -Cn
 **1F<x>_définit des chemins et noms de fichiers :
-XXX **2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
-XXX **2Fc<x>_sets input codepage to <x>
+**2Fa<x>[,y]_Pour un programme charger d'abord les unités <x> et [y] avant que uses ne soit analysé
+**2Fc<x>_Utiliser la page de codes <x> en entrée
 **2FD<x>_définit le répertoire où chercher les utilitaires de compilation
 **2Fe<x>_redirige les erreurs vers le fichier <x>
 **2FE<x>_répertoire pour les exe/unités : <x>
@@ -2287,17 +2287,17 @@ XXX **2Fc<x>_sets input codepage to <x>
 **2Fu<x>_ajoute <x> à la liste des répertoires pour unités
 **2FU<x>_définit le répertoire d'écriture des unités à <x>, en dépit de -FE
 *g1g<x>_génère des informations de débogage :
-XXX *g2gc_generate checks for pointers
+*g2gc_générer des contrôles pour les pointeurs
 *g2gd_utilise dbx
 *g2gg_utilise gsym
 *g2gh_use l'unité de tracage du tas
-XXX *g2gl_use line info unit to show more info for backtraces
-XXX *g2gv_generates programs traceable with valgrind
-XXX *g2gw_generate dwarf debugging info
+*g2gl_utiliser l'unité line info pour montrer plus de détails dans les traces
+*g2gv_générer des programmes traçables avec valgrind
+*g2gw_générer des infos de débogage au format dwarf
 **1i_information
 **2iD_donne la date du compilateur
 **2iV_donne la version du compilateur
-XXX **2iW_return full compiler version
+**2iW_retourner la version complète du compilateur
 **2iSO_donne l'OS du compilateur
 **2iSP_donne le processeur du compilateur
 **2iTO_donne l'OS cible
@@ -2305,17 +2305,17 @@ XXX **2iW_return full compiler version
 **1I<x>_ajoute <x> à la liste des répertoires pour fichiers inclus
 **1k<x>_transmet <x> au linker
 **1l_écrit le logo
-XXX **1M<x>_set language mode to <x>
-XXX **2Mfpc_free pascal dialect (default)
-XXX **2Mobjfpc_switch some Delphi 2 extensions on
-XXX **2Mdelphi_tries to be Delphi compatible
-XXX **2Mtp_tries to be TP/BP 7.0 compatible
-XXX **2Mgpc_tries to be gpc compatible
-XXX **2Mmacpas_tries to be compatible to the macintosh pascal dialects
+**1M<x>_utiliser le type de langage <x>
+**2Mfpc_dialecte Free Pascal (par défaut)
+**2Mobjfpc_activation de certaines extensions Delphi 2
+**2Mdelphi_essaye d'être compatible avec Delphi
+**2Mtp_essaye d'être compatible avec TP/BP 7.0
+**2Mgpc_essaye d'être compatible avec gpc
+**2Mmacpas_essaye d'être compatible avec les dialectes Pascal du Macintosh
 **1n_ne pas lire le fichier de configuration par défaut
 **1o<x>_change le nom de l'executable en <x>
 **1O<x>_optimisations :
-XXX 3*2Oa_<type>=<values> set alignment
+3*2Oa_définir l'alignement <type>=<values>
 3*2Og_génère du code compact
 3*2OG_génère du code rapide (defaut)
 3*2Or_garde certaines variables dans des registres
@@ -2330,41 +2330,41 @@ XXX 3*2Oa_<type>=<values> set alignment
 3*3Op4_définit Pentium 4 (tm) comme processeur cycle
 3*3Op5_définit Pentium M (tm) comme processeur cycle
 6*2Og_génère du code compact
-6*2OG_génère du code rapide (defaut)
-XXX 6*2Ox_optimize maximum (still BUGGY!!!)
-XXX 6*2O0_set target processor to a MC68000
-XXX 6*2O2_set target processor to a MC68020+
+6*2OG_génère du code rapide (par défaut)
+6*2Ox_optimiser au maximum (encore BOGUÉ !!!)
+6*2O0_définir le processeur cible MC68000
+6*2O2_définir le processeur cible MC68020+
 **1pg_génère du code pour profiler avec gprof (définit FPC_PROFILE)
 3*1R<x>_type lecture assembleur :
 3*2Ratt_lit l'assembleur AT&T
 3*2Rintel_lit l'assembleur Intel
 6*2RMOT_lire l'assembleur type motorola
 **1S<x>_options de syntaxe :
-XXX **2S2_same as -Mobjfpc
+**2S2_identique à -Mobjfpc
 **2Sa_include assertion code.
 **2Sc_autorise les operateurs type C (*=,+=,/= et -=)
-XXX **2Sd_same as -Mdelphi
-XXX **2Se<x>_error options. <x> is a combination of the following:
-XXX **3*_<n> : compiler stops after the <n> errors (default is 1)
-XXX **3*_w : compiler stops also after warnings
-XXX **3*_n : compiler stops also after notes
-XXX **3*_h : compiler stops also after hints
+**2Sd_identique à -Mdelphi
+**2Se<x>_erreur d'options. <x> est une combinaison de :
+**3*_<n> : le compilateur s'arrête après <n> erreurs (1 par défaut)
+**3*_w : le compilateur s'arrête également en cas d'avertissements
+**3*_n : le compilateur s'arrête également en cas de notes
+**3*_h : le compilateur s'arrête également en cas de suggestions
 **2Sg_autorise LABEL et GOTO
-**2Sh_Utilise les ansistrings
+**2Sh_utilise les ansistrings
 **2Si_supporte les INLINE type C++
-XXX **2SI<x>_set interface style to <x>
-XXX **3SIcom_COM compatible interface (default)
-XXX **3SIcorba_CORBA compatible interface
-XXX **2Sk_load fpcylix unit
+**2SI<x>_définir le style d'interface <x>
+**3SIcom_interface compatible COM (par défaut)
+**3SIcorba_interface compatible CORBA
+**2Sk_charger l'unité fpcylix
 **2Sm_support des macros comme C (global)
-XXX **2So_same as -Mtp
-XXX **2Sp_same as -Mgpc
+**2So_identique à -Mtp
+**2Sp_identique à -Mgpc
 **2Ss_les constructeurs doivent s'appeler init (et les destructeurs done)
 **2St_autorise "static" dans les objects
 **1s_n'appelle pas l'assembleur ni le linker
-XXX **2sh_Generate script to link on host
-XXX **2st_Generate script to link on target
-XXX **2sr_Skip register allocation phase (use with -alr)
+**2sh_générer un script à lier sur l'hôte
+**2st_générer un script à lier sur la cible
+**2sr_passer la phase d'allocation de registre (à utiliser avec -alr)
 **1T<x>_système d'expliotation cible:
 3*2Temx_OS/2 via EMX (et les extensions EMX/RSX)
 3*2Tfreebsd_FreeBSD
@@ -2376,7 +2376,7 @@ XXX **2sr_Skip register allocation phase (use with -alr)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
-XXX 3*2Twatcom_Watcom compatible DOS extender
+3*2Twatcom_DOS extender compatible avec Watcom
 3*2Twdosx_WDOSX DOS extension
 3*2Twin32_Windows 32 Bits
 4*2Tlinux_Linux
@@ -2386,15 +2386,15 @@ XXX 3*2Twatcom_Watcom compatible DOS extender
 6*2Tmacos_Macintosh m68k
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
-XXX P*2Tdarwin_Darwin and MacOS X on PowerPC
-XXX P*2Tlinux_Linux on PowerPC
-XXX P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tdarwin_Darwin et MacOS X pour PowerPC
+P*2Tlinux_Linux pour PowerPC
+P*2Tmacos_MacOS (classique) pour PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_rend le symbole <x> non défini
 **1U_options d'unités :
 **2Un_ne pas vérifier le nom de l'unité
-XXX **2Ur_generate release unit files
+**2Ur_générer des fichiers d'unité distribuables
 **2Us_compiler en temps qu'unité système
 **1v<x>_donne des informations. <x> est une combination des lettres suivantes :
 **2*_e : montre les erreurs (défaut)   0 : ne montre rien (sauf les erreurs)
@@ -2404,33 +2404,33 @@ XXX **2Ur_generate release unit files
 **2*_i : montre des infos générales    d : informations de déboggage
 **2*_l : montre les numéros de lignes  r : mode compatibilité Rhide/GCC
 **2*_a : montre tout                   x : infos Executable (Win32 seulement)
-XXX **2*_b : Write file names messages with full path
-XXX **2*_v : write fpcdebug.txt with       p : Write tree.log with parse tree
-XXX **2*_    lots of debugging info
-XXX 3*1W<x>_Win32-like target options
-XXX 3*2WB_Create a relocatable image
-XXX 3*2WB<x>_Set Image base to Hexadecimal <x> value
-XXX 3*2WC_Specify console type application
-XXX 3*2WD_Use DEFFILE to export functions of DLL or EXE
-XXX 3*2WF_Specify full-screen type application (OS/2 only)
-XXX 3*2WG_Specify graphic type application
-XXX 3*2WN_Do not generate relocation code (necessary for debugging)
-XXX 3*2WR_Generate relocation code
-XXX P*2WC_Specify console type application (MacOS only)
-XXX P*2WG_Specify graphic type application (MacOS only)
-XXX P*2WT_Specify tool type application (MPW tool, MacOS only)
+**2*_b : montre le nom des fichiers avec chemin complet dans les messages
+**2*_v : écrit fpcdebug.txt avec       p : écrit tree.log avec arbre d'analyse
+**2*_    un maximum d'informations de débogage
+3*1W<x>_options pour cibles de type Win32
+3*2WB_créer une image relogeable
+3*2WB<x>_définir la base de l'Image à la valeur hexadecimale <x>
+3*2WC_générer une application console
+3*2WD_utiliser DEFFILE pour exporter les fonction de la DLL ou de l'EXE
+3*2WF_générer une application plein écran (OS/2 seulement)
+3*2WG_générer une application graphique
+3*2WN_ne pas générer de code relogeable (nécessaire pour le débogage)
+3*2WR_générer du code relogeable
+P*2WC_générer une application console (MacOS seulement)
+P*2WG_générer une application graphique (MacOS seulement)
+P*2WT_générer une application utilitaire (MPW tool, MacOS seulement)
 **1X_options pour executable :
-XXX **2Xc_pass --shared to the linker (Unix only)
-XXX **2Xd_don't use standard library search path (needed for cross compile)
+**2Xc_passer --shared à l'éditeur de liens (Unix seulement)
+**2Xd_ne pas utiliser le chemin de recherche des bibliothèques standard (nécessaire à la compilation pour une autre cible)
 **2XD_lien avec la librarie dynamique (définit FPC_LINK_DYNAMIC)
-XXX **2Xm_generate link map
-XXX **2XM<x>_set the name of the 'main' program routine (default is 'main')
-XXX **2XP<x>_prepend the binutils names with the prefix <x>
-XXX **2Xr<x>_set library search path to <x> (needed for cross compile)
+**2Xm_générer un fichier MAP
+**2XM<x>_définir le nom de la procédure 'main' ('main' par défaut)
+**2XP<x>_prepend the binutils names with the prefix <x>
+**2Xr<x>_définir <x> comme chemin de recherche des bibliothèques (nécessaire à la compilation pour une autre cible)
 **2Xs_enlêve tous les symboles de l'executable
 **2XS_lien avec les librairies statiques (définit FPC_LINK_STATIC)
-XXX **2Xt_link with static libraries (-static is passed to linker)
-XXX **2XX_try to link units smart            (defines FPC_LINK_SMART)
+**2Xt_lier avec des bibliothèques statiques (-static est passé à l'éditeur de liens)
+**2XX_essayer de lier les unités intelligemment (définit FPC_LINK_SMART)
 **1*_
 **1?_affiche cette aide
 **1h_affiche cette aide sans attente
