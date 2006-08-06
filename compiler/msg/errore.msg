@@ -1843,7 +1843,7 @@ asmw_e_invalid_register=08019_E_Asm: Invalid register $1
 % command line or handling the configuration files.
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Source operating system redefined
-% The source operating system is redefine.
+% The source operating system is redefined.
 exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
 % Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
