@@ -35,11 +35,14 @@ Function PClose(Var F:text) :cint;
 var
   pl  : ^cint;
   res : cint;
+  pid : cint;
 begin
   fpclose(Textrec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
+  { avoid alignment error on sparc }
+  move(pl^,pid,sizeof(pid));
+  fpwaitpid(pid,@res,0);
   pclose:=res shr 8;
 end;
 
@@ -47,11 +50,14 @@ Function PClose(Var F:file) : cint;
 var
   pl : ^cint;
   res : cint;
+  pid : cint;
 begin
   fpclose(filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
+  { avoid alignment error on sparc }
+  move(pl^,pid,sizeof(pid));
+  fpwaitpid(pid,@res,0);
   pclose:=res shr 8;
 end;
 
