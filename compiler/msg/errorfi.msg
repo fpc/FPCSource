@@ -878,7 +878,14 @@ parser_e_no_export_with_index_for_target=03163_E_Impossible d'exporter avec un i
 parser_e_no_export_of_variables_for_target=03164_E_L'export de variables n'est pas supporté sous $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Syntaxe GUID incorrecte
+% The GUID indication does not have the proper syntax. It should be of the form
+% \begin{verbatim}
+% {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+% \end{verbatim}
+% Where each \var{X} represents a hexadecimal digit.
 parser_w_interface_mapping_notfound=03168_W_Impossible de trouver la procédure nommée "$1" nécessaire à l'implémentation de $2.$3
+% The compiler cannot find a suitable procedure which implements the given method of an interface.
+% A procedure with the same name is found, but the arguments do not match.
 parser_e_interface_id_expected=03169_E_Identificateur d'interface attendu
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -936,7 +943,17 @@ parser_e_no_procvarobj_const=03183_E_Les constantes typées de la forme "procedur
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Une valeur par défaut ne peut être affectée qu'à un paramètre
+% It is not possible to specify a default value for several parameters at once. 
+% The following is invalid:
+% \begin{verbatim}
+% Procedure MyProcedure (A,B : Integer = 0);
+% \end{verbatim}
+% Instead, this should be declared as
+% \begin{verbatim}
+% Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
+% \end{verbatim}
 parser_e_default_value_expected_for_para=03185_E_Paramètre par défaut requis pour "$1"
+% The specified parameter requires a default value.
 parser_w_unsupported_feature=03186_W_Fonctionnalité non supportée
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_Les tableaux C sont passés par référence
@@ -1198,6 +1215,12 @@ type_e_array_required=04033_E_Type de tableau requis
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_Type interface attendu, "$1" spécifié
+% The compiler expected to encounter an interface type name, but got something else.
+% The following code would provoke this error:
+% \begin{verbatim}
+% Type
+%   TMyStream = Class(TStream,Integer)
+% \end{verbatim}
 type_w_mixed_signed_unsigned=04035_W_Le mélange d'expressions signées et de mots longs (longwords) donne un résultat sur 64 bits
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
@@ -1229,7 +1252,10 @@ type_w_classes_not_related=04040_W_Classes "$1" et "$2" incompatibles
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Classe ou interface attendue mais "$1" spécifié
+% The compiler expected a class or interface name, but got another type or identifier.
 type_e_type_is_not_completly_defined=04042_E_Le type "$1" n'est pas complètement défini
+% This error occurs when a type is not complete: i.e. a pointer type which points to
+% an undefined type.
 type_w_string_too_long=04043_W_La chaîne contient plus de caractères que ne peut en contenir une chaîne courte
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1375,8 +1401,11 @@ sym_n_local_identifier_only_set=05027_N_La variable locale "$1" a une valeur mai
 sym_h_local_symbol_not_used=05028_H_Le symbole local $1 "$2" n'est pas utilisé
 % A local symbol is never used.
 sym_n_private_identifier_not_used=05029_N_Le champ privé "$1.$2" n'est jamais utilisé
+% The indicated private field is defined, but is never used in the code.
 sym_n_private_identifier_only_set=05030_N_Le champ privé "$1.$2" a une valeur mais n'est jamais utilisé
+% The indicated private field is declared, assigned but never read.
 sym_n_private_method_not_used=05031_N_La méthode privée "$1.$2" n'est jamais utilisée
+% The indicated private method is declared but is never used in the code.
 sym_e_set_expected=05032_E_Type ensemble attendu
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1834,7 +1863,9 @@ asmw_e_64bit_not_supported=08021_E_Asm: paramètres 64 bits non supportés
 % command line or handling the configuration files.
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Système d'exploitation source redéfini
+% The source operating system is redefined.
 exec_i_assembling_pipe=09001_I_Assemblage (pipe) de $1
+% Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Impossible de créer le fichier assembleur: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
@@ -1845,14 +1876,21 @@ exec_e_cant_create_archivefile=09004_E_Impossible de créer le fichier archive: $
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
 exec_e_assembler_not_found=09005_E_Assembleur $1 non trouvé, utilisation d'un assembleur externe
+% The assembler program was not found. The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_t_using_assembler=09006_T_Utilisation de l'assembleur: $1
+% Information message saying which assembler is being used.
 exec_e_error_while_assembling=09007_E_Erreur durant l'assemblage, code de sortie $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
 exec_e_cant_call_assembler=09008_E_Impossible d'appeler l'assembleur, erreur $1, utilisation d'un assembleur externe
+% An error occurred when calling an external assembler, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_assembling=09009_I_Assemblage de $1
+% An informational message stating which file is being assembled.
 exec_i_assembling_smart=09010_I_Assemblage avec édition intelligente des liens de $1
+% An informational message stating which file is being assembled using smartlinking.
 exec_w_objfile_not_found=09011_W_Objet $1 non trouvé, l'édition des liens peut échouer !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
@@ -1862,32 +1900,66 @@ exec_w_libfile_not_found=09012_W_Bibliothèque $1 non trouvée, l'édition des lien
 exec_e_error_while_linking=09013_E_Erreur durant l'édition des liens
 % Generic error while linking.
 exec_e_cant_call_linker=09014_E_Impossible d'appeler l'éditeur de liens, utilisation d'un éditeur de liens externe
+% An error occurred when calling an external linker, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_linking=09015_I_Édition des liens de $1
+% An informational message, showing which program or library is being linked.
 exec_e_util_not_found=09016_E_Utilitaire $1 non trouvé, utilisation d'un éditeur de liens externe
+% An external tool was not found, the compiler will produce a script that
+% can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Utilisation de l'utilitaire $1
+% An informational message, showing which external program (usually a postprocessor) is being used.
 exec_e_exe_not_supported=09018_E_Création d'exécutables non supportée
+% Creating executable programs is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_e_dll_not_supported=09019_E_Création de bibliothèques dynamiques/partagées non supportée
+% Creating dynamically loadable libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Fermeture du script $1
+% Informational message showing when the external assembling an linking script is finished.
 exec_e_res_not_found=09021_E_Compilateur de ressource non trouvé, utilisation d'un compilateur externe
+% An external resource compiler was not found, the compiler will produce a script that
+% can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Compilation de la resource $1
+% An informational message, showing which resource is being compiled.
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_Édition statique des liens de l'unité $1 impossible, utilisation d'une édition intelligente des liens
+% Statical linking was requested, but a unit which is not statically linkable was used.
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_Édition intelligente des liens de l'unité $1 impossible, utilisation d'une édition de liens statique
+% Smart linking was requested, but a unit which is not smart-linkable was used.
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_Édition des liens partagée de l'unité $1 impossible, utilisation d'une édition de liens statique
+% Shared linking was requested, but a unit which is not shared-linkable  was used.
 exec_e_unit_not_smart_or_static_linkable=09026_E_Édition intelligente ou statique des liens de l'unité $1 impossible
+% Smart or static linking was requested, but a unit which cannot be used for either  was used.
 exec_e_unit_not_shared_or_static_linkable=09027_E_Édition des liens partagée ou statique de l'unité $1 impossible
+% Shared or static linking was requested, but a unit which cannot be used for either  was used.
 exec_d_resbin_params=09028_D_Exécution du compilateur de ressource "$1" avec "$2" comme ligne de commande
+% An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
 #
 # Executable information
 #
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Post-traitement de l'exécutable $1 impossible
+% Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Impossible d'ouvrir l'exécutable $1
+% Fatal error when the compiler cannot open the file for the executable.
 execinfo_x_codesize=09130_X_Taille du code: $1 octets
+% Informational message showing the size of the produced code section.
 execinfo_x_initdatasize=09131_X_Taille des données initialisées: $1 octets
+% Informational message showing the size of the initialized data section.
 execinfo_x_uninitdatasize=09132_X_Taille des données non-initialisées: $1 octets
+% Informational message showing the size of the uninitialized data section.
 execinfo_x_stackreserve=09133_X_Taille de pile réservée: $1 octets
+% Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Taille de pile validée: $1 octets
+% Informational message showing the stack size that the compiler committes for the executable.
+%\end{description}
+# EndOfTeX
 #
 # Unit loading
 #
@@ -1961,6 +2033,7 @@ unit_f_cant_find_ppu=10022_F_Impossible de trouver l'unité $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unité $1 non trouvée mais $2 existe
+% This error message is no longer used.
 unit_f_unit_name_error=10024_F_Unité $1 cherchée mais $2 trouvée
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
@@ -1974,6 +2047,8 @@ unit_u_load_unit=10027_U_Chargement à partir de $1 ($2) de l'unité $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_Recompilation de $1, la somme de contrôle est maintenant $2
+% The unit is recompiled because the checksum of a unit it depends on has 
+% changed.
 unit_u_recompile_source_found_alone=10029_U_Recompilation de $1, seul le source a été trouvé
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
