@@ -112,11 +112,12 @@
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
-         IID       : pguid; { if assigned(IID) then Com else Corba}
-         VTable    : Pointer;
-         IOffset   : PtrInt;
-         IIDStr    : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
-         EntryType : tinterfaceentrytype;
+         IID         : pguid; { if assigned(IID) then Com else Corba}
+         VTable      : Pointer;
+         IOffset     : PtrInt;
+         IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+         EntryType   : tinterfaceentrytype;
+         EntryOffset : PtrInt;
        end;
 
        pinterfacetable = ^tinterfacetable;
