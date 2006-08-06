@@ -63,6 +63,19 @@
          D:=S;
       end;
 
+    procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_ASSIGN2']; compilerproc;
+      begin
+         if assigned(D) then
+           IUnknown(D)._Release;
+         if assigned(S) then
+         begin
+           IUnknown(S)._AddRef;
+           IUnknown(S).QueryInterface(iid, D);
+         end else
+           D := nil;
+      end;
+
+
     function fpc_intf_as(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_AS']; compilerproc;
       var
         tmpi: pointer; // _AddRef before _Release
@@ -556,20 +569,42 @@
       function TObject.getinterface(const iid : tguid;out obj) : boolean;
         var
           IEntry: pinterfaceentry;
+          Getter: function: IInterface of object;
         begin
+          Pointer(Obj) := nil;
           IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then
-            begin
-              Pointer(obj):=Pointer(Self)+IEntry^.IOffset;
-              if assigned(pointer(obj)) then
-                iinterface(obj)._AddRef;
-              getinterface:=True;
-            end
-          else
-            begin
-              PPointer(@Obj)^:=nil;
-              getinterface:=False;
+          begin
+            case IEntry^.EntryType of
+              etStandard:
+                begin
+//                  writeln('Doing etStandard cast of ', classname(), ' with self = ', ptrint(self), ' and offset = ', IEntry^.IOffset);
+                  Pointer(Obj) := Pointer(PtrInt(self) + IEntry^.IOffset);
+                end;
+              etFieldValue:
+                begin
+//                  writeln('Doing etFieldValue cast of ', classname(), ' with offset = ', IEntry^.EntryOffset);
+                  Pointer(obj) := ppointer(Pointer(Self)+IEntry^.EntryOffset)^;
+                end;
+              etVirtualMethodResult:
+                begin
+//                  writeln('Doing etVirtualMethodResult cast of ', classname());
+                  TMethod(Getter).data := self;
+                  TMethod(Getter).code := ppointer(ptrint(self) + IEntry^.EntryOffset)^;
+                  Pointer(obj) := Getter();
+                end;
+              etStaticMethodResult:
+                begin
+//                  writeln('Doing etStaticMethodResult cast of ', classname());
+                  TMethod(Getter).data := self;
+                  TMethod(Getter).code := pointer(IEntry^.EntryOffset);
+                  Pointer(obj) := Getter();
+                end;
             end;
+          end;
+          result := assigned(pointer(obj));
+          if result then
+            IInterface(obj)._AddRef;
         end;
 
       function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
@@ -577,18 +612,12 @@
           IEntry: pinterfaceentry;
         begin
           IEntry:=getinterfaceentrybystr(iidstr);
-          if Assigned(IEntry) then
-            begin
-              Pointer(obj):=Pointer(Self)+IEntry^.IOffset;
-              if assigned(pointer(obj)) then
-                iinterface(obj)._AddRef;
-              getinterfacebystr:=True;
-            end
-          else
-            begin
-              PPointer(@Obj)^:=nil;
-              getinterfacebystr:=False;
-            end;
+          if not Assigned(IEntry) then
+          begin
+            Pointer(obj) := nil;
+            result := false;
+          end else
+            result := getinterface(IEntry^.IID^, obj);
         end;
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
