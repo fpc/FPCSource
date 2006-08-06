@@ -153,12 +153,17 @@ Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Preci
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
+
 Function CurrToStr(Value: Currency): string;
 function StrToCurr(const S: string): Currency;
 function TryStrToCurr(const S: string;Var Value : Currency): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
+
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
+function StrToBoolDef(const S: string; Default: Boolean): Boolean;
+function TryStrToBool(const S: string; out Value: Boolean): Boolean;
+
 function LastDelimiter(const Delimiters, S: string): Integer;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;

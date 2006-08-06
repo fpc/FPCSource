@@ -1345,25 +1345,13 @@ begin
     Result:=Default;
 end;
 
+
 function StrToBool(const S: string): Boolean;
-
-Var
-  Temp : String;
-  D : Double;
-  Code: word;
-
 begin
-  Temp:=upcase(S);
-  Val(temp,D,code);
-  If Code=0 then
-    Result:=(D<>0.0)
-  else If Temp='TRUE' then
-    result:=true
-  else if Temp='FALSE' then
-    result:=false
-  else
+  if not(TryStrToBool(S,Result)) then
     Raise EConvertError.CreateFmt(SInvalidBoolean,[S]);
 end;
+
 
 function BoolToStr(B: Boolean): string;
 begin
@@ -1372,6 +1360,34 @@ begin
   else
     Result:='FALSE';
 end;
+
+
+function StrToBoolDef(const S: string; Default: Boolean): Boolean;
+begin
+  if not(TryStrToBool(S,Result)) then
+    Result:=Default;
+end;
+  
+  
+function TryStrToBool(const S: string; out Value: Boolean): Boolean;
+Var
+  Temp : String;
+  D : Double;
+  Code: word;
+begin
+  Temp:=upcase(S);
+  Val(temp,D,code);
+  Result:=true;
+  If Code=0 then
+    Value:=(D<>0.0)
+  else If Temp='TRUE' then
+    Value:=true
+  else if Temp='FALSE' then
+    Value:=false
+  else
+    Result:=false;
+end;
+
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 
