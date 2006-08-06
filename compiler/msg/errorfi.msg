@@ -878,7 +878,14 @@ parser_e_no_export_with_index_for_target=03163_E_Impossible d'exporter avec un i
 parser_e_no_export_of_variables_for_target=03164_E_L'export de variables n'est pas supporté sous $1
 % Exporting of variables is not supported on this target.
 parser_e_improper_guid_syntax=03165_E_Syntaxe GUID incorrecte
+% The GUID indication does not have the proper syntax. It should be of the form
+% \begin{verbatim}
+% {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+% \end{verbatim}
+% Where each \var{X} represents a hexadecimal digit.
 parser_w_interface_mapping_notfound=03168_W_Impossible de trouver la procédure nommée "$1" nécessaire à l'implémentation de $2.$3
+% The compiler cannot find a suitable procedure which implements the given method of an interface.
+% A procedure with the same name is found, but the arguments do not match.
 parser_e_interface_id_expected=03169_E_Identificateur d'interface attendu
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -936,7 +943,17 @@ parser_e_no_procvarobj_const=03183_E_Les constantes typées de la forme "procedur
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Une valeur par défaut ne peut être affectée qu'à un paramètre
+% It is not possible to specify a default value for several parameters at once. 
+% The following is invalid:
+% \begin{verbatim}
+% Procedure MyProcedure (A,B : Integer = 0);
+% \end{verbatim}
+% Instead, this should be declared as
+% \begin{verbatim}
+% Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
+% \end{verbatim}
 parser_e_default_value_expected_for_para=03185_E_Paramètre par défaut requis pour "$1"
+% The specified parameter requires a default value.
 parser_w_unsupported_feature=03186_W_Fonctionnalité non supportée
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_h_c_arrays_are_references=03187_H_Les tableaux C sont passés par référence
@@ -1198,6 +1215,12 @@ type_e_array_required=04033_E_Type de tableau requis
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
 type_e_interface_type_expected=04034_E_Type interface attendu, "$1" spécifié
+% The compiler expected to encounter an interface type name, but got something else.
+% The following code would provoke this error:
+% \begin{verbatim}
+% Type
+%   TMyStream = Class(TStream,Integer)
+% \end{verbatim}
 type_w_mixed_signed_unsigned=04035_W_Le mélange d'expressions signées et de mots longs (longwords) donne un résultat sur 64 bits
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
@@ -1229,7 +1252,10 @@ type_w_classes_not_related=04040_W_Classes "$1" et "$2" incompatibles
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Classe ou interface attendue mais "$1" spécifié
+% The compiler expected a class or interface name, but got another type or identifier.
 type_e_type_is_not_completly_defined=04042_E_Le type "$1" n'est pas complètement défini
+% This error occurs when a type is not complete: i.e. a pointer type which points to
+% an undefined type.
 type_w_string_too_long=04043_W_La chaîne contient plus de caractères que ne peut en contenir une chaîne courte
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
@@ -1375,8 +1401,11 @@ sym_n_local_identifier_only_set=05027_N_La variable locale "$1" a une valeur mai
 sym_h_local_symbol_not_used=05028_H_Le symbole local $1 "$2" n'est pas utilisé
 % A local symbol is never used.
 sym_n_private_identifier_not_used=05029_N_Le champ privé "$1.$2" n'est jamais utilisé
+% The indicated private field is defined, but is never used in the code.
 sym_n_private_identifier_only_set=05030_N_Le champ privé "$1.$2" a une valeur mais n'est jamais utilisé
+% The indicated private field is declared, assigned but never read.
 sym_n_private_method_not_used=05031_N_La méthode privée "$1.$2" n'est jamais utilisée
+% The indicated private method is declared but is never used in the code.
 sym_e_set_expected=05032_E_Type ensemble attendu
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1834,7 +1863,9 @@ asmw_e_64bit_not_supported=08021_E_Asm: paramètres 64 bits non supportés
 % command line or handling the configuration files.
 % \begin{description}
 exec_w_source_os_redefined=09000_W_Système d'exploitation source redéfini
+% The source operating system is redefined.
 exec_i_assembling_pipe=09001_I_Assemblage (pipe) de $1
+% Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Impossible de créer le fichier assembleur: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
@@ -1845,14 +1876,21 @@ exec_e_cant_create_archivefile=09004_E_Impossible de créer le fichier archive: $
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
 exec_e_assembler_not_found=09005_E_Assembleur $1 non trouvé, utilisation d'un assembleur externe
+% The assembler program was not found. The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_t_using_assembler=09006_T_Utilisation de l'assembleur: $1
+% Information message saying which assembler is being used.
 exec_e_error_while_assembling=09007_E_Erreur durant l'assemblage, code de sortie $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
 exec_e_cant_call_assembler=09008_E_Impossible d'appeler l'assembleur, erreur $1, utilisation d'un assembleur externe
+% An error occurred when calling an external assembler, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_assembling=09009_I_Assemblage de $1
+% An informational message stating which file is being assembled.
 exec_i_assembling_smart=09010_I_Assemblage avec édition intelligente des liens de $1
+% An informational message stating which file is being assembled using smartlinking.
 exec_w_objfile_not_found=09011_W_Objet $1 non trouvé, l'édition des liens peut échouer !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
@@ -1862,32 +1900,66 @@ exec_w_libfile_not_found=09012_W_Bibliothèque $1 non trouvée, l'édition des lien
 exec_e_error_while_linking=09013_E_Erreur durant l'édition des liens
 % Generic error while linking.
 exec_e_cant_call_linker=09014_E_Impossible d'appeler l'éditeur de liens, utilisation d'un éditeur de liens externe
+% An error occurred when calling an external linker, The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_i_linking=09015_I_Édition des liens de $1
+% An informational message, showing which program or library is being linked.
 exec_e_util_not_found=09016_E_Utilitaire $1 non trouvé, utilisation d'un éditeur de liens externe
+% An external tool was not found, the compiler will produce a script that
+% can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Utilisation de l'utilitaire $1
+% An informational message, showing which external program (usually a postprocessor) is being used.
 exec_e_exe_not_supported=09018_E_Création d'exécutables non supportée
+% Creating executable programs is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_e_dll_not_supported=09019_E_Création de bibliothèques dynamiques/partagées non supportée
+% Creating dynamically loadable libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Fermeture du script $1
+% Informational message showing when the external assembling an linking script is finished.
 exec_e_res_not_found=09021_E_Compilateur de ressource non trouvé, utilisation d'un compilateur externe
+% An external resource compiler was not found, the compiler will produce a script that
+% can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Compilation de la resource $1
+% An informational message, showing which resource is being compiled.
 exec_t_unit_not_static_linkable_switch_to_smart=09023_T_Édition statique des liens de l'unité $1 impossible, utilisation d'une édition intelligente des liens
+% Statical linking was requested, but a unit which is not statically linkable was used.
 exec_t_unit_not_smart_linkable_switch_to_static=09024_T_Édition intelligente des liens de l'unité $1 impossible, utilisation d'une édition de liens statique
+% Smart linking was requested, but a unit which is not smart-linkable was used.
 exec_t_unit_not_shared_linkable_switch_to_static=09025_T_Édition des liens partagée de l'unité $1 impossible, utilisation d'une édition de liens statique
+% Shared linking was requested, but a unit which is not shared-linkable  was used.
 exec_e_unit_not_smart_or_static_linkable=09026_E_Édition intelligente ou statique des liens de l'unité $1 impossible
+% Smart or static linking was requested, but a unit which cannot be used for either  was used.
 exec_e_unit_not_shared_or_static_linkable=09027_E_Édition des liens partagée ou statique de l'unité $1 impossible
+% Shared or static linking was requested, but a unit which cannot be used for either  was used.
 exec_d_resbin_params=09028_D_Exécution du compilateur de ressource "$1" avec "$2" comme ligne de commande
+% An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
 #
 # Executable information
 #
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
 execinfo_f_cant_process_executable=09128_F_Post-traitement de l'exécutable $1 impossible
+% Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Impossible d'ouvrir l'exécutable $1
+% Fatal error when the compiler cannot open the file for the executable.
 execinfo_x_codesize=09130_X_Taille du code: $1 octets
+% Informational message showing the size of the produced code section.
 execinfo_x_initdatasize=09131_X_Taille des données initialisées: $1 octets
+% Informational message showing the size of the initialized data section.
 execinfo_x_uninitdatasize=09132_X_Taille des données non-initialisées: $1 octets
+% Informational message showing the size of the uninitialized data section.
 execinfo_x_stackreserve=09133_X_Taille de pile réservée: $1 octets
+% Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Taille de pile validée: $1 octets
+% Informational message showing the stack size that the compiler committes for the executable.
+%\end{description}
+# EndOfTeX
 #
 # Unit loading
 #
@@ -1961,6 +2033,7 @@ unit_f_cant_find_ppu=10022_F_Impossible de trouver l'unité $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unité $1 non trouvée mais $2 existe
+% This error message is no longer used.
 unit_f_unit_name_error=10024_F_Unité $1 cherchée mais $2 trouvée
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
@@ -1974,6 +2047,8 @@ unit_u_load_unit=10027_U_Chargement à partir de $1 ($2) de l'unité $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_Recompilation de $1, la somme de contrôle est maintenant $2
+% The unit is recompiled because the checksum of a unit it depends on has 
+% changed.
 unit_u_recompile_source_found_alone=10029_U_Recompilation de $1, seul le source a été trouvé
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
@@ -2221,61 +2296,61 @@ option_help_pages=11025_[
 **0*_mettre + après un booléen pour activer l'option, - pour la désactiver
 **1a_conserve les fichiers assembleurs créés pendant la compilation
 **2al_liste le code source dans les fichiers assembleur
-XXX **2an_list node info in assembler file
-XXX *L2ap_use pipes instead of creating temporary assembler files
+**2an_liste les infos de noeud dans le fichier assembleur
+*L2ap_utilise des pipes au lieu de fichiers assembleur temporaires
 **2ar_liste les allocations de registres dans les fichiers assembleur
 **2at_liste les allocations de données temporaire dans la pile
 **1A<x>_format de sortie :
-XXX **2Adefault_use default assembler
+**2Adefault_utilise l'assembleur défini par défaut
 3*2Aas_fichier objet généré par GNU AS
 3*2Anasmcoff_fichier COFF (Go32v2) avec Nasm
 3*2Anasmelf_fichier ELF32 (Linux) avec Nasm
-XXX 3*2Anasmwin32_Win32 object file using Nasm
-XXX 3*2Anasmwdosx_Win32/WDOSX object file using Nasm
-XXX 3*2Awasm_obj file using Wasm (Watcom)
+3*2Anasmwin32_fichier objet Win32 utilisant Nasm
+3*2Anasmwdosx_fichier objet Win32/WDOSX utilisant Nasm
+3*2Awasm_fichier objet utilisant Wasm (Watcom)
 3*2Anasmobj_fichier OBJ avec Nasm
 3*2Amasm_fichier OBJ avec Masm (Microsoft)
 3*2Atasm_fichier OBJ avec Tasm (Borland)
-XXX 3*2Aelf_elf32 (Linux) using internal writer
+3*2Aelf_elf32 (Linux) utilisant le writer interne
 3*2Acoff_coff (Go32v2) using internal writer
 3*2Apecoff_pecoff (Win32) using internal writer
 4*2Aas_fichier objet généré par GNU AS
-XXX 6*2Aas_Unix o-file using GNU AS
-XXX 6*2Agas_GNU Motorola assembler
-XXX 6*2Amit_MIT Syntax (old GAS)
-XXX 6*2Amot_Standard Motorola assembler
-XXX A*2Aas_assemble using GNU AS
-XXX P*2Aas_assemble using GNU AS
-XXX S*2Aas_assemble using GNU AS
+6*2Aas_fichier .o Unix utilisant GNU AS
+6*2Agas_assembleur GNU Motorola
+6*2Amit_syntaxe MIT (anciennement GAS)
+6*2Amot_assembleur Motorola standard
+A*2Aas_assembler avec GNU AS
+P*2Aas_assembler avec GNU AS
+S*2Aas_assembler avec GNU AS
 **1b_génère les informations pour le browser
 **2bl_génère les informations locales également
 **1B_recompile toutes les unités
 **1C<x>_options de génération de code :
-XXX **2Cc<x>_set default calling convention to <x>
-**2CD_créer une librairie dynamique
-XXX **2Ce_Compilation with emulated floating point opcodes
-XXX **2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
-XXX **2Cg_Generate PIC code
+**2Cc<x>_définir les convention d'appel <x> par défaut
+**2CD_créer une bibliothèque dynamique
+**2Ce_compilation avec émulation des opérations à virgule flottante
+**2Cf<x>_sélectionner le jeu d'instructions FPU à utiliser, voir fpc -i pour les valeurs possibles
+**2Cg_Générer du code PIC
 **2Ch<n>_<n> taille du tas en bytes (entre 1023 et 67107840)
 **2Ci_IO-checking
 **2Cn_pas de linking
 **2Co_génère des tests d'overflow pour les opérations sur les entiers
-XXX **2Cp<x>_select instruction set, see fpc -i for possible values
-**2Cr_Controle d'intervalles
-XXX **2CR_verify object method call validity
+**2Cp<x>_sélectionner le jeu d'instructions, voir fpc -i pour les valeurs possibles
+**2Cr_controle d'intervalles
+**2CR_vérifier la validité de l'appel à la méthode d'objet
 **2Cs<n>_spécifie <n> comme taille de la pile
 **2Ct_test de débordement de pile
-XXX **2CX_create also smartlinked library
+**2CX_créer également une bibliothèque avec liens optimisés
 **1d<x>_définit le symbole <x>
 **1D_génère un fichier DEF
 **2Dd<x>_assigne la description à <x>
-XXX **2Dv<x>_set DLL version to <x>
+**2Dv<x>_affecter la version <x> à la DLL
 *O2Dw_application en mode protégé
 **1e<x>_définit le chemin vers l'exécutable
 **1E_comme -Cn
 **1F<x>_définit des chemins et noms de fichiers :
-XXX **2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
-XXX **2Fc<x>_sets input codepage to <x>
+**2Fa<x>[,y]_Pour un programme charger d'abord les unités <x> et [y] avant que uses ne soit analysé
+**2Fc<x>_Utiliser la page de codes <x> en entrée
 **2FD<x>_définit le répertoire où chercher les utilitaires de compilation
 **2Fe<x>_redirige les erreurs vers le fichier <x>
 **2FE<x>_répertoire pour les exe/unités : <x>
@@ -2287,17 +2362,17 @@ XXX **2Fc<x>_sets input codepage to <x>
 **2Fu<x>_ajoute <x> à la liste des répertoires pour unités
 **2FU<x>_définit le répertoire d'écriture des unités à <x>, en dépit de -FE
 *g1g<x>_génère des informations de débogage :
-XXX *g2gc_generate checks for pointers
+*g2gc_générer des contrôles pour les pointeurs
 *g2gd_utilise dbx
 *g2gg_utilise gsym
 *g2gh_use l'unité de tracage du tas
-XXX *g2gl_use line info unit to show more info for backtraces
-XXX *g2gv_generates programs traceable with valgrind
-XXX *g2gw_generate dwarf debugging info
+*g2gl_utiliser l'unité line info pour montrer plus de détails dans les traces
+*g2gv_générer des programmes traçables avec valgrind
+*g2gw_générer des infos de débogage au format dwarf
 **1i_information
 **2iD_donne la date du compilateur
 **2iV_donne la version du compilateur
-XXX **2iW_return full compiler version
+**2iW_retourner la version complète du compilateur
 **2iSO_donne l'OS du compilateur
 **2iSP_donne le processeur du compilateur
 **2iTO_donne l'OS cible
@@ -2305,17 +2380,17 @@ XXX **2iW_return full compiler version
 **1I<x>_ajoute <x> à la liste des répertoires pour fichiers inclus
 **1k<x>_transmet <x> au linker
 **1l_écrit le logo
-XXX **1M<x>_set language mode to <x>
-XXX **2Mfpc_free pascal dialect (default)
-XXX **2Mobjfpc_switch some Delphi 2 extensions on
-XXX **2Mdelphi_tries to be Delphi compatible
-XXX **2Mtp_tries to be TP/BP 7.0 compatible
-XXX **2Mgpc_tries to be gpc compatible
-XXX **2Mmacpas_tries to be compatible to the macintosh pascal dialects
+**1M<x>_utiliser le type de langage <x>
+**2Mfpc_dialecte Free Pascal (par défaut)
+**2Mobjfpc_activation de certaines extensions Delphi 2
+**2Mdelphi_essaye d'être compatible avec Delphi
+**2Mtp_essaye d'être compatible avec TP/BP 7.0
+**2Mgpc_essaye d'être compatible avec gpc
+**2Mmacpas_essaye d'être compatible avec les dialectes Pascal du Macintosh
 **1n_ne pas lire le fichier de configuration par défaut
 **1o<x>_change le nom de l'executable en <x>
 **1O<x>_optimisations :
-XXX 3*2Oa_<type>=<values> set alignment
+3*2Oa_définir l'alignement <type>=<values>
 3*2Og_génère du code compact
 3*2OG_génère du code rapide (defaut)
 3*2Or_garde certaines variables dans des registres
@@ -2330,41 +2405,41 @@ XXX 3*2Oa_<type>=<values> set alignment
 3*3Op4_définit Pentium 4 (tm) comme processeur cycle
 3*3Op5_définit Pentium M (tm) comme processeur cycle
 6*2Og_génère du code compact
-6*2OG_génère du code rapide (defaut)
-XXX 6*2Ox_optimize maximum (still BUGGY!!!)
-XXX 6*2O0_set target processor to a MC68000
-XXX 6*2O2_set target processor to a MC68020+
+6*2OG_génère du code rapide (par défaut)
+6*2Ox_optimiser au maximum (encore BOGUÉ !!!)
+6*2O0_définir le processeur cible MC68000
+6*2O2_définir le processeur cible MC68020+
 **1pg_génère du code pour profiler avec gprof (définit FPC_PROFILE)
 3*1R<x>_type lecture assembleur :
 3*2Ratt_lit l'assembleur AT&T
 3*2Rintel_lit l'assembleur Intel
 6*2RMOT_lire l'assembleur type motorola
 **1S<x>_options de syntaxe :
-XXX **2S2_same as -Mobjfpc
+**2S2_identique à -Mobjfpc
 **2Sa_include assertion code.
 **2Sc_autorise les operateurs type C (*=,+=,/= et -=)
-XXX **2Sd_same as -Mdelphi
-XXX **2Se<x>_error options. <x> is a combination of the following:
-XXX **3*_<n> : compiler stops after the <n> errors (default is 1)
-XXX **3*_w : compiler stops also after warnings
-XXX **3*_n : compiler stops also after notes
-XXX **3*_h : compiler stops also after hints
+**2Sd_identique à -Mdelphi
+**2Se<x>_erreur d'options. <x> est une combinaison de :
+**3*_<n> : le compilateur s'arrête après <n> erreurs (1 par défaut)
+**3*_w : le compilateur s'arrête également en cas d'avertissements
+**3*_n : le compilateur s'arrête également en cas de notes
+**3*_h : le compilateur s'arrête également en cas de suggestions
 **2Sg_autorise LABEL et GOTO
-**2Sh_Utilise les ansistrings
+**2Sh_utilise les ansistrings
 **2Si_supporte les INLINE type C++
-XXX **2SI<x>_set interface style to <x>
-XXX **3SIcom_COM compatible interface (default)
-XXX **3SIcorba_CORBA compatible interface
-XXX **2Sk_load fpcylix unit
+**2SI<x>_définir le style d'interface <x>
+**3SIcom_interface compatible COM (par défaut)
+**3SIcorba_interface compatible CORBA
+**2Sk_charger l'unité fpcylix
 **2Sm_support des macros comme C (global)
-XXX **2So_same as -Mtp
-XXX **2Sp_same as -Mgpc
+**2So_identique à -Mtp
+**2Sp_identique à -Mgpc
 **2Ss_les constructeurs doivent s'appeler init (et les destructeurs done)
 **2St_autorise "static" dans les objects
 **1s_n'appelle pas l'assembleur ni le linker
-XXX **2sh_Generate script to link on host
-XXX **2st_Generate script to link on target
-XXX **2sr_Skip register allocation phase (use with -alr)
+**2sh_générer un script à lier sur l'hôte
+**2st_générer un script à lier sur la cible
+**2sr_passer la phase d'allocation de registre (à utiliser avec -alr)
 **1T<x>_système d'expliotation cible:
 3*2Temx_OS/2 via EMX (et les extensions EMX/RSX)
 3*2Tfreebsd_FreeBSD
@@ -2376,7 +2451,7 @@ XXX **2sr_Skip register allocation phase (use with -alr)
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
-XXX 3*2Twatcom_Watcom compatible DOS extender
+3*2Twatcom_DOS extender compatible avec Watcom
 3*2Twdosx_WDOSX DOS extension
 3*2Twin32_Windows 32 Bits
 4*2Tlinux_Linux
@@ -2386,15 +2461,15 @@ XXX 3*2Twatcom_Watcom compatible DOS extender
 6*2Tmacos_Macintosh m68k
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
-XXX P*2Tdarwin_Darwin and MacOS X on PowerPC
-XXX P*2Tlinux_Linux on PowerPC
-XXX P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tdarwin_Darwin et MacOS X pour PowerPC
+P*2Tlinux_Linux pour PowerPC
+P*2Tmacos_MacOS (classique) pour PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_rend le symbole <x> non défini
 **1U_options d'unités :
 **2Un_ne pas vérifier le nom de l'unité
-XXX **2Ur_generate release unit files
+**2Ur_générer des fichiers d'unité distribuables
 **2Us_compiler en temps qu'unité système
 **1v<x>_donne des informations. <x> est une combination des lettres suivantes :
 **2*_e : montre les erreurs (défaut)   0 : ne montre rien (sauf les erreurs)
@@ -2404,33 +2479,33 @@ XXX **2Ur_generate release unit files
 **2*_i : montre des infos générales    d : informations de déboggage
 **2*_l : montre les numéros de lignes  r : mode compatibilité Rhide/GCC
 **2*_a : montre tout                   x : infos Executable (Win32 seulement)
-XXX **2*_b : Write file names messages with full path
-XXX **2*_v : write fpcdebug.txt with       p : Write tree.log with parse tree
-XXX **2*_    lots of debugging info
-XXX 3*1W<x>_Win32-like target options
-XXX 3*2WB_Create a relocatable image
-XXX 3*2WB<x>_Set Image base to Hexadecimal <x> value
-XXX 3*2WC_Specify console type application
-XXX 3*2WD_Use DEFFILE to export functions of DLL or EXE
-XXX 3*2WF_Specify full-screen type application (OS/2 only)
-XXX 3*2WG_Specify graphic type application
-XXX 3*2WN_Do not generate relocation code (necessary for debugging)
-XXX 3*2WR_Generate relocation code
-XXX P*2WC_Specify console type application (MacOS only)
-XXX P*2WG_Specify graphic type application (MacOS only)
-XXX P*2WT_Specify tool type application (MPW tool, MacOS only)
+**2*_b : montre le nom des fichiers avec chemin complet dans les messages
+**2*_v : écrit fpcdebug.txt avec       p : écrit tree.log avec arbre d'analyse
+**2*_    un maximum d'informations de débogage
+3*1W<x>_options pour cibles de type Win32
+3*2WB_créer une image relogeable
+3*2WB<x>_définir la base de l'Image à la valeur hexadecimale <x>
+3*2WC_générer une application console
+3*2WD_utiliser DEFFILE pour exporter les fonction de la DLL ou de l'EXE
+3*2WF_générer une application plein écran (OS/2 seulement)
+3*2WG_générer une application graphique
+3*2WN_ne pas générer de code relogeable (nécessaire pour le débogage)
+3*2WR_générer du code relogeable
+P*2WC_générer une application console (MacOS seulement)
+P*2WG_générer une application graphique (MacOS seulement)
+P*2WT_générer une application utilitaire (MPW tool, MacOS seulement)
 **1X_options pour executable :
-XXX **2Xc_pass --shared to the linker (Unix only)
-XXX **2Xd_don't use standard library search path (needed for cross compile)
+**2Xc_passer --shared à l'éditeur de liens (Unix seulement)
+**2Xd_ne pas utiliser le chemin de recherche des bibliothèques standard (nécessaire à la compilation pour une autre cible)
 **2XD_lien avec la librarie dynamique (définit FPC_LINK_DYNAMIC)
-XXX **2Xm_generate link map
-XXX **2XM<x>_set the name of the 'main' program routine (default is 'main')
-XXX **2XP<x>_prepend the binutils names with the prefix <x>
-XXX **2Xr<x>_set library search path to <x> (needed for cross compile)
+**2Xm_générer un fichier MAP
+**2XM<x>_définir le nom de la procédure 'main' ('main' par défaut)
+**2XP<x>_prepend the binutils names with the prefix <x>
+**2Xr<x>_définir <x> comme chemin de recherche des bibliothèques (nécessaire à la compilation pour une autre cible)
 **2Xs_enlêve tous les symboles de l'executable
 **2XS_lien avec les librairies statiques (définit FPC_LINK_STATIC)
-XXX **2Xt_link with static libraries (-static is passed to linker)
-XXX **2XX_try to link units smart            (defines FPC_LINK_SMART)
+**2Xt_lier avec des bibliothèques statiques (-static est passé à l'éditeur de liens)
+**2XX_essayer de lier les unités intelligemment (définit FPC_LINK_SMART)
 **1*_
 **1?_affiche cette aide
 **1h_affiche cette aide sans attente
