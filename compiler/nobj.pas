@@ -932,6 +932,10 @@ implementation
         else
           rawdata.concat(Tai_string.Create(curintf.iidstr^));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(tmplabel));
+        { EntryType }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(integer(curintf.iitype)));
+        { EntryOffset }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(integer(curintf.iioffset)));
       end;
 
 
@@ -1139,7 +1143,8 @@ implementation
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
-                  Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
+                  if _class.implementedinterfaces.interfaces(intfindex).iitype = etStandard then 
+                    Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
             def:=tdef(def.indexnext);
           end;
@@ -1209,11 +1214,10 @@ implementation
          vmtentry : pvmtentry;
          procdefcoll : pprocdefcoll;
          i : longint;
-         procname
+         procname : string;
 {$ifdef vtentry}
-         , hs
+         hs : string;
 {$endif vtentry}
-                     : string;
       begin
          { walk trough all numbers for virtual methods and search }
          { the method                                             }
