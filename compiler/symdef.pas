@@ -248,6 +248,7 @@ interface
           iidguid: pguid;
           iidstr: pstring;
           iitype: tinterfaceentrytype;
+          iioffset: longint;
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
           implementedinterfaces: timplementedinterfaces;
@@ -4262,6 +4263,7 @@ implementation
         else
           implementedinterfaces:=nil;
         writing_class_record_dbginfo:=false;
+        iitype := etStandard;
      end;
 
 
