@@ -221,6 +221,7 @@ implementation
          sc : TFPObjectList;
          paranr : word;
          i      : longint;
+         intfidx: longint;
          hreadparavs,
          hparavs      : tparavarsym;
          readprocdef,
@@ -599,8 +600,27 @@ implementation
            end;
            if pattern <> p.proptype.def.mangledparaname() then
            begin
-             writeln('Implements-property must implement interface of same type');
+             writeln('Implements-property must implement interface of correct type');
              Message1(sym_e_illegal_field, pattern);
+           end;
+           intfidx := 0;
+           with aclass.implementedinterfaces do
+           begin
+             for i := 1 to count do
+               if interfaces(i).objname^ = pattern then
+               begin
+                 intfidx := i;
+                 break;
+               end;
+             if intfidx > 0 then
+             begin
+               interfaces(intfidx).iitype := etFieldValue;
+               interfaces(intfidx).iioffset := tfieldvarsym(p.readaccess.firstsym^.sym).fieldoffset;
+             end else
+             begin
+               writeln('Implements-property used on unimplemented interface');
+               Message1(sym_e_illegal_field, pattern);
+             end;
            end;
          end;
                   
