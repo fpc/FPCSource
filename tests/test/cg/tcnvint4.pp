@@ -110,6 +110,11 @@ begin
      failed:=true;
 
 
+  u32bit := high(u32bit);
+  result_val := u32bit;
+  if trunc(result_val) <> high(u32bit) then
+     failed:=true;
+
   u32bit := RESULT_U32BIT;
   result_val := u32bit;
   if trunc(result_val) <> RESULT_U32BIT then

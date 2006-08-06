@@ -8,7 +8,7 @@
 { The .so of the library needs to be in the current dir when
   testing the loading at runtime }
 
-{$ifdef win32}
+{$ifdef mswindows}
  {$define supported}
  {$define supportidx}
 {$endif win32}

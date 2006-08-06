@@ -2,9 +2,9 @@
 
 { Test program to test linking to fpc library }
 
-{$ifdef win32}
+{$ifdef mswindows}
  {$define supported}
-{$endif win32}
+{$endif mswindows}
 {$ifdef Unix}
  {$define supported}
 {$endif Unix}
