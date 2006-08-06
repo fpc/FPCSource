@@ -251,6 +251,7 @@ function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
 procedure fpc_intf_incr_ref(i: pointer); compilerproc;
 procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
+procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID); compilerproc;
 function  fpc_intf_as(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 
