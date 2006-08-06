@@ -1,14 +1,11 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
+    Copyright (c) 2004-2006 by Karoly Balogh
 
-    System unit for MorphOS/PowerPC
+    System unit for AmigaOS 3.x/4.x
 
-    Uses parts of the Commodore Amiga/68k port by Carl Eric Codere
-    and Nils Sjoholm
-
-    MorphOS port was done on a free Pegasos II/G4 machine
-    provided by Genesi S.a.r.l. <www.genesi.lu>
+    Uses parts of the Free Pascal 1.0.x for Commodore Amiga/68k port
+    by Carl Eric Codere and Nils Sjoholm
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -52,15 +49,23 @@ const
 
 
 var
-  MOS_ExecBase   : Pointer; external name '_ExecBase';
-  MOS_DOSBase    : Pointer;
-  MOS_UtilityBase: Pointer;
+  AOS_ExecBase   : Pointer; external name '_ExecBase';
+  AOS_DOSBase    : Pointer;
+  AOS_UtilityBase: Pointer;
 
-  MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
-  MOS_origDir  : LongInt; { original directory on startup }
-  MOS_ambMsg   : Pointer;
-  MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
-  MOS_ConHandle: LongInt;
+{$IFDEF CPUPOWERPC}
+{$WARNING iExec, iDOS and iUtility should be typed pointer later}
+var
+  IExec : Pointer; external name '_IExec';
+  IDOS : Pointer;
+  IUtility : Pointer;
+{$ENDIF}
+
+  AOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
+  AOS_origDir  : LongInt; { original directory on startup }
+  AOS_wbMsg    : Pointer;
+  AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
+  AOS_ConHandle: LongInt;
 
   argc: LongInt;
   argv: PPChar;
@@ -88,7 +93,6 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
 begin
-{
   { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
@@ -98,18 +102,23 @@ begin
   end;
 
   { Closing opened files }
-  CloseList(MOS_fileList);
+  CloseList(AOS_fileList);
 
   { Changing back to original directory if changed }
-  if MOS_origDir<>0 then begin
-    CurrentDir(MOS_origDir);
+  if AOS_origDir<>0 then begin
+    CurrentDir(AOS_origDir);
   end;
 
-  if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
-  if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
-  if MOS_heapPool<>nil then DeletePool(MOS_heapPool);
+{$IFDEF AMIGAOS4}
+  if iDOS<>nil then DropInterface(iDOS);
+  if iUtility<>nil then DropInterface(iUtility);
+{$ENDIF}
+
+  if AOS_UtilityBase<>nil then CloseLibrary(AOS_UtilityBase);
+  if AOS_DOSBase<>nil then CloseLibrary(AOS_DOSBase);
+  if AOS_heapPool<>nil then DeletePool(AOS_heapPool);
+
   haltproc(ExitCode);
- }
 end;
 
 { Generates correct argument array on startup }
@@ -140,7 +149,7 @@ var
   temp : string;
 
 begin
-//  p:=GetArgStr;
+  p:=GetArgStr;
   argvlen:=0;
 
   { Set argv[0] }
@@ -150,12 +159,12 @@ begin
   argv[0][length(temp)]:=#0;
 
   { check if we're started from Ambient }
-  if MOS_ambMsg<>nil then
+  if AOS_wbMsg<>nil then
     begin
       argc:=0;
       exit;
     end;
-
+        
   { Handle the other args }
   count:=0;
   { first index is one }
@@ -173,7 +182,7 @@ begin
           inc(localindex);
         end;
     end;
-  argc:=localindex;
+  argc:=localindex;  
 end;
 
 function GetProgDir: String;
@@ -185,7 +194,7 @@ begin
   GetProgDir:='';
   FillChar(s1,255,#0);
   { GetLock of program directory }
- {
+
   alock:=GetProgramDir;
   if alock<>0 then begin
     if NameFromLock(alock,@s1[1],255) then begin
@@ -195,7 +204,6 @@ begin
       GetProgDir:=s1;
     end;
   end;
-  }
 end;
 
 function GetProgramName: String;
@@ -206,7 +214,7 @@ var
 begin
   GetProgramName:='';
   FillChar(s1,255,#0);
-{  
+  
   if GetProgramName(@s1[1],255) then begin
     { now check out and assign the length of the string }
     counter := 1;
@@ -221,7 +229,6 @@ begin
 
     GetProgramName:=copy(s1,counter,length(s1));
   end;
-}
 end;
 
 
@@ -232,7 +239,7 @@ end;
 { number of args }
 function paramcount : longint;
 begin
-  if MOS_ambMsg<>nil then
+  if AOS_wbMsg<>nil then
     paramcount:=0
   else
     paramcount:=argc-1;
@@ -244,7 +251,7 @@ var
   s1: String;
 begin
   paramstr:='';
-  if MOS_ambMsg<>nil then exit;
+  if AOS_wbMsg<>nil then exit;
 
   if l=0 then begin
     s1:=GetProgDir;
@@ -257,46 +264,50 @@ end;
 
 { set randseed to a new pseudo random value }
 procedure randomize;
-//var tmpTime: TDateStamp;
+var tmpTime: TDateStamp;
 begin
-//  DateStamp(@tmpTime);
-//  randseed:=tmpTime.ds_tick;
+  DateStamp(@tmpTime);
+  randseed:=tmpTime.ds_tick;
 end;
 
 
-{ MorphOS specific startup }
-procedure SysInitMorphOS;
-//var self: PProcess;
+{ AmigaOS specific startup }
+procedure SysInitAmigaOS;
+var self: PProcess;
 begin
-{
- self:=PProcess(FindTask(nil));
- if self^.pr_CLI=0 then begin
-   { if we're running from Ambient/Workbench, we catch its message }
-   WaitPort(@self^.pr_MsgPort);
-   MOS_ambMsg:=GetMsg(@self^.pr_MsgPort);
- end;
+  self:=PProcess(FindTask(nil));
+  if self^.pr_CLI=0 then begin
+    { if we're running from Ambient/Workbench, we catch its message }
+    WaitPort(@self^.pr_MsgPort);
+    AOS_wbMsg:=GetMsg(@self^.pr_MsgPort);
+  end;
 
- MOS_DOSBase:=OpenLibrary('dos.library',50);
- if MOS_DOSBase=nil then Halt(1);
- MOS_UtilityBase:=OpenLibrary('utility.library',50);
- if MOS_UtilityBase=nil then Halt(1);
+  AOS_DOSBase:=OpenLibrary('dos.library',50);
+  if AOS_DOSBase=nil then Halt(1);
+  AOS_UtilityBase:=OpenLibrary('utility.library',50);
+  if AOS_UtilityBase=nil then Halt(1);
 
- { Creating the memory pool for growing heap }
- MOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
- if MOS_heapPool=nil then Halt(1);
+{$IFDEF AMIGAOS4}
+  { Open main interfaces on OS4 }
+  iDOS := GetInterface(AOS_DOSBase,'main',1,nil);
+  iUtility := GetInterface(AOS_UtilityBase,'main',1,nil);
+{$ENDIF}
+ 
+  { Creating the memory pool for growing heap }
+  AOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+  if AOS_heapPool=nil then Halt(1);
 
- if MOS_ambMsg=nil then begin
-   StdInputHandle:=dosInput;
-   StdOutputHandle:=dosOutput;
- end else begin
-   MOS_ConHandle:=Open(MOS_ConName,MODE_OLDFILE);
-   if MOS_ConHandle<>0 then begin
-     StdInputHandle:=MOS_ConHandle;
-     StdOutputHandle:=MOS_ConHandle;
-   end else
-     Halt(1);
- end;
-}
+  if AOS_wbMsg=nil then begin
+    StdInputHandle:=dosInput;
+    StdOutputHandle:=dosOutput;
+  end else begin
+    AOS_ConHandle:=Open(AOS_ConName,MODE_OLDFILE);
+    if AOS_ConHandle<>0 then begin
+      StdInputHandle:=AOS_ConHandle;
+      StdOutputHandle:=AOS_ConHandle;
+    end else
+      Halt(1);
+  end;
 end;
 
 
@@ -306,16 +317,16 @@ begin
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 
-  { * MorphOS doesn't have a separate stderr, just like AmigaOS (???) * }
+  { * AmigaOS doesn't have a separate stderr * }
  
   StdErrorHandle:=StdOutputHandle;
-  // OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-  // OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
+  //OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  //OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
 end;
 
 function GetProcessID: SizeUInt;
 begin
-// GetProcessID:=SizeUInt(FindTask(NIL));
+  GetProcessID:=SizeUInt(FindTask(NIL));
 end;
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -331,11 +342,11 @@ begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
 { OS specific startup }
-  MOS_ambMsg:=nil;
-  MOS_origDir:=0;
-  MOS_fileList:=nil;
+  AOS_wbMsg:=nil;
+  AOS_origDir:=0;
+  AOS_fileList:=nil;
   envp:=nil;
-  SysInitMorphOS;
+  SysInitAmigaOS;
 { Set up signals handlers }
 //  InstallSignals;
 { Setup heap }

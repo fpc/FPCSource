@@ -100,7 +100,7 @@ _exit:
         blr
 
 
-        .section ".data"
+        .section .data
         .globl _data_start
 _data_start:
 

@@ -31,7 +31,7 @@ type
   end;
 
 var
-  MOS_fileList: PFileList; public name 'MOS_FILELIST'; { List pointer to opened files }
+  AOS_fileList: PFileList; public name 'AOS_FILELIST'; { List pointer to opened files }
 
 { Function to be called at program shutdown, to close all opened files }
 procedure CloseList(l: PFileList);
@@ -47,7 +47,7 @@ begin
     tmpHandle:=tmpNext^.handle;
     if (tmpHandle<>StdInputHandle) and (tmpHandle<>StdOutputHandle)
        and (tmpHandle<>StdErrorHandle) then begin
-//      dosClose(tmpHandle);
+      dosClose(tmpHandle);
     end;
     tmpNext:=tmpNext^.next;
   end;
@@ -132,7 +132,6 @@ function CheckInList(var l: PFileList; h: LongInt): pointer; alias: 'CHECKINLIST
 var
   p      : PFileList;
   inList : Pointer;
-  tmpList: PFileList;
   
 begin
   inList:=nil;
@@ -163,11 +162,11 @@ end;
 { close a file from the handle value }
 procedure do_close(handle : longint);
 begin
-  if RemoveFromList(MOS_fileList,handle) then begin
+  if RemoveFromList(AOS_fileList,handle) then begin
     { Do _NOT_ check CTRL_C on Close, because it will conflict
       with System_Exit! }
-//    if not dosClose(handle) then
-//      dosError2InOut(IoErr);
+    if not dosClose(handle) then
+      dosError2InOut(IoErr);
   end;
 end;
 
@@ -176,9 +175,9 @@ var
   tmpStr: array[0..255] of Char;
 begin
   tmpStr:=PathConv(strpas(p))+#0;
-//  checkCTRLC;
-//  if not dosDeleteFile(@tmpStr) then
-//    dosError2InOut(IoErr);
+  checkCTRLC;
+  if not dosDeleteFile(@tmpStr) then
+    dosError2InOut(IoErr);
 end;
 
 procedure do_rename(p1,p2 : pchar);
@@ -189,29 +188,29 @@ var
 begin
   tmpStr1:=PathConv(strpas(p1))+#0;
   tmpStr2:=PathConv(strpas(p2))+#0;
-//  checkCTRLC;
-//  if not dosRename(@tmpStr1,@tmpStr2) then
-//    dosError2InOut(IoErr);
+  checkCTRLC;
+  if not dosRename(@tmpStr1,@tmpStr2) then
+    dosError2InOut(IoErr);
 end;
 
 function do_write(h: longint; addr: pointer; len: longint) : longint;
 var dosResult: LongInt;
 begin
-//  checkCTRLC;
+  checkCTRLC;
   do_write:=0;
   if (len<=0) or (h<=0) then exit;
 
 {$IFDEF MOSFPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
-     (h=StdErrorHandle)) then CheckInList(MOS_fileList,h);
+     (h=StdErrorHandle)) then CheckInList(AOS_fileList,h);
 {$ENDIF}
 
-//  dosResult:=dosWrite(h,addr,len);
-//  if dosResult<0 then begin
-//    dosError2InOut(IoErr);
-//  end else begin
-//    do_write:=dosResult;
-//  end;
+  dosResult:=dosWrite(h,addr,len);
+  if dosResult<0 then begin
+    dosError2InOut(IoErr);
+  end else begin
+    do_write:=dosResult;
+  end;
 end;
 
 function do_read(h: longint; addr: pointer; len: longint) : longint;
@@ -223,75 +222,68 @@ begin
 
 {$IFDEF MOSFPC_FILEDEBUG}
   if not ((h=StdOutputHandle) or (h=StdInputHandle) or
-     (h=StdErrorHandle)) then CheckInList(MOS_fileList,h);
+     (h=StdErrorHandle)) then CheckInList(AOS_fileList,h);
 {$ENDIF}
-{
+
   dosResult:=dosRead(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(IoErr);
   end else begin
     do_read:=dosResult;
   end
- }
 end;
 
 function do_filepos(handle: longint) : longint;
 var dosResult: LongInt;
 begin
-//  checkCTRLC;
+  checkCTRLC;
   do_filepos:=-1;
-  if CheckInList(MOS_fileList,handle)<>nil then begin
+  if CheckInList(AOS_fileList,handle)<>nil then begin
 
-    { Seeking zero from OFFSET_CURRENT to find out where we are }
-{    
+    { Seeking zero from OFFSET_CURRENT to find out where we are }    
     dosResult:=dosSeek(handle,0,OFFSET_CURRENT);
     if dosResult<0 then begin
       dosError2InOut(IoErr);
     end else begin
       do_filepos:=dosResult;
     end;
-}
   end;
 end;
 
 procedure do_seek(handle, pos: longint);
 begin
-//  checkCTRLC;
-  if CheckInList(MOS_fileList,handle)<>nil then begin
+  checkCTRLC;
+  if CheckInList(AOS_fileList,handle)<>nil then begin
 
-    { Seeking from OFFSET_BEGINNING }
-{    
+    { Seeking from OFFSET_BEGINNING }  
     if dosSeek(handle,pos,OFFSET_BEGINNING)<0 then
       dosError2InOut(IoErr);
-}
   end;
 end;
 
 function do_seekend(handle: longint):longint;
 var dosResult: LongInt;
 begin
-//  checkCTRLC;
+  checkCTRLC;
   do_seekend:=-1;
-  if CheckInList(MOS_fileList,handle)<>nil then begin
+  if CheckInList(AOS_fileList,handle)<>nil then begin
 
     { Seeking to OFFSET_END }
-{
     dosResult:=dosSeek(handle,0,OFFSET_END);
     if dosResult<0 then begin
       dosError2InOut(IoErr);
     end else begin
       do_seekend:=dosResult;
     end;
-}
   end;
 end;
 
 function do_filesize(handle : longint) : longint;
 var currfilepos: longint;
 begin
-//  checkCTRLC;
+  checkCTRLC;
   do_filesize:=-1;
-  if CheckInList(MOS_fileList,handle)<>nil then begin
+  if CheckInList(AOS_fileList,handle)<>nil then begin
 
     currfilepos:=do_filepos(handle);
     { We have to do this twice, because seek returns the OLD position }
@@ -305,14 +297,12 @@ end;
 { truncate at a given position }
 procedure do_truncate(handle, pos: longint);
 begin
-//  checkCTRLC;
-  if CheckInList(MOS_fileList,handle)<>nil then begin
+  checkCTRLC;
+  if CheckInList(AOS_fileList,handle)<>nil then begin
 
     { Seeking from OFFSET_BEGINNING }
-{    
     if SetFileSize(handle,pos,OFFSET_BEGINNING)<0 then
       dosError2InOut(IoErr);
-}
   end;
 end;
 
@@ -349,7 +339,7 @@ begin
   { convert filemode to filerec modes }
   { READ/WRITE on existing file }
   { RESET/APPEND                }
-//  openflags:=MODE_OLDFILE;
+  openflags:=MODE_OLDFILE;
   case (flags and 3) of
     0 : filerec(f).mode:=fminput;
     1 : filerec(f).mode:=fmoutput;
@@ -357,7 +347,7 @@ begin
   end;
 
   { rewrite (create a new file) }
-//  if (flags and $1000)<>0 then openflags:=MODE_NEWFILE;
+  if (flags and $1000)<>0 then openflags:=MODE_NEWFILE;
 
   { empty name is special }
   if p[0]=#0 then begin
@@ -372,15 +362,15 @@ begin
     end;
     exit;
   end;
-{
+
   handle:=Open(@tmpStr,openflags);
   if handle=0 then begin
     dosError2InOut(IoErr);
   end else begin
-    AddToList(MOS_fileList,handle);
+    AddToList(AOS_fileList,handle);
     filerec(f).handle:=handle;
   end;
-}
+
   { append mode }
   if ((Flags and $100)<>0) and
       (FileRec(F).Handle<>UnusedHandle) then begin
@@ -397,4 +387,3 @@ begin
   else
     do_isdevice:=False;
 end;
-

@@ -15,28 +15,38 @@
 
  **********************************************************************}
 
+{ * Turn on AmigaOS4 mode on PowerPC * }
+{$IFDEF CPUPOWERPC}
+ {$DEFINE AMIGAOS4}
+{$ENDIF}
+
 {*****************************************************************************
-                           MorphOS structures
+                           AmigaOS structures
 *****************************************************************************}
 
-{include execd.inc}
-{include timerd.inc}
-{include doslibd.inc}
+{$include execd.inc}
+{$include timerd.inc}
+{$include doslibd.inc}
 
 
 {*****************************************************************************
-                           MorphOS functions
+                           AmigaOS functions
 *****************************************************************************}
 
 { exec.library functions }
 
-{include execf.inc}
-{include doslibf.inc}
+{$include execf.inc}
+{$include doslibf.inc}
+{$IFDEF AMIGAOS4}
+  // Required to allow opening of utility library interface...
+  {$include utilf.inc}
+{$ENDIF}
 
 
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
+
 
 const
   CTRL_C           = 20;      { Error code on CTRL-C press }
@@ -44,7 +54,6 @@ const
 { Used for CTRL_C checking in I/O calls }
 procedure checkCTRLC;
 begin
-{
   if BreakOn then begin
     if (SetSignal(0,0) And SIGBREAKF_CTRL_C)<>0 then begin
       { Clear CTRL-C signal }
@@ -52,15 +61,13 @@ begin
       Halt(CTRL_C);
     end;
   end;
- }
 end;
 
 
-{ Converts a MorphOS dos.library error code to a TP compatible error code }
+{ Converts a AmigaOS dos.library error code to a TP compatible error code }
 { Based on 1.0.x Amiga RTL }
 procedure dosError2InOut(errno: LongInt);
 begin
-{
   case errno of
     ERROR_BAD_NUMBER,
     ERROR_ACTION_NOT_KNOWN,
@@ -99,9 +106,8 @@ begin
     ERROR_BAD_STREAM_NAME,
     ERROR_FILE_NOT_OBJECT : InOutRes := 6;
    else
-    InOutres := errno;
+    InOutRes := errno;
   end;
-  }
 end;
 
 
@@ -139,7 +145,4 @@ begin
   end;
   PathConv:=path;
 end;
-
-
-
 

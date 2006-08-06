@@ -23,7 +23,6 @@ fpcpackage=y
 [default]
 fpcdir=../..
 target=amiga
-cpu=m68k
 
 [compiler]
 includedir=$(INC) $(PROCINC)
@@ -35,7 +34,7 @@ RTL=..
 INC=../inc
 PROCINC=../$(CPU_TARGET)
 PPUEXT=ppa
-ASMEXT=.asm
+ASMEXT=.s
 
 UNITPREFIX=rtl
 
