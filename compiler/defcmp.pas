@@ -590,7 +590,7 @@ implementation
                  the extra check for deftyp is needed because equal defs can also return
                  true if the def types are not the same, for example with dynarray to pointer. }
                if is_open_array(def_to) and
-                  (def_to.deftype=tarraydef(def_to).elementtype.def.deftype) and
+                  (def_from.deftype=tarraydef(def_to).elementtype.def.deftype) and
                   equal_defs(def_from,tarraydef(def_to).elementtype.def) then
                 begin
                   doconv:=tc_equal;
