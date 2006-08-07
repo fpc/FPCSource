@@ -1073,6 +1073,10 @@ parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a 
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
 parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs must be ordinal constants
+parser_e_array_range_out_of_bounds=03220_E_The range of the array is too large
+% Regardless of the size taken up by its elements, an array cannot have more
+% than high(ptrint) elements. Additionally, the range type must be a subrange
+% of ptrint.
 % \end{description}
 #
 # Type Checking

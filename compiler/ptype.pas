@@ -455,7 +455,7 @@ implementation
       procedure array_dec;
         var
           lowval,
-          highval   : aint;
+          highval   : TConstExprInt;
           arraytype : ttype;
           ht        : ttype;
 
@@ -538,7 +538,14 @@ implementation
                                  begin
                                    Message(parser_e_array_lower_less_than_upper_bound);
                                    highval:=lowval;
-                                 end;
+                                 end
+                                else if (lowval < low(aint)) or
+                                        (highval > high(aint)) then
+                                  begin
+                                    Message(parser_e_array_range_out_of_bounds);
+                                    lowval :=0;
+                                    highval:=0;
+                                  end;
                                 if is_integer(trangenode(pt).left.resulttype.def) then
                                   range_to_type(lowval,highval,arraytype)
                                 else
