@@ -197,13 +197,13 @@ implementation
            end
          else
            begin
-              i:=strcomp(p^.data.messageinf.str,at^.data.messageinf.str);
+              i:=CompareStr(p^.data.messageinf.str^,at^.data.messageinf.str^);
               if i<0 then
                 insertstr(p,at^.l,count)
               else if i>0 then
                 insertstr(p,at^.r,count)
               else
-                Message1(parser_e_duplicate_message_label,strpas(p^.data.messageinf.str));
+                Message1(parser_e_duplicate_message_label,p^.data.messageinf.str^);
            end;
       end;
 
@@ -263,10 +263,11 @@ implementation
            writenames(p^.l);
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(p^.nl));
-         len:=strlen(p^.data.messageinf.str);
+         len:=length(p^.data.messageinf.str^);
          current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
          getmem(ca,len+1);
-         move(p^.data.messageinf.str^,ca^,len+1);
+         move(p^.data.messageinf.str[1],ca^,len);
+         ca[len]:=#0;
          current_asmdata.asmlists[al_globals].concat(Tai_string.Create_pchar(ca,len));
          if assigned(p^.r) then
            writenames(p^.r);
@@ -1143,7 +1144,7 @@ implementation
                 if assigned(implprocdef) then
                   _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
                 else
-                  if _class.implementedinterfaces.interfaces(intfindex).iitype = etStandard then 
+                  if _class.implementedinterfaces.interfaces(intfindex).iitype = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
             def:=tdef(def.indexnext);
@@ -1241,10 +1242,10 @@ implementation
                             else
                               procname:=procdefcoll^.data.mangledname;
                             List.concat(Tai_const.createname(procname,0));
-{$ifdef vtentry}			    
+{$ifdef vtentry}
                             hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
                             current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
-{$endif vtentry}			    
+{$endif vtentry}
                             break;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -1369,7 +1370,7 @@ implementation
          current_asmdata.asmlists[al_globals].concat(Tai_const.create(aitconst_ptr,0));
          { write the size of the VMT }
          current_asmdata.asmlists[al_globals].concat(Tai_symbol_end.Createname(_class.vmt_mangledname));
-{$ifdef vtentry}	 
+{$ifdef vtentry}
          { write vtinherit symbol to notify the linker of the class inheritance tree }
          hs:='VTINHERIT'+'_'+_class.vmt_mangledname+'$$';
          if assigned(_class.childof) then
@@ -1377,7 +1378,7 @@ implementation
          else
            hs:=hs+_class.vmt_mangledname;
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
-{$endif vtentry}	 
+{$endif vtentry}
       end;
 
 

@@ -2105,7 +2105,7 @@ implementation
                        searchsym_in_class_by_msgint(classh,pd.messageinf.i,srsym,srsymtable)
                      else
                       if (po_msgstr in pd.procoptions) then
-                        searchsym_in_class_by_msgstr(classh,pd.messageinf.str,srsym,srsymtable)
+                        searchsym_in_class_by_msgstr(classh,pd.messageinf.str^,srsym,srsymtable)
                      else
                        searchsym_in_class(classh,current_procinfo.procdef._class,hs,srsym,srsymtable);
                    end

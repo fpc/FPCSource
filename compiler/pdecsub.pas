@@ -1300,7 +1300,7 @@ begin
   if pt.nodetype=stringconstn then
     begin
       include(pd.procoptions,po_msgstr);
-      tprocdef(pd).messageinf.str:=strnew(tstringconstnode(pt).value_str);
+      tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
     end
   else
    if is_constintnode(pt) then
@@ -1379,7 +1379,7 @@ begin
             begin
               tprocdef(pd).libsym:=sym;
               vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
-              pd.parast.insert(vs);                
+              pd.parast.insert(vs);
             end
           else
             Message(parser_e_32bitint_or_pointer_variable_expected);
@@ -1387,8 +1387,8 @@ begin
 
       (paramanager as tppcparamanager).create_funcretloc_info(pd,calleeside);
       (paramanager as tppcparamanager).create_funcretloc_info(pd,callerside);
-      
-      tprocdef(pd).extnumber:=get_intconst;      
+
+      tprocdef(pd).extnumber:=get_intconst;
     end else
 
    if target_info.system = system_powerpc_morphos then

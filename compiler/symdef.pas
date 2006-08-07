@@ -442,7 +442,7 @@ interface
 
        tmessageinf = record
          case integer of
-           0 : (str : pchar);
+           0 : (str : pstring);
            1 : (i : longint);
        end;
 
@@ -3200,6 +3200,10 @@ implementation
          else
            import_name:=nil;
          import_nr:=ppufile.getword;
+         if (po_msgint in procoptions) then
+           messageinf.i:=ppufile.getlongint;
+         if (po_msgstr in procoptions) then
+           messageinf.str:=stringdup(ppufile.getstring);
          { inline stuff }
          if (po_has_inlininginfo in procoptions) then
            begin
@@ -3279,7 +3283,7 @@ implementation
          stringdispose(import_dll);
          stringdispose(import_name);
          if (po_msgstr in procoptions) then
-           strdispose(messageinf.str);
+           stringdispose(messageinf.str);
          if assigned(_mangledname) then
           begin
 {$ifdef MEMDEBUG}
@@ -3331,6 +3335,10 @@ implementation
          if po_has_importname in procoptions then
            ppufile.putstring(import_name^);
          ppufile.putword(import_nr);
+         if (po_msgint in procoptions) then
+           ppufile.putlongint(messageinf.i);
+         if (po_msgstr in procoptions) then
+           ppufile.putstring(messageinf.str^);
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;

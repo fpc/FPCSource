@@ -1812,7 +1812,7 @@ implementation
                   be compatible with delphi, see tw6203 (PFV) }
                 if (def.deftype=procdef) and
                    (po_msgstr in tprocdef(def).procoptions) and
-                   (tprocdef(def).messageinf.str=s) then
+                   (tprocdef(def).messageinf.str^=s) then
                   begin
                     srsym:=tprocdef(def).procsym;
                     srsymtable:=classh.symtable;
