@@ -1388,7 +1388,7 @@ implementation
                                begin
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
-                                 searchsym_in_class(tobjectdef(htype.def),pattern,srsym,srsymtable);
+                                 searchsym_in_class(tobjectdef(htype.def),current_procinfo.procdef._class,pattern,srsym,srsymtable);
                                  if assigned(srsym) then
                                    check_hints(srsym,srsym.symoptions);
                                  consume(_ID);
@@ -1919,7 +1919,7 @@ implementation
                            if token=_ID then
                              begin
                                classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
-                               searchsym_in_class(classh,pattern,srsym,srsymtable);
+                               searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions);
@@ -1945,7 +1945,7 @@ implementation
                                store_static:=allow_only_static;
                                allow_only_static:=false;
                                classh:=tobjectdef(p1.resulttype.def);
-                               searchsym_in_class(classh,pattern,srsym,srsymtable);
+                               searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                allow_only_static:=store_static;
                                if assigned(srsym) then
                                  begin
@@ -2107,7 +2107,7 @@ implementation
                       if (po_msgstr in pd.procoptions) then
                         searchsym_in_class_by_msgstr(classh,pd.messageinf.str,srsym,srsymtable)
                      else
-                       searchsym_in_class(classh,hs,srsym,srsymtable);
+                       searchsym_in_class(classh,current_procinfo.procdef._class,hs,srsym,srsymtable);
                    end
                   else
                    begin
@@ -2115,7 +2115,7 @@ implementation
                      hsorg:=orgpattern;
                      consume(_ID);
                      anon_inherited:=false;
-                     searchsym_in_class(classh,hs,srsym,srsymtable);
+                     searchsym_in_class(classh,current_procinfo.procdef._class,hs,srsym,srsymtable);
                    end;
                   if assigned(srsym) then
                    begin
@@ -2148,7 +2148,7 @@ implementation
                         if (po_msgint in pd.procoptions) or
                            (po_msgstr in pd.procoptions) then
                           begin
-                            searchsym_in_class(classh,'DEFAULTHANDLER',srsym,srsymtable);
+                            searchsym_in_class(classh,classh,'DEFAULTHANDLER',srsym,srsymtable);
                             if not assigned(srsym) or
                                (srsym.typ<>procsym) then
                               internalerror(200303171);

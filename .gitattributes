@@ -6454,6 +6454,7 @@ tests/webtbf/tw4911.pp svneol=native#text/plain
 tests/webtbf/tw4913.pp -text
 tests/webtbf/tw6686.pp svneol=native#text/plain
 tests/webtbf/tw6796.pp svneol=native#text/plain
+tests/webtbf/tw6922.pp svneol=native#text/plain
 tests/webtbf/tw6970.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
 tests/webtbf/uw0840a.pp svneol=native#text/plain
@@ -6463,6 +6464,7 @@ tests/webtbf/uw2414.pp svneol=native#text/plain
 tests/webtbf/uw3450.pp svneol=native#text/plain
 tests/webtbf/uw3969.pp svneol=native#text/plain
 tests/webtbf/uw4103.pp svneol=native#text/plain
+tests/webtbf/uw6922.pp svneol=native#text/plain
 tests/webtbs/tu2002.pp svneol=native#text/plain
 tests/webtbs/tw0555.pp svneol=native#text/plain
 tests/webtbs/tw0630.pp svneol=native#text/plain

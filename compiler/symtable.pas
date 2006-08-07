@@ -211,7 +211,7 @@ interface
     function  searchsym(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_type(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_class(classh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  search_system_type(const s: stringid): ttypesym;
@@ -1738,34 +1738,23 @@ implementation
       end;
 
 
-    function searchsym_in_class(classh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
       var
         speedvalue : cardinal;
-        topclassh  : tobjectdef;
+        currentclassh : tobjectdef;
       begin
         result:=false;
         speedvalue:=getspeedvalue(s);
-        { when the class passed is defined in this unit we
-          need to use the scope of that class. This is a trick
-          that can be used to access protected members in other
-          units. At least kylix supports it this way (PFV) }
-        if assigned(classh) and
-           (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           classh.owner.iscurrentunit then
-          topclassh:=classh
+        if assigned(current_procinfo.procdef) then
+          currentclassh:=current_procinfo.procdef._class
         else
-          begin
-            if assigned(current_procinfo) then
-              topclassh:=current_procinfo.procdef._class
-            else
-              topclassh:=nil;
-          end;
+          currentclassh:=nil;
         while assigned(classh) do
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
             if assigned(srsym) and
-               tsym(srsym).is_visible_for_object(topclassh,current_procinfo.procdef._class) then
+               tsym(srsym).is_visible_for_object(contextclassh,currentclassh) then
               begin
                 result:=true;
                 exit;
