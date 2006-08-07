@@ -971,6 +971,8 @@ end;
     function TInternalLinker.RunLinkScript(const outputname:string):boolean;
       label
         myexit;
+      var
+        bsssize : aint;
       begin
         result:=false;
 
@@ -1016,6 +1018,13 @@ end;
 {$warning TODO fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
         status.datasize:=exeoutput.findexesection('.data').size;
+        bsssize:=exeoutput.findexesection('.bss').size;
+
+        { Executable info }
+        Message1(execinfo_x_codesize,tostr(status.codesize));
+        Message1(execinfo_x_initdatasize,tostr(status.datasize));
+        Message1(execinfo_x_uninitdatasize,tostr(bsssize));
+        Message1(execinfo_x_stackreserve,tostr(stacksize));
 
       myexit:
         { close map }
