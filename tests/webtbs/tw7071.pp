@@ -1,7 +1,7 @@
 {$mode objfpc}{$H+}
 
 uses
-  Classes, SysUtils, Pipes;
+  Classes, SysUtils;
 
 var
   err : boolean;
@@ -18,10 +18,10 @@ begin
 end;
 
 var
-  InputStream: TInputPipeStream;
+  InputStream: TMemoryStream;
 begin
   err:=true;
-  InputStream:=TInputPipeStream.Create(0);
+  InputStream:=TMemoryStream.Create;
   Proc(InputStream);
   if err then
     halt(1);
