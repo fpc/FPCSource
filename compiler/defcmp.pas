@@ -1248,7 +1248,7 @@ implementation
                else
                 { Just about everything can be converted to a formaldef...}
                 if not (def_from.deftype in [abstractdef,errordef]) then
-                  eq:=te_convert_l1;
+                  eq:=te_convert_l2;
              end;
         end;
 

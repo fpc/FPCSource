@@ -1326,8 +1326,9 @@ implementation
         case def_to.deftype of
           formaldef :
             begin
-              { all types can be passed to a formaldef }
-              eq:=te_equal;
+              { all types can be passed to a formaldef,
+                but it is not the prefered way }
+              eq:=te_convert_l2;
             end;
           orddef :
             begin
