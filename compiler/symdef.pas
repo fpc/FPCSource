@@ -549,7 +549,7 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-          function  is_visible_for_object(currobjdef:tobjectdef):boolean;
+          function  is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
        end;
 
        { single linked list of overloaded procs }
@@ -3454,15 +3454,23 @@ implementation
       end;
 
 
-    function tprocdef.is_visible_for_object(currobjdef:tobjectdef):boolean;
+    function tprocdef.is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
+      var
+        contextst : tsymtable;
       begin
-        is_visible_for_object:=false;
+        result:=false;
+
+        { Support passing a context in which module we are to find protected members }
+        if assigned(contextobjdef) then
+          contextst:=contextobjdef.owner
+        else
+          contextst:=nil;
 
         { private symbols are allowed when we are in the same
           module as they are defined }
         if (sp_private in symoptions) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           not(owner.defowner.owner.iscurrentunit) then
+           not(owner.defowner.owner.iscurrentunit or (owner.defowner.owner=contextst)) then
           exit;
 
         if (sp_strictprivate in symoptions) then
@@ -3485,7 +3493,7 @@ implementation
            (
             (
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             not(owner.defowner.owner.iscurrentunit)
+             not((owner.defowner.owner.iscurrentunit) or (owner.defowner.owner=contextst))
             ) and
             not(
                 assigned(currobjdef) and
@@ -3496,7 +3504,7 @@ implementation
            ) then
           exit;
 
-        is_visible_for_object:=true;
+        result:=true;
       end;
 
 

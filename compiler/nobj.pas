@@ -626,7 +626,7 @@ implementation
                    procdefs, because they can be reused in the next class.
                    The check to skip the invisible methods that are in the
                    list is futher down in the code }
-                 is_visible:=pd.is_visible_for_object(_class);
+                 is_visible:=pd.is_visible_for_object(_class,nil);
 
                  if pd.procsym=sym then
                   begin
@@ -796,7 +796,7 @@ implementation
         for i:=1 to Tprocsym(sym).procdef_count do
           begin
             pd:=Tprocsym(sym).procdef[i];
-            newdefentry(vmtentry,pd,pd.is_visible_for_object(_class));
+            newdefentry(vmtentry,pd,pd.is_visible_for_object(_class,nil));
           end;
       end;
 

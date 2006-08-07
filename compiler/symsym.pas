@@ -1047,7 +1047,7 @@ implementation
         while assigned(p) do
           begin
              if (p^.def.owner=owner) and
-                p^.def.is_visible_for_object(tobjectdef(currobjdef)) then
+                p^.def.is_visible_for_object(tobjectdef(currobjdef),tobjectdef(context)) then
                begin
                  result:=true;
                  exit;

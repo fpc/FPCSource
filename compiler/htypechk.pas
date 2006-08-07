@@ -1536,7 +1536,7 @@ implementation
 
             if isprop or ignorevis or
                (pd.owner.symtabletype<>objectsymtable) or
-               pd.is_visible_for_object(topclassh) then
+               pd.is_visible_for_object(topclassh,nil) then
              begin
                { we have at least one procedure that is visible }
                inc(FProcvisiblecnt);
@@ -1581,14 +1581,14 @@ implementation
                      { if this visible procedure doesn't have overload we can stop
                        searching }
                      if not(po_overload in srprocsym.first_procdef.procoptions) and
-                        srprocsym.first_procdef.is_visible_for_object(topclassh) then
+                        srprocsym.first_procdef.is_visible_for_object(topclassh,nil) then
                       break;
                      { process all overloaded definitions }
                      for j:=1 to srprocsym.procdef_count do
                       begin
                         pd:=srprocsym.procdef[j];
                         { only visible procedures need to be added }
-                        if pd.is_visible_for_object(topclassh) then
+                        if pd.is_visible_for_object(topclassh,nil) then
                           begin
                             { only when the # of parameter are supported by the
                               procedure }
