@@ -21,6 +21,7 @@ unit typinfo;
   interface
 
 {$MODE objfpc}
+{$inline on}
 {$h+}
 
   uses SysUtils;
@@ -310,13 +311,13 @@ type
   Auxiliary methods
   ---------------------------------------------------------------------}
 
-function aligntoptr(p : pointer) : pointer;
+function aligntoptr(p : pointer) : pointer;inline;
    begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-     if (ptruint(p) and (sizeof(ptruint)-1))<>0 then
-	  ptruint(p) := (ptruint(p) + sizeof(ptruint) - 1) and not (sizeof(ptruint) - 1);
+     result:=align(p,sizeof(p));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+     result:=p;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-     aligntoptr:=p;
    end;
 
 

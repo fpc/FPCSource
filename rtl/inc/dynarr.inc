@@ -28,10 +28,10 @@ type
 function aligntoptr(p : pointer) : pointer;inline;
   begin
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-    if (ptrint(p) mod sizeof(ptrint))<>0 then
-      inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=align(p,sizeof(p));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
     result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   end;
 
 
