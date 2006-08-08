@@ -1,0 +1,1 @@
+{$FATAL Not implemented for AmigaOS/m68k yet}
