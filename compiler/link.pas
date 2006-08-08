@@ -1107,7 +1107,15 @@ end;
             arfinishcmd : ''
           );
 
+      ar_gnu_gar_info : tarinfo =
+          ( id          : ar_gnu_gar;
+            arcmd       : 'gar qS $LIB $FILES';
+            arfinishcmd : 'gar s $LIB'
+          );
+
+
 initialization
   RegisterAr(ar_gnu_ar_info);
   RegisterAr(ar_gnu_ar_scripted_info);
+  RegisterAr(ar_gnu_gar_info);
 end.
