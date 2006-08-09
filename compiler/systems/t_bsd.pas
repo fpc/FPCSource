@@ -562,10 +562,7 @@ begin
         StaticStr:='-static';
     end;
   if (cs_link_strip in aktglobalswitches) then
-   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-     StripStr:='-s'
-   else
-     StripStr:='-x';
+    StripStr:='-s';
 
   if (cs_link_smart in aktglobalswitches) and
      (tf_smartlink_sections in target_info.flags) then
