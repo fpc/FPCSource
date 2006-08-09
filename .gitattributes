@@ -3964,6 +3964,7 @@ rtl/Makefile.fpc svneol=native#text/plain
 rtl/README -text
 rtl/amiga/Makefile svneol=native#text/plain
 rtl/amiga/Makefile.fpc svneol=native#text/plain
+rtl/amiga/classes.pp svneol=native#text/plain
 rtl/amiga/crt.pp svneol=native#text/plain
 rtl/amiga/dos.pp svneol=native#text/plain
 rtl/amiga/doslibd.inc svneol=native#text/plain
@@ -3980,6 +3981,8 @@ rtl/amiga/system.pp svneol=native#text/plain
 rtl/amiga/systhrd.inc svneol=native#text/plain
 rtl/amiga/sysutils.pp svneol=native#text/plain
 rtl/amiga/timerd.inc svneol=native#text/plain
+rtl/amiga/tthread.inc svneol=native#text/plain
+rtl/amiga/varutils.pp svneol=native#text/plain
 rtl/arm/arm.inc svneol=native#text/plain
 rtl/arm/int64p.inc svneol=native#text/plain
 rtl/arm/makefile.cpu -text
