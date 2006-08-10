@@ -1075,6 +1075,10 @@ parser_w_overridden_methods_not_same_ret=03218_W_המתודות החדשות חייבות להחזיר את
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
 parser_e_dispid_must_be_ord_const=03219_E_מזהה Dispatch חייב להיות קבוע בעל ערך סידורי
+parser_e_array_range_out_of_bounds=03220_E_הטווח של המערך גבוהה מידי
+% Regardless of the size taken up by its elements, an array cannot have more
+% than high(ptrint) elements. Additionally, the range type must be a subrange
+% of ptrint.
 % \end{description}
 #
 # Type Checking
@@ -1657,169 +1661,169 @@ asmr_e_local_label_not_allowed_as_ref=07016_E_סימולים/תוויות מקומיות אינם מורשים
 asmr_e_wrong_base_index=07017_E_שימוש שגוי בבסיס ואינדקס של אוגר
 % There is an error with the base and index register, they are
 % probably incorrect
-asmr_w_possible_object_field_bug=07018_W_Possible error in object field handling
+asmr_w_possible_object_field_bug=07018_W_יתכן כי יש שגיאה בטיפול השדות של אובייקט
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
-asmr_e_wrong_scale_factor=07019_E_Wrong scale factor specified
+asmr_e_wrong_scale_factor=07019_E_צויין טווח סולם שגוי
 % The scale factor given is wrong, only 1,2,4 and 8 are allowed
-asmr_e_multiple_index=07020_E_Multiple index register usage
+asmr_e_multiple_index=07020_E_שימוש מרובה באינקס האוגר
 % You are trying to use more than one index register
-asmr_e_invalid_operand_type=07021_E_Invalid operand type
+asmr_e_invalid_operand_type=07021_E_טיפוס אופרנד שגוי
 % The operand type doesn't match with the opcode used
-asmr_e_invalid_string_as_opcode_operand=07022_E_Invalid string as opcode operand: $1
+asmr_e_invalid_string_as_opcode_operand=07022_E_אשימוש במחרוזת כאופרנד opcode שגוי: $1 
 % The string specified as operand is not correct with this opcode
-asmr_w_CODE_and_DATA_not_supported=07023_W_@CODE and @DATA not supported
+asmr_w_CODE_and_DATA_not_supported=07023_W_השימוש ב@CODE ו@DATA לא נתמך
 % @CODE and @DATA are unsupported and are ignored.
-asmr_e_null_label_ref_not_allowed=07024_E_Null label references are not allowed
-asmr_e_expr_zero_divide=07025_E_Divide by zero in asm evaluator
+asmr_e_null_label_ref_not_allowed=07024_E_התייחסות לתווית ריקה אינה מורשת
+asmr_e_expr_zero_divide=07025_E_חילוק באפס בהערכת asm
 % There is a division by zero in a constant expression
-asmr_e_expr_illegal=07026_E_Illegal expression
+asmr_e_expr_illegal=07026_E_ביטוי לא חוקי
 % There is an illegal expression in a constant expression
-asmr_e_escape_seq_ignored=07027_E_escape sequence ignored: $1
+asmr_e_escape_seq_ignored=07027_E_מתעלם מרצף קידוד: $1
 % There is a C-styled string, but the escape sequence in the string
 % is unknown, and is therefore ignored
-asmr_e_invalid_symbol_ref=07028_E_Invalid symbol reference
-asmr_w_fwait_emu_prob=07029_W_Fwait can cause emulation problems with emu387
-asmr_w_fadd_to_faddp=07030_W_$1 without operand translated into $1P
-asmr_w_enter_not_supported_by_linux=07031_W_ENTER instruction is not supported by Linux kernel
+asmr_e_invalid_symbol_ref=07028_E_התייחסות סימול לא תקינה
+asmr_w_fwait_emu_prob=07029_W_FWAIT מסוגל לגרום לבעיות חיקוי בemu387
+asmr_w_fadd_to_faddp=07030_W_$1 ללא תרגום אופרנד ל$1P
+asmr_w_enter_not_supported_by_linux=07031_W_הוראת ENTER אינה נתמכת ע"י ליבת Linux
 % ENTER instruction can generate a stack page fault that is not
 % caught correctly by the i386 Linux page handler.
-asmr_w_calling_overload_func=07032_W_Calling an overload function in assembler
+asmr_w_calling_overload_func=07032_W_מבצע קריאה לפונקציה משוכתבת בassembler
 % There is a call to an overloaded method in the assembler block,
 % this might be the sign there is a problem
-asmr_e_unsupported_symbol_type=07033_E_Unsupported symbol type for operand
-asmr_e_constant_out_of_bounds=07034_E_Constant value out of bounds
-asmr_e_error_converting_decimal=07035_E_Error converting decimal $1
+asmr_e_unsupported_symbol_type=07033_E_טיפוס הסימול של האופרנד אינו נתמך
+asmr_e_constant_out_of_bounds=07034_E_תוכן הקבוע מחוץ לגבולות
+asmr_e_error_converting_decimal=07035_E_שגיאה בזמן המרה דצימלית $1
 % A constant decimal value does not have the correct syntax
-asmr_e_error_converting_octal=07036_E_Error converting octal $1
+asmr_e_error_converting_octal=07036_E_שגיאה בזמן המרה אוקטלית $1
 % A constant octal value does not have the correct syntax
-asmr_e_error_converting_binary=07037_E_Error converting binary $1
+asmr_e_error_converting_binary=07037_E_שגיאה בזמן המרה בינרית $1
 % A constant binary value does not have the correct syntax
-asmr_e_error_converting_hexadecimal=07038_E_Error converting hexadecimal $1
+asmr_e_error_converting_hexadecimal=07038_E_שגיאה בזמן המרה הקסה-דצימלית $1
 % A constant hexadecimal value does not have the correct syntax
-asmr_h_direct_global_to_mangled=07039_H_$1 translated to $2
-asmr_w_direct_global_is_overloaded_func=07040_W_$1 is associated to an overloaded function
-asmr_e_cannot_use_SELF_outside_a_method=07041_E_Cannot use SELF outside a method
+asmr_h_direct_global_to_mangled=07039_H_$1 תורגם ל $2
+asmr_w_direct_global_is_overloaded_func=07040_W_$1 משוייך לפונקציה משוכתבת
+asmr_e_cannot_use_SELF_outside_a_method=07041_E_לא ניתן להשתמש ב SELF מחוץ למתודה
 % There is a reference to the \var{self} symbol while it is not
 % allowed. \var{self} can only be referenced inside methods
-asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Cannot use OLDEBP outside a nested procedure
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_לא ניתן להשתמש ב OLDEBP מחוץ לפרוצדורה מקוננת
 % There is a reference to the \var{oldebp} symbol while it is not
 % allowed. \var{oldebp} can only be referenced inside nested routines
-asmr_e_void_function=07043_W_Procedures can't return any value in asm code
+asmr_e_void_function=07043_W_פרוצדורות אינם יכולים להחזיר ערך בתוך קוד assembly
 % Trying to return a value while in a procedure. A procedure
 % does not have any return value
-asmr_e_SEG_not_supported=07044_E_SEG not supported
-asmr_e_size_suffix_and_dest_dont_match=07045_E_Size suffix and destination or source size do not match
+asmr_e_SEG_not_supported=07044_E_SEG אינו נתמך
+asmr_e_size_suffix_and_dest_dont_match=07045_E_גודל סופי ויעד, או מקור הגודל אינם תואמים
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_w_size_suffix_and_dest_dont_match=07046_W_Size suffix and destination or source size do not match
+asmr_w_size_suffix_and_dest_dont_match=07046_W_גודל סופי ויעד, או מקור הגודל אינם תואמים
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_e_syntax_error=07047_E_Assembler syntax error
+asmr_e_syntax_error=07047_E_שגיאה בתחביר Assembler
 % There is an assembler syntax error
-asmr_e_invalid_opcode_and_operand=07048_E_Invalid combination of opcode and operands
+asmr_e_invalid_opcode_and_operand=07048_E_שילוב לא חוקי בין opcode ואופרנד
 % The opcode cannot be used with this type of operand
-asmr_e_syn_operand=07049_E_Assembler syntax error in operand
-asmr_e_syn_constant=07050_E_Assembler syntax error in constant
-asmr_e_invalid_string_expression=07051_E_Invalid String expression
-asmr_w_const32bit_for_address=07052_W_constant with symbol $1 for address which is not on a pointer
+asmr_e_syn_operand=07049_E_שגיאה בתחביר אופרנד בAssembler
+asmr_e_syn_constant=07050_E_שגיאה בתחביר קבוע בAssembler
+asmr_e_invalid_string_expression=07051_E_ביטוי מחרוזת לא תקין
+asmr_w_const32bit_for_address=07052_W_הקבוע בעל הסימול $1 לכתובת, הוא לא מצביע
 % A constant expression represents an address which does not fit
 % into a pointer. The address is probably incorrect
-asmr_e_unknown_opcode=07053_E_Unrecognized opcode $1
+asmr_e_unknown_opcode=07053_E_opcode $1 אינו מוכר
 % This opcode is not known
-asmr_e_invalid_or_missing_opcode=07054_E_Invalid or missing opcode
-asmr_e_invalid_prefix_and_opcode=07055_E_Invalid combination of prefix and opcode: $1
-asmr_e_invalid_override_and_opcode=07056_E_Invalid combination of override and opcode: $1
+asmr_e_invalid_or_missing_opcode=07054_E_opcode חסר או לא תקין
+asmr_e_invalid_prefix_and_opcode=07055_E_שילוב של תחילית וopcode לא תקין : $1
+asmr_e_invalid_override_and_opcode=07056_E_השילוב של שכתוב וopcode לא תקין: $1
 asmr_e_too_many_operands=07057_E_Too many operands on line
 % There are too many operands for this opcode. Check your
 % assembler syntax
-asmr_w_near_ignored=07058_W_NEAR ignored
-asmr_w_far_ignored=07059_W_FAR ignored
-asmr_e_dup_local_sym=07060_E_Duplicate local symbol $1
-asmr_e_unknown_local_sym=07061_E_Undefined local symbol $1
-asmr_e_unknown_label_identifier=07062_E_Unknown label identifier $1
-asmr_e_invalid_register=07063_E_Invalid register name
+asmr_w_near_ignored=07058_W_מתעלם מNEAR
+asmr_w_far_ignored=07059_W_מתעלם מ FAR
+asmr_e_dup_local_sym=07060_E_שיכפול של הסימול המקומי $1
+asmr_e_unknown_local_sym=07061_E_הסימול המקומי $1 אינו מוגדר
+asmr_e_unknown_label_identifier=07062_E_מזהה תווית $1 לא ידוע
+asmr_e_invalid_register=07063_E_שם אוגר שגוי
 % There is an unknown register name used as operand.
-asmr_e_invalid_fpu_register=07064_E_Invalid floating point register name
+asmr_e_invalid_fpu_register=07064_E_שם אוגר לנקודה צפה לא תקין
 % There is an unknown register name used as operand.
-asmr_w_modulo_not_supported=07066_W_Modulo not supported
-asmr_e_invalid_float_const=07067_E_Invalid floating point constant $1
+asmr_w_modulo_not_supported=07066_W_מודולו לא נתמך
+asmr_e_invalid_float_const=07067_E_קבוע של נקודה צפה לא תקין $1
 % The floating point constant declared in an assembler block is
 % invalid.
-asmr_e_invalid_float_expr=07068_E_Invalid floating point expression
+asmr_e_invalid_float_expr=07068_E_ביטוי לא תקין של נקודה צפה
 % The floating point expression declared in an assembler block is
 % invalid.
-asmr_e_wrong_sym_type=07069_E_Wrong symbol type
-asmr_e_cannot_index_relative_var=07070_E_Cannot index a local var or parameter with a register
+asmr_e_wrong_sym_type=07069_E_סוג סימול שגוי
+asmr_e_cannot_index_relative_var=07070_E_לא ניתן לשמור ציון של פרמטר או משתנה מקומי עם אוגר
 % Trying to index using a base register a symbol which is already relative
 % to a register. This is not possible, and will probably lead to crashes.
-asmr_e_invalid_seg_override=07071_E_Invalid segment override expression
-asmr_w_id_supposed_external=07072_W_Identifier $1 supposed external
+asmr_e_invalid_seg_override=07071_E_ביטוי המיקטע המשוכתב אינו תקין
+asmr_w_id_supposed_external=07072_W_המזהה $1 אינו נמצא, מניח שהמזהה חיצוני
 % There is a reference to an undefined symbol. This will not result
 % in an error, since the symbol might be external, but may cause
 % problems at link time if the symbol is not defined anywhere.
-asmr_e_string_not_allowed_as_const=07073_E_Strings not allowed as constants
+asmr_e_string_not_allowed_as_const=07073_E_המחרוזות אינן מורשות להיות קבועות
 % Character strings are not allowed as constants.
-asmr_e_no_var_type_specified=07074_No type of variable specified
+asmr_e_no_var_type_specified=07074_לא צויין טיפוס המשתנה
 % The syntax expects a type idenfitifer after the dot, but
 % none was found.
-asmr_w_assembler_code_not_returned_to_text=07075_E_assembler code not returned to text section
+asmr_w_assembler_code_not_returned_to_text=07075_E_קוד הassembler לא חזר לאיזור הטקסט
 % There was a directive in the assembler block to change sections,
 % but there is a missing return to the text section at the end
 % of the assembler block. This might cause errors during link time.
-asmr_e_not_directive_or_local_symbol=07076_E_Not a directive or local symbol $1
+asmr_e_not_directive_or_local_symbol=07076_E_$1 הוא לא הנחיה או סימול מקומי
 % This symbol is unknown.
-asmr_w_using_defined_as_local=07077_E_Using a defined name as a local label
-asmr_e_dollar_without_identifier=07078_E_Dollar token is used without an identifier
+asmr_w_using_defined_as_local=07077_E_משתמש בהגדרת השם כתווית מקומית
+asmr_e_dollar_without_identifier=07078_E_השימוש בתו הדולר מתבצע ללא מזהה
 % A constant expression has an identifier which does not start with
 % the $ symbol.
-asmr_w_32bit_const_for_address=07079_W_32bit constant created for address
+asmr_w_32bit_const_for_address=07079_W_מספק כתובת של 32 סיביות לקבוע
 % A constant was used as an address. This is probably an error,
 % since using absolute addresses will probably not work.
-asmr_n_align_is_target_specific=07080_N_.align is target specific, use .balign or .p2align
+asmr_n_align_is_target_specific=07080_N_השימוש ב.align מבוסס על סוג יעד, השתמש ב.balign או .p2align
 % Using the .align directive is platform specific, and its meaning will vary
 % from one platform to another.
-asmr_e_cannot_access_field_directly_for_parameters=07081_E_Can't access fields directly for parameters
+asmr_e_cannot_access_field_directly_for_parameters=07081_E_לא ניתן להשתמש בצורה ישירה בשדות של פרמטרים
 % You should load the parameter first into a register and then access the
 % fields using that register.
-asmr_e_cannot_access_object_field_directly=07082_E_Can't access fields of objects/classes directly
+asmr_e_cannot_access_object_field_directly=07082_E_לא ניתן לגשת בצורה ישירה לשדות של אובייקטים/מחלקות
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-asmr_e_unable_to_determine_reference_size=07083_E_No size specified and unable to determine the size of the operands
+asmr_e_unable_to_determine_reference_size=07083_E_לא ניתן לקבוע את גודל האופרנדים ללא ציון של הגודל
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
-asmr_e_cannot_use_RESULT_here=07084_E_Cannot use RESULT in this function
+asmr_e_cannot_use_RESULT_here=07084_E_לא ניתן להשתמש בRESULT בפונקציה הנוכחית
 % Some functions which return complex types cannot use the \var{result}
 % keyword.
-asmr_w_adding_explicit_args_fXX=07086_W_"$1" without operand translated into "$1 %st,%st(1)"
-asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" translated into "$1 %st,%st(n)"
-asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" translated into "$1 %st(n),%st"
-asmr_e_invalid_char_smaller=07089_E_Char < not allowed here
+asmr_w_adding_explicit_args_fXX=07086_W_"$1" ללא תרגום של אופרנדים ל "$1 %st,%st(1)"
+asmr_w_adding_explicit_first_arg_fXX=07087_W_"$1 %st(n)" תורגם ל "$1 %st,%st(n)"
+asmr_w_adding_explicit_second_arg_fXX=07088_W_"$1 %st(n)" תורגם ל "$1 %st(n),%st"
+asmr_e_invalid_char_smaller=07089_E_התו > אינו מורשה כאן
 % The shift operator requires the << characters. Only one
 % of those characters was found.
-asmr_e_invalid_char_greater=07090_E_Char > not allowed here
+asmr_e_invalid_char_greater=07090_E_התו < אינו מורשה כאן
 % The shift operator requires the >> characters. Only one
 % of those characters was found.
-asmr_w_align_not_supported=07093_W_ALIGN not supported
-asmr_e_no_inc_and_dec_together=07094_E_Inc and Dec cannot be together
+asmr_w_align_not_supported=07093_W_ALIGN אינו נתמך
+asmr_e_no_inc_and_dec_together=07094_E_השימוש INC ו DEC אינם יכולים להגיע בייחד
 % Trying to use an increment and a decrement within the same
 % opcode on the 680x0. This is impossible.
-asmr_e_invalid_reg_list_in_movem=07095_E_Invalid reglist for movem
+asmr_e_invalid_reg_list_in_movem=07095_E_שימוש בreglist ל movem לא תקין
 % Trying to use the \var{movem} opcode with invalid registers
 % to save or restore.
-asmr_e_invalid_reg_list_for_opcode=07096_E_Reglist invalid for opcode
-asmr_e_higher_cpu_mode_required=07097_E_Higher cpu mode required ($1)
+asmr_e_invalid_reg_list_for_opcode=07096_E_שימוש שגוי בreglist לopcode
+asmr_e_higher_cpu_mode_required=07097_E_זקוק למצב מעבד גבוהה יותר ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_No size specified and unable to determine the size of the operands, using DWORD as default
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_לא צויין גודל של אופרנד ולא ניתן לנחש את הגודל, משתמש בDWORD כברירת מחדל
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
-asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shifter operand
+asmr_e_illegal_shifterop_syntax=07099_E_שגיאת תחביר בעת ניסיון לפרש הסטת אופרנד
 % ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
 % a valid shifter operand. Example for an operation with shifter operand:
 % \begin{verbatim}
@@ -1832,31 +1836,31 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shi
 #
 # 08018 is the last used one
 #
-asmw_f_too_many_asm_files=08000_F_Too many assembler files
+asmw_f_too_many_asm_files=08000_F_יותר מידי קבצי assembler
 % With smartlinking enabled, there are too many assembler
 % files generated. Disable smartlinking.
-asmw_f_assembler_output_not_supported=08001_F_Selected assembler output not supported
-asmw_f_comp_not_supported=08002_F_Comp not supported
-asmw_f_direct_not_supported=08003_F_Direct not support for binary writers
+asmw_f_assembler_output_not_supported=08001_F_סוג הפלט של הassembler אינו נתמך
+asmw_f_comp_not_supported=08002_F_Comp אינו נתמך
+asmw_f_direct_not_supported=08003_F_מצב ישיר של assembler אינו נתמך ע"י כותבים בינאריים
 % Direct assembler mode is not supported for binary writers.
-asmw_e_alloc_data_only_in_bss=08004_E_Allocating of data is only allowed in bss section
-asmw_f_no_binary_writer_selected=08005_F_No binary writer selected
-asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 not in table
-asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 invalid combination of opcode and operands
-asmw_e_16bit_not_supported=08008_E_Asm: 16 Bit references not supported
-asmw_e_invalid_effective_address=08009_E_Asm: Invalid effective address
-asmw_e_immediate_or_reference_expected=08010_E_Asm: Immediate or reference expected
-asmw_e_value_exceeds_bounds=08011_E_Asm: $1 value exceeds bounds $2
-asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump is out of range $1
-asmw_e_undefined_label=08013_E_Asm: Undefined label $1
-asmw_e_comp_not_supported=08014_E_Asm: Comp type not supported for this target
-asmw_e_extended_not_supported=08015_E_Asm: Extended type not supported for this target
-asmw_e_duplicate_label=08016_E_Asm: Duplicate label $1
-asmw_e_redefined_label=08017_E_Asm: Redefined label $1
-asmw_e_first_defined_label=08018_E_Asm: First defined here
-asmw_e_invalid_register=08019_E_Asm: Invalid register $1
-asmw_e_16bit_32bit_not_supported=08020_E_Asm: 16 or 32 Bit references not supported
-asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
+asmw_e_alloc_data_only_in_bss=08004_E_אתחול המידע מורשה רק בחלק הbss
+asmw_f_no_binary_writer_selected=08005_F_לא נבחר כותב בינארי
+asmw_e_opcode_not_in_table=08006_E_Asm: Opcode $1 הוא לא טבלה
+asmw_e_invalid_opcode_and_operands=08007_E_Asm: $1 הינו שילוב שגוי בין opcode לבין אופרנד
+asmw_e_16bit_not_supported=08008_E_Asm: התייחסות של 16 סיביות אינו נתמך
+asmw_e_invalid_effective_address=08009_E_Asm: מען בפעול לא תקין
+asmw_e_immediate_or_reference_expected=08010_E_Asm: מצפה להתייחסות לאופרנד או אופרנד מידי
+asmw_e_value_exceeds_bounds=08011_E_Asm: $1 גולש מהגבולות $2
+asmw_e_short_jmp_out_of_range=08012_E_Asm: Short jump מחוץ לטווח $1
+asmw_e_undefined_label=08013_E_Asm: תווית לא מוגדרת $1
+asmw_e_comp_not_supported=08014_E_Asm: הטיפוס COMP לא נתמך ביעד המבוקש
+asmw_e_extended_not_supported=08015_E_Asm: הטיפוס Extended אינו נתמך ביעד המבוקש
+asmw_e_duplicate_label=08016_E_Asm: תוויות כפולה $1
+asmw_e_redefined_label=08017_E_Asm: מגדיר מחדש את התווית $1
+asmw_e_first_defined_label=08018_E_Asm: מוגדר כאן לראשונה
+asmw_e_invalid_register=08019_E_Asm: אוגר שגוי $1
+asmw_e_16bit_32bit_not_supported=08020_E_Asm: ההתייחסות ל16 או 32 סיביות אינה נתמכת
+asmw_e_64bit_not_supported=08021_E_Asm: האופרנט 64 סיביות אינו נתמך
 
 #
 # Executing linker/assembler
@@ -1869,77 +1873,77 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit operands not supported
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-exec_w_source_os_redefined=09000_W_Source operating system redefined
+exec_w_source_os_redefined=09000_W_מקור מערכת ההפעלה מוגדר מחדש
 % The source operating system is redefined.
-exec_i_assembling_pipe=09001_I_Assembling (pipe) $1
+exec_i_assembling_pipe=09001_I_מרכיב (צינור) $1
 % Assembling using a pipe to an external assembler.
-exec_d_cant_create_asmfile=09002_E_Can't create assembler file: $1
+exec_d_cant_create_asmfile=09002_E_לא ניתן ליצור את קובץ הassembler $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
-exec_e_cant_create_objectfile=09003_E_Can't create object file: $1
+exec_e_cant_create_objectfile=09003_E_לא ניתן ליצור את קובץ אובייקט $1
 % The mentioned file can't be created. Check if you've
 % got access permissions to create this file
-exec_e_cant_create_archivefile=09004_E_Can't create archive file: $1
+exec_e_cant_create_archivefile=09004_E_לא ניתן ליצור את קובץ הארכיון $1
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
-exec_e_assembler_not_found=09005_E_Assembler $1 not found, switching to external assembling
+exec_e_assembler_not_found=09005_E_המקשר $1 אינו נמצא, עובר למאסף חיצוני
 % The assembler program was not found. The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_t_using_assembler=09006_T_Using assembler: $1
+exec_t_using_assembler=09006_T_משתמש במאסף: $1
 % Information message saying which assembler is being used.
-exec_e_error_while_assembling=09007_E_Error while assembling exitcode $1
+exec_e_error_while_assembling=09007_E_שגיאה בזמן איסוף קוד יציאה $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
-exec_e_cant_call_assembler=09008_E_Can't call the assembler, error $1 switching to external assembling
+exec_e_cant_call_assembler=09008_E_לא ניתן להריץ את המאסף, שגיאה $1, מריץ מאסף חיצוני
 % An error occurred when calling an external assembler, The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_i_assembling=09009_I_Assembling $1
+exec_i_assembling=09009_I_מקשר $1
 % An informational message stating which file is being assembled.
-exec_i_assembling_smart=09010_I_Assembling with smartlinking $1
+exec_i_assembling_smart=09010_I_אוסף עם smartlinking $1
 % An informational message stating which file is being assembled using smartlinking.
-exec_w_objfile_not_found=09011_W_Object $1 not found, Linking may fail !
+exec_w_objfile_not_found=09011_W_האובייקט $1 לא נמצא, נראה שהאיסוף יכשל !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
-exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
+exec_w_libfile_not_found=09012_W_הספרייה $1 לא נמצאה, נראה שהאיסוף יכשל !
 % One of the library file is missing, and linking will probably fail.
 % Check your paths.
-exec_e_error_while_linking=09013_E_Error while linking
+exec_e_error_while_linking=09013_E_שגיאה בזמן קישור
 % Generic error while linking.
-exec_e_cant_call_linker=09014_E_Can't call the linker, switching to external linking
+exec_e_cant_call_linker=09014_E_לא ניתן להריץ את המקשר, עובר למקשר חיצוני
 % An error occurred when calling an external linker, The compiler will produce a script that
 % can be used to assemble and link the program.
-exec_i_linking=09015_I_Linking $1
+exec_i_linking=09015_I_מקשר $1
 % An informational message, showing which program or library is being linked.
-exec_e_util_not_found=09016_E_Util $1 not found, switching to external linking
+exec_e_util_not_found=09016_E_הכלי $1 לא נמצא, עובר למקשר חיצוני
 % An external tool was not found, the compiler will produce a script that
 % can be used to assemble and link or postprocess the program.
-exec_t_using_util=09017_T_Using util $1
+exec_t_using_util=09017_T_משתמש בכלי $1
 % An informational message, showing which external program (usually a postprocessor) is being used.
-exec_e_exe_not_supported=09018_E_Creation of Executables not supported
+exec_e_exe_not_supported=09018_E_אין תמיכה ביצירת קבצי ריצה
 % Creating executable programs is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_e_dll_not_supported=09019_E_Creation of Dynamic/Shared Libraries not supported
+exec_e_dll_not_supported=09019_E_אין תמיכה ביצירת ספריות דינמיות/משותפות
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_i_closing_script=09020_I_Closing script $1
+exec_i_closing_script=09020_I_סוגר את התסריט $1
 % Informational message showing when the external assembling an linking script is finished.
-exec_e_res_not_found=09021_E_resource compiler not found, switching to external mode
+exec_e_res_not_found=09021_E_מהדר משאבים לא נמצא, עובר למצב חיצוני
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
-exec_i_compilingresource=09022_I_Compiling resource $1
+exec_i_compilingresource=09022_I_מהדר את המשאב $1
 % An informational message, showing which resource is being compiled.
-exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 can't be statically linked, switching to smart linking
+exec_t_unit_not_static_linkable_switch_to_smart=09023_T_לא ניתן לקשר את היחידה $1 בצורה סטטית, עובר לקישור חכם
 % Statical linking was requested, but a unit which is not statically linkable was used.
-exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 can't be smart linked, switching to static linking
+exec_t_unit_not_smart_linkable_switch_to_static=09024_T_לא ניתן לקשר בצורה חכמה את היחידה $1, עובר לקישור סטטי
 % Smart linking was requested, but a unit which is not smart-linkable was used.
-exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 can't be shared linked, switching to static linking
+exec_t_unit_not_shared_linkable_switch_to_static=09025_T_לא ניתן לקשר את היחידה $1 בקישור משותף, עובר לקישור סטטי
 % Shared linking was requested, but a unit which is not shared-linkable  was used.
-exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 can't be smart or static linked
+exec_e_unit_not_smart_or_static_linkable=09026_E_לא ניתן לקשר את היחידה $1 בקישור חכם או בקישור סטטי
 % Smart or static linking was requested, but a unit which cannot be used for either  was used.
-exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 can't be shared or static linked
+exec_e_unit_not_shared_or_static_linkable=09027_E_לא ניתן לקשר את היחידה $1 בקישור משותף או סטטי
 % Shared or static linking was requested, but a unit which cannot be used for either  was used.
-exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command line
+exec_d_resbin_params=09028_D_מריץ את מהדר המשאבים "$1" עם "$2" בתור שורת פקודה
 % An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
@@ -1952,20 +1956,20 @@ exec_d_resbin_params=09028_D_Calling resource compiler "$1" with "$2" as command
 % This section lists all messages that the compiler emits when an executable program is produced,
 % and only when the internal linker is used.
 % \begin{description}
-execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
+execinfo_f_cant_process_executable=09128_F_לא מצליח לבצע מעבר סופי על קובץ ההרצה $1
 % Fatal error when the compiler is unable to post-process an executable.
-execinfo_f_cant_open_executable=09129_F_Can't open executable $1
+execinfo_f_cant_open_executable=09129_F_לא מצליח לפתוח את קובץ הריצה $1
 % Fatal error when the compiler cannot open the file for the executable.
-execinfo_x_codesize=09130_X_Size of Code: $1 bytes
+execinfo_x_codesize=09130_X_גודל הקוד: $1 בתים
 % Informational message showing the size of the produced code section.
-execinfo_x_initdatasize=09131_X_Size of initialized data: $1 bytes
+execinfo_x_initdatasize=09131_X_הגודל של מידע מאותחל: $1 בתים
 % Informational message showing the size of the initialized data section.
-execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
+execinfo_x_uninitdatasize=09132_X_מידע של מידע לא מאותחל: $1 בתים
 % Informational message showing the size of the uninitialized data section.
-execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
+execinfo_x_stackreserve=09133_X_גודל המחסנית השמורה: $1 בתים
 % Informational message showing the stack size that the compiler reserved for the executable.
-execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
-% Informational message showing the stack size that the compiler committes for the executable.
+execinfo_x_stackcommit=09134_X_גודל המחסנית בשימוש: $1 בתים
+% Informational message showing the stack size that the compiler commites for the executable.
 %\end{description}
 # EndOfTeX
 
@@ -1980,187 +1984,187 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % loading a unit from disk into memory. Many of these messages are
 % informational messages.
 % \begin{description}
-unit_t_unitsearch=10000_T_Unitsearch: $1
+unit_t_unitsearch=10000_T_מחפש את היחידה: $1
 % When you use the \var{-vt}, the compiler tells you where it tries to find
 % unit files.
-unit_t_ppu_loading=10001_T_PPU Loading $1
+unit_t_ppu_loading=10001_T_טוען את קובץ ה PPU $1
 % When the \var{-vt} switch is used, the compiler tells you
 % what units it loads.
-unit_u_ppu_name=10002_U_PPU Name: $1
+unit_u_ppu_name=10002_U_שם ה PPU: $1
 % When you use the \var{-vu} flag, the unit name is shown.
-unit_u_ppu_flags=10003_U_PPU Flags: $1
+unit_u_ppu_flags=10003_U_דגלי PPU: $1
 % When you use the \var{-vu} flag, the unit flags are shown.
 unit_u_ppu_crc=10004_U_PPU Crc: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
-unit_u_ppu_time=10005_U_PPU Time: $1
+unit_u_ppu_time=10005_U_זמן PPU: $1
 % When you use the \var{-vu} flag, the time the unit was compiled is shown.
-unit_u_ppu_file_too_short=10006_U_PPU File too short
+unit_u_ppu_file_too_short=10006_U_קובץ הPPU קצר מידי
 % The ppufile is too short, not all declarations are present.
-unit_u_ppu_invalid_header=10007_U_PPU Invalid Header (no PPU at the begin)
+unit_u_ppu_invalid_header=10007_U_הראש של קובץ ה PPU אינו תקין (הקובץ אינו מכיל PPU בהתחלה)
 % A unit file contains as the first three bytes the ascii codes of \var{PPU}
-unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1
+unit_u_ppu_invalid_version=10008_U_גרסה לא תקינה של הPPU $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU is compiled for another processor
+unit_u_ppu_invalid_processor=10009_U_קובץ הPPU הודר למעבד אחר
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
+unit_u_ppu_invalid_target=10010_U_קובץ הPPU הודר למטרה אחרת
 % This unit file was compiled for a different target, and
 % cannot be read
-unit_u_ppu_source=10011_U_PPU Source: $1
+unit_u_ppu_source=10011_U_מקור הPPU: $1
 % When you use the \var{-vu} flag, the unit source file name is shown.
-unit_u_ppu_write=10012_U_Writing $1
+unit_u_ppu_write=10012_U_כותב $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
-unit_f_ppu_cannot_write=10013_F_Can't Write PPU-File
+unit_f_ppu_cannot_write=10013_F_לא כותב את קובץ ה PPU
 % An error occurred when writing the unit file.
-unit_f_ppu_read_error=10014_F_Error reading PPU-File
+unit_f_ppu_read_error=10014_F_שגיאה בזמן קריאת קובץ ה PPU
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
-unit_f_ppu_read_unexpected_end=10015_F_unexpected end of PPU-File
+unit_f_ppu_read_unexpected_end=10015_F_סוף קובץ לא צפוי (קובץ PPU)
 % Unexpected end of file. This may mean that the PPU file is
 % corrupted.
-unit_f_ppu_invalid_entry=10016_F_Invalid PPU-File entry: $1
+unit_f_ppu_invalid_entry=10016_F_כניסה לא תקינה בקובץ ה PPU: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
-unit_f_ppu_dbx_count_problem=10017_F_PPU Dbx count problem
+unit_f_ppu_dbx_count_problem=10017_F_בעיה בספירת Dbx בקובץ PPU
 % There is an inconsistency in the debugging information of the unit.
-unit_e_illegal_unit_name=10018_E_Illegal unit name: $1
+unit_e_illegal_unit_name=10018_E_שם יחידה לא תקין: $1
 % The name of the unit does not match the file name.
-unit_f_too_much_units=10019_F_Too much units
+unit_f_too_much_units=10019_F_יותר מידי יחידות
 % \fpc has a limit of 1024 units in a program. You can change this behavior
 % by changing the \var{maxunits} constant in the \file{fmodule.pas} file of the
 % compiler, and recompiling the compiler.
-unit_f_circular_unit_reference=10020_F_Circular unit reference between $1 and $2
+unit_f_circular_unit_reference=10020_F_קריאה מעגלית בין היחידות $1 ו $2
 % Two units are using each other in the interface part. This is only allowed
 % in the \var{implementation} part. At least one unit must contain the other one
 % in the \var{implementation} section.
-unit_f_cant_compile_unit=10021_F_Can't compile unit $1, no sources available
+unit_f_cant_compile_unit=10021_F_אין מספיק משאבים על מנת להדר את היחידה $1
 % A unit was found that needs to be recompiled, but no sources are
 % available.
-unit_f_cant_find_ppu=10022_F_Can't find unit $1
+unit_f_cant_find_ppu=10022_F_לא מוצא את היחידה $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
-unit_w_unit_name_error=10023_W_Unit $1 was not found but $2 exists
+unit_w_unit_name_error=10023_W_היחידה $1 לא נמצאה, אבל $2 קיים
 % This error message is no longer used.
-unit_f_unit_name_error=10024_F_Unit $1 searched but $2 found
+unit_f_unit_name_error=10024_F_מחפש את היחידה $1, אבל $2 נמצא
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
-unit_w_switch_us_missed=10025_W_Compiling the system unit requires the -Us switch
+unit_w_switch_us_missed=10025_W_הידור יחידת system דורשת את המתג -Us
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.
-unit_f_errors_in_unit=10026_F_There were $1 errors compiling module, stopping
+unit_f_errors_in_unit=10026_F_עוצר לאחר שנמצאו $1 שגיאות בזמן הידור המודול
 % When the compiler encounters a fatal error or too many errors in a module
 % then it stops with this message.
-unit_u_load_unit=10027_U_Load from $1 ($2) unit $3
+unit_u_load_unit=10027_U_טוען $1 ($2) יחידה $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
-unit_u_recompile_crc_change=10028_U_Recompiling $1, checksum changed for $2
+unit_u_recompile_crc_change=10028_U_מהדר את $1 לאחר שהחתימה שונתה ל $2
 % The unit is recompiled because the checksum of a unit it depends on has 
 % changed.
-unit_u_recompile_source_found_alone=10029_U_Recompiling $1, source found only
+unit_u_recompile_source_found_alone=10029_U_נמצא רק קוד מקור, מהדר מחדש את $1
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
-unit_u_recompile_staticlib_is_older=10030_U_Recompiling unit, static lib is older than ppufile
+unit_u_recompile_staticlib_is_older=10030_U_מהדר מחדש את היחידה. הספרייה הסטטית ישנה יותר מקובץ ה PPU
 % When you use the \var{-vu} flag, the compiler warns if the static library
 % of the unit are older than the unit file itself.
-unit_u_recompile_sharedlib_is_older=10031_U_Recompiling unit, shared lib is older than ppufile
+unit_u_recompile_sharedlib_is_older=10031_U_מהדר מחדש את היחידה. הספרייה המשותפת ישנה יותר מקובץ ה PPU
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
-unit_u_recompile_obj_and_asm_older=10032_U_Recompiling unit, obj and asm are older than ppufile
+unit_u_recompile_obj_and_asm_older=10032_U_מהדר מחדש את ה היחידה. קבצי ה obj והasm ישנים יותר מקובץ ה PPU
 % When you use the \var{-vu} flag, the compiler warns if the assembler or
 % object file of the unit are older than the unit file itself.
-unit_u_recompile_obj_older_than_asm=10033_U_Recompiling unit, obj is older than asm
+unit_u_recompile_obj_older_than_asm=10033_U_מהדר מחדש את היחידה. קובץ הobj ישן יותר מקובץ הasm
 % When you use the \var{-vu} flag, the compiler warns if the assembler
 % file of the unit is older than the object file of the unit.
-unit_u_parsing_interface=10034_U_Parsing interface of $1
+unit_u_parsing_interface=10034_U_מפרש את חלק הממשק של $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the interface part of the unit
-unit_u_parsing_implementation=10035_U_Parsing implementation of $1
+unit_u_parsing_implementation=10035_U_מפרש את חלק הביצועי של $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % parsing the implementation part of the unit
-unit_u_second_load_unit=10036_U_Second load for unit $1
+unit_u_second_load_unit=10036_U_טעינה שנייה של היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_check_time=10037_U_PPU Check file $1 time $2
+unit_u_check_time=10037_U_בדיקת קובץ PPU $1 זמן $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
 ### The following two error msgs is currently disabled.
-#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
+#unit_h_cond_not_set_in_last_compile=10038_H_התנאים של $1 לא הוגדרו בהתחלת הריצה בהידור האחרון של $2
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that currently is defined, but was not used the last
 #% time the unit was compiled.
-#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
+#unit_h_cond_set_in_last_compile=10039_H_התנאים של $1 הוגדרו בהתחלת הריצה בהידור האחרון של $2
 #% when recompilation of an unit is required the compiler will check that
 #% the same conditionals are set for the recompiliation. The compiler has
 #% found a conditional that was used the last time the unit was compiled, but
 #% the conditional is currently not defined.
-unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
+unit_w_cant_compile_unit_with_changed_incfile=10040_W_לא ניתן להדר את היחידה $1 למרות שקבצי הinclude שונו
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_File $1 is newer than Release PPU file $2
+unit_h_source_modified=10041_H_הקובץ $1 חדש יותר מגרסת השחרור של קובץ הPPU $2
 % A modified source file for a unit was found that was compiled with the
 % release flag (-Ur). The unit will not implicitly be recompiled because
 % this release flag is set.
-unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with correct FPU mode
+unit_u_ppu_invalid_fpumode=10042_U_משתמש ביחידה אשר לא הודרה בצורה נכונה במצב FPU
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.
-unit_u_loading_interface_units=10043_U_Loading interface units from $1
+unit_u_loading_interface_units=10043_U_טוען את חלק הממשק של היחידות מ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the interface part of the unit.
-unit_u_loading_implementation_units=10044_U_Loading implementation units from $1
+unit_u_loading_implementation_units=10044_U_טוען את החלק הביצועי של היחידות מ $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the units defined in the implementation part of the unit.
-unit_u_interface_crc_changed=10045_U_Interface CRC changed for unit $1
+unit_u_interface_crc_changed=10045_U_חתימת ה CRC של חלק הממשק השתנה ביחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated for the interface has been changed after the implementation
 % has been parsed.
-unit_u_implementation_crc_changed=10046_U_Implementation CRC changed for unit $1
+unit_u_implementation_crc_changed=10046_U_חתימת הCRC של החלק הביצועי השתנה ליחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it the
 % CRC calculated has been changed after the implementation
 % has been parsed.
-unit_u_finished_compiling=10047_U_Finished compiling unit $1
+unit_u_finished_compiling=10047_U_הסתיים הידור היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_Add dependency of $1 to $2
+unit_u_add_depend_to=10048_U_מוסיף את התלות של $1 ל$2
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
-unit_u_no_reload_is_caller=10049_U_No reload, is caller: $1
+unit_u_no_reload_is_caller=10049_U_אין קריאה מחודשת של הקובץ בשביל $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is the unit that wants
 % to load this unit
-unit_u_no_reload_in_second_compile=10050_U_No reload, already in second compile: $1
+unit_u_no_reload_in_second_compile=10050_U_אין טעינה מחדש, בזמן הידור שני של היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has will not reload the unit because it is already in a second recompile
-unit_u_flag_for_reload=10051_U_Flag for reload: $1
+unit_u_flag_for_reload=10051_U_דגל לטעינה מחודשת: $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to reload the unit
-unit_u_forced_reload=10052_U_Forced reloading
+unit_u_forced_reload=10052_U_כופה על טעינה מחודשת
 % When you use the \var{-vu} flag, the compiler warns that it
 % has is reloading the unit because it was required
-unit_u_previous_state=10053_U_Previous state of $1: $2
+unit_u_previous_state=10053_U_המצב הישן של $1: $2
 % When you use the \var{-vu} flag, the compiler shows the
 % previous state of the unit
-unit_u_second_compile_unit=10054_U_Already compiling $1, setting second compile
+unit_u_second_compile_unit=10054_U_נמצא כבר בתהליך הידור $1, מיישם הידור שני
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % recompiling a unit for the second time. This can happend with interdepend
 % units.
-unit_u_loading_unit=10055_U_Loading unit $1
+unit_u_loading_unit=10055_U_טוען את היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it starts
 % loading the unit.
-unit_u_finished_loading_unit=10056_U_Finished loading unit $1
+unit_u_finished_loading_unit=10056_U_מסיים לטעון את היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it finished
 % loading the unit.
-unit_u_registering_new_unit=10057_U_Registering new unit $1
+unit_u_registering_new_unit=10057_U_רושם יחידה חדשה $1
 % When you use the \var{-vu} flag, the compiler warns that it has
 % found a new unit and registers it in the internal lists.
-unit_u_reresolving_unit=10058_U_Re-resolving unit $1
+unit_u_reresolving_unit=10058_U_מחשב מחדש את היחידה $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has to recalculate the internal data of the unit
-unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still loading used units
+unit_u_skipping_reresolving_unit=10059_U_מדלג על טעינה מחודשת של היחידה $1, עדיין בזמן טעינת יחידות בשימוש
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate
@@ -2179,88 +2183,88 @@ option_usage=11000_O_$1 [options] <inputfile> [options]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_Only one source file supported
+option_only_one_source_support=11001_W_תומך רק בקובץ מקור אחד בשורת הפקודה
 % You can specify only one source file on the command line. The first
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
-option_def_only_for_os2=11002_W_DEF file can be created only for OS/2
+option_def_only_for_os2=11002_W_ניתן ליצור את קובץ ה DEF רק לOS/2
 % This option can only be specified when you're compiling for OS/2
-option_no_nested_response_file=11003_E_nested response files are not supported
+option_no_nested_response_file=11003_E_אין תמיכה בקבצי תגובה מקוננים
 % you cannot nest response files with the \var{@file} command-line option.
-option_no_source_found=11004_F_No source file name in command line
+option_no_source_found=11004_F_לא צויין קובץ מקור בשורת הפקודה
 % The compiler expects a source file name on the command line.
-option_no_option_found=11005_N_No option inside $1 config file
+option_no_option_found=11005_N_לא צוינו אפשרויות בתוך קובץ ההגדרות $1
 % The compiler didn't find any option in that config file.
-option_illegal_para=11006_E_Illegal parameter: $1
+option_illegal_para=11006_E_פרמטר לא חוקי: $1
 % You specified an unknown option.
-option_help_pages_para=11007_H_-? writes help pages
+option_help_pages_para=11007_H_-? כותב דפי עזרה
 % When an unknown option is given, this message is diplayed.
-option_too_many_cfg_files=11008_F_Too many config files nested
+option_too_many_cfg_files=11008_F_יותר מידי קבצי הגדרות מקוננים
 % You can only nest up to 16 config files.
-option_unable_open_file=11009_F_Unable to open file $1
+option_unable_open_file=11009_F_לא ניתן לפתוח את הקובץ $1
 % The option file cannot be found.
-option_reading_further_from=11010_D_Reading further options from $1
+option_reading_further_from=11010_D_קורא הגדרות נוספות מ $1
 % Displayed when you have notes turned on, and the compiler switches
 % to another options file.
-option_target_is_already_set=11011_W_Target is already set to: $1
+option_target_is_already_set=11011_W_המטרה כבר הוגדרה ל: $1
 % Displayed if more than one \var{-T} option is specified.
-option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
+option_no_shared_lib_under_dos=11012_W_DOS אינו תומך בספריות משותפות, חוזר לספריות סטטיות
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
-option_too_many_ifdef=11013_F_too many IF(N)DEFs
+option_too_many_ifdef=11013_F_IF(N)DEF רבים מידי
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_too many ENDIFs
+option_too_many_endif=11014_F_ENDIF רבים מידי
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_open conditional at the end of the file
+option_too_less_endif=11015_F_תנאי פתוח בסוף הקובץ
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_no_debug_support=11016_W_Debug information generation is not supported by this executable
+option_no_debug_support=11016_W_מידע ניפוי שגיאות אינו נתמך בסוג קובץ הריצה המבוקש
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_no_debug_support_recompile_fpc=11017_H_Try recompiling with -dGDB
+option_no_debug_support_recompile_fpc=11017_H_נסה להדר מחדש עם המתג -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_W_You are using the obsolete switch $1
+option_obsolete_switch=11018_W_אתה משתמש במתג המיושן $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_W_You are using the obsolete switch $1, please use $2
+option_obsolete_switch_use_new=11019_W_אתה משתמש במתג המיושן $1, השתמש במתג $2 במקום
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_switch_bin_to_src_assembler=11020_N_Switching assembler to default source writing assembler
+option_switch_bin_to_src_assembler=11020_N_מעביר את האוסף למצב ברירת מחדל של כתיבת מאסף
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
-option_incompatible_asm=11021_W_Assembler output selected "$1" is not compatible with "$2"
-option_asm_forced=11022_W_"$1" assembler use forced
+option_incompatible_asm=11021_W_התוכן הנבחר של הassembler "$1" אינו מתאים ל "$2"
+option_asm_forced=11022_W_התוכן של המאסף "$1" לא מסוגל ליצור קבצי אובייקט, משתמש במאסף ברירת המחדל במקום
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_using_file=11026_T_Reading options from file $1
+option_using_file=11026_T_קורא אפשרויות מהקובץ $1
 % Options are also read from this file
-option_using_env=11027_T_Reading options from environment $1
+option_using_env=11027_T_קורא אפשרויות מהסביבה $1
 % Options are also read from this environment string
-option_handling_option=11028_D_Handling option "$1"
+option_handling_option=11028_D_מטפל באפשרות "$1"
 % Debug info that an option is found and will be handled
-option_help_press_enter=11029__*** press enter ***
-option_start_reading_configfile=11030_H_Start of reading config file $1
+option_help_press_enter=11029__*** לחץ על enter ***
+option_start_reading_configfile=11030_H_מתחיל בקריאת קובץ ההגדרות $1
 % Starting of config file parsing.
-option_end_reading_configfile=11031_H_End of reading config file $1
+option_end_reading_configfile=11031_H_סיום קריאת קובץ ההגדרות $1
 % End of config file parsing.
-option_interpreting_option=11032_D_interpreting option "$1"
-option_interpreting_firstpass_option=11036_D_interpreting firstpass option "$1"
-option_interpreting_file_option=11033_D_interpreting file option "$1"
-option_read_config_file=11034_D_Reading config file "$1"
-option_found_file=11035_D_found source file name "$1"
+option_interpreting_option=11032_D_מפרש את האפשרות "$1"
+option_interpreting_firstpass_option=11036_D_מפרש את המעבר הראשון על האפשרות "$1"
+option_interpreting_file_option=11033_D_מפרש את הגדרת הקובץ "$1"
+option_read_config_file=11034_D_קורא את קובץ ההגדרות "$1"
+option_found_file=11035_D_נמצא קובץ מקור בשם "$1"
 % Additional infos about options, displayed
 % when you have debug option turned on.
-option_code_page_not_available=11039_E_Unknown code page
-option_config_is_dir=11040_F_Config file $1 is a directory
+option_code_page_not_available=11039_E_קוד דף לא ידוע
+option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההגדרות $1
 % Directories can not be used as configuration files.
 %\end{description}
 # EndOfTeX
