@@ -870,7 +870,7 @@ begin
    writeln(f,'path >ram:temp.lst');
    close(f);
    exec('c:protect','ram:makepathstr sarwed quiet');
-   exec('C:execute','ram:makepathstr');
+   exec('ram:makepathstr','');
    exec('c:delete','ram:makepathstr quiet');
    assign(f,'ram:temp.lst');
    reset(f);
