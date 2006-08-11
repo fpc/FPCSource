@@ -458,7 +458,7 @@ var
          end;
        DLL_THREAD_ATTACH :
          begin
-           inc(Thread_count);
+           inclocked(Thread_count);
 {$warning Allocate Threadvars !}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
@@ -466,7 +466,7 @@ var
          end;
        DLL_THREAD_DETACH :
          begin
-           dec(Thread_count);
+           declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
 {$warning Release Threadvars !}

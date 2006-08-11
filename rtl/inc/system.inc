@@ -663,10 +663,12 @@ end;
 *****************************************************************************}
 
 Procedure system_exit;forward;
+Procedure FinalizeHeap;forward;
 
 Procedure InternalExit;
 var
   current_exit : Procedure;
+  i : longint;
 Begin
   while exitProc<>nil Do
    Begin
@@ -691,6 +693,12 @@ Begin
   Flush(ErrOutput);
   Flush(StdOut);
   Flush(StdErr);
+  { finally release the heap if possible, especially
+    important for DLLs }
+  for i:=0 to argc do
+    sysfreemem(argv[i]);
+  sysfreemem(argv);
+  FinalizeHeap;
 End;
 
 

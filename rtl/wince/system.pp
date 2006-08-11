@@ -220,17 +220,17 @@ end;
 {$ifdef CPUARM}
 
 {$define FPC_SYSTEM_HAS_INT}
-function floor(d : double) : double; 
+function floor(d : double) : double;
    cdecl;external 'coredll' name 'floor';
 
-function ceil(d : double) : double; 
+function ceil(d : double) : double;
    cdecl;external 'coredll' name 'ceil';
 
 function fpc_int_real(d: ValReal): ValReal;compilerproc;
 begin
   if d > 0 then
     fpc_int_real:=floor(d)
-  else  
+  else
     fpc_int_real:=ceil(d);
 end;
 
@@ -564,7 +564,7 @@ var
   Fargc: longint;
   Fargv: ppchar;
   FCmdLine: PChar;
-  
+
 procedure setup_arguments;
 var
   arglen,
@@ -814,10 +814,13 @@ begin
   if IsLibrary then
     exit;
 //    ExitDLL(ExitCode);
-  if not IsConsole then begin
-    Close(stderr);
-    Close(stdout);
-    { what about Input and Output ?? PM }
+  if not IsConsole then
+    begin
+      Close(stderr);
+      Close(stdout);
+      Close(erroutput);
+      Close(Input);
+      Close(Output);
   end;
   ExitThread(exitcode);
 end;
@@ -859,21 +862,21 @@ begin
        end;
      DLL_THREAD_ATTACH :
        begin
-         inc(Thread_count);
+         inclocked(Thread_count);
 {$warning Allocate Threadvars !}
          if assigned(Dll_Thread_Attach_Hook) then
            Dll_Thread_Attach_Hook(DllParam);
        end;
      DLL_THREAD_DETACH :
        begin
-         dec(Thread_count);
+         declocked(Thread_count);
          if assigned(Dll_Thread_Detach_Hook) then
            Dll_Thread_Detach_Hook(DllParam);
 {$warning Release Threadvars !}
        end;
      DLL_PROCESS_DETACH :
        begin
-         FPC_DO_EXIT;
+         FPC_Do_Exit;
          if assigned(Dll_Process_Detach_Hook) then
            Dll_Process_Detach_Hook(DllParam);
        end;

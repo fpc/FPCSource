@@ -377,7 +377,11 @@ begin
    begin
      Close(stderr);
      Close(stdout);
+     Close(erroutput);
+     Close(Input);
+     Close(Output);
      { what about Input and Output ?? PM }
+     { now handled, FPK }
    end;
   remove_exception_handlers;
 
@@ -466,7 +470,7 @@ var
          end;
        DLL_THREAD_ATTACH :
          begin
-           inc(Thread_count);
+           inclocked(Thread_count);
 {$warning Allocate Threadvars !}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
@@ -474,7 +478,7 @@ var
          end;
        DLL_THREAD_DETACH :
          begin
-           dec(Thread_count);
+           declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
 {$warning Release Threadvars !}
@@ -484,9 +488,7 @@ var
          begin
            Dll_entry:=true; { return value is ignored }
            If SetJmp(DLLBuf) = 0 then
-             begin
-               FPC_DO_EXIT;
-             end;
+             FPC_Do_Exit;
            if assigned(Dll_Process_Detach_Hook) then
              Dll_Process_Detach_Hook(DllParam);
          end;
@@ -1237,5 +1239,5 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-  InitWin32Widestrings
+  InitWin32Widestrings;
 end.

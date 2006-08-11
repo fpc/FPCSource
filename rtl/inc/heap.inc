@@ -1313,4 +1313,26 @@ begin
   fillchar(internal_status,sizeof(internal_status),0);
 end;
 
+
+procedure FinalizeHeap;
+var
+  poc : poschunk;
+  i : longint;
+begin
+{$ifdef HAS_SYSOSFREE}
+  for i:=low(freelists_free_chunk) to high(freelists_free_chunk) do
+    if freelists_free_chunk[i] then
+      SysOSFree(freelists_fixed[i]^.poc,freelists_fixed[i]^.poc^.size);
+  while assigned(freeoslist) do
+    begin
+      poc:=freeoslist^.next;
+      SysOSFree(freeoslist, freeoslist^.size);
+      dec(freeoslistcount);
+      freeoslist:=poc;
+    end;
+{$endif HAS_SYSOSFREE}
+  { release mutex }
+  MemoryMutexManager.MutexDone;
+end;
+
 {$endif HAS_MEMORYMANAGER}
