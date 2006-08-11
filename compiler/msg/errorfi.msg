@@ -1957,7 +1957,7 @@ execinfo_x_uninitdatasize=09132_X_Taille des données non-initialisées: $1 octets
 execinfo_x_stackreserve=09133_X_Taille de pile réservée: $1 octets
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Taille de pile validée: $1 octets
-% Informational message showing the stack size that the compiler committes for the executable.
+% Informational message showing the stack size that the compiler committed for the executable.
 %\end{description}
 # EndOfTeX
 #
