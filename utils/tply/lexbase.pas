@@ -79,7 +79,7 @@ lno  : Integer; (* current line number *)
 
 const
 
-max_elems  = 100;  (* maximum size of integer sets *)
+max_elems  = 1000;  (* maximum size of integer sets *)
 
 type
 
