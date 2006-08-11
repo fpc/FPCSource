@@ -1938,7 +1938,7 @@ execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
 execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
-% Informational message showing the stack size that the compiler committes for the executable.
+% Informational message showing the stack size that the compiler committed for the executable.
 %\end{description}
 # EndOfTeX
 
