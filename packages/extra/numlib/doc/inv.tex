@@ -30,7 +30,7 @@
 
 \begin{document}
 
-\section{Unit inv}
+\section{general comments}
 
 \textbf{Original comments:} \\ 
 The used floating point type \textbf{real} depends on the used version,
@@ -49,6 +49,9 @@ types.
 
 These changes were already prepared somewhat when I got the lib, but weren't
 consequently applied. I did that while porting to FPC.
+
+\section{Unit inv}
+
 
 \begin{procedure}{invgen}
 
@@ -201,7 +204,8 @@ pivoting.
 
 \FunctionDescription
 
-Procedure to calculate the inverse of a symmetrical, postivive definite
+Procedure to calculate the inverse of a symmetrical, positive definite
+matrix
 
 %van een symmetrische,positief definiete matrix.
 
@@ -371,7 +375,6 @@ of) a square partial block.
     After the function has ended succesfully (\textbf{term=1}) then
     the input matrix has been changed into its inverse, otherwise the contents
     of the input matrix are undefined.
-    ongedefinieerd.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for
     the termination of the procedure:\\
