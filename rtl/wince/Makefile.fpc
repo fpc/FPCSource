@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       varutils variants \
       matrix ucomplex \
       charset getopts winsock winsock2 sockets \
-      cmem
+      cmem sharemem
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
@@ -24,6 +24,9 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 #    winsysut fpmkunit
 
 # rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+
+# fake dll
+programs=fpcmemdll
 
 [require]
 nortl=y
@@ -226,3 +229,8 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 #
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
+
+sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
+
+fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
+

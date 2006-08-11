@@ -16,7 +16,10 @@ units=system ctypes objpas macpas strings \
       cpu mmx charset ucomplex getopts \
       winevent sockets printer \
       video mouse keyboard \
-      winsysut fpmkunit
+      winsysut sharemem fpmkunit
+
+# fake dll
+programs=$(DLLS)
 
 rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
@@ -47,6 +50,9 @@ UNITPREFIX=rtl
 
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
+DLLS=
+else
+DLLS=fpcmemdll
 endif
 
 # Paths
@@ -235,3 +241,7 @@ video$(PPUEXT) : $(WINDIR)/video.pp windows$(PPUEXT) dos$(PPUEXT)
 mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
 
 keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
+
+sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
+
+fpcmemdll.exe : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)

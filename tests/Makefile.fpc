@@ -104,7 +104,7 @@ endif
 
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils units/math
+TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem
 
 # All full dirnames in the test/ dir including the subdir self
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))

@@ -17,13 +17,16 @@ units=system ctypes objpas macpas strings \
       sockets printer charset ucomplex \
       winevent video mouse keyboard \
       dynlibs crt messages \
-      fpmkunit
+      fpcmemdll sharemem fpmkunit
 #     winsysut signals
 #     cpu mmx
 #     no cygwin so far
 #	initc
 
 rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+
+# fake dll
+programs=fpcmemdll
 
 [require]
 nortl=y
@@ -241,3 +244,7 @@ mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUE
 
 keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(WINDIR)/keyboard.pp
+
+sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
+
+fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
