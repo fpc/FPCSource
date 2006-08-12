@@ -50,6 +50,7 @@ procedure spl2nalf(n: ArbInt; var xyzw1: ArbFloat; lambda:ArbFloat;
         term = 4: Approx. number of points? On a line.
         term = 3: wrong input n<3 or a weight turned out to be <=0 }
 implementation
+{$goto on}
 
 type
     Krec = record K1, K2, K3, K4, K5, K6 : ArbFloat end;
