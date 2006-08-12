@@ -693,11 +693,16 @@ Begin
   Flush(ErrOutput);
   Flush(StdOut);
   Flush(StdErr);
+{$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs }
   for i:=0 to argc do
     sysfreemem(argv[i]);
   sysfreemem(argv);
+{$endif}
+{$if defined(LINUX) or defined(BSD)}
+  sysfreemem(cmdline);
+{$endif}
   FinalizeHeap;
 End;
 
