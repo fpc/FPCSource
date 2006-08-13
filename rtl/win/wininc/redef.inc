@@ -923,7 +923,7 @@ function WriteConsoleW(hConsoleOutput: THandle; const lpBuffer: Pointer; nNumber
 function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WriteFile';
 function WriteFileEx(hFile: THandle; lpBuffer: Pointer; nNumberOfBytesToWrite: DWORD; const lpOverlapped: TOverlapped; lpCompletionRoutine: FARPROC): BOOL; external 'kernel32' name 'WriteFileEx';
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; external 'kernel32' name 'WriteProcessMemory';
-
+function SHFileOperation(Var para1: SHFILEOPSTRUCT):longint; external 'shell32' name 'SHFileOperation';
 // these are old Win16 funcs that under win32 are aliases for several char* funcs.
 // exist under Win32 (even in SDK's from 2002), but are officially "depreciated"
 function AnsiNext(const lpsz: LPCSTR): LPSTR;external 'user32' name 'CharNextA';
