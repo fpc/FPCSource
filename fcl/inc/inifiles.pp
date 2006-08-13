@@ -68,7 +68,7 @@ type
   TIniFileKeyList = class(TList)
   private
     function GetItem(Index: integer): TIniFileKey;
-    function KeyByName(AName: string): TIniFileKey;
+    function KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
   public
     destructor Destroy; override;
     procedure Clear;
@@ -89,7 +89,7 @@ override;
   TIniFileSectionList = class(TList)
   private
     function GetItem(Index: integer): TIniFileSection;
-    function SectionByName(AName: string): TIniFileSection;
+    function SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
   public
     destructor Destroy; override;
     procedure Clear;override;
@@ -100,6 +100,7 @@ override;
     FFileName: string;
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
+    FCaseSensitive : Boolean; 
   public
     constructor Create(const AFileName: string);
     destructor Destroy; override;
@@ -127,6 +128,7 @@ override;
     function ValueExists(const Section, Ident: string): Boolean; virtual;
     property FileName: string read FFileName;
     property EscapeLineFeeds: boolean read FEscapeLineFeeds write FEscapeLineFeeds;
+    Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
   end;
 
   TIniFile = class(TCustomIniFile)
@@ -204,17 +206,27 @@ begin
     Result := TIniFileKey(inherited Items[Index]);
 end;
 
-function TIniFileKeyList.KeyByName(AName: string): TIniFileKey;
+function TIniFileKeyList.KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
 var
   i: integer;
 begin
   Result := nil;
   if (AName > '') and not IsComment(AName) then
-    for i := 0 to Count-1 do
-      if CompareText(Items[i].Ident, AName) = 0 then begin
-        Result := Items[i];
-        Break;
-      end;
+    If CaseSensitive then
+      begin
+      for i := 0 to Count-1 do
+        if Items[i].Ident=AName then 
+          begin
+          Result := Items[i];
+          Break;
+          end;
+      end
+    else  
+      for i := 0 to Count-1 do
+        if CompareText(Items[i].Ident, AName) = 0 then begin
+          Result := Items[i];
+          Break;
+        end;
 end;
 
 destructor TIniFileKeyList.Destroy;
@@ -254,17 +266,28 @@ begin
     Result := TIniFileSection(inherited Items[Index]);
 end;
 
-function TIniFileSectionList.SectionByName(AName: string): TIniFileSection;
+function TIniFileSectionList.SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
 var
   i: integer;
 begin
   Result := nil;
   if (AName > '') and not IsComment(AName) then
-    for i := 0 to Count-1 do
-      if CompareText(Items[i].Name, AName) = 0 then begin
-        Result := Items[i];
-        Break;
-      end;
+    If CaseSensitive then
+      begin
+      for i:=0 to Count-1 do
+        if (Items[i].Name=AName) then 
+          begin
+          Result := Items[i];
+          Break;
+          end;
+      end
+    else
+      for i := 0 to Count-1 do
+        if CompareText(Items[i].Name, AName) = 0 then 
+          begin
+          Result := Items[i];
+          Break;
+          end;
 end;
 
 destructor TIniFileSectionList.Destroy;
@@ -299,7 +322,7 @@ end;
 
 function TCustomIniFile.SectionExists(const Section: string): Boolean;
 begin
-  Result := (FSectionList.SectionByName(Section) <> nil);
+  Result := (FSectionList.SectionByName(Section,CaseSensitive) <> nil);
 end;
 
 function TCustomIniFile.ReadInteger(const Section, Ident: string; Default: Longint): Longint;
@@ -420,9 +443,9 @@ var
   oSection: TIniFileSection;
 begin
   Result := False;
-  oSection := FSectionList.SectionByName(Section);
+  oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then
-    Result := (oSection.KeyList.KeyByName(Ident) <> nil);
+    Result := (oSection.KeyList.KeyByName(Ident,CaseSensitive) <> nil);
 end;
 
 { TIniFile }
@@ -554,9 +577,9 @@ var
   oKey: TIniFileKey;
 begin
   Result := Default;
-  oSection := FSectionList.SectionByName(Section);
+  oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then begin
-    oKey := oSection.KeyList.KeyByName(Ident);
+    oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
     if oKey <> nil then
       Result := oKey.Value;
   end;
@@ -569,14 +592,14 @@ var
 begin
   if (Section > '') and (Ident > '') then begin
     // update or add key
-    oSection := FSectionList.SectionByName(Section);
+    oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if (Value > '') then begin
       if oSection = nil then begin
         oSection := TIniFileSection.Create(Section);
         FSectionList.Add(oSection);
       end;
       with oSection.KeyList do begin
-        oKey := KeyByName(Ident);
+        oKey := KeyByName(Ident,CaseSensitive);
         if oKey <> nil then
           oKey.Value := Value
         else
@@ -584,7 +607,7 @@ begin
       end;
     end else if oSection <> nil then begin
       // remove key
-      oKey := oSection.KeyList.KeyByName(Ident);
+      oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
       if oKey <> nil then begin
         oSection.KeyList.Remove(oKey);
       end;
@@ -608,7 +631,7 @@ begin
   Strings.BeginUpdate;
   try
     Strings.Clear;
-    oSection := FSectionList.SectionByName(Section);
+    oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do
         if not IsComment(Items[i].Ident) then
@@ -626,7 +649,7 @@ begin
   Strings.BeginUpdate;
   try
     Strings.Clear;
-    oSection := FSectionList.SectionByName(Section);
+    oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do
         if not IsComment(Items[i].Ident) then
@@ -665,7 +688,7 @@ begin
   Strings.BeginUpdate;
   try
     Strings.Clear;
-    oSection := FSectionList.SectionByName(Section);
+    oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do begin
         s := Items[i].Ident+Separator+Items[i].Value;
@@ -680,7 +703,7 @@ procedure TIniFile.EraseSection(const Section: string);
 var
   oSection: TIniFileSection;
 begin
-  oSection := FSectionList.SectionByName(Section);
+  oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then begin
     { It is needed so UpdateFile doesn't find a defunct section }
     { and cause the program to crash }
@@ -695,9 +718,9 @@ var
  oSection: TIniFileSection;
  oKey: TIniFileKey;
 begin
- oSection := FSectionList.SectionByName(Section);
+ oSection := FSectionList.SectionByName(Section,CaseSensitive);
  if oSection <> nil then begin
-   oKey := oSection.KeyList.KeyByName(Ident);
+   oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
    if oKey <> nil then begin
      oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
      oKey.Free;
