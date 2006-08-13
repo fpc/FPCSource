@@ -266,7 +266,7 @@ Type
     Constructor Create;
     Destructor Destroy;
     Procedure ZipAllFiles; virtual;
-    Procedure ZipFiles(AFileName : String; FileList : TStringList);
+    Procedure ZipFiles(AFileName : String; FileList : TStrings);
     Procedure Clear;
   Public
     Property BufferSize : Cardinal Read FBufSize Write SetBufSize;
@@ -282,6 +282,10 @@ Type
   EZipError = Class(Exception);
 
 Implementation
+
+ResourceString
+  SErrBufsizeChange = 'Changing buffer size is not allowed while zipping';
+  SErrOutputFileChange = 'Changing output file name is not allowed while zipping';
 
 { ---------------------------------------------------------------------
     Auxiliary
@@ -966,12 +970,12 @@ Begin
   end;
 end;
 
-
+  
 Procedure TZipper.SetBufSize(Value : Cardinal);
 
 begin
   If FZipping then
-    Raise EZipError.Create('Changing buffer size is not allowed while zipping');
+    Raise EZipError.Create(SErrBufsizeChange);
   If Value>=DefaultBufSize then
     FBufSize:=Value;
 end;
@@ -980,11 +984,11 @@ Procedure TZipper.SetFileName(Value : String);
 
 begin
   If FZipping then
-    Raise EZipError.Create('Changing output file name is not allowed while zipping');
+    Raise EZipError.Create(SErrOutputFileChange);
   FFileName:=Value;
 end;
 
-Procedure TZipper.ZipFiles(AFileName : String; FileList : TStringList);
+Procedure TZipper.ZipFiles(AFileName : String; FileList : TStrings);
 
 begin
   FFiles.Assign(FileList);
