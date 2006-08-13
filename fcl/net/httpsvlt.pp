@@ -426,7 +426,7 @@ end;
 
 procedure THttpServerConnection.RequestStreamReceived;
 var
-  i: Integer;
+  i : Integer;
   s, URI: String;
   Servlet: TGenericServlet;
   Request: THttpServletRequest;
@@ -435,18 +435,16 @@ begin
   // WriteLn('Stream received: ', RequestStream.Size, ' bytes');
 
   URI := UpperCase(RequestHeader.URI);
-  for i := 0 to Server.ServletMappings.Count - 1 do
-  begin
+  I:=0;
+  Servlet:=Nil;
+  While (Servlet=Nil) and (I<Server.ServletMappings.Count) do
+    begin
     s := UpperCase(Server.ServletMappings[i].URLPattern);
     if ((s[Length(s)] = '*') and (Copy(s, 1, Length(s) - 1) =
       Copy(URI, 1, Length(s) - 1))) or (s = URI) then
-      break;
-  end;
-
-  if i < Server.ServletMappings.Count then
-    Servlet := Server.ServletMappings[i].Servlet
-  else
-    Servlet := nil;
+      Servlet:=Server.ServletMappings[i].Servlet;
+    inc(I);   
+    end;
 
   if RequestHeader.ContentLength = 0 then
     RequestHeader.ContentLength := RequestStream.Size;
