@@ -22,13 +22,13 @@ packages_emx=netdb
 
 # clean package units
 [clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish zipper
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish 
 
 [target]
 dirs=xml image db shedit passrc net fpcunit
 units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp \
-      wformat whtml wtex rttiutils bufstream streamex blowfish
+      wformat whtml wtex rttiutils bufstream streamex blowfish zipper
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
