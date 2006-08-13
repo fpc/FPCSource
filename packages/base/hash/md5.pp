@@ -336,11 +336,14 @@ var
   Buf : Pchar;
   Context: TMD5Context;
   Count : Longint;
-
+  ofm : Longint;
+  
 begin
   MD5Init(Context);
   Assign(F,N);
   {$i-}
+  ofm:=FileMode;
+  FileMode:=0;
   Reset(F,1);
   {$i+}
   if (IOResult=0) then
@@ -355,6 +358,7 @@ begin
     Close(F);
     end;
   MD5Final(Context, Result);
+  FileMode:=ofm;
 end;
 
 
