@@ -33,6 +33,17 @@ type
     procedure EndTest(ATest: TTest);
   end;
 
+  TPlainResultsWriter = class(TNoRefCountObject, ITestListener)
+  public
+    procedure WriteHeader;
+    procedure WriteResult(aResult: TTestResult);
+  {ITestListener}
+    procedure AddFailure(ATest: TTest; AFailure: TTestFailure);
+    procedure AddError(ATest: TTest; AError: TTestFailure);
+    procedure StartTest(ATest: TTest);
+    procedure EndTest(ATest: TTest);
+  end;
+
  {
   TLatexResultsWriter = class(TNoRefCountObject, ITestListener)
   public
@@ -42,16 +53,18 @@ type
     procedure EndTest(ATest: TTest);
   end;}
 
-
 function TestSuiteAsXML(aSuite: TTestSuite): string;
 function TestSuiteAsLatex(aSuite:TTestSuite): string;
+function TestSuiteAsPlain(aSuite:TTestSuite): string;
 function GetSuiteAsXML(aSuite: TTestSuite): string;
 function GetSuiteAsLatex(aSuite: TTestSuite): string;
+function GetSuiteAsPlain(aSuite: TTestSuite): string;
 function TestResultAsXML(aTestResult: TTestResult): string;
+function TestResultAsPlain(aTestResult: TTestResult): string;
 
 implementation
 
-
+{TXMLResultsWriter}
 procedure TXMLResultsWriter.WriteHeader;
 begin
   writeln('<testresults>');
@@ -65,7 +78,6 @@ begin
   writeln('</testresults>');
 end;
 
-{TXMLResultsWriter}
 procedure TXMLResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
 begin
   writeln('<failure ExceptionClassName="', AFailure.ExceptionClassName, '">');
@@ -93,6 +105,39 @@ begin
   writeln('</test>');
 end;
 
+{TPlainResultsWriter}
+procedure TPlainResultsWriter.WriteHeader;
+begin
+end;
+
+procedure TPlainResultsWriter.WriteResult(aResult: TTestResult);
+begin
+  writeln('', TestResultAsPlain(aResult));
+end;
+
+procedure TPlainResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
+begin
+  writeln('', AFailure.ExceptionMessage);
+end;
+
+procedure TPlainResultsWriter.AddError(ATest: TTest; AError: TTestFailure);
+begin
+  writeln('  Error: ', AError.ExceptionClassName);
+  writeln('    Exception:   ', AError.ExceptionMessage);
+  writeln('    Source unit: ', AError.SourceUnitName);
+  writeln('    Method name: ', AError.FailedMethodName);
+  writeln('    Line number: ', AError.LineNumber);
+end;
+
+procedure TPlainResultsWriter.StartTest(ATest: TTest);
+begin
+  writeln('Test: ' , ATest.TestSuiteName + '.' + ATest.TestName);
+end;
+
+procedure TPlainResultsWriter.EndTest(ATest: TTest);
+begin
+  writeln;
+end;
 
 
 function TestSuiteAsXML(aSuite:TTestSuite): string;
@@ -127,6 +172,19 @@ begin
   end;
 end;
 
+function TestSuiteAsPlain(aSuite:TTestSuite): string;
+var
+  i,j: integer;
+  s: TTestSuite;
+begin
+  for i := 0 to aSuite.Tests.Count - 1 do
+    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
+      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Tests.Items[i]))
+    else
+      if TTest(aSuite.Tests.Items[i]) is TTestCase then
+        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Tests.Items[i]).TestName + System.sLineBreak;
+end;
+
 function GetSuiteAsXML(aSuite: TTestSuite): string;
 begin
   if aSuite <> nil then
@@ -154,6 +212,14 @@ begin
     end
   else
     Result := '';
+end;
+
+function GetSuiteAsPlain(aSuite: TTestSuite): string;
+begin
+  Result := '';
+
+  if aSuite <> nil then
+    Result := 'TestSuites: ' + System.sLineBreak + TestSuiteAsPlain(aSuite);
 end;
 
 function TestResultAsXML(aTestResult: TTestResult): string;
@@ -201,6 +267,52 @@ begin
       Result := Result + '</ListOfFailures>';
     end;
   end;
+end;
+
+function TestResultAsPlain(aTestResult: TTestResult): string;
+var
+  i: longint;
+  f: TTestFailure;
+begin
+  with aTestResult do
+  begin
+    Result :=          'Number of run tests: ' + intToStr(RunTests) + System.sLineBreak;
+    Result := Result + 'Number of errors:    ' + intToStr(NumberOfErrors) + System.sLineBreak;
+    Result := Result + 'Number of failures:  ' + intToStr(NumberOfFailures);
+    if NumberOfErrors <> 0 then
+    begin
+      Result := Result + System.sLineBreak;
+      Result := Result + System.sLineBreak;
+      Result := Result + 'List of errors:';
+      for i := 0 to Errors.Count - 1 do
+      begin
+        Result := Result + System.sLineBreak;
+        Result := Result + '  Error: ' + System.sLineBreak;
+        f := TTestFailure(Errors.Items[i]);
+        Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
+        Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
+        Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+        Result := Result + '    Source unitname:   ' + f.SourceUnitName + System.sLineBreak;
+        Result := Result + '    Line number:       ' + IntToStr(f.LineNumber) + System.sLineBreak;
+        Result := Result + '    Failed methodname: ' + f.FailedMethodName + System.sLineBreak;
+      end;
+    end;
+    if NumberOfFailures <> 0 then
+    begin
+      Result := Result + System.sLineBreak;
+      Result := Result + System.sLineBreak;
+      Result := Result + 'List of failures:' + System.sLineBreak;
+      for i := 0 to Failures.Count - 1 do
+      begin
+        Result := Result + '  Failure: ' + System.sLineBreak;
+        f := TTestFailure(Failures.Items[i]);
+        Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
+        Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
+        Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+      end;
+    end;
+  end;
+  Result := Result + System.sLineBreak;
 end;
 
 end.
