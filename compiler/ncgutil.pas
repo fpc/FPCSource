@@ -928,31 +928,33 @@ implementation
       end;
 
 
-    { trash contents of local variables }
+    { trash contents of local variables or parameters (function result) }
     procedure trash_variable(p : tnamedindexitem;arg:pointer);
       var
         trashintval: aint;
         list: TAsmList absolute arg;
       begin
-        trashintval := trashintvalues[localvartrashing];
-        if (tsym(p).typ=localvarsym) then
+        if (tsym(p).typ=localvarsym) or
+           ((tsym(p).typ=paravarsym) and
+            (vo_is_funcret in tparavarsym(p).varoptions))  then
          begin
-           case tlocalvarsym(p).localloc.loc of
+           trashintval := trashintvalues[localvartrashing];
+           case tabstractnormalvarsym(p).localloc.loc of
              LOC_CREGISTER :
 {$ifopt q+}
 {$define overflowon}
 {$q-}
 {$endif}
-               cg.a_load_const_reg(list,reg_cgsize(tlocalvarsym(p).localloc.register),
-                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tlocalvarsym(p).localloc.register)] * 8) - 1),
-                   tglobalvarsym(p).localloc.register);
+               cg.a_load_const_reg(list,reg_cgsize(tabstractnormalvarsym(p).localloc.register),
+                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).localloc.register)] * 8) - 1),
+                   tabstractnormalvarsym(p).localloc.register);
 {$ifdef overflowon}
 {$undef overflowon}
 {$q+}
 {$endif}
              LOC_REFERENCE :
                begin
-                 trash_reference(list,tlocalvarsym(p).localloc.reference,
+                 trash_reference(list,tabstractnormalvarsym(p).localloc.reference,
                    tlocalvarsym(p).getsize);
                end;
              LOC_CMMREGISTER :
@@ -1148,6 +1150,14 @@ implementation
                        cg.g_initialize(list,tparavarsym(p).vartype.def,href);
                    end;
                end;
+             else if (localvartrashing <> -1) and
+                     ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
+                   begin
+                     tmpreg:=cg.getaddressregister(list);
+                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
+                     reference_reset_base(href,tmpreg,0);
+                     trash_reference(list,href,tparavarsym(p).vartype.def.size);
+                   end
            end;
          end;
       end;
