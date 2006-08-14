@@ -28,8 +28,25 @@
 \newcommand{\ProgramData}{\item[Example Data]\rmfamily}
 \newcommand{\ProgramResults}{\item[Example Result]\rmfamily}
 
-\begin{document}
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+\newcommand{\NUMLIBexample}[1]{
+\par \file{\textbf{Listing:} \exampledir/#1.pas}%
+\HCode{<HR/>}%
+\listinginput[9999]{5000}{\exampledir/#1.pas}%
+\HCode{<HR/>}%
+}%
+}{% else ifpackageloaded
+\newcommand{\NUMLIBexample}[1]{%
+\par \file{\textbf{Listing:} \exampledir/#1.pas}%
+\lstinputlisting{\exampledir/#1.pas}%
+}% End of FPCExample
+}% End of ifpackageloaded.
+\makeatother
+%
 
+\begin{document}
+\FPCexampledir{../examples}
 \section{general comments}
 
 \textbf{Original comments:} \\ 
@@ -80,7 +97,6 @@ matrix containing the maxtrixelements in a square partial block.
     After the function has ended succesfully (\textbf{term=1}) then 
     the input matrix has been changed into its inverse, otherwise the contents 
     of the input matrix are undefined.
-    ongedefinieerd.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for 
     the termination of the procedure:\\
@@ -112,34 +128,7 @@ Calculate the inverse of
 Below is the source of the invgenex demo that demontrates invgenex, some
 routines of iom were used to construct matrices.
 
-\begin{lstlisting}
-program invgenex;
-uses typ, iom, inv;
-const n = 4;
-var  term : ArbInt;
-        A : array[1..n,1..n] of ArbFloat;
-
-begin
-  assign(input, paramstr(1)); reset(input);
-  assign(output, paramstr(2)); rewrite(output);
-  writeln('program results invgenex');
-  { Read matrix A }
-  iomrem(input, A[1,1], n, n, n);
-  { Print matrix A }
-  writeln; writeln('A =');
-  iomwrm(output, A[1,1], n, n, n, numdig);
-  { Calculation of the inverse of A }
-  invgen(n, n, A[1,1], term);
-  writeln; writeln('term=', term:2);
-  if term=1 then
-  { print inverse inverse of A }
-  begin
-      writeln; writeln('inverse of A =');
-      iomwrm(output, A[1,1], n, n, n, numdig);
-  end; {term=1}
-  close(input); close(output)
-end.
-\end{lstlisting}
+\NUMLIBexample{invgenex}
 
 \ProgramData
 
@@ -229,7 +218,6 @@ matrix containing the maxtrixelements in a square partial block.
     After the function has ended succesfully (\textbf{term=1}) then 
     the input matrix has been changed into its inverse, otherwise the contents 
     of the input matrix are undefined.
-    ongedefinieerd.
  \item[var term: integer]  \mbox{} \\
     After the procedure has run, this variable contains the reason for 
     the termination of the procedure:\\
@@ -262,34 +250,7 @@ Calculate the inverse of
  .
 \]
 
-\begin{lstlisting}
-program invgpdex;
-uses typ, iom, inv;
-const n = 4;
-var i, j,  term : ArbInt;
-              A : array[1..n,1..n] of ArbFloat;
-begin
-  assign(input, paramstr(1)); reset(input);
-  assign(output, paramstr(2)); rewrite(output);
-  writeln('program results invgpdex');
-  { Read bottom leftpart of matrix A}
-  for i:=1 to n do iomrev(input, A[i,1], i);
-  { print matrix A }
-  writeln; writeln('A =');
-  for i:=1 to n do for j:=1 to i-1 do A[j,i]:=A[i,j];
-  iomwrm(output, A[1,1], n, n, n, numdig);
-  { Calculate inverse of matrix A}
-  invgpd(n, n, A[1,1], term);
-  writeln; writeln('term=', term:2);
-  if term=1 then
-  { Print inverse of matrix A}
-  begin
-      writeln; writeln('inverse of A =');
-      iomwrm(output, A[1,1], n, n, n, numdig);
-  end; {term=1}
-  close(input); close(output)
-end.
-\end{lstlisting}
+\NUMLIBexample{invgpdex}
 
 \ProgramData
 
@@ -408,34 +369,8 @@ parameters, invalid/nonsense responses or even crashes may be the result.
  .
 \]
 
-\begin{lstlisting}
-program invgsyex;
-uses typ, iom, inv;
-const n = 4;
-var i, j,  term : ArbInt;
-              A : array[1..n,1..n] of ArbFloat;
-begin
-  assign(input, paramstr(1)); reset(input);
-  assign(output, paramstr(2)); rewrite(output);
-  writeln('program results invgsyex');
-  { Read bottomleft part of matrix A}
-  for i:=1 to n do iomrev(input, A[i,1], i);
-  { print matrix A}
-  writeln; writeln('A =');
-  for i:=1 to n do for j:=1 to i-1 do A[j,i]:=A[i,j];
-  iomwrm(output, A[1,1], n, n, n, numdig);
-  { calculate inverse of matrix A}
-  invgsy(n, n, A[1,1], term);
-  writeln; writeln('term=', term:2);
-  if term=1 then
-  { print inverse of matrix A}
-  begin
-      writeln; writeln('inverse of A =');
-      iomwrm(output, A[1,1], n, n, n, numdig);
-  end; {term=1}
-  close(input); close(output)
-end.
-\end{lstlisting}
+\NUMLIBexample{invgsyex}
+
 
 \ProgramData
 
