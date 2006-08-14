@@ -246,127 +246,127 @@ endif
 OBJPASDIR=$(RTL)/objpas
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_PROGRAMS+=fpcmemdll.dll
+override TARGET_PROGRAMS+=fpcmemdll
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=system ctypes objpas macpas strings lineinfo heaptrc matrix dos objects windows winsock winsock2 cmem rtlconsts sysconst sysutils math types strutils convutils dateutils varutils variants typinfo classes getopts sockets printer charset ucomplex winevent video mouse keyboard dynlibs crt messages fpcmemdll sharemem fpmkunit
@@ -2351,4 +2351,4 @@ mouse$(PPUEXT) : $(WINDIR)/mouse.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUE
 keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(WINDIR)/keyboard.pp
 sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
-fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
+fpcmemdll.exe : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
