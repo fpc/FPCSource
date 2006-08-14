@@ -365,7 +365,7 @@ begin
   Crc32Val:=NOT Crc32Val;
 end;
 
-function TDeflater.ZipID: Word;
+class function TDeflater.ZipID: Word;
 begin
   Result:=8;
 end;
@@ -436,7 +436,7 @@ begin
    ProcessLine('');
 end;
 
-function TShrinker.ZipID: Word;
+class function TShrinker.ZipID: Word;
 begin
   Result:=1;
 end;
