@@ -230,6 +230,7 @@ fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) system$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp system$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp system$(PPUEXT)
+        $(COMPILER) $(INC)/ctypes.pp -Fi../win
 
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) typinfo$(PPUEXT) system$(PPUEXT)
 
