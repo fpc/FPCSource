@@ -516,32 +516,29 @@ end;
              location_copy(location,left.location);
              resultreg := location.register;
              hregister1 := location.register;
-             if (location.loc = LOC_CREGISTER) then
+             location.loc := LOC_REGISTER;
+             resultreg := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+             location.register := resultreg;
+
+             { determine operator }
+             if nodetype=shln then
+               op:=OP_SHL
+             else
+               op:=OP_SHR;
+
+             { shifting by a constant directly coded: }
+             if (right.nodetype=ordconstn) then
+               cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+                 tordconstnode(right).value and 31,hregister1,resultreg)
+             else
                begin
-                 location.loc := LOC_REGISTER;
-                 resultreg := cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                 location.register := resultreg;
+                 { load shift count in a register if necessary }
+                 location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+                 hregister2 := right.location.register;
+
+                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,location.size,hregister2,
+                  hregister1,resultreg);
                end;
-
-              { determine operator }
-              if nodetype=shln then
-                op:=OP_SHL
-              else
-                op:=OP_SHR;
-
-              { shifting by a constant directly coded: }
-              if (right.nodetype=ordconstn) then
-                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,OS_32,
-                  tordconstnode(right).value and 31,hregister1,resultreg)
-              else
-                begin
-                  { load shift count in a register if necessary }
-                  location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
-                  hregister2 := right.location.register;
-
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,hregister2,
-                    hregister1,resultreg);
-                end;
            end;
       end;
 
