@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2000 by Florian Klaempfl
+    Copyright (c) 1998-2006 by Florian Klaempfl
 
     Basic Processor information
 
@@ -19,42 +19,63 @@
 
  ****************************************************************************
 }
-Unit CPUInfo;
+Unit cpuinfo;
 
 {$i fpcdefs.inc}
 
 Interface
 
+uses
+  globtype;
+
 Type
-   AWord = QWord;
-
-   { this must be an ordinal type with the same size as a pointer }
-   { to allow some dirty type casts for example when using        }
-   { tconstsym.value                                              }
-   TPointerOrd = longint;
-
    bestreal = extended;
    ts32real = single;
    ts64real = double;
    ts80real = extended;
-   { on the ia64 comp will be mapped to int64 }
-   ts64comp = comp;
+   ts128real = type extended;
+   ts64comp = type extended;
 
    pbestreal=^bestreal;
 
+   { possible supported processors for this target }
+   tcputype =
+      (cpu_none,
+       cpu_itanium
+      );
 
-Const
-   { Size of native extended type }
-   extended_size = 10;
+   tfputype =
+     (fpu_none,
+      fpu_itanium
+     );
+     
+const
+   { calling conventions supported by the code generator }
+   supported_calling_conventions : tproccalloptions = [
+     pocall_internproc,
+     pocall_stdcall,
+     pocall_cdecl,
+     pocall_cppdecl
+   ];
 
-   c_countusableregsint = 95;
-   c_countusableregsfpu = 95;
-   c_countusableregsmm  = 0;
-   c_countusableregsqp  = 48;
 
-   { target cpu string (used by compiler options) }
-   target_cpu_string = 'ia64';
+   cputypestr : array[tcputype] of string[10] = ('',
+     'ITANIUM'
+   );
+
+   fputypestr : array[tfputype] of string[6] = ('',
+     'ITANIUM'
+   );
+
+   { Supported optimizations, only used for information }
+   supported_optimizerswitches = [cs_opt_peephole,cs_opt_regvar,cs_opt_stackframe,
+     cs_opt_asmcse,cs_opt_loopunroll,cs_opt_uncertain];
+
+   level1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_level2,cs_opt_regvar,cs_opt_stackframe,cs_opt_asmcse];
+   level3optimizerswitches = level2optimizerswitches + [cs_opt_level3{,cs_opt_loopunroll}];
 
 Implementation
 
 end.
+

@@ -1,7 +1,7 @@
 {
-    Copyright (C) 2000 by Florian Klaempfl
+    Copyright (C) 2000-2006 by Florian Klaempfl
 
-    this unit implements an asmlistitem class for the iA-64 architecture
+    this unit implements the base types for the iA-64 architecture
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,7 +24,11 @@ unit cpubase;
   interface
 
     uses
-       cutils,strings,systems,cobjects,globals,aasm,cpuinfo;
+       cutils,
+       globals,
+       systems,
+       cpuinfo,
+       cgbase;
 
 type
   tasmop = (A_ADD,A_SUB,A_ADDP4,A_AND,A_ANDCM,A_OR,A_XOR,A_SHLADD,
@@ -62,6 +66,14 @@ type
                LST_FILL,LST_C_NC,LST_C_CLR_ACQ,LST_REL,
                LST_SPILL);
 
+{*****************************************************************************
+                                   Flags
+*****************************************************************************}
+
+    type
+      TResFlags = (F_NONE,F_LT,F_LTU,F_EQ,F_LT_UNC,F_LTU_UNC,F_EQ_UNC,
+              F_EQ_AND,F_EQ_OR,F_EQ_OR_ANDCM,F_NE_AND,F_NE_OR);
+
 Type
  TRegister = (R_NO,  { R_NO is Mandatory, signifies no register }
               R_0,R_1,R_2,R_3,R_4,R_5,R_6,R_7,R_8,R_9,
@@ -84,58 +96,29 @@ const
 { Constants describing the registers }
 
 Const
-  Firstreg = R_0;
-  LastReg = R_F31;
-
-  stack_pointer_reg = R_30;
-  frame_pointer_reg = R_15;
-  self_pointer_reg  = R_16;
-  accumulator   = R_0;
-  {the return_result_reg, is used inside the called function to store its return
-  value when that is a scalar value otherwise a pointer to the address of the
-  result is placed inside it}
-        return_result_reg               =       accumulator;
-
-  {the function_result_reg contains the function result after a call to a scalar
-  function othewise it contains a pointer to the returned result}
-        function_result_reg     =       accumulator;
-  global_pointer = R_29;
-  return_pointer = R_26;
-
-  max_scratch_regs = 2;
-  scratch_regs : array[1..max_scratch_regs] of tregister = (R_1,R_2);
-
-{ low and high of the available maximum width integer general purpose }
-{ registers                                                           }
-  LoGPReg = R_0;
-  HiGPReg = R_31;
-
-  { sizes }
-  sizeof(aint)  = 8;
-  extended_size = 16;
-
-  general_registers = [R_0..R_31];
-
   intregs = [R_0..R_31];
   fpuregs = [R_F0..R_F31];
   mmregs = [];
 
-  availabletempregsint = [R_0..R_14,R_16..R_25,R_28];
-  availabletempregsfpu = [R_F0..R_F30];
-  availabletempregsmm  = [];
-
-  c_countusableregsint = 26;
-  c_countusableregsfpu = 31;
-  c_countusableregsmm  = 0;
-
-  maxfpuvarregs = 128;
   maxvarregs = 128;
+  maxfpuvarregs = 128;
 
   max_operands = 4;
 
-  varregs : Array [1..6] of Tregister =
-            (R_9,R_10,R_11,R_12,R_13,R_14);
+{*****************************************************************************
+                          Default generic sizes
+*****************************************************************************}
 
+      { Defines the default address size for a processor, }
+      OS_ADDR = OS_64;
+      { the natural int size for a processor,             }
+      OS_INT = OS_64;
+      OS_SINT = OS_S64;
+      { the maximum float size for a processor,           }
+      OS_FLOAT = OS_F80;
+      { the size of a vector register for a processor     }
+      OS_VECTOR = OS_M128;
+      
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
@@ -155,128 +138,12 @@ Const
      The value of this constant is equal to the constant
      PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
   }
-  std_param_align = ???;
-
-
-Type
-   TReference = record
-      offset : aword;
-      symbol : pasmsymbol;
-      base : tregister;
-      is_immediate : boolean;
-      offsetfixup : word; {needed for inline}
-      { the boundary to which the reference is surely aligned }
-      alignment : byte;
-   end;
-   PReference = ^TReference;
-
-   tloc = (LOC_INVALID,
-           LOC_REGISTER,
-           LOC_FPU,
-           LOC_MEM,
-           LOC_REFERENCE,
-           LOC_JUMP,
-           { the alpha doesn't have flags, but this }
-           { avoid some conditional compiling       }
-           { DON'T USE for the alpha                }
-           LOC_FLAGS,
-           LOC_CREGISTER,
-           LOC_CFPUREGISTER,
-           LOC_CONST);
-
-   tlocation = record
-   case loc : tloc of
-     LOC_REFERENCE,LOC_MEM : (reference : treference);
-     LOC_CREGISTER,
-     LOC_REGISTER : (register : tregister);
-     LOC_FLAGS : (qp : tqp);
-     LOC_JUMP : ();
-   end;
+  std_param_align = 8;
 
 {*****************************************************************************
                    Opcode propeties (needed for optimizer)
 *****************************************************************************}
 
-{$ifndef NOOPT}
-Type
-{What an instruction can change}
-  TInsChange = (Ch_None);
-{$endif}
-
-
-  { resets all values of ref to defaults }
-  procedure reset_reference(var ref : treference);
-  { set mostly used values of a new reference }
-  function new_reference(base : tregister;offset : longint) : preference;
-  function newreference(const r : treference) : preference;
-  procedure disposereference(var r : preference);
-
-  procedure set_location(var destloc : tlocation;const sourceloc : tlocation);
-
-
-{*****************************************************************************
-                                  Init/Done
-*****************************************************************************}
-
-  procedure InitCpu;
-  procedure DoneCpu;
-
 implementation
-
-  uses
-     verbose;
-
-
-  procedure reset_reference(var ref : treference);
-  begin
-    FillChar(ref,sizeof(treference),0);
-  end;
-
-
-  function new_reference(base : tregister;offset : longint) : preference;
-  var
-    r : preference;
-  begin
-    new(r);
-    FillChar(r^,sizeof(treference),0);
-    r^.offset:=offset;
-    r^.alignment:=8;
-    new_reference:=r;
-  end;
-
-  function newreference(const r : treference) : preference;
-
-  var
-     p : preference;
-  begin
-     new(p);
-     p^:=r;
-     newreference:=p;
-  end;
-
-  procedure disposereference(var r : preference);
-
-  begin
-    dispose(r);
-    r:=Nil;
-  end;
-
-  procedure set_location(var destloc : tlocation;const sourceloc : tlocation);
-
-    begin
-       destloc:=sourceloc;
-    end;
-
-{*****************************************************************************
-                                  Init/Done
-*****************************************************************************}
-
-  procedure InitCpu;
-    begin
-    end;
-
-  procedure DoneCpu;
-    begin
-    end;
 
 end.

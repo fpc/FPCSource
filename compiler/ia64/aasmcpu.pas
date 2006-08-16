@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2000 by Florian Klaempfl
+    Copyright (c) 2000-2006 by Florian Klaempfl
 
     Contains the assembler object for the ia64
 
@@ -19,16 +19,17 @@
 
  ****************************************************************************
 }
-unit cpuasm;
+unit aasmcpu;
 
 {$i fpcdefs.inc}
 
 interface
 
 uses
-  cobjects,
-  aasm,globals,verbose,
-  cpubase;
+  globals,verbose,
+  aasmbase,aasmtai,
+  cpubase,
+  cgutils;
 
 
 type
@@ -42,16 +43,6 @@ type
 
   { Types of operand }
   toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_qp);
-
-  toper=record
-    case typ : toptype of
-       top_none   : ();
-       top_reg    : (reg:tregister);
-       top_qp     : (qp : tqp);
-       top_ref    : (ref:preference);
-       top_const  : (val:int64);
-       top_symbol : (sym:pasmsymbol;symofs:longint);
-  end;
 
   paicpu = ^taicpu;
   taicpu = class(tai)
@@ -109,7 +100,7 @@ type
      { M6: floating-point load }
      { M9: floating-point store }
      constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-       _hint : thint;const r1 : tregister;ref : preference);
+       _hint : thint;const r1 : tregister;ref : treference);
 
      { M2: integer load incremented by register }
      { M7: floating-point load incremented by register }
@@ -122,15 +113,15 @@ type
      { M8: floating-point load increment by imm. }
      { M10: floating-point store increment by imm. }
      constructor op_reg_ref_const(_qp : tqp;op : tasmop;postfix : tldsttype;
-       _hint : thint;const r1 : tregister;ref : preference;i : longint);
+       _hint : thint;const r1 : tregister;ref : treference;i : longint);
 
      { M11: floating-point load pair}
      constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-       _hint : thint;const r1,r2 : tregister;ref : preference);
+       _hint : thint;const r1,r2 : tregister;ref : treference);
 
      { M12: floating-point load pair increment by imm. }
      constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-       _hint : thint;const r1,r2 : tregister;ref : preference;i : longint);
+       _hint : thint;const r1,r2 : tregister;ref : treference;i : longint);
 
      { X1: break/nop }
      constructor op_const62(_qp : tqp;op : tasmop;i : int64);
@@ -242,7 +233,7 @@ implementation
     { M6: floating-point load }
     { M9: floating-point store }
     constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-      _hint : thint;const r1 : tregister;ref : preference);
+      _hint : thint;const r1 : tregister;ref : treference);
 
       begin
       end;
@@ -261,21 +252,21 @@ implementation
     { M8: floating-point load increment by imm. }
     { M10: floating-point store increment by imm. }
     constructor taicpu.op_reg_ref_const(_qp : tqp;op : tasmop;postfix : tldsttype;
-      _hint : thint;const r1 : tregister;ref : preference;i : longint);
+      _hint : thint;const r1 : tregister;ref : treference;i : longint);
 
       begin
       end;
 
     { M11: floating-point load pair}
     constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-      _hint : thint;const r1,r2 : tregister;ref : preference);
+      _hint : thint;const r1,r2 : tregister;ref : treference);
 
       begin
       end;
 
     { M12: floating-point load pair increment by imm. }
     constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
-      _hint : thint;const r1,r2 : tregister;ref : preference;i : longint);
+      _hint : thint;const r1,r2 : tregister;ref : treference;i : longint);
 
       begin
       end;
