@@ -663,7 +663,10 @@ end;
 *****************************************************************************}
 
 Procedure system_exit;forward;
+{$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
+//not needed if independant memory manager
 Procedure FinalizeHeap;forward;
+{$endif HAS_MEMORYMANAGER}
 
 Procedure InternalExit;
 var
@@ -703,7 +706,9 @@ Begin
 {$if defined(LINUX) or defined(BSD)}
   sysfreemem(cmdline);
 {$endif}
+{$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
   FinalizeHeap;
+{$endif HAS_MEMORYMANAGER}
 End;
 
 
