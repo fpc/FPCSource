@@ -48,7 +48,8 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
-WININC=wininc
+WININC=./wininc
+WINDIR=../win
 
 UNITPREFIX=rtl
 
