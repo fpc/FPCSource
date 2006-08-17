@@ -19,7 +19,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
 
     Procedure ReadInteger;
 
-var Code: word;
+    var Code: Word;
 
     begin
       If Value<>-1 then exit; // Was already read.
@@ -30,10 +30,15 @@ var Code: word;
         DoFormatError(feInvalidFormat);
       If Fmt[Chpos]='*' then
         begin
-        If (Chpos>OldPos) or (ArgPos>High(Args))
-           or (Args[ArgPos].Vtype<>vtInteger) then
+        If (Chpos>OldPos) or (ArgPos>High(Args)) then
           DoFormatError(feInvalidFormat);
-        Value:=Args[ArgPos].VInteger;
+        case Args[ArgPos].Vtype of
+          vtInteger: Value := Args[ArgPos].VInteger;
+          vtInt64: Value := Args[ArgPos].VInt64^;
+          vtQWord: Value := Args[ArgPos].VQWord^;
+        else
+          DoFormatError(feInvalidFormat);
+        end;
         Inc(ArgPos);
         Inc(chPos);
         end
@@ -101,7 +106,7 @@ var Code: word;
       If Fmt[chpos]='.' then
         begin
         inc(chpos);
-        ReadInteger;
+          ReadInteger;
         If Value=-1 then
          Value:=0;
         prec:=Value;
