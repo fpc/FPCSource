@@ -1,6 +1,7 @@
 { %result=201 }
 
 {$r+}
+{$packenum 1}
 Type
   MySet = (msOne,msTwo,msThree,msFour,msFive);
 
