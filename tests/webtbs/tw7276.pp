@@ -12,7 +12,7 @@ begin
   Format('%*s', [Integer(length(s)), s]);
   // this is only seemingly equivalent to above, but on 64 bit
   // machines the default integer type is Int64
-  Format('%*s', [length(s), s])
+  Format('%*s', [length(s), s]);
   // also test QWord
   Format('%*s', [QWord(length(s)), s]);  
 end.
