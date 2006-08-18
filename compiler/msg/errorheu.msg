@@ -1532,7 +1532,6 @@ cg_w_unreachable_code=06018_W_לא ניתן להריץ את קטע הקוד
 %   end;
 % \end{verbatim}
 cg_e_cant_call_abstract_method=06020_E_לא ניתן לקרוא למתודות Abstract בצורה ישירה
-Abstract methods can't be called directly
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
 cg_d_register_weight=06027_DL_Register $1 משקל $2 $3
@@ -2273,35 +2272,36 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההג�
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2006 by Florian Klaempfl
+Free Pascal Compiler גרסה $FPCFULLVERSION [$FPCDATE] עבור $FPCCPU
+זכויות יוצרים 1993-2006 (c) ע"י Florian Klaempfl
+
 ]
 
 #
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler version $FPCVERSION
+Free Pascal Compiler גרסה $FPCVERSION
 
-Compiler Date      : $FPCDATE
-Compiler CPU Target: $FPCCPU
+תאריך מהדר: $FPCDATE
+מהדר למעבד: $FPCCPU
 
-Supported targets:
+מערכות הפעלה נתמכות:
   $OSTARGETS
 
-Supported CPU instruction sets:
+הוראות מעבד נתמכות:
   $INSTRUCTIONSETS
 
-Supported FPU instruction sets:
+הוראות נתמכות של יחידת נקודה צפה:
   $FPUINSTRUCTIONSETS
 
-Supported Optimizations:
+תמיכת המיטוב:
   $OPTIMIZATIONS
 
-This program comes under the GNU General Public Licence
-For more information read COPYING.FPC
+התוכנה מוגשת תחת רישיון GNU General Public License
+למידע נוסף יש לקרוא את COPYING.FPC
 
-Report bugs,suggestions etc to:
+דיווח על תקלות (באגים), הצעות וכו':
                  bugs@freepascal.org
 ]
 
@@ -2326,150 +2326,150 @@ Report bugs,suggestions etc to:
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_put + after a boolean switch option to enable it, - to disable it
-**1a_the compiler doesn't delete the generated assembler file
-**2al_list sourcecode lines in assembler file
-**2an_list node info in assembler file
-*L2ap_use pipes instead of creating temporary assembler files
-**2ar_list register allocation/release info in assembler file
-**2at_list temp allocation/release info in assembler file
-**1A<x>_output format:
-**2Adefault_use default assembler
-3*2Aas_assemble using GNU AS
-3*2Anasmcoff_coff (Go32v2) file using Nasm
-3*2Anasmelf_elf32 (Linux) file using Nasm
-3*2Anasmwin32_Win32 object file using Nasm
-3*2Anasmwdosx_Win32/WDOSX object file using Nasm
-3*2Awasm_obj file using Wasm (Watcom)
-3*2Anasmobj_obj file using Nasm
-3*2Amasm_obj file using Masm (Microsoft)
-3*2Atasm_obj file using Tasm (Borland)
-3*2Aelf_elf32 (Linux) using internal writer
-3*2Acoff_coff (Go32v2) using internal writer
-3*2Apecoff_pecoff (Win32) using internal writer
-4*2Aas_assemble using GNU AS
-6*2Aas_Unix o-file using GNU AS
+**0*_הוסף את הסימן + לאחר אפשרות מתג בוליאני לאפשר את האפשרות, הוסף את הסימן - לבטל את האפשרות
+**1a_המהדר אינו מוחק את קובץ הassembler שנוצר
+**2al_רושם רשימה של שורות קוד מקור בקובץ הassembler
+**2an_רשימת מידע של צמתים בקובץ הassembler
+*L2ap_השתמש בצינורות במקום קבצי assembler זמניים
+**2ar_רשימה אודות רישום של הקצאה/שחרור בקובץ הassembler
+**2at_רשימה זמנית אודות הקצאה/שחרור בקובץ הassembler
+**1A<x>_תסדירי פלט:
+**2Adefault_השתמש במאסף ברירת מחדל
+3*2Aas_אסוף עם GNU AS
+3*2Anasmcoff_קובץ coff (Go32v2) בשימוש עם Nasm
+3*2Anasmelf_קובץ elf32 (Linux) בשימוש עם Nasm
+3*2Anasmwin32_קובץ אובייקט Win32 בשימוש עם Nasm
+3*2Anasmwdosx_קובץ אובייקט Win32/WDOSX בשימוש עם Nasm
+3*2Awasm_קובץ obj בשימוש עם Wasm (Watcom)
+3*2Anasmobj_קובץ obj בשימוש עם Nasm
+3*2Amasm_קובץ obj בשימוש עם Masm (Microsoft)
+3*2Atasm_קובץ obj בשימוש Tasm (Borland)
+3*2Aelf_קובץ elf32 (Linux) בשימוש כותב פנימי
+3*2Acoff_קובץ coff (Go32v2) בשימוש כותב פנימי
+3*2Apecoff_קובץ pecoff (Win32) בשימוש כותב פנימי
+4*2Aas_אסוף עם GNU AS
+6*2Aas_קובץ-o Unix בשימוש GNU AS
 6*2Agas_GNU Motorola assembler
-6*2Amit_MIT Syntax (old GAS)
-6*2Amot_Standard Motorola assembler
-A*2Aas_assemble using GNU AS
-P*2Aas_assemble using GNU AS
-S*2Aas_assemble using GNU AS
-**1b_generate browser info
-**2bl_generate local symbol info
-**1B_build all modules
-**1C<x>_code generation options:
-**2Cc<x>_set default calling convention to <x>
-**2CD_create also dynamic library (not supported)
-**2Ce_Compilation with emulated floating point opcodes
-**2Cf<x>_Select fpu instruction set to use, see fpc -i for possible values
-**2Cg_Generate PIC code
-**2Ch<n>_<n> bytes heap (between 1023 and 67107840)
-**2Ci_IO-checking
-**2Cn_omit linking stage
-**2Co_check overflow of integer operations
-**2Cp<x>_select instruction set, see fpc -i for possible values
-**2Cr_range checking
-**2CR_verify object method call validity
-**2Cs<n>_set stack size to <n>
-**2Ct_stack checking
-**2CX_create also smartlinked library
-**1d<x>_defines the symbol <x>
-**1D_generate a DEF file
-**2Dd<x>_set description to <x>
-**2Dv<x>_set DLL version to <x>
-*O2Dw_PM application
-**1e<x>_set path to executable
-**1E_same as -Cn
-**1F<x>_set file names and paths:
-**2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
-**2Fc<x>_sets input codepage to <x>
-**2FD<x>_sets the directory where to search for compiler utilities
-**2Fe<x>_redirect error output to <x>
-**2FE<x>_set exe/unit output path to <x>
-**2Fi<x>_adds <x> to include path
-**2Fl<x>_adds <x> to library path
-**2FL<x>_uses <x> as dynamic linker
-**2Fo<x>_adds <x> to object path
-**2Fr<x>_load error message file <x>
-**2Fu<x>_adds <x> to unit path
-**2FU<x>_set unit output path to <x>, overrides -FE
-*g1g_generate debugger information:
-*g2gc_generate checks for pointers
-*g2gd_use dbx
-*g2gg_use gsym
-*g2gh_use heap trace unit (for memory leak debugging)
-*g2gl_use line info unit to show more info for backtraces
-*g2gt_trash local variables (to detect uninitialized uses)
-*g2gv_generates programs traceable with valgrind
-*g2gw_generate dwarf debugging info
-**1i_information
-**2iD_return compiler date
-**2iV_return compiler version
-**2iW_return full compiler version
-**2iSO_return compiler OS
-**2iSP_return compiler processor
-**2iTO_return target OS
-**2iTP_return target processor
-**1I<x>_adds <x> to include path
-**1k<x>_Pass <x> to the linker
-**1l_write logo
-**1M<x>_set language mode to <x>
-**2Mfpc_free pascal dialect (default)
-**2Mobjfpc_switch some Delphi 2 extensions on
-**2Mdelphi_tries to be Delphi compatible
-**2Mtp_tries to be TP/BP 7.0 compatible
-**2Mgpc_tries to be gpc compatible
-**2Mmacpas_tries to be compatible to the macintosh pascal dialects
-**1n_don't read the default config file
-**1N<x>_node tree optimizations
-**2Nu_unroll loops
-**1o<x>_change the name of the executable produced to <x>
-**1O<x>_optimizations:
-**2O-_disable optimizations
-**2O1_level 1 optimizations (quick and debugger friendly)
-**2O2_level 2 optimizations (-O1 + quick optimizations)
-**2O3_level 3 optimizations (-O2 + slow optimizations)
-**2Oa<x>=<y>_set alignment
-**2Oo[NO]<x>_enable or disable optimizations, see fpc -i for possible values
-**2Op<x>_set target cpu for optimizing, see fpc -i for possible values
-**2Os_generate smaller code
-**1pg_generate profile code for gprof (defines FPC_PROFILE)
-**1R<x>_assembler reading style:
-**2Rdefault_use default assembler
-3*2Ratt_read AT&T style assembler
-3*2Rintel_read Intel style assembler
-6*2RMOT_read motorola style assembler
-**1S<x>_syntax options:
-**2S2_same as -Mobjfpc
-**2Sc_supports operators like C (*=,+=,/= and -=)
-**2Sa_include assertion code.
-**2Sd_same as -Mdelphi
-**2Se<x>_error options. <x> is a combination of the following:
-**3*_<n> : compiler stops after the <n> errors (default is 1)
-**3*_w : compiler stops also after warnings
-**3*_n : compiler stops also after notes
-**3*_h : compiler stops also after hints
-**2Sg_allow LABEL and GOTO
-**2Sh_Use ansistrings
-**2Si_support C++ styled INLINE
-**2Sk_load fpcylix unit
-**2SI<x>_set interface style to <x>
-**3SIcom_COM compatible interface (default)
-**3SIcorba_CORBA compatible interface
-**2Sm_support macros like C (global)
-**2So_same as -Mtp
-**2Sp_same as -Mgpc
-**2Ss_constructor name must be init (destructor must be done)
-**2St_allow static keyword in objects
-**1s_don't call assembler and linker
-**2sh_Generate script to link on host
-**2st_Generate script to link on target
-**2sr_Skip register allocation phase (use with -alr)
-**1T<x>_Target operating system:
-3*2Temx_OS/2 via EMX (including EMX/RSX extender)
+6*2Amit_MIT Syntax (GAS ישן)
+6*2Amot_Motorola assembler תקני
+A*2Aas_אסוף עם GNU AS
+P*2Aas_אסוף עם GNU AS
+S*2Aas_אסוף עם GNU AS
+**1b_ייצר מידע לדפדוף
+**2bl_ייצר מידע על סמלים מקומיים
+**1B_בנה את כל המודולים
+**1C<x>_אפשרויות יצירת קוד:
+**2Cc<x>_קובע מוסכמות הפעלה ברירת מחדל ל <ס>
+**2CD_צור גם ספרייה דינאמית (לא נתמך)
+**2Ce_מהדר עם הדמייה של opcodes השייכים לנקודה צפה
+**2Cf<x>_בחר הוראות FPU לשימוש, ראה fpc -i לערכים אפשריים
+**2Cg_צור קוד PIC
+**2Ch<n>_כמות של <n> בתים ל מצבור (בין 1023 ו67107840)
+**2Ci_בדיקת IO
+**2Cn_השמט מצב קישור
+**2Co_בדוק גלישה של פעולות מספר שלם
+**2Cp<x>_בחר קבוצת הוראות, ראה fpc -i לערכים אפשריים
+**2Cr_בדיקת טווח
+**2CR_וודא קריאה תקינה למתודה
+**2Cs<n>_קבע גודל מחסנית ל <n>
+**2Ct_בדיקת מחסנית
+**2CX_צור גם ספרייה של קישור חכם
+**1d<x>_מגדיר את הסמל <x>
+**1D_יוצר קובץ DEF
+**2Dd<x>_יוצר תאור ל <x>
+**2Dv<x>_יוצר גרסת DLL ל <x>
+*O2Dw_ישום PM
+**1e<x>_קובע נתיב לקובץ ריצה
+**1E_זהה ל -Cn
+**1F<x>_קובע שם קבצים ומיקומים:
+**2Fa<x>[,y]_קודם טוען את היחידות <x> ו [y] ראשונות, לפני ניתוח שורת ה uses
+**2Fc<x>_קובע קוד דף של קלט ל<x>
+**2FD<x>_קובע את הספרייה בה אפשר לחפש את כלי העזר של המהדר
+**2Fe<x>_הפנה הודעות שגיאה ל<x>
+**2FE<x>_הפנה פלט של exe/unit לנתיב <x>
+**2Fi<x>_מוסיף את <x> לרשימת הנתיבים
+**2Fl<x>_מוסיף את <x> לרשימת הנתיבים של הספריה
+**2FL<x>_משתמש ב<x> כמקשר דינאמי
+**2Fo<x>_מוסיף את <x> לרשינת הנתיבים של אובייקט
+**2Fr<x>_טוען קובץ הודעות שגיאה <x>
+**2Fu<x>_מוסיף את <x> לרשימת הנתיבים של יחידה
+**2FU<x>_קובע את המיקום הפלט של היחידות ל <x> ומשכתב את -FE
+*g1g_יוצר מידע לניפוי שגיאות
+*g2gc_יוצר בדיקות למצביעים
+*g2gd_משתמש ב dbx
+*g2gg_משתמש ב gsym
+*g2gh_משתמש ביחידה לזיהוי מצבורים (לניפוי שגיאות של דליפות זכרון)
+*g2gl_השתמש ביחידת מידע של שורה להציג מידע נוסף לbacktraces
+*g2gt_לכלך משתנים מקומיים (לזיהוי מידע לא מאותחל)
+*g2gv_מייצר תוכנות עם יכולת מעקב של valgrind
+*g2gw_מייצר מידע לניפוי שגיאות לdwarf
+**1i_מידע
+**2iD_הצג תאריך המהדר
+**2iV_הצג גרסת המהדר
+**2iW_הצג גרסה מלאה של המהדר
+**2iSO_הצג מערכת הפעלה של המהדר
+**2iSP_הצג גרסת מעבד של המהדר
+**2iTO_הצג את המטרה של מערכת ההפעלה 
+**2iTP_הצג את המטרה של המעבד
+**1I<x>_הוסף את <x> לרשימת הנתיבים להוספה
+**1k<x>_העבר את <x> למקשר
+**1l_כתוב סמליל
+**1M<x>_הגדר מצב שפה ל <x>
+**2Mfpc_להג של Free Pascal (ברירת מחדל)
+**2Mobjfpc_אפשר כמה תוספות של Delphi 2
+**2Mdelphi_מנסה להיות תואם Delphi
+**2Mtp_מנסה להיות תואם ל TP/BP 7.0
+**2Mgpc_מנסה להיות תואם gpc
+**2Mmacpas_מנסה להיות תואם ללהג של Macintosh Pascal
+**1n_אל תקרא את קובץ הגדרות ברירת המחדל
+**1N<x>_מיטוב צמתי עץ
+**2Nu_לגולל לולאות
+**1o<x>_שנה את שם קובץ הריצה שהתקבל ל <x>
+**1O<x>_מיטובים:
+**2O-_בטל מיטוב
+**2O1_מיטוב רמה 1 (מהיר וטוב לניפוי שגיאות)
+**2O2_מיטוב רמה 2 (-O1 + מיטוב מהיר)
+**2O3_מיטוב רמה 3 (-O2 + מיטוב איטי)
+**2Oa<x>=<y>_קבע יישור
+**2Oo[NO]<x>_ע"מ לאפשר או לאפשר מיטובים, ראה fpc -i לאפשרויות
+**2Op<x>_לקביעת מיטוב למעבד נבחר, ראה fpc -i לאפשרויות
+**2Os_צור קוד קטן
+**1pg_צור קוד פרופיל עבור gprof (מגדיר את FPC_PROFILE)
+**1R<x>_סגנון קריאת האסף:
+**2Rdefault_השתמש במאסף ברירת מחדל
+3*2Ratt_קרא סגנון מקשר של AT&T
+3*2Rintel_קרא סגנון מקשר של Intel
+6*2RMOT_קרא סגנון מקשר של Motorola
+**1S<x>_אפשרויות תחביר:
+**2S2_זהה ל -Mobjfpc
+**2Sc_תומך אופרטורים בסגנון C (*=, +=, /= ו -=)
+**2Sa_הוסף קוד טענת תנאי קביעה (assertion)
+**2Sd_זהה ל -Mdelphi
+**2Se<x>_אפשרויות שגיאה. <x> הינו השילוב הבא:
+**3*_<n> : המהדר עוצר לאחר <n> שגיאות (ברירת מחדל היא 1)
+**3*_w : המהדר עוצר גם לאחר אזהרות
+**3*_n : המהדר עוצר לאחר הערות
+**3*_h : המהדר עוצר לאחר רמזים
+**2Sg_אפשר LABEL ו GOTO
+**2Sh_השתמש ב ansistrings
+**2Si_תמוך בסגנון C++ של INLINE
+**2Sk_טען את היחידה fpcylix
+**2SI<x>_קבע סגנון ממשק ל<x>
+**3SIcom_תואם ממשקי COM (ברירת מחדל)
+**3SIcorba_תואם ממשקי CORBA
+**2Sm_תמוך במקרו דומים לC (גלובליים)
+**2So_זהה ל -Mtp
+**2Sp_זהה ל -Mgpc
+**2Ss_שם יוצר חייב להיות init (שם הורס חייב להיות done)
+**2St_אפשר מילות מפתח באובייקטים
+**1s_אל תקרא למאסף והמקשר
+**2sh_צור תסריט לקישור במארח
+**2st_צור תסריט לקישור במטרה
+**2sr_דלג על רישום הקצאת מופע (השתמש בייחד עם -alr)
+**1T<x>_מטרת מערכת ההפעלה:
+3*2Temx_OS/2 בשימוש EMX ( בייחד עם הרחבת EMX/RSX)
 3*2Tfreebsd_FreeBSD
-3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Tgo32v2_גרסה 2 של הרחבת DJ Delorie DOS 
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
@@ -2477,69 +2477,76 @@ S*2Aas_assemble using GNU AS
 3*2Topenbsd_OpenBSD
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
-3*2Twatcom_Watcom compatible DOS extender
-3*2Twdosx_WDOSX DOS extender
-3*2Twin32_Windows 32 Bit
+3*2Twatcom_Watcom תואם הרחבת DOS
+3*2Twdosx_WDOSX הרחבת DOS
+3*2Twin32_Windows 32 סיביות
 3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
 6*2Tlinux_Linux/m68k
-6*2Tmacos_Macintosh m68k (not supported)
+6*2Tmacos_Macintosh m68k (לא נתמך)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
-P*2Tamiga_AmigaOS on PowerPC
-P*2Tdarwin_Darwin and MacOS X on PowerPC
-P*2Tlinux_Linux on PowerPC
-P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tamiga_AmigaOS על PowerPC
+P*2Tdarwin_Darwin ו MacOS X על PowerPC
+P*2Tlinux_Linux על PowerPC
+P*2Tmacos_MacOS (קלאסי) על PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
-**1u<x>_undefines the symbol <x>
-**1U_unit options:
-**2Un_don't check the unit name
-**2Ur_generate release unit files
-**2Us_compile a system unit
-**1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_e : Show errors (default)       0 : Show nothing (except errors)
-**2*_w : Show warnings               u : Show unit info
-**2*_n : Show notes                  t : Show tried/used files
-**2*_h : Show hints                  c : Show conditionals
-**2*_i : Show general info           d : Show debug info
-**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
-**2*_a : Show everything             x : Executable info (Win32 only)
-**2*_b : Write file names messages with full path
-**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info
-3*1W<x>_Win32-like target options
-3*2WB_Create a relocatable image
-3*2WB<x>_Set Image base to Hexadecimal <x> value
-3*2WC_Specify console type application
-3*2WD_Use DEFFILE to export functions of DLL or EXE
-3*2WF_Specify full-screen type application (OS/2 only)
-3*2WG_Specify graphic type application
-3*2WN_Do not generate relocation code (necessary for debugging)
-3*2WR_Generate relocation code
-P*2WC_Specify console type application (MacOS only)
-P*2WG_Specify graphic type application (MacOS only)
-P*2WT_Specify tool type application (MPW tool, MacOS only)
-**1X_executable options:
-**2Xc_pass --shared to the linker (Unix only)
-**2Xd_don't use standard library search path (needed for cross compile)
-**2Xe_use external linker
-**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
-**2Xi_use internal linker
-**2Xm_generate link map
-**2XM<x>_set the name of the 'main' program routine (default is 'main')
-**2XP<x>_prepend the binutils names with the prefix <x>
-**2Xr<x>_set library search path to <x> (needed for cross compile)
-**2Xs_strip all symbols from executable
-**2XS_try to link units static (default) (defines FPC_LINK_STATIC)
-**2Xt_link with static libraries (-static is passed to linker)
-**2XX_try to link units smart            (defines FPC_LINK_SMART)
+**1u<x>_מסיר את ההגדרה של הסמל <x>
+**1U_הגדרות יחידה:
+**2Un_אל תבדוק את שם היחידה
+**2Ur_צור קבצי שחרור של יחידות
+**2Us_הדר את יחידת הsystem
+**1v<x>_תהיה מפורט יותר. <x> הינו שילוב של התווים הבאים:
+**2*_e : הצג הודעות שגיאה (ברירת מחדל)
+**2*_0 : אל תציג כלום (למעט הודעות שגיאה)
+**2*_w : הצג אזהרות
+**2*_u : הצג מידע על יחידה
+**2*_n : הצג הערות
+**2*_t : הצג קבצים שהיו בשימוש
+**2*_h : הצג רמזים
+**2*_c : הצג תנאים
+**2*_i : הצג מידע כללי
+**2*_d : הצג מידע לנפוי שגיאות
+**2*_l : הצג מספרי שורות
+**2*_r : מצב תואם Rhide/GCC
+**2*_a : הצג הכול
+**2*_x : הצג מידע על קובץ הריצה (רק בWin32)
+**2*_b : כתוב הודעות עם שמות קבצים ונתיבים מלאים
+**2*_v : כתוב את הקובץ fpcdebug.txt עם הרבה מידע על ניפוי שגיאות
+**2*_p : כתוב את הקובץ tree.log עם ניתוח עץ
+3*1W<x>_אופציות מטרה לWin32
+3*2WB_צור תמונה שניתן למקם אותה מחדש
+3*2WB<x>_צור תמונה מבוססת על מספר הקסה-דצימלי עם ערך של <x>
+3*2WC_מציין יישום למסוף
+3*2WD_השתמש ב DEFFILE לייצא פנקציות של DLL או EXE
+3*2WF_מציין יישום מסך מלא (OS/2 בלבד)
+3*2WG_מציין יישום גרפי
+3*2WN_אל תיצור קוד משנה מיקום (חיוני לניפוי שגיאות)
+3*2WR_צור קוד משנה מיקום
+P*2WC_מציין יישום מסוף (MacOS בלבד)
+P*2WG_מציין יישום גרפי (MacOS בלבד)
+P*2WT_מציין יישום מסוג כלי (כלי MPW, MacOS בלבד)
+**1X_הגדרות קבצי ריצה:
+**2Xc_העבר --shared למקשר (Unix בלבד)
+**2Xd_אל תשתמש בנתיבי חיפוש ספריות תיקניים (נדרש בזמן הידור צולב )
+**2Xe_השתמש במקשר חיצוני
+**2XD_נסה לקשר יחידות בצורה דינמית (מגדיר FPC_LINK_DYNAMIC)
+**2Xi_השתמש במקשר פנימי
+**2Xm_צור מפת קישורים
+**2XM<x>_הצב את השם של השגרה 'main' בתוכנה (ברירת המחדל הינה 'main')
+**2XP<x>_הוסף תחילית של שמות binutils עם המקדם <x>
+**2Xr<x>_הצב נתיב חיפוש ספריות ל <x> (נדרש בזמן הידור צולב)
+**2Xs_נקה את כל הסמלים מקובץ הריצה
+**2XS_נסה לקשר יחידות בצורה סטטית (ברירת מחדל) (מגדיר את FPC_LINK_STATIC)
+**2Xt_קשר עם ספריות סטטיות (המתג -static מועבר למקשר)
+**2XX_נסה לקשר יחידות בצורה חכמה (מגדיר את FPC_LINK_SMART)
 **1*_
-**1?_shows this help
-**1h_shows this help without waiting
+**1?_הצג את העזרה הנוכחית
+**1h_הצג את העזרה הנוכחית ללא עצירה
 ]
 
 #
