@@ -974,7 +974,11 @@ CONSTRUCTOR TApplication.Init;
 
 BEGIN
 {   InitMemory;}                                              { Start memory up }
-   InitResource;
+   if not(InitResource) then
+     begin
+       writeln('Fatal: Can''t init resources');
+       halt(1);
+     end;
    initkeyboard;
    if not Drivers.InitVideo then                              { Start video up }
      begin
