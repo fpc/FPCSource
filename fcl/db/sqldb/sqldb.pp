@@ -950,10 +950,13 @@ begin
                 end;
               end;
             end;
-          InitialiseModifyQuery(FDeleteQry,FDeleteSQL);
-          InitialiseModifyQuery(FUpdateQry,FUpdateSQL);
-          InitialiseModifyQuery(FInsertQry,FInsertSQL);
           end;
+        end;
+      if FUpdateable then
+        begin
+        InitialiseModifyQuery(FDeleteQry,FDeleteSQL);
+        InitialiseModifyQuery(FUpdateQry,FUpdateSQL);
+        InitialiseModifyQuery(FInsertQry,FInsertSQL);
         end;
       end
     else
