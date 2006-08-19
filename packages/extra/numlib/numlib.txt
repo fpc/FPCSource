@@ -95,14 +95,4 @@ Other remarks:
 - Found out what MDT does. MDT is the core of DET. Det just reads a vector,
     reformats it to form a matrix, and then passes it to MDT.
   Such a vector only contains the required fields to build a certain kind of
-  matrix. (e.g. for a bandmatrix, the diagonals). MDT=Matrix determinant.
-
--------------
-Some translation problems:
-
-I left the term "Bandmatrix" untranslated, and give the mathematical definition
-here, and hope you know what it is in english:
-
-If A is a "n x n" bandmatrix with leftbound l, and rightbound r then
-
-Aij=0 if j<i-l or j>i+r
+  matrix. (e.g. for a band matrix, the diagonals). MDT=Matrix determinant.
