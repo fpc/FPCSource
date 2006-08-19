@@ -40,6 +40,12 @@ procedure iomwrv(var out: text; var v: ArbFloat; n, form: ArbInt);
 {Write a m x n-dimensional matrix a to textfile}
 procedure iomwrm(var out: text; var a: ArbFloat; m, n, rwidth, form: ArbInt);
 
+{Read a m x n-dimensional matrix a from string}
+procedure iomrems(inp: ArbString; var a: ArbFloat; var m, n: ArbInt; c: ArbInt);
+
+{Write a m x n-dimensional matrix a to string}
+procedure iomwrms(var out: ArbString; var a: ArbFloat; m, n, form, c: ArbInt);
+
 implementation
 
 procedure iomrev(var inp: text; var v: ArbFloat; n: ArbInt);
@@ -78,10 +84,8 @@ BEGIN
 END {iomwrv};
 
 procedure iomwrm(var out: text; var a: ArbFloat; m, n, rwidth, form: ArbInt);
-
 var  pa                            : ^arfloat1;
      i, k, nb, i1, l, j, r, l1, kk : ArbInt;
-
 BEGIN
   if (n<1) or (m<1) then exit;
   pa:=@a;
@@ -105,5 +109,104 @@ BEGIN
       Inc(l1, i1); if l<nb then writeln(out)
     END;
 END {iomwrm};
+
+procedure iomrems(inp: ArbString; var a: ArbFloat; var m, n: ArbInt; c: ArbInt);
+var
+  pa: ^arfloat1;
+  i, j, k: ArbInt;
+  err: ArbInt;
+  s: ArbString;
+  ni: ArbInt;
+  ci: ArbInt;
+begin
+  pa:=@a;
+  
+  k:=1;
+  m:=0;
+  n:=0;
+  
+  //parse the text
+  i:= 1;
+  while i < Length(inp) do
+  begin
+    ni := 1;
+    ci := 1;
+
+    //parse row
+    while not (inp[i] in ['}']) do
+    begin
+
+      //go to beginning of row values
+      while inp[i] in ['{',' '] do
+      begin
+        //increase row counter
+        if inp[i] = '{' then
+          Inc(m);
+        Inc(i);
+      end;
+
+      //get value from string
+      s := '';
+      while inp[i] in ['0'..'9','E','e','+','-'] do
+      begin
+        s := s + inp[i];
+        Inc(i);
+      end;
+
+      //assign value to element
+      val(s, pa^[k], err);
+      Inc(k);
+      if err <> 0 then
+        writeln('Val(',s,') failed at position ', err);
+        
+      Inc(ci);
+    end;
+
+    k := ((k div c) + 1) * c + 1;
+    
+    Inc(ni);
+    if ni > n then n := ni;
+
+    Inc(i);
+  end;
+
+end;
+
+procedure iomwrms(var out: ArbString; var a: ArbFloat; m, n, form, c: ArbInt);
+var
+  pa: ^arfloat1;
+  i, l, kk: ArbInt;
+  s: string;
+BEGIN
+  if (n<1) or (m<1) then
+    exit;
+
+  pa:=@a;
+
+  if form>maxform then
+    form:=maxform
+  else
+    if form<minform then
+      form:=minform;
+
+  kk := 1;
+  for l:=1 to m do
+  BEGIN
+    out := out + '{';
+
+    for i:=1 to n do
+    BEGIN
+      str(pa^[kk]:form, s);
+      Inc(kk);
+      
+      if i <> n then
+        out := out + s + ' '
+      else
+        out := out + s;
+    END;
+    kk := ((kk div c) + 1) * c + 1;
+    out := out + ' }';
+  end;
+end;
 
 END.

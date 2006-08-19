@@ -57,6 +57,7 @@ type {Definition of base types}
      ArbFloat    = double;
 {$ENDIF}
      ArbInt      = LONGINT;
+     ArbString   = AnsiString;
 
      Float8Arb  =ARRAY[0..7] OF BYTE;
      Float10Arb =ARRAY[0..9] OF BYTE;
