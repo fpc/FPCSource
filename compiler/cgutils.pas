@@ -67,6 +67,12 @@ unit cgutils;
         subsetregsize: tcgsize;
       end;
 
+      tsubsetreference = record
+        ref: treference;
+        bitindexreg: tregister;
+        startbit, bitlen: byte;
+      end;
+
       tlocation = record
          loc  : TCGLoc;
          size : TCGSize;
@@ -103,6 +109,9 @@ unit cgutils;
             LOC_CSUBSETREG : (
               sreg: tsubsetregister;
             );
+            LOC_SUBSETREF : (
+              sref: tsubsetreference;
+            )
       end;
 
 

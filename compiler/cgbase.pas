@@ -53,7 +53,10 @@ interface
          LOC_CMMREGISTER,
          { contiguous subset of bits of an integer register }
          LOC_SUBSETREG,
-         LOC_CSUBSETREG
+         LOC_CSUBSETREG,
+         { contiguous subset of bits in memory }
+         LOC_SUBSETREF,
+         LOC_CSUBSETREF
        );
 
        { since we have only 16bit offsets, we need to be able to specify the high
@@ -286,7 +289,9 @@ interface
             'LOC_MMREG',
             'LOC_CMMREG',
             'LOC_SSETREG',
-            'LOC_CSSETREG');
+            'LOC_CSSETREG',
+            'LOC_SSETREF',
+            'LOC_CSSETREF');
 
     var
        mms_movescalar : pmmshuffle;
