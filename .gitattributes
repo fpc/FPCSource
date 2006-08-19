@@ -2972,6 +2972,7 @@ packages/extra/numlib/examples/invgpdex.dat -text
 packages/extra/numlib/examples/invgpdex.pas svneol=native#text/plain
 packages/extra/numlib/examples/invgsyex.dat -text
 packages/extra/numlib/examples/invgsyex.pas svneol=native#text/plain
+packages/extra/numlib/examples/iomrewrsex.pas svneol=native#text/plain
 packages/extra/numlib/fpmake.pp svneol=native#text/plain
 packages/extra/numlib/int.pas svneol=native#text/plain
 packages/extra/numlib/inv.pas svneol=native#text/plain
