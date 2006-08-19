@@ -651,6 +651,9 @@ interface
        cchartype,                 { Char }
        cwidechartype,             { WideChar }
        booltype,                  { boolean type }
+       bool16type,
+       bool32type,
+       bool64type,                { implement me }
        u8inttype,                 { 8-Bit unsigned integer }
        s8inttype,                 { 8-Bit signed integer }
        u16inttype,                { 16-Bit unsigned integer }

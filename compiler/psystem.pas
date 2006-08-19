@@ -136,6 +136,8 @@ implementation
         u64inttype.setdef(torddef.create(u64bit,low(qword),TConstExprInt(high(qword))));
         s64inttype.setdef(torddef.create(s64bit,low(int64),high(int64)));
         booltype.setdef(torddef.create(bool8bit,0,1));
+        bool16type.setdef(torddef.create(bool16bit,0,1));
+        bool32type.setdef(torddef.create(bool32bit,0,1));
         cchartype.setdef(torddef.create(uchar,0,255));
         cwidechartype.setdef(torddef.create(uwidechar,0,65535));
         cshortstringtype.setdef(tstringdef.createshort(255));
@@ -249,8 +251,8 @@ implementation
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',booltype);
-        adddef('WordBool',torddef.create(bool16bit,0,1));
-        adddef('LongBool',torddef.create(bool32bit,0,1));
+        addtype('WordBool',bool16type);
+        addtype('LongBool',bool32type);
         addtype('Byte',u8inttype);
         addtype('ShortInt',s8inttype);
         addtype('Word',u16inttype);
@@ -285,6 +287,8 @@ implementation
         addtype('$widestring',cwidestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
+        addtype('$boolean16',bool16type);
+        addtype('$boolean32',bool32type);
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -367,6 +371,8 @@ implementation
         loadtype('s80real',s80floattype);
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',booltype);
+        loadtype('boolean16',bool16type);
+        loadtype('boolean32',bool32type);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);

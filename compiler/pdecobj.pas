@@ -76,9 +76,9 @@ implementation
            { Set return type, class constructors return the
              created instance, object constructors return boolean }
            if is_class(pd._class) then
-            pd.rettype.setdef(pd._class)
+             pd.rettype.setdef(pd._class)
            else
-            pd.rettype:=booltype;
+             pd.rettype:=bool32type;
            constructor_head:=pd;
         end;
 
