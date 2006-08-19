@@ -13,8 +13,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFDEF FPC}
 {$MODE objfpc}
 {$H+}
+{$ENDIF}
 
 unit URIParser;
 
@@ -31,42 +33,55 @@ type
     Document: String;
     Params: String;
     Bookmark: String;
+    HasAuthority: Boolean;
   end;
 
 function EncodeURI(const URI: TURI): String;
-function ParseURI(const URI: String):  TURI;
-function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
+function ParseURI(const URI: String):  TURI; overload;
+function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI; overload;
 
+function ResolveRelativeURI(const BaseUri, RelUri: WideString;
+  out ResultUri: WideString): Boolean; overload;
+
+function ResolveRelativeURI(const BaseUri, RelUri: UTF8String;
+  out ResultUri: UTF8String): Boolean; overload;
+
+function URIToFilename(const URI: string; out Filename: string): Boolean;
+function FilenameToURI(const Filename: string): string;
+
+function IsAbsoluteURI(const UriReference: string): Boolean;
 
 implementation
 
 uses SysUtils;
 
 const
-  HexTable: array[0..15] of Char = '0123456789abcdef';
+  GenDelims = [':', '/', '?', '#', '[', ']', '@'];
+  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
 
+function Escape(const s: String; const Allowed: TSysCharSet): String;
+var
+  i: Integer;
+begin
+  SetLength(Result, 0);
+  for i := 1 to Length(s) do
+    if not (s[i] in Allowed) then
+      Result := Result + '%' + IntToHex(ord(s[i]), 2)
+    else
+      Result := Result + s[i];
+end;
 
 function EncodeURI(const URI: TURI): String;
-
-  function Escape(const s: String): String;
-  var
-    i: Integer;
-  begin
-    SetLength(Result, 0);
-    for i := 1 to Length(s) do
-      if not (s[i] in ['0'..'9', 'A'..'Z', 'a'..'z', ',', '-', '.', '_',
-        '/', '\']) then
-        Result := Result + '%' + HexTable[Ord(s[i]) shr 4] +
-          HexTable[Ord(s[i]) and $f]
-      else
-        Result := Result + s[i];
-  end;
-
+// ! if no scheme then first colon in path should be escaped
 begin
   SetLength(Result, 0);
   if Length(URI.Protocol) > 0 then
     Result := LowerCase(URI.Protocol) + ':';
-  if Length(URI.Host) > 0 then
+  if URI.HasAuthority then
   begin
     Result := Result + '//';
     if Length(URI.Username) > 0 then
@@ -80,17 +95,17 @@ begin
   end;
   if URI.Port <> 0 then
     Result := Result + ':' + IntToStr(URI.Port);
-  Result := Result + Escape(URI.Path);
+  Result := Result + Escape(URI.Path, ValidPathChars);
   if Length(URI.Document) > 0 then
   begin
-    if (Length(Result) = 0) or (Result[Length(Result)] <> '/') then
+    if (Length(URI.Path) > 0) and ((Length(Result) = 0) or (Result[Length(Result)] <> '/')) then
       Result := Result + '/';
-    Result := Result + Escape(URI.Document);
+    Result := Result + Escape(URI.Document, ValidPathChars);
   end;
   if Length(URI.Params) > 0 then
-    Result := Result + '?' + URI.Params;
+    Result := Result + '?' + Escape(URI.Params, ValidPathChars);
   if Length(URI.Bookmark) > 0 then
-    Result := Result + '#' + Escape(URI.Bookmark);
+    Result := Result + '#' + Escape(URI.Bookmark, ValidPathChars);
 end;
 
 function ParseURI(const URI: String):  TURI;
@@ -98,155 +113,313 @@ begin
   Result := ParseURI(URI, '', 0);
 end;
 
-function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
-
-  function Unescape(const s: String): String;
-
-    function HexValue(c: Char): Integer;
-    begin
-      if (c >= '0') and (c <= '9') then
-        Result := Ord(c) - Ord('0')
-      else if (c >= 'A') and (c <= 'F') then
-        Result := Ord(c) - Ord('A') + 10
-      else if (c >= 'a') and (c <= 'f') then
-        Result := Ord(c) - Ord('a') + 10
-      else
-        Result := 0;
-    end;
-
-  var
-    i, RealLength: Integer;
-  begin
-    SetLength(Result, Length(s));
-    i := 1;
-    RealLength := 0;
-    while i <= Length(s) do
-    begin
-      Inc(RealLength);
-      if s[i] = '%' then
-      begin
-        Result[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
-        Inc(i, 3);
-      end else
-      begin
-        Result[RealLength] := s[i];
-        Inc(i);
-      end;
-    end;
-    SetLength(Result, RealLength);
+function HexValue(c: Char): Integer;
+begin
+  case c of
+    '0'..'9': Result := ord(c) - ord('0');
+    'A'..'F': Result := ord(c) - (ord('A') - 10);
+    'a'..'f': Result := ord(c) - (ord('a') - 10);
+  else
+    Result := 0;
   end;
+end;
 
+function Unescape(const s: String): String;
 var
-  s: String;
-  i, LastValidPos: Integer;
+  i, RealLength: Integer;
+begin
+  SetLength(Result, Length(s));
+  i := 1;
+  RealLength := 0;
+  while i <= Length(s) do
+  begin
+    Inc(RealLength);
+    if s[i] = '%' then
+    begin
+      Result[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
+      Inc(i, 3);
+    end else
+    begin
+      Result[RealLength] := s[i];
+      Inc(i);
+    end;
+  end;
+  SetLength(Result, RealLength);
+end;
+
+function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
+var
+  s, Authority: String;
+  i: Integer;
 begin
   Result.Protocol := LowerCase(DefaultProtocol);
   Result.Port := DefaultPort;
 
   s := URI;
 
-  // Extract the protocol
+  // Extract scheme
 
   for i := 1 to Length(s) do
     if s[i] = ':' then
     begin
       Result.Protocol := Copy(s, 1, i - 1);
-      s := Copy(s, i + 1, Length(s));
+      s := Copy(s, i + 1, MaxInt);
       break;
-    end else if not (s[i] in ['0'..'9', 'A'..'Z', 'a'..'z']) then
-      break;
+    end
+    else
+      if not (((i=1) and (s[i] in ALPHA)) or (s[i] in ALPHA + DIGIT + ['+', '-', '.'])) then
+        break;
 
-  // Extract the bookmark name
+  // Extract the bookmark
 
-  for i := Length(s) downto 1 do
-    if s[i] = '#' then
-    begin
-      Result.Bookmark := Unescape(Copy(s, i + 1, Length(s)));
-      s := Copy(s, 1, i - 1);
-      break;
-    end else if s[i] = '/' then
-      break;
+  i := LastDelimiter('#', s);
+  if i > 0 then
+  begin
+    Result.Bookmark := Unescape(Copy(s, i + 1, MaxInt));
+    s := Copy(s, 1, i - 1);
+  end;
 
   // Extract the params
 
-  for i := Length(s) downto 1 do
-    if s[i] = '?' then
-    begin
-      Result.Params := Copy(s, i + 1, Length(s));
-      s := Copy(s, 1, i - 1);
-      break;
-    end else if s[i] = '/' then
-      break;
+  i := LastDelimiter('?', s);
+  if i > 0 then
+  begin
+    Result.Params := Unescape(Copy(s, i + 1, MaxInt));
+    s := Copy(s, 1, i - 1);
+  end;
 
-  // Extract the document name
+  // extract authority
+
+  if (Length(s) > 1) and (s[1] = '/') and (s[2] = '/') then
+  begin
+    i := 3;
+    while (i <= Length(s)) and (s[i] <> '/') do
+      Inc(i);
+    Authority := Copy(s, 3, i-3);
+    s := Copy(s, i, MaxInt);
+    Result.HasAuthority := True;    // even if Authority is empty
+  end
+  else
+  begin
+    Result.HasAuthority := False;
+    Authority := '';
+  end;
+
+  // now s is 'hier-part' per RFC3986
+  // Extract the document name (nasty...)
 
   for i := Length(s) downto 1 do
     if s[i] = '/' then
     begin
       Result.Document := Unescape(Copy(s, i + 1, Length(s)));
-      s := Copy(s, 1, i - 1);
+      if (Result.Document <> '.') and (Result.Document <> '..') then
+        s := Copy(s, 1, i)
+      else
+        Result.Document := '';
       break;
     end else if s[i] = ':' then
-      break;
+      break
+    else if i = 1 then
+    begin
+      Result.Document := Unescape(s);
+      if (Result.Document <> '.') and (Result.Document <> '..') then
+        s := ''
+      else
+        Result.Document := '';
+      // break - not needed, last iteration
+    end;
 
-  // Extract the path
+  // Everything left is a path
 
-  LastValidPos := 0;
-  for i := Length(s) downto 1 do
-    if (s[i] = '/')
-       and ((I>1) and (S[i-1]<>'/'))
-       and ((I<Length(S)) and (S[I+1]<>'/')) then
-      LastValidPos := i
-    else if s[i] in [':', '@'] then
-      break;
-
-  if (LastValidPos > 0) and
-     (Length(S)>LastValidPos) and
-     (S[LastValidPos+1]<>'/') then
-  begin
-    Result.Path := Unescape(Copy(s, LastValidPos, Length(s)));
-    s := Copy(s, 1, LastValidPos - 1);
-  end;
+  Result.Path := Unescape(s);
 
   // Extract the port number
 
-  for i := Length(s) downto 1 do
-    if s[i] = ':' then
-    begin
-      Result.Port := StrToInt(Copy(s, i + 1, Length(s)));
-      s := Copy(s, 1, i - 1);
-      break;
-    end else if s[i] in ['@', '/'] then
-      break;
+  i := LastDelimiter(':@', Authority);
+  if (i > 0) and (Authority[i] = ':') then
+  begin
+    Result.Port := StrToInt(Copy(Authority, i + 1, MaxInt));
+    Authority := Copy(Authority, 1, i - 1);
+  end;
 
   // Extract the hostname
 
-  if ((Length(s) > 2) and (s[1] = '/') and (s[2] = '/')) or
-    ((Length(s) > 1) and (s[1] <> '/')) then
+  i := Pos('@', Authority);
+  if i > 0 then
   begin
-    if s[1] <> '/' then
-      s := '//' + s;
-    for i := Length(s) downto 1 do
-      if s[i] in ['@', '/'] then
-      begin
-        Result.Host := Copy(s, i + 1, Length(s));
-        s := Copy(s, 3, i - 3);
-        break;
-      end;
+    Result.Host := Copy(Authority, i+1, MaxInt);
+    Delete(Authority, i, MaxInt);
 
     // Extract username and password
-    if Length(s) > 0 then
+    if Length(Authority) > 0 then
     begin
-      i := Pos(':', s);
+      i := Pos(':', Authority);
       if i = 0 then
-        Result.Username := s
+        Result.Username := Authority
       else
       begin
-        Result.Username := Copy(s, 1, i - 1);
-        Result.Password := Copy(s, i + 1, Length(s));
+        Result.Username := Copy(Authority, 1, i - 1);
+        Result.Password := Copy(Authority, i + 1, MaxInt);
       end;
+    end;
+  end
+  else
+    Result.Host := Authority;
+end;
+
+procedure RemoveDotSegments(var s: string);
+var
+  Cur, Prev: Integer;
+begin
+  Prev := Pos('/', s);
+  while (Prev > 0) and (Prev < Length(s)) do
+  begin
+    Cur := Prev+1;
+    while (Cur <= Length(s)) and (s[Cur] <> '/') do
+      Inc(Cur);
+    if (Cur - Prev = 2) and (s[Prev+1] = '.') then
+      Delete(s, Prev+1, 2)
+    else if (Cur - Prev = 3) and (s[Prev+1] = '.') and (s[Prev+2] = '.') then
+    begin
+      while (Prev > 1) and (s[Prev-1] <> '/') do
+        Dec(Prev);
+      if Prev > 1 then
+        Dec(Prev);
+      Delete(s, Prev+1, Cur-Prev);
+    end
+    else
+      Prev := Cur;
+  end;
+end;
+
+// TODO: this probably must NOT percent-encode the result...
+function ResolveRelativeURI(const BaseUri, RelUri: UTF8String;
+  out ResultUri: UTF8String): Boolean;
+var
+  Base, Rel: TUri;
+begin
+  Base := ParseUri(BaseUri);
+  Rel := ParseUri(RelUri);
+
+  Result := (Base.Protocol <> '') or (Rel.Protocol <> '');
+  if not Result then
+    Exit;
+  with Rel do
+  begin
+    if (Path = '') and (Document = '') then
+    begin
+      if (Protocol = '') and (Host = '') then
+      begin
+        if Params <> '' then
+          Base.Params := Params;
+        Base.Bookmark := Bookmark;
+        ResultUri := EncodeUri(Base);
+        Exit;
+      end;
+    end;
+    if (Protocol <> '') then  // RelURI is absolute - return it...
+    begin
+      ResultUri := RelUri;
+      Exit;
+    end;
+    // Inherit protocol
+    Protocol := Base.Protocol;
+    if (Host = '') then   // TODO: or "not HasAuthority"?
+    begin
+      // Inherit Authority (host, port, username, password)
+      Host := Base.Host;
+      Port := Base.Port;
+      Username := Base.Username;
+      Password := Base.Password;
+      HasAuthority := Base.HasAuthority;
+      if (Path = '') or (Path[1] <> '/') then  // path is empty or relative
+        Path := Base.Path + Path;
+      RemoveDotSegments(Path);      
+    end;
+  end; // with
+  ResultUri := EncodeUri(Rel);
+end;
+
+function ResolveRelativeURI(const BaseUri, RelUri: WideString;
+  out ResultUri: WideString): Boolean;
+var
+  rslt: UTF8String;
+begin
+  Result := ResolveRelativeURI(UTF8Encode(BaseUri), UTF8Encode(RelUri), rslt);
+  if Result then
+    ResultURI := UTF8Decode(rslt);
+end;
+
+function URIToFilename(const URI: string; out Filename: string): Boolean;
+var
+  U: TURI;
+  I: Integer;
+begin
+  Result := False;
+  U := ParseURI(URI);
+  if SameText(U.Protocol, 'file') then
+  begin
+    if (Length(U.Path) > 2) and (U.Path[1] = '/') and (U.Path[3] = ':') then
+      Filename := Copy(U.Path, 2, MaxInt)
+    else
+      Filename := U.Path;
+    Filename := Filename + U.Document;
+    Result := True;
+  end
+  else
+    if U.Protocol = '' then  // fire and pray?
+    begin
+      Filename := U.Path + U.Document;
+      Result := True;
+    end;
+  if PathDelim <> '/' then
+  begin
+    I := Pos('/', Filename);
+    while I > 0 do
+    begin
+      Filename[I] := PathDelim;
+      I := Pos('/', Filename);
     end;
   end;
 end;
+
+function FilenameToURI(const Filename: string): string;
+var
+  I: Integer;
+begin
+  // TODO: seems implemented, but not tested well
+  Result := 'file://';
+  if (Length(Filename) > 2) and (Filename[1] <> PathDelim) and (Filename[2] = ':') then
+    Result := Result + '/';
+  Result := Result + Filename;
+  if PathDelim <> '/' then
+  begin
+    I := Pos(PathDelim, Result);
+    while I <> 0 do
+    begin
+      Result[I] := '/';
+      I := Pos(PathDelim, Result);
+    end;
+  end;
+end;
+
+
+function IsAbsoluteURI(const UriReference: string): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := 1 to Length(UriReference) do
+  begin
+    if UriReference[I] = ':' then
+      Exit
+    else
+      if not (((I=1) and (UriReference[I] in ALPHA)) or
+         (UriReference[i] in ALPHA + DIGIT + ['+', '-', '.'])) then
+      Break;
+  end;
+  Result := False;
+end;
+
 
 end.
