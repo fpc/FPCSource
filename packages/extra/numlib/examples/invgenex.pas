@@ -1,7 +1,3 @@
-{
-
-}
-
 program invgenex;
 uses typ, iom, inv;
 const n = 4;
