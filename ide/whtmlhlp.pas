@@ -281,7 +281,7 @@ procedure TTable.TextInsert(Pos : sw_word;const S : string);
 var
   i : sw_word;
 begin
-  i:=Renderer^.AddTextAt(S[i],Pos+GlobalOffset);
+  i:=Renderer^.AddTextAt(S,Pos+GlobalOffset);
   GlobalOffset:=GlobalOffset+i;
 end;
 
