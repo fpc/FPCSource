@@ -1851,7 +1851,9 @@ implementation
                   result:=nil;
                   resulttype:=tcallparanode(left).left.resulttype;
                   if (resulttype.def.deftype <> arraydef) then
-                    CGMessagePos(left.fileinfo,type_e_mismatch);
+                    CGMessagePos(left.fileinfo,type_e_mismatch)
+                  else if is_packed_array(resulttype.def) then
+                    CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resulttype.def.typename);
                   if not(is_integer(tcallparanode(tcallparanode(left).right).left.resulttype.def)) then
                     CGMessagePos1(tcallparanode(left).right.fileinfo,
                       type_e_integer_expr_expected,
