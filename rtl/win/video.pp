@@ -245,7 +245,7 @@ end;
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
 
 begin
-  SysGetVideoModeData:=(Index<=SysVideoModeCount);
+  SysGetVideoModeData:=(Index<=high(SysVMD));
   If SysGetVideoModeData then
     Data:=SysVMD[Index];
 end;
