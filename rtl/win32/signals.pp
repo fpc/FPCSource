@@ -255,7 +255,10 @@ var
           begin
 {$ifdef SIGNALS_DEBUG}
              if IsConsole then
-             writeln(stderr,'CallSignal called for signal ',sigtype);
+               begin
+                 writeln(stderr,'CallSignal called for signal ',sigtype);
+                 dump_stack(stderr,pointer(frame));
+               end;
 {$endif SIGNALS_DEBUG}
             {if frame=0 then
               begin
@@ -351,13 +354,13 @@ var
 
 
     function API_signals_exception_handler(exceptptrs : PEXCEPTION_POINTERS) : longint; stdcall;
-    begin
-      API_signals_exception_handler:=Signals_exception_handler(
-        @exceptptrs^.ExceptionRecord,
-        nil,
-        @exceptptrs^.ContextRecord,
-        nil);
-    end;
+      begin
+        API_signals_exception_handler:=Signals_exception_handler(
+          @exceptptrs^.ExceptionRecord,
+          nil,
+          @exceptptrs^.ContextRecord,
+          nil);
+      end;
 
 
 const
@@ -366,10 +369,10 @@ const
   Prev_fpc_handler : pointer = nil;
 
   procedure install_exception_handler;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
+{$ifdef SIGNALS_DEBUG}
     var
       oldexceptaddr,newexceptaddr : longint;
-{$endif SYSTEMEXCEPTIONDEBUG}
+{$endif SIGNALS_DEBUG}
     begin
       if Exception_handler_installed then
         exit;
@@ -488,6 +491,5 @@ initialization
   as other units also might install their handlers PM }
 
 finalization
-
   remove_exception_handler;
 end.
