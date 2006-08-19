@@ -1,3 +1,17 @@
+{
+    This file is part of the Free Pascal run time library.
+    This unit implements unix like signal handling for win32
+    Copyright (c) 1999-2006 by the Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 unit signals;
 
 interface
@@ -178,7 +192,11 @@ var
         movl (%ebp),%eax
         movl %eax,_ebp
       end;
-      Writeln('In start of JumpToHandleSignal');
+{$ifdef SIGNALS_DEBUG}
+      if IsConsole then
+        Writeln(stderr,'In start of JumpToHandleSignal');
+{$endif SIGNALS_DEBUG}
+
       if except_level>0 then
         dec(except_level)
       else
@@ -207,7 +225,10 @@ var
 
       if res=0 then
         Begin
-          Writeln('In JumpToHandleSignal');
+{$ifdef SIGNALS_DEBUG}
+          if IsConsole then
+            Writeln(stderr,'In JumpToHandleSignal');
+{$endif SIGNALS_DEBUG}
           RunError(sigtype);
         end
       else
@@ -232,7 +253,10 @@ var
     var frame,res  : longint;
         function CallSignal(sigtype,frame : longint;must_reset_fpu : boolean) : longint;
           begin
-            writeln(stderr,'CallSignal called');
+{$ifdef SIGNALS_DEBUG}
+             if IsConsole then
+             writeln(stderr,'CallSignal called for signal ',sigtype);
+{$endif SIGNALS_DEBUG}
             {if frame=0 then
               begin
                 CallSignal:=1;
@@ -251,7 +275,10 @@ var
                  excep_ContextRecord^.Eip:=longint(@JumpToHandleSignal);
                  excep_ExceptionRecord^.ExceptionCode:=0;
                  CallSignal:=0;
-                 writeln(stderr,'Exception_Continue_Execution  set');
+{$ifdef SIGNALS_DEBUG}
+                 if IsConsole then
+                   writeln(stderr,'Exception_Continue_Execution set');
+{$endif SIGNALS_DEBUG}
               end;
           end;
 
@@ -262,11 +289,11 @@ var
          frame:=0;
        { default : unhandled !}
        res:=1;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
+{$ifdef SIGNALS_DEBUG}
        if IsConsole then
          writeln(stderr,'Signals exception  ',
            hexstr(excep_ExceptionRecord^.ExceptionCode,8));
-{$endif SYSTEMEXCEPTIONDEBUG}
+{$endif SIGNALS_DEBUG}
        case excep_ExceptionRecord^.ExceptionCode of
          EXCEPTION_ACCESS_VIOLATION :
            res:=CallSignal(SIGSEGV,frame,false);
@@ -360,15 +387,15 @@ const
           Exception_handler_installed:=true;
           exit;
         end;
-{$ifdef SYSTEMEXCEPTIONDEBUG}
+{$ifdef SIGNALS_DEBUG}
       asm
         movl $0,%eax
         movl %fs:(%eax),%eax
         movl %eax,oldexceptaddr
       end;
-{$endif SYSTEMEXCEPTIONDEBUG}
+{$endif SIGNALS_DEBUG}
       PreviousHandler:=SetUnhandledExceptionFilter(@API_signals_exception_handler);
-{$ifdef SYSTEMEXCEPTIONDEBUG}
+{$ifdef SIGNALS_DEBUG}
       asm
         movl $0,%eax
         movl %fs:(%eax),%eax
@@ -380,7 +407,7 @@ const
             ' new exception  ',hexstr(newexceptaddr,8));
           writeln('SetUnhandledExceptionFilter returned ',hexstr(longint(PreviousHandler),8));
         end;
-{$endif SYSTEMEXCEPTIONDEBUG}
+{$endif SIGNALS_DEBUG}
       Exception_handler_installed := true;
     end;
 
