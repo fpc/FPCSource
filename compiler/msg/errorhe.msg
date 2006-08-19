@@ -48,8 +48,6 @@
 #
 # 01023 is the last used one
 #
-general_text_bytes_code=01019_bytes code
-general_text_bytes_data=01020_bytes data
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -117,12 +115,6 @@ general_e_path_does_not_exist=01017_E_הנתיב "$1" אינו קיים
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_ההידור בוטל
 % Compilation was aborted.
-general_i_number_of_warnings=01021_I_אזהרות $1 הונפקו
-% Total number of warnings issued during compilation.
-general_i_number_of_hints=01022_I_הונפקו  $1 רמזים
-% Total number of hints issued during compilation.
-general_i_number_of_notes=01023_I_הונפקו $1 הערות
-% Total number of notes issued during compilation.
 % \end{description}
 #
 # Scanner
@@ -332,19 +324,6 @@ scan_e_compile_time_typeerror=02072_E_ביטוי בזמן הידור: נדרש $1 אבל התקבל $2 ב$3
 % Type check of a compile time expression failed.
 scan_n_app_type_not_support=02073_N_APPTYPE לא נתמך במערכת ההפעלה המבוקשת
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_e_illegal_optimization_specifier=02074_E_סופק מיטוב לא חוקי "$1"
-% When you specify an optimization with the \var{\{\$OPTIMIZATION xxx\}}
-% the compiler didn't recognize the optimization you specified.
-scan_w_setpeflags_not_support=02075_W_SETPEFLAGS אינו נתמך במערכת ההפעלה המבוקשת
-% The \var{\{\$SETPEFLAGS\}} directive is not supported by the target OS
-scan_w_imagebase_not_support=02076_W_IMAGEBASE אינו נתמך על ידי מערכת ההפעלה המבוקשת
-% The \var{\{\$IMAGEBASE\}} directive is not supported by the target OS
-scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE אינו נתמך על ידי מערכת ההפעלה המבוקשת
-% The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
-scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE אינו נתמך על ידי מערכת ההפעלה המבוקשת
-% The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
-scanner_e_illegal_warn_state=02079_E_שימוש לא חוקי בהנחית $WARN
-% Only ON and OFF can be used as state with a \$warn compiler directive
 % \end{description}
 #
 # Parser
@@ -1074,7 +1053,6 @@ parser_w_overridden_methods_not_same_ret=03218_W_המתודות החדשות חייבות להחזיר את
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
-parser_e_dispid_must_be_ord_const=03219_E_מזהה Dispatch חייב להיות קבוע בעל ערך סידורי
 parser_e_array_range_out_of_bounds=03220_E_הטווח של המערך גבוהה מידי
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
@@ -1602,7 +1580,7 @@ cg_e_break_not_allowed=06044_E_BREAK אינו מורשה
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE אינו מורשה
 % You're trying to use \var{continue} outside a loop construction.
-cg_f_unknown_compilerproc=06046_F_compilerproc "$1" לא ידוע. בדוק אם השתמש בספריית זמן הריצה הנכונה.
+cg_f_unknown_compiler=06046_F_compilerproc "$1" לא ידוע. בדוק אם השתמש בספריית זמן הריצה הנכונה.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
@@ -1858,8 +1836,6 @@ asmw_e_duplicate_label=08016_E_Asm: תוויות כפולה $1
 asmw_e_redefined_label=08017_E_Asm: מגדיר מחדש את התווית $1
 asmw_e_first_defined_label=08018_E_Asm: מוגדר כאן לראשונה
 asmw_e_invalid_register=08019_E_Asm: אוגר שגוי $1
-asmw_e_16bit_32bit_not_supported=08020_E_Asm: ההתייחסות ל16 או 32 סיביות אינה נתמכת
-asmw_e_64bit_not_supported=08021_E_Asm: האופרנט 64 סיביות אינו נתמך
 
 #
 # Executing linker/assembler
@@ -2227,11 +2203,11 @@ option_no_debug_support_recompile_fpc=11017_H_נסה להדר מחדש עם המתג -dGDB
 % It is possible to have a compiler executable that doesn't support
 % the generation of debugging info. If you use such an executable with the
 % \var{-g} switch, this warning will be displayed.
-option_obsolete_switch=11018_W_אתה משתמש במתג המיושן $1
+option_obsolete_switch=11018_E_אתה משתמש במתג המיושן $1
 % this warns you when you use a switch that is not needed/supported anymore.
 % It is recommended that you remove the switch to overcome problems in the
 % future, when the switch meaning may change.
-option_obsolete_switch_use_new=11019_W_אתה משתמש במתג המיושן $1, השתמש במתג $2 במקום
+option_obsolete_switch_use_new=11019_E_אתה משתמש במתג המיושן $1, השתמש במתג $2 במקום
 % this warns you when you use a switch that is not supported anymore. You
 % must now use the second switch instead.
 % It is recommended that you change the switch to overcome problems in the
@@ -2274,7 +2250,6 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההגדרות $1
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
 Copyright (c) 1993-2006 by Florian Klaempfl
-
 ]
 
 #
@@ -2294,9 +2269,6 @@ Free Pascal Compiler version $FPCVERSION
 
 הוראות נתמכות של יחידת נקודה צפה:
   $FPUINSTRUCTIONSETS
-
-תמיכת המיטוב:
-  $OPTIMIZATIONS
 
 התוכנה מוגשת תחת רישיון GNU General Public License
 למידע נוסף יש לקרוא את COPYING.FPC
@@ -2480,11 +2452,10 @@ S*2Aas_אסוף עם GNU AS
 3*2Twatcom_Watcom תואם הרחבת DOS
 3*2Twdosx_WDOSX הרחבת DOS
 3*2Twin32_Windows 32 סיביות
-3*2Twince_Windows CE
 4*2Tlinux_Linux
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux/m68k
+6*2Tlinux_Linux-68k
 6*2Tmacos_Macintosh m68k (לא נתמך)
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
@@ -2551,3 +2522,4 @@ P*2WT_מציין יישום מסוג כלי (כלי MPW, MacOS בלבד)
 
 #
 # The End...
+
