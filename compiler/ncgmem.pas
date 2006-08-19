@@ -67,6 +67,7 @@ interface
            so it points to the correct address.
          }
          procedure update_reference_reg_mul(reg:tregister;l:aint);virtual;
+         procedure update_reference_reg_packed(reg:tregister;l:aint);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
        public
@@ -387,7 +388,10 @@ implementation
          else
           begin
             if (left.resulttype.def.deftype=arraydef) then
-             get_mul_size:=tarraydef(left.resulttype.def).elesize
+             if not is_packed_array(left.resulttype.def) then
+              get_mul_size:=tarraydef(left.resulttype.def).elesize
+             else
+              get_mul_size:=tarraydef(left.resulttype.def).elepackedbitsize
             else
              get_mul_size:=resulttype.def.size;
           end
@@ -420,6 +424,47 @@ implementation
               cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end;
+       end;
+
+
+     procedure tcgvecnode.update_reference_reg_packed(reg:tregister;l:aint);
+       var
+         sref: tsubsetreference;
+         offsetreg: tregister;
+         byteoffs, bitoffs, alignpower: aint;
+       begin
+         if (l mod 8) = 0 then
+           begin
+             update_reference_reg_mul(reg,l div 8);
+             exit;
+           end;
+         if (l > 8*sizeof(aint)) then
+           internalerror(200608051);
+         sref.ref := location.reference;
+         offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resulttype.def).lowrange,reg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,reg);
+         { keep alignment for index }
+         sref.ref.alignment := left.resulttype.def.alignment;
+         if not ispowerof2(sref.ref.alignment,alignpower) then
+           internalerror(2006081201);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,reg,offsetreg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
+         if (sref.ref.base = NR_NO) then
+           sref.ref.base := offsetreg
+         else if (sref.ref.index = NR_NO) then
+           sref.ref.index := offsetreg
+         else
+           begin
+             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
+             sref.ref.base := offsetreg;
+           end;
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,reg);
+         sref.bitindexreg := reg;
+         sref.startbit := 0;
+         sref.bitlen := resulttype.def.packedbitsize;
+         location.loc := LOC_SUBSETREF;
+         location.sref := sref;
        end;
 
 
@@ -505,14 +550,21 @@ implementation
          href     : treference;
          otl,ofl  : tasmlabel;
          newsize  : tcgsize;
-         mulsize  : aint;
+         mulsize,
+         bytemulsize,
+         alignpow : aint;
          isjump   : boolean;
          paraloc1,
          paraloc2 : tcgpara;
+         subsetref : tsubsetreference;
       begin
          paraloc1.init;
          paraloc2.init;
-         mulsize := get_mul_size;
+         mulsize:=get_mul_size;
+         if not is_packed_array(left.resulttype.def) then
+           bytemulsize:=mulsize
+         else
+           bytemulsize:=mulsize div 8;
 
          newsize:=def_cgsize(resulttype.def);
          secondpass(left);
@@ -589,8 +641,10 @@ implementation
 
          { offset can only differ from 0 if arraydef }
          if (left.resulttype.def.deftype=arraydef) and
-            not(is_dynamic_array(left.resulttype.def)) then
-           dec(location.reference.offset,mulsize*tarraydef(left.resulttype.def).lowrange);
+            not(is_dynamic_array(left.resulttype.def)) and
+            (not(is_packed_array(left.resulttype.def)) or
+             (mulsize mod 8 = 0)) then
+           dec(location.reference.offset,bytemulsize*tarraydef(left.resulttype.def).lowrange);
 
          if right.nodetype=ordconstn then
            begin
@@ -659,18 +713,34 @@ implementation
                      end;
                    end;
               end;
-              inc(location.reference.offset,
-                  mulsize*tordconstnode(right).value);
+              if not(is_packed_array(left.resulttype.def)) or
+                 (mulsize mod 8 = 0) then
+                inc(location.reference.offset,
+                  bytemulsize*tordconstnode(right).value)
+              else
+                begin
+                  subsetref.ref := location.reference;
+                  subsetref.ref.alignment := left.resulttype.def.alignment;
+                  if not ispowerof2(subsetref.ref.alignment,alignpow) then
+                    internalerror(2006081212);
+                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) shr (3+alignpow)) shl alignpow);
+                  subsetref.bitindexreg := NR_NO;
+                  subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);
+                  subsetref.bitlen := resulttype.def.packedbitsize;
+                  location.loc := LOC_SUBSETREF;
+                  location.sref := subsetref;
+                end;
            end
          else
          { not nodetype=ordconstn }
            begin
-              if (cs_opt_regvar in aktoptimizerswitches) and
+              if (cs_opt_level1 in aktoptimizerswitches) and
                  { if we do range checking, we don't }
                  { need that fancy code (it would be }
                  { buggy)                            }
                  not(cs_check_range in aktlocalswitches) and
-                 (left.resulttype.def.deftype=arraydef) then
+                 (left.resulttype.def.deftype=arraydef) and
+                 not is_packed_array(left.resulttype.def) then
                 begin
                    extraoffset:=0;
                    if (right.nodetype=addn) then
@@ -737,7 +807,7 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,(mulsize = 1));
+              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,not is_packed_array(left.resulttype.def) and (mulsize = 1) );
 
               if isjump then
                begin
@@ -797,7 +867,10 @@ implementation
 
               { insert the register and the multiplication factor in the
                 reference }
-              update_reference_reg_mul(right.location.register,mulsize);
+              if not is_packed_array(left.resulttype.def) then
+                update_reference_reg_mul(right.location.register,mulsize)
+              else
+                update_reference_reg_packed(right.location.register,mulsize);
            end;
 
         location.size:=newsize;

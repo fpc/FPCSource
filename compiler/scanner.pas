@@ -302,6 +302,14 @@ implementation
                exclude(initlocalswitches,cs_ansistrings);
             end;
 
+           { turn on bitpacking for mode macpas }
+           if (m_mac in aktmodeswitches) then
+             begin
+               include(aktlocalswitches,cs_bitpacking);
+               if changeinit then
+                 include(initlocalswitches,cs_bitpacking);
+             end;
+
            { support goto/label by default in delphi/tp7/mac modes }
            if ([m_delphi,m_tp7,m_mac] * aktmodeswitches <> []) then
              begin

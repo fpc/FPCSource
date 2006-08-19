@@ -1197,6 +1197,12 @@ implementation
       end;
 
 
+    procedure dir_bitpacking;
+      begin
+        do_localswitch(cs_bitpacking);
+      end;
+
+
 {****************************************************************************
                          Initialize Directives
 ****************************************************************************}
@@ -1216,6 +1222,7 @@ implementation
         AddDirective('ASMMODE',directive_all, @dir_asmmode);
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
+        AddDirective('BITPACKING',directive_all, @dir_bitpacking);
         AddDirective('CALLING',directive_all, @dir_calling);
         AddDirective('CHECKPOINTER',directive_all, @dir_checkpointer);
         AddDirective('CODEALIGN',directive_all, @dir_codealign);

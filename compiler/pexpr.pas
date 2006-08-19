@@ -812,6 +812,20 @@ implementation
               consume(_RKLAMMER);
             end;
 
+          in_pack_x_y_z,
+          in_unpack_x_y_z :
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              consume(_COMMA);
+              p2:=comp_expr(true);
+              consume(_COMMA);
+              paras:=comp_expr(true);
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
+              consume(_RKLAMMER);
+            end;
+
           in_assert_x_y :
             begin
               consume(_LKLAMMER);

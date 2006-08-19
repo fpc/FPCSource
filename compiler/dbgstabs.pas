@@ -722,8 +722,14 @@ implementation
           formaldef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           arraydef :
-            result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangetype.def),
-               tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)]);
+            if not is_packed_array(def) then
+              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangetype.def),
+                 tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)])
+            else
+              // will only show highrange-lowrange+1 bits in gdb
+              result:=def_stabstr_evaluate(def,'@s$1;@S;S$2',[tostr(TConstExprInt(tarraydef(def).elepackedbitsize) * tarraydef(def).elecount),def_stabstr_evaluate(tarraydef(def).rangetype.def,'r${numberstring};$1;$2;',[tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange)])]);
+// the @P seems to be ignored by gdb
+//              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4;@P;',[def_stab_number(tarraydef(def).rangetype.def),tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)]);
           procdef :
             result:=procdef_stabstr(tprocdef(def));
           procvardef :

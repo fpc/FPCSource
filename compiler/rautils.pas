@@ -887,7 +887,14 @@ Begin
               while assigned(harrdef.elementtype.def) and
                     (harrdef.elementtype.def.deftype=arraydef) do
                harrdef:=tarraydef(harrdef.elementtype.def);
-              SetSize(harrdef.elesize,false);
+              if not is_packed_array(harrdef) then
+                SetSize(harrdef.elesize,false)
+               else
+                 begin
+                   if (harrdef.elepackedbitsize mod 8) <> 0 then
+                     Message(asmr_e_packed_element);
+                   SetSize((harrdef.elepackedbitsize + 7) div 8,false);
+                 end;
             end;
         end;
         hasvar:=true;
@@ -1351,7 +1358,14 @@ Begin
                      while assigned(harrdef.elementtype.def) and
                            (harrdef.elementtype.def.deftype=arraydef) do
                       harrdef:=tarraydef(harrdef.elementtype.def);
-                     size:=harrdef.elesize;
+                     if not is_packed_array(harrdef) then
+                       size:=harrdef.elesize
+                     else
+                       begin
+                         if (harrdef.elepackedbitsize mod 8) <> 0 then
+                           Message(asmr_e_packed_element);
+                         size := (harrdef.elepackedbitsize + 7) div 8;
+                       end;
                    end;
                  recorddef :
                    st:=trecorddef(def).symtable;

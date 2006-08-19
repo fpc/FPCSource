@@ -334,6 +334,7 @@ interface
           _elementtype : ttype;
        public
           function elesize : aint;
+          function elepackedbitsize : aint;
           function elecount : aint;
           constructor create_from_pointer(const elemt : ttype);
           constructor create(l,h : aint;const t : ttype);
@@ -365,6 +366,7 @@ interface
           function  gettypename:string;override;
           function alignment:shortint;override;
           procedure setsize;
+          function  packedbitsize: aint; override;
           function getvartype : longint;override;
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
@@ -603,6 +605,7 @@ interface
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
+          function  packedbitsize: aint; override;
           procedure setmax(_max:aint);
           procedure setmin(_min:aint);
           function  min:aint;
@@ -1463,6 +1466,27 @@ implementation
       end;
 
 
+    function tenumdef.packedbitsize: aint;
+      var
+        power: longint;
+      begin
+        result := 0;
+        if (minval < 0) then
+          result := inherited packedbitsize
+        else
+          begin
+            if (maxval <= 1) then
+              result := 1
+            else
+              begin
+                { 256 must become 512 etc. }
+                nextpowerof2(maxval+1,power);
+                result := power;
+              end;
+          end;
+      end;
+
+
     procedure tenumdef.setmax(_max:aint);
       begin
         maxval:=_max;
@@ -1653,6 +1677,31 @@ implementation
         );
       begin
         savesize:=sizetbl[typ];
+      end;
+
+
+    function torddef.packedbitsize: aint;
+      var
+        power: longint;
+      begin
+        result := 0;
+        if typ = uvoid then
+          exit;
+        if (low < 0) then
+          result := inherited packedbitsize
+        else
+          begin
+            if (high <= 1) then
+              result := 1
+            else if (typ = u64bit) then
+              result := 64
+            else
+              begin
+                { 256 must become 512 etc. }
+                nextpowerof2(high+1,power);
+                result := power;
+              end;
+          end;
       end;
 
 
@@ -2470,7 +2519,17 @@ implementation
 
     function tarraydef.elesize : aint;
       begin
+        if (ado_IsBitPacked in arrayoptions) then
+          internalerror(2006080101);
         elesize:=_elementtype.def.size;
+      end;
+
+
+    function tarraydef.elepackedbitsize : aint;
+      begin
+        if not(ado_IsBitPacked in arrayoptions) then
+          internalerror(2006080102);
+        result:=_elementtype.def.packedbitsize;
       end;
 
 
@@ -2508,21 +2567,42 @@ implementation
             size:=sizeof(aint);
             exit;
           end;
+
         { Tarraydef.size may never be called for an open array! }
         if highrange<lowrange then
           internalerror(99080501);
-        cachedelesize:=elesize;
+        if not (ado_IsBitPacked in arrayoptions) then
+          cachedelesize:=elesize
+        else
+          cachedelesize := elepackedbitsize;
         cachedelecount:=elecount;
+
+        if (cachedelesize = 0) then
+          begin
+            size := 0;
+            exit;
+          end;
+
+        if (cachedelecount = -1) then
+          begin
+            size := -1;
+            exit;
+          end;
+
         { prevent overflow, return -1 to indicate overflow }
-        if (cachedelesize <> 0) and
-           (
-            (cachedelecount < 0) or
-            ((high(aint) div cachedelesize) < cachedelecount) or
-            { also lowrange*elesize must be < high(aint) to prevent overflow when
-              accessing the array, see ncgmem (PFV) }
-            ((high(aint) div cachedelesize) < abs(lowrange))
-           ) then
-          result:=-1
+        { also make sure we don't need 64/128 bit arithmetic to calculate offsets }
+        if (cachedelecount > high(aint)) or
+           ((high(aint) div cachedelesize) < cachedelecount) or
+           { also lowrange*elesize must be < high(aint) to prevent overflow when
+             accessing the array, see ncgmem (PFV) }
+           ((high(aint) div cachedelesize) < abs(lowrange)) then
+          begin
+            result:=-1;
+            exit;
+          end;
+
+        if (ado_IsBitPacked in arrayoptions) then
+          size:=align(cachedelesize * cachedelecount,alignment) div 8
         else
           result:=cachedelesize*cachedelecount;
       end;
@@ -2548,8 +2628,26 @@ implementation
            ((elementtype.def.deftype=objectdef) and
              is_object(elementtype.def)) then
            alignment:=elementtype.def.alignment
+         else if not (ado_IsBitPacked in arrayoptions) then
+           alignment:=size_2_align(elesize)
          else
-           alignment:=size_2_align(elesize);
+           case elepackedbitsize of
+             1,2,4,8:
+               alignment := 1;
+             { 10 bits can never be split over 3 bytes via 1-8-1, because it }
+             { always starts at a multiple of 10 bits. Same for the others.  }
+             3,5,7,9,10,12,16:
+               alignment := 2;
+{$ifdef cpu64bit}
+             11,13,14,15,17..26,28,32:
+               alignment := 4;
+             else
+               alignment := 8;
+{$else cpu64bit}
+             else
+               alignment := 4;
+{$endif cpu64bit}
+           end;
       end;
 
 
@@ -2567,6 +2665,12 @@ implementation
 
     procedure tarraydef.write_rtti_data(rt:trttitype);
       begin
+         if ado_IsBitPacked in arrayoptions then
+           begin
+             current_asmdata.asmlists[al_rtti].concat(tai_const.create_8bit(tkUnknown));
+             write_rtti_name;
+             exit;
+           end;
          if ado_IsDynamicArray in arrayoptions then
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkdynarray))
          else
@@ -2602,10 +2706,13 @@ implementation
            gettypename:='Array Of '+elementtype.def.typename
          else
            begin
+              result := '';
+              if (ado_IsBitPacked in arrayoptions) then
+                result:='Packed ';
               if rangetype.def.deftype=enumdef then
-                gettypename:='Array['+rangetype.def.typename+'] Of '+elementtype.def.typename
+                result:=result+'Array['+rangetype.def.typename+'] Of '+elementtype.def.typename
               else
-                gettypename:='Array['+tostr(lowrange)+'..'+
+                result:=result+'Array['+tostr(lowrange)+'..'+
                   tostr(highrange)+'] Of '+elementtype.def.typename
            end;
       end;

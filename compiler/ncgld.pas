@@ -614,6 +614,9 @@ implementation
                     LOC_SUBSETREG,
                     LOC_CSUBSETREG:
                       cg.a_load_ref_subsetreg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sreg);
+                    LOC_SUBSETREF,
+                    LOC_CSUBSETREF:
+                      cg.a_load_ref_subsetref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.reference,left.location.sref);
                     else
                       internalerror(200203284);
                   end;
@@ -685,6 +688,12 @@ implementation
                 begin
                   cg.a_load_subsetreg_loc(current_asmdata.CurrAsmList,
                       right.location.size,right.location.sreg,left.location);
+                end;
+              LOC_SUBSETREF,
+              LOC_CSUBSETREF:
+                begin
+                  cg.a_load_subsetref_loc(current_asmdata.CurrAsmList,
+                      right.location.size,right.location.sref,left.location);
                 end;
               LOC_JUMP :
                 begin
@@ -760,6 +769,8 @@ implementation
         tmpreg  : tregister;
         paraloc : tcgparalocation;
       begin
+        if is_packed_array(resulttype.def) then
+          internalerror(200608042);
         dovariant:=(nf_forcevaria in flags) or is_variant_array(resulttype.def);
         if dovariant then
           elesize:=sizeof(aint)+sizeof(aint)

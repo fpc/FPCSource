@@ -67,6 +67,8 @@ const
    fpc_in_get_frame         = 56;
    fpc_in_get_caller_addr   = 57;
    fpc_in_get_caller_frame  = 58;
+   fpc_in_pack_x_y_z        = 59;
+   fpc_in_unpack_x_y_z      = 60;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

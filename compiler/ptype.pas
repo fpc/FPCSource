@@ -452,7 +452,7 @@ implementation
         end;
 
 
-      procedure array_dec;
+      procedure array_dec(is_packed: boolean);
         var
           lowval,
           highval   : TConstExprInt;
@@ -571,6 +571,8 @@ implementation
                      ap.elementtype.setdef(tarraydef.create(lowval,highval,arraytype));
                      ap:=tarraydef(ap.elementtype.def);
                    end;
+                 if is_packed then
+                   include(ap.arrayoptions,ado_IsBitPacked);
 
                   if token=_COMMA then
                     consume(_COMMA)
@@ -581,6 +583,8 @@ implementation
              end
            else
              begin
+                if is_packed then
+                  Message(parser_e_packed_dynamic_open_array);
                 ap:=tarraydef.create(0,-1,s32inttype);
                 include(ap.arrayoptions,ado_IsDynamicArray);
                 tt.setdef(ap);
@@ -589,7 +593,12 @@ implementation
            read_anon_type(tt2,true);
            { if no error, set element type }
            if assigned(ap) then
-             ap.setelementtype(tt2);
+             begin
+               ap.setelementtype(tt2);
+               if is_packed and
+                  tt2.def.needs_inittable then
+                 Message(type_e_no_packed_inittable);
+             end;
         end;
 
       var
@@ -599,6 +608,7 @@ implementation
         enumdupmsg, first : boolean;
         newtype    : ttypesym;
         oldlocalswitches : tlocalswitches;
+        bitpacking: boolean;
       begin
          tt.reset;
          case token of
@@ -668,7 +678,7 @@ implementation
               end;
             _ARRAY:
               begin
-                array_dec;
+                array_dec(false);
               end;
             _SET:
               begin
@@ -684,11 +694,15 @@ implementation
               begin
                 tt.setdef(record_dec);
               end;
-            _PACKED:
+            _PACKED,
+            _BITPACKED:
               begin
-                consume(_PACKED);
+                bitpacking :=
+                  (cs_bitpacking in aktlocalswitches) or
+                  (token = _BITPACKED);
+                consume(token);
                 if token=_ARRAY then
-                  array_dec
+                  array_dec(bitpacking)
                 else if token=_SET then
                   set_dec
                 else

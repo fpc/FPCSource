@@ -379,8 +379,17 @@ implementation
                                        end;
                                      arraydef :
                                        begin
-                                          len:=tarraydef(tvecnode(hp).left.resulttype.def).elesize;
-                                          base:=tarraydef(tvecnode(hp).left.resulttype.def).lowrange;
+                                          if not is_packed_array(tvecnode(hp).left.resulttype.def) then
+                                            begin
+                                              len:=tarraydef(tvecnode(hp).left.resulttype.def).elesize;
+                                              base:=tarraydef(tvecnode(hp).left.resulttype.def).lowrange;
+                                            end
+                                          else
+                                            begin
+                                              Message(parser_e_packed_dynamic_open_array);
+                                              len:=1;
+                                              base:=0;
+                                            end;
                                        end
                                      else
                                        Message(parser_e_illegal_expression);
@@ -631,6 +640,12 @@ implementation
                   consume(_NIL);
                   datalist.concat(Tai_const.Create_sym(nil));
                 end
+               { no packed array constants supported }
+               else if is_packed_array(t.def) then
+                 begin
+                   Message(type_e_no_const_packed_array);
+                   consume_all_until(_RKLAMMER);
+                 end
               else
               if try_to_consume(_LKLAMMER) then
                 begin
@@ -890,8 +905,8 @@ implementation
                   p:=comp_expr(true);
                   if p.nodetype<>niln then
                     begin
-                      Message(parser_e_type_const_not_possible);
-                      consume_all_until(_RKLAMMER);
+                      Message(type_e_no_const_packed_array);
+                      consume_all_until(_SEMICOLON);
                     end
                   else
                     begin

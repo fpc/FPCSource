@@ -71,6 +71,8 @@ implementation
         systemunit.insert(tsyssym.create('Succ',in_succ_x));
         systemunit.insert(tsyssym.create('Exclude',in_exclude_x_y));
         systemunit.insert(tsyssym.create('Include',in_include_x_y));
+        systemunit.insert(tsyssym.create('Pack',in_pack_x_y_z));
+        systemunit.insert(tsyssym.create('Unpack',in_unpack_x_y_z));
         systemunit.insert(tsyssym.create('Break',in_break));
         systemunit.insert(tsyssym.create('Exit',in_exit));
         systemunit.insert(tsyssym.create('Continue',in_continue));

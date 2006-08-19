@@ -290,10 +290,11 @@ implementation
                 begin
                    opsize:=def_cgsize(p.resulttype.def);
                    case p.location.loc of
-                     LOC_SUBSETREG,LOC_CSUBSETREG:
+                     LOC_SUBSETREG,LOC_CSUBSETREG,
+                     LOC_SUBSETREF,LOC_CSUBSETREF:
                        begin
                          tmpreg := cg.getintregister(list,OS_INT);
-                         cg.a_load_subsetreg_reg(list,p.location.size,OS_INT,p.location.sreg,tmpreg);
+                         cg.a_load_loc_reg(list,OS_INT,p.location,tmpreg);
                          cg.a_cmp_const_reg_label(list,OS_INT,OC_NE,0,tmpreg,current_procinfo.CurrTrueLabel);
                          cg.a_jmp_always(list,current_procinfo.CurrFalseLabel);
                        end;
@@ -582,15 +583,17 @@ implementation
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
 {$ifdef x86}
-                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
                      l.size:=dst_size;
 {$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
-{$ifndef x86}
-                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size]) then
-                   l.size:=dst_size;
-{$endif not x86}
+                 if (TCGSize2Size[dst_size]<TCGSize2Size[l.size])
+{$ifdef x86}
+                    and (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF])
+{$endif x86}
+                   then
+                     l.size:=dst_size;
                end;
            end;
            if not const_location then
@@ -755,10 +758,12 @@ implementation
               l.reference:=r;
             end;
           LOC_SUBSETREG,
-          LOC_CSUBSETREG:
+          LOC_CSUBSETREG,
+          LOC_SUBSETREF,
+          LOC_CSUBSETREF:
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
-              cg.a_load_subsetreg_ref(list,l.size,l.size,l.sreg,r);
+              cg.a_load_loc_ref(list,l.size,l,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -848,7 +853,11 @@ implementation
                   if not assigned(hsym) then
                     internalerror(200306061);
                   hreg:=cg.getaddressregister(list);
-                  cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg);
+                  if not is_packed_array(tparavarsym(p).vartype.def) then
+                    cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg)
+                  else
+                    internalerror(2006080401);
+//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elepackedbitsize,hreg);
                   cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).localloc);
                 end;
             end
@@ -2775,3 +2784,4 @@ implementation
       end;
 
 end.
+

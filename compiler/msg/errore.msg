@@ -1077,6 +1077,14 @@ parser_e_array_range_out_of_bounds=03220_E_The range of the array is too large
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
+parser_e_packed_element_no_var_addr_loop=03221_E_The address cannot be taken of bit packed array elements and record fields, nor can they be used as loop variables
+% If you declare an array or record as \var{packed} in Mac Pascal mode, it will
+% be packed at the bit level (currently only array bit packing is implemented though). This means it becomes impossible to take addresses
+% of individual array elements or records, even if their starting offset happens
+% to be aligned to a byte multiple. For performance reasons, they cannot be
+% used as loop variables either.
+parser_e_packed_dynamic_open_array=03222_E_Dynamic arrays cannot be packed
+% Only regular and open arrays can be packed
 % \end{description}
 #
 # Type Checking
@@ -1322,6 +1330,14 @@ type_w_double_c_varargs=04059_W_Converting constant real value to double for C v
 % this from happening, add an explicit typecast around the constant.
 type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type expected, but got "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
+type_e_no_const_packed_array=04061_E_Constant packed arrays are not supported
+% You cannot declare a (bit)packed array as a typed constant.
+type_e_got_expected_packed_array=04062_E_Incompatible type for arg no. $1: Got "$2" expected "(Bit)Packed Array"
+% The compiler expects a (bit)packed array as the specified parameter
+type_e_got_expected_unpacked_array=04063_E_Incompatible type for arg no. $1: Got "$2" expected "(not packed) Array"
+% The compiler expects a regular (i.e., not packed) array as the specified parameter
+type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type which need to be initialised
+% Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
 % \end{description}
 #
 # Symtable
@@ -1827,6 +1843,13 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shi
 % asm
 %   orr     r2,r2,r2,lsl #8
 % end;
+asmr_e_packed_element=07100_E_Address of packed component is not at a byte boundary
+% Packed components (record fields and array elements) may start at an arbitrary
+% bit inside a byte. On CPU which do not support bit-addressable memory (which
+% includes all currently supported CPUs by FPC) you will therefore get an error
+% message when trying to index arrays with elements whose size is not a multiple
+% of 8 bits. The same goes for accessing record fields with such an address.
+% multiple of 8 bits.
 % \end{verbatim}
 #
 # Assembler/binary writers

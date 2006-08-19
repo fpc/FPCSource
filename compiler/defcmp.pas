@@ -601,8 +601,16 @@ implementation
                   case def_from.deftype of
                     arraydef :
                       begin
+                        { from/to packed array }
+                        if is_packed_array(def_from) xor
+                           is_packed_array(def_to) then
+                          { both must be packed }
+                          begin
+                            compare_defs_ext:=te_incompatible;
+                            exit;
+                          end
                         { to dynamic array }
-                        if is_dynamic_array(def_to) then
+                        else if is_dynamic_array(def_to) then
                          begin
                            if equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
                              begin

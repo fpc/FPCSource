@@ -145,6 +145,7 @@ interface
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
     function  valid_for_var(p:tnode; report_errors: boolean):boolean;
     function  valid_for_assignment(p:tnode; report_errors: boolean):boolean;
+    function  valid_for_loopvar(p:tnode; report_errors: boolean):boolean;
     function  valid_for_addr(p : tnode; report_errors: boolean) : boolean;
 
     function allowenumop(nt:tnodetype):boolean;
@@ -165,7 +166,7 @@ implementation
        ;
 
     type
-      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr);
+      TValidAssign=(Valid_Property,Valid_Void,Valid_Const,Valid_Addr,Valid_Packed);
       TValidAssigns=set of TValidAssign;
 
 
@@ -1056,6 +1057,16 @@ implementation
                end;
              vecn :
                begin
+                 if { only check for first (= outermost) vec node }
+                    not gotvec and
+                    not(valid_packed in opts) and
+                    (tvecnode(hp).left.resulttype.def.deftype = arraydef) and
+                    (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resulttype.def).arrayoptions) then
+                   begin
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr_loop);
+                     exit;
+                   end;
                  gotvec:=true;
                  { accesses to dyn. arrays override read only access in delphi }
                  if (m_delphi in aktmodeswitches) and is_dynamic_array(tunarynode(hp).left.resulttype.def) then
@@ -1310,7 +1321,13 @@ implementation
 
     function  valid_for_assignment(p:tnode; report_errors: boolean):boolean;
       begin
-        valid_for_assignment:=valid_for_assign(p,[valid_property],report_errors);
+        valid_for_assignment:=valid_for_assign(p,[valid_property,valid_packed],report_errors);
+      end;
+
+
+    function  valid_for_loopvar(p:tnode; report_errors: boolean):boolean;
+      begin
+        valid_for_loopvar:=valid_for_assign(p,[valid_property],report_errors);
       end;
 
 

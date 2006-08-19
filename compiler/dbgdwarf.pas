@@ -887,21 +887,28 @@ implementation
       procedure append_dwarftag_arraydef(def:tarraydef);
         var
           size : aint;
+          elesize : aint;
         begin
           if is_special_array(def) then
             size:=def.elesize
           else
             size:=def.size;
+          
+          if not is_packed_array(def) then
+            elesize := def.elesize*8
+          else
+            elesize := def.elepackedbitsize;
+
           if assigned(def.typesym) then
             append_entry(DW_TAG_array_type,true,[
               DW_AT_name,DW_FORM_string,def.typesym.name+#0,
               DW_AT_byte_size,DW_FORM_udata,size,
-              DW_AT_stride_size,DW_FORM_udata,def.elesize*8
+              DW_AT_stride_size,DW_FORM_udata,elesize
               ])
           else
             append_entry(DW_TAG_array_type,true,[
               DW_AT_byte_size,DW_FORM_udata,size,
-              DW_AT_stride_size,DW_FORM_udata,def.elesize*8
+              DW_AT_stride_size,DW_FORM_udata,elesize
               ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementtype.def));
           if is_dynamic_array(def) then

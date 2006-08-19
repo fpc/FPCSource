@@ -303,6 +303,8 @@ const
   parser_w_overridden_methods_not_same_ret=03218;
   parser_e_dispid_must_be_ord_const=03219;
   parser_e_array_range_out_of_bounds=03220;
+  parser_e_packed_element_no_var_addr_loop=03221;
+  parser_e_packed_dynamic_open_array=03222;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -363,6 +365,10 @@ const
   type_e_illegal_count_var=04058;
   type_w_double_c_varargs=04059;
   type_e_class_or_cominterface_type_expected=04060;
+  type_e_no_const_packed_array=04061;
+  type_e_got_expected_packed_array=04062;
+  type_e_got_expected_unpacked_array=04063;
+  type_e_no_packed_inittable=04064;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -530,6 +536,7 @@ const
   asmr_e_higher_cpu_mode_required=07097;
   asmr_w_unable_to_determine_reference_size_using_dword=07098;
   asmr_e_illegal_shifterop_syntax=07099;
+  asmr_e_packed_element=07100;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -686,9 +693,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 40392;
+  MsgTxtSize = 40910;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,80,221,61,62,47,100,22,135,60,
+    24,80,223,65,62,47,101,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

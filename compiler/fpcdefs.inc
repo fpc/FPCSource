@@ -38,6 +38,7 @@
   {$define USECMOV}
   {$define SUPPORT_MMX}
   {$define cpumm}
+  {$define fewintregisters}
 {$endif i386}
 
 {$ifdef x86_64}

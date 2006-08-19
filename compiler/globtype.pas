@@ -100,7 +100,7 @@ than 255 characters. That's why using Ansi Strings}
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
-         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,
+         cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_bitpacking,
          { macpas specific}
          cs_external_var, cs_externally_visible
        );

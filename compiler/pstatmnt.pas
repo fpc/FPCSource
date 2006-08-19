@@ -309,7 +309,7 @@ implementation
          consume(_FOR);
 
          hloopvar:=factor(false);
-         valid_for_assignment(hloopvar,true);
+         valid_for_loopvar(hloopvar,true);
 
          { Check loop variable }
          loopvarsym:=nil;

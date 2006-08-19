@@ -214,6 +214,7 @@ type
     _SAFECALL,
     _SYSVBASE,
     _ASSEMBLER,
+    _BITPACKED,
     _INHERITED,
     _INTERFACE,
     _INTERRUPT,
@@ -461,6 +462,7 @@ const
       (str:'SAFECALL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SYSVBASE'      ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
       (str:'ASSEMBLER'     ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'BITPACKED'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INHERITED'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INTERFACE'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'INTERRUPT'     ;special:false;keyword:m_none;op:NOTOKEN),

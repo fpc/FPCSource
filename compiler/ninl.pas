@@ -40,6 +40,10 @@ interface
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
+
+          { pack and unpack are changed into for-loops by the compiler }
+          function first_pack_unpack: tnode; virtual;
+
           { All the following routines currently
             call compilerprocs, unless they are
             overriden in which case, the code
@@ -1227,6 +1231,79 @@ implementation
         end;
 
 
+      procedure handle_pack_unpack;
+        var
+          source, target, index: tcallparanode;
+          unpackedarraydef, packedarraydef: tarraydef;
+          tempindex: TConstExprInt;
+        begin
+          resulttype:=voidtype;
+          
+          unpackedarraydef := nil;
+          packedarraydef := nil;
+          source := tcallparanode(left);
+          if (inlinenumber = in_unpack_x_y_z) then
+            begin
+              target := tcallparanode(source.right);
+              index := tcallparanode(target.right);
+
+              { source must be a packed array }
+              if not is_packed_array(source.left.resulttype.def) then
+                CGMessagePos2(source.left.fileinfo,type_e_got_expected_packed_array,'1',source.left.resulttype.def.gettypename)
+              else
+                packedarraydef := tarraydef(source.left.resulttype.def);
+              { target can be any kind of array, as long as it's not packed }
+              if (target.left.resulttype.def.deftype <> arraydef) or
+                 is_packed_array(target.left.resulttype.def) then
+                CGMessagePos2(target.left.fileinfo,type_e_got_expected_unpacked_array,'2',target.left.resulttype.def.gettypename)
+              else
+                unpackedarraydef := tarraydef(target.left.resulttype.def);
+            end
+          else
+            begin
+              index := tcallparanode(source.right);
+              target := tcallparanode(index.right);
+
+              { source can be any kind of array, as long as it's not packed }
+              if (source.left.resulttype.def.deftype <> arraydef) or
+                 is_packed_array(source.left.resulttype.def) then
+                CGMessagePos2(source.left.fileinfo,type_e_got_expected_unpacked_array,'1',source.left.resulttype.def.gettypename)
+              else
+                unpackedarraydef := tarraydef(source.left.resulttype.def);
+              { target must be a packed array }
+              if not is_packed_array(target.left.resulttype.def) then
+                CGMessagePos2(target.left.fileinfo,type_e_got_expected_packed_array,'3',target.left.resulttype.def.gettypename)
+              else
+                packedarraydef := tarraydef(target.left.resulttype.def);
+            end;
+
+          if assigned(unpackedarraydef) then
+            begin
+              { index must be compatible with the unpacked array's indextype }
+              inserttypeconv(index.left,unpackedarraydef.rangetype);
+              
+              { range check at compile time if possible }
+              if assigned(packedarraydef) and
+                 (index.left.nodetype = ordconstn) and
+                 not is_special_array(unpackedarraydef) then
+                begin
+                  testrange(unpackedarraydef,tordconstnode(index.left).value,false);
+                  tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
+                  testrange(unpackedarraydef,tempindex,false);
+                end;
+            end;
+
+          { source array is read and must be valid }
+          set_varstate(source.left,vs_read,[vsf_must_be_valid]);
+          { target array is written }
+          valid_for_assignment(target.left,true);
+          set_varstate(target.left,vs_written,[]);
+          { index in the unpacked array is read and must be valid }
+          set_varstate(index.left,vs_read,[vsf_must_be_valid]);
+        end;
+      
+
+
       var
          vl,vl2    : TConstExprInt;
          vr        : bestreal;
@@ -1360,10 +1437,32 @@ implementation
                       begin
                         hp:=caddnode.create(addn,hightree,
                                          cordconstnode.create(1,sinttype,false));
-                        if (left.resulttype.def.deftype=arraydef) and
-                           (tarraydef(left.resulttype.def).elesize<>1) then
-                          hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                            left.resulttype.def).elesize,sinttype,true));
+                        if (left.resulttype.def.deftype=arraydef) then
+                          if not is_packed_array(tarraydef(left.resulttype.def)) then
+                            begin
+                              if (tarraydef(left.resulttype.def).elesize<>1) then
+                                hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
+                                  left.resulttype.def).elesize,sinttype,true));
+                            end
+                          else if (tarraydef(left.resulttype.def).elepackedbitsize <> 8) then
+                            begin
+                              { no packed open array support yet }
+                              if (hp.nodetype <> ordconstn) then
+                                internalerror(2006081511);
+                              hp.free;
+                              hp := cordconstnode.create(left.resulttype.def.size,sinttype,true);
+{
+                              hp:=
+                                 ctypeconvnode.create_explicit(sinttype,
+                                   cmoddivnode.create(divn,
+                                     caddnode.create(addn,
+                                       caddnode.create(muln,hp,cordconstnode.create(tarraydef(
+                                         left.resulttype.def).elepackedbitsize,s64inttype,true)),
+                                       cordconstnode.create(a,s64inttype,true)),
+                                     cordconstnode.create(8,s64inttype,true)),
+                                   sinttype);
+}
+                            end;
                         result:=hp;
                       end;
                    end
@@ -1724,7 +1823,7 @@ implementation
               in_exclude_x_y:
                 begin
                   resulttype:=voidtype;
-                  { the parser already checks whether we have two (and exectly two) }
+                  { the parser already checks whether we have two (and exactly two) }
                   { parameters (JM)                                                 }
                   { first param must be var }
                   valid_for_var(tcallparanode(left).left,true);
@@ -1740,6 +1839,11 @@ implementation
                     end
                   else
                     CGMessage(type_e_mismatch);
+                end;
+              in_pack_x_y_z,
+              in_unpack_x_y_z :
+                begin
+                  handle_pack_unpack;
                 end;
 
               in_slice_x:
@@ -1810,10 +1914,10 @@ implementation
                         else
                          begin
                            if is_open_string(left.resulttype.def) then
-			     begin
+                            begin
                                set_varstate(left,vs_read,[]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
-			     end
+                            end
                            else
                              result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
                          end;
@@ -2301,6 +2405,12 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
+         in_pack_x_y_z,
+         in_unpack_x_y_z:
+           begin
+             result:=first_pack_unpack;
+           end;
+
          in_exp_real:
            begin
              result:= first_exp_real;
@@ -2565,6 +2675,97 @@ implementation
         result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(left,nil));
         left := nil;
       end;
+
+     function tinlinenode.first_pack_unpack: tnode;
+       var
+         loopstatement    : tstatementnode;
+         loop             : tblocknode;
+         loopvar          : ttempcreatenode;
+         tempnode,
+         source,
+         target,
+         index,
+         unpackednode,
+         packednode,
+         sourcevecindex,
+         targetvecindex,
+         loopbody         : tnode;
+         temprangetype    : ttype;
+         ulorange,
+         uhirange,
+         plorange,
+         phirange          : TConstExprInt;
+       begin
+         { transform into a for loop which assigns the data of the (un)packed }
+         { array to the other one                                             }
+         source := left;
+         if (inlinenumber = in_unpack_x_y_z) then
+           begin
+             target := tcallparanode(source).right;
+             index := tcallparanode(target).right;
+             packednode := tcallparanode(source).left;
+             unpackednode := tcallparanode(target).left;
+           end
+         else
+           begin
+             index := tcallparanode(source).right;
+             target := tcallparanode(index).right;
+             packednode := tcallparanode(target).left;
+             unpackednode := tcallparanode(source).left;
+           end;
+         source := tcallparanode(source).left;
+         target := tcallparanode(target).left;
+         index := tcallparanode(index).left;
+
+         loop := internalstatements(loopstatement);
+         loopvar := ctempcreatenode.create(
+           tarraydef(packednode.resulttype.def).rangetype,
+           tarraydef(packednode.resulttype.def).rangetype.def.size,
+           tt_persistent,true);
+         addstatement(loopstatement,loopvar);
+
+         { For range checking: we have to convert to an integer type (in case the index type }
+         { is an enum), add the index and loop variable together, convert the result         }
+         { implicitly to an orddef with range equal to the rangetype to get range checking   }
+         { and finally convert it explicitly back to the actual rangetype to avoid type      }
+         { errors                                                                            }
+         temprangetype.reset;
+         getrange(unpackednode.resulttype.def,ulorange,uhirange);
+         getrange(packednode.resulttype.def,plorange,phirange);
+         temprangetype.setdef(torddef.create(torddef(sinttype.def).typ,ulorange,uhirange));
+         sourcevecindex := ctemprefnode.create(loopvar);
+         targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
+         targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));
+         targetvecindex := caddnode.create(addn,targetvecindex,ctemprefnode.create(loopvar));
+         targetvecindex := ctypeconvnode.create(targetvecindex,temprangetype);
+         targetvecindex := ctypeconvnode.create_explicit(targetvecindex,tarraydef(unpackednode.resulttype.def).rangetype);
+
+         if (inlinenumber = in_pack_x_y_z) then
+           begin
+             { swap source and target vec indices }
+             tempnode := sourcevecindex;
+             sourcevecindex := targetvecindex;
+             targetvecindex := tempnode;
+           end;
+
+         { create the assignment in the loop body }
+         loopbody :=
+           cassignmentnode.create(
+             cvecnode.create(target.getcopy,targetvecindex),
+             cvecnode.create(source.getcopy,sourcevecindex)
+           );
+         { create the actual for loop }
+         tempnode := cfornode.create(
+           ctemprefnode.create(loopvar),
+           cinlinenode.create(in_low_x,false,packednode.getcopy),
+           cinlinenode.create(in_high_x,false,packednode.getcopy),
+           loopbody,
+           false);
+         addstatement(loopstatement,tempnode);
+         { free the loop counter }
+         addstatement(loopstatement,ctempdeletenode.create(loopvar));
+         result := loop;
+       end;
 
 begin
    cinlinenode:=tinlinenode;

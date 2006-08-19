@@ -123,6 +123,9 @@ interface
     }
     function is_special_array(p : tdef) : boolean;
 
+    {# Returns true if p is a bitpacked array }
+    function is_packed_array(p: tdef) : boolean;
+
     {# Returns true if p is a char array def }
     function is_chararray(p : tdef) : boolean;
 
@@ -567,6 +570,16 @@ implementation
          is_shortstring:=(p.deftype=stringdef) and
                          (tstringdef(p).string_typ=st_shortstring);
       end;
+
+
+    { true if p is bit packed array def }
+    function is_packed_array(p: tdef) : boolean;
+      begin
+        is_packed_array :=
+           (p.deftype = arraydef) and
+           (ado_IsBitPacked in tarraydef(p).arrayoptions);
+      end;
+
 
     { true if p is a char array def }
     function is_chararray(p : tdef) : boolean;

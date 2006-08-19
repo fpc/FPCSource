@@ -81,6 +81,7 @@ interface
        exponent value is returned in power.
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
+    function nextpowerof2(value : int64; out power: longint) : int64;
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
@@ -669,6 +670,31 @@ uses
               hl:=hl shl 1;
            end;
          ispowerof2:=false;
+      end;
+
+
+    function nextpowerof2(value : int64; out power: longint) : int64;
+    { 
+      returns the power of 2 >= value
+    }
+      var
+        i : longint;
+      begin
+        result := 0;
+        power := -1;
+        if ((value <= 0) or
+            (value >= $4000000000000000)) then
+          exit;
+        result := 1;
+        for i:=0 to 63 do
+          begin
+            if result>=value then
+              begin
+                power := i;
+                exit;
+              end;
+            result:=result shl 1;
+          end;
       end;
 
 

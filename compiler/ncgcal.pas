@@ -126,7 +126,7 @@ implementation
           exit;
 
         { Move flags and jump in register to make it less complex }
-        if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG] then
+        if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
           location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
 
         { Handle Floating point types differently }

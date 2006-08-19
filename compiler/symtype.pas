@@ -86,6 +86,7 @@ interface
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
          function  size:aint;virtual;abstract;
+         function  packedbitsize:aint;virtual;
          function  alignment:shortint;virtual;abstract;
          function  getvartype:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
@@ -298,10 +299,16 @@ implementation
       end;
 
 
-   function  tdef.is_related(def:tdef):boolean;
-     begin
-       result:=false;
-     end;
+    function tdef.is_related(def:tdef):boolean;
+      begin
+        result:=false;
+      end;
+
+
+    function tdef.packedbitsize:aint;
+      begin
+        result:=size * 8;
+      end;
 
 
 {****************************************************************************

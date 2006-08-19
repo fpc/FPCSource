@@ -315,7 +315,8 @@ type
     ado_IsVariant,
     ado_IsConstructor,
     ado_IsArrayOfConst,
-    ado_IsConstString
+    ado_IsConstString,
+    ado_IsBitPacked
   );
   tarraydefoptions=set of tarraydefoption;
 
