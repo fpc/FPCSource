@@ -2272,8 +2272,8 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההג�
 # Logo (option -l)
 #
 option_logo=11023_[
-Free Pascal Compiler גרסה $FPCFULLVERSION [$FPCDATE] עבור $FPCCPU
-זכויות יוצרים 1993-2006 (c) ע"י Florian Klaempfl
+Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
+Copyright (c) 1993-2006 by Florian Klaempfl
 
 ]
 
@@ -2281,9 +2281,9 @@ Free Pascal Compiler גרסה $FPCFULLVERSION [$FPCDATE] עבור $FPCCPU
 # Info (option -i)
 #
 option_info=11024_[
-Free Pascal Compiler גרסה $FPCVERSION
+Free Pascal Compiler version $FPCVERSION
 
-תאריך מהדר: $FPCDATE
+תאריך מהדר : $FPCDATE
 מהדר למעבד: $FPCCPU
 
 מערכות הפעלה נתמכות:
