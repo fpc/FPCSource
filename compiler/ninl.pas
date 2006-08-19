@@ -661,7 +661,8 @@ implementation
 {$endif cpu64bit}
                         bool8bit,
                         bool16bit,
-                        bool32bit :
+                        bool32bit,
+                        bool64bit:
                           begin
                             if do_read then
                               begin
@@ -1238,7 +1239,7 @@ implementation
           tempindex: TConstExprInt;
         begin
           resulttype:=voidtype;
-          
+
           unpackedarraydef := nil;
           packedarraydef := nil;
           source := tcallparanode(left);
@@ -1281,7 +1282,7 @@ implementation
             begin
               { index must be compatible with the unpacked array's indextype }
               inserttypeconv(index.left,unpackedarraydef.rangetype);
-              
+
               { range check at compile time if possible }
               if assigned(packedarraydef) and
                  (index.left.nodetype = ordconstn) and
@@ -1301,7 +1302,7 @@ implementation
           { index in the unpacked array is read and must be valid }
           set_varstate(index.left,vs_read,[vsf_must_be_valid]);
         end;
-      
+
 
 
       var
@@ -1510,6 +1511,13 @@ implementation
                              begin
                                { change to dword() }
                                hp:=ctypeconvnode.create_internal(left,u32inttype);
+                               left:=nil;
+                               result:=hp;
+                             end;
+                           bool64bit :
+                             begin
+                               { change to qword() }
+                               hp:=ctypeconvnode.create_internal(left,u64inttype);
                                left:=nil;
                                result:=hp;
                              end;

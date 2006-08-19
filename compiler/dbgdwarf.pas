@@ -769,6 +769,15 @@ implementation
                   ]);
                 finish_entry;
               end;
+            bool64bit :
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,'QWordBool'#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_boolean,
+                  DW_AT_byte_size,DW_FORM_data1,8
+                  ]);
+                finish_entry;
+              end;
             u64bit :
               begin
                 append_entry(DW_TAG_base_type,false,[
@@ -893,7 +902,7 @@ implementation
             size:=def.elesize
           else
             size:=def.size;
-          
+
           if not is_packed_array(def) then
             elesize := def.elesize*8
           else

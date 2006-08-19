@@ -525,7 +525,8 @@ implementation
                     result:=strpnew(def_stab_number(def));
                   bool8bit,
                   bool16bit,
-                  bool32bit :
+                  bool32bit,
+                  bool64bit :
                     result:=def_stabstr_evaluate(def,'r${numberstring};0;255;',[]);
                   u32bit,
                   s64bit,
@@ -549,6 +550,9 @@ implementation
                   bool16bit :
                     result:=strpnew('-22;');
                   bool32bit :
+                    result:=strpnew('-23;');
+                  bool64bit :
+                    { no clue if this is correct (FK) }
                     result:=strpnew('-23;');
                   u64bit :
                     result:=strpnew('-32;');

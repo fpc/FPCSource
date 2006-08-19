@@ -130,6 +130,13 @@ implementation
                          else
                            Message(parser_e_illegal_expression);
                       end;
+                    bool64bit :
+                      begin
+                         if is_constboolnode(p) then
+                           datalist.concat(Tai_const.Create_64bit(int64(tordconstnode(p).value)))
+                         else
+                           Message(parser_e_illegal_expression);
+                      end;
                     uchar :
                       begin
                          if is_constcharnode(p) then

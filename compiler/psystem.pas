@@ -138,6 +138,7 @@ implementation
         booltype.setdef(torddef.create(bool8bit,0,1));
         bool16type.setdef(torddef.create(bool16bit,0,1));
         bool32type.setdef(torddef.create(bool32bit,0,1));
+        bool64type.setdef(torddef.create(bool64bit,0,1));
         cchartype.setdef(torddef.create(uchar,0,255));
         cwidechartype.setdef(torddef.create(uwidechar,0,65535));
         cshortstringtype.setdef(tstringdef.createshort(255));
@@ -253,6 +254,7 @@ implementation
         addtype('ByteBool',booltype);
         addtype('WordBool',bool16type);
         addtype('LongBool',bool32type);
+        addtype('QWordBool',bool64type);
         addtype('Byte',u8inttype);
         addtype('ShortInt',s8inttype);
         addtype('Word',u16inttype);
@@ -289,6 +291,7 @@ implementation
         addtype('$boolean',booltype);
         addtype('$boolean16',bool16type);
         addtype('$boolean32',bool32type);
+        addtype('$boolean64',bool32type);
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -373,6 +376,7 @@ implementation
         loadtype('boolean',booltype);
         loadtype('boolean16',bool16type);
         loadtype('boolean32',bool32type);
+        loadtype('boolean64',bool32type);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);

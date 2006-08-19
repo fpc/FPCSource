@@ -1675,7 +1675,7 @@ implementation
           0,
           1,2,4,8,
           1,2,4,8,
-          1,2,4,
+          1,2,4,8,
           1,2,8
         );
       begin
@@ -1714,7 +1714,7 @@ implementation
           varUndefined,
           varbyte,varqword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
-          varboolean,varUndefined,varUndefined,
+          varboolean,varUndefined,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
         result:=basetype2vartype[typ];
@@ -1747,7 +1747,7 @@ implementation
             (otUByte{otNone},
              otUByte,otUWord,otULong,otUByte{otNone},
              otSByte,otSWord,otSLong,otUByte{otNone},
-             otUByte,otUWord,otULong,
+             otUByte,otUWord,otULong,otUByte,
              otUByte,otUWord,otUByte);
         begin
           write_rtti_name;
@@ -1825,7 +1825,7 @@ implementation
           'untyped',
           'Byte','Word','DWord','QWord',
           'ShortInt','SmallInt','LongInt','Int64',
-          'Boolean','WordBool','LongBool',
+          'Boolean','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
 
       begin
@@ -3962,7 +3962,7 @@ implementation
              '',
              'Uc','Us','Ui','Us',
              'Sc','s','i','x',
-             'b','b','b',
+             'b','b','b','b',
              'c','w','x');
 
         var
