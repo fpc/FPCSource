@@ -556,12 +556,16 @@ const
      procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
 
        begin
-         if (tcgsize2size[subsetsize] <> sizeof(aint)) then
+         if (sreg.bitlen <> sizeof(aint)*8) then
            begin
              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,destreg,
                sreg.subsetreg,(32-sreg.startbit) and 31,32-sreg.bitlen,31));
-             a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
-             a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
+             { types with a negative lower bound are always a base type (8, 16, 32 bits) }
+             if ((sreg.bitlen mod 8) = 0) then
+               begin
+                 a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
+                 a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
+               end;
            end
          else
            a_load_reg_reg(list,subsetsize,tosize,sreg.subsetreg,destreg);
@@ -571,7 +575,7 @@ const
      procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister);
 
        begin
-         if ((tcgsize2size[subsetsize]) <> sizeof(aint)) then
+         if (sreg.bitlen <> sizeof(aint) * 8) then
            list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,sreg.subsetreg,fromreg,
              sreg.startbit,32-sreg.startbit-sreg.bitlen,31-sreg.startbit))
          else
@@ -582,7 +586,7 @@ const
        procedure tcgppc.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister);
 
          begin
-           if (tcgsize2size[fromsubsetsize] >= tcgsize2size[tosubsetsize]) then
+           if (fromsreg.bitlen >= tosreg.bitlen) then
              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,tosreg.subsetreg, fromsreg.subsetreg,
                 (tosreg.startbit-fromsreg.startbit) and 31,
                 32-tosreg.startbit-tosreg.bitlen,31-tosreg.startbit))

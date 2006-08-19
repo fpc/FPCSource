@@ -887,7 +887,7 @@ begin
     extend the sign correctly. (The latter is actually required only for signed subsets and if that
    subset is not >= the tosize). }
   extrdi_startbit := 64 - (sreg.bitlen + sreg.startbit);
-  if (sreg.startbit <> 0) then begin
+  if (sreg.bitlen <> sizeof(aint)*8) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, sreg.subsetreg, sreg.bitlen, extrdi_startbit));
     a_load_reg_reg(list, tcgsize2unsigned[subsetsize], subsetsize, destreg, destreg);
     a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
@@ -902,7 +902,7 @@ begin
   list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(sreg.startbit))));
   {$endif}
   { simply use the INSRDI instruction }
-  if (tcgsize2size[subsetsize] <> sizeof(aint)) then
+  if (sreg.bitlen <> sizeof(aint)*8) then
     list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, sreg.subsetreg, fromreg, sreg.bitlen, (64 - (sreg.startbit + sreg.bitlen)) and 63))
   else
     a_load_reg_reg(list, fromsize, subsetsize, fromreg, sreg.subsetreg);
