@@ -2246,7 +2246,6 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההג�
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
 Copyright (c) 1993-2006 by Florian Klaempfl
-
 ]
 
 #

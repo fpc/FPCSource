@@ -114,6 +114,7 @@ general_i_hint=01016_I_רמז:
 general_e_path_does_not_exist=01017_E_הנתיב "$1" אינו קיים
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_ההידור בוטל
+% Compilation was aborted.
 % \end{description}
 #
 # Scanner
@@ -2249,7 +2250,6 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההגדרות $1
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
 Copyright (c) 1993-2006 by Florian Klaempfl
-
 ]
 
 #
