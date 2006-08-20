@@ -135,7 +135,7 @@ implementation
            uvoid,
            u8bit,u16bit,u32bit,u64bit,
            s8bit,s16bit,s32bit,s64bit,
-           bool8bit,bool16bit,bool32bit,
+           bool8bit,bool16bit,bool32bit,bool64bit,
            uchar,uwidechar }
 
       type
@@ -145,7 +145,7 @@ implementation
           (bvoid,
            bint,bint,bint,bint,
            bint,bint,bint,bint,
-           bbool,bbool,bbool,
+           bbool,bbool,bbool,bbool,
            bchar,bchar,bint);
 
         basedefconvertsimplicit : array[tbasedef,tbasedef] of tconverttype =
@@ -211,7 +211,7 @@ implementation
                                 end;
                             end;
                           uvoid,
-                          bool8bit,bool16bit,bool32bit:
+                          bool8bit,bool16bit,bool32bit,bool64bit:
                             eq:=te_equal;
                           else
                             internalerror(200210061);
@@ -1300,8 +1300,8 @@ implementation
                 u8bit,u16bit,u32bit,u64bit,
                 s8bit,s16bit,s32bit,s64bit :
                   is_subequal:=(torddef(def2).typ in [s64bit,u64bit,s32bit,u32bit,u8bit,s8bit,s16bit,u16bit]);
-                bool8bit,bool16bit,bool32bit :
-                  is_subequal:=(torddef(def2).typ in [bool8bit,bool16bit,bool32bit]);
+                bool8bit,bool16bit,bool32bit,bool64bit :
+                  is_subequal:=(torddef(def2).typ in [bool8bit,bool16bit,bool32bit,bool64bit]);
                 uchar :
                   is_subequal:=(torddef(def2).typ=uchar);
                 uwidechar :

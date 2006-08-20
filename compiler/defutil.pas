@@ -328,7 +328,7 @@ implementation
                is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
-                                  bool8bit,bool16bit,bool32bit];
+                                  bool8bit,bool16bit,bool32bit,bool64bit];
              end;
            enumdef :
              is_ordinal:=true;
@@ -379,7 +379,7 @@ implementation
     function is_boolean(def : tdef) : boolean;
       begin
         is_boolean:=(def.deftype=orddef) and
-                    (torddef(def).typ in [bool8bit,bool16bit,bool32bit]);
+                    (torddef(def).typ in [bool8bit,bool16bit,bool32bit,bool64bit]);
       end;
 
 

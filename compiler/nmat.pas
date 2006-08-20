@@ -724,7 +724,8 @@ implementation
               case torddef(left.resulttype.def).typ of
                 bool8bit,
                 bool16bit,
-                bool32bit :
+                bool32bit,
+                bool64bit :
                   begin
                     { here we do a boolean(byte(..)) type cast because }
                     { boolean(<int64>) is buggy in 1.00                }

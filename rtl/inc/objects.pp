@@ -2221,6 +2221,9 @@ BEGIN
    Search := False;                                   { Preset failure }
    L := 0;                                            { Start count }
    H := Count - 1;                                    { End count }
+   Index := 0;
+   if H<=0 then
+     exit;
    While (L <= H) Do Begin
      I := (L + H) SHR 1;                              { Mid point }
      C := Compare(KeyOf(Items^[I]), Key);             { Compare with key }

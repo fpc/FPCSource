@@ -578,7 +578,7 @@ const
            end
          else
            instr := taicpu.op_reg_reg(A_MR,reg2,reg1);
-           
+
          list.concat(instr);
          rg[R_INTREGISTER].add_move_instruction(instr);
        end;
@@ -2065,7 +2065,7 @@ const
          if not ((def.deftype=pointerdef) or
                 ((def.deftype=orddef) and
                  (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                                  bool8bit,bool16bit,bool32bit]))) then
+                                                  bool8bit,bool16bit,bool32bit,bool64bit]))) then
            begin
              list.concat(taicpu.op_reg(A_MCRXR,NR_CR7));
              a_jmp(list,A_BC,C_NO,7,hl)
