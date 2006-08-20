@@ -744,7 +744,7 @@ interface
                   hp:=tai(hp.next);
                 end;
                if lasTSectype<>sec_none then
-                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^);
+                 WriteSection(lasTSectype,'');
                AsmStartSize:=AsmSize;
              end;
 
