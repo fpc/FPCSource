@@ -1884,9 +1884,9 @@ Procedure THTMLWriter.AppendExampleSection(AElement : TPasElement;DocNode : TDoc
 var
   Node: TDOMNode;
 //  TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
-  s: String;
+  fn,s: String;
   f: Text;
-
+  
 begin
   if not (Assigned(DocNode) and Assigned(DocNode.FirstExample)) then
     Exit;
@@ -1895,30 +1895,34 @@ begin
     begin
     if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'example') then
       begin
-      AppendText(CreateH2(BodyElement), SDocExample);
-      try
-        Assign(f, Engine.GetExampleFilename(TDOMElement(Node)));
-        Reset(f);
+      fn:=Engine.GetExampleFilename(TDOMElement(Node));
+      If (fn<>'') then
+        begin
+        AppendText(CreateH2(BodyElement), SDocExample);
         try
-          PushOutputNode(BodyElement);
-          DescrBeginCode(False, TDOMElement(Node)['highlighter']);
-          while not EOF(f) do
-            begin
-            ReadLn(f, s);
-            DescrWriteCodeLine(s);
-            end;
-          DescrEndCode;
-          PopOutputNode;
-        finally
-          Close(f);
-        end;
-      except
-        on e: Exception do
-          begin
-          e.Message := '[example] ' + e.Message;
-          raise;
+          Assign(f, FN);
+          Reset(f);
+          try
+            PushOutputNode(BodyElement);
+            DescrBeginCode(False, TDOMElement(Node)['highlighter']);
+            while not EOF(f) do
+              begin
+              ReadLn(f, s);
+              DescrWriteCodeLine(s);
+              end;
+            DescrEndCode;
+            PopOutputNode;
+          finally
+            Close(f);
           end;
-      end;
+        except
+          on e: Exception do
+            begin
+            e.Message := '[example] ' + e.Message;
+            raise;
+            end;
+        end;
+        end;
       end;
     Node := Node.NextSibling;
     end;

@@ -842,7 +842,8 @@ begin
         if (S<>'') then // not first example, start new paragraph
           DescrBeginParagraph;
         s:=Engine.GetExampleFileName(Example);
-        WriteExampleFile(S);
+        if (S<>'') then
+          WriteExampleFile(S);
         if Assigned(Example.NextSibling) then
            DescrEndParaGraph;
         end;

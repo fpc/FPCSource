@@ -1179,16 +1179,20 @@ end;
 function TFPDocEngine.GetExampleFilename(const ExElement: TDOMElement): String;
 var
   i: Integer;
+  fn : String;
+  
 begin
+  Result:='';
   for i := 0 to DescrDocs.Count - 1 do
-    if TDOMDocument(DescrDocs[i]) = ExElement.OwnerDocument then
     begin
-      Result := ExtractFilePath(DescrDocNames[i]) + ExElement['file'];
+    Fn:=ExElement['file'];
+    if (FN<>'') and (TDOMDocument(DescrDocs[i]) = ExElement.OwnerDocument) then
+      begin
+      Result := ExtractFilePath(DescrDocNames[i]) + FN;
       if (ExtractFileExt(Result)='') then
         Result:=Result+'.pp';
-      exit;
-    end;
-  SetLength(Result, 0);
+      end;
+    end;  
 end;
 
 

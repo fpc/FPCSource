@@ -918,7 +918,8 @@ begin
       while Assigned(Example) do
         begin
         s:=Engine.GetExampleFileName(Example);
-        WriteExampleFile(S);
+        if (s<>'') then
+          WriteExampleFile(S);
         DescrEndParaGraph;
         Repeat
           Example := TDomElement(Example.NextSibling);
