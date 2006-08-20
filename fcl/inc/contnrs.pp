@@ -597,8 +597,8 @@ end;
 
 destructor TComponentList.Destroy;
 begin
-  FNotifier.Free;
   inherited;
+  FreeAndNil(FNotifier);
 end;
 
 Function TComponentList.Extract(Item: TComponent): TComponent;
