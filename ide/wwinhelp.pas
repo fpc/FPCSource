@@ -1473,6 +1473,7 @@ begin
         for I:=10 to 14 do
           if (Flags and (1 shl I))<>0 then
             ReadUCHAR;
+{
         if (TH.NonScrollRgnOfs<>-1) then
           if (P^.TopicPos=(TH.ScrollRgnOfs and $3fff)) then
             begin
@@ -1480,6 +1481,7 @@ begin
               EmitText(CharStr('Ä',80));
               EmitText(hscLineBreak);
             end;
+}
         while (LinkData2Ofs<P^.LinkData2Size) do
         begin
           LinkOfs:=-1;
