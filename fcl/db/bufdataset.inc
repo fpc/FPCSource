@@ -92,7 +92,10 @@ end;
 
 procedure TBufDataset.InternalFirst;
 begin
-  FCurrentRecBuf := nil;
+// if FCurrentRecBuf = FLastRecBuf then the dataset is just opened and empty
+// in which case InternalFirst should do nothing (bug 7211)
+  if FCurrentRecBuf <> FLastRecBuf then
+    FCurrentRecBuf := nil;
 end;
 
 procedure TBufDataset.InternalLast;
