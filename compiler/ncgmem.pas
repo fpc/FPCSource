@@ -356,7 +356,7 @@ implementation
                (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
                location.reference.alignment:=1;
     {$endif SUPPORT_UNALIGNED}
-    
+
              { also update the size of the location }
              location.size:=def_cgsize(resulttype.def);
            end;
@@ -432,6 +432,7 @@ implementation
          sref: tsubsetreference;
          offsetreg: tregister;
          byteoffs, bitoffs, alignpower: aint;
+         temp : longint;
        begin
          if (l mod 8) = 0 then
            begin
@@ -446,8 +447,9 @@ implementation
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,reg);
          { keep alignment for index }
          sref.ref.alignment := left.resulttype.def.alignment;
-         if not ispowerof2(sref.ref.alignment,alignpower) then
+         if not ispowerof2(sref.ref.alignment,temp) then
            internalerror(2006081201);
+         alignpower:=temp;
          cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,reg,offsetreg);
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
          if (sref.ref.base = NR_NO) then
@@ -557,6 +559,7 @@ implementation
          paraloc1,
          paraloc2 : tcgpara;
          subsetref : tsubsetreference;
+         temp : longint;
       begin
          paraloc1.init;
          paraloc2.init;
@@ -721,8 +724,9 @@ implementation
                 begin
                   subsetref.ref := location.reference;
                   subsetref.ref.alignment := left.resulttype.def.alignment;
-                  if not ispowerof2(subsetref.ref.alignment,alignpow) then
+                  if not ispowerof2(subsetref.ref.alignment,temp) then
                     internalerror(2006081212);
+                  alignpow:=temp;
                   inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) shr (3+alignpow)) shl alignpow);
                   subsetref.bitindexreg := NR_NO;
                   subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);

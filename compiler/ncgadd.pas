@@ -720,7 +720,7 @@ interface
 
     procedure tcgaddnode.second_cmpboolean;
       begin
-         second_cmpordinal;
+        second_cmpordinal;
       end;
 
 
