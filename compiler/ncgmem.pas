@@ -465,7 +465,10 @@ implementation
          sref.bitindexreg := reg;
          sref.startbit := 0;
          sref.bitlen := resulttype.def.packedbitsize;
-         location.loc := LOC_SUBSETREF;
+         if (left.location.loc = LOC_REFERENCE) then
+           location.loc := LOC_SUBSETREF
+         else
+           location.loc := LOC_CSUBSETREF;
          location.sref := sref;
        end;
 
@@ -731,7 +734,10 @@ implementation
                   subsetref.bitindexreg := NR_NO;
                   subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);
                   subsetref.bitlen := resulttype.def.packedbitsize;
-                  location.loc := LOC_SUBSETREF;
+                  if (left.location.loc = LOC_REFERENCE) then
+                    location.loc := LOC_SUBSETREF
+                  else
+                    location.loc := LOC_CSUBSETREF;
                   location.sref := subsetref;
                 end;
            end

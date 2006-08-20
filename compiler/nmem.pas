@@ -851,10 +851,17 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
 {$endif SUPPORT_MMX}
-         if left.expectloc=LOC_CREFERENCE then
-           expectloc:=LOC_CREFERENCE
+         if (not is_packed_array(left.resulttype.def)) or
+            ((tarraydef(left.resulttype.def).elepackedbitsize mod 8) = 0) then
+           if left.expectloc=LOC_CREFERENCE then
+             expectloc:=LOC_CREFERENCE
+           else
+             expectloc:=LOC_REFERENCE
          else
-           expectloc:=LOC_REFERENCE;
+           if left.expectloc=LOC_CREFERENCE then
+             expectloc:=LOC_CSUBSETREF
+           else
+             expectloc:=LOC_SUBSETREF;
       end;
 
 
