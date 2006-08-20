@@ -1015,7 +1015,11 @@ implementation
                   if is_class(pd._class) then
                     pd.rettype.setdef(pd._class)
                   else
+{$ifdef CPU64bit}
+                    pd.rettype:=bool64type;
+{$else CPU64bit}
                     pd.rettype:=bool32type;
+{$endif CPU64bit}
                 end;
             end;
 

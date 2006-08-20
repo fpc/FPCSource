@@ -291,7 +291,7 @@ implementation
         addtype('$boolean',booltype);
         addtype('$boolean16',bool16type);
         addtype('$boolean32',bool32type);
-        addtype('$boolean64',bool32type);
+        addtype('$boolean64',bool64type);
         addtype('$void_pointer',voidpointertype);
         addtype('$char_pointer',charpointertype);
         addtype('$widechar_pointer',widecharpointertype);
@@ -376,7 +376,7 @@ implementation
         loadtype('boolean',booltype);
         loadtype('boolean16',bool16type);
         loadtype('boolean32',bool32type);
-        loadtype('boolean64',bool32type);
+        loadtype('boolean64',bool64type);
         loadtype('void_pointer',voidpointertype);
         loadtype('char_pointer',charpointertype);
         loadtype('widechar_pointer',widecharpointertype);
