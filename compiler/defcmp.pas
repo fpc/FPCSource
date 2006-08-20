@@ -601,9 +601,17 @@ implementation
                   case def_from.deftype of
                     arraydef :
                       begin
-                        { from/to packed array }
-                        if is_packed_array(def_from) xor
-                           is_packed_array(def_to) then
+                        { from/to packed array -- packed chararrays are      }
+                        { strings in ISO Pascal (at least if the lower bound }
+                        { is 1, but GPC makes all equal-length chararrays    }
+                        { compatible), so treat those the same as regular    }
+                        { char arrays                                        }
+                        if (is_packed_array(def_from) and
+                            not is_chararray(def_from) and
+                            not is_widechararray(def_from)) xor
+                           (is_packed_array(def_to) and
+                            not is_chararray(def_to) and
+                            not is_widechararray(def_to)) then
                           { both must be packed }
                           begin
                             compare_defs_ext:=te_incompatible;
