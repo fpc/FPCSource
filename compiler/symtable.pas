@@ -82,7 +82,7 @@ interface
        tabstractrecordsymtable = class(tstoredsymtable)
        public
           datasize       : aint;
-          usefieldalignment,     { alignment to use for fields (PACKRECORDS value), -1 is C style }
+          usefieldalignment,     { alignment to use for fields (PACKRECORDS value), C_alignment is C style }
           recordalignment,       { alignment required when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
@@ -821,9 +821,9 @@ implementation
         recordalignment:=1;
         usefieldalignment:=usealign;
         padalignment:=1;
-        { recordalign -1 means C record packing, that starts
+        { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
-        if usealign=-1 then
+        if usealign=C_alignment then
           fieldalignment:=1
         else
           fieldalignment:=usealign;
@@ -918,7 +918,7 @@ implementation
         vardef:=sym.vartype.def;
         varalign:=vardef.alignment;
         { Calc the alignment size for C style records }
-        if (usefieldalignment=-1) then
+        if (usefieldalignment=C_alignment) then
           begin
             if (varalign>4) and
               ((varalign mod 4)<>0) and
@@ -956,7 +956,7 @@ implementation
         else
           datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
-        if (usefieldalignment=-1) then
+        if (usefieldalignment=C_alignment) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
         else
           if (usefieldalignment=0) then
@@ -984,7 +984,7 @@ implementation
           use the fieldalignment, because that is updated with the
           used alignment. }
         if (padalignment = 1) then
-          if usefieldalignment=-1 then
+          if usefieldalignment=C_alignment then
             padalignment:=fieldalignment
           else
             padalignment:=recordalignment;

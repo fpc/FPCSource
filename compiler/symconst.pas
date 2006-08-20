@@ -30,6 +30,8 @@ uses
 const
   def_alignment = 4;
 
+  C_alignment = -1;
+
   { if you change one of the following contants, }
   { you have also to change the typinfo unit}
   { and the rtl/i386,template/rttip.inc files    }

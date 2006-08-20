@@ -36,7 +36,7 @@ implementation
       verbose,comphook,ppu,
       scanner,switches,
       fmodule,
-      symtable,
+      symconst,symtable,
       rabase;
 
     const
@@ -788,9 +788,9 @@ implementation
         if not(c in ['0'..'9']) then
          begin
            hs:=current_scanner.readid;
-           { C has the special recordalignmax of -1 }
+           { C has the special recordalignmax of C_alignment }
            if (hs='C') then
-            aktpackrecords:=-1
+            aktpackrecords:=C_alignment
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
              aktpackrecords:=0
