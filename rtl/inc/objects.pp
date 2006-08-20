@@ -2222,7 +2222,7 @@ BEGIN
    L := 0;                                            { Start count }
    H := Count - 1;                                    { End count }
    Index := 0;
-   if H<=0 then
+   if Count=0 then
      exit;
    While (L <= H) Do Begin
      I := (L + H) SHR 1;                              { Mid point }
