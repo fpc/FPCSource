@@ -4834,7 +4834,7 @@ implementation
          proctypesinfo : byte;
          propnameitem  : tpropnamelistitem;
 
-      procedure writeproc(proc : tsymlist; shiftvalue : byte);
+      procedure writeproc(proc : tsymlist; shiftvalue : byte; unsetvalue: byte);
 
         var
            typvalue : byte;
@@ -4844,7 +4844,7 @@ implementation
         begin
            if not(assigned(proc) and assigned(proc.firstsym))  then
              begin
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,0));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,unsetvalue));
                 typvalue:=3;
              end
            else if proc.firstsym^.sym.typ=fieldvarsym then
@@ -4910,16 +4910,13 @@ implementation
              else
                proctypesinfo:=0;
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
-             writeproc(tpropertysym(sym).readaccess,0);
-             writeproc(tpropertysym(sym).writeaccess,2);
-             { isn't it stored ? }
+             writeproc(tpropertysym(sym).readaccess,0,0);
+             writeproc(tpropertysym(sym).writeaccess,2,0);
+             { is it stored ? }
              if not(ppo_stored in tpropertysym(sym).propoptions) then
-               begin
-                  current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
-                  proctypesinfo:=proctypesinfo or (3 shl 4);
-               end
+               writeproc(nil,4,0) { no, so put a constant zero }
              else
-               writeproc(tpropertysym(sym).storedaccess,4);
+               writeproc(tpropertysym(sym).storedaccess,4,1); { maybe; if no procedure put a constant 1 (=true) }
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).index));
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).default));
              propnameitem:=searchpropnamelist(tpropertysym(sym).name);
