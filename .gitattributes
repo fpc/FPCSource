@@ -4630,6 +4630,7 @@ rtl/objpas/cvarutil.inc svneol=native#text/plain
 rtl/objpas/dateutil.inc svneol=native#text/plain
 rtl/objpas/dateutil.pp svneol=native#text/plain
 rtl/objpas/dateutils.pp svneol=native#text/plain
+rtl/objpas/fgl.pp svneol=native#text/plain
 rtl/objpas/freebidi.pp svneol=native#text/plain
 rtl/objpas/math.pp svneol=native#text/plain
 rtl/objpas/objpas.pp svneol=native#text/plain
