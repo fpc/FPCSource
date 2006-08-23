@@ -238,6 +238,7 @@ implementation
     procedure tcgsubscriptnode.pass_2;
       var
         paraloc1 : tcgpara;
+        sref: tsubsetreference;
       begin
          secondpass(left);
          if codegenerror then
@@ -325,11 +326,22 @@ implementation
                        location.size:=def_cgsize(resulttype.def);
                        location.sreg.subsetreg := left.location.register;
                        location.sreg.subsetregsize := left.location.size;
-                       if (target_info.endian = ENDIAN_BIG) then
-                         location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                       if not is_packed_record_or_object(left.resulttype.def) then
+                         begin
+                           if (target_info.endian = ENDIAN_BIG) then
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
+                           else
+                             location.sreg.startbit := (vs.fieldoffset * 8);
+                           location.sreg.bitlen := tcgsize2size[location.size] * 8;
+                         end
                        else
-                         location.sreg.startbit := (vs.fieldoffset * 8);
-                       location.sreg.bitlen := tcgsize2size[location.size] * 8;
+                         begin
+                           location.sreg.bitlen := resulttype.def.packedbitsize;
+                           if (target_info.endian = ENDIAN_BIG) then
+                             location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset
+                           else
+                             location.sreg.startbit := vs.fieldoffset;
+                         end;
                      end;
                  end;
                LOC_SUBSETREG,
@@ -349,14 +361,44 @@ implementation
 
          if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin
-             inc(location.reference.offset,vs.fieldoffset);
-    {$ifdef SUPPORT_UNALIGNED}
-             { packed? }
-             if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
-               (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
-               location.reference.alignment:=1;
-    {$endif SUPPORT_UNALIGNED}
-
+             if not is_packed_record_or_object(left.resulttype.def) then
+               begin
+                 inc(location.reference.offset,vs.fieldoffset);
+{$ifdef SUPPORT_UNALIGNED}
+                 { packed? }
+                 {$warning unalignment check does not work since usefieldalignment is not stored in ppu}
+                 if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
+                   (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
+                   location.reference.alignment:=1;
+{$endif SUPPORT_UNALIGNED}
+    
+               end
+             else if (vs.fieldoffset mod 8 = 0) and
+                     (resulttype.def.packedbitsize mod 8 = 0) and
+                     { is different in case of e.g. packenum 2 and an enum }
+                     { which fits in 8 bits                                }
+                     (resulttype.def.size*8 = resulttype.def.packedbitsize) then
+               begin
+                 inc(location.reference.offset,vs.fieldoffset div 8);
+                 if (resulttype.def.size*8 <> resulttype.def.packedbitsize) then
+                   internalerror(2006082013);
+                 { packed records always have an alignment of 1 }
+                 location.reference.alignment:=1;
+               end
+             else
+               begin
+                 sref.ref:=location.reference;
+                 sref.ref.alignment:=1;
+                 sref.bitindexreg:=NR_NO;
+                 inc(sref.ref.offset,vs.fieldoffset div 8);
+                 sref.startbit:=vs.fieldoffset mod 8;
+                 sref.bitlen:=resulttype.def.packedbitsize;
+                 if (left.location.loc=LOC_REFERENCE) then
+                   location.loc:=LOC_SUBSETREF
+                 else
+                   location.loc:=LOC_CSUBSETREF;
+                 location.sref:=sref;
+               end;
              { also update the size of the location }
              location.size:=def_cgsize(resulttype.def);
            end;

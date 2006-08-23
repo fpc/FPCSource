@@ -474,6 +474,16 @@ unit cgobj;
         procedure a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);virtual;abstract;
         procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);virtual;abstract;
 
+
+        procedure a_load64_subsetref_reg(list : TAsmList; const sref: tsubsetreference; destreg: tregister64);virtual;abstract;
+        procedure a_load64_reg_subsetref(list : TAsmList; fromreg: tregister64; const sref: tsubsetreference);virtual;abstract;
+        procedure a_load64_const_subsetref(list: TAsmlist; a: int64; const sref: tsubsetreference);virtual;abstract;
+        procedure a_load64_ref_subsetref(list : TAsmList; const fromref: treference; const sref: tsubsetreference);virtual;abstract;
+        procedure a_load64_subsetref_subsetref(list: TAsmlist; const fromsref, tosref: tsubsetreference); virtual;abstract;
+        procedure a_load64_subsetref_ref(list : TAsmList; const sref: tsubsetreference; const destref: treference); virtual;abstract;
+        procedure a_load64_loc_subsetref(list : TAsmList; const l: tlocation; const sref : tsubsetreference);
+        procedure a_load64_subsetref_loc(list: TAsmlist; const sref: tsubsetreference; const l: tlocation);
+
         procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);virtual;abstract;
         procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);virtual;abstract;
         procedure a_load64high_ref_reg(list : TAsmList;const ref : treference;reg : tregister);virtual;abstract;
@@ -493,6 +503,11 @@ unit cgobj;
         procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);virtual;
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);virtual;
+
+        procedure a_op64_const_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; a : int64; const sref: tsubsetreference);
+        procedure a_op64_reg_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; reg: tregister64; const sref: tsubsetreference);
+        procedure a_op64_ref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ref: treference; const sref: tsubsetreference);
+        procedure a_op64_subsetref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ssref,dsref: tsubsetreference);
 
         procedure a_param64_reg(list : TAsmList;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
         procedure a_param64_const(list : TAsmList;value : int64;const loc : TCGPara);virtual;abstract;
@@ -1085,7 +1100,14 @@ implementation
       var
         intloadsize: aint;
       begin
-        intloadsize := sref.ref.alignment;
+        intloadsize := packedbitsloadsize(sref.bitlen);
+        
+{$ifdef cpurequiresproperalignment}
+        { may need to be split into several smaller loads/stores }
+        if intloadsize <> sref.ref.alignment then
+           internalerror(2006082011);
+{$endif cpurequiresproperalignment}
+        
         if (intloadsize = 0) then
           internalerror(2006081310);
 
@@ -3111,6 +3133,53 @@ implementation
       end;
 
 
+    procedure tcg64.a_op64_const_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; a : int64; const sref: tsubsetreference);
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,sref,tmpreg64);
+        a_op64_const_reg(list,op,size,a,tmpreg64);
+        a_load64_reg_subsetref(list,tmpreg64,sref);
+      end;
+
+
+    procedure tcg64.a_op64_reg_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; reg: tregister64; const sref: tsubsetreference);
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,sref,tmpreg64);
+        a_op64_reg_reg(list,op,size,reg,tmpreg64);
+        a_load64_reg_subsetref(list,tmpreg64,sref);
+      end;
+
+
+    procedure tcg64.a_op64_ref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ref: treference; const sref: tsubsetreference);
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,sref,tmpreg64);
+        a_op64_ref_reg(list,op,size,ref,tmpreg64);
+        a_load64_reg_subsetref(list,tmpreg64,sref);
+      end;
+
+
+    procedure tcg64.a_op64_subsetref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ssref,dsref: tsubsetreference);
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,ssref,tmpreg64);
+        a_op64_reg_subsetref(list,op,size,tmpreg64,dsref);
+      end;
+
+
     procedure tcg64.a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
       begin
         a_op64_const_reg_reg(list,op,size,value,regsrc,regdst);
@@ -3124,6 +3193,37 @@ implementation
         ovloc.loc:=LOC_VOID;
       end;
 
+
+    procedure tcg64.a_load64_loc_subsetref(list : TAsmList;const l: tlocation; const sref : tsubsetreference);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load64_ref_subsetref(list,l.reference,sref);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load64_reg_subsetref(list,l.register64,sref);
+          LOC_CONSTANT :
+            a_load64_const_subsetref(list,l.value64,sref);
+          LOC_SUBSETREF,LOC_CSUBSETREF:
+            a_load64_subsetref_subsetref(list,l.sref,sref);
+          else
+            internalerror(2006082210);
+        end;
+      end;
+
+
+    procedure tcg64.a_load64_subsetref_loc(list: TAsmlist; const sref: tsubsetreference; const l: tlocation);
+      begin
+        case l.loc of
+          LOC_REFERENCE, LOC_CREFERENCE:
+            a_load64_subsetref_ref(list,sref,l.reference);
+          LOC_REGISTER,LOC_CREGISTER:
+            a_load64_subsetref_reg(list,sref,l.register64);
+          LOC_SUBSETREF,LOC_CSUBSETREF:
+            a_load64_subsetref_subsetref(list,sref,l.sref);
+          else
+            internalerror(2006082211);
+        end;
+      end;
 
 {$endif cpu64bit}
 

@@ -580,17 +580,17 @@ implementation
                     { MSB first in memory and e.g. byte(word_var) should  }
                     { return  the second byte in this case (JM)           }
                     if (target_info.endian = ENDIAN_BIG) and
-                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_SUBSETREF,LOC_CSUBSETREF]) then
                       inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
 {$ifdef x86}
-                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+                  if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
                      l.size:=dst_size;
 {$endif x86}
                   end;
                  cg.a_load_loc_reg(list,dst_size,l,hregister);
                  if (TCGSize2Size[dst_size]<TCGSize2Size[l.size])
 {$ifdef x86}
-                    and (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF])
+                    and (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG])
 {$endif x86}
                    then
                      l.size:=dst_size;

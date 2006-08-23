@@ -146,6 +146,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           function  getsize : longint;
+          function  getpackedbitsize : longint;
           function  is_regvar(refpara: boolean):boolean;
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
@@ -1277,6 +1278,15 @@ implementation
           result:=vartype.def.size
         else
           result:=0;
+      end;
+
+
+    function  tabstractvarsym.getpackedbitsize : longint;
+      begin
+        { bitpacking is only done for ordinals }
+        if not is_ordinal(vartype.def) then
+          internalerror(2006082010);
+        result:=vartype.def.packedbitsize;
       end;
 
 

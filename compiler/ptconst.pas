@@ -776,8 +776,11 @@ implementation
          { reads a typed constant record }
          recorddef:
            begin
+              { packed record }
+              if is_packed_record_or_object(t.def) then
+                Message(type_e_no_const_packed_record)
               { KAZ }
-              if (trecorddef(t.def)=rec_tguid) and
+              else if (trecorddef(t.def)=rec_tguid) and
                  ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
                 begin
                   p:=comp_expr(true);
@@ -925,6 +928,9 @@ implementation
               else if (oo_has_vmt in tobjectdef(t.def).objectoptions) and
                       (m_fpc in aktmodeswitches) then
                  Message(parser_e_type_const_not_possible)
+              { packed object }
+              else if is_packed_record_or_object(t.def) then
+                Message(type_e_no_const_packed_record)
               else
                 begin
                    consume(_LKLAMMER);

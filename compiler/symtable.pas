@@ -81,7 +81,6 @@ interface
 
        tabstractrecordsymtable = class(tstoredsymtable)
        public
-          datasize       : aint;
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), C_alignment is C style }
           recordalignment,       { alignment required when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
@@ -96,6 +95,17 @@ interface
           procedure insertfield(sym:tfieldvarsym);
           procedure addalignmentpadding;
           procedure insertdef(def:tdefentry);override;
+          function is_packed: boolean;
+        protected
+          procedure setdatasize(val: aint);
+          _datasize       : aint;
+          { size in bits of the data in case of bitpacked record. Only important during construction, }
+          { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
+          databitsize    : aint;
+          { bitpacked? -> all fieldvarsym offsets are in bits instead of bytes }
+          packed_record: boolean;
+        public
+          property datasize : aint read _datasize write setdatasize;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -280,7 +290,7 @@ implementation
       { target }
       systems,
       { symtable }
-      symutil,defcmp,
+      symutil,defcmp,defutil,
       { module }
       fmodule,
       { codegen }
@@ -817,16 +827,21 @@ implementation
     constructor tabstractrecordsymtable.create(const n:string;usealign:shortint);
       begin
         inherited create(n);
-        datasize:=0;
+        _datasize:=0;
+        databitsize:=0;
         recordalignment:=1;
         usefieldalignment:=usealign;
+        packed_record:=usealign=bit_alignment;
         padalignment:=1;
         { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
-        if usealign=C_alignment then
-          fieldalignment:=1
-        else
-          fieldalignment:=usealign;
+        case usealign of
+          C_alignment,
+          bit_alignment:
+            fieldalignment:=1
+          else
+            fieldalignment:=usealign;
+        end;
       end;
 
 
@@ -834,6 +849,8 @@ implementation
       var
         storesymtable : tsymtable;
       begin
+        packed_record:=boolean(ppufile.getbyte);
+
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
@@ -848,6 +865,8 @@ implementation
         oldtyp : byte;
         storesymtable : tsymtable;
       begin
+         ppufile.putbyte(byte(packed_record));
+
          storesymtable:=aktrecordsymtable;
          aktrecordsymtable:=self;
          oldtyp:=ppufile.entrytyp;
@@ -917,6 +936,40 @@ implementation
         l:=sym.getsize;
         vardef:=sym.vartype.def;
         varalign:=vardef.alignment;
+
+        if (usefieldalignment=bit_alignment) then
+          begin
+            { bitpacking only happens for ordinals, the rest is aligned at }
+            { 1 byte (compatible with GPC/GCC)                             }
+            if is_ordinal(vardef) then
+              begin
+                sym.fieldoffset:=databitsize;
+                databitsize:=high(aint);
+                l:=sym.getpackedbitsize;
+              end
+            else
+              begin
+                databitsize:=_datasize*8;
+                sym.fieldoffset:=databitsize;
+                l:=l*8;
+              end;
+            { bit packed records are limited to high(aint) bits }
+            { instead of bytes to avoid double precision        }
+            { arithmetic in offset calculations                 }
+            if (int64(l)+sym.fieldoffset)>high(aint) then
+              begin
+                Message(sym_e_segment_too_large);
+                _datasize:=high(aint);
+                databitsize:=high(aint);
+              end
+            else
+              begin
+                databitsize:=sym.fieldoffset+l;
+                _datasize:=(databitsize+7) div 8;
+              end;
+            { rest is not applicable }
+            exit;
+          end;
         { Calc the alignment size for C style records }
         if (usefieldalignment=C_alignment) then
           begin
@@ -946,15 +999,17 @@ implementation
           end;
         if varalign=0 then
           varalign:=size_2_align(l);
-        varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
-        sym.fieldoffset:=align(datasize,varalignfield);
+        if (usefieldalignment<> bit_alignment) then
+          varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
+            
+        sym.fieldoffset:=align(_datasize,varalignfield);
         if (int64(l)+sym.fieldoffset)>high(aint) then
           begin
             Message(sym_e_segment_too_large);
-            datasize:=high(aint);
+            _datasize:=high(aint);
           end
         else
-          datasize:=sym.fieldoffset+l;
+          _datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
         if (usefieldalignment=C_alignment) then
           varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
@@ -963,7 +1018,7 @@ implementation
             varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax)
         else
           begin
-            { packrecords is set explicit, ignore recordalignmax limit }
+            { packrecords is set explicitly, ignore recordalignmax limit }
             varalignrecord:=used_align(varalign,aktalignment.recordalignmin,usefieldalignment);
           end;
         recordalignment:=max(recordalignment,varalignrecord);
@@ -988,7 +1043,7 @@ implementation
             padalignment:=fieldalignment
           else
             padalignment:=recordalignment;
-        datasize:=align(datasize,padalignment);
+        _datasize:=align(_datasize,padalignment);
       end;
 
 
@@ -1002,6 +1057,18 @@ implementation
           inherited insertdef(def);
       end;
 
+
+    function tabstractrecordsymtable.is_packed: boolean;
+      begin
+        result:=packed_record;
+      end;
+
+
+    procedure tabstractrecordsymtable.setdatasize(val: aint);
+      begin
+        _datasize:=val;
+        databitsize:=val*8;
+      end;
 
 {****************************************************************************
                               TRecordSymtable
@@ -1027,9 +1094,10 @@ implementation
         storesize,storealign : longint;
       begin
         { copy symbols }
-        storesize:=datasize;
+        storesize:=_datasize;
         storealign:=fieldalignment;
-        datasize:=offset;
+        _datasize:=offset;
+        databitsize:=offset*8;
         ps:=tsym(unionst.symindex.first);
         while assigned(ps) do
           begin
@@ -1042,18 +1110,44 @@ implementation
             ps.right:=nil;
             { add to this record }
             ps.owner:=self;
-            datasize:=tfieldvarsym(ps).fieldoffset+offset;
+            if (usefieldalignment=bit_alignment) then
+              begin
+                { bit packed records are limited to high(aint) bits }
+                { instead of bytes to avoid double precision        }
+                { arithmetic in offset calculations                 }
+                if (databitsize)>high(aint) then
+                  begin
+                    Message(sym_e_segment_too_large);
+                    _datasize:=high(aint);
+                    databitsize:=high(aint);
+                  end
+                else
+                  begin
+                    databitsize:=tfieldvarsym(ps).fieldoffset+offset*8;
+                    _datasize:=(databitsize+7) div 8;
+                  end;
+                tfieldvarsym(ps).fieldoffset:=databitsize;
+              end
+            else
+              begin
+                _datasize:=tfieldvarsym(ps).fieldoffset+offset;
+                if _datasize>high(aint) then
+                  begin
+                    Message(sym_e_segment_too_large);
+                    _datasize:=high(aint);
+                  end;
+                { update address }
+                tfieldvarsym(ps).fieldoffset:=_datasize;
+                { update alignment of this record }
+                varalign:=tfieldvarsym(ps).vartype.def.alignment;
+                if varalign=0 then
+                  varalign:=size_2_align(tfieldvarsym(ps).getsize);
+                varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
+                recordalignment:=max(recordalignment,varalignrecord);
+              end;
+
             symindex.insert(ps);
             symsearch.insert(ps);
-            { update address }
-            tfieldvarsym(ps).fieldoffset:=datasize;
-
-            { update alignment of this record }
-            varalign:=tfieldvarsym(ps).vartype.def.alignment;
-            if varalign=0 then
-              varalign:=size_2_align(tfieldvarsym(ps).getsize);
-            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
-            recordalignment:=max(recordalignment,varalignrecord);
 
             { next }
             ps:=nps;
@@ -1070,7 +1164,7 @@ implementation
             defindex.insert(pd);
             pd:=npd;
           end;
-        datasize:=storesize;
+        _datasize:=storesize;
         fieldalignment:=storealign;
       end;
 

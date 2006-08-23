@@ -47,10 +47,20 @@ unit cg64f32;
         procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);override;
         procedure a_load64_reg_reg(list : TAsmList;regsrc,regdst : tregister64);override;
         procedure a_load64_const_reg(list : TAsmList;value: int64;reg : tregister64);override;
+
+        procedure a_load64_subsetref_reg(list : TAsmList; const sref: tsubsetreference; destreg: tregister64);override;
+        procedure a_load64_reg_subsetref(list : TAsmList; fromreg: tregister64; const sref: tsubsetreference);override;
+        procedure a_load64_const_subsetref(list: TAsmlist; a: int64; const sref: tsubsetreference);override;
+        procedure a_load64_ref_subsetref(list : TAsmList; const fromref: treference; const sref: tsubsetreference);override;
+        procedure a_load64_subsetref_subsetref(list: TAsmlist; const fromsref, tosref: tsubsetreference);override;
+        procedure a_load64_subsetref_ref(list : TAsmList; const sref: tsubsetreference; const destref: treference);override;
+
         procedure a_load64_loc_reg(list : TAsmList;const l : tlocation;reg : tregister64);override;
         procedure a_load64_loc_ref(list : TAsmList;const l : tlocation;const ref : treference);override;
         procedure a_load64_const_loc(list : TAsmList;value : int64;const l : tlocation);override;
         procedure a_load64_reg_loc(list : TAsmList;reg : tregister64;const l : tlocation);override;
+
+
 
         procedure a_load64high_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
         procedure a_load64low_reg_ref(list : TAsmList;reg : tregister;const ref : treference);override;
@@ -258,6 +268,133 @@ unit cg64f32;
       end;
 
 
+    procedure tcg64f32.a_load64_subsetref_reg(list : TAsmList; const sref: tsubsetreference; destreg: tregister64);
+
+      var
+        tmpreg: tregister;
+        tmpsref: tsubsetreference;
+      begin
+        if (sref.bitindexreg <> NR_NO) or
+           (sref.bitlen <> 64) then
+          internalerror(2006082310);
+        if (sref.startbit = 0) then
+          begin
+            a_load64_ref_reg(list,sref.ref,destreg);
+            exit;
+          end;
+
+        if target_info.endian = endian_big then
+          begin
+            tmpreg := destreg.reglo;
+            destreg.reglo := destreg.reghi;
+            destreg.reghi := tmpreg;
+          end;
+        tmpsref:=sref;
+        if (tmpsref.ref.base=destreg.reglo) then
+         begin
+           tmpreg:=cg.getaddressregister(list);
+           cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpsref.ref.base,tmpreg);
+           tmpsref.ref.base:=tmpreg;
+         end
+        else
+         if (tmpsref.ref.index=destreg.reglo) then
+          begin
+            tmpreg:=cg.getaddressregister(list);
+            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpsref.ref.index,tmpreg);
+            tmpsref.ref.index:=tmpreg;
+          end;
+        tmpsref.bitlen:=32;
+        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reglo);
+        inc(tmpsref.ref.offset,4);
+        cg.a_load_subsetref_reg(list,OS_32,OS_32,tmpsref,destreg.reghi);
+      end;
+
+
+    procedure tcg64f32.a_load64_reg_subsetref(list : TAsmList; fromreg: tregister64; const sref: tsubsetreference);
+    
+      var
+        tmpreg: tregister;
+        tmpsref: tsubsetreference;
+      begin
+        if (sref.bitindexreg <> NR_NO) or
+           (sref.bitlen <> 64) then
+          internalerror(2006082311);
+        if (sref.startbit = 0) then
+          begin
+            a_load64_reg_ref(list,fromreg,sref.ref);
+            exit;
+          end;
+
+        if target_info.endian = endian_big then
+          begin
+            tmpreg:=fromreg.reglo;
+            fromreg.reglo:=fromreg.reghi;
+            fromreg.reghi:=tmpreg;
+          end;
+        tmpsref:=sref;
+        tmpsref.bitlen:=32;
+        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reglo,tmpsref);
+        inc(tmpsref.ref.offset,4);
+        cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reghi,tmpsref);
+      end;
+  
+
+    procedure tcg64f32.a_load64_const_subsetref(list: TAsmlist; a: int64; const sref: tsubsetreference);
+
+      var
+        tmpsref: tsubsetreference;
+      begin
+        if (sref.bitindexreg <> NR_NO) or
+           (sref.bitlen <> 64) then
+          internalerror(2006082312);
+        if target_info.endian = endian_big then
+          swap64(a);
+        tmpsref := sref;
+        tmpsref.bitlen := 32;
+        cg.a_load_const_subsetref(list,OS_32,aint(lo(a)),tmpsref);
+        inc(tmpsref.ref.offset,4);
+        cg.a_load_const_subsetref(list,OS_32,aint(hi(a)),tmpsref);
+      end;
+
+
+
+
+    procedure tcg64f32.a_load64_subsetref_subsetref(list: TAsmlist; const fromsref, tosref: tsubsetreference);
+
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,fromsref,tmpreg64);
+        a_load64_reg_subsetref(list,tmpreg64,tosref);
+      end;
+
+
+    procedure tcg64f32.a_load64_subsetref_ref(list : TAsmList; const sref: tsubsetreference; const destref: treference);
+
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_subsetref_reg(list,sref,tmpreg64);
+        a_load64_reg_ref(list,tmpreg64,destref);
+      end;
+
+
+    procedure tcg64f32.a_load64_ref_subsetref(list : TAsmList; const fromref: treference; const sref: tsubsetreference);
+
+      var
+        tmpreg64 : tregister64;
+      begin
+        tmpreg64.reglo:=cg.getintregister(list,OS_32);
+        tmpreg64.reghi:=cg.getintregister(list,OS_32);
+        a_load64_ref_reg(list,fromref,tmpreg64);
+        a_load64_reg_subsetref(list,tmpreg64,sref);
+      end;
+
+
     procedure tcg64f32.a_load64_loc_reg(list : TAsmList;const l : tlocation;reg : tregister64);
 
       begin
@@ -268,6 +405,8 @@ unit cg64f32;
             a_load64_reg_reg(list,l.register64,reg);
           LOC_CONSTANT :
             a_load64_const_reg(list,l.value64,reg);
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_subsetref_reg(list,l.sref,reg);
           else
             internalerror(200112292);
         end;
@@ -281,6 +420,8 @@ unit cg64f32;
             a_load64_reg_ref(list,l.register64,ref);
           LOC_CONSTANT :
             a_load64_const_ref(list,l.value64,ref);
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_subsetref_ref(list,l.sref,ref);
           else
             internalerror(200203288);
         end;
@@ -295,6 +436,8 @@ unit cg64f32;
             a_load64_const_ref(list,value,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
             a_load64_const_reg(list,value,l.register64);
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_const_subsetref(list,value,l.sref);
           else
             internalerror(200112293);
         end;
@@ -309,6 +452,8 @@ unit cg64f32;
             a_load64_reg_ref(list,reg,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
             a_load64_reg_reg(list,reg,l.register64);
+          LOC_SUBSETREF, LOC_CSUBSETREF:
+            a_load64_reg_subsetref(list,reg,l.sref);
           else
             internalerror(200112293);
         end;

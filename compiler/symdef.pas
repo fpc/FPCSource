@@ -187,6 +187,7 @@ interface
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          function is_packed:boolean;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -2634,23 +2635,7 @@ implementation
          else if not (ado_IsBitPacked in arrayoptions) then
            alignment:=size_2_align(elesize)
          else
-           case elepackedbitsize of
-             1,2,4,8:
-               alignment := 1;
-             { 10 bits can never be split over 3 bytes via 1-8-1, because it }
-             { always starts at a multiple of 10 bits. Same for the others.  }
-             3,5,7,9,10,12,16:
-               alignment := 2;
-{$ifdef cpu64bit}
-             11,13,14,15,17..26,28,32:
-               alignment := 4;
-             else
-               alignment := 8;
-{$else cpu64bit}
-             else
-               alignment := 4;
-{$endif cpu64bit}
-           end;
+           alignment:=packedbitsloadsize(elepackedbitsize);
       end;
 
 
@@ -2752,6 +2737,11 @@ implementation
         tstoredsymtable(symtable).reset_all_defs;
       end;
 
+
+    function tabstractrecorddef.is_packed:boolean;
+      begin
+        result:=tabstractrecordsymtable(symtable).is_packed;
+      end;
 
     procedure tabstractrecorddef.count_field_rtti(sym : tnamedindexitem;arg:pointer);
       begin
@@ -2918,6 +2908,12 @@ implementation
 
     procedure trecorddef.write_rtti_data(rt:trttitype);
       begin
+         if is_packed then
+           begin
+             current_asmdata.asmlists[al_rtti].concat(tai_const.create_8bit(tkUnknown));
+             write_rtti_name;
+             exit;
+           end;
          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkrecord));
          write_rtti_name;
 {$ifdef cpurequiresproperalignment}

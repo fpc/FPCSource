@@ -1307,6 +1307,8 @@ implementation
               UnionDef:=trecorddef.create(unionsymtable);
               uniondef.isunion:=true;
               startvarrecsize:=UnionSymtable.datasize;
+              { align the bitpacking to the next byte }
+              UnionSymtable.datasize:=startvarrecsize;
               startvarrecalign:=UnionSymtable.fieldalignment;
               startpadalign:=Unionsymtable.padalignment;
               symtablestack.push(UnionSymtable);

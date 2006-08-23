@@ -57,6 +57,7 @@ interface
 
     function used_align(varalign,minalign,maxalign:shortint):shortint;
     function size_2_align(len : longint) : shortint;
+    function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
     procedure Replace(var s:AnsiString;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
@@ -266,6 +267,28 @@ uses
            size_2_align:=2
          else
            size_2_align:=1;
+      end;
+
+
+    function packedbitsloadsize(bitlen: int64) : int64;
+      begin
+         case bitlen of
+           1,2,4,8:
+             result := 1;
+           { 10 bits can never be split over 3 bytes via 1-8-1, because it }
+           { always starts at a multiple of 10 bits. Same for the others.  }
+           3,5,7,9,10,12,16:
+             result := 2;
+  {$ifdef cpu64bit}
+           11,13,14,15,17..26,28,32:
+             result := 4;
+           else
+             result := 8;
+  {$else cpu64bit}
+           else
+             result := 4;
+  {$endif cpu64bit}
+         end;
       end;
 
 

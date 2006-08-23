@@ -126,6 +126,9 @@ interface
     {# Returns true if p is a bitpacked array }
     function is_packed_array(p: tdef) : boolean;
 
+    {# Returns true if p is a bitpacked record }
+    function is_packed_record_or_object(p: tdef) : boolean;
+
     {# Returns true if p is a char array def }
     function is_chararray(p : tdef) : boolean;
 
@@ -578,6 +581,15 @@ implementation
         is_packed_array :=
            (p.deftype = arraydef) and
            (ado_IsBitPacked in tarraydef(p).arrayoptions);
+      end;
+
+
+    { true if p is bit packed record def }
+    function is_packed_record_or_object(p: tdef) : boolean;
+      begin
+        is_packed_record_or_object :=
+           (p.deftype in [recorddef,objectdef]) and
+           (tabstractrecorddef(p).is_packed);
       end;
 
 

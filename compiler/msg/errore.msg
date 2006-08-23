@@ -1330,7 +1330,7 @@ type_w_double_c_varargs=04059_W_Converting constant real value to double for C v
 % this from happening, add an explicit typecast around the constant.
 type_e_class_or_cominterface_type_expected=04060_E_Class or COM interface type expected, but got "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
-type_e_no_const_packed_array=04061_E_Constant packed arrays are not supported
+type_e_no_const_packed_array=04061_E_Constant packed arrays are not yet supported
 % You cannot declare a (bit)packed array as a typed constant.
 type_e_got_expected_packed_array=04062_E_Incompatible type for arg no. $1: Got "$2" expected "(Bit)Packed Array"
 % The compiler expects a (bit)packed array as the specified parameter
@@ -1338,6 +1338,8 @@ type_e_got_expected_unpacked_array=04063_E_Incompatible type for arg no. $1: Got
 % The compiler expects a regular (i.e., not packed) array as the specified parameter
 type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type which need to be initialised
 % Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
+type_e_no_const_packed_record=04065_E_Constant packed records and objects are not yet supported
+% You cannot declare a (bit)packed array as a typed constant at this time.
 % \end{description}
 #
 # Symtable

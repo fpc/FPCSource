@@ -708,7 +708,10 @@ implementation
                 else
                   begin
                     oldaktpackrecords:=aktpackrecords;
-                    aktpackrecords:=1;
+                    if not bitpacking then
+                      aktpackrecords:=1
+                    else
+                      aktpackrecords:=bit_alignment;
                     if token in [_CLASS,_OBJECT] then
                       tt.setdef(object_dec(name,genericdef,genericlist,nil))
                     else
