@@ -4,7 +4,7 @@
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 4364
+#   Based on errore.msg of SVN revision 4489
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -1324,6 +1324,18 @@ type_w_double_c_varargs=04059_W_ממיר את הטיפוס real לטיפוס dou
 % this from happening, add an explicit typecast around the constant.
 type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחלקה או ממשק COM, אבל התקבל "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
+type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחלקה או ממשק COM, אבל התקבל "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
+type_e_no_const_packed_array=04061_E_אין תמיכה במערך קבוע דחוס
+% You cannot declare a (bit)packed array as a typed constant.
+type_e_got_expected_packed_array=04062_E_חוסר תאימות לטיפוס הנתונים של ארגומנט $1. התקבל: "$2" מצא ל "(bit)packed array" 
+% The compiler expects a (bit)packed array as the specified parameter
+type_e_got_expected_unpacked_array=04063_E_חוסר תאימות טיפוס הנתונים של ארגומנט $1. התקבל "$2" מצפה ל "(not packed) Array"
+% The compiler expects a regular (i.e., not packed) array as the specified parameter
+type_e_no_packed_inittable=04064_E_אלמטים של מערך דחוס אינם יכולים להיות מטיפוס נתונים אשר דורש אתחול
+% Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
+type_e_no_const_packed_record=04065_E_אין תמיכה לרשומות ואבייקטים קבועים ודחוסים
+% You cannot declare a (bit)packed array as a typed constant at this time.
 % \end{description}
 #
 # Symtable
