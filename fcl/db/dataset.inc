@@ -379,11 +379,11 @@ Procedure TDataset.DoInternalOpen;
 begin
   FDefaultFields:=FieldCount=0;
   DoBeforeOpen;
+  InternalOpen;
   Try
 {$ifdef dsdebug}
     Writeln ('Calling internal open');
 {$endif}
-    InternalOpen;
     FBOF:=True;
 {$ifdef dsdebug}
     Writeln ('Calling RecalcBufListSize');
@@ -1333,9 +1333,9 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
   end;
 
 begin
+  CheckBrowseMode;
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
-  CheckBrowseMode;
   DoBeforeInsert;
   DoBeforeScroll;
   If Not DoAppend then
