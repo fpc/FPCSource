@@ -37,6 +37,7 @@ type
     FCursorCount         : word;
     FConnectString       : string;
     FSQLDatabaseHandle   : pointer;
+    FIntegerDateTimes    : boolean;
     function TranslateFldType(Type_Oid : integer) : TFieldType;
   protected
     procedure DoInternalConnect; override;
@@ -287,6 +288,8 @@ begin
     dointernaldisconnect;
     DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + msg + ')',self);
     end;
+// This does only work for pg>=8.0, so timestamps won't work with earlier versions of pg which are compiled with integer_datetimes on
+  FIntegerDatetimes := pqparameterstatus(FSQLDatabaseHandle,'integer_datetimes') = 'on';
 end;
 
 procedure TPQConnection.DoInternalDisconnect;
@@ -626,6 +629,7 @@ begin
           begin
           pint64(buffer)^ := BEtoN(pint64(CurrBuff)^);
           dbl := pointer(buffer);
+          if FIntegerDatetimes then dbl^ := pint64(buffer)^/1000000;
           dbl^ := (dbl^+3.1558464E+009)/86400;  // postgres counts seconds elapsed since 1-1-2000
           // Now convert the mathematically-correct datetime to the
           // illogical windows/delphi/fpc TDateTime:
