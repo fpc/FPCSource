@@ -124,9 +124,6 @@ function CreatePenIndirect(var _para1:LOGPEN):HPEN; external GdiDLL name 'Create
 function CreateRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external GdiDLL name 'CreateRectRgn';
 function CreateRectRgnIndirect(var _para1:RECT):HRGN; external GdiDLL name 'CreateRectRgnIndirect';
 function CreateSolidBrush(_para1:COLORREF):HBRUSH; external GdiDLL name 'CreateSolidBrush';
-function CreateToolbarEx(hwnd:HWND; ws:DWORD; wID:UINT; nBitmaps:longint; hBMInst:HINST;wBMID:UINT; lpButtons:LPCTBBUTTON; iNumButtons:longint; dxButton:longint; dyButton:longint;dxBitmap:longint;
-  dyBitmap:longint; uStructSize:UINT):HWND; external ComctlDLL name 'CreateToolbarEx';
-function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint;hParent:HWND; nID:longint; hInst:HINST; hBuddy:HWND; nUpper:longint;nLower:longint; nPos:longint):HWND; external ComctlDLL name 'CreateUpDownControl';
 function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external KernelDLL name 'DebugActiveProcess';
 function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;cx:longint; cy:longint; uFlags:UINT):HDWP; external UserDLLCore name 'DeferWindowPos';
 procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'DeleteCriticalSection';
@@ -138,7 +135,6 @@ function DestroyAcceleratorTable(hAccel:HACCEL):WINBOOL; external UserDLLCore na
 function DestroyCaret:WINBOOL; external UserDLLCore name 'DestroyCaret';
 function DestroyIcon(hIcon:HICON):WINBOOL; external UserDLLCore name 'DestroyIcon';
 function DestroyMenu(hMenu:HMENU):WINBOOL; external UserDLLCore name 'DestroyMenu';
-function DestroyPropertySheetPage(hPSPage:HPROPSHEETPAGE):WINBOOL; external ComctlDLL name 'DestroyPropertySheetPage';
 function DestroyWindow(hWnd:HWND):WINBOOL; external UserDLLCore name 'DestroyWindow';
 function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID;nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external KernelDLL name 'DeviceIoControl';
 function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'DisableThreadLibraryCalls';
@@ -312,6 +308,7 @@ function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; extern
 function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external ComctlDLLCore name 'ImageList_GetIconSize';
 function ImageList_GetImageCount(himl:HIMAGELIST):longint; external ComctlDLLCore name 'ImageList_GetImageCount';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external ComctlDLLCore name 'ImageList_GetImageInfo';
+function ImageList_LoadImage(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external ComctlDLLCore name 'ImageList_LoadImage';
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external ComctlDLLCore name 'ImageList_Merge';
 function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external ComctlDLLCore name 'ImageList_Replace';
 function ImageList_ReplaceIcon(himl:HIMAGELIST; i:longint; hicon:HICON):longint; external ComctlDLLCore name 'ImageList_ReplaceIcon';
@@ -322,8 +319,6 @@ function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL;
 function ImageList_SetImageCount(himl: HIMAGELIST; uNewCount: UINT): longint; external ComctlDLLCore name 'ImageList_SetImageCount';
 function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external ComctlDLLCore name 'ImageList_SetOverlayImage';
 function InflateRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external UserDLLCore name 'InflateRect';
-procedure InitCommonControls; external ComctlDLL name 'InitCommonControls';
-function InitCommonControlsEx(_para1:LPINITCOMMONCONTROLSEX):WINBOOL; external ComctlDLL name 'InitCommonControlsEx';
 procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'InitializeCriticalSection';
 function InSendMessage:WINBOOL; external UserDLLCore name 'InSendMessage';
 function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';

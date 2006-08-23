@@ -89,9 +89,7 @@ function CreateFontIndirect(_para1:PLOGFONT):HFONT; external GdiDLL name 'Create
 function CreateMutex(lpMutexAttributes:LPSECURITY_ATTRIBUTES; bInitialOwner:WINBOOL; lpName:LPCWSTR):HANDLE; external KernelDLL name 'CreateMutexW';
 function CreateProcess(pszImageName:LPCWSTR; pszCmdLine:LPCWSTR; psaProcess:LPSECURITY_ATTRIBUTES; psaThread:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;fdwCreate:DWORD; lpEnvironment:LPVOID;
   pszCurDir:LPCWSTR; psiStartInfo:LPSTARTUPINFO; pProcInfo:LPPROCESS_INFORMATION):WINBOOL; external KernelDLL name 'CreateProcessW';
-function CreatePropertySheetPage(lppsp:LPCPROPSHEETPAGE):HPROPSHEETPAGE; external ComctlDLL name 'CreatePropertySheetPageW';
 function CreateSemaphore(lpSemaphoreAttributes:LPSECURITY_ATTRIBUTES; lInitialCount:LONG; lMaximumCount:LONG; lpName:LPCWSTR):HANDLE; external KernelDLL name 'CreateSemaphoreW';
-function CreateStatusWindow(style:LONG; lpszText:LPCWSTR; hwndParent:HWND; wID:UINT):HWND; external ComctlDll name 'CreateStatusWindowW';
 function CreateWindow(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:Longint;Y:Longint; nWidth:Longint; nHeight:Longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
 function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external UserDLLCore name 'CreateWindowExW';
@@ -103,7 +101,6 @@ function DialogBoxIndirect(hInstance:HINST; lpTemplate:LPCDLGTEMPLATEW; hWndPare
 function DialogBoxIndirectParam(hInstance:HINST; hDialogTemplate:LPCDLGTEMPLATEW; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):longint; external UserDLLCore name 'DialogBoxIndirectParamW';
 function DispatchMessage(lpMsg:LPMSG):LONG; external UserDLLCore name 'DispatchMessageW';
 function DrawText(hDC:HDC; lpString:LPCWSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint; external UserDLLCore name 'DrawTextW';
-procedure DrawStatusText(hDC:HDC; lprc:LPRECT; pszText:LPCWSTR; uFlags:UINT); external ComctlDLL name 'DrawStatusTextW';
 function EnumCalendarInfo(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external KernelDLL name 'EnumCalendarInfoW';
 function EnumDateFormats(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external KernelDLL name 'EnumDateFormatsW';
 function EnumFonts(_para1:HDC; _para2:LPCWSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external GdiDLL name 'EnumFontsW';
@@ -133,7 +130,9 @@ function GetDlgItemText(hDlg:HWND; nIDDlgItem:longint; lpString:LPWSTR; nMaxCoun
 function GetFileAttributes(lpFileName:LPCWSTR):DWORD; external KernelDLL name 'GetFileAttributesW';
 function GetFileAttributesEx(lpFileName:LPCWSTR; fInfoLevelId:GET_FILEEX_INFO_LEVELS; lpFileInformation:LPVOID):WINBOOL; external KernelDLL name 'GetFileAttributesExW'; //+winbase
 function GetFileVersionInfoSize(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
+//function GetFileVersionInfoSize(lptstrFilename:LPWSTR; var dwHandle:LPDWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; lpdwHandle:LPDWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
+function GetFileVersionInfoSizeW(lptstrFilename:LPWSTR; var dwHandle:DWORD):DWORD; external VersionDLL name 'GetFileVersionInfoSizeW';
 function GetFileVersionInfo(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external VersionDLL name 'GetFileVersionInfoW';
 function GetFileVersionInfoW(lptstrFilename:LPWSTR; dwHandle:DWORD; dwLen:DWORD; lpData:LPVOID):WINBOOL; external VersionDLL name 'GetFileVersionInfoW';
 function GetKeyboardLayoutName(pwszKLID:LPWSTR):WINBOOL; external UserDLLCore name 'GetKeyboardLayoutNameW';
@@ -189,7 +188,6 @@ function PageSetupDlg(_para1:LPPAGESETUPDLGW):WINBOOL; external ComdlgDLL name '
 function PeekMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external UserDLLCore name 'PeekMessageW';
 function PostThreadMessage(idThread:DWORD; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external UserDLLCore name 'PostThreadMessageW';
 function PostMessage(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external UserDLLCore name 'PostMessageW';
-function PropertySheet(lppsph:LPCPROPSHEETHEADER):longint; external ComctlDll name 'PropertySheetW';
 function RegCreateKeyEx(hKey:HKEY; lpSubKey:LPCWSTR; Reserved:DWORD; lpClass:LPWSTR; dwOptions:DWORD;samDesired:REGSAM; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; phkResult:PHKEY; lpdwDisposition:LPDWORD):LONG;
   external AdvapiDLLCore name 'RegCreateKeyExW';
 function RegDeleteKey(hKey:HKEY; lpSubKey:LPCWSTR):LONG; external AdvapiDLLCore name 'RegDeleteKeyW';
@@ -222,7 +220,9 @@ function StartDoc(_para1:HDC; _para2:PDOCINFOW):longint; external GdiDLL name 'S
 function TranslateAccelerator(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external UserDLLCore name 'TranslateAcceleratorW';
 function UnregisterClass(lpClassName:LPCWSTR; hInstance:HINST):WINBOOL; external UserDLLCore name 'UnregisterClassW';
 function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external versionDLL name 'VerQueryValueW';
+function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var puLen:UINT):WINBOOL; external versionDLL name 'VerQueryValueW';
 function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external versionDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var uLen:UINT):WINBOOL; external versionDLL name 'VerQueryValueW';
 function WNetAddConnection3(hwndOwner:HWND; lpNetResource:LPNETRESOURCE; lpPassword:LPCWSTR; lpUserName:LPCWSTR; dwFlags:DWORD):DWORD; external MprDLLCore name 'WNetAddConnection3W';
 function WNetCancelConnection2(lpName:LPCWSTR; dwFlags:DWORD; fForce:WINBOOL):DWORD; external MprDLLCore name 'WNetCancelConnection2W';
 function WNetConnectionDialog1(lpConnDlgStruct:LPCONNECTDLGSTRUCTW):DWORD; external MprDLLCore name 'WNetConnectionDialog1W';
@@ -259,8 +259,6 @@ function GetTextExtentPoint32(_para1:HDC; _para2:LPCWSTR; _para3:longint; _para4
 function GetProcAddress(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external KernelDLL name 'GetProcAddressW';
 //'GetPropW', not exported but 'GetProp' with widechar header are
 function GetProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external UserDLLCore name 'GetProp';
-//!header specific to CE, not in comctl32(win32)/commctl(wince) but in coredll
-function ImageList_LoadImage(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external ComctlDLLCore name 'ImageList_LoadImage';
 //'RemovePropW' not exported but 'RemoveProp' with widechar header is
 function RemoveProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external UserDLLCore name 'RemoveProp';
 //'SendMessageTimeoutW' not exported but 'SendMessageTimeout' yes

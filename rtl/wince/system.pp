@@ -24,7 +24,7 @@ interface
 {$define WINCE_EXCEPTION_HANDLING}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_CMDLINE}
-{$define HAS_MT_MEMORYMANAGER}
+//{$define HAS_MT_MEMORYMANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -1580,6 +1580,7 @@ procedure InitWinCEWidestrings;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
   end;
 
+(*
 {****************************************************************************
                     Memory manager
 ****************************************************************************}
@@ -1651,7 +1652,7 @@ function SysGetFPCHeapStatus:TFPCHeapStatus;
 begin
   fillchar(Result,sizeof(Result),0);
 end;
-
+*)
 {****************************************************************************
                     Error Message writing using messageboxes
 ****************************************************************************}
@@ -1786,6 +1787,8 @@ begin
   if not IsLibrary then
     SysInstance:=GetModuleHandle(nil);
   MainInstance:=SysInstance;
+  { Setup Heap }
+  InitHeap;
   SysInitExceptions;
   if not IsLibrary then
     begin
