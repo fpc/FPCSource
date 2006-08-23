@@ -2440,9 +2440,7 @@ S*2Aas_אסוף עם GNU AS
 **2sr_דלג על רישום הקצאת מופע (השתמש בייחד עם -alr)
 **1T<x>_מטרת מערכת ההפעלה:
 3*2Temx_OS/2 בשימוש EMX ( בייחד עם הרחבת EMX/RSX)
->>>>>>> .merge-right.r4436
 3*2Tfreebsd_FreeBSD
-3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
 3*2Tgo32v2_גרסה 2 של הרחבת DJ Delorie DOS 
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
