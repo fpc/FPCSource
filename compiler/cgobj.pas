@@ -1137,7 +1137,8 @@ implementation
             restbits := (sref.bitlen - (loadbitsize - sref.startbit));
             a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
             { mask other bits }
-            a_op_const_reg(list,OP_AND,OS_INT,(1 shl sref.bitlen)-1,valuereg);
+            if (sref.bitlen <> AIntBits) then
+              a_op_const_reg(list,OP_AND,OS_INT,(1 shl sref.bitlen)-1,valuereg);
             a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-restbits,extra_value_reg)
           end
         else
@@ -1146,7 +1147,8 @@ implementation
             a_op_const_reg(list,OP_SHR,OS_INT,sref.startbit,valuereg);
             a_op_const_reg(list,OP_SHL,OS_INT,loadbitsize-sref.startbit,extra_value_reg);
             { mask other bits }
-            a_op_const_reg(list,OP_AND,OS_INT,(1 shl sref.bitlen)-1,extra_value_reg);
+            if (sref.bitlen <> AIntBits) then
+              a_op_const_reg(list,OP_AND,OS_INT,(1 shl sref.bitlen)-1,extra_value_reg);
           end;
         { merge }
         a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
