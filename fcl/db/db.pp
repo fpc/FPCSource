@@ -1608,7 +1608,7 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     property ChangeCount : Integer read GetChangeCount;
   published
-    property PacketRecords : Integer read FPacketRecords write FPacketRecords default 10;
+    property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
   end;
 

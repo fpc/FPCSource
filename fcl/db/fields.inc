@@ -474,7 +474,7 @@ end;
 function TField.GetAsString: string;
 
 begin
-  AccessError(SString);
+  Raise AccessError(SString);
 end;
 
 function TField.GetOldValue: Variant;
@@ -620,7 +620,7 @@ end;
 
 function TField.GetAsLargeInt: LargeInt;
 begin
-  AccessError(SLargeInt);
+  Raise AccessError(SLargeInt);
 end;
 
 function TField.GetAsCurrency: Currency;
@@ -736,19 +736,19 @@ end;
 procedure TField.SetAsBoolean(AValue: Boolean);
 
 begin
-  AccessError(SBoolean);
+  Raise AccessError(SBoolean);
 end;
 
 procedure TField.SetAsDateTime(AValue: TDateTime);
 
 begin
-  AccessError(SDateTime);
+  Raise AccessError(SDateTime);
 end;
 
 procedure TField.SetAsFloat(AValue: Double);
 
 begin
-  AccessError(SFloat);
+  Raise AccessError(SFloat);
 end;
 
 procedure TField.SetAsVariant(AValue: Variant);
@@ -768,7 +768,7 @@ end;
 procedure TField.SetAsLongint(AValue: Longint);
 
 begin
-  AccessError(SInteger);
+  Raise AccessError(SInteger);
 end;
 
 procedure TField.SetAsInteger(AValue: Integer);
@@ -779,13 +779,13 @@ end;
 
 procedure TField.SetAsLargeint(AValue: Largeint);
 begin
-  AccessError(SLargeInt);
+  Raise AccessError(SLargeInt);
 end;
 
 procedure TField.SetAsString(const AValue: string);
 
 begin
-  AccessError(SString);
+  Raise AccessError(SString);
 end;
 
 procedure TField.SetData(Buffer: Pointer);
@@ -857,7 +857,7 @@ end;
 
 procedure TField.SetVarValue(const AValue: Variant);
 begin
-  AccessError(SVariant);
+  Raise AccessError(SVariant);
 end;
 
 procedure TField.Validate(Buffer: Pointer);
