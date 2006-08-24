@@ -261,14 +261,14 @@ function pthread_cond_init(_para1:Ppthread_cond_t; _para2:Ppthread_condattr_t):c
 function pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external;
 function pthread_cond_timedwait(_para1:Ppthread_cond_t; _para2:Ppthread_mutex_t; _para3:Ptimespec):cint;cdecl;external;
 function pthread_cond_wait(_para1:Ppthread_cond_t; _para2:Ppthread_mutex_t):cint;cdecl;external;
-type pthreadcreateroutine = function (p:pointer):pointer;
+type pthreadcreateroutine = function (p:pointer):pointer; cdecl;
 function pthread_create(_para1:Ppthread_t; _para2:Ppthread_attr_t; _para3:Pthreadcreateroutine; _para4:pointer):cint;cdecl;external;
 function pthread_detach(_para1:pthread_t):cint;cdecl;external;
 function pthread_equal(_para1:pthread_t; _para2:pthread_t):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;  { __dead2}
 function pthread_getspecific(_para1:pthread_key_t):pointer;cdecl;external;
 function pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
-type pthreadkeycreateroutine = function (p:pointer):pointer;
+type pthreadkeycreateroutine = function (p:pointer):pointer; cdecl;
 function pthread_key_create(_para1:Ppthread_key_t; _para2:pthreadkeycreateroutine):cint;cdecl;external;
 function pthread_key_delete(_para1:pthread_key_t):cint;cdecl;external;
 function pthread_kill(_para1:pthread_t; _para2:cint):cint;cdecl;external;
@@ -282,7 +282,7 @@ function pthread_mutex_init(_para1:Ppthread_mutex_t; _para2:Ppthread_mutexattr_t
 function pthread_mutex_lock(_para1:Ppthread_mutex_t):cint;cdecl;external;
 function pthread_mutex_trylock(_para1:Ppthread_mutex_t):cint;cdecl;external;
 function pthread_mutex_unlock(_para1:Ppthread_mutex_t):cint;cdecl;external;
-type pthreadonceroutine = procedure (p:pointer);
+type pthreadonceroutine = procedure (p:pointer); cdecl;
 function pthread_once(_para1:Ppthread_once_t; _para2:pthreadonceroutine ):cint;cdecl;external;
 function pthread_rwlock_destroy(_para1:Ppthread_rwlock_t):cint;cdecl;external;
 function pthread_rwlock_init(_para1:Ppthread_rwlock_t; _para2:Ppthread_rwlockattr_t):cint;cdecl;external;
