@@ -42,53 +42,22 @@
   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 
-  Changes :
-
-  08/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
-  02-09-2006 : updated
-  05-15-2006 : +oleaut32, *syscolor
 }
 
 
 {$ifdef read_interface}
 
-{$ifdef WINCE}
   const
     UserDLLCore   = KernelDLL;
-    UserDLLAyg    = 'aygshell';
     SecurDLL      = KernelDLL;
     GdiDLL        = KernelDLL;
-    ComctlDLL     = 'commctrl';
     ComctlDLLCore = KernelDLL;
-    ComdlgDLL     = 'commdlg';
     ComdlgDLLCore = KernelDLL;
     VersionDLL    = KernelDLL;
     AdvapiDLLCore = KernelDLL;
     MprDLLCore    = KernelDLL;
     ShellDLLCore  = KernelDLL;
-    ShellDLL      = 'CEShell';
     winsockdll    = 'ws2.dll';
-    oleaut32dll   = 'oleaut32.dll';
-{$endif WINCE}
-
-{$ifdef WIN32}
-  const
-    UserDLLCore   = 'user32';
-    UserDLLAyg    = UserDLL;
-    SecurDLL      = 'secur32';
-    GdiDLL        = 'gdi32';
-    ComctlDLL     = 'comctl32';
-    ComctlDLLCore = ComctlDLL;
-    ComdlgDLL     = 'comdlg32';
-    ComdlgDLLCore = ComdlgDLL;
-    VersionDLL    = 'version';
-    AdvApiDLLCore = 'advapi32';
-    MprDLLCore    = 'mpr';
-    ShellDLLCore  = 'shell32';
-    ShellDLL      = ShellDLLCore;
-    winsockdll    = 'winsock.dll';
-
-{$endif WIN32}
 
 {$PACKRECORDS C}
 

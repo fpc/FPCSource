@@ -13,10 +13,6 @@
 
  **********************************************************************
 
-  Changes :
-
-  08-15-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
-  02-09-2006 : updated
 }
 
 unit windows;
@@ -27,7 +23,8 @@ unit windows;
 
 { stuff like array of const is used }
 {$mode objfpc}
-{$calling stdcall}
+{$calling cdecl}   //convention is cdecl except for x86 emulator stdcall
+                   //change nothing on arm
 
 interface
 
@@ -36,21 +33,20 @@ interface
 {$undef read_implementation}
 
 
-{$define UNICODE}  //ce is unicode only
-{$calling cdecl}   //convention is cdecl except for x86 emulator stdcall
-                   //change nothing on arm
 {$i base.inc}
 {$i errors.inc}
 {$i defines.inc}
 {$i struct.inc}
 {$i messages.inc}
 {$i unidef.inc}
-{$i func.inc}
-{$i ascfun.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
+{$i commdlg.inc}
+{$i ceshell.inc}
 {$i oleaut32.inc}
+{$i cemiss.inc}
+
 {$i redef.inc}
 
 {$undef read_interface}
@@ -65,12 +61,14 @@ implementation
 {$i struct.inc}
 {$i messages.inc}
 {$i unidef.inc}
-{$i func.inc}
-{$i ascfun.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
+{$i commdlg.inc}
+{$i ceshell.inc}
 {$i oleaut32.inc}
+{$i cemiss.inc}
+
 {$i redef.inc}
 
 {$undef read_implementation}

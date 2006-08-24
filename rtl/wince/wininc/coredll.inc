@@ -11,16 +11,8 @@
 
  **********************************************************************}
 
-{
-  commctrl.h
+{  Declarations for coredll WinCE API
 
-  Declarations for coredll WinCE API
-
-  Changes :
-
-  01-27-2006 : orinaudo@gmail.com
-   First release
-  
 }
 
 {exported functions list = to do,
@@ -76,36 +68,25 @@
       693 A_SHAFinal
       691 A_SHAInit
       692 A_SHAUpdate
-      532 AbortDoc
       1B8 AccessibilitySoundSentryEvent
       153 ActivateDevice
       154 ActivateDeviceEx
-      49C ActivateKeyboardLayout
       16A ActivateService
       35B AddEventAccess
-      4E3 AddFontResourceW
       37A AddTrackedItem
-      4D4 AdjustWindowRectEx
       157 AdvertiseInterface
       496 AllKeys
       35F AllocPhysMem
-      4A2 AppendMenuW
        E5 AttachDebugger
       265 AudioUpdateFromRegistry
       40A BatteryDrvrGetLevels
       40B BatteryDrvrSupportsChangeNotification
       40C BatteryGetLifeTimeInfo
       40D BatteryNotifyOfTimeChange
-      1B0 BeginDeferWindowPos
-      195 BeginPaint
       389 BinaryCompress
       38A BinaryDecompress
-      4F2 BitBlt
-      1A2 BringWindowToTop
       379 CacheRangeFlush
       378 CacheSync
-      492 CallNextHookEx
-      1A8 CallWindowProcW
       1EA CeChangeDatabaseLCID
       1EF CeClearReplChangeBitsEx
       2DB CeClearUserNotification
@@ -183,46 +164,23 @@
       141 CharPrevW
       13F CharUpperBuffW
       140 CharUpperW
-      4A8 CheckMenuItem
-      4A9 CheckMenuRadioItem
       10B CheckPassword
-      3EC CheckRadioButton
-      18E ChildWindowFromPoint
-       AE ClearCommBreak
-       AF ClearCommError
-      18F ClientToScreen
-      418 ClipCursor
       184 CloseAllDeviceHandles
       180 CloseAllFileHandles
       16D CloseAllServiceHandles
-      3DD CloseClipboard
-      533 CloseEnhMetaFile
-      348 CloseHandle
       115 CloseMsgQueue
       384 CloseProcOE
        18 ComThreadBaseFunc
-      540 CombineRgn
        51 CompactAllHeaps
-       1E CompareFileTime
       125 CompareStringW
       3B6 ConnectDebugger
-      304 ContinueDebugEvent
-      131 ConvertDefaultLocale
        ED CopyFileW
-       A3 CopyRect
-      3E2 CountClipboardFormats
       3B9 CreateAPIHandle
       35C CreateAPISet
        A0 CreateAcceleratorTableW
-      4EF CreateBitmap
       528 CreateBitmapFromPointer
-      3D2 CreateCaret
-      4F0 CreateCompatibleBitmap
-      4FC CreateCompatibleDC
       3A2 CreateCrit
       4FB CreateDCW
-      513 CreateDIBPatternBrushPt
-       9E CreateDIBSection
       185 CreateDeviceHandle
       3EA CreateDialogIndirectParamW
        E9 CreateDirectoryW
@@ -233,22 +191,12 @@
       341 CreateFileMappingW
        F2 CreateFileW
       4E5 CreateFontIndirectW
-      412 CreateIconIndirect
        19 CreateLocaleView
-      4AB CreateMenu
       111 CreateMsgQueue
       34A CreateMutexW
-      529 CreatePalette
-      50F CreatePatternBrush
-      510 CreatePen
-      514 CreatePenIndirect
-      4AC CreatePopupMenu
       2F5 CreateProcessW
-      54C CreateRectRgn
-      541 CreateRectRgnIndirect
       357 CreateSemaphoreW
       16E CreateServiceHandle
-      515 CreateSolidBrush
       34E CreateStaticMapping
       2F4 CreateThread
       187 CreateWindowExW
@@ -290,57 +238,28 @@
        C4 DDKReg_GetPciInfo
        C2 DDKReg_GetWindowInfo
       158 DeactivateDevice
-      305 DebugActiveProcess
       3BF DebugNotify
       38B DecompressBinaryBlock
       3F0 DefDlgProcW
       198 DefWindowProcW
-      1B1 DeferWindowPos
        FF DeleteAndRenameFile
-      4FD DeleteDC
-      535 DeleteEnhMetaFile
        EE DeleteFileW
-      4AA DeleteMenu
-      4FE DeleteObject
       37B DeleteTrackedItem
       179 DeregisterAFS
       17B DeregisterAFSName
       150 DeregisterDevice
       16C DeregisterService
-       A1 DestroyAcceleratorTable
-      3D3 DestroyCaret
-      413 DestroyIcon
-      4A4 DestroyMenu
-      199 DestroyWindow
-      363 DeviceIoControl
       164 DevicePowerNotify
       3EB DialogBoxIndirectParamW
       3DA DisableCaretSystemWide
-      354 DisableThreadLibraryCalls
       4B3 DispatchMessageW
-      516 DrawEdge
-      517 DrawFocusRect
-      554 DrawFrameControl
-      414 DrawIconEx
-      4B0 DrawMenuBar
       527 DrawTextW
       17E DumpFileSystemHeap
       30C DumpKCallProfile
-      362 DuplicateHandle
-      518 Ellipse
-      3E5 EmptyClipboard
       3DB EnableCaretSystemWide
       553 EnableEUDC
       486 EnableHardwareKeyboard
-      4A7 EnableMenuItem
-      1AA EnableWindow
-      1B2 EndDeferWindowPos
-      3F1 EndDialog
-      536 EndDoc
-      537 EndPage
-      196 EndPaint
       12D EnumCalendarInfoW
-      3E3 EnumClipboardFormats
       12F EnumDateFormatsW
        BF EnumDevices
       50E EnumDisplayDevices
@@ -355,134 +274,67 @@
       13B EnumSystemLocalesW
       12E EnumTimeFormatsW
       14D EnumUILanguagesW
-      1AE EnumWindows
-       A4 EqualRect
-       9F EqualRgn
-       B0 EscapeCommFunction
-      2F6 EventModify
-      542 ExcludeClipRect
-        A ExitThread
-      54F ExtCreateRegion
-      4FA ExtEscape
       4E6 ExtTextOutW
       411 ExtractIconExW
       374 ExtractResource
       17F FileSystemPowerFunction
-       21 FileTimeToLocalFileTime
-       20 FileTimeToSystemTime
-      519 FillRect
       511 FillRgn
       381 FilterTrackedItem
-       FD FindClose
-      109 FindCloseChangeNotification
       107 FindFirstChangeNotificationW
        F1 FindFirstFileExW
        F0 FindFirstFileW
-      108 FindNextChangeNotification
        FE FindNextFileW
       326 FindResource
       327 FindResourceW
       1A9 FindWindowW
-       F9 FlushFileBuffers
-      308 FlushInstructionCache
-      344 FlushViewOfFile
       345 FlushViewOfFileMaybe
       13A FoldStringW
       334 ForcePageout
       14E FormatMessageW
       3AC FreeIntChainHandler
-      324 FreeLibrary
-      351 FreeLibraryAndExitThread
       360 FreePhysMem
-      118 GetACP
        2C GetAPIAddress
-      400 GetActiveWindow
       1C1 GetAssociatedMenu
-      487 GetAsyncKeyState
       48F GetAsyncShiftFlags
-      4FF GetBkColor
-      500 GetBkMode
-      11A GetCPInfo
        2E GetCRTFlags
        2D GetCRTStorageEx
       33F GetCallStackSnapshot
       398 GetCallerProcess
       3BE GetCallerProcessIndex
-      401 GetCapture
-      3D9 GetCaretBlinkTime
-      3D7 GetCaretPos
       4EE GetCharABCWidths
       4ED GetCharWidth32
       4C8 GetClassInfoW
       4CB GetClassLong
       4C9 GetClassLongW
       1A6 GetClassNameW
-      18A GetClientRect
-      543 GetClipBox
-      419 GetClipCursor
-      544 GetClipRgn
-      3E0 GetClipboardData
       3E9 GetClipboardDataAlloc
       3E4 GetClipboardFormatNameW
-      3DE GetClipboardOwner
        B1 GetCommMask
-       B2 GetCommModemStatus
-       B3 GetCommProperties
-       B4 GetCommState
-       B5 GetCommTimeouts
       353 GetCommandLineW
       12C GetCurrencyFormatW
        29 GetCurrentFT
-      501 GetCurrentObject
       39F GetCurrentPermissions
-      526 GetCurrentPositionEx
-      41A GetCursor
-      41B GetCursorPos
-      4D1 GetDC
-      197 GetDCEx
-      50B GetDIBColorTable
       12A GetDateFormatW
-      1B3 GetDesktopWindow
       186 GetDeviceByIndex
-      502 GetDeviceCaps
        C0 GetDeviceKeys
       168 GetDevicePower
-      3F4 GetDialogBaseUnits
       100 GetDiskFreeSpaceExW
-      3F3 GetDlgCtrlID
-      3F2 GetDlgItem
-      3F5 GetDlgItemInt
       3EF GetDlgItemTextW
-      4D5 GetDoubleClickTime
       2FA GetEventData
-      319 GetExitCodeProcess
-      318 GetExitCodeThread
       394 GetFSHeapInfo
       101 GetFileAttributesExW
        EF GetFileAttributesW
-       F8 GetFileInformationByHandle
-       F6 GetFileSize
-       FA GetFileTime
-      3FF GetFocus
       407 GetForegroundInfo
       409 GetForegroundKeyboardLayoutHandle
       408 GetForegroundKeyboardTarget
-      3FB GetForegroundWindow
        50 GetHeapSnapshot
       399 GetIdleTime
       37D GetKPhys
-      4B4 GetKeyState
-      49A GetKeyboardLayout
-      498 GetKeyboardLayoutList
       49B GetKeyboardLayoutNameW
       488 GetKeyboardStatus
       405 GetKeyboardTarget
-      497 GetKeyboardType
-      316 GetLastError
-       23 GetLocalTime
       127 GetLocaleInfoW
       4AE GetMenuItemInfoW
-      4B6 GetMessagePos
       4C3 GetMessageQueueReadyTimeStamp
       4BF GetMessageSource
       4B5 GetMessageW
@@ -493,143 +345,61 @@
       665 GetMonitorInfo
       481 GetMouseMovePoints
       114 GetMsgQueueInfo
-      52E GetNearestColor
-      52A GetNearestPaletteIndex
-      3F7 GetNextDlgGroupItem
-      3F6 GetNextDlgTabItem
       12B GetNumberFormatW
-      119 GetOEMCP
-      503 GetObjectType
       504 GetObjectW
-      3E8 GetOpenClipboardWindow
       2EF GetOpenFileNameW
       397 GetOwnerProcess
-      52B GetPaletteEntries
-      19D GetParent
       10D GetPasswordActive
       110 GetPasswordStatus
-      51A GetPixel
-      3E7 GetPriorityClipboardFormat
       1B6 GetPrivateCallbacks
       393 GetProcAddrBits
       352 GetProcAddressA
       325 GetProcAddressW
       391 GetProcFromPtr
       3A8 GetProcName
-       4E GetProcessHeap
       3BD GetProcessIDFromIndex
       3BC GetProcessIndexFromID
       32F GetProcessVersion
       4DD GetProp
-      4C1 GetQueueStatus
       371 GetRealTime
-      545 GetRegionData
-      546 GetRgnBox
       377 GetRomFileBytes
       376 GetRomFileInfo
       2F0 GetSaveFileNameW
-      558 GetScrollInfo
       16F GetServiceByIndex
       174 GetServiceHandle
-      505 GetStockObject
       102 GetStoreInformation
       139 GetStringTypeExW
       138 GetStringTypeW
-      4AF GetSubMenu
-      4D6 GetSysColor
-      51B GetSysColorBrush
-      134 GetSystemDefaultLCID
-      132 GetSystemDefaultLangID
       14A GetSystemDefaultUILanguage
-      337 GetSystemInfo
       17C GetSystemMemoryDivision
-      4CF GetSystemMetrics
-      52C GetSystemPaletteEntries
       15E GetSystemPowerState
       40E GetSystemPowerStatusEx
       40F GetSystemPowerStatusEx2
-       25 GetSystemTime
       356 GetTempFileNameW
        EB GetTempPathW
-      4EC GetTextAlign
-      506 GetTextColor
       4E7 GetTextExtentExPointW
       53E GetTextFaceW
       4E8 GetTextMetricsW
-      301 GetThreadContext
-      311 GetThreadPriority
-      335 GetThreadTimes
-      32E GetTickCount
       129 GetTimeFormatW
-       27 GetTimeZoneInformation
-      1A1 GetUpdateRect
-      1A0 GetUpdateRgn
-      136 GetUserDefaultLCID
-      133 GetUserDefaultLangID
       14B GetUserDefaultUILanguage
       2D0 GetUserDirectory
       2BE GetUserNameExW
        1C GetVersionEx
        1D GetVersionExW
-      18C GetWindow
-      4D2 GetWindowDC
       194 GetWindowLongW
-      189 GetWindowRect
-      1B5 GetWindowRgn
       1A3 GetWindowTextLengthW
       192 GetWindowTextW
       1B7 GetWindowTextWDirect
-      1AF GetWindowThreadProcessId
       37E GiveKPhys
       4E0 GlobalAddAtomW
-      4E1 GlobalDeleteAtom
       4E2 GlobalFindAtomW
-       9B GlobalMemoryStatus
       531 GradientFill
       1C2 GwesPowerDown
       1BF GwesPowerOffSystem
       1C3 GwesPowerUp
-       45 HeapAlloc
-       46 HeapAllocTrace
-       41 HeapCreate
-       43 HeapDestroy
-       4C HeapFree
-       48 HeapReAlloc
-       4A HeapSize
-       4F HeapValidate
-      3D4 HideCaret
-      420 ImageList_Add
-      421 ImageList_AddMasked
-      422 ImageList_BeginDrag
       43D ImageList_Copy
       423 ImageList_CopyDitherImage
-      424 ImageList_Create
-      425 ImageList_Destroy
-      426 ImageList_DragEnter
-      427 ImageList_DragLeave
-      428 ImageList_DragMove
-      429 ImageList_DragShowNolock
-      42A ImageList_Draw
-      42B ImageList_DrawEx
-      42C ImageList_DrawIndirect
       43E ImageList_Duplicate
-      42D ImageList_EndDrag
-      42E ImageList_GetBkColor
-      42F ImageList_GetDragImage
-      430 ImageList_GetIcon
-      431 ImageList_GetIconSize
-      432 ImageList_GetImageCount
-      433 ImageList_GetImageInfo
-      434 ImageList_LoadImage
-      435 ImageList_Merge
-      436 ImageList_Remove
-      437 ImageList_Replace
-      438 ImageList_ReplaceIcon
-      439 ImageList_SetBkColor
-      43A ImageList_SetDragCursorImage
-      43B ImageList_SetIconSize
-      43F ImageList_SetImageCount
-      43C ImageList_SetOverlayImage
       44C ImmAssociateContext
       476 ImmAssociateContextEx
       44D ImmConfigureIMEW
@@ -689,12 +459,9 @@
       473 ImmUnlockIMC
       474 ImmUnlockIMCC
       475 ImmUnregisterWordW
-      4C0 InSendMessage
-       A5 InflateRect
         D InitLocale
       38C InputDebugCharW
       4A1 InsertMenuW
-      349 Int_CloseHandle
       2F8 Int_CreateEventW
        47 Int_HeapAlloc
        42 Int_HeapCreate
@@ -703,42 +470,19 @@
        49 Int_HeapReAlloc
        4B Int_HeapSize
        15 InterlockedCompareExchange
-       12 InterlockedDecrement
-       13 InterlockedExchange
-       14 InterlockedExchangeAdd
-       11 InterlockedIncrement
-       10 InterlockedTestExchange
       3B1 InterruptDisable
       3B0 InterruptDone
       3AE InterruptInitialize
       3AF InterruptMask
-      547 IntersectClipRect
-       A6 IntersectRect
-      18B InvalidateRect
-      1BA InvalidateRgn
-      51D InvertRect
        2A IsAPIReady
-      31B IsBadCodePtr
       392 IsBadPtr
-      31C IsBadReadPtr
-      31D IsBadWritePtr
-      1A4 IsChild
-      3E6 IsClipboardFormatAvailable
-      11D IsDBCSLeadByte
-      11E IsDBCSLeadByteEx
       3F8 IsDialogMessageW
        E4 IsEncryptionPermitted
        E8 IsExiting
       39B IsPrimaryThread
         F IsProcessDying
       339 IsProcessorFeaturePresent
-       A7 IsRectEmpty
       183 IsSystemFile
-      117 IsValidCodePage
-      130 IsValidLocale
-      19E IsWindow
-      1AB IsWindowEnabled
-      4D0 IsWindowVisible
       375 KernExtractIcons
       34C KernelIoControl
       34D KernelLibIoControl
@@ -746,7 +490,6 @@
       48A KeybdInitStates
       48B KeybdVKeyToUnicode
       396 KillAllOtherThreads
-      4C6 KillTimer
       126 LCMapStringW
       38E LeaveCritSec
       525 LineTo
@@ -763,16 +506,10 @@
       3AD LoadKernelLibrary
       499 LoadKeyboardLayoutW
       4A6 LoadMenuW
-      328 LoadResource
       329 LoadStringW
-       31 LocalAlloc
        3E LocalAllocInProcess
        32 LocalAllocTrace
-       22 LocalFileTimeToFileTime
-       35 LocalFree
        3F LocalFreeInProcess
-       33 LocalReAlloc
-       34 LocalSize
        40 LocalSizeInProcess
       364 LockPages
       696 MD5Final
@@ -780,23 +517,15 @@
       695 MD5Update
        17 MainThreadBaseFunc
       34F MapCallerPtr
-      3F9 MapDialogRect
       350 MapPtrToProcWithSize
       390 MapPtrUnsecure
       342 MapViewOfFile
       48C MapVirtualKeyW
-      1A7 MapWindowPoints
-      4F3 MaskBlt
-      4B1 MessageBeep
       4B2 MessageBoxW
       662 MonitorFromPoint
       663 MonitorFromRect
       664 MonitorFromWindow
        EC MoveFileW
-      524 MoveToEx
-      19F MoveWindow
-      4BE MsgWaitForMultipleObjectsEx
-      123 MultiByteToWideChar
       33C NKDbgPrintfW
       3A7 NKTerminateThread
       36F NKvDbgPrintfW
@@ -804,19 +533,14 @@
       4A0 NLedSetDevice
       30F NotifyForceCleanboot
       410 NotifyWinUserSystem
-       A8 OffsetRect
-      548 OffsetRgn
-      3DC OpenClipboard
        C1 OpenDeviceKey
       2F9 OpenEventW
       116 OpenMsgQueue
-      30A OpenProcess
       395 OtherThreadsRunning
       336 OutputDebugStringW
       3BB PPSHRestart
         C PSLNotify
       340 PageOutModule
-      51C PatBlt
       4B8 PeekMessageW
       2D5 PegClearUserNotification
       1C7 PegCreateDatabase
@@ -837,13 +561,9 @@
       2D4 PegSetUserNotification
       1CE PegWriteRecordProps
       2F1 PerformCallBack4
-      538 PlayEnhMetaFile
       267 PlaySoundW
-      51E Polygon
-      51F Polyline
       48D PostKeybdMessage
       4B9 PostMessageW
-      4BA PostQuitMessage
       1AD PostThreadMessageW
       3A3 PowerOffSystem
       169 PowerPolicyNotify
@@ -854,16 +574,10 @@
        95 ProfileStartEx
        93 ProfileStop
       370 ProfileSyscall
-       A9 PtInRect
-      549 PtInRegion
-       B6 PurgeComm
       484 QASetWindowsJournalHook
       485 QAUnhookWindowsJournalHook
       2F2 QueryAPISetID
       338 QueryInstructionSet
-      332 QueryPerformanceCounter
-      333 QueryPerformanceFrequency
-      33A RaiseException
        91 Random
       1FC RasDeleteEntry
       207 RasDevConfigDialogEditW
@@ -893,23 +607,16 @@
        F4 ReadFile
       181 ReadFileWithSeek
       112 ReadMsgQueue
-      306 ReadProcessMemory
       3C0 ReadRegistryFromOEM
       52F RealizePalette
-      54A RectInRegion
-      54D RectVisible
-      520 Rectangle
       1BE RectangleAnimation
-      1BC RedrawWindow
       383 RefreshKernelAlarm
-      2BF RegCloseKey
       2CA RegCopyFile
       2C0 RegCreateKeyExW
       2C1 RegDeleteKeyW
       2C2 RegDeleteValueW
       2C4 RegEnumKeyExW
       2C3 RegEnumValueW
-      2C9 RegFlushKey
       2C5 RegOpenKeyExW
       159 RegOpenProcessKey
       2C6 RegQueryInfoKeyW
@@ -926,7 +633,6 @@
       33D RegisterDbgZones
       4DB RegisterDesktop
       14F RegisterDevice
-      493 RegisterHotKey
       165 RegisterPowerRelationship
       1BD RegisterSIPanel
       16B RegisterService
@@ -935,12 +641,8 @@
       380 RegisterTrackedItem
       4D8 RegisterWindowMessageW
         E ReinitLocale
-      403 ReleaseCapture
-      4D3 ReleaseDC
-      34B ReleaseMutex
       166 ReleasePowerRelationship
       161 ReleasePowerRequirement
-      358 ReleaseSemaphore
        36 RemoteHeapAlloc
        38 RemoteHeapFree
        37 RemoteHeapReAlloc
@@ -951,32 +653,18 @@
        3C RemoteLocalSize
        EA RemoveDirectoryW
       4EA RemoveFontResourceW
-      4A3 RemoveMenu
       4DE RemoveProp
       155 RequestDeviceNotifications
       162 RequestPowerNotifications
       15A ResourceCreateList
       15C ResourceRelease
       15B ResourceRequest
-      4F8 RestoreDC
-      300 ResumeThread
-      521 RoundRect
-      2E5 SHAddToRecentDocs
       2E6 SHCreateExplorerInstance
       2E8 SHCreateShortcut
       2EA SHCreateShortcutEx
-      2ED SHGetFileInfo
       2E9 SHGetShortcutTarget
-      2EE SHGetSpecialFolderPath
       2EC SHLoadDIBitmap
       2EB SHShowOutOfMemory
-      4F9 SaveDC
-      190 ScreenToClient
-      552 ScrollDC
-      1AC ScrollWindowEx
-      54B SelectClipRgn
-      507 SelectObject
-      530 SelectPalette
       3ED SendDlgItemMessageW
       482 SendInput
       4C2 SendMessageTimeout
@@ -987,42 +675,19 @@
       170 ServiceIoControl
       172 ServiceUnbindPorts
       11B SetACP
-      539 SetAbortProc
-      3FD SetActiveWindow
       1C0 SetAssociatedMenu
-      4F1 SetBitmapBits
-      508 SetBkColor
-      509 SetBkMode
       522 SetBrushOrgEx
-      402 SetCapture
-      3D8 SetCaretBlinkTime
-      3D6 SetCaretPos
       4CC SetClassLong
       4CA SetClassLongW
       3A1 SetCleanRebootFlag
-      3DF SetClipboardData
-       B7 SetCommBreak
-       B8 SetCommMask
-       B9 SetCommState
-       BA SetCommTimeouts
       2CE SetCurrentUser
-      416 SetCursor
-      41C SetCursorPos
-      50C SetDIBColorTable
-      4F7 SetDIBitsToDevice
       33E SetDaylightTime
       3A4 SetDbgZone
       167 SetDevicePower
-      3FA SetDlgItemInt
       3EE SetDlgItemTextW
-       FC SetEndOfFile
       2FB SetEventData
       37F SetExceptionHandler
        F3 SetFileAttributesW
-       F7 SetFilePointer
-       FB SetFileTime
-      3FE SetFocus
-      3FC SetForegroundWindow
       385 SetGwesOOMEvent
       3B4 SetGwesPowerHandler
       3A9 SetHandleOwner
@@ -1031,62 +696,36 @@
       3B2 SetKMode
       382 SetKernelAlarm
       404 SetKeyboardTarget
-      317 SetLastError
-       24 SetLocalTime
       128 SetLocaleInfoW
       39A SetLowestScheduledPriority
       4AD SetMenuItemInfoW
       11C SetOEMCP
       386 SetOOMEvent
       551 SetObjectOwner
-      52D SetPaletteEntries
-      19C SetParent
       10C SetPassword
       10E SetPasswordActive
       10F SetPasswordStatus
-      523 SetPixel
       3B3 SetPowerOffHandler
       160 SetPowerRequirement
       39C SetProcPermissions
       4DC SetProp
-      512 SetROP2
       372 SetRealTime
-       AA SetRect
-       AB SetRectEmpty
-      54E SetRectRgn
-      555 SetScrollInfo
-      556 SetScrollPos
-      557 SetScrollRange
-      4D7 SetSysColors
       135 SetSystemDefaultLCID
       17D SetSystemMemoryDivision
       15F SetSystemPowerState
-       26 SetSystemTime
-      4EB SetTextAlign
-      50A SetTextColor
       302 SetThreadContext
-      310 SetThreadPriority
       3A0 SetTimeZoneBias
-       28 SetTimeZoneInformation
-      4C5 SetTimer
       2CF SetUserData
       137 SetUserDefaultLCID
       14C SetUserDefaultUILanguage
-      550 SetViewportOrgEx
       3B5 SetWDevicePowerHandler
       193 SetWindowLongW
-      188 SetWindowPos
-      1B4 SetWindowRgn
       191 SetWindowTextW
       490 SetWindowsHookExW
-       BB SetupComm
       2E7 ShellExecuteEx
       406 ShellModalEnd
       2E4 Shell_NotifyIcon
-      3D5 ShowCaret
-      41D ShowCursor
       1C4 ShowStartupWindow
-      19A ShowWindow
       176 SignalStarted
       65E SipEnumIM
       65F SipGetCurrentIM
@@ -1097,15 +736,10 @@
       65D SipSetInfo
       65B SipShowIM
       659 SipStatus
-      32A SizeofResource
-      2FC Sleep
       361 SleepTillTick
       53A StartDocW
-      53B StartPage
       156 StopDeviceNotifications
       163 StopPowerNotifications
-      4F4 StretchBlt
-      4F6 StretchDIBits
       648 StringCbCatA
       64A StringCbCatExA
        82 StringCbCatExW
@@ -1156,31 +790,19 @@
        87 StringCchVPrintfW
       387 StringCompress
       388 StringDecompress
-       AC SubtractRect
-      2FF SuspendThread
       49D SystemIdleTimerReset
         5 SystemMemoryLow
        9C SystemParametersInfoW
         4 SystemStarted
-       1F SystemTimeToFileTime
       30D THCreateSnapshot
       30E THGrow
       38D TakeCritSec
-      33B TerminateProcess
-      2F3 TerminateThread
       366 ThreadAttachAllDLLs
        16 ThreadBaseFunc
       367 ThreadDetachAllDLLs
         B ThreadExceptionExit
-      31A TlsCall
-       1A TlsGetValue
-       1B TlsSetValue
       4C7 TouchCalibrate
-      4A5 TrackPopupMenuEx
       49E TranslateAcceleratorW
-      53F TranslateCharsetInfo
-      4BD TranslateMessage
-       BC TransmitCommChar
       4F5 TransparentImage
       3A6 TurnOffProfiling
       3A5 TurnOnProfiling
@@ -1189,47 +811,27 @@
       368 U_ropen
       369 U_rread
       36A U_rwrite
-      491 UnhookWindowsHookEx
-       AD UnionRect
       365 UnlockPages
-      343 UnmapViewOfFile
       4CE UnregisterClassW
       495 UnregisterFunc1
-      494 UnregisterHotKey
       36D UpdateNLSInfo
       36E UpdateNLSInfoEx
-      19B UpdateWindow
-      1A5 ValidateRect
-      1BB ValidateRgn
       3BA VerifyAPIHandle
-      31E VirtualAlloc
       35D VirtualCopy
-      31F VirtualFree
-      320 VirtualProtect
-      321 VirtualQuery
       35E VirtualSetAttributes
       2B3 WNetAddConnection3W
       2B4 WNetCancelConnection2W
-      2BC WNetCloseEnum
       2B5 WNetConnectionDialog1W
-      2B6 WNetDisconnectDialog
       2B7 WNetDisconnectDialog1W
       2BD WNetEnumResourceW
       2B8 WNetGetConnectionW
       2B9 WNetGetUniversalNameW
       2BA WNetGetUserW
       2BB WNetOpenEnumW
-       BD WaitCommEvent
-      303 WaitForDebugEvent
-      2FE WaitForMultipleObjects
-      2FD WaitForSingleObject
-      124 WideCharToMultiByte
-      18D WindowFromPoint
       3C2 WriteDebugLED
        F5 WriteFile
       182 WriteFileWithSeek
       113 WriteMsgQueue
-      307 WriteProcessMemory
       3C1 WriteRegistryToOEM
       67B _CountLeadingOnes
       67C _CountLeadingOnes64
@@ -1315,36 +917,25 @@
       693 __imp_A_SHAFinal
       691 __imp_A_SHAInit
       692 __imp_A_SHAUpdate
-      532 __imp_AbortDoc
       1B8 __imp_AccessibilitySoundSentryEvent
       153 __imp_ActivateDevice
       154 __imp_ActivateDeviceEx
-      49C __imp_ActivateKeyboardLayout
       16A __imp_ActivateService
       35B __imp_AddEventAccess
-      4E3 __imp_AddFontResourceW
       37A __imp_AddTrackedItem
-      4D4 __imp_AdjustWindowRectEx
       157 __imp_AdvertiseInterface
       496 __imp_AllKeys
       35F __imp_AllocPhysMem
-      4A2 __imp_AppendMenuW
        E5 __imp_AttachDebugger
       265 __imp_AudioUpdateFromRegistry
       40A __imp_BatteryDrvrGetLevels
       40B __imp_BatteryDrvrSupportsChangeNotification
       40C __imp_BatteryGetLifeTimeInfo
       40D __imp_BatteryNotifyOfTimeChange
-      1B0 __imp_BeginDeferWindowPos
-      195 __imp_BeginPaint
       389 __imp_BinaryCompress
       38A __imp_BinaryDecompress
-      4F2 __imp_BitBlt
-      1A2 __imp_BringWindowToTop
       379 __imp_CacheRangeFlush
       378 __imp_CacheSync
-      492 __imp_CallNextHookEx
-      1A8 __imp_CallWindowProcW
       1EA __imp_CeChangeDatabaseLCID
       1EF __imp_CeClearReplChangeBitsEx
       2DB __imp_CeClearUserNotification
@@ -1422,46 +1013,23 @@
       141 __imp_CharPrevW
       13F __imp_CharUpperBuffW
       140 __imp_CharUpperW
-      4A8 __imp_CheckMenuItem
-      4A9 __imp_CheckMenuRadioItem
       10B __imp_CheckPassword
-      3EC __imp_CheckRadioButton
-      18E __imp_ChildWindowFromPoint
-       AE __imp_ClearCommBreak
-       AF __imp_ClearCommError
-      18F __imp_ClientToScreen
-      418 __imp_ClipCursor
       184 __imp_CloseAllDeviceHandles
       180 __imp_CloseAllFileHandles
       16D __imp_CloseAllServiceHandles
-      3DD __imp_CloseClipboard
-      533 __imp_CloseEnhMetaFile
-      348 __imp_CloseHandle
       115 __imp_CloseMsgQueue
       384 __imp_CloseProcOE
        18 __imp_ComThreadBaseFunc
-      540 __imp_CombineRgn
        51 __imp_CompactAllHeaps
-       1E __imp_CompareFileTime
       125 __imp_CompareStringW
       3B6 __imp_ConnectDebugger
-      304 __imp_ContinueDebugEvent
-      131 __imp_ConvertDefaultLocale
        ED __imp_CopyFileW
-       A3 __imp_CopyRect
-      3E2 __imp_CountClipboardFormats
       3B9 __imp_CreateAPIHandle
       35C __imp_CreateAPISet
        A0 __imp_CreateAcceleratorTableW
-      4EF __imp_CreateBitmap
       528 __imp_CreateBitmapFromPointer
-      3D2 __imp_CreateCaret
-      4F0 __imp_CreateCompatibleBitmap
-      4FC __imp_CreateCompatibleDC
       3A2 __imp_CreateCrit
       4FB __imp_CreateDCW
-      513 __imp_CreateDIBPatternBrushPt
-       9E __imp_CreateDIBSection
       185 __imp_CreateDeviceHandle
       3EA __imp_CreateDialogIndirectParamW
        E9 __imp_CreateDirectoryW
@@ -1472,22 +1040,12 @@
       341 __imp_CreateFileMappingW
        F2 __imp_CreateFileW
       4E5 __imp_CreateFontIndirectW
-      412 __imp_CreateIconIndirect
        19 __imp_CreateLocaleView
-      4AB __imp_CreateMenu
       111 __imp_CreateMsgQueue
       34A __imp_CreateMutexW
-      529 __imp_CreatePalette
-      50F __imp_CreatePatternBrush
-      510 __imp_CreatePen
-      514 __imp_CreatePenIndirect
-      4AC __imp_CreatePopupMenu
       2F5 __imp_CreateProcessW
-      54C __imp_CreateRectRgn
-      541 __imp_CreateRectRgnIndirect
       357 __imp_CreateSemaphoreW
       16E __imp_CreateServiceHandle
-      515 __imp_CreateSolidBrush
       34E __imp_CreateStaticMapping
       2F4 __imp_CreateThread
       187 __imp_CreateWindowExW
@@ -1529,57 +1087,28 @@
        C4 __imp_DDKReg_GetPciInfo
        C2 __imp_DDKReg_GetWindowInfo
       158 __imp_DeactivateDevice
-      305 __imp_DebugActiveProcess
       3BF __imp_DebugNotify
       38B __imp_DecompressBinaryBlock
       3F0 __imp_DefDlgProcW
       198 __imp_DefWindowProcW
-      1B1 __imp_DeferWindowPos
        FF __imp_DeleteAndRenameFile
-      4FD __imp_DeleteDC
-      535 __imp_DeleteEnhMetaFile
        EE __imp_DeleteFileW
-      4AA __imp_DeleteMenu
-      4FE __imp_DeleteObject
       37B __imp_DeleteTrackedItem
       179 __imp_DeregisterAFS
       17B __imp_DeregisterAFSName
       150 __imp_DeregisterDevice
       16C __imp_DeregisterService
-       A1 __imp_DestroyAcceleratorTable
-      3D3 __imp_DestroyCaret
-      413 __imp_DestroyIcon
-      4A4 __imp_DestroyMenu
-      199 __imp_DestroyWindow
-      363 __imp_DeviceIoControl
       164 __imp_DevicePowerNotify
       3EB __imp_DialogBoxIndirectParamW
       3DA __imp_DisableCaretSystemWide
-      354 __imp_DisableThreadLibraryCalls
       4B3 __imp_DispatchMessageW
-      516 __imp_DrawEdge
-      517 __imp_DrawFocusRect
-      554 __imp_DrawFrameControl
-      414 __imp_DrawIconEx
-      4B0 __imp_DrawMenuBar
       527 __imp_DrawTextW
       17E __imp_DumpFileSystemHeap
       30C __imp_DumpKCallProfile
-      362 __imp_DuplicateHandle
-      518 __imp_Ellipse
-      3E5 __imp_EmptyClipboard
       3DB __imp_EnableCaretSystemWide
       553 __imp_EnableEUDC
       486 __imp_EnableHardwareKeyboard
-      4A7 __imp_EnableMenuItem
-      1AA __imp_EnableWindow
-      1B2 __imp_EndDeferWindowPos
-      3F1 __imp_EndDialog
-      536 __imp_EndDoc
-      537 __imp_EndPage
-      196 __imp_EndPaint
       12D __imp_EnumCalendarInfoW
-      3E3 __imp_EnumClipboardFormats
       12F __imp_EnumDateFormatsW
        BF __imp_EnumDevices
       50E __imp_EnumDisplayDevices
@@ -1594,136 +1123,69 @@
       13B __imp_EnumSystemLocalesW
       12E __imp_EnumTimeFormatsW
       14D __imp_EnumUILanguagesW
-      1AE __imp_EnumWindows
-       A4 __imp_EqualRect
-       9F __imp_EqualRgn
-       B0 __imp_EscapeCommFunction
-      2F6 __imp_EventModify
-      542 __imp_ExcludeClipRect
-        A __imp_ExitThread
-      54F __imp_ExtCreateRegion
-      4FA __imp_ExtEscape
       4E6 __imp_ExtTextOutW
       411 __imp_ExtractIconExW
       374 __imp_ExtractResource
       17F __imp_FileSystemPowerFunction
-       21 __imp_FileTimeToLocalFileTime
-       20 __imp_FileTimeToSystemTime
-      519 __imp_FillRect
       511 __imp_FillRgn
       381 __imp_FilterTrackedItem
-       FD __imp_FindClose
-      109 __imp_FindCloseChangeNotification
       107 __imp_FindFirstChangeNotificationW
        F1 __imp_FindFirstFileExW
        F0 __imp_FindFirstFileW
-      108 __imp_FindNextChangeNotification
        FE __imp_FindNextFileW
       326 __imp_FindResource
       327 __imp_FindResourceW
       1A9 __imp_FindWindowW
-       F9 __imp_FlushFileBuffers
-      308 __imp_FlushInstructionCache
-      344 __imp_FlushViewOfFile
       345 __imp_FlushViewOfFileMaybe
       13A __imp_FoldStringW
       334 __imp_ForcePageout
       14E __imp_FormatMessageW
       3AC __imp_FreeIntChainHandler
-      324 __imp_FreeLibrary
-      351 __imp_FreeLibraryAndExitThread
       360 __imp_FreePhysMem
-      118 __imp_GetACP
        2C __imp_GetAPIAddress
-      400 __imp_GetActiveWindow
       1C1 __imp_GetAssociatedMenu
-      487 __imp_GetAsyncKeyState
       48F __imp_GetAsyncShiftFlags
-      4FF __imp_GetBkColor
-      500 __imp_GetBkMode
-      11A __imp_GetCPInfo
        2E __imp_GetCRTFlags
        2D __imp_GetCRTStorageEx
       33F __imp_GetCallStackSnapshot
       398 __imp_GetCallerProcess
       3BE __imp_GetCallerProcessIndex
-      401 __imp_GetCapture
-      3D9 __imp_GetCaretBlinkTime
-      3D7 __imp_GetCaretPos
       4EE __imp_GetCharABCWidths
       4ED __imp_GetCharWidth32
       4C8 __imp_GetClassInfoW
       4CB __imp_GetClassLong
       4C9 __imp_GetClassLongW
       1A6 __imp_GetClassNameW
-      18A __imp_GetClientRect
-      543 __imp_GetClipBox
-      419 __imp_GetClipCursor
-      544 __imp_GetClipRgn
-      3E0 __imp_GetClipboardData
       3E9 __imp_GetClipboardDataAlloc
       3E4 __imp_GetClipboardFormatNameW
-      3DE __imp_GetClipboardOwner
        B1 __imp_GetCommMask
-       B2 __imp_GetCommModemStatus
-       B3 __imp_GetCommProperties
-       B4 __imp_GetCommState
-       B5 __imp_GetCommTimeouts
       353 __imp_GetCommandLineW
       12C __imp_GetCurrencyFormatW
        29 __imp_GetCurrentFT
-      501 __imp_GetCurrentObject
       39F __imp_GetCurrentPermissions
-      526 __imp_GetCurrentPositionEx
-      41A __imp_GetCursor
-      41B __imp_GetCursorPos
-      4D1 __imp_GetDC
-      197 __imp_GetDCEx
-      50B __imp_GetDIBColorTable
       12A __imp_GetDateFormatW
-      1B3 __imp_GetDesktopWindow
       186 __imp_GetDeviceByIndex
-      502 __imp_GetDeviceCaps
        C0 __imp_GetDeviceKeys
       168 __imp_GetDevicePower
-      3F4 __imp_GetDialogBaseUnits
       100 __imp_GetDiskFreeSpaceExW
-      3F3 __imp_GetDlgCtrlID
-      3F2 __imp_GetDlgItem
-      3F5 __imp_GetDlgItemInt
       3EF __imp_GetDlgItemTextW
-      4D5 __imp_GetDoubleClickTime
       2FA __imp_GetEventData
-      319 __imp_GetExitCodeProcess
-      318 __imp_GetExitCodeThread
       394 __imp_GetFSHeapInfo
       101 __imp_GetFileAttributesExW
        EF __imp_GetFileAttributesW
-       F8 __imp_GetFileInformationByHandle
-       F6 __imp_GetFileSize
-       FA __imp_GetFileTime
       32D __imp_GetFileVersionInfoSizeW
       32C __imp_GetFileVersionInfoW
-      3FF __imp_GetFocus
       407 __imp_GetForegroundInfo
       409 __imp_GetForegroundKeyboardLayoutHandle
       408 __imp_GetForegroundKeyboardTarget
-      3FB __imp_GetForegroundWindow
        50 __imp_GetHeapSnapshot
       399 __imp_GetIdleTime
       37D __imp_GetKPhys
-      4B4 __imp_GetKeyState
-      49A __imp_GetKeyboardLayout
-      498 __imp_GetKeyboardLayoutList
       49B __imp_GetKeyboardLayoutNameW
       488 __imp_GetKeyboardStatus
       405 __imp_GetKeyboardTarget
-      497 __imp_GetKeyboardType
-      316 __imp_GetLastError
-       23 __imp_GetLocalTime
       127 __imp_GetLocaleInfoW
       4AE __imp_GetMenuItemInfoW
-      4B6 __imp_GetMessagePos
       4C3 __imp_GetMessageQueueReadyTimeStamp
       4BF __imp_GetMessageSource
       4B5 __imp_GetMessageW
@@ -1734,142 +1196,61 @@
       665 __imp_GetMonitorInfo
       481 __imp_GetMouseMovePoints
       114 __imp_GetMsgQueueInfo
-      52E __imp_GetNearestColor
-      52A __imp_GetNearestPaletteIndex
-      3F7 __imp_GetNextDlgGroupItem
-      3F6 __imp_GetNextDlgTabItem
       12B __imp_GetNumberFormatW
-      119 __imp_GetOEMCP
-      503 __imp_GetObjectType
       504 __imp_GetObjectW
-      3E8 __imp_GetOpenClipboardWindow
       2EF __imp_GetOpenFileNameW
       397 __imp_GetOwnerProcess
-      52B __imp_GetPaletteEntries
-      19D __imp_GetParent
       10D __imp_GetPasswordActive
       110 __imp_GetPasswordStatus
-      51A __imp_GetPixel
-      3E7 __imp_GetPriorityClipboardFormat
       1B6 __imp_GetPrivateCallbacks
       393 __imp_GetProcAddrBits
       352 __imp_GetProcAddressA
       325 __imp_GetProcAddressW
       391 __imp_GetProcFromPtr
       3A8 __imp_GetProcName
-       4E __imp_GetProcessHeap
       3BD __imp_GetProcessIDFromIndex
       3BC __imp_GetProcessIndexFromID
       32F __imp_GetProcessVersion
       4DD __imp_GetProp
-      4C1 __imp_GetQueueStatus
       371 __imp_GetRealTime
-      545 __imp_GetRegionData
-      546 __imp_GetRgnBox
       377 __imp_GetRomFileBytes
       376 __imp_GetRomFileInfo
       2F0 __imp_GetSaveFileNameW
-      558 __imp_GetScrollInfo
       16F __imp_GetServiceByIndex
       174 __imp_GetServiceHandle
-      505 __imp_GetStockObject
       102 __imp_GetStoreInformation
       139 __imp_GetStringTypeExW
       138 __imp_GetStringTypeW
-      4AF __imp_GetSubMenu
-      4D6 __imp_GetSysColor
-      51B __imp_GetSysColorBrush
-      134 __imp_GetSystemDefaultLCID
-      132 __imp_GetSystemDefaultLangID
       14A __imp_GetSystemDefaultUILanguage
-      337 __imp_GetSystemInfo
       17C __imp_GetSystemMemoryDivision
-      4CF __imp_GetSystemMetrics
-      52C __imp_GetSystemPaletteEntries
       15E __imp_GetSystemPowerState
       40E __imp_GetSystemPowerStatusEx
       40F __imp_GetSystemPowerStatusEx2
-       25 __imp_GetSystemTime
       356 __imp_GetTempFileNameW
        EB __imp_GetTempPathW
-      4EC __imp_GetTextAlign
-      506 __imp_GetTextColor
       4E7 __imp_GetTextExtentExPointW
       53E __imp_GetTextFaceW
       4E8 __imp_GetTextMetricsW
-      301 __imp_GetThreadContext
-      311 __imp_GetThreadPriority
-      335 __imp_GetThreadTimes
-      32E __imp_GetTickCount
       129 __imp_GetTimeFormatW
-       27 __imp_GetTimeZoneInformation
-      1A1 __imp_GetUpdateRect
-      1A0 __imp_GetUpdateRgn
-      136 __imp_GetUserDefaultLCID
-      133 __imp_GetUserDefaultLangID
       14B __imp_GetUserDefaultUILanguage
       2D0 __imp_GetUserDirectory
       2BE __imp_GetUserNameExW
        1C __imp_GetVersionEx
        1D __imp_GetVersionExW
-      18C __imp_GetWindow
-      4D2 __imp_GetWindowDC
       194 __imp_GetWindowLongW
-      189 __imp_GetWindowRect
-      1B5 __imp_GetWindowRgn
       1A3 __imp_GetWindowTextLengthW
       192 __imp_GetWindowTextW
       1B7 __imp_GetWindowTextWDirect
-      1AF __imp_GetWindowThreadProcessId
       37E __imp_GiveKPhys
       4E0 __imp_GlobalAddAtomW
-      4E1 __imp_GlobalDeleteAtom
       4E2 __imp_GlobalFindAtomW
-       9B __imp_GlobalMemoryStatus
       531 __imp_GradientFill
       1C2 __imp_GwesPowerDown
       1BF __imp_GwesPowerOffSystem
       1C3 __imp_GwesPowerUp
-       45 __imp_HeapAlloc
-       46 __imp_HeapAllocTrace
-       41 __imp_HeapCreate
-       43 __imp_HeapDestroy
-       4C __imp_HeapFree
-       48 __imp_HeapReAlloc
-       4A __imp_HeapSize
-       4F __imp_HeapValidate
-      3D4 __imp_HideCaret
-      420 __imp_ImageList_Add
-      421 __imp_ImageList_AddMasked
-      422 __imp_ImageList_BeginDrag
       43D __imp_ImageList_Copy
       423 __imp_ImageList_CopyDitherImage
-      424 __imp_ImageList_Create
-      425 __imp_ImageList_Destroy
-      426 __imp_ImageList_DragEnter
-      427 __imp_ImageList_DragLeave
-      428 __imp_ImageList_DragMove
-      429 __imp_ImageList_DragShowNolock
-      42A __imp_ImageList_Draw
-      42B __imp_ImageList_DrawEx
-      42C __imp_ImageList_DrawIndirect
       43E __imp_ImageList_Duplicate
-      42D __imp_ImageList_EndDrag
-      42E __imp_ImageList_GetBkColor
-      42F __imp_ImageList_GetDragImage
-      430 __imp_ImageList_GetIcon
-      431 __imp_ImageList_GetIconSize
-      432 __imp_ImageList_GetImageCount
-      433 __imp_ImageList_GetImageInfo
-      434 __imp_ImageList_LoadImage
-      435 __imp_ImageList_Merge
-      436 __imp_ImageList_Remove
-      437 __imp_ImageList_Replace
-      438 __imp_ImageList_ReplaceIcon
-      439 __imp_ImageList_SetBkColor
-      43A __imp_ImageList_SetDragCursorImage
-      43B __imp_ImageList_SetIconSize
-      43F __imp_ImageList_SetImageCount
       43C __imp_ImageList_SetOverlayImage
       44C __imp_ImmAssociateContext
       476 __imp_ImmAssociateContextEx
@@ -1930,8 +1311,6 @@
       473 __imp_ImmUnlockIMC
       474 __imp_ImmUnlockIMCC
       475 __imp_ImmUnregisterWordW
-      4C0 __imp_InSendMessage
-       A5 __imp_InflateRect
         D __imp_InitLocale
       38C __imp_InputDebugCharW
       4A1 __imp_InsertMenuW
@@ -1944,42 +1323,19 @@
        49 __imp_Int_HeapReAlloc
        4B __imp_Int_HeapSize
        15 __imp_InterlockedCompareExchange
-       12 __imp_InterlockedDecrement
-       13 __imp_InterlockedExchange
-       14 __imp_InterlockedExchangeAdd
-       11 __imp_InterlockedIncrement
-       10 __imp_InterlockedTestExchange
       3B1 __imp_InterruptDisable
       3B0 __imp_InterruptDone
       3AE __imp_InterruptInitialize
       3AF __imp_InterruptMask
-      547 __imp_IntersectClipRect
-       A6 __imp_IntersectRect
-      18B __imp_InvalidateRect
-      1BA __imp_InvalidateRgn
-      51D __imp_InvertRect
        2A __imp_IsAPIReady
-      31B __imp_IsBadCodePtr
       392 __imp_IsBadPtr
-      31C __imp_IsBadReadPtr
-      31D __imp_IsBadWritePtr
-      1A4 __imp_IsChild
-      3E6 __imp_IsClipboardFormatAvailable
-      11D __imp_IsDBCSLeadByte
-      11E __imp_IsDBCSLeadByteEx
       3F8 __imp_IsDialogMessageW
        E4 __imp_IsEncryptionPermitted
        E8 __imp_IsExiting
       39B __imp_IsPrimaryThread
         F __imp_IsProcessDying
       339 __imp_IsProcessorFeaturePresent
-       A7 __imp_IsRectEmpty
       183 __imp_IsSystemFile
-      117 __imp_IsValidCodePage
-      130 __imp_IsValidLocale
-      19E __imp_IsWindow
-      1AB __imp_IsWindowEnabled
-      4D0 __imp_IsWindowVisible
       375 __imp_KernExtractIcons
       34C __imp_KernelIoControl
       34D __imp_KernelLibIoControl
@@ -1987,7 +1343,6 @@
       48A __imp_KeybdInitStates
       48B __imp_KeybdVKeyToUnicode
       396 __imp_KillAllOtherThreads
-      4C6 __imp_KillTimer
       126 __imp_LCMapStringW
       38E __imp_LeaveCritSec
       525 __imp_LineTo
@@ -2006,16 +1361,10 @@
       323 __imp_LoadLibraryExW
       322 __imp_LoadLibraryW
       4A6 __imp_LoadMenuW
-      328 __imp_LoadResource
       329 __imp_LoadStringW
-       31 __imp_LocalAlloc
        3E __imp_LocalAllocInProcess
        32 __imp_LocalAllocTrace
-       22 __imp_LocalFileTimeToFileTime
-       35 __imp_LocalFree
        3F __imp_LocalFreeInProcess
-       33 __imp_LocalReAlloc
-       34 __imp_LocalSize
        40 __imp_LocalSizeInProcess
       364 __imp_LockPages
       696 __imp_MD5Final
@@ -2023,24 +1372,16 @@
       695 __imp_MD5Update
        17 __imp_MainThreadBaseFunc
       34F __imp_MapCallerPtr
-      3F9 __imp_MapDialogRect
       350 __imp_MapPtrToProcWithSize
       38F __imp_MapPtrToProcess
       390 __imp_MapPtrUnsecure
       342 __imp_MapViewOfFile
       48C __imp_MapVirtualKeyW
-      1A7 __imp_MapWindowPoints
-      4F3 __imp_MaskBlt
-      4B1 __imp_MessageBeep
       4B2 __imp_MessageBoxW
       662 __imp_MonitorFromPoint
       663 __imp_MonitorFromRect
       664 __imp_MonitorFromWindow
        EC __imp_MoveFileW
-      524 __imp_MoveToEx
-      19F __imp_MoveWindow
-      4BE __imp_MsgWaitForMultipleObjectsEx
-      123 __imp_MultiByteToWideChar
       33C __imp_NKDbgPrintfW
       3A7 __imp_NKTerminateThread
       36F __imp_NKvDbgPrintfW
@@ -2048,19 +1389,14 @@
       4A0 __imp_NLedSetDevice
       30F __imp_NotifyForceCleanboot
       410 __imp_NotifyWinUserSystem
-       A8 __imp_OffsetRect
-      548 __imp_OffsetRgn
-      3DC __imp_OpenClipboard
        C1 __imp_OpenDeviceKey
       2F9 __imp_OpenEventW
       116 __imp_OpenMsgQueue
-      30A __imp_OpenProcess
       395 __imp_OtherThreadsRunning
       336 __imp_OutputDebugStringW
       3BB __imp_PPSHRestart
         C __imp_PSLNotify
       340 __imp_PageOutModule
-      51C __imp_PatBlt
       4B8 __imp_PeekMessageW
       2D5 __imp_PegClearUserNotification
       1C7 __imp_PegCreateDatabase
@@ -2081,13 +1417,9 @@
       2D4 __imp_PegSetUserNotification
       1CE __imp_PegWriteRecordProps
       2F1 __imp_PerformCallBack4
-      538 __imp_PlayEnhMetaFile
       267 __imp_PlaySoundW
-      51E __imp_Polygon
-      51F __imp_Polyline
       48D __imp_PostKeybdMessage
       4B9 __imp_PostMessageW
-      4BA __imp_PostQuitMessage
       1AD __imp_PostThreadMessageW
       3A3 __imp_PowerOffSystem
       169 __imp_PowerPolicyNotify
@@ -2098,16 +1430,10 @@
        95 __imp_ProfileStartEx
        93 __imp_ProfileStop
       370 __imp_ProfileSyscall
-       A9 __imp_PtInRect
-      549 __imp_PtInRegion
-       B6 __imp_PurgeComm
       484 __imp_QASetWindowsJournalHook
       485 __imp_QAUnhookWindowsJournalHook
       2F2 __imp_QueryAPISetID
       338 __imp_QueryInstructionSet
-      332 __imp_QueryPerformanceCounter
-      333 __imp_QueryPerformanceFrequency
-      33A __imp_RaiseException
        91 __imp_Random
       1FC __imp_RasDeleteEntry
       207 __imp_RasDevConfigDialogEditW
@@ -2137,23 +1463,16 @@
        F4 __imp_ReadFile
       181 __imp_ReadFileWithSeek
       112 __imp_ReadMsgQueue
-      306 __imp_ReadProcessMemory
       3C0 __imp_ReadRegistryFromOEM
       52F __imp_RealizePalette
-      54A __imp_RectInRegion
-      54D __imp_RectVisible
-      520 __imp_Rectangle
       1BE __imp_RectangleAnimation
-      1BC __imp_RedrawWindow
       383 __imp_RefreshKernelAlarm
-      2BF __imp_RegCloseKey
       2CA __imp_RegCopyFile
       2C0 __imp_RegCreateKeyExW
       2C1 __imp_RegDeleteKeyW
       2C2 __imp_RegDeleteValueW
       2C4 __imp_RegEnumKeyExW
       2C3 __imp_RegEnumValueW
-      2C9 __imp_RegFlushKey
       2C5 __imp_RegOpenKeyExW
       159 __imp_RegOpenProcessKey
       2C6 __imp_RegQueryInfoKeyW
@@ -2170,7 +1489,6 @@
       33D __imp_RegisterDbgZones
       4DB __imp_RegisterDesktop
       14F __imp_RegisterDevice
-      493 __imp_RegisterHotKey
       165 __imp_RegisterPowerRelationship
       1BD __imp_RegisterSIPanel
       16B __imp_RegisterService
@@ -2179,12 +1497,8 @@
       380 __imp_RegisterTrackedItem
       4D8 __imp_RegisterWindowMessageW
         E __imp_ReinitLocale
-      403 __imp_ReleaseCapture
-      4D3 __imp_ReleaseDC
-      34B __imp_ReleaseMutex
       166 __imp_ReleasePowerRelationship
       161 __imp_ReleasePowerRequirement
-      358 __imp_ReleaseSemaphore
        36 __imp_RemoteHeapAlloc
        38 __imp_RemoteHeapFree
        37 __imp_RemoteHeapReAlloc
@@ -2195,32 +1509,18 @@
        3C __imp_RemoteLocalSize
        EA __imp_RemoveDirectoryW
       4EA __imp_RemoveFontResourceW
-      4A3 __imp_RemoveMenu
       4DE __imp_RemoveProp
       155 __imp_RequestDeviceNotifications
       162 __imp_RequestPowerNotifications
       15A __imp_ResourceCreateList
       15C __imp_ResourceRelease
       15B __imp_ResourceRequest
-      4F8 __imp_RestoreDC
-      300 __imp_ResumeThread
-      521 __imp_RoundRect
-      2E5 __imp_SHAddToRecentDocs
       2E6 __imp_SHCreateExplorerInstance
       2E8 __imp_SHCreateShortcut
       2EA __imp_SHCreateShortcutEx
-      2ED __imp_SHGetFileInfo
       2E9 __imp_SHGetShortcutTarget
-      2EE __imp_SHGetSpecialFolderPath
       2EC __imp_SHLoadDIBitmap
       2EB __imp_SHShowOutOfMemory
-      4F9 __imp_SaveDC
-      190 __imp_ScreenToClient
-      552 __imp_ScrollDC
-      1AC __imp_ScrollWindowEx
-      54B __imp_SelectClipRgn
-      507 __imp_SelectObject
-      530 __imp_SelectPalette
       3ED __imp_SendDlgItemMessageW
       482 __imp_SendInput
       4C2 __imp_SendMessageTimeout
@@ -2231,42 +1531,19 @@
       170 __imp_ServiceIoControl
       172 __imp_ServiceUnbindPorts
       11B __imp_SetACP
-      539 __imp_SetAbortProc
-      3FD __imp_SetActiveWindow
       1C0 __imp_SetAssociatedMenu
-      4F1 __imp_SetBitmapBits
-      508 __imp_SetBkColor
-      509 __imp_SetBkMode
       522 __imp_SetBrushOrgEx
-      402 __imp_SetCapture
-      3D8 __imp_SetCaretBlinkTime
-      3D6 __imp_SetCaretPos
       4CC __imp_SetClassLong
       4CA __imp_SetClassLongW
       3A1 __imp_SetCleanRebootFlag
-      3DF __imp_SetClipboardData
-       B7 __imp_SetCommBreak
-       B8 __imp_SetCommMask
-       B9 __imp_SetCommState
-       BA __imp_SetCommTimeouts
       2CE __imp_SetCurrentUser
-      416 __imp_SetCursor
-      41C __imp_SetCursorPos
-      50C __imp_SetDIBColorTable
-      4F7 __imp_SetDIBitsToDevice
       33E __imp_SetDaylightTime
       3A4 __imp_SetDbgZone
       167 __imp_SetDevicePower
-      3FA __imp_SetDlgItemInt
       3EE __imp_SetDlgItemTextW
-       FC __imp_SetEndOfFile
       2FB __imp_SetEventData
       37F __imp_SetExceptionHandler
        F3 __imp_SetFileAttributesW
-       F7 __imp_SetFilePointer
-       FB __imp_SetFileTime
-      3FE __imp_SetFocus
-      3FC __imp_SetForegroundWindow
       385 __imp_SetGwesOOMEvent
       3B4 __imp_SetGwesPowerHandler
       3A9 __imp_SetHandleOwner
@@ -2275,62 +1552,36 @@
       3B2 __imp_SetKMode
       382 __imp_SetKernelAlarm
       404 __imp_SetKeyboardTarget
-      317 __imp_SetLastError
-       24 __imp_SetLocalTime
       128 __imp_SetLocaleInfoW
       39A __imp_SetLowestScheduledPriority
       4AD __imp_SetMenuItemInfoW
       11C __imp_SetOEMCP
       386 __imp_SetOOMEvent
       551 __imp_SetObjectOwner
-      52D __imp_SetPaletteEntries
-      19C __imp_SetParent
       10C __imp_SetPassword
       10E __imp_SetPasswordActive
       10F __imp_SetPasswordStatus
-      523 __imp_SetPixel
       3B3 __imp_SetPowerOffHandler
       160 __imp_SetPowerRequirement
       39C __imp_SetProcPermissions
       4DC __imp_SetProp
-      512 __imp_SetROP2
       372 __imp_SetRealTime
-       AA __imp_SetRect
-       AB __imp_SetRectEmpty
-      54E __imp_SetRectRgn
-      555 __imp_SetScrollInfo
-      556 __imp_SetScrollPos
-      557 __imp_SetScrollRange
-      4D7 __imp_SetSysColors
       135 __imp_SetSystemDefaultLCID
       17D __imp_SetSystemMemoryDivision
       15F __imp_SetSystemPowerState
-       26 __imp_SetSystemTime
-      4EB __imp_SetTextAlign
-      50A __imp_SetTextColor
       302 __imp_SetThreadContext
-      310 __imp_SetThreadPriority
       3A0 __imp_SetTimeZoneBias
-       28 __imp_SetTimeZoneInformation
-      4C5 __imp_SetTimer
       2CF __imp_SetUserData
       137 __imp_SetUserDefaultLCID
       14C __imp_SetUserDefaultUILanguage
-      550 __imp_SetViewportOrgEx
       3B5 __imp_SetWDevicePowerHandler
       193 __imp_SetWindowLongW
-      188 __imp_SetWindowPos
-      1B4 __imp_SetWindowRgn
       191 __imp_SetWindowTextW
       490 __imp_SetWindowsHookExW
-       BB __imp_SetupComm
       2E7 __imp_ShellExecuteEx
       406 __imp_ShellModalEnd
       2E4 __imp_Shell_NotifyIcon
-      3D5 __imp_ShowCaret
-      41D __imp_ShowCursor
       1C4 __imp_ShowStartupWindow
-      19A __imp_ShowWindow
       176 __imp_SignalStarted
       65E __imp_SipEnumIM
       65F __imp_SipGetCurrentIM
@@ -2341,15 +1592,10 @@
       65D __imp_SipSetInfo
       65B __imp_SipShowIM
       659 __imp_SipStatus
-      32A __imp_SizeofResource
-      2FC __imp_Sleep
       361 __imp_SleepTillTick
       53A __imp_StartDocW
-      53B __imp_StartPage
       156 __imp_StopDeviceNotifications
       163 __imp_StopPowerNotifications
-      4F4 __imp_StretchBlt
-      4F6 __imp_StretchDIBits
       648 __imp_StringCbCatA
       64A __imp_StringCbCatExA
        82 __imp_StringCbCatExW
@@ -2400,31 +1646,19 @@
        87 __imp_StringCchVPrintfW
       387 __imp_StringCompress
       388 __imp_StringDecompress
-       AC __imp_SubtractRect
-      2FF __imp_SuspendThread
       49D __imp_SystemIdleTimerReset
         5 __imp_SystemMemoryLow
        9C __imp_SystemParametersInfoW
         4 __imp_SystemStarted
-       1F __imp_SystemTimeToFileTime
       30D __imp_THCreateSnapshot
       30E __imp_THGrow
       38D __imp_TakeCritSec
-      33B __imp_TerminateProcess
-      2F3 __imp_TerminateThread
       366 __imp_ThreadAttachAllDLLs
        16 __imp_ThreadBaseFunc
       367 __imp_ThreadDetachAllDLLs
         B __imp_ThreadExceptionExit
-      31A __imp_TlsCall
-       1A __imp_TlsGetValue
-       1B __imp_TlsSetValue
       4C7 __imp_TouchCalibrate
-      4A5 __imp_TrackPopupMenuEx
       49E __imp_TranslateAcceleratorW
-      53F __imp_TranslateCharsetInfo
-      4BD __imp_TranslateMessage
-       BC __imp_TransmitCommChar
       4F5 __imp_TransparentImage
       3A6 __imp_TurnOffProfiling
       3A5 __imp_TurnOnProfiling
@@ -2433,47 +1667,27 @@
       368 __imp_U_ropen
       369 __imp_U_rread
       36A __imp_U_rwrite
-      491 __imp_UnhookWindowsHookEx
-       AD __imp_UnionRect
       365 __imp_UnlockPages
-      343 __imp_UnmapViewOfFile
       4CE __imp_UnregisterClassW
       495 __imp_UnregisterFunc1
-      494 __imp_UnregisterHotKey
       36D __imp_UpdateNLSInfo
       36E __imp_UpdateNLSInfoEx
-      19B __imp_UpdateWindow
-      1A5 __imp_ValidateRect
-      1BB __imp_ValidateRgn
       3BA __imp_VerifyAPIHandle
-      31E __imp_VirtualAlloc
       35D __imp_VirtualCopy
-      31F __imp_VirtualFree
-      320 __imp_VirtualProtect
-      321 __imp_VirtualQuery
       35E __imp_VirtualSetAttributes
       2B3 __imp_WNetAddConnection3W
       2B4 __imp_WNetCancelConnection2W
-      2BC __imp_WNetCloseEnum
       2B5 __imp_WNetConnectionDialog1W
-      2B6 __imp_WNetDisconnectDialog
       2B7 __imp_WNetDisconnectDialog1W
       2BD __imp_WNetEnumResourceW
       2B8 __imp_WNetGetConnectionW
       2B9 __imp_WNetGetUniversalNameW
       2BA __imp_WNetGetUserW
       2BB __imp_WNetOpenEnumW
-       BD __imp_WaitCommEvent
-      303 __imp_WaitForDebugEvent
-      2FE __imp_WaitForMultipleObjects
-      2FD __imp_WaitForSingleObject
-      124 __imp_WideCharToMultiByte
-      18D __imp_WindowFromPoint
       3C2 __imp_WriteDebugLED
        F5 __imp_WriteFile
       182 __imp_WriteFileWithSeek
       113 __imp_WriteMsgQueue
-      307 __imp_WriteProcessMemory
       3C1 __imp_WriteRegistryToOEM
       67B __imp__CountLeadingOnes
       67C __imp__CountLeadingOnes64
@@ -2716,7 +1930,6 @@
       611 __imp_gets
       634 __imp_getwchar
       11F __imp_iswctype
-      48E __imp_keybd_event
       583 __imp_labs
       584 __imp_ldexp
       585 __imp_ldiv
@@ -2809,7 +2022,6 @@
       2B0 __imp_mixerOpen
       2B1 __imp_mixerSetControlDetails
       596 __imp_modf
-      483 __imp_mouse_event
       24E __imp_phoneClose
       24F __imp_phoneConfigDialog
       250 __imp_phoneDevSpecific
@@ -3148,7 +2360,6 @@
       611 gets
       634 getwchar
       11F iswctype
-      48E keybd_event
       583 labs
       584 ldexp
       585 ldiv
@@ -3241,7 +2452,6 @@
       2B0 mixerOpen
       2B1 mixerSetControlDetails
       596 modf
-      483 mouse_event
       24E phoneClose
       24F phoneConfigDialog
       250 phoneDevSpecific
@@ -3383,7 +2593,28 @@
 //*****************************************************************************
 // consts
 //*****************************************************************************
-  
+
+const
+
+  // SHGetSpecialFolderPath consts
+  CSIDL_PROGRAMS           = $0002;
+  CSIDL_CONTROLS           = $0003;
+  CSIDL_PRINTERS           = $0004;
+  CSIDL_PERSONAL           = $0005;
+  CSIDL_FAVORITES          = $0006;
+  CSIDL_STARTUP            = $0007;
+  CSIDL_RECENT             = $0008;
+  CSIDL_SENDTO             = $0009;
+  CSIDL_BITBUCKET          = $000a;
+  CSIDL_STARTMENU          = $000b;
+  CSIDL_DESKTOPDIRECTORY   = $0010;
+  CSIDL_DRIVES             = $0011;
+  CSIDL_NETWORK            = $0012;
+  CSIDL_NETHOOD            = $0013;
+  CSIDL_FONTS		   = $0014;
+  CSIDL_TEMPLATES          = $0015;
+  CSIDL_APPDATA            = $001a;
+
 //*****************************************************************************
 // types
 //*****************************************************************************
@@ -3394,14 +2625,1573 @@
 //*****************************************************************************
 
 
-//function ChangeDisplaySettingsEx(lpszDeviceName: LPCTSTR; lpDevMode: LPDEVMODE; hwnd: HWND; dwflags: DWORD ; lParam: LPVOID ): LONG; external KernelDLL name 'ChangeDisplaySettingsEx';
+function AbortDoc(_para1:HDC):longint; external GdiDLL name 'AbortDoc';
+function ActivateKeyboardLayout(hkl:HKL; Flags:UINT):HKL; external UserDLLCore name 'ActivateKeyboardLayout';
+function AddFontResource(_para1:LPCWSTR):longint; external GdiDLL name 'AddFontResourceW';
+function AddFontResourceW(_para1:LPCWSTR):longint; external GdiDLL name 'AddFontResourceW';
+function AdjustWindowRectEx(lpRect:LPRECT; dwStyle:DWORD; bMenu:WINBOOL; dwExStyle:DWORD):WINBOOL; external UserDLLCore name 'AdjustWindowRectEx';
+function AppendMenu(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external UserDLLCore name 'AppendMenuW';
+function AppendMenuW(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external UserDLLCore name 'AppendMenuW';
+function BeginDeferWindowPos(nNumWindows:longint):HDWP; external UserDLLCore name 'BeginDeferWindowPos';
+function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC; external UserDLLCore name 'BeginPaint';
+function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external GdiDLL name 'BitBlt';
+function BringWindowToTop(hWnd:HWND):WINBOOL; external UserDLLCore name 'BringWindowToTop';
+function CallNextHookEx(hhk:HHOOK; nCode:longint; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLLCore name 'CallNextHookEx';
+function CallWindowProc(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLLCore name 'CallWindowProcW';
+function CallWindowProcW(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external UserDLLCore name 'CallWindowProcW';
+function ChangeDisplaySettingsEx( lpszDeviceName:LPCTSTR; lpDevMode:LPDEVMODE; hwnd:HWND; dwflags:DWORD; lParam:LPVOID):LONG; external UserDLLCore name 'ChangeDisplaySettingsEx';
+function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL;
+function CheckMenuItem(hMenu:HMENU; uIDCheckItem:UINT; uCheck:UINT):DWORD; external UserDLLCore name 'CheckMenuItem';
+function CheckMenuRadioItem(_para1:HMENU; _para2:UINT; _para3:UINT; _para4:UINT; _para5:UINT):WINBOOL; external UserDLLCore name 'CheckMenuRadioItem';
+function CheckRadioButton(hDlg:HWND; nIDFirstButton:longint; nIDLastButton:longint; nIDCheckButton:longint):WINBOOL; external UserDLLCore name 'CheckRadioButton';
+function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; external UserDLLCore name 'ChildWindowFromPoint';
+function ClearCommBreak(hFile:HANDLE):WINBOOL; external KernelDLL name 'ClearCommBreak';
+function ClearCommError(hFile:HANDLE; lpErrors:LPDWORD; lpStat:LPCOMSTAT):WINBOOL; external KernelDLL name 'ClearCommError';
+function ClientToScreen(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external UserDLLCore name 'ClientToScreen';
+function ClipCursor(lpRect:LPRECT):WINBOOL; external UserDLLCore name 'ClipCursor';
+function CloseClipboard:WINBOOL; external UserDLLCore name 'CloseClipboard';
+function CloseEnhMetaFile(_para1:HDC):HENHMETAFILE; external GdiDLL name 'CloseEnhMetaFile';
+function CloseHandle(hObject:HANDLE):WINBOOL; external KernelDLL name 'CloseHandle';
+function CombineRgn(_para1:HRGN; _para2:HRGN; _para3:HRGN; _para4:longint):longint; external GdiDLL name 'CombineRgn';
+function CompareFileTime(lpFileTime1:LPFILETIME; lpFileTime2:LPFILETIME):LONG; external KernelDLL name 'CompareFileTime';
+function ContinueDebugEvent(dwProcessId:DWORD; dwThreadId:DWORD; dwContinueStatus:DWORD):WINBOOL; external KernelDLL name 'ContinueDebugEvent';
+function ConvertDefaultLocale(Locale:LCID):LCID; external KernelDLL name 'ConvertDefaultLocale';
+procedure CopyMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+function CopyRect(lprcDst:LPRECT; var lprcSrc:RECT):WINBOOL; external UserDLLCore name 'CopyRect';
+function CountClipboardFormats:longint; external UserDLLCore name 'CountClipboardFormats';
+function CreateBitmap(_para1:longint; _para2:longint; _para3:UINT; _para4:UINT; _para5:pointer):HBITMAP; external GdiDLL name 'CreateBitmap';
+function CreateCaret(hWnd:HWND; hBitmap:HBITMAP; nWidth:longint; nHeight:longint):WINBOOL; external UserDLLCore name 'CreateCaret';
+function CreateCompatibleBitmap(_para1:HDC; _para2:longint; _para3:longint):HBITMAP; external GdiDLL name 'CreateCompatibleBitmap';
+function CreateCompatibleDC(_para1:HDC):HDC; external GdiDLL name 'CreateCompatibleDC';
+function CreateDIBPatternBrushPt(_para1:pointer; _para2:UINT):HBRUSH; external GdiDLL name 'CreateDIBPatternBrushPt';
+function CreateDIBSection(_para1:HDC; var _para2:BITMAPINFO; _para3:UINT; var _para4:pointer; _para5:HANDLE;_para6:DWORD):HBITMAP; external GdiDLL name 'CreateDIBSection';
+function CreateIconIndirect(piconinfo:PICONINFO):HICON; external UserDLLCore name 'CreateIconIndirect';
+function CreateMenu:HMENU; external UserDLLCore name 'CreateMenu';
+function CreatePopupMenu:HMENU; external UserDLLCore name 'CreatePopupMenu';
+function CreatePalette(var _para1:LOGPALETTE):HPALETTE; external GdiDLL name 'CreatePalette';
+function CreatePatternBrush(_para1:HBITMAP):HBRUSH; external GdiDLL name 'CreatePatternBrush';
+function CreatePen(_para1:longint; _para2:longint; _para3:COLORREF):HPEN; external GdiDLL name 'CreatePen';
+function CreatePenIndirect(var _para1:LOGPEN):HPEN; external GdiDLL name 'CreatePenIndirect';
+function CreateRectRgn(_para1:longint; _para2:longint; _para3:longint; _para4:longint):HRGN; external GdiDLL name 'CreateRectRgn';
+function CreateRectRgnIndirect(var _para1:RECT):HRGN; external GdiDLL name 'CreateRectRgnIndirect';
+function CreateSolidBrush(_para1:COLORREF):HBRUSH; external GdiDLL name 'CreateSolidBrush';
+function DebugActiveProcess(dwProcessId:DWORD):WINBOOL; external KernelDLL name 'DebugActiveProcess';
+function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;cx:longint; cy:longint; uFlags:UINT):HDWP; external UserDLLCore name 'DeferWindowPos';
+procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'DeleteCriticalSection';
+function DeleteDC(_para1:HDC):WINBOOL; external GdiDLL name 'DeleteDC';
+function DeleteEnhMetaFile(_para1:HENHMETAFILE):WINBOOL; external GdiDLL name 'DeleteEnhMetaFile';
+function DeleteMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external UserDLLCore name 'DeleteMenu';
+function DeleteObject(_para1:HGDIOBJ):WINBOOL; external GdiDLL name 'DeleteObject';
+function DestroyAcceleratorTable(hAccel:HACCEL):WINBOOL; external UserDLLCore name 'DestroyAcceleratorTable';
+function DestroyCaret:WINBOOL; external UserDLLCore name 'DestroyCaret';
+function DestroyIcon(hIcon:HICON):WINBOOL; external UserDLLCore name 'DestroyIcon';
+function DestroyMenu(hMenu:HMENU):WINBOOL; external UserDLLCore name 'DestroyMenu';
+function DestroyWindow(hWnd:HWND):WINBOOL; external UserDLLCore name 'DestroyWindow';
+function DeviceIoControl(hDevice:HANDLE; dwIoControlCode:DWORD; lpInBuffer:LPVOID; nInBufferSize:DWORD; lpOutBuffer:LPVOID;nOutBufferSize:DWORD; lpBytesReturned:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external KernelDLL name 'DeviceIoControl';
+function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'DisableThreadLibraryCalls';
+function DrawEdge(hdc:HDC; qrc:LPRECT; edge:UINT; grfFlags:UINT):WINBOOL; external UserDLLCore name 'DrawEdge';
+function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external UserDLLCore name 'DrawFocusRect';
+function DrawFrameControl(_para1:HDC; _para2:LPRECT; _para3:UINT; _para4:UINT):WINBOOL; external UserDLLCore name 'DrawFrameControl';
+function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL;
+function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external UserDLLCore name 'DrawIconEx';
+function DrawMenuBar(hWnd:HWND):WINBOOL; external UserDLLCore name 'DrawMenuBar';
+function DuplicateHandle(hSourceProcessHandle:HANDLE; hSourceHandle:HANDLE; hTargetProcessHandle:HANDLE; lpTargetHandle:LPHANDLE; dwDesiredAccess:DWORD;bInheritHandle:WINBOOL; dwOptions:DWORD):WINBOOL; external KernelDLL name 'DuplicateHandle';
+function Ellipse(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external GdiDLL name 'Ellipse';
+function EqualRgn(_para1:HRGN; _para2:HRGN):WINBOOL; external GdiDLL name 'EqualRgn';
+function EmptyClipboard:WINBOOL; external UserDLLCore name 'EmptyClipboard';
+function EnableMenuItem(hMenu:HMENU; uIDEnableItem:UINT; uEnable:UINT):WINBOOL; external UserDLLCore name 'EnableMenuItem';
+function EnableWindow(hWnd:HWND; bEnable:WINBOOL):WINBOOL; external UserDLLCore name 'EnableWindow';
+function EndDeferWindowPos(hWinPosInfo:HDWP):WINBOOL; external UserDLLCore name 'EndDeferWindowPos';
+function EndDialog(hDlg:HWND; nResult:longint):WINBOOL; external UserDLLCore name 'EndDialog';
+function EndDoc(_para1:HDC):longint; external GdiDLL name 'EndDoc';
+function EndPage(_para1:HDC):longint; external GdiDLL name 'EndPage';
+function EndPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):WINBOOL; external UserDLLCore name 'EndPaint';
+procedure EnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'EnterCriticalSection';
+function EnumClipboardFormats(format:UINT):UINT; external UserDLLCore name 'EnumClipboardFormats';
+function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external UserDLLCore name 'EnumWindows';
+function EqualRect(var lprc1:RECT; var lprc2:RECT):WINBOOL; external UserDLLCore name 'EqualRect';
+function EscapeCommFunction(hFile:HANDLE; dwFunc:DWORD):WINBOOL; external KernelDLL name 'EscapeCommFunction';
+function EventModify(hEvent:HANDLE; func:DWORD ):WINBOOL; external KernelDLL name 'EventModify';
+procedure ExitProcess(uExitCode:UINT);
+procedure ExitThread(dwExitCode:DWORD); external KernelDLL name 'ExitThread';
+function ExtCreateRegion(var _para1:XFORM; _para2:DWORD; var _para3:RGNDATA):HRGN; external GdiDLL name 'ExtCreateRegion';
+function ExtEscape(_para1:HDC; _para2:longint; _para3:longint; _para4:LPCSTR; _para5:longint;_para6:LPSTR):longint; external GdiDLL name 'ExtEscape';
+function ExcludeClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external GdiDLL name 'ExcludeClipRect';
+function FileTimeToLocalFileTime(lpFileTime:LPFILETIME; lpLocalFileTime:LPFILETIME):WINBOOL; external KernelDLL name 'FileTimeToLocalFileTime';
+function FileTimeToSystemTime(lpFileTime:LPFILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external KernelDLL name 'FileTimeToSystemTime';
+procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
+function FillRect(hDC:HDC; const lprc:RECT; hbr:HBRUSH):longint; external UserDLLCore name 'FillRect';
+function FindClose(hFindFile:HANDLE):WINBOOL; external KernelDLL name 'FindClose';
+function FindCloseChangeNotification(hChangeHandle:HANDLE):WINBOOL; external KernelDLL name 'FindCloseChangeNotification';
+function FindNextChangeNotification(hChangeHandle:HANDLE):WINBOOL; external KernelDLL name 'FindNextChangeNotification';
+function FlushFileBuffers(hFile:HANDLE):WINBOOL; external KernelDLL name 'FlushFileBuffers';
+function FlushInstructionCache(hProcess:HANDLE; lpBaseAddress:LPCVOID; dwSize:DWORD):WINBOOL; external KernelDLL name 'FlushInstructionCache';
+function FlushViewOfFile(lpBaseAddress:LPCVOID; dwNumberOfBytesToFlush:DWORD):WINBOOL; external KernelDLL name 'FlushViewOfFile';
+function FreeLibrary(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'FreeLibrary';
+procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external KernelDLL name 'FreeLibraryAndExitThread';
+function GetActiveWindow:HWND; external UserDLLCore name 'GetActiveWindow';
+function GetACP:UINT; external KernelDLL name 'GetACP';
+function GetAsyncKeyState(vKey:longint):SHORT; external UserDLLCore name 'GetAsyncKeyState';
+function GetBkColor(_para1:HDC):COLORREF; external GdiDLL name 'GetBkColor';
+function GetBkMode(_para1:HDC):longint; external GdiDLL name 'GetBkMode';
+function GetCapture:HWND; external UserDLLCore name 'GetCapture';
+function GetCaretBlinkTime:UINT; external UserDLLCore name 'GetCaretBlinkTime';
+function GetCaretPos(lpPoint:LPPOINT):WINBOOL; external UserDLLCore name 'GetCaretPos';
+function GetClientRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external UserDLLCore name 'GetClientRect';
+function GetClipboardOwner:HWND; external UserDLLCore name 'GetClipboardOwner';
+function GetClipboardData(uFormat:UINT):HANDLE; external UserDLLCore name 'GetClipboardData';
+function GetClipBox(_para1:HDC; _para2:LPRECT):longint; external GdiDLL name 'GetClipBox';
+function GetClipCursor(lpRect:LPRECT):WINBOOL; external UserDLLCore name 'GetClipCursor';
+function GetClipRgn(_para1:HDC; _para2:HRGN):longint; external GdiDLL name 'GetClipRgn';
+function GetCommProperties(hFile:HANDLE; lpCommProp:LPCOMMPROP):WINBOOL; external KernelDLL name 'GetCommProperties';
+function GetCommModemStatus(hFile:HANDLE; lpModemStat:PDWORD):WINBOOL; external KernelDLL name 'GetCommModemStatus';
+function GetCommState(hFile:HANDLE; lpDCB:PDCB):WINBOOL; external KernelDLL name 'GetCommState';
+function GetCommTimeouts(hFile:HANDLE; lpCommTimeouts:PCOMMTIMEOUTS):WINBOOL; external KernelDLL name 'GetCommTimeouts';
+function GetCPInfo(_para1:UINT; _para2:LPCPINFO):WINBOOL; external KernelDLL name 'GetCPInfo';
+function GetCursor:HCURSOR; external UserDLLCore name 'GetCursor';
+function GetCursorPos(lpPoint:LPPOINT):WINBOOL; external UserDLLCore name 'GetCursorPos';
+function GetCurrentObject(_para1:HDC; _para2:UINT):HGDIOBJ; external GdiDLL name 'GetCurrentObject';
+function GetCurrentPositionEx(_para1:HDC; _para2:LPPOINT):WINBOOL; external GdiDLL name 'GetCurrentPositionEx';
+function GetCurrentProcess:HANDLE;
+function GetCurrentProcessId:DWORD;
+function GetCurrentThread:HANDLE;
+function GetCurrentThreadId:DWORD;
+function GetDC(hWnd:HWND):HDC; external UserDLLCore name 'GetDC';
+function GetDCEx(hWnd:HWND; hrgnClip:HRGN; flags:DWORD):HDC; external UserDLLCore name 'GetDCEx';
+function GetDesktopWindow:HWND; external UserDLLCore name 'GetDesktopWindow';
+function GetDeviceCaps(_para1:HDC; _para2:longint):longint; external GdiDLL name 'GetDeviceCaps';
+function GetDialogBaseUnits:longint; external UserDLLCore name 'GetDialogBaseUnits';
+function GetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external GdiDLL name 'GetDIBColorTable';
+function GetDlgCtrlID(hWnd:HWND):longint; external UserDLLCore name 'GetDlgCtrlID';
+function GetDlgItem(hDlg:HWND; nIDDlgItem:longint):HWND; external UserDLLCore name 'GetDlgItem';
+function GetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; var lpTranslated:WINBOOL; bSigned:WINBOOL):UINT; external UserDLLCore name 'GetDlgItemInt';
+function GetDoubleClickTime:UINT; external UserDLLCore name 'GetDoubleClickTime';
+function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external KernelDLL name 'GetExitCodeProcess';
+function GetExitCodeThread(hThread:HANDLE; lpExitCode:LPDWORD):WINBOOL; external KernelDLL name 'GetExitCodeThread';
+function GetFocus:HWND; external UserDLLCore name 'GetFocus';
+function GetForegroundWindow:HWND; external UserDLLCore name 'GetForegroundWindow';
+function GetFileInformationByHandle(hFile:HANDLE; lpFileInformation:LPBY_HANDLE_FILE_INFORMATION):WINBOOL; external KernelDLL name 'GetFileInformationByHandle';
+function GetFileSize(hFile:HANDLE; lpFileSizeHigh:LPDWORD):DWORD; external KernelDLL name 'GetFileSize';
+function GetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external KernelDLL name 'GetFileTime';
+function GetKeyboardLayout(dwLayout:DWORD):HKL; external UserDLLCore name 'GetKeyboardLayout';
+function GetKeyboardLayoutList(nBuff:longint; var lpList:HKL):UINT; external UserDLLCore name 'GetKeyboardLayoutList';
+function GetKeyboardType(nTypeFlag:longint):longint; external UserDLLCore name 'GetKeyboardType';
+function GetKeyState(nVirtKey:longint):SHORT; external UserDLLCore name 'GetKeyState';
+function GetLastError:DWORD; external KernelDLL name 'GetLastError';
+procedure GetLocalTime(lpSystemTime:LPSYSTEMTIME); external KernelDLL name 'GetLocalTime';
+function GetMessagePos:DWORD; external UserDLLCore name 'GetMessagePos';
+function GetNearestColor(_para1:HDC; _para2:COLORREF):COLORREF; external GdiDLL name 'GetNearestColor';
+function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external GdiDLL name 'GetNearestPaletteIndex';
+function GetNextDlgGroupItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external UserDLLCore name 'GetNextDlgGroupItem';
+function GetNextDlgTabItem(hDlg:HWND; hCtl:HWND; bPrevious:WINBOOL):HWND; external UserDLLCore name 'GetNextDlgTabItem';
+function GetObjectType(h:HGDIOBJ):DWORD; external GdiDLL name 'GetObjectType';
+function GetOEMCP:UINT; external KernelDLL name 'GetOEMCP';
+function GetOpenClipboardWindow:HWND; external UserDLLCore name 'GetOpenClipboardWindow';
+function GetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external GdiDLL name 'GetPaletteEntries';
+function GetParent(hWnd:HWND):HWND; external UserDLLCore name 'GetParent';
+function GetPriorityClipboardFormat(var paFormatPriorityList:UINT; cFormats:longint):longint; external UserDLLCore name 'GetPriorityClipboardFormat';
+function GetPixel(_para1:HDC; _para2:longint; _para3:longint):COLORREF; external GdiDLL name 'GetPixel';
+function GetProcessHeap:HANDLE; external KernelDLL name 'GetProcessHeap';
+function GetQueueStatus(flags:UINT):DWORD; external UserDLLCore name 'GetQueueStatus';
+function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external GdiDLL name 'GetRegionData';
+function GetRgnBox(_para1:HRGN; _para2:LPRECT):longint; external GdiDLL name 'GetRgnBox';
+function GetScrollInfo(_para1:HWND; _para2:longint; _para3:LPSCROLLINFO):WINBOOL; external UserDLLCore name 'GetScrollInfo';
+function SHGetSpecialFolderPath(hwndOwner: HWND; lpszPath: LPTSTR; nFolder: LongInt; fCreate: BOOL): BOOL;
+  external KernelDLL name 'SHGetSpecialFolderPath';
+function GetStockObject(_para1:longint):HGDIOBJ; external GdiDLL name 'GetStockObject';
+function GetSubMenu(hMenu:HMENU; nPos:longint):HMENU; external UserDLLCore name 'GetSubMenu';
+function GetSysColor(nIndex:longint):DWORD; external UserDLLCore name 'GetSysColor';
+function GetSysColorBrush(nIndex:longint):HBRUSH; external UserDLLCore name 'GetSysColorBrush';
+function GetSystemDefaultLangID:LANGID; external KernelDLL name 'GetSystemDefaultLangID';
+function GetSystemDefaultLCID:LCID; external KernelDLL name 'GetSystemDefaultLCID';
+procedure GetSystemInfo(lpSystemInfo:LPSYSTEM_INFO); external KernelDLL name 'GetSystemInfo';
+function GetSystemMetrics(nIndex:longint):longint; external UserDLLCore name 'GetSystemMetrics';
+procedure GetSystemTime(lpSystemTime:LPSYSTEMTIME); external KernelDLL name 'GetSystemTime';
+function GetSystemPaletteEntries(_para1:HDC; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external GdiDLL name 'GetSystemPaletteEntries';
+function GetTextAlign(_para1:HDC):UINT; external GdiDLL name 'GetTextAlign';
+function GetTextColor(_para1:HDC):COLORREF; external GdiDLL name 'GetTextColor';
+function GetThreadContext(hThread:HANDLE; lpContext:LPCONTEXT):WINBOOL; external KernelDLL name 'GetThreadContext';
+function GetThreadPriority(hThread:HANDLE):longint; external KernelDLL name 'GetThreadPriority';
+function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external KernelDLL name 'GetThreadTimes';
+function GetTickCount:DWORD; external KernelDLL name 'GetTickCount';
+function GetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):DWORD; external KernelDLL name 'GetTimeZoneInformation';
+function GetUpdateRect(hWnd:HWND; lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external UserDLLCore name 'GetUpdateRect';
+function GetUpdateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):longint; external UserDLLCore name 'GetUpdateRgn';
+function GetUserDefaultLangID:LANGID; external KernelDLL name 'GetUserDefaultLangID';
+function GetUserDefaultLCID:LCID; external KernelDLL name 'GetUserDefaultLCID';
+function GetWindow(hWnd:HWND; uCmd:UINT):HWND; external UserDLLCore name 'GetWindow';
+function GetWindowDC(hWnd:HWND):HDC; external UserDLLCore name 'GetWindowDC';
+function GetWindowRgn(hWnd:HWND; hRgn:HRGN):longint; external UserDLLCore name 'GetWindowRgn';
+function GetWindowRect(hWnd:HWND; lpRect:LPRECT):WINBOOL; external UserDLLCore name 'GetWindowRect';
+function GetWindowThreadProcessId(hWnd:HWND; lpdwProcessId:LPDWORD):DWORD; external UserDLLCore name 'GetWindowThreadProcessId';
 function GetStdioPathW(id: DWORD ; pwszBuf:LPWSTR ; lpdwLen:LPDWORD):WINBOOL; external KernelDLL name 'GetStdioPathW';
+function GlobalAllocPtr(flags,cb:DWord):Pointer;
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL;
+function GlobalDeleteAtom(nAtom:ATOM):ATOM; external KernelDLL name 'GlobalDeleteAtom';
+function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
+function GlobalFree(hMem:HGLOBAL):HGLOBAL;
+function GlobalFreePtr(lp:Pointer):Pointer;
+function GlobalHandle(pMem:LPCVOID):HGLOBAL;
+function GlobalLockPtr(lp:pointer):Pointer;
+function GlobalLock(hMem:HGLOBAL):LPVOID;
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
+function GlobalSize(hMem:HGLOBAL):DWORD;
+function GlobalUnlock(hMem:HGLOBAL):WINBOOL;
+procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external KernelDLL name 'GlobalMemoryStatus';
+function GlobalPtrHandle(lp:pointer):Pointer;
+function GlobalUnlockPtr(lp:pointer):Pointer;
+function Header_DeleteItem(hwndHD:HWND;index : longint) : WINBOOL;
+function Header_GetItem(hwndHD:HWND;index:longint;var hdi : HD_ITEM) : WINBOOL;
+function Header_GetItemCount(hwndHD : HWND) : longint;
+function Header_InsertItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : longint;
+function Header_Layout(hwndHD:HWND;var layout : HD_LAYOUT) : WINBOOL;
+function Header_SetItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : WINBOOL;
+function HeapAlloc(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD):LPVOID; external KernelDLL name 'HeapAlloc';
+function HeapAllocTrace(hHeap:HANDLE; dwFlags:DWORD; dwBytes:DWORD; dwLineNum:DWORD; szFileName:PCHAR):LPVOID; external KernelDLL name 'HeapAllocTrace';  //+winbase
+function HeapCreate(flOptions:DWORD; dwInitialSize:DWORD; dwMaximumSize:DWORD):HANDLE; external KernelDLL name 'HeapCreate';
+function HeapDestroy(hHeap:HANDLE):WINBOOL; external KernelDLL name 'HeapDestroy';
+function HeapFree(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID):WINBOOL; external KernelDLL name 'HeapFree';
+function HeapReAlloc(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPVOID; dwBytes:DWORD):LPVOID; external KernelDLL name 'HeapReAlloc';
+function HeapSize(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):DWORD; external KernelDLL name 'HeapSize';
+function HeapValidate(hHeap:HANDLE; dwFlags:DWORD; lpMem:LPCVOID):WINBOOL; external KernelDLL name 'HeapValidate';
+function HideCaret(hWnd:HWND):WINBOOL; external UserDLLCore name 'HideCaret';
+function ImageList_Add(himl:HIMAGELIST; hbmImage:HBITMAP; hbmMask:HBITMAP):longint; external ComctlDLLCore name 'ImageList_Add';
+function ImageList_AddIcon(himl:HIMAGELIST; hicon:HICON):longint;
+function ImageList_AddMasked(himl:HIMAGELIST; hbmImage:HBITMAP; crMask:COLORREF):longint; external ComctlDLLCore name 'ImageList_AddMasked';
+function ImageList_BeginDrag(himlTrack:HIMAGELIST; iTrack:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external ComctlDLLCore name 'ImageList_BeginDrag';
+function ImageList_Create(cx:longint; cy:longint; flags:UINT; cInitial:longint; cGrow:longint):HIMAGELIST; external ComctlDLLCore name 'ImageList_Create';
+function ImageList_Destroy(himl:HIMAGELIST):WINBOOL; external ComctlDLLCore name 'ImageList_Destroy';
+function ImageList_DragEnter(hwndLock:HWND; x:longint; y:longint):WINBOOL; external ComctlDLLCore name 'ImageList_DragEnter';
+function ImageList_DragLeave(hwndLock:HWND):WINBOOL; external ComctlDLLCore name 'ImageList_DragLeave';
+function ImageList_DragMove(x:longint; y:longint):WINBOOL; external ComctlDLLCore name 'ImageList_DragMove';
+function ImageList_DragShowNolock(fShow:WINBOOL):WINBOOL; external ComctlDLLCore name 'ImageList_DragShowNolock';
+function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;fStyle:UINT):WINBOOL; external ComctlDLLCore name 'ImageList_Draw';
+function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL; external ComctlDLLCore name 'ImageList_DrawEx';
+function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):WINBOOL; external ComctlDLLCore name 'ImageList_DrawIndirect'; //+commctrl
+procedure ImageList_EndDrag; external ComctlDLLCore name 'ImageList_EndDrag';
+function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; external ComctlDLLCore name 'ImageList_GetBkColor';
+function ImageList_GetDragImage(ppt:LPPOINT; pptHotspot:LPPOINT):HIMAGELIST; external ComctlDLLCore name 'ImageList_GetDragImage';
+function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; external ComctlDLLCore name 'ImageList_GetIcon';
+function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external ComctlDLLCore name 'ImageList_GetIconSize';
+function ImageList_GetImageCount(himl:HIMAGELIST):longint; external ComctlDLLCore name 'ImageList_GetImageCount';
+function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external ComctlDLLCore name 'ImageList_GetImageInfo';
+function ImageList_LoadImage(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external ComctlDLLCore name 'ImageList_LoadImage';
+function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external ComctlDLLCore name 'ImageList_Merge';
+function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external ComctlDLLCore name 'ImageList_Replace';
+function ImageList_ReplaceIcon(himl:HIMAGELIST; i:longint; hicon:HICON):longint; external ComctlDLLCore name 'ImageList_ReplaceIcon';
+function ImageList_Remove(himl:HIMAGELIST; i:longint):WINBOOL; external ComctlDLLCore name 'ImageList_Remove';
+function ImageList_SetBkColor(himl:HIMAGELIST; clrBk:COLORREF):COLORREF; external ComctlDLLCore name 'ImageList_SetBkColor';
+function ImageList_SetDragCursorImage(himlDrag:HIMAGELIST; iDrag:longint; dxHotspot:longint; dyHotspot:longint):WINBOOL; external ComctlDLLCore name 'ImageList_SetDragCursorImage';
+function ImageList_SetIconSize(himl:HIMAGELIST; cx:longint; cy:longint):WINBOOL; external ComctlDLLCore name 'ImageList_SetIconSize';
+function ImageList_SetImageCount(himl: HIMAGELIST; uNewCount: UINT): longint; external ComctlDLLCore name 'ImageList_SetImageCount';
+function ImageList_SetOverlayImage(himl:HIMAGELIST; iImage:longint; iOverlay:longint):WINBOOL; external ComctlDLLCore name 'ImageList_SetOverlayImage';
+function InflateRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external UserDLLCore name 'InflateRect';
+procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'InitializeCriticalSection';
+function InSendMessage:WINBOOL; external UserDLLCore name 'InSendMessage';
+function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';
+function InterlockedDecrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedDecrement';
+function InterlockedCompareExchange( var Destination:LPLONG; Exchange:LONG; Comperand:LONG):LONG; external KernelDLL name 'InterlockedCompareExchange';
+function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchange';
+function InterlockedExchangeAdd( Addend:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchangeAdd';
+function InterlockedTestExchange( Target:LPLONG; oldValue:LONG; newValue:LONG):LONG; external KernelDLL name 'InterlockedTestExchange';
+function IntersectClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external GdiDLL name 'IntersectClipRect';
+function IntersectRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external UserDLLCore name 'IntersectRect';
+function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external UserDLLCore name 'InvalidateRect';
+function InvalidateRect(hWnd:HWND;lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external UserDLLCore name 'InvalidateRect';
+function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external UserDLLCore name 'InvalidateRgn';
+function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external UserDLLCore name 'InvertRect';
+function IsBadReadPtr(lp:LPVOID; ucb:UINT):WINBOOL; external Kerneldll name 'IsBadReadPtr';
+function IsBadWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external Kerneldll name 'IsBadWritePtr';
+function IsBadCodePtr(lpfn:FARPROC):WINBOOL; external Kerneldll name 'IsBadCodePtr';
+function IsChild(hWndParent:HWND; hWnd:HWND):WINBOOL; external UserDLLCore name 'IsChild';
+function IsClipboardFormatAvailable(format:UINT):WINBOOL; external UserDLLCore name 'IsClipboardFormatAvailable';
+function IsDBCSLeadByte(TestChar:BYTE):WINBOOL; external KernelDLL name 'IsDBCSLeadByte';
+function IsDBCSLeadByteEx(CodePage:UINT; TestChar:BYTE):WINBOOL; external KernelDLL name 'IsDBCSLeadByteEx';
+function IsRectEmpty(var lprc:RECT):WINBOOL; external UserDLLCore name 'IsRectEmpty';
+function IsValidCodePage(CodePage:UINT):WINBOOL; external KernelDLL name 'IsValidCodePage';
+function IsValidLocale(Locale:LCID; dwFlags:DWORD):WINBOOL; external KernelDLL name 'IsValidLocale';
+function IsWindow(hWnd:HWND):WINBOOL; external UserDLLCore name 'IsWindow';
+function IsWindowEnabled(hWnd:HWND):WINBOOL; external UserDLLCore name 'IsWindowEnabled';
+function IsWindowVisible(hWnd:HWND):WINBOOL; external UserDLLCore name 'IsWindowVisible';
+procedure keybd_event(bVk:BYTE; bScan:BYTE; dwFlags:DWORD; dwExtraInfo:DWORD); external UserDLLCore name 'keybd_event';
+function KillTimer(hWnd:HWND; uIDEvent:UINT):WINBOOL; external UserDLLCore name 'KillTimer';
+procedure LeaveCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'LeaveCriticalSection';
+function LineTo(_para1:HDC; _para2:longint; _para3:longint):WINBOOL; external GdiDLL name 'LineTo';
+function ListView_Arrange(hwndLV:HWND;code : UINT) : LRESULT;
+function ListView_CreateDragImage(hwnd:HWND;i : longint;lpptUpLeft : LPPOINT) : LRESULT;
+function ListView_DeleteAllItems(hwnd : HWND) : LRESULT;
+function ListView_DeleteColumn(hwnd:HWND;iCol : longint) : LRESULT;
+function ListView_DeleteItem(hwnd:HWND;iItem : longint) : LRESULT;
+function ListView_EditLabel(hwndLV:HWND;i : longint) : LRESULT;
+function ListView_EnsureVisible(hwndLV:HWND;i,fPartialOK : longint) : LRESULT;
+function ListView_FindItem(hwnd:HWND;iStart : longint;var lvfi : LV_FINDINFO) : longint;
+function ListView_GetBkColor(hwnd : HWND) : LRESULT;
+function ListView_GetCallbackMask(hwnd : HWND) : LRESULT;
+function ListView_GetColumn(hwnd:HWND;iCol : longint;var col : LV_COLUMN) : LRESULT;
+function ListView_GetColumnWidth(hwnd:HWND;iCol : longint) : LRESULT;
+function ListView_GetCountPerPage(hwndLV : HWND) : LRESULT;
+function ListView_GetEditControl(hwndLV : HWND) : LRESULT;
+function ListView_GetImageList(hwnd:HWND;iImageList : wINT) : LRESULT;
+function ListView_GetISearchString(hwndLV:HWND;lpsz : LPTSTR) : LRESULT;
+function ListView_GetItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+function ListView_GetItemCount(hwnd : HWND) : LRESULT;
+function ListView_GetItemPosition(hwndLV:HWND;i : longint;var pt : POINT) : longint;
+function ListView_GetItemSpacing(hwndLV:HWND;fSmall : longint) : LRESULT;
+function ListView_GetItemState(hwndLV:HWND;i,mask : longint) : LRESULT;
+function ListView_GetNextItem(hwnd:HWND; iStart, flags : longint) : LRESULT;
+function ListView_GetOrigin(hwndLV:HWND;var pt : POINT) : LRESULT;
+function ListView_GetSelectedCount(hwndLV : HWND) : LRESULT;
+function ListView_GetStringWidth(hwndLV:HWND;psz : LPCTSTR) : LRESULT;
+function ListView_GetTextBkColor(hwnd : HWND) : LRESULT;
+function ListView_GetTextColor(hwnd : HWND) : LRESULT;
+function ListView_GetTopIndex(hwndLV : HWND) : LRESULT;
+function ListView_GetViewRect(hwnd:HWND;var rc : RECT) : LRESULT;
+function ListView_HitTest(hwndLV:HWND;var info : LV_HITTESTINFO) : LRESULT;
+function ListView_InsertColumn(hwnd:HWND;iCol : longint;var col : LV_COLUMN) : LRESULT;
+function ListView_InsertItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+function ListView_RedrawItems(hwndLV:HWND;iFirst,iLast : longint) : LRESULT;
+function ListView_Scroll(hwndLV:HWND;dx,dy : longint) : LRESULT;
+function ListView_SetBkColor(hwnd:HWND;clrBk : COLORREF) : LRESULT;
+function ListView_SetCallbackMask(hwnd:HWND;mask : UINT) : LRESULT;
+function ListView_SetColumn(hwnd:HWND;iCol : longint; var col : LV_COLUMN) : LRESULT;
+function ListView_SetColumnWidth(hwnd:HWND;iCol,cx : longint) : LRESULT;
+function ListView_SetImageList(hwnd:HWND;himl : longint;iImageList : HIMAGELIST) : LRESULT;
+function ListView_SetItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+function ListView_SetItemCount(hwndLV:HWND;cItems : longint) : LRESULT;
+function ListView_SetItemPosition(hwndLV:HWND;i,x,y : longint) : LRESULT;
+function ListView_SetItemPosition32(hwndLV:HWND;i,x,y : longint) : LRESULT;
+function ListView_SetItemState(hwndLV:HWND; i, data, mask:longint) : LRESULT;
+function ListView_SetItemText(hwndLV:HWND; i, iSubItem_:longint;pszText_ : LPTSTR) : LRESULT;
+function ListView_SetTextBkColor(hwnd:HWND;clrTextBk : COLORREF) : LRESULT;
+function ListView_SetTextColor(hwnd:HWND;clrText : COLORREF) : LRESULT;
+function ListView_SortItems(hwndLV:HWND;_pfnCompare:PFNLVCOMPARE;_lPrm : LPARAM) : LRESULT;
+function ListView_Update(hwndLV:HWND;i : longint) : LRESULT;
+function LoadResource(hModule:HINST; hResInfo:HRSRC):HGLOBAL; external KernelDLL name 'LoadResource';
+function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external KernelDLL name 'LocalAlloc';
+function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
+function LocalFileTimeToFileTime(lpLocalFileTime:LPFILETIME; lpFileTime:LPFILETIME):WINBOOL; external KernelDLL name 'LocalFileTimeToFileTime';
+function LocalFree(hMem:HLOCAL):HLOCAL; external KernelDLL name 'LocalFree';
+function LocalHandle(pMem:LPCVOID):HLOCAL;
+function LocalLock(hMem:HLOCAL):LPVOID;
+function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external KernelDLL name 'LocalReAlloc';
+function LocalSize(hMem:HLOCAL):UINT; external KernelDLL name 'LocalSize';
+function LocalUnlock(hMem:HLOCAL):WINBOOL;
+function MapDialogRect(hDlg:HWND; lpRect:LPRECT):WINBOOL; external UserDLLCore name 'MapDialogRect';
 function MapPtrToProcess(lpv: LPVOID; hProc: HANDLE ): LPVOID; external KernelDLL name 'MapPtrToProcess';
+function MapWindowPoints(hWndFrom:HWND; hWndTo:HWND; lpPoints:LPPOINT; cPoints:UINT):longint; external UserDLLCore name 'MapWindowPoints';
+function MaskBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:HBITMAP; _para10:longint;_para11:longint; _para12:DWORD):WINBOOL; external GdiDLL name 'MaskBlt';
+function MessageBeep(uType:UINT):WINBOOL; external UserDLLCore name 'MessageBeep';
+procedure mouse_event(dwFlags:DWORD; dx:DWORD; dy:DWORD; cButtons:DWORD; dwExtraInfo:DWORD); external UserDLLCore name 'mouse_event';
+function MoveToEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external GdiDLL name 'MoveToEx';
+procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+function MoveWindow(hWnd:HWND; X:longint; Y:longint; nWidth:longint; nHeight:longint;bRepaint:WINBOOL):WINBOOL; external UserDLLCore name 'MoveWindow';
+function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD;
+function MsgWaitForMultipleObjectsEx(nCount:DWORD; pHandles:LPHANDLE ; dwMilliseconds:DWORD; dwWakeMask:DWORD; dwFlags:DWORD):DWORD; external UserDLLCore name 'MsgWaitForMultipleObjectsEx';  //+winuser
+function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:LPCSTR; cchMultiByte:longint; lpWideCharStr:LPWSTR;cchWideChar:longint):longint; external KernelDLL name 'MultiByteToWideChar';
+function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external UserDLLCore name 'OffsetRect';
+function OffsetRgn(_para1:HRGN; _para2:longint; _para3:longint):longint; external GdiDLL name 'OffsetRgn';
+function OpenClipboard(hWndNewOwner:HWND):WINBOOL; external UserDLLCore name 'OpenClipboard';
+function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; external KernelDLL name 'OpenProcess';
+function PatBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD):WINBOOL; external GdiDLL name 'PatBlt';
+procedure PostQuitMessage(nExitCode:longint); external UserDLLCore name 'PostQuitMessage';
+function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external GdiDLL name 'PlayEnhMetaFile';
+function Polygon(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external GdiDLL name 'Polygon';
+function Polyline(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external GdiDLL name 'Polyline';
+function PropSheet_AddPage(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE) : LRESULT;
+function PropSheet_Apply(hPropSheetDlg : HWND) : LRESULT;
+function PropSheet_CancelToClose(hPropSheetDlg : HWND) : LRESULT;
+function PropSheet_Changed(hPropSheetDlg,hwndPage : HWND) : LRESULT;
+function PropSheet_GetCurrentPageHwnd(hDlg : HWND) : LRESULT;
+function PropSheet_GetTabControl(hPropSheetDlg : HWND) : LRESULT;
+function PropSheet_IsDialogMessage(hDlg : HWND;pMsg : longint) : LRESULT;
+function PropSheet_PressButton(hPropSheetDlg : HWND;iButton : longint) : LRESULT;
+function PropSheet_QuerySiblings(hPropSheetDlg : HWND;param1,param2 : longint) : LRESULT;
+function PropSheet_RebootSystem(hPropSheetDlg : HWND) : LRESULT;
+function PropSheet_RemovePage(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE; index : longint) : LRESULT;
+function PropSheet_RestartWindows(hPropSheetDlg : HWND) : LRESULT;
+function PropSheet_SetCurSel(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE; index : longint) : LRESULT;
+function PropSheet_SetCurSelByID(hPropSheetDlg : HWND; id : longint) : LRESULT;
+function PropSheet_SetFinishText(hPropSheetDlg:HWND;lpszText : LPTSTR) : LRESULT;
+function PropSheet_SetTitle(hPropSheetDlg:HWND;dwStyle:DWORD;lpszText : LPCTSTR) : LRESULT;
+function PropSheet_SetWizButtons(hPropSheetDlg:HWND;dwFlags : DWORD) : LRESULT;
+function PropSheet_UnChanged(hPropSheetDlg:HWND;hwndPage : HWND) : LRESULT;
+function PtInRect(lprc:LPRECT; pt:POINT):WINBOOL; external UserDLLCore name 'PtInRect';
+function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL; external GdiDLL name 'PtInRegion';
+function PulseEvent(hEvent:HANDLE):WINBOOL;
+function PurgeComm(hFile:HANDLE; dwFlags:DWORD):WINBOOL; external KernelDLL name 'PurgeComm';
+function QueryPerformanceCounter(lpPerformanceCount:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceCounter';
+function QueryPerformanceFrequency(lpFrequency:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceFrequency';
+procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external KernelDLL name 'RaiseException';
+function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external KernelDLL name 'ReadProcessMemory';
+function RealizePalette(_para1:HDC):UINT; external GdiDLL name 'RealizePalette';
+function RectInRegion(_para1:HRGN; var _para2:RECT):WINBOOL; external GdiDLL name 'RectInRegion';
+function RectVisible(_para1:HDC; var _para2:RECT):WINBOOL; external GdiDLL name 'RectVisible';
+function Rectangle(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external GdiDLL name 'Rectangle';
+function RedrawWindow(hWnd:HWND; var lprcUpdate:RECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external UserDLLCore name 'RedrawWindow';
+function RedrawWindow(hWnd:HWND; lprcUpdate:LPRECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external UserDLLCore name 'RedrawWindow';
+function RegisterHotKey(hWnd:HWND; anID:longint; fsModifiers:UINT; vk:UINT):WINBOOL; external UserDLLCore name 'RegisterHotKey';
+function RegCloseKey(hKey:HKEY):LONG; external AdvApiDLLCore name 'RegCloseKey';
+function RegFlushKey(hKey:HKEY):LONG; external AdvApiDLLCore name 'RegFlushKey';
+function ReleaseCapture:WINBOOL; external UserDLLCore name 'ReleaseCapture';
+function ReleaseDC(hWnd:HWND; hDC:HDC):longint; external UserDLLCore name 'ReleaseDC';
+function ReleaseMutex(hMutex:HANDLE):WINBOOL; external KernelDLL name 'ReleaseMutex';
+function ReleaseSemaphore(hSemaphore:HANDLE; lReleaseCount:LONG; lpPreviousCount:LPLONG):WINBOOL; external KernelDLL name 'ReleaseSemaphore';
+function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external UserDLLCore name 'RemoveMenu';
+function ResetEvent(hEvent:HANDLE):WINBOOL;
+function RestoreDC(_para1:HDC; _para2:longint):WINBOOL; external GdiDLL name 'RestoreDC';
+function ResumeThread(hThread:HANDLE):DWORD; external KernelDLL name 'ResumeThread';
+function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint):WINBOOL; external GdiDLL name 'RoundRect';
+function SaveDC(_para1:HDC):longint; external GdiDLL name 'SaveDC';
+function ScreenToClient(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external UserDLLCore name 'ScreenToClient';
+function ScrollDC(hDC:HDC; dx:longint; dy:longint; var lprcScroll:RECT; var lprcClip:RECT;hrgnUpdate:HRGN; lprcUpdate:LPRECT):WINBOOL; external UserDLLCore name 'ScrollDC';
+function ScrollWindowEx(hWnd:HWND; dx:longint; dy:longint; var prcScroll:RECT; var prcClip:RECT;hrgnUpdate:HRGN; prcUpdate:LPRECT; flags:UINT):longint; external UserDLLCore name 'ScrollWindowEx';
+function SelectClipRgn(_para1:HDC; _para2:HRGN):longint; external GdiDLL name 'SelectClipRgn';
+function SelectObject(_para1:HDC; _para2:HGDIOBJ):HGDIOBJ; external GdiDLL name 'SelectObject';
+function SelectPalette(_para1:HDC; _para2:HPALETTE; _para3:WINBOOL):HPALETTE; external GdiDLL name 'SelectPalette';
+function SetAbortProc(_para1:HDC; _para2:TABORTPROC):longint; external GdiDLL name 'SetAbortProc';
+function SetActiveWindow(hWnd:HWND):HWND; external UserDLLCore name 'SetActiveWindow';
+function SetBitmapBits(_para1:HBITMAP; _para2:DWORD; _para3:pointer):LONG; external GdiDLL name 'SetBitmapBits';
+function SetBkColor(_para1:HDC; _para2:COLORREF):COLORREF; external GdiDLL name 'SetBkColor';
+function SetBkMode(_para1:HDC; _para2:longint):longint; external GdiDLL name 'SetBkMode';
+function SetBrushOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external GdiDLL name 'SetBrushOrgEx';
+function SetCapture(hWnd:HWND):HWND; external UserDLLCore name 'SetCapture';
+function SetCaretBlinkTime(uMSeconds:UINT):WINBOOL; external UserDLLCore name 'SetCaretBlinkTime';
+function SetCaretPos(X:longint; Y:longint):WINBOOL; external UserDLLCore name 'SetCaretPos';
+function SetClipboardData(uFormat:UINT; hMem:HANDLE):HANDLE; external UserDLLCore name 'SetClipboardData';
+function SetCommBreak(hFile:HANDLE):WINBOOL; external KernelDLL name 'SetCommBreak';
+function SetCommMask(hFile:HANDLE; dwEvtMask:DWORD):WINBOOL; external KernelDLL name 'SetCommMask';
+function SetCommState(hFile:HANDLE; lpDCB:LPDCB):WINBOOL; external KernelDLL name 'SetCommState';
+function SetCommTimeouts(hFile:HANDLE; lpCommTimeouts:LPCOMMTIMEOUTS):WINBOOL; external KernelDLL name 'SetCommTimeouts';
+function SetCursor(hCursor:HCURSOR):HCURSOR; external UserDLLCore name 'SetCursor';
+function SetCursorPos(X:longint; Y:longint):WINBOOL; external UserDLLCore name 'SetCursorPos';
+function SetDIBColorTable(_para1:HDC; _para2:UINT; _para3:UINT; var _para4:RGBQUAD):UINT; external GdiDLL name 'SetDIBColorTable';
+function SetDIBitsToDevice(_para1:HDC; _para2:longint; _para3:longint; _para4:DWORD; _para5:DWORD;_para6:longint; _para7:longint; _para8:UINT; _para9:UINT; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT):longint;
+  external GdiDLL name 'SetDIBitsToDevice';
+function SetDlgItemInt(hDlg:HWND; nIDDlgItem:longint; uValue:UINT; bSigned:WINBOOL):WINBOOL; external UserDLLCore name 'SetDlgItemInt';
+function SetEndOfFile(hFile:HANDLE):WINBOOL; external KernelDLL name 'SetEndOfFile';
+function SetEvent(hEvent:HANDLE):WINBOOL;
+function SetFilePointer(hFile:HANDLE; lDistanceToMove:LONG; lpDistanceToMoveHigh:PLONG; dwMoveMethod:DWORD):DWORD; external KernelDLL name 'SetFilePointer';
+function SetFileTime(hFile:HANDLE; lpCreationTime:LPFILETIME; lpLastAccessTime:LPFILETIME; lpLastWriteTime:LPFILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
+function SetFocus(hWnd:HWND):HWND; external UserDLLCore name 'SetFocus';
+function SetForegroundWindow(hWnd:HWND):WINBOOL; external UserDLLCore name 'SetForegroundWindow';
+procedure SetLastError(dwErrCode:DWORD); external KernelDLL name 'SetLastError';
+function SetLocalTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
+function SetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):UINT; external GdiDLL name 'SetPaletteEntries';
+function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external UserDLLCore name 'SetParent';
+function SetPixel(_para1:HDC; _para2:longint; _para3:longint; _para4:COLORREF):COLORREF; external GdiDLL name 'SetPixel';
+function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external UserDLLCore name 'SetRect';
+function SetRectEmpty(lprc:LPRECT):WINBOOL; external UserDLLCore name 'SetRectEmpty';
+function SetRectRgn(_para1:HRGN; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external GdiDLL name 'SetRectRgn';
+function SetROP2(_para1:HDC; _para2:longint):longint; external GdiDLL name 'SetROP2';
+function SetScrollInfo(_para1:HWND; _para2:longint; _para3:LPCSCROLLINFO; _para4:WINBOOL):longint; external UserDLLCore name 'SetScrollInfo';
+function SetScrollPos(hWnd:HWND; nBar:longint; nPos:longint; bRedraw:WINBOOL):longint; external UserDLLCore name 'SetScrollPos';
+function SetScrollRange(hWnd:HWND; nBar:longint; nMinPos:longint; nMaxPos:longint; bRedraw:WINBOOL):WINBOOL; external UserDLLCore name 'SetScrollRange';
 function SetStdioPathW(id: DWORD; pwszPath: LPWSTR ):WINBOOL; external KernelDLL name 'SetStdioPathW';
+function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:COLORREF):WINBOOL; external UserDLLCore name 'SetSysColors';
+function SetSystemTime(lpSystemTime:LPSYSTEMTIME):WINBOOL; external KernelDLL name 'SetSystemTime';
+function SetTextAlign(_para1:HDC; _para2:UINT):UINT; external GdiDLL name 'SetTextAlign';
+function SetTextColor(_para1:HDC; _para2:COLORREF):COLORREF; external GdiDLL name 'SetTextColor';
+function SetTimer(hWnd:HWND; nIDEvent:UINT; uElapse:UINT; lpTimerFunc:TIMERPROC):UINT; external UserDLLCore name 'SetTimer';
+function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external KernelDLL name 'SetThreadPriority';
+function SetTimeZoneInformation(lpTimeZoneInformation:LPTIME_ZONE_INFORMATION):WINBOOL; external KernelDLL name 'SetTimeZoneInformation';
+function SetupComm(hFile:HANDLE; dwInQueue:DWORD; dwOutQueue:DWORD):WINBOOL; external KernelDLL name 'SetupComm';
+function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external GdiDLL name 'SetViewportOrgEx';
+function SetWindowPos(hWnd:HWND; hWndInsertAfter:HWND; X:longint; Y:longint; cx:longint;cy:longint; uFlags:UINT):WINBOOL; external UserDLLCore name 'SetWindowPos';
+function SetWindowRgn(hWnd:HWND; hRgn:HRGN; bRedraw:WINBOOL):longint; external UserDLLCore name 'SetWindowRgn';
+procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external ShellDLLCore name 'SHAddToRecentDocs';
+function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external ShellDLLCore name 'SHGetFileInfo';
+function ShowCaret(hWnd:HWND):WINBOOL; external UserDLLCore name 'ShowCaret';
+function ShowCursor(bShow:WINBOOL):longint; external UserDLLCore name 'ShowCursor';
+function ShowWindow(hWnd:HWND; nCmdShow:longint):WINBOOL; external UserDLLCore name 'ShowWindow';
+function SizeofResource(hModule:HINST; hResInfo:HRSRC):DWORD; external KernelDLL name 'SizeofResource';
+procedure Sleep(dwMilliseconds:DWORD); external KernelDLL name 'Sleep';
+function StartPage(_para1:HDC):longint; external GdiDLL name 'StartPage';
+function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;_para11:DWORD):WINBOOL; external GdiDLL name 'StretchBlt';
+function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint;
+  external GdiDLL name 'StretchDIBits';
+function SubtractRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external UserDLLCore name 'SubtractRect';
+function SuspendThread(hThread:HANDLE):DWORD; external KernelDLL name 'SuspendThread';
+function SystemTimeToFileTime(lpSystemTime:LPSYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external KernelDLL name 'SystemTimeToFileTime';
+function SNDMSG(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
+function TabCtrl_GetImageList(hwnd : HWND) : LRESULT;
+function TabCtrl_SetImageList(hwnd:HWND;himl : HIMAGELIST) : LRESULT;
+function TabCtrl_GetItemCount(hwnd : HWND) : LRESULT;
+function TabCtrl_GetItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+function TabCtrl_SetItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+function TabCtrl_InsertItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+function TabCtrl_DeleteItem(hwnd:HWND;i : longint) : LRESULT;
+function TabCtrl_DeleteAllItems(hwnd : HWND) : LRESULT;
+function TabCtrl_GetItemRect(hwnd:HWND;i : longint;var rc : RECT) : LRESULT;
+function TabCtrl_GetCurSel(hwnd : HWND) : LRESULT;
+function TabCtrl_SetCurSel(hwnd:HWND;i : longint) : LRESULT;
+function TabCtrl_HitTest(hwndTC:HWND;var info : TC_HITTESTINFO) : LRESULT;
+function TabCtrl_SetItemExtra(hwndTC:HWND;cb : longint) : LRESULT;
+function TabCtrl_AdjustRect(hwnd:HWND;bLarger:WINBOOL;var rc : RECT) : LRESULT;
+function TabCtrl_SetItemSize(hwnd:HWND;x,y : longint) : LRESULT;
+function TabCtrl_RemoveImage(hwnd:HWND;i : WPARAM) : LRESULT;
+function TabCtrl_SetPadding(hwnd:HWND;cx,cy : longint) : LRESULT;
+function TabCtrl_GetRowCount(hwnd : HWND) : LRESULT;
+function TabCtrl_GetToolTips(hwnd : HWND) : LRESULT;
+function TabCtrl_SetToolTips(hwnd:HWND;hwndTT : longint) : LRESULT;
+function TabCtrl_GetCurFocus(hwnd : HWND) : LRESULT;
+function TabCtrl_SetCurFocus(hwnd:HWND;i : longint) : LRESULT;
+function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external KernelDLL name 'TerminateProcess';
+function TerminateThread(hThread:HANDLE; dwExitCode:DWORD):WINBOOL; external KernelDLL name 'TerminateThread';
+function TlsAlloc:DWORD;
+function TlsCall(p1:DWORD; p2:DWORD):DWORD; external KernelDLL name 'TlsCall';
+function TlsFree(dwTlsIndex:DWORD):WINBOOL;
+function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external KernelDLL name 'TlsGetValue';
+function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external KernelDLL name 'TlsSetValue';
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL;
+function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external UserDLLCore name 'TrackPopupMenuEx';
+function TranslateCharsetInfo(var lpSrc:DWORD; lpCs:LPCHARSETINFO; dwFlags:DWORD):WINBOOL; external GdiDLL name 'TranslateCharsetInfo';
+function TranslateMessage(lpMsg:LPMSG):WINBOOL; external UserDLLCore name 'TranslateMessage';
+function TransmitCommChar(hFile:HANDLE; cChar:char):WINBOOL; external KernelDLL name 'TransmitCommChar';
+function TreeView_InsertItem(hwnd:HWND;lpis : LPTV_INSERTSTRUCT) : LRESULT;
+function TreeView_DeleteItem(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_DeleteAllItems(hwnd : HWND) : LRESULT;
+function TreeView_Expand(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+function TreeView_GetCount(hwnd : HWND) : LRESULT;
+function TreeView_GetIndent(hwnd : HWND) : LRESULT;
+function TreeView_SetIndent(hwnd:HWND;indent : longint) : LRESULT;
+function TreeView_GetImageList(hwnd:HWND;iImage : WPARAM) : LRESULT;
+function TreeView_SetImageList(hwnd:HWND;himl:HIMAGELIST;iImage : WPARAM) : LRESULT;
+function TreeView_GetNextItem(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+function TreeView_GetChild(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetNextSibling(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetPrevSibling(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetParent(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetFirstVisible(hwnd : HWND) : LRESULT;
+function TreeView_GetNextVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetPrevVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetSelection(hwnd : HWND) : LRESULT;
+function TreeView_GetDropHilight(hwnd : HWND) : LRESULT;
+function TreeView_GetRoot(hwnd : HWND) : LRESULT;
+function TreeView_Select(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+function TreeView_SelectItem(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_SelectDropTarget(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_SelectSetFirstVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetItem(hwnd:HWND;var item : TV_ITEM) : LRESULT;
+function TreeView_SetItem(hwnd:HWND;var item : TV_ITEM) : LRESULT;
+function TreeView_EditLabel(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_GetEditControl(hwnd : HWND) : LRESULT;
+function TreeView_GetVisibleCount(hwnd : HWND) : LRESULT;
+function TreeView_HitTest(hwnd:HWND;lpht : LPTV_HITTESTINFO) : LRESULT;
+function TreeView_CreateDragImage(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_SortChildren(hwnd:HWND;hitem:HTREEITEM;recurse : longint) : LRESULT;
+function TreeView_EnsureVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+function TreeView_SortChildrenCB(hwnd:HWND;psort:LPTV_SORTCB;recurse : longint) : LRESULT;
+function TreeView_EndEditLabelNow(hwnd:HWND;fCancel : longint) : LRESULT;
+function TreeView_GetISearchString(hwndTV:HWND;lpsz : LPTSTR) : LRESULT;
+function TryEnterCriticalSection(lpCriticalSection:LPCRITICAL_SECTION):WINBOOL; external KernelDLL name 'TryEnterCriticalSection';  //+winbase
+function UnhookWindowsHookEx(hhk:HHOOK):WINBOOL; external UserDLLCore name 'UnhookWindowsHookEx';
+function UnionRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external UserDLLCore name 'UnionRect';
+function UnmapViewOfFile(lpBaseAddress:LPVOID):WINBOOL; external KernelDLL name 'UnmapViewOfFile';
+function UnregisterHotKey(hWnd:HWND; anID:longint):WINBOOL; external UserDLLCore name 'UnregisterHotKey';
+function UpdateWindow(hWnd:HWND):WINBOOL; external UserDLLCore name 'UpdateWindow';
+function ValidateRect(hWnd:HWND; var lpRect:RECT):WINBOOL; external UserDLLCore name 'ValidateRect';
+function ValidateRect(hWnd:HWND;lpRect:LPRECT):WINBOOL; external UserDLLCore name 'ValidateRect';
+function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external UserDLLCore name 'ValidateRgn';
+function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external KernelDLL name 'VirtualAlloc';
+function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external KernelDLL name 'VirtualFree';
+function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external KernelDLL name 'VirtualQuery';
+function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; lpflOldProtect:PDWORD):WINBOOL; external KernelDLL name 'VirtualProtect';
+function WaitCommEvent(hFile:HANDLE; lpEvtMask:LPDWORD; lpOverlapped:LPOVERLAPPED):WINBOOL; external KernelDLL name 'WaitCommEvent';
+function WriteProcessMemory(hProcess:HANDLE; lpBaseAddress:LPVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesWritten:LPDWORD):WINBOOL; external KernelDLL name 'WriteProcessMemory';
+function WaitForDebugEvent(lpDebugEvent:LPDEBUG_EVENT; dwMilliseconds:DWORD):WINBOOL; external KernelDLL name 'WaitForDebugEvent';
+function WaitForSingleObject(hHandle:HANDLE; dwMilliseconds:DWORD):DWORD; external KernelDLL name 'WaitForSingleObject';
+function WaitForMultipleObjects(nCount:DWORD; lpHandles : PWOHandleArray; bWaitAll:WINBOOL; dwMilliseconds:DWORD):DWORD; external KernelDLL name 'WaitForMultipleObjects';
+function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:LPCWSTR; cchWideChar:longint; lpMultiByteStr:LPSTR;cchMultiByte:longint; lpDefaultChar:LPCSTR; lpUsedDefaultChar:LPBOOL):longint; external KernelDLL name 'WideCharToMultiByte';
+function WindowFromPoint(Point:POINT):HWND; external UserDLLCore name 'WindowFromPoint';
+function WNetCloseEnum(hEnum:HANDLE):DWORD; external MprDLLCore name 'WNetCloseEnum';
+function WNetDisconnectDialog(hwnd:HWND; dwType:DWORD):DWORD; external MprDLLCore name 'WNetDisconnectDialog';
+procedure ZeroMemory(Destination:PVOID; Length:DWORD);
+
 {$endif read_interface}
 
 
 {$ifdef read_implementation}
+
+function CheckDlgButton(hDlg:HWND; nIDButton:longint; uCheck:UINT):WINBOOL;
+begin
+  CheckDlgButton:=WINBOOL(SendDlgItemMessage(hDlg, nIDButton, BM_SETCHECK, WPARAM(uCheck), LPARAM(0)));
+end;
+
+procedure CopyMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+begin
+  Move(Source^, Destination^, Length);
+end;
+
+function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL;
+begin
+ DrawIcon:=DrawIconEx(hdc,x,y,hicon,0,0,0,NULL, DI_NORMAL);
+end;
+
+procedure ExitProcess(uExitCode:UINT);
+begin
+  TerminateProcess (GetCurrentProcess, uExitCode);
+end;
+
+procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
+begin
+  FillChar(Destination^,Length,Char(Fill));
+end;
+
+function GetCurrentThread:HANDLE;
+begin
+  GetCurrentThread:=SH_CURTHREAD+SYS_HANDLE_BASE;
+end;
+
+function GetCurrentThreadId:DWORD;
+begin
+ GetCurrentThreadId:=Phandle(PUserKData+SYSHANDLE_OFFSET+SH_CURTHREAD*SizeOf(THandle))^;
+end;
+
+function GetCurrentProcess:HANDLE;
+begin
+  GetCurrentProcess:=SH_CURPROC+SYS_HANDLE_BASE;
+end;
+
+function GetCurrentProcessId:DWORD;
+begin
+ GetCurrentProcessId:=Phandle(PUserKData+SYSHANDLE_OFFSET+SH_CURPROC*SizeOf(THandle))^;
+end;
+
+function GlobalAlloc(uFlags:UINT; dwBytes:DWORD):HGLOBAL;
+begin
+  GlobalAlloc:=LocalAlloc(uFlags,dwBytes);
+end;
+
+function GlobalAllocPtr(flags,cb:DWord):Pointer;
+begin
+  GlobalAllocPtr:=GlobalLock(GlobalAlloc(flags,cb));
+end;
+
+function GlobalFree(hMem:HGLOBAL):HGLOBAL;
+begin
+  GlobalFree:=LocalFree(hMem);
+end;
+
+function GlobalHandle(pMem:LPCVOID):HGLOBAL;
+begin
+  //GlobalHandle:=LocalHandle(pMem);
+  GlobalHandle:=HLOCAL(pMem); //see localhandle
+end;
+
+function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
+begin
+  GlobalReAlloc:=LocalReAlloc(hMem, dwBytes, LMEM_MOVEABLE);
+end;
+
+function GlobalSize(hMem:HGLOBAL):DWORD;
+begin
+  GlobalSize:=LocalSize(hMem);
+end;
+
+function GlobalLock(hMem:HGLOBAL):LPVOID;
+begin
+  //GlobalLock:=LocalLock(hMem);
+  GlobalLock:=LPVOID(hMem);  //see locallock
+end;
+
+function GlobalUnlock(hMem:HGLOBAL):WINBOOL;
+begin
+  //GlobalUnlock:=LocalUnlock(hMem);
+  GlobalUnlock:=True; //see localunlock
+end;
+
+function GlobalFreePtr(lp:Pointer):Pointer;
+begin
+  GlobalFreePtr:=Pointer(GlobalFree(HWND(GlobalUnlockPtr(lp))));
+end;
+
+function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
+begin
+  GlobalDiscard:=GlobalReAlloc(hglbMem,0,GMEM_MOVEABLE);
+end;
+
+function GlobalLockPtr(lp:pointer):Pointer;
+begin
+  GlobalLockPtr:=GlobalLock(GlobalHandle(lp));
+end;
+
+function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
+begin
+  GlobalReAllocPtr:=GlobalLock(GlobalReAlloc(HWND(GlobalUnlockPtr(lp)),cbNew,flags));
+end;
+
+function GlobalPtrHandle(lp:pointer):Pointer;
+begin
+  GlobalPtrHandle:=Pointer(GlobalHandle(lp));
+end;
+
+function GlobalUnlockPtr(lp:pointer):Pointer;
+begin
+  GlobalUnlock(GlobalHandle(lp));
+  GlobalUnlockPtr:=lp;
+end;
+
+function Header_DeleteItem(hwndHD:HWND;index : longint) : WINBOOL;
+begin
+  Header_DeleteItem:=WINBOOL(SendMessage(hwndHD,HDM_DELETEITEM,WPARAM(index),0));
+end;
+
+function Header_GetItem(hwndHD:HWND;index:longint;var hdi : HD_ITEM) : WINBOOL;
+begin
+  Header_GetItem:=WINBOOL(SendMessage(hwndHD,HDM_GETITEM,WPARAM(index),LPARAM(@hdi)));
+end;
+
+function Header_GetItemCount(hwndHD : HWND) : longint;
+begin
+  Header_GetItemCount:=longint(SendMessage(hwndHD,HDM_GETITEMCOUNT,0,0));
+end;
+
+function Header_InsertItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : longint;
+begin
+  Header_InsertItem:=longint(SendMessage(hwndHD,HDM_INSERTITEM,WPARAM(index),LPARAM(@hdi)));
+end;
+
+function Header_Layout(hwndHD:HWND;var layout : HD_LAYOUT) : WINBOOL;
+begin
+  Header_Layout:=WINBOOL(SendMessage(hwndHD,HDM_LAYOUT,0,LPARAM(@layout)));
+end;
+
+function Header_SetItem(hwndHD:HWND;index : longint;var hdi : HD_ITEM) : WINBOOL;
+begin
+  Header_SetItem:=WINBOOL(SendMessage(hwndHD,HDM_SETITEM,WPARAM(index),LPARAM(@hdi)));
+end;
+
+function ImageList_AddIcon(himl:HIMAGELIST; hicon:HICON):longint;
+begin
+  ImageList_AddIcon:=ImageList_ReplaceIcon(himl,-(1),hicon);
+end;
+
+function ListView_Arrange(hwndLV:HWND;code : UINT) : LRESULT;
+begin
+  ListView_Arrange:=SendMessage(hwndLV,LVM_ARRANGE,WPARAM(UINT(code)),0);
+end;
+
+function ListView_CreateDragImage(hwnd:HWND;i : longint;lpptUpLeft : LPPOINT) : LRESULT;
+begin
+  ListView_CreateDragImage:=SendMessage(hwnd,LVM_CREATEDRAGIMAGE,WPARAM(i),LPARAM(lpptUpLeft));
+end;
+
+function ListView_DeleteAllItems(hwnd : HWND) : LRESULT;
+begin
+  ListView_DeleteAllItems:=SendMessage(hwnd,LVM_DELETEALLITEMS,0,0);
+end;
+
+
+function ListView_DeleteColumn(hwnd:HWND;iCol : longint) : LRESULT;
+begin
+  ListView_DeleteColumn:=SendMessage(hwnd,LVM_DELETECOLUMN,WPARAM(iCol),0);
+end;
+
+
+function ListView_DeleteItem(hwnd:HWND;iItem : longint) : LRESULT;
+begin
+  ListView_DeleteItem:=SendMessage(hwnd,LVM_DELETEITEM,WPARAM(iItem),0);
+end;
+
+
+function ListView_EditLabel(hwndLV:HWND;i : longint) : LRESULT;
+begin
+  ListView_EditLabel:=SendMessage(hwndLV,LVM_EDITLABEL,WPARAM(longint(i)),0);
+end;
+
+
+function ListView_EnsureVisible(hwndLV:HWND;i,fPartialOK : longint) : LRESULT;
+begin
+  ListView_EnsureVisible:=SendMessage(hwndLV,LVM_ENSUREVISIBLE,WPARAM(i),MAKELPARAM(fPartialOK,0));
+end;
+
+
+function ListView_FindItem(hwnd:HWND;iStart : longint;var lvfi : LV_FINDINFO) : longint;
+begin
+  ListView_FindItem:=SendMessage(hwnd,LVM_FINDITEM,WPARAM(iStart),LPARAM(@lvfi));
+end;
+
+
+function ListView_GetBkColor(hwnd : HWND) : LRESULT;
+begin
+  ListView_GetBkColor:=SendMessage(hwnd,LVM_GETBKCOLOR,0,0);
+end;
+
+
+function ListView_GetCallbackMask(hwnd : HWND) : LRESULT;
+begin
+  ListView_GetCallbackMask:=SendMessage(hwnd,LVM_GETCALLBACKMASK,0,0);
+end;
+
+
+function ListView_GetColumn(hwnd:HWND;iCol : longint;var col : LV_COLUMN) : LRESULT;
+begin
+  ListView_GetColumn:=SendMessage(hwnd,LVM_GETCOLUMN,WPARAM(iCol),LPARAM(@col));
+end;
+
+
+function ListView_GetColumnWidth(hwnd:HWND;iCol : longint) : LRESULT;
+begin
+  ListView_GetColumnWidth:=SendMessage(hwnd,LVM_GETCOLUMNWIDTH,WPARAM(iCol),0);
+end;
+
+
+function ListView_GetCountPerPage(hwndLV : HWND) : LRESULT;
+begin
+  ListView_GetCountPerPage:=SendMessage(hwndLV,LVM_GETCOUNTPERPAGE,0,0);
+end;
+
+
+function ListView_GetEditControl(hwndLV : HWND) : LRESULT;
+begin
+  ListView_GetEditControl:=SendMessage(hwndLV,LVM_GETEDITCONTROL,0,0);
+end;
+
+
+function ListView_GetImageList(hwnd:HWND;iImageList : wINT) : LRESULT;
+begin
+  ListView_GetImageList:=SendMessage(hwnd,LVM_GETIMAGELIST,WPARAM(iImageList),0);
+end;
+
+
+function ListView_GetISearchString(hwndLV:HWND;lpsz : LPTSTR) : LRESULT;
+begin
+  ListView_GetISearchString:=SendMessage(hwndLV,LVM_GETISEARCHSTRING,0,LPARAM(lpsz));
+end;
+
+
+function ListView_GetItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+begin
+  ListView_GetItem:=SendMessage(hwnd,LVM_GETITEM,0,LPARAM(@item));
+end;
+
+
+function ListView_GetItemCount(hwnd : HWND) : LRESULT;
+begin
+  ListView_GetItemCount:=SendMessage(hwnd,LVM_GETITEMCOUNT,0,0);
+end;
+
+
+function ListView_GetItemPosition(hwndLV:HWND;i : longint;var pt : POINT) : longint;
+begin
+  ListView_GetItemPosition:=SendMessage(hwndLV,LVM_GETITEMPOSITION,WPARAM(longint(i)),LPARAM(@pt));
+end;
+
+
+function ListView_GetItemSpacing(hwndLV:HWND;fSmall : longint) : LRESULT;
+begin
+  ListView_GetItemSpacing:=SendMessage(hwndLV,LVM_GETITEMSPACING,fSmall,0);
+end;
+
+
+function ListView_GetItemState(hwndLV:HWND;i,mask : longint) : LRESULT;
+begin
+  ListView_GetItemState:=SendMessage(hwndLV,LVM_GETITEMSTATE,WPARAM(i),LPARAM(mask));
+end;
+
+
+function ListView_GetNextItem(hwnd:HWND; iStart, flags : longint) : LRESULT;
+begin
+  ListView_GetNextItem:=SendMessage(hwnd, LVM_GETNEXTITEM, WPARAM(iStart), LPARAM(flags));
+end;
+
+
+function ListView_GetOrigin(hwndLV:HWND;var pt : POINT) : LRESULT;
+begin
+  ListView_GetOrigin:=SendMessage(hwndLV,LVM_GETORIGIN,WPARAM(0),LPARAM(@pt));
+end;
+
+
+function ListView_GetSelectedCount(hwndLV : HWND) : LRESULT;
+begin
+  ListView_GetSelectedCount:=SendMessage(hwndLV,LVM_GETSELECTEDCOUNT,0,0);
+end;
+
+
+function ListView_GetStringWidth(hwndLV:HWND;psz : LPCTSTR) : LRESULT;
+begin
+  ListView_GetStringWidth:=SendMessage(hwndLV,LVM_GETSTRINGWIDTH,0,LPARAM(psz));
+end;
+
+
+function ListView_GetTextBkColor(hwnd : HWND) : LRESULT;
+begin
+  ListView_GetTextBkColor:=SendMessage(hwnd,LVM_GETTEXTBKCOLOR,0,0);
+end;
+
+
+function ListView_GetTextColor(hwnd : HWND) : LRESULT;
+begin
+  ListView_GetTextColor:=SendMessage(hwnd,LVM_GETTEXTCOLOR,0,0);
+end;
+
+
+function ListView_GetTopIndex(hwndLV : HWND) : LRESULT;
+begin
+  ListView_GetTopIndex:=SendMessage(hwndLV,LVM_GETTOPINDEX,0,0);
+end;
+
+
+function ListView_GetViewRect(hwnd:HWND;var rc : RECT) : LRESULT;
+begin
+  ListView_GetViewRect:=SendMessage(hwnd,LVM_GETVIEWRECT,0,LPARAM(@rc));
+end;
+
+
+function ListView_HitTest(hwndLV:HWND;var info : LV_HITTESTINFO) : LRESULT;
+begin
+  ListView_HitTest:=SendMessage(hwndLV,LVM_HITTEST,0,LPARAM(@info));
+end;
+
+
+function ListView_InsertColumn(hwnd:HWND;iCol : longint;var col : LV_COLUMN) : LRESULT;
+begin
+  ListView_InsertColumn:=SendMessage(hwnd,LVM_INSERTCOLUMN,WPARAM(iCol),LPARAM(@col));
+end;
+
+
+function ListView_InsertItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+begin
+  ListView_InsertItem:=SendMessage(hwnd,LVM_INSERTITEM,0,LPARAM(@item));
+end;
+
+
+function ListView_RedrawItems(hwndLV:HWND;iFirst,iLast : longint) : LRESULT;
+begin
+  ListView_RedrawItems:=SendMessage(hwndLV,LVM_REDRAWITEMS,WPARAM(iFirst),LPARAM(iLast));
+end;
+
+
+function ListView_Scroll(hwndLV:HWND;dx,dy : longint) : LRESULT;
+begin
+  ListView_Scroll:=SendMessage(hwndLV,LVM_SCROLL,WPARAM(dx),LPARAM(dy));
+end;
+
+
+function ListView_SetBkColor(hwnd:HWND;clrBk : COLORREF) : LRESULT;
+begin
+  ListView_SetBkColor:=SendMessage(hwnd,LVM_SETBKCOLOR,0,LPARAM(clrBk));
+end;
+
+
+function ListView_SetCallbackMask(hwnd:HWND;mask : UINT) : LRESULT;
+begin
+  ListView_SetCallbackMask:=SendMessage(hwnd,LVM_SETCALLBACKMASK,WPARAM(mask),0);
+end;
+
+
+function ListView_SetColumn(hwnd:HWND;iCol : longint; var col : LV_COLUMN) : LRESULT;
+begin
+  ListView_SetColumn:=SendMessage(hwnd,LVM_SETCOLUMN,WPARAM(iCol),LPARAM(@col));
+end;
+
+
+function ListView_SetColumnWidth(hwnd:HWND;iCol,cx : longint) : LRESULT;
+begin
+  ListView_SetColumnWidth:=SendMessage(hwnd,LVM_SETCOLUMNWIDTH,WPARAM(iCol),MAKELPARAM(cx,0));
+end;
+
+
+function ListView_SetImageList(hwnd:HWND;himl : longint;iImageList : HIMAGELIST) : LRESULT;
+begin
+  ListView_SetImageList:=SendMessage(hwnd,LVM_SETIMAGELIST,WPARAM(iImageList),LPARAM(UINT(himl)));
+end;
+
+
+function ListView_SetItem(hwnd:HWND;var item : LV_ITEM) : LRESULT;
+begin
+  ListView_SetItem:=SendMessage(hwnd,LVM_SETITEM,0,LPARAM(@item));
+end;
+
+
+function ListView_SetItemCount(hwndLV:HWND;cItems : longint) : LRESULT;
+begin
+  ListView_SetItemCount:=SendMessage(hwndLV,LVM_SETITEMCOUNT,WPARAM(cItems),0);
+end;
+
+
+function ListView_SetItemPosition(hwndLV:HWND;i,x,y : longint) : LRESULT;
+begin
+  ListView_SetItemPosition:=SendMessage(hwndLV,LVM_SETITEMPOSITION,WPARAM(i),MAKELPARAM(x,y));
+end;
+
+
+function ListView_SetItemPosition32(hwndLV:HWND;i,x,y : longint) : LRESULT;
+var
+  ptNewPos : POINT;
+begin
+  ptNewPos.x:=x;
+  ptNewPos.y:=y;
+  ListView_SetItemPosition32:=SendMessage(hwndLV, LVM_SETITEMPOSITION32, WPARAM(i),LPARAM(@ptNewPos));
+end;
+
+
+function ListView_SetItemState(hwndLV:HWND; i, data, mask:longint) : LRESULT;
+var
+  _gnu_lvi : LV_ITEM;
+begin
+  _gnu_lvi.stateMask:=mask;
+  _gnu_lvi.state:=data;
+  ListView_SetItemState:=SendMessage(hwndLV, LVM_SETITEMSTATE, WPARAM(i),LPARAM(@_gnu_lvi));
+end;
+
+
+function ListView_SetItemText(hwndLV:HWND; i, iSubItem_:longint;pszText_ : LPTSTR) : LRESULT;
+var
+  _gnu_lvi : LV_ITEM;
+begin
+  _gnu_lvi.iSubItem:=iSubItem_;
+  _gnu_lvi.pszText:=pszText_;
+  ListView_SetItemText:=SendMessage(hwndLV, LVM_SETITEMTEXT, WPARAM(i),LPARAM(@_gnu_lvi));
+end;
+
+
+function ListView_SetTextBkColor(hwnd:HWND;clrTextBk : COLORREF) : LRESULT;
+begin
+  ListView_SetTextBkColor:=SendMessage(hwnd,LVM_SETTEXTBKCOLOR,0,LPARAM(clrTextBk));
+end;
+
+
+function ListView_SetTextColor(hwnd:HWND;clrText : COLORREF) : LRESULT;
+begin
+  ListView_SetTextColor:=SendMessage(hwnd,LVM_SETTEXTCOLOR,0,LPARAM(clrText));
+end;
+
+
+function ListView_SortItems(hwndLV:HWND;_pfnCompare:PFNLVCOMPARE;_lPrm : LPARAM) : LRESULT;
+begin
+  ListView_SortItems:=SendMessage(hwndLV,LVM_SORTITEMS,WPARAM(_lPrm),LPARAM(_pfnCompare));
+end;
+
+
+function ListView_Update(hwndLV:HWND;i : longint) : LRESULT;
+begin
+  ListView_Update:=SendMessage(hwndLV,LVM_UPDATE,WPARAM(i),0);
+end;
+
+
+function LocalHandle(pMem:LPCVOID):HLOCAL;
+begin
+  LocalHandle:=HLOCAL(pMem);
+end;
+
+function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
+begin
+  LocalDiscard := LocalReAlloc(hlocMem,0,LMEM_MOVEABLE);
+end;
+
+function LocalLock(hMem:HLOCAL):LPVOID;
+begin
+  LocalLock:=LPVOID(hMem);
+end;
+
+function LocalUnlock(hMem:HLOCAL):WINBOOL;
+begin
+  LocalUnlock:=True;
+end;
+
+procedure MoveMemory(Destination:PVOID; Source:pointer; Length:DWORD);
+begin
+  Move(Source^,Destination^,Length);
+end;
+
+function MsgWaitForMultipleObjects(nCount:DWORD; pHandles:LPHANDLE; fWaitAll:WINBOOL; dwMilliseconds:DWORD; dwWakeMask:DWORD):DWORD;
+begin
+  MsgWaitForMultipleObjects:=MsgWaitForMultipleObjectsEx(nCount,pHandles,dwMilliseconds,dwWakeMask,0);
+end;
+
+function PropSheet_AddPage(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE) : LRESULT;
+begin
+  PropSheet_AddPage:=SendMessage(hPropSheetDlg,PSM_ADDPAGE,0,LPARAM(hpage));
+end;
+
+
+function PropSheet_Apply(hPropSheetDlg : HWND) : LRESULT;
+begin
+  PropSheet_Apply:=SendMessage(hPropSheetDlg,PSM_APPLY,0,0);
+end;
+
+
+function PropSheet_CancelToClose(hPropSheetDlg : HWND) : LRESULT;
+begin
+  PropSheet_CancelToClose:=SendMessage(hPropSheetDlg,PSM_CANCELTOCLOSE,0,0);
+end;
+
+
+function PropSheet_Changed(hPropSheetDlg,hwndPage : HWND) : LRESULT;
+begin
+  PropSheet_Changed:=SendMessage(hPropSheetDlg,PSM_CHANGED,WPARAM(hwndPage),0);
+end;
+
+
+function PropSheet_GetCurrentPageHwnd(hDlg : HWND) : LRESULT;
+begin
+  PropSheet_GetCurrentPageHwnd:=SendMessage(hDlg,PSM_GETCURRENTPAGEHWND,0,0);
+end;
+
+
+function PropSheet_GetTabControl(hPropSheetDlg : HWND) : LRESULT;
+begin
+  PropSheet_GetTabControl:=SendMessage(hPropSheetDlg,PSM_GETTABCONTROL,0,0);
+end;
+
+
+function PropSheet_IsDialogMessage(hDlg : HWND;pMsg : longint) : LRESULT;
+begin
+  PropSheet_IsDialogMessage:=SendMessage(hDlg,PSM_ISDIALOGMESSAGE,0,LPARAM(pMsg));
+end;
+
+
+function PropSheet_PressButton(hPropSheetDlg : HWND;iButton : longint) : LRESULT;
+begin
+  PropSheet_PressButton:=SendMessage(hPropSheetDlg,PSM_PRESSBUTTON,WPARAM(longint(iButton)),0);
+end;
+
+
+function PropSheet_QuerySiblings(hPropSheetDlg : HWND;param1,param2 : longint) : LRESULT;
+begin
+  PropSheet_QuerySiblings:=SendMessage(hPropSheetDlg,PSM_QUERYSIBLINGS,WPARAM(param1),LPARAM(param2));
+end;
+
+
+function PropSheet_RebootSystem(hPropSheetDlg : HWND) : LRESULT;
+begin
+  PropSheet_RebootSystem:=SendMessage(hPropSheetDlg,PSM_REBOOTSYSTEM,0,0);
+end;
+
+
+function PropSheet_RemovePage(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE; index : longint) : LRESULT;
+begin
+  PropSheet_RemovePage:=SendMessage(hPropSheetDlg,PSM_REMOVEPAGE,WPARAM(index),LPARAM(hpage));
+end;
+
+
+function PropSheet_RestartWindows(hPropSheetDlg : HWND) : LRESULT;
+begin
+  PropSheet_RestartWindows:=SendMessage(hPropSheetDlg,PSM_RESTARTWINDOWS,0,0);
+end;
+
+
+function PropSheet_SetCurSel(hPropSheetDlg : HWND;hpage : HPROPSHEETPAGE; index : longint) : LRESULT;
+begin
+  PropSheet_SetCurSel:=SendMessage(hPropSheetDlg,PSM_SETCURSEL,WPARAM(index),LPARAM(hpage));
+end;
+
+
+function PropSheet_SetCurSelByID(hPropSheetDlg : HWND; id : longint) : LRESULT;
+begin
+  PropSheet_SetCurSelByID:=SendMessage(hPropSheetDlg,PSM_SETCURSELID,0,LPARAM(id));
+end;
+
+
+function PropSheet_SetFinishText(hPropSheetDlg:HWND;lpszText : LPTSTR) : LRESULT;
+begin
+  PropSheet_SetFinishText:=SendMessage(hPropSheetDlg,PSM_SETFINISHTEXT,0,LPARAM(lpszText));
+end;
+
+
+function PropSheet_SetTitle(hPropSheetDlg:HWND;dwStyle:DWORD;lpszText : LPCTSTR) : LRESULT;
+begin
+  PropSheet_SetTitle:=SendMessage(hPropSheetDlg,PSM_SETTITLE,WPARAM(dwStyle),LPARAM(lpszText));
+end;
+
+
+function PropSheet_SetWizButtons(hPropSheetDlg:HWND;dwFlags : DWORD) : LRESULT;
+begin
+  PropSheet_SetWizButtons:=SendMessage(hPropSheetDlg,PSM_SETWIZBUTTONS,0,LPARAM(dwFlags));
+end;
+
+
+function PropSheet_UnChanged(hPropSheetDlg:HWND;hwndPage : HWND) : LRESULT;
+begin
+  PropSheet_UnChanged:=SendMessage(hPropSheetDlg,PSM_UNCHANGED,WPARAM(hwndPage),0);
+end;
+
+function PulseEvent(hEvent:HANDLE):WINBOOL;
+begin
+  PulseEvent:=EventModify(hEvent,EVENT_PULSE);
+end;
+
+function ResetEvent(hEvent:HANDLE):WINBOOL;
+begin
+  ResetEvent:=EventModify(hEvent,EVENT_RESET);
+end;
+
+function SetEvent(hEvent:HANDLE):WINBOOL;
+begin
+  SetEvent:=EventModify(hEvent,EVENT_SET);
+end;
+
+function SNDMSG(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
+begin
+  SNDMSG:=SendMessage(hWnd,Msg,wParam,lParam);
+end;
+
+function TabCtrl_GetImageList(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetImageList:=SendMessage(hwnd,TCM_GETIMAGELIST,0,0);
+end;
+
+
+function TabCtrl_SetImageList(hwnd:HWND;himl : HIMAGELIST) : LRESULT;
+begin
+  TabCtrl_SetImageList:=SendMessage(hwnd,TCM_SETIMAGELIST,0,LPARAM(UINT(himl)));
+end;
+
+
+function TabCtrl_GetItemCount(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetItemCount:=SendMessage(hwnd,TCM_GETITEMCOUNT,0,0);
+end;
+
+
+function TabCtrl_GetItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+begin
+  TabCtrl_GetItem:=SendMessage(hwnd,TCM_GETITEM,WPARAM(iItem),LPARAM(@item));
+end;
+
+
+function TabCtrl_SetItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+begin
+  TabCtrl_SetItem:=SendMessage(hwnd,TCM_SETITEM,WPARAM(iItem),LPARAM(@item));
+end;
+
+
+function TabCtrl_InsertItem(hwnd:HWND;iItem : longint;var item : TC_ITEM) : LRESULT;
+begin
+  TabCtrl_InsertItem:=SendMessage(hwnd,TCM_INSERTITEM,WPARAM(iItem),LPARAM(@item));
+end;
+
+
+function TabCtrl_DeleteItem(hwnd:HWND;i : longint) : LRESULT;
+begin
+  TabCtrl_DeleteItem:=SendMessage(hwnd,TCM_DELETEITEM,WPARAM(i),0);
+end;
+
+
+function TabCtrl_DeleteAllItems(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_DeleteAllItems:=SendMessage(hwnd,TCM_DELETEALLITEMS,0,0);
+end;
+
+
+function TabCtrl_GetItemRect(hwnd:HWND;i : longint;var rc : RECT) : LRESULT;
+begin
+  TabCtrl_GetItemRect:=SendMessage(hwnd,TCM_GETITEMRECT,WPARAM(longint(i)),LPARAM(@rc));
+end;
+
+
+function TabCtrl_GetCurSel(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetCurSel:=SendMessage(hwnd,TCM_GETCURSEL,0,0);
+end;
+
+
+function TabCtrl_SetCurSel(hwnd:HWND;i : longint) : LRESULT;
+begin
+  TabCtrl_SetCurSel:=SendMessage(hwnd,TCM_SETCURSEL,WPARAM(i),0);
+end;
+
+
+function TabCtrl_HitTest(hwndTC:HWND;var info : TC_HITTESTINFO) : LRESULT;
+begin
+  TabCtrl_HitTest:=SendMessage(hwndTC,TCM_HITTEST,0,LPARAM(@info));
+end;
+
+
+function TabCtrl_SetItemExtra(hwndTC:HWND;cb : longint) : LRESULT;
+begin
+  TabCtrl_SetItemExtra:=SendMessage(hwndTC,TCM_SETITEMEXTRA,WPARAM(cb),0);
+end;
+
+
+function TabCtrl_AdjustRect(hwnd:HWND;bLarger:WINBOOL;var rc : RECT) : LRESULT;
+begin
+  TabCtrl_AdjustRect:=SendMessage(hwnd,TCM_ADJUSTRECT,WPARAM(bLarger),LPARAM(@rc));
+end;
+
+
+function TabCtrl_SetItemSize(hwnd:HWND;x,y : longint) : LRESULT;
+begin
+  TabCtrl_SetItemSize:=SendMessage(hwnd,TCM_SETITEMSIZE,0,MAKELPARAM(x,y));
+end;
+
+
+function TabCtrl_RemoveImage(hwnd:HWND;i : WPARAM) : LRESULT;
+begin
+  TabCtrl_RemoveImage:=SendMessage(hwnd,TCM_REMOVEIMAGE,i,0);
+end;
+
+
+function TabCtrl_SetPadding(hwnd:HWND;cx,cy : longint) : LRESULT;
+begin
+  TabCtrl_SetPadding:=SendMessage(hwnd,TCM_SETPADDING,0,MAKELPARAM(cx,cy));
+end;
+
+
+function TabCtrl_GetRowCount(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetRowCount:=SendMessage(hwnd,TCM_GETROWCOUNT,0,0);
+end;
+
+
+function TabCtrl_GetToolTips(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetToolTips:=SendMessage(hwnd,TCM_GETTOOLTIPS,0,0);
+end;
+
+
+function TabCtrl_SetToolTips(hwnd:HWND;hwndTT : longint) : LRESULT;
+begin
+  TabCtrl_SetToolTips:=SendMessage(hwnd,TCM_SETTOOLTIPS,WPARAM(hwndTT),0);
+end;
+
+
+function TabCtrl_GetCurFocus(hwnd : HWND) : LRESULT;
+begin
+  TabCtrl_GetCurFocus:=SendMessage(hwnd,TCM_GETCURFOCUS,0,0);
+end;
+
+function TlsAlloc:DWORD;
+begin
+ TlsAlloc:=TlsCall(TLS_FUNCALLOC, 0);
+end;
+
+function TlsFree(dwTlsIndex:DWORD):WINBOOL;
+begin
+ TlsFree:=WINBOOL(TlsCall(TLS_FUNCFREE, dwTlsIndex));
+end;
+
+
+function TabCtrl_SetCurFocus(hwnd:HWND;i : longint) : LRESULT;
+begin
+  TabCtrl_SetCurFocus:=SendMessage(hwnd,TCM_SETCURFOCUS,i,0);
+end;
+
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL;
+begin
+  TrackPopupMenu:=TrackPopupMenuEx(hMenu,uFlags,x,y,hWnd,nil);
+end;
+
+function TreeView_InsertItem(hwnd:HWND;lpis : LPTV_INSERTSTRUCT) : LRESULT;
+begin
+  TreeView_InsertItem:=SendMessage(hwnd,TVM_INSERTITEM,0,LPARAM(lpis));
+end;
+
+
+function TreeView_DeleteItem(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_DeleteItem:=SendMessage(hwnd,TVM_DELETEITEM,0,LPARAM(hitem));
+end;
+
+
+function TreeView_DeleteAllItems(hwnd : HWND) : LRESULT;
+begin
+  TreeView_DeleteAllItems:=SendMessage(hwnd,TVM_DELETEITEM,0,LPARAM(TVI_ROOT));
+end;
+
+
+function TreeView_Expand(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+begin
+  TreeView_Expand:=SendMessage(hwnd,TVM_EXPAND,WPARAM(code),LPARAM(hitem));
+end;
+
+
+function TreeView_GetCount(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetCount:=SendMessage(hwnd,TVM_GETCOUNT,0,0);
+end;
+
+
+function TreeView_GetIndent(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetIndent:=SendMessage(hwnd,TVM_GETINDENT,0,0);
+end;
+
+
+function TreeView_SetIndent(hwnd:HWND;indent : longint) : LRESULT;
+begin
+  TreeView_SetIndent:=SendMessage(hwnd,TVM_SETINDENT,WPARAM(indent),0);
+end;
+
+
+function TreeView_GetImageList(hwnd:HWND;iImage : WPARAM) : LRESULT;
+begin
+  TreeView_GetImageList:=SendMessage(hwnd,TVM_GETIMAGELIST,iImage,0);
+end;
+
+
+function TreeView_SetImageList(hwnd:HWND;himl:HIMAGELIST;iImage : WPARAM) : LRESULT;
+begin
+  TreeView_SetImageList:=SendMessage(hwnd,TVM_SETIMAGELIST,iImage,LPARAM(UINT(himl)));
+end;
+
+
+function TreeView_GetNextItem(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+begin
+  TreeView_GetNextItem:=SendMessage(hwnd,TVM_GETNEXTITEM,WPARAM(code),LPARAM(hitem));
+end;
+
+
+function TreeView_GetChild(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetChild:=TreeView_GetNextItem(hwnd,hitem,TVGN_CHILD);
+end;
+
+
+function TreeView_GetNextSibling(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetNextSibling:=TreeView_GetNextItem(hwnd,hitem,TVGN_NEXT);
+end;
+
+
+function TreeView_GetPrevSibling(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetPrevSibling:=TreeView_GetNextItem(hwnd,hitem,TVGN_PREVIOUS);
+end;
+
+
+function TreeView_GetParent(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetParent:=TreeView_GetNextItem(hwnd,hitem,TVGN_PARENT);
+end;
+
+
+function TreeView_GetFirstVisible(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetFirstVisible:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_FIRSTVISIBLE);
+end;
+
+
+function TreeView_GetNextVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetNextVisible:=TreeView_GetNextItem(hwnd,hitem,TVGN_NEXTVISIBLE);
+end;
+
+
+function TreeView_GetPrevVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_GetPrevVisible:=TreeView_GetNextItem(hwnd,hitem,TVGN_PREVIOUSVISIBLE);
+end;
+
+
+function TreeView_GetSelection(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetSelection:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_CARET);
+end;
+
+
+function TreeView_GetDropHilight(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetDropHilight:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_DROPHILITE);
+end;
+
+
+function TreeView_GetRoot(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetRoot:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_ROOT);
+end;
+
+
+function TreeView_Select(hwnd:HWND;hitem:HTREEITEM;code : longint) : LRESULT;
+begin
+  TreeView_Select:=SendMessage(hwnd,TVM_SELECTITEM,WPARAM(code),LPARAM(hitem));
+end;
+
+
+function TreeView_SelectItem(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_SelectItem:=TreeView_Select(hwnd,hitem,TVGN_CARET);
+end;
+
+
+function TreeView_SelectDropTarget(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_SelectDropTarget:=TreeView_Select(hwnd,hitem,TVGN_DROPHILITE);
+end;
+
+
+function TreeView_SelectSetFirstVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_SelectSetFirstVisible:=TreeView_Select(hwnd,hitem,TVGN_FIRSTVISIBLE);
+end;
+
+
+function TreeView_GetItem(hwnd:HWND;var item : TV_ITEM) : LRESULT;
+begin
+  TreeView_GetItem:=SendMessage(hwnd,TVM_GETITEM,0,LPARAM(@item));
+end;
+
+
+function TreeView_SetItem(hwnd:HWND;var item : TV_ITEM) : LRESULT;
+begin
+  TreeView_SetItem:=SendMessage(hwnd,TVM_SETITEM,0,LPARAM(@item));
+end;
+
+
+function TreeView_EditLabel(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_EditLabel:=SendMessage(hwnd,TVM_EDITLABEL,0,LPARAM(hitem));
+end;
+
+
+function TreeView_GetEditControl(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetEditControl:=SendMessage(hwnd,TVM_GETEDITCONTROL,0,0);
+end;
+
+
+function TreeView_GetVisibleCount(hwnd : HWND) : LRESULT;
+begin
+  TreeView_GetVisibleCount:=SendMessage(hwnd,TVM_GETVISIBLECOUNT,0,0);
+end;
+
+
+function TreeView_HitTest(hwnd:HWND;lpht : LPTV_HITTESTINFO) : LRESULT;
+begin
+  TreeView_HitTest:=SendMessage(hwnd,TVM_HITTEST,0,LPARAM(lpht));
+end;
+
+
+function TreeView_CreateDragImage(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_CreateDragImage:=SendMessage(hwnd,TVM_CREATEDRAGIMAGE,0,LPARAM(hitem));
+end;
+
+
+function TreeView_SortChildren(hwnd:HWND;hitem:HTREEITEM;recurse : longint) : LRESULT;
+begin
+  TreeView_SortChildren:=SendMessage(hwnd,TVM_SORTCHILDREN,WPARAM(recurse),LPARAM(hitem));
+end;
+
+
+function TreeView_EnsureVisible(hwnd:HWND;hitem : HTREEITEM) : LRESULT;
+begin
+  TreeView_EnsureVisible:=SendMessage(hwnd,TVM_ENSUREVISIBLE,0,LPARAM(hitem));
+end;
+
+
+function TreeView_SortChildrenCB(hwnd:HWND;psort:LPTV_SORTCB;recurse : longint) : LRESULT;
+begin
+  TreeView_SortChildrenCB:=SendMessage(hwnd,TVM_SORTCHILDRENCB,WPARAM(recurse),LPARAM(psort));
+end;
+
+
+function TreeView_EndEditLabelNow(hwnd:HWND;fCancel : longint) : LRESULT;
+begin
+  TreeView_EndEditLabelNow:=SendMessage(hwnd,TVM_ENDEDITLABELNOW,WPARAM(fCancel),0);
+end;
+
+
+function TreeView_GetISearchString(hwndTV:HWND;lpsz : LPTSTR) : LRESULT;
+begin
+  TreeView_GetISearchString:=SendMessage(hwndTV,TVM_GETISEARCHSTRING,0,LPARAM(lpsz));
+end;
+
+procedure ZeroMemory(Destination:PVOID; Length:DWORD);
+begin
+  FillChar(Destination^,Length,#0);
+end;
 
 {$endif read_implementation}
 

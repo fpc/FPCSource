@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 Free Pascal development team.
+    Copyright (c) 2006 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,18 +11,8 @@
 
  **********************************************************************}
 
-{
-  commctrl.h
+{  Declarations for commctrl WinCE API
 
-  Declarations for commctrl WinCE API
-
-  Changes :
-
-  09-28-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
-  23-08-2006 : +datetime picker,
-               *simplier rule for api files : 1 dll = 1 .inc file,
-                started to move entries from func, unidef and updating
-                exported list
 }
 
 {exported functions list = to do,
@@ -114,6 +104,8 @@
 // consts
 //*****************************************************************************
 const
+  ComctlDLL     = 'commctrl';
+
   COMCTL32_VERSION=$020c;
 
   // DATETIMEPICK CONTROL

@@ -5005,7 +5005,6 @@ rtl/wince/classes.pp -text
 rtl/wince/dos.pp -text
 rtl/wince/dynlibs.inc -text
 rtl/wince/messages.pp -text
-rtl/wince/readme-winceapi-port -text
 rtl/wince/readme.txt -text
 rtl/wince/sockets.pp svneol=native#text/plain
 rtl/wince/system.pp svneol=native#text/plain
@@ -5013,14 +5012,15 @@ rtl/wince/sysutils.pp -text
 rtl/wince/tthread.inc -text
 rtl/wince/varutils.pp -text
 rtl/wince/windows.pp -text
-rtl/wince/wininc/ascfun.inc svneol=native#text/plain
 rtl/wince/wininc/aygshell.inc -text
 rtl/wince/wininc/base.inc -text
+rtl/wince/wininc/cemiss.inc svneol=native#text/plain
+rtl/wince/wininc/ceshell.inc svneol=native#text/plain
 rtl/wince/wininc/commctrl.inc -text
+rtl/wince/wininc/commdlg.inc svneol=native#text/plain
 rtl/wince/wininc/coredll.inc svneol=native#text/plain
 rtl/wince/wininc/defines.inc -text
 rtl/wince/wininc/errors.inc -text
-rtl/wince/wininc/func.inc -text
 rtl/wince/wininc/makefile.inc -text
 rtl/wince/wininc/messages.inc -text
 rtl/wince/wininc/oleaut32.inc svneol=native#text/plain

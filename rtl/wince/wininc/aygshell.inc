@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 Free Pascal development team.
+    Copyright (c) 2006 Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -11,15 +11,7 @@
 
  **********************************************************************}
 
-{
-  aygshell.h
-
-  Declarations for aygshell WinCE API
-
-  Changes :
-
-  08-15-2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
-  09-02-2006 : updated
+{ Declarations for aygshell WinCE API
 
 }
 
@@ -299,13 +291,12 @@
 
 {$ifdef read_interface}
 
-{$PACKRECORDS C}
 
 //*****************************************************************************
 // consts
 //*****************************************************************************
 const
-
+  UserDLLAyg    = 'aygshell';
 
   CEM_UPCASEALLWORDS     = (WM_USER + 1);
   CEM_ENABLEUPCASE       = (WM_USER + 2);
@@ -459,9 +450,7 @@ type
 // functions
 //*****************************************************************************
 
-{ already defined in func.inc
 function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external UserDLLAyg name 'ExitWindowsEx';
-}
 function SHCloseApps( dwMemSought : DWORD ): WINBOOL; external UserDLLAyg name 'SHCloseApps';
 function SHCreateMenuBar(pmbi : PSHMENUBARINFO ): WINBOOL; external UserDLLAyg name 'SHCreateMenuBar';
 function SHFindMenuBar(hwnd:HWND) : HWND; external UserDLLAyg name 'SHFindMenuBar';
