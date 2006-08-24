@@ -1309,10 +1309,7 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
 
   // Put bookmark in edit buffer.
   if FRecordCount=0 then
-    begin
-    fEOF := false;
-    SetBookmarkFlag(ActiveBuffer,bfBOF)
-    end
+    SetBookmarkFlag(ActiveBuffer,bfEOF)
   else
     begin
     fBOF := false;
@@ -1574,7 +1571,8 @@ end;
 Function TDataset.IsEmpty: Boolean;
 
 begin
-  Result:=(Bof and Eof);
+  Result:=(fBof and fEof) and
+          (not (state = dsinsert)); // After an insert on an empty dataset, both fBof and fEof are true
 end;
 
 Function TDataset.IsLinkedTo(ADataSource: TDataSource): Boolean;
