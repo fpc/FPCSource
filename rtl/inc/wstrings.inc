@@ -378,9 +378,7 @@ begin
       inclocked(PWideRec(S2-WideFirstOff)^.ref);
   { Decrease the reference count on the old S1 }
   fpc_widestr_decr_ref (S1);
-  { And finally, have S1 pointing to S2 (or its copy) }
-  fpc_WideStr_SetLength(WideString(s1),length(WideString(s2)));
-  move(s2^,s1^,length(WideString(s1))*sizeof(widechar));
+  s1:=s2;
 {$endif FPC_WINLIKEWIDESTRING}
 end;
 
