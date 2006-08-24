@@ -317,6 +317,9 @@ implementation
          recst.addalignmentpadding;
          { restore symtable stack }
          symtablestack.pop(recst);
+         if trecorddef(record_dec).is_packed and
+            record_dec.needs_inittable then
+           Message(type_e_no_packed_inittable);
       end;
 
 
