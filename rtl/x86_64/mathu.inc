@@ -93,7 +93,7 @@ var
 begin
   CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
-  SetSSECSR((((GetSSECSR shr 7) and $ffffffe0) or dword(Mask)) shl 7);
+  SetSSECSR((((GetSSECSR shr 7) and $ffffffc0) or dword(Mask)) shl 7);
   Result:=GetExceptionMask;
 end;
 
@@ -106,4 +106,3 @@ asm
 .Lclear:
   fnclex
 end;
-

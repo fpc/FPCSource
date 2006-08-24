@@ -569,16 +569,6 @@ end;
 ****************************************************************************}
 
 const
-  fpucw : word = $1332;
-
-  MM_MaskInvalidOp = %0000000010000000;
-  MM_MaskDenorm    = %0000000100000000;
-  MM_MaskDivZero   = %0000001000000000;
-  MM_MaskOverflow  = %0000010000000000;
-  MM_MaskUnderflow = %0000100000000000;
-  MM_MaskPrecision = %0001000000000000;
-  mxcsr : dword = MM_MaskOverflow or MM_MaskUnderflow or MM_MaskPrecision;
-
   { Internal constants for use in system unit }
   FPU_Invalid = 1;
   FPU_Denormal = 2;
@@ -588,6 +578,17 @@ const
   FPU_StackUnderflow = $20;
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
+
+  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
+
+  MM_MaskInvalidOp = %0000000010000000;
+  MM_MaskDenorm    = %0000000100000000;
+  MM_MaskDivZero   = %0000001000000000;
+  MM_MaskOverflow  = %0000010000000000;
+  MM_MaskUnderflow = %0000100000000000;
+  MM_MaskPrecision = %0001000000000000;
+
+  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}

@@ -59,7 +59,7 @@ function sse_support : boolean;
           movl $1,%eax
           cpuid
           movl %edx,_edx
-          popl %ebx          
+          popl %ebx
         end;
         sse_support:=((_edx and $2000000)<>0) and os_supports_sse;
      end
@@ -83,7 +83,7 @@ function mmx_support : boolean;
              movl $1,%eax
              cpuid
              movl %edx,_edx
-             popl %ebx            
+             popl %ebx
           end;
           mmx_support:=(_edx and $800000)<>0;
        end
@@ -626,7 +626,7 @@ asm
         movl    buf2,%esi       { Load params}
         movl    buf1,%edi
 {$endif}
-        testl   %ecx,%ecx 
+        testl   %ecx,%ecx
         je      .LCmpDwordExit
         xorl    %eax,%eax
         rep                     { Compare entire DWords}
@@ -1167,7 +1167,6 @@ end;
 ****************************************************************************}
 
 const
-  fpucw : word = $1332;
   { Internal constants for use in system unit }
   FPU_Invalid = 1;
   FPU_Denormal = 2;
@@ -1178,13 +1177,31 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
+  fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
+
+  MM_MaskInvalidOp = %0000000010000000;
+  MM_MaskDenorm    = %0000000100000000;
+  MM_MaskDivZero   = %0000001000000000;
+  MM_MaskOverflow  = %0000010000000000;
+  MM_MaskUnderflow = %0000100000000000;
+  MM_MaskPrecision = %0001000000000000;
+
+  mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
+
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
-    fninit
-    fldcw   fpucw
-    fwait
-end;
+Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    asm
+      fninit
+      fldcw   fpucw
+      fwait
+    end;
+    if has_sse_support then
+      asm
+       { setup sse exceptions }
+       ldmxcsr mxcsr
+      end;
+  end;
 
 
 {$ifndef darwin}
