@@ -172,6 +172,7 @@ begin
       BookmarkFlag := bfCurrent;
       end;
     move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,FRecordSize);
+    GetCalcFields(Buffer);
     end
   else if (Result = grError) and doCheck then
     DatabaseError('No record');
@@ -357,12 +358,12 @@ var CurrBuff : pointer;
     NullMask : pbyte;
 
 begin
-  if not (state in [dsEdit, dsInsert, dsFilter]) then
+  if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
     begin
-    DatabaseErrorFmt(SNotInEditState,[NAme],self);
+    DatabaseErrorFmt(SNotInEditState,[Name],self);
     exit;
     end;
-  If Field.Fieldno > 0 then // If = 0, then calculated field or something
+//  If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
     if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
       CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
