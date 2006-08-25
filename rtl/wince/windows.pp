@@ -38,7 +38,6 @@ interface
 {$i defines.inc}
 {$i struct.inc}
 {$i messages.inc}
-{$i unidef.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}
@@ -60,7 +59,6 @@ implementation
 {$i defines.inc}
 {$i struct.inc}
 {$i messages.inc}
-{$i unidef.inc}
 {$i coredll.inc}
 {$i aygshell.inc}
 {$i commctrl.inc}

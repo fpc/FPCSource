@@ -47,17 +47,6 @@
 
 {$ifdef read_interface}
 
-  const
-    UserDLLCore   = KernelDLL;
-    SecurDLL      = KernelDLL;
-    GdiDLL        = KernelDLL;
-    ComctlDLLCore = KernelDLL;
-    ComdlgDLLCore = KernelDLL;
-    VersionDLL    = KernelDLL;
-    AdvapiDLLCore = KernelDLL;
-    MprDLLCore    = KernelDLL;
-    ShellDLLCore  = KernelDLL;
-    winsockdll    = 'ws2.dll';
 
 {$PACKRECORDS C}
 

@@ -154,9 +154,9 @@ procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); 
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'LeaveCriticalSection';
 //redirected to MsgWaitForMultipleObjectsEx
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
-function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external UserDLLCore name 'PeekMessageW';
+function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external KernelDLL name 'PeekMessageW';
 function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
-function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external UserDLLCore name 'RegisterClassW';
+function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external KernelDLL name 'RegisterClassW';
 function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';
@@ -170,8 +170,8 @@ function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProce
   const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
 function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): THandle; external KernelDLL name 'FindFirstFileW';
 function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
-function RegisterClass(const lpWndClass: TWndClass): ATOM;external UserDLLCore name 'RegisterClassW';
-function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external UserDLLCore name 'PeekMessageW';
+function RegisterClass(const lpWndClass: TWndClass): ATOM;external KernelDLL name 'RegisterClassW';
+function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external KernelDLL name 'PeekMessageW';
 //end wince only
 {$endif WINCE}
 

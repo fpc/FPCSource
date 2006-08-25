@@ -83,6 +83,8 @@ unit winsock;
 //begin common win32 & wince
 
     const
+       winsockdll    = 'ws2.dll';
+
        {
          Default maximium number of sockets.
          this does not

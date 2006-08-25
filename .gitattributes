@@ -5026,7 +5026,6 @@ rtl/wince/wininc/messages.inc -text
 rtl/wince/wininc/oleaut32.inc svneol=native#text/plain
 rtl/wince/wininc/redef.inc -text
 rtl/wince/wininc/struct.inc -text
-rtl/wince/wininc/unidef.inc -text
 rtl/wince/winres.inc -text
 rtl/wince/winsock.pp svneol=native#text/plain
 rtl/wince/winsock2.pp svneol=native#text/plain
