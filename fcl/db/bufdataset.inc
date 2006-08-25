@@ -499,13 +499,12 @@ var SaveBookmark : pchar;
     FailedCount  : integer;
     EUpdErr      : EUpdateError;
     Response     : TResolverResponse;
+    StoreRecBuf  : PBufRecLinkItem;
 
 begin
   CheckBrowseMode;
 
-  // There is no bookmark available if the dataset is empty
-  if not IsEmpty then
-    GetBookmarkData(ActiveBuffer,@SaveBookmark);
+  StoreRecBuf := FCurrentRecBuf;
 
   r := 0;
   FailedCount := 0;
@@ -543,13 +542,8 @@ begin
   if failedcount = 0 then
     SetLength(FUpdateBuffer,0);
 
-  if not IsEmpty then
-    begin
-    InternalGotoBookMark(@SaveBookMark);
-    Resync([rmExact,rmCenter]);
-    end
-  else
-    InternalFirst;
+  FCurrentRecBuf := StoreRecBuf;
+  Resync([]);
 end;
 
 procedure TBufDataset.InternalPost;
