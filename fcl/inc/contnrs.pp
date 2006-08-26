@@ -836,11 +836,12 @@ var
 begin
  a := 63689;
  Result := 0;
- for i := 1 to Length(S) do
- begin
-   Result := Result * a + Ord(S[i]);
-   a := a * b;
- end;
+ if length(s)>0 then
+   for i := 1 to Length(S) do
+   begin
+     Result := Result * a + Ord(S[i]);
+     a := a * b;
+   end;
  Result := (Result and $7FFFFFFF) mod TableSize;
 end;
 
@@ -928,8 +929,9 @@ procedure TFPHashTable.InitializeHashTable;
 var
   i: LongWord;
 begin
-  for i := 0 to FHashTableSize-1 do
-    FHashTable.Add(nil);
+  if FHashTableSize>0 Then
+    for i := 0 to FHashTableSize-1 do
+     FHashTable.Add(nil);
   FCount := 0;
 end;
 
@@ -945,15 +947,16 @@ begin
   FHashTableSize := ANewSize;
   FHashTable := TFPObjectList.Create(True);
   InitializeHashTable;
-  for i := 0 to SavedTableSize-1 do
-  begin
-    if Assigned(SavedTable[i]) then
-    for j := 0 to TFPObjectList(SavedTable[i]).Count -1 do
+  If SavedTableSize>0 Then
+    for i := 0 to SavedTableSize-1 do
     begin
-      temp := THTNode(TFPObjectList(SavedTable[i])[j]);
-      Add(temp.Key, temp.Data);
+      if Assigned(SavedTable[i]) then
+      for j := 0 to TFPObjectList(SavedTable[i]).Count -1 do
+      begin
+        temp := THTNode(TFPObjectList(SavedTable[i])[j]);
+        Add(temp.Key, temp.Data);
+      end;
     end;
-  end;
   SavedTable.Free;
 end;
 
@@ -975,12 +978,13 @@ begin
   chn := Chain(hashCode);
   if Assigned(chn) then
   begin
-    for i := 0 to chn.Count - 1 do
-    if THTNode(chn[i]).HasKey(aKey) then
-    begin
-      result := THTNode(chn[i]);
-      exit;
-    end;
+    if chn.count>0 then
+     for i := 0 to chn.Count - 1 do
+      if THTNode(chn[i]).HasKey(aKey) then
+      begin
+        result := THTNode(chn[i]);
+        exit;
+      end;
   end;
   Result := nil;
 end;
@@ -1006,12 +1010,13 @@ begin
   chn := Chain(hashCode);
   if Assigned(chn)  then
   begin
-    for i := 0 to chn.Count - 1 do
-    if THTNode(chn[i]).HasKey(aKey) then
-    begin
-      Result := THTNode(chn[i]);
-      exit;
-    end
+    if chn.count>0 then
+     for i := 0 to chn.Count - 1 do
+      if THTNode(chn[i]).HasKey(aKey) then
+        begin
+          Result := THTNode(chn[i]);
+          exit;
+        end
   end
   else
     begin
@@ -1035,11 +1040,12 @@ procedure TFPHashTable.Clear;
 var
   i: Longword;
 begin
-  for i := 0 to FHashTableSize - 1 do
-  begin
-    if Assigned(Chain(i)) then
-      Chain(i).Clear;
-  end;
+  if FHashTableSize>0 Then
+    for i := 0 to FHashTableSize - 1 do
+      begin
+        if Assigned(Chain(i)) then
+          Chain(i).Clear;
+      end;
   FCount := 0;
 end;
 
@@ -1050,21 +1056,23 @@ var
 begin
   Result := nil;
   continue := true;
-  for i := 0 to FHashTableSize-1 do
-  begin
-    if assigned(Chain(i)) then
+  if FHashTableSize>0 then
+   for i := 0 to FHashTableSize-1 do
     begin
-      for j := 0 to Chain(i).Count-1 do
+      if assigned(Chain(i)) then
       begin
-        aMethod(THTNode(Chain(i)[j]).Data, THTNode(Chain(i)[j]).Key, continue);
-        if not continue then
+       if chain(i).count>0 then
+        for j := 0 to Chain(i).Count-1 do
         begin
-          Result := THTNode(Chain(i)[j]);
-          Exit;
+          aMethod(THTNode(Chain(i)[j]).Data, THTNode(Chain(i)[j]).Key, continue);
+          if not continue then
+          begin
+            Result := THTNode(Chain(i)[j]);
+            Exit;
+          end;
         end;
       end;
     end;
-  end;
 end;
 
 procedure TFPHashTable.Add(const aKey: string; aItem: pointer);
@@ -1078,9 +1086,10 @@ begin
   chn := Chain(hashCode);
   if Assigned(chn)  then
   begin
-    for i := 0 to chn.Count - 1 do
-      if THTNode(chn[i]).HasKey(aKey) then
-        Raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
+    if chn.count>0 then
+      for i := 0 to chn.Count - 1 do
+        if THTNode(chn[i]).HasKey(aKey) then
+          Raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
   end
   else
     begin
@@ -1103,6 +1112,7 @@ begin
   chn := Chain(hashCode);
   if Assigned(chn) then
   begin
+    if chn.count>0 then
     for i := 0 to chn.Count - 1 do
       if THTNode(chn[i]).HasKey(aKey) then
       begin
@@ -1130,9 +1140,10 @@ var
   num: Longword;
 begin
   num := 0;
-  for i:= 0 to FHashTableSize-1 do
-    if Not Assigned(Chain(i)) then
-      inc(num);
+  if FHashTableSize>0 Then
+    for i:= 0 to FHashTableSize-1 do
+      if Not Assigned(Chain(i)) then
+        inc(num);
   result := num;
 end;
 
@@ -1151,9 +1162,10 @@ var
   i: Longword;
 begin
   Result := 0;
-  for i := 0 to FHashTableSize-1 do
-    if ChainLength(i) > Result then
-      Result := ChainLength(i);
+  if FHashTableSize>0 Then
+   for i := 0 to FHashTableSize-1 do
+      if ChainLength(i) > Result then
+        Result := ChainLength(i);
 end;
 
 end.
