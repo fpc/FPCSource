@@ -4175,6 +4175,21 @@
      TMENUEXTEMPLATEITEM = MENUEX_TEMPLATE_ITEM;
      PMENUEXTEMPLATEITEM = ^MENUEX_TEMPLATE_ITEM;
 
+     MENUINFO = record
+          cbSize : DWORD;
+          fMask : DWORD;
+          dwStyle : DWORD;
+          cyMax : UINT;
+          hbrBack : HBRUSH;
+          dwContextHelpID : DWORD;
+          dwMenuData : ULONG_PTR;
+       end;
+     LPMENUINFO = ^MENUINFO;
+     LPCMENUINFO = ^MENUINFO;
+     tagMENUINFO = MENUINFO;
+     TMENUINFO = MENUINFO;
+     PMENUINFO = ^MENUINFO;
+
      MENUITEMINFO = record
           cbSize : UINT;
           fMask : UINT;
