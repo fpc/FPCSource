@@ -308,7 +308,7 @@ begin
     {          Status := csValid;}
               GetDisplay(R);
               if Key='1/X' then begin if R=0 then Error else SetDisplay(1/R,false) end else
-              if Key='SQR' then begin if R<0 then Error else SetDisplay(sqrt(R),false) end else
+              if Key='SQRT' then begin if R<0 then Error else SetDisplay(sqrt(R),false) end else
               if Key='LOG' then begin if R<=0 then Error else SetDisplay(ln(R),false) end else
               if Key='X^2' then SetDisplay(R*R,false) else
               if Key='M+' then Memory:=Memory+R else
@@ -464,11 +464,11 @@ end;
 
 constructor TCalculator.Init;
 const
-  Keys: array[0..29] of string[3] =
+  Keys: array[0..29] of string[4] =
    ('M+',  'x^y','C'  ,#27  ,'%'  ,#241 ,
     'M-',  'x^2','7'  ,'8'  ,'9'  ,'/'  ,
     'M'#26,'1/x','4'  ,'5'  ,'6'  ,'*'  ,
-    'M'#27,'sqr','1'  ,'2'  ,'3'  ,'-'  ,
+    'M'#27,'sqrt','1'  ,'2'  ,'3'  ,'-'  ,
     'M'#29,'log','0'  ,'.'  ,'='  ,'+'  );
 var
   I: Integer;
