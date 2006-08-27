@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2006 by Florian Klaempfl
 
     Version/target constants
 
@@ -29,7 +29,7 @@ interface
        { version string }
        version_nr = '2';
        release_nr = '0';
-       patch_nr   = '3';
+       patch_nr   = '5';
        minorpatch = '';
 
        { word version for ppu file }
