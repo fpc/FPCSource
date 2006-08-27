@@ -1087,6 +1087,15 @@ implementation
                end;
              subscriptn :
                begin
+                 { only check first (= outermost) subscriptn }
+                 if not gotsubscript and
+                    not(valid_packed in opts) and
+                    is_packed_record_or_object(tsubscriptnode(hp).left.resulttype.def) then
+                   begin
+                     if report_errors then
+                       CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr_loop);
+                     exit;
+                   end;
                  gotsubscript:=true;
                  { loop counter? }
                  if not(Valid_Const in opts) and
