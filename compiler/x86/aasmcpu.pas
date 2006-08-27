@@ -1966,6 +1966,10 @@ implementation
        * \327          - indicates that this instruction is only valid when the
        *                 operand size is the default (instruction to disassembler,
        *                 generates no code in the assembler)
+       * \331          - instruction not valid with REP prefix.  Hint for
+       *                 disassembler only; for SSE instructions.
+       * \332	       - disassemble a rep (0xF3 byte) prefix as repe not rep.
+       * \333          - REP prefix (0xF3 byte); for SSE instructions.  Not encoded
        * \335          - removes rex size prefix, i.e. rex.w must be the last opcode
       }
 
@@ -2242,6 +2246,9 @@ implementation
               end;
             219 :
               begin
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
                 bytes[0]:=$f3;
                 objdata.writebytes(bytes,1);
               end;
@@ -2258,7 +2265,11 @@ implementation
             217,218 :
               begin
                 { these are dissambler hints or 32 bit prefixes which
-                  are not needed }
+                  are not needed
+                  It's usefull to write rex :) (FK) }
+{$ifdef x86_64}
+                maybewriterex;
+{$endif x86_64}
               end;
             31,
             48,49,50 :
