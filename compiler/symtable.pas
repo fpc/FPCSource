@@ -944,7 +944,6 @@ implementation
             if is_ordinal(vardef) then
               begin
                 sym.fieldoffset:=databitsize;
-                databitsize:=high(aint);
                 l:=sym.getpackedbitsize;
               end
             else
