@@ -58,6 +58,7 @@ compiler/arm/narmcnv.pas svneol=native#text/plain
 compiler/arm/narmcon.pas svneol=native#text/plain
 compiler/arm/narminl.pas svneol=native#text/plain
 compiler/arm/narmmat.pas svneol=native#text/plain
+compiler/arm/pp.lpi.template svneol=native#text/plain
 compiler/arm/raarm.pas svneol=native#text/plain
 compiler/arm/raarmgas.pas svneol=native#text/plain
 compiler/arm/rarmcon.inc svneol=native#text/plain
