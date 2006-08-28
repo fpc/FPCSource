@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="\"/>
+    <PathDelim Value="/"/>
     <Version Value="5"/>
     <General>
       <Flags>
@@ -17,25 +17,23 @@
     </General>
     <PublishOptions>
       <Version Value="2"/>
-      <DestinationDirectory Value="c:\temp/publishedproject/"/>
+      <DestinationDirectory Value="c:/temp/publishedproject/"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-h"/>
+        <CommandLineParams Value="-?"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="0">
+    <Units Count="1">
       <Unit0>
-        <Filename Value="..\pp.pas"/>
+        <Filename Value="../pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
-        <CursorPos X="1" Y="208"/>
-        <TopLine Value="157"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="23"/>
         <Loaded Value="True"/>
       </Unit0>
     </Units>
@@ -43,11 +41,11 @@
   <CompilerOptions>
     <Version Value="5"/>
     <Target>
-      <Filename Value="arm\pp"/>
+      <Filename Value="arm/pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="..\"/>
-      <OtherUnitFiles Value="..\;..\systems\"/>
+      <IncludeFiles Value="../"/>
+      <OtherUnitFiles Value="../;../systems/"/>
       <UnitOutputDirectory Value="lazbuild"/>
     </SearchPaths>
     <Parsing>
@@ -82,4 +80,11 @@
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="1">
+      <Item1>
+        <Name Value="ECompilerAbortSilent"/>
+      </Item1>
+    </Exceptions>
+  </Debugging>
 </CONFIG>
