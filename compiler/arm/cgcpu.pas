@@ -121,6 +121,8 @@ unit cgcpu;
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
                            C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
 
+      winstackpagesize = 4096;
+      
     function get_fpu_postfix(def : tdef) : toppostfix;
 
   implementation
@@ -1138,10 +1140,12 @@ unit cgcpu;
 
     procedure tcgarm.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
-         ref : treference;
+         ref,href : treference;
          shift : byte;
          firstfloatreg,lastfloatreg,
          r : byte;
+         i : aint;
+        again : tasmlabel;
       begin
         LocalSize:=align(LocalSize,4);
         if not(nostackframe) then
@@ -1173,7 +1177,62 @@ unit cgcpu;
             { allocate necessary stack size }
             { don't use a_op_const_reg_reg here because we don't allow register allocations
               in the entry/exit code }
-            if not(is_shifter_const(localsize,shift)) then
+           if (target_info.system in [system_arm_wince]) and
+              (localsize>=winstackpagesize) then
+             begin
+               if localsize div winstackpagesize<=5 then
+                 begin
+                    a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+
+                    if is_shifter_const(localsize,shift) then
+                      list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize))
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,localsize,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                      end;
+                      
+                    for i:=1 to localsize div winstackpagesize do
+                      begin
+                        if localsize-i*winstackpagesize<4096 then
+                          reference_reset_base(href,NR_STACK_POINTER_REG,localsize-i*winstackpagesize)
+                        else
+                          begin
+                            a_load_const_reg(list,OS_ADDR,localsize-i*winstackpagesize,NR_R12);
+                            reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                            href.index:=NR_R12;
+                          end;
+                        list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
+                      end;
+                    a_reg_dealloc(list,NR_R12);
+                    reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                    { the data stored doesn't matter }
+                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
+                 end
+               else
+                 begin
+                    current_asmdata.getjumplabel(again);
+                    list.concat(Taicpu.op_reg_const(A_MOV,NR_R12,localsize div winstackpagesize));
+                    a_label(list,again);
+                    { always shifterop }
+                    list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,winstackpagesize));
+                    reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                    { the data stored doesn't matter }
+                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
+                    list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_R12,NR_R12,1));
+                    a_jmp_cond(list,OC_NE,again);
+                    if is_shifter_const(localsize mod winstackpagesize,shift) then
+                      list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize mod winstackpagesize))
+                    else
+                      begin
+                        a_load_const_reg(list,OS_ADDR,localsize mod winstackpagesize,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                      end;
+                    a_reg_dealloc(list,NR_R12);
+                 end
+             end
+            else if not(is_shifter_const(localsize,shift)) then
               begin
                 a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                 list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
@@ -1184,6 +1243,7 @@ unit cgcpu;
                 a_reg_dealloc(list,NR_R12);
                 list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
               end;
+
             if firstfloatreg<>RS_NO then
               begin
                 reference_reset(ref);
