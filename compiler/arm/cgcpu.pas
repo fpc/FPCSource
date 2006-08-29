@@ -122,7 +122,7 @@ unit cgcpu;
                            C_LT,C_GE,C_LE,C_NE,C_LS,C_CC,C_CS,C_HI);
 
       winstackpagesize = 4096;
-      
+
     function get_fpu_postfix(def : tdef) : toppostfix;
 
   implementation
@@ -1182,9 +1182,6 @@ unit cgcpu;
              begin
                if localsize div winstackpagesize<=5 then
                  begin
-                    a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-
                     if is_shifter_const(localsize,shift) then
                       list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize))
                     else
@@ -1192,17 +1189,18 @@ unit cgcpu;
                         a_load_const_reg(list,OS_ADDR,localsize,NR_R12);
                         list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                       end;
-                      
+
                     for i:=1 to localsize div winstackpagesize do
                       begin
                         if localsize-i*winstackpagesize<4096 then
-                          reference_reset_base(href,NR_STACK_POINTER_REG,localsize-i*winstackpagesize)
+                          reference_reset_base(href,NR_STACK_POINTER_REG,-(localsize-i*winstackpagesize))
                         else
                           begin
-                            a_load_const_reg(list,OS_ADDR,localsize-i*winstackpagesize,NR_R12);
+                            a_load_const_reg(list,OS_ADDR,-(localsize-i*winstackpagesize),NR_R12);
                             reference_reset_base(href,NR_STACK_POINTER_REG,0);
                             href.index:=NR_R12;
                           end;
+                        { the data stored doesn't matter }
                         list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
                       end;
                     a_reg_dealloc(list,NR_R12);
@@ -1230,6 +1228,9 @@ unit cgcpu;
                         list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                       end;
                     a_reg_dealloc(list,NR_R12);
+                    reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                    { the data stored doesn't matter }
+                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
                  end
              end
             else if not(is_shifter_const(localsize,shift)) then
