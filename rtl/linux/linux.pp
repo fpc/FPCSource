@@ -58,8 +58,8 @@ Const
 
   { Valid opcodes ( "op" parameter ) to issue to epoll_ctl }
   EPOLL_CTL_ADD = 1;
-  EPOLL_CTL_MOD = 2;
-  EPOLL_CTL_DEL = 3;
+  EPOLL_CTL_DEL = 2;
+  EPOLL_CTL_MOD = 3;
 
   {Some console iotcl's.}
   GIO_FONT        = $4B60;  {gets font in expanded form}
