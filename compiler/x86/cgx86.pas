@@ -1746,9 +1746,9 @@ unit cgx86;
          begin
 {$ifdef i386}
 {$ifndef NOTARGETWIN}
-           { windows guards only a few pages for stack growing, }
-           { so we have to access every page first              }
-           if (target_info.system=system_i386_win32) and
+           { windows guards only a few pages for stack growing,
+             so we have to access every page first              }
+           if (target_info.system in [system_i386_win32,system_i386_wince]) and
               (localsize>=winstackpagesize) then
              begin
                if localsize div winstackpagesize<=5 then
@@ -1783,8 +1783,8 @@ unit cgx86;
 {$endif i386}
 {$ifdef x86_64}
 {$ifndef NOTARGETWIN}
-           { windows guards only a few pages for stack growing, }
-           { so we have to access every page first              }
+           { windows guards only a few pages for stack growing,
+             so we have to access every page first              }
            if (target_info.system=system_x86_64_win64) and
               (localsize>=winstackpagesize) then
              begin
