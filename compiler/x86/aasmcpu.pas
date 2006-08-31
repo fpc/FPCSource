@@ -2001,7 +2001,7 @@ implementation
 {$ifdef x86_64}
        procedure maybewriterex;
        begin
-          if rex<>0 then
+          if (rex<>0) and not(rexwritten) then
             begin
               rexwritten:=true;
               objdata.writebytes(rex,1);
