@@ -412,9 +412,11 @@ implementation
         cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_SETJMP');
         cg.deallocallcpuregisters(list);
+        cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
         cg.g_exception_reason_save(list, t.reasonbuf);
         cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
+        cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
         paraloc1.done;
         paraloc2.done;
         paraloc3.done;
@@ -429,8 +431,10 @@ implementation
 
          if not onlyfree then
           begin
+            cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
             cg.g_exception_reason_load(list, t.reasonbuf);
             cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
+            cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
           end;
      end;
 
@@ -1132,7 +1136,7 @@ implementation
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
-           needs_inittable := 
+           needs_inittable :=
              not is_class_or_interface(tparavarsym(p).vartype.def) and
              tparavarsym(p).vartype.def.needs_inittable;
            case tparavarsym(p).varspez of
