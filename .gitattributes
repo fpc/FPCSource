@@ -221,6 +221,7 @@ compiler/mppcsparc -text
 compiler/msg/errorct.msg svneol=native#text/plain
 compiler/msg/errord.msg svneol=native#text/plain
 compiler/msg/errorda.msg -text
+compiler/msg/errordu.msg svneol=native#text/plain
 compiler/msg/errore.msg svneol=native#text/plain
 compiler/msg/errores.msg svneol=native#text/plain
 compiler/msg/errorf.msg svneol=native#text/plain
