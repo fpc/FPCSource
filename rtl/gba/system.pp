@@ -110,6 +110,24 @@ begin
 end;
 
 
+procedure InitHeap;
+begin
+  FillChar(freelists_fixed,sizeof(tfreelists),0);
+  FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
+
+  freelist_var:=nil;
+  {The GBA has no operating system from which we ask memory, so we
+   initialize the heap with a single block of memory.}
+  freeoslistcount:=1;
+  freeoslist:=pointer($2040000);
+  fillchar(freeoslist^,sizeof(freeoslist^),0);
+  freeoslist^.size:=$40000; {GBA heap is $40000 bytes.}
+  fillchar(internal_status,sizeof(internal_status),0);
+end;
+
+
+
+
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;

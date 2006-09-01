@@ -17,9 +17,10 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
+
 function SysOSAlloc(size: ptrint): pointer;
 begin
-
+  result := pointer($02000000);
 end;
 
 { $define HAS_SYSOSFREE}

@@ -25,6 +25,8 @@ unit Dos;
 
 interface
 
+{$MODE objfpc}
+
 type
   SearchRec = Packed Record
 	AnchorPtr : Pointer;    { Pointer to the Anchorpath structure }
@@ -48,18 +50,22 @@ implementation
 
 function dosLock(const name: String; accessmode: Longint) : LongInt;
 begin
+  result := -1;
 end;
 
 function IsLeapYear(Source : Word) : Boolean;
 begin
+  result := false;
 end;
 
 function dosSetProtection(const name: string; mask:longint): Boolean;
 begin
+  result := false;
 end;
 
 function dosSetFileDate(name: string): Boolean;
 begin
+  result := false;
 end;
 
 
@@ -69,6 +75,7 @@ end;
 
 function DosVersion: Word;
 begin
+  result := 0;
 end;
 
 procedure NewList ();
@@ -77,6 +84,7 @@ end;
 
 function CreateExtIO (size: Longint): integer;
 begin
+  result := -1;
 end;
 
 procedure DeleteExtIO ();
@@ -85,6 +93,7 @@ end;
 
 function Createport(name : PChar; pri : longint): integer;
 begin
+  result := -1;
 end;
 
 procedure DeletePort ();
@@ -94,6 +103,7 @@ end;
 
 function Create_Timer(theUnit : longint) : integer;
 begin
+  result := -1;
 end;
 
 Procedure Delete_Timer();
@@ -102,10 +112,12 @@ end;
 
 function set_new_time(secs, micro : longint): longint;
 begin
+  result := -1;
 end;
 
 function get_sys_time(): longint;
 begin
+  result := -1;
 end;
 
 procedure GetDate(Var Year, Month, MDay, WDay: Word);
@@ -141,12 +153,14 @@ end;
 
 Function DiskFree(Drive: Byte): int64;
 Begin
+  result := -1;
 end;
 
 
 
 Function DiskSize(Drive: Byte): int64;
 Begin
+  result := -1;
 end;
 
 
@@ -171,6 +185,7 @@ end;
 
 function FSearch(path: PathStr; dirlist: String) : PathStr;
 begin
+  result := '';
 end;
 
 
@@ -199,22 +214,26 @@ end;
 
 function getpathstring: string;
 begin
+  result := '';
 end;
 
 
 function EnvCount: Longint;
 begin
+  result := -1;
 end;
 
 
 function EnvStr(Index: LongInt): String;
 begin
+  result := '';
 end;
 
 
 
 function GetEnv(envvar : String): String;
 begin
+  result := '';
 end;
 
 
@@ -224,10 +243,12 @@ end;
 
 function MakeDeviceName(str : pchar): string;
 begin
+  result := '';
 end;
 
 function IsInDeviceList(str : string): boolean;
 begin
+  result := false;
 end;
 
 procedure ReadInDevices;

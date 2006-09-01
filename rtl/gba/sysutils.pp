@@ -34,7 +34,8 @@ interface
 
 implementation
 
-uses dos, sysconst;
+uses 
+  dos, sysconst;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
@@ -45,45 +46,54 @@ uses dos, sysconst;
 ****************************************************************************}
 function FileOpen(const FileName: string; Mode: Integer): LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileGetDate(Handle: LongInt) : LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileSetDate(Handle, Age: LongInt) : LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileCreate(const FileName: string) : LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileCreate(const FileName: string; Mode: integer): LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileRead(Handle: LongInt; var Buffer; Count: LongInt): LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
 begin
+  result := -1;
 end;
 
 
 function FileSeek(Handle, FOffset, Origin: LongInt) : LongInt;
 begin
+  result := -1;
 end;
 
 function FileSeek(Handle: LongInt; FOffset, Origin: Int64): Int64;
 begin
+  result := -1;
 end;
 
 
@@ -94,16 +104,19 @@ end;
 
 function FileTruncate(Handle, Size: LongInt): Boolean;
 begin
+  result := false;
 end;
 
 
 function DeleteFile(const FileName: string) : Boolean;
 begin
+  result := false;
 end;
 
 
 function RenameFile(const OldName, NewName: string): Boolean;
 begin
+  result := false;
 end;
 
 
@@ -112,22 +125,26 @@ end;
 
 Function FileAge (Const FileName : String): Longint;
 begin
+  result := -1;
 end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
 Begin
+  result := false;
 end;
 
 
 
 Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
 begin
+  result := -1;
 end;
 
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 begin
+  result := -1;
 end;
 
 Procedure FindClose (Var F : TSearchrec);
@@ -136,13 +153,13 @@ end;
 
 Function FileGetAttr (Const FileName : String) : Longint;
 begin
-
+  result := -1;
 end;
 
 
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 begin
-
+  result := -1;
 end;
 
 
@@ -160,39 +177,43 @@ end;
 
 Function DiskFree(Drive: Byte): int64;
 Begin
-
+  result := -1;
 End;
 
 
 Function DiskSize(Drive: Byte): int64;
 Begin
-
+  result := -1;
 End;
 
 
 Function GetCurrentDir : String;
 begin
-
+  result := '';
 end;
 
 
 Function SetCurrentDir (Const NewDir : String) : Boolean;
 begin
+  result := false;
 end;
 
 
 Function CreateDir (Const NewDir : String) : Boolean;
 begin
+  result := false;
 end;
 
 
 Function RemoveDir (Const Dir : String) : Boolean;
 begin
+  result := false;
 end;
 
 
 function DirectoryExists(const Directory: string): Boolean;
 begin
+  result := false;
 end;
 
 
@@ -216,9 +237,9 @@ end ;
 
 
 function SysErrorMessage(ErrorCode: Integer): String;
-
 begin
 {  Result:=StrError(ErrorCode);}
+  result := '';
 end;
 
 {****************************************************************************
@@ -227,23 +248,28 @@ end;
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
+  result := '';
 end;
 
 Function GetEnvironmentVariableCount : Integer;
 begin
+  result := -1;
 end;
 
 Function GetEnvironmentString(Index : Integer) : String;
 begin
+  result := '';
 end;
 
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString): integer;
 begin
+  result := -1;
 end;
 
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 begin
+  result := -1;
 end;
 
 

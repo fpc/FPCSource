@@ -42,7 +42,7 @@ end;
 
 function TThread.GetPriority: TThreadPriority;
 begin
-
+  result := tpNormal;
 end;
 
 
@@ -106,7 +106,7 @@ end;
 
 function TThread.WaitFor: Integer;
 begin
-
+  result := -1;
 end;
 
 

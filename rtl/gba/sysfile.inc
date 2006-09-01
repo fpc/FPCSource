@@ -37,14 +37,17 @@ end;
 
 function do_write(h: longint; addr: pointer; len: longint) : longint;
 begin
+  result := -1;
 end;
 
 function do_read(h: longint; addr: pointer; len: longint) : longint;
 begin
+  result := -1;
 end;
 
 function do_filepos(handle: longint) : longint;
 begin
+  result := -1;
 end;
 
 procedure do_seek(handle, pos: longint);
@@ -53,10 +56,12 @@ end;
 
 function do_seekend(handle: longint):longint;
 begin
+  result := -1;
 end;
 
 function do_filesize(handle : longint) : longint;
 begin
+  result := -1;
 end;
 
 { truncate at a given position }
@@ -70,5 +75,6 @@ end;
 
 function do_isdevice(handle: longint): boolean;
 begin
+  result := false;
 end;
 
