@@ -76,7 +76,10 @@ end;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-Function SysGetTempFileName(lpPathName:LPCSTR; lpPrefixString:LPCSTR; uUnique:UINT; lpTempFileName:LPSTR):UINT; external 'kernel32' name 'GetTempFileNameA';
+function SysGetTempFileName(lpPathName:LPCSTR;
+                            lpPrefixString:LPCSTR;
+                            uUnique:UINT;
+                            lpTempFileName:LPSTR):UINT;stdcall;external 'kernel32' name 'GetTempFileNameA';
 
 function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
 
