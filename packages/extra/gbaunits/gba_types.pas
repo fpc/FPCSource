@@ -1,5 +1,5 @@
 (*
-  gba_types.pas 18/06/2006 4.38.46
+  gba_types.pas 01/09/2006 19.57.46
   ------------------------------------------------------------------------------
   This lib is a raw porting of libgba library for gba (you can find it at
   http://www.devkitpro.org).
@@ -142,23 +142,7 @@ type
   );
   TDMAModes = DMA_MODES;
 
-  KEYPAD_BITS = (
-    KEY_A       = (1 shl 0),
-    KEY_B       = (1 shl 1),
-    KEY_SELECT  = (1 shl 2),
-    KEY_START   = (1 shl 3),	
-    KEY_RIGHT   = (1 shl 4),
-    KEY_LEFT    = (1 shl 5),
-    KEY_UP      = (1 shl 6),
-    KEY_DOWN    = (1 shl 7),
-    KEY_R       = (1 shl 8),
-    KEY_L       = (1 shl 9),
-
-    KEYIRQ_ENABLE = (1 shl 14),
-    KEYIRQ_OR     = (0 shl 15),
-    KEYIRQ_AND    = (1 shl 15),
-    DPAD          = integer(KEY_UP) or integer(KEY_DOWN) or integer(KEY_LEFT) or integer(KEY_RIGHT)
-  );
+  KEYPAD_BITS = integer;
   TKeyPadBits = KEYPAD_BITS;
   
   OBJATTR = record

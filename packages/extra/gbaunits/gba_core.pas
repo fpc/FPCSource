@@ -1,5 +1,5 @@
 (*
-  gba_core.pas  18/06/2006 4.17.35
+  gba_core.pas  01/09/2006 19.17.35
   ------------------------------------------------------------------------------
   This lib is a raw porting of tonclib library for gba (you can find it at
   http://user.chem.tue.nl/jakvijn/index.htm).
@@ -52,6 +52,7 @@ var
 
 function gbaRandomize(seed: dword): dword;
 function gbaRand(): dword;
+function gbaRand(value: integer): dword;
 
 procedure memset16(dest: pointer; hw: word; hwcount: dword); cdecl; external;
 procedure memcpy16(dest: pointer; const src: pointer; hwcount: dword); cdecl; external;
@@ -76,6 +77,15 @@ function gbaRand(): dword;
 begin	
 	gbaRandSeed := QRAN_A * gbaRandSeed + QRAN_C;
 	gbaRand := (gbaRandSeed shr 16) and QRAN_MAX;
+end;
+
+function gbaRand(value: integer): dword;
+var
+  a: dword;
+begin	
+	gbaRandSeed := QRAN_A * gbaRandSeed + QRAN_C;
+	a := (gbaRandSeed shr 16) and QRAN_MAX;
+  gbaRand := (a * value) shr 15;
 end;
 
 // memory handling routines

@@ -1,5 +1,5 @@
 (*
-  gba_input.pas 18/06/2006 4.20.21
+  gba_input.pas 01/09/2006 19.57.16
   ------------------------------------------------------------------------------
   This lib is a raw porting of libgba library for gba (you can find it at
   http://www.devkitpro.org).
@@ -36,6 +36,26 @@ interface
 
 uses 
   gba_types, gba_regs;
+
+
+
+const
+  KEY_A: TKeyPadBits       = (1 shl 0);
+  KEY_B: TKeyPadBits       = (1 shl 1);
+  KEY_SELECT: TKeyPadBits  = (1 shl 2);
+  KEY_START: TKeyPadBits   = (1 shl 3);	
+  KEY_RIGHT: TKeyPadBits   = (1 shl 4);
+  KEY_LEFT: TKeyPadBits    = (1 shl 5);
+  KEY_UP: TKeyPadBits      = (1 shl 6);
+  KEY_DOWN: TKeyPadBits    = (1 shl 7);
+  KEY_R: TKeyPadBits       = (1 shl 8);
+  KEY_L: TKeyPadBits       = (1 shl 9);
+
+  KEYIRQ_ENABLE: TKeyPadBits = (1 shl 14);
+  KEYIRQ_OR: TKeyPadBits     = (0 shl 15);
+  KEYIRQ_AND: TKeyPadBits    = (1 shl 15);
+  DPAD: TKeyPadBits          = (1 shl 6) or (1 shl 7) or (1 shl 5) or (1 shl 4);
+
 
 
 type
