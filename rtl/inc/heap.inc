@@ -734,7 +734,6 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
-{$ifndef gba}
 function alloc_oschunk(chunkindex, size: ptrint):pointer;
 var
   pmcfirst,
@@ -862,16 +861,6 @@ begin
       result:=pmcv;
     end;
 end;
-{$else gba}
-function alloc_oschunk(chunkindex, size: ptrint):pointer;
-begin
-  alloc_oschunk := nil;
-  if not ReturnNilIfGrowHeapFails then
-    runerror(203);
-
-end;
-{$endif gba}
-
 
 {*****************************************************************************
                                  SysGetMem
@@ -1300,7 +1289,7 @@ end;
 {*****************************************************************************
                                  InitHeap
 *****************************************************************************}
-
+{$ifndef gba}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeap;
@@ -1312,7 +1301,7 @@ begin
   freeoslistcount := 0;
   fillchar(internal_status,sizeof(internal_status),0);
 end;
-
+{$endif gba}
 
 procedure FinalizeHeap;
 var
