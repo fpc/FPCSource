@@ -802,18 +802,12 @@ end;
 *****************************************************************************}
 
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
-procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 procedure ExitThread(Exitcode : longint); external 'coredll';
 
 Procedure system_exit;
 begin
-  SysFreeMem(FCmdLine);
-  { don't call ExitProcess inside
-    the DLL exit code !!
-    This crashes Win95 at least PM }
   if IsLibrary then
     exit;
-//    ExitDLL(ExitCode);
   if not IsConsole then
     begin
       Close(stderr);
@@ -876,7 +870,7 @@ begin
        end;
      DLL_PROCESS_DETACH :
        begin
-         FPC_Do_Exit;
+         Lib_Exit;
          if assigned(Dll_Process_Detach_Hook) then
            Dll_Process_Detach_Hook(DllParam);
        end;
@@ -1471,8 +1465,6 @@ begin
   {$endif WINCE_EXCEPTION_HANDLING}
   end;
 {$endif CPUI386}
-  { if we pass here there was no error ! }
-  system_exit;
 end;
 
 procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
@@ -1777,7 +1769,17 @@ begin
   result := stklen;
 end;
 
+procedure SysCleanup;
+var
+  i: integer;
 begin
+  SysFreeMem(FCmdLine);
+  for i:=0 to argc do
+    sysfreemem(argv[i]);
+  sysfreemem(argv);
+end;
+
+initialization
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
   { Enable FPU exceptions }
@@ -1806,4 +1808,9 @@ begin
   initvariantmanager;
   initwidestringmanager;
   InitWinCEWidestrings
+
+finalization
+  { Cleanup }
+  SysCleanup;
+  
 end.
