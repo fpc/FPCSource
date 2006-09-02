@@ -671,7 +671,9 @@ Procedure FinalizeHeap;forward;
 Procedure InternalExit;
 var
   current_exit : Procedure;
+{$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
+{$endif}
 Begin
   while exitProc<>nil Do
    Begin
