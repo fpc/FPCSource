@@ -115,6 +115,7 @@ function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
 function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
 procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
+function SetProcessAffinityMask(hProcess: THandle; dwProcessAffinityMask: DWORD): BOOL; external 'kernel32' name 'SetProcessAffinityMask';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
 procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external 'kernel32' name 'RaiseException';
