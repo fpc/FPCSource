@@ -24,7 +24,7 @@ interface
 {$define WINCE_EXCEPTION_HANDLING}
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_CMDLINE}
-//{$define HAS_MT_MEMORYMANAGER}  //uncomment line to switch from fpcmm to wincemm
+{$define HAS_MT_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -1610,11 +1610,7 @@ begin
     runerror(204)
   else
     if (size > 0) and (p <> nil) then
-      begin
-        if (size <> _msize(p)) then
-          runerror(204);
-        Result:=SysFreeMem(P);
-      end;
+      Result:=SysFreeMem(P);
 end;
 
 Function SysAllocMem(Size : ptrint) : Pointer;
