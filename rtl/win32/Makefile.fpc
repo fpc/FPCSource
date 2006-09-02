@@ -18,8 +18,7 @@ units=system ctypes objpas macpas strings \
       video mouse keyboard \
       winsysut sharemem fpmkunit
 
-# fake dll
-programs=$(DLLS)
+# shared=$(DLLS)
 
 rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
@@ -244,4 +243,4 @@ keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent
 
 sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
 
-fpcmemdll.exe : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
+fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)

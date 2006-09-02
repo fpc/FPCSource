@@ -26,7 +26,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 # rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
 
 # fake dll
-programs=fpcmemdll
+# programs=fpcmemdll
 
 [require]
 nortl=y
