@@ -451,6 +451,12 @@ Const
     DISPID_DESTRUCTOR           = -7;
     DISPID_COLLECT              = -8;
 
+    DISPATCH_METHOD         = $1;
+    DISPATCH_PROPERTYGET    = $2;
+    DISPATCH_PROPERTYPUT    = $4;
+    DISPATCH_PROPERTYPUTREF = $8;
+
+
 // The range -500 through -999 is reserved for Controls
 // The range 0x80010000 through 0x8001FFFF is reserved for Controls
 // The range -5000 through -5499 is reserved for ActiveX Accessability
@@ -1276,6 +1282,18 @@ TYPE
                                      End;
    SAFEARRAYBOUND               = tagSAFEARRAYBOUND;
    LPSAFEARRAYBOUND             = ^SAFEARRAYBOUND;
+
+   tagSAFEARRAY = record
+     cDims: USHORT;
+     fFeatures: USHORT;
+     cbElements: ULONG;
+     cLocks: ULONG;
+     pvData: PVOID;
+     rgsabound: array[0..0] of SAFEARRAYBOUND;
+   end;
+   TSafeArray = tagSAFEARRAY;
+   SAFEARRAY = TSafeArray;
+   PSafeArray = ^TSafeArray;
 
 // additional interface information about the incoming call
    tagINTERFACEINFO             = Record
