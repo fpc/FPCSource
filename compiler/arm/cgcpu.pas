@@ -1174,7 +1174,9 @@ unit cgcpu;
 
             list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
-            { allocate necessary stack size }
+            { allocate necessary stack size
+              not necessary according to Yury Sidorov
+
             { don't use a_op_const_reg_reg here because we don't allow register allocations
               in the entry/exit code }
            if (target_info.system in [system_arm_wince]) and
@@ -1233,7 +1235,9 @@ unit cgcpu;
                     list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
                  end
              end
-            else if not(is_shifter_const(localsize,shift)) then
+            else
+            }
+            if not(is_shifter_const(localsize,shift)) then
               begin
                 a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
                 list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
