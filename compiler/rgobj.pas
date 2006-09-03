@@ -1492,11 +1492,7 @@ unit rgobj;
                   list.insertbefore(pdealloc,p)
                 else
                   list.concat(pdealloc);
-              end
-{$ifdef EXTDEBUG}
-            else
-              Comment(V_Warning,'Register '+std_regname(r)+' not used');
-{$endif EXTDEBUG}
+              end;
           end;
       end;
 
