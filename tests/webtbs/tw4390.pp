@@ -2,7 +2,6 @@
 { Submitted by "Benjamin Rosseaux" on  2005-09-28 }
 { e-mail: benjamin@0ok.de }
 PROGRAM Test;
-{$APPTYPE CONSOLE}
 {$IFDEF FPC}
  {$MODE DELPHI}
 {$ENDIF}

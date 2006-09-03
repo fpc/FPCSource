@@ -23,7 +23,17 @@
 {$endif}
 Program ppumove;
 uses
+
+{$IFDEF MACOS}
+{$DEFINE USE_FAKE_SYSUTILS}
+{$ENDIF MACOS}
+
+{$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,
+{$ELSE}
+  fksysutl,
+{$ENDIF}
+
 {$ifdef unix}
   Baseunix,Unix, UnixUtil,
 {$else unix}

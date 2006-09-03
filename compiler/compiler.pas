@@ -136,9 +136,11 @@ uses
 {$ELSE USE_SYSUTILS}
   dos,
 {$ENDIF USE_SYSUTILS}
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+{$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,
-{$ENDIF MACOS_USE_FAKE_SYSUTILS}
+{$ELSE}
+  fksysutl,
+{$ENDIF}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,import,export,tokens,pass_1

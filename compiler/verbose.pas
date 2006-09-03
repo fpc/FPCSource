@@ -26,8 +26,10 @@ unit verbose;
 interface
 
     uses
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+{$IFNDEF USE_FAKE_SYSUTILS}
       sysutils,
+{$ELSE}
+      fksysutl,
 {$ENDIF}
       cutils,
       globals,finput,

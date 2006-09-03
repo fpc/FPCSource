@@ -10,7 +10,6 @@
 {$mode delphi}
 
 program FunctionRedirectionProblem;
-{$APPTYPE CONSOLE}
 
 var
   cnt : longint;
