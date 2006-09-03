@@ -805,10 +805,8 @@ begin
         if IsConsole then
           writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
-        if resetFPU[exceptLevel] then asm
-                fninit
-                fldcw   fpucw
-        end;
+        if resetFPU[exceptLevel] then
+          SysResetFPU;
         { build a fake stack }
         asm
 {$ifdef REGCALL}
@@ -1002,11 +1000,7 @@ procedure fpc_cpucodeinit;
     sse_check:=false;
     has_sse_support:=sse_support;
     has_mmx_support:=mmx_support;
-    { reset FPU }
-    asm
-      fninit
-      fldcw   fpucw
-    end;
+    SysResetFPU;
     setup_fastmove;
   end;
 
