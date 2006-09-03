@@ -80,9 +80,11 @@ interface
 implementation
 
     uses
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
+{$IFNDEF USE_FAKE_SYSUTILS}
       sysutils,
-{$ENDIF MACOS_USE_FAKE_SYSUTILS}
+{$ELSE}
+      fksysutl,
+{$ENDIF}
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,defutil,defcmp,

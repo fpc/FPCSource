@@ -32,8 +32,14 @@ interface
 {$ifdef hasunix}
       Baseunix,unix,
 {$endif}
+
+{$IFNDEF USE_FAKE_SYSUTILS}
+      sysutils,
+{$ELSE}
+      fksysutl,
+{$ENDIF}
+
       { comphook pulls in sysutils anyways }
-      SysUtils,
 {$IFDEF USE_SYSUTILS}
 {$ELSE USE_SYSUTILS}
       strings,
@@ -374,32 +380,6 @@ interface
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(siz: shortint): shortint;
 
-{$IFDEF MACOS_USE_FAKE_SYSUTILS}
-
-{Since SysUtils is not yet available for MacOS, fake
- Exceptions classes are included here.}
-
-type
-   { exceptions }
-   Exception = class(TObject);
-
-   EExternal = class(Exception);
-
-   { integer math exceptions }
-   EInterror    = Class(EExternal);
-   EDivByZero   = Class(EIntError);
-   ERangeError  = Class(EIntError);
-   EIntOverflow = Class(EIntError);
-
-   { General math errors }
-   EMathError  = Class(EExternal);
-   EInvalidOp  = Class(EMathError);
-   EZeroDivide = Class(EMathError);
-   EOverflow   = Class(EMathError);
-   EUnderflow  = Class(EMathError);
-
-{$ENDIF MACOS_USE_FAKE_SYSUTILS}
-
 implementation
 
     uses
@@ -636,7 +616,11 @@ implementation
 
     Function DirectoryExists ( Const F : String) : Boolean;
       begin
+{$IFNDEF USE_FAKE_SYSUTILS}
         Result:=SysUtils.DirectoryExists(f);
+{$ELSE}
+        Result:=fksysutl.DirectoryExists(f);
+{$ENDIF}
       end;
 
 

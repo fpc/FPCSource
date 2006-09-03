@@ -26,10 +26,10 @@ unit comphook;
 interface
 
 uses
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
-  SysUtils,
+{$IFNDEF USE_FAKE_SYSUTILS}
+  sysutils,
 {$ELSE}
-  globals,
+  fksysutl,
 {$ENDIF}
   globtype,
   finput;
@@ -201,31 +201,19 @@ end;
 
      constructor EControlCAbort.Create;
        begin
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
          inherited Create('Ctrl-C Signaled!');
-{$ELSE}
-         inherited Create;
-{$ENDIF}
        end;
 
 
      constructor ECompilerAbort.Create;
        begin
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
          inherited Create('Compilation Aborted');
-{$ELSE}
-         inherited Create;
-{$ENDIF}
        end;
 
 
      constructor ECompilerAbortSilent.Create;
        begin
-{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
          inherited Create('Compilation Aborted');
-{$ELSE}
-         inherited Create;
-{$ENDIF}
        end;
 
 
