@@ -1900,14 +1900,8 @@ rm8,imm               \300\323\1\xC0\204\25           186,SB
 
 [SHLD,shldX]
 (Ch_MOp3, Ch_RWFlags, Ch_Rop2)
-mem,reg16,imm         \300\324\2\x0F\xA4\101\26       386,SM2,SB,AR2
-reg16,reg16,imm       \300\324\2\x0F\xA4\101\26       386,SM2,SB,AR2
-mem,reg32,imm         \300\325\2\x0F\xA4\101\26       386,SM2,SB,AR2
-reg32,reg32,imm       \300\325\2\x0F\xA4\101\26       386,SM2,SB,AR2
-mem,reg16,reg_cl      \300\324\2\x0F\xA5\101          386,SM
-reg16,reg16,reg_cl    \300\324\2\x0F\xA5\101          386
-mem,reg32,reg_cl      \300\325\2\x0F\xA5\101          386,SM
-reg32,reg32,reg_cl    \300\325\2\x0F\xA5\101          386
+rm16|32|64,reg16|32|64,imm    \300\321\2\x0F\xA4\101\26       386,SM2,SB,AR2
+rm16|32|64,reg16|32|64,reg_cl \300\321\2\x0F\xA5\101          386,SM
 
 [SHR,shrX]
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
@@ -1920,14 +1914,8 @@ rm8,imm               \300\323\1\xC0\205\25           186,SB
 
 [SHRD,shrdX]
 (Ch_MOp3, Ch_RWFlags, Ch_Rop2)
-mem,reg16,imm         \300\324\2\x0F\xAC\101\26       386,SM2,SB,AR2
-reg16,reg16,imm       \300\324\2\x0F\xAC\101\26       386,SM2,SB,AR2
-mem,reg32,imm         \300\325\2\x0F\xAC\101\26       386,SM2,SB,AR2
-reg32,reg32,imm       \300\325\2\x0F\xAC\101\26       386,SM2,SB,AR2
-mem,reg16,reg_cl      \300\324\2\x0F\xAD\101          386,SM
-reg16,reg16,reg_cl    \300\324\2\x0F\xAD\101          386
-mem,reg32,reg_cl      \300\325\2\x0F\xAD\101          386,SM
-reg32,reg32,reg_cl    \300\325\2\x0F\xAD\101          386
+rm16|32|64,reg16|32|64,imm    \300\321\2\x0F\xAC\101\26       386,SM2,SB,AR2
+rm16|32|64,reg16|32|64,reg_cl \300\321\2\x0F\xAD\101          386,SM
 
 [SIDT,sidtX]
 (Ch_Wop1, Ch_None, Ch_None)
