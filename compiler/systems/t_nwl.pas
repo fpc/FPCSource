@@ -102,15 +102,12 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwl
+    import,export,link,i_nwl,ogbase
     {$ifdef netware} ,dos {$endif}
     ;
 
   type
     timportlibnetwlibc=class(timportlib)
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -140,31 +137,17 @@ Const tmpLinkFileName = '~link~tmp.o';
                                TIMPORTLIBNETWARE
 *****************************************************************************}
 
-procedure timportlibnetwlibc.preparelib(const s : string);
-begin
-end;
-
-
-procedure timportlibnetwlibc.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-end;
-
-
-procedure timportlibnetwlibc.importvariable(vs:tglobalvarsym;const name,module:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-  { reset the mangledname and turn off the dll_var option }
-  vs.set_mangledname(name);
-  exclude(vs.varoptions,vo_is_dll_var);
-end;
-
-
-procedure timportlibnetwlibc.generatelib;
-begin
-end;
+    procedure timportlibnetwlibc.generatelib;
+      var
+        i : longint;
+        ImportLibrary : TImportLibrary;
+      begin
+        for i:=0 to current_module.ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+          end;
+      end;
 
 
 {*****************************************************************************

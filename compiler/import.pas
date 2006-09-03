@@ -31,24 +31,6 @@ uses
   symdef,symsym;
 
 type
-   timported_item = class(TLinkedListItem)
-      ordnr  : longint;
-      name,
-      func   : pstring;
-      lab    : tasmlabel;
-      is_var : boolean;
-      constructor Create(const n,s : string;o : longint);
-      constructor Create_var(const n,s : string);
-      destructor Destroy;override;
-   end;
-
-   timportlist = class(TLinkedListItem)
-      dllname : pstring;
-      imported_items : tlinkedlist;
-      constructor Create(const n : string);
-      destructor Destroy;Override;
-   end;
-
    timportlib=class
    private
       notsupmsg : boolean;
@@ -56,9 +38,6 @@ type
    public
       constructor Create;virtual;
       destructor Destroy;override;
-      procedure preparelib(const s:string);virtual;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);virtual;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
    end;
 
@@ -86,59 +65,6 @@ uses
   verbose,globals;
 
 {****************************************************************************
-                           Timported_item
-****************************************************************************}
-
-constructor timported_item.Create(const n,s : string;o : longint);
-begin
-  inherited Create;
-  func:=stringdup(n);
-  name:=stringdup(s);
-  ordnr:=o;
-  lab:=nil;
-  is_var:=false;
-end;
-
-
-constructor timported_item.create_var(const n,s : string);
-begin
-  inherited Create;
-  func:=stringdup(n);
-  name:=stringdup(s);
-  ordnr:=0;
-  lab:=nil;
-  is_var:=true;
-end;
-
-
-destructor timported_item.destroy;
-begin
-  stringdispose(name);
-  stringdispose(func);
-  inherited destroy;
-end;
-
-
-{****************************************************************************
-                              TImportlist
-****************************************************************************}
-
-constructor timportlist.Create(const n : string);
-begin
-  inherited Create;
-  dllname:=stringdup(n);
-  imported_items:=Tlinkedlist.Create;
-end;
-
-
-destructor timportlist.destroy;
-begin
-  imported_items.free;
-  stringdispose(dllname);
-end;
-
-
-{****************************************************************************
                               TImportLib
 ****************************************************************************}
 
@@ -161,24 +87,6 @@ begin
      Message(exec_e_dll_not_supported);
      notsupmsg:=true;
    end;
-end;
-
-
-procedure timportlib.preparelib(const s:string);
-begin
-  NotSupported;
-end;
-
-
-procedure timportlib.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
-begin
-  NotSupported;
-end;
-
-
-procedure timportlib.importvariable(vs:tglobalvarsym;const name,module:string);
-begin
-  NotSupported;
 end;
 
 

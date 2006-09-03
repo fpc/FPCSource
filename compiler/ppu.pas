@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=61;
+  CurrentPPUVersion=62;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -73,7 +73,7 @@ const
   iblinkotherofiles      = 8;
   iblinkotherstaticlibs  = 9;
   iblinkothersharedlibs  = 10;
-  iblinkdlls             = 11;
+  ibImportSymbols        = 11;
   ibsymref               = 12;
   ibdefref               = 13;
   ibendsymtablebrowser   = 14;

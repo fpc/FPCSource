@@ -41,24 +41,14 @@ implementation
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     import,export,link,i_bsd,
-    cgutils,cgbase,cgobj,cpuinfo;
+    cgutils,cgbase,cgobj,cpuinfo,ogbase;
 
   type
-    tdarwinimported_item = class(timported_item)
-       procdef : tprocdef;
-    end;
-
     timportlibdarwin=class(timportlib)
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
     timportlibbsd=class(timportlib)
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -88,29 +78,6 @@ implementation
                              TIMPORTLIBDARWIN
 *****************************************************************************}
 
-    procedure timportlibdarwin.preparelib(const s : string);
-      begin
-         if current_asmdata.asmlists[al_imports]=nil then
-           current_asmdata.asmlists[al_imports]:=TAsmList.create;
-      end;
-
-
-    procedure timportlibdarwin.importprocedure(aprocdef:tprocdef;const module : string;index : longint;const name : string);
-      begin
-        { insert sharedlibrary }
-{        current_module.linkothersharedlibs.add(SplitName(module),link_always); }
-      end;
-
-
-    procedure timportlibdarwin.importvariable(vs:tglobalvarsym;const name,module:string);
-      begin
-        { insert sharedlibrary }
-{        current_module.linkothersharedlibs.add(SplitName(module),link_always); }
-        { the rest is handled in the nppcld.pas tppcloadnode }
-        vs.set_mangledname(name);
-      end;
-
-
     procedure timportlibdarwin.generatelib;
       begin
       end;
@@ -120,31 +87,17 @@ implementation
                                TIMPORTLIBBSD
 *****************************************************************************}
 
-procedure timportlibbsd.preparelib(const s : string);
-begin
-end;
-
-
-procedure timportlibbsd.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-end;
-
-
-procedure timportlibbsd.importvariable(vs:tglobalvarsym;const name,module:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-  { reset the mangledname and turn off the dll_var option }
-  vs.set_mangledname(name);
-  exclude(vs.varoptions,vo_is_dll_var);
-end;
-
-
-procedure timportlibbsd.generatelib;
-begin
-end;
+    procedure timportlibbsd.generatelib;
+      var
+        i : longint;
+        ImportLibrary : TImportLibrary;
+      begin
+        for i:=0 to current_module.ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+          end;
+      end;
 
 
 {*****************************************************************************

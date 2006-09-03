@@ -32,9 +32,6 @@ interface
 
   type
     timportliblinux=class(timportlib)
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
-      procedure importvariable(vs:tglobalvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -67,7 +64,7 @@ implementation
     symconst,script,
     fmodule,dos,
     aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
-    cgbase,cgobj,cgutils,
+    cgbase,cgobj,cgutils,ogbase,
     i_linux
     ;
 
@@ -75,31 +72,17 @@ implementation
                                TIMPORTLIBLINUX
 *****************************************************************************}
 
-procedure timportliblinux.preparelib(const s : string);
-begin
-end;
-
-
-procedure timportliblinux.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-end;
-
-
-procedure timportliblinux.importvariable(vs:tglobalvarsym;const name,module:string);
-begin
-  { insert sharedlibrary }
-  current_module.linkothersharedlibs.add(SplitName(module),link_always);
-  { reset the mangledname and turn off the dll_var option }
-  vs.set_mangledname(name);
-  exclude(vs.varoptions,vo_is_dll_var);
-end;
-
-
-procedure timportliblinux.generatelib;
-begin
-end;
+    procedure timportliblinux.generatelib;
+      var
+        i : longint;
+        ImportLibrary : TImportLibrary;
+      begin
+        for i:=0 to current_module.ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            current_module.linkothersharedlibs.add(ImportLibrary.Name,link_always);
+          end;
+      end;
 
 
 {*****************************************************************************

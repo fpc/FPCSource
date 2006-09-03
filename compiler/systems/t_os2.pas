@@ -42,12 +42,10 @@ implementation
      cutils,cclasses,
      globtype,systems,symconst,symdef,
      globals,verbose,fmodule,script,
-     import,link,i_os2;
+     import,link,i_os2,ogbase;
 
   type
     timportlibos2=class(timportlib)
-      procedure preparelib(const s:string);override;
-      procedure importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);override;
       procedure generatelib;override;
     end;
 
@@ -262,24 +260,8 @@ begin
     blockwrite(out_file,aout_str_tab,aout_str_size);
 end;
 
-procedure timportlibos2.preparelib(const s:string);
 
-{This code triggers a lot of bugs in the compiler.
-const   armag='!<arch>'#10;
-        ar_magic:array[1..length(armag)] of char=armag;}
-const   ar_magic:array[1..8] of char='!<arch>'#10;
-var
-  libname : string;
-begin
-    libname:=FixFileName(S + Target_Info.StaticCLibExt);
-    seq_no:=1;
-    current_module.linkotherstaticlibs.add(libname,link_always);
-    assign(out_file,current_module.outputpath^+libname);
-    rewrite(out_file,1);
-    blockwrite(out_file,ar_magic,sizeof(ar_magic));
-end;
-
-procedure timportlibos2.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
+procedure AddImport(const module:string;index:longint;const name:string);
 {func       = Name of function to import.
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
@@ -289,10 +271,6 @@ var tmp1,tmp2,tmp3:string;
     fixup_mcount,fixup_import:longint;
     func : string;
 begin
-    { force the current mangledname }
-    include(aprocdef.procoptions,po_has_mangledname);
-    func:=aprocdef.mangledname;
-
     aout_init;
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
@@ -335,11 +313,32 @@ begin
     inc(seq_no);
 end;
 
-procedure timportlibos2.generatelib;
-
-begin
-    close(out_file);
-end;
+    procedure timportlibos2.generatelib;
+      const
+        ar_magic:array[1..8] of char='!<arch>'#10;
+      var
+          libname : string;
+          i,j  : longint;
+          ImportLibrary : TImportLibrary;
+          ImportSymbol  : TImportSymbol;
+      begin
+        for i:=0 to current_module.ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
+            LibName:=FixFileName(ImportLibrary.Name + Target_Info.StaticCLibExt);
+            seq_no:=1;
+            current_module.linkotherstaticlibs.add(libname,link_always);
+            assign(out_file,current_module.outputpath^+libname);
+            rewrite(out_file,1);
+            blockwrite(out_file,ar_magic,sizeof(ar_magic));
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                AddImport(ImportLibrary.Name,ImportSymbol.OrdNr,ImportSymbol.Name);
+              end;
+            close(out_file);
+         end;
+      end;
 
 
 {****************************************************************************

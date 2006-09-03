@@ -342,21 +342,23 @@ interface
         property ObjInputClass:TObjInputClass read FObjInputClass;
       end;
 
-      TExternalLibrary = class(TFPHashObject)
+      TImportLibrary = class(TFPHashObject)
       private
-        FExternalSymbolList : TFPHashObjectList;
+        FImportSymbolList : TFPHashObjectList;
       public
         constructor create(AList:TFPHashObjectList;const AName:string);
         destructor  destroy;override;
-        property ExternalSymbolList:TFPHashObjectList read FExternalSymbolList;
+        property ImportSymbolList:TFPHashObjectList read FImportSymbolList;
       end;
-      
-      TExternalSymbol = class(TFPHashObject)
+
+      TImportSymbol = class(TFPHashObject)
       private
-        FOrdNumber: longint;
+        FOrdNr  : longint;
+        FIsVar  : boolean;
       public
-        constructor create(AList: TFPHashObjectList; const AName: string; AOrdNumber: longint);
-        property OrdNumber: longint read FOrdNumber;
+        constructor create(AList:TFPHashObjectList;const AName:string;AOrdNr:longint;AIsVar:boolean);
+        property OrdNr: longint read FOrdNr;
+        property IsVar: boolean read FIsVar;
       end;
 
       TExeOutput = class
@@ -424,7 +426,7 @@ interface
         procedure MergeStabs;
         procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
-        procedure GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);virtual;
+        procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
         property ExeSections:TFPHashObjectList read FExeSectionList;
@@ -1289,32 +1291,33 @@ implementation
 
 
 {****************************************************************************
-                                TExternalLibrary
+                                TImportLibrary
 ****************************************************************************}
 
-    constructor TExternalLibrary.create(AList:TFPHashObjectList;const AName:string);
+    constructor TImportLibrary.create(AList:TFPHashObjectList;const AName:string);
       begin
         inherited create(AList,AName);
-        FExternalSymbolList:=TFPHashObjectList.Create(false);
+        FImportSymbolList:=TFPHashObjectList.Create(false);
       end;
 
 
-    destructor TExternalLibrary.destroy;
+    destructor TImportLibrary.destroy;
       begin
-        ExternalSymbolList.Free;
+        ImportSymbolList.Free;
         inherited destroy;
       end;
 
 
 {****************************************************************************
-                                TExternalSymbol
+                                TImportSymbol
 ****************************************************************************}
 
-constructor TExternalSymbol.create(AList: TFPHashObjectList; const AName: string; AOrdNumber: longint);
-begin
-  inherited Create(AList, AName);
-  FOrdNumber:=AOrdNumber;
-end;
+    constructor TImportSymbol.create(AList:TFPHashObjectList;const AName:string;AOrdNr:longint;AIsVar:boolean);
+      begin
+        inherited Create(AList, AName);
+        FOrdNr:=AOrdNr;
+        FIsVar:=AIsVar;
+      end;
 
 
 {****************************************************************************
@@ -1907,7 +1910,7 @@ end;
       end;
 
 
-    procedure TExeOutput.GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);
+    procedure TExeOutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
       begin
       end;
 

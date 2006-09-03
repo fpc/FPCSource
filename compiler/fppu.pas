@@ -68,11 +68,13 @@ interface
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
           procedure writederefmap;
           procedure writederefdata;
+          procedure writeImportSymbols;
           procedure readsourcefiles;
           procedure readloadunit;
           procedure readlinkcontainer(var p:tlinkcontainer);
           procedure readderefmap;
           procedure readderefdata;
+          procedure readImportSymbols;
 {$IFDEF MACRO_DIFF_HINT}
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
           procedure writeusedmacros;
@@ -90,7 +92,7 @@ uses
   verbose,systems,version,
   symtable, symsym,
   scanner,
-  aasmbase,
+  aasmbase,ogbase,
   parser;
 
 {****************************************************************************
@@ -568,6 +570,30 @@ uses
         ppufile.writeentry(ibderefdata);
       end;
 
+
+    procedure tppumodule.writeImportSymbols;
+      var
+        i,j : longint;
+        ImportLibrary : TImportLibrary;
+        ImportSymbol  : TImportSymbol;
+      begin
+        for i:=0 to ImportLibraryList.Count-1 do
+          begin
+            ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
+            ppufile.putstring(ImportLibrary.Name);
+            ppufile.putlongint(ImportLibrary.ImportSymbolList.Count);
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
+              begin
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                ppufile.putstring(ImportSymbol.Name);
+                ppufile.putlongint(ImportSymbol.OrdNr);
+                ppufile.putbyte(byte(ImportSymbol.IsVar));
+              end;
+          end;
+        ppufile.writeentry(ibImportSymbols);
+      end;
+
+
 {$IFDEF MACRO_DIFF_HINT}
 
 {
@@ -800,6 +826,30 @@ uses
       end;
 
 
+    procedure tppumodule.readImportSymbols;
+      var
+        j,
+        extsymcnt   : longint;
+        ImportLibrary  : TImportLibrary;
+        extsymname  : string;
+        extsymordnr : longint;
+        extsymisvar : boolean;
+      begin
+        while not ppufile.endofentry do
+          begin
+            ImportLibrary:=TImportLibrary.Create(ImportLibraryList,ppufile.getstring);
+            extsymcnt:=ppufile.getlongint;
+            for j:=0 to extsymcnt-1 do
+              begin
+                extsymname:=ppufile.getstring;
+                extsymordnr:=ppufile.getlongint;
+                extsymisvar:=(ppufile.getbyte<>0);
+                TImportSymbol.Create(ImportLibrary.ImportSymbolList,extsymname,extsymordnr,extsymisvar);
+              end;
+          end;
+      end;
+
+
     procedure tppumodule.load_interface;
       var
         b : byte;
@@ -840,8 +890,8 @@ uses
                readlinkcontainer(LinkotherStaticLibs);
              iblinkothersharedlibs :
                readlinkcontainer(LinkotherSharedLibs);
-             iblinkdlls :
-               readlinkcontainer(LinkDlls);
+             ibImportSymbols :
+               readImportSymbols;
              ibderefmap :
                readderefmap;
              ibderefdata :
@@ -951,7 +1001,7 @@ uses
          writelinkcontainer(linkotherofiles,iblinkotherofiles,false);
          writelinkcontainer(linkotherstaticlibs,iblinkotherstaticlibs,true);
          writelinkcontainer(linkothersharedlibs,iblinkothersharedlibs,true);
-         writelinkcontainer(linkdlls,iblinkdlls,true);
+         writeImportSymbols;
          ppufile.do_crc:=true;
 
          { generate implementation deref data, the interface deref data is

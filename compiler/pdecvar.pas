@@ -997,7 +997,7 @@ implementation
                       if (extern_var) and (idtoken<>_NAME) then
                        begin
                          is_dll:=true;
-                         dll_name:=get_stringconst;
+                         dll_name:=AddExtension(get_stringconst,target_info.sharedlibext);
                        end;
                       if try_to_consume(_NAME) then
                         C_name:=get_stringconst
@@ -1010,9 +1010,13 @@ implementation
 
                    { set some vars options }
                    if is_dll then
-                    include(vs.varoptions,vo_is_dll_var)
+                     begin
+                       { Windows uses an indirect reference using import tables }
+                       if target_info.system in system_all_windows then
+                         include(vs.varoptions,vo_is_dll_var);
+                     end
                    else
-                    include(vs.varoptions,vo_is_C_var);
+                     include(vs.varoptions,vo_is_C_var);
 
                    if (is_dll) and
                       (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
@@ -1039,17 +1043,10 @@ implementation
                         begin
                           vs.varregable := vr_none;
                           if is_dll then
-                           begin
-                             if not(current_module.uses_imports) then
-                              begin
-                                current_module.uses_imports:=true;
-                                importlib.preparelib(current_module.realmodulename^);
-                              end;
-                             importlib.importvariable(tglobalvarsym(vs),C_name,dll_name);
-                           end
+                            current_module.AddExternalImport(dll_name,C_Name,0,true)
                           else
-                           if tf_has_dllscanner in target_info.flags then
-                            current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
+                            if tf_has_dllscanner in target_info.flags then
+                              current_module.dllscannerinputlist.Add(vs.mangledname,vs);
                         end;
                      end
                    else

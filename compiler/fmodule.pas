@@ -43,22 +43,17 @@ interface
 
     uses
        cutils,cclasses,
-       globals,finput,
+       globals,finput,ogbase,
        symbase,symsym,aasmbase,aasmtai,aasmdata;
 
+
+    const
+      UNSPECIFIED_LIBRARY_NAME = '<none>';
 
     type
       trecompile_reason = (rr_unknown,
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
       );
-
-      TExternalsItem=class(TLinkedListItem)
-      public
-        found : longbool;
-        data  : pstring;
-        constructor Create(const s:string);
-        Destructor Destroy;override;
-      end;
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
@@ -95,6 +90,9 @@ interface
       pderefmap = ^tderefmaprec;
 
       tmodule = class(tmodulebase)
+      private
+        FImportLibraryList : TFPHashObjectList;
+      public
         do_reload,                { force reloading of the unit }
         do_compile,               { need to compile the sources }
         sources_avail,            { if all sources are reachable }
@@ -134,15 +132,12 @@ interface
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pstring;  { prefix for the smartlink asmfiles }
         loaded_from   : tmodule;
-        uses_imports  : boolean;  { Set if the module imports from DLL's.}
-        imports       : tlinkedlist;
         _exports      : tlinkedlist;
-        externals     : tlinkedlist; {Only for DLL scanners by using Unix-style $LINKLIB }
+        dllscannerinputlist : TFPHashList;
         resourcefiles : tstringlist;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
-        linkdlls,
         linkotherofiles,           { objects,libs loaded from the source }
         linkothersharedlibs,       { using $L or $LINKLIB or import lib (for linux) }
         linkotherstaticlibs  : tlinkcontainer;
@@ -170,6 +165,8 @@ interface
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
         procedure setmodulename(const s:string);
+        procedure AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean);
+        property ImportLibraryList : TFPHashObjectList read FImportLibraryList;
       end;
 
        tused_unit = class(tlinkedlistitem)
@@ -325,25 +322,6 @@ implementation
 
 
 {****************************************************************************
-                              TExternalsItem
- ****************************************************************************}
-
-    constructor tExternalsItem.Create(const s:string);
-      begin
-        inherited Create;
-        found:=false;
-        data:=stringdup(s);
-      end;
-
-
-    destructor tExternalsItem.Destroy;
-      begin
-        stringdispose(data);
-        inherited;
-      end;
-
-
-{****************************************************************************
                               TUSED_UNIT
  ****************************************************************************}
 
@@ -419,7 +397,7 @@ implementation
         linkotherofiles:=TLinkContainer.Create;
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs:=TLinkContainer.Create;
-        linkdlls:=TLinkContainer.Create;
+        FImportLibraryList:=TFPHashObjectList.Create(true);
         crc:=0;
         interface_crc:=0;
         flags:=0;
@@ -450,10 +428,8 @@ implementation
         is_dbginfo_written:=false;
         is_reset:=false;
         mode_switch_allowed:= true;
-        uses_imports:=false;
-        imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
-        externals:=TLinkedList.Create;
+        dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
       end;
 
@@ -474,12 +450,10 @@ implementation
               stringdispose(derefmap[i].modulename);
             freemem(derefmap);
           end;
-        if assigned(imports) then
-         imports.free;
         if assigned(_exports) then
          _exports.free;
-        if assigned(externals) then
-         externals.free;
+        if assigned(dllscannerinputlist) then
+         dllscannerinputlist.free;
         if assigned(scanner) then
          begin
             { also update current_scanner if it was pointing
@@ -515,7 +489,7 @@ implementation
         linkotherofiles.Free;
         linkotherstaticlibs.Free;
         linkothersharedlibs.Free;
-        linkdlls.Free;
+        FImportLibraryList.Free;
         stringdispose(objfilename);
         stringdispose(newfilename);
         stringdispose(ppufilename);
@@ -626,12 +600,10 @@ implementation
         sourcefiles.free;
         sourcefiles:=tinputfilemanager.create;
         asmdata:=TAsmData.create(realmodulename^);
-        imports.free;
-        imports:=tlinkedlist.create;
         _exports.free;
         _exports:=tlinkedlist.create;
-        externals.free;
-        externals:=tlinkedlist.create;
+        dllscannerinputlist.free;
+        dllscannerinputlist:=TFPHashList.create;
         used_units.free;
         used_units:=TLinkedList.Create;
         dependent_units.free;
@@ -650,9 +622,8 @@ implementation
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs.Free;
         linkothersharedlibs:=TLinkContainer.Create;
-        linkdlls.Free;
-        linkdlls:=TLinkContainer.Create;
-        uses_imports:=false;
+        FImportLibraryList.Free;
+        FImportLibraryList:=TFPHashObjectList.Create;
         do_compile:=false;
         do_reload:=false;
         interface_compiled:=false;
@@ -844,5 +815,20 @@ implementation
         current_asmdata.name:=modulename^;
         current_asmdata.realname:=realmodulename^;
       end;
+
+
+    procedure TModule.AddExternalImport(const libname,symname:string;OrdNr: longint;isvar:boolean);
+      var
+        ImportLibrary : TImportLibrary;
+        ImportSymbol  : TFPHashObject;
+      begin
+        ImportLibrary:=TImportLibrary(ImportLibraryList.Find(libname));
+        if not assigned(ImportLibrary) then
+          ImportLibrary:=TImportLibrary.Create(ImportLibraryList,libname);
+        ImportSymbol:=TFPHashObject(ImportLibrary.ImportSymbolList.Find(symname));
+        if not assigned(ImportSymbol) then
+          ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
+      end;
+
 
 end.

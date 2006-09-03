@@ -1510,24 +1510,12 @@ implementation
 
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
-                   begin
-                     { create importlib if not already done }
-                     if not(current_module.uses_imports) then
-                       begin
-                         current_module.uses_imports:=true;
-                         importlib.preparelib(current_module.realmodulename^);
-                       end;
-
-                     if assigned(pd.import_name) then
-                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,proc_get_importname(pd))
-                     else
-                       importlib.importprocedure(pd,pd.import_dll^,pd.import_nr,'');
-                   end
+                   current_module.AddExternalImport(pd.import_dll^,proc_get_importname(pd),pd.import_nr,false)
                  else
                    begin
                      { add import name to external list for DLL scanning }
                      if tf_has_dllscanner in target_info.flags then
-                       current_module.externals.insert(tExternalsItem.create(proc_get_importname(pd)));
+                       current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
                    end;
                end;
            end;

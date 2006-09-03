@@ -248,7 +248,7 @@ interface
          procedure GenerateRelocs;
        public
          constructor create;override;
-         procedure GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);override;
+         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);override;
          procedure Order_End;override;
          procedure CalcPos_ExeSection(const aname:string);override;
        end;
@@ -428,7 +428,7 @@ implementation
        R_DIR32 = 6;
        R_IMAGEBASE = 7;
        R_PCRLONG = 20;
-       
+
        { .reloc section fixup types }
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
        IMAGE_REL_BASED_DIR64       = 10; { Applies the delta to the 64-bit field at Offset. }
@@ -2277,7 +2277,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TPECoffexeoutput.GenerateLibraryImports(ExternalLibraryList:TFPHashObjectList);
+    procedure TPECoffexeoutput.GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);
       var
         textobjsection,
         idata2objsection,
@@ -2348,7 +2348,7 @@ const pemagic : array[0..3] of byte = (
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
         end;
 
-        function AddProcImport(const afuncname:string; ordnumber:longint):TObjSymbol;
+        function AddImport(const afuncname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
@@ -2376,7 +2376,7 @@ const pemagic : array[0..3] of byte = (
           emptyint : longint;
           secname,
           num : string;
-          ordnr: word;
+          absordnr: word;
         begin
           result:=nil;
           emptyint:=0;
@@ -2397,16 +2397,16 @@ const pemagic : array[0..3] of byte = (
           inc(idatalabnr);
           num:=tostr(idatalabnr);
           idata6label:=internalobjdata.SymbolDefine('__imp_'+num,AB_LOCAL,AT_DATA);
-          ordnr:=Abs(ordnumber);
-          internalobjdata.writebytes(ordnr,2);
-          if ordnumber <= 0 then
+          absordnr:=Abs(AOrdNr);
+          internalobjdata.writebytes(absordnr,2);
+          if AOrdNr <= 0 then
             internalobjdata.writebytes(afuncname[1],length(afuncname));
           internalobjdata.writebytes(emptyint,1);
           internalobjdata.writebytes(emptyint,align(internalobjdata.CurrObjSec.size,2)-internalobjdata.CurrObjSec.size);
           { idata4, import lookup table }
           internalobjdata.SetSection(idata4objsection);
           idata4label:=internalobjdata.SymbolDefine('__imp_lookup_'+num,AB_LOCAL,AT_DATA);
-          if ordnumber <= 0 then
+          if AOrdNr <= 0 then
             begin
               internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
               if target_info.system=system_x86_64_win64 then
@@ -2414,7 +2414,7 @@ const pemagic : array[0..3] of byte = (
             end
           else
             begin
-              emptyint:=ordnumber;
+              emptyint:=AOrdNr;
               if target_info.system=system_x86_64_win64 then
                 begin
                   internalobjdata.writebytes(emptyint,sizeof(emptyint));
@@ -2434,42 +2434,48 @@ const pemagic : array[0..3] of byte = (
           internalobjdata.writereloc(0,0,idata4label,RELOC_NONE);
           internalobjdata.writereloc(0,0,idata2label,RELOC_NONE);
           { section data }
-          idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
+          if isvar then
+            result:=internalobjdata.SymbolDefine(afuncname,AB_GLOBAL,AT_DATA)
+          else
+            idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
           internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
           { text, jmp }
-          internalobjdata.SetSection(textobjsection);
-          result:=internalobjdata.SymbolDefine('_'+afuncname,AB_GLOBAL,AT_FUNCTION);
-          internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
-          internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
-          internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
+          if not isvar then
+            begin
+              internalobjdata.SetSection(textobjsection);
+              result:=internalobjdata.SymbolDefine('_'+afuncname,AB_GLOBAL,AT_FUNCTION);
+              internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
+              internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
+              internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
+            end;
         end;
 
       var
         i,j : longint;
-        ExtLibrary : TExternalLibrary;
-        ExtSymbol  : TExternalSymbol;
+        ImportLibrary : TImportLibrary;
+        ImportSymbol  : TImportSymbol;
         exesym     : TExeSymbol;
       begin
-        for i:=0 to ExternalLibraryList.Count-1 do
+        for i:=0 to ImportLibraryList.Count-1 do
           begin
-            ExtLibrary:=TExternalLibrary(ExternalLibraryList[i]);
+            ImportLibrary:=TImportLibrary(ImportLibraryList[i]);
             idata2objsection:=nil;
             idata4objsection:=nil;
             idata5objsection:=nil;
             idata6objsection:=nil;
             idata7objsection:=nil;
-            for j:=0 to ExtLibrary.ExternalSymbolList.Count-1 do
+            for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
-                ExtSymbol:=TExternalSymbol(ExtLibrary.ExternalSymbolList[j]);
-                exesym:=TExeSymbol(ExeSymbolList.Find(ExtSymbol.Name));
+                ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.Name));
                 if assigned(exesym) and
                    (exesym.State<>symstate_defined) then
                   begin
                     if not assigned(idata2objsection) then
-                      StartImport(ExtLibrary.Name);
-                    exesym.objsymbol:=AddProcImport(ExtSymbol.Name, ExtSymbol.OrdNumber);
+                      StartImport(ImportLibrary.Name);
+                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                     exesym.State:=symstate_defined;
                   end;
               end;
@@ -2483,7 +2489,7 @@ const pemagic : array[0..3] of byte = (
     procedure TPECoffexeoutput.GenerateRelocs;
       var
         pgaddr, hdrpos : longint;
-    
+
       procedure FinishBlock;
       var
         p,len : longint;
@@ -2499,7 +2505,7 @@ const pemagic : array[0..3] of byte = (
         internalObjData.CurrObjSec.Data.seek(p);
         hdrpos:=-1;
       end;
-    
+
       var
         exesec : TExeSection;
         objsec : TObjSection;
@@ -2544,7 +2550,7 @@ const pemagic : array[0..3] of byte = (
           end;
         FinishBlock;
       end;
-      
+
 
     procedure TPECoffexeoutput.Order_End;
       var
@@ -2558,8 +2564,8 @@ const pemagic : array[0..3] of byte = (
           exit;
         exesec.SecOptions:=exesec.SecOptions + [oso_Data,oso_keep];
       end;
-      
-      
+
+
       procedure TPECoffexeoutput.CalcPos_ExeSection(const aname:string);
         begin
           if aname='.reloc' then

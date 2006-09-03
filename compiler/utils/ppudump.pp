@@ -425,6 +425,31 @@ begin
 end;
 
 
+Procedure ReadImportSymbols;
+var
+  extlibname  : string;
+  j,
+  extsymcnt   : longint;
+  extsymname  : string;
+  extsymordnr : longint;
+  extsymisvar : boolean;
+begin
+  while not ppufile.endofentry do
+    begin
+      extlibname:=ppufile.getstring;
+      extsymcnt:=ppufile.getlongint;
+      writeln('External Library: ',extlibname,' (',extsymcnt,' imports)');
+      for j:=0 to extsymcnt-1 do
+        begin
+          extsymname:=ppufile.getstring;
+          extsymordnr:=ppufile.getlongint;
+          extsymisvar:=ppufile.getbyte<>0;
+          writeln(' ',extsymname,' (OrdNr: ',extsymordnr,' IsVar: ',extsymisvar,')');
+        end;
+    end;
+end;
+
+
 Procedure ReadDerefdata;
 begin
   derefdatalen:=ppufile.entrysize;
@@ -1994,8 +2019,8 @@ begin
          iblinkothersharedlibs :
            ReadLinkContainer('Link other shared lib: ');
 
-         iblinkdlls :
-           ReadLinkContainer('Link DLLs: ');
+         ibImportSymbols :
+           ReadImportSymbols;
 
          ibderefdata :
            ReadDerefData;

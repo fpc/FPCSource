@@ -1112,7 +1112,7 @@ implementation
          GenerateResourceStrings;
 
          { generate imports }
-         if current_module.uses_imports then
+         if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
 
          { insert own objectfile, or say that it's in a library
@@ -1412,7 +1412,7 @@ implementation
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
          { generate imports }
-         if current_module.uses_imports then
+         if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
 
          if islibrary or (target_info.system in system_unit_program_exports) then

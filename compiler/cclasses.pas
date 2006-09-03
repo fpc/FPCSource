@@ -1146,7 +1146,13 @@ function TFPHashList.NameOfIndex(Index: Integer): String;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
-  Result:=PShortString(@FStrs[FHashList^[Index].StrIndex])^;
+  with FHashList^[Index] do
+    begin
+      if StrIndex>=0 then
+        Result:=PShortString(@FStrs[StrIndex])^
+      else
+        Result:='';
+    end;
 end;
 
 
@@ -1302,7 +1308,11 @@ procedure TFPHashList.Delete(Index: Integer);
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
-  FHashList^[Index].Data:=nil;
+  with FHashList^[Index] do
+    begin
+      Data:=nil;
+      StrIndex:=-1;
+    end;
 end;
 
 class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
@@ -1345,8 +1355,10 @@ end;
 function TFPHashList.IndexOf(Item: Pointer): Integer;
 begin
   Result := 0;
-  while(Result < FCount) and (FHashList^[Result].Data <> Item) do Result := Result + 1;
-  If Result = FCount  then Result := -1;
+  while(Result < FCount) and (FHashList^[Result].Data <> Item) do
+    inc(Result);
+  If Result = FCount then
+    Result := -1;
 end;
 
 function TFPHashList.Find(const s:string): Pointer;
