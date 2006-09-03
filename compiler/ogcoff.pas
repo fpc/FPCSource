@@ -1998,26 +1998,21 @@ const pemagic : array[0..3] of byte = (
             fillchar(sechdr,sizeof(sechdr),0);
             move(name[1],sechdr.name,length(name));
             sechdr.rvaofs:=mempos;
-            sechdr.vsize:=mempos;
             if win32 then
-              begin
-                sechdr.rvaofs:=mempos;
-                sechdr.vsize:=align(Size,$100);
-              end
+              sechdr.vsize:=Size
             else
-              begin
-                sechdr.rvaofs:=mempos;
-                sechdr.vsize:=mempos;
-              end;
+              sechdr.vsize:=mempos;
             { sechdr.dataSize is size of initilized data. For .bss section it must be zero }
             if Name <> '.bss' then
-              if oso_data in SecOptions then
-                begin
+              begin
+                if oso_data in SecOptions then
+                  begin
+                    sechdr.dataSize:=Size;
+                    sechdr.datapos:=datapos;
+                  end
+                else
                   sechdr.dataSize:=Size;
-                  sechdr.datapos:=datapos;
-                end
-              else
-                sechdr.dataSize:=Size;
+              end;
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
