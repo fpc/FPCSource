@@ -341,7 +341,7 @@ var
   ExitCode    : Word; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
-  IsLibrary : boolean;
+  IsLibrary : boolean = false;
   IsConsole : boolean;
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';

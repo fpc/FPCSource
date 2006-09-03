@@ -251,7 +251,6 @@ var
 Begin
   SysResetFPU;
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := initialstkptr - StackLength;
   { Set up signals handlers }
