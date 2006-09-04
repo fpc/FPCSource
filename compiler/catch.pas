@@ -60,10 +60,8 @@ Const in_const_evaluation : boolean = false;
 
 Implementation
 
-//{$IFNDEF USE_FAKE_SYSUTILS}
 uses
   comphook;
-//{$ENDIF USE_FAKE_SYSUTILS}
 
 {$ifdef has_signal}
 {$ifdef unix}
