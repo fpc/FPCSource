@@ -563,7 +563,7 @@ parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 parser_e_methods_dont_be_export=03068_E_Methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed.
-parser_e_call_by_ref_without_typeconv=03069_E_Call by var parameters have to match exactly: Got "$1" expected "$2"
+parser_e_call_by_ref_without_typeconv=03069_E_Call by var for arg no. $1 has to match exactly: Got "$2" expected "$3"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -944,7 +944,7 @@ parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of o
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Default value can only be assigned to one parameter
-% It is not possible to specify a default value for several parameters at once. 
+% It is not possible to specify a default value for several parameters at once.
 % The following is invalid:
 % \begin{verbatim}
 % Procedure MyProcedure (A,B : Integer = 0);
@@ -2082,7 +2082,7 @@ unit_u_load_unit=10027_U_Load from $1 ($2) unit $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
 unit_u_recompile_crc_change=10028_U_Recompiling $1, checksum changed for $2
-% The unit is recompiled because the checksum of a unit it depends on has 
+% The unit is recompiled because the checksum of a unit it depends on has
 % changed.
 unit_u_recompile_source_found_alone=10029_U_Recompiling $1, source found only
 % When you use the \var{-vu} flag, these messages tell you why the current

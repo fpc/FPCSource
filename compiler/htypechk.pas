@@ -2264,7 +2264,7 @@ implementation
                not valid_for_var(pt.left,true) then
               CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
-              CGMessagePos2(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,
+              CGMessagePos3(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,tostr(hp^.wrongparanr),
                 FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
                 FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def))
           end
