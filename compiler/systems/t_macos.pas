@@ -47,6 +47,7 @@ implementation
     uses
        cutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_macos,
+       ogbase,
        symconst;
 
 {*****************************************************************************
