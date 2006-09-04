@@ -106,7 +106,6 @@
            112    SHDocManagerDestroy
            111    SHDocManagerQuery
            110    SHDocManagerRegister
-            69    SHDoneButton
            233    SHDrawBranding
            234    SHDrawClippedText
            331    SHDrawTextOverImage
@@ -123,7 +122,6 @@
            168    SHFadeImage
             54    SHFillRectClr
            132    SHFindForegroundMenuBar
-           188    SHFindMenuBar
            283    SHFindMenuBarInternal
            209    SHFindPreviousInstance
            212    SHFindPreviousInstanceEx
@@ -134,9 +132,7 @@
             99    SHForceBaseStateEx
            102    SHFreeContextMenuExtensions
            120    SHFreeScanners
-            65    SHFullScreen
            213    SHGetActiveDialog
-            90    SHGetAutoRunPath
            292    SHGetBitmapDimensions
            285    SHGetBitmapLogPixels
            225    SHGetCarrierBranding
@@ -173,7 +169,6 @@
             76    SHHdrGrpSepLineDraw
              8    SHImListPopup
            149    SHInitPresetMessages
-            39    SHInputDialog
            181    SHInsertPresetMessage
            129    SHInvalidateScreen
            101    SHInvokeContextMenuCommand
@@ -234,7 +229,6 @@
            131    SHSetForegroundLastActivePopup
            231    SHSetInputContext
            134    SHSetKOBits
-            88    SHSetNavBarText
            154    SHSetPresetMessage
            170    SHSetSimToolkitMenu
           1003    SHSetSoftKey
@@ -340,6 +334,7 @@ const
   SHCMBM_OVERRIDEKEY   = (WM_USER + 403);
   SHCMBM_SETBKCOLOR    = (WM_USER + 406); // lParam == COLORREF
 
+
   {Valid mask values}
   SHIDIM_FLAGS         = $0001;
   {Valid flags}
@@ -379,8 +374,20 @@ const
   SPI_RESERVED           = 229;
   SPI_SYNCSETTINGSCHANGE = 230;
 
-  {Pocket PC  special controls}
   WC_SIPPREF             = 'SIPPREF';
+
+  {SHFullScreen - valide states}
+  SHFS_SHOWTASKBAR     = $0001;
+  SHFS_HIDETASKBAR     = $0002;
+  SHFS_SHOWSIPBUTTON   = $0004;
+  SHFS_HIDESIPBUTTON   = $0008;
+  SHFS_SHOWSTARTICON   = $0010;
+  SHFS_HIDESTARTICON   = $0020;
+
+  { DoneButton - Valid state}
+  SHDB_SHOW            = $0001;
+  SHDB_HIDE            = $0002;
+  WS_NONAVDONEBUTTON   = WS_MINIMIZEBOX;
 
 //*****************************************************************************
 // types
@@ -453,11 +460,16 @@ type
 function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external UserDLLAyg name 'ExitWindowsEx';
 function SHCloseApps( dwMemSought : DWORD ): WINBOOL; external UserDLLAyg name 'SHCloseApps';
 function SHCreateMenuBar(pmbi : PSHMENUBARINFO ): WINBOOL; external UserDLLAyg name 'SHCreateMenuBar';
+function SHDoneButton(hwndRequester: HWND ; dwState : DWORD ): WINBOOL; external UserDLLAyg name 'SHDoneButton';
 function SHFindMenuBar(hwnd:HWND) : HWND; external UserDLLAyg name 'SHFindMenuBar';
+function SHFullScreen(hwmdRequester: hWnd; dwState: DWord): WINBOOL; external UserDLLAyg name 'SHFullScreen';  {Pocket PC  special controls}
+function SHGetAutoRunPath( pAutoRunPath : LPTSTR ): WINBOOL; external UserDLLAyg name 'SHGetAutoRunPath';  
+
 function SHHandleWMActivate(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO; dwFlags:DWORD  ): WINBOOL; external UserDLLAyg name 'SHHandleWMActivate';
 function SHHandleWMSettingChange(hwnd:HWND; wParam:WPARAM; lParam:LPARAM; psai: PSHACTIVATEINFO): WINBOOL; external UserDLLAyg name 'SHHandleWMSettingChange';
 function SHInitDialog(pshidi: PSHINITDLGINFO): WINBOOL; external UserDLLAyg name 'SHInitDialog';
 function SHInitExtraControls: WINBOOL; external UserDLLAyg name 'SHInitExtraControls';
+procedure SHInputDialog(hwnd : HWND; uMsg : UINT; wParam: WPARAM ); external UserDLLAyg name 'SHInputDialog';
 function SHGetAppKeyAssoc( ptszApp: LPCTSTR ): Byte; external UserDLLAyg name 'SHGetAppKeyAssoc';
 {not exported on PocketPC 4.21 SE , may be smartphone only ? oro06 09-02-06
 function SHLoadImageResource(hinst: HINST; uIdGif: UINT ): HBITMAP; external UserDLLAyg name 'SHLoadImageResource';
@@ -465,6 +477,8 @@ function SHLoadImageFile(pszFileName: LPCTSTR ) : HBITMAP; external UserDLLAyg n
 procedure SHNavigateBack; external UserDLLAyg name 'SHNavigateBack';
 }
 function SHSetAppKeyWndAssoc( bVk: BYTE ; hwnd : HWND ): WINBOOL; external UserDLLAyg name 'SHSetAppKeyWndAssoc';
+function SHSetNavBarText(hwndRequester : HWND; pszText : LPCTSTR): WINBOOL; external UserDLLAyg name 'SHSetNavBarText';
+
 function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
 function SHSipPreference(hwnd: HWND ; st : SIPSTATE ) : WINBOOL; external UserDLLAyg name 'SHSipPreference';
 function SHRecognizeGesture(var shrg : SHRGINFO): DWORD; external UserDLLAyg name 'SHRecognizeGesture';
