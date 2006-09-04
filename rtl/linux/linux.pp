@@ -50,16 +50,16 @@ Const
   CLONE_PID     = $00001000; // set if pid shared
 
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
-  EPOLLOUT = $02; { The associated file is available for write(2) operations. }
-  EPOLLPRI = $04; { There is urgent data available for read(2) operations. }
+  EPOLLPRI = $02; { There is urgent data available for read(2) operations. }
+  EPOLLOUT = $04; { The associated file is available for write(2) operations. }
   EPOLLERR = $08; { Error condition happened on the associated file descriptor. }
   EPOLLHUP = $10; { Hang up happened on the associated file descriptor. }
   EPOLLET  = $80000000; { Sets  the  Edge  Triggered  behaviour  for  the  associated file descriptor. }
 
   { Valid opcodes ( "op" parameter ) to issue to epoll_ctl }
   EPOLL_CTL_ADD = 1;
-  EPOLL_CTL_MOD = 2;
-  EPOLL_CTL_DEL = 3;
+  EPOLL_CTL_DEL = 2;
+  EPOLL_CTL_MOD = 3;
 
   {Some console iotcl's.}
   GIO_FONT        = $4B60;  {gets font in expanded form}

@@ -333,7 +333,7 @@ begin
     begin
     Inc(Result);
     P:=List^.Next;
-    FreeMem(List);
+    Dispose(List);
     List:=P;
     end;
 end;
