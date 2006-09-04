@@ -97,6 +97,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_checkpointer,
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
+         cs_do_inline,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -111,7 +112,7 @@ than 255 characters. That's why using Ansi Strings}
          { parser }
          cs_fp_emulation,cs_extsyntax,cs_openstring,
          { support }
-         cs_support_inline,cs_support_goto,cs_support_macro,
+         cs_support_goto,cs_support_macro,
          cs_support_c_operators,cs_static_keyword,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
@@ -187,7 +188,8 @@ than 255 characters. That's why using Ansi Strings}
          m_default_para,        { support default parameters }
          m_hintdirective,       { support hint directives }
          m_duplicate_names,     { allow locals/paras to have duplicate names of globals }
-         m_property             { allow properties }
+         m_property,            { allow properties }
+         m_default_inline       { allow inline proc directive }
        );
        tmodeswitches = set of tmodeswitch;
 

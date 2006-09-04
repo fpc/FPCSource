@@ -1028,7 +1028,7 @@ begin
                        'h' :
                          include(initlocalswitches,cs_ansistrings);
                        'i' :
-                         include(initmoduleswitches,cs_support_inline);
+                         include(initlocalswitches,cs_do_inline);
                        'k' :
                          include(initglobalswitches,cs_load_fpcylix_unit);
                        'm' :
@@ -1044,9 +1044,9 @@ begin
                        '-' :
                          begin
                            exclude(initglobalswitches,cs_constructor_name);
-                           initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_ansistrings];
+                           initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
                            initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                     cs_support_inline, cs_support_macro,
+                                                                     cs_support_macro,
                                                                      cs_static_keyword];
                          end;
                        else

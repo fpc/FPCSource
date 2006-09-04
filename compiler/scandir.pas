@@ -430,7 +430,7 @@ implementation
 
     procedure dir_inline;
       begin
-        do_moduleswitch(cs_support_inline);
+        do_localswitch(cs_do_inline);
       end;
 
     procedure dir_interfaces;

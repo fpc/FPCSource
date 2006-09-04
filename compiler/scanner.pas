@@ -288,12 +288,27 @@ implementation
                aktlocalswitches:=nextaktlocalswitches;
                localswitcheschanged:=false;
              end;
+
            { turn ansistrings on by default ? }
-           if (m_delphi in aktmodeswitches) then
+           if (m_default_ansistring in aktmodeswitches) then
             begin
               include(aktlocalswitches,cs_ansistrings);
               if changeinit then
                include(initlocalswitches,cs_ansistrings);
+            end
+           else
+            begin
+              exclude(aktlocalswitches,cs_ansistrings);
+              if changeinit then
+               exclude(initlocalswitches,cs_ansistrings);
+            end;
+
+           { turn inline on by default ? }
+           if (m_default_inline in aktmodeswitches) then
+            begin
+              include(aktlocalswitches,cs_do_inline);
+              if changeinit then
+               include(initlocalswitches,cs_do_inline);
             end
            else
             begin

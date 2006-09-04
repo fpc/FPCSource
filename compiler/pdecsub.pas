@@ -2235,14 +2235,18 @@ const
             end;
         end;
 
-        if (po_inline in pd.procoptions) then
-            begin
-              if not(cs_support_inline in aktmoduleswitches) then
-               begin
-                 Message(parser_e_proc_inline_not_supported);
-                 exclude(pd.procoptions,po_inline);
-               end;
-            end;
+        { Inlining is enabled and supported? }
+        if (po_inline in pd.procoptions) and
+           not(cs_do_inline in aktlocalswitches) then
+          begin
+            { Give an error if inline is not supported by the compiler mode,
+              otherwise only give a warning that this procedure will not be inlined }
+            if not(m_default_inline in aktmodeswitches) then
+              Message(parser_e_proc_inline_not_supported)
+            else
+              Message(parser_w_inlining_disabled);
+            exclude(pd.procoptions,po_inline);
+          end;
 
         { For varargs directive also cdecl and external must be defined }
         if (po_varargs in pd.procoptions) then
