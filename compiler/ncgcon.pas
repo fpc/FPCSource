@@ -338,11 +338,11 @@ implementation
                                        if assigned(hp2) and
                                           (hp2.typ=ait_const) and
                                           (tai_const(hp2).consttype=aitconst_aint) and
-                                          (tai_const(hp2).value=-1) and
+                                          (tai_const(hp2).value=len) and
                                           assigned(hp2.previous) and
                                           (tai(hp2.previous).typ=ait_const) and
                                           (tai_const(hp2.previous).consttype=aitconst_aint) and
-                                          (tai_const(hp2.previous).value=len) and
+                                          (tai_const(hp2.previous).value=-1) and
                                           assigned(hp2.previous.previous) and
                                           (tai(hp2.previous.previous).typ=ait_const) and
                                           (tai_const(hp2.previous.previous).consttype=aitconst_ptr) and
