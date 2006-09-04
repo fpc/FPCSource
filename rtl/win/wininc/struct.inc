@@ -4802,7 +4802,7 @@
           nFileOffset : WORD;
           nFileExtension : WORD;
           lpstrDefExt : LPCTSTR;
-          lCustData : DWORD;
+          lCustData : LPARAM;
           lpfnHook : LPOFNHOOKPROC;
           lpTemplateName : LPCTSTR;
        end;
