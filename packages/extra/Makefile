@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid unixutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
@@ -267,7 +267,7 @@ ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -285,7 +285,7 @@ ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
@@ -294,19 +294,19 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 univint
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=palmunits
@@ -315,7 +315,7 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil newt uuid
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1404,9 +1404,9 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
+TARGET_DIRS_UNIXUTIL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_UNZIP=1
@@ -1573,7 +1573,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -1671,7 +1670,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -1743,7 +1741,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -1791,7 +1788,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -1841,7 +1837,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -1877,7 +1872,6 @@ TARGET_DIRS_CDROM=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_GNOME1=1
 TARGET_DIRS_FPGTK=1
-TARGET_DIRS_UNIXUTIL=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 endif
@@ -2871,51 +2865,6 @@ fpgtk:
 	$(MAKE) -C fpgtk all
 .PHONY: fpgtk_all fpgtk_debug fpgtk_smart fpgtk_release fpgtk_units fpgtk_examples fpgtk_shared fpgtk_install fpgtk_sourceinstall fpgtk_exampleinstall fpgtk_distinstall fpgtk_zipinstall fpgtk_zipsourceinstall fpgtk_zipexampleinstall fpgtk_zipdistinstall fpgtk_clean fpgtk_distclean fpgtk_cleanall fpgtk_info fpgtk_makefiles fpgtk
 endif
-ifdef TARGET_DIRS_UNIXUTIL
-unixutil_all:
-	$(MAKE) -C unixutil all
-unixutil_debug:
-	$(MAKE) -C unixutil debug
-unixutil_smart:
-	$(MAKE) -C unixutil smart
-unixutil_release:
-	$(MAKE) -C unixutil release
-unixutil_units:
-	$(MAKE) -C unixutil units
-unixutil_examples:
-	$(MAKE) -C unixutil examples
-unixutil_shared:
-	$(MAKE) -C unixutil shared
-unixutil_install:
-	$(MAKE) -C unixutil install
-unixutil_sourceinstall:
-	$(MAKE) -C unixutil sourceinstall
-unixutil_exampleinstall:
-	$(MAKE) -C unixutil exampleinstall
-unixutil_distinstall:
-	$(MAKE) -C unixutil distinstall
-unixutil_zipinstall:
-	$(MAKE) -C unixutil zipinstall
-unixutil_zipsourceinstall:
-	$(MAKE) -C unixutil zipsourceinstall
-unixutil_zipexampleinstall:
-	$(MAKE) -C unixutil zipexampleinstall
-unixutil_zipdistinstall:
-	$(MAKE) -C unixutil zipdistinstall
-unixutil_clean:
-	$(MAKE) -C unixutil clean
-unixutil_distclean:
-	$(MAKE) -C unixutil distclean
-unixutil_cleanall:
-	$(MAKE) -C unixutil cleanall
-unixutil_info:
-	$(MAKE) -C unixutil info
-unixutil_makefiles:
-	$(MAKE) -C unixutil makefiles
-unixutil:
-	$(MAKE) -C unixutil all
-.PHONY: unixutil_all unixutil_debug unixutil_smart unixutil_release unixutil_units unixutil_examples unixutil_shared unixutil_install unixutil_sourceinstall unixutil_exampleinstall unixutil_distinstall unixutil_zipinstall unixutil_zipsourceinstall unixutil_zipexampleinstall unixutil_zipdistinstall unixutil_clean unixutil_distclean unixutil_cleanall unixutil_info unixutil_makefiles unixutil
-endif
 ifdef TARGET_DIRS_NEWT
 newt_all:
 	$(MAKE) -C newt all
@@ -3005,6 +2954,51 @@ uuid_makefiles:
 uuid:
 	$(MAKE) -C uuid all
 .PHONY: uuid_all uuid_debug uuid_smart uuid_release uuid_units uuid_examples uuid_shared uuid_install uuid_sourceinstall uuid_exampleinstall uuid_distinstall uuid_zipinstall uuid_zipsourceinstall uuid_zipexampleinstall uuid_zipdistinstall uuid_clean uuid_distclean uuid_cleanall uuid_info uuid_makefiles uuid
+endif
+ifdef TARGET_DIRS_UNIXUTIL
+unixutil_all:
+	$(MAKE) -C unixutil all
+unixutil_debug:
+	$(MAKE) -C unixutil debug
+unixutil_smart:
+	$(MAKE) -C unixutil smart
+unixutil_release:
+	$(MAKE) -C unixutil release
+unixutil_units:
+	$(MAKE) -C unixutil units
+unixutil_examples:
+	$(MAKE) -C unixutil examples
+unixutil_shared:
+	$(MAKE) -C unixutil shared
+unixutil_install:
+	$(MAKE) -C unixutil install
+unixutil_sourceinstall:
+	$(MAKE) -C unixutil sourceinstall
+unixutil_exampleinstall:
+	$(MAKE) -C unixutil exampleinstall
+unixutil_distinstall:
+	$(MAKE) -C unixutil distinstall
+unixutil_zipinstall:
+	$(MAKE) -C unixutil zipinstall
+unixutil_zipsourceinstall:
+	$(MAKE) -C unixutil zipsourceinstall
+unixutil_zipexampleinstall:
+	$(MAKE) -C unixutil zipexampleinstall
+unixutil_zipdistinstall:
+	$(MAKE) -C unixutil zipdistinstall
+unixutil_clean:
+	$(MAKE) -C unixutil clean
+unixutil_distclean:
+	$(MAKE) -C unixutil distclean
+unixutil_cleanall:
+	$(MAKE) -C unixutil cleanall
+unixutil_info:
+	$(MAKE) -C unixutil info
+unixutil_makefiles:
+	$(MAKE) -C unixutil makefiles
+unixutil:
+	$(MAKE) -C unixutil all
+.PHONY: unixutil_all unixutil_debug unixutil_smart unixutil_release unixutil_units unixutil_examples unixutil_shared unixutil_install unixutil_sourceinstall unixutil_exampleinstall unixutil_distinstall unixutil_zipinstall unixutil_zipsourceinstall unixutil_zipexampleinstall unixutil_zipdistinstall unixutil_clean unixutil_distclean unixutil_cleanall unixutil_info unixutil_makefiles unixutil
 endif
 ifdef TARGET_DIRS_WINUNITS
 winunits_all:
