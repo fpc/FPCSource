@@ -675,6 +675,9 @@ var
   i : longint;
 {$endif}
 Begin
+{$ifdef SYSTEMDEBUG}
+  writeln('InternalExit');
+{$endif SYSTEMDEBUG}
   while exitProc<>nil Do
    Begin
      InOutRes:=0;
