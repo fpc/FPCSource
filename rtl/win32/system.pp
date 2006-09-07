@@ -788,193 +788,193 @@ end;
 {$endif SYSTEMEXCEPTIONDEBUG}
 
 procedure JumpToHandleErrorFrame;
-var
-        eip, ebp, error : Longint;
-begin
-        // save ebp
-        asm
-                movl (%ebp),%eax
-                movl %eax,ebp
-        end;
-        if (exceptLevel > 0) then
-                dec(exceptLevel);
+  var
+    eip, ebp, error : Longint;
+  begin
+    // save ebp
+    asm
+      movl (%ebp),%eax
+      movl %eax,ebp
+    end;
+    if (exceptLevel > 0) then
+      dec(exceptLevel);
 
-        eip:=exceptEip[exceptLevel];
-        error:=exceptError[exceptLevel];
+    eip:=exceptEip[exceptLevel];
+    error:=exceptError[exceptLevel];
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then
-          writeln(stderr,'In JumpToHandleErrorFrame error=',error);
+    if IsConsole then
+      writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
-        if resetFPU[exceptLevel] then
-          SysResetFPU;
-        { build a fake stack }
-        asm
+    if resetFPU[exceptLevel] then
+      SysResetFPU;
+    { build a fake stack }
+    asm
 {$ifdef REGCALL}
-                movl   ebp,%ecx
-                movl   eip,%edx
-                movl   error,%eax
-                pushl  eip
-                movl   ebp,%ebp // Change frame pointer
+      movl   ebp,%ecx
+      movl   eip,%edx
+      movl   error,%eax
+      pushl  eip
+      movl   ebp,%ebp // Change frame pointer
 {$else}
-                movl   ebp,%eax
-                pushl  %eax
-                movl   eip,%eax
-                pushl  %eax
-                movl   error,%eax
-                pushl  %eax
-                movl   eip,%eax
-                pushl  %eax
-                movl   ebp,%ebp // Change frame pointer
+      movl   ebp,%eax
+      pushl  %eax
+      movl   eip,%eax
+      pushl  %eax
+      movl   error,%eax
+      pushl  %eax
+      movl   eip,%eax
+      pushl  %eax
+      movl   ebp,%ebp // Change frame pointer
 {$endif}
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-                jmpl   DebugHandleErrorAddrFrame
+      jmpl   DebugHandleErrorAddrFrame
 {$else not SYSTEMEXCEPTIONDEBUG}
-                jmpl   HandleErrorAddrFrame
+      jmpl   HandleErrorAddrFrame
 {$endif SYSTEMEXCEPTIONDEBUG}
-        end;
-end;
+    end;
+  end;
 
 var
   { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
   sse_check : boolean;
 
 function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;stdcall;
-var
-  res: longint;
-  err: byte;
-  must_reset_fpu: boolean;
-begin
-  res := EXCEPTION_CONTINUE_SEARCH;
-  if excep^.ContextRecord^.SegSs=_SS then begin
-    err := 0;
-    must_reset_fpu := true;
-  {$ifdef SYSTEMEXCEPTIONDEBUG}
-    if IsConsole then Writeln(stderr,'Exception  ',
-            hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
-  {$endif SYSTEMEXCEPTIONDEBUG}
-    case excep^.ExceptionRecord^.ExceptionCode of
-      STATUS_INTEGER_DIVIDE_BY_ZERO,
-      STATUS_FLOAT_DIVIDE_BY_ZERO :
-        err := 200;
-      STATUS_ARRAY_BOUNDS_EXCEEDED :
-        begin
-          err := 201;
-          must_reset_fpu := false;
-        end;
-      STATUS_STACK_OVERFLOW :
-        begin
-          err := 202;
-          must_reset_fpu := false;
-        end;
-      STATUS_FLOAT_OVERFLOW :
-        err := 205;
-      STATUS_FLOAT_DENORMAL_OPERAND,
-      STATUS_FLOAT_UNDERFLOW :
-        err := 206;
-  {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
-      STATUS_FLOAT_INEXACT_RESULT,
-      STATUS_FLOAT_INVALID_OPERATION,
-      STATUS_FLOAT_STACK_CHECK :
-        err := 207;
-      STATUS_INTEGER_OVERFLOW :
-        begin
-          err := 215;
-          must_reset_fpu := false;
-        end;
-      STATUS_ILLEGAL_INSTRUCTION:
-        { if we're testing sse support, simply set the flag and continue }
-        if sse_check then
+  var
+    res: longint;
+    err: byte;
+    must_reset_fpu: boolean;
+  begin
+    res := EXCEPTION_CONTINUE_SEARCH;
+    if excep^.ContextRecord^.SegSs=_SS then begin
+      err := 0;
+      must_reset_fpu := true;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+      if IsConsole then Writeln(stderr,'Exception  ',
+              hexstr(excep^.ExceptionRecord^.ExceptionCode, 8));
+{$endif SYSTEMEXCEPTIONDEBUG}
+      case excep^.ExceptionRecord^.ExceptionCode of
+        STATUS_INTEGER_DIVIDE_BY_ZERO,
+        STATUS_FLOAT_DIVIDE_BY_ZERO :
+          err := 200;
+        STATUS_ARRAY_BOUNDS_EXCEEDED :
           begin
-            os_supports_sse:=false;
-            { if yes, then retry }
-            excep^.ExceptionRecord^.ExceptionCode := 0;
-            res:=EXCEPTION_CONTINUE_EXECUTION;
-          end
-        else
-          err := 216;
-      STATUS_ACCESS_VIOLATION:
-        { Athlon prefetch bug? }
-        if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
+            err := 201;
+            must_reset_fpu := false;
+          end;
+        STATUS_STACK_OVERFLOW :
           begin
-            { if yes, then retry }
-            excep^.ExceptionRecord^.ExceptionCode := 0;
-            res:=EXCEPTION_CONTINUE_EXECUTION;
-          end
-        else
-          err := 216;
-
-      STATUS_CONTROL_C_EXIT:
-        err := 217;
-      STATUS_PRIVILEGED_INSTRUCTION:
-        begin
-          err := 218;
-          must_reset_fpu := false;
-        end;
-      else
-        begin
-          if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
-            err := 217
+            err := 202;
+            must_reset_fpu := false;
+          end;
+        STATUS_FLOAT_OVERFLOW :
+          err := 205;
+        STATUS_FLOAT_DENORMAL_OPERAND,
+        STATUS_FLOAT_UNDERFLOW :
+          err := 206;
+    {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
+        STATUS_FLOAT_INEXACT_RESULT,
+        STATUS_FLOAT_INVALID_OPERATION,
+        STATUS_FLOAT_STACK_CHECK :
+          err := 207;
+        STATUS_INTEGER_OVERFLOW :
+          begin
+            err := 215;
+            must_reset_fpu := false;
+          end;
+        STATUS_ILLEGAL_INSTRUCTION:
+          { if we're testing sse support, simply set the flag and continue }
+          if sse_check then
+            begin
+              os_supports_sse:=false;
+              { if yes, then retry }
+              excep^.ExceptionRecord^.ExceptionCode := 0;
+              res:=EXCEPTION_CONTINUE_EXECUTION;
+            end
           else
-            err := 255;
-        end;
-    end;
+            err := 216;
+        STATUS_ACCESS_VIOLATION:
+          { Athlon prefetch bug? }
+          if is_prefetch(pointer(excep^.ContextRecord^.Eip)) then
+            begin
+              { if yes, then retry }
+              excep^.ExceptionRecord^.ExceptionCode := 0;
+              res:=EXCEPTION_CONTINUE_EXECUTION;
+            end
+          else
+            err := 216;
 
-    if (err <> 0) and (exceptLevel < MaxExceptionLevel) then begin
-      exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
-      exceptError[exceptLevel] := err;
-      resetFPU[exceptLevel] := must_reset_fpu;
-      inc(exceptLevel);
-
-      excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
-      excep^.ExceptionRecord^.ExceptionCode := 0;
-
-      res := EXCEPTION_CONTINUE_EXECUTION;
-    {$ifdef SYSTEMEXCEPTIONDEBUG}
-      if IsConsole then begin
-        writeln(stderr,'Exception Continue Exception set at ',
-                hexstr(exceptEip[exceptLevel],8));
-        writeln(stderr,'Eip changed to ',
-                hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+        STATUS_CONTROL_C_EXIT:
+          err := 217;
+        STATUS_PRIVILEGED_INSTRUCTION:
+          begin
+            err := 218;
+            must_reset_fpu := false;
+          end;
+        else
+          begin
+            if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
+              err := 217
+            else
+              err := 255;
+          end;
       end;
-    {$endif SYSTEMEXCEPTIONDEBUG}
+
+      if (err <> 0) and (exceptLevel < MaxExceptionLevel) then begin
+        exceptEip[exceptLevel] := excep^.ContextRecord^.Eip;
+        exceptError[exceptLevel] := err;
+        resetFPU[exceptLevel] := must_reset_fpu;
+        inc(exceptLevel);
+
+        excep^.ContextRecord^.Eip := Longint(@JumpToHandleErrorFrame);
+        excep^.ExceptionRecord^.ExceptionCode := 0;
+
+        res := EXCEPTION_CONTINUE_EXECUTION;
+{$ifdef SYSTEMEXCEPTIONDEBUG}
+        if IsConsole then begin
+          writeln(stderr,'Exception Continue Exception set at ',
+                  hexstr(exceptEip[exceptLevel],8));
+          writeln(stderr,'Eip changed to ',
+                  hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+        end;
+{$endif SYSTEMEXCEPTIONDEBUG}
+      end;
     end;
+    syswin32_i386_exception_handler := res;
   end;
-  syswin32_i386_exception_handler := res;
-end;
 
 procedure install_exception_handlers;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-var
-        oldexceptaddr,
-        newexceptaddr : Longint;
+  var
+    oldexceptaddr,
+    newexceptaddr : Longint;
 {$endif SYSTEMEXCEPTIONDEBUG}
 
-begin
+  begin
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-        asm
-                movl $0,%eax
-                movl %fs:(%eax),%eax
-                movl %eax,oldexceptaddr
-        end;
+    asm
+      movl $0,%eax
+      movl %fs:(%eax),%eax
+      movl %eax,oldexceptaddr
+    end;
 {$endif SYSTEMEXCEPTIONDEBUG}
-        SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
+    SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-        asm
-                movl $0,%eax
-                movl %fs:(%eax),%eax
-                movl %eax,newexceptaddr
-        end;
-        if IsConsole then
-                writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
-                        ' new exception  ',hexstr(newexceptaddr,8));
+    asm
+      movl $0,%eax
+      movl %fs:(%eax),%eax
+      movl %eax,newexceptaddr
+    end;
+    if IsConsole then
+      writeln(stderr,'Old exception  ',hexstr(oldexceptaddr,8),
+                     ' new exception  ',hexstr(newexceptaddr,8));
 {$endif SYSTEMEXCEPTIONDEBUG}
-end;
+  end;
 
 procedure remove_exception_handlers;
-begin
-        SetUnhandledExceptionFilter(nil);
-end;
+  begin
+    SetUnhandledExceptionFilter(nil);
+  end;
 
 {$else not cpui386 (Processor specific !!)}
 procedure install_exception_handlers;
