@@ -22,6 +22,8 @@ const
   saveexit : pointer = nil;
   x : longint = 0;
 
+{$S-}
+{ the stack overflowed already so don't do much here and depend on stack_margin }
 procedure stack_check_exit;
 
 begin
