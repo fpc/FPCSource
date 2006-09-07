@@ -27,7 +27,6 @@
 {$ENDIF}
 
 {$IFDEF FPC}
- {$MODE objfpc}
  {$DEFINE Use32}
  {$UNDEF DPMI}
  {$UNDEF MSDOS}
