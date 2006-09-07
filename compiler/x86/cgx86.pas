@@ -1141,12 +1141,19 @@ unit cgx86;
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
+{$ifdef x86_64}
+              if (a and 63) <> 0 Then
+                list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,reg));
+              if (a shr 6) <> 0 Then
+                internalerror(200609073);
+{$else x86_64}
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,reg));
               if (a shr 5) <> 0 Then
-                internalerror(68991);
+                internalerror(200609071);
+{$endif x86_64}
             end
-          else internalerror(68992);
+          else internalerror(200609072);
         end;
       end;
 
