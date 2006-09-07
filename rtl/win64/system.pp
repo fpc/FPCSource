@@ -370,7 +370,11 @@ begin
    begin
      Close(stderr);
      Close(stdout);
+     Close(erroutput);
+     Close(Input);
+     Close(Output);
      { what about Input and Output ?? PM }
+     { now handled, FPK }
    end;
   remove_exception_handlers;
 
