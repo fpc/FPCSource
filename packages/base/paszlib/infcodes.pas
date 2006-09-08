@@ -42,7 +42,7 @@ function inflate_codes_new (bl : cardinal;
 var
  c : pInflate_codes_state;
 begin
-  c := pInflate_codes_state( ZALLOC(z,1,sizeof(inflate_codes_state)) );
+  new(c);
   if (c <> Z_NULL) then
   begin
     c^.mode := START;
@@ -564,7 +564,7 @@ end;
 procedure inflate_codes_free(c : pInflate_codes_state;
                              var z : z_stream);
 begin
-  ZFREE(z, c);
+  dispose(c);
   {$IFDEF ZLIB_DEBUG}  
   Tracev('inflate:       codes free');
   {$ENDIF}

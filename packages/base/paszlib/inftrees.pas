@@ -450,7 +450,7 @@ var
   v : Pcardinalarray;     { work area for huft_build }
 begin
   hn := 0;
-  v := Pcardinalarray( ZALLOC(z, 19, sizeof(cardinal)) );
+  getmem(v,19*sizeof(cardinal));
   if (v = nil) then
   begin
     inflate_trees_bits := Z_MEM_ERROR;
@@ -468,7 +468,7 @@ begin
       z.msg := 'incomplete dynamic bit lengths tree';
       r := Z_DATA_ERROR;
     end;
-  ZFREE(z, v);
+  freemem(v);
   inflate_trees_bits := r;
 end;
 
@@ -491,7 +491,7 @@ var
 begin
   hn := 0;
   { allocate work area }
-  v := Pcardinalarray( ZALLOC(z, 288, sizeof(cardinal)) );
+  getmem(v,288*sizeof(cardinal));
   if (v = nil) then
   begin
     inflate_trees_dynamic := Z_MEM_ERROR;
@@ -511,7 +511,7 @@ begin
         r := Z_DATA_ERROR;
       end;
 
-    ZFREE(z, v);
+    freemem(v);
     inflate_trees_dynamic := r;
     exit;
   end;
@@ -539,14 +539,14 @@ begin
           z.msg := 'empty distance tree with lengths';
           r := Z_DATA_ERROR;
         end;
-    ZFREE(z, v);
+    freemem(v);
     inflate_trees_dynamic := r;
     exit;
 {$endif}
   end;
 
   { done }
-  ZFREE(z, v);
+  freemem(v);
   inflate_trees_dynamic := Z_OK;
 end;
 
@@ -730,16 +730,16 @@ begin
     f := 0;
 
     { allocate memory }
-    c := pFixed_table( ZALLOC(z, 288, sizeof(cardinal)) );
+    getmem(c,288*sizeof(cardinal));
     if (c = nil) then
     begin
       inflate_trees_fixed := Z_MEM_ERROR;
       exit;
     end;
-    v := Pcardinalarray( ZALLOC(z, 288, sizeof(cardinal)) );
+    getmem(v,288*sizeof(cardinal));
     if (v = nil) then
     begin
-      ZFREE(z, c);
+      freemem(c);
       inflate_trees_fixed := Z_MEM_ERROR;
       exit;
     end;
@@ -765,8 +765,8 @@ begin
                fixed_mem, f, v^);
 
     { done }
-    ZFREE(z, v);
-    ZFREE(z, c);
+    freemem(v);
+    freemem(c);
     fixed_built := True;
   end;
   bl := fixed_bl;

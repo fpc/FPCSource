@@ -71,10 +71,7 @@ function deflateInit_(strm : z_streamp;
 
 function deflateInit (var strm : z_stream; level : integer) : integer;
 
-{  Initializes the internal stream state for compression. The fields
-   zalloc, zfree and opaque must be initialized before by the caller.
-   If zalloc and zfree are set to Z_NULL, deflateInit updates them to
-   use default allocation functions.
+{  Initializes the internal stream state for compression.
 
      The compression level must be Z_DEFAULT_COMPRESSION, or between 0 and 9:
    1 gives best speed, 9 gives best compression, 0 gives no compression at
@@ -196,7 +193,7 @@ function deflateInit2_(var strm : z_stream;
                        stream_size : integer) : integer;
 
 {  This is another version of deflateInit with more compression options. The
-   fields next_in, zalloc, zfree and opaque must be initialized before by
+   fields next_in, and opaque must be initialized before by
    the caller.
 
      The method parameter is the compression method. It must be Z_DEFLATED in
@@ -295,7 +292,7 @@ function deflateCopy (dest : z_streamp;
 
      deflateCopy returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_STREAM_ERROR if the source stream state was inconsistent
-   (such as zalloc being NULL). msg is left unchanged in both source and
+   (such as getmem returns nil). msg is left unchanged in both source and
    destination. }
 
 {EXPORT}
@@ -307,7 +304,7 @@ function deflateReset (var strm : z_stream) : integer;
    that may have been set by deflateInit2.
 
       deflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
-   stream state was inconsistent (such as zalloc or state being NIL). }
+   stream state was inconsistent (such as getmem or state being NIL). }
 
 
 {EXPORT}
@@ -557,7 +554,7 @@ begin
     exit;
   end;
 
-  s := deflate_state_ptr (ZALLOC(strm, 1, sizeof(deflate_state)));
+  getmem(s,sizeof(deflate_state));
   if (s = nil) then
   begin
     deflateInit2_ := Z_MEM_ERROR;
@@ -576,13 +573,13 @@ begin
   s^.hash_mask := s^.hash_size - 1;
   s^.hash_shift :=  ((s^.hash_bits+MIN_MATCH-1) div MIN_MATCH);
 
-  s^.window := Pbytearray (ZALLOC(strm, s^.w_size, 2*sizeof(Byte)));
-  s^.prev   := pzPosfArray (ZALLOC(strm, s^.w_size, sizeof(Pos)));
-  s^.head   := pzPosfArray (ZALLOC(strm, s^.hash_size, sizeof(Pos)));
+  getmem(s^.window,s^.w_size*2*sizeof(byte));
+  getmem(s^.prev,s^.w_size*sizeof(pos));
+  getmem(s^.head,s^.hash_size*sizeof(pos));
 
   s^.lit_bufsize := 1 shl (memLevel + 6); { 16K elements by default }
 
-  overlay := Pwordarray (ZALLOC(strm, s^.lit_bufsize, sizeof(word)+2));
+  getmem(overlay,s^.lit_bufsize*(sizeof(word)+2));
   s^.pending_buf := Pbytearray(overlay);
   s^.pending_buf_size := longint(s^.lit_bufsize) * (sizeof(word)+longint(2));
 
@@ -718,7 +715,7 @@ begin
 
   strm.total_out := 0;
   strm.total_in := 0;
-  strm.msg := '';      { use zfree if we ever allocate msg dynamically }
+  strm.msg := '';      { use freemem if we ever allocate msg dynamically }
   strm.data_type := Z_UNKNOWN;
 
   s := deflate_state_ptr(strm.state);
@@ -1045,12 +1042,12 @@ begin
   end;
 
   { Deallocate in reverse order of allocations: }
-  TRY_FREE(strm, s^.pending_buf);
-  TRY_FREE(strm, s^.head);
-  TRY_FREE(strm, s^.prev);
-  TRY_FREE(strm, s^.window);
+  freemem(s^.pending_buf);
+  freemem(s^.head);
+  freemem(s^.prev);
+  freemem(s^.window);
 
-  ZFREE(strm, s);
+  freemem(s);
   strm.state := Z_NULL;
 
   if status = BUSY_STATE then
@@ -1087,7 +1084,7 @@ begin
   ss := deflate_state_ptr(source^.state);
   dest^ := source^;
 
-  ds := deflate_state_ptr( ZALLOC(dest^, 1, sizeof(deflate_state)) );
+  getmem(ds,sizeof(deflate_state));
   if (ds = Z_NULL) then
   begin
     deflateCopy := Z_MEM_ERROR;
@@ -1097,10 +1094,10 @@ begin
   ds^ := ss^;
   ds^.strm := dest;
 
-  ds^.window := Pbytearray ( ZALLOC(dest^, ds^.w_size, 2*sizeof(Byte)) );
-  ds^.prev   := pzPosfArray ( ZALLOC(dest^, ds^.w_size, sizeof(Pos)) );
-  ds^.head   := pzPosfArray ( ZALLOC(dest^, ds^.hash_size, sizeof(Pos)) );
-  overlay := Pwordarray ( ZALLOC(dest^, ds^.lit_bufsize, sizeof(word)+2) );
+  getmem(ds^.window,ds^.w_size*2*sizeof(byte));
+  getmem(ds^.prev,ds^.w_size*sizeof(pos));
+  getmem(ds^.head,ds^.hash_size*sizeof(pos));
+  getmem(overlay,ds^.lit_bufsize*(sizeof(word)+2));
   ds^.pending_buf := Pbytearray ( overlay );
 
   if (ds^.window = Z_NULL) or (ds^.prev = Z_NULL) or (ds^.head = Z_NULL)

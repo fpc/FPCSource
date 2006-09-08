@@ -17,10 +17,7 @@ uses
 
 function inflateInit(var z : z_stream) : integer;
 
-{    Initializes the internal stream state for decompression. The fields
-   zalloc, zfree and opaque must be initialized before by the caller.  If
-   zalloc and zfree are set to Z_NULL, inflateInit updates them to use default
-   allocation functions.
+{    Initializes the internal stream state for decompression.
 
      inflateInit returns Z_OK if success, Z_MEM_ERROR if there was not
    enough memory, Z_VERSION_ERROR if the zlib library version is incompatible
@@ -44,9 +41,7 @@ function inflateInit2(var z: z_stream;
                        windowBits : integer) : integer;
 
 {
-     This is another version of inflateInit with an extra parameter. The
-   fields next_in, avail_in, zalloc, zfree and opaque must be initialized
-   before by the caller.
+     This is another version of inflateInit with an extra parameter.
 
      The windowBits parameter is the base two logarithm of the maximum window
    size (the size of the history buffer).  It should be in the range 8..15 for
@@ -85,7 +80,7 @@ function inflateReset(var z : z_stream) : integer;
    The stream will keep attributes that may have been set by inflateInit2.
 
       inflateReset returns Z_OK if success, or Z_STREAM_ERROR if the source
-   stream state was inconsistent (such as zalloc or state being NULL).
+   stream state was inconsistent (such as getmem or state being NULL).
 }
 
 
@@ -235,7 +230,7 @@ begin
   end;
   if (z.state^.blocks <> Z_NULL) then
     inflate_blocks_free(z.state^.blocks, z);
-  ZFREE(z, z.state);
+  dispose(z.state);
   z.state := Z_NULL;
   {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: end');
@@ -259,7 +254,7 @@ begin
   { SetLength(strm.msg, 255); }
   z.msg := '';
 
-  z.state := pInternal_state( ZALLOC(z,1,sizeof(internal_state)) );
+  new(z.state);
   if z.state=nil then
   begin
     inflateInit2_ := Z_MEM_ERROR;

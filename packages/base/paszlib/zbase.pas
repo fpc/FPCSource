@@ -282,10 +282,6 @@ type
    end;
 
 type
-  alloc_func = function(opaque : pointer; items : cardinal; size : cardinal) : pointer;
-  free_func = procedure(opaque : pointer; address : pointer);
-
-type
   z_streamp = ^z_stream;
   z_stream = record
     next_in : Pbyte;     { next input byte }
@@ -310,21 +306,6 @@ type
    has dropped to zero. The application must initialize zalloc, zfree and
    opaque before calling the init function. All other fields are set by the
    compression library and must not be updated by the application.
-
-   The opaque value provided by the application will be passed as the first
-   parameter for calls of zalloc and zfree. This can be useful for custom
-   memory management. The compression library attaches no meaning to the
-   opaque value.
-
-   zalloc must return Z_NULL if there is not enough memory for the object.
-   On 16-bit systems, the functions zalloc and zfree must be able to allocate
-   exactly 65536 bytes, but will not be required to allocate more than this
-   if the symbol MAXSEG_64K is defined (see zconf.h). WARNING: On MSDOS,
-   pointers returned by zalloc for objects of exactly 65536 bytes *must*
-   have their offset normalized to zero. The default allocation function
-   provided by this library ensures this (see zutil.c). To reduce memory
-   requirements and avoid any allocation of 64K objects, at the expense of
-   compression ratio, compile the library with -DMAX_WBITS=14 (see zconf.h).
 
    The fields total_in and total_out can be used for statistics or
    progress reports. After compression, total_in holds the total size of
@@ -418,12 +399,6 @@ function zlibVersion : string;
 
 function zError(err : integer) : string;
 
-function ZALLOC (var strm : z_stream; items : cardinal; size : cardinal) : pointer;
-
-procedure ZFREE (var strm : z_stream; ptr : pointer);
-
-procedure TRY_FREE (var strm : z_stream; ptr : pointer);
-
 const
   ZLIB_VERSION : string[10] = '1.1.2';
 
@@ -506,21 +481,6 @@ procedure Tracecv(c : boolean; x : string);
 begin
   if (z_verbose>1) and c then
     WriteLn(x);
-end;
-
-function ZALLOC (var strm : z_stream; items : cardinal; size : cardinal) : pointer;
-begin
-  getmem(ZALLOC,items*size);
-end;
-
-procedure ZFREE (var strm : z_stream; ptr : pointer);
-begin
-  freemem(ptr);
-end;
-
-procedure TRY_FREE (var strm : z_stream; ptr : pointer);
-begin
-  freemem(ptr);
 end;
 
 end.

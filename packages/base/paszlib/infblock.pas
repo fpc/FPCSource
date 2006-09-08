@@ -103,7 +103,7 @@ begin
   if (c <> nil) then
     c^ := s.check;
   if (s.mode = BTREE) or (s.mode = DTREE) then
-    ZFREE(z, s.sub.trees.blens);
+    freemem(s.sub.trees.blens);
   if (s.mode = CODES) then
     inflate_codes_free(s.sub.decode.codes, z);
 
@@ -131,26 +131,26 @@ function inflate_blocks_new(var z : z_stream;
 var
   s : pInflate_blocks_state;
 begin
-  s := pInflate_blocks_state( ZALLOC(z,1, sizeof(inflate_blocks_state)) );
+  new(s);
   if (s = nil) then
   begin
     inflate_blocks_new := s;
     exit;
   end;
-  s^.hufts := huft_ptr( ZALLOC(z, sizeof(inflate_huft), MANY) );
+  getmem(s^.hufts,sizeof(inflate_huft)*MANY);
 
   if (s^.hufts = nil) then
   begin
-    ZFREE(z, s);
+    dispose(s);
     inflate_blocks_new := nil;
     exit;
   end;
 
-  s^.window := Pbyte( ZALLOC(z, 1, w) );
+  getmem(s^.window,w);
   if (s^.window = nil) then
   begin
-    ZFREE(z, s^.hufts);
-    ZFREE(z, s);
+    freemem(s^.hufts);
+    dispose(s);
     inflate_blocks_new := nil;
     exit;
   end;
@@ -198,10 +198,10 @@ begin
   b := s.bitb;
   k := s.bitk;
   q := s.write;
-  if ptrint(q) < ptrint(s.read) then
-    m := cardinal(ptrint(s.read)-ptrint(q)-1)
+  if ptruint(q) < ptruint(s.read) then
+    m := cardinal(ptruint(s.read)-ptruint(q)-1)
   else
-    m := cardinal(ptrint(s.zend)-ptrint(q));
+    m := cardinal(ptruint(s.zend)-ptruint(q));
 
 { decompress an inflated block }
 
@@ -223,7 +223,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
@@ -275,7 +275,7 @@ begin
                   s.bitb := b;
                   s.bitk := k;
                   z.avail_in := n;
-                  Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+                  Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
                   z.next_in := p;
                   s.write := q;
                   inflate_blocks := inflate_flush(s,z,r);
@@ -315,7 +315,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_blocks := inflate_flush(s,z,r);
@@ -337,7 +337,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
@@ -358,7 +358,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -386,7 +386,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -399,10 +399,10 @@ begin
           if (q = s.zend) and (s.read <> s.window) then
           begin
             q := s.window;
-            if ptrint(q) < ptrint(s.read) then
-              m := cardinal(ptrint(s.read)-ptrint(q)-1)
+            if ptruint(q) < ptruint(s.read) then
+              m := cardinal(ptruint(s.read)-ptruint(q)-1)
             else
-              m := cardinal(ptrint(s.zend)-ptrint(q));
+              m := cardinal(ptruint(s.zend)-ptruint(q));
           end;
 
           if (m = 0) then
@@ -411,19 +411,19 @@ begin
             s.write := q;
             r := inflate_flush(s,z,r);
             q := s.write;
-            if ptrint(q) < ptrint(s.read) then
-              m := cardinal(ptrint(s.read)-ptrint(q)-1)
+            if ptruint(q) < ptruint(s.read) then
+              m := cardinal(ptruint(s.read)-ptruint(q)-1)
             else
-              m := cardinal(ptrint(s.zend)-ptrint(q));
+              m := cardinal(ptruint(s.zend)-ptruint(q));
 
             {WRAP}
             if (q = s.zend) and (s.read <> s.window) then
             begin
               q := s.window;
-              if ptrint(q) < ptrint(s.read) then
-                m := cardinal(ptrint(s.read)-ptrint(q)-1)
+              if ptruint(q) < ptruint(s.read) then
+                m := cardinal(ptruint(s.read)-ptruint(q)-1)
               else
-                m := cardinal(ptrint(s.zend)-ptrint(q));
+                m := cardinal(ptruint(s.zend)-ptruint(q));
             end;
 
             if (m = 0) then
@@ -432,7 +432,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_blocks := inflate_flush(s,z,r);
@@ -454,13 +454,13 @@ begin
         if (s.sub.left = 0) then
         begin
           {$IFDEF ZLIB_DEBUG}
-          if (ptrint(q) >= ptrint(s.read)) then
+          if (ptruint(q) >= ptruint(s.read)) then
             Tracev('inflate:       stored end '+
-                IntToStr(z.total_out + ptrint(q) - ptrint(s.read)) + ' total out')
+                IntToStr(z.total_out + ptruint(q) - ptruint(s.read)) + ' total out')
           else
             Tracev('inflate:       stored end '+
-                    IntToStr(z.total_out + ptrint(s.zend) - ptrint(s.read) +
-                    ptrint(q) - ptrint(s.window)) +  ' total out');
+                    IntToStr(z.total_out + ptruint(s.zend) - ptruint(s.read) +
+                    ptruint(q) - ptruint(s.window)) +  ' total out');
           {$ENDIF}
           if s.last then
             s.mode := DRY
@@ -482,7 +482,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
@@ -506,7 +506,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -514,7 +514,7 @@ begin
         end;
   {$endif}
         t := 258 + (t and $1f) + ((t shr 5) and $1f);
-        s.sub.trees.blens := Pcardinalarray( ZALLOC(z, t, sizeof(cardinal)) );
+        getmem(s.sub.trees.blens,t*sizeof(cardinal));
         if (s.sub.trees.blens = nil) then
         begin
           r := Z_MEM_ERROR;
@@ -522,7 +522,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -558,7 +558,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_blocks := inflate_flush(s,z,r);
@@ -586,7 +586,7 @@ begin
                                 s.sub.trees.tb, s.hufts^, z);
         if (t <> Z_OK) then
         begin
-          ZFREE(z, s.sub.trees.blens);
+          freemem(s.sub.trees.blens);
           r := t;
           if (r = Z_DATA_ERROR) then
             s.mode := BLKBAD;
@@ -594,7 +594,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -630,7 +630,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_blocks := inflate_flush(s,z,r);
@@ -680,7 +680,7 @@ begin
                 s.bitb := b;
                 s.bitk := k;
                 z.avail_in := n;
-                Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+                Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
                 z.next_in := p;
                 s.write := q;
                 inflate_blocks := inflate_flush(s,z,r);
@@ -706,7 +706,7 @@ begin
             if (i + j > 258 + (t and $1f) + ((t shr 5) and $1f)) or
                ((c = 16) and (i < 1)) then
             begin
-              ZFREE(z, s.sub.trees.blens);
+              freemem(s.sub.trees.blens);
               s.mode := BLKBAD;
               z.msg := 'invalid bit length repeat';
               r := Z_DATA_ERROR;
@@ -714,7 +714,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_blocks := inflate_flush(s,z,r);
@@ -740,7 +740,7 @@ begin
           t := inflate_trees_dynamic(257 + (t and $1f),
                   1 + ((t shr 5) and $1f),
                   s.sub.trees.blens^, bl, bd, tl, td, s.hufts^, z);
-          ZFREE(z, s.sub.trees.blens);
+          freemem(s.sub.trees.blens);
           if (t <> Z_OK) then
           begin
             if (t = cardinal(Z_DATA_ERROR)) then
@@ -750,7 +750,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
@@ -768,7 +768,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_blocks := inflate_flush(s,z,r);
@@ -787,7 +787,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
         z.next_in := p;
         s.write := q;
 
@@ -805,18 +805,18 @@ begin
         b := s.bitb;
         k := s.bitk;
         q := s.write;
-        if ptrint(q) < ptrint(s.read) then
-          m := cardinal(ptrint(s.read)-ptrint(q)-1)
+        if ptruint(q) < ptruint(s.read) then
+          m := cardinal(ptruint(s.read)-ptruint(q)-1)
         else
-          m := cardinal(ptrint(s.zend)-ptrint(q));
+          m := cardinal(ptruint(s.zend)-ptruint(q));
         {$IFDEF ZLIB_DEBUG}
-        if (ptrint(q) >= ptrint(s.read)) then
+        if (ptruint(q) >= ptruint(s.read)) then
           Tracev('inflate:       codes end '+
-              IntToStr(z.total_out + ptrint(q) - ptrint(s.read)) + ' total out')
+              IntToStr(z.total_out + ptrint(q) - ptruint(s.read)) + ' total out')
         else
           Tracev('inflate:       codes end '+
-                  IntToStr(z.total_out + ptrint(s.zend) - ptrint(s.read) +
-                  ptrint(q) - ptrint(s.window)) +  ' total out');
+                  IntToStr(z.total_out + ptruint(s.zend) - ptruint(s.read) +
+                  ptruint(q) - ptruint(s.window)) +  ' total out');
         {$ENDIF}
         if (not s.last) then
         begin
@@ -847,10 +847,10 @@ begin
         q := s.write;
 
         { not needed anymore, we are done:
-        if ptrint(q) < ptrint(s.read) then
-          m := cardinal(ptrint(s.read)-ptrint(q)-1)
+        if ptruint(q) < ptruint(s.read) then
+          m := cardinal(ptruint(s.read)-ptruint(q)-1)
         else
-          m := cardinal(ptrint(s.zend)-ptrint(q));
+          m := cardinal(ptruint(s.zend)-ptruint(q));
         }
 
         if (s.read <> s.write) then
@@ -859,7 +859,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_blocks := inflate_flush(s,z,r);
@@ -876,7 +876,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
         z.next_in := p;
         s.write := q;
         inflate_blocks := inflate_flush(s,z,r);
@@ -889,7 +889,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+        Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
         z.next_in := p;
         s.write := q;
         inflate_blocks := inflate_flush(s,z,r);
@@ -902,7 +902,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p) - ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_blocks := inflate_flush(s,z,r);
@@ -917,9 +917,9 @@ function inflate_blocks_free(s : pInflate_blocks_state;
                              var z : z_stream) : integer;
 begin
   inflate_blocks_reset(s^, z, nil);
-  ZFREE(z, s^.window);
-  ZFREE(z, s^.hufts);
-  ZFREE(z, s);
+  freemem(s^.window);
+  freemem(s^.hufts);
+  dispose(s);
   {$IFDEF ZLIB_DEBUG}
   Trace('inflate:   blocks freed');
   {$ENDIF}  
