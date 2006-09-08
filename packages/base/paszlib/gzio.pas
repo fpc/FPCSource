@@ -362,18 +362,18 @@ var
   c : integer;
 begin
   { x := cardinal(get_byte(s));  - you can't do this with TP, no unsigned longint }
-{$ifdef ENDIAN_LITTLE}
-  x[0] := Byte(get_byte(s));
-  x[1] := Byte(get_byte(s));
-  x[2] := Byte(get_byte(s));
-  c := get_byte(s);
-  x[3] := Byte(c);
-{$else}
+{$ifdef ENDIAN_BIG}
   x[3] := Byte(get_byte(s));
   x[2] := Byte(get_byte(s));
   x[1] := Byte(get_byte(s));
   c := get_byte(s);
   x[0] := Byte(c);
+{$else}
+  x[0] := Byte(get_byte(s));
+  x[1] := Byte(get_byte(s));
+  x[2] := Byte(get_byte(s));
+  c := get_byte(s);
+  x[3] := Byte(c);
 {$endif}
   if (c = Z_EOF) then
     s^.z_err := Z_DATA_ERROR;
