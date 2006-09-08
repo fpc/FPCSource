@@ -204,6 +204,7 @@ interface
     procedure inserttypeconv(var p:tnode;const t:ttype);
     procedure inserttypeconv_internal(var p:tnode;const t:ttype);
     procedure arrayconstructor_to_set(var p : tnode);
+    procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
 
 
 implementation
@@ -520,6 +521,75 @@ implementation
         p:=buildp;
       end;
 
+
+    procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
+      begin
+        if not(iscvarargs) and
+           (p.nodetype=stringconstn) then
+          p:=ctypeconvnode.create_internal(p,cansistringtype)
+        else
+          case p.resulttype.def.deftype of
+            enumdef :
+              p:=ctypeconvnode.create_internal(p,s32inttype);
+            arraydef :
+              begin
+                if is_chararray(p.resulttype.def) then
+                  p:=ctypeconvnode.create_internal(p,charpointertype)
+                else
+                  if is_widechararray(p.resulttype.def) then
+                    p:=ctypeconvnode.create_internal(p,widecharpointertype)
+                else
+                  CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resulttype.def.typename);
+              end;
+            orddef :
+              begin
+                if is_integer(p.resulttype.def) and
+                   not(is_64bitint(p.resulttype.def)) then
+                  p:=ctypeconvnode.create(p,s32inttype)
+                else if is_void(p.resulttype.def) then
+                  CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resulttype.def.typename)
+                else if iscvarargs and
+                        is_currency(p.resulttype.def) then
+                       p:=ctypeconvnode.create(p,s64floattype);
+              end;
+            floatdef :
+              if not(iscvarargs) then
+                begin
+                  if not(is_currency(p.resulttype.def)) then
+                    p:=ctypeconvnode.create(p,pbestrealtype^);
+                end
+              else
+                begin
+                  if is_constrealnode(p) and
+                     not(nf_explicit in p.flags) then
+                    MessagePos(p.fileinfo,type_w_double_c_varargs);
+                  if (tfloatdef(p.resulttype.def).typ in [{$ifndef x86_64}s32real,{$endif}s64currency]) or
+                     (is_constrealnode(p) and
+                      not(nf_explicit in p.flags)) then
+                    p:=ctypeconvnode.create(p,s64floattype);
+                end;
+            procvardef :
+              p:=ctypeconvnode.create(p,voidpointertype);
+            stringdef:
+              if iscvarargs then
+                p:=ctypeconvnode.create(p,charpointertype);
+            variantdef:
+              if iscvarargs then
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resulttype.def.typename);
+            pointerdef:
+              ;
+            classrefdef:
+              if iscvarargs then
+                p:=ctypeconvnode.create(p,voidpointertype);
+            objectdef :
+              if iscvarargs or
+                 is_object(p.resulttype.def) then
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resulttype.def.typename);
+            else
+              CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resulttype.def.typename);
+          end;
+        resulttypepass(p);
+      end;
 
 {*****************************************************************************
                            TTYPECONVNODE

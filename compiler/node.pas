@@ -229,7 +229,6 @@ interface
          { tarrayconstructnode }
          nf_forcevaria,
          nf_novariaallowed,
-         nf_cvarargs,
 
          { ttypeconvnode, and the first one also treal/ord/pointerconstn }
          nf_explicit,

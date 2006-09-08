@@ -568,6 +568,7 @@ type
                  { the necessary conversions have already been performed in }
                  { tarrayconstructornode.insert_typeconvs                   }
                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                 insert_varargstypeconv(left,true);
                  resulttype:=left.resulttype;
                  { also update parasym type to get the correct parameter location
                    for the new types }
@@ -1057,7 +1058,6 @@ type
         include(callnodeflags,cnf_uses_varargs);
         { Get arrayconstructor node and insert typeconvs }
         hp:=tarrayconstructornode(oldleft.left);
-        hp.insert_typeconvs(true);
         { Add c args parameters }
         { It could be an empty set }
         if assigned(hp) and
