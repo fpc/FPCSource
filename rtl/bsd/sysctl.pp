@@ -18,18 +18,15 @@ Unit sysctl;
 
 Interface
 
+uses
+  unixtype;
+
 {$ifndef FPC_USE_LIBC}
 {$define FPC_USE_SYSCALL}
 {$endif}
 
-{ I ptypes.inc}
 
 {$Packrecords C}
-// type psize_t=^size_t;
-Type size_t=dword;
-     psize_t=^dword;
-     cint  = longint;
-     cuint = dword;
 
 {
  * Copyright (c) 1989, 1993
@@ -86,11 +83,11 @@ TYPE    CtlNameRec = Record
 {$ifdef FPC_USE_LIBC}
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctl';
 function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint; cdecl; external name 'sysctlbyname';
-function FPsysctlnametomib (Name: pchar;mibp:plongint;sizep:psize_t):cint; cdecl; external name 'sysctltomib';
+function FPsysctlnametomib (Name: pchar;mibp:pcint;sizep:psize_t):cint; cdecl; external name 'sysctltomib';
 {$else}
 function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 function FPsysctlbyname (Name: pchar; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
-function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
+function FPsysctlnametomib (Name: pchar; mibp:pcint;sizep:psize_t):cint;
 {$endif}
 
 Implementation
@@ -133,7 +130,7 @@ Begin
         exit(error);
 End;
 
-function FPsysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
+function FPsysctlnametomib (Name: pchar; mibp:pcint;sizep:psize_t):cint;
 Var     oid   : array[0..1] OF cint;
         error : cint;
 
