@@ -201,7 +201,7 @@ uses
 
 function inflateReset(var z : z_stream) : integer;
 begin
-  if (z.state = Z_NULL) then
+  if z.state=nil then
   begin
     inflateReset :=  Z_STREAM_ERROR;
     exit;
@@ -213,7 +213,7 @@ begin
     z.state^.mode := BLOCKS
   else
     z.state^.mode := METHOD;
-  inflate_blocks_reset(z.state^.blocks^, z, Z_NULL);
+  inflate_blocks_reset(z.state^.blocks^, z, nil);
   {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: reset');
   {$ENDIF}
@@ -228,10 +228,10 @@ begin
     inflateEnd :=  Z_STREAM_ERROR;
     exit;
   end;
-  if (z.state^.blocks <> Z_NULL) then
+  if z.state^.blocks<>nil then
     inflate_blocks_free(z.state^.blocks, z);
   dispose(z.state);
-  z.state := Z_NULL;
+  z.state := nil;
   {$IFDEF ZLIB_DEBUG}
   Tracev('inflate: end');
   {$ENDIF}
@@ -285,7 +285,7 @@ begin
     z.state^.blocks := inflate_blocks_new(z, nil, cardinal(1) shl w)
   else
     z.state^.blocks := inflate_blocks_new(z, @adler32, cardinal(1) shl w);
-  if (z.state^.blocks = Z_NULL) then
+  if z.state^.blocks=nil then
   begin
     inflateEnd(z);
     inflateInit2_ := Z_MEM_ERROR;
@@ -317,7 +317,7 @@ function inflateInit_(z : z_streamp;
                       stream_size : integer) : integer;
 begin
   { initialize state }
-  if (z = Z_NULL) then
+  if z=nil then
     inflateInit_ := Z_STREAM_ERROR
   else
     inflateInit_ := inflateInit2_(z^, DEF_WBITS, version, stream_size);
@@ -329,7 +329,7 @@ var
   r : integer;
   b : cardinal;
 begin
-  if (z.state = Z_NULL) or (z.next_in = Z_NULL) then
+  if (z.state=nil) or (z.next_in=nil) then
   begin
     inflate := Z_STREAM_ERROR;
     exit;
@@ -619,7 +619,7 @@ var
 begin
   length := dictLength;
 
-  if (z.state = Z_NULL) or (z.state^.mode <> DICT0) then
+  if (z.state=nil) or (z.state^.mode<>DICT0) then
   begin
     inflateSetDictionary := Z_STREAM_ERROR;
     exit;
@@ -652,7 +652,7 @@ var
   r, w : cardinal;   { temporaries to save total_in and total_out }
 begin
   { set up }
-  if (z.state = Z_NULL) then
+  if z.state=nil then
   begin
     inflateSync := Z_STREAM_ERROR;
     exit;

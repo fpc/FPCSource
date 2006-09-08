@@ -43,7 +43,7 @@ var
  c : pInflate_codes_state;
 begin
   new(c);
-  if (c <> Z_NULL) then
+  if c<>nil then
   begin
     c^.mode := START;
     c^.lbits := Byte(bl);

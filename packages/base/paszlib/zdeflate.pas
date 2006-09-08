@@ -526,7 +526,7 @@ begin
     exit;
   end;
   {
-  if (strm = Z_NULL) then
+  if strm=nil then
   begin
     deflateInit2_ := Z_STREAM_ERROR;
     exit;
@@ -583,8 +583,8 @@ begin
   s^.pending_buf := Pbytearray(overlay);
   s^.pending_buf_size := longint(s^.lit_bufsize) * (sizeof(word)+longint(2));
 
-  if (s^.window = Z_NULL) or (s^.prev = Z_NULL) or (s^.head = Z_NULL)
-   or (s^.pending_buf = Z_NULL) then
+  if (s^.window=nil) or (s^.prev=nil) or (s^.head=nil) or
+     (s^.pending_buf=nil) then
   begin
     {ERR_MSG(Z_MEM_ERROR);}
     strm.msg := z_errmsg[z_errbase-Z_MEM_ERROR];
@@ -623,7 +623,7 @@ function deflateInit_(strm : z_streamp;
                       const version : string;
                       stream_size : integer) : integer;
 begin
-  if (strm = Z_NULL) then
+  if strm=nil then
     deflateInit_ := Z_STREAM_ERROR
   else
     deflateInit_ := deflateInit2_(strm^, level, Z_DEFLATED, MAX_WBITS,
@@ -656,9 +656,9 @@ begin
   length := dictLength;
   hash_head := 0;
 
-  if {(@strm  =  Z_NULL) or}
-     (strm.state  =  Z_NULL) or (dictionary  =  Z_NULL)
-    or (deflate_state_ptr(strm.state)^.status <> INIT_STATE) then
+  if {(@strm=nil) or}
+     (strm.state=nil) or (dictionary=nil)
+    or (deflate_state_ptr(strm.state)^.status<>INIT_STATE) then
   begin
     deflateSetDictionary := Z_STREAM_ERROR;
     exit;
@@ -706,8 +706,8 @@ function deflateReset (var strm : z_stream) : integer;
 var
   s : deflate_state_ptr;
 begin
-  if {(@strm = Z_NULL) or}
-   (strm.state = nil) then
+  if {(@strm=nil) or}
+   (strm.state=nil) then
   begin
     deflateReset := Z_STREAM_ERROR;
     exit;
@@ -749,7 +749,7 @@ var
   err : integer;
 begin
   err := Z_OK;
-  if {(@strm  =  Z_NULL) or} (strm.state  =  Z_NULL) then
+  if {(@strm=nil) or} (strm.state=nil) then
   begin
     deflateParams := Z_STREAM_ERROR;
     exit;
@@ -844,7 +844,7 @@ var
 var
   bstate : block_state;
 begin
-  if {(@strm = Z_NULL) or} (strm.state = Z_NULL)
+  if {(@strm=nil) or} (strm.state=nil)
     or (flush > Z_FINISH) or (flush < 0) then
   begin
     deflate := Z_STREAM_ERROR;
@@ -852,9 +852,9 @@ begin
   end;
   s := deflate_state_ptr(strm.state);
 
-  if (strm.next_out = Z_NULL) or
-     ((strm.next_in = Z_NULL) and (strm.avail_in <> 0)) or
-     ((s^.status = FINISH_STATE) and (flush <> Z_FINISH)) then
+  if (strm.next_out=nil) or
+     ((strm.next_in=nil) and (strm.avail_in<>0)) or
+     ((s^.status=FINISH_STATE) and (flush<>Z_FINISH)) then
   begin
     {ERR_RETURN(strm^, Z_STREAM_ERROR);}
     strm.msg := z_errmsg[z_errbase - Z_STREAM_ERROR];
@@ -969,7 +969,7 @@ begin
         _tr_align(s^)
       else
       begin  { FULL_FLUSH or SYNC_FLUSH }
-        _tr_stored_block(s^, Pchar(NIL), longint(0), FALSE);
+        _tr_stored_block(s^, nil, 0, FALSE);
         { For a full flush, this empty block will be recognized
           as a special marker by inflate_sync(). }
 
@@ -1026,7 +1026,7 @@ var
   status : integer;
   s : deflate_state_ptr;
 begin
-  if {(@strm = Z_NULL) or} (strm.state = Z_NULL) then
+  if {(@strm=nil) or} (strm.state=nil) then
   begin
     deflateEnd := Z_STREAM_ERROR;
     exit;
@@ -1048,7 +1048,7 @@ begin
   freemem(s^.window);
 
   freemem(s);
-  strm.state := Z_NULL;
+  strm.state := nil;
 
   if status = BUSY_STATE then
     deflateEnd := Z_DATA_ERROR
@@ -1076,7 +1076,7 @@ begin
   exit;
 {$else}
 
-  if (source = Z_NULL) or (dest = Z_NULL) or (source^.state = Z_NULL) then
+  if (source=nil) or (dest=nil) or (source^.state=nil) then
   begin
     deflateCopy := Z_STREAM_ERROR;
     exit;
@@ -1085,7 +1085,7 @@ begin
   dest^ := source^;
 
   getmem(ds,sizeof(deflate_state));
-  if (ds = Z_NULL) then
+  if ds=nil then
   begin
     deflateCopy := Z_MEM_ERROR;
     exit;
@@ -1100,8 +1100,8 @@ begin
   getmem(overlay,ds^.lit_bufsize*(sizeof(word)+2));
   ds^.pending_buf := Pbytearray ( overlay );
 
-  if (ds^.window = Z_NULL) or (ds^.prev = Z_NULL) or (ds^.head = Z_NULL)
-     or (ds^.pending_buf = Z_NULL) then
+  if (ds^.window=nil) or (ds^.prev=nil) or (ds^.head=nil)
+     or (ds^.pending_buf=nil) then
   begin
     deflateEnd (dest^);
     deflateCopy := Z_MEM_ERROR;

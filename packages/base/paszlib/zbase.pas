@@ -352,8 +352,6 @@ const  { constants }
    Z_DEFLATED   = 8;
 { The deflate compression method (the only one supported in this version) }
 
-   Z_NULL  = NIL;  { for initializing zalloc, zfree, opaque }
-
   {$IFDEF GZIO}
 var
   errno : integer;
