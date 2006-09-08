@@ -2913,7 +2913,7 @@ xmmreg,mem              \301\1\xF2\323\2\x0F\x5A\110    WILLAMETTE,SSE2
 [CVTSI2SD]
 (Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,reg32|64         \1\xF2\321\2\x0F\x2A\110        WILLAMETTE,SSE2
-xmmreg,mem              \301\1\xF2\323\2\x0F\x2A\110    WILLAMETTE,SSE2
+xmmreg,mem              \301\1\xF2\321\2\x0F\x2A\110    WILLAMETTE,SSE2
 
 [CVTSS2SD]
 (Ch_Wop2, Ch_Rop1, Ch_None)
