@@ -1077,14 +1077,17 @@ parser_e_array_range_out_of_bounds=03220_E_The range of the array is too large
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
-parser_e_packed_element_no_var_addr_loop=03221_E_The address cannot be taken of bit packed array elements and record fields, nor can they be used as loop variables
-% If you declare an array or record as \var{packed} in Mac Pascal mode, it will
+parser_e_packed_element_no_var_addr=03221_E_The address cannot be taken of bit packed array elements and record fields
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. This means it becomes impossible to take addresses
-% of individual array elements or record fields, in the latter case even if their starting offset happens
-% to be aligned to a byte multiple. For performance reasons, they cannot be
-% used as loop variables either.
+% of individual array elements or record fields. The only exception to this rule is in case of packed arrays elements
+% whose packed size is a multple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamic arrays cannot be packed
-% Only regular and open arrays can be packed
+% Only regular (and possibly in the future also open) arrays can be packed
+parser_e_packed_element_no_loop=03223_E_Bit packed array elements and record fields cannot be used as loop variables
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. For performance reasons, they cannot be
+% used as loop variables.
 % \end{description}
 #
 # Type Checking

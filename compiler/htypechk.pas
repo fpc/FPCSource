@@ -1065,7 +1065,10 @@ implementation
                     (tarraydef(tvecnode(hp).left.resulttype.def).elepackedbitsize mod 8 <> 0) then
                    begin
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr_loop);
+                       if (valid_property in opts) then
+                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
+                       else
+                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      exit;
                    end;
                  gotvec:=true;
@@ -1094,7 +1097,10 @@ implementation
                     is_packed_record_or_object(tsubscriptnode(hp).left.resulttype.def) then
                    begin
                      if report_errors then
-                       CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr_loop);
+                       if (valid_property in opts) then
+                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_loop)
+                       else
+                         CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr);
                      exit;
                    end;
                  gotsubscript:=true;
