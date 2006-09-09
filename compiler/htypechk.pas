@@ -1061,7 +1061,8 @@ implementation
                     not gotvec and
                     not(valid_packed in opts) and
                     (tvecnode(hp).left.resulttype.def.deftype = arraydef) and
-                    (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resulttype.def).arrayoptions) then
+                    (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resulttype.def).arrayoptions) and
+                    (tarraydef(tvecnode(hp).left.resulttype.def).elepackedbitsize mod 8 <> 0) then
                    begin
                      if report_errors then
                        CGMessagePos(hp.fileinfo,parser_e_packed_element_no_var_addr_loop);

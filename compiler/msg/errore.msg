@@ -1079,8 +1079,8 @@ parser_e_array_range_out_of_bounds=03220_E_The range of the array is too large
 % of ptrint.
 parser_e_packed_element_no_var_addr_loop=03221_E_The address cannot be taken of bit packed array elements and record fields, nor can they be used as loop variables
 % If you declare an array or record as \var{packed} in Mac Pascal mode, it will
-% be packed at the bit level (currently only array bit packing is implemented though). This means it becomes impossible to take addresses
-% of individual array elements or records, even if their starting offset happens
+% be packed at the bit level. This means it becomes impossible to take addresses
+% of individual array elements or record fields, in the latter case even if their starting offset happens
 % to be aligned to a byte multiple. For performance reasons, they cannot be
 % used as loop variables either.
 parser_e_packed_dynamic_open_array=03222_E_Dynamic arrays cannot be packed
