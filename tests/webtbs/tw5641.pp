@@ -8,7 +8,7 @@ var
 begin
   GetMem(mempool, $2000000);
   Assert(mempool<>nil, 'GetMem failed');
-  obj:=Pointer((Cardinal(mempool) or $FF));
+  obj:=Pointer((ptruint(mempool) or $FF));
   Assert(obj^.init, 'case 1a ((addr and $FF) <> 0)');
   Assert(obj^.init, 'case 1b ((addr and $FF) <> 0)');
   Assert(obj^.init, 'case 1c ((addr and $FF) <> 0)');
