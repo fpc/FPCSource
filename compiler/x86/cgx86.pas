@@ -270,6 +270,11 @@ unit cgx86;
     procedure tcgx86.sizes2load(s1,s2 : tcgsize; var op: tasmop; var s3: topsize);
 
        begin
+         { ensure to have always valid sizes }
+         if s1=OS_NO then
+           s1:=s2;
+         if s2=OS_NO then
+           s2:=s1;
          case s2 of
            OS_8,OS_S8 :
              if S1 in [OS_8,OS_S8] then
