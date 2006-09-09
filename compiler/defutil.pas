@@ -120,6 +120,8 @@ interface
        That is if the array is an open array, a variant
        array, an array constants constructor, or an
        array of const.
+
+       Bitpacked arrays aren't special in this regard though.
     }
     function is_special_array(p : tdef) : boolean;
 
@@ -534,7 +536,7 @@ implementation
                  (ado_IsArrayOfConst in tarraydef(p).arrayoptions);
       end;
 
-    { true, if p points to a special array }
+    { true, if p points to a special array, bitpacked arrays aren't special in this regard though }
     function is_special_array(p : tdef) : boolean;
       begin
          result:=(p.deftype=arraydef) and

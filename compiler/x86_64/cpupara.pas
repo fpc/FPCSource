@@ -123,6 +123,7 @@ unit cpupara;
            arraydef:
              begin
                if (target_info.system=system_x86_64_win64) and
+                  not(is_special_array(p)) and
                   (p.size<=8)  then
                  loc1:=LOC_REGISTER
                else
