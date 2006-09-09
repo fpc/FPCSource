@@ -263,7 +263,11 @@ interface
              LOC_REGISTER,
              LOC_CREGISTER,
              LOC_REFERENCE,
-             LOC_CREFERENCE :
+             LOC_CREFERENCE,
+             LOC_SUBSETREG,
+             LOC_CSUBSETREG,
+             LOC_SUBSETREF,
+             LOC_CSUBSETREF :
                begin
                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
                  emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);

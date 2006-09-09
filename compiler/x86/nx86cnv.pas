@@ -121,6 +121,10 @@ implementation
 
          { Load left node into flag F_NE/F_E }
          resflags:=F_NE;
+
+         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+
          case left.location.loc of
             LOC_CREFERENCE,
             LOC_REFERENCE :
@@ -221,6 +225,9 @@ implementation
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
+
+            if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+              location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
 
             case torddef(left.resulttype.def).typ of
               u64bit:
