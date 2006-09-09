@@ -189,6 +189,8 @@ implementation
          if nf_swaped in flags then
           swapleftright;
 
+         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
          if genjumps then
           begin
             { It gives us advantage to check for the set elements
