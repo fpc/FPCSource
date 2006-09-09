@@ -67,7 +67,7 @@ implementation
          left_right_max;
          { a smallset needs maybe an misc. register }
          if (left.nodetype<>ordconstn) and
-            not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+            not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
             (right.registersint<1) then
            inc(registersint);
       end;
