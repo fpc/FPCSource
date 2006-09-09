@@ -68,6 +68,7 @@ const
    in_get_caller_frame  = 58;
    in_pack_x_y_z        = 59;
    in_unpack_x_y_z      = 60;
+   in_bitsizeof_x       = 61;
 
 { Internal constant functions }
    in_const_sqr        = 100;

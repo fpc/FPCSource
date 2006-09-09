@@ -17,12 +17,18 @@ type
 var
    unone    : array[3..24] of char;
    pacone   : packed array[1..4] of char;
+   pacy     : array[1..4] of char;
    untwo    : array[4..8] of colourtype;
    pactwo   : packed array[6..7] of colourtype;
    i        : integer;
    colour   : colourtype;
+   s: string;
 begin
    pacone:='ABCD';
+   pacy:=pacone;
+   if pacy <> 'ABCD' then
+     halt(1);
+   s := pacone;
    unpack(pacone,unone,5);
    if (unone[3] <> #0) or
       (unone[4] <> #0) or

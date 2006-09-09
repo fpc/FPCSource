@@ -470,7 +470,8 @@ implementation
                end;
             end;
 
-          in_sizeof_x :
+          in_sizeof_x,
+          in_bitsizeof_x :
             begin
               consume(_LKLAMMER);
               in_args:=true;
@@ -484,10 +485,26 @@ implementation
                   is_array_of_const(p1.resulttype.def) or
                   is_open_string(p1.resulttype.def)
                  ) then
-               statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
+                begin
+                  statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
+                  { no packed bit support for these things }
+                  if (l = in_bitsizeof_x) then
+                    statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
+                end
               else
                begin
-                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,sinttype,true);
+                 if (l = in_sizeof_x) or
+                    (not((p1.nodetype = vecn) and
+                         is_packed_array(tvecnode(p1).left.resulttype.def)) and
+                     not((p1.nodetype = subscriptn) and
+                         is_packed_record_or_object(tsubscriptnode(p1).left.resulttype.def))) then
+                   begin
+                     statement_syssym:=cordconstnode.create(p1.resulttype.def.size,sinttype,true);
+                     if (l = in_bitsizeof_x) then
+                       statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
+                   end
+                 else
+                   statement_syssym:=cordconstnode.create(p1.resulttype.def.packedbitsize,sinttype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;

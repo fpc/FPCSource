@@ -16,6 +16,10 @@ type
 var
   km: GPCKeymap;
 begin
+  if bitsizeof(km[1]) <> 1 then
+    halt(1);
+  if bitsizeof(FPCKeyMap(km)[0]) <> 8 then
+    halt(2);
   fillchar(km,sizeof(km),0);
   km[56] := true;
   if (FPCKeyMap(km)[0] <> 0) or
@@ -42,5 +46,7 @@ begin
       writeln('error');
       halt(1);
     end;
+  writeln('ok');
 end.
+
 
