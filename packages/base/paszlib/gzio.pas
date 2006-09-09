@@ -531,7 +531,6 @@ var
 
   s         : gz_streamp;
   start     : Pbyte;
-  next_out  : Pbyte;
   n         : cardinal;
   crclen    : cardinal;  { Buffer length to update CRC32 }
   filecrc   : cardinal; { CRC32 stored in GZIP'ed file }
@@ -539,6 +538,9 @@ var
   bytes     : integer;  { bytes actually read in I/O blockread }
   total_in  : cardinal;
   total_out : cardinal;
+{$ifndef pointer_arith}
+  next_out  : Pbyte;
+{$endif}
 
 begin
 
@@ -605,11 +607,15 @@ begin
 
     if (s^.z_err = Z_STREAM_END) then begin
       crclen := 0;
+    {$ifdef pointer_arith}
+      crclen:=s^.stream.next_out-start;
+    {$else}
       next_out := s^.stream.next_out;
       while (next_out <> start ) do begin
         dec (next_out);
         inc (crclen);   { Hack because Pascal cannot substract pointers }
       end;
+    {$endif}
       { Check CRC and original size }
       s^.crc := crc32(s^.crc, start, crclen);
       start := s^.stream.next_out;
@@ -639,13 +645,16 @@ begin
   end; {WHILE}
 
   crclen := 0;
+{$ifdef pointer_arith}
+  crclen:=s^.stream.next_out-start;
+{$else}
   next_out := s^.stream.next_out;
   while (next_out <> start ) do begin
     dec (next_out);
     inc (crclen);   { Hack because Pascal cannot substract pointers }
   end;
   s^.crc := crc32 (s^.crc, start, crclen);
-
+{$endif}
   gzread := integer(len - s^.stream.avail_out);
 
 end;

@@ -28,6 +28,7 @@
 
 {$IFDEF FPC}
  {$DEFINE Use32}
+ {$DEFINE pointer_arith}
  {$UNDEF DPMI}
  {$UNDEF MSDOS}
  {$UNDEF UNALIGNED_OK}  { requires SizeOf(ush) = 2 ! }
