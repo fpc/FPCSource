@@ -46,6 +46,7 @@ type
   TBooleanDynArray = array of Boolean;
   TStringDynArray = array of AnsiString;
   TWideStringDynArray   = array of WideString;
+  TPointerDynArray = array of Pointer;
 
 {$ifdef Windows}
   TPoint = Windows.TPoint;
