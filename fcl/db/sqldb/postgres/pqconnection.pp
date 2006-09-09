@@ -49,7 +49,6 @@ type
     Function AllocateTransactionHandle : TSQLHandle; override;
 
     procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
-    procedure FreeFldBuffers(cursor : TSQLCursor); override;
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
@@ -307,7 +306,8 @@ begin
   case Type_Oid of
     Oid_varchar,Oid_bpchar,
     Oid_name               : Result := ftstring;
-    Oid_text               : Result := ftstring;
+//    Oid_text               : Result := ftstring;
+    Oid_text               : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
     Oid_int4               : Result := ftInteger;
@@ -451,12 +451,6 @@ begin
     end;
 end;
 
-procedure TPQConnection.FreeFldBuffers(cursor : TSQLCursor);
-
-begin
-// Do nothing
-end;
-
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
 var ar  : array of pointer;
@@ -537,9 +531,11 @@ begin
         begin
         size := pqfmod(res,i)-4;
         if size = -5 then size := dsMaxStringSize;
-        end;
-      if fieldtype = ftdate  then
-        size := sizeof(double);
+        end
+      else if fieldtype = ftdate  then
+        size := sizeof(double)
+      else if fieldtype = ftblob then
+        size := 0;
 
       TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1));
       end;
@@ -581,6 +577,7 @@ var
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
+  s             : string;
 
 begin
   with cursor as TPQCursor do
@@ -618,6 +615,14 @@ begin
           Move(CurrBuff^, Buffer^, li);
           pchar(Buffer + li)^ := #0;
           i := pqfmod(res,x)-3;
+          end;
+        ftBlob  :
+          begin
+          li := pqgetlength(res,curtuple,x);
+          setlength(s,li);
+          Move(CurrBuff^, s[1], li);
+          i := fBlobStrings.Add(S);
+          Move(I, Buffer^, SizeOf(Integer));
           end;
         ftdate :
           begin

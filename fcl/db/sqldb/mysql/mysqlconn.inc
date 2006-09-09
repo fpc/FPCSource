@@ -51,10 +51,6 @@ Type
     ParamBinding : TParamBinding;
     ParamReplaceString : String;
     MapDSRowToMSQLRow  : array of integer;
-    FBlobStrings:TStringList;   // list of strings in which the blob-fields are stored
-  public
-    constructor Create;
-    destructor Destroy; override;
   end;
 
   TConnectionName = class (TSQLConnection)
@@ -99,7 +95,6 @@ Type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   Public
     Property ServerInfo : String Read FServerInfo;
     Property HostInfo : String Read FHostInfo;
@@ -216,7 +211,7 @@ var esc_str : pchar;
 
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
-  else if param.DataType =  ftString then
+  else if param.DataType in [ftString,ftBlob] then
     begin
     Getmem(esc_str,length(param.asstring)*2+1);
     mysql_real_escape_string(FMySQL,esc_str,pchar(param.asstring),length(param.asstring));
@@ -347,7 +342,7 @@ begin
     C.FRes:=Nil;
     end;
   SetLength(c.MapDSRowToMSQLRow,0);
-  c.FBlobStrings.Clear;
+  inherited;
 end;
 
 procedure TConnectionName.Execute(cursor: TSQLCursor;
@@ -764,25 +759,6 @@ begin
   qry.free;
 end;
 
-procedure TConnectionName.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
-
-var blobId : pinteger;
-    BlobBuf : TBufBlobField;
-    s      : string;
-
-begin
-  if not field.getData(@BlobBuf) then
-    exit;
-  blobId := @BlobBuf;
-
-  s := (cursor as TCursorName).FBlobStrings.Strings[blobid^];
-
-  AStream.WriteBuffer(s[1],length(s));
-
-  AStream.seek(0,soFromBeginning);
-end;
-
-
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
   Result:=Nil;
@@ -811,20 +787,6 @@ end;
 procedure TConnectionName.RollBackRetaining(trans: TSQLHandle);
 begin
   // Do nothing
-end;
-
-{ TCursorName }
-
-constructor TCursorName.Create;
-begin
-  FBlobStrings := TStringList.Create;
-  inherited;
-end;
-
-destructor TCursorName.Destroy;
-begin
-  FBlobStrings.Free;
-  inherited Destroy;
 end;
 
 end.

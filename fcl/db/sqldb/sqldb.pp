@@ -38,11 +38,17 @@ type
   TSQLHandle = Class(TObject)
   end;
 
+  { TSQLCursor }
+
   TSQLCursor = Class(TSQLHandle)
   public
     FPrepared      : Boolean;
     FInitFieldDef  : Boolean;
     FStatementType : TStatementType;
+    FBlobStrings   : TStringList;   // list of strings in which the blob-fields are stored
+  public
+    constructor Create;
+    destructor Destroy; override;
   end;
 
 
@@ -90,7 +96,7 @@ type
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
 
-    procedure FreeFldBuffers(cursor : TSQLCursor); virtual; abstract;
+    procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
@@ -455,6 +461,11 @@ begin
   Result := nil;
 end;
 
+procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
+begin
+  cursor.FBlobStrings.Clear;
+end;
+
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
 begin
@@ -463,8 +474,20 @@ end;
 
 procedure TSQLConnection.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream; cursor: TSQLCursor;ATransaction : TSQLTransaction);
 
+var blobId  : pinteger;
+    BlobBuf : TBufBlobField;
+    s       : string;
+
 begin
-  DatabaseErrorFmt(SUnsupportedFieldType,['Blob']);
+  if not field.getData(@BlobBuf) then
+    exit;
+  blobId := @BlobBuf;
+
+  s := cursor.FBlobStrings.Strings[blobid^];
+
+  AStream.WriteBuffer(s[1],length(s));
+
+  AStream.seek(0,soFromBeginning);
 end;
 
 { TSQLTransaction }
@@ -1258,6 +1281,20 @@ begin
   Inherited;
   If (Operation=opRemove) and (AComponent=DataSource) then
     DataSource:=Nil;
+end;
+
+{ TSQLCursor }
+
+constructor TSQLCursor.Create;
+begin
+  FBlobStrings := TStringList.Create;
+  inherited;
+end;
+
+destructor TSQLCursor.Destroy;
+begin
+  FBlobStrings.Free;
+  inherited Destroy;
 end;
 
 end.
