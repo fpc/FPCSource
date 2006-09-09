@@ -98,8 +98,11 @@ unit cpupara;
              begin
                if p.size<=16 then
                  begin
-                   {$warning TODO location depends on the fields}
-                   loc1:=LOC_REFERENCE;
+                   if (target_info.system=system_x86_64_win64) and
+                      (p.size<=8)  then
+                     loc1:=LOC_REGISTER
+                   else
+                     loc1:=LOC_REFERENCE;
                  end
                else
                  loc1:=LOC_REFERENCE;
@@ -107,13 +110,23 @@ unit cpupara;
            objectdef:
              begin
                if is_object(p) then
-                 loc1:=LOC_REFERENCE
+                 begin
+                   if (target_info.system=system_x86_64_win64) and
+                      (p.size<=8)  then
+                     loc1:=LOC_REGISTER
+                   else
+                     loc1:=LOC_REFERENCE;
+                 end
                else
                  loc1:=LOC_REGISTER;
              end;
            arraydef:
              begin
-               loc1:=LOC_REFERENCE;
+               if (target_info.system=system_x86_64_win64) and
+                  (p.size<=8)  then
+                 loc1:=LOC_REGISTER
+               else
+                 loc1:=LOC_REFERENCE;
              end;
            variantdef:
              loc1:=LOC_REFERENCE;
