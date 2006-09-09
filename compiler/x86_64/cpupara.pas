@@ -448,6 +448,10 @@ unit cpupara;
                           else
                             paraloc^.register:=newreg(R_INTREGISTER,paraintsupregs[intparareg],subreg);
 
+                          { matching mm register must be skipped }
+                          if target_info.system=system_x86_64_win64 then
+                            inc(mmparareg);
+
                           inc(intparareg);
                           dec(paralen,tcgsize2size[paraloc^.size]);
                         end;
@@ -465,6 +469,11 @@ unit cpupara;
                             paraloc^.size:=OS_F64
                           else
                             paraloc^.size:=paracgsize;
+
+                          { matching int register must be skipped }
+                          if target_info.system=system_x86_64_win64 then
+                            inc(intparareg);
+
                           inc(mmparareg);
                           dec(paralen,tcgsize2size[paraloc^.size]);
                         end;
