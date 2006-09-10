@@ -1,3 +1,5 @@
+{$define mwe_dwarf}
+
 {
     Copyright (c) 2003-2006 by Peter Vreman and Florian Klaempfl
 
@@ -40,6 +42,7 @@ interface
       cclasses,
       aasmbase,aasmtai,aasmdata,
       symbase,symtype,symdef,
+      finput,
       DbgBase;
 
     type
@@ -186,6 +189,15 @@ interface
         DW_FORM_ref2 := $12,DW_FORM_ref4 := $13,
         DW_FORM_ref8 := $14,DW_FORM_ref_udata := $15,
         DW_FORM_indirect := $16);
+        
+{$ifdef mwe_dwarf}
+      TDwarfFile = record
+        Index: integer;
+        Name: PChar;
+      end;
+{$endif}
+
+      { TDebugInfoDwarf }
 
       TDebugInfoDwarf = class(TDebugInfo)
       private
@@ -202,6 +214,15 @@ interface
         vardatadef,
         filerecdef,
         textrecdef : tdef;
+        
+{$ifdef mwe_dwarf}
+        dirlist: Tdictionary;
+        filesequence: Integer;
+        loclist: tdynamicarray;
+        asmline: TAsmList;
+        
+        function get_file_index(afile: tinputfile): Integer;
+{$endif}
 
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -218,6 +239,10 @@ interface
         procedure write_symtable_syms(list:TAsmList;st:tsymtable);
         function def_dwarf_lab(def:tdef) : tasmsymbol;
       public
+{$ifdef mwe_dwarf}
+        constructor Create;override;
+        destructor Destroy;override;
+{$endif}
         procedure insertdef(list:TAsmList;def:tdef);override;
 
         procedure insertmoduleinfo;override;
@@ -238,11 +263,16 @@ implementation
       systems,
       cpubase,
       cgbase,
-      finput,
       fmodule,
       defutil,
       symconst,symtable,symsym
       ;
+
+{$ifdef mwe_dwarf}
+    const
+      LINE_BASE   = 1;
+      OPCODE_BASE = 13;
+{$endif}
 
     const
       DW_TAG_lo_user = $4080;
@@ -422,6 +452,104 @@ implementation
       DW_OP_lo_user = $e0;
       { Implementation-defined range end.   }
       DW_OP_hi_user = $ff;
+      
+{$ifdef mwe_dwarf}
+
+    const
+      DW_LNS_extended_op     = $00;
+
+      { next copied from cfidwarf, need to go to something shared }
+      DW_LNS_copy            = $01;
+      DW_LNS_advance_pc      = $02;
+      DW_LNS_advance_line    = $03;
+      DW_LNS_set_file        = $04;
+      DW_LNS_set_column      = $05;
+      DW_LNS_negate_stmt     = $06;
+      DW_LNS_set_basic_block = $07;
+      DW_LNS_const_add_pc    = $08;
+
+      DW_LNS_fixed_advance_pc   = $09;
+      DW_LNS_set_prologue_end   = $0a;
+      DW_LNS_set_epilogue_begin = $0b;
+      DW_LNS_set_isa            = $0c;
+
+      DW_LNE_end_sequence = $01;
+      DW_LNE_set_address  = $02;
+      DW_LNE_define_file  = $03;
+      DW_LNE_lo_user      = $80;
+      DW_LNE_hi_user      = $ff;
+
+    type
+      { TDirIndexItem }
+
+      TDirIndexItem = class(TNamedIndexItem)
+      private
+        FFiles: TDictionary;
+      public
+        constructor Create(const AName: String; AIndex: Integer);
+        destructor  Destroy;override;
+        property Files: TDictionary read FFiles;
+      end;
+      
+      { TFileIndexItem }
+
+      TFileIndexItem = class(TNamedIndexItem)
+      private
+        FDirIndex: Integer;
+      public
+        constructor Create(const AName: String; ADirIndex, AIndex: Integer);
+        property DirIndex: Integer read FDirIndex;
+      end;
+
+
+{****************************************************************************
+                              procs
+****************************************************************************}
+procedure AddNamedIndexToList(p:TNamedIndexItem; arg:pointer);
+begin
+  TFPList(Arg).Add(p);
+end;
+
+function DirListSortCompare(AItem1, AItem2: Pointer): Integer;
+begin
+  Result := TDirIndexItem(AItem1).IndexNr - TDirIndexItem(AItem2).IndexNr;
+end;
+
+function FileListSortCompare(AItem1, AItem2: Pointer): Integer;
+begin
+  Result := TFileIndexItem(AItem1).IndexNr - TFileIndexItem(AItem2).IndexNr;
+end;
+
+{****************************************************************************
+                              TDirIndexItem
+****************************************************************************}
+
+    constructor TDirIndexItem.Create(const AName: String; AIndex: Integer);
+    begin
+      inherited CreateName(AName);
+      FFiles := TDictionary.Create;
+      IndexNr := AIndex;
+    end;
+
+    destructor TDirIndexItem.Destroy;
+    begin
+      FFiles.Free;
+      FFiles := nil;
+      inherited Destroy;
+    end;
+
+{****************************************************************************
+                              TFileIndexItem
+****************************************************************************}
+
+    constructor TFileIndexItem.Create(const AName: String; ADirIndex, AIndex: Integer);
+    begin
+      inherited CreateName(Aname);
+      FDirIndex := ADirIndex;
+      IndexNr := AIndex;
+    end;
+
+{$endif}
 
 
 {****************************************************************************
@@ -455,6 +583,57 @@ implementation
         result:=def.dwarf_lab;
       end;
 
+{$ifdef mwe_dwarf}
+    constructor TDebugInfoDwarf.Create;
+      begin
+        inherited Create;
+        dirlist := tdictionary.Create;
+        { add current dir as first item (index=0) }
+        dirlist.insert(TDirIndexItem.Create('.', 0));
+        asmline := TAsmList.create;
+        loclist := tdynamicarray.Create(4096);
+      end;
+
+    destructor TDebugInfoDwarf.Destroy;
+      begin
+        dirlist.Free;
+        dirlist := nil;
+        loclist.Free;
+        loclist := nil;
+        inherited Destroy;
+      end;
+
+    function TDebugInfoDwarf.get_file_index(afile: tinputfile): Integer;
+      var
+        dirname: String;
+        diritem: TDirIndexItem;
+        diridx: Integer;
+        fileitem: TFileIndexItem;
+      begin
+        if afile.path^ = '' then
+          dirname := '.'
+        else
+          dirname := afile.path^;
+
+        diritem := TDirIndexItem(dirlist.search(dirname));
+        if diritem = nil then
+          begin
+            diritem := TDirIndexItem.Create(dirname, dirlist.Count);
+            diritem := TDirIndexItem(dirlist.insert(diritem));
+          end;
+        diridx := diritem.IndexNr;
+
+        fileitem := TFileIndexItem(diritem.files.search(afile.name^));
+        if fileitem = nil then
+          begin
+            Inc(filesequence);
+            fileitem := TFileIndexItem.Create(afile.name^, diridx, filesequence);
+            fileitem := TFileIndexItem(diritem.files.insert(fileitem));
+          end;
+
+        Result := fileitem.IndexNr;
+      end;
+{$endif}
 
     { writing the data through a few simply procedures allows to create easily extra information
       for debugging of debug info }
@@ -1866,7 +2045,15 @@ implementation
 
     procedure TDebugInfoDwarf.insertmoduleinfo;
       var
-        templist : TAsmList;
+        templist: TAsmList;
+{$ifdef mwe_dwarf}
+        linelist: TAsmList;
+        lbl: tasmlabel;
+        n: Integer;
+        ditem: TDirIndexItem;
+        fitem: TFileIndexItem;
+        dlist, flist: TFPList;
+{$endif}
       begin
         { insert .Ltext0 label }
         templist:=TAsmList.create;
@@ -1895,6 +2082,127 @@ implementation
         templist.concat(tai_symbol.createname('.Ldebug_line0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
+
+{$ifdef mwe_dwarf}
+        { debug line header }
+        linelist := current_asmdata.asmlists[al_dwarf_line];
+        new_section(linelist,sec_debug_line,'',0);
+        linelist.concat(tai_comment.Create(strpnew('=== header start ===')));
+
+        { size }
+        current_asmdata.getlabel(lbl,alt_dbgfile);
+        { currently we create only 32 bit dwarf }
+        linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
+          lbl,tasmsymbol.create('.Ledebug_line0',AB_COMMON,AT_DATA)));
+
+        linelist.concat(tai_label.create(lbl));
+
+        { version }
+        linelist.concat(tai_const.create_16bit(3));
+
+        { header length }
+        current_asmdata.getlabel(lbl,alt_dbgfile);
+        { currently we create only 32 bit dwarf }
+        linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
+          lbl,tasmsymbol.create('.Lehdebug_line0',AB_COMMON,AT_DATA)));
+
+        linelist.concat(tai_label.create(lbl));
+
+        { minimum_instruction_length }
+        linelist.concat(tai_const.create_8bit(1));
+
+        { default_is_stmt }
+        linelist.concat(tai_const.create_8bit(1));
+
+        { line_base }
+        linelist.concat(tai_const.create_8bit(LINE_BASE));
+
+        { line_range }                              
+        { only line increase, no adress }
+        linelist.concat(tai_const.create_8bit(255));
+
+        { opcode_base }
+        linelist.concat(tai_const.create_8bit(OPCODE_BASE));
+
+        { standard_opcode_lengths }
+        { MWE: sigh... why adding the default lengths (and make those sizes sense with LEB encoding) }
+          { DW_LNS_copy }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_advance_pc }
+        linelist.concat(tai_const.create_8bit(1));
+          { DW_LNS_advance_line }
+        linelist.concat(tai_const.create_8bit(1));
+          { DW_LNS_set_file }
+        linelist.concat(tai_const.create_8bit(1));
+          { DW_LNS_set_column }
+        linelist.concat(tai_const.create_8bit(1));
+          { DW_LNS_negate_stmt }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_set_basic_block }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_const_add_pc }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_fixed_advance_pc }
+        linelist.concat(tai_const.create_8bit(1));
+          { DW_LNS_set_prologue_end }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_set_epilogue_begin }
+        linelist.concat(tai_const.create_8bit(0));
+          { DW_LNS_set_isa }
+        linelist.concat(tai_const.create_8bit(1));
+
+        { generate directory and filelist}
+        dlist := TFPList.Create;
+        flist := TFPList.Create;
+
+        dirlist.foreach_static(@AddNamedIndexToList, dlist);
+        dlist.Sort(@DirListSortCompare);
+        { include_directories }
+        linelist.concat(tai_comment.Create(strpnew('include_directories')));
+          { list }
+        for n := 0 to dlist.Count - 1 do
+        begin
+          ditem := TDirIndexItem(dlist[n]);
+          ditem.Files.foreach_static(@AddNamedIndexToList, flist);
+          if ditem.Name = '.' then Continue;
+
+          linelist.concat(tai_string.create(ditem.Name+#0));
+        end;
+          { end of list }
+        linelist.concat(tai_const.create_8bit(0));
+
+        { file_names }
+        linelist.concat(tai_comment.Create(strpnew('file_names')));
+          { list }
+        flist.Sort(@FileListSortCompare);
+        for n := 0 to flist.Count - 1 do
+        begin
+          fitem := TFileIndexItem(flist[n]);
+          { file name }
+          linelist.concat(tai_string.create(fitem.Name+#0));
+          { directory index }
+          linelist.concat(tai_const.create_uleb128bit(fitem.DirIndex));
+          { last modification }
+          linelist.concat(tai_const.create_uleb128bit(0));
+          { file length }
+          linelist.concat(tai_const.create_uleb128bit(0));
+        end;
+          { end of list }
+        linelist.concat(tai_const.create_8bit(0));
+
+        dlist.free;
+        flist.free;
+
+        { end of debug line header }
+        linelist.concat(tai_symbol.createname('.Lehdebug_line0',AT_DATA,0));
+        linelist.concat(tai_comment.Create(strpnew('=== header end ===')));
+
+        { add line program }
+        linelist.concatList(asmline);
+        
+        { end of debug line table }
+        linelist.concat(tai_symbol.createname('.Ledebug_line0',AT_DATA,0));
+{$endif}
       end;
 
 
@@ -1985,7 +2293,11 @@ implementation
         { end of debug info table }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
-       { reset all def labels }
+        
+        { end of abbrev table }
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+
+        { reset all def labels }
         for i:=0 to defnumberlist.count-1 do
           begin
             if assigned(defnumberlist[i]) then
@@ -2017,11 +2329,26 @@ implementation
         hp : tai;
         infile : tinputfile;
         current_file : tai_file;
+{$ifdef mwe_dwarf}
+        prevcolumn,
+        diffline,
+        prevline,
+        prevfileidx,
+        currfileidx: Integer;
+        prevlabel,
+        currlabel     : tasmlabel;
+{$endif}
       begin
         FillChar(lastfileinfo,sizeof(lastfileinfo),0);
         currfuncname:=nil;
         currsectype:=sec_code;
         hp:=Tai(list.first);
+{$ifdef mwe_dwarf}
+        prevcolumn := 0;
+        prevline := 1;
+        prevfileidx := 1;
+        prevlabel := nil;
+{$endif}
         while assigned(hp) do
           begin
             case hp.typ of
@@ -2029,8 +2356,9 @@ implementation
                 currsectype:=tai_section(hp).sectype;
               ait_function_name :
                 currfuncname:=tai_function_name(hp).funcname;
-              ait_force_line :
+              ait_force_line : begin
                 lastfileinfo.line:=-1;
+              end;
             end;
 
             if (currsectype=sec_code) and
@@ -2044,30 +2372,111 @@ implementation
                     infile:=current_module.sourcefiles.get_file(currfileinfo.fileindex);
                     if assigned(infile) then
                       begin
+{$ifndef mwe_dwarf}
                         if (infile.path^<>'') then
-                          begin
-                            current_file:=tai_file.create(BsToSlash(FixPath(infile.path^,false)+FixFileName(infile.name^)));
-                            list.insertbefore(current_file,hp)
-                          end
+                          current_file:=tai_file.create(BsToSlash(FixPath(infile.path^,false)+FixFileName(infile.name^)))
                         else
+                          current_file:=tai_file.create(FixFileName(infile.name^));
+                        list.insertbefore(current_file,hp);
+{$endif}
+{$ifdef mwe_dwarf}
+                        currfileidx := get_file_index(infile);
+                        if prevfileidx <> currfileidx then
                           begin
-                            current_file:=tai_file.create(FixFileName(infile.name^));
-                            list.insertbefore(current_file,hp);
+                            list.insertbefore(tai_comment.Create(strpnew('path: '+infile.path^)), hp);
+                            list.insertbefore(tai_comment.Create(strpnew('file: '+infile.name^)), hp);
+                            list.insertbefore(tai_comment.Create(strpnew('indx: '+tostr(currfileidx))), hp);
+
+                            { set file }
+                            asmline.concat(tai_comment.Create(strpnew('path: '+infile.path^)));
+                            asmline.concat(tai_comment.Create(strpnew('file: '+infile.name^)));
+                            asmline.concat(tai_const.create_8bit(DW_LNS_set_file));
+                            asmline.concat(tai_const.create_uleb128bit(currfileidx));
+
+                            prevfileidx := currfileidx;
                           end;
+{$endif}
                         { force new line info }
                         lastfileinfo.line:=-1;
-                      end;
+                      end;                                      
                   end;
 
                 { line changed ? }
                 if (lastfileinfo.line<>currfileinfo.line) and (currfileinfo.line<>0) then
-                  list.insertbefore(tai_loc.create(
-                    current_file,currfileinfo.line,currfileinfo.column),hp);
+                  begin
+{$ifndef mwe_dwarf}
+                    list.insertbefore(tai_loc.create(
+                      current_file,currfileinfo.line,currfileinfo.column),hp);
+{$endif}
+{$ifdef mwe_dwarf}
+                    { set address }
+                    current_asmdata.getlabel(currlabel, alt_dbgline);
+                    list.insertbefore(tai_label.create(currlabel), hp);
+
+                    asmline.concat(tai_comment.Create(strpnew('['+tostr(currfileinfo.line)+':'+tostr(currfileinfo.column)+']')));
+                    
+                    if prevlabel = nil then
+                      begin
+                        asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+                        if isdwarf64 then
+                          asmline.concat(tai_const.create_uleb128bit(9))  { 1 + 8 }
+                        else
+                          asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
+                        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+                        if isdwarf64 then
+                          asmline.concat(tai_const.create_type_sym(aitconst_64bit, currlabel))
+                        else
+                          asmline.concat(tai_const.create_type_sym(aitconst_32bit, currlabel));
+                      end
+                    else
+                      begin
+                        asmline.concat(tai_const.create_8bit(DW_LNS_advance_pc));
+                        asmline.concat(tai_const.create_rel_sym(aitconst_uleb128bit, prevlabel, currlabel));
+                      end;
+                    prevlabel := currlabel;
+                    
+                    { set column }
+                    if prevcolumn <> currfileinfo.column then
+                      begin
+                        asmline.concat(tai_const.create_8bit(DW_LNS_set_column));
+                        asmline.concat(tai_const.create_uleb128bit(currfileinfo.column));
+                        prevcolumn := currfileinfo.column;
+                      end;
+
+                    { set line }
+                    diffline := currfileinfo.line - prevline;
+                    if (diffline >= LINE_BASE) and (OPCODE_BASE + diffline - LINE_BASE <= 255) then
+                      begin
+                        { use special opcode, this also adds a row }
+                        asmline.concat(tai_const.create_8bit(OPCODE_BASE + diffline - LINE_BASE));
+                      end
+                    else
+                      begin
+                        if diffline <> 0 then
+                          begin
+                            asmline.concat(tai_const.create_8bit(DW_LNS_advance_line));
+                            asmline.concat(tai_const.create_sleb128bit(diffline));
+                          end;
+                        { no row added yet, do it manually }
+                        asmline.concat(tai_const.create_8bit(DW_LNS_copy));
+                      end;
+                    prevline := currfileinfo.line;
+{$endif}
+                  end;
+                  
                 lastfileinfo:=currfileinfo;
               end;
 
             hp:=tai(hp.next);
           end;
+
+{$ifdef mwe_dwarf}
+        { end sequence }
+        asmline.concat(tai_const.Create_8bit(DW_LNS_extended_op));
+        asmline.concat(tai_const.Create_8bit(1));
+        asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
+        asmline.concat(tai_comment.Create(strpnew('###################')));
+{$endif}
       end;
 
 
