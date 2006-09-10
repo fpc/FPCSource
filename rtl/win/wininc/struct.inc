@@ -4144,12 +4144,12 @@
      MEMORYSTATUS = record
           dwLength : DWORD;
           dwMemoryLoad : DWORD;
-          dwTotalPhys : DWORD;
-          dwAvailPhys : DWORD;
-          dwTotalPageFile : DWORD;
-          dwAvailPageFile : DWORD;
-          dwTotalVirtual : DWORD;
-          dwAvailVirtual : DWORD;
+          dwTotalPhys : SIZE_T;
+          dwAvailPhys : SIZE_T;
+          dwTotalPageFile : SIZE_T;
+          dwAvailPageFile : SIZE_T;
+          dwTotalVirtual : SIZE_T;
+          dwAvailVirtual : SIZE_T;
        end;
      LPMEMORYSTATUS = ^MEMORYSTATUS;
      _MEMORYSTATUS = MEMORYSTATUS;
