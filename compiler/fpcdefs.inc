@@ -6,11 +6,15 @@
   {$inline on}
 
 {$ifdef win32}
-  { 256MB stack }
+  { 256 MB stack }
   { under windows the stack can't grow }
   {$MEMORY 256000000}
+{$elsif win64}
+  { 512 MB stack }
+  { under windows the stack can't grow }
+  {$MEMORY 512000000}
 {$else win32}
-  { 1MB stack }
+  { 1 MB stack }
   {$MEMORY 1000000}
 {$endif win32}
   { This reduces the memory requirements a lot }
