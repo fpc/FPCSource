@@ -111,7 +111,7 @@ cat <<EOFCFG > $thefile
 
 # set binutils prefix
 #IFDEF FPC_CROSSCOMPILING
-  -XP$fpctarget-
+  -XP\$fpctarget-
 #ENDIF
 
 # ----------------
