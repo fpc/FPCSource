@@ -837,7 +837,7 @@ function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint
         err := 0;
         must_reset_fpu := true;
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-        if IsConsole then Writeln(stderr,'Exception  ',
+        if IsConsole then Writeln(stderr,'Exception ',
           hexstr(excep^.ExceptionRecord^.ExceptionCode,8));
 {$endif SYSTEMEXCEPTIONDEBUG}
         case cardinal(excep^.ExceptionRecord^.ExceptionCode) of
@@ -894,7 +894,11 @@ function syswin64_x86_64_exception_handler(excep : PExceptionPointers) : Longint
               if ((excep^.ExceptionRecord^.ExceptionCode and SEVERITY_ERROR) = SEVERITY_ERROR) then
                 err := 217
               else
-                err := 255;
+                { pass through exceptions which aren't an error. The problem is that vectored handlers
+                  always are called before structured ones so we see also internal exceptions of libraries.
+                  I wonder if there is a better solution (FK)
+                }
+                res:=EXCEPTION_CONTINUE_SEARCH;
             end;
         end;
 
