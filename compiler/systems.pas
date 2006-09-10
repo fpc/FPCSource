@@ -746,6 +746,9 @@ begin
    {$ifdef freebsd}
     default_target(system_i386_freebsd);
    {$endif}
+   {$ifdef darwin}
+    default_target(system_i386_darwin);
+   {$endif}
   {$endif cpu86}
 {$endif i386}
 
@@ -791,7 +794,12 @@ begin
   {$ifdef cpupowerpc}
     default_target(source_info.system);
   {$else cpupowerpc}
+   {$ifdef linux}
     default_target(system_powerpc_linux);
+   {$endif}
+   {$ifdef darwin}
+    default_target(system_powerpc_darwin);
+   {$endif}
   {$endif cpupowerpc}
 {$endif powerpc}
 {$ifdef POWERPC64}
