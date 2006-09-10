@@ -53,7 +53,7 @@ unit winsock;
        u_long = dword;
        pu_long = ^u_long;
        plongint = ^longint;
-       TSocket = u_long;
+       TSocket = UINT_PTR;
 
        { there is already a procedure called FD_SET, so this
          record was renamed (FK) }
@@ -274,13 +274,20 @@ unit winsock;
        WSADATA = record
           wVersion : WORD;              { 2 byte, ofs 0 }
           wHighVersion : WORD;          { 2 byte, ofs 2 }
-          szDescription : array[0..(WSADESCRIPTION_LEN+1)-1] of char; { 257 byte, ofs 4 }
-          szSystemStatus : array[0..(WSASYS_STATUS_LEN+1)-1] of char; { 129 byte, ofs 261 }
+{$ifdef win64}
           iMaxSockets : word;           { 2 byte, ofs 390 }
           iMaxUdpDg : word;             { 2 byte, ofs 392 }
-          pad1 : SmallInt;              { 2 byte, ofs 394 } { ensure right packaging }
           lpVendorInfo : pchar;         { 4 byte, ofs 396 }
-       end;                             { total size 400 }
+          szDescription : array[0..WSADESCRIPTION_LEN] of char; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..WSASYS_STATUS_LEN] of char; { 129 byte, ofs 261 }
+{$else win64}
+          szDescription : array[0..WSADESCRIPTION_LEN] of char; { 257 byte, ofs 4 }
+          szSystemStatus : array[0..WSASYS_STATUS_LEN] of char; { 129 byte, ofs 261 }
+          iMaxSockets : word;           { 2 byte, ofs 390 }
+          iMaxUdpDg : word;             { 2 byte, ofs 392 }
+          lpVendorInfo : pchar;         { 4 byte, ofs 396 }
+{$endif win64}
+       end;
        TWSAData = WSADATA;
        PWSAData = TWSAData;
 

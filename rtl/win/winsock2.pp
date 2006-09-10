@@ -32,15 +32,15 @@ Type
   pu_int = ^u_int;
   pu_long = ^u_long;
 
-  TSocket = u_int;      { The new type to be used in all instances which refer to sockets. }
+  TSocket = UINT_PTR;      { The new type to be used in all instances which refer to sockets. }
 
-        WSAEVENT = THandle;
-        PWSAEVENT = ^WSAEVENT;
-        LPWSAEVENT = PWSAEVENT;
+  WSAEVENT = THandle;
+  PWSAEVENT = ^WSAEVENT;
+  LPWSAEVENT = PWSAEVENT;
 {$IFDEF UNICODE}
-        PMBChar = PWideChar;
+  PMBChar = PWideChar;
 {$ELSE}
-        PMBChar = PChar;
+  PMBChar = PChar;
 {$ENDIF}
 
 const
@@ -596,21 +596,29 @@ const
 
   WSADESCRIPTION_LEN     =   256;
   WSASYS_STATUS_LEN      =   128;
-        MAX_PROTOCOL_CHAIN = 7;
-        BASE_PROTOCOL = 1;
-        LAYERED_PROTOCOL = 0;
-        WSAPROTOCOL_LEN = 255;
+  MAX_PROTOCOL_CHAIN = 7;
+  BASE_PROTOCOL = 1;
+  LAYERED_PROTOCOL = 0;
+  WSAPROTOCOL_LEN = 255;
 
 type
   PWSAData = ^TWSAData;
-  TWSAData = packed record
-    wVersion: Word;
-    wHighVersion: Word;
-    szDescription: array[0..WSADESCRIPTION_LEN] of Char;
-    szSystemStatus: array[0..WSASYS_STATUS_LEN] of Char;
-    iMaxSockets: Word;
-    iMaxUdpDg: Word;
-    lpVendorInfo: PChar;
+  TWSAData = record
+     wVersion : WORD;              { 2 byte, ofs 0 }
+     wHighVersion : WORD;          { 2 byte, ofs 2 }
+{$ifdef win64}
+     iMaxSockets : word;
+     iMaxUdpDg : word;
+     lpVendorInfo : pchar;
+     szDescription : array[0..WSADESCRIPTION_LEN] of char;
+     szSystemStatus : array[0..WSASYS_STATUS_LEN] of char;
+{$else win64}
+     szDescription : array[0..WSADESCRIPTION_LEN] of char; { 257 byte, ofs 4 }
+     szSystemStatus : array[0..WSASYS_STATUS_LEN] of char; { 129 byte, ofs 261 }
+     iMaxSockets : word;           { 2 byte, ofs 390 }
+     iMaxUdpDg : word;             { 2 byte, ofs 392 }
+     lpVendorInfo : pchar;         { 4 byte, ofs 396 }
+{$endif win64}
   end;
 
 {       WSAOVERLAPPED = Record
