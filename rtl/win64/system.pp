@@ -650,7 +650,7 @@ const
   STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
 
   EXCEPTION_EXECUTE_HANDLER               = 1;
-  EXCEPTION_CONTINUE_EXECUTION            = $fffffffff;
+  EXCEPTION_CONTINUE_EXECUTION            = -1;
   EXCEPTION_CONTINUE_SEARCH               = 0;
 
   EXCEPTION_MAXIMUM_PARAMETERS            = 15;
