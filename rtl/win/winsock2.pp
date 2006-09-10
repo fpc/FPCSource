@@ -19,8 +19,8 @@ Uses Windows;
 {       Define the current Winsock version. To build an earlier Winsock version
         application redefine this value prior to including Winsock2.h. }
 Const
-        WINSOCK_VERSION = $0202;
-        WINSOCK2_DLL = 'ws2_32.dll';
+  WINSOCK_VERSION = $0202;
+  WINSOCK2_DLL = 'ws2_32.dll';
 
 Type
   u_char = Char;
@@ -48,13 +48,13 @@ const
 
 type
   PFDSet = ^TFDSet;
-  TFDSet = packed record
+  TFDSet = record
     fd_count: u_int;
     fd_array: array[0..FD_SETSIZE-1] of TSocket;
   end;
 
   PTimeVal = ^TTimeVal;
-  TTimeVal = packed record
+  TTimeVal = record
     tv_sec: Longint;
     tv_usec: Longint;
   end;
@@ -78,7 +78,7 @@ const
 
 type
   PHostEnt = ^THostEnt;
-  THostEnt = packed record
+  THostEnt = record
     h_name: PChar;
     h_aliases: ^PChar;
     h_addrtype: Smallint;
@@ -89,7 +89,7 @@ type
   end;
 
   PNetEnt = ^TNetEnt;
-  TNetEnt = packed record
+  TNetEnt = record
     n_name: PChar;
     n_aliases: ^PChar;
     n_addrtype: Smallint;
@@ -97,15 +97,20 @@ type
   end;
 
   PServEnt = ^TServEnt;
-  TServEnt = packed record
+  TServEnt = record
     s_name: PChar;
     s_aliases: ^PChar;
+{$ifdef WIN64}
+    s_proto: PChar;
+    s_port: Smallint;
+{$else WIN64}
     s_port: Smallint;
     s_proto: PChar;
+{$endif WIN64}
   end;
 
   PProtoEnt = ^TProtoEnt;
-  TProtoEnt = packed record
+  TProtoEnt = record
     p_name: PChar;
     p_aliases: ^Pchar;
     p_proto: Smallint;
@@ -344,16 +349,16 @@ const
 
 type
 
-  SunB = packed record
+  SunB = record
     s_b1, s_b2, s_b3, s_b4: u_char;
   end;
 
-  SunW = packed record
+  SunW = record
     s_w1, s_w2: u_short;
   end;
 
   PInAddr = ^TInAddr;
-  TInAddr = packed record
+  TInAddr = record
     case integer of
       0: (S_un_b: SunB);
       1: (S_un_w: SunW);
@@ -361,7 +366,7 @@ type
   end;
 
   PSockAddrIn = ^TSockAddrIn;
-  TSockAddrIn = packed record
+  TSockAddrIn = record
     case Integer of
       0: (sin_family: u_short;
           sin_port: u_short;
@@ -378,14 +383,14 @@ type
 
   { Structure used by kernel to pass protocol information in raw sockets. }
   PSockProto = ^TSockProto;
-  TSockProto = packed record
+  TSockProto = record
     sp_family: u_short;
     sp_protocol: u_short;
   end;
 
 { Structure used for manipulating linger option. }
   PLinger = ^TLinger;
-  TLinger = packed record
+  TLinger = record
     l_onoff: u_short;
     l_linger: u_short;
   end;
@@ -396,13 +401,13 @@ const
   INADDR_BROADCAST = $FFFFFFFF;
   INADDR_NONE      = $FFFFFFFF;
 
-        MSG_OOB         = $1;             {process out-of-band data }
+  MSG_OOB         = $1;             {process out-of-band data }
   MSG_PEEK        = $2;             {peek at incoming message }
   MSG_DONTROUTE   = $4;             {send without using routing tables }
 
 { WinSock 2 extension -- new flags for WSASend(), WSASendTo(), WSARecv() and WSARecvFrom() }
-        MSG_INTERRUPT = $10; {/* send/recv in the interrupt context */}
-        MSG_MAXIOVLEN = 16;
+  MSG_INTERRUPT = $10; {/* send/recv in the interrupt context */}
+  MSG_MAXIOVLEN = 16;
 
   MSG_PARTIAL     = $8000;          {partial send or recv for message xport }
 
@@ -491,18 +496,18 @@ const
   WSASYSNOTREADY          = (WSABASEERR+91);
   WSAVERNOTSUPPORTED      = (WSABASEERR+92);
   WSANOTINITIALISED       = (WSABASEERR+93);
-        WSAEDISCON = (WSABASEERR+101);
-        WSAENOMORE = (WSABASEERR+102);
-        WSAECANCELLED = (WSABASEERR+103);
-        WSAEINVALIDPROCTABLE = (WSABASEERR+104);
-        WSAEINVALIDPROVIDER = (WSABASEERR+105);
-        WSAEPROVIDERFAILEDINIT = (WSABASEERR+106);
-        WSASYSCALLFAILURE = (WSABASEERR+107);
-        WSASERVICE_NOT_FOUND = (WSABASEERR+108);
-        WSATYPE_NOT_FOUND = (WSABASEERR+109);
-        WSA_E_NO_MORE = (WSABASEERR+110);
-        WSA_E_CANCELLED = (WSABASEERR+111);
-        WSAEREFUSED = (WSABASEERR+112);
+  WSAEDISCON = (WSABASEERR+101);
+  WSAENOMORE = (WSABASEERR+102);
+  WSAECANCELLED = (WSABASEERR+103);
+  WSAEINVALIDPROCTABLE = (WSABASEERR+104);
+  WSAEINVALIDPROVIDER = (WSABASEERR+105);
+  WSAEPROVIDERFAILEDINIT = (WSABASEERR+106);
+  WSASYSCALLFAILURE = (WSABASEERR+107);
+  WSASERVICE_NOT_FOUND = (WSABASEERR+108);
+  WSATYPE_NOT_FOUND = (WSABASEERR+109);
+  WSA_E_NO_MORE = (WSABASEERR+110);
+  WSA_E_CANCELLED = (WSABASEERR+111);
+  WSAEREFUSED = (WSABASEERR+112);
 
 
 { Error return codes from gethostbyname() and gethostbyaddr()
@@ -535,21 +540,21 @@ const
   NO_ADDRESS              = WSANO_ADDRESS;
 
 { WinSock 2 extension -- new error codes and type definition }
-        WSA_IO_PENDING = ERROR_IO_PENDING;
-        WSA_IO_INCOMPLETE = ERROR_IO_INCOMPLETE;
-        WSA_INVALID_HANDLE = ERROR_INVALID_HANDLE;
-        WSA_INVALID_PARAMETER = ERROR_INVALID_PARAMETER;
-        WSA_NOT_ENOUGH_MEMORY = ERROR_NOT_ENOUGH_MEMORY;
-        WSA_OPERATION_ABORTED = ERROR_OPERATION_ABORTED;
+  WSA_IO_PENDING = ERROR_IO_PENDING;
+  WSA_IO_INCOMPLETE = ERROR_IO_INCOMPLETE;
+  WSA_INVALID_HANDLE = ERROR_INVALID_HANDLE;
+  WSA_INVALID_PARAMETER = ERROR_INVALID_PARAMETER;
+  WSA_NOT_ENOUGH_MEMORY = ERROR_NOT_ENOUGH_MEMORY;
+  WSA_OPERATION_ABORTED = ERROR_OPERATION_ABORTED;
 {$ifndef FPC}{TODO}
-        WSA_INVALID_EVENT = WSAEVENT(nil);
+  WSA_INVALID_EVENT = WSAEVENT(nil);
 {$endif}
-        WSA_MAXIMUM_WAIT_EVENTS = MAXIMUM_WAIT_OBJECTS;
-        WSA_WAIT_FAILED = $ffffffff;
-        WSA_WAIT_EVENT_0 = WAIT_OBJECT_0;
-        WSA_WAIT_IO_COMPLETION = WAIT_IO_COMPLETION;
-        WSA_WAIT_TIMEOUT = WAIT_TIMEOUT;
-        WSA_INFINITE = INFINITE;
+  WSA_MAXIMUM_WAIT_EVENTS = MAXIMUM_WAIT_OBJECTS;
+  WSA_WAIT_FAILED = $ffffffff;
+  WSA_WAIT_EVENT_0 = WAIT_OBJECT_0;
+  WSA_WAIT_IO_COMPLETION = WAIT_IO_COMPLETION;
+  WSA_WAIT_TIMEOUT = WAIT_TIMEOUT;
+  WSA_INFINITE = INFINITE;
 
 { Windows Sockets errors redefined as regular Berkeley error constants.
   These are commented out in Windows NT to avoid conflicts with errno.h.

@@ -145,11 +145,18 @@ unit winsock;
           s_name : ^char;
           { alias list  }
           s_aliases : ^pchar;
+{$ifdef WIN64}
+          { protocol to use  }
+          s_proto : ^char;
+          { port #  }
+          s_port : SmallInt;
+{$else WIN64}
           { port #  }
           s_port : SmallInt;
           n_pad1 : SmallInt;    { ensure right packaging }
           { protocol to use  }
           s_proto : ^char;
+{$endif WIN64}
        end;
        TServEnt = servent;
        PServEnt = ^TServEnt;
