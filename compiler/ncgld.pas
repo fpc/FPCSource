@@ -558,7 +558,8 @@ implementation
         else
           begin
             { SSA support }
-            maybechangeloadnodereg(left);
+            maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
+            maybechangeloadnodereg(current_asmdata.CurrAsmList,right,true);
             case right.location.loc of
               LOC_CONSTANT :
                 begin

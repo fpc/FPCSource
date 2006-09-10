@@ -375,6 +375,7 @@ interface
       var
         cgop    : TOpCg;
         otl,ofl : tasmlabel;
+        oldflowcontrol : tflowcontrol;
       begin
         { And,Or will only evaluate from left to right only the
           needed nodes unless full boolean evaluation is enabled }
@@ -405,8 +406,14 @@ interface
               else
                 internalerror(200307044);
             end;
+            { these jumps mean we're now in a flow control construct }
+            oldflowcontrol:=flowcontrol;
+            include(flowcontrol,fc_inflowcontrol);
+
             secondpass(right);
             maketojumpbool(current_asmdata.CurrAsmList,right,lr_load_regvars);
+
+            flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
           end
         else
           begin

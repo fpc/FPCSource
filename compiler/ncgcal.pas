@@ -370,6 +370,8 @@ implementation
              current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
              secondpass(left);
 
+             maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
+
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
                 (left.resulttype.def.needs_inittable) then

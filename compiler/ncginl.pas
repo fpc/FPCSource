@@ -400,6 +400,11 @@ implementation
         begin
           { set defaults }
           addconstant:=true;
+          { first secondpass second argument, because if the first arg }
+          { is used in that expression then SSL may move it to another }
+          { register                                                   }
+          if assigned(tcallparanode(left).right) then
+            secondpass(tcallparanode(tcallparanode(left).right).left);
           { load first parameter, must be a reference }
           secondpass(tcallparanode(left).left);
           cgsize:=def_cgsize(tcallparanode(left).left.resulttype.def);
@@ -421,7 +426,6 @@ implementation
           { second_ argument specified?, must be a s32bit in register }
           if assigned(tcallparanode(left).right) then
             begin
-              secondpass(tcallparanode(tcallparanode(left).right).left);
               { when constant, just multiply the addvalue }
               if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                  addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)

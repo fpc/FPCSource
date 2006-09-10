@@ -102,8 +102,9 @@ interface
     procedure gen_sync_regvars(list:TAsmList; var rv: tusedregvars);
 
     { if the result of n is a LOC_C(..)REGISTER, try to find the corresponding }
-    { loadn and change its location to a new register (= SSA)                  }
-    procedure maybechangeloadnodereg(var n: tnode);
+    { loadn and change its location to a new register (= SSA). In case reload  }
+    { is true, transfer the old to the new register                            }
+    procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
 
    {#
       Allocate the buffers for exception management and setjmp environment.
@@ -2466,11 +2467,21 @@ implementation
                   result := fen_norecurse_true;
                 end;
             end;
+          { optimize the searching a bit }
+          derefn,addrn,
+          calln,inlinen,casen,
+          addn,subn,muln,
+          andn,orn,xorn,
+          ltn,lten,gtn,gten,equaln,unequaln,
+          slashn,divn,shrn,shln,notn,
+          inn,
+          asn,isn:
+            result := fen_norecurse_false;
         end;
       end;
 
 
-    procedure maybechangeloadnodereg(var n: tnode);
+    procedure maybechangeloadnodereg(list: TAsmList; var n: tnode; reload: boolean);
       var
         rr: treplaceregrec;
       begin
@@ -2518,6 +2529,29 @@ implementation
 
         if not foreachnodestatic(n,@doreplace,@rr) then
           exit;
+
+        if reload then
+          case n.location.loc of
+            LOC_CREGISTER:
+              begin
+      {$ifndef cpu64bit}
+                if (n.location.size in [OS_64,OS_S64]) then
+                  cg64.a_load64_reg_reg(list,n.location.register64,joinreg64(rr.new,rr.newhi))
+                else
+      {$endif cpu64bit}
+                  cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
+              end;
+            LOC_CFPUREGISTER:
+              cg.a_loadfpu_reg_reg(list,n.location.size,n.location.register,rr.new);
+      {$ifdef SUPPORT_MMX}
+            LOC_CMMXREGISTER:
+              cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);
+      {$endif SUPPORT_MMX}
+            LOC_CMMREGISTER:
+              cg.a_loadmm_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new,nil);
+            else
+              internalerror(2006090920);
+          end;
 
         { now that we've change the loadn/temp, also change the node result location }
       {$ifndef cpu64bit}

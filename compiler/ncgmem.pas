@@ -188,6 +188,7 @@ implementation
             LOC_CREGISTER,
             LOC_REGISTER:
               begin
+                maybechangeloadnodereg(current_asmdata.CurrAsmList,left,true);
               {$ifdef cpu_uses_separate_address_registers}
                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
