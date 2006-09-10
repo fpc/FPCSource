@@ -220,6 +220,11 @@ implementation
                 oper[replaceoper]^.typ:=top_ref;
                 new(oper[replaceoper]^.ref);
                 oper[replaceoper]^.ref^:=spilltemp;
+                { memory locations aren't guaranteed to be aligned }
+                case opcode of
+                  A_MOVAPS:
+                    opcode:=A_MOVQ;
+                end;
                 result:=true;
               end;
           end;
