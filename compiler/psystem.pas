@@ -61,6 +61,7 @@ implementation
         systemunit.insert(tsyssym.create('ReadLn',in_readln_x));
         systemunit.insert(tsyssym.create('Ofs',in_ofs_x));
         systemunit.insert(tsyssym.create('SizeOf',in_sizeof_x));
+        systemunit.insert(tsyssym.create('BitSizeOf',in_bitsizeof_x));
         systemunit.insert(tsyssym.create('TypeOf',in_typeof_x));
         systemunit.insert(tsyssym.create('Low',in_low_x));
         systemunit.insert(tsyssym.create('High',in_high_x));
