@@ -359,41 +359,7 @@ begin
     end;
   end
   else
-  begin
-    { just to make sure we free the right registers }
-    cmpop := true;
-    case nodetype of
-      andn,
-        orn:
-        begin
-          location_reset(location, LOC_JUMP, OS_NO);
-          case nodetype of
-            andn:
-              begin
-                otl := current_procinfo.CurrTrueLabel;
-                current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                secondpass(left);
-                maketojumpbool(current_asmdata.CurrAsmList, left, lr_load_regvars);
-                cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrTrueLabel);
-                current_procinfo.CurrTrueLabel := otl;
-              end;
-            orn:
-              begin
-                ofl := current_procinfo.CurrFalseLabel;
-                current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-                secondpass(left);
-                maketojumpbool(current_asmdata.CurrAsmList, left, lr_load_regvars);
-                cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrFalseLabel);
-                current_procinfo.CurrFalseLabel := ofl;
-              end;
-          else
-            internalerror(200403181);
-          end;
-          secondpass(right);
-          maketojumpbool(current_asmdata.CurrAsmList, right, lr_load_regvars);
-        end;
-    end;
-  end;
+    inherited second_addboolean;
 end;
 
 {*****************************************************************************
