@@ -171,6 +171,7 @@ interface
           defaultconstsym : tsym;
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
+          initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
           constructor create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1451,6 +1452,7 @@ implementation
       begin
          inherited create(st,n,vsp,tt,vopts);
          fillchar(localloc,sizeof(localloc),0);
+         fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
       end;
 
@@ -1459,6 +1461,7 @@ implementation
       begin
          inherited ppuload(st,ppufile);
          fillchar(localloc,sizeof(localloc),0);
+         fillchar(initialloc,sizeof(initialloc),0);
          ppufile.getderef(defaultconstsymderef);
       end;
 

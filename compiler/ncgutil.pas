@@ -846,7 +846,7 @@ implementation
            (tparavarsym(p).varspez=vs_value) and
            (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           location_get_data_ref(list,tparavarsym(p).localloc,href,true);
+           location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
            if is_open_array(tparavarsym(p).vartype.def) or
               is_array_of_const(tparavarsym(p).vartype.def) then
             begin
@@ -859,11 +859,11 @@ implementation
                     internalerror(200306061);
                   hreg:=cg.getaddressregister(list);
                   if not is_packed_array(tparavarsym(p).vartype.def) then
-                    cg.g_copyvaluepara_openarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg)
+                    cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg)
                   else
                     internalerror(2006080401);
-//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.localloc,tarraydef(tparavarsym(p).vartype.def).elepackedbitsize,hreg);
-                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).localloc);
+//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vartype.def).elepackedbitsize,hreg);
+                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
                 end;
             end
            else
@@ -891,6 +891,7 @@ implementation
               { update localloc of varsym }
               tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
               tparavarsym(p).localloc:=localcopyloc;
+              tparavarsym(p).initialloc:=localcopyloc;
             end;
          end;
       end;
@@ -953,22 +954,22 @@ implementation
             (vo_is_funcret in tparavarsym(p).varoptions))  then
          begin
            trashintval := trashintvalues[localvartrashing];
-           case tabstractnormalvarsym(p).localloc.loc of
+           case tabstractnormalvarsym(p).initialloc.loc of
              LOC_CREGISTER :
 {$ifopt q+}
 {$define overflowon}
 {$q-}
 {$endif}
-               cg.a_load_const_reg(list,reg_cgsize(tabstractnormalvarsym(p).localloc.register),
-                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).localloc.register)] * 8) - 1),
-                   tabstractnormalvarsym(p).localloc.register);
+               cg.a_load_const_reg(list,reg_cgsize(tabstractnormalvarsym(p).initialloc.register),
+                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).initialloc.register)] * 8) - 1),
+                   tabstractnormalvarsym(p).initialloc.register);
 {$ifdef overflowon}
 {$undef overflowon}
 {$q+}
 {$endif}
              LOC_REFERENCE :
                begin
-                 trash_reference(list,tabstractnormalvarsym(p).localloc.reference,
+                 trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
                    tlocalvarsym(p).getsize);
                end;
              LOC_CMMREGISTER :
@@ -987,23 +988,23 @@ implementation
       begin
         if (tsym(p).typ=globalvarsym) then
          begin
-           case tglobalvarsym(p).localloc.loc of
+           case tglobalvarsym(p).initialloc.loc of
              LOC_CREGISTER :
                begin
 {$ifndef cpu64bit}
-                 if (tglobalvarsym(p).localloc.size in [OS_64,OS_S64]) then
-                   cg64.a_load64_const_reg(TAsmList(arg),0,tglobalvarsym(p).localloc.register64)
+                 if (tglobalvarsym(p).initialloc.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_const_reg(TAsmList(arg),0,tglobalvarsym(p).initialloc.register64)
                  else
 {$endif not cpu64bit}
-                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
-                       tglobalvarsym(p).localloc.register);
+                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).initialloc.register),0,
+                       tglobalvarsym(p).initialloc.register);
                end;
              LOC_REFERENCE : ;
              LOC_CMMREGISTER :
                { clear the whole register }
-               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).localloc.register),
-                 tglobalvarsym(p).localloc.register,
-                 tglobalvarsym(p).localloc.register,
+               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).initialloc.register),
+                 tglobalvarsym(p).initialloc.register,
+                 tglobalvarsym(p).initialloc.register,
                  nil);
              LOC_CFPUREGISTER :
                ;
@@ -1151,7 +1152,7 @@ implementation
              vs_value :
                if needs_inittable then
                  begin
-                   location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
+                   location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vartype.def));
                    cg.g_incrrefcount(list,tparavarsym(p).vartype.def,href);
                  end;
              vs_out :
@@ -1160,7 +1161,7 @@ implementation
                     (localvartrashing <> -1) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
+                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
                      if (localvartrashing <> -1) and
                         { needs separate implementation to trash open arrays }
@@ -1175,7 +1176,7 @@ implementation
                      ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
-                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).localloc,tmpreg);
+                     cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
                      trash_reference(list,href,tparavarsym(p).vartype.def.size);
                    end
@@ -1423,26 +1424,26 @@ implementation
 
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym);
       begin
-        case sym.localloc.loc of
+        case sym.initialloc.loc of
           LOC_CREGISTER:
             begin
 {$ifndef cpu64bit}
-              if sym.localloc.size in [OS_64,OS_S64] then
+              if sym.initialloc.size in [OS_64,OS_S64] then
                 begin
-                  sym.localloc.register64.reglo:=cg.getintregister(list,OS_32);
-                  sym.localloc.register64.reghi:=cg.getintregister(list,OS_32);
+                  sym.initialloc.register64.reglo:=cg.getintregister(list,OS_32);
+                  sym.initialloc.register64.reghi:=cg.getintregister(list,OS_32);
                 end
               else
 {$endif cpu64bit}
-                sym.localloc.register:=cg.getintregister(list,sym.localloc.size);
+                sym.initialloc.register:=cg.getintregister(list,sym.initialloc.size);
             end;
           LOC_CFPUREGISTER:
             begin
-              sym.localloc.register:=cg.getfpuregister(list,sym.localloc.size);
+              sym.initialloc.register:=cg.getfpuregister(list,sym.initialloc.size);
             end;
           LOC_CMMREGISTER:
             begin
-             sym. localloc.register:=cg.getmmregister(list,sym.localloc.size);
+             sym.initialloc.register:=cg.getmmregister(list,sym.localloc.size);
             end;
         end;
 
@@ -1451,15 +1452,16 @@ implementation
             { Allocate register already, to prevent first allocation to be
               inside a loop }
 {$ifndef cpu64bit}
-            if sym.localloc.size in [OS_64,OS_S64] then
+            if sym.initialloc.size in [OS_64,OS_S64] then
               begin
-                cg.a_reg_sync(list,sym.localloc.register64.reglo);
-                cg.a_reg_sync(list,sym.localloc.register64.reghi);
+                cg.a_reg_sync(list,sym.initialloc.register64.reglo);
+                cg.a_reg_sync(list,sym.initialloc.register64.reghi);
               end
             else
 {$endif cpu64bit}
-             cg.a_reg_sync(list,sym.localloc.register);
+             cg.a_reg_sync(list,sym.initialloc.register);
           end;
+        sym.localloc:=sym.initialloc;
       end;
 
 
@@ -1606,14 +1608,14 @@ implementation
               internalerror(200408203);
             if (paraloc^.loc = LOC_VOID) then
               continue;
-            case currpara.localloc.loc of
+            case currpara.initialloc.loc of
               LOC_REFERENCE :
                 begin
                   { If the parameter location is reused we don't need to copy
                     anything }
                   if not paramanager.param_use_paraloc(currpara.paraloc[calleeside]) then
                     begin
-                      href:=currpara.localloc.reference;
+                      href:=currpara.initialloc.reference;
                       sizeleft:=currpara.paraloc[calleeside].intsize;
                       while assigned(paraloc) do
                         begin
@@ -1656,9 +1658,9 @@ implementation
                                   paraloc^.next -> low }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,currpara.localloc.register64.reghi);
+                                gen_load_reg(paraloc^,currpara.initialloc.register64.reghi);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.localloc.register64.reglo);
+                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reglo);
                               end
                             else
                               begin
@@ -1666,16 +1668,16 @@ implementation
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,currpara.localloc.register64.reglo);
+                                gen_load_reg(paraloc^,currpara.initialloc.register64.reglo);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.localloc.register64.reghi);
+                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reghi);
                               end;
                           end;
                         LOC_REFERENCE:
                           begin
                             gen_alloc_regvar(list,currpara);
                             reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
-                            cg64.a_load64_ref_reg(list,href,currpara.localloc.register64);
+                            cg64.a_load64_ref_reg(list,href,currpara.initialloc.register64);
                             unget_para(paraloc^);
                           end;
                         else
@@ -1689,7 +1691,7 @@ implementation
                         internalerror(200410105);
                       unget_para(paraloc^);
                       gen_alloc_regvar(list,currpara);
-                      gen_load_reg(paraloc^,currpara.localloc.register);
+                      gen_load_reg(paraloc^,currpara.initialloc.register);
                     end;
                 end;
               LOC_CFPUREGISTER :
@@ -1697,7 +1699,7 @@ implementation
 {$ifdef sparc}
                   { Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
-                  sizeleft := TCGSize2Size[currpara.localloc.size];
+                  sizeleft := TCGSize2Size[currpara.initialloc.size];
                   tg.GetTemp(list,sizeleft,tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
@@ -1709,12 +1711,12 @@ implementation
                       paraloc:=paraloc^.next;
                     end;
                   gen_alloc_regvar(list,currpara);
-                  cg.a_loadfpu_ref_reg(list,currpara.localloc.size,tempref,currpara.localloc.register);
+                  cg.a_loadfpu_ref_reg(list,currpara.initialloc.size,tempref,currpara.initialloc.register);
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
-                  gen_load_reg(paraloc^,currpara.localloc.register);
+                  gen_load_reg(paraloc^,currpara.initialloc.register);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
@@ -1723,7 +1725,7 @@ implementation
                 begin
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
-                  gen_load_reg(paraloc^,currpara.localloc.register);
+                  gen_load_reg(paraloc^,currpara.initialloc.register);
                   { data could come in two memory locations, for now
                     we simply ignore the sanity check (FK)
                   if assigned(paraloc^.next) then
@@ -2182,24 +2184,26 @@ implementation
       begin
         with sym do
           begin
-            localloc.size:=cgsize;
+            initialloc.size:=cgsize;
+            localloc.size:=initialloc.size;
             case varregable of
               vr_intreg,
               vr_addr :
                 begin
-                  localloc.loc:=LOC_CREGISTER;
+                  initialloc.loc:=LOC_CREGISTER;
                 end;
               vr_fpureg :
                 begin
-                  localloc.loc:=LOC_CFPUREGISTER;
+                  initialloc.loc:=LOC_CFPUREGISTER;
                 end;
               vr_mmreg :
                 begin
-                  localloc.loc:=LOC_CMMREGISTER;
+                  initialloc.loc:=LOC_CMMREGISTER;
                 end;
               else
                 internalerror(2004101010);
             end;
+            localloc.loc:=initialloc.loc;
           end;
       end;
 
@@ -2222,7 +2226,8 @@ implementation
                     if (sym.typ=paravarsym) and
                        (po_assembler in current_procinfo.procdef.procoptions) then
                       begin
-                        tparavarsym(sym).paraloc[calleeside].get_location(localloc);
+                        tparavarsym(sym).paraloc[calleeside].get_location(initialloc);
+                        localloc:=initialloc;
                       end
                     else
                       begin
@@ -2243,36 +2248,36 @@ implementation
                         else
 {$endif NOT OLDREGVARS}
                           begin
-                            localloc.loc:=LOC_REFERENCE;
-                            localloc.size:=cgsize;
+                            initialloc.loc:=LOC_REFERENCE;
+                            initialloc.size:=cgsize;
                             case st.symtabletype of
                               parasymtable :
                                 begin
                                   { Reuse the parameter location for values to are at a single location on the stack }
                                   if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
                                     begin
-                                      reference_reset_base(localloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
+                                      reference_reset_base(initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
                                           tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
                                     end
                                   else
                                     begin
                                       if isaddr then
-                                        tg.GetLocal(list,sizeof(aint),voidpointertype.def,localloc.reference)
+                                        tg.GetLocal(list,sizeof(aint),voidpointertype.def,initialloc.reference)
                                       else
-                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vartype.def,localloc.reference);
+                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vartype.def,initialloc.reference);
                                     end;
                                 end;
                               localsymtable,
                               stt_exceptsymtable :
                                 begin
-                                  tg.GetLocal(list,getsize,vartype.def,localloc.reference);
+                                  tg.GetLocal(list,getsize,vartype.def,initialloc.reference);
                                 end;
                               staticsymtable :
                                 begin
                                   { PIC, DLL and Threadvar need extra code and are handled in ncgld }
                                   if not(vo_is_dll_var in varoptions) and ((tf_section_threadvars in target_info.flags) or
                                      not(vo_is_thread_var in varoptions)) then
-                                    reference_reset_symbol(localloc.reference,current_asmdata.RefAsmSymbol(mangledname),0);
+                                    reference_reset_symbol(initialloc.reference,current_asmdata.RefAsmSymbol(mangledname),0);
                                 end;
                               else
                                 internalerror(200410103);
@@ -2281,15 +2286,16 @@ implementation
                       end;
                     if cs_asm_source in aktglobalswitches then
                       begin
-                        case localloc.loc of
+                        case initialloc.loc of
                           LOC_REFERENCE :
                             begin
-                              if not assigned(localloc.reference.symbol) then
+                              if not assigned(initialloc.reference.symbol) then
                                 list.concat(Tai_comment.Create(strpnew('Var '+realname+' located at '+
-                                   std_regname(localloc.reference.base)+tostr_with_plus(localloc.reference.offset))));
+                                   std_regname(initialloc.reference.base)+tostr_with_plus(initialloc.reference.offset))));
                             end;
                         end;
                       end;
+                    localloc:=initialloc;
                   end;
               end;
             sym:=tsym(sym.indexnext);
