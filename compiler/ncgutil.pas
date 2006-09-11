@@ -989,8 +989,15 @@ implementation
          begin
            case tglobalvarsym(p).localloc.loc of
              LOC_CREGISTER :
-               cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
-                   tglobalvarsym(p).localloc.register);
+               begin
+{$ifndef cpu64bit}
+                 if (tglobalvarsym(p).localloc.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_const_reg(TAsmList(arg),0,tglobalvarsym(p).localloc.register64)
+                 else
+{$endif not cpu64bit}
+                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).localloc.register),0,
+                       tglobalvarsym(p).localloc.register);
+               end;
              LOC_REFERENCE : ;
              LOC_CMMREGISTER :
                { clear the whole register }
