@@ -1062,6 +1062,10 @@ implementation
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 
+      if (cs_create_smart in aktmoduleswitches) and
+         (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+        AsmWriteLn(#9'.subsections_via_symbols');
+
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then

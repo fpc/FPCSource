@@ -519,7 +519,11 @@ begin
 
   if (cs_link_smart in aktglobalswitches) and
      (tf_smartlink_sections in target_info.flags) then
-   GCSectionsStr:='--gc-sections';
+    if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+      GCSectionsStr:='--gc-sections'
+    else
+      // warning: this option only exists for 32 bit under Mac OS X, maybe the default for 64 bit?
+      GCSectionsStr:='-dead_strip';
 
   If (cs_profile in aktmoduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
