@@ -8852,7 +8852,7 @@
     opcode  : A_CVTSI2SD;
     ops     : 2;
     optypes : (ot_xmmreg,ot_memory,ot_none);
-    code    : #193#1#242#211#2#15#42#72;
+    code    : #193#1#242#209#2#15#42#72;
     flags   : if_willamette or if_sse2
   ),
   (

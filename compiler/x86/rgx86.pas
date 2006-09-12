@@ -223,7 +223,9 @@ implementation
                 { memory locations aren't guaranteed to be aligned }
                 case opcode of
                   A_MOVAPS:
-                    opcode:=A_MOVQ;
+                    opcode:=A_MOVSS;
+                  A_MOVAPD:
+                    opcode:=A_MOVSD;
                 end;
                 result:=true;
               end;

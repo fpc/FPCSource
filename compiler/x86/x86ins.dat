@@ -2343,7 +2343,7 @@ xmmreg,mem            \301\333\2\x0F\x5D\110          KATMAI,SSE
 xmmreg,xmmreg         \333\2\x0F\x5D\110              KATMAI,SSE
 
 [MOVAPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_ROp1, Ch_WOp2, Ch_None)
 xmmreg,mem            \301\2\x0F\x28\110              KATMAI,SSE
 mem,xmmreg            \300\2\x0F\x29\101              KATMAI,SSE
 xmmreg,xmmreg         \2\x0F\x28\110                  KATMAI,SSE
@@ -2971,7 +2971,7 @@ xmmreg,xmmreg           \3\xF2\x0F\x5D\110              WILLAMETTE,SSE2
 xmmreg,mem              \301\1\xF2\323\2\x0F\x5D\110    WILLAMETTE,SSE2
 
 [MOVAPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_ROp1, Ch_WOp2, Ch_None)
 xmmreg,xmmreg           \3\x66\x0F\x28\110              WILLAMETTE,SSE2
 xmmreg,xmmreg           \3\x66\x0F\x29\110              WILLAMETTE,SSE2
 mem,xmmreg              \300\1\x66\323\2\x0F\x29\101    WILLAMETTE,SSE2,SM
