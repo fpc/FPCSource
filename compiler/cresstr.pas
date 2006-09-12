@@ -32,7 +32,7 @@ implementation
 
 uses
    cclasses,
-   cutils,globtype,globals,
+   cutils,globtype,globals,systems,
    symconst,symtype,symdef,symsym,
    verbose,fmodule,ppu,
    aasmbase,aasmtai,aasmdata,
@@ -130,12 +130,20 @@ uses
         function WriteValueString(p:pchar;len:longint):TasmLabel;
         var
           s : pchar;
+          reference: TAsmLabel;
         begin
+          if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+            begin
+              current_asmdata.getdatalabel(reference);
+              current_asmdata.asmlists[al_const].concat(tai_label.create(reference));
+            end;
           current_asmdata.getdatalabel(result);
           current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
           current_asmdata.asmlists[al_const].concat(tai_const.create_aint(-1));
           current_asmdata.asmlists[al_const].concat(tai_const.create_aint(len));
           current_asmdata.asmlists[al_const].concat(tai_label.create(result));
+          if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+             current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,reference.getname));
           getmem(s,len+1);
           move(p^,s^,len);
           s[len]:=#0;

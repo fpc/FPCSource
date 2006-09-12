@@ -240,7 +240,8 @@ interface
 
       TAsmDirective=(
         asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
-        asd_extern,asd_nasm_import, asd_toc_entry, asd_mod_init_func, asd_mod_term_func
+        asd_extern,asd_nasm_import, asd_toc_entry, asd_mod_init_func, asd_mod_term_func,
+        asd_reference,asd_no_dead_strip
       );
 
     const
@@ -249,7 +250,8 @@ interface
       stabtypestr : array[TStabType] of string[5]=('stabs','stabn','stabd');
       directivestr : array[TAsmDirective] of string[23]=(
         'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
-        'extern','nasm_import', 'tc', 'mod_init_func', 'mod_term_func'
+        'extern','nasm_import', 'tc', 'mod_init_func', 'mod_term_func', 'reference',
+        'no_dead_strip'
       );
 
     type
