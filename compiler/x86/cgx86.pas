@@ -1830,7 +1830,7 @@ unit cgx86;
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                     list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
-                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize-4,NR_RSP));
+                    list.concat(Taicpu.op_const_reg(A_SUB,S_Q,localsize mod winstackpagesize,NR_RSP));
                     ungetcpuregister(list,NR_R10);
                  end
              end
