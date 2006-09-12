@@ -1516,11 +1516,19 @@ implementation
     procedure tdebuginfostabs.referencesections(list:TAsmList);
       var
         hp : tmodule;
+        dbgtable : tai_symbol;
       begin
         { Reference all DEBUGINFO sections from the main .text section }
         if (target_info.system=system_powerpc_macos) then
           exit;
         list.concat(Tai_section.create(sec_data,'',0));
+        { make sure the debuginfo doesn't get stripped out }
+        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+          begin
+            dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_DATA,0);
+            list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));
+            list.concat(dbgtable);
+          end;
         { include reference to all debuginfo sections of used units }
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
