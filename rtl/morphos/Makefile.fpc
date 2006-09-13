@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       dos heaptrc \
       sysutils classes strutils math typinfo varutils \
       charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil \
+      variants types rtlconsts sysconst dateutil objects \
       exec timer doslib utility hardware inputevent graphics layers \
       intuition aboxlib mui \
 # these can be moved to packages later

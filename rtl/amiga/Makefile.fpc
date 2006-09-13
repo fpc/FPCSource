@@ -9,9 +9,9 @@ main=rtl
 loaders=prt0
 units=$(SYSTEMUNIT) objpas macpas strings \
       dos heaptrc \
-      sysutils classes math typinfo varutils \
+      sysutils classes strutils math typinfo varutils \
       charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil 
+      variants types rtlconsts sysconst dateutil objects 
 # \
 #      exec timer doslib utility hardware inputevent graphics layers \
 #      intuition aboxlib mui \
@@ -127,6 +127,10 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
