@@ -1,10 +1,10 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2006 by the Free Pascal Development team
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 4489
+#   Based on errore.msg of SVN revision 4577
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -1079,6 +1079,17 @@ parser_e_array_range_out_of_bounds=03220_E_הטווח של המערך גבוהה
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
+parser_e_packed_element_no_var_addr=03221_E_לא ניתן למצוא את הכתובת של ביט המערך ארוז, אלמנטים או שדות של המערך
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. This means it becomes impossible to take addresses
+% of individual array elements or record fields. The only exception to this rule is in case of packed arrays elements
+% whose packed size is a multple of 8 bits.
+parser_e_packed_dynamic_open_array=03222_E_לא ניתן לארוז מערך דינאמי
+% Only regular (and possibly in the future also open) arrays can be packed
+parser_e_packed_element_no_loop=03223_E_אלמנטים ושדות של מערכי ביט ארוזים אינם יכולים לשמש כמשתנים ללולאות
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. For performance reasons, they cannot be
+% used as loop variables.
 % \end{description}
 #
 # Type Checking
@@ -1322,8 +1333,6 @@ type_w_double_c_varargs=04059_W_ממיר את הטיפוס real לטיפוס dou
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
-type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחלקה או ממשק COM, אבל התקבל "$1"
-% Some operators like the AS operator are only appliable to classes or COM interfaces.
 type_e_class_or_cominterface_type_expected=04060_E_מצפה לטיפוס מחלקה או ממשק COM, אבל התקבל "$1"
 % Some operators like the AS operator are only appliable to classes or COM interfaces.
 type_e_no_const_packed_array=04061_E_אין תמיכה במערך קבוע דחוס
@@ -1841,6 +1850,13 @@ asmr_e_illegal_shifterop_syntax=07099_E_שגיאת תחביר בעת ניסיו�
 % asm
 %   orr     r2,r2,r2,lsl #8
 % end;
+asmr_e_packed_element=07100_E_הכתובת של רכיב ארוז אינו נמצא בטווח של בית
+% Packed components (record fields and array elements) may start at an arbitrary
+% bit inside a byte. On CPU which do not support bit-addressable memory (which
+% includes all currently supported CPUs by FPC) you will therefore get an error
+% message when trying to index arrays with elements whose size is not a multiple
+% of 8 bits. The same goes for accessing record fields with such an address.
+% multiple of 8 bits.
 % \end{verbatim}
 #
 # Assembler/binary writers
