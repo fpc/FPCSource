@@ -129,6 +129,7 @@ type
   TRegIniFile = class(TRegistry)
   private
     fFileName: String;
+    fPath    : String;
   public
     constructor Create(const FN: string);
     function ReadString(const Section, Ident, Default: string): string;
