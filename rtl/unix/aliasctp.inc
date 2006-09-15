@@ -32,7 +32,19 @@ Type
     cuLong  = UnixType.cuLong;
     cshort  = UnixType.cshort;
     cushort = UnixType.cushort;
+    csint   = UnixType.csint;
+    csigned = UnixType.csigned;
     cunsigned = UnixType.cunsigned;
+    cbool   = UnixType.cbool;
+
+    pcint8  = UnixType.pcint8;
+    pcuint8 = UnixType.pcuint8;
+    pcint16 = UnixType.pcint16;
+    pcuint16= UnixType.pcuint16;
+    pcint32 = UnixType.pcint32;
+    pcuint32= UnixType.pcuint32;
+    pcint64 = UnixType.pcint64;
+    pcuint64= UnixType.pcuint64;
     pcuchar = UnixType.pcuchar;
     pcchar  = UnixType.pcchar;
     pcInt   = UnixType.pcInt;
@@ -41,7 +53,10 @@ Type
     pculong = UnixType.pculong;
     pcshort = UnixType.pcshort;
     pcushort= UnixType.pcushort;
+    pcsint  = UnixType.pcsint;
+    pcsigned = UnixType.pcsigned;
     pcunsigned = UnixType.pcunsigned;
+    pcbool  = UnixType.pcbool;
 
     { Floating point }
     cFloat    = UnixType.cFloat;

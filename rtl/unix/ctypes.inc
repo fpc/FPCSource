@@ -21,49 +21,63 @@ Type
     { the following type definitions are compiler dependant }
     { and system dependant                                  }
 
-    cInt8  = shortint;
-    cUInt8 = byte;
-    cUInt16= word;
-    cInt16 = smallint;
-    cInt32 = longint;
-    cUInt32= cardinal;
-    cInt64 = int64;
-    cUInt64= qword;
+    cint8      = shortint;
+    cuint8     = byte;
+    cuint16    = word;
+    cint16     = smallint;
+    cint32     = longint;
+    cuint32    = cardinal;
+    cint64     = int64;
+    cuint64    = qword;
 
-    cuchar = byte;
-    cchar  = shortint;
-    cInt   = longint;           { minimum range is : 32-bit    }
-    cUInt  = Cardinal;          { minimum range is : 32-bit    }
+    cbool      = longbool;
+    cchar      = shortint;
+    cuchar     = byte;
+    cint       = longint;           { minimum range is : 32-bit    }
+    cuint      = cardinal;          { minimum range is : 32-bit    }
+
+    csint      = cint;
+    csigned    = cint;
+    cunsigned  = cuint;
+
 {$ifdef cpu64}
-    cLong  = int64;
-    cuLong = qword;
+    clong      = int64;
+    culong     = qword;
 {$else}
-    cLong  = longint;
-    cuLong = Cardinal;
+    clong      = longint;
+    culong     = cardinal;
 {$endif}
-    clonglong = int64;
+
+    clonglong  = int64;
     culonglong = qword;
-    cshort   = smallint;
-    cushort  = word;
+    cshort     = smallint;
+    cushort    = word;
 
-    pcInt    = ^cInt;
-    pcUInt   = ^cUInt;
-    pcLong   = ^cLong;
-    pculong  = ^cuLong;
-    pcshort  = ^cshort;
-    pcushort = ^cushort;
-    pcchar   = ^cchar;
-    pcuchar  = ^cuchar;
-
-    cunsigned = cuint;
+    pcint8     = ^cint8;
+    pcuint8    = ^cuint8;
+    pcint16    = ^cint16;
+    pcuint16   = ^cuint16;
+    pcint32    = ^cint32;
+    pcuint32   = ^cuint32;
+    pcint64    = ^cint64;
+    pcuint64   = ^cuint64;
+    pcbool     = ^cbool;
+    pcchar     = ^cchar;
+    pcuchar    = ^cuchar;
+    pcint      = ^cint;
+    pcuint     = ^cuint;
+    pcsint     = ^csint;
+    pcsigned   = ^csigned;
     pcunsigned = ^cunsigned;
-
+    pclong     = ^clong;
+    pculong    = ^culong;
+    pcshort    = ^cshort;
+    pcushort   = ^cushort;
+    
     { Floating point }
-    cFloat    = Single;
-    cDouble   = Double;
-    clDouble  = Extended;
-    pcFloat   = ^cFloat;
-    pcDouble  = ^cDouble;
-    pclDouble = ^clDouble;
-
-
+    cfloat     = single;
+    cdouble    = double;
+    cldouble   = extended;
+    pcfloat    = ^cfloat;
+    pcdouble   = ^cdouble;
+    pcldouble  = ^cldouble;    
