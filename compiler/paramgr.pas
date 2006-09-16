@@ -321,14 +321,15 @@ implementation
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
-{$warning maybe release this optimization for all targets?}
-{$if defined(sparc) or defined(powerpc) or defined(powerpc64) or defined(x86_64)}
+            { $warning maybe release this optimization for all targets?  }
+            { released for all CPUs:
+              i386 isn't affected anyways because it uses the stack to push parameters
+              on arm it reduces executable size of the compiler by 2.1 per cent (FK) }
             { Does it fit a register? }
             if (len<=sizeof(aint)) and
                (cgpara.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else
-{$endif defined(sparc) or defined(powerpc) or defined(powerpc64) or defined(x86_64)}
               newparaloc^.loc:=paraloc^.loc;
             case newparaloc^.loc of
               LOC_REGISTER :
