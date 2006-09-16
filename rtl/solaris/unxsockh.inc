@@ -73,6 +73,10 @@ Const
 
    PF_MAX        = AF_MAX;
 
+
+{ Maximum queue length specifiable by listen.  }
+  SOMAXCONN     = 128;
+
    SOL_SOCKET = $FFFF;
 	
    SO_DEBUG        = $0001;          { turn on debugging info recording }

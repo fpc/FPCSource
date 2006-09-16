@@ -13,14 +13,14 @@
 
 {$INLINE ON}
 
-Type
+type
 {$ifdef SOCK_HAS_SINLEN}
-    sa_family_t=cuchar;
+  sa_family_t = cuchar;
 {$else}
-    sa_family_t=cushort;
+  sa_family_t = cushort;
 {$endif}
 
-Const
+const
   { Socket types }
 {$ifdef sunos}
   SOCK_STREAM     = 2;               { stream socket }
@@ -28,13 +28,13 @@ Const
   SOCK_RAW        = 4;               { raw-protocol interface }
   SOCK_RDM        = 5;               { reliably-delivered message }
   SOCK_SEQPACKET  = 6;               { sequenced packet stream }
-{$else sunos}
+{$else}
   SOCK_STREAM     = 1;               { stream (connection) socket   }
   SOCK_DGRAM      = 2;               { datagram (conn.less) socket  }
   SOCK_RAW        = 3;               { raw socket                   }
   SOCK_RDM        = 4;               { reliably-delivered message   }
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
-{$endif sunos}
+{$endif}
 
   { Protocol families }
   PF_UNSPEC    = 0;                  { Unspecified }
@@ -42,6 +42,7 @@ Const
   PF_UNIX      = PF_LOCAL;           { Old BSD name for PF_LOCAL }
   PF_FILE      = PF_LOCAL;           { Another non-standard name for PF_LOCAL }
   PF_INET      = 2;                  { IP protocol family }
+
 
   { Address families }
   AF_UNSPEC    = PF_UNSPEC;
@@ -68,6 +69,7 @@ Const
   MSG_ERRQUERE = $2000;              { Fetch message from error queue }
   MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
   MSG_MORE     = $8000;              { Sender will send more }
+  MSG_EOF      = MSG_FIN;
 
   INADDR_ANY   = CARDINAL(0);
   INADDR_NONE  = CARDINAL($FFFFFFFF);
@@ -77,36 +79,24 @@ const
   S_IN = 0;
   S_OUT = 1;
 
-Type
+type
+  pin_addr = ^in_addr;
   in_addr = packed record
-    case boolean of   		
+    case boolean of
        true: (s_addr  : cuint32);         // inaddr_t=cuint32
        false: (s_bytes : packed array[1..4] of byte);
   end;
 
   TIn_addr = in_addr;
-  pin_addr = ^in_addr;
-  TInAddr       =  in_addr;
 
-  in_addrbytes = packed array [1..4] of byte;
+  TInAddr = in_addr;
+  PInAddr = pin_addr;
 
-  TSockAddr = packed Record // if sa_len is defined, sa_family_t is smaller
-  {$ifdef SOCK_HAS_SINLEN}
-     sa_len     : cuchar;
-  {$endif}
-    case integer of
-      0: (sa_family: sa_family_t;
-          sa_data: packed array[0..13] of Byte);
-      1: (sin_family: sa_family_t;
-          sin_port: cushort;
-          sin_addr: in_addr;
-          sin_zero: packed array[0..7] of Byte);
-      end;
+  {pin_addrbytes = ^in_addrbytes;
+  in_addrbytes = packed array [1..4] of byte;}
 
-  PSockAddr = ^TSockAddr;
-  Sockaddr  = TSockAddr;                // Kylix compat
-
-  TInetSockAddr = packed Record
+  psockaddr_in = ^sockaddr_in;
+  sockaddr_in = packed record
     case boolean of
      false : (
   {$ifdef SOCK_HAS_SINLEN}
@@ -126,10 +116,37 @@ Type
      addr    : cardinal;
      pad         : array [0..7] of char; { to get to the size of sockaddr... }
       );
-    end;
-  pInetSockAddr = ^TInetSockAddr;
+  end;
 
-  Tin6_addr = packed record
+  TInetSockAddr = sockaddr_in;
+  PInetSockAddr = psockaddr_in;
+
+  psockaddr = ^sockaddr;
+  sockaddr = packed record // if sa_len is defined, sa_family_t is smaller
+  {$ifdef SOCK_HAS_SINLEN}
+     sa_len     : cuchar;
+  {$endif}
+    case integer of
+      0: (sa_family: sa_family_t;
+          sa_data: packed array[0..13] of cuint8);
+      1: (sin_family: sa_family_t;
+          sin_port: cushort;
+          sin_addr: in_addr;
+          sin_zero: packed array[0..7] of cuint8);
+  end;
+
+  TSockAddr = sockaddr;
+
+  plinger = ^linger;
+  linger = packed record
+    l_onoff  : cint;	(* Linger active		*)
+    l_linger : cint;	(* How long to linger for	*)
+  end;
+
+  TLinger = linger;
+
+  pin6_addr = ^in6_addr;
+  in6_addr = packed record
   case byte of
     0: (u6_addr8  : array[0..15] of byte);
     1: (u6_addr16 : array[0..7] of Word);
@@ -139,22 +156,26 @@ Type
     5: (s6_addr16 : array[0..7] of smallint);
     6: (s6_addr32 : array[0..3] of LongInt);
   end;
-  pIn6_Addr=^TIn6_addr;
 
-  TInetSockAddr6 = packed Record
+  Tin6_addr = in6_addr;
+
+  TIn6Addr = in6_addr;
+  PIn6Addr = pin6_addr;
+
+  psockaddr_in6 = ^sockaddr_in6;
+  sockaddr_in6 = packed Record
     {$ifdef SOCK_HAS_SINLEN}  // as per RFC 2553
-      sin6_len    : byte;
+      sin6_len    : cuint8;
     {$endif}
     sin6_family   : sa_family_t;
     sin6_port     : cuint16;
     sin6_flowinfo : cuint32;
-    sin6_addr     : Tin6_addr;
+    sin6_addr     : in6_addr;
     sin6_scope_id : cuint32;
   end;
 
-  sockaddr_in6 = TInetSockAddr6;
-
-  psockaddr_in6 = ^sockaddr_in6;
+  TInetSockAddr6 = sockaddr_in6;
+  PInetSockAddr6 = psockaddr_in6;
 
   TSockPairArray = Array[0..1] of Longint;
   TSockArray     = Array[1..2] of Longint;              //legacy
@@ -238,6 +259,6 @@ function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 CONST
 	NoAddress : in_addr  = (s_addr:0);
 	NoNet     : in_addr  = (s_addr:0);
- 	NoAddress6: Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
-  	NoNet6    : Tin6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
+ 	NoAddress6: in6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
+  	NoNet6    : in6_addr = (u6_addr16:(0,0,0,0,0,0,0,0));
 

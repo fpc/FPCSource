@@ -88,6 +88,10 @@ Const
   PF_NETGRAPH     =AF_NETGRAPH;
   PF_MAX          =AF_MAX;
 
+
+{ Maximum queue length specifiable by listen.  }
+  SOMAXCONN     = 128;
+
 { For setsockoptions(2) }
          SOL_SOCKET  =   1;
          SO_DEBUG    =   1;
