@@ -231,7 +231,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap unixutil
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal unixutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
@@ -270,7 +270,7 @@ ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -288,7 +288,7 @@ ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -300,7 +300,7 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 univint
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -309,7 +309,7 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -318,7 +318,7 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=palmunits
@@ -327,7 +327,7 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1420,6 +1420,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 TARGET_DIRS_UNIXUTIL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
@@ -1618,6 +1619,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_UNZIP=1
@@ -1720,6 +1722,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_UNZIP=1
@@ -1797,6 +1800,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_UNZIP=1
@@ -1870,6 +1874,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_UNZIP=1
@@ -1935,6 +1940,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_PALMUNITS=1
@@ -1972,6 +1978,7 @@ TARGET_DIRS_NEWT=1
 TARGET_DIRS_UUID=1
 TARGET_DIRS_MD4=1
 TARGET_DIRS_LDAP=1
+TARGET_DIRS_OPENAL=1
 endif
 ifdef TARGET_DIRS_UNZIP
 unzip_all:
@@ -3142,6 +3149,51 @@ ldap_makefiles:
 ldap:
 	$(MAKE) -C ldap all
 .PHONY: ldap_all ldap_debug ldap_smart ldap_release ldap_units ldap_examples ldap_shared ldap_install ldap_sourceinstall ldap_exampleinstall ldap_distinstall ldap_zipinstall ldap_zipsourceinstall ldap_zipexampleinstall ldap_zipdistinstall ldap_clean ldap_distclean ldap_cleanall ldap_info ldap_makefiles ldap
+endif
+ifdef TARGET_DIRS_OPENAL
+openal_all:
+	$(MAKE) -C openal all
+openal_debug:
+	$(MAKE) -C openal debug
+openal_smart:
+	$(MAKE) -C openal smart
+openal_release:
+	$(MAKE) -C openal release
+openal_units:
+	$(MAKE) -C openal units
+openal_examples:
+	$(MAKE) -C openal examples
+openal_shared:
+	$(MAKE) -C openal shared
+openal_install:
+	$(MAKE) -C openal install
+openal_sourceinstall:
+	$(MAKE) -C openal sourceinstall
+openal_exampleinstall:
+	$(MAKE) -C openal exampleinstall
+openal_distinstall:
+	$(MAKE) -C openal distinstall
+openal_zipinstall:
+	$(MAKE) -C openal zipinstall
+openal_zipsourceinstall:
+	$(MAKE) -C openal zipsourceinstall
+openal_zipexampleinstall:
+	$(MAKE) -C openal zipexampleinstall
+openal_zipdistinstall:
+	$(MAKE) -C openal zipdistinstall
+openal_clean:
+	$(MAKE) -C openal clean
+openal_distclean:
+	$(MAKE) -C openal distclean
+openal_cleanall:
+	$(MAKE) -C openal cleanall
+openal_info:
+	$(MAKE) -C openal info
+openal_makefiles:
+	$(MAKE) -C openal makefiles
+openal:
+	$(MAKE) -C openal all
+.PHONY: openal_all openal_debug openal_smart openal_release openal_units openal_examples openal_shared openal_install openal_sourceinstall openal_exampleinstall openal_distinstall openal_zipinstall openal_zipsourceinstall openal_zipexampleinstall openal_zipdistinstall openal_clean openal_distclean openal_cleanall openal_info openal_makefiles openal
 endif
 ifdef TARGET_DIRS_UNIXUTIL
 unixutil_all:
