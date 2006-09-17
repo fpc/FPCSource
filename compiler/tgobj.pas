@@ -218,14 +218,16 @@ implementation
          tl,htl,
          bestslot,bestprev,
          hprev,hp : ptemprecord;
-         bestsize : longint;
          freetype : ttemptype;
+         bestatend,
+         fitatbegin,
+         fitatend : boolean;
       begin
          AllocTemp:=0;
          bestprev:=nil;
          bestslot:=nil;
          tl:=nil;
-         bestsize:=0;
+         bestatend:=false;
 
          if size=0 then
           begin
@@ -260,23 +262,56 @@ implementation
                if (hp^.temptype=freetype) and
                   (hp^.def=def) and
                   (hp^.size>=size) and
-                  (hp^.pos=align(hp^.pos,alignment)) then
+                  ((hp^.pos=align(hp^.pos,alignment)) or
+                   (hp^.pos+hp^.size-size = align(hp^.pos+hp^.size-size,alignment))) then
                 begin
                   { Slot is the same size then leave immediatly }
                   if (hp^.size=size) then
                    begin
                      bestprev:=hprev;
                      bestslot:=hp;
-                     bestsize:=size;
                      break;
                    end
                   else
                    begin
-                     if (bestsize=0) or (hp^.size<bestsize) then
+                     { we can fit a smaller block either at the begin or at }
+                     { the end of a block. For direction=-1 we prefer the   }
+                     { end, for direction=1 we prefer the begin (i.e.,      }
+                     { always closest to the source). We also try to use    }
+                     { the block with the worst possible alignment that     }
+                     { still suffices. And we pick the block which will     }
+                     { have the best alignmenment after this new block is   }
+                     { substracted from it.                                 }
+                     fitatend:=(hp^.pos+hp^.size-size)=align(hp^.pos+hp^.size-size,alignment);
+                     fitatbegin:=hp^.pos=align(hp^.pos,alignment);
+                     if assigned(bestslot) then
+                       begin
+                         fitatend:=fitatend and
+                           ((not bestatend and
+                             (direction=-1)) or
+                            (bestatend and
+                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(hp^.pos+hp^.size-size),aktalignment.localalignmax)));
+                         fitatbegin:=fitatbegin and
+                           (not bestatend or
+                            (direction=1)) and
+                           isbetteralignedthan(abs(hp^.pos+size),abs(bestslot^.pos+size),aktalignment.localalignmax);
+                       end;
+                     if fitatend and
+                        fitatbegin then
+                       if isbetteralignedthan(abs(hp^.pos+hp^.size-size),abs(hp^.pos+size),aktalignment.localalignmax) then
+                         fitatbegin:=false
+                       else if isbetteralignedthan(abs(hp^.pos+size),abs(hp^.pos+hp^.size-size),aktalignment.localalignmax) then
+                         fitatend:=false
+                       else if (direction=1) then
+                         fitatend:=false
+                       else
+                         fitatbegin:=false;
+                     if fitatend or
+                        fitatbegin then
                       begin
                         bestprev:=hprev;
                         bestslot:=hp;
-                        bestsize:=hp^.size;
+                        bestatend:=fitatend;
                       end;
                    end;
                 end;
@@ -287,7 +322,7 @@ implementation
          { Reuse an old temp ? }
          if assigned(bestslot) then
           begin
-            if bestsize=size then
+            if bestslot^.size=size then
              begin
                tl:=bestslot;
                { Remove from the tempfreelist }
@@ -308,7 +343,8 @@ implementation
                  For direction=1 we can use tl for the new block. For direction=-1 we
                  will be reusing bestslot and resize the new block, that means we need
                  to swap the pointers }
-               if direction=-1 then
+               if (direction=-1) xor
+                  bestatend then
                  begin
                    htl:=tl;
                    tl:=bestslot;
@@ -319,12 +355,17 @@ implementation
                    else
                      tempfreelist:=bestslot;
                  end;
+
+               if not bestatend then
+                 inc(bestslot^.pos,size)
+               else
+                 inc(tl^.pos,tl^.size-size);
+
                { Create new block and resize the old block }
                tl^.size:=size;
                tl^.nextfree:=nil;
                { Resize the old block }
                dec(bestslot^.size,size);
-               inc(bestslot^.pos,size);
              end;
             tl^.temptype:=temptype;
             tl^.def:=def;

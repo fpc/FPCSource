@@ -56,6 +56,7 @@ interface
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
 
     function used_align(varalign,minalign,maxalign:shortint):shortint;
+    function isbetteralignedthan(new, org, limit: cardinal): boolean;
     function size_2_align(len : longint) : shortint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
@@ -289,6 +290,29 @@ uses
              result := 4;
   {$endif cpu64bit}
          end;
+      end;
+
+
+    function isbetteralignedthan(new, org, limit: cardinal): boolean;
+      var
+        cnt: cardinal;
+      begin
+        cnt:=2;
+        while (cnt <= limit) do
+          begin
+            if (org and (cnt-1)) > (new and (cnt-1)) then
+              begin
+                result:=true;
+                exit;
+              end
+            else if (org and (cnt-1)) < (new and (cnt-1)) then
+              begin
+                result:=false;
+                exit;
+              end;
+            cnt:=cnt*2;
+          end;
+        result:=false;
       end;
 
 
