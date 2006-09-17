@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for NCurses bindings
+#
+
+[package]
+name=md4
+version=2.0.0
+
+[target]
+units=md4
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
