@@ -271,7 +271,7 @@ type
     End;
 
 
-  function fpc_trunc_real(d : real) : int64;compilerproc;
+  function fpc_trunc_real(d : ValReal) : int64;compilerproc;
     var
 {$ifdef cpuarm}
      l: longint;
@@ -591,7 +591,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_EXP}
-    function fpc_exp_real(d:Real):Real;compilerproc;
+    function fpc_exp_real(d: ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Exponential Function                                            }
     {*****************************************************************}
@@ -666,7 +666,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
-    function fpc_round_real(d : Real) : int64;compilerproc;
+    function fpc_round_real(d : ValReal) : int64;compilerproc;
      var
       fr: Real;
       tr: Int64;
@@ -1110,7 +1110,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_FRAC}
-    function fpc_frac_real(d : Real) : Real;compilerproc;
+    function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
     begin
        result := d - Int(d);
     end;
@@ -1253,7 +1253,7 @@ function FPower10(val: Extended; Power: Longint): Extended;
                   result:=1.0/0.0;
               end;
           end;
-      end;     
+      end;
   end;
 {$endif SUPPORT_EXTENDED}
 
