@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for NCurses bindings
+#
+
+[package]
+name=ldap
+version=2.0.0
+
+[target]
+units=lber ldap ntlm
+
+[require]
+packages=md4
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

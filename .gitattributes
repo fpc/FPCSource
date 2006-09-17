@@ -2920,6 +2920,7 @@ packages/extra/imlib/fpmake.pp svneol=native#text/plain
 packages/extra/imlib/gdk_imlib/gdk_imlib.pp svneol=native#text/plain
 packages/extra/imlib/imlib/imlib.pp svneol=native#text/plain
 packages/extra/ldap/Makefile svneol=native#text/plain
+packages/extra/ldap/Makefile.fpc svneol=native#text/plain
 packages/extra/ldap/lber.pas svneol=native#text/plain
 packages/extra/ldap/lber_typesh.inc svneol=native#text/plain
 packages/extra/ldap/lberh.inc svneol=native#text/plain
