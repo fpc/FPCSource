@@ -1,0 +1,59 @@
+(* include/ldap_features.h.  Generated automatically by configure.  *)
+(* $OpenLDAP: pkg/ldap/include/ldap_features.h.in,v 1.13.2.1 2003/02/09 17:02:17 kurt Exp $ *)
+(*
+ * Copyright 1998-2003 The OpenLDAP Foundation, Redwood City, California, USA
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted only as authorized by the OpenLDAP
+ * Public License.  A copy of this license is available at
+ * http://www.OpenLDAP.org/license.html or in file LICENSE in the
+ * top-level directory of the distribution.
+ *)
+
+(*
+ * LDAP Features
+ *)
+
+(* OpenLDAP API version macros *)
+const
+  LDAP_VENDOR_VERSION               = 20228;
+  LDAP_VENDOR_VERSION_MAJOR         = 2;
+  LDAP_VENDOR_VERSION_MINOR         = 2;
+  LDAP_VENDOR_VERSION_PATCH         = 28;
+
+(*
+** WORK IN PROGRESS!
+**
+** OpenLDAP reentrancy/thread-safeness should be dynamically
+** checked using ldap_get_option().
+**
+** The -lldap implementation is not thread-safe.
+**
+** The -lldap_r implementation is:
+**      LDAP_API_FEATURE_THREAD_SAFE (basic thread safety)
+** but also be:
+**      LDAP_API_FEATURE_SESSION_THREAD_SAFE
+**      LDAP_API_FEATURE_OPERATION_THREAD_SAFE
+**
+** The preprocessor flag LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE
+** can be used to determine if -lldap_r is available at compile
+** time.  You must define LDAP_THREAD_SAFE if and only if you
+** link with -lldap_r.
+**
+** If you fail to define LDAP_THREAD_SAFE when linking with
+** -lldap_r or define LDAP_THREAD_SAFE when linking with -lldap,
+** provided header definations and declarations may be incorrect.
+**
+*)
+
+(* is -lldap_r available or not *)
+{$DEFINE LDAP_API_FEATURE_X_OPENLDAP_THREAD_SAFE}
+
+(* LDAP v2 Kerberos Bind *)
+//{$UNDEF LDAP_API_FEATURE_X_OPENLDAP_V2_KBIND}
+
+(* LDAP v2 Referrals *)
+//{$UNDEF LDAP_API_FEATURE_X_OPENLDAP_V2_REFERRALS}
+
+

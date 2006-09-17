@@ -2919,6 +2919,15 @@ packages/extra/imlib/fpmake.inc svneol=native#text/plain
 packages/extra/imlib/fpmake.pp svneol=native#text/plain
 packages/extra/imlib/gdk_imlib/gdk_imlib.pp svneol=native#text/plain
 packages/extra/imlib/imlib/imlib.pp svneol=native#text/plain
+packages/extra/ldap/Makefile svneol=native#text/plain
+packages/extra/ldap/lber.pas svneol=native#text/plain
+packages/extra/ldap/lber_typesh.inc svneol=native#text/plain
+packages/extra/ldap/lberh.inc svneol=native#text/plain
+packages/extra/ldap/ldap.pas svneol=native#text/plain
+packages/extra/ldap/ldap_featuresh.inc svneol=native#text/plain
+packages/extra/ldap/ldap_schemah.inc svneol=native#text/plain
+packages/extra/ldap/ldaph.inc svneol=native#text/plain
+packages/extra/ldap/ntlm.pas svneol=native#text/plain
 packages/extra/libgd/Makefile svneol=native#text/plain
 packages/extra/libgd/Makefile.fpc svneol=native#text/plain
 packages/extra/libgd/README -text
