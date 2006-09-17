@@ -462,7 +462,11 @@
   { argument types are unknown }
   function MAKEWPARAM(l,h : longint) : WPARAM;
 
-{$ifndef max}
+  function GET_X_LPARAM(lp : Windows.LParam) : longint;
+
+  function GET_Y_LPARAM(lp : Windows.LParam) : longint;
+
+  {$ifndef max}
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
@@ -896,6 +900,16 @@ type
   function MAKEWPARAM(l,h : longint) : WPARAM;
     begin
        MAKEWPARAM:=WPARAM(MAKELONG(l,h));
+    end;
+
+  function GET_X_LPARAM(lp : Windows.LParam) : longint;
+    begin
+      result:=smallint(LOWORD(lp));
+    end;
+
+  function GET_Y_LPARAM(lp : Windows.LParam) : longint;
+    begin
+      result:=smallint(HIWORD(lp));
     end;
 
   { was #define dname(params) def_expr }
