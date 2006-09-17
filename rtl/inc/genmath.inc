@@ -311,7 +311,7 @@ type
 
     { straight Pascal translation of the code for __trunc() in }
     { the file sysdeps/libm-ieee754/s_trunc.c of glibc (JM)    }
-    function fpc_int_real(d: double): double;compilerproc;
+    function fpc_int_real(d: ValReal): ValReal;compilerproc;
       var
         i0, j0: longint;
         i1: cardinal;
@@ -365,11 +365,11 @@ type
 
 {$else SUPPORT_DOUBLE}
 
-    function fpc_int_real(d : real) : real;compilerproc;
+    function fpc_int_real(d : ValReal) : ValReal;compilerproc;
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
-        result:=real(trunc(d));
+        result:=ValReal(trunc(d));
       end;
 {$endif SUPPORT_DOUBLE}
 
@@ -378,27 +378,13 @@ type
 
 {$ifndef FPC_SYSTEM_HAS_ABS}
 
-{$ifdef SUPPORT_DOUBLE}
-
-    function fpc_abs_real(d : Double) : Double;compilerproc;
+    function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
        if (d<0.0) then
          result := -d
       else
          result := d ;
     end;
-
-{$else}
-
-    function fpc_abs_real(d : Double) : Double;compilerproc;
-    begin
-       if (d<0.0) then
-         result := -d
-      else
-         result := d ;
-    end;
-
-{$endif}
 
 {$endif not FPC_SYSTEM_HAS_ABS}
 
@@ -515,14 +501,14 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SQR}
-    function fpc_sqr_real(d : Real) : Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+    function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
     begin
       result := d*d;
     end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_PI}
-    function fpc_pi_real : Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+    function fpc_pi_real : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
     begin
       result := 3.1415926535897932385;
     end;
@@ -530,7 +516,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SQRT}
-    function fpc_sqrt_real(d:Real):Real;compilerproc;
+    function fpc_sqrt_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Square root                                                     }
     {*****************************************************************}
@@ -742,7 +728,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
-    function fpc_ln_real(d:Real):Real;compilerproc;
+    function fpc_ln_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Natural Logarithm                                               }
     {*****************************************************************}
@@ -866,7 +852,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_SIN}
-    function fpc_Sin_real(d:Real):Real;compilerproc;
+    function fpc_Sin_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Circular Sine                                                   }
     {*****************************************************************}
@@ -952,7 +938,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_COS}
-    function fpc_Cos_real(d:Real):Real;compilerproc;
+    function fpc_Cos_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Circular cosine                                                 }
     {*****************************************************************}
@@ -1035,7 +1021,7 @@ type
 
 
 {$ifndef FPC_SYSTEM_HAS_ARCTAN}
-    function fpc_ArcTan_real(d:Real):Real;compilerproc;
+    function fpc_ArcTan_real(d:ValReal):ValReal;compilerproc;
     {*****************************************************************}
     { Inverse circular tangent (arctangent)                           }
     {*****************************************************************}

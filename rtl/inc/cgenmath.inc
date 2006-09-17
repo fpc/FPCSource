@@ -24,7 +24,7 @@
 {$ifdef SUPPORT_DOUBLE}
     function c_trunc(d: double): double; cdecl; external 'c' name 'trunc';
 
-    function fpc_int_real(d: double): double;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_trunc(d);
     end;
@@ -32,9 +32,9 @@
 
 {$else SUPPORT_DOUBLE}
 
-    function c_truncf(d: real): double; cdecl; external 'c' name 'truncf';
+    function c_truncf(d: double): double; cdecl; external 'c' name 'truncf';
 
-    function fpc_int_real(d: real): real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_int_real(d: ValReal): ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
       begin
         { this will be correct since real = single in the case of }
         { the motorola version of the compiler...                 }
@@ -49,7 +49,7 @@
 {$define SYSTEM_HAS_FREXP}
     function c_frexp(x: double; out e: longint): double; cdecl; external 'c' name 'frexp';
 
-    function frexp(x:Real; out e:Integer ):Real; {$ifdef MATHINLINE}inline;{$endif}
+    function frexp(x:ValReal; out e:Integer ):ValReal; {$ifdef MATHINLINE}inline;{$endif}
     var
       l: longint;
     begin
@@ -63,7 +63,7 @@
 {$define SYSTEM_HAS_LDEXP}
     function c_ldexp(x: double; n: longint): double; cdecl; external 'c' name 'ldexp';
 
-    function ldexp( x: Real; N: Integer):Real;{$ifdef MATHINLINE}inline;{$endif}
+    function ldexp( x: ValReal; N: Integer):ValReal;{$ifdef MATHINLINE}inline;{$endif}
     begin
       ldexp := c_ldexp(x,n);
     end;
@@ -75,7 +75,7 @@
 
     function c_sqrt(d: double): double; cdecl; external 'c' name 'sqrt';
 
-    function fpc_sqrt_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_sqrt_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_sqrt(d);
     end;
@@ -87,29 +87,33 @@
 {$define FPC_SYSTEM_HAS_EXP}
     function c_exp(d: double): double; cdecl; external 'c' name 'exp';
 
-    function fpc_Exp_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_Exp_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_exp(d);
     end;
 {$endif}
 
-(*
 
-Not supported on Mac OS X 10.1
+{ Not supported everywhere (also not on Mac OS X 10.1, but that's deprecated. }
+{ It is supported on linux, but at least for linux/i386 we should call        }
+{ llroundl() instead (for extended support).                                  }
+
+{$if defined(darwin) }
 
 {$ifndef FPC_SYSTEM_HAS_ROUND}
 {$define FPC_SYSTEM_HAS_ROUND}
 
     function c_llround(d: double): int64; cdecl; external 'c' name 'llround';
 
-    function round(d : Real) : int64; external name 'FPC_ROUND';
+//    function round(d : Real) : int64; external name 'FPC_ROUND';
 
-    function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];compilerproc;
+    function fpc_round_real(d : ValReal) : int64;[public, alias:'FPC_ROUND'];compilerproc;
     begin
-      fpc_round := c_llround(d);
+      fpc_round_real := c_llround(d);
     end;
-{$endif}
-*)
+{$endif not FPC_SYSTEM_HAS_ROUND}
+
+{$endif darwin}
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
@@ -117,7 +121,7 @@ Not supported on Mac OS X 10.1
 
     function c_log(d: double): double; cdecl; external 'c' name 'log';
 
-    function fpc_Ln_real(d:Real):Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+    function fpc_Ln_real(d:ValReal):ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_log(d);
     end;
@@ -128,7 +132,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_SIN}
     function c_sin(d: double): double; cdecl; external 'c' name 'sin';
 
-    function fpc_Sin_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_Sin_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_sin(d);
     end;
@@ -140,7 +144,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_COS}
     function c_cos(d: double): double; cdecl; external 'c' name 'cos';
 
-    function fpc_Cos_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_Cos_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_cos(d);
     end;
@@ -152,7 +156,7 @@ Not supported on Mac OS X 10.1
 {$define FPC_SYSTEM_HAS_ARCTAN}
     function c_atan(d: double): double; cdecl; external 'c' name 'atan';
 
-    function fpc_ArcTan_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
+    function fpc_ArcTan_real(d:ValReal):ValReal;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
     begin
       result := c_atan(d);
     end;
