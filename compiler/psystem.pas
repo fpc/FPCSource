@@ -233,7 +233,6 @@ implementation
             addtype('Double',s64floattype);
             { extended size is the best real type for the target }
             addtype('Extended',pbestrealtype^);
-            addtype('Real',s64floattype);
           end;
 {$ifdef x86}
         if target_info.system<>system_x86_64_win64 then

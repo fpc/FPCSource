@@ -65,6 +65,13 @@ Type
   Cardinal = LongWord;
   Integer  = SmallInt;
 
+  { moved here from psystem.pas
+    Delphi allows chose of overloaded procedure depending
+    on Real <-> Double, so use type here, see also tw7425.pp (FK) }
+{$ifndef VER2_0}
+  Real = type Double;
+{$endif VER2_0}
+
 {$ifdef CPUI386}
   {$define CPU32}
 
