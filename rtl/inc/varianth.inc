@@ -249,6 +249,9 @@ operator :=(const source : extended) dest : variant;{$ifdef SYSTEMINLINE}inline;
 {$ifdef SUPPORT_COMP}
 operator :=(const source : comp) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
+{$ifndef VER2_0}
+operator :=(const source : real) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif VER2_0}
 
 { Misc. }
 operator :=(const source : currency) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -296,6 +299,9 @@ operator :=(const source : variant) dest : extended;{$ifdef SYSTEMINLINE}inline;
 {$ifdef SUPPORT_COMP}
 operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
+{$ifndef VER2_0}
+operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif VER2_0}
 
 operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -374,6 +380,9 @@ operator :=(const source : olevariant) dest : extended;{$ifdef SYSTEMINLINE}inli
 {$ifdef SUPPORT_COMP}
 operator :=(const source : olevariant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
+{$ifndef VER2_0}
+operator :=(const source : olevariant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif VER2_0}
 
 { Misc. }
 operator :=(const source : olevariant) dest : currency;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -421,6 +430,9 @@ operator :=(const source : extended) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 {$ifdef SUPPORT_COMP}
 operator :=(const source : comp) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif SUPPORT_COMP}
+{$ifndef VER2_0}
+operator :=(const source : real) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif VER2_0}
 
 { Misc. }
 operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
