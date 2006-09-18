@@ -16,21 +16,21 @@
 
 {$ifndef WINCE}
     {$define FPC_SYSTEM_HAS_ABS}
-    function fpc_abs_real(d : extended) : extended;compilerproc;
+    function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
     end;
     {$define FPC_SYSTEM_HAS_SQR}
-    function fpc_sqr_real(d : extended) : extended;compilerproc;
+    function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
     begin
       { Function is handled internal in the compiler }
       runerror(207);
       result:=0;
     end;
     {$define FPC_SYSTEM_HAS_SQRT}
-    function fpc_sqrt_real(d : extended) : extended;compilerproc;
+    function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
     begin
       { Function is handled internal in the compiler }
       runerror(207);
