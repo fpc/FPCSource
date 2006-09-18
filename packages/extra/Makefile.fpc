@@ -7,7 +7,7 @@ dirs_linux=unzip zlib fftw \
            forms svgalib ggi libpng libgd \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
-           md4 ldap openal
+           md4 ldap openal mad
 dirs_i386_linux=unixutil
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
