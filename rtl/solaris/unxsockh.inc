@@ -112,6 +112,16 @@ Const
    SHUT_WR         = 1;             { shut down the writing side }
    SHUT_RDWR       = 2;             { shut down both sides }
 
-
-
+  { Flags for send, recv etc. }
+  MSG_OOB          = $0001;              { Process out-of-band data}
+  MSG_PEEK         = $0002;              { Peek at incoming messages }
+  MSG_DONTROUTE    = $0004;              { Don't use local routing }
+  MSG_EOR          = $0008;              { End of record }
+  MSG_CTRUNC       = $0010;              { Control data lost before delivery }
+  MSG_TRUNC        = $0020;
+  MSG_WAITALL      = $0040;              { Wait for a full request }
+  MSG_DONTWAIT     = $0080;              { Non-blocking I/O }
+  MSG_NOTIFICATION = $0100;           { Notification, not data }
+  MSG_XPG4_2       = $8000;	      { Private: XPG4.2 flag }
+  MSG_MAXIOVLEN    =    16;
 

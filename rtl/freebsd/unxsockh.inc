@@ -255,3 +255,19 @@ Const
  	IPV6_DSTOPTS            = 50; { ip6_dest; send dst option befor rthdr }
  	IPV6_RTHDR              = 51; { ip6_rthdr; send routing header }
  	IPV6_PKTOPTIONS         = 52; { buf/cmsghdr; set/get IPv6 options }
+  
+  { Flags for send, recv etc. }
+  MSG_OOB       = $0001;              { Process out-of-band data}
+  MSG_PEEK      = $0002;              { Peek at incoming messages }
+  MSG_DONTROUTE = $0004;              { Don't use local routing }
+  MSG_EOR       = $0008;              { End of record }
+  MSG_TRUNC     = $0010;
+  MSG_CTRUNC    = $0020;              { Control data lost before delivery }
+  MSG_WAITALL   = $0040;              { Wait for a full request }
+  MSG_DONTWAIT  = $0080;              { Non-blocking I/O }
+  MSG_EOF       = $0100;
+  MSG_NBIO      = $4000;
+  MSG_COMPAT    = $8000;
+  MSG_SOCALLBCK = $10000;
+  MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
+

@@ -51,26 +51,6 @@ const
   AF_FILE      = PF_FILE;
   AF_INET      = PF_INET;
 
-  { Flags for send, recv etc. }
-  MSG_OOB      = $0001;              { Process out-of-band data}
-  MSG_PEEK     = $0002;              { Peek at incoming messages }
-  MSG_DONTROUTE= $0004;              { Don't use local routing }
-  MSG_TRYHARD  = MSG_DONTROUTE;
-  MSG_CTRUNC   = $0008;              { Control data lost before delivery }
-  MSG_PROXY    = $0010;              { Supply or ask second address }
-  MSG_TRUNC    = $0020;
-  MSG_DONTWAIT = $0040;              { Non-blocking I/O }
-  MSG_EOR      = $0080;              { End of record }
-  MSG_WAITALL  = $0100;              { Wait for a full request }
-  MSG_FIN      = $0200;
-  MSG_SYN      = $0400;
-  MSG_CONFIRM  = $0800;              { Confirm path validity }
-  MSG_RST      = $1000;
-  MSG_ERRQUERE = $2000;              { Fetch message from error queue }
-  MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
-  MSG_MORE     = $8000;              { Sender will send more }
-  MSG_EOF      = MSG_FIN;
-
   INADDR_ANY   = CARDINAL(0);
   INADDR_NONE  = CARDINAL($FFFFFFFF);
 
