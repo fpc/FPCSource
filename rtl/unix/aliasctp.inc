@@ -15,54 +15,40 @@
 
  **********************************************************************}
 
-Type
-    cInt8   = UnixType.cInt8;
-    cUInt8  = UnixType.cUInt8;
-    cUInt16 = UnixType.cUInt16;
-    cInt16  = UnixType.cInt16;
-    cInt32  = UnixType.cInt32;
-    cUInt32 = UnixType.cUInt32;
-    cInt64  = UnixType.cInt64;
-    cUInt64 = UnixType.cUInt64;
-    cuchar  = UnixType.cuchar;
-    cchar   = UnixType.cchar;
-    cInt    = UnixType.cInt;
-    cUInt   = UnixType.cUInt;
-    cLong   = UnixType.cLong;
-    cuLong  = UnixType.cuLong;
-    cshort  = UnixType.cshort;
-    cushort = UnixType.cushort;
-    csint   = UnixType.csint;
-    csigned = UnixType.csigned;
-    cunsigned = UnixType.cunsigned;
-    cbool   = UnixType.cbool;
+type
+  cint8                  = UnixType.cint8;       pcint8                 = UnixType.pcint8;
+  cuint8                 = UnixType.cuint8;      pcuint8                = UnixType.pcuint8;
+  cchar                  = UnixType.cchar;       pcchar                 = UnixType.pcchar;
+  cschar                 = UnixType.cschar;      pcschar                = UnixType.pcschar;
+  cuchar                 = UnixType.cuchar;      pcuchar                = UnixType.pcuchar;
 
-    pcint8  = UnixType.pcint8;
-    pcuint8 = UnixType.pcuint8;
-    pcint16 = UnixType.pcint16;
-    pcuint16= UnixType.pcuint16;
-    pcint32 = UnixType.pcint32;
-    pcuint32= UnixType.pcuint32;
-    pcint64 = UnixType.pcint64;
-    pcuint64= UnixType.pcuint64;
-    pcuchar = UnixType.pcuchar;
-    pcchar  = UnixType.pcchar;
-    pcInt   = UnixType.pcInt;
-    pcUInt  = UnixType.pcUInt;
-    pcLong  = UnixType.pcLong;
-    pculong = UnixType.pculong;
-    pcshort = UnixType.pcshort;
-    pcushort= UnixType.pcushort;
-    pcsint  = UnixType.pcsint;
-    pcsigned = UnixType.pcsigned;
-    pcunsigned = UnixType.pcunsigned;
-    pcbool  = UnixType.pcbool;
+  cint16                 = UnixType.cint16;      pcint16                = UnixType.pcint16;
+  cuint16                = UnixType.cuint16;     pcuint16               = UnixType.pcuint16;
+  cshort                 = UnixType.cshort;      pcshort                = UnixType.pcshort;
+  csshort                = UnixType.csshort;     pcsshort               = UnixType.pcsshort;
+  cushort                = UnixType.cushort;     pcushort               = UnixType.pcushort;
 
-    { Floating point }
-    cFloat    = UnixType.cFloat;
-    cDouble   = UnixType.cDouble;
-    clDouble  = UnixType.clDouble;
-    pcFloat   = UnixType.pcFloat;
-    pcDouble  = UnixType.pcDouble;
-    pclDouble = UnixType.pclDouble;
+  cint32                 = UnixType.cint32;      pcint32                = UnixType.pcint32;
+  cuint32                = UnixType.cuint32;     pcuint32               = UnixType.pcuint32;
+  cint                   = UnixType.cint;        pcint                  = UnixType.pcint;
+  csint                  = UnixType.csint;       pcsint                 = UnixType.pcsint;
+  cuint                  = UnixType.cuint;       pcuint                 = UnixType.pcuint;
+  csigned                = UnixType.csigned;     pcsigned               = UnixType.pcsigned;
+  cunsigned              = UnixType.cunsigned;   pcunsigned             = UnixType.pcunsigned;
+
+  cint64                 = UnixType.cint64;      pcint64                = UnixType.pcint64;
+  cuint64                = UnixType.cuint64;     pcuint64               = UnixType.pcuint64;
+  clonglong              = UnixType.clonglong;   pclonglong             = UnixType.pclonglong;
+  cslonglong             = UnixType.cslonglong;  pcslonglong            = UnixType.pcslonglong;
+  culonglong             = UnixType.culonglong;  pculonglong            = UnixType.pculonglong;
+
+  cbool                  = UnixType.cbool;       pcbool                 = UnixType.pcbool;
+
+  clong                  = UnixType.clong;       pclong                 = UnixType.pclong;
+  cslong                 = UnixType.cslong;      pcslong                = UnixType.pcslong;
+  culong                 = UnixType.culong;      pculong                = UnixType.pculong;
+
+  cfloat                 = UnixType.cfloat;      pcfloat                = UnixType.pcfloat;
+  cdouble                = UnixType.cdouble;     pcdouble               = UnixType.pcdouble;
+  clongdouble            = UnixType.clongdouble; pclongdouble           = UnixType.pclongdouble;
 

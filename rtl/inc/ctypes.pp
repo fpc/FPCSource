@@ -23,78 +23,53 @@ interface
 uses unixtype;
 {$i aliasctp.inc}
 {$else}
+type
+  { the following type definitions are compiler dependant }
+  { and system dependant                                  }
+  
+  cint8                  = shortint;           pcint8                 = ^cint8;
+  cuint8                 = byte;               pcuint8                = ^cuint8;
+  cchar                  = cint8;              pcchar                 = ^cchar;
+  cschar                 = cint8;              pcschar                = ^cschar;
+  cuchar                 = cuint8;             pcuchar                = ^cuchar;
 
-Type
-    { the following type definitions are compiler dependant }
-    { and system dependant                                  }
+  cint16                 = smallint;           pcint16                = ^cint16;
+  cuint16                = word;               pcuint16               = ^cuint16;
+  cshort                 = cint16;             pcshort                = ^cshort;
+  csshort                = cint16;             pcsshort               = ^csshort;
+  cushort                = cuint16;            pcushort               = ^cushort;
 
-    cint8      = shortint;
-    cuint8     = byte;
-    cuint16    = word;
-    cint16     = smallint;
-    cint32     = longint;
-    cuint32    = cardinal;
-    cint64     = int64;
-    cuint64    = qword;
+  cint32                 = longint;            pcint32                = ^cint32;
+  cuint32                = longword;           pcuint32               = ^cuint32;
+  cint                   = cint32;             pcint                  = ^cint;              { minimum range is : 32-bit    }
+  csint                  = cint32;             pcsint                 = ^csint;             { minimum range is : 32-bit    }
+  cuint                  = cuint32;            pcuint                 = ^cuint;             { minimum range is : 32-bit    }
+  csigned                = cint;               pcsigned               = ^csigned;
+  cunsigned              = cuint;              pcunsigned             = ^cunsigned;
 
-    cbool      = longbool;
-    cchar      = shortint;
-    cuchar     = byte;
-    cint       = longint;           { minimum range is : 32-bit    }
-    cuint      = cardinal;          { minimum range is : 32-bit    }
+  cint64                 = int64;              pcint64                = ^cint64;
+  cuint64                = qword;              pcuint64               = ^cuint64;
+  clonglong              = cint64;             pclonglong             = ^clonglong;
+  cslonglong             = cint64;             pcslonglong            = ^cslonglong;
+  culonglong             = cuint64;            pculonglong            = ^culonglong;
 
-    csint      = cint;
-    csigned    = cint;
-    cunsigned  = cuint;
-
+  cbool                  = longbool;           pcbool                 = ^cbool;
+  
 {$ifdef cpu64}
-    clong      = int64;
-    culong     = qword;
+  clong                  = int64;              pclong                 = ^clong;
+  cslong                 = int64;              pcslong                = ^cslong;
+  culong                 = qword;              pculong                = ^culong;
 {$else}
-    clong      = longint;
-    culong     = cardinal;
+  clong                  = longint;            pclong                 = ^clong;
+  cslong                 = longint;            pcslong                = ^cslong;
+  culong                 = cardinal;           pculong                = ^culong;
 {$endif}
-
-    clonglong  = int64;
-    culonglong = qword;
-    cshort     = smallint;
-    cushort    = word;
-
-    pcint8     = ^cint8;
-    pcuint8    = ^cuint8;
-    pcint16    = ^cint16;
-    pcuint16   = ^cuint16;
-    pcint32    = ^cint32;
-    pcuint32   = ^cuint32;
-    pcint64    = ^cint64;
-    pcuint64   = ^cuint64;
-    pcbool     = ^cbool;
-    pcchar     = ^cchar;
-    pcuchar    = ^cuchar;
-    pcint      = ^cint;
-    pcuint     = ^cuint;
-    pcsint     = ^csint;
-    pcsigned   = ^csigned;
-    pcunsigned = ^cunsigned;
-    pclong     = ^clong;
-    pculong    = ^culong;
-    pcshort    = ^cshort;
-    pcushort   = ^cushort;
     
-    { Floating point }
-    cfloat     = single;
-    cdouble    = double;
-    cldouble   = extended;
-    pcfloat    = ^cfloat;
-    pcdouble   = ^cdouble;
-    pcldouble  = ^cldouble;    
+  cfloat                 = single;             pcfloat                = ^cfloat;
+  cdouble                = double;             pcdouble               = ^cdouble;
+  clongdouble            = extended;           pclongdouble           = ^clongdouble;
 {$endif}
-
-// Kylix compat types
-    u_long     = culong;
-    u_short    = cushort;
 
 implementation
-
 
 end.
