@@ -165,34 +165,34 @@ const
 (*
  * Context Management
  *)
-function alcCreateContext(device: PALCdevice; const attrlist: PALCint): PALCcontext; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcCreateContext(device: PALCdevice; const attrlist: PALCint): PALCcontext; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcMakeContextCurrent(context: PALCcontext): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcMakeContextCurrent(context: PALCcontext): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcProcessContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcProcessContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcSuspendContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcSuspendContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcDestroyContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcDestroyContext(context: PALCcontext); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcGetCurrentContext: PALCcontext; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetCurrentContext: PALCcontext; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcGetContextsDevice(context: PALCcontext): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetContextsDevice(context: PALCcontext): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
 (*
  * Device Management
  *)
-function alcOpenDevice(const devicename: PALCchar): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcOpenDevice(const devicename: PALCchar): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcCloseDevice(device: PALCdevice): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcCloseDevice(device: PALCdevice): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
 (*
  * Error support.
  * Obtain the most recent Context error
  *)
-function alcGetError(device: PALCdevice): ALCenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetError(device: PALCdevice): ALCenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
 (* 
@@ -200,33 +200,33 @@ function alcGetError(device: PALCdevice): ALCenum; cdecl; external {$IFDEF DYNLI
  * Query for the presence of an extension, and obtain any appropriate
  * function pointers and enum values.
  *)
-function alcIsExtensionPresent(device: PALCdevice; const extname: PALCchar): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcIsExtensionPresent(device: PALCdevice; const extname: PALCchar): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcGetProcAddress(device: PALCdevice; const funcname: PALCchar): pointer; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetProcAddress(device: PALCdevice; const funcname: PALCchar): pointer; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcGetEnumValue(device: PALCdevice; const enumname: PALCchar): ALCenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetEnumValue(device: PALCdevice; const enumname: PALCchar): ALCenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
 (*
  * Query functions
  *)
-function alcGetString(device: PALCdevice; param: ALCenum): PALCchar; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetString(device: PALCdevice; param: ALCenum): PALCchar; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcGetIntegerv(device: PALCdevice; param: ALCenum; size: ALCsizei; data: PALCint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcGetIntegerv(device: PALCdevice; param: ALCenum; size: ALCsizei; data: PALCint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 
 (*
  * Capture functions
  *)
-function alcCaptureOpenDevice(const devicename: PALCchar; frequency: ALCuint; format: ALCenum; buffersize: ALCsizei): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcCaptureOpenDevice(const devicename: PALCchar; frequency: ALCuint; format: ALCenum; buffersize: ALCsizei): PALCdevice; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-function alcCaptureCloseDevice(device: PALCdevice): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcCaptureCloseDevice(device: PALCdevice): ALCboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcCaptureStart(device: PALCdevice); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcCaptureStart(device: PALCdevice); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcCaptureStop(device: PALCdevice); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcCaptureStop(device: PALCdevice); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
-procedure alcCaptureSamples(device: PALCdevice; buffer: PALCvoid; samples: ALCsizei); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alcCaptureSamples(device: PALCdevice; buffer: PALCvoid; samples: ALCsizei); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (*
  * Pointer-to-function types, useful for dynamically getting ALC entry points.

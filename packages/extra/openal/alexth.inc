@@ -110,41 +110,41 @@ const
 type
   CALLBACK_LOKI = function(a: ALuint; b: ALuint; c: PALshort; d: ALEnum; e: ALint; f: ALint): cint; cdecl;
 
-function alcGetAudioChannel_LOKI(channel: ALuint): ALfloat; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alcSetAudioChannel_LOKI(channel: ALuint; volume: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alBombOnError_LOKI; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alBufferi_LOKI(bid: ALuint; param: ALenum; value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alBufferDataWithCallback_LOKI(bid: ALuint; cb: CALLBACK_LOKI); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alBufferWriteData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei; internalFormat: ALenum); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alGenStreamingBuffers_LOKI(n: ALsizei; samples: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alBufferAppendData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alBufferAppendWriteData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei; internalFormat: ALenum): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alcGetAudioChannel_LOKI(channel: ALuint): ALfloat; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alcSetAudioChannel_LOKI(channel: ALuint; volume: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alBombOnError_LOKI; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alBufferi_LOKI(bid: ALuint; param: ALenum; value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alBufferDataWithCallback_LOKI(bid: ALuint; cb: CALLBACK_LOKI); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alBufferWriteData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei; internalFormat: ALenum); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alGenStreamingBuffers_LOKI(n: ALsizei; samples: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alBufferAppendData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alBufferAppendWriteData_LOKI(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei; internalFormat: ALenum): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* binary compatibility *)
-function alBufferAppendData(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alBufferAppendData(buffer: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (*
  * Don't use these.  If you're reading this, you should remove these functions
  * and all other reverb functions.  Now.
  *)
-procedure alReverbScale_LOKI(sid: ALuint; param: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-procedure alReverbDelay_LOKI(sid: ALuint; param: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+procedure alReverbScale_LOKI(sid: ALuint; param: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+procedure alReverbDelay_LOKI(sid: ALuint; param: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* Capture api *)
 
-function alCaptureInit_EXT(format: ALenum; rate: ALuint; bufferSize: ALsizei): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alCaptureDestroy_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alCaptureStart_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alCaptureStop_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alCaptureInit_EXT(format: ALenum; rate: ALuint; bufferSize: ALsizei): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alCaptureDestroy_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alCaptureStart_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alCaptureStop_EXT: ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* Non-blocking device read *)
 
-function alCaptureGetData_EXT(data: PALvoid; n: ALsizei; format: ALenum; rate: ALuint): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alCaptureGetData_EXT(data: PALvoid; n: ALsizei; format: ALenum; rate: ALuint): ALsizei; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* custom loaders *)
 
-function alutLoadVorbis_LOKI(bid: ALuint; const data: PALvoid; size: ALint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
-function alutLoadMP3_LOKI(bid: ALuint; data: PALvoid; size: ALint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
+function alutLoadVorbis_LOKI(bid: ALuint; const data: PALvoid; size: ALint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
+function alutLoadMP3_LOKI(bid: ALuint; data: PALvoid; size: ALint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};
 
 (* function pointers *)
 {
