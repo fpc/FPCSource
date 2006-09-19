@@ -7,7 +7,12 @@ interface
 uses
   ctypes;
 
-{$linklib openal}
+{$IFDEF WINDOWS}
+  {$DEFINE DYNLINK}
+  openallib = 'openal32.dll';
+{$ELSE}
+  {$LINKLIB openal}
+{$ENDIF}
 
 {$include alh.inc}
 {$include alch.inc}

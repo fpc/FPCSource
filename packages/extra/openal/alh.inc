@@ -368,40 +368,40 @@ const
 (*
  * Renderer State management
  *)
-procedure alEnable(capability: ALenum); cdecl; external;
+procedure alEnable(capability: ALenum); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alDisable(capability: ALenum); cdecl; external;
+procedure alDisable(capability: ALenum); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alIsEnabled(capability: ALenum): ALboolean; cdecl; external;
+function alIsEnabled(capability: ALenum): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (*
  * State retrieval
  *)
-function alGetString(param: ALenum): PALchar; cdecl; external;
+function alGetString(param: ALenum): PALchar; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBooleanv(param: ALenum; data: PALboolean); cdecl; external;
+procedure alGetBooleanv(param: ALenum; data: PALboolean); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetIntegerv(param: ALenum; data: PALint); cdecl; external;
+procedure alGetIntegerv(param: ALenum; data: PALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetFloatv(param: ALenum; data: PALfloat); cdecl; external;
+procedure alGetFloatv(param: ALenum; data: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetDoublev(param: ALenum; data: PALdouble); cdecl; external;
+procedure alGetDoublev(param: ALenum; data: PALdouble); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetBoolean(param: ALenum): ALboolean; cdecl; external;
+function alGetBoolean(param: ALenum): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetInteger(param: ALenum): ALint; cdecl; external;
+function alGetInteger(param: ALenum): ALint; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetFloat(param: ALenum): ALfloat; cdecl; external;
+function alGetFloat(param: ALenum): ALfloat; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetDouble(param: ALenum): ALdouble; cdecl; external;
+function alGetDouble(param: ALenum): ALdouble; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (*
  * Error support.
  * Obtain the most recent error generated in the AL state machine.
  *)
-function alGetError: ALenum; cdecl; external;
+function alGetError: ALenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (* 
@@ -409,11 +409,11 @@ function alGetError: ALenum; cdecl; external;
  * Query for the presence of an extension, and obtain any appropriate
  * function pointers and enum values.
  *)
-function alIsExtensionPresent(const extname: PALChar): ALboolean; cdecl; external;
+function alIsExtensionPresent(const extname: PALChar): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetProcAddress(const fname: PALChar): pointer; cdecl; external;
+function alGetProcAddress(const fname: PALChar): pointer; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-function alGetEnumValue(const ename: PALChar): ALenum; cdecl; external;
+function alGetEnumValue(const ename: PALChar): ALenum; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (*
@@ -432,32 +432,32 @@ function alGetEnumValue(const ename: PALChar): ALenum; cdecl; external;
 (*
  * Set Listener parameters
  *)
-procedure alListenerf(param: ALenum; value: ALfloat); cdecl; external;
+procedure alListenerf(param: ALenum; value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alListener3f(param: ALenum; value1, value2, value3: ALfloat); cdecl; external;
+procedure alListener3f(param: ALenum; value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alListenerfv(param: ALenum; const values: PALfloat); cdecl; external;
+procedure alListenerfv(param: ALenum; const values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alListeneri(param: ALenum; value: ALint); cdecl; external;
+procedure alListeneri(param: ALenum; value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alListener3i(param: ALenum; value1, value2, value3: ALint); cdecl; external;
+procedure alListener3i(param: ALenum; value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alListeneriv(param: ALenum; const values: PALint); cdecl; external;
+procedure alListeneriv(param: ALenum; const values: PALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Get Listener parameters
  *)
-procedure alGetListenerf(param: ALenum; var value: ALfloat); cdecl; external;
+procedure alGetListenerf(param: ALenum; var value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetListener3f(param: ALenum; var value1, value2, value3: ALfloat); cdecl; external;
+procedure alGetListener3f(param: ALenum; var value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetListenerfv(param: ALenum; values: PALfloat); cdecl; external;
+procedure alGetListenerfv(param: ALenum; values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetListeneri(param: ALenum; var value: ALint); cdecl; external;
+procedure alGetListeneri(param: ALenum; var value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetListener3i(param: ALenum; var value1, value2, value3: ALint); cdecl; external;
+procedure alGetListener3i(param: ALenum; var value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetListeneriv(param: ALenum; values: PALint); cdecl; external;
+procedure alGetListeneriv(param: ALenum; values: PALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (**
@@ -494,43 +494,43 @@ procedure alGetListeneriv(param: ALenum; values: PALint); cdecl; external;
  *)
 
 (* Create Source objects *)
-procedure alGenSources(n: ALsizei; sources: PALuint); cdecl; external;
+procedure alGenSources(n: ALsizei; sources: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Delete Source objects *)
-procedure alDeleteSources(n: ALsizei; const sources: PALuint); cdecl; external;
+procedure alDeleteSources(n: ALsizei; const sources: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Verify a handle is a valid Source *) 
-function alIsSource(sid: ALuint): ALboolean; cdecl; external;
+function alIsSource(sid: ALuint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Set Source parameters
  *)
-procedure alSourcef(sid: ALuint; param: ALenum; value: ALfloat); cdecl; external;
+procedure alSourcef(sid: ALuint; param: ALenum; value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSource3f(sid: ALuint; param: ALenum; value1, value2, value3: ALfloat); cdecl; external;
+procedure alSource3f(sid: ALuint; param: ALenum; value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSourcefv(sid: ALuint; param: ALenum; const values: PALfloat); cdecl; external;
+procedure alSourcefv(sid: ALuint; param: ALenum; const values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSourcei(sid: ALuint; param: ALenum; value: ALint); cdecl; external;
+procedure alSourcei(sid: ALuint; param: ALenum; value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSource3i(sid: ALuint; param: ALenum; value1, value2, value3: ALint); cdecl; external;
+procedure alSource3i(sid: ALuint; param: ALenum; value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSourceiv(sid: ALuint; param: ALenum; const values: PALint); cdecl; external;
+procedure alSourceiv(sid: ALuint; param: ALenum; const values: PALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Get Source parameters
  *)
-procedure alGetSourcef(sid: ALuint; param: ALenum; var value: ALfloat); cdecl; external;
+procedure alGetSourcef(sid: ALuint; param: ALenum; var value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetSource3f(sid: ALuint; param: ALenum; var value1, value2, value3: ALfloat); cdecl; external;
+procedure alGetSource3f(sid: ALuint; param: ALenum; var value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetSourcefv(sid: ALuint; param: ALenum; values: PALfloat); cdecl; external;
+procedure alGetSourcefv(sid: ALuint; param: ALenum; values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetSourcei(sid: ALuint; param: ALenum; var value: ALint); cdecl; external;
+procedure alGetSourcei(sid: ALuint; param: ALenum; var value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetSource3i(sid: ALuint; param: ALenum; var value1, value2, value3: ALint); cdecl; external;
+procedure alGetSource3i(sid: ALuint; param: ALenum; var value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetSourceiv(sid: ALuint; param: ALenum; values: PALint); cdecl; external;
+procedure alGetSourceiv(sid: ALuint; param: ALenum; values: PALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (*
@@ -538,39 +538,39 @@ procedure alGetSourceiv(sid: ALuint; param: ALenum; values: PALint); cdecl; exte
  *)
 
 (* Play, replay, or resume (if paused) a list of Sources *)
-procedure alSourcePlayv(ns: ALsizei; const sids: PALuint); cdecl; external;
+procedure alSourcePlayv(ns: ALsizei; const sids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Stop a list of Sources *)
-procedure alSourceStopv(ns: ALsizei; const sids: PALuint); cdecl; external;
+procedure alSourceStopv(ns: ALsizei; const sids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Rewind a list of Sources *)
-procedure alSourceRewindv(ns: ALsizei; const sids: PALuint); cdecl; external;
+procedure alSourceRewindv(ns: ALsizei; const sids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Pause a list of Sources *)
-procedure alSourcePausev(ns: ALsizei; const sids: PALuint); cdecl; external;
+procedure alSourcePausev(ns: ALsizei; const sids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Source based playback calls
  *)
 
 (* Play, replay, or resume a Source *)
-procedure alSourcePlay(sid: ALuint); cdecl; external;
+procedure alSourcePlay(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Stop a Source *)
-procedure alSourceStop(sid: ALuint); cdecl; external;
+procedure alSourceStop(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Rewind a Source (set playback postiton to beginning) *)
-procedure alSourceRewind(sid: ALuint); cdecl; external;
+procedure alSourceRewind(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Pause a Source *)
-procedure alSourcePause(sid: ALuint); cdecl; external;
+procedure alSourcePause(sid: ALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Source Queuing 
  *)
-procedure alSourceQueueBuffers(sid: ALuint; numEntries: ALsizei; const bids: PALuint); cdecl; external;
+procedure alSourceQueueBuffers(sid: ALuint; numEntries: ALsizei; const bids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSourceUnqueueBuffers(sid: ALuint; numEntries: ALsizei; bids: PALuint); cdecl; external;
+procedure alSourceUnqueueBuffers(sid: ALuint; numEntries: ALsizei; bids: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (**
@@ -588,58 +588,58 @@ procedure alSourceUnqueueBuffers(sid: ALuint; numEntries: ALsizei; bids: PALuint
  *)
 
 (* Create Buffer objects *)
-procedure alGenBuffers(n: ALsizei; buffers: PALuint); cdecl; external;
+procedure alGenBuffers(n: ALsizei; buffers: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Delete Buffer objects *)
-procedure alDeleteBuffers(n: ALsizei; const buffers: PALuint); cdecl; external;
+procedure alDeleteBuffers(n: ALsizei; const buffers: PALuint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Verify a handle is a valid Buffer *)
-function alIsBuffer(bid: ALuint): ALboolean; cdecl; external;
+function alIsBuffer(bid: ALuint): ALboolean; cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (* Specify the data to be copied into a buffer *)
-procedure alBufferData(bid: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei); cdecl; external;
+procedure alBufferData(bid: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Set Buffer parameters
  *)
-procedure alBufferf(bid: ALuint; param: ALenum; value: ALfloat); cdecl; external;
+procedure alBufferf(bid: ALuint; param: ALenum; value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alBuffer3f(bid: ALuint; param: ALenum; value1, value2, value3: ALfloat); cdecl; external;
+procedure alBuffer3f(bid: ALuint; param: ALenum; value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alBufferfv(bid: ALuint; param: ALenum; const values: PALfloat); cdecl; external;
+procedure alBufferfv(bid: ALuint; param: ALenum; const values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alBufferi(bid: ALuint; param: ALenum; value: ALint); cdecl; external;
+procedure alBufferi(bid: ALuint; param: ALenum; value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alBuffer3i(bid: ALuint; param: ALenum; value1, value2, value3: ALint); cdecl; external;
+procedure alBuffer3i(bid: ALuint; param: ALenum; value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alBufferiv(bid: ALuint; param: ALenum; const values: ALint); cdecl; external;
+procedure alBufferiv(bid: ALuint; param: ALenum; const values: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Get Buffer parameters
  *)
-procedure alGetBufferf(bid: ALuint; param: ALenum; var value: ALfloat); cdecl; external;
+procedure alGetBufferf(bid: ALuint; param: ALenum; var value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBuffer3f(bid: ALuint; param: ALenum; var value1, value2, value3: ALfloat); cdecl; external;
+procedure alGetBuffer3f(bid: ALuint; param: ALenum; var value1, value2, value3: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBufferfv(bid: ALuint; param: ALenum; values: PALfloat); cdecl; external;
+procedure alGetBufferfv(bid: ALuint; param: ALenum; values: PALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBufferi(bid: ALuint; param: ALenum; var value: ALint); cdecl; external;
+procedure alGetBufferi(bid: ALuint; param: ALenum; var value: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBuffer3i(bid: ALuint; param: ALenum; var value1, value2, value3: ALint); cdecl; external;
+procedure alGetBuffer3i(bid: ALuint; param: ALenum; var value1, value2, value3: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alGetBufferiv(bid: ALuint; param: ALenum; values: ALint); cdecl; external;
+procedure alGetBufferiv(bid: ALuint; param: ALenum; values: ALint); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 
 (*
  * Global Parameters
  *)
-procedure alDopplerFactor(value: ALfloat); cdecl; external;
+procedure alDopplerFactor(value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alDopplerVelocity(value: ALfloat); cdecl; external;
+procedure alDopplerVelocity(value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alSpeedOfSound(value: ALfloat); cdecl; external;
+procedure alSpeedOfSound(value: ALfloat); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
-procedure alDistanceModel(distanceModel: ALenum); cdecl; external;
+procedure alDistanceModel(distanceModel: ALenum); cdecl; external {$IFDEF DYNLINK}openallib{$ENDIF};;
 
 (*
  * Pointer-to-function types, useful for dynamically getting AL entry points.

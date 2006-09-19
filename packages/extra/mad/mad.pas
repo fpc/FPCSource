@@ -23,8 +23,6 @@
 unit mad;
 
 {$mode objfpc}
-
-{$UNDEF DYNLINK}
 {$MINENUMSIZE 4}
 
 interface
@@ -32,11 +30,12 @@ interface
 uses
   ctypes;
 
-{$IFDEF DYNLINK}
-  madlib = 'libmad.so';
+{$IFDEF WINDOWS}
+  {$DEFINE DYNLINK}
+  madlib = 'libmad.dll';
 {$ELSE}
   {$LINKLIB mad}
-{$ENDIF}
+{$END}
 
 
 (***********************************************************************)
