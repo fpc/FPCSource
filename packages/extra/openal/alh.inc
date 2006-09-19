@@ -597,7 +597,7 @@ procedure alDeleteBuffers(n: ALsizei; const buffers: PALuint); cdecl; external;
 function alIsBuffer(bid: ALuint): ALboolean; cdecl; external;
 
 (* Specify the data to be copied into a buffer *)
-procedure alBufferData(bid: ALuint; format: ALenum; data: PALvoid; size: PALsizei; freq: ALsizei); cdecl; external;
+procedure alBufferData(bid: ALuint; format: ALenum; data: PALvoid; size: ALsizei; freq: ALsizei); cdecl; external;
 
 (*
  * Set Buffer parameters

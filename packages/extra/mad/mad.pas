@@ -100,7 +100,7 @@ const
   MAD_F_ONE                         = mad_fixed_t( $10000000);
   MAD_F_SCALEBITS                   = MAD_F_FRACBITS;
 
-//function  _mad_f_tofixed(x: double): mad_fixed_t;
+//function  mad_f_tofixed(x: double): mad_fixed_t;
 
 
 (***********************************************************************)
@@ -114,15 +114,15 @@ type
     left  : cushort;
   end;
 
-procedure _mad_bit_init(var bitptr: mad_bitptr; byte: pcuchar); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_init'{$ENDIF};
-procedure _mad_bit_finish(var bitptr: mad_bitptr);
-function  _mad_bit_length(var begin_, end_: mad_bitptr): cuint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_length' {$ENDIF};
-function  _mad_bit_bitsleft(var bitptr: mad_bitptr): cushort;
-function  _mad_bit_nextbyte(var bitptr: mad_bitptr): pcuchar; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_nextbyte' {$ENDIF};
-procedure _mad_bit_skip(var bitptr: mad_bitptr); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_skip' {$ENDIF};
-function  _mad_bit_read(var bitptr: mad_bitptr; len: cuint): culong; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_read' {$ENDIF};
-procedure _mad_bit_write(var bitptr: mad_bitptr; len: cuint; value: culong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_write' {$ENDIF};
-function  _mad_bit_crc(bitptr: mad_bitptr; len: cuint; init: cushort): cushort; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_bit_crc' {$ENDIF};
+procedure mad_bit_init(var bitptr: mad_bitptr; byte: pcuchar); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_bit_finish(var bitptr: mad_bitptr);
+function  mad_bit_length(var begin_, end_: mad_bitptr): cuint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_bit_bitsleft(var bitptr: mad_bitptr): cushort;
+function  mad_bit_nextbyte(var bitptr: mad_bitptr): pcuchar; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_bit_skip(var bitptr: mad_bitptr); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_bit_read(var bitptr: mad_bitptr; len: cuint): culong; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_bit_write(var bitptr: mad_bitptr; len: cuint; value: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_bit_crc(bitptr: mad_bitptr; len: cuint; init: cushort): cushort; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -189,17 +189,17 @@ type
   );
 
 
-procedure _mad_timer_reset(var timer: mad_timer_t);
-function  _mad_timer_compare(timer1: mad_timer_t; timer2: mad_timer_t): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_compare' {$ENDIF};
-function  _mad_timer_sign(timer: mad_timer_t): cint;
-procedure _mad_timer_negate(var timer: mad_timer_t); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_negate' {$ENDIF};
-function  _mad_timer_abs(timer: mad_timer_t): mad_timer_t; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_abs' {$ENDIF};
-procedure _mad_timer_set(var timer: mad_timer_t; seconds, numer, denom: culong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_set' {$ENDIF};
-procedure _mad_timer_add(var timer: mad_timer_t; incr: mad_timer_t); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_add' {$ENDIF};
-procedure _mad_timer_multiply(var timer: mad_timer_t; scalar: cslong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_multiply' {$ENDIF};
-function  _mad_timer_count(timer: mad_timer_t; units: mad_units): cslong; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_count' {$ENDIF};
-function  _mad_timer_fraction(timer: mad_timer_t; denom: culong): culong; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_fraction' {$ENDIF};
-procedure _mad_timer_string(timer: mad_timer_t; dest, format: pchar; units, fracunits: mad_units; subparts: culong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_timer_string' {$ENDIF};
+procedure mad_timer_reset(var timer: mad_timer_t);
+function  mad_timer_compare(timer1: mad_timer_t; timer2: mad_timer_t): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_timer_sign(timer: mad_timer_t): cint;
+procedure mad_timer_negate(var timer: mad_timer_t); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_timer_abs(timer: mad_timer_t): mad_timer_t; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_timer_set(var timer: mad_timer_t; seconds, numer, denom: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_timer_add(var timer: mad_timer_t; incr: mad_timer_t); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_timer_multiply(var timer: mad_timer_t; scalar: cslong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_timer_count(timer: mad_timer_t; units: mad_units): cslong; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_timer_fraction(timer: mad_timer_t; denom: culong): culong; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_timer_string(timer: mad_timer_t; dest, format: pchar; units, fracunits: mad_units; subparts: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -267,13 +267,13 @@ const
   MAD_OPTION_SINGLECHANNEL          = $0030;    { combine channels }
 {$ifend}
 
-procedure _mad_stream_init(var stream: mad_stream); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_init' {$ENDIF};
-procedure _mad_stream_finish(var stream: mad_stream); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_finish' {$ENDIF};
-procedure _mad_stream_options(stream: mad_stream; opts: cint);
-procedure _mad_stream_buffer(var stream: mad_stream; buffer: pcuchar; length: culong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_buffer' {$ENDIF};
-procedure _mad_stream_skip(var stream: mad_stream; length: culong); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_skip' {$ENDIF};
-function  _mad_stream_sync(var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_sync' {$ENDIF};
-function  _mad_stream_errorstr(var stream: mad_stream): pchar; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_stream_errorstr' {$ENDIF};
+procedure mad_stream_init(var stream: mad_stream); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_stream_finish(var stream: mad_stream); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_stream_options(stream: mad_stream; opts: cint);
+procedure mad_stream_buffer(var stream: mad_stream; buffer: pcuchar; length: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_stream_skip(var stream: mad_stream; length: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_stream_sync(var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_stream_errorstr(var stream: mad_stream): pchar; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -345,15 +345,15 @@ const
   MAD_PRIVATE_HEADER                = $0100;    { header private bit }
   MAD_PRIVATE_III                   = $001f;    { Layer III private bits (up to 5) }
 
-function  _mad_nchannels(header: mad_header): cint;
-function  _mad_nsbsamples(header: mad_header): cint;
-procedure _mad_header_init(var header: mad_header); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_header_init' {$ENDIF};
-procedure _mad_header_finish(var header: mad_header);
-function  _mad_header_decode(var header: mad_header; var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_header_decode' {$ENDIF};
-procedure _mad_frame_init(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_frame_init' {$ENDIF};
-procedure _mad_frame_finish(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_frame_finish' {$ENDIF};
-function  _mad_frame_decode(var frame: mad_frame; var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_frame_decode' {$ENDIF};
-procedure _mad_frame_mute(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_frame_mute' {$ENDIF};
+function  mad_nchannels(header: mad_header): cint;
+function  mad_nsbsamples(header: mad_header): cint;
+procedure mad_header_init(var header: mad_header); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_header_finish(var header: mad_header);
+function  mad_header_decode(var header: mad_header; var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_frame_init(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_frame_finish(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_frame_decode(var frame: mad_frame; var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_frame_mute(var frame: mad_frame); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -388,10 +388,10 @@ const
   MAD_PCM_CHANNEL_STEREO_LEFT       = 0;
   MAD_PCM_CHANNEL_STEREO_RIGHT      = 1;
 
-procedure _mad_synth_init(var synth: mad_synth); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_synth_init' {$ENDIF};
-procedure _mad_synth_finish(var synth: mad_synth);
-procedure _mad_synth_mute(var synth: mad_synth); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_synth_mute' {$ENDIF};
-procedure _mad_synth_frame(var synth: mad_synth; var frame: mad_frame); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_synth_frame' {$ENDIF};
+procedure mad_synth_init(var synth: mad_synth); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_synth_finish(var synth: mad_synth);
+procedure mad_synth_mute(var synth: mad_synth); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_synth_frame(var synth: mad_synth; var frame: mad_frame); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -444,11 +444,10 @@ type
     MessageFunc : TMessageFunc;
   end;
 
-procedure _mad_decoder_init(var decoder: mad_decoder; user: pointer; Input: TInputFunc; Header: THeaderFunc;
-  Filter: TFilterFunc; Output: TOutputFunc; Error: TErrorFunc; Message: TMessageFunc); cdecl; external {$IFDEF DYNLINK} madlib name 'mad_decoder_init' {$ENDIF};
-function  _mad_decoder_finish(var decoder: mad_decoder): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_decoder_finish' {$ENDIF};
-function  _mad_decoder_run(var decoder: mad_decoder; mode: mad_decoder_mode): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_decoder_run' {$ENDIF};
-function  _mad_decoder_message(var decoder: mad_decoder; msg: Pointer; var l: cuint): cint; cdecl; external {$IFDEF DYNLINK} madlib name 'mad_decoder_message' {$ENDIF};
+procedure mad_decoder_init(var decoder: mad_decoder; user: pointer; Input: TInputFunc; Header: THeaderFunc; Filter: TFilterFunc; Output: TOutputFunc; Error: TErrorFunc; Message: TMessageFunc); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_decoder_finish(var decoder: mad_decoder): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_decoder_run(var decoder: mad_decoder; mode: mad_decoder_mode): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_decoder_message(var decoder: mad_decoder; msg: Pointer; var l: cuint): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 implementation
 
@@ -472,28 +471,28 @@ begin
     MAD_VERSION_EXTRA;
 end;
 
-{function _mad_f_tofixed(x: double): mad_fixed_t;
+{function mad_f_tofixed(x: double): mad_fixed_t;
 begin
   Result := mad_fixed_t(x * double(1 shl MAD_F_FRACBITS) + 0.5);
 end;}
 
-procedure _mad_bit_finish(var bitptr: mad_bitptr);
+procedure mad_bit_finish(var bitptr: mad_bitptr);
 begin
 end;
 
-function _mad_bit_bitsleft(var bitptr: mad_bitptr): cushort;
+function mad_bit_bitsleft(var bitptr: mad_bitptr): cushort;
 begin
-  _mad_bit_bitsleft := bitptr.left;
+  mad_bit_bitsleft := bitptr.left;
 end;
 
-procedure _mad_timer_reset(var timer: mad_timer_t);
+procedure mad_timer_reset(var timer: mad_timer_t);
 begin
   timer := mad_timer_zero;
 end;
 
-function _mad_timer_sign(timer: mad_timer_t): cint;
+function mad_timer_sign(timer: mad_timer_t): cint;
 begin
-  _mad_timer_sign := _mad_timer_compare(timer, mad_timer_zero);
+  mad_timer_sign := mad_timer_compare(timer, mad_timer_zero);
 end;
 
 function MAD_RECOVERABLE(error: mad_error): Boolean;
@@ -501,41 +500,34 @@ begin
   MAD_RECOVERABLE := word(error) and $ff00 > 0;
 end;
 
-procedure _mad_stream_options(stream: mad_stream; opts: cint);
+procedure mad_stream_options(stream: mad_stream; opts: cint);
 begin
   stream.options := opts;
 end;
 
-procedure _mad_header_finish(var header: mad_header);
+procedure mad_header_finish(var header: mad_header);
 begin
   FillChar(header, sizeof(mad_header), 0);
 end;
 
-function _mad_nchannels(header: mad_header): cint;
+function mad_nchannels(header: mad_header): cint;
 begin
   if longword(header.mode) <> 0 then
-    _mad_nchannels := 2 else
-    _mad_nchannels := 1;
+    mad_nchannels := 2 else
+    mad_nchannels := 1;
 end;
 
-function _mad_nsbsamples(header: mad_header): cint;
+function mad_nsbsamples(header: mad_header): cint;
 begin
-  if header.layer = MAD_LAYER_I then _mad_nsbsamples := 12 else
+  if header.layer = MAD_LAYER_I then mad_nsbsamples := 12 else
   if (header.layer = MAD_LAYER_III) and (header.flags and MAD_FLAG_LSF_EXT > 0)
-    then _mad_nsbsamples := 18
-    else _mad_nsbsamples := 36;
+    then mad_nsbsamples := 18
+    else mad_nsbsamples := 36;
 end;
 
-procedure _mad_synth_finish(var synth: mad_synth);
+procedure mad_synth_finish(var synth: mad_synth);
 begin
   FillChar(synth, sizeof(mad_synth), 0);
 end;
-
-{$IFNDEF DYNLINK}
-procedure __assert(__cond: pchar; __file: pchar; __line: cint); cdecl;
-begin
-//  {$MESSAGE HINT '__assert : incomplete Function'}
-end;
-{$ENDIF}
 
 end.

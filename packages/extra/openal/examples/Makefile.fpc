@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Examples
+#
+
+[target]
+programs=madopenal
+
+[require]
+packages=openal mad
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
