@@ -24,8 +24,8 @@ dirs_openbsd=unzip zlib \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
              tcl imlib gnome1 md4
-dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
-dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
+dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal
+dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \
          rexx \

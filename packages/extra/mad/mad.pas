@@ -31,7 +31,8 @@ uses
   ctypes;
 
 {$IFDEF WINDOWS}
-  {$DEFINE DYNLINK}
+{$DEFINE DYNLINK}
+const
   madlib = 'libmad.dll';
 {$ELSE}
   {$LINKLIB mad}

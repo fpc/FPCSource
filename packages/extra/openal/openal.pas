@@ -8,7 +8,8 @@ uses
   ctypes;
 
 {$IFDEF WINDOWS}
-  {$DEFINE DYNLINK}
+{$DEFINE DYNLINK}
+const
   openallib = 'openal32.dll';
 {$ELSE}
   {$LINKLIB openal}
