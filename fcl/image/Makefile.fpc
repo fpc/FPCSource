@@ -16,6 +16,7 @@ units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
 units_win32=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
+units_darwin=freetypeh freetype ftfont
 rsts=pscanvas
 examples=imgconv
 
