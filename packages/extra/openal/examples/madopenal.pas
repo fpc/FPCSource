@@ -46,7 +46,7 @@ var
   Remaining : Integer;
   ReadStart : Pointer;
   ReadSize  : Integer;
-  Output    : PWord;
+  Output    : PSmallint;
 begin
   if Count mod BLOCK_SIZE <> 0 then
     Exit(0);
@@ -98,14 +98,14 @@ begin
          if pcm.samples[0][X] < -MAD_F_ONE then
            pcm.samples[0][X] := -MAD_F_ONE;
          pcm.samples[0][X] := pcm.samples[0][X] shr (MAD_F_FRACBITS + 1 - 16);
-         Output[X shl 1] := pcm.samples[0][X];
+         Output[X shl 1] := pcm.samples[0][X] div 2;
 
          if pcm.samples[1][X] >= MAD_F_ONE then
            pcm.samples[1][X] := MAD_F_ONE - 1;
          if pcm.samples[1][X] < -MAD_F_ONE then
            pcm.samples[1][X] := -MAD_F_ONE;
          pcm.samples[1][X] := pcm.samples[1][X] shr (MAD_F_FRACBITS + 1 - 16);
-         Output[(X shl 1)+1] := pcm.samples[1][X];
+         Output[(X shl 1)+1] := pcm.samples[1][X] div 2;
       end;
     end else begin
       for X := 0 to pcm.length -1 do
@@ -116,8 +116,8 @@ begin
            pcm.samples[0][X] := -MAD_F_ONE;
          pcm.samples[0][X] := pcm.samples[0][X] shr (MAD_F_FRACBITS + 1 - 16);
 
-         Output[X shl 1] := pcm.samples[0][X];
-         Output[(X shl 1)+1] := pcm.samples[0][X];
+         Output[X shl 1] := pcm.samples[0][X] div 2;
+         Output[(X shl 1)+1] := pcm.samples[0][X] div 2;
       end;
     end;
 
@@ -148,7 +148,8 @@ begin
     alSourceQueueBuffers(source, 1, @buffers[i]);
   end;
 
-  alSourcei(source, AL_LOOPING, AL_TRUE);
+  // Under windows, AL_LOOPING = AL_TRUE breaks queueing, no idea why
+  alSourcei(source, AL_LOOPING, AL_FALSE);
   alSourcePlay(source);
 end;
 
@@ -176,7 +177,7 @@ begin
       alStop;
       Exit(False);
     end;
-
+    
     alBufferData(buffer, AL_FORMAT_STEREO16, @t, bufsize, 44100);
     alSourceQueueBuffers(source, 1, @buffer);
 
