@@ -510,7 +510,7 @@ implementation
                 { when right is a call then load it first in a temp }
                 if p.nodetype=calln then
                   begin
-                    calltempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,false);
+                    calltempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
                     addstatement(newstatement,cassignmentnode.create(
                         ctemprefnode.create(calltempnode),
