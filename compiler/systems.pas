@@ -151,6 +151,7 @@ interface
              ,as_arm_pecoffwince
              ,as_x86_64_elf64
              ,as_sparc_elf32
+             ,as_ggas                  { gnu assembler called "gas" instead of "as" }
        );
 
        tar = (ar_none

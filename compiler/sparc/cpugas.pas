@@ -207,6 +207,18 @@ implementation
          (
            id     : as_gas;
            idtxt  : 'AS';
+           asmbin : 'as';
+           asmcmd : '-o $OBJ $ASM';
+           supported_target : system_any;
+           flags : [af_allowdirect,af_needar,af_smartlink_sections];
+           labelprefix : '.L';
+           comment : '# ';
+         );
+
+      as_sparc_gas_info : tasminfo =
+         (
+           id     : as_ggas;
+           idtxt  : 'GAS';
            asmbin : 'gas';
            asmcmd : '-o $OBJ $ASM';
            supported_target : system_any;
@@ -217,4 +229,5 @@ implementation
 
 begin
   RegisterAssembler(as_SPARC_as_info,TGasSPARC);
+  RegisterAssembler(as_SPARC_gas_info,TGasSPARC);
 end.

@@ -319,6 +319,17 @@ interface
             comment : '# ';
           );
 
+       as_i386_gas_info : tasminfo =
+          (
+            id     : as_ggas;
+            idtxt  : 'GAS';
+            asmbin : 'gas';
+            asmcmd : '--32 -o $OBJ $ASM';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+          );
 {$endif x86_64}
 
 initialization
@@ -326,6 +337,7 @@ initialization
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86ATTAssembler);
 {$endif x86_64}
