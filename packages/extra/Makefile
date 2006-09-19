@@ -315,7 +315,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal
+override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad
@@ -1919,8 +1919,6 @@ TARGET_DIRS_FPGTK=1
 TARGET_DIRS_WINUNITS=1
 TARGET_DIRS_FFTW=1
 TARGET_DIRS_MD4=1
-TARGET_DIRS_MAD=1
-TARGET_DIRS_OPENAL=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_UNZIP=1
