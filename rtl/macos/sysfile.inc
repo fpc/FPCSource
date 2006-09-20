@@ -19,7 +19,9 @@
 
 function do_isdevice(handle:longint):boolean;
 begin
-  do_isdevice:=false;
+  do_isdevice:= (handle=StdInputHandle) or
+                (handle=StdOutputHandle) or
+                (handle=StdErrorHandle);
 end;
 
 { close a file from the handle value }
