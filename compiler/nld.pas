@@ -766,6 +766,7 @@ implementation
              is_ansistring(right.resulttype.def) or
              is_widestring(right.resulttype.def))  then
            begin
+             make_not_regable(left,vr_addr);
              tcallnode(right).funcretnode := left;
              result := right;
              left := nil;
