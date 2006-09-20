@@ -1660,7 +1660,7 @@ end;
 procedure FLUSH_BLOCK_ONLY(var s : deflate_state; eof : boolean); {macro}
 begin
   if (s.block_start >= 0) then
-    _tr_flush_block(s, Pchar(@s.window^[cardinal(s.block_start)]),
+    _tr_flush_block(s, Pbyte(@s.window^[s.block_start]),
                     longint(longint(s.strstart) - s.block_start), eof)
   else
     _tr_flush_block(s, nil,

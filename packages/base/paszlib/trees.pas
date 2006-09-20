@@ -318,14 +318,14 @@ function _tr_tally (var s : deflate_state;
                     lc : cardinal) : boolean;
 
 function _tr_flush_block (var s : deflate_state;
-                          buf : Pchar;
+                          buf : Pbyte;
                           stored_len : longint;
 			  eof : boolean) : longint;
 
 procedure _tr_align(var s : deflate_state);
 
 procedure _tr_stored_block(var s : deflate_state;
-                           buf : Pchar;
+                           buf : Pbyte;
                            stored_len : longint;
                            eof : boolean);
 
@@ -709,46 +709,6 @@ const
        extra_base : 0;
        elems: BL_CODES;
        max_length: MAX_BL_BITS);
-
-(* ===========================================================================
-  Local (static) routines in this file. }
-
-procedure tr_static_init;
-procedure init_block(var deflate_state);
-procedure pqdownheap(var s : deflate_state;
-                     var tree : ct_data;
-                     k : integer);
-procedure gen_bitlen(var s : deflate_state;
-                     var desc : tree_desc);
-procedure gen_codes(var tree : ct_data;
-                    max_code : integer;
-                    bl_count : pushf);
-procedure build_tree(var s : deflate_state;
-                     var desc : tree_desc);
-procedure scan_tree(var s : deflate_state;
-                    var tree : ct_data;
-                    max_code : integer);
-procedure send_tree(var s : deflate_state;
-                    var tree : ct_data;
-                    max_code : integer);
-function build_bl_tree(var deflate_state) : integer;
-procedure send_all_trees(var deflate_state;
-                         lcodes : integer;
-                         dcodes : integer;
-                         blcodes : integer);
-procedure compress_block(var s : deflate_state;
-                         var ltree : ct_data;
-                         var dtree : ct_data);
-procedure set_data_type(var s : deflate_state);
-function bi_reverse(value : cardinal;
-                    length : integer) : cardinal;
-procedure bi_windup(var deflate_state);
-procedure bi_flush(var deflate_state);
-procedure copy_block(var deflate_state;
-                     buf : Pchar;
-                     len : cardinal;
-                     header : integer);
-*)
 
 {$ifdef GEN_TREES_H}
 {local}
@@ -1779,8 +1739,8 @@ end;
 
 {local}
 procedure copy_block(var s : deflate_state;
-                     buf : Pchar;      { the input data }
-                     len : cardinal;    { its length }
+                     buf : Pbyte;       { the input data }
+                     len : word;        { its length }
                      header : boolean); { true if block header must be written }
 begin
   bi_windup(s);        { align on byte boundary }
@@ -1789,14 +1749,14 @@ begin
   if (header) then
   begin
     {put_short(s, (word)len);}
-    s.pending_buf^[s.pending] := byte(word(len) and $ff);
+    s.pending_buf^[s.pending] := byte(len and $ff);
     inc(s.pending);
-    s.pending_buf^[s.pending] := byte(word(len) shr 8);;
+    s.pending_buf^[s.pending] := byte(len shr 8);;
     inc(s.pending);
     {put_short(s, (word)~len);}
-    s.pending_buf^[s.pending] := byte(word(not len) and $ff);
+    s.pending_buf^[s.pending] := byte((not len) and $ff);
     inc(s.pending);
-    s.pending_buf^[s.pending] := byte(word(not len) shr 8);;
+    s.pending_buf^[s.pending] := byte((not len) shr 8);;
     inc(s.pending);
 
 {$ifdef ZLIB_DEBUG}
@@ -1804,16 +1764,10 @@ begin
 {$endif}
   end;
 {$ifdef ZLIB_DEBUG}
-  inc(s.bits_sent, longint(len shl 3));
+  inc(s.bits_sent, len shl 3);
 {$endif}
-  while (len <> 0) do
-  begin
-    dec(len);
-    {put_byte(s, *buf++);}
-    s.pending_buf^[s.pending] := byte(buf^);
-    inc(buf);
-    inc(s.pending);
-  end;
+  move(buf^,s.pending_buf^[s.pending],len);
+  inc(s.pending,len);
 end;
 
 
@@ -1821,7 +1775,7 @@ end;
   Send a stored block }
 
 procedure _tr_stored_block(var s : deflate_state;
-                           buf : Pchar;     { input block }
+                           buf : Pbyte;     { input block }
                            stored_len : longint; { length of input block }
                            eof : boolean);   { true if this is the last block for a file }
 
@@ -2026,7 +1980,7 @@ end;
   returns the total compressed length for the file so far. }
 
 function _tr_flush_block (var s : deflate_state;
-         buf : Pchar;         { input block, or NULL if too old }
+         buf : Pbyte;         { input block, or NULL if too old }
          stored_len : longint;     { length of input block }
          eof : boolean) : longint; { true if this is the last block for a file }
 var
