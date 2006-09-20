@@ -390,7 +390,7 @@ procedure ber_bvfree(bv: PBerval); cdecl; external;
 
 procedure ber_bvecfree(bv: PPBerval); cdecl; external;
 
-function ber_bvecadd(var bvec: PPPBerval; bv: PBerval): cint; cdecl; external;
+function ber_bvecadd(var bvec: PPBerval; bv: PBerval): cint; cdecl; external;
 
 function ber_dupbv(dst: PBerval; src: PBerval): PBerval; cdecl; external;
 
