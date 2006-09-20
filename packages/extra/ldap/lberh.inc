@@ -106,7 +106,7 @@ const
 type
   BER_ERRNO_FN                      = function: pcint; cdecl;
 
-  BER_LOG_PRINT_FN                  = procedure(const buf: PChar); cdecl;
+  BER_LOG_PRINT_FN                  = procedure(const buf: pcchar); cdecl;
 
   BER_MEMALLOC_FN                   = function(size: ber_len_t): Pointer; cdecl;
   BER_MEMCALLOC_FN                  = function(n: ber_len_t; size: ber_len_t): Pointer; cdecl;
@@ -159,7 +159,7 @@ const
   LBER_OPT_OFF                      = Pointer(0);
 
 var
-  ber_pvt_opt_on: char; cvar; external;
+  ber_pvt_opt_on: cchar; cvar; external;
 
 function LBER_OPT_ON: Pointer;
 
@@ -207,7 +207,7 @@ type
   PBerval                           = ^Berval;
   Berval                            = record
     bv_len  : ber_len_t;
-    bv_val  : PChar;
+    bv_val  : pcchar;
   end;
   
   PBerVarray                        = ^BerVarray;
@@ -219,9 +219,9 @@ type
 (*
  * in bprint.c:
  *)
-procedure ber_error_print(const data: PChar); cdecl; external;
+procedure ber_error_print(const data: pcchar); cdecl; external;
 
-procedure ber_bprint(const data: PChar; len: ber_len_t); cdecl; external;
+procedure ber_bprint(const data: pcchar; len: ber_len_t); cdecl; external;
 
 procedure ber_dump(ber: PBerElement; inout : cint); cdecl; external;
 
@@ -245,25 +245,25 @@ function ber_get_int(ber: PBerElement; var num: ber_int_t): ber_tag_t; cdecl; ex
 
 function ber_get_enum(ber: PBerElement; var num: ber_int_t): ber_tag_t; cdecl; external;
 
-function ber_get_stringb(ber: PBerElement; buf: PChar; var len: ber_len_t): ber_tag_t; cdecl; external;
+function ber_get_stringb(ber: PBerElement; buf: pcchar; var len: ber_len_t): ber_tag_t; cdecl; external;
 
 function ber_get_stringbv(ber: PBerElement; bv: PBerval; alloc: cbool): ber_tag_t; cdecl; external;
 
-function ber_get_stringa(ber: PBerElement; var buf: PChar): ber_tag_t; cdecl; external;
+function ber_get_stringa(ber: PBerElement; var buf: pcchar): ber_tag_t; cdecl; external;
 
 function ber_get_stringal(ber: PBerElement; var bv: PBerval): ber_tag_t; cdecl; external;
 
-function ber_get_bitstringa(ber: PBerElement; var buf: PChar; var len: ber_len_t): ber_tag_t; cdecl; external;
+function ber_get_bitstringa(ber: PBerElement; var buf: pcchar; var len: ber_len_t): ber_tag_t; cdecl; external;
 
 function ber_get_null(ber: PBerElement): ber_tag_t; cdecl; external;
 
 function ber_get_Boolean(ber: PBerElement; var boolval: ber_int_t): ber_tag_t; cdecl; external;
 
-function ber_first_element(ber: PBerElement; var len: ber_len_t; var last: PChar): ber_tag_t; cdecl; external;
+function ber_first_element(ber: PBerElement; var len: ber_len_t; var last: pcchar): ber_tag_t; cdecl; external;
 
-function ber_next_element(ber: PBerElement; var len: ber_len_t; const last: PChar): ber_tag_t; cdecl; external;
+function ber_next_element(ber: PBerElement; var len: ber_len_t; const last: pcchar): ber_tag_t; cdecl; external;
 
-function ber_scanf(ber: PBerElement;const fmt: PChar): ber_tag_t; cdecl; varargs; external;
+function ber_scanf(ber: PBerElement;const fmt: pcchar): ber_tag_t; cdecl; varargs; external;
 
 
 (*
@@ -277,13 +277,13 @@ function ber_put_enum(ber: PBerElement; num: ber_int_t; tag: ber_tag_t): cint; c
 
 function ber_put_int(ber: PBerElement; num: ber_int_t; tag: ber_tag_t): cint; cdecl; external;
 
-function ber_put_ostring(ber: PBerElement; const str: PChar; len: ber_len_t; tag: ber_tag_t): cint; cdecl; external;
+function ber_put_ostring(ber: PBerElement; const str: pcchar; len: ber_len_t; tag: ber_tag_t): cint; cdecl; external;
 
 function ber_put_berval(ber: PBerElement; bv: PBerval; tag: ber_tag_t): cint; cdecl; external;
 
-function ber_put_string(ber: PBerElement; const str: PChar; tag: ber_tag_t): cint; cdecl; external;
+function ber_put_string(ber: PBerElement; const str: pcchar; tag: ber_tag_t): cint; cdecl; external;
 
-function ber_put_bitstring(ber: PBerElement; const str: PChar; bitlen: ber_len_t; tag: ber_tag_t): cint; cdecl; external;
+function ber_put_bitstring(ber: PBerElement; const str: pcchar; bitlen: ber_len_t; tag: ber_tag_t): cint; cdecl; external;
 
 function ber_put_null(ber: PBerElement; tag: ber_tag_t): cint; cdecl; external;
 
@@ -297,16 +297,16 @@ function ber_put_seq(ber: PBerElement): cint; cdecl; external;
 
 function ber_put_set(ber: PBerElement): cint; cdecl; external;
 
-function ber_printf(ber: PBerElement; const fmt: PChar): cint; cdecl; varargs; external;
+function ber_printf(ber: PBerElement; const fmt: pcchar): cint; cdecl; varargs; external;
 
 
 (*
  * in io.c:
  *)
 
-function ber_read(ber: PBerElement; buf: PChar; len: ber_len_t): ber_slen_t; cdecl; external;
+function ber_read(ber: PBerElement; buf: pcchar; len: ber_len_t): ber_slen_t; cdecl; external;
 
-function ber_write(ber: PBerElement; const buf: PChar; len: ber_len_t; nosos: cint): ber_slen_t; cdecl; external;
+function ber_write(ber: PBerElement; const buf: pcchar; len: ber_len_t; nosos: cint): ber_slen_t; cdecl; external;
 
 procedure ber_free(ber: PBerElement; freebuf: cbool); cdecl; external;
 
@@ -396,15 +396,15 @@ function ber_dupbv(dst: PBerval; src: PBerval): PBerval; cdecl; external;
 
 function ber_bvdup(src: PBerval): PBerval; cdecl; external;
 
-function ber_str2bv(const str: PChar; len: ber_len_t; duplicate: cbool; bv: PBerval): PBerval; cdecl; external;
+function ber_str2bv(const str: pcchar; len: ber_len_t; duplicate: cbool; bv: PBerval): PBerval; cdecl; external;
 
-function ber_mem2bv(const str: PChar; len: ber_len_t; duplicate: cbool; bv: PBerval): PBerval; cdecl; external;
+function ber_mem2bv(const str: pcchar; len: ber_len_t; duplicate: cbool; bv: PBerval): PBerval; cdecl; external;
 
-function ber_bvstr(const str: PChar): PBerval;
+function ber_bvstr(const str: pcchar): PBerval;
 
-function ber_bvstrdup(const str: PChar): PBerval;
+function ber_bvstrdup(const str: pcchar): PBerval;
 
-function ber_strdup(const str: PChar): PChar; cdecl; external;
+function ber_strdup(const str: pcchar): pcchar; cdecl; external;
 
 procedure ber_bvarray_free(p: BerVarray); cdecl; external;
 

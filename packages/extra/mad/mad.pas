@@ -199,7 +199,7 @@ procedure mad_timer_add(var timer: mad_timer_t; incr: mad_timer_t); cdecl; exter
 procedure mad_timer_multiply(var timer: mad_timer_t; scalar: cslong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 function  mad_timer_count(timer: mad_timer_t; units: mad_units): cslong; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 function  mad_timer_fraction(timer: mad_timer_t; denom: culong): culong; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
-procedure mad_timer_string(timer: mad_timer_t; dest, format: pchar; units, fracunits: mad_units; subparts: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_timer_string(timer: mad_timer_t; dest, format: pcchar; units, fracunits: mad_units; subparts: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)
@@ -273,7 +273,7 @@ procedure mad_stream_options(stream: mad_stream; opts: cint);
 procedure mad_stream_buffer(var stream: mad_stream; buffer: pcuchar; length: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 procedure mad_stream_skip(var stream: mad_stream; length: culong); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 function  mad_stream_sync(var stream: mad_stream): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
-function  mad_stream_errorstr(var stream: mad_stream): pchar; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function  mad_stream_errorstr(var stream: mad_stream): pcchar; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 
 
 (***********************************************************************)

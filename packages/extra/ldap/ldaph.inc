@@ -162,8 +162,8 @@ type
     ldapai_info_version     : cint;      (* version of LDAPAPIInfo (1) *)
     ldapai_api_version      : cint;      (* revision of API supported *)
     ldapai_protocol_version : cint;      (* highest LDAP version supported *)
-    ldapai_extensions       : PPChar;   (* names of API extensions *)
-    ldapai_vendor_name      : PChar;    (* name of supplier *)
+    ldapai_extensions       : ppcchar;   (* names of API extensions *)
+    ldapai_vendor_name      : pcchar;    (* name of supplier *)
     ldapai_vendor_version   : cint;      (* supplier-specific version * 100 *)
   end;
 
@@ -174,7 +174,7 @@ type
   pldap_apifeature_info             = ^ldap_apifeature_info;
   ldap_apifeature_info              = record
     ldapaif_info_version    : cint;      (* version of this struct (1) *)
-    ldapaif_name            : PChar;    (* matches LDAP_API_FEATURE_... less the prefix *)
+    ldapaif_name            : pcchar;    (* matches LDAP_API_FEATURE_... less the prefix *)
     ldapaif_version         : cint;      (* matches the value LDAP_API_FEATURE_... *)
   end;
 
@@ -185,9 +185,9 @@ type
   PPLDAPControl                     = ^PLDAPControl;
   PLDAPControl                      = ^LDAPControl;
   LDAPControl                       = record
-    ldctl_oid               : PChar;
+    ldctl_oid               : pcchar;
     ldctl_value             : berval;
-    ldctl_iscritical        : char;
+    ldctl_iscritical        : cchar;
   end;
 
 const
@@ -354,7 +354,7 @@ const
 
 
 (* sasl methods *)
-  LDAP_SASL_SIMPLE                  = PChar(0);
+  LDAP_SASL_SIMPLE                  = pcchar(0);
   LDAP_SASL_NULL                    = '';
 
 
@@ -553,16 +553,16 @@ type
  * (see ldap/servers/slapd/slap.h)
  *)
 
-    mod_type    : PChar;
+    mod_type    : pcchar;
 
     case cint of
       0: (mod_vals    : record
            case cint of
-             0: (modv_strvals  : PPChar);
+             0: (modv_strvals  : ppcchar);
              1: (modv_bvals    : PPBerval);
          end);
       1: (case cint of
-           0: (mod_values      : PPChar);
+           0: (mod_values      : ppcchar);
            1: (mod_bvalues     : PPBerval));
   end;
 
@@ -595,14 +595,14 @@ type
   pldap_url_desc                    = ^ldap_url_desc;
   ldap_url_desc                     = record
     lud_next        : pldap_url_desc;
-    lud_scheme      : PChar;
-    lud_host        : PChar;
+    lud_scheme      : pcchar;
+    lud_host        : pcchar;
     lud_port        : cint;
-    lud_dn          : PChar;
-    lud_attrs       : PPChar;
+    lud_dn          : pcchar;
+    lud_attrs       : ppcchar;
     lud_scope       : cint;
-    lud_filter      : PChar;
-    lud_exts        : PChar;
+    lud_filter      : pcchar;
+    lud_exts        : pcchar;
     lud_crit_exts   : cint;
   end;
 
@@ -647,7 +647,7 @@ function ldap_set_option(
 
 (* V3 REBIND Function Callback Prototype *)
 type
-  LDAP_REBIND_PROC = function(ld: PLDAP; const url: PChar; request: ber_tag_t; msgid: ber_int_t; params: Pointer): cint; cdecl;
+  LDAP_REBIND_PROC = function(ld: PLDAP; const url: pcchar; request: ber_tag_t; msgid: ber_int_t; params: Pointer): cint; cdecl;
 
 function ldap_set_rebind_proc(
     ld              : PLDAP;
@@ -657,7 +657,7 @@ function ldap_set_rebind_proc(
 
 (* V3 referral selection Function Callback Prototype *)
 type
-  LDAP_NEXTREF_PROC = function(ld: PLDAP; refsp: PPPChar; cntp: pcint; params: Pointer): cint; cdecl;
+  LDAP_NEXTREF_PROC = function(ld: PLDAP; refsp: pppcchar; cntp: pcint; params: Pointer): cint; cdecl;
 
 
 function ldap_set_nextref_proc(
@@ -672,14 +672,14 @@ function ldap_set_nextref_proc(
  *)
 
 function ldap_create_control(
-    const requestOID: PChar;
+    const requestOID: pcchar;
     ber             : PBerElement;
     iscritical      : cint;
     var ctrlp       : PLDAPControl
   ): cint; cdecl; external;
 
 function ldap_find_control(
-    const oid       : PChar;
+    const oid       : pcchar;
     ctrls           : PPLDAPControl
   ): PLDAPControl; cdecl; external;
 
@@ -697,18 +697,18 @@ procedure ldap_controls_free(
  *)
 
 function ldap_domain2dn(
-    const domain    : PChar;
-    var dn          : PChar
+    const domain    : pcchar;
+    var dn          : pcchar
   ): cint; cdecl; external;
 
 function ldap_dn2domain(
-    const dn        : PChar;
-    var domain      : PChar
+    const dn        : pcchar;
+    var domain      : pcchar
   ): cint; cdecl; external;
 
 function ldap_domain2hostlist(
-    const domain    : PChar;
-    var hostlist    : PChar
+    const domain    : pcchar;
+    var hostlist    : pcchar
   ): cint; cdecl; external;
 
 
@@ -718,7 +718,7 @@ function ldap_domain2hostlist(
 
 function ldap_extended_operation(
     ld              : PLDAP;
-    const reqoid    : PChar;
+    const reqoid    : pcchar;
     reqdata         : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -727,18 +727,18 @@ function ldap_extended_operation(
 
 function ldap_extended_operation_s(
     ld              : PLDAP;
-    const reqoid    : PChar;
+    const reqoid    : pcchar;
     reqdata         : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
-    var retoidp     : PChar;
+    var retoidp     : pcchar;
     var retdatap    : PBerval
   ): cint; cdecl; external;
 
 function ldap_parse_extended_result(
     ld              : PLDAP;
     res             : PLDAPMessage;
-    var retoidp     : PChar;
+    var retoidp     : pcchar;
     var retdatap    : PBerval;
     freeit          : cbool
   ): cint; cdecl; external;
@@ -746,7 +746,7 @@ function ldap_parse_extended_result(
 function ldap_parse_intermediate(
     ld              : PLDAP;
     res             : PLDAPMessage;
-    var retoidp     : PChar;
+    var retoidp     : pcchar;
     var retdatap    : PBerval;
     serverctrls     : PPPLDAPControl;
     freeit          : cbool
@@ -761,7 +761,7 @@ function ldap_parse_intermediate(
 LDAP_F( int )
 ldap_grouping_create LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -770,7 +770,7 @@ ldap_grouping_create LDAP_P((
 LDAP_F( int )
 ldap_grouping_create_s LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -789,7 +789,7 @@ ldap_parse_grouping_create_result LDAP_P((
 LDAP_F( int )
 ldap_grouping_end LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -798,7 +798,7 @@ ldap_grouping_end LDAP_P((
 LDAP_F( int )
 ldap_grouping_end_s LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -815,7 +815,7 @@ ldap_parse_grouping_end_result LDAP_P((
 LDAP_F( int )
 ldap_grouping_action_operation LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -824,7 +824,7 @@ ldap_grouping_action_operation LDAP_P((
 LDAP_F( int )
 ldap_grouping_action_operation_s LDAP_P((
     LDAP            *ld,
-    LDAP_CONST char *grpoid,
+    LDAP_CONST cchar *grpoid,
     struct berval   *grpdata,
     LDAPControl     **serverctrls,
     LDAPControl     **clientctrls,
@@ -879,7 +879,7 @@ function ldap_abandon_ext(
 
 function ldap_add_ext(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     attrs           : PPLDAPMod;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -888,7 +888,7 @@ function ldap_add_ext(
 
 function ldap_add_ext_s(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     attrs           : PPLDAPMod;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl
@@ -901,8 +901,8 @@ function ldap_add_ext_s(
 
 function ldap_sasl_bind(
     ld              : PLDAP;
-    const dn        : PChar;
-    const mechanism : PChar;
+    const dn        : pcchar;
+    const mechanism : pcchar;
     cred            : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -911,8 +911,8 @@ function ldap_sasl_bind(
 
 function ldap_sasl_bind_s(
     ld              : PLDAP;
-    const dn        : PChar;
-    const mechanism : PChar;
+    const dn        : pcchar;
+    const mechanism : pcchar;
     cred            : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -939,8 +939,8 @@ type
 
 function ldap_sasl_interactive_bind_s(
     ld              : PLDAP;
-    const dn        : PChar;
-    const mechanism : PChar;
+    const dn        : pcchar;
+    const mechanism : pcchar;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
     flags           : cuint;
@@ -962,8 +962,8 @@ function ldap_parse_sasl_bind_result(
 
 function ldap_compare_ext(
     ld              : PLDAP;
-    const dn        : PChar;
-    const attr      : PChar;
+    const dn        : pcchar;
+    const attr      : pcchar;
     bvalue          : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -972,8 +972,8 @@ function ldap_compare_ext(
 
 function ldap_compare_ext_s(
     ld              : PLDAP;
-    const dn        : PChar;
-    const attr      : PChar;
+    const dn        : pcchar;
+    const attr      : pcchar;
     bvalue          : PBerval;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl
@@ -986,7 +986,7 @@ function ldap_compare_ext_s(
 
 function ldap_delete_ext(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
     var msgidp      : cint
@@ -994,7 +994,7 @@ function ldap_delete_ext(
 
 function ldap_delete_ext_s(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl
   ): cint; cdecl; external;
@@ -1008,16 +1008,16 @@ function ldap_parse_result(
     ld              : PLDAP;
     res             : PLDAPMessage;
     errcodep        : pcint;
-    matcheddnp      : PPChar;
-    errmsgp         : PPChar;
-    referralsp      : PPPChar;
+    matcheddnp      : ppcchar;
+    errmsgp         : ppcchar;
+    referralsp      : pppcchar;
     serverctrls     : PPPLDAPControl;
     freeit          : cbool
   ): cint; cdecl; external;
 
 function ldap_err2string(
     err             : cint
-  ): PChar; cdecl; external;
+  ): pcchar; cdecl; external;
 
 
 (*
@@ -1026,7 +1026,7 @@ function ldap_err2string(
 
 function ldap_modify_ext(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     mods            : PPLDAPMod;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -1035,7 +1035,7 @@ function ldap_modify_ext(
 
 function ldap_modify_ext_s(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     mods            : PPLDAPMod;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl
@@ -1048,9 +1048,9 @@ function ldap_modify_ext_s(
 
 function ldap_rename(
     ld              : PLDAP;
-    const dn        : PChar;
-    const newrdn    : PChar;
-    const newSuperior: PChar;
+    const dn        : pcchar;
+    const newrdn    : pcchar;
+    const newSuperior: pcchar;
     deleteoldrdn    : cbool;
     sctrls          : PPLDAPControl;
     cctrls          : PPPLDAPControl;
@@ -1059,9 +1059,9 @@ function ldap_rename(
 
 function ldap_rename_s(
     ld              : PLDAP;
-    const dn        : PChar;
-    const newrdn    : PChar;
-    const newSuperior: PChar;
+    const dn        : pcchar;
+    const newrdn    : pcchar;
+    const newSuperior: pcchar;
     deleteoldrdn    : cbool;
     sctrls          : PPLDAPControl;
     cctrls          : PPLDAPControl
@@ -1078,7 +1078,7 @@ function ldap_create(
 
 function ldap_initialize(
     var ld          : PLDAP;
-    const url       : PChar
+    const url       : pcchar
   ): cint; cdecl; external;
 
 
@@ -1150,7 +1150,7 @@ function ldap_count_references(
 function ldap_parse_reference(
     ld              : PLDAP;
     ref             : PLDAPMessage;
-    var referralsp  : PPChar;
+    var referralsp  : ppcchar;
     serverctrls     : PPPLDAPControl;
     freeit          : cbool
   ): cint; cdecl; external;
@@ -1204,7 +1204,7 @@ procedure ldap_add_result_entry(
 function ldap_get_dn(
     ld              : PLDAP;
     entry           : PLDAPMessage
-  ): PChar; cdecl; external;
+  ): pcchar; cdecl; external;
 
 const
   LDAP_AVA_NULL                     = $0000;
@@ -1260,7 +1260,7 @@ function ldap_bv2dn(
   ): cint; cdecl; external;
 
 function ldap_str2dn(
-    const str       : PChar;
+    const str       : pcchar;
     var dn          : LDAPDN;
     flags           : cuint
   ): cint; cdecl; external;
@@ -1273,21 +1273,21 @@ function ldap_dn2bv(
 
 function ldap_dn2str(
     dn              : LDAPDN;
-    var str         : PChar;
+    var str         : pcchar;
     flags           : cuint
   ): cint; cdecl; external;
 
 function ldap_bv2rdn(
     bv              : PBerval;
     var rdn         : LDAPRDN;
-    var next        : PChar;
+    var next        : pcchar;
     flags           : cuint
   ): cint; cdecl; external;
 
 function ldap_str2rdn(
-    const str       : PChar;
+    const str       : pcchar;
     var rdn         : LDAPRDN;
-    var next        : PChar;
+    var next        : pcchar;
     flags           : cuint
   ): cint; cdecl; external;
 
@@ -1299,14 +1299,14 @@ function ldap_rdn2bv(
 
 function ldap_rdn2str(
     rdn             : LDAPRDN;
-    var str         : PChar;
+    var str         : pcchar;
     flags           : cuint
   ): cint; cdecl; external;
 
 function ldap_dn_normalize(
-    const _in       : PChar;
+    const _in       : pcchar;
     iflags          : cuint;
-    var _out        : PChar;
+    var _out        : pcchar;
     oflags          : cuint
   ): cint; cdecl; external;
 
@@ -1345,13 +1345,13 @@ function ldap_first_attribute(
     ld              : PLDAP;
     entry           : PLDAPMessage;
     var ber         : PBerElement
-  ): PChar; cdecl; external;
+  ): pcchar; cdecl; external;
 
 function ldap_next_attribute(
     ld              : PLDAP;
     entry           : PLDAPMessage;
     ber             : PBerElement
-  ): PChar; cdecl; external;
+  ): pcchar; cdecl; external;
 
 
 (*
@@ -1361,7 +1361,7 @@ function ldap_next_attribute(
 function ldap_get_values_len(
     ld              : PLDAP;
     entry           : PLDAPMessage;
-    const target    : PChar
+    const target    : pcchar
   ): PPBerval; cdecl; external;
 
 function ldap_count_values_len(
@@ -1409,10 +1409,10 @@ function ldap_msgdelete(
 
 function ldap_search_ext(
     ld              : PLDAP;
-    const base      : PChar;
+    const base      : pcchar;
     scope           : cint;
-    const filter    : PChar;
-    attrs           : PPChar;
+    const filter    : pcchar;
+    attrs           : ppcchar;
     attrsonly       : cbool;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -1423,10 +1423,10 @@ function ldap_search_ext(
 
 function ldap_search_ext_s(
     ld              : PLDAP;
-    const base      : PChar;
+    const base      : pcchar;
     scope           : cint;
-    const filter    : PChar;
-    attrs           : PPChar;
+    const filter    : pcchar;
+    attrs           : ppcchar;
     attrsonly       : cbool;
     serverctrls     : PPLDAPControl;
     clientctrls     : PPLDAPControl;
@@ -1459,7 +1459,7 @@ function ldap_unbind_ext_s(
 
 function ldap_put_vrFilter(
     ber             : PBerElement;
-    const vrf       : PChar
+    const vrf       : pcchar
   ): cint; cdecl; external;
 
 
@@ -1490,8 +1490,8 @@ procedure ldap_memvfree(
   ); cdecl; external;
 
 function ldap_strdup(
-    const str       : PChar
-  ): PChar; cdecl; external;
+    const str       : pcchar
+  ): pcchar; cdecl; external;
 
 procedure ldap_mods_free(
     mods            : PPLDAPMod;
@@ -1504,25 +1504,25 @@ procedure ldap_mods_free(
  *)
 
 function ldap_is_ldap_url(
-    const url       : PChar
+    const url       : pcchar
   ): cint; cdecl; external;
 
 function ldap_is_ldaps_url(
-    const url       : PChar
+    const url       : pcchar
   ): cint; cdecl; external;
 
 function ldap_is_ldapi_url(
-    const url       : PChar
+    const url       : pcchar
   ): cint; cdecl; external;
 
 function ldap_url_parse(
-    const url       : PChar;
+    const url       : pcchar;
     var ludpp       : PLDAPURLDesc
   ): cint; cdecl; external;
 
 function ldap_url_desc2str(
     ludpp           : PLDAPURLDesc
-  ): PChar; cdecl; external;
+  ): pcchar; cdecl; external;
 
 procedure ldap_free_urldesc(
     ludpp           : PLDAPURLDesc
@@ -1566,15 +1566,15 @@ type
   PPLDAPSortKey                     = ^PLDAPSortKey;
   PLDAPSortKey                      = ^LDAPSortKey;
   LDAPSortKey                       = record
-    attributeType   : PChar;
-    orderingRule    : PChar;
+    attributeType   : pcchar;
+    orderingRule    : pcchar;
     reverseOrder    : cbool;
   end;
 
 
 function ldap_create_sort_keylist(
     var sortKeyList : PPLDAPSortKey;
-    keyString       : PChar
+    keyString       : pcchar
   ): cint; cdecl; external;
 
 procedure ldap_free_sort_keylist(
@@ -1592,7 +1592,7 @@ function ldap_parse_sort_control(
     ld              : PLDAP;
     ctrlp           : PPLDAPControl;
     var result      : culong;
-    var attribute   : PChar
+    var attribute   : pcchar
   ): cint; cdecl; external;
 
 
@@ -1776,7 +1776,7 @@ ldap_parse_passwordpolicy_control LDAP_P((
         int *gracep,
         LDAPPasswordPolicyError *errorp ));
 
-LDAP_F( const char * )
+LDAP_F( const cchar * )
 ldap_passwordpolicy_err2txt LDAP_P(( LDAPPasswordPolicyError ));
 #endif*)
 
@@ -1790,7 +1790,7 @@ const
 
 function ldap_ntlm_bind(
     ld              : PLDAP;
-    const dn        : PChar;
+    const dn        : pcchar;
     tag             : ber_tag_t;
     cred            : PBerval;
     sctrl           : PPLDAPControl;

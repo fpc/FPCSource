@@ -38,8 +38,8 @@ const
 type
   pldap_schema_extension_item       = ^ldap_schema_extension_item;
   ldap_schema_extension_item        = record
-    lsei_name   : PChar;
-    lsei_values : PPChar;
+    lsei_name   : pcchar;
+    lsei_values : ppcchar;
   end;
 
   PPLDAPSchemaExtensionItem         = ^PLDAPSchemaExtensionItem;
@@ -48,9 +48,9 @@ type
 
   pldap_syntax                      = ^ldap_syntax;
   ldap_syntax                       = record
-    syn_oid         : PChar;        (* REQUIRED *)
-    syn_names       : PPChar;       (* OPTIONAL *)
-    syn_desc        : PChar;        (* OPTIONAL *)
+    syn_oid         : pcchar;        (* REQUIRED *)
+    syn_names       : ppcchar;       (* OPTIONAL *)
+    syn_desc        : pcchar;        (* OPTIONAL *)
     syn_extensions  : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -59,11 +59,11 @@ type
 
   pldap_matchingrule                = ^ldap_matchingrule;
   ldap_matchingrule                 = record
-    mr_oid          : PChar;        (* REQUIRED *)
-    mr_names        : PPChar;       (* OPTIONAL *)
-    mr_desc         : PChar;        (* OPTIONAL *)
+    mr_oid          : pcchar;        (* REQUIRED *)
+    mr_names        : ppcchar;       (* OPTIONAL *)
+    mr_desc         : pcchar;        (* OPTIONAL *)
     mr_obsolete     : cint;         (* OPTIONAL *)
-    mr_syntax_oid   : PChar;        (* REQUIRED *)
+    mr_syntax_oid   : pcchar;        (* REQUIRED *)
     mr_extensions   : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -72,11 +72,11 @@ type
 
   pldap_matchingruleuse             = ^ldap_matchingruleuse;
   ldap_matchingruleuse              = record
-    mru_oid         : PChar;        (* REQUIRED *)
-    mru_names       : PPChar;       (* OPTIONAL *)
-    mru_desc        : PChar;        (* OPTIONAL *)
+    mru_oid         : pcchar;        (* REQUIRED *)
+    mru_names       : ppcchar;       (* OPTIONAL *)
+    mru_desc        : pcchar;        (* OPTIONAL *)
     mru_obsolete    : cint;         (* OPTIONAL *)
-    mru_applies_oids: PPChar;       (* REQUIRED *)
+    mru_applies_oids: ppcchar;       (* REQUIRED *)
     mru_extensions  : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -85,15 +85,15 @@ type
 
   pldap_attributetype               = ^ldap_attributetype;
   ldap_attributetype                = record
-    at_oid          : PChar;        (* REQUIRED *)
-    at_names        : PPChar;       (* OPTIONAL *)
-    at_desc         : PChar;        (* OPTIONAL *)
+    at_oid          : pcchar;        (* REQUIRED *)
+    at_names        : ppcchar;       (* OPTIONAL *)
+    at_desc         : pcchar;        (* OPTIONAL *)
     at_obsolete     : cint;         (* 0=no, 1=yes *)
-    at_sup_oid      : PChar;        (* OPTIONAL *)
-    at_equality_oid : PChar;        (* OPTIONAL *)
-    at_ordering_oid : PChar;        (* OPTIONAL *)
-    at_substr_oid   : PChar;        (* OPTIONAL *)
-    at_syntax_oid   : PChar;        (* OPTIONAL *)
+    at_sup_oid      : pcchar;        (* OPTIONAL *)
+    at_equality_oid : pcchar;        (* OPTIONAL *)
+    at_ordering_oid : pcchar;        (* OPTIONAL *)
+    at_substr_oid   : pcchar;        (* OPTIONAL *)
+    at_syntax_oid   : pcchar;        (* OPTIONAL *)
     at_syntax_len   : cint;         (* OPTIONAL *)
     at_single_value : cint;         (* 0=no, 1=yes *)
     at_collective   : cint;         (* 0=no, 1=yes *)
@@ -107,14 +107,14 @@ type
 
   pldap_objectclass                 = ^ldap_objectclass;
   ldap_objectclass                  = record
-    oc_oid          : PChar;        (* REQUIRED *)
-    oc_names        : PPChar;       (* OPTIONAL *)
-    oc_desc         : PChar;        (* OPTIONAL *)
+    oc_oid          : pcchar;        (* REQUIRED *)
+    oc_names        : ppcchar;       (* OPTIONAL *)
+    oc_desc         : pcchar;        (* OPTIONAL *)
     oc_obsolete     : cint;         (* 0=no, 1=yes *)
-    oc_sup_oids     : PPChar;       (* OPTIONAL *)
+    oc_sup_oids     : ppcchar;       (* OPTIONAL *)
     oc_kind         : cint;         (* 0=ABSTRACT, 1=STRUCTURAL, 2=AUXILIARY *)
-    oc_at_oids_must : PPChar;       (* OPTIONAL *)
-    oc_at_oids_may  : PPChar;       (* OPTIONAL *)
+    oc_at_oids_must : ppcchar;       (* OPTIONAL *)
+    oc_at_oids_may  : ppcchar;       (* OPTIONAL *)
     oc_extensions   : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -123,15 +123,15 @@ type
 
   pldap_contentrule                 = ^ldap_contentrule;
   ldap_contentrule                  = record
-    cr_oid          : PChar;        (* REQUIRED *)
-    cr_names        : PPChar;       (* OPTIONAL *)
-    cr_desc         : PChar;        (* OPTIONAL *)
-    cr_sup_oids     : PPChar;       (* OPTIONAL *)
+    cr_oid          : pcchar;        (* REQUIRED *)
+    cr_names        : ppcchar;       (* OPTIONAL *)
+    cr_desc         : pcchar;        (* OPTIONAL *)
+    cr_sup_oids     : ppcchar;       (* OPTIONAL *)
     cr_obsolete     : cint;         (* 0=no, 1=yes *)
-    cr_oc_oids_aux  : PPChar;       (* OPTIONAL *)
-    cr_at_oids_must : PPChar;       (* OPTIONAL *)
-    cr_at_oids_may  : PPChar;       (* OPTIONAL *)
-    cr_at_oids_not  : PPChar;       (* OPTIONAL *)
+    cr_oc_oids_aux  : ppcchar;       (* OPTIONAL *)
+    cr_at_oids_must : ppcchar;       (* OPTIONAL *)
+    cr_at_oids_may  : ppcchar;       (* OPTIONAL *)
+    cr_at_oids_not  : ppcchar;       (* OPTIONAL *)
     cr_extensions   : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -140,13 +140,13 @@ type
 
   pldap_nameform                    = ^ldap_nameform;
   ldap_nameform                     = record
-    nf_oid          : PChar;        (* REQUIRED *)
-    nf_names        : PPChar;       (* OPTIONAL *)
-    nf_desc         : PChar;        (* OPTIONAL *)
+    nf_oid          : pcchar;        (* REQUIRED *)
+    nf_names        : ppcchar;       (* OPTIONAL *)
+    nf_desc         : pcchar;        (* OPTIONAL *)
     nf_obsolete     : cint;         (* 0=no, 1=yes *)
-    nf_objectclass  : PChar;        (* REQUIRED *)
-    nf_at_oids_must : PPChar;       (* REQUIRED *)
-    nf_at_oids_may  : PPChar;       (* OPTIONAL *)
+    nf_objectclass  : pcchar;        (* REQUIRED *)
+    nf_at_oids_must : ppcchar;       (* REQUIRED *)
+    nf_at_oids_may  : ppcchar;       (* OPTIONAL *)
     nf_extensions   : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
   end;
 
@@ -156,10 +156,10 @@ type
   pldap_structurerule               = ^ldap_structurerule;
   ldap_structurerule                = record
     sr_ruleid       : cint;          (* REQUIRED *)
-    sr_names        : PPChar;        (* OPTIONAL *)
-    sr_desc         : PChar;         (* OPTIONAL *)
+    sr_names        : ppcchar;        (* OPTIONAL *)
+    sr_desc         : pcchar;         (* OPTIONAL *)
     sr_obsolete     : cint;          (* 0=no, 1=yes *)
-    sr_nameform     : PChar;         (* REQUIRED *)
+    sr_nameform     : pcchar;         (* REQUIRED *)
     sr_nsup_ruleids : cint;          (* number of sr_sup_ruleids *)
     sr_sup_ruleids  : pcint;         (* OPTIONAL *)
     sr_extensions   : PPLDAPSchemaExtensionItem; (* OPTIONAL *)
@@ -201,14 +201,14 @@ const
   LDAP_SCHEMA_SKIP                  = $80;      (* Don't malloc any result      *)
 
 
-function ldap_syntax2name(syn: PLDAPSyntax): PChar; cdecl; external;
-function ldap_matchingrule2name(mr: PLDAPMatchingRule): PChar; cdecl; external;
-function ldap_matchingruleuse2name(mru: PLDAPMatchingRuleUse): PChar; cdecl; external;
-function ldap_attributetype2name(_at: PLDAPAttributeType): PChar; cdecl; external;
-function ldap_objectclass2name(oc: PLDAPObjectClass): PChar; cdecl; external;
-function ldap_contentrule2name(cr: PLDAPContentRule): PChar; cdecl; external;
-function ldap_nameform2name(nf: PLDAPNameForm): PChar; cdecl; external;
-function ldap_structurerule2name(sr: PLDAPStructureRule): PChar; cdecl; external;
+function ldap_syntax2name(syn: PLDAPSyntax): pcchar; cdecl; external;
+function ldap_matchingrule2name(mr: PLDAPMatchingRule): pcchar; cdecl; external;
+function ldap_matchingruleuse2name(mru: PLDAPMatchingRuleUse): pcchar; cdecl; external;
+function ldap_attributetype2name(_at: PLDAPAttributeType): pcchar; cdecl; external;
+function ldap_objectclass2name(oc: PLDAPObjectClass): pcchar; cdecl; external;
+function ldap_contentrule2name(cr: PLDAPContentRule): pcchar; cdecl; external;
+function ldap_nameform2name(nf: PLDAPNameForm): pcchar; cdecl; external;
+function ldap_structurerule2name(sr: PLDAPStructureRule): pcchar; cdecl; external;
 
 procedure ldap_syntax_free(syn: PLDAPSyntax); cdecl; external;
 procedure ldap_matchingrule_free(mr: PLDAPMatchingRule); cdecl; external;
@@ -219,37 +219,37 @@ procedure ldap_contentrule_free(cr: PLDAPContentRule); cdecl; external;
 procedure ldap_nameform_free(nf: PLDAPNameForm); cdecl; external;
 procedure ldap_structurerule_free(sr: PLDAPStructureRule); cdecl; external;
 
-function ldap_str2structurerule(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPStructureRule; cdecl; external;
-function ldap_str2nameform(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPNameForm; cdecl; external;
-function ldap_str2contentrule(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPContentRule; cdecl; external;
-function ldap_str2objectclass(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPObjectClass; cdecl; external;
-function ldap_str2attributetype(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPAttributeType; cdecl; external;
-function ldap_str2syntax(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPSyntax; cdecl; external;
-function ldap_str2matchingrule(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPMatchingRule; cdecl; external;
-function ldap_str2matchingruleuse(const s: PChar; code: pcint; const errp: PPChar; flags: cuint): PLDAPMatchingRuleUse; cdecl; external;
+function ldap_str2structurerule(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPStructureRule; cdecl; external;
+function ldap_str2nameform(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPNameForm; cdecl; external;
+function ldap_str2contentrule(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPContentRule; cdecl; external;
+function ldap_str2objectclass(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPObjectClass; cdecl; external;
+function ldap_str2attributetype(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPAttributeType; cdecl; external;
+function ldap_str2syntax(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPSyntax; cdecl; external;
+function ldap_str2matchingrule(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPMatchingRule; cdecl; external;
+function ldap_str2matchingruleuse(const s: pcchar; code: pcint; const errp: ppcchar; flags: cuint): PLDAPMatchingRuleUse; cdecl; external;
 
-function ldap_structurerule2str(sr: PLDAPStructureRule): PChar; cdecl; external;
+function ldap_structurerule2str(sr: PLDAPStructureRule): pcchar; cdecl; external;
 function ldap_structurerule2bv(sr: PLDAPStructureRule; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_nameform2str(nf: PLDAPNameForm): PChar; cdecl; external;
+function ldap_nameform2str(nf: PLDAPNameForm): pcchar; cdecl; external;
 function ldap_nameform2bv(nf: PLDAPNameForm; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_contentrule2str(cr: PLDAPContentRule): PChar; cdecl; external;
+function ldap_contentrule2str(cr: PLDAPContentRule): pcchar; cdecl; external;
 function ldap_contentrule2bv(cr: PLDAPContentRule; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_objectclass2str(oc: PLDAPObjectClass): PChar; cdecl; external;
+function ldap_objectclass2str(oc: PLDAPObjectClass): pcchar; cdecl; external;
 function ldap_objectclass2bv(oc: PLDAPObjectClass; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_attributetype2str(_at: PLDAPAttributeType): PChar; cdecl; external;
+function ldap_attributetype2str(_at: PLDAPAttributeType): pcchar; cdecl; external;
 function ldap_attributetype2bv(_at: PLDAPAttributeType; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_syntax2str(syn: PLDAPSyntax): PChar; cdecl; external;
+function ldap_syntax2str(syn: PLDAPSyntax): pcchar; cdecl; external;
 function ldap_syntax2bv(syn: PLDAPSyntax; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_matchingrule2str(mr: PLDAPMatchingRule): PChar; cdecl; external;
+function ldap_matchingrule2str(mr: PLDAPMatchingRule): pcchar; cdecl; external;
 function ldap_matchingrule2bv(mr: PLDAPMatchingRule; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_matchingruleuse2str(mru: PLDAPMatchingRuleUse): PChar; cdecl; external;
+function ldap_matchingruleuse2str(mru: PLDAPMatchingRuleUse): pcchar; cdecl; external;
 function ldap_matchingruleuse2bv(mru: PLDAPMatchingRuleUse; bv: PBerval): PBerval; cdecl; external;
 
-function ldap_scherr2str(code: cint): PChar; cdecl; external;
+function ldap_scherr2str(code: cint): pcchar; cdecl; external;

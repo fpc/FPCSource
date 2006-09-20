@@ -43,12 +43,12 @@ begin
     LBER_SBIOD_CTRL_NEXT := 0;
 end;
 
-function ber_bvstr(const str: PChar): PBerval;
+function ber_bvstr(const str: pcchar): PBerval;
 begin
   ber_bvstr := ber_str2bv(str, 0, false, nil);
 end;
 
-function ber_bvstrdup(const str: PChar): PBerval;
+function ber_bvstrdup(const str: pcchar): PBerval;
 begin
   ber_bvstrdup := ber_str2bv(str, 0, true, nil);
 end;

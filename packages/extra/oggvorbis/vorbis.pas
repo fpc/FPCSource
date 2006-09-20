@@ -12,24 +12,22 @@
 
 unit vorbis;
 
-interface
-
+{$mode objfpc}
 {$MINENUMSIZE 4}
 
+interface
+
 uses
-  LibXCPPTypes,
-  libogg;
+  ctypes, ogg;
 
-{.$DEFINE DYNLINK}
-
-{$IFNDEF FPC}
-  {$DEFINE DYNLINK}
-{$ENDIF}
-
-{$IFNDEF DYNLINK}
+{$IFDEF WINDOWS}
+{$DEFINE DYNLINK}
+const
+  vorbislib = 'vorbislib.dll';
+  vorbisfilelib = 'vorbisfile.dll';
+  vorbisenclib = 'vorbisenclib.dll';
+{$ELSE}
   {$LINKLIB vorbis}
-  {$LINKLIB vorbisfile}
-//  {$LINKLIB libvorbisenc.a}
 {$ENDIF}
 
 (***********************************************************************)
@@ -37,13 +35,13 @@ uses
 (***********************************************************************)
 
 type
-  pcmfloat = ^pfloat;
+  ppcfloat = ^pcfloat;
 
   pvorbis_info = ^vorbis_info;
   vorbis_info = record
-    version         : int;
-    channels        : int;
-    rate            : long;
+    version         : cint;
+    channels        : cint;
+    rate            : clong;
 
   { The below bitrate declarations are *hints*.
      Combinations of the three values carry the following implications:
@@ -60,10 +58,10 @@ type
        the coder does not care to speculate.
   }
 
-    bitrate_upper   : long;
-    bitrate_nominal : long;
-    bitrate_lower   : long;
-    bitrate_window  : long;
+    bitrate_upper   : clong;
+    bitrate_nominal : clong;
+    bitrate_lower   : clong;
+    bitrate_window  : clong;
     codec_setup     : pointer;
   end;
 
@@ -71,22 +69,22 @@ type
 
   pvorbis_dsp_state = ^vorbis_dsp_state;
   vorbis_dsp_state = record
-    analysisp       : int;
+    analysisp       : cint;
     vi              : pvorbis_info;
 
-    pcm             : pcmfloat;
-    pcmret          : pcmfloat;
-    pcm_storage     : int;
-    pcm_current     : int;
-    pcm_returned    : int;
+    pcm             : ppcfloat;
+    pcmret          : ppcfloat;
+    pcm_storage     : cint;
+    pcm_current     : cint;
+    pcm_returned    : cint;
 
-    preextrapolate  : int;
-    eofflag         : int;
+    preextrapolate  : cint;
+    eofflag         : cint;
 
-    lW              : long;
-    W               : long;
-    nW              : long;
-    centerW         : long;
+    lW              : clong;
+    W               : clong;
+    nW              : clong;
+    centerW         : clong;
 
     granulepos      : ogg_int64_t;
     sequence        : ogg_int64_t;
@@ -110,34 +108,35 @@ type
     next            : palloc_chain;
   end;
 
+  pvorbis_block = ^vorbis_block;
   vorbis_block = record
   { necessary stream state for linking to the framing abstraction }
-    pcm             : pcmfloat;            { this is a pointer into local storage }
+    pcm             : ppcfloat;            { this is a pointer into local storage }
     opb             : oggpack_buffer;
 
-    lW              : long;
-    W               : long;
-    nW              : long;
-    pcmend          : int;
-    mode            : int;
+    lW              : clong;
+    W               : clong;
+    nW              : clong;
+    pcmend          : cint;
+    mode            : cint;
 
-    eofflag         : int;
+    eofflag         : cint;
     granulepos      : ogg_int64_t;
     sequence        : ogg_int64_t;
     vd              : pvorbis_dsp_state; { For read-only access of configuration }
 
   { local storage to avoid remallocing; it's up to the mapping to structure it }
     localstore      : pointer;
-    localtop        : long;
-    localalloc      : long;
-    totaluse        : long;
+    localtop        : clong;
+    localalloc      : clong;
+    totaluse        : clong;
     reap            : palloc_chain;
 
   { bitmetrics for the frame }
-    glue_bits       : long;
-    time_bits       : long;
-    floor_bits      : long;
-    res_bits        : long;
+    glue_bits       : clong;
+    time_bits       : clong;
+    floor_bits      : clong;
+    res_bits        : clong;
 
     internal        : pointer;
   end;
@@ -149,19 +148,13 @@ type
 
 { the comments are not part of vorbis_info so that vorbis_info can be static storage }
 
-  pcomments = ^comments;
-  comments = array[byte] of pchar;
-
-  plengts = ^lengts;
-  lengts = array[byte] of int;
-
   pvorbis_comment = ^vorbis_comment;
   vorbis_comment = record
   { unlimited user comment fields.  libvorbis writes 'libvorbis' whatever vendor is set to in encode }
-    user_comments   : pcomments;
-    comment_lengths : plengts;
-    comments        : int;
-    vendor          : pchar;
+    user_comments   : ^pcchar;
+    comment_lengths : pcint;
+    comments        : cint;
+    vendor          : pcchar;
   end;
 
 
@@ -179,60 +172,50 @@ type
 
 { Vorbis PRIMITIVES: general }
 
-{$IFDEF MSWINDOWS}
-const
-  vorbislib = 'vorbislib.dll';
-{$ENDIF}
-{$IFDEF LINUX}
-const
-  vorbislib = 'libvorbis.so';
-{$ENDIF}
+procedure vorbis_info_init(var vi: vorbis_info); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_info_clear(var vi: vorbis_info); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_info_blocksize(var vi: vorbis_info; zo: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_init(var vc: vorbis_comment); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_add(var vc: vorbis_comment; comment: pchar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_add_tag(var vc: vorbis_comment; tag: pchar; contents: pchar); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_comment_query(var vc: vorbis_comment; tag: pchar; count: cint): pchar; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_comment_query_count(var vc: vorbis_comment; tag: pchar): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_comment_clear(var vc: vorbis_comment); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
-procedure vorbis_info_init(var vi: vorbis_info); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_info_init'{$ENDIF};
-procedure vorbis_info_clear(var vi: vorbis_info); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_info_clear'{$ENDIF};
-function  vorbis_info_blocksize(var vi: vorbis_info; zo: int): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_info_blocksize'{$ENDIF};
-procedure vorbis_comment_init(var vc: vorbis_comment); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_init'{$ENDIF};
-procedure vorbis_comment_add(var vc: vorbis_comment; comment: pchar); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_add'{$ENDIF};
-procedure vorbis_comment_add_tag(var vc: vorbis_comment; tag: pchar; contents: pchar); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_add_tag'{$ENDIF};
-function  vorbis_comment_query(var vc: vorbis_comment; tag: pchar; count: int): pchar; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_query'{$ENDIF};
-function  vorbis_comment_query_count(var vc: vorbis_comment; tag: pchar): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_query_count'{$ENDIF};
-procedure vorbis_comment_clear(var vc: vorbis_comment); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_comment_clear'{$ENDIF};
-
-function  vorbis_block_init(var v: vorbis_dsp_state; var vb: vorbis_block): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_block_init'{$ENDIF};
-function  vorbis_block_clear(var vb: vorbis_block): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_block_clear'{$ENDIF};
-procedure vorbis_dsp_clear(var v: vorbis_dsp_state); cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_dsp_clear'{$ENDIF};
-function  vorbis_granule_time(var v: vorbis_dsp_state; granulepos: ogg_int64_t): Double; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_granule_time'{$ENDIF};
+function  vorbis_block_init(var v: vorbis_dsp_state; var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_block_clear(var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+procedure vorbis_dsp_clear(var v: vorbis_dsp_state); cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_granule_time(var v: vorbis_dsp_state; granulepos: ogg_int64_t): cdouble; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
 { vorbislib PRIMITIVES: analysis/DSP layer }
 
-function  vorbis_analysis_init(var v: vorbis_dsp_state; var vi: vorbis_info): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis_init'{$ENDIF};
-function  vorbis_commentheader_out(var vc: vorbis_comment; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_commentheader_out'{$ENDIF};
-function  vorbis_analysis_headerout(var v:vorbis_dsp_state; var vc: vorbis_comment; var op: ogg_packet;
-					  var op_comm: ogg_packet; var op_code: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis_headerout'{$ENDIF};
-function  vorbis_analysis_buffer(var v: vorbis_dsp_state; vals: int): pcmfloat; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis_buffer'{$ENDIF};
-function  vorbis_analysis_wrote(var v: vorbis_dsp_state; vals: int): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis_wrote'{$ENDIF};
-function  vorbis_analysis_blockout(var v: vorbis_dsp_state; var vb: vorbis_block): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis_blockout'{$ENDIF};
-function  vorbis_analysis(var vb: vorbis_block; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_analysis'{$ENDIF};
+function  vorbis_analysis_init(var v: vorbis_dsp_state; var vi: vorbis_info): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_commentheader_out(var vc: vorbis_comment; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_analysis_headerout(var v:vorbis_dsp_state; var vc: vorbis_comment; var op: ogg_packet; var op_comm: ogg_packet; var op_code: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_analysis_buffer(var v: vorbis_dsp_state; vals: cint): ppcfloat; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_analysis_wrote(var v: vorbis_dsp_state; vals: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_analysis_blockout(var v: vorbis_dsp_state; var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_analysis(var vb: vorbis_block; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
-function  vorbis_bitrate_addblock(var vb: vorbis_block): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_bitrate_addblock'{$ENDIF};
-function  vorbis_bitrate_flushpacket(var vd: vorbis_dsp_state; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_bitrate_flushpacket'{$ENDIF};
+function  vorbis_bitrate_addblock(var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_bitrate_flushpacket(var vd: vorbis_dsp_state; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
 { vorbislib PRIMITIVES: synthesis layer }
 
-function  vorbis_synthesis_headerin(var vi: vorbis_info; var vc: vorbis_comment; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_headerin'{$ENDIF};
+function  vorbis_synthesis_headerin(var vi: vorbis_info; var vc: vorbis_comment; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
-function  vorbis_synthesis_init(var v: vorbis_dsp_state; var vi: vorbis_info): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_init'{$ENDIF};
-function  vorbis_synthesis_restart(var v: vorbis_dsp_state): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_restart'{$ENDIF};
-function  vorbis_synthesis(var vb: vorbis_block; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis'{$ENDIF};
-function  vorbis_synthesis_trackonly(var vb: vorbis_block; var op: ogg_packet): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_trackonly'{$ENDIF};
-function  vorbis_synthesis_blockin(var v: vorbis_dsp_state; var vb: vorbis_block): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_blockin'{$ENDIF};
-function  vorbis_synthesis_pcmout(var v: vorbis_dsp_state; var pcm: pcmfloat): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_pcmout'{$ENDIF};
-function  vorbis_synthesis_lapout(var v: vorbis_dsp_state; var pcm: pcmfloat): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_lapout'{$ENDIF};
-function  vorbis_synthesis_read(var v: vorbis_dsp_state; samples: int): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_read'{$ENDIF};
-function  vorbis_packet_blocksize(var vi: vorbis_info; var op: ogg_packet): long; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_packet_blocksize'{$ENDIF};
+function  vorbis_synthesis_init(var v: vorbis_dsp_state; var vi: vorbis_info): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_restart(var v: vorbis_dsp_state): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis(var vb: vorbis_block; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_trackonly(var vb: vorbis_block; var op: ogg_packet): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_blockin(var v: vorbis_dsp_state; var vb: vorbis_block): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_pcmout(var v: vorbis_dsp_state; var pcm: ppcfloat): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_lapout(var v: vorbis_dsp_state; var pcm: ppcfloat): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_read(var v: vorbis_dsp_state; samples: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_packet_blocksize(var vi: vorbis_info; var op: ogg_packet): clong; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
-function  vorbis_synthesis_halfrate(var v: vorbis_info; flag: int): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_halfrate'{$ENDIF};
-function  vorbis_synthesis_halfrate_p(var v: vorbis_info): int; cdecl; External{$IFDEF DYNLINK} vorbislib name 'vorbis_synthesis_halfrate_p'{$ENDIF};
+function  vorbis_synthesis_halfrate(var v: vorbis_info; flag: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
+function  vorbis_synthesis_halfrate_p(var v: vorbis_info): cint; cdecl; external {$IFDEF DYNLINK}vorbislib{$ENDIF};
 
 { vorbislib ERRORS and return codes }
 Const
@@ -272,9 +255,9 @@ type
  *}
 
   read_func  = function(ptr: pointer; size, nmemb: Longword; datasource: pointer): LongWord; cdecl;
-  seek_func  = function(datasource: pointer; offset: ogg_int64_t; whence: int): int; cdecl;
-  close_func = function(datasource: pointer): int; cdecl;
-  tell_func  = function(datasource: pointer): long; cdecl;
+  seek_func  = function(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
+  close_func = function(datasource: pointer): cint; cdecl;
+  tell_func  = function(datasource: pointer): clong; cdecl;
 
   ov_callbacks = record
     read            : read_func;
@@ -293,28 +276,28 @@ const
 type
   OggVorbis_File = record
     datasource      : pointer; { pointer to a FILE *, etc. }
-    seekable        : int;
+    seekable        : cint;
     offset          : ogg_int64_t;
     end_            : ogg_int64_t;
     oy              : ogg_sync_state;
 
   { If the FILE handle isn't seekable (eg, a pipe), only the current stream appears }
-    links           : int;
+    links           : cint;
     offsets         : ^ogg_int64_t;
     dataoffsets     : ^ogg_int64_t;
-    serialnos       : ^long;
+    serialnos       : ^clong;
     pcmlengths      : ^ogg_int64_t; { overloaded to maintain binary compatability; x2 size, stores both beginning and end values }
     vi              : pvorbis_info;
     vc              : pvorbis_comment;
 
   { Decoding working state local storage }
     pcm_offset      : ogg_int64_t;
-    ready_state     : int;
-    current_serialno: long;
-    current_link    : int;
+    ready_state     : cint;
+    current_serialno: clong;
+    current_link    : cint;
 
-    bittrack        : double;
-    samptrack       : double;
+    bittrack        : cdouble;
+    samptrack       : cdouble;
 
     os              : ogg_stream_state; { take physical pages, weld into a logical stream of packets }
     vd              : vorbis_dsp_state; { central working state for the packet->PCM decoder }
@@ -323,72 +306,55 @@ type
     callbacks       : ov_callbacks;
   end;
 
-{$IFDEF MSWINDOWS}
-const
-  vorbisfilelib = 'vorbisfile.dll';
-{$ENDIF}
-{$IFDEF LINUX}
-const
-  vorbisfilelib = 'libvorbisfile.so';
-{$ENDIF}
 
-function ov_clear(var vf: OggVorbis_File): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_clear'{$ENDIF};
-function ov_open(f: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: long): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_open'{$ENDIF};
-function ov_open_callbacks(datasource: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: long; callbacks: ov_callbacks): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_open_callbacks'{$ENDIF};
+function ov_clear(var vf: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_open(f: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: clong): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_open_callbacks(datasource: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: clong; callbacks: ov_callbacks): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_test(f: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: long): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_test'{$ENDIF};
-function ov_test_callbacks(datasource: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: long; callbacks: ov_callbacks): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_test_callbacks'{$ENDIF};
-function ov_test_open(var vf: OggVorbis_File): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_test_open'{$ENDIF};
+function ov_test(f: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: clong): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_test_callbacks(datasource: pointer; var vf: OggVorbis_File; initial: pointer; ibytes: clong; callbacks: ov_callbacks): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_test_open(var vf: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_bitrate(var vf: OggVorbis_File; i: int): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_bitrate'{$ENDIF};
-function ov_bitrate_instant(var vf: OggVorbis_File): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_bitrate_instant'{$ENDIF};
-function ov_streams(var vf: OggVorbis_File): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_streams'{$ENDIF};
-function ov_seekable(var vf: OggVorbis_File): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_seekable'{$ENDIF};
-function ov_serialnumber(var vf: OggVorbis_File; i: int): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_serialnumber'{$ENDIF};
+function ov_bitrate(var vf: OggVorbis_File; i: cint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_bitrate_instant(var vf: OggVorbis_File): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_streams(var vf: OggVorbis_File): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_seekable(var vf: OggVorbis_File): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_serialnumber(var vf: OggVorbis_File; i: cint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_raw_total(var vf: OggVorbis_File; i: int): ogg_int64_t; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_raw_total'{$ENDIF};
-function ov_pcm_total(var vf: OggVorbis_File; i: int): ogg_int64_t; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_total'{$ENDIF};
-function ov_time_total(var vf: OggVorbis_File; i: int): Double; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_total'{$ENDIF};
+function ov_raw_total(var vf: OggVorbis_File; i: cint): ogg_int64_t; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_total(var vf: OggVorbis_File; i: cint): ogg_int64_t; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_total(var vf: OggVorbis_File; i: cint): cdouble; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_raw_seek(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_raw_seek'{$ENDIF};
-function ov_pcm_seek(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_seek'{$ENDIF};
-function ov_pcm_seek_page(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_seek_page'{$ENDIF};
-function ov_time_seek(var vf: OggVorbis_File; pos: double): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_seek'{$ENDIF};
-function ov_time_seek_page(var vf: OggVorbis_File; pos: double): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_seek_page'{$ENDIF};
+function ov_raw_seek(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_seek(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_seek_page(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_seek(var vf: OggVorbis_File; pos: cdouble): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_seek_page(var vf: OggVorbis_File; pos: cdouble): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_raw_seek_lap(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_raw_seek_lap'{$ENDIF};
-function ov_pcm_seek_lap(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_seek_lap'{$ENDIF};
-function ov_pcm_seek_page_lap(var vf: OggVorbis_File; pos: ogg_int64_t): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_seek_page_lap'{$ENDIF};
-function ov_time_seek_lap(var vf: OggVorbis_File; pos: double): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_seek_lap'{$ENDIF};
-function ov_time_seek_page_lap(var vf: OggVorbis_File; pos: double): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_seek_page_lap'{$ENDIF};
+function ov_raw_seek_lap(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_seek_lap(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_seek_page_lap(var vf: OggVorbis_File; pos: ogg_int64_t): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_seek_lap(var vf: OggVorbis_File; pos: cdouble): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_seek_page_lap(var vf: OggVorbis_File; pos: cdouble): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_raw_tell(var vf: OggVorbis_File): ogg_int64_t; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_raw_tell'{$ENDIF};
-function ov_pcm_tell(var vf: OggVorbis_File): ogg_int64_t; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_pcm_tell'{$ENDIF};
-function ov_time_tell(var vf: OggVorbis_File): Double; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_time_tell'{$ENDIF};
+function ov_raw_tell(var vf: OggVorbis_File): ogg_int64_t; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_pcm_tell(var vf: OggVorbis_File): ogg_int64_t; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_time_tell(var vf: OggVorbis_File): cdouble; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_info(var vf: OggVorbis_File; link: int): pvorbis_info; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_info'{$ENDIF};
-function ov_comment(var vf: OggVorbis_File; link: int): pvorbis_comment; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_comment'{$ENDIF};
+function ov_info(var vf: OggVorbis_File; link: cint): pvorbis_info; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_comment(var vf: OggVorbis_File; link: cint): pvorbis_comment; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_read_float(var vf: OggVorbis_File; var pcm_channels: pcmfloat; samples: int; bitstream: pint): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_read_float'{$ENDIF};
-function ov_read(var vf: OggVorbis_File; buffer: pointer; length, bigendianp, word, sgned: int; bitstream: Pint): long; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_read'{$ENDIF};
-function ov_crosslap(var vf1: OggVorbis_File; var vf2: OggVorbis_File): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_crosslap'{$ENDIF};
+function ov_read_float(var vf: OggVorbis_File; var pcm_channels: ppcfloat; samples: cint; bitstream: pcint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_read(var vf: OggVorbis_File; buffer: pointer; length, bigendianp, word, sgned: cint; bitstream: pcint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_crosslap(var vf1: OggVorbis_File; var vf2: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
-function ov_halfrate(var vf: OggVorbis_File; flag: int): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_halfrate'{$ENDIF};
-function ov_halfrate_p(var vf: OggVorbis_File): int; cdecl; External{$IFDEF DYNLINK} vorbisfilelib name 'ov_halfrate_p'{$ENDIF};
+function ov_halfrate(var vf: OggVorbis_File; flag: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_halfrate_p(var vf: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
 
 (***********************************************************************)
 (* Header : vorbisenc.h                                                *)
 (***********************************************************************)
-
-{$IFDEF MSWINDOWS}
-const
-  vorbisenclib = 'vorbisenclib.dll';
-{$ENDIF}
-{$IFDEF LINUX}
-const
-  vorbisenclib = 'libvorbisenc.so';
-{$ENDIF}
 
 const
   OV_ECTL_RATEMANAGE_GET       = $10;
@@ -405,25 +371,25 @@ const
 
 type
   ovectl_ratemanage_arg = record
-    management_active        : int;
+    management_active        : cint;
 
-    bitrate_hard_min         : long;
-    bitrate_hard_max         : long;
-    bitrate_hard_window      : double;
+    bitrate_hard_min         : clong;
+    bitrate_hard_max         : clong;
+    bitrate_hard_window      : cdouble;
 
-    bitrate_av_lo            : long;
-    bitrate_av_hi            : long;
-    bitrate_av_window        : double;
-    bitrate_av_window_center : double;
+    bitrate_av_lo            : clong;
+    bitrate_av_hi            : clong;
+    bitrate_av_window        : cdouble;
+    bitrate_av_window_center : cdouble;
   end;
 
-function vorbis_encode_init(var vi: vorbis_info; channels, rate, max_bitrate, nominal_bitrate, min_bitrate: long): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_init'{$ENDIF};
-function vorbis_encode_setup_managed(var vi: vorbis_info; channels, rate, max_bitrate, nominal_bitrate, min_bitrate: long): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_setup_managed'{$ENDIF};
-function vorbis_encode_setup_vbr(var vi: vorbis_info; channels, rate: long; quality: float): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_setup_vbr'{$ENDIF};
+function vorbis_encode_init(var vi: vorbis_info; channels, rate, max_bitrate, nominal_bitrate, min_bitrate: clong): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
+function vorbis_encode_setup_managed(var vi: vorbis_info; channels, rate, max_bitrate, nominal_bitrate, min_bitrate: clong): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
+function vorbis_encode_setup_vbr(var vi: vorbis_info; channels, rate: clong; quality: cfloat): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
 (* quality level from 0. (lo) to 1. (hi) *)
-function vorbis_encode_init_vbr(var vi: vorbis_info; channels, rate: long; base_quality: float): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_init_vbr'{$ENDIF};
-function vorbis_encode_setup_init(var vi: vorbis_info): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_setup_init'{$ENDIF};
-function vorbis_encode_ctl(var vi: vorbis_info; number: int; arg: pointer): int; cdecl; External{$IFDEF DYNLINK} vorbisenclib name 'vorbis_encode_ctl'{$ENDIF};
+function vorbis_encode_init_vbr(var vi: vorbis_info; channels, rate: clong; base_quality: cfloat): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
+function vorbis_encode_setup_init(var vi: vorbis_info): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
+function vorbis_encode_ctl(var vi: vorbis_info; number: cint; arg: pointer): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
 
 implementation
 

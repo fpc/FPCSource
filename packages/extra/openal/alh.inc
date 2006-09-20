@@ -43,8 +43,8 @@ type
   PALboolean                        = pcbool;
 
 (** character *)
-  ALchar                            = char;
-  PALchar                           = pchar;
+  ALchar                            = cchar;
+  PALchar                           = pcchar;
 
 (** signed 8-bit 2's complement integer *)
   ALbyte                            = cint8;

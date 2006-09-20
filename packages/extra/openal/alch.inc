@@ -25,8 +25,8 @@ type
   PALCboolean                       = pcbool;
 
 (** character *)
-  ALCchar                           = char;
-  PALCchar                          = pchar;
+  ALCchar                           = cchar;
+  PALCchar                          = pcchar;
 
 (** signed 8-bit 2's complement integer *)
   ALCbyte                           = cint8;

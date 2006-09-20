@@ -22,7 +22,8 @@ uses
   ctypes;
 
 type
-  PPPChar                           = ^PPChar;
+  ppcchar                           = ^pcchar;
+  pppcchar                          = ^ppcchar;
 
 (* LBER Boolean, enum, integers (32 bits or larger) *)
   LBER_INT_T                        = cint;
