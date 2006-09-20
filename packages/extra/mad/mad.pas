@@ -31,9 +31,18 @@ uses
   ctypes;
 
 {$IFDEF WINDOWS}
-{$DEFINE DYNLINK}
+  {$DEFINE DYNLINK}
+{$ENDIF}
+
+{$IFDEF DYNLINK}
 const
+{$IF Defined(WINDOWS)}
   madlib = 'libmad.dll';
+{$ELSEIF Defined(UNIX)}
+  madlib = 'libmad.so';
+{$ELSE}
+  {$MESSAGE ERROR 'DYNLINK not supported'}
+{$IFEND}
 {$ELSE}
   {$LINKLIB mad}
 {$ENDIF}

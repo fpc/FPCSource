@@ -21,9 +21,18 @@ uses
   ctypes;
 
 {$IFDEF WINDOWS}
-{$DEFINE DYNLINK}
+  {$DEFINE DYNLINK}
+{$ENDIF}
+
+{$IFDEF DYNLINK}
 const
+{$IF Defined(WINDOWS)}
   ogglib = 'ogglib.dll';
+{$ELSEIF Defined(UNIX)}
+  ogglib = 'libogg.so';
+{$ELSE}
+  {$MESSAGE ERROR 'DYNLINK not supported'}
+{$IFEND}
 {$ELSE}
   {$LINKLIB ogg}
 {$ENDIF}

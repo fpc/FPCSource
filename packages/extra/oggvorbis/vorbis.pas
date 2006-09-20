@@ -21,13 +21,26 @@ uses
   ctypes, ogg;
 
 {$IFDEF WINDOWS}
-{$DEFINE DYNLINK}
+  {$DEFINE DYNLINK}
+{$ENDIF}
+
+{$IFDEF DYNLINK}
 const
-  vorbislib = 'vorbislib.dll';
+{$IF Defined(WINDOWS)}
+  vorbislib     = 'vorbislib.dll';
   vorbisfilelib = 'vorbisfile.dll';
-  vorbisenclib = 'vorbisenclib.dll';
+  vorbisenclib  = 'vorbisenclib.dll';
+{$ELSEIF Defined(UNIX)}
+  vorbislib     = 'libvorbis.so';
+  vorbisfilelib = 'libvorbisfile.so';
+  vorbisenclib  = 'libvorbisenc.so';
+{$ELSE}
+  {$MESSAGE ERROR 'DYNLINK not supported'}
+{$IFEND}
 {$ELSE}
   {$LINKLIB vorbis}
+  {$LINKLIB vorbisfile}
+  {$LINKLIB vorbisenc}
 {$ENDIF}
 
 (***********************************************************************)
@@ -35,6 +48,8 @@ const
 (***********************************************************************)
 
 type
+  csize_t = culong;
+
   ppcfloat = ^pcfloat;
 
   pvorbis_info = ^vorbis_info;
@@ -254,11 +269,12 @@ type
  * unseekable
  *}
 
-  read_func  = function(ptr: pointer; size, nmemb: Longword; datasource: pointer): LongWord; cdecl;
+  read_func  = function(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
   seek_func  = function(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
   close_func = function(datasource: pointer): cint; cdecl;
   tell_func  = function(datasource: pointer): clong; cdecl;
 
+  pov_callbacks = ^ov_callbacks;
   ov_callbacks = record
     read            : read_func;
     seek            : seek_func;
@@ -274,6 +290,7 @@ const
   INITSET           = 4;
 
 type
+  POggVorbis_File = ^OggVorbis_File;
   OggVorbis_File = record
     datasource      : pointer; { pointer to a FILE *, etc. }
     seekable        : cint;
@@ -283,10 +300,10 @@ type
 
   { If the FILE handle isn't seekable (eg, a pipe), only the current stream appears }
     links           : cint;
-    offsets         : ^ogg_int64_t;
-    dataoffsets     : ^ogg_int64_t;
-    serialnos       : ^clong;
-    pcmlengths      : ^ogg_int64_t; { overloaded to maintain binary compatability; x2 size, stores both beginning and end values }
+    offsets         : pogg_int64_t;
+    dataoffsets     : pogg_int64_t;
+    serialnos       : pclong;
+    pcmlengths      : pogg_int64_t; { overloaded to maintain binary compatability; x2 size, stores both beginning and end values }
     vi              : pvorbis_info;
     vc              : pvorbis_comment;
 
@@ -370,6 +387,7 @@ const
   OV_ECTL_IBLOCK_SET           = $31;
 
 type
+  povectl_ratemanage_arg = ^ovectl_ratemanage_arg;
   ovectl_ratemanage_arg = record
     management_active        : cint;
 
