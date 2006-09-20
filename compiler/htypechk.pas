@@ -661,6 +661,11 @@ implementation
                   tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
                 else
                   tabstractvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
+            temprefn :
+              if (ttemprefnode(p).tempinfo^.may_be_in_reg) and
+                 ((not records_only) or
+                  (ttemprefnode(p).tempinfo^.restype.def.deftype = recorddef)) then
+                ttemprefnode(p).tempinfo^.may_be_in_reg:=false;
          end;
       end;
 
