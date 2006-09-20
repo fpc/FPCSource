@@ -606,8 +606,8 @@ begin
     s^.z_err := inflate(s^.stream, Z_NO_FLUSH);
 
     if (s^.z_err = Z_STREAM_END) then begin
-      crclen := 0;
     {$ifdef pointer_arith}
+      crclen := 0;
       crclen:=s^.stream.next_out-start;
     {$else}
       next_out := s^.stream.next_out;
@@ -644,17 +644,17 @@ begin
 
   end; {WHILE}
 
-  crclen := 0;
 {$ifdef pointer_arith}
   crclen:=s^.stream.next_out-start;
 {$else}
+  crclen := 0;
   next_out := s^.stream.next_out;
   while (next_out <> start ) do begin
     dec (next_out);
     inc (crclen);   { Hack because Pascal cannot substract pointers }
   end;
-  s^.crc := crc32 (s^.crc, start, crclen);
 {$endif}
+  s^.crc := crc32 (s^.crc, start, crclen);
   gzread := integer(len - s^.stream.avail_out);
 
 end;
