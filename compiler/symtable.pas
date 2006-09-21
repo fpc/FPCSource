@@ -103,7 +103,6 @@ interface
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
           databitsize    : aint;
           { bitpacked? -> all fieldvarsym offsets are in bits instead of bytes }
-          packed_record: boolean;
         public
           property datasize : aint read _datasize write setdatasize;
        end;
@@ -831,7 +830,6 @@ implementation
         databitsize:=0;
         recordalignment:=1;
         usefieldalignment:=usealign;
-        packed_record:=usealign=bit_alignment;
         padalignment:=1;
         { recordalign C_alignment means C record packing, that starts
           with an alignment of 1 }
@@ -849,8 +847,6 @@ implementation
       var
         storesymtable : tsymtable;
       begin
-        packed_record:=boolean(ppufile.getbyte);
-
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
@@ -865,8 +861,6 @@ implementation
         oldtyp : byte;
         storesymtable : tsymtable;
       begin
-         ppufile.putbyte(byte(packed_record));
-
          storesymtable:=aktrecordsymtable;
          aktrecordsymtable:=self;
          oldtyp:=ppufile.entrytyp;
@@ -1059,7 +1053,7 @@ implementation
 
     function tabstractrecordsymtable.is_packed: boolean;
       begin
-        result:=packed_record;
+        result:=usefieldalignment=bit_alignment;
       end;
 
 

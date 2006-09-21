@@ -711,7 +711,8 @@ implementation
                 else
                   begin
                     oldaktpackrecords:=aktpackrecords;
-                    if not bitpacking then
+                    if (not bitpacking) or
+                       (token in [_CLASS,_OBJECT]) then
                       aktpackrecords:=1
                     else
                       aktpackrecords:=bit_alignment;
