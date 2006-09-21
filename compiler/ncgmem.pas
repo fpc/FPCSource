@@ -369,7 +369,6 @@ implementation
                  inc(location.reference.offset,vs.fieldoffset);
 {$ifdef SUPPORT_UNALIGNED}
                  { packed? }
-                 {$warning unalignment check does not work since usefieldalignment is not stored in ppu}
                  if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
                    (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
                    location.reference.alignment:=1;
@@ -772,7 +771,9 @@ implementation
                 begin
                   inc(location.reference.offset,
                     bytemulsize*tordconstnode(right).value);
-                  newsize:=int_cgsize(bytemulsize);
+                  { don't do this for floats etc. }
+                  if (tcgsize2size[newsize] <> bytemulsize) then
+                    newsize:=int_cgsize(bytemulsize);
                 end
               else
                 begin
