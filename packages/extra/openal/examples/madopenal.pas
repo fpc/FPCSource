@@ -111,8 +111,8 @@ begin
       end;
     end;
 
-    Ofs := Ofs + PtrUInt(4*m_synth.pcm.length);
-    Num := Num - PtrUInt(4*m_synth.pcm.length);
+    Ofs := Ofs + Longword(4*m_synth.pcm.length);
+    Num := Num - Longword(4*m_synth.pcm.length);
   end;
 
   Result := Ofs;
@@ -126,27 +126,27 @@ var
 
 function ogg_read_func(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
 begin
-  WriteLn('ogg_read_func');
   Result := TStream(datasource).Read(ptr^, size*nmemb);
 end;
 
 function ogg_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
 begin
-  WriteLn('ogg_seek_func');
-  //TStream(datasource).Seek(offset, );
-  Result := -1;
+  case whence of 
+    {SEEK_SET} 0: TStream(datasource).Seek(offset, soFromBeginning);
+    {SEEK_CUR} 1: TStream(datasource).Seek(offset, soFromCurrent);
+    {SEEK_END} 2: TStream(datasource).Seek(offset, soFromEnd);
+  end;
+  Result := 0;
 end;
 
 function ogg_close_func(datasource: pointer): cint; cdecl;
 begin
-  WriteLn('ogg_close_func');
   TStream(datasource).Position := 0;
   Result := 0;
 end;
 
 function ogg_tell_func(datasource: pointer): clong; cdecl;
 begin
-  WriteLn('ogg_tell_func');
   Result := TStream(datasource).Position;
 end;
 
@@ -159,20 +159,22 @@ function ogg_read(const Buffer: Pointer; const Count: Longword): Longword;
 var
   Ofs: Longword;
   Num: Longword;
+  Res: Integer;
 begin
   Ofs := 0;
   Num := Count;
 
   while Num > 0 do
   begin
-    if ov_read(ogg_vorbis, Pointer(PtrUInt(Buffer) + Ofs), Num, 0, 2, 1, nil) < 0 then
+    Res := ov_read(ogg_vorbis, Pointer(PtrUInt(Buffer) + Ofs), Num, 0, 2, 1, nil);
+    if Res < 0 then
       Exit(0);
 
-    if Result = 0 then
+    if Res = 0 then
       Break;
 
-    Ofs := Ofs + Result;
-    Num := Num - Result;
+    Ofs := Ofs + Longword(Res);
+    Num := Num - Longword(Res);
   end;
 
   Result := Ofs;
@@ -255,14 +257,14 @@ var
   ov: pvorbis_info;
 begin
 // define codec
-  {WriteLn('Define codec');
+  WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);}
+  Write('File: '); ReadLn(Filename);
 
-  codec := 2;
-  Filename := 'test.ogg';
+  {codec := 2;
+  Filename := 'test.ogg';}
 
 
 // load file
@@ -284,18 +286,13 @@ begin
 
     2: // oggvorbis
       begin
-        WriteLn('a');
-
         ogg_callbacks.read  := @ogg_read_func;
         ogg_callbacks.seek  := @ogg_seek_func;
         ogg_callbacks.close := @ogg_close_func;
         ogg_callbacks.tell  := @ogg_tell_func;
-
-        //writeln(format('Foo: %p', [@ogg_callbacks]));
-
+        
         if ov_open_callbacks(source, ogg_vorbis, nil, 0, ogg_callbacks) >= 0 then
         begin
-          WriteLn('b');
           ov := ov_info(ogg_vorbis, -1);
           codec_bs   := 4;
           codec_read := @ogg_read;
