@@ -19,8 +19,9 @@ unit fpcunit;
 
 interface
 {$IFNDEF MORPHOS}
-{$DEFINE SHOWLINEINFO}
+  {$DEFINE SHOWLINEINFO}
 {$ENDIF}
+
 { Uncomment this define to remove the DUnit compatibility interface. }
 {$DEFINE DUnit}
 
@@ -225,13 +226,13 @@ type
   { TTestResult }
 
   TTestResult = class(TObject)
-  private
   protected
     FRunTests: integer;
     FFailures: TFPList;
     FErrors: TFPList;
     FListeners: TFPList;
     FSkippedTests: TFPList;
+    FStartingTime: TDateTime;
     function GetNumErrors: integer;
     function GetNumFailures: integer;
     function GetNumSkipped: integer;
@@ -260,6 +261,7 @@ type
     property NumberOfErrors: integer read GetNumErrors;
     property NumberOfFailures: integer read GetNumFailures;
     property NumberOfSkippedTests: integer read GetNumSkipped;
+    property StartingTime: TDateTime read FStartingTime;
   end;
 
   function ComparisonMsg(const aExpected: string; const aActual: string): string;
@@ -976,10 +978,11 @@ end;
 constructor TTestResult.Create;
 begin
   inherited Create;
-  FFailures := TFPList.Create;
-  FErrors := TFPList.Create;
-  FListeners := TFPList.Create;
-  FSkippedTests := TFPList.Create;
+  FFailures       := TFPList.Create;
+  FErrors         := TFPList.Create;
+  FListeners      := TFPList.Create;
+  FSkippedTests   := TFPList.Create;
+  FStartingTime   := Now;
 end;
 
 

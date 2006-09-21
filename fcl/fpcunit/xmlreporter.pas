@@ -52,6 +52,7 @@ type
     FListing: TDOMNode;
     FFailures: TDOMNode;
     FErrors: TDOMNode;
+    FStartCrono: TDateTime;
     { Converts the actual test results into XML nodes. This gets called
       by the public method WriteResult. }
     procedure   TestResultAsXML(pTestResult: TTestResult);
@@ -95,18 +96,15 @@ begin
   n := FDoc.CreateElement('NumberOfFailures');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfFailures)));
   lResults.AppendChild(n);
-  
-  if pTestResult.NumberOfErrors <> 0 then
-  begin
-    for i := 0 to pTestResult.Errors.Count - 1 do
-      AddError(nil, TTestFailure(pTestResult.Errors.Items[i]));
-  end;
 
-  if pTestResult.NumberOfFailures <> 0 then
-  begin
-    for i := 0 to pTestResult.Failures.Count - 1 do
-      AddFailure(nil, TTestFailure(pTestResult.Failures.Items[i]));
-  end;
+  n := FDoc.CreateElement('TotalElapsedTime');
+  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - pTestResult.StartingTime)));
+  lResults.AppendChild(n);
+
+  { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
+  n := FDoc.CreateElement('DateTimeRan');
+  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:mm:ss', Now)));
+  lResults.AppendChild(n);
 end;
 
 
@@ -114,7 +112,7 @@ procedure TXMLResultsWriter.WriteHeader;
 begin
   FResults := FDoc.CreateElement('TestResults');
   FResults.AppendChild(FDoc.CreateComment(' Generated using FPCUnit on '
-      + FormatDateTime('yyyy-mm-dd hh:mm ', Now) ));
+      + FormatDateTime('yyyy-mm-dd hh:mm:ss', Now) ));
   FDoc.AppendChild(FResults);
   FListing := FDoc.CreateElement('TestListing');
   FResults.AppendChild(FListing);
@@ -127,6 +125,7 @@ begin
   FResults    := nil;
   FFailures   := nil;
   FErrors     := nil;
+  FListing    := nil;
   WriteHeader;
 end;
 
@@ -195,17 +194,42 @@ procedure TXMLResultsWriter.StartTest(ATest: TTest);
 var
   n: TDOMElement;
 begin
+  { Try and find the Listings node first }
   if not Assigned(FListing) then
-    exit;
+    FListing := FDoc.FindNode('TestListing');
+  { If we couldn't find it, create it }
+  if not Assigned(FListing) then
+  begin
+    FListing := FDoc.CreateElement('TestListing');
+    FResults.AppendChild(FListing);
+  end;
+
   n := FDoc.CreateElement('Test');
   n['Name'] := ATest.TestSuiteName + '.' + ATest.TestName;
   FListing.AppendChild(n);
+  FStartCrono := Now;
 end;
 
 
 procedure TXMLResultsWriter.EndTest(ATest: TTest);
+var
+  n: TDOMNode;
+  lNew: TDOMElement;
 begin
-  { do nothing }
+  { Try and find the Listings node first }
+  if not Assigned(FListing) then
+    FListing := FDoc.FindNode('TestListing');
+  { If we couldn't find it, create it }
+  if not Assigned(FListing) then
+  begin
+    FListing := FDoc.CreateElement('TestListing');
+    FResults.AppendChild(FListing);
+  end;
+
+  n := FListing.LastChild;
+  lNew := FDoc.CreateElement('ElapsedTime');
+  lNew.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - FStartCrono)));
+  n.AppendChild(lNew);
 end;
 
 
