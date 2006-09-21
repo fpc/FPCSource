@@ -2382,8 +2382,8 @@ function CreateFile(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD
 function CreateFileW(lpFileName:LPCWSTR; dwDesiredAccess:DWORD; dwShareMode:DWORD; lpSecurityAttributes:LPSECURITY_ATTRIBUTES; dwCreationDisposition:DWORD;dwFlagsAndAttributes:DWORD; hTemplateFile:HANDLE):HANDLE; external KernelDLL name 'CreateFileW';
 function CreateFileMapping(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD;lpName:LPCWSTR):HANDLE; external KernelDLL name 'CreateFileMappingW';
 function CreateFileMappingW(hFile:HANDLE; lpFileMappingAttributes:LPSECURITY_ATTRIBUTES; flProtect:DWORD; dwMaximumSizeHigh:DWORD; dwMaximumSizeLow:DWORD;lpName:LPCWSTR):HANDLE; external KernelDLL name 'CreateFileMappingW';
-function CreateFontIndirect(_para1:PLOGFONT):HFONT; external KernelDLL name 'CreateFontIndirectW';
-function CreateFontIndirectW(_para1:PLOGFONT):HFONT; external KernelDLL name 'CreateFontIndirectW';
+function CreateFontIndirect(_para1:PLOGFONTW):HFONT; external KernelDLL name 'CreateFontIndirectW';
+function CreateFontIndirectW(_para1:PLOGFONTW):HFONT; external KernelDLL name 'CreateFontIndirectW';
 function CreateIconIndirect(piconinfo:PICONINFO):HICON; external KernelDLL name 'CreateIconIndirect';
 function CreateMenu:HMENU; external KernelDLL name 'CreateMenu';
 function CreateMutex(lpMutexAttributes:LPSECURITY_ATTRIBUTES; bInitialOwner:WINBOOL; lpName:LPCWSTR):HANDLE; external KernelDLL name 'CreateMutexW';

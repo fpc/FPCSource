@@ -707,7 +707,7 @@
      LPCHOOSECOLOR = ^TCHOOSECOLOR;
      PCHOOSECOLOR = ^TCHOOSECOLOR;
 
-     LOGFONT = record
+     LOGFONTA = record
           lfHeight : LONG;
           lfWidth : LONG;
           lfEscapement : LONG;
@@ -723,11 +723,10 @@
           lfPitchAndFamily : BYTE;
           lfFaceName : array[0..(LF_FACESIZE)-1] of TCHAR;
        end;
-     LPLOGFONT = ^LOGFONT;
-     TLOGFONT = LOGFONT;
-     TLOGFONTA = LOGFONT;
-     PLOGFONT = ^LOGFONT;
-     PLOGFONTA = PLOGFONT;
+     TLOGFONTA = LOGFONTA;
+     tagLOGFONTA = LOGFONTA;
+     NPLOGFONTA = ^LOGFONTA;
+     PLOGFONTA = ^LOGFONTA;
 
      LOGFONTW = record
          lfHeight: LONG;
@@ -750,6 +749,13 @@
      tagLOGFONTW = LOGFONTW;
      TLogFontW = LOGFONTW;
      PLogFontW = ^TLogFontW;
+
+     TLOGFONT = LOGFONTW;
+     LOGFONT = LOGFONTW;
+     tagLOGFONT = LOGFONTW;
+     LPLOGFONT = ^LOGFONTW;
+     PLOGFONT = ^LOGFONTW;
+     NPLOGFONT = ^LOGFONTW;
 
      TCHOOSEFONTW = record //+commdlg
           lStructSize : DWORD;

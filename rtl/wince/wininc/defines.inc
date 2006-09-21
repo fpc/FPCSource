@@ -808,20 +808,23 @@
      SS_USERITEM = $a;
      SS_WHITEFRAME = $9;
      SS_WHITERECT = $6;
-     DS_3DLOOK = $4;
-     DS_ABSALIGN = $1;
-     DS_CENTER = $800;
-     DS_CENTERMOUSE = $1000;
-     DS_CONTEXTHELP = $2000;
-     DS_CONTROL = $400;
-     DS_FIXEDSYS = $8;
-     DS_LOCALEDIT = $20;
-     DS_MODALFRAME = $80;
-     DS_NOFAILCREATE = $10;
-     DS_NOIDLEMSG = $100;
-     DS_SETFONT = $40;
+    { Dialog styles }
+     DS_ABSALIGN      = $1;
+     DS_SYSMODAL      = $2;
+     DS_3DLOOK        = $4;
+     DS_FIXEDSYS      = $8;
+     DS_NOFAILCREATE  = $10;
+     DS_LOCALEDIT     = $20;
+     DS_SETFONT       = $40;
+     DS_MODALFRAME    = $80;
+     DS_NOIDLEMSG     = $100;
      DS_SETFOREGROUND = $200;
-     DS_SYSMODAL = $2;
+     DS_CONTROL       = $400;
+     DS_CENTER        = $800;
+     DS_CENTERMOUSE   = $1000;
+     DS_CONTEXTHELP   = $2000;
+     DS_NOCLOSEBTN    =	$4000;
+
   { CreateWindowEx  }
      WS_EX_LEFT             = 0;
      WS_EX_LTRREADING       = 0;
@@ -845,6 +848,7 @@
      WS_EX_STATICEDGE       = $20000;
      WS_EX_APPWINDOW        = $40000;
      WS_EX_NOANIMATION	    = $4000000;
+     WS_EX_NOACTIVATE       = $8000000;
      WS_EX_INK		    = $10000000;
      WS_EX_ABOVESTARTUP	    = $20000000;
      WS_EX_NODRAG           = $40000000;
