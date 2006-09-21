@@ -27,9 +27,9 @@ uses
 {$IFDEF DYNLINK}
 const
 {$IF Defined(WINDOWS)}
-  vorbislib     = 'vorbislib.dll';
+  vorbislib     = 'vorbis.dll';
   vorbisfilelib = 'vorbisfile.dll';
-  vorbisenclib  = 'vorbisenclib.dll';
+  vorbisenclib  = 'vorbisenc.dll';
 {$ELSEIF Defined(UNIX)}
   vorbislib     = 'libvorbis.so';
   vorbisfilelib = 'libvorbisfile.so';

@@ -262,7 +262,7 @@ begin
   Write('File: '); ReadLn(Filename);}
 
   codec := 2;
-  Filename := '/test.ogg';
+  Filename := 'test.ogg';
 
 
 // load file
