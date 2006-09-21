@@ -37,6 +37,10 @@ Const
 
   PF_MAX          = AF_MAX;
 
+
+{ Maximum queue length specifiable by listen.  }
+  SOMAXCONN     = 128;
+
         SOL_SOCKET = $FFFF;
         SO_DEBUG         =$0001;        { turn on debugging info recording }
         SO_ACCEPTCONN    =$0002;        { socket has had listen() }
@@ -218,3 +222,23 @@ Const
       	IP_MULTICAST_LOOP	= 11;   { u_char; set/get IP multicast loopback }
       	IP_ADD_MEMBERSHIP	= 12;   { ip_mreq; add an IP group membership }
       	IP_DROP_MEMBERSHIP	= 13;   { ip_mreq; drop an IP group membership }
+
+  { Flags for send, recv etc. }
+  MSG_OOB        = $0001;              { Process out-of-band data}
+  MSG_PEEK       = $0002;              { Peek at incoming messages }
+  MSG_DONTROUTE  = $0004;              { Don't use local routing }
+  MSG_EOR        = $0008;              { End of record }
+  MSG_TRUNC      = $0010;
+  MSG_CTRUNC     = $0020;              { Control data lost before delivery }
+  MSG_WAITALL    = $0040;              { Wait for a full request }
+  MSG_DONTWAIT   = $0080;              { Non-blocking I/O }
+  MSG_EOF        = $0100;
+  MSG_WAITSTREAM = $0200;	             { wait up to full request.. may return partial }
+  MSG_FLUSH 	   = $0400;              { Start of 'hold' seq; dump so_temp }
+  MSG_HOLD       = $0800;              { Hold frag in so_temp }
+  MSG_SEND       = $1000;              { Send the packet in so_temp }
+  MSG_HAVEMORE   = $2000;              { Data ready to be read }
+  MSG_RCVMORE    = $4000;              { Data remains in current pkt }
+  MSG_COMPAT     = $8000;              { used in sendit() }
+  MSG_NEEDSA     = $10000;             { Fail receive if socket address cannot be allocated }
+
