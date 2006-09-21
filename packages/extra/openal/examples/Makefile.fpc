@@ -1,12 +1,12 @@
 #
-#   Makefile.fpc for Free Pascal GTK 1.2.x Examples
+#   Makefile.fpc for OpenAL Examples
 #
 
 [target]
 programs=madopenal
 
 [require]
-packages=openal mad
+packages=openal mad oggvorbis
 
 [install]
 fpcpackage=y
