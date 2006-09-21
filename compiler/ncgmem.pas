@@ -165,6 +165,8 @@ implementation
 *****************************************************************************}
 
     procedure tcgaddrnode.pass_2;
+      var
+        tmpref: treference;
       begin
          secondpass(left);
 
@@ -477,7 +479,8 @@ implementation
          byteoffs, bitoffs, alignpower: aint;
          temp : longint;
        begin
-         if (l mod 8) = 0 then
+         if ((l mod 8) = 0) and
+            ispowerof2(l div 8,temp) then
            begin
              update_reference_reg_mul(reg,l div 8);
              exit;
@@ -692,7 +695,8 @@ implementation
          if (left.resulttype.def.deftype=arraydef) and
             not(is_dynamic_array(left.resulttype.def)) and
             (not(is_packed_array(left.resulttype.def)) or
-             (mulsize mod 8 = 0)) then
+             ((mulsize mod 8 = 0) and
+              ispowerof2(mulsize div 8,temp))) then
            dec(location.reference.offset,bytemulsize*tarraydef(left.resulttype.def).lowrange);
 
          if right.nodetype=ordconstn then
@@ -763,9 +767,13 @@ implementation
                    end;
               end;
               if not(is_packed_array(left.resulttype.def)) or
-                 (mulsize mod 8 = 0) then
-                inc(location.reference.offset,
-                  bytemulsize*tordconstnode(right).value)
+                 ((mulsize mod 8 = 0) and
+                  ispowerof2(mulsize div 8,temp)) then
+                begin
+                  inc(location.reference.offset,
+                    bytemulsize*tordconstnode(right).value);
+                  newsize:=int_cgsize(bytemulsize);
+                end
               else
                 begin
                   subsetref.ref := location.reference;

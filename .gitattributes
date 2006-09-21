@@ -6177,6 +6177,7 @@ tests/test/tpara2.pp svneol=native#text/plain
 tests/test/tparray1.pp svneol=native#text/plain
 tests/test/tparray10.pp svneol=native#text/plain
 tests/test/tparray11.pp svneol=native#text/plain
+tests/test/tparray12.pp svneol=native#text/plain
 tests/test/tparray2.pp svneol=native#text/plain
 tests/test/tparray3.pp svneol=native#text/plain
 tests/test/tparray4.pp svneol=native#text/plain
