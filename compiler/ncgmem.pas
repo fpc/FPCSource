@@ -771,8 +771,12 @@ implementation
                 begin
                   inc(location.reference.offset,
                     bytemulsize*tordconstnode(right).value);
-                  { don't do this for floats etc. }
-                  if (tcgsize2size[newsize] <> bytemulsize) then
+                  { don't do this for floats etc.; needed to properly set the }
+                  { size for bitpacked arrays (e.g. a bitpacked array of      }
+                  { enums who are size 2 but fit in one byte -> in the array  }
+                  { they will be one byte and have to be stored like that)    }
+                  if is_packed_array(left.resulttype.def) and
+                     (tcgsize2size[newsize] <> bytemulsize) then
                     newsize:=int_cgsize(bytemulsize);
                 end
               else
