@@ -2758,12 +2758,15 @@ procedure InitializeCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); exter
 function InSendMessage:WINBOOL; external KernelDLL name 'InSendMessage';
 function InsertMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external KernelDLL name 'InsertMenuW';
 function InsertMenuW(hMenu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCWSTR):WINBOOL; external KernelDLL name 'InsertMenuW';
-function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';
-function InterlockedDecrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedDecrement';
-function InterlockedCompareExchange( var Destination:LPLONG; Exchange:LONG; Comperand:LONG):LONG; external KernelDLL name 'InterlockedCompareExchange';
-function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchange';
-function InterlockedExchangeAdd( Addend:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchangeAdd';
-function InterlockedTestExchange( Target:LPLONG; oldValue:LONG; newValue:LONG):LONG; external KernelDLL name 'InterlockedTestExchange';
+
+//faster functions declared in rtl, commented to avoid mixed api/rtl calls depending on units uses
+//function InterlockedIncrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedIncrement';
+//function InterlockedDecrement(lpAddend:LPLONG):LONG; external KernelDLL name 'InterlockedDecrement';
+//function InterlockedCompareExchange( var Destination:LPLONG; Exchange:LONG; Comperand:LONG):LONG; external KernelDLL name 'InterlockedCompareExchange';
+//function InterlockedExchange(Target:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchange';
+//function InterlockedExchange(var Target: Longint; Value:Longint):Longint; external KernelDLL name 'InterlockedExchange';
+//function InterlockedExchangeAdd( Addend:LPLONG; Value:LONG):LONG; external KernelDLL name 'InterlockedExchangeAdd';
+//function InterlockedTestExchange( Target:LPLONG; oldValue:LONG; newValue:LONG):LONG; external KernelDLL name 'InterlockedTestExchange';
 function IntersectClipRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):longint; external KernelDLL name 'IntersectClipRect';
 function IntersectRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINBOOL; external KernelDLL name 'IntersectRect';
 function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external KernelDLL name 'InvalidateRect';
