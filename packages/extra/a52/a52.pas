@@ -431,7 +431,6 @@ type
   // codec info
     sample_rate : cint;
     bit_rate    : cint;
-    //req_chan    : cint;
   end;
 
 function a52_decoder_init(mm_accel: cuint32; datasource: pointer; read: read_func; seek: seek_func; close: close_func; tell: tell_func): pa52_decoder;
@@ -497,82 +496,75 @@ begin
   begin
     len := PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf);
 
+    if (len < HEADER_SIZE) or (len < decoder^.frame_size) then
+    begin
+      (* inbuf too small : enlarge *)
+      len := Sizeof(a52_decoder.inbuf) - len;
+      if decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource) <> len then
+        Exit(ofs);
+      Inc(decoder^.inbuf_ptr, len);
+    end;
+
     if decoder^.frame_size = 0 then
     begin
       (* no header seen : find one. We need at least 7 bytes to parse it *)
       //WriteLn('no header seen (', len, ')');
 
-      len := HEADER_SIZE - len;
-      if decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource) <> len then
-        Exit(ofs);
-
-      Inc(decoder^.inbuf_ptr, len);
-
-      if PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) = HEADER_SIZE then
+      len := a52_syncinfo(@decoder^.inbuf, decoder^.flags, sample_rate, bit_rate);
+      if len = 0 then
       begin
-        len := a52_syncinfo(@decoder^.inbuf, decoder^.flags, sample_rate, bit_rate);
-        if len = 0 then
-        begin
-          (* no sync found : move by one byte (inefficient, but simple!) *)
-          Move(decoder^.inbuf[1], decoder^.inbuf[0], HEADER_SIZE - 1);
-          Dec(decoder^.inbuf_ptr);
-        end else begin
-          decoder^.frame_size := len;
-
-          (* update codec info *)
-          decoder^.sample_rate := sample_rate;
-          decoder^.bit_rate := bit_rate;
-          decoder^.channels := ac3_channels[decoder^.flags and $7];
-          if decoder^.flags and A52_LFE <> 0 then
-            Inc(decoder^.channels);
-
-         {WriteLn('  frame_size  : ', decoder^.frame_size);
-          WriteLn('  sample_rate : ', sample_rate);
-          WriteLn('  bit_rate    : ', bit_rate);
-          WriteLn('  channels    : ', decoder^.channels);}
-
-          // test against user channel settings (wrong here)
-          {if decoder^.req_chan = 0 then
-            decoder^.req_chan := decoder^.channels else
-            if decoder^.channels < decoder^.req_chan then
-              decoder^.req_chan := decoder^.channels;}
-        end;
-      end else
-        WriteLn('BUG!!!!');
-    end else begin
-      if len < decoder^.frame_size then
-      begin
-        len := decoder^.frame_size - len;
-        if decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource) <> len then
-          Exit(ofs);
-
-        Inc(decoder^.inbuf_ptr, len);
+        (* no sync found : move by one byte (inefficient, but simple!) *)
+        Move(decoder^.inbuf[1], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - 1);
+        Dec(decoder^.inbuf_ptr, 1);
       end else begin
-        flags := A52_STEREO;//decoder^.flags;
-        level := High(Smallint)-30;
+        decoder^.frame_size := len;
 
-        if a52_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
-        begin
-          decoder^.inbuf_ptr := @decoder^.inbuf;
-          decoder^.frame_size := 0;
-          Continue;
-        end;
+        (* update codec info *)
+        decoder^.sample_rate := sample_rate;
+        decoder^.bit_rate := bit_rate;
+        decoder^.channels := ac3_channels[decoder^.flags and $7];
+        if decoder^.flags and A52_LFE <> 0 then
+          Inc(decoder^.channels);
 
-        for i := 0 to 5 do
-        begin
-          if a52_block(decoder^.state) <> 0 then
-            Exit(-1);
+       {WriteLn('  frame_size  : ', decoder^.frame_size);
+        WriteLn('  sample_rate : ', sample_rate);
+        WriteLn('  bit_rate    : ', bit_rate);
+        WriteLn('  channels    : ', decoder^.channels);}
+      end;
 
-          float_to_int(decoder^.samples, pointer(PtrInt(buffer) + ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
-        end;
+      Continue;
+    end;
 
+    (* decode the frame *)
+    flags := A52_STEREO;//decoder^.flags;
+    level := High(Smallint)-30;
+
+    if a52_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
+    begin
+      decoder^.inbuf_ptr := @decoder^.inbuf;
+      decoder^.frame_size := 0;
+      Continue;
+    end;
+
+    for i := 0 to 5 do
+    begin
+      if a52_block(decoder^.state) <> 0 then
+      begin
         decoder^.inbuf_ptr := @decoder^.inbuf;
         decoder^.frame_size := 0;
-
-        ofs := ofs + 2{channels}*(6*256){samples}*2{sample_size};
-        num := num - 2{channels}*(6*256){samples}*2{sample_size};
+        Exit(-1);
       end;
+
+      float_to_int(decoder^.samples, pointer(PtrInt(buffer) + ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
     end;
+
+    (* skip decoded frame *)
+    Move(decoder^.inbuf[decoder^.frame_size], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - decoder^.frame_size);
+    Dec(decoder^.inbuf_ptr, decoder^.frame_size);
+    decoder^.frame_size := 0;
+
+    ofs := ofs + 2{channels}*(6*256){samples}*2{sample_size};
+    num := num - 2{channels}*(6*256){samples}*2{sample_size};
   end;
 
   Result := ofs;

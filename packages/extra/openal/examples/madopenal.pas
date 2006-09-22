@@ -224,7 +224,8 @@ begin
     if codec_read(al_readbuf, al_bufsize) = 0 then
       Break;
 
-    alBufferData(al_buffers[i], al_format[codec_chan], al_readbuf, al_bufsize, codec_rate);
+    //alBufferData(al_buffers[i], al_format[codec_chan], al_readbuf, al_bufsize, codec_rate);
+    alBufferWriteData_LOKI(al_buffers[i], al_format[codec_chan], al_readbuf, al_bufsize, codec_rate, al_format[codec_chan]);
     alSourceQueueBuffers(al_source, 1, @al_buffers[i]);
   end;
 
@@ -256,7 +257,8 @@ begin
       Exit(False);
     end;
 
-    alBufferData(buffer, al_format[codec_chan], al_readbuf, al_bufsize, codec_rate);
+    //alBufferData(buffer, al_format[codec_chan], al_readbuf, al_bufsize, codec_rate);
+    alBufferWriteData_LOKI(buffer, al_format[codec_chan], al_readbuf, al_bufsize, codec_rate, al_format[codec_chan]);
     alSourceQueueBuffers(al_source, 1, @buffer);
 
     Dec(processed);
@@ -277,8 +279,8 @@ begin
   Write('Enter: '); ReadLn(codec);
   Write('File: '); ReadLn(Filename);
 
-  {codec := 1;
-  Filename := 'test.mp3';}
+  {codec := 3;
+  Filename := 'test.ac3';}
 
 
 // load file
@@ -321,7 +323,7 @@ begin
         a52_decoder := a52_decoder_init(0, source, @ogg_read_func, @ogg_seek_func, @ogg_close_func, @ogg_tell_func);
         codec_bs   := 2{channels}*1536*2{sample_size};
         codec_read := @a52_read;
-        codec_rate := 48000;
+        codec_rate := 44100;//48000;
         codec_chan := 2;
       end;
   end;
@@ -329,6 +331,7 @@ begin
   if not Assigned(codec_read) then
     Exit;
 
+  //al_bufsize := 20000 - (20000 mod codec_bs);
   al_bufsize := 20000 - (20000 mod codec_bs);
   WriteLn('Codec Blocksize    : ', codec_bs);
   WriteLn('Codec Rate         : ', codec_rate);
