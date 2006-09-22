@@ -44,6 +44,62 @@ program h2pas;
      REAL_STR   = 'double';
      WCHAR_STR  = 'widechar';
 
+  {ctypes strings}
+  const
+    cint8_STR       = 'cint8';
+    cuint8_STR      = 'cuint8';
+    cchar_STR       = 'cchar';
+    cschar_STR      = 'cschar';
+    cuchar_STR      = 'cuchar';
+    
+    cint16_STR      = 'cint16';
+    cuint16_STR     = 'cuint16';
+    cshort_STR      = 'cshort';
+    csshort_STR     = 'csshort';
+    cushort_STR     = 'cushort';
+    
+    cint32_STR      = 'cint32';
+    cuint32_STR     = 'cuint32';
+    cint_STR        = 'cint';
+    csint_STR       = 'csint';
+    cuint_STR       = 'cuint';
+    
+    csigned_STR     = 'csigned';
+    cunsigned_STR   = 'cunsigned';
+    
+    cint64_STR      = 'cint64';
+    cuint64_STR     = 'cuint64';
+    clonglong_STR   = 'clonglong';
+    cslonglong_STR  = 'cslonglong';
+    culonglong_STR  = 'culonglong';
+
+    cbool_STR       = 'cbool';
+    
+    clong_STR       = 'clong';
+    cslong_STR      = 'cslong';
+    culong_STR      = 'culong';
+    
+    cfloat_STR      = 'cfloat';
+    cdouble_STR     = 'cdouble';
+    clongdouble_STR = 'clongdouble';
+  
+  const
+    MAX_CTYPESARRAY = 25;
+    CTypesArray : array [0..MAX_CTYPESARRAY] of string =
+      (cint8_STR,     cuint8_STR, 
+       cchar_STR,     cschar_STR,     cuchar_STR,
+       cint16_STR,    cuint16_STR, 
+       cshort_STR,    csshort_STR,    cushort_STR,
+       csigned_STR,   cunsigned_STR, 
+       cint32_STR,    cuint32_STR,    cint_STR,
+       csint_STR,     cuint_STR,       
+       cint64_STR,    cuint64_STR,
+       clonglong_STR, cslonglong_STR, culonglong_STR,
+       
+       cbool_STR,     
+       clong_STR,      cslong_STR,    culong_STR);  
+    
+    
   var
      hp,ph    : presobject;
      implemfile  : text;  (* file for implementation headers extern procs *)
@@ -201,11 +257,34 @@ program h2pas;
          TypeName:=Copy(s,i,255);
       end;
 
+    function IsACType(const s : String) : Boolean;
+    var i : Integer;
+    begin
+      IsACType := True;
+      WriteLn('IsACType '+s);
+      for i := 0 to MAX_CTYPESARRAY do
+      begin
+        if s = CTypesArray[i] then
+        begin
+          WriteLn('IsACType True');
+          Exit;
+        end;
+      end;
+      IsACType := False;
+    end;
 
     function PointerName(const s:string):string;
       var
         i : longint;
       begin
+        if UseCTypesUnit then
+        begin
+          if IsACType(s) then
+          begin
+            PointerName := 'p'+s;
+            exit;
+          end;
+        end;
         i:=1;
         if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
          i:=2;
@@ -219,7 +298,6 @@ program h2pas;
         if PointerPrefix then
            PTypeList.Add('P'+s);
       end;
-
 
     procedure write_packed_fields_info(var outfile:text; p : presobject; ph : string);
       var
@@ -727,7 +805,7 @@ program h2pas;
                                      begin
                                        pointerwritten:=false;
                                        if (p^.p1=nil) and UsePPointers then
-                                        begin
+                                        begin   
                                           if (simple_type^.typ=t_id) then
                                            begin
                                              write(outfile,PointerName(simple_type^.p));
@@ -844,13 +922,14 @@ program h2pas;
                    end;
                  if not pointerwritten then
                   begin
-                    if in_args then
-                    begin
-                     write(outfile,'P');
-                     pointerprefix:=true;
-                    end
-                    else
-                     write(outfile,'^');
+
+                      if in_args then
+                      begin
+                       write(outfile,'P');
+                       pointerprefix:=true;
+                      end
+                      else
+                       write(outfile,'^');
                     write_type_specifier(outfile,p^.p1);
                     pointerprefix:=false;
                   end;
@@ -2265,6 +2344,23 @@ begin
          if assigned(hp) then
          begin
          s:=strpas(hp^.p);
+         if UseCTypesUnit then
+         begin          
+         if s=cint_STR then
+         s:=csint_STR
+         else if s=cshort_STR then
+         s:=csshort_STR
+         else if s=cchar_STR then
+         s:=cschar_STR
+         else if s=clong_STR then
+         s:=cslong_STR              
+         else if s=clonglong_STR then
+         s:=cslonglong_STR
+         else
+         s:='';
+         end
+         else
+         begin
          if s=UINT_STR then
          s:=INT_STR
          else if s=USHORT_STR then
@@ -2274,7 +2370,8 @@ begin
          else if s=QWORD_STR then
          s:=INT64_STR
          else
-         s:='';
+         s:='';          
+         end; 
          if s<>'' then
          hp^.setstr(s);
          end;
@@ -2287,6 +2384,23 @@ begin
          if assigned(hp) then
          begin
          s:=strpas(hp^.p);
+         if UseCTypesUnit then
+         begin
+         if s=cint_STR then
+         s:=cuint_STR
+         else if s=cshort_STR then
+         s:=cushort_STR
+         else if s=cchar_STR then
+         s:=cuchar_STR
+         else if s=clong_STR then
+         s:=culong_STR
+         else if s=clonglong_STR then
+         s:=culonglong_STR
+         else
+         s:='';          
+         end
+         else
+         begin
          if s=INT_STR then
          s:=UINT_STR
          else if s=SHORT_STR then
@@ -2297,6 +2411,7 @@ begin
          s:=QWORD_STR
          else
          s:='';
+         end;
          if s<>'' then
          hp^.setstr(s);
          end;
@@ -2304,36 +2419,57 @@ begin
        end;
   67 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(cint_STR)) 
+         else       
          yyval:=new(presobject,init_intid(INT_STR));
          
        end;
   68 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(clong_STR)) 
+         else      
          yyval:=new(presobject,init_intid(INT_STR));
          
        end;
   69 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(clong_STR)) 
+         else    
          yyval:=new(presobject,init_intid(INT_STR));
          
        end;
   70 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(clonglong_STR)) 
+         else        
          yyval:=new(presobject,init_intid(INT64_STR));
          
        end;
   71 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(clonglong_STR)) 
+         else      
          yyval:=new(presobject,init_intid(INT64_STR));
          
        end;
   72 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(cshort_STR)) 
+         else      
          yyval:=new(presobject,init_intid(SHORT_STR));
          
        end;
   73 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(csint_STR)) 
+         else      
          yyval:=new(presobject,init_intid(SHORT_STR));
          
        end;
@@ -2349,11 +2485,17 @@ begin
        end;
   76 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(cchar_STR)) 
+         else
          yyval:=new(presobject,init_intid(CHAR_STR));
          
        end;
   77 : begin
          
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(cunsigned_STR)) 
+         else     
          yyval:=new(presobject,init_intid(UINT_STR));
          
        end;
@@ -8548,6 +8690,12 @@ begin
      writeln(headerfile,'unit ',unitname,';');
      writeln(headerfile,'interface');
      writeln(headerfile);
+     if UseCTypesUnit then
+     begin
+       writeln(headerfile,'uses');
+       writeln(headerfile,'  ctypes;');
+       writeln(headerfile);
+     end;
      writeln(headerfile,'{');
      writeln(headerfile,'  Automatically converted by H2Pas ',version,' from ',inputfilename);
      writeln(headerfile,'  The following command line parameters were used:');

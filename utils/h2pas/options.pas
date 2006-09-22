@@ -34,6 +34,7 @@ var
    Win32headers,              { allows dec_specifier }
    stripcomment,              { strip comments from inputfile }
    PrependTypes,              { Print T in front of type names ?   }
+   UseCTypesUnit,             { Use types defined in the ctypes unit}
    createdynlib,              { creates a unit which loads dynamically the imports to proc vars }
    RemoveUnderscore : Boolean;
    usevarparas : boolean;     { generate var parameters, when a pointer }
@@ -104,6 +105,7 @@ begin
   writeln ('        -D                 use external libname name ''func_name'';');
   writeln ('        -e                 change enum type to list of constants');
   writeln ('        -c                 Compact outputmode, less spaces and empty lines');
+  WriteLn ('        -C                 Use types in ctypes unit');
   writeln ('        -i                 create include files (no unit header)');
   writeln ('        -l libname         Specify the library name for external');
   writeln ('        -o outputfilename  Specify the outputfilename');
@@ -155,6 +157,7 @@ begin
   StripComment:=false;
   StripInfo:=false;
   UsePPointers:=false;
+  UseCTypesUnit := false;
   EnumToCOnst:=false;
   usevarparas:=false;
   palmpilot:=false;
@@ -169,6 +172,7 @@ begin
       begin
         case cp[2] of
          'c' : CompactMode:=true;
+         'C' : UseCTypesUnit := true;
          'e' : EnumToConst :=true;
          'd' : UseLib      :=true;
          'D' : begin
