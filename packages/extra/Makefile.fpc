@@ -7,7 +7,7 @@ dirs_linux=unzip zlib fftw \
            forms svgalib ggi libpng libgd \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
-           md4 ldap openal mad oggvorbis
+           md4 ldap openal mad oggvorbis a52
 dirs_i386_linux=unixutil
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
@@ -24,7 +24,7 @@ dirs_openbsd=unzip zlib \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
              tcl imlib gnome1 md4
-dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis
+dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis a52
 dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \

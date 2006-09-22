@@ -1,3 +1,8 @@
+{
+  Translation of the ogg headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 (********************************************************************
  *                                                                  *
  * THIS FILE IS PART OF THE OggVorbis SOFTWARE CODEC SOURCE CODE.   *

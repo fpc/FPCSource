@@ -1,3 +1,8 @@
+{
+  Translation of the OpenAL headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 unit openal;
 
 {$mode objfpc}

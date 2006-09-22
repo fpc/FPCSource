@@ -1,3 +1,8 @@
+{
+  Translation of the LDAP lber headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 unit lber;
 
 {$mode objfpc}

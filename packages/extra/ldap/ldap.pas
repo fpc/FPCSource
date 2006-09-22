@@ -1,3 +1,8 @@
+{
+  Translation of the LDAP headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 unit ldap;
 
 {$mode objfpc}

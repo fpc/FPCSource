@@ -1,3 +1,8 @@
+{
+  Translation of the libmad headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 (*
  * libmad - MPEG audio decoder library
  * Copyright (C) 2000-2003 Underbit Technologies, Inc.

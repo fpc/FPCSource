@@ -231,13 +231,13 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis unixutil
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52 unixutil
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis
+override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
@@ -270,7 +270,7 @@ ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -288,7 +288,7 @@ ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -300,7 +300,7 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 univint
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -309,7 +309,7 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 md4
@@ -318,7 +318,7 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=palmunits
@@ -327,7 +327,7 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=unzip zlib tcl fftw
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis
+override TARGET_DIRS+=unzip zlib fftw x11 opengl gtk gtk2 syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk newt uuid md4 ldap openal mad oggvorbis a52
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1423,6 +1423,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 TARGET_DIRS_UNIXUTIL=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
@@ -1443,6 +1444,7 @@ TARGET_DIRS_MD4=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_OS2UNITS=1
@@ -1627,6 +1629,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_UNZIP=1
@@ -1732,6 +1735,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_UNZIP=1
@@ -1812,6 +1816,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_UNZIP=1
@@ -1888,6 +1893,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_UNZIP=1
@@ -1956,6 +1962,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_PALMUNITS=1
@@ -1996,6 +2003,7 @@ TARGET_DIRS_LDAP=1
 TARGET_DIRS_OPENAL=1
 TARGET_DIRS_MAD=1
 TARGET_DIRS_OGGVORBIS=1
+TARGET_DIRS_A52=1
 endif
 ifdef TARGET_DIRS_UNZIP
 unzip_all:
@@ -3301,6 +3309,51 @@ oggvorbis_makefiles:
 oggvorbis:
 	$(MAKE) -C oggvorbis all
 .PHONY: oggvorbis_all oggvorbis_debug oggvorbis_smart oggvorbis_release oggvorbis_units oggvorbis_examples oggvorbis_shared oggvorbis_install oggvorbis_sourceinstall oggvorbis_exampleinstall oggvorbis_distinstall oggvorbis_zipinstall oggvorbis_zipsourceinstall oggvorbis_zipexampleinstall oggvorbis_zipdistinstall oggvorbis_clean oggvorbis_distclean oggvorbis_cleanall oggvorbis_info oggvorbis_makefiles oggvorbis
+endif
+ifdef TARGET_DIRS_A52
+a52_all:
+	$(MAKE) -C a52 all
+a52_debug:
+	$(MAKE) -C a52 debug
+a52_smart:
+	$(MAKE) -C a52 smart
+a52_release:
+	$(MAKE) -C a52 release
+a52_units:
+	$(MAKE) -C a52 units
+a52_examples:
+	$(MAKE) -C a52 examples
+a52_shared:
+	$(MAKE) -C a52 shared
+a52_install:
+	$(MAKE) -C a52 install
+a52_sourceinstall:
+	$(MAKE) -C a52 sourceinstall
+a52_exampleinstall:
+	$(MAKE) -C a52 exampleinstall
+a52_distinstall:
+	$(MAKE) -C a52 distinstall
+a52_zipinstall:
+	$(MAKE) -C a52 zipinstall
+a52_zipsourceinstall:
+	$(MAKE) -C a52 zipsourceinstall
+a52_zipexampleinstall:
+	$(MAKE) -C a52 zipexampleinstall
+a52_zipdistinstall:
+	$(MAKE) -C a52 zipdistinstall
+a52_clean:
+	$(MAKE) -C a52 clean
+a52_distclean:
+	$(MAKE) -C a52 distclean
+a52_cleanall:
+	$(MAKE) -C a52 cleanall
+a52_info:
+	$(MAKE) -C a52 info
+a52_makefiles:
+	$(MAKE) -C a52 makefiles
+a52:
+	$(MAKE) -C a52 all
+.PHONY: a52_all a52_debug a52_smart a52_release a52_units a52_examples a52_shared a52_install a52_sourceinstall a52_exampleinstall a52_distinstall a52_zipinstall a52_zipsourceinstall a52_zipexampleinstall a52_zipdistinstall a52_clean a52_distclean a52_cleanall a52_info a52_makefiles a52
 endif
 ifdef TARGET_DIRS_UNIXUTIL
 unixutil_all:

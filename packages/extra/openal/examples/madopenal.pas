@@ -3,7 +3,7 @@ program test;
 {$mode objfpc}
 
 uses
-  classes, sysutils, ctypes, openal, mad, ogg, vorbis;
+  classes, sysutils, ctypes, openal, mad, ogg, vorbis, a52;
 
 var
   source     : TStream;
@@ -22,7 +22,7 @@ var
   m_stream  : mad_stream;
   m_frame   : mad_frame;
   m_synth   : mad_synth;
-  m_inbuf   : array[0..MAD_INPUT_BUFFER_SIZE-1] of Byte;
+  m_inbuf   : PByte;
 
 {procedure mad_reset;
 begin
@@ -39,7 +39,7 @@ var
   Remaining : Integer;
   ReadStart : Pointer;
   ReadSize  : Integer;
-  Output    : PSmallint;
+  Output    : PByte;
 begin
   Ofs := 0;
   Num := Count;
@@ -50,12 +50,12 @@ begin
       if Assigned(m_stream.next_frame) then
       begin
         Remaining := PtrInt(m_stream.bufend) - PtrInt(m_stream.next_frame);
-        Move(m_stream.next_frame^, m_inbuf, Remaining);
-        ReadStart := Pointer(PtrInt(@m_inbuf) + Remaining);
+        Move(m_stream.next_frame^, m_inbuf^, Remaining);
+        ReadStart := Pointer(PtrInt(m_inbuf) + Remaining);
         ReadSize  := MAD_INPUT_BUFFER_SIZE - Remaining;
       end else begin
         ReadSize  := MAD_INPUT_BUFFER_SIZE;
-        ReadStart := @m_inbuf;
+        ReadStart := m_inbuf;
         Remaining := 0;
       end;
 
@@ -63,7 +63,7 @@ begin
       if ReadSize = 0 then
         Break;
 
-      mad_stream_buffer(m_stream, @m_inbuf, ReadSize+Remaining);
+      mad_stream_buffer(m_stream, m_inbuf, ReadSize+Remaining);
       m_stream.error := MAD_ERROR_NONE;
     end;
 
@@ -71,7 +71,6 @@ begin
     begin
       if MAD_RECOVERABLE(m_stream.error) or (m_stream.error = MAD_ERROR_BUFLEN) then
         Continue;
-
       Exit(0);
     end;
 
@@ -111,8 +110,8 @@ begin
       end;
     end;
 
-    Ofs := Ofs + Longword(4*m_synth.pcm.length);
-    Num := Num - Longword(4*m_synth.pcm.length);
+    Ofs := Ofs + Longword(2{channels}*m_synth.pcm.length*2);
+    Num := Num - Longword(2{channels}*m_synth.pcm.length*2);
   end;
 
   Result := Ofs;
@@ -131,7 +130,8 @@ end;
 
 function ogg_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
 begin
-  case whence of 
+  WriteLn('seek');
+  case whence of
     {SEEK_SET} 0: TStream(datasource).Seek(offset, soFromBeginning);
     {SEEK_CUR} 1: TStream(datasource).Seek(offset, soFromCurrent);
     {SEEK_END} 2: TStream(datasource).Seek(offset, soFromEnd);
@@ -166,7 +166,37 @@ begin
 
   while Num > 0 do
   begin
-    Res := ov_read(ogg_vorbis, Pointer(PtrUInt(Buffer) + Ofs), Num, 0, 2, 1, nil);
+    Res := ov_read(ogg_vorbis, Pointer(PtrUInt(Buffer) + Ofs), Num, False, 2, True, nil);
+    if Res < 0 then
+      Exit(0);
+
+    if Res = 0 then
+      Break;
+
+    Ofs := Ofs + Longword(Res);
+    Num := Num - Longword(Res);
+  end;
+
+  Result := Ofs;
+end;
+
+
+// a52
+var
+  a52_decoder : pa52_decoder;
+
+function a52_read(const Buffer: Pointer; const Count: Longword): Longword;
+var
+  Ofs: Longword;
+  Num: Longword;
+  Res: Integer;
+begin
+  Ofs := 0;
+  Num := Count;
+
+  while Num > 0 do
+  begin
+    Res := a52_decoder_read(a52_decoder, Pointer(PtrUInt(Buffer) + Ofs), Num);
     if Res < 0 then
       Exit(0);
 
@@ -224,7 +254,6 @@ begin
   alSourceStop(al_source);
   alSourceRewind(al_source);
   alSourcei(al_source, AL_BUFFER, 0);
-  WriteLn('Stop');
 end;
 
 function alProcess: Boolean;
@@ -257,14 +286,14 @@ var
   ov: pvorbis_info;
 begin
 // define codec
-  WriteLn('Define codec');
+  {WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);
+  Write('File: '); ReadLn(Filename);}
 
-  {codec := 2;
-  Filename := 'test.ogg';}
+  codec := 1;
+  Filename := 'test.mp3';
 
 
 // load file
@@ -278,7 +307,8 @@ begin
         mad_stream_init(m_stream);
         mad_frame_init(m_frame);
         mad_synth_init(m_synth);
-        codec_bs   := 4*1152;
+        GetMem(m_inbuf, MAD_INPUT_BUFFER_SIZE);
+        codec_bs   := 2{channels}*1152*2{sample_size};
         codec_read := @mad_read;
         codec_rate := 44100;
         codec_chan := 2;
@@ -290,7 +320,7 @@ begin
         ogg_callbacks.seek  := @ogg_seek_func;
         ogg_callbacks.close := @ogg_close_func;
         ogg_callbacks.tell  := @ogg_tell_func;
-        
+
         if ov_open_callbacks(source, ogg_vorbis, nil, 0, ogg_callbacks) >= 0 then
         begin
           ov := ov_info(ogg_vorbis, -1);
@@ -299,6 +329,15 @@ begin
           codec_rate := ov^.rate;
           codec_chan := ov^.channels;
         end;
+      end;
+
+    3: // a52
+      begin
+        a52_decoder := a52_decoder_init(0, source, @ogg_read_func, @ogg_seek_func, @ogg_close_func, @ogg_tell_func);
+        codec_bs   := 2{channels}*1536*2{sample_size};
+        codec_read := @a52_read;
+        codec_rate := 44100;
+        codec_chan := 2;
       end;
   end;
 
@@ -327,8 +366,10 @@ begin
 
 // play
   alPlay;
+  writeln('begin process');
   while alProcess do
     Sleep(al_polltime);
+  writeln('end process');
 
 // finalize openal
   alDeleteSources(1, @al_source);
@@ -345,11 +386,17 @@ begin
         mad_synth_finish(m_synth);
         mad_frame_finish(m_frame);
         mad_stream_finish(m_stream);
+        FreeMem(m_inbuf);
       end;
 
     2: // oggvorbis
       begin
         ov_clear(ogg_vorbis);
+      end;
+
+    3: // a52
+      begin
+        a52_decoder_free(a52_decoder);
       end;
   end;
 

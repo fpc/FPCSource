@@ -1,3 +1,8 @@
+{
+  Translation of the vorbis headers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
 (********************************************************************
  *                                                                  *
  * THIS FILE IS PART OF THE OggVorbis SOFTWARE CODEC SOURCE CODE.   *
@@ -362,7 +367,7 @@ function ov_info(var vf: OggVorbis_File; link: cint): pvorbis_info; cdecl; exter
 function ov_comment(var vf: OggVorbis_File; link: cint): pvorbis_comment; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
 function ov_read_float(var vf: OggVorbis_File; var pcm_channels: ppcfloat; samples: cint; bitstream: pcint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
-function ov_read(var vf: OggVorbis_File; buffer: pointer; length, bigendianp, word, sgned: cint; bitstream: pcint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
+function ov_read(var vf: OggVorbis_File; buffer: pointer; length: cint; bigendianp: cbool; word: cint; sgned: cbool; bitstream: pcint): clong; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 function ov_crosslap(var vf1: OggVorbis_File; var vf2: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
 function ov_halfrate(var vf: OggVorbis_File; flag: cint): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};

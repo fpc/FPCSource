@@ -2,7 +2,9 @@
   Translation of the SAMBA md4 code for FreePascal
   Copyright (C) 2006 by Ivo Steinmann
   Ported from SAMBA/source/lib/md4.c:
+}
 
+{
   Unix SMB/CIFS implementation.
   a implementation of MD4 designed for use in the SMB authentication protocol
   Copyright (C) Andrew Tridgell 1997-1998.

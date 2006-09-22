@@ -6,7 +6,7 @@
 programs=madopenal
 
 [require]
-packages=openal mad oggvorbis
+packages=openal mad oggvorbis a52
 
 [install]
 fpcpackage=y
