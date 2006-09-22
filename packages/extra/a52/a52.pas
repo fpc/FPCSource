@@ -486,7 +486,7 @@ const
   ac3_channels: array[0..7] of cint = (2,1,2,3,3,4,4,5);
 var
   num, ofs: cint;
-  flags, i, len: cint;
+  flags, len, i: cint;
   sample_rate, bit_rate: cint;
   level: cfloat;
 begin
@@ -556,7 +556,7 @@ begin
           if a52_block(decoder^.state) <> 0 then
             Exit(-1);
 
-          float_to_int(decoder^.samples, pointer(PtrUInt(buffer) + Ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
+          float_to_int(decoder^.samples, pointer(PtrInt(buffer) + Ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
         end;
 
         decoder^.inbuf_ptr := @decoder^.inbuf;
