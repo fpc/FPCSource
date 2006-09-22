@@ -374,6 +374,14 @@ function ov_halfrate(var vf: OggVorbis_File; flag: cint): cint; cdecl; external 
 function ov_halfrate_p(var vf: OggVorbis_File): cint; cdecl; external {$IFDEF DYNLINK}vorbisfilelib{$ENDIF};
 
 
+{
+  Developer of the A52 helpers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
+function ov_read_ext(var vf: OggVorbis_File; buffer: pointer; length: cint; bigendianp: cbool; word: cint; sgned: cbool): clong;
+
+
 (***********************************************************************)
 (* Header : vorbisenc.h                                                *)
 (***********************************************************************)
@@ -415,6 +423,34 @@ function vorbis_encode_setup_init(var vi: vorbis_info): cint; cdecl; external {$
 function vorbis_encode_ctl(var vi: vorbis_info; number: cint; arg: pointer): cint; cdecl; external {$IFDEF DYNLINK}vorbisenclib{$ENDIF};
 
 implementation
+
+function ov_read_ext(var vf: OggVorbis_File; buffer: pointer; length: cint; bigendianp: cbool; word: cint; sgned: cbool): clong;
+var
+  ofs: cint;
+  Num: cint;
+  Res: cint;
+begin
+  {if length mod 4 <> 0 then
+    Exit(0);}
+
+  ofs := 0;
+  num := length;
+
+  while num > 0 do
+  begin
+    res := ov_read(vf, pointer(ptrint(buffer) + ofs), num, bigendianp, word, sgned, nil);
+    if res <= 0 then
+      Exit(res);
+
+    if res = 0 then
+      Break;
+
+    ofs := ofs + res;
+    num := num - res;
+  end;
+
+  Result := ofs;
+end;
 
 end.
 

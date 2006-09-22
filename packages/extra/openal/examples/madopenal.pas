@@ -39,7 +39,7 @@ var
   Remaining : Integer;
   ReadStart : Pointer;
   ReadSize  : Integer;
-  Output    : PByte;
+  Output    : PSmallint;
 begin
   Ofs := 0;
   Num := Count;
@@ -130,7 +130,6 @@ end;
 
 function ogg_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
 begin
-  WriteLn('seek');
   case whence of
     {SEEK_SET} 0: TStream(datasource).Seek(offset, soFromBeginning);
     {SEEK_CUR} 1: TStream(datasource).Seek(offset, soFromCurrent);
@@ -157,27 +156,12 @@ end;}
 
 function ogg_read(const Buffer: Pointer; const Count: Longword): Longword;
 var
-  Ofs: Longword;
-  Num: Longword;
-  Res: Integer;
+  Res: clong;
 begin
-  Ofs := 0;
-  Num := Count;
-
-  while Num > 0 do
-  begin
-    Res := ov_read(ogg_vorbis, Pointer(PtrUInt(Buffer) + Ofs), Num, False, 2, True, nil);
-    if Res < 0 then
-      Exit(0);
-
-    if Res = 0 then
-      Break;
-
-    Ofs := Ofs + Longword(Res);
-    Num := Num - Longword(Res);
-  end;
-
-  Result := Ofs;
+  Res := ov_read_ext(ogg_vorbis, Buffer, Count, false, 2, true);
+  if Res < 0 then
+    Exit(0) else
+    Result := Res;
 end;
 
 
@@ -286,14 +270,15 @@ var
   ov: pvorbis_info;
 begin
 // define codec
-  {WriteLn('Define codec');
+  WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
+  Writeln('  (3) ac3');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);}
+  Write('File: '); ReadLn(Filename);
 
-  codec := 1;
-  Filename := 'test.mp3';
+  {codec := 1;
+  Filename := 'test.mp3';}
 
 
 // load file
@@ -336,7 +321,7 @@ begin
         a52_decoder := a52_decoder_init(0, source, @ogg_read_func, @ogg_seek_func, @ogg_close_func, @ogg_tell_func);
         codec_bs   := 2{channels}*1536*2{sample_size};
         codec_read := @a52_read;
-        codec_rate := 44100;
+        codec_rate := 48000;
         codec_chan := 2;
       end;
   end;

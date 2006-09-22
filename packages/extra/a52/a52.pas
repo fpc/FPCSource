@@ -492,18 +492,20 @@ var
 begin
   ofs := 0;
   num := length;
+
   while num > 0 do
   begin
     len := PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf);
+
     if decoder^.frame_size = 0 then
     begin
       (* no header seen : find one. We need at least 7 bytes to parse it *)
-      len := HEADER_SIZE - len;
-      {if len > buf_size then
-        len := buf_size;}
+      //WriteLn('no header seen (', len, ')');
 
+      len := HEADER_SIZE - len;
       if decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource) <> len then
         Exit(ofs);
+
       Inc(decoder^.inbuf_ptr, len);
 
       if PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) = HEADER_SIZE then
@@ -516,6 +518,7 @@ begin
           Dec(decoder^.inbuf_ptr);
         end else begin
           decoder^.frame_size := len;
+
           (* update codec info *)
           decoder^.sample_rate := sample_rate;
           decoder^.bit_rate := bit_rate;
@@ -523,28 +526,32 @@ begin
           if decoder^.flags and A52_LFE <> 0 then
             Inc(decoder^.channels);
 
+         {WriteLn('  frame_size  : ', decoder^.frame_size);
+          WriteLn('  sample_rate : ', sample_rate);
+          WriteLn('  bit_rate    : ', bit_rate);
+          WriteLn('  channels    : ', decoder^.channels);}
+
           // test against user channel settings (wrong here)
           {if decoder^.req_chan = 0 then
             decoder^.req_chan := decoder^.channels else
             if decoder^.channels < decoder^.req_chan then
               decoder^.req_chan := decoder^.channels;}
         end;
-      end;
-    end else
+      end else
+        WriteLn('BUG!!!!');
+    end else begin
       if len < decoder^.frame_size then
       begin
         len := decoder^.frame_size - len;
-        {if len > buf_size then
-          len := buf_size;}
-
         if decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource) <> len then
           Exit(ofs);
+
         Inc(decoder^.inbuf_ptr, len);
       end else begin
         flags := A52_STEREO;//decoder^.flags;
-        level := 1;
+        level := High(Smallint)-30;
 
-        if a52_frame(decoder^.state, @decoder^.inbuf, flags, level, 384) <> 0 then
+        if a52_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
         begin
           decoder^.inbuf_ptr := @decoder^.inbuf;
           decoder^.frame_size := 0;
@@ -556,7 +563,7 @@ begin
           if a52_block(decoder^.state) <> 0 then
             Exit(-1);
 
-          float_to_int(decoder^.samples, pointer(PtrInt(buffer) + Ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
+          float_to_int(decoder^.samples, pointer(PtrInt(buffer) + ofs + 2{channels}*i*256*2{sample_size}), 2{channels});
         end;
 
         decoder^.inbuf_ptr := @decoder^.inbuf;
@@ -565,6 +572,7 @@ begin
         ofs := ofs + 2{channels}*(6*256){samples}*2{sample_size};
         num := num - 2{channels}*(6*256){samples}*2{sample_size};
       end;
+    end;
   end;
 
   Result := ofs;
