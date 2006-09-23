@@ -590,9 +590,6 @@ begin
       ofs := ofs + 4;
       num := num - 4;
     end;
-
-    //ofs := ofs + 2{channels}*(6*256){samples}*2{sample_size};
-    //num := num - 2{channels}*(6*256){samples}*2{sample_size};
   end;
 
   Result := ofs;

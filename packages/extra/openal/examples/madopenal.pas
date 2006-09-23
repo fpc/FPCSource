@@ -13,12 +13,12 @@ var
   codec_rate : Longword;
   codec_chan : Longword;
 
-function ogg_read_func(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
+function source_read_func(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
 begin
   Result := TStream(datasource).Read(ptr^, size*nmemb);
 end;
 
-function ogg_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
+function source_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
 begin
   case whence of
     {SEEK_SET} 0: TStream(datasource).Seek(offset, soFromBeginning);
@@ -28,13 +28,13 @@ begin
   Result := 0;
 end;
 
-function ogg_close_func(datasource: pointer): cint; cdecl;
+function source_close_func(datasource: pointer): cint; cdecl;
 begin
   TStream(datasource).Position := 0;
   Result := 0;
 end;
 
-function ogg_tell_func(datasource: pointer): clong; cdecl;
+function source_tell_func(datasource: pointer): clong; cdecl;
 begin
   Result := TStream(datasource).Position;
 end;
@@ -194,7 +194,7 @@ begin
   case codec of
     1: // mad
       begin
-        mad_decoder := mad_decoder_init(source, @ogg_read_func, @ogg_seek_func, @ogg_close_func, @ogg_tell_func);
+        mad_decoder := mad_decoder_init(source, @source_read_func, @source_seek_func, @source_close_func, @source_tell_func);
         codec_read := @mad_read;
         codec_rate := 44100;
         codec_chan := 2;
@@ -203,10 +203,10 @@ begin
 
     2: // oggvorbis
       begin
-        ogg_callbacks.read  := @ogg_read_func;
-        ogg_callbacks.seek  := @ogg_seek_func;
-        ogg_callbacks.close := @ogg_close_func;
-        ogg_callbacks.tell  := @ogg_tell_func;
+        ogg_callbacks.read  := @source_read_func;
+        ogg_callbacks.seek  := @source_seek_func;
+        ogg_callbacks.close := @source_close_func;
+        ogg_callbacks.tell  := @source_tell_func;
 
         if ov_open_callbacks(source, ogg_vorbis, nil, 0, ogg_callbacks) >= 0 then
         begin
@@ -220,7 +220,7 @@ begin
 
     3: // a52
       begin
-        a52_decoder := a52_decoder_init(0, source, @ogg_read_func, @ogg_seek_func, @ogg_close_func, @ogg_tell_func);
+        a52_decoder := a52_decoder_init(0, source, @source_read_func, @source_seek_func, @source_close_func, @source_tell_func);
         codec_read := @a52_read;
         codec_rate := 44100;//48000;
         codec_chan := 2;
