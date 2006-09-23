@@ -7,7 +7,7 @@ name=modplug
 version=2.0.0
 
 [target]
-units=mad
+units=modplug
 
 [require]
 
