@@ -1641,8 +1641,9 @@ unit cgx86;
             a_loadaddr_ref_reg(list,source,REGSI);
 
             getcpuregister(list,REGCX);
-
+{$ifdef i386}
             list.concat(Taicpu.op_none(A_CLD,S_NO));
+{$endif i386}
             if cs_opt_size in aktoptimizerswitches  then
               begin
                 a_load_const_reg(list,OS_INT,len,REGCX);
