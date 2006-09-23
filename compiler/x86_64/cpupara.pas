@@ -209,7 +209,7 @@ unit cpupara;
           formaldef :
             result:=true;
           recorddef :
-            result:=(def.size>sizeof(aint)) or (varspez=vs_const);
+            result:=(varspez=vs_const) or ((target_info.system=system_x86_64_win64) and (def.size>8));
           arraydef :
             begin
               result:=not(
