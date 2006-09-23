@@ -221,16 +221,17 @@ var
   tmp: pointer;
 begin
 // define codec
- { WriteLn('Define codec');
+  WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Writeln('  (3) ac3');
   Writeln('  (4) dts');
+  Writeln('  (5) xm,mod,it,s3m');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);}
+  Write('File: '); ReadLn(Filename);
 
-  codec := 3;
-  Filename := 'test4.ac3';
+  {codec := 3;
+  Filename := 'test4.ac3';}
 
 
 // load file
