@@ -182,8 +182,8 @@ begin
   Write('Enter: '); ReadLn(codec);
   Write('File: '); ReadLn(Filename);}
 
-  codec := 3;
-  Filename := 'test.ac3';
+  codec := 2;
+  Filename := 'test.ogg';
 
 
 // load file
