@@ -2956,6 +2956,7 @@ packages/extra/md4/Makefile.fpc svneol=native#text/plain
 packages/extra/md4/md4.pas svneol=native#text/plain
 packages/extra/modplug/Makefile svneol=native#text/plain
 packages/extra/modplug/Makefile.fpc svneol=native#text/plain
+packages/extra/modplug/modplug.pas svneol=native#text/plain
 packages/extra/ncurses/Makefile svneol=native#text/plain
 packages/extra/ncurses/Makefile.fpc svneol=native#text/plain
 packages/extra/ncurses/db_demo.pp svneol=native#text/plain

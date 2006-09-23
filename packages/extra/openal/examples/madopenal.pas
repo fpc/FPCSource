@@ -79,19 +79,19 @@ end;
 
 // oggvorbis
 var
-  ogg_vorbis    : OggVorbis_File;
+  ogg_file      : OggVorbis_File;
   ogg_callbacks : ov_callbacks;
 
 {procedure ogg_reset;
 begin
-  ov_pcm_seek(ogg_vorbis, 0);
+  ov_pcm_seek(ogg_file, 0);
 end;}
 
 function ogg_read(const Buffer: Pointer; const Count: Longword): Longword;
 var
   Res: clong;
 begin
-  Res := ov_read_ext(ogg_vorbis, Buffer, Count, false, 2, true);
+  Res := ov_read_ext(ogg_file, Buffer, Count, false, 2, true);
   if Res < 0 then
     Result := 0 else
     Result := Res;
@@ -122,6 +122,21 @@ var
   Res: cint;
 begin
   Res := dts_decoder_read(dts_decoder, Buffer, Count);
+  if Res < 0 then
+    Result := 0 else
+    Result := Res;
+end;
+
+
+// modplug
+var
+  mod_file: PModPlugFile;
+
+function mod_read(const Buffer: Pointer; const Count: Longword): Longword;
+var
+  Res: cint;
+begin
+  Res := ModPlug_Read(mod_file, Buffer, Count);
   if Res < 0 then
     Result := 0 else
     Result := Res;
@@ -203,6 +218,7 @@ end;
 var
   Filename: String;
   ov: pvorbis_info;
+  tmp: pointer;
 begin
 // define codec
  { WriteLn('Define codec');
@@ -239,9 +255,9 @@ begin
         ogg_callbacks.close := @source_close_func;
         ogg_callbacks.tell  := @source_tell_func;
 
-        if ov_open_callbacks(source, ogg_vorbis, nil, 0, ogg_callbacks) >= 0 then
+        if ov_open_callbacks(source, ogg_file, nil, 0, ogg_callbacks) >= 0 then
         begin
-          ov := ov_info(ogg_vorbis, -1);
+          ov := ov_info(ogg_file, -1);
           codec_read := @ogg_read;
           codec_rate := ov^.rate;
           codec_chan := ov^.channels;
@@ -262,6 +278,19 @@ begin
       begin
         dts_decoder := dts_decoder_init(0, source, @source_read_func, @source_seek_func, @source_close_func, @source_tell_func);
         codec_read := @dts_read;
+        codec_rate := 44100;//48000;
+        codec_chan := 2;
+        codec_bs   := 2*codec_chan;
+      end;
+
+    5: // modplug
+      begin
+        GetMem(tmp, source.Size);
+        source.Read(tmp^, source.Size);
+        mod_file := ModPlug_Load(tmp, source.Size);
+        FreeMem(tmp);
+
+        codec_read := @mod_read;
         codec_rate := 44100;//48000;
         codec_chan := 2;
         codec_bs   := 2*codec_chan;
@@ -316,7 +345,7 @@ begin
 
     2: // oggvorbis
       begin
-        ov_clear(ogg_vorbis);
+        ov_clear(ogg_file);
       end;
 
     3: // a52
@@ -327,6 +356,11 @@ begin
     4: // dts
       begin
         dts_decoder_free(dts_decoder);
+      end;
+
+    5: // modplug
+      begin
+        ModPlug_Unload(mod_file);
       end;
   end;
 
