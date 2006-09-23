@@ -437,12 +437,12 @@ type
     synth       : mad_synth;
   end;
 
-  TInputFunc    = function(user: Pointer; var stream: mad_stream): mad_flow; cdecl;
-  THeaderFunc   = function(user: Pointer; var header: mad_header): mad_flow; cdecl;
-  TFilterFunc   = function(user: Pointer; var frame: mad_frame): mad_flow; cdecl;
-  TOutputFunc   = function(user: Pointer; var header: mad_header; var pcm: mad_pcm): mad_flow; cdecl;
-  TErrorFunc    = function(user: Pointer; var stream: mad_stream; var frame: mad_frame): mad_flow; cdecl;
-  TMessageFunc  = function(user, msg: Pointer; var l: cuint): mad_flow; cdecl;
+  mad_input_func    = function(user: Pointer; var stream: mad_stream): mad_flow; cdecl;
+  mad_header_func   = function(user: Pointer; var header: mad_header): mad_flow; cdecl;
+  mad_filter_func   = function(user: Pointer; var frame: mad_frame): mad_flow; cdecl;
+  mad_output_func   = function(user: Pointer; var header: mad_header; var pcm: mad_pcm): mad_flow; cdecl;
+  mad_error_func    = function(user: Pointer; var stream: mad_stream; var frame: mad_frame): mad_flow; cdecl;
+  mad_message_func  = function(user, msg: Pointer; var l: cuint): mad_flow; cdecl;
 
   mad_decoder = record
     mode        : mad_decoder_mode;
@@ -450,18 +450,55 @@ type
     async       : async_struct;
     sync        : ^sync_struct;
     data        : pointer;
-    InputFunc   : TInputFunc;
-    HeaderFunc  : THeaderFunc;
-    FilterFunc  : TFilterFunc;
-    OutputFunc  : TOutputFunc;
-    ErrorFunc   : TErrorFunc;
-    MessageFunc : TMessageFunc;
+    InputFunc   : mad_input_func;
+    HeaderFunc  : mad_header_func;
+    FilterFunc  : mad_filter_func;
+    OutputFunc  : mad_output_func;
+    ErrorFunc   : mad_error_func;
+    MessageFunc : mad_message_func;
   end;
 
-procedure mad_decoder_init(var decoder: mad_decoder; user: pointer; Input: TInputFunc; Header: THeaderFunc; Filter: TFilterFunc; Output: TOutputFunc; Error: TErrorFunc; Message: TMessageFunc); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
-function  mad_decoder_finish(var decoder: mad_decoder): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
-function  mad_decoder_run(var decoder: mad_decoder; mode: mad_decoder_mode): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
-function  mad_decoder_message(var decoder: mad_decoder; msg: Pointer; var l: cuint): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+procedure mad_decoder_init(var decoder: mad_decoder; user: pointer; Input: mad_input_func; Header: mad_header_func; Filter: mad_filter_func; Output: mad_output_func; Error: mad_error_func; Message: mad_message_func); cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function mad_decoder_finish(var decoder: mad_decoder): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function mad_decoder_run(var decoder: mad_decoder; mode: mad_decoder_mode): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+function mad_decoder_message(var decoder: mad_decoder; msg: Pointer; var l: cuint): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+
+
+{
+  Developer of the MAD helpers for FreePascal
+  Copyright (C) 2006 by Ivo Steinmann
+}
+
+const
+  MAD_INPUT_BUFFER_SIZE = 5*8192;
+
+type
+  mad_read_func  = function(ptr: pointer; size, nmemb: culong; datasource: pointer): culong; cdecl;
+  mad_seek_func  = function(datasource: pointer; offset: cint64; whence: cint): cint; cdecl;
+  mad_close_func = function(datasource: pointer): cint; cdecl;
+  mad_tell_func  = function(datasource: pointer): clong; cdecl;
+
+  pmad_decoder2 = ^mad_decoder2;
+  mad_decoder2 = record
+    inbuf       : array[0..MAD_INPUT_BUFFER_SIZE-1] of cuint8;
+    stream      : mad_stream;
+    frame       : mad_frame;
+    synth       : mad_synth;
+    samplecnt   : cint;
+    sampleofs   : cint;
+    datasource  : pointer;
+    read        : mad_read_func;
+    seek        : mad_seek_func;
+    close       : mad_close_func;
+    tell        : mad_tell_func;
+
+  // Userinfo
+    sample_rate : cint;
+  end;
+
+function mad_decoder_init(datasource: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder2;
+function mad_decoder_read(decoder: pmad_decoder2; buffer: pointer; length: cint): cint;
+procedure mad_decoder_free(decoder: pmad_decoder2);
 
 implementation
 
@@ -542,6 +579,131 @@ end;
 procedure mad_synth_finish(var synth: mad_synth);
 begin
   FillChar(synth, sizeof(mad_synth), 0);
+end;
+
+function mad_decoder_init(datasource: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder2;
+begin
+  GetMem(Result, Sizeof(mad_decoder2));
+  FillChar(Result^, Sizeof(mad_decoder2), 0);
+  mad_stream_init(Result^.stream);
+  mad_frame_init(Result^.frame);
+  mad_synth_init(Result^.synth);
+  Result^.datasource := datasource;
+  Result^.read := read;
+  Result^.seek := seek;
+  Result^.close := close;
+  Result^.tell := tell;
+end;
+
+procedure mad_decoder_free(decoder: pmad_decoder2);
+begin
+  if not Assigned(decoder) then
+    Exit;
+
+  mad_synth_finish(decoder^.synth);
+  mad_frame_finish(decoder^.frame);
+  mad_stream_finish(decoder^.stream);
+  FreeMem(decoder);
+end;
+
+function mad_decoder_read(decoder: pmad_decoder2; buffer: pointer; length: cint): cint;
+var
+  ofs, num, i: cint;
+  inbuf_ptr: pointer;
+  len, remaining: cint;
+begin
+  // check blocksize here!
+
+  ofs := 0;
+  num := length;
+
+  while num > 0 do
+  begin
+    if decoder^.samplecnt = 0 then
+    begin
+      if (decoder^.stream.buffer = nil) or (decoder^.stream.error = MAD_ERROR_BUFLEN) then
+      begin
+        if Assigned(decoder^.stream.next_frame) then
+        begin
+          remaining := ptrint(decoder^.stream.bufend) - ptrint(decoder^.stream.next_frame);
+          inbuf_ptr := pointer(ptrint(@decoder^.inbuf) + remaining);
+          len  := MAD_INPUT_BUFFER_SIZE - remaining;
+          Move(decoder^.stream.next_frame^, decoder^.inbuf, remaining);
+        end else begin
+          remaining := 0;
+          len  := MAD_INPUT_BUFFER_SIZE;
+          inbuf_ptr := @decoder^.inbuf;
+        end;
+
+        len := decoder^.read(inbuf_ptr, 1, len, decoder^.datasource);
+        if len <= 0 then
+          Exit(ofs);
+
+        mad_stream_buffer(decoder^.stream, decoder^.inbuf, len+remaining);
+        decoder^.stream.error := MAD_ERROR_NONE;
+      end;
+
+      if mad_frame_decode(decoder^.frame, decoder^.stream) <> 0 then
+      begin
+        if MAD_RECOVERABLE(decoder^.stream.error) or (decoder^.stream.error = MAD_ERROR_BUFLEN) then
+          Continue;
+
+        Exit(ofs);
+      end;
+
+      mad_synth_frame(decoder^.synth, decoder^.frame);
+
+      with decoder^.synth do
+      if pcm.channels = 2 then
+      begin
+        for i := 0 to pcm.length -1 do
+        begin
+          if pcm.samples[0][i] >= MAD_F_ONE then
+            pcm.samples[0][i] := MAD_F_ONE - 1;
+          if pcm.samples[0][i] < -MAD_F_ONE then
+            pcm.samples[0][i] := -MAD_F_ONE;
+          pcm.samples[0][i] := pcm.samples[0][i] shr (MAD_F_FRACBITS + 1 - 16 + 1);
+
+          if pcm.samples[1][i] >= MAD_F_ONE then
+            pcm.samples[1][i] := MAD_F_ONE - 1;
+          if pcm.samples[1][i] < -MAD_F_ONE then
+            pcm.samples[1][i] := -MAD_F_ONE;
+          pcm.samples[1][i] := pcm.samples[1][i] shr (MAD_F_FRACBITS + 1 - 16 + 1);
+        end;
+      end else begin
+        for i := 0 to pcm.length -1 do
+        begin
+          if pcm.samples[0][i] >= MAD_F_ONE then
+            pcm.samples[0][i] := MAD_F_ONE - 1;
+          if pcm.samples[0][i] < -MAD_F_ONE then
+            pcm.samples[0][i] := -MAD_F_ONE;
+          pcm.samples[0][i] := pcm.samples[0][i] shr (MAD_F_FRACBITS + 1 - 16 + 1);
+          pcm.samples[1][i] := pcm.samples[0][i];
+        end;
+      end;
+
+      decoder^.sampleofs := 0;
+      decoder^.samplecnt := decoder^.synth.pcm.length;
+      decoder^.sample_rate := decoder^.synth.pcm.samplerate;
+    end;
+
+    len := num div 4;
+    if len > decoder^.samplecnt then
+      len := decoder^.samplecnt;
+
+    for i := 0 to len - 1 do
+    begin
+      pcint16(ptrint(buffer) + ofs + 0)^ := decoder^.synth.pcm.samples[0][decoder^.sampleofs];
+      pcint16(ptrint(buffer) + ofs + 2)^ := decoder^.synth.pcm.samples[1][decoder^.sampleofs];
+
+      Inc(decoder^.sampleofs);
+      Dec(decoder^.samplecnt);
+      ofs := ofs + 4;
+      num := num - 4;
+    end;
+  end;
+
+  Result := ofs;
 end;
 
 end.

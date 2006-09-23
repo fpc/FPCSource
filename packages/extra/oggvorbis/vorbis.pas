@@ -430,6 +430,7 @@ var
   Num: cint;
   Res: cint;
 begin
+  // check blocksize here!
   {if length mod 4 <> 0 then
     Exit(0);}
 
