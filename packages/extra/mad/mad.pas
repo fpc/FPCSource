@@ -39,6 +39,8 @@ uses
   {$DEFINE DYNLINK}
 {$ENDIF}
 
+{$DEFINE MAD_DISABLE_BUILTIN_DECODER}
+
 {$IFDEF DYNLINK}
 const
 {$IF Defined(WINDOWS)}
@@ -412,6 +414,7 @@ procedure mad_synth_frame(var synth: mad_synth; var frame: mad_frame); cdecl; ex
 (* Header : decoder.h                                                  *)
 (***********************************************************************)
 
+{$IFNDEF MAD_DISABLE_BUILTIN_DECODER}
 type
   mad_decoder_mode = (
     MAD_DECODER_MODE_SYNC           = 0,
@@ -462,31 +465,32 @@ procedure mad_decoder_init(var decoder: mad_decoder; user: pointer; Input: mad_i
 function mad_decoder_finish(var decoder: mad_decoder): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 function mad_decoder_run(var decoder: mad_decoder; mode: mad_decoder_mode): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
 function mad_decoder_message(var decoder: mad_decoder; msg: Pointer; var l: cuint): cint; cdecl; external {$IFDEF DYNLINK}madlib{$ENDIF};
+{$ENDIF}
 
 
 {
   Developer of the MAD helpers for FreePascal
   Copyright (C) 2006 by Ivo Steinmann
 }
-
+{$IFDEF MAD_DISABLE_BUILTIN_DECODER}
 const
   MAD_INPUT_BUFFER_SIZE = 5*8192;
 
 type
-  mad_read_func  = function(ptr: pointer; size, nmemb: culong; datasource: pointer): culong; cdecl;
-  mad_seek_func  = function(datasource: pointer; offset: cint64; whence: cint): cint; cdecl;
-  mad_close_func = function(datasource: pointer): cint; cdecl;
-  mad_tell_func  = function(datasource: pointer): clong; cdecl;
+  mad_read_func  = function(user: pointer; ptr: pointer; size: cuint): cuint; cdecl;
+  mad_seek_func  = function(user: pointer; offset: clong; whence: cint): clong; cdecl;
+  mad_close_func = function(user: pointer): cint; cdecl;
+  mad_tell_func  = function(user: pointer): clong; cdecl;
 
-  pmad_decoder2 = ^mad_decoder2;
-  mad_decoder2 = record
+  pmad_decoder = ^mad_decoder;
+  mad_decoder = record
     inbuf       : array[0..MAD_INPUT_BUFFER_SIZE-1] of cuint8;
     stream      : mad_stream;
     frame       : mad_frame;
     synth       : mad_synth;
     samplecnt   : cint;
     sampleofs   : cint;
-    datasource  : pointer;
+    user        : pointer;
     read        : mad_read_func;
     seek        : mad_seek_func;
     close       : mad_close_func;
@@ -496,9 +500,10 @@ type
     sample_rate : cint;
   end;
 
-function mad_decoder_init(datasource: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder2;
-function mad_decoder_read(decoder: pmad_decoder2; buffer: pointer; length: cint): cint;
-procedure mad_decoder_free(decoder: pmad_decoder2);
+function mad_decoder_init(user: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder;
+function mad_decoder_read(decoder: pmad_decoder; buffer: pointer; length: cint): cint;
+procedure mad_decoder_free(decoder: pmad_decoder);
+{$ENDIF}
 
 implementation
 
@@ -581,21 +586,22 @@ begin
   FillChar(synth, sizeof(mad_synth), 0);
 end;
 
-function mad_decoder_init(datasource: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder2;
+{$IFDEF MAD_DISABLE_BUILTIN_DECODER}
+function mad_decoder_init(user: pointer; read: mad_read_func; seek: mad_seek_func; close: mad_close_func; tell: mad_tell_func): pmad_decoder;
 begin
-  GetMem(Result, Sizeof(mad_decoder2));
-  FillChar(Result^, Sizeof(mad_decoder2), 0);
+  GetMem(Result, Sizeof(mad_decoder));
+  FillChar(Result^, Sizeof(mad_decoder), 0);
   mad_stream_init(Result^.stream);
   mad_frame_init(Result^.frame);
   mad_synth_init(Result^.synth);
-  Result^.datasource := datasource;
+  Result^.user := user;
   Result^.read := read;
   Result^.seek := seek;
   Result^.close := close;
   Result^.tell := tell;
 end;
 
-procedure mad_decoder_free(decoder: pmad_decoder2);
+procedure mad_decoder_free(decoder: pmad_decoder);
 begin
   if not Assigned(decoder) then
     Exit;
@@ -603,10 +609,11 @@ begin
   mad_synth_finish(decoder^.synth);
   mad_frame_finish(decoder^.frame);
   mad_stream_finish(decoder^.stream);
+  decoder^.close(decoder^.user);
   FreeMem(decoder);
 end;
 
-function mad_decoder_read(decoder: pmad_decoder2; buffer: pointer; length: cint): cint;
+function mad_decoder_read(decoder: pmad_decoder; buffer: pointer; length: cint): cint;
 var
   ofs, num, i: cint;
   inbuf_ptr: pointer;
@@ -635,7 +642,7 @@ begin
           inbuf_ptr := @decoder^.inbuf;
         end;
 
-        len := decoder^.read(inbuf_ptr, 1, len, decoder^.datasource);
+        len := decoder^.read(decoder^.user, inbuf_ptr, len);
         if len <= 0 then
           Exit(ofs);
 
@@ -705,5 +712,6 @@ begin
 
   Result := ofs;
 end;
+{$ENDIF}
 
 end.

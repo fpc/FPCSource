@@ -2020,6 +2020,9 @@ packages/extra/cdrom/scsidefs.pp svneol=native#text/plain
 packages/extra/cdrom/showcds.pp svneol=native#text/plain
 packages/extra/cdrom/wincd.pp svneol=native#text/plain
 packages/extra/cdrom/wnaspi32.pp svneol=native#text/plain
+packages/extra/dts/Makefile svneol=native#text/plain
+packages/extra/dts/Makefile.fpc svneol=native#text/plain
+packages/extra/dts/dts.pas svneol=native#text/plain
 packages/extra/fftw/Makefile -text
 packages/extra/fftw/Makefile.fpc -text
 packages/extra/fftw/example.pas -text

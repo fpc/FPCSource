@@ -6,7 +6,7 @@
 programs=madopenal
 
 [require]
-packages=openal mad oggvorbis a52
+packages=openal mad oggvorbis a52 dts modplug
 
 [install]
 fpcpackage=y

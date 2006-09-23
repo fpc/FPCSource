@@ -267,90 +267,6 @@ const
   {$LINKLIB a52}
 {$ENDIF}
 
-type
-  psample_t = ^sample_t;
-{$IFNDEF LIBA52_DOUBLE}
-  sample_t = cfloat;
-{$ELSE}
-  sample_t = cdouble;
-{$ENDIF}
-
-
-// include a52_internal.h
-
-type
-  pba_t = ^ba_t;
-  ba_t = record
-    bai         : cuint8;                   (* fine SNR offset, fast gain *)
-    deltbae     : cuint8;                   (* delta bit allocation exists *)
-    deltba      : array[0..49] of cuint8;   (* per-band delta bit allocation *)
-  end;
-
-  pexpbap_t = ^expbap_t;
-  expbap_t = record
-    exp         : array[0..255] of cuint8;  (* decoded channel exponents *)
-    bap         : array[0..255] of cint8;   (* derived channel bit allocation *)
-  end;
-
-  pa52_state_s = ^a52_state_s;
-  a52_state_s = record
-    fscod       : cuint8;      (* sample rate *)
-    halfrate    : cuint8;      (* halfrate factor *)
-    acmod       : cuint8;      (* coded channels *)
-    lfeon       : cuint8;      (* coded lfe channel *)
-    clev        : sample_t;      (* centre channel mix level *)
-    slev        : sample_t;      (* surround channels mix level *)
-
-    output      : cint;         (* type of output *)
-    level       : sample_t;     (* output level *)
-    bias        : sample_t;      (* output bias *)
-
-    dynrnge     : cint;        (* apply dynamic range *)
-    dynrng      : sample_t;        (* dynamic range *)
-    dynrngdata  : pointer;      (* dynamic range callback funtion and data *)
-    dynrngcall  : function(range: sample_t; dynrngdata: pointer): sample_t; cdecl;
-
-    chincpl     : cuint8;        (* channel coupled *)
-    phsflginu   : cuint8;      (* phase flags in use (stereo only) *)
-    cplstrtmant : cuint8;    (* coupling channel start mantissa *)
-    cplendmant  : cuint8;     (* coupling channel end mantissa *)
-    cplbndstrc  : cuint32;    (* coupling band structure *)
-    cplco       : array[0..4] of array[0..17] of sample_t;  (* coupling coordinates *)
-
-    (* derived information *)
-    cplstrtbnd  : cuint8;     (* coupling start band (for bit allocation) *)
-    ncplbnd     : cuint8;        (* number of coupling bands *)
-
-    rematflg    : cuint8;       (* stereo rematrixing *)
-
-    endmant     : array[0..4] of cuint8;     (* channel end mantissa *)
-
-    bai         : cuint16;       (* bit allocation information *)
-
-    buffer_start: pcuint32;
-    lfsr_state  : cuint16;    (* dither state *)
-    bits_left   : cuint32;
-    current_word: cuint32;
-
-    csnroffst   : cuint8;      (* coarse SNR offset *)
-    cplba       : ba_t;         (* coupling bit allocation parameters *)
-    ba          : array[0..4] of ba_t;         (* channel bit allocation parameters *)
-    lfeba       : ba_t;         (* lfe bit allocation parameters *)
-
-    cplfleak    : cuint8;       (* coupling fast leak init *)
-    cplsleak    : cuint8;       (* coupling slow leak init *)
-
-    cpl_expbap  : expbap_t;
-    fbw_expbap  : array[0..4] of expbap_t;
-    lfe_expbap  : expbap_t;
-
-    samples     : psample_t;
-    downmixed   : cint;
-  end;
-
-
-// include mm_accel.h
-
 const
 (* generic accelerations *)
   MM_ACCEL_DJBFFT     = $00000001;
@@ -360,16 +276,25 @@ const
   MM_ACCEL_X86_3DNOW  = $40000000;
   MM_ACCEL_X86_MMXEXT = $20000000;
 
-//function mm_accel: cuint32; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
+function mm_accel: cuint32; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
 
 
 // include a52.h
 
+// to avoid type problems with dts.pas, I renamed a52_sample_t to a52_a52_sample_t
 type
-  pa52_state_t = ^a52_state_t;
-  a52_state_t = a52_state_s;
+  pa52_sample_t = ^a52_sample_t;
+{$IFDEF LIBA52_DOUBLE}
+  a52_sample_t = cdouble;
+{$ELSE}
+  a52_sample_t = cfloat;
+{$ENDIF}
 
-  dynrng_call = function(s: sample_t; data: pointer): sample_t; cdecl;
+  pa52_state_t = ^a52_state_t;
+  a52_state_t = record
+  end;
+
+  a52_dynrng_call = function(s: a52_sample_t; data: pointer): a52_sample_t; cdecl;
 
 const
    A52_CHANNEL      = 0;
@@ -390,10 +315,10 @@ const
 
 
 function a52_init(mm_accel: cuint32): pa52_state_t; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
-function a52_samples(state: pa52_state_t): psample_t; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
+function a52_samples(state: pa52_state_t): pa52_sample_t; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
 function a52_syncinfo(buf: pcuint8; var flags: cint; var sample_rate: cint; var bit_rate: cint): cint; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
-function a52_frame(state: pa52_state_t; buf: pcuint8; var flags: cint; var level: sample_t; bias: sample_t): cint; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
-procedure a52_dynrng(state: pa52_state_t; call: dynrng_call; data: pointer); cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
+function a52_frame(state: pa52_state_t; buf: pcuint8; var flags: cint; var level: a52_sample_t; bias: a52_sample_t): cint; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
+procedure a52_dynrng(state: pa52_state_t; call: a52_dynrng_call; data: pointer); cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
 function a52_block(state: pa52_state_t): cint; cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
 procedure a52_free(state: pa52_state_t); cdecl; external {$IFDEF DYNLINK}a52lib{$ENDIF};
 
@@ -405,47 +330,50 @@ procedure a52_free(state: pa52_state_t); cdecl; external {$IFDEF DYNLINK}a52lib{
 }
 
 type
-  a52_read_func  = function(ptr: pointer; size, nmemb: culong; datasource: pointer): culong; cdecl;
-  a52_seek_func  = function(datasource: pointer; offset: cint64; whence: cint): cint; cdecl;
-  a52_close_func = function(datasource: pointer): cint; cdecl;
-  a52_tell_func  = function(datasource: pointer): clong; cdecl;
+  a52_read_func  = function(user: pointer; ptr: pointer; size: cuint): cuint; cdecl;
+  a52_seek_func  = function(user: pointer; offset: clong; whence: cint): clong; cdecl;
+  a52_close_func = function(user: pointer): cint; cdecl;
+  a52_tell_func  = function(user: pointer): clong; cdecl;
 
   pa52_decoder = ^a52_decoder;
   a52_decoder = record
     inbuf       : array[0..4095] of cuint8;
     inbuf_ptr   : pcuint8;
     frame_size  : cint;
-    flags       : cint;
-    channels    : cint;
     state       : pa52_state_t;
+    fsamples    : pa52_sample_t; // internal samples buffer of a52 (returned by a52_samples)
+
     samples     : array[0..1,0..1535] of cint16;
     samplecnt   : cint;
     sampleofs   : cint;
-    datasource  : pointer;
+    user        : pointer;
     read        : a52_read_func;
     seek        : a52_seek_func;
     close       : a52_close_func;
     tell        : a52_tell_func;
 
   // Userinfo
+    flags       : cint;
+    channels    : cint;
     sample_rate : cint;
     bit_rate    : cint;
   end;
 
-function a52_decoder_init(mm_accel: cuint32; datasource: pointer; read: a52_read_func; seek: a52_seek_func; close: a52_close_func; tell: a52_tell_func): pa52_decoder;
+
+function a52_decoder_init(mm_accel: cuint32; user: pointer; read: a52_read_func; seek: a52_seek_func; close: a52_close_func; tell: a52_tell_func): pa52_decoder;
 function a52_decoder_read(decoder: pa52_decoder; buffer: pointer; length: cint): cint;
 procedure a52_decoder_free(decoder: pa52_decoder);
 
 implementation
 
-function a52_decoder_init(mm_accel: cuint32; datasource: pointer; read: a52_read_func; seek: a52_seek_func; close: a52_close_func; tell: a52_tell_func): pa52_decoder;
+function a52_decoder_init(mm_accel: cuint32; user: pointer; read: a52_read_func; seek: a52_seek_func; close: a52_close_func; tell: a52_tell_func): pa52_decoder;
 begin
   GetMem(Result, Sizeof(a52_decoder));
   FillChar(Result^, Sizeof(a52_decoder), 0);
   Result^.state := a52_init(mm_accel);
-  //Result^.samples := a52_samples(Result^.state);
+  Result^.fsamples := a52_samples(Result^.state);
   Result^.inbuf_ptr := @Result^.inbuf;
-  Result^.datasource := datasource;
+  Result^.user := user;
   Result^.read := read;
   Result^.seek := seek;
   Result^.close := close;
@@ -458,25 +386,9 @@ begin
     Exit;
 
   a52_free(decoder^.state);
+  decoder^.close(decoder^.user);
   FreeMem(decoder);
 end;
-
-{procedure float_to_int(f: psample_t; s16: pcint16; nchannels: cint);
-var
-  i, c: cint;
-begin
-  nchannels := nchannels * 256;
-  for i := 0 to 255 do
-  begin
-    c := 0;
-    while c < nchannels do
-    begin
-      s16^ := Round(f[i + c]);
-      c := c + 256;
-      Inc(s16);
-    end;
-  end;
-end;}
 
 function a52_decoder_read(decoder: pa52_decoder; buffer: pointer; length: cint): cint;
 const
@@ -486,7 +398,7 @@ var
   num, ofs: cint;
   flags, len, i, j: cint;
   sample_rate, bit_rate: cint;
-  level: cfloat;
+  level: a52_sample_t;
 begin
   // check blocksize here!
 
@@ -497,13 +409,13 @@ begin
   begin
     if decoder^.samplecnt = 0 then
     begin
-      len := PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf);
+      len := ptrint(decoder^.inbuf_ptr) - ptrint(@decoder^.inbuf);
 
       if (len < HEADER_SIZE) or (len < decoder^.frame_size) then
       begin
         (* inbuf too small : enlarge *)
         len := Sizeof(a52_decoder.inbuf) - len;
-        len := decoder^.read(decoder^.inbuf_ptr, 1, len, decoder^.datasource);
+        len := decoder^.read(decoder^.user, decoder^.inbuf_ptr, len);
         if len <= 0 then
           Exit(ofs);
 
@@ -562,8 +474,8 @@ begin
 
         for j := 0 to 255 do
         begin
-          decoder^.samples[0, i*256+j] := Round(decoder^.state^.samples[j + 000]);
-          decoder^.samples[1, i*256+j] := Round(decoder^.state^.samples[j + 256]);
+          decoder^.samples[0, i*256+j] := Round(decoder^.fsamples[j + 000]);
+          decoder^.samples[1, i*256+j] := Round(decoder^.fsamples[j + 256]);
         end;
       end;
 

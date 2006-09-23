@@ -3,7 +3,7 @@ program test;
 {$mode objfpc}
 
 uses
-  classes, sysutils, ctypes, openal, mad, ogg, vorbis, a52;
+  classes, sysutils, ctypes, openal, mad, ogg, vorbis, a52, dts, modplug;
 
 var
   source     : TStream;
@@ -13,12 +13,27 @@ var
   codec_rate : Longword;
   codec_chan : Longword;
 
-function source_read_func(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
+function source_read_func(datasource: pointer; ptr: pointer; size: cuint): cuint; cdecl;
+begin
+  Result := TStream(datasource).Read(ptr^, size);
+end;
+
+function source_read_func_ogg(ptr: pointer; size, nmemb: csize_t; datasource: pointer): csize_t; cdecl;
 begin
   Result := TStream(datasource).Read(ptr^, size*nmemb);
 end;
 
-function source_seek_func(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
+function source_seek_func(datasource: pointer; offset: clong; whence: cint): clong; cdecl;
+begin
+  case whence of
+    {SEEK_SET} 0: Result := TStream(datasource).Seek(offset, soFromBeginning);
+    {SEEK_CUR} 1: Result := TStream(datasource).Seek(offset, soFromCurrent);
+    {SEEK_END} 2: Result := TStream(datasource).Seek(offset, soFromEnd);
+    else          Result := 0;
+  end;
+end;
+
+function source_seek_func_ogg(datasource: pointer; offset: ogg_int64_t; whence: cint): cint; cdecl;
 begin
   case whence of
     {SEEK_SET} 0: TStream(datasource).Seek(offset, soFromBeginning);
@@ -42,7 +57,7 @@ end;
 
 // mad
 var
-  mad_decoder: pmad_decoder2;
+  mad_decoder: pmad_decoder;
 
 {procedure mad_reset;
 begin
@@ -92,6 +107,21 @@ var
   Res: cint;
 begin
   Res := a52_decoder_read(a52_decoder, Buffer, Count);
+  if Res < 0 then
+    Result := 0 else
+    Result := Res;
+end;
+
+
+// dts
+var
+  dts_decoder : pdts_decoder;
+
+function dts_read(const Buffer: Pointer; const Count: Longword): Longword;
+var
+  Res: cint;
+begin
+  Res := dts_decoder_read(dts_decoder, Buffer, Count);
   if Res < 0 then
     Result := 0 else
     Result := Res;
@@ -179,11 +209,12 @@ begin
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Writeln('  (3) ac3');
+  Writeln('  (4) dts');
   Write('Enter: '); ReadLn(codec);
   Write('File: '); ReadLn(Filename);}
 
-  codec := 2;
-  Filename := 'test.ogg';
+  codec := 3;
+  Filename := 'test4.ac3';
 
 
 // load file
@@ -203,8 +234,8 @@ begin
 
     2: // oggvorbis
       begin
-        ogg_callbacks.read  := @source_read_func;
-        ogg_callbacks.seek  := @source_seek_func;
+        ogg_callbacks.read  := @source_read_func_ogg;
+        ogg_callbacks.seek  := @source_seek_func_ogg;
         ogg_callbacks.close := @source_close_func;
         ogg_callbacks.tell  := @source_tell_func;
 
@@ -222,6 +253,15 @@ begin
       begin
         a52_decoder := a52_decoder_init(0, source, @source_read_func, @source_seek_func, @source_close_func, @source_tell_func);
         codec_read := @a52_read;
+        codec_rate := 44100;//48000;
+        codec_chan := 2;
+        codec_bs   := 2*codec_chan;
+      end;
+
+    4: // a52
+      begin
+        dts_decoder := dts_decoder_init(0, source, @source_read_func, @source_seek_func, @source_close_func, @source_tell_func);
+        codec_read := @dts_read;
         codec_rate := 44100;//48000;
         codec_chan := 2;
         codec_bs   := 2*codec_chan;
@@ -282,6 +322,11 @@ begin
     3: // a52
       begin
         a52_decoder_free(a52_decoder);
+      end;
+
+    4: // dts
+      begin
+        dts_decoder_free(dts_decoder);
       end;
   end;
 
