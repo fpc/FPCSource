@@ -520,40 +520,43 @@ begin
   r := 0;
   FailedCount := 0;
   Response := rrApply;
-  while (r < Length(FUpdateBuffer)) and (Response <> rrAbort) do
-    begin
-    if assigned(FUpdateBuffer[r].BookmarkData) then
+  try
+    while (r < Length(FUpdateBuffer)) and (Response <> rrAbort) do
       begin
-      InternalGotoBookmark(@FUpdateBuffer[r].BookmarkData);
-      Resync([rmExact,rmCenter]);
-      Response := rrApply;
-      try
-        ApplyRecUpdate(FUpdateBuffer[r].UpdateKind);
-      except
-        on E: EDatabaseError do
-          begin
-          Inc(FailedCount);
-          if failedcount > word(MaxErrors) then Response := rrAbort
-          else Response := rrSkip;
-          if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdateError.Create(SOnUpdateError,E.Message,0,0,E),FUpdateBuffer[r].UpdateKind,Response)
-          else if Response = rrAbort then Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,E)
-          end
-        else
-          raise;
-      end;
-      if response = rrApply then
+      if assigned(FUpdateBuffer[r].BookmarkData) then
         begin
-        FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
-        FUpdateBuffer[r].BookmarkData := nil;
-        end
+        InternalGotoBookmark(@FUpdateBuffer[r].BookmarkData);
+        Resync([rmExact,rmCenter]);
+        Response := rrApply;
+        try
+          ApplyRecUpdate(FUpdateBuffer[r].UpdateKind);
+        except
+          on E: EDatabaseError do
+            begin
+            Inc(FailedCount);
+            if failedcount > word(MaxErrors) then Response := rrAbort
+            else Response := rrSkip;
+            if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdateError.Create(SOnUpdateError,E.Message,0,0,E),FUpdateBuffer[r].UpdateKind,Response)
+            else if Response = rrAbort then Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,E)
+            end
+          else
+            raise;
+        end;
+        if response = rrApply then
+          begin
+          FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
+          FUpdateBuffer[r].BookmarkData := nil;
+          end
+        end;
+      inc(r);
       end;
-    inc(r);
-    end;
-  if failedcount = 0 then
-    SetLength(FUpdateBuffer,0);
+  finally
+    if failedcount = 0 then
+      SetLength(FUpdateBuffer,0);
 
-  FCurrentRecBuf := StoreRecBuf;
-  Resync([]);
+    FCurrentRecBuf := StoreRecBuf;
+    Resync([]);
+  end;
 end;
 
 procedure TBufDataset.InternalPost;
