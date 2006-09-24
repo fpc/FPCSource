@@ -2294,33 +2294,23 @@ implementation
          setmax:=high;
          if high<32 then
            begin
-            settype:=smallset;
-           {$ifdef testvarsets}
-            if aktsetalloc=0 THEN      { $PACKSET Fixed?}
-           {$endif}
-            savesize:=Sizeof(longint)
-           {$ifdef testvarsets}
-           else                       {No, use $PACKSET VALUE for rounding}
-            savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8))
-           {$endif}
-              ;
-          end
+             settype:=smallset;
+             if aktsetalloc=0 then      { $PACKSET Fixed?}
+               savesize:=Sizeof(longint)
+             else                       {No, use $PACKSET VALUE for rounding}
+               savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
+           end
          else
           if high<256 then
-           begin
+            begin
               settype:=normset;
-              savesize:=32;
-           end
-         else
-{$ifdef testvarsets}
-         if high<$10000 then
-           begin
-              settype:=varset;
-              savesize:=4*((high+31) div 32);
-           end
-         else
-{$endif testvarsets}
-          Message(sym_e_ill_type_decl_set);
+              if aktsetalloc=0 then      { $PACKSET Fixed?}
+                savesize:=32
+              else                       {No, use $PACKSET VALUE for rounding}
+                savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
+            end
+          else
+            savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
       end;
 
 
@@ -2809,7 +2799,7 @@ implementation
          trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
-         trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);  
+         trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).ppuload(ppufile);
          symtable.defowner:=self;
          isunion:=false;

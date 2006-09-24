@@ -221,6 +221,9 @@ interface
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
+    {# returns true, if the type passed is a varset }
+    function is_varset(p : tdef) : boolean;
+
 implementation
 
     uses
@@ -962,6 +965,13 @@ implementation
           variantdef:
             result:=true;
         end;
+      end;
+
+
+    {# returns true, if the type passed is a varset }
+    function is_varset(p : tdef) : boolean;
+      begin
+        result:=(p.deftype=setdef) and not(p.size=4) and not(p.size=32);
       end;
 
 

@@ -6253,6 +6253,7 @@ tests/test/tunit3.pp svneol=native#text/plain
 tests/test/tunroll1.pp svneol=native#text/plain
 tests/test/tutf81.pp svneol=native#text/plain%3Bcharset%3Dutf-8
 tests/test/tutf82.pp svneol=native#text/plain%3Bcharset%3Dutf-8
+tests/test/tvarset1.pp svneol=native#text/plain
 tests/test/twide1.pp svneol=native#text/plain
 tests/test/twide2.pp svneol=native#text/plain
 tests/test/uabstrcl.pp svneol=native#text/plain

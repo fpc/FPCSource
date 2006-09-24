@@ -386,9 +386,7 @@ implementation
          aktmoduleswitches:=initmoduleswitches;
          aktmodeswitches:=initmodeswitches;
          aktoptimizerswitches:=initoptimizerswitches;
-         {$IFDEF Testvarsets}
          aktsetalloc:=initsetalloc;
-         {$ENDIF}
          aktalignment:=initalignment;
          aktfputype:=initfputype;
          aktpackenum:=initpackenum;

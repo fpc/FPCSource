@@ -812,19 +812,19 @@ implementation
          end;
       end;
 
-{$ifdef testvarsets}
+
     procedure dir_packset;
       var
         hs : string;
       begin
         current_scanner.skipspace;
-        if not(c in ['1','2','4']) then
+        if not(c in ['1','2','4','8']) then
          begin
            hs:=current_scanner.readid;
            if (hs='FIXED') or ((hs='DEFAULT') OR (hs='NORMAL')) then
             aktsetalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
            else
-            Message(scan_w_only_packset);
+            Message(scan_e_only_packset);
          end
         else
          begin
@@ -832,12 +832,13 @@ implementation
             1 : aktsetalloc:=1;
             2 : aktsetalloc:=2;
             4 : aktsetalloc:=4;
+            8 : aktsetalloc:=8;
            else
-            Message(scan_w_only_packset);
+            Message(scan_e_only_packset);
            end;
          end;
       end;
-{$ENDIF}
+
 
     procedure dir_pic;
       begin
@@ -1276,9 +1277,7 @@ implementation
         AddDirective('OVERFLOWCHECKS',directive_all, @dir_overflowchecks);
         AddDirective('PACKENUM',directive_all, @dir_packenum);
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);
-{$IFDEF TestVarsets}
         AddDirective('PACKSET',directive_all, @dir_packset);
-{$ENDIF}
         AddDirective('PIC',directive_all, @dir_pic);
         AddDirective('POP',directive_mac, @dir_pop);
         AddDirective('PROFILE',directive_all, @dir_profile);

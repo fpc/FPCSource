@@ -343,6 +343,8 @@ scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE is not supported by the tar
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
 % Only ON and OFF can be used as state with a \$warn compiler directive
+scan_e_only_packset=02080_E_Illegal set packing value
+% Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 % \end{description}
 #
 # Parser

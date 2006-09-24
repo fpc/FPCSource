@@ -1658,141 +1658,289 @@ implementation
       end;
 
 
-    function taddnode.first_addset: tnode;
+    function taddnode.first_addset : tnode;
+
+      procedure call_varset_helper(const n : string);
+        var
+          newstatement : tstatementnode;
+          temp    : ttempcreatenode;
+        begin
+          { add two var sets }
+          result:=internalstatements(newstatement);
+
+          { create temp for result }
+          temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,true);
+          addstatement(newstatement,temp);
+
+          addstatement(newstatement,ccallnode.createintern(n,
+            ccallparanode.create(cordconstnode.create(resulttype.def.size,sinttype,false),
+            ccallparanode.create(ctemprefnode.create(temp),
+            ccallparanode.create(right,
+            ccallparanode.create(left,nil)))))
+          );
+
+          { remove reused parts from original node }
+          left:=nil;
+          right:=nil;
+          { the last statement should return the value as
+            location and type, this is done be referencing the
+            temp and converting it first from a persistent temp to
+            normal temp }
+          addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+          addstatement(newstatement,ctemprefnode.create(temp));
+        end;
+
       var
         procname: string[31];
         tempn: tnode;
         paras: tcallparanode;
         srsym: ttypesym;
+        newstatement : tstatementnode;
+        temp    : ttempcreatenode;
       begin
-        { get the sym that represents the fpc_normal_set type }
-        srsym:=search_system_type('FPC_NORMAL_SET');
-        case nodetype of
-          equaln,unequaln,lten,gten:
-            begin
-              case nodetype of
-                equaln,unequaln:
-                  procname := 'fpc_set_comp_sets';
-                lten,gten:
-                  begin
-                    procname := 'fpc_set_contains_sets';
-                    { (left >= right) = (right <= left) }
-                    if nodetype = gten then
+        if is_varset(left.resulttype.def) then
+          begin
+            if not(is_varset(right.resulttype.def)) then
+              internalerror(2006091901);
+            case nodetype of
+              equaln,unequaln,lten,gten:
+                begin
+                  case nodetype of
+                    equaln,unequaln:
+                      procname := 'fpc_varset_comp_sets';
+                    lten,gten:
                       begin
-                        tempn := left;
-                        left := right;
-                        right := tempn;
-                      end;
+                        procname := 'fpc_varset_contains_sets';
+                        { (left >= right) = (right <= left) }
+                        if nodetype = gten then
+                          begin
+                            tempn := left;
+                            left := right;
+                            right := tempn;
+                          end;
+                       end;
                    end;
-               end;
-               { convert the arguments (explicitely) to fpc_normal_set's }
-               left := ctypeconvnode.create_internal(left,srsym.restype);
-               right := ctypeconvnode.create_internal(right,srsym.restype);
-               result := ccallnode.createintern(procname,ccallparanode.create(right,
-                 ccallparanode.create(left,nil)));
-               { left and right are reused as parameters }
-               left := nil;
-               right := nil;
-               { for an unequaln, we have to negate the result of comp_sets }
-               if nodetype = unequaln then
-                 result := cnotnode.create(result);
-            end;
-          addn:
-            begin
-              { optimize first loading of a set }
-              if (right.nodetype=setelementn) and
-                 not(assigned(tsetelementnode(right).right)) and
-                 is_emptyset(left) then
+                   result := ccallnode.createinternres(procname,
+                     ccallparanode.create(cordconstnode.create(left.resulttype.def.size,sinttype,false),
+                     ccallparanode.create(right,
+                     ccallparanode.create(left,nil))),resulttype);
+                   { left and right are reused as parameters }
+                   left := nil;
+                   right := nil;
+                   { for an unequaln, we have to negate the result of comp_sets }
+                   if nodetype = unequaln then
+                     result := cnotnode.create(result);
+                end;
+              addn:
                 begin
-                  { type cast the value to pass as argument to a byte, }
-                  { since that's what the helper expects               }
-                  tsetelementnode(right).left :=
-                    ctypeconvnode.create_internal(tsetelementnode(right).left,u8inttype);
-                  { set the resulttype to the actual one (otherwise it's }
-                  { "fpc_normal_set")                                    }
-                  result := ccallnode.createinternres('fpc_set_create_element',
-                    ccallparanode.create(tsetelementnode(right).left,nil),
-                    resulttype);
-                  { reused }
-                  tsetelementnode(right).left := nil;
-                end
+                  { optimize first loading of a set }
+                  if (right.nodetype=setelementn) and
+                     not(assigned(tsetelementnode(right).right)) and
+                     is_emptyset(left) then
+                    begin
+                      result:=internalstatements(newstatement);
+
+                      { create temp for result }
+                      temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,true);
+                      addstatement(newstatement,temp);
+
+                      addstatement(newstatement,ccallnode.createintern('fpc_varset_create_element',
+                        ccallparanode.create(ctemprefnode.create(temp),
+                        ccallparanode.create(cordconstnode.create(resulttype.def.size,sinttype,false),
+                        ccallparanode.create(tsetelementnode(right).left,nil))))
+                      );
+
+                      { the last statement should return the value as
+                        location and type, this is done be referencing the
+                        temp and converting it first from a persistent temp to
+                        normal temp }
+                      addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                      addstatement(newstatement,ctemprefnode.create(temp));
+
+                      tsetelementnode(right).left := nil;
+                    end
+                  else
+                    begin
+                      if right.nodetype=setelementn then
+                        begin
+                          result:=internalstatements(newstatement);
+
+                          { create temp for result }
+                          temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,true);
+                          addstatement(newstatement,temp);
+
+                          { add a range or a single element? }
+                          if assigned(tsetelementnode(right).right) then
+                            addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
+                              ccallparanode.create(cordconstnode.create(resulttype.def.size,sinttype,false),
+                              ccallparanode.create(tsetelementnode(right).right,
+                              ccallparanode.create(tsetelementnode(right).left,
+                              ccallparanode.create(ctemprefnode.create(temp),
+                              ccallparanode.create(left,nil))))))
+                            )
+                          else
+                            addstatement(newstatement,ccallnode.createintern('fpc_varset_set',
+                              ccallparanode.create(cordconstnode.create(resulttype.def.size,sinttype,false),
+                              ccallparanode.create(tsetelementnode(right).left,
+                              ccallparanode.create(ctemprefnode.create(temp),
+                              ccallparanode.create(left,nil)))))
+                            );
+                          { remove reused parts from original node }
+                          tsetelementnode(right).right:=nil;
+                          tsetelementnode(right).left:=nil;
+                          left:=nil;
+                          { the last statement should return the value as
+                            location and type, this is done be referencing the
+                            temp and converting it first from a persistent temp to
+                            normal temp }
+                          addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                          addstatement(newstatement,ctemprefnode.create(temp));
+                        end
+                      else
+                        call_varset_helper('fpc_varset_add_sets');
+                    end
+                end;
+              subn:
+                call_varset_helper('fpc_varset_sub_sets');
+              symdifn:
+                call_varset_helper('fpc_varset_symdif_sets');
+              muln:
+                call_varset_helper('fpc_varset_mul_sets');
               else
+                internalerror(200609241);
+            end;
+          end
+        else
+          begin
+            { get the sym that represents the fpc_normal_set type }
+            srsym:=search_system_type('FPC_NORMAL_SET');
+            case nodetype of
+              equaln,unequaln,lten,gten:
                 begin
-                  if right.nodetype=setelementn then
-                   begin
-                     { convert the arguments to bytes, since that's what }
-                     { the helper expects                               }
-                     tsetelementnode(right).left :=
-                       ctypeconvnode.create_internal(tsetelementnode(right).left,
-                       u8inttype);
-
-                     { convert the original set (explicitely) to an   }
-                     { fpc_normal_set so we can pass it to the helper }
-                     left := ctypeconvnode.create_internal(left,srsym.restype);
-
-                     { add a range or a single element? }
-                     if assigned(tsetelementnode(right).right) then
+                  case nodetype of
+                    equaln,unequaln:
+                      procname := 'fpc_set_comp_sets';
+                    lten,gten:
+                      begin
+                        procname := 'fpc_set_contains_sets';
+                        { (left >= right) = (right <= left) }
+                        if nodetype = gten then
+                          begin
+                            tempn := left;
+                            left := right;
+                            right := tempn;
+                          end;
+                       end;
+                   end;
+                   { convert the arguments (explicitely) to fpc_normal_set's }
+                   left := ctypeconvnode.create_internal(left,srsym.restype);
+                   right := ctypeconvnode.create_internal(right,srsym.restype);
+                   result := ccallnode.createintern(procname,ccallparanode.create(right,
+                     ccallparanode.create(left,nil)));
+                   { left and right are reused as parameters }
+                   left := nil;
+                   right := nil;
+                   { for an unequaln, we have to negate the result of comp_sets }
+                   if nodetype = unequaln then
+                     result := cnotnode.create(result);
+                end;
+              addn:
+                begin
+                  { optimize first loading of a set }
+                  if (right.nodetype=setelementn) and
+                     not(assigned(tsetelementnode(right).right)) and
+                     is_emptyset(left) then
+                    begin
+                      { type cast the value to pass as argument to a byte, }
+                      { since that's what the helper expects               }
+                      tsetelementnode(right).left :=
+                        ctypeconvnode.create_internal(tsetelementnode(right).left,u8inttype);
+                      { set the resulttype to the actual one (otherwise it's }
+                      { "fpc_normal_set")                                    }
+                      result := ccallnode.createinternres('fpc_set_create_element',
+                        ccallparanode.create(tsetelementnode(right).left,nil),
+                        resulttype);
+                      { reused }
+                      tsetelementnode(right).left := nil;
+                    end
+                  else
+                    begin
+                      if right.nodetype=setelementn then
                        begin
-                         tsetelementnode(right).right :=
-                           ctypeconvnode.create_internal(tsetelementnode(right).right,
+                         { convert the arguments to bytes, since that's what }
+                         { the helper expects                               }
+                         tsetelementnode(right).left :=
+                           ctypeconvnode.create_internal(tsetelementnode(right).left,
                            u8inttype);
 
-                         { create the call }
-                         result := ccallnode.createinternres('fpc_set_set_range',
-                           ccallparanode.create(tsetelementnode(right).right,
-                           ccallparanode.create(tsetelementnode(right).left,
-                           ccallparanode.create(left,nil))),resulttype);
-                       end
-                     else
-                       begin
-                         result := ccallnode.createinternres('fpc_set_set_byte',
-                           ccallparanode.create(tsetelementnode(right).left,
-                           ccallparanode.create(left,nil)),resulttype);
-                       end;
-                     { remove reused parts from original node }
-                     tsetelementnode(right).right := nil;
-                     tsetelementnode(right).left := nil;
-                     left := nil;
-                   end
-                  else
-                   begin
-                     { add two sets }
+                         { convert the original set (explicitely) to an   }
+                         { fpc_normal_set so we can pass it to the helper }
+                         left := ctypeconvnode.create_internal(left,srsym.restype);
 
-                     { convert the sets to fpc_normal_set's }
-                     result := ccallnode.createinternres('fpc_set_add_sets',
-                       ccallparanode.create(
-                         ctypeconvnode.create_explicit(right,srsym.restype),
-                       ccallparanode.create(
-                         ctypeconvnode.create_internal(left,srsym.restype),nil)),resulttype);
-                     { remove reused parts from original node }
-                     left := nil;
-                     right := nil;
-                   end;
-                end
+                         { add a range or a single element? }
+                         if assigned(tsetelementnode(right).right) then
+                           begin
+                             tsetelementnode(right).right :=
+                               ctypeconvnode.create_internal(tsetelementnode(right).right,
+                               u8inttype);
+
+                             { create the call }
+                             result := ccallnode.createinternres('fpc_set_set_range',
+                               ccallparanode.create(tsetelementnode(right).right,
+                               ccallparanode.create(tsetelementnode(right).left,
+                               ccallparanode.create(left,nil))),resulttype);
+                           end
+                         else
+                           begin
+                             result := ccallnode.createinternres('fpc_set_set_byte',
+                               ccallparanode.create(tsetelementnode(right).left,
+                               ccallparanode.create(left,nil)),resulttype);
+                           end;
+                         { remove reused parts from original node }
+                         tsetelementnode(right).right := nil;
+                         tsetelementnode(right).left := nil;
+                         left := nil;
+                       end
+                      else
+                       begin
+                         { add two sets }
+
+                         { convert the sets to fpc_normal_set's }
+                         result := ccallnode.createinternres('fpc_set_add_sets',
+                           ccallparanode.create(
+                             ctypeconvnode.create_explicit(right,srsym.restype),
+                           ccallparanode.create(
+                             ctypeconvnode.create_internal(left,srsym.restype),nil)),resulttype);
+                         { remove reused parts from original node }
+                         left := nil;
+                         right := nil;
+                       end;
+                    end
+                end;
+              subn,symdifn,muln:
+                begin
+                  { convert the sets to fpc_normal_set's }
+                  paras := ccallparanode.create(ctypeconvnode.create_internal(right,srsym.restype),
+                    ccallparanode.create(ctypeconvnode.create_internal(left,srsym.restype),nil));
+                  case nodetype of
+                    subn:
+                      result := ccallnode.createinternres('fpc_set_sub_sets',
+                        paras,resulttype);
+                    symdifn:
+                      result := ccallnode.createinternres('fpc_set_symdif_sets',
+                        paras,resulttype);
+                    muln:
+                      result := ccallnode.createinternres('fpc_set_mul_sets',
+                        paras,resulttype);
+                  end;
+                  { remove reused parts from original node }
+                  left := nil;
+                  right := nil;
+                end;
+              else
+                internalerror(200108311);
             end;
-          subn,symdifn,muln:
-            begin
-              { convert the sets to fpc_normal_set's }
-              paras := ccallparanode.create(ctypeconvnode.create_internal(right,srsym.restype),
-                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.restype),nil));
-              case nodetype of
-                subn:
-                  result := ccallnode.createinternres('fpc_set_sub_sets',
-                    paras,resulttype);
-                symdifn:
-                  result := ccallnode.createinternres('fpc_set_symdif_sets',
-                    paras,resulttype);
-                muln:
-                  result := ccallnode.createinternres('fpc_set_mul_sets',
-                    paras,resulttype);
-              end;
-              { remove reused parts from original node }
-              left := nil;
-              right := nil;
-            end;
-          else
-            internalerror(200108311);
-        end;
+          end;
       end;
 
 

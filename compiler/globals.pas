@@ -224,9 +224,9 @@ interface
        initlocalswitches  : tlocalswitches;
        initmodeswitches   : tmodeswitches;
        initoptimizerswitches : toptimizerswitches;
-       {$IFDEF testvarsets}
-        Initsetalloc,                            {0=fixed, 1 =var}
-       {$ENDIF}
+       { 0: old behaviour for sets <=256 elements
+         >0: round to this size }
+       initsetalloc,
        initpackenum       : shortint;
        initalignment      : talignmentinfo;
        initcputype,
@@ -245,9 +245,7 @@ interface
        nextaktlocalswitches : tlocalswitches;
        localswitcheschanged : boolean;
        aktmodeswitches    : tmodeswitches;
-       {$IFDEF testvarsets}
-        aktsetalloc,
-       {$ENDIF}
+       aktsetalloc,
        aktpackrecords,
        aktpackenum        : shortint;
        aktmaxfpuregisters : longint;
@@ -2268,9 +2266,7 @@ end;
         initoptimizerswitches:=[];
         initsourcecodepage:='8859-1';
         initpackenum:=4;
-        {$IFDEF testvarsets}
         initsetalloc:=0;
-        {$ENDIF}
         fillchar(initalignment,sizeof(talignmentinfo),0);
         { might be overridden later }
         initasmmode:=asmmode_standard;
