@@ -26,7 +26,7 @@ dirs_openbsd=unzip zlib \
              utmp bfd gdbm ncurses fpgtk \
              tcl imlib gnome1 md4
 dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 \
-             mad openal oggvorbis a52 libpng zlib
+             mad openal oggvorbis a52 libpng
 dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \

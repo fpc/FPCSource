@@ -237,7 +237,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=unzip
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis a52 libpng zlib
+override TARGET_DIRS+=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw md4 mad openal oggvorbis a52 libpng
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
@@ -1448,7 +1448,6 @@ TARGET_DIRS_OPENAL=1
 TARGET_DIRS_OGGVORBIS=1
 TARGET_DIRS_A52=1
 TARGET_DIRS_LIBPNG=1
-TARGET_DIRS_ZLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_OS2UNITS=1
