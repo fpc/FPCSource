@@ -26,7 +26,7 @@ Interface
 
 type
   PCardinal = ^Cardinal;
-  TMD5Count = array[0..1] of Cardinal;
+  TMD5Count = array[0..1] of PtrUInt;
   TMD5State = array[0..3] of Cardinal;
   TMD5Block = array[0..15] of Cardinal;
   TMD5CBits = array[0..7] of byte;
@@ -44,15 +44,15 @@ Const
 { Raw methods }
 
 procedure MD5Init(var Context: TMD5Context);
-procedure MD5Update(var Context: TMD5Context; Var Buf; BufLen: cardinal);
+procedure MD5Update(var Context: TMD5Context; Var Buf; BufLen: PtrUInt);
 procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest);
 
 { Auxiliary methods }
 
 function MD5String(M: string): TMD5Digest;
-function MD5Buffer(Var Buf; BufLen: cardinal): TMD5Digest;
+function MD5Buffer(Var Buf; BufLen: PtrUInt): TMD5Digest;
 function MD5File(N: string): TMD5Digest;
-function MD5File(N: string; Bufsize : Cardinal): TMD5Digest;
+function MD5File(N: string; Bufsize : PtrUInt): TMD5Digest;
 function MD5Print(D: TMD5Digest): String;
 // based on an implementation by Matthias Fichtner
 function MD5Match(D1, D2: TMD5Digest): boolean;
@@ -135,12 +135,12 @@ end;
 
 // inverts the bytes of (Count div) 4 cardinals from source to target.
 
-procedure Invert(Source,Target: pointer; Count: cardinal);
+procedure Invert(Source,Target: pointer; Count: PtrUInt);
 
 var
   S: PByte;
   T: PCardinal;
-  I: cardinal;
+  I: PtrUInt;
 
 begin
   S := Source;
@@ -254,12 +254,12 @@ end;
 
 
 
-procedure MD5Update(var Context: TMD5Context; Var Buf; BufLen: cardinal);
+procedure MD5Update(var Context: TMD5Context; Var Buf; BufLen: PtrUInt);
 
 var
-  Index: cardinal;
-  PartLen: cardinal;
-  I: cardinal;
+  Index: PtrUInt;
+  PartLen: PtrUInt;
+  I: PtrUInt;
   P : PByte;
 
 begin
@@ -294,8 +294,8 @@ procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest);
 
 var
   Bits: TMD5CBits;
-  I : cardinal;
-  Pad : cardinal;
+  I : PtrUInt;
+  Pad : PtrUInt;
 
 begin
   Invert(@Context.Count, @Bits, 8);
@@ -322,7 +322,7 @@ begin
   MD5Final(Context, Result);
 end;
 
-function MD5Buffer(var Buf; BufLen: cardinal): TMD5Digest;
+function MD5Buffer(var Buf; BufLen: PtrUInt): TMD5Digest;
 var
   Context: TMD5Context;
 
@@ -339,7 +339,7 @@ begin
 end;
 
 
-function MD5File(N: string; BufSize : Cardinal): TMD5Digest;
+function MD5File(N: string; BufSize : PtrUInt): TMD5Digest;
 
 var
   F : File;
@@ -347,7 +347,7 @@ var
   Context: TMD5Context;
   Count : Longint;
   ofm : Longint;
-  
+
 begin
   MD5Init(Context);
   Assign(F,N);
