@@ -246,7 +246,7 @@ begin
         Writeln(stdout,BackTraceStrFunc(Frames[i]));
     end;
   Writeln(stdout,'');
-  Halt(217);
+  ErrorCode:=217;
 end;
 
 
