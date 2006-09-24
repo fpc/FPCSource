@@ -518,28 +518,38 @@ end;
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
 
-
 function ForceDirectories(Const Dir: string): Boolean;
 
 var
   E: EInOutError;
-  ADir : String;
+  ADrv : String;
 
+function DoForceDirectories(Const Dir: string): Boolean;
+var
+  ADir : String;
 begin
   Result:=True;
   ADir:=ExcludeTrailingPathDelimiter(Dir);
-  if (ADir='') then
-    begin
-    E:=EInOutError.Create(SCannotCreateEmptyDir);
-    E.ErrorCode:=3;
-    Raise E;
-    end;
+  if (ADir='') then Exit;
   if Not DirectoryExists(ADir) then
     begin
-    Result:=ForceDirectories(ExtractFilePath(ADir));
+    Result:=DoForceDirectories(ExtractFilePath(ADir));
     If Result then
-      CreateDir(ADir);
+      Result := CreateDir(ADir);
     end;
+end;
+
+begin
+  Result := False;
+  ADrv := ExtractFileDrive(Dir);
+  if (ADrv<>'') and (not DirectoryExists(ADrv)) then Exit;
+  if Dir='' then
+    begin
+      E:=EInOutError.Create(SCannotCreateEmptyDir);
+      E.ErrorCode:=3;
+      Raise E;
+    end;
+  Result := DoForceDirectories(Dir);
 end;
 
 Procedure GetRandomBytes(Var Buf; NBytes : Integer);
