@@ -1157,7 +1157,7 @@ implementation
 
     procedure tcg.a_load_subsetref_regs_index(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);
       var
-        tmpreg, maskreg: tregister;
+        tmpreg: tregister;
       begin
         tmpreg := getintregister(list,OS_INT);
         if (target_info.endian = endian_big) then
@@ -1218,10 +1218,10 @@ implementation
     procedure tcg.a_load_subsetref_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sref: tsubsetreference; destreg: tregister);
       var
         tmpref: treference;
-        valuereg,tmpreg,maskreg,extra_value_reg: tregister;
+        valuereg,extra_value_reg: tregister;
         tosreg: tsubsetregister;
         loadsize: tcgsize;
-        loadbitsize, restbits: byte;
+        loadbitsize: byte;
         extra_load: boolean;
       begin
 
@@ -1255,7 +1255,6 @@ implementation
                   internalerror(2006081510);
                 if (target_info.endian = endian_big) then
                   begin
-                    tmpreg := cg.getintregister(list,OS_INT);
                     a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,valuereg);
                     a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-sref.bitlen,valuereg);
                   end
@@ -1310,7 +1309,6 @@ implementation
         tosreg, fromsreg: tsubsetregister;
         tmpref: treference;
         loadsize: tcgsize;
-        bitmask: aint;
         loadbitsize: byte;
         extra_load: boolean;
       begin
