@@ -50,6 +50,7 @@ procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest);
 { Auxiliary methods }
 
 function MD5String(M: string): TMD5Digest;
+function MD5Buffer(Var Buf; BufLen: cardinal): TMD5Digest;
 function MD5File(N: string): TMD5Digest;
 function MD5File(N: string; Bufsize : Cardinal): TMD5Digest;
 function MD5Print(D: TMD5Digest): String;
@@ -321,6 +322,15 @@ begin
   MD5Final(Context, Result);
 end;
 
+function MD5Buffer(var Buf; BufLen: cardinal): TMD5Digest;
+var
+  Context: TMD5Context;
+
+begin
+  MD5Init(Context);
+  MD5Update(Context, buf, buflen);
+  MD5Final(Context, Result);
+end;
 
 function MD5File(N: string): TMD5Digest;
 
