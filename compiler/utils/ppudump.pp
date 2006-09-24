@@ -1801,6 +1801,7 @@ begin
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
+             writeln(space,'UseFieldAlignment : ',getbyte);
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
