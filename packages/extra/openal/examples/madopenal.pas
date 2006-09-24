@@ -3,7 +3,7 @@ program test;
 {$mode objfpc}
 
 uses
-  classes, sysutils, ctypes, openal, mad, ogg, vorbis, a52, dts, modplug;
+  classes, sysutils, ctypes, openal, mad, ogg, vorbis, a52, dts, modplug, matroska;
 
 var
   source     : TStream;
@@ -180,7 +180,7 @@ begin
   end;
 
   // Under windows, AL_LOOPING = AL_TRUE breaks queueing, no idea why
-  alSourcei(al_source, AL_LOOPING, {AL_FALSE}AL_TRUE);
+  alSourcei(al_source, AL_LOOPING, AL_FALSE);
   alSourcePlay(al_source);
 end;
 
@@ -225,17 +225,18 @@ var
   tmp: pointer;
 begin
 // define codec
-  {WriteLn('Define codec');
+  WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Writeln('  (3) ac3');
   Writeln('  (4) dts');
   Writeln('  (5) xm,mod,it,s3m');
+  Writeln('  (6) mka');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);}
+  Write('File: '); ReadLn(Filename);
 
-  codec := 4;
-  Filename := 'test.dts';
+  {codec := 4;
+  Filename := 'test.dts';}
 
 
 // load file

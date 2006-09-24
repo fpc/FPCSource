@@ -115,19 +115,16 @@ type
 procedure ModPlug_GetSettings(settings: PModPlug_Settings); cdecl; external {$IFDEF DYNLINK}modpluglib{$ENDIF};
 procedure ModPlug_SetSettings(const settings: PModPlug_Settings); cdecl; external {$IFDEF DYNLINK}modpluglib{$ENDIF};
 
-
-// libc functions
-//function _new(s: cuint): pointer; cdecl;
-//procedure _delete(p: pointer); cdecl;
-
 implementation
 
-{function _new(s: cuint): pointer; cdecl;
+function cppNew(s: cint): pointer; cdecl; public; alias : '_Znaj'; alias : '_Znwj';
 begin
+  GetMem(Result, s);
 end;
 
-procedure _delete(p: pointer); cdecl;
+procedure cppDelete(p: pointer); cdecl; public; alias : '_ZdlPv'; alias : '_ZdaPv';
 begin
-end;}
+  FreeMem(p);
+end;
 
 end.
