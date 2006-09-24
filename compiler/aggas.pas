@@ -233,8 +233,8 @@ implementation
         // if paratargetdbg = dbg_dwarf then
         //  result := result + ' --gdwarf-2';
       end;
-    
-    
+
+
     function TGNUAssembler.NextSetLabel: string;
       begin
         inc(setcount);
@@ -529,7 +529,12 @@ implementation
                      begin
                        AsmWrite(#9'.balign '+tostr(tai_align_abstract(hp).aligntype));
                        if tai_align_abstract(hp).use_op then
-                        AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
+                         AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
+{$ifdef x86}
+                       { force NOP as alignment op code }
+                       else if CurrSecType=sec_code then
+                         AsmWrite(',90');
+{$endif x86}
                      end
                    else
                      begin
