@@ -1,3 +1,4 @@
+{$smartlink on}
 unit png;
 
 interface
@@ -13,7 +14,11 @@ uses
  zlib;
 
 Const
+{$ifdef windows}
+  LibPng = 'libpng13'; // Library name
+{$else windows}
   LibPng = 'png'; // Library name
+{$endif windows}
 
 type
    size_t = longint;
