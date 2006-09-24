@@ -305,7 +305,7 @@ function TRegistry.ReadDate(const Name: string): TDateTime;
 
 begin
   ReadBinaryData(Name, Result, SizeOf(TDateTime));
-  Result:=Round(Result);
+  Result:=Trunc(Result);
 end;
 
 function TRegistry.ReadDateTime(const Name: string): TDateTime;

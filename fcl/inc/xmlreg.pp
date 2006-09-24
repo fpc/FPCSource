@@ -26,6 +26,8 @@ Type
   end;
 
 
+  { TXmlRegistry }
+
   TXmlRegistry = Class(TObject)
   Private
     FAutoFlush,
@@ -52,6 +54,7 @@ Type
     Property  Dirty : Boolean Read FDirty write FDirty;
   Public
     Constructor Create(AFileName : String);
+    Destructor  Destroy;override;
     Function  SetKey(KeyPath : String; AllowCreate : Boolean) : Boolean ;
     Procedure SetRootKey(Value : String);
     Function  DeleteKey(KeyPath : String) : Boolean;
@@ -99,6 +102,12 @@ begin
     CreateEmptyDoc;
 end;
 
+destructor TXmlRegistry.Destroy;
+begin
+  if Assigned(FDocument) then  FDocument.Free;
+  inherited Destroy;
+end;
+
 Procedure TXmlRegistry.SetFileName(Value : String);
 
 begin
@@ -139,6 +148,8 @@ begin
   L:=Length(Result);
   If (L>0) and (Result[L]<>'/') then
     Result:=Result+'/';
+  If (L>0) and (Result[1]<>'/') then
+    Result:='/' + Result;
 end;
 
 Function TXmlRegistry.SetKey(KeyPath : String; AllowCreate : Boolean) : boolean;
@@ -153,8 +164,9 @@ begin
   If Not Result then
     Exit;
   KeyPath:=NormalizeKey(KeyPath);
-  If (KeyPath[1]<>'/') then
+  If (FCurrentElement<>nil) then
     begin
+    Delete(Keypath,1,1);
     Node:=FCurrentElement;
     Resultkey:=FCurrentKey;
     end
@@ -237,8 +249,11 @@ begin
   If Not Result then
     Exit;
   KeyPath:=NormalizeKey(KeyPath);
-  If (KeyPath[1]<>'/') then
-    Node:=FCurrentElement
+  If (FCurrentElement<>nil) then
+  begin
+    Delete(Keypath,1,1);
+    Node:=FCurrentElement;
+  end
   else
     begin
     Delete(Keypath,1,1);
@@ -383,7 +398,8 @@ Function TXmlRegistry.CreateSubKey (S : String; N : TDomElement) : TDomElement;
 begin
   Result:=FDocument.CreateElement(SKey);
   Result[SName]:=S;
-  N.AppendChild(Result);
+  if N<>nil then
+    N.AppendChild(Result);
   FDirty:=True;
 end;
 
@@ -448,6 +464,7 @@ begin
     end;
 end;
 
+
 Procedure TXmlRegistry.Load;
 
 Var
@@ -478,9 +495,7 @@ begin
   ReadXMLFile(FDocument,S);
   if (FDocument=Nil) then
     CreateEmptyDoc;
-  FCurrentElement:=Nil;
-  FCurrentKey:='';
-  FRootKey:='';
+  SetRootKey('HKEY_CURRENT_USER');
   FDirty:=False;
 end;
 
@@ -716,8 +731,11 @@ begin
   If (Length(S)=0) then
     Exit;
   S:=NormalizeKey(S);
-  If (S[1]<>'/') then
-    Node:=FCurrentElement
+  If (FCurrentElement<>nil) then
+  begin
+    Delete(S,1,1);
+    Node:=FCurrentElement;
+  end
   else
     begin
     Delete(S,1,1);

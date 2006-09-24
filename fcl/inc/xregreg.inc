@@ -20,7 +20,7 @@ Procedure TRegistry.SysRegFree;
 
 begin
   TXMLRegistry(FSysData).Flush;
-  FSysData:=TXMLRegistry.Create(XFileName);
+  TXMLRegistry(FSysData).Free;
 end;
 
 function TRegistry.SysCreateKey(const Key: String): Boolean;
@@ -237,4 +237,5 @@ procedure TRegistry.CloseKey;
 
 begin
   TXMLRegistry(FSysData).Flush;
+  TXMLRegistry(FSysData).SetRootKey(TXMLRegistry(FSysData).RootKey);
 end;
