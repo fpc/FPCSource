@@ -172,8 +172,7 @@ unit rgobj;
         function instr_spill_register(list:TAsmList;
                                       instr:taicpu;
                                       const r:Tsuperregisterset;
-                                      const spilltemplist:Tspill_temp_list;
-                                      oldlasttemp:longint):boolean;virtual;
+                                      const spilltemplist:Tspill_temp_list): boolean;virtual;
       private
         do_extend_live_range_backwards: boolean;
         {# First imaginary register.}
