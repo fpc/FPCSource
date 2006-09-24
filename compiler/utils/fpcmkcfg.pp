@@ -19,10 +19,11 @@ program fpcmkcfg;
 uses usubst,SysUtils,Classes;
 
 {
-  The fpccfg.inc file must be built from a template with the data2inc
-  command.  it needs options:
+  The inc files must be built from a template with the data2inc
+  command.
   data2inc -b -s fpc.cft fpccfg.inc DefaultConfig
-  where fpc.cft is the template file.
+  data2inc -b -s fpinc.ini fpini.inc fpini
+  data2inc -b -s fpinc.cfg fpcfg.inc fpcfg
 }
 
 {$i fpccfg.inc}

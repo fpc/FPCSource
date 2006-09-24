@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const fpini : array[0..2] of string[240]=(
+const fpini : array[0..4] of string[240]=(
 {$else Delphi}
-const fpini : array[0..2,1..240] of char=(
+const fpini : array[0..4,1..240] of char=(
 {$endif Delphi}
   '[Compile]'#013#010+
   'CompileMode=DEBUG'#013#010+
@@ -45,5 +45,27 @@ const fpini : array[0..2,1..240] of char=(
   'ShowReadme=1'#013#010+
   #013#010+
   '[Files]'#013#010+
-  'OpenExts="*.pas;*.pp;*.inc"'#013#010
+  'OpenExts="*.pas;*.pp;*.inc"'#013#010+
+  #013#010+
+  '[Tools]'#013#010+
+  'Title1="svn ~u~p (curr. dir)"'#013#010+
+  'Program1="svn"'#013#010+
+  'Params1="up $CAP_MSG()"'#013#010+
+  'HotKey1=22784'#013#010+
+  'Title2="svn c~i~ (curr. dir)"'#013#010+
+  'Program2="svn"'#013#010+
+  'Params2="ci ','$CAP_MSG()"'#013#010+
+  'HotKey2=23040'#013#010+
+  'Title3="svn ~d~iff"'#013#010+
+  'Program3="svn"'#013#010+
+  'Params3="diff $CAP_MSG() $EDNAME"'#013#010+
+  'HotKey3=23296'#013#010+
+  'Title4="svn ~l~og"'#013#010+
+  'Program4="svn"'#013#010+
+  'Params4="log $CAP_MSG() $EDNAME"'#013#010+
+  'HotKey4=23552'#013#010+
+  'Title5="svn ~b~lame"'#013#010+
+  'Program5="svn"'#013#010+
+  'Pa','rams5="blame $CAP_MSG() $EDNAME"'#013#010+
+  'HotKey5=23808'#013#010
 );
