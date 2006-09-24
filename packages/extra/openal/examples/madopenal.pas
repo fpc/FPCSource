@@ -121,7 +121,9 @@ function dts_read(const Buffer: Pointer; const Count: Longword): Longword;
 var
   Res: cint;
 begin
+  //WriteLn('enter dts_decoder_read');
   Res := dts_decoder_read(dts_decoder, Buffer, Count);
+  //WriteLn('leave dts_decoder_read ', Res);
   if Res < 0 then
     Result := 0 else
     Result := Res;
@@ -178,7 +180,7 @@ begin
   end;
 
   // Under windows, AL_LOOPING = AL_TRUE breaks queueing, no idea why
-  alSourcei(al_source, AL_LOOPING, AL_FALSE);
+  alSourcei(al_source, AL_LOOPING, {AL_FALSE}AL_TRUE);
   alSourcePlay(al_source);
 end;
 
@@ -197,6 +199,8 @@ begin
   alGetSourcei(al_source, AL_BUFFERS_PROCESSED, processed);
   while (processed > 0) and (processed <= al_bufcount) do
   begin
+    Write('.');
+
     alSourceUnqueueBuffers(al_source, 1, @buffer);
 
     if codec_read(al_readbuf, al_bufsize) = 0 then
@@ -221,17 +225,17 @@ var
   tmp: pointer;
 begin
 // define codec
-  WriteLn('Define codec');
+  {WriteLn('Define codec');
   Writeln('  (1) mp3');
   Writeln('  (2) ogg');
   Writeln('  (3) ac3');
   Writeln('  (4) dts');
   Writeln('  (5) xm,mod,it,s3m');
   Write('Enter: '); ReadLn(codec);
-  Write('File: '); ReadLn(Filename);
+  Write('File: '); ReadLn(Filename);}
 
-  {codec := 3;
-  Filename := 'test4.ac3';}
+  codec := 4;
+  Filename := 'test.dts';
 
 
 // load file
@@ -324,10 +328,8 @@ begin
 
 // play
   alPlay;
-  writeln('begin process');
   while alProcess do
     Sleep(al_polltime);
-  writeln('end process');
 
 // finalize openal
   alDeleteSources(1, @al_source);

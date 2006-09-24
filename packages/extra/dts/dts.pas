@@ -355,13 +355,13 @@ type
 
   pdts_decoder = ^dts_decoder;
   dts_decoder = record
-    inbuf       : array[0..4095] of cuint8;
+    inbuf       : array[0..24576-1] of cuint8;
     inbuf_ptr   : pcuint8;
     frame_size  : cint;
     state       : pdts_state_t;
     fsamples    : pdts_sample_t; // internal samples buffer of dts (returned by dts_samples)
 
-    samples     : array[0..1,0..1535] of cint16;
+    samples     : array[0..1,0..6*256-1] of cint16;
     samplecnt   : cint;
     sampleofs   : cint;
     user        : pointer;
@@ -443,15 +443,12 @@ begin
       if decoder^.frame_size = 0 then
       begin
         (* no header seen : find one. We need at least 7 bytes to parse it *)
-        //WriteLn('no header seen (', len, ')');
 
         len := dts_syncinfo(decoder^.state, @decoder^.inbuf, decoder^.flags, sample_rate, bit_rate, i{dummy});
-        WriteLn('dts_syncinfo ', len);
-
         if len = 0 then
         begin
           (* no sync found : move by one byte (inefficient, but simple!) *)
-          Move(decoder^.inbuf[1], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - 1);
+          Move(decoder^.inbuf[1], decoder^.inbuf[0], ptrint(decoder^.inbuf_ptr) - ptrint(@decoder^.inbuf) - 1);
           Dec(decoder^.inbuf_ptr, 1);
         end else begin
           decoder^.frame_size := len;
@@ -463,7 +460,7 @@ begin
           if decoder^.flags and A52_LFE <> 0 then
             Inc(decoder^.channels);}
 
-         {WriteLn('  frame_size  : ', decoder^.frame_size);
+          {WriteLn('  frame_size  : ', decoder^.frame_size);
           WriteLn('  sample_rate : ', sample_rate);
           WriteLn('  bit_rate    : ', bit_rate);
           WriteLn('  channels    : ', decoder^.channels);}
@@ -473,8 +470,9 @@ begin
       end;
 
       (* decode the frame *)
-      flags := DTS_STEREO;//decoder^.flags;
-      level := High(Smallint)-30;
+      flags := DTS_STEREO or DTS_ADJUST_LEVEL;//decoder^.flags;
+      level := 0;//High(Smallint)-30;
+      (* FIXME dts_frame dont care on level parameters, so I set it to zero and multiply with High(Smallint) later *)
 
       if dts_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
       begin
@@ -484,8 +482,6 @@ begin
       end;
 
       len := dts_blocks_num(decoder^.state);
-      WriteLn('dts_blocks_num ', len);
-
       for i := 0 to len - 1 do
       begin
         if dts_block(decoder^.state) <> 0 then
@@ -497,13 +493,13 @@ begin
 
         for j := 0 to 255 do
         begin
-          decoder^.samples[0, i*256+j] := Round(decoder^.fsamples[j + 000]);
-          decoder^.samples[1, i*256+j] := Round(decoder^.fsamples[j + 256]);
+          decoder^.samples[0, i*256+j] := Round(High(Smallint)*decoder^.fsamples[j + 000]);
+          decoder^.samples[1, i*256+j] := Round(High(Smallint)*decoder^.fsamples[j + 256]);
         end;
       end;
 
       (* skip decoded frame *)
-      Move(decoder^.inbuf[decoder^.frame_size], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - decoder^.frame_size);
+      Move(decoder^.inbuf[decoder^.frame_size], decoder^.inbuf[0], ptrint(decoder^.inbuf_ptr) - ptrint(@decoder^.inbuf) - decoder^.frame_size);
       Dec(decoder^.inbuf_ptr, decoder^.frame_size);
       decoder^.frame_size := 0;
 

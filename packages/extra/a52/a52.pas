@@ -337,13 +337,13 @@ type
 
   pa52_decoder = ^a52_decoder;
   a52_decoder = record
-    inbuf       : array[0..4095] of cuint8;
+    inbuf       : array[0..4096-1] of cuint8;
     inbuf_ptr   : pcuint8;
     frame_size  : cint;
     state       : pa52_state_t;
     fsamples    : pa52_sample_t; // internal samples buffer of a52 (returned by a52_samples)
 
-    samples     : array[0..1,0..1535] of cint16;
+    samples     : array[0..1,0..6*256-1] of cint16;
     samplecnt   : cint;
     sampleofs   : cint;
     user        : pointer;
@@ -431,7 +431,7 @@ begin
         if len = 0 then
         begin
           (* no sync found : move by one byte (inefficient, but simple!) *)
-          Move(decoder^.inbuf[1], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - 1);
+          Move(decoder^.inbuf[1], decoder^.inbuf[0], ptrint(decoder^.inbuf_ptr) - ptrint(@decoder^.inbuf) - 1);
           Dec(decoder^.inbuf_ptr, 1);
         end else begin
           decoder^.frame_size := len;
@@ -480,7 +480,7 @@ begin
       end;
 
       (* skip decoded frame *)
-      Move(decoder^.inbuf[decoder^.frame_size], decoder^.inbuf[0], PtrInt(decoder^.inbuf_ptr) - PtrInt(@decoder^.inbuf) - decoder^.frame_size);
+      Move(decoder^.inbuf[decoder^.frame_size], decoder^.inbuf[0], ptrint(decoder^.inbuf_ptr) - ptrint(@decoder^.inbuf) - decoder^.frame_size);
       Dec(decoder^.inbuf_ptr, decoder^.frame_size);
       decoder^.frame_size := 0;
 

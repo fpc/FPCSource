@@ -117,17 +117,17 @@ procedure ModPlug_SetSettings(const settings: PModPlug_Settings); cdecl; externa
 
 
 // libc functions
-function _new(s: cuint): pointer; cdecl;
-procedure _delete(p: pointer); cdecl;
+//function _new(s: cuint): pointer; cdecl;
+//procedure _delete(p: pointer); cdecl;
 
 implementation
 
-function _new(s: cuint): pointer; cdecl;
+{function _new(s: cuint): pointer; cdecl;
 begin
 end;
 
 procedure _delete(p: pointer); cdecl;
 begin
-end;
+end;}
 
 end.
