@@ -77,17 +77,28 @@ end;
 procedure TBufDataset.InternalClose;
 
 var pc : pchar;
+    r  : integer;
 
 begin
   FOpen:=False;
   FCurrentRecBuf := FFirstRecBuf;
-  SetLength(FUpdateBuffer,0);
   while assigned(FCurrentRecBuf) do
     begin
     pc := pointer(FCurrentRecBuf);
     FCurrentRecBuf := FCurrentRecBuf^.next;
     FreeRecordBuffer(pc);
     end;
+
+  if Length(FUpdateBuffer) > 0 then
+    begin
+    for r := 0 to length(FUpdateBuffer)-1 do with FUpdateBuffer[r] do
+      begin
+      if assigned(BookmarkData) then
+        FreeRecordBuffer(OldValuesBuffer);
+      end;
+    end;
+  SetLength(FUpdateBuffer,0);
+
   FFirstRecBuf:= nil;
   SetLength(FFieldBufPositions,0);
 end;
@@ -498,7 +509,6 @@ procedure TBufDataset.ApplyUpdates(MaxErrors: Integer);
 var SaveBookmark : pchar;
     r            : Integer;
     FailedCount  : integer;
-    EUpdErr      : EUpdateError;
     Response     : TResolverResponse;
     StoreRecBuf  : PBufRecLinkItem;
 
@@ -525,9 +535,8 @@ begin
           Inc(FailedCount);
           if failedcount > word(MaxErrors) then Response := rrAbort
           else Response := rrSkip;
-          EUpdErr := EUpdateError.Create(SOnUpdateError,E.Message,0,0,E);
-          if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdErr,FUpdateBuffer[r].UpdateKind,Response)
-          else if Response = rrAbort then Raise EUpdErr
+          if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdateError.Create(SOnUpdateError,E.Message,0,0,E),FUpdateBuffer[r].UpdateKind,Response)
+          else if Response = rrAbort then Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,E)
           end
         else
           raise;
