@@ -1,5 +1,4 @@
-{
-}
+{$smartlink on}
 unit zlib;
 
 interface
@@ -15,11 +14,15 @@ interface
 const
   ZLIB_VERSION = '1.1.3';
 
-  {$ifdef netware}  {zlib.nlm comes with netware6}
+{$ifdef netware}  {zlib.nlm comes with netware6}
   libz='zlib';
-  {$else}
-  libz='z';
-  {$endif}
+{$else}
+  {$ifdef windows}
+    libz='zlib1';
+  {$else windows}
+    libz='z';
+  {$endif windows}
+{$endif}
 
 type
   { Compatible with paszlib }
