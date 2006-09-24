@@ -172,7 +172,8 @@ unit rgobj;
         function instr_spill_register(list:TAsmList;
                                       instr:taicpu;
                                       const r:Tsuperregisterset;
-                                      const spilltemplist:Tspill_temp_list): boolean;virtual;
+                                      const spilltemplist:Tspill_temp_list;
+                                      oldlasttemp:longint):boolean;virtual;
       private
         do_extend_live_range_backwards: boolean;
         {# First imaginary register.}
@@ -277,7 +278,7 @@ unit rgobj;
                   i:=h;
                   t:=data[i];
                   repeat
-                    if ptrint(data[i-p])<=ptrint(t) then
+                    if ptruint(data[i-p])<=ptruint(t) then
                       break;
                     data[i]:=data[i-p];
                     dec(i,p);
@@ -1090,7 +1091,7 @@ unit rgobj;
                   if q<>0 then
                     repeat
                       i:=(p+q) shr 1;
-                      if ptrint(searched)>ptrint(reginfo[u].movelist^.data[i]) then
+                      if ptruint(searched)>ptruint(reginfo[u].movelist^.data[i]) then
                         p:=i+1
                       else
                         q:=i;
@@ -1700,6 +1701,8 @@ unit rgobj;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : TAsmList;
+        oldlasttemp:longint;
+
       begin
         spill_registers:=false;
         live_registers.clear;
@@ -1709,6 +1712,7 @@ unit rgobj;
         supregset_reset(regs_to_spill_set,false,$ffff);
         { Allocate temps and insert in front of the list }
         templist:=TAsmList.create;
+        oldlasttemp:=tg.lasttemp;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do
@@ -1764,7 +1768,7 @@ unit rgobj;
                 with Taicpu(p) do
                   begin
                     aktfilepos:=fileinfo;
-                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
+                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^,oldlasttemp) then
                       spill_registers:=true;
                   end;
             end;
@@ -1806,7 +1810,8 @@ unit rgobj;
     function trgobj.instr_spill_register(list:TAsmList;
                                          instr:taicpu;
                                          const r:Tsuperregisterset;
-                                         const spilltemplist:Tspill_temp_list): boolean;
+                                         const spilltemplist:Tspill_temp_list;
+                                         oldlasttemp:longint): boolean;
       var
         counter, regindex: longint;
         regs: tspillregsinfo;
@@ -2058,10 +2063,13 @@ unit rgobj;
               top_ref:
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    begin
-                      tryreplacereg(ref^.base);
-                      tryreplacereg(ref^.index);
-                    end;
+                    with ref^ do
+                      begin
+                        if (base=NR_STACK_POINTER_REG) and (offset>=oldlasttemp) then
+                          inc(offset,tg.lasttemp-oldlasttemp);
+                        tryreplacereg(base);
+                        tryreplacereg(index);
+                      end;
                 end;
 {$ifdef ARM}
               top_shifterop:
