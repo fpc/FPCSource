@@ -16,8 +16,12 @@ uses
 Const
 {$ifdef windows}
   LibPng = 'libpng13'; // Library name
+  { matching lib version for libpng13.dll, needed for initialization }
+  PNG_LIBPNG_VER_STRING='1.2.12';
 {$else windows}
   LibPng = 'png'; // Library name
+  { matching lib version for libpng, needed for initialization }
+  PNG_LIBPNG_VER_STRING='1.2.12';
 {$endif windows}
 
 type
