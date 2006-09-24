@@ -1701,8 +1701,6 @@ unit rgobj;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : TAsmList;
-        oldlasttemp:longint;
-
       begin
         spill_registers:=false;
         live_registers.clear;
@@ -1712,7 +1710,6 @@ unit rgobj;
         supregset_reset(regs_to_spill_set,false,$ffff);
         { Allocate temps and insert in front of the list }
         templist:=TAsmList.create;
-        oldlasttemp:=tg.lasttemp;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do
@@ -1768,7 +1765,7 @@ unit rgobj;
                 with Taicpu(p) do
                   begin
                     aktfilepos:=fileinfo;
-                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^,oldlasttemp) then
+                    if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
             end;
@@ -1810,8 +1807,7 @@ unit rgobj;
     function trgobj.instr_spill_register(list:TAsmList;
                                          instr:taicpu;
                                          const r:Tsuperregisterset;
-                                         const spilltemplist:Tspill_temp_list;
-                                         oldlasttemp:longint): boolean;
+                                         const spilltemplist:Tspill_temp_list): boolean;
       var
         counter, regindex: longint;
         regs: tspillregsinfo;
@@ -2063,13 +2059,10 @@ unit rgobj;
               top_ref:
                 begin
                   if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
-                    with ref^ do
-                      begin
-                        if (base=NR_STACK_POINTER_REG) and (offset>=oldlasttemp) then
-                          inc(offset,tg.lasttemp-oldlasttemp);
-                        tryreplacereg(base);
-                        tryreplacereg(index);
-                      end;
+                    begin
+                      tryreplacereg(ref^.base);
+                      tryreplacereg(ref^.index);
+                    end;
                 end;
 {$ifdef ARM}
               top_shifterop:
