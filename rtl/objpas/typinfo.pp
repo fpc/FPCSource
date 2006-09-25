@@ -1304,22 +1304,22 @@ begin
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               Result:=TGetSingleProc(AMethod)()
             else
               Result:=TGetSingleProcIndex(AMethod)(PropInfo^.Index);
           ftDouble:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               Result:=TGetDoubleProc(AMethod)()
             else
               Result:=TGetDoubleProcIndex(AMethod)(PropInfo^.Index);
           ftExtended:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               Result:=TGetExtendedProc(AMethod)()
             else
               Result:=TGetExtendedProcIndex(AMethod)(PropInfo^.Index);
           ftCurr:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               Result:=TGetCurrencyProc(AMethod)()
             else
               Result:=TGetCurrencyProcIndex(AMethod)(PropInfo^.Index);
