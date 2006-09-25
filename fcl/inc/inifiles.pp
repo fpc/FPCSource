@@ -97,12 +97,13 @@ override;
   end;
 
   TCustomIniFile = class
+  Private
     FFileName: string;
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
     FCaseSensitive : Boolean; 
   public
-    constructor Create(const AFileName: string);
+    constructor Create(const AFileName: string); virtual;
     destructor Destroy; override;
     function SectionExists(const Section: string): Boolean; virtual;
     function ReadString(const Section, Ident, Default: string): string; virtual; abstract;
@@ -131,15 +132,21 @@ override;
     Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
   end;
 
+  { TIniFile }
+
   TIniFile = class(TCustomIniFile)
+  Private
     FStream: TStream;
-  private
+    FCacheUpdates: Boolean;
+    FDirty : Boolean;
     procedure FillSectionList(AStrings: TStrings);
   protected
-    procedure WriteStringInMemory(const Section, Ident, Value: String);
+    procedure MaybeUpdateFile;
+    property Dirty : Boolean Read FDirty;
   public
-    constructor Create(const AFileName: string);
+    constructor Create(const AFileName: string); override;
     constructor Create(AStream: TStream);
+    destructor Destroy; override;
     function ReadString(const Section, Ident, Default: string): string; override;
     procedure WriteString(const Section, Ident, Value: String); override;
     procedure ReadSection(const Section: string; Strings: TStrings); override;
@@ -150,15 +157,16 @@ override;
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
     property Stream: TStream read FStream;
+    property CacheUpdates : Boolean Read FCacheUpdates Write FCacheUpdates;
   end;
 
   TMemIniFile = class(TIniFile)
   public
+    constructor Create(const AFileName: string); override;
     procedure Clear;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
     procedure SetStrings(List: TStrings);
-    procedure WriteString(const Section, Ident, Value: String); override;
   end;
 
 implementation
@@ -486,6 +494,13 @@ begin
   end;
 end;
 
+destructor TIniFile.destroy;
+begin
+  If FDirty and FCacheUpdates then
+    UpdateFile;
+  inherited destroy;
+end;
+
 procedure TIniFile.FillSectionList(AStrings: TStrings);
 var
   i,j: integer;
@@ -585,7 +600,7 @@ begin
   end;
 end;
 
-procedure TIniFile.WriteStringInMemory(const Section, Ident, Value: String);
+procedure TIniFile.WriteString(const Section, Ident, Value: String);
 var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
@@ -613,14 +628,7 @@ begin
       end;
     end;
   end;
-end;
-
-procedure TIniFile.WriteString(const Section, Ident, Value: String);
-begin
-  if (Section > '') and (Ident > '') then begin
-    WriteStringInMemory(Section, Ident, Value);
-    UpdateFile;
-  end;
+  MaybeUpdateFile;
 end;
 
 procedure TIniFile.ReadSection(const Section: string; Strings: TStrings);
@@ -709,7 +717,7 @@ begin
     { and cause the program to crash }
     FSectionList.Delete(FSectionList.IndexOf(oSection));
     oSection.Free;
-    UpdateFile;
+    MaybeUpdateFile;
   end;
 end;
 
@@ -724,7 +732,7 @@ begin
    if oKey <> nil then begin
      oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
      oKey.Free;
-     UpdateFile;
+     MaybeUpdateFile;
    end;
  end;
 end;
@@ -764,7 +772,22 @@ begin
   end;
 end;
 
+procedure TIniFile.MaybeUpdateFile;
+begin
+  If FCacheUpdates then
+    FDirty:=True
+  else
+    UpdateFile;
+end;
+
 { TMemIniFile }
+
+constructor TMemIniFile.Create(const AFileName: string);
+
+begin
+  Inherited;
+  FCacheUpdates:=True;
+end;
 
 procedure TMemIniFile.Clear;
 begin
@@ -820,13 +843,6 @@ end;
 procedure TMemIniFile.SetStrings(List: TStrings);
 begin
   FillSectionList(List);
-end;
-
-procedure TMemIniFile.WriteString(const Section, Ident, Value: String);
-begin
-  if (Section > '') and (Ident > '') then begin
-    WriteStringInMemory(Section, Ident, Value);
-  end;
 end;
 
 end.
