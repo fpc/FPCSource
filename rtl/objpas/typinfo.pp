@@ -1332,13 +1332,13 @@ end;
 Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo; Value : Extended);
 type
   TSetExtendedProc = procedure(const AValue: Extended) of object;
-  TSetExtendedProcIndex = procedure(Index: integer; const AValue: Extended) of object;
+  TSetExtendedProcIndex = procedure(Index: integer; AValue: Extended) of object;
   TSetDoubleProc = procedure(const AValue: Double) of object;
-  TSetDoubleProcIndex = procedure(Index: integer; const AValue: Double) of object;
+  TSetDoubleProcIndex = procedure(Index: integer; AValue: Double) of object;
   TSetSingleProc = procedure(const AValue: Single) of object;
-  TSetSingleProcIndex = procedure(Index: integer; const AValue: Single) of object;
+  TSetSingleProcIndex = procedure(Index: integer; AValue: Single) of object;
   TSetCurrencyProc = procedure(const AValue: Currency) of object;
-  TSetCurrencyProcIndex = procedure(Index: integer; const AValue: Currency) of object;
+  TSetCurrencyProcIndex = procedure(Index: integer;  AValue: Currency) of object;
 Var
   AMethod : TMethod;
 begin
@@ -1371,22 +1371,22 @@ begin
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               TSetSingleProc(AMethod)(Value)
             else
               TSetSingleProcIndex(AMethod)(PropInfo^.Index,Value);
           ftDouble:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               TSetDoubleProc(AMethod)(Value)
             else
               TSetDoubleProcIndex(AMethod)(PropInfo^.Index,Value);
           ftExtended:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               TSetExtendedProc(AMethod)(Value)
             else
               TSetExtendedProcIndex(AMethod)(PropInfo^.Index,Value);
           ftCurr:
-            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+            if ((PropInfo^.PropProcs shr 6) and 1)=0 then
               TSetCurrencyProc(AMethod)(Value)
             else
               TSetCurrencyProcIndex(AMethod)(PropInfo^.Index,Value);
