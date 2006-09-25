@@ -209,7 +209,7 @@ begin
         //WriteLn('ToRead = ', ToRead, ', HaveRead = ', HaveRead, ', ReadOK=', ReadOk);
         if HaveRead > 0 then begin
           i := ReadOk;
-          while i <= HaveRead do begin
+          while i<HaveRead do begin
             ReadBuf[i] := DecTable[ReadBuf[i]];
             if ReadBuf[i] = 99 then
               for j := i to 3 do
