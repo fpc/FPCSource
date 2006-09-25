@@ -4,7 +4,7 @@
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 4577
+#   Based on errore.msg of SVN revision 4719
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -345,6 +345,8 @@ scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE אינו נתמך על יד
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 scanner_e_illegal_warn_state=02079_E_שימוש לא חוקי בהנחית $WARN
 % Only ON and OFF can be used as state with a \$warn compiler directive
+scan_e_only_packset=02080_E_ערך של אריזה לא חוקי
+% Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 % \end{description}
 #
 # Parser
