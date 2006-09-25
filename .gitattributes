@@ -871,6 +871,7 @@ fcl/inc/fpmake.inc svneol=native#text/plain
 fcl/inc/fpmake.pp svneol=native#text/plain
 fcl/inc/gettext.pp svneol=native#text/plain
 fcl/inc/idea.pp svneol=native#text/plain
+fcl/inc/inicol.pp svneol=native#text/plain
 fcl/inc/inifiles.pp svneol=native#text/plain
 fcl/inc/iostream.pp svneol=native#text/plain
 fcl/inc/pipes.pp svneol=native#text/plain
