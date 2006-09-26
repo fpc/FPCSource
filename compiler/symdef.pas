@@ -3161,6 +3161,8 @@ implementation
                 end
                else
                 s:=s+',';
+               if vo_is_hidden_para in hp.varoptions then
+                 s:=s+'<';
                case hp.varspez of
                  vs_var :
                    s:=s+'var';
@@ -3214,6 +3216,8 @@ implementation
                   if hs<>'' then
                    s:=s+'="'+hs+'"';
                 end;
+               if vo_is_hidden_para in hp.varoptions then
+                 s:=s+'>';
              end;
          end;
         if not first then
