@@ -30,6 +30,8 @@ uses
 const
   OSTarget: String = {$I %FPCTARGETOS%};
   CPUTarget: String = {$I %FPCTARGETCPU%};
+  FPCVersion: String = {$I %FPCVERSION%};
+  FPCDate: String = {$I %FPCDATE%};
 
 var
   Backend : String;
@@ -268,6 +270,7 @@ begin
   gettext.TranslateResourceStrings('intl/fpdoc.%s.mo');
 {$ENDIF}
   WriteLn(STitle);
+  WriteLn(Format(SVersion, [FPCVersion, FPCDate]));
   WriteLn(SCopyright);
   WriteLn;
   InitOptions;

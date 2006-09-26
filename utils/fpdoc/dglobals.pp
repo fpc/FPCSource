@@ -99,8 +99,9 @@ resourcestring
   // HTML usage
   SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
 
-  STitle                      = 'FPDoc - Free Pascal Documentation Tool';
-  SCopyright                  = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
+  STitle           = 'FPDoc - Free Pascal Documentation Tool';
+  SVersion         = 'Version %s [%s]';
+  SCopyright       = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
 
   SCmdLineHelp     = 'Usage: %s [options]';
   SUsageOption010  = '--content         Create content file for package cross-references';

@@ -23,6 +23,7 @@ uses
 
 resourcestring
   STitle = 'MakeSkel - FPDoc skeleton XML description file generator';
+  SVersion = 'Version %s [%s]';
   SCopyright = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
   SCmdLineHelp = 'See documentation for usage.';
   SCmdLineInvalidOption = 'Ignoring unknown option "%s"';
@@ -44,6 +45,8 @@ const
   CmdLineAction: TCmdLineAction = actionConvert;
   OSTarget: String = {$I %FPCTARGETOS%};
   CPUTarget: String = {$I %FPCTARGETCPU%};
+  FPCVersion: String = {$I %FPCVERSION%};
+  FPCDate: String = {$I %FPCDATE%};
 
 var
   EmittedList,InputFiles, DescrFiles: TStringList;
@@ -334,6 +337,7 @@ begin
   InitOptions;
   ParseCommandLine;
   WriteLn(STitle);
+  WriteLn(Format(SVersion, [FPCVersion, FPCDate]));
   WriteLn(SCopyright);
   WriteLn;
   if CmdLineAction = actionHelp then
