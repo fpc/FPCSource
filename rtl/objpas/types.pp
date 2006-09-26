@@ -264,6 +264,7 @@ function UnionRect(var Rect : TRect; const R1,R2 : TRect) : Boolean;
 function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
+function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 
 implementation
 
@@ -389,6 +390,24 @@ begin
     Result.X:=(Left+Right) div 2;
     Result.Y:=(Top+Bottom) div 2;
     end;
+end;
+
+
+function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
+begin
+  if Assigned(@Rect) then
+  begin
+    with Rect do
+    begin
+      dec(Left, dx);
+      dec(Top, dy);
+      inc(Right, dx);
+      inc(Bottom, dy);
+    end;
+    Result := True;
+  end
+  else
+    Result := False;
 end;
 
 
