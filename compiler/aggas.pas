@@ -533,7 +533,7 @@ implementation
 {$ifdef x86}
                        { force NOP as alignment op code }
                        else if CurrSecType=sec_code then
-                         AsmWrite(',90');
+                         AsmWrite(',0x90');
 {$endif x86}
                      end
                    else
