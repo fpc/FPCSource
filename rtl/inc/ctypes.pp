@@ -23,7 +23,12 @@ interface
 uses unixtype;
 {$i aliasctp.inc}
 {$else}
+
 type
+{$ifndef FPC}
+    qword = int64;  // Keep h2pas "uses ctypes" headers working with delphi.
+{$endif}
+
   { the following type definitions are compiler dependant }
   { and system dependant                                  }
   
@@ -68,6 +73,11 @@ type
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;
   clongdouble            = extended;           pclongdouble           = ^clongdouble;
+
+// Kylix compat types
+  u_long  = culong;
+  u_short = cushort;
+
 {$endif}
 
 implementation
