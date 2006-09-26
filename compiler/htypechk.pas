@@ -1841,7 +1841,7 @@ implementation
               for i:=0 to hp^.data.paras.count-1 do
                begin
                  currpara:=tparavarsym(hp^.data.paras[i]);
-                 if (vo_is_hidden_para in currpara.varoptions) then
+                 if not(vo_is_hidden_para in currpara.varoptions) then
                    Comment(lvl,'    - '+currpara.vartype.def.typename+' : '+EqualTypeName[currpara.eqval]);
                end;
             end;
