@@ -653,7 +653,7 @@ implementation
              ccallparanode.create(
                ctypeconvnode.create_internal(right,voidpointertype),
              ccallparanode.create(
-               ctypeconvnode.create_internal(left,voidpointertype), 
+               ctypeconvnode.create_internal(left,voidpointertype),
                nil)));
            result:=ccallnode.createintern('fpc_intf_assign_by_iid',hp);
 
@@ -896,11 +896,19 @@ implementation
                htype:=hp.left.resulttype
               else
                begin
-                 if ((nf_novariaallowed in flags) or (not varia)) and
-                    (not equal_defs(htype.def,hp.left.resulttype.def)) then
-                  begin
-                    varia:=true;
-                  end;
+                 if (not varia) and (not equal_defs(htype.def,hp.left.resulttype.def)) then
+                   begin
+                     { If both are integers we need to take the type that can hold both
+                       defs }
+                     if is_integer(htype.def) and is_integer(hp.left.resulttype.def) then
+                       begin
+                         if is_in_limit(htype.def,hp.left.resulttype.def) then
+                           htype:=hp.left.resulttype;
+                       end
+                     else
+                       if (nf_novariaallowed in flags) then
+                         varia:=true;
+                   end;
                end;
               inc(len);
               hp:=tarrayconstructornode(hp.right);
