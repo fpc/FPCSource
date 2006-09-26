@@ -514,7 +514,8 @@ unit cgx86;
          floatstoreops(t,op,s);
          list.concat(Taicpu.Op_ref(op,s,tmpref));
          { storing non extended floats can cause a floating point overflow }
-         if t<>OS_F80 then
+         if (t<>OS_F80) and
+            (cs_fpu_fwait in aktlocalswitches) then
            list.concat(Taicpu.Op_none(A_FWAIT,S_NO));
          dec_fpu_stack;
       end;

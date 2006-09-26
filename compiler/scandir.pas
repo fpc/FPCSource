@@ -936,6 +936,11 @@ implementation
         do_localswitch(cs_mmx_saturation);
       end;
 
+    procedure dir_savefpuexceptions;
+      begin
+        do_localswitch(cs_fpu_fwait);
+      end;
+
     procedure dir_setpeflags;
       begin
         if not (target_info.system in (system_windows+system_wince)) then
@@ -1287,6 +1292,7 @@ implementation
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
         AddDirective('RESOURCE',directive_all, @dir_resource);
         AddDirective('SATURATION',directive_all, @dir_saturation);
+        AddDirective('SAVEFPUEXCEPTIONS',directive_all, @dir_savefpuexceptions);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
