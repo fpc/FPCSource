@@ -2426,9 +2426,10 @@ const
                (pd.maxparacount=0) and
                not(po_overload in hd.procoptions)
               ) or
-              { check arguments }
+              { check arguments, we need to check only the user visible parameters. The hidden parameters
+                can be in a different location becuase of the calling convention, eg. L-R vs. R-L order (PFV) }
               (
-               (compare_paras(pd.paras,hd.paras,cp_none,[cpo_comparedefaultvalue])>=te_equal) and
+               (compare_paras(pd.paras,hd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden])>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 { be careful here, equal_defs doesn't take care of unique }
