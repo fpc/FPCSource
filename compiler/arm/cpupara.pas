@@ -288,7 +288,7 @@ unit cpupara;
                      OS_F32:
                        paraloc^.size:=OS_32;
                      OS_F64:
-                       paraloc^.size:=OS_64;
+                       paraloc^.size:=OS_32;
                      else
                        internalerror(2005082901);
                    end

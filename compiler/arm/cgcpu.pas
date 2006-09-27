@@ -394,7 +394,7 @@ unit cgcpu;
             OP_SHL:
               begin
                 if a>32 then
-                  internalerror(200308291);
+                  internalerror(200308294);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -422,7 +422,7 @@ unit cgcpu;
             OP_SAR:
               begin
                 if a>32 then
-                  internalerror(200308291);
+                  internalerror(200308295);
                 if a<>0 then
                   begin
                     shifterop_reset(so);
@@ -465,7 +465,7 @@ unit cgcpu;
             else if (op in [OP_MUL,OP_IMUL]) and ispowerof2(a-1,l1) and not(cgsetflags or setflags) then
               begin
                 if l1>32 then{roozbeh does this ever happen?}
-                  internalerror(200308291);
+                  internalerror(200308296);
                 shifterop_reset(so);
                 so.shiftmode:=SM_LSL;
                 so.shiftimm:=l1;
@@ -844,7 +844,7 @@ unit cgcpu;
            OS_S32:
              oppostfix:=PF_None;
            else
-             InternalError(200308291);
+             InternalError(200308297);
          end;
          if Ref.alignment<>0 then
            begin
@@ -1020,7 +1020,15 @@ unit cgcpu;
               LOC_FPUREGISTER,LOC_CFPUREGISTER:
                 a_loadfpu_ref_reg(list,size,ref,hloc^.register);
               LOC_REGISTER :
-                a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
+                case hloc^.size of
+                  OS_F32:
+                    a_load_ref_reg(list,OS_32,OS_32,href,hloc^.register);
+                  OS_64,
+                  OS_F64:
+                    cg64.a_param64_ref(list,href,paraloc);
+                  else
+                    a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
+                end;
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset);
@@ -1046,8 +1054,10 @@ unit cgcpu;
          oppostfix:toppostfix;
        begin
          case size of
+           OS_32,
            OS_F32:
              oppostfix:=PF_S;
+           OS_64,
            OS_F64:
              oppostfix:=PF_D;
            OS_F80:

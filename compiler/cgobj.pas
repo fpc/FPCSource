@@ -1047,18 +1047,18 @@ implementation
   in memory. They are like a regular reference, but contain an extra bit
   offset (either constant -startbit- or variable -bitindexreg, always OS_INT)
   and a bit length (always constant).
-  
+
   Bit packed values are stored differently in memory depending on whether we
   are on a big or a little endian system (compatible with at least GPC). The
   size of the basic working unit is always the smallest power-of-2 byte size
   which can contain the bit value (so 1..8 bits -> 1 byte, 9..16 bits -> 2
   bytes, 17..32 bits -> 4 bytes etc).
-  
+
   On a big endian, 5-bit: values are stored like this:
     11111222 22333334 44445555 56666677 77788888
   The leftmost bit of each 5-bit value corresponds to the most significant
   bit.
-  
+
   On little endian, it goes like this:
     22211111 43333322 55554444 77666665 88888777
   In this case, per byte the left-most bit is more significant than those on
@@ -1066,10 +1066,10 @@ implementation
   those in the previous byte (e.g., the 222 in the first byte are the low
   three bits of that value, while the 22 in the second byte are the upper
   three bits.
-  
+
   Big endian, 9 bit values:
     11111111 12222222 22333333 33344444 ...
-  
+
   Little endian, 9 bit values:
     11111111 22222221 33333322 44444333 ...
   This is memory representation and the 16 bit values are byteswapped.
@@ -1080,7 +1080,7 @@ implementation
   alignment can be guaranteed), this becomes:
     22222221 11111111 44444333 33333322 ...
     (l)ow  u     l     l    u     l   u
-  
+
   The startbit/bitindex in a subsetreference always refers to
   a) on big endian: the most significant bit of the value
      (bits counted from left to right, both memory an registers)
@@ -1101,13 +1101,13 @@ implementation
         intloadsize: aint;
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
-        
+
 {$ifdef cpurequiresproperalignment}
         { may need to be split into several smaller loads/stores }
         if intloadsize <> sref.ref.alignment then
            internalerror(2006082011);
 {$endif cpurequiresproperalignment}
-        
+
         if (intloadsize = 0) then
           internalerror(2006081310);
 
@@ -1205,7 +1205,7 @@ implementation
                 a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
                 { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
                 a_op_reg_reg(list,OP_AND,OS_INT,tmpreg,extra_value_reg);
-              end;  
+              end;
 {$endif x86}
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
@@ -1301,7 +1301,7 @@ implementation
             destreg := makeregsize(list,destreg,tosize);
           end
       end;
-          
+
 
     procedure tcg.a_load_reg_subsetref(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sref: tsubsetreference);
       var
@@ -1315,7 +1315,7 @@ implementation
         { the register must be able to contain the requested value }
         if (tcgsize2size[fromsize]*8 < sref.bitlen) then
           internalerror(2006081613);
-      
+
         get_subsetref_load_info(sref,loadsize,extra_load);
         loadbitsize := tcgsize2size[loadsize]*8;
 
@@ -1418,7 +1418,7 @@ implementation
                 a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
                 valuereg := makeregsize(list,valuereg,loadsize);
                 a_load_reg_ref(list,loadsize,loadsize,valuereg,sref.ref);
-                
+
                 { transfer second part }
                 if (target_info.endian = endian_big) then
                   begin
@@ -1470,7 +1470,7 @@ implementation
 
                 a_op_reg_reg(list,OP_NOT,OS_INT,maskreg,maskreg);
                 a_op_reg_reg(list,OP_AND,OS_INT,maskreg,valuereg);
-                
+
                 { insert the value }
                 tmpreg := getintregister(list,OS_INT);
                 a_load_reg_reg(list,fromsize,OS_INT,fromreg,tmpreg);
@@ -1527,13 +1527,13 @@ implementation
                         { if (tmpreg = cpu_bit_size) then tmpreg := maskreg := 0 }
                         a_op_reg_reg(list,OP_AND,OS_INT,valuereg,tmpreg);
                         a_op_reg_reg(list,OP_AND,OS_INT,valuereg,maskreg);
-                      end;  
+                      end;
 {$endif x86}
                   end;
 
                 a_op_reg_reg(list,OP_NOT,OS_INT,maskreg,maskreg);
                 a_op_reg_reg(list,OP_AND,OS_INT,maskreg,extra_value_reg);
-                
+
                 if (target_info.endian = endian_big) then
                   a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,tmpreg)
                 else
@@ -1614,7 +1614,7 @@ implementation
         a_load_subsetref_reg(list,fromsubsetsize,tosubsetsize,fromsref,tmpreg);
         a_load_reg_subsetreg(list,tosubsetsize,tosubsetsize,tmpreg,tosreg);
       end;
-      
+
 
     procedure tcg.a_load_subsetreg_subsetref(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsreg: tsubsetregister; const tosref: tsubsetreference);
       var

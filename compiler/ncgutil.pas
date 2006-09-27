@@ -1578,7 +1578,7 @@ implementation
         paraloc  : pcgparalocation;
         href     : treference;
         sizeleft : aint;
-{$ifdef sparc}
+{$if defined(sparc) or defined(arm)}
         tempref  : treference;
 {$endif sparc}
       begin
@@ -1696,8 +1696,8 @@ implementation
                 end;
               LOC_CFPUREGISTER :
                 begin
-{$ifdef sparc}
-                  { Sparc passes floats in int registers, when loading to fpu register
+{$if defined(sparc) or defined(arm)}
+                  { Arm and Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
                   sizeleft := TCGSize2Size[currpara.initialloc.size];
                   tg.GetTemp(list,sizeleft,tt_normal,tempref);

@@ -76,6 +76,7 @@ implementation
     uses
       systems,
       cutils,verbose,globals,
+      cpuinfo,
       symconst,symtable,defutil,paramgr,
       cgbase,pass_2,
       aasmbase,aasmtai,aasmdata,
@@ -575,32 +576,38 @@ implementation
                           location_reset(location,LOC_REGISTER,cgsize);
 {$ifndef cpu64bit}
                           if cgsize in [OS_64,OS_S64] then
-                           begin
-                             retloc:=procdefinition.funcretloc[callerside];
-                             if retloc.loc<>LOC_REGISTER then
-                               internalerror(200409141);
-                             { the function result registers are already allocated }
-                             if getsupreg(retloc.register64.reglo)<first_int_imreg then
-                               cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reglo);
-                             location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reglo,location.register64.reglo);
-                             if getsupreg(retloc.register64.reghi)<first_int_imreg then
-                               cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reghi);
-                             location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                             cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reghi,location.register64.reghi);
-                           end
+                            begin
+                              retloc:=procdefinition.funcretloc[callerside];
+                              if retloc.loc<>LOC_REGISTER then
+                                internalerror(200409141);
+                              { the function result registers are already allocated }
+                              if getsupreg(retloc.register64.reglo)<first_int_imreg then
+                                cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reglo);
+                              location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reglo,location.register64.reglo);
+                              if getsupreg(retloc.register64.reghi)<first_int_imreg then
+                                cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reghi);
+                              location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reghi,location.register64.reghi);
+                            end
                           else
 {$endif cpu64bit}
-                           begin
-                             { change register size after the unget because the
-                               getregister was done for the full register
-                               def_cgsize(resulttype.def) is used here because
-                               it could be a constructor call }
-                             if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
-                               cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
-                             location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
-                             cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resulttype.def),procdefinition.funcretloc[callerside].register,location.register);
-                           end;
+                            begin
+                              { change register size after the unget because the
+                                getregister was done for the full register
+                                def_cgsize(resulttype.def) is used here because
+                                it could be a constructor call }
+                              if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
+                                cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
+                              location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
+                              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resulttype.def),procdefinition.funcretloc[callerside].register,location.register);
+                            end;
+{$ifdef arm}
+                          if (resulttype.def.deftype=floatdef) and (aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+                            begin
+                              location_force_mem(current_asmdata.CurrAsmList,location);
+                            end;
+{$endif arm}
                         end
                        else
                         begin
