@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 4489
+#   Based on errore.msg of SVN revision 4710
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -36,14 +36,11 @@
 #   n_   note
 #   h_   hint
 #   i_   info
-#   l_   linenumber
+#   l_   add linenumber
 #   u_   used
 #   t_   tried
-#   m_   macro
-#   p_   procedure
 #   c_   conditional
 #   d_   debug message
-#   b_   display overloaded procedures
 #   x_   executable informations
 #
 
@@ -127,6 +124,7 @@ general_i_number_of_hints=01022_I_$1 Hinweis(e) ausgegeben
 % Total number of hints issued during compilation.
 general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
 % Total number of notes issued during compilation.%
+% \end{description}
 #
 # Scanner
 #
@@ -285,8 +283,7 @@ scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM-Leser-Schalter ist innerhalb 
 scan_e_wrong_switch_toggle=02052_E_Parameter fÅr Schalter falsch, verwenden Sie ON/OFF oder +/-
 % You need to use ON or OFF or a + or - to toggle the switch
 scan_e_resourcefiles_not_supported=02053_E_Resourcedateien werden vom aktuellen Zielbetriebssystem nicht unterstÅtzt
-% The target you are compiling for doesn't support Resource files. The
-% only target which can use resource files is Win32
+% The target you are compiling for doesn't support resource files.
 scan_w_include_env_not_found=02054_W_$1 ist keine Umgebungsvariable
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
@@ -349,6 +346,8 @@ scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE wird vom Zielbetriebssystem
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
 scanner_e_illegal_warn_state=02079_E_UngÅltiger Wert fÅr die $WARN Direktive
 % Only ON and OFF can be used as state with a \$warn compiler directive
+scan_e_only_packset=02080_E_UngÅltiger Wert fÅr das set packing
+% Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 % \end{description}
 #
 # Parser
@@ -569,7 +568,7 @@ parser_e_dont_nest_export=03067_E_Mit EXPORT deklarierte Funktionen dÅrfen nicht
 parser_e_methods_dont_be_export=03068_E_Methoden dÅrfen nicht EXPORTiert werden
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern mÅssen exakt stimmen: "$1" gefunden, "$2" erwartet
+parser_e_call_by_ref_without_typeconv=03069_E_Aufrufe mit VAR-Parametern fÅr Argument-Nr. $1 mÅssen exakt stimmen: "$2" gefunden, "$3" erwartet
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -1083,14 +1082,17 @@ parser_e_array_range_out_of_bounds=03220_E_Der Bereich des Array ist zu gross
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
-parser_e_packed_element_no_var_addr_loop=03221_E_Bit packed Array-Elemente und Record-Felder haben keine Adressen und kînnen auch nicht als Loop-Variablen verwendet werden
-% If you declare an array or record as \var{packed} in Mac Pascal mode, it will
-% be packed at the bit level (currently only array bit packing is implemented though). This means it becomes impossible to take addresses
-% of individual array elements or records, even if their starting offset happens
-% to be aligned to a byte multiple. For performance reasons, they cannot be
-% used as loop variables either.
+parser_e_packed_element_no_var_addr=03221_E_Bit packed Array-Elemente und Record-Felder haben keine Adressen
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. This means it becomes impossible to take addresses
+% of individual array elements or record fields. The only exception to this rule is in case of packed arrays elements
+% whose packed size is a multple of 8 bits.
 parser_e_packed_dynamic_open_array=03222_E_Dynamische Arrays kînnen nicht packed sein
 % Only regular and open arrays can be packed
+parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Felder kînnen nicht als Loop-Variable verwerndet werden
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. For performance reasons, they cannot be
+% used as loop variables.
 % \end{description}
 #
 # Type Checking
@@ -1680,7 +1682,8 @@ asmr_e_local_para_unreachable=07015_E_Sie kînnen "$1" von diesem Code aus nicht 
 asmr_e_local_label_not_allowed_as_ref=07016_E_Lokale Symbole/Labels sind nicht als Referenz zulÑssig
 % You can't use local symbols/labels as references
 asmr_e_wrong_base_index=07017_E_UngÅltige Verwendung von Basis- und Index-Registern
-% There is an error with the base and index register
+% There is an error with the base and index register, they are
+% probably incorrect
 asmr_w_possible_object_field_bug=07018_W_Mîglicher Fehler bei Objektfeld-Behandlung
 % Fields of objects or classes can be reached directly in normal or objfpc
 % modes but TP and Delphi modes treat the field name as a simple offset.
@@ -1998,7 +2001,6 @@ execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
 execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 % Informational message showing the stack size that the compiler committed for the executable.
 %\end{description}
-
 # EndOfTeX
 
 #
