@@ -46,8 +46,6 @@
 #
 # 01023 is the last used one
 #
-general_text_bytes_code=01019_bytes code
-general_text_bytes_data=01020_bytes data
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -115,6 +113,8 @@ general_e_path_does_not_exist=01017_E_Path "$1" does not exist
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilation aborted
 % Compilation was aborted.
+general_text_bytes_code=01019_bytes code
+general_text_bytes_data=01020_bytes data
 general_i_number_of_warnings=01021_I_$1 warning(s) issued
 % Total number of warnings issued during compilation.
 general_i_number_of_hints=01022_I_$1 hint(s) issued
