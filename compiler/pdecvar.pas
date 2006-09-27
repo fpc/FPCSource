@@ -224,6 +224,7 @@ implementation
          intfidx: longint;
          hreadparavs,
          hparavs      : tparavarsym;
+         storedprocdef,
          readprocdef,
          writeprocdef : tprocvardef;
       begin
@@ -232,13 +233,18 @@ implementation
          paranr:=0;
          readprocdef:=tprocvardef.create(normal_function_level);
          writeprocdef:=tprocvardef.create(normal_function_level);
+         storedprocdef:=tprocvardef.create(normal_function_level);
 
          { make it method pointers }
          if assigned(aclass) then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
+             include(storedprocdef.procoptions,po_methodpointer);
            end;
+
+         { method for stored must return boolean }
+         storedprocdef.rettype:=booltype;
 
          if token<>_ID then
            begin
@@ -351,6 +357,8 @@ implementation
                    readprocdef.parast.insert(hparavs);
                    hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype,[]);
                    writeprocdef.parast.insert(hparavs);
+                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indextype,[]);
+                   storedprocdef.parast.insert(hparavs);
                    pt.free;
                 end;
            end
@@ -505,7 +513,9 @@ implementation
                             case sym.typ of
                               procsym :
                                 begin
-                                   p.storedaccess.procdef:=Tprocsym(sym).search_procdef_nopara_boolret;
+                                   { Insert hidden parameters }
+                                   handle_calling_convention(storedprocdef);
+                                   p.storedaccess.procdef:=Tprocsym(sym).search_procdef_bypara(storedprocdef.paras,storedprocdef.rettype.def,[cpo_allowdefaults,cpo_ignorehidden]);
                                    if not assigned(p.storedaccess.procdef) then
                                      message(parser_e_ill_property_storage_sym);
                                 end;
@@ -623,7 +633,7 @@ implementation
              end;
            end;
          end;
-                  
+
          { remove temporary procvardefs }
          readprocdef.free;
          writeprocdef.free;

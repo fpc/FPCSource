@@ -108,7 +108,6 @@ interface
           procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
           function first_procdef:Tprocdef;
           function last_procdef:Tprocdef;
-          function search_procdef_nopara_boolret:Tprocdef;
           function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function search_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
@@ -807,25 +806,6 @@ implementation
         while assigned(p) do
          begin
            proc2call(p^.def,arg);
-           p:=p^.next;
-         end;
-      end;
-
-
-    function Tprocsym.search_procdef_nopara_boolret:Tprocdef;
-      var
-        p : pprocdeflist;
-      begin
-        search_procdef_nopara_boolret:=nil;
-        p:=pdlistfirst;
-        while p<>nil do
-         begin
-           if (p^.def.maxparacount=0) and
-              is_boolean(p^.def.rettype.def) then
-            begin
-              search_procdef_nopara_boolret:=p^.def;
-              break;
-            end;
            p:=p^.next;
          end;
       end;
