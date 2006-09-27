@@ -3,8 +3,6 @@ const msgtxt : array[0..000171] of string[240]=(
 {$else Delphi}
 const msgtxt : array[0..000171,1..240] of char=(
 {$endif Delphi}
-  '01019_bytes code'#000+
-  '01020_bytes data'#000+
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
   '01002_I_Target OS: $1'#000+
@@ -12,8 +10,8 @@ const msgtxt : array[0..000171,1..240] of char=(
   '01004_T_Using unit path: $1'#000+
   '01005_T_Using include path: $1'#000+
   '01006_T_Using library path: $1'#000+
-  '01007_T_Using o','bject path: $1'#000+
-  '01008_I_$1 lines compiled, $2 sec$3'#000+
+  '01007_T_Using object path: $1'#000+
+  '01008_I_$1 lines co','mpiled, $2 sec$3'#000+
   '01009_F_No memory left'#000+
   '01010_I_Writing Resource String Table file: $1'#000+
   '01011_E_Writing Resource String Table file: $1'#000+
@@ -21,9 +19,11 @@ const msgtxt : array[0..000171,1..240] of char=(
   '01013_I_Error:'#000+
   '01014_I_Warning:'#000+
   '01015_I_Note:'#000+
-  '01016_I_Hin','t:'#000+
-  '01017_E_Path "$1" does not exist'#000+
+  '01016_I_Hint:'#000+
+  '01017_E_Path "$1" does not exis','t'#000+
   '01018_F_Compilation aborted'#000+
+  '01019_bytes code'#000+
+  '01020_bytes data'#000+
   '01021_I_$1 warning(s) issued'#000+
   '01022_I_$1 hint(s) issued'#000+
   '01023_I_$1 note(s) issued'#000+
