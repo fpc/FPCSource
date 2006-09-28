@@ -68,10 +68,8 @@
          if assigned(D) then
            IUnknown(D)._Release;
          if assigned(S) then
-         begin
-           IUnknown(S)._AddRef;
-           IUnknown(S).QueryInterface(iid, D);
-         end else
+           IUnknown(S).QueryInterface(iid, D)
+         else
            D := nil;
       end;
 
