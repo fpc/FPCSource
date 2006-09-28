@@ -82,6 +82,11 @@ end;
 procedure EndThread(ExitCode : DWord);
 
 begin
+  { Make sure that all output is written to the redirected file }
+  Flush(Output);
+  Flush(ErrOutput);
+  Flush(StdOut);
+  Flush(StdErr);  
   CurrentTM.EndThread(ExitCode);
 end;
 
