@@ -784,7 +784,7 @@ Begin
       end;
       else begin
         if f.bufpos<f.bufsize-2 then begin
-          f.buffer[f.bufpos]:=ch;
+          f.bufptr^[f.bufpos]:=ch;
           inc(f.bufpos);
           WriteChar(ch);
         end;
