@@ -569,6 +569,7 @@ end;
 
 Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 type
+  TBooleanIndexFunc=function(Index:integer):boolean of object;
   TBooleanFunc=function:boolean of object;
 var
   AMethod : TMethod;
@@ -586,7 +587,10 @@ begin
         else
           AMethod.Code:=ppointer(Pointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^;
         AMethod.Data:=Instance;
-        Result:=TBooleanFunc(AMethod)();
+        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+           Result:=TBooleanIndexFunc(AMethod)(PropInfo^.Index)
+        else
+           Result:=TBooleanFunc(AMethod)();
       end;
   end;
 end;
