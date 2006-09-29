@@ -208,15 +208,15 @@ Type
     FHashTable: TFPObjectList;
     FHashTableSize: Longword;
     FHashFunction: THashFunction;
-    FCount: Int64;
+    FCount: Longword;
     function GetDensity: Longword;
-    function GetNumberOfCollisions: Int64;
+    function GetNumberOfCollisions: Longword;
     procedure SetHashTableSize(const Value: Longword);
     procedure InitializeHashTable;
     function GetVoidSlots: Longword;
     function GetLoadFactor: double;
     function GetAVGChainLen: double;
-    function GetMaxChainLength: Int64;
+    function GetMaxChainLength: Longword;
     function Chain(const index: Longword):TFPObjectList;
   protected
     function ChainLength(const ChainIndex: Longword): Longword; virtual;
@@ -236,15 +236,15 @@ Type
     function Find(const aKey: string): THTNode;
     function IsEmpty: boolean;
     property HashFunction: THashFunction read FHashFunction write SetHashFunction;
-    property Count: Int64 read FCount;
+    property Count: Longword read FCount;
     property HashTableSize: Longword read FHashTableSize write SetHashTableSize;
     property Items[const index: string]: Pointer read GetData write SetData; default;
     property HashTable: TFPObjectList read FHashTable;
     property VoidSlots: Longword read GetVoidSlots;
     property LoadFactor: double read GetLoadFactor;
     property AVGChainLen: double read GetAVGChainLen;
-    property MaxChainLength: Int64 read GetMaxChainLength;
-    property NumberOfCollisions: Int64 read GetNumberOfCollisions;
+    property MaxChainLength: Longword read GetMaxChainLength;
+    property NumberOfCollisions: Longword read GetNumberOfCollisions;
     property Density: Longword read GetDensity;
   end;
 
@@ -894,7 +894,7 @@ begin
   Result := FHashTableSize - VoidSlots
 end;
 
-function TFPHashTable.GetNumberOfCollisions: Int64;
+function TFPHashTable.GetNumberOfCollisions: Longword;
 begin
   Result := FCount -(FHashTableSize - VoidSlots)
 end;
@@ -1157,7 +1157,7 @@ begin
   result := Count / (FHashTableSize - VoidSlots);
 end;
 
-function TFPHashTable.GetMaxChainLength: Int64;
+function TFPHashTable.GetMaxChainLength: Longword;
 var
   i: Longword;
 begin
