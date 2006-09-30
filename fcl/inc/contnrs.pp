@@ -177,6 +177,133 @@ Type
   end;
 
 { ---------------------------------------------------------------------
+    TPList with Hash support
+  ---------------------------------------------------------------------}
+
+type
+  THashItem=record
+    HashValue : LongWord;
+    StrIndex  : Integer;
+    NextIndex : Integer;
+    Data      : Pointer;
+  end;
+  PHashItem=^THashItem;
+
+const
+  MaxHashListSize = Maxint div 16;
+  MaxHashStrSize  = Maxint;
+  MaxHashTableSize = Maxint div 4;
+  MaxItemsPerHash = 3;
+
+type
+  PHashItemList = ^THashItemList;
+  THashItemList = array[0..MaxHashListSize - 1] of THashItem;
+  PHashTable = ^THashTable;
+  THashTable = array[0..MaxHashTableSize - 1] of Integer;
+
+{ TFPHashList class }
+
+  TFPHashList = class(TObject)
+  private
+    { ItemList }
+    FHashList     : PHashItemList;
+    FCount,
+    FCapacity : Integer;
+    { Hash }
+    FHashTable    : PHashTable;
+    FHashCapacity : Integer;
+    { Strings }
+    FStrs     : PChar;
+    FStrCount,
+    FStrCapacity : Integer;
+  protected
+    function Get(Index: Integer): Pointer;
+    procedure SetCapacity(NewCapacity: Integer);
+    procedure SetCount(NewCount: Integer);
+    Procedure RaiseIndexError(Index : Integer);
+    function  AddStr(const s:shortstring): Integer;
+    procedure AddToHashTable(Index: Integer);
+    procedure StrExpand(MinIncSize:Integer);
+    procedure SetStrCapacity(NewCapacity: Integer);
+    procedure SetHashCapacity(NewCapacity: Integer);
+    procedure ReHash;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function Add(const AName:shortstring;Item: Pointer): Integer;
+    procedure Clear;
+    function NameOfIndex(Index: Integer): String;
+    procedure Delete(Index: Integer);
+    class procedure Error(const Msg: string; Data: PtrInt);
+    function Expand: TFPHashList;
+    function Extract(item: Pointer): Pointer;
+    function IndexOf(Item: Pointer): Integer;
+    function Find(const s:shortstring): Pointer;
+    function Remove(Item: Pointer): Integer;
+    procedure Pack;
+    procedure ShowStatistics;
+    procedure ForEachCall(proc2call:TListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+    property Capacity: Integer read FCapacity write SetCapacity;
+    property Count: Integer read FCount write SetCount;
+    property Items[Index: Integer]: Pointer read Get; default;
+    property List: PHashItemList read FHashList;
+    property Strs: PChar read FStrs;
+  end;
+
+
+{ TFPHashObjectList class }
+
+  TFPHashObjectList = class;
+
+  TFPHashObject = class
+  private
+    FOwner : TFPHashObjectList;
+    FCachedStr : pshortstring;
+    FStrIndex  : Integer;
+  protected
+    function GetName:shortstring;
+  public
+    constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
+    property Name:shortstring read GetName;
+  end;
+
+  TFPHashObjectList = class(TObject)
+  private
+    FFreeObjects : Boolean;
+    FHashList: TFPHashList;
+    function GetCount: integer;
+    procedure SetCount(const AValue: integer);
+  protected
+    function GetItem(Index: Integer): TObject;
+    procedure SetCapacity(NewCapacity: Integer);
+    function GetCapacity: integer;
+  public
+    constructor Create(FreeObjects : boolean = True);
+    destructor Destroy; override;
+    procedure Clear;
+    function Add(const AName:shortstring;AObject: TObject): Integer;
+    function NameOfIndex(Index: Integer): shortstring;
+    procedure Delete(Index: Integer);
+    function Expand: TFPHashObjectList;
+    function Extract(Item: TObject): TObject;
+    function Remove(AObject: TObject): Integer;
+    function IndexOf(AObject: TObject): Integer;
+    function Find(const s:shortstring): TObject;
+    function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
+    procedure Pack;
+    procedure ShowStatistics;
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Count: Integer read GetCount write SetCount;
+    property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
+    property Items[Index: Integer]: TObject read GetItem; default;
+    property List: TFPHashList read FHashList;
+  end;
+
+
+{ ---------------------------------------------------------------------
     Hash support, implemented by Dean Zobec
   ---------------------------------------------------------------------}
 
@@ -255,6 +382,9 @@ Type
   function RSHash(const S: string; const TableSize: Longword): Longword;
 
 implementation
+
+uses
+  RtlConsts;
 
 ResourceString
   DuplicateMsg = 'An item with key %0:s already exists';
@@ -820,6 +950,595 @@ Function TObjectQueue.Push(AObject: TObject): TObject;
 begin
   Result:=TObject(Inherited Push(Pointer(Aobject)));
 end;
+
+
+{*****************************************************************************
+                            TFPHashList
+*****************************************************************************}
+
+    function FPHash1(const s:string):LongWord;
+      Var
+        g : LongWord;
+        p,pmax : pchar;
+      begin
+        result:=0;
+        p:=@s[1];
+        pmax:=@s[length(s)+1];
+        while (p<pmax) do
+          begin
+            result:=result shl 4 + LongWord(p^);
+            g:=result and LongWord($F0000000);
+            if g<>0 then
+              result:=result xor (g shr 24) xor g;
+            inc(p);
+          end;
+        If result=0 then
+          result:=$ffffffff;
+      end;
+
+    function FPHash(const s:string):LongWord;
+      Var
+        p,pmax : pchar;
+      begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+        result:=0;
+        p:=@s[1];
+        pmax:=@s[length(s)+1];
+        while (p<pmax) do
+          begin
+            result:=LongWord((result shl 5) - result) xor LongWord(P^);
+            inc(p);
+          end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+      end;
+
+
+procedure TFPHashList.RaiseIndexError(Index : Integer);
+begin
+  Error(SListIndexError, Index);
+end;
+
+
+function TFPHashList.Get(Index: Integer): Pointer;
+begin
+  If (Index < 0) or (Index >= FCount) then
+    RaiseIndexError(Index);
+  Result:=FHashList^[Index].Data;
+end;
+
+
+function TFPHashList.NameOfIndex(Index: Integer): String;
+begin
+  If (Index < 0) or (Index >= FCount) then
+    RaiseIndexError(Index);
+  with FHashList^[Index] do
+    begin
+      if StrIndex>=0 then
+        Result:=PShortString(@FStrs[StrIndex])^
+      else
+        Result:='';
+    end;
+end;
+
+
+function TFPHashList.Extract(item: Pointer): Pointer;
+var
+  i : Integer;
+begin
+  result := nil;
+  i := IndexOf(item);
+  if i >= 0 then
+   begin
+     Result := item;
+     Delete(i);
+   end;
+end;
+
+
+procedure TFPHashList.SetCapacity(NewCapacity: Integer);
+begin
+  If (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
+     Error (SListCapacityError, NewCapacity);
+  if NewCapacity = FCapacity then
+    exit;
+  ReallocMem(FHashList, NewCapacity*SizeOf(THashItem));
+  FCapacity := NewCapacity;
+end;
+
+
+procedure TFPHashList.SetCount(NewCount: Integer);
+begin
+  if (NewCount < 0) or (NewCount > MaxHashListSize)then
+    Error(SListCountError, NewCount);
+  If NewCount > FCount then
+    begin
+      If NewCount > FCapacity then
+        SetCapacity(NewCount);
+      If FCount < NewCount then
+        FillChar(FHashList^[FCount], (NewCount-FCount) div Sizeof(THashItem), 0);
+    end;
+  FCount := Newcount;
+end;
+
+
+procedure TFPHashList.SetStrCapacity(NewCapacity: Integer);
+begin
+  If (NewCapacity < FStrCount) or (NewCapacity > MaxHashStrSize) then
+     Error (SListCapacityError, NewCapacity);
+  if NewCapacity = FStrCapacity then
+    exit;
+  ReallocMem(FStrs, NewCapacity);
+  FStrCapacity := NewCapacity;
+end;
+
+
+procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
+begin
+  If (NewCapacity < 1) then
+    Error (SListCapacityError, NewCapacity);
+  if FHashCapacity=NewCapacity then
+    exit;
+  FHashCapacity:=NewCapacity;
+  ReallocMem(FHashTable, FHashCapacity*sizeof(Integer));
+  ReHash;
+end;
+
+
+procedure TFPHashList.ReHash;
+var
+  i : Integer;
+begin
+  FillDword(FHashTable^,FHashCapacity,LongWord(-1));
+  For i:=0 To FCount-1 Do
+    AddToHashTable(i);
+end;
+
+
+constructor TFPHashList.Create;
+begin
+  SetHashCapacity(1);
+end;
+
+
+destructor TFPHashList.Destroy;
+begin
+  Clear;
+  if assigned(FHashTable) then
+    FreeMem(FHashTable);
+  inherited Destroy;
+end;
+
+
+function TFPHashList.AddStr(const s:shortstring): Integer;
+var
+  Len : Integer;
+begin
+  len:=length(s)+1;
+  if FStrCount+Len >= FStrCapacity then
+    StrExpand(Len);
+  System.Move(s[0],FStrs[FStrCount],Len);
+  result:=FStrCount;
+  inc(FStrCount,Len);
+end;
+
+
+procedure TFPHashList.AddToHashTable(Index: Integer);
+var
+  HashIndex : Integer;
+begin
+  with FHashList^[Index] do
+    begin
+      if not assigned(Data) then
+        exit;
+      HashIndex:=HashValue mod LongWord(FHashCapacity);
+      NextIndex:=FHashTable^[HashIndex];
+      FHashTable^[HashIndex]:=Index;
+    end;
+end;
+
+
+function TFPHashList.Add(const AName:shortstring;Item: Pointer): Integer;
+begin
+  if FCount = FCapacity then
+    Expand;
+  with FHashList^[FCount] do
+    begin
+      HashValue:=FPHash(AName);
+      Data:=Item;
+      StrIndex:=AddStr(AName);
+    end;
+  AddToHashTable(FCount);
+  Result := FCount;
+  inc(FCount);
+end;
+
+procedure TFPHashList.Clear;
+begin
+  if Assigned(FHashList) then
+    begin
+      FCount:=0;
+      SetCapacity(0);
+      FHashList := nil;
+    end;
+  SetHashCapacity(1);
+  if Assigned(FStrs) then
+    begin
+      FStrCount:=0;
+      SetStrCapacity(0);
+      FStrs := nil;
+    end;
+end;
+
+procedure TFPHashList.Delete(Index: Integer);
+begin
+  If (Index<0) or (Index>=FCount) then
+    Error (SListIndexError, Index);
+  with FHashList^[Index] do
+    begin
+      Data:=nil;
+      StrIndex:=-1;
+    end;
+end;
+
+class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
+begin
+  Raise EListError.CreateFmt(Msg,[Data]) at get_caller_addr(get_frame);
+end;
+
+function TFPHashList.Expand: TFPHashList;
+var
+  IncSize : Longint;
+begin
+  Result := Self;
+  if FCount < FCapacity then
+    exit;
+  IncSize := 4;
+  if FCapacity > 127 then
+    Inc(IncSize, FCapacity shr 2)
+  else if FCapacity > 8 then
+    inc(IncSize,8)
+  else if FCapacity > 3 then
+    inc(IncSize,4);
+  SetCapacity(FCapacity + IncSize);
+  { Maybe expand hash also }
+  if FCount>FHashCapacity*MaxItemsPerHash then
+    SetHashCapacity(FCount div MaxItemsPerHash);
+end;
+
+procedure TFPHashList.StrExpand(MinIncSize:Integer);
+var
+  IncSize : Longint;
+begin
+  if FStrCount+MinIncSize < FStrCapacity then
+    exit;
+  IncSize := 64+MinIncSize;
+  if FStrCapacity > 255 then
+    Inc(IncSize, FStrCapacity shr 2);
+  SetStrCapacity(FStrCapacity + IncSize);
+end;
+
+function TFPHashList.IndexOf(Item: Pointer): Integer;
+begin
+  Result := 0;
+  while(Result < FCount) and (FHashList^[Result].Data <> Item) do
+    inc(Result);
+  If Result = FCount then
+    Result := -1;
+end;
+
+function TFPHashList.Find(const s:shortstring): Pointer;
+var
+  CurrHash : LongWord;
+  Index,
+  HashIndex : Integer;
+  Len,
+  LastChar  : Char;
+begin
+  CurrHash:=FPHash(s);
+  HashIndex:=CurrHash mod LongWord(FHashCapacity);
+  Index:=FHashTable^[HashIndex];
+  Len:=Char(Length(s));
+  LastChar:=s[Byte(Len)];
+  while Index<>-1 do
+    begin
+      with FHashList^[Index] do
+        begin
+          if assigned(Data) and
+             (HashValue=CurrHash) and
+             (Len=FStrs[StrIndex]) and
+             (LastChar=FStrs[StrIndex+Byte(Len)]) and
+             (s=PShortString(@FStrs[StrIndex])^) then
+            begin
+              Result:=Data;
+              exit;
+            end;
+          Index:=NextIndex;
+        end;
+    end;
+  Result:=nil;
+end;
+
+function TFPHashList.Remove(Item: Pointer): Integer;
+begin
+  Result := IndexOf(Item);
+  If Result <> -1 then
+    Self.Delete(Result);
+end;
+
+procedure TFPHashList.Pack;
+var
+  NewCount,
+  i : integer;
+  pdest,
+  psrc : PHashItem;
+begin
+  NewCount:=0;
+  psrc:=@FHashList[0];
+  pdest:=psrc;
+  For I:=0 To FCount-1 Do
+    begin
+      if assigned(psrc^.Data) then
+        begin
+          pdest^:=psrc^;
+          inc(pdest);
+          inc(NewCount);
+        end;
+      inc(psrc);
+    end;
+  FCount:=NewCount;
+  { We need to ReHash to update the IndexNext }
+  ReHash;
+  { Release over-capacity }
+  SetCapacity(FCount);
+  SetStrCapacity(FStrCount);
+end;
+
+
+procedure TFPHashList.ShowStatistics;
+var
+  HashMean,
+  HashStdDev : Double;
+  Index,
+  i,j : Integer;
+begin
+  { Calculate Mean and StdDev }
+  HashMean:=0;
+  HashStdDev:=0;
+  for i:=0 to FHashCapacity-1 do
+    begin
+      j:=0;
+      Index:=FHashTable^[i];
+      while (Index<>-1) do
+        begin
+          inc(j);
+          Index:=FHashList^[Index].NextIndex;
+        end;
+      HashMean:=HashMean+j;
+      HashStdDev:=HashStdDev+Sqr(j);
+    end;
+  HashMean:=HashMean/FHashCapacity;
+  HashStdDev:=(HashStdDev-FHashCapacity*Sqr(HashMean));
+  If FHashCapacity>1 then
+    HashStdDev:=Sqrt(HashStdDev/(FHashCapacity-1))
+  else
+    HashStdDev:=0;
+  { Print info to stdout }
+  Writeln('HashSize   : ',FHashCapacity);
+  Writeln('HashMean   : ',HashMean:1:4);
+  Writeln('HashStdDev : ',HashStdDev:1:4);
+  Writeln('ListSize   : ',FCount,'/',FCapacity);
+  Writeln('StringSize : ',FStrCount,'/',FStrCapacity);
+end;
+
+
+procedure TFPHashList.ForEachCall(proc2call:TListCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  For I:=0 To Count-1 Do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+    end;
+end;
+
+
+procedure TFPHashList.ForEachCall(proc2call:TListStaticCallback;arg:pointer);
+var
+  i : integer;
+  p : pointer;
+begin
+  For I:=0 To Count-1 Do
+    begin
+      p:=FHashList^[i].Data;
+      if assigned(p) then
+        proc2call(p,arg);
+    end;
+end;
+
+
+{*****************************************************************************
+                               TFPHashObject
+*****************************************************************************}
+
+constructor TFPHashObject.Create(HashObjectList:TFPHashObjectList;const s:shortstring);
+var
+  Index : Integer;
+begin
+  FOwner:=HashObjectList;
+  Index:=HashObjectList.Add(s,Self);
+  FStrIndex:=HashObjectList.List.List^[Index].StrIndex;
+  FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
+end;
+
+
+function TFPHashObject.GetName:shortstring;
+begin
+  FCachedStr:=PShortString(@FOwner.List.Strs[FStrIndex]);
+  Result:=FCachedStr^;
+end;
+
+
+{*****************************************************************************
+            TFPHashObjectList (Copied from rtl/objpas/classes/lists.inc)
+*****************************************************************************}
+
+constructor TFPHashObjectList.Create(FreeObjects : boolean = True);
+begin
+  inherited Create;
+  FHashList := TFPHashList.Create;
+  FFreeObjects := Freeobjects;
+end;
+
+destructor TFPHashObjectList.Destroy;
+begin
+  if (FHashList <> nil) then
+  begin
+    Clear;
+    FHashList.Destroy;
+  end;
+  inherited Destroy;
+end;
+
+procedure TFPHashObjectList.Clear;
+var
+  i: integer;
+begin
+  if FFreeObjects then
+    for i := 0 to FHashList.Count - 1 do
+      TObject(FHashList[i]).Free;
+  FHashList.Clear;
+end;
+
+function TFPHashObjectList.GetCount: integer;
+begin
+  Result := FHashList.Count;
+end;
+
+procedure TFPHashObjectList.SetCount(const AValue: integer);
+begin
+  if FHashList.Count <> AValue then
+    FHashList.Count := AValue;
+end;
+
+function TFPHashObjectList.GetItem(Index: Integer): TObject;
+begin
+  Result := TObject(FHashList[Index]);
+end;
+
+procedure TFPHashObjectList.SetCapacity(NewCapacity: Integer);
+begin
+  FHashList.Capacity := NewCapacity;
+end;
+
+function TFPHashObjectList.GetCapacity: integer;
+begin
+  Result := FHashList.Capacity;
+end;
+
+function TFPHashObjectList.Add(const AName:shortstring;AObject: TObject): Integer;
+begin
+  Result := FHashList.Add(AName,AObject);
+end;
+
+function TFPHashObjectList.NameOfIndex(Index: Integer): shortString;
+begin
+  Result := FHashList.NameOfIndex(Index);
+end;
+
+procedure TFPHashObjectList.Delete(Index: Integer);
+begin
+  if OwnsObjects then
+    TObject(FHashList[Index]).Free;
+  FHashList.Delete(Index);
+end;
+
+function TFPHashObjectList.Expand: TFPHashObjectList;
+begin
+  FHashList.Expand;
+  Result := Self;
+end;
+
+function TFPHashObjectList.Extract(Item: TObject): TObject;
+begin
+  Result := TObject(FHashList.Extract(Item));
+end;
+
+function TFPHashObjectList.Remove(AObject: TObject): Integer;
+begin
+  Result := IndexOf(AObject);
+  if (Result <> -1) then
+  begin
+    if OwnsObjects then
+      TObject(FHashList[Result]).Free;
+    FHashList.Delete(Result);
+  end;
+end;
+
+function TFPHashObjectList.IndexOf(AObject: TObject): Integer;
+begin
+  Result := FHashList.IndexOf(Pointer(AObject));
+end;
+
+
+function TFPHashObjectList.Find(const s:shortstring): TObject;
+begin
+  result:=TObject(FHashList.Find(s));
+end;
+
+
+function TFPHashObjectList.FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt : Integer): Integer;
+var
+  I : Integer;
+begin
+  I:=AStartAt;
+  Result:=-1;
+  If AExact then
+    while (I<Count) and (Result=-1) do
+      If Items[i].ClassType=AClass then
+        Result:=I
+      else
+        Inc(I)
+  else
+    while (I<Count) and (Result=-1) do
+      If Items[i].InheritsFrom(AClass) then
+        Result:=I
+      else
+        Inc(I);
+end;
+
+
+procedure TFPHashObjectList.Pack;
+begin
+  FHashList.Pack;
+end;
+
+
+procedure TFPHashObjectList.ShowStatistics;
+begin
+  FHashList.ShowStatistics;
+end;
+
+
+procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListCallback;arg:pointer);
+begin
+  FHashList.ForEachCall(TListCallBack(proc2call),arg);
+end;
+
+
+procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+begin
+  FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
+end;
+
 
 { ---------------------------------------------------------------------
     Hash support, by Dean Zobec
