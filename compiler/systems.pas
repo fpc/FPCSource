@@ -169,7 +169,7 @@ interface
        );
 
        tdbg = (dbg_none
-            ,dbg_stabs,dbg_dwarf
+            ,dbg_stabs,dbg_dwarf2,dbg_dwarf3
        );
 
        tscripttype = (script_none

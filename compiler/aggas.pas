@@ -230,7 +230,7 @@ implementation
         result := inherited MakeCmdLine;
         // MWE: disabled again. It generates dwarf info for the generated .s
         //      files as well. This conflicts with the info we generate
-        // if paratargetdbg = dbg_dwarf then
+        // if target_dbg.id = dbg_dwarf then
         //  result := result + ' --gdwarf-2';
       end;
 

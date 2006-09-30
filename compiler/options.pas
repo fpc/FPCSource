@@ -732,7 +732,9 @@ begin
                    IllegalPara(opt);
                end;
              end;
-       'g' : begin
+
+           'g' :
+             begin
                if UnsetBool(More, 0) then
                 begin
                   exclude(initmoduleswitches,cs_debuginfo);
@@ -760,7 +762,7 @@ begin
                        end;
                      'd' :
                        begin
-                         paratargetdbg:=dbg_dwarf;
+                         paratargetdbg:=dbg_dwarf2;
                        end;
                      'h' :
                        begin
@@ -796,7 +798,16 @@ begin
                        end;
                      'w' :
                        begin
-                         paratargetdbg:=dbg_dwarf;
+                         if (j<length(more)) and (more[j+1] in ['2','3']) then
+                           begin
+                             case more[j+1] of
+                               '2': paratargetdbg:=dbg_dwarf2;
+                               '3': paratargetdbg:=dbg_dwarf3;
+                             end;
+                             inc(j);
+                           end
+                         else
+                           paratargetdbg:=dbg_dwarf2;
                        end;
                      else
                        IllegalPara(opt);
