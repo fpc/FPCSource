@@ -516,10 +516,12 @@ implementation
     function reg_cgsize(const reg: tregister): tcgsize;
       begin
         case getregtype(reg) of
-          R_MMREGISTER,
-          R_FPUREGISTER,
           R_INTREGISTER :
             result:=OS_32;
+          R_MMREGISTER:
+            result:=OS_M128;
+          R_FPUREGISTER:
+            result:=OS_F64;
           else
             internalerror(200303181);
         end;
