@@ -19,13 +19,14 @@ unit asserttest;
 interface
 
 uses
-  fpcunit, testregistry;
+  fpcunit, testregistry, sysutils;
 
 type
 
   TAssertTest = class(TTestCase)
   published
     procedure TestFail;
+    procedure TestIgnore;
     procedure TestAssertSame;
     procedure TestAssertSameNull;
     procedure TestAssertNotSameFailsNull;
@@ -36,6 +37,18 @@ type
     procedure TestAssertTrue;
     procedure TestAssertFalse;
     procedure TestAssertNotSame;
+  end;
+
+  TMyTest = class(TTestCase)
+  published
+    procedure RaiseIgnoreTest;
+  end;
+
+  TTestIgnore = class(TTestCase)
+  published
+    procedure TestIgnoreResult;
+    procedure TestIgnoreActivation;
+    procedure TestIgnoreSetting;
   end;
 
 implementation
@@ -49,6 +62,17 @@ begin
       Exit;
   end;
   raise EAssertionFailedError.Create;
+end;
+
+procedure TAssertTest.TestIgnore;
+begin
+  try
+    Ignore('Ignored Test');
+  except
+    on E: EIgnoredTest do
+      Exit;
+  end;
+  fail('Wrong or no Exception raised with ignore');
 end;
 
 procedure TAssertTest.TestAssertSame;
@@ -209,8 +233,69 @@ begin
   Fail('Error: Objects are the same!');
 end;
 
+procedure TMyTest.RaiseIgnoreTest;
+begin
+  Ignore('This is an ignored test');
+  AssertEquals('the compiler can count', 3, 1+1); 
+end;
+
+procedure TTestIgnore.TestIgnoreResult;
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('RaiseIgnoreTest');
+  res := t.CreateResultAndRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('no Ignored Test present', 1, res.NumberOfIgnoredTests);
+  assertTrue('failure is not signalled as Ignored Test', TTestFailure(res.IgnoredTests[0]).IsIgnoredTest);
+  assertEquals('wrong failure name', 'EIgnoredTest', TTestFailure(res.IgnoredTests[0]).ExceptionClassName);
+  assertEquals('wrong message', 'This is an ignored test', TTestFailure(res.IgnoredTests[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
+procedure TTestIgnore.TestIgnoreActivation;
+var
+  t: TMyTest;
+  res: TTestResult;
+begin
+  t := TMyTest.CreateWithName('RaiseIgnoreTest');
+  t.EnableIgnores := false;
+  res := t.CreateResultandRun;
+  assertEquals('no test was run', 1, res.RunTests);
+  assertEquals('Ignored Test reported even if the switch is not active', 0, res.NumberOfIgnoredTests);
+  assertEquals('no failure caught', 1, res.NumberOfFailures);
+  assertFalse('failure is signalled as Ignored Test and the switch is not active', 
+    TTestFailure(res.Failures[0]).IsIgnoredTest);
+  assertEquals('wrong failure name', 'EAssertionFailedError', TTestFailure(res.Failures[0]).ExceptionClassName);
+  assertEquals('wrong message', 'the compiler can count expected: <3> but was: <2>', TTestFailure(res.Failures[0]).ExceptionMessage);
+  t.Free;
+  res.Free;
+end;
+
+procedure TTestIgnore.TestIgnoreSetting;
+var
+  ts: TTestSuite;
+  i: integer;
+begin
+  ts := TTestSuite.Create(TTestIgnore);
+  try
+    AssertTrue('EnableIgnores must be True at creation', ts.EnableIgnores);
+    for i := 0 to ts.Tests.Count - 1 do
+      AssertTrue('EnableIgnores of Test ' + IntToStr(i) + ' must be True at creation', TTest(ts.Tests[i]).EnableIgnores);
+    ts.EnableIgnores := False; 
+    AssertFalse('EnableIgnores was not set to false', ts.EnableIgnores);
+    for i := 0 to ts.Tests.Count - 1 do
+      AssertFalse('EnableIgnores of Test ' + IntToStr(i) + ' was not set to False', TTest(ts.Tests[i]).EnableIgnores);
+  finally
+    ts.Free;
+  end;
+end;
+
+
 initialization
 
-  RegisterTests([TAssertTest]);
+  RegisterTests([TAssertTest, TTestIgnore]);
 
 end.

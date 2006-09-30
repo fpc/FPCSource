@@ -47,6 +47,10 @@ type
     constructor Create(const msg :string); overload;
   end;
 
+
+  EIgnoredTest = class(EAssertionFailedError);
+
+
   TTestStep = (stSetUp, stRunTest, stTearDown, stNothing);
 
 
@@ -60,14 +64,18 @@ type
     FLastStep: TTestStep;
     function GetTestName: string; virtual;
     function GetTestSuiteName: string; virtual;
+    function GetEnableIgnores: boolean; virtual;
     procedure SetTestSuiteName(const aName: string); virtual; abstract;
+    procedure SetEnableIgnores(Value: boolean); virtual; abstract;
   public
     function CountTestCases: integer; virtual;
     procedure Run(AResult: TTestResult); virtual;
+    procedure Ignore(const AMessage: string);
   published
     property TestName: string read GetTestName;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     property LastStep: TTestStep read FLastStep;
+    property EnableIgnores: boolean read GetEnableIgnores write SetEnableIgnores;
   end;
   {$M-}
 
@@ -138,6 +146,7 @@ type
     function GetAsString: string;
     function GetExceptionMessage: string;
     function GetIsFailure: boolean;
+    function GetIsIgnoredTest: boolean;
     function GetExceptionClassName: string;
     procedure SetTestLastStep(const Value: TTestStep);
   public
@@ -146,6 +155,7 @@ type
   published
     property AsString: string read GetAsString;
     property IsFailure: boolean read GetIsFailure;
+    property IsIgnoredTest: boolean read GetIsIgnoredTest;
     property ExceptionMessage: string read GetExceptionMessage;
     property ExceptionClassName: string read GetExceptionClassName;
     property SourceUnitName: string read FSourceUnitName write FSourceUnitName;
@@ -166,6 +176,7 @@ type
   private
     FName: string;
     FTestSuiteName: string;
+    FEnableIgnores: boolean;
   protected
     function CreateResult: TTestResult; virtual;
     procedure SetUp; virtual;
@@ -173,8 +184,10 @@ type
     procedure RunTest; virtual;
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
+    function GetEnableIgnores: boolean; override;
     procedure SetTestSuiteName(const aName: string); override;
     procedure SetTestName(const Value: string); virtual;
+    procedure SetEnableIgnores(Value: boolean); override;
     procedure RunBare; virtual;
   public
     constructor Create; virtual;
@@ -196,12 +209,15 @@ type
     FTests: TFPList;
     FName: string;
     FTestSuiteName: string;
+    FEnableIgnores: boolean;
     function GetTest(Index: integer): TTest;
   protected
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
+    function GetEnableIgnores: boolean; override;
     procedure SetTestSuiteName(const aName: string); override;
     procedure SetTestName(const Value: string); virtual;
+    procedure SetEnableIgnores(Value: boolean); override;
   public
     constructor Create(AClass: TClass; AName: string); reintroduce; overload; virtual;
     constructor Create(AClass: TClass); reintroduce; overload; virtual;
@@ -229,20 +245,21 @@ type
   protected
     FRunTests: integer;
     FFailures: TFPList;
+    FIgnoredTests: TFPList;
     FErrors: TFPList;
     FListeners: TFPList;
     FSkippedTests: TFPList;
     FStartingTime: TDateTime;
     function GetNumErrors: integer;
     function GetNumFailures: integer;
+    function GetNumIgnoredTests: integer;
     function GetNumSkipped: integer;
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    property Listeners: TFPList read FListeners;
     procedure ClearErrorLists;
     procedure StartTest(ATest: TTest);
-    procedure AddFailure(ATest: TTest; E: EAssertionFailedError);
+    procedure AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
     procedure AddError(ATest: TTest; E: Exception; AUnitName: string;
       AFailedMethodName: string; ALineNumber: longint);
     procedure EndTest(ATest: TTest);
@@ -255,17 +272,21 @@ type
     procedure AddToSkipList(ATestCase: TTestCase);
     procedure RemoveFromSkipList(ATestCase: TTestCase);
   published
+    property Listeners: TFPList read FListeners;
     property Failures: TFPList read FFailures;
+    property IgnoredTests: TFPList read FIgnoredTests;
     property Errors: TFPList read FErrors;
     property RunTests: integer read FRunTests;
     property NumberOfErrors: integer read GetNumErrors;
     property NumberOfFailures: integer read GetNumFailures;
+    property NumberOfIgnoredTests: integer read GetNumIgnoredTests;
     property NumberOfSkippedTests: integer read GetNumSkipped;
     property StartingTime: TDateTime read FStartingTime;
   end;
 
   function ComparisonMsg(const aExpected: string; const aActual: string): string;
 
+  
 Resourcestring
 
   SCompare = ' expected: <%s> but was: <%s>';
@@ -366,6 +387,10 @@ begin
   Result := FRaisedExceptionClass.InheritsFrom(EAssertionFailedError);
 end;
 
+function TTestFailure.GetIsIgnoredTest: boolean;
+begin
+  Result := FRaisedExceptionClass.InheritsFrom(EIgnoredTest);
+end;
 
 procedure TTestFailure.SetTestLastStep(const Value: TTestStep);
 begin
@@ -392,12 +417,20 @@ begin
   Result := 0;
 end;
 
+function TTest.GetEnableIgnores: boolean;
+begin
+  Result := True;
+end;
 
 procedure TTest.Run(AResult: TTestResult);
 begin
   { do nothing }
 end;
 
+procedure TTest.Ignore(const AMessage: String);
+begin
+  if EnableIgnores then raise EIgnoredTest.Create(AMessage);
+end;
 
 { TAssert }
 
@@ -702,6 +735,7 @@ end;
 constructor TTestCase.Create;
 begin
   inherited Create;
+  FEnableIgnores := True;
 end;
 
 
@@ -744,6 +778,12 @@ begin
 end;
 
 
+function TTestCase.GetEnableIgnores: boolean;
+begin
+  Result := FEnableIgnores;
+end;
+
+
 function TTestCase.GetTestSuiteName: string;
 begin
   Result := FTestSuiteName;
@@ -760,6 +800,12 @@ end;
 procedure TTestCase.SetTestName(const Value: string);
 begin
   FName := Value;
+end;
+
+
+procedure TTestCase.SetEnableIgnores(Value: boolean);
+begin
+  FEnableIgnores := Value;
 end;
 
 
@@ -797,7 +843,7 @@ var
   RunMethod: TRunMethod;
   pMethod : Pointer;
 begin
-  AssertNotNull(FName);
+  AssertNotNull('name of the test not assigned', FName);
   pMethod := Self.MethodAddress(FName);
   if (Assigned(pMethod)) then
   begin
@@ -882,6 +928,7 @@ constructor TTestSuite.Create;
 begin
   inherited Create;
   FTests := TFPList.Create;
+  FEnableIgnores := True;
 end;
 
 
@@ -911,6 +958,12 @@ begin
 end;
 
 
+function TTestSuite.GetEnableIgnores: boolean;
+begin
+  Result := FEnableIgnores;
+end;
+
+
 procedure TTestSuite.SetTestName(const Value: string);
 begin
   FName := Value;
@@ -923,6 +976,18 @@ begin
     FTestSuiteName := aName;
 end;
 
+
+procedure TTestSuite.SetEnableIgnores(Value: boolean);
+var
+  i: integer;
+begin
+  if FEnableIgnores <> Value then
+  begin
+    FEnableIgnores := Value;
+    for i := 0 to FTests.Count - 1 do
+      TTest(FTests[i]).EnableIgnores := Value;
+  end
+end;
 
 function TTestSuite.CountTestCases: integer;
 var
@@ -979,6 +1044,7 @@ constructor TTestResult.Create;
 begin
   inherited Create;
   FFailures       := TFPList.Create;
+  FIgnoredTests   := TFPList.Create;
   FErrors         := TFPList.Create;
   FListeners      := TFPList.Create;
   FSkippedTests   := TFPList.Create;
@@ -990,6 +1056,8 @@ destructor TTestResult.Destroy;
 begin
   FreeObjects(FFailures);
   FFailures.Free;
+  FreeObjects(FIgnoredTests);
+  FIgnoredTests.Free;
   FreeObjects(FErrors);
   FErrors.Free;
   FListeners.Free;
@@ -1001,6 +1069,8 @@ procedure TTestResult.ClearErrorLists;
 begin
   FreeObjects(FFailures);
   FFailures.Clear;
+  FreeObjects(FIgnoredTests);
+  FIgnoredTests.Clear;
   FreeObjects(FErrors);
   FErrors.Clear;
 end;
@@ -1017,6 +1087,10 @@ begin
   Result := FFailures.Count;
 end;
 
+function TTestResult.GetNumIgnoredTests: integer;
+begin
+  Result := FIgnoredTests.Count;
+end;
 
 function TTestResult.GetNumSkipped: integer;
 begin
@@ -1036,14 +1110,14 @@ begin
 end;
 
 
-procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError);
+procedure TTestResult.AddFailure(ATest: TTest; E: EAssertionFailedError; aFailureList: TFPList);
 var
   i: integer;
   f: TTestFailure;
 begin
   //lock mutex
   f := TTestFailure.CreateFailure(ATest, E, ATest.LastStep);
-  FFailures.Add(f);
+  aFailureList.Add(f);
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).AddFailure(ATest, f);
   //unlock mutex
@@ -1105,8 +1179,10 @@ begin
   try
     protect(ATestCase, Self);
   except
+    on E: EIgnoredTest do
+      AddFailure(ATestCase, E, FIgnoredTests);
     on E: EAssertionFailedError do
-      AddFailure(ATestCase, E);
+      AddFailure(ATestCase, E, FFailures);
     on E: Exception do
       begin
       {$ifdef SHOWLINEINFO}

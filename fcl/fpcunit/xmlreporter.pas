@@ -51,6 +51,7 @@ type
     FResults: TDOMNode;
     FListing: TDOMNode;
     FFailures: TDOMNode;
+    FIgnores: TDOMNode;
     FErrors: TDOMNode;
     FStartCrono: TDateTime;
     { Converts the actual test results into XML nodes. This gets called
@@ -81,11 +82,10 @@ implementation
 
 procedure TXMLResultsWriter.TestResultAsXML(pTestResult: TTestResult);
 var
-  i: longint;
   n, lResults: TDOMNode;
 begin
   lResults := FDoc.FindNode('TestResults');
-  n := FDoc.CreateElement('NumberOfRunnedTests');
+  n := FDoc.CreateElement('NumberOfRunTests');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.RunTests)));
   lResults.AppendChild(n);
 
@@ -95,6 +95,10 @@ begin
 
   n := FDoc.CreateElement('NumberOfFailures');
   n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfFailures)));
+  lResults.AppendChild(n);
+  
+  n := FDoc.CreateElement('NumberOfIgnoredTests');
+  n.AppendChild(FDoc.CreateTextNode(IntToStr(pTestResult.NumberOfIgnoredTests)));
   lResults.AppendChild(n);
 
   n := FDoc.CreateElement('TotalElapsedTime');
@@ -124,6 +128,7 @@ begin
   FDoc        := TXMLDocument.Create;
   FResults    := nil;
   FFailures   := nil;
+  FIgnores    := nil;
   FErrors     := nil;
   FListing    := nil;
   WriteHeader;
@@ -144,24 +149,41 @@ end;
 
 
 procedure TXMLResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
-var
-  n: TDOMElement;
-begin
-  { Try and find the node first }
-  if not Assigned(FFailures) then
-    FFailures := FDoc.FindNode('ListOfFailures');
-  { If we couldn't find it, create it }
-  if not Assigned(FFailures) then
+  procedure GenerateNode(aNode: TDOMNode);
+  var
+    n: TDOMElement;
+    s: string;
   begin
-    FFailures := FDoc.CreateElement('ListOfFailures');
-    FResults.AppendChild(FFailures);
+    if AFailure.IsIgnoredTest then 
+      s := 'ListOfIgnoredTests'
+    else
+      s := 'ListOfFailures';
+    { Try and find the node first }
+    if not Assigned(aNode) then
+      aNode := FDoc.FindNode(s);
+    { If we couldn't find it, create it }
+    if not Assigned(aNode) then
+    begin
+      aNode := FDoc.CreateElement(s);
+      FResults.AppendChild(aNode);
+    end;
+
+    if AFailure.IsIgnoredTest then 
+      s := 'IgnoredTest'
+    else
+      s := 'Failure';
+    n := FDoc.CreateElement(s);
+    n.AppendChild(FDoc.CreateElement('Message')         ).AppendChild(FDoc.CreateTextNode(AFailure.AsString));
+    n.AppendChild(FDoc.CreateElement('ExceptionClass')  ).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionClassName));
+    n.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionMessage));
+    aNode.AppendChild(n);
   end;
-  
-  n := FDoc.CreateElement('Failure');
-  n.AppendChild(FDoc.CreateElement('Message')         ).AppendChild(FDoc.CreateTextNode(AFailure.AsString));
-  n.AppendChild(FDoc.CreateElement('ExceptionClass')  ).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionClassName));
-  n.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionMessage));
-  FFailures.AppendChild(n);
+
+begin
+  if AFailure.IsIgnoredTest then
+    GenerateNode(FIgnores)
+  else
+    GenerateNode(FFailures);
 end;
 
 

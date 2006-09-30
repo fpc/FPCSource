@@ -46,6 +46,7 @@ begin
   FSuite := TTestSuite.Create;
   FSuite.TestName := 'Framework test';
   FSuite.AddTestSuiteFromClass(TAssertTest);
+  FSuite.AddTestSuiteFromClass(TTestIgnore);
   FSuite.AddTest(TSuiteTest.Suite());
 end;
 
