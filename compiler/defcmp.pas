@@ -37,7 +37,7 @@ interface
        tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant);
+       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter);
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (tc_none,
@@ -675,7 +675,8 @@ implementation
                                end
                             else
                              { array -> open array }
-                             if equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                             if not(cdo_parameter in cdoptions) and
+                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
                                eq:=te_equal;
                           end
                         else
@@ -708,7 +709,8 @@ implementation
                          { other arrays }
                           begin
                             { open array -> array }
-                            if is_open_array(def_from) and
+                            if not(cdo_parameter in cdoptions) and
+                               is_open_array(def_from) and
                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
                               begin
                                 eq:=te_equal
@@ -1376,7 +1378,7 @@ implementation
         i1,i2     : byte;
       begin
          compare_paras:=te_incompatible;
-         cdoptions:=[cdo_check_operator,cdo_allow_variant];
+         cdoptions:=[cdo_parameter,cdo_check_operator,cdo_allow_variant];
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
