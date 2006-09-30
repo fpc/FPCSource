@@ -674,6 +674,11 @@ implementation
                                  eq:=te_convert_l2;
                                end
                             else
+                             { open array -> open array }
+                             if is_open_array(def_from) and
+                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                               eq:=te_equal
+                            else
                              { array -> open array }
                              if not(cdo_parameter in cdoptions) and
                                 equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
