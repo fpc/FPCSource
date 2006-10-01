@@ -569,7 +569,7 @@ Implementation
 {$endif}
              Replace(result,'$ASM',maybequoted(AsmFileName));
            Replace(result,'$OBJ',maybequoted(ObjFileName));
-         end; 
+         end;
       end;
 
 
@@ -885,9 +885,7 @@ Implementation
                 relocsym:=nil;
               end;
             if assigned(relocsym) and
-               (relocsym.bind=AB_GLOBAL) and
-               (nidx=N_Function) and
-               (tf_use_function_relative_addresses in target_info.flags) then
+               (relocsym.bind<>AB_LOCAL) then
               ofs:=0;
             ObjData.writestab(ofs,relocsym,byte(nidx),byte(nother),word(nline),pstr);
           end;
