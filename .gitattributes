@@ -5145,6 +5145,7 @@ tests/bench/shootout/src/strcat.pp svneol=native#text/plain
 tests/bench/shootout/src/sumcol.pp svneol=native#text/plain
 tests/bench/shootout/src/takfp.pp svneol=native#text/plain
 tests/bench/shootout/src/wc.pp svneol=native#text/plain
+tests/bench/shortbench.pp svneol=native#text/plain
 tests/bench/timer.pas svneol=native#text/plain
 tests/bench/whet.pas svneol=native#text/plain
 tests/dbdigest.cfg.example -text

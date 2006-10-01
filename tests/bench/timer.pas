@@ -3,17 +3,21 @@ unit timer;
   interface
 
     uses
-       sysutils;
+       SysUtils;
 
+    var
+       verbosetimer : boolean = true;
+       
     procedure start;
     procedure stop;
+    function MSec:cardinal;
 
   implementation
 
     var
-       stime : longint;
+       stime,etime : cardinal;
 
-    function gt : longint;
+    function gt : cardinal;
 
       var
          h,m,s,s1000 : word;
@@ -36,11 +40,18 @@ unit timer;
     procedure stop;
 
       var
-         s : longint;
+         s : cardinal;
 
       begin
-         s:=gt-stime;
-         write(s div 1000,'.',s mod 1000,' Sekunden');
+         etime:=gt;
+         s:=etime-stime;
+	 if verbosetimer then
+           write(s div 1000,'.',s mod 1000,' Seconds');
      end;
 
+    function MSec:cardinal;
+      begin
+        Msec:=etime-stime;
+      end;
+      
 end.
